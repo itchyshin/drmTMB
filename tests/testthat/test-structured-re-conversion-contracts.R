@@ -3030,6 +3030,212 @@ test_that("sigma-slope coverage pregrid dry-run remains not executed", {
   )
 })
 
+test_that("sigma-slope coverage dispatch review remains not submitted", {
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-sigma-slope-coverage-dispatch-review.tsv"
+  )
+  pregrid <- structured_re_read_dashboard_tsv(
+    "structured-re-sigma-slope-coverage-pregrid-dry-run.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  cell_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-24-sigma-slope-coverage-pregrid-dry-run",
+      "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  target_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-sigma-slope-coverage-dispatch-review",
+      "structured-re-sigma-slope-coverage-dispatch-target-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    dispatch,
+    c(
+      "dispatch_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "direct_sd_target",
+      "profile_target",
+      "source_pregrid",
+      "source_seed_manifest",
+      "source_cell_manifest",
+      "target_manifest",
+      "planned_runner",
+      "planned_backends",
+      "planned_shard",
+      "provider_rotation_index",
+      "target_index",
+      "planned_replicates",
+      "planned_cells",
+      "seed_start",
+      "seed_end",
+      "interval_methods",
+      "retention_policy",
+      "scheduler_status",
+      "compute_status",
+      "denominator_status",
+      "mcse_threshold_status",
+      "coverage_evaluable",
+      "coverage_status",
+      "interval_claim_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(target_manifest, dispatch)
+  expect_equal(nrow(dispatch), 7L)
+  expect_equal(dispatch$provider_rotation_index, seq_len(7L))
+  expect_equal(dispatch$planned_replicates, rep(150L, 7L))
+  expect_equal(dispatch$planned_cells, rep(150L, 7L))
+  expect_equal(dispatch$seed_start, rep(740001L, 7L))
+  expect_equal(dispatch$seed_end, rep(740150L, 7L))
+  expect_equal(
+    dispatch$interval_methods,
+    rep("wald;endpoint_profile;bootstrap", 7L)
+  )
+  expect_equal(
+    dispatch$planned_backends,
+    rep("totoro_cpu_worker;drac_slurm_array", 7L)
+  )
+  structured_re_expect_all_match(
+    dispatch$planned_runner,
+    "planned; not executed"
+  )
+  expect_equal(
+    dispatch$scheduler_status,
+    rep("dry_run_not_submitted", 7L)
+  )
+  expect_equal(dispatch$compute_status, rep("not_executed", 7L))
+  expect_equal(
+    dispatch$denominator_status,
+    rep("dispatch_review_only", 7L)
+  )
+  expect_equal(
+    dispatch$mcse_threshold_status,
+    rep("not_met_by_sr150", 7L)
+  )
+  expect_equal(dispatch$coverage_evaluable, rep(FALSE, 7L))
+  expect_equal(dispatch$coverage_status, rep("not_evaluated", 7L))
+  expect_equal(dispatch$interval_claim_status, rep("diagnostic_only", 7L))
+  expect_equal(dispatch$status, rep("covered", 7L))
+  expect_false(any(
+    dispatch$structured_type == "animal" &
+      dispatch$endpoint_member == "sigma:x"
+  ))
+
+  target_key <- paste(dispatch$structured_type, dispatch$endpoint_member)
+  cell_key <- paste(
+    cell_manifest$structured_type,
+    cell_manifest$endpoint_member
+  )
+  expect_equal(
+    sort(as.integer(table(cell_key[cell_key %in% target_key]))),
+    rep(150L, 7L)
+  )
+  expect_setequal(
+    paste(
+      pregrid$structured_type[pregrid$denominator_role == "pregrid_target"],
+      pregrid$endpoint_member[pregrid$denominator_role == "pregrid_target"]
+    ),
+    target_key
+  )
+
+  structured_re_expect_all_match(
+    dispatch$retention_policy,
+    "retain_failed_profiles"
+  )
+  structured_re_expect_all_match(
+    dispatch$retention_policy,
+    "record_bootstrap_refit_attempts"
+  )
+  structured_re_expect_all_match(
+    dispatch$retention_policy,
+    "retain_scheduler_exit_status"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "coverage dispatch review only"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no submitted Totoro job"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no submitted DRAC job"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no executed pre-grid cells"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no coverage-evaluable denominator evidence"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no calibrated coverage"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(dispatch$claim_boundary, "no matched mu+sigma")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no q4/q8")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no REML")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no AI-REML")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no broad bridge")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no public support")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no DRAC execution")
+  structured_re_expect_all_match(dispatch$claim_boundary, "no SR150 readiness")
+  structured_re_expect_all_match(dispatch$next_gate, "Totoro")
+  structured_re_expect_all_match(dispatch$next_gate, "DRAC")
+  structured_re_expect_all_match(dispatch$next_gate, "one provider shard")
+  structured_re_expect_all_match(dispatch$next_gate, "fit errors")
+  structured_re_expect_all_match(dispatch$next_gate, "nonconvergence")
+  structured_re_expect_all_match(dispatch$next_gate, "pdHess false")
+  structured_re_expect_all_match(dispatch$next_gate, "scheduler exit status")
+  structured_re_expect_all_match(dispatch$next_gate, "denominator accounting")
+  structured_re_expect_all_match(dispatch$next_gate, "coverage wording")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% dispatch$cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 4L)
+  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$denominator_policy,
+    rep("fixture_not_coverage", 4L)
+  )
+})
+
 test_that("matched mu+sigma one-slope readiness records native point fits only", {
   readiness <- structured_re_read_dashboard_tsv(
     "structured-re-mu-sigma-slope-readiness.tsv"

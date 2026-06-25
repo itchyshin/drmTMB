@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: sigma slope coverage dispatch review
+
+Goal:
+
+- Add a dispatch-review gate for the sigma-only one-slope coverage pre-grid so
+  later Totoro or DRAC execution has a locked target manifest, seed range,
+  provider-shard map, and denominator-retention contract before any jobs are
+  submitted.
+
+Result:
+
+- Added `tools/plan-structured-re-sigma-slope-coverage-dispatch-review.R`, a
+  rerunnable generator that reads the existing sigma-slope coverage pre-grid
+  dry-run and the q-series support-cell registry.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-coverage-dispatch-review.tsv`
+  with seven eligible dispatch-review rows. Animal `sigma:x` remains excluded
+  because it is the visible holdout from the first endpoint-profile smoke.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-25-sigma-slope-coverage-dispatch-review/structured-re-sigma-slope-coverage-dispatch-target-manifest.tsv`
+  with the same seven not-executed target rows.
+- Wired the new sidecar and manifest into
+  `tools/validate-mission-control.py`, including schema, target, status,
+  source-path, seed-range, and claim-boundary checks.
+- Added dashboard contract coverage in
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/design/218-structured-q-series-completion-map.md`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-25-sigma-slope-coverage-dispatch-review.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/plan-structured-re-sigma-slope-coverage-dispatch-review.R`
+  wrote seven dispatch-review rows and seven target-manifest rows.
+- `air format tools/plan-structured-re-sigma-slope-coverage-dispatch-review.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported seven
+  structured RE sigma-slope coverage-dispatch review rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,322 assertions.
+- `git diff --check` passed.
+- `Rscript --vanilla -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-sigma-slope-coverage-dispatch-review.md')"`
+  passed.
+- `gh issue list --repo itchyshin/drmTMB --search "sigma slope coverage dispatch q-series" --limit 20 --json number,title,state,url,labels`
+  returned no matching issues.
+- `rg -n "sigma.*coverage.*(supported|inference-ready|coverage-ready|coverage accepted|coverage_evaluable = TRUE)|qseries_.*sigma_one_slope.*(interval_feasible|inference_ready|supported)|SR150.*(ready|accepted)|DRAC execution.*(complete|submitted)|Totoro.*(submitted|complete)" README.md ROADMAP.md NEWS.md docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md docs/dev-log/dashboard/structured-re-sigma-slope-coverage-dispatch-review.tsv docs/dev-log/dashboard/structured-re-sigma-slope-coverage-pregrid-dry-run.tsv docs/dev-log/check-log.md`
+  found only conservative not-submitted, not-executed, or boundary language.
+
+Boundary:
+
+- No Totoro or DRAC jobs were submitted. This is dispatch-review evidence only:
+  no executed pre-grid cells, no coverage-evaluable denominator evidence, no
+  calibrated coverage, no interval reliability, no matched `mu+sigma` support,
+  no q4/q8 support, no REML, no AI-REML, no broad bridge support, no public
+  support, no public optimizer controls, and no SR150 readiness are promoted.
+
 ## 2026-06-24: q4 location one-slope interval diagnostic plan
 
 Goal:

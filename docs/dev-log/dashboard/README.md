@@ -824,6 +824,13 @@ targets, while excluding animal `sigma:x` from the executable cell manifest.
 The nominal MCSE at 150 replicates is 0.017795, so SR150 remains insufficient
 for coverage wording and coverage remains `not_evaluated`.
 
+`structured-re-sigma-slope-coverage-dispatch-review.tsv` records the next
+dispatch-review gate for that dry-run manifest. It carries the seven eligible
+targets forward to a Totoro/DRAC review manifest, records provider shards and
+the 740001-740150 seed range, and adds scheduler-exit retention. No jobs were
+submitted, animal `sigma:x` remains excluded, and the linked support cells keep
+planned interval and coverage status.
+
 `structured-re-q-series-support-cells.tsv` now also records the first
 bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` covariance cells:
 matching `phylo(0 + x | p | species, tree = tree)`,

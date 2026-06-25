@@ -228,6 +228,13 @@ target-replicate cells for the seven eligible targets. SR150 is explicitly not
 enough for the 0.01 MCSE threshold, so this dry-run does not create coverage
 evidence or coverage wording.
 
+`structured-re-sigma-slope-coverage-dispatch-review.tsv` records the
+compute-dispatch review for that same dry-run. It keeps the seven eligible
+targets, excludes the animal `sigma:x` holdout, names provider shards for
+Totoro or reviewed DRAC execution, and adds scheduler-exit retention. The rows
+remain `not_executed` and `coverage_evaluable = FALSE`; they do not move the
+support cells beyond planned interval and coverage status.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the

@@ -102,6 +102,9 @@ STRUCTURED_RE_SIGMA_SLOPE_REPLICATED_DENOMINATOR_RULE = (
 STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
     DASHBOARD / "structured-re-sigma-slope-coverage-pregrid-dry-run.tsv"
 )
+STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW = (
+    DASHBOARD / "structured-re-sigma-slope-coverage-dispatch-review.tsv"
+)
 STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -389,6 +392,14 @@ SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST = (
     / "simulation-artifacts"
     / "2026-06-24-sigma-slope-coverage-pregrid-dry-run"
     / "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv"
+)
+SIGMA_SLOPE_COVERAGE_DISPATCH_TARGET_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-sigma-slope-coverage-dispatch-review"
+    / "structured-re-sigma-slope-coverage-dispatch-target-manifest.tsv"
 )
 Q4_DERIVED_CORRELATION_DELTA_GRID_ADEMP_DRY_RUN = (
     ROOT
@@ -1465,6 +1476,42 @@ STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS = (
     "interval_methods",
     "retention_policy",
     "execution_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW_FIELDS = (
+    "dispatch_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_pregrid",
+    "source_seed_manifest",
+    "source_cell_manifest",
+    "target_manifest",
+    "planned_runner",
+    "planned_backends",
+    "planned_shard",
+    "provider_rotation_index",
+    "target_index",
+    "planned_replicates",
+    "planned_cells",
+    "seed_start",
+    "seed_end",
+    "interval_methods",
+    "retention_policy",
+    "scheduler_status",
+    "compute_status",
+    "denominator_status",
+    "mcse_threshold_status",
     "coverage_evaluable",
     "coverage_status",
     "interval_claim_status",
@@ -4597,6 +4644,9 @@ def main() -> int:
     structured_re_sigma_slope_coverage_pregrid_dry_run_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN
     )
+    structured_re_sigma_slope_coverage_dispatch_review_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW
+    )
     q2_slope_coverage_pregrid_seed_manifest_rows = read_tsv(
         Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST
     )
@@ -4608,6 +4658,9 @@ def main() -> int:
     )
     sigma_slope_coverage_pregrid_cell_manifest_rows = read_tsv(
         SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST
+    )
+    sigma_slope_coverage_dispatch_target_manifest_rows = read_tsv(
+        SIGMA_SLOPE_COVERAGE_DISPATCH_TARGET_MANIFEST
     )
     structured_re_mu_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -7690,6 +7743,241 @@ def main() -> int:
                 for provider, endpoint_member in missing_sigma_coverage_pregrid_targets
             )
         )
+
+    expected_sigma_dispatch_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-sigma-slope-coverage-dispatch-review/"
+        "structured-re-sigma-slope-coverage-dispatch-target-manifest.tsv"
+    )
+    sigma_dispatch_provider_shards = {
+        "phylo": "provider_shard_01_phylo",
+        "spatial": "provider_shard_02_spatial",
+        "animal": "provider_shard_03_animal",
+        "relmat": "provider_shard_04_relmat",
+    }
+    sigma_dispatch_endpoint_order = {
+        "sigma:(Intercept)": "1",
+        "sigma:x": "2",
+    }
+
+    def sigma_dispatch_token(member: str) -> str:
+        return (
+            member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("_Intercept", "_intercept")
+            .lower()
+        )
+
+    if (
+        sigma_slope_coverage_dispatch_target_manifest_rows
+        != structured_re_sigma_slope_coverage_dispatch_review_rows
+    ):
+        errors.append(
+            "structured-re-sigma-slope-coverage-dispatch-target-manifest.tsv "
+            "must match structured-re-sigma-slope-coverage-dispatch-review.tsv"
+        )
+    if (
+        len(structured_re_sigma_slope_coverage_dispatch_review_rows)
+        != len(expected_sigma_pregrid_cells)
+    ):
+        errors.append(
+            "structured-re-sigma-slope-coverage-dispatch-review.tsv has "
+            f"{len(structured_re_sigma_slope_coverage_dispatch_review_rows)} rows; "
+            f"expected {len(expected_sigma_pregrid_cells)}"
+        )
+    seen_sigma_dispatch_targets: set[tuple[str, str]] = set()
+    for row in structured_re_sigma_slope_coverage_dispatch_review_rows:
+        row_id = row.get("dispatch_id", "<structured RE sigma slope dispatch review>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-coverage-dispatch-review.tsv "
+                "fields do not match the dispatch-review contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider, endpoint_member)
+        if target_key not in expected_sigma_pregrid_cells:
+            errors.append(f"{row_id}: unexpected or held-out dispatch target {target_key!r}")
+            continue
+        if target_key in seen_sigma_dispatch_targets:
+            errors.append(f"duplicate sigma slope coverage dispatch target: {target_key!r}")
+        seen_sigma_dispatch_targets.add(target_key)
+        expected_id = (
+            "sigma_slope_coverage_dispatch_"
+            f"{provider}_{sigma_dispatch_token(endpoint_member)}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: dispatch_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if row.get("formula_cell") != qseries_row.get("formula_cell"):
+                errors.append(f"{row_id}: formula_cell must match q-series row")
+            for field, expected_value in {
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        expected_profile = expected_sigma_interval_profiles[provider][endpoint_member]
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_paths = {
+            "source_pregrid": (
+                "docs/dev-log/dashboard/"
+                "structured-re-sigma-slope-coverage-pregrid-dry-run.tsv"
+            ),
+            "source_seed_manifest": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-24-sigma-slope-coverage-pregrid-dry-run/"
+                "structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv"
+            ),
+            "source_cell_manifest": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-24-sigma-slope-coverage-pregrid-dry-run/"
+                "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv"
+            ),
+            "target_manifest": expected_sigma_dispatch_manifest,
+        }
+        for field, expected_value in expected_paths.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} path changed")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        if "planned; not executed" not in row.get("planned_runner", ""):
+            errors.append(f"{row_id}: planned_runner must stay explicitly unexecuted")
+        if row.get("planned_backends") != "totoro_cpu_worker;drac_slurm_array":
+            errors.append(f"{row_id}: planned_backends changed")
+        if row.get("planned_shard") != sigma_dispatch_provider_shards[provider]:
+            errors.append(f"{row_id}: planned_shard does not match provider")
+        try:
+            provider_rotation_index = int(row.get("provider_rotation_index", ""))
+            if provider_rotation_index < 1 or provider_rotation_index > 7:
+                errors.append(f"{row_id}: provider_rotation_index must be 1..7")
+        except ValueError:
+            errors.append(f"{row_id}: provider_rotation_index must be an integer")
+        if row.get("target_index") != sigma_dispatch_endpoint_order[endpoint_member]:
+            errors.append(f"{row_id}: target_index does not match endpoint order")
+        target_cells = [
+            cell
+            for cell in sigma_slope_coverage_pregrid_cell_manifest_rows
+            if cell.get("structured_type") == provider
+            and cell.get("endpoint_member") == endpoint_member
+        ]
+        target_seeds = sorted(int(cell.get("seed", "0")) for cell in target_cells)
+        if len(target_cells) != 150:
+            errors.append(f"{row_id}: dispatch target must link to 150 pregrid cells")
+        if target_seeds and (str(target_seeds[0]) != row.get("seed_start")):
+            errors.append(f"{row_id}: seed_start must match linked pregrid cells")
+        if target_seeds and (str(target_seeds[-1]) != row.get("seed_end")):
+            errors.append(f"{row_id}: seed_end must match linked pregrid cells")
+        expected_common = {
+            "planned_replicates": "150",
+            "planned_cells": "150",
+            "seed_start": "740001",
+            "seed_end": "740150",
+            "interval_methods": "wald;endpoint_profile;bootstrap",
+            "retention_policy": (
+                "retain_failed_profiles;retain_nonconverged_fits;"
+                "retain_nonfinite_intervals;record_bootstrap_refit_attempts;"
+                "retain_scheduler_exit_status"
+            ),
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "denominator_status": "dispatch_review_only",
+            "mcse_threshold_status": "not_met_by_sr150",
+            "coverage_evaluable": "FALSE",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+            "evidence_url": (
+                "docs/dev-log/after-task/"
+                "2026-06-25-sigma-slope-coverage-dispatch-review.md"
+            ),
+        }
+        for field, expected_value in expected_common.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "coverage dispatch review only",
+            "no submitted Totoro job",
+            "no submitted DRAC job",
+            "no executed pre-grid cells",
+            "no coverage-evaluable denominator evidence",
+            "no calibrated coverage",
+            "no interval reliability",
+            "no matched mu+sigma support",
+            "no q4/q8 support",
+            "no REML",
+            "no AI-REML",
+            "no broad bridge support",
+            "no public support",
+            "no DRAC execution",
+            "no SR150 readiness",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "Totoro",
+            "DRAC",
+            "one provider shard",
+            "fit errors",
+            "nonconvergence",
+            "pdHess false",
+            "scheduler exit status",
+            "denominator accounting",
+            "coverage wording",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_sigma_dispatch_targets = sorted(
+        expected_sigma_pregrid_cells - seen_sigma_dispatch_targets
+    )
+    if missing_sigma_dispatch_targets:
+        errors.append(
+            "structured-re-sigma-slope-coverage-dispatch-review.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_dispatch_targets
+            )
+        )
+    for target in expected_sigma_replicated_holdout:
+        if target in seen_sigma_dispatch_targets:
+            errors.append(
+                "structured-re-sigma-slope-coverage-dispatch-review.tsv must not include "
+                f"held-out target {target[0]}/{target[1]}"
+            )
 
     expected_q2_slope_cells = {
         "phylo": {
@@ -21868,6 +22156,7 @@ def main() -> int:
         f", {len(structured_re_q2_slope_coverage_pregrid_dry_run_rows)} structured RE q2 slope coverage-pregrid dry-run rows"
         f", {len(structured_re_sigma_slope_replicated_denominator_rule_rows)} structured RE sigma-slope replicated-denominator rule rows"
         f", {len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} structured RE sigma-slope coverage-pregrid dry-run rows"
+        f", {len(structured_re_sigma_slope_coverage_dispatch_review_rows)} structured RE sigma-slope coverage-dispatch review rows"
         f", {len(structured_re_mu_sigma_slope_interval_diagnostic_plan_rows)} structured RE mu+sigma slope interval-diagnostic plan rows"
         f", {len(structured_re_mu_sigma_slope_interval_diagnostic_status_rows)} structured RE mu+sigma slope interval-diagnostic status rows"
         f", {len(structured_re_mu_sigma_slope_interval_stability_probe_rows)} structured RE mu+sigma slope interval-stability probe rows"
