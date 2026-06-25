@@ -1011,6 +1011,21 @@ coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad
 bridge support, public support, range-estimating spatial support,
 pedigree/Ainv animal bridge marshalling, or relmat Q bridge marshalling.
 
+`structured-re-q4-intercept-interval-diagnostic-status.tsv` records the first
+direct-SD interval smoke for those exact all-four intercept q4 cells. It links
+to
+`docs/dev-log/simulation-artifacts/2026-06-25-q4-intercept-interval-smoke/structured-re-q4-intercept-interval-smoke-results.tsv`
+and covers only the 16 direct-SD rows from the plan. The phylo,
+fixed-covariance spatial, and K-matrix relmat fits converged but returned
+`pdHess = FALSE`, so their Wald/profile/bootstrap rows are recorded as
+`not_run_pdhess_false`. The A-matrix animal fit returned `pdHess = TRUE` with
+finite Wald/profile direct-SD intervals and nonfinite bootstrap rows. This is
+diagnostic-only evidence: derived-correlation interval reconstruction,
+denominator admission, interval reliability, interval coverage, q4 REML,
+native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge support, public
+support, range-estimating spatial support, pedigree/Ainv animal bridge
+marshalling, and relmat Q bridge marshalling remain unpromoted.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four bivariate Gaussian one-slope cells. Each provider row
 names the eight endpoint members, the matching eight direct-SD targets, and the

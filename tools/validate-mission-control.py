@@ -141,6 +141,9 @@ STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE = (
 STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-q4-intercept-interval-diagnostic-plan.tsv"
 )
+STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS = (
+    DASHBOARD / "structured-re-q4-intercept-interval-diagnostic-status.tsv"
+)
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-q4-location-slope-parity-fixture.tsv"
 )
@@ -1849,6 +1852,9 @@ STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE_FIELDS = (
 )
 STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
     STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+)
+STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
+    STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
 )
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE_FIELDS = (
     STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
@@ -4475,6 +4481,9 @@ def main() -> int:
     )
     structured_re_q4_intercept_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_PLAN
+    )
+    structured_re_q4_intercept_interval_diagnostic_status_rows = read_tsv(
+        STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS
     )
     structured_re_q4_location_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE
@@ -13135,6 +13144,184 @@ def main() -> int:
         ):
             errors.append(f"{provider}: q4 intercept plan must have six derived rows")
 
+    q4_intercept_interval_direct_plan = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_intercept_interval_diagnostic_plan_rows
+        if row.get("target_kind") == "direct_sd"
+    }
+    q4_intercept_status_expected = {
+        "phylo": {
+            "n_pdhess": "0",
+            "n_finite_intervals": "0",
+            "wald_status": "not_run_pdhess_false",
+            "profile_status": "not_run_pdhess_false",
+            "bootstrap_status": "not_run_pdhess_false",
+            "interval_status": "no_finite_intervals",
+            "failure_class": "fit_pdhess_false",
+        },
+        "spatial": {
+            "n_pdhess": "0",
+            "n_finite_intervals": "0",
+            "wald_status": "not_run_pdhess_false",
+            "profile_status": "not_run_pdhess_false",
+            "bootstrap_status": "not_run_pdhess_false",
+            "interval_status": "no_finite_intervals",
+            "failure_class": "fit_pdhess_false",
+        },
+        "animal": {
+            "n_pdhess": "1",
+            "n_finite_intervals": "2",
+            "wald_status": "finite",
+            "profile_status": "finite",
+            "bootstrap_status": "nonfinite",
+            "interval_status": "wald_profile_finite_bootstrap_failed",
+            "failure_class": "bootstrap_failed_or_nonfinite",
+        },
+        "relmat": {
+            "n_pdhess": "0",
+            "n_finite_intervals": "0",
+            "wald_status": "not_run_pdhess_false",
+            "profile_status": "not_run_pdhess_false",
+            "bootstrap_status": "not_run_pdhess_false",
+            "interval_status": "no_finite_intervals",
+            "failure_class": "fit_pdhess_false",
+        },
+    }
+    seen_q4_intercept_status_targets: set[tuple[str, str]] = set()
+    if len(structured_re_q4_intercept_interval_diagnostic_status_rows) != 16:
+        errors.append(
+            "structured-re-q4-intercept-interval-diagnostic-status.tsv must have "
+            "16 rows"
+        )
+    for row in structured_re_q4_intercept_interval_diagnostic_status_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<q4 intercept interval diagnostic status>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-intercept-interval-diagnostic-status.tsv "
+                "fields do not match the status contract"
+            )
+        for field in STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in q4_intercept_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        target_key = (provider or "", endpoint_member or "")
+        plan_row = q4_intercept_interval_direct_plan.get(target_key)
+        if plan_row is None:
+            errors.append(f"{row_id}: status target is missing from the plan sidecar")
+            continue
+        if target_key in seen_q4_intercept_status_targets:
+            errors.append(
+                "duplicate q4 intercept interval diagnostic status target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q4_intercept_status_targets.add(target_key)
+        endpoint_token = (
+            (endpoint_member or "")
+            .replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = f"q4_intercept_interval_status_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        for field in (
+            "cell_id",
+            "formula_cell",
+            "target_kind",
+            "endpoint_member",
+            "estimand",
+            "profile_target",
+        ):
+            if row.get(field) != plan_row.get(field):
+                errors.append(f"{row_id}: {field} must match the plan sidecar")
+        expected_cell = f"qseries_{provider}_q4_all_four_intercept"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_status_values = {
+            "observed_target_rows": "1",
+            "n_fit_ok": "1",
+            "n_converged": "1",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        expected_status_values.update(q4_intercept_status_expected[provider])
+        for field, expected_value in expected_status_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four intercept",
+            "direct-SD interval smoke only",
+            "derived-correlation intervals still blocked",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "native-TMB q4 REML",
+            "q4 AI-REML",
+            "HSquared AI-REML",
+            "broad bridge support",
+            "public support",
+            "calibrated coverage wording",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_intercept_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if "coverage-grid design" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage-grid design gated")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    missing_q4_intercept_status_targets = sorted(
+        set(q4_intercept_interval_direct_plan) - seen_q4_intercept_status_targets
+    )
+    if missing_q4_intercept_status_targets:
+        errors.append(
+            "structured-re-q4-intercept-interval-diagnostic-status.tsv "
+            "missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_intercept_status_targets
+            )
+        )
+
     q4_slope_provider_groups = {
         "phylo": "species",
         "spatial": "site",
@@ -20778,6 +20965,7 @@ def main() -> int:
         f", {len(structured_re_q4_slope_parity_fixture_rows)} structured RE q4 slope parity-fixture rows"
         f", {len(structured_re_q4_intercept_parity_fixture_rows)} structured RE q4 intercept parity-fixture rows"
         f", {len(structured_re_q4_intercept_interval_diagnostic_plan_rows)} structured RE q4 intercept interval-diagnostic plan rows"
+        f", {len(structured_re_q4_intercept_interval_diagnostic_status_rows)} structured RE q4 intercept interval-diagnostic status rows"
         f", {len(structured_re_q4_location_slope_parity_fixture_rows)} structured RE q4 location slope parity-fixture rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} structured RE q4 location slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"

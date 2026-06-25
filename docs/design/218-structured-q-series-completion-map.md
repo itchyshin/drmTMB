@@ -335,6 +335,19 @@ HSquared AI-REML, broad bridge support, public support, range-estimating
 spatial support, pedigree/Ainv animal bridge marshalling, or relmat Q bridge
 marshalling.
 
+`structured-re-q4-intercept-interval-diagnostic-status.tsv` records the first
+deterministic direct-SD interval smoke for those exact all-four intercept q4
+cells. It covers the 16 direct-SD rows from the plan and writes the method-level
+artifact under
+`docs/dev-log/simulation-artifacts/2026-06-25-q4-intercept-interval-smoke/`.
+Phylo, fixed-covariance spatial, and K-matrix relmat are Hessian-blocked in this
+smoke. The A-matrix animal cell reaches finite Wald/profile direct-SD intervals
+but not finite bootstrap intervals. This moves only the smoke-status artifact
+forward; it does not admit denominators, interval reliability, interval
+coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad
+bridge support, public support, range-estimating spatial support,
+pedigree/Ainv bridge marshalling, or relmat Q bridge marshalling.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four one-slope bivariate Gaussian cells. The required
 endpoint-member set is

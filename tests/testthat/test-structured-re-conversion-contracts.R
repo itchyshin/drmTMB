@@ -4963,6 +4963,195 @@ test_that("q4 all-four intercept interval plan remains target-level", {
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
 })
 
+test_that("q4 all-four intercept interval status stays diagnostic-only", {
+  status <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-interval-diagnostic-status.tsv"
+  )
+  plan <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-interval-diagnostic-plan.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-q4-intercept-interval-smoke",
+      "structured-re-q4-intercept-interval-smoke-results.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    status,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "source_artifact",
+      "observed_target_rows",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_finite_intervals",
+      "wald_status",
+      "profile_status",
+      "bootstrap_status",
+      "interval_status",
+      "failure_class",
+      "interval_claim_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(status), 16L)
+  expect_equal(nrow(artifact), 48L)
+  expect_setequal(
+    status$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(status$target_kind, rep("direct_sd", 16L))
+  expect_equal(status$observed_target_rows, rep(1L, 16L))
+  expect_equal(status$n_fit_ok, rep(1L, 16L))
+  expect_equal(status$n_converged, rep(1L, 16L))
+  expect_equal(status$interval_claim_status, rep("diagnostic_only", 16L))
+  expect_equal(status$status, rep("covered", 16L))
+  expect_setequal(
+    status$endpoint_member,
+    paste0(c("mu1", "mu2", "sigma1", "sigma2"), ":(Intercept)")
+  )
+
+  direct_plan <- plan[plan$target_kind == "direct_sd", , drop = FALSE]
+  plan_key <- paste(direct_plan$structured_type, direct_plan$endpoint_member)
+  status_key <- paste(status$structured_type, status$endpoint_member)
+  expect_setequal(status_key, plan_key)
+  for (key in status_key) {
+    status_row <- status[status_key == key, , drop = FALSE]
+    plan_row <- direct_plan[plan_key == key, , drop = FALSE]
+    expect_equal(nrow(status_row), 1L)
+    expect_equal(nrow(plan_row), 1L)
+    for (field in c(
+      "cell_id",
+      "formula_cell",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target"
+    )) {
+      expect_equal(status_row[[field]], plan_row[[field]])
+    }
+    artifact_rows <- artifact[
+      artifact$provider == status_row$structured_type &
+        artifact$endpoint_member == status_row$endpoint_member,
+      ,
+      drop = FALSE
+    ]
+    expect_equal(nrow(artifact_rows), 3L)
+    expect_setequal(
+      artifact_rows$interval_method,
+      c("wald", "profile", "bootstrap")
+    )
+    expect_equal(artifact_rows$profile_ready, rep(TRUE, 3L))
+  }
+
+  blocked <- status[status$structured_type != "animal", , drop = FALSE]
+  expect_equal(blocked$n_pdhess, rep(0L, 12L))
+  expect_equal(blocked$n_finite_intervals, rep(0L, 12L))
+  expect_equal(
+    blocked$wald_status,
+    rep("not_run_pdhess_false", 12L)
+  )
+  expect_equal(
+    blocked$profile_status,
+    rep("not_run_pdhess_false", 12L)
+  )
+  expect_equal(
+    blocked$bootstrap_status,
+    rep("not_run_pdhess_false", 12L)
+  )
+  expect_equal(blocked$interval_status, rep("no_finite_intervals", 12L))
+  expect_equal(blocked$failure_class, rep("fit_pdhess_false", 12L))
+
+  animal <- status[status$structured_type == "animal", , drop = FALSE]
+  expect_equal(animal$n_pdhess, rep(1L, 4L))
+  expect_equal(animal$n_finite_intervals, rep(2L, 4L))
+  expect_equal(animal$wald_status, rep("finite", 4L))
+  expect_equal(animal$profile_status, rep("finite", 4L))
+  expect_equal(animal$bootstrap_status, rep("nonfinite", 4L))
+  expect_equal(
+    animal$interval_status,
+    rep("wald_profile_finite_bootstrap_failed", 4L)
+  )
+  expect_equal(
+    animal$failure_class,
+    rep("bootstrap_failed_or_nonfinite", 4L)
+  )
+
+  structured_re_expect_all_match(
+    status$claim_boundary,
+    "q4 all-four intercept"
+  )
+  structured_re_expect_all_match(
+    status$claim_boundary,
+    "direct-SD interval smoke only"
+  )
+  structured_re_expect_all_match(
+    status$claim_boundary,
+    "derived-correlation intervals still blocked"
+  )
+  structured_re_expect_all_match(
+    status$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(status$claim_boundary, "interval coverage")
+  structured_re_expect_all_match(status$claim_boundary, "native-TMB q4 REML")
+  structured_re_expect_all_match(status$claim_boundary, "HSquared AI-REML")
+  structured_re_expect_all_match(status$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(status$claim_boundary, "public support")
+  structured_re_expect_all_match(
+    status$claim_boundary,
+    "calibrated coverage wording"
+  )
+  structured_re_expect_all_match(status$next_gate, "denominator accounting")
+  structured_re_expect_all_match(status$next_gate, "coverage-grid design")
+  structured_re_expect_all_match(
+    status$claim_boundary[status$structured_type == "spatial"],
+    "range-estimating"
+  )
+  structured_re_expect_all_match(
+    status$claim_boundary[status$structured_type == "animal"],
+    "pedigree/Ainv"
+  )
+  structured_re_expect_all_match(
+    status$claim_boundary[status$structured_type == "relmat"],
+    "Q bridge"
+  )
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% status$cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 4L)
+  expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
+  expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
+  expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 4L))
+})
+
 test_that("q4 all-four one-slope interval status stays Hessian-blocked", {
   status <- structured_re_read_dashboard_tsv(
     "structured-re-q4-slope-interval-diagnostic-status.tsv"

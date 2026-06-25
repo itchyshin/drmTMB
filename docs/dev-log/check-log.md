@@ -67908,3 +67908,51 @@ Boundary:
   spatial support, pedigree/Ainv bridge marshalling, Q bridge marshalling,
   broad bridge support, public support, DRAC/Totoro execution, SR150 coverage
   readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: q4 intercept direct-SD interval smoke status
+
+Goal:
+
+- Run the first deterministic direct-SD interval smoke for exact q4 all-four
+  intercept `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and
+  K-matrix `relmat()` cells, while keeping derived-correlation reconstruction,
+  denominator admission, interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge support, public
+  support, and DRAC/Totoro execution unpromoted.
+
+Result:
+
+- Added `tools/run-structured-re-q4-intercept-interval-smoke.R`.
+- Generated
+  `docs/dev-log/simulation-artifacts/2026-06-25-q4-intercept-interval-smoke/structured-re-q4-intercept-interval-smoke-results.tsv`
+  with 48 method rows: 16 direct-SD targets crossed with Wald, profile, and
+  bootstrap.
+- Generated
+  `docs/dev-log/dashboard/structured-re-q4-intercept-interval-diagnostic-status.tsv`
+  with 16 direct-SD status rows linked back to the q4 intercept interval plan.
+- Wired the status sidecar into mission-control validation and
+  `test-structured-re-conversion-contracts.R`.
+- Updated the dashboard README, the q-series completion map, and after-task
+  report
+  `docs/dev-log/after-task/2026-06-25-q4-intercept-interval-smoke-status.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-intercept-interval-smoke.R`
+  wrote 48 method rows and 16 status rows. The runner reported 25 warnings from
+  interval/bootstrap attempts; the artifact records them in method-level rows.
+- Phylo, fixed-covariance spatial, and K-matrix relmat fits converged but
+  returned `pdHess = FALSE`, so all three interval methods were recorded as
+  `not_run_pdhess_false` for those 12 direct-SD targets.
+- The A-matrix animal fit returned `pdHess = TRUE`; all four direct-SD targets
+  had finite Wald/profile rows and nonfinite bootstrap rows, so the status is
+  `wald_profile_finite_bootstrap_failed`.
+
+Boundary:
+
+- This is target-level diagnostic smoke evidence only. It does not claim q4
+  interval reliability, q4 interval coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, non-Gaussian REML, range-estimating spatial
+  support, pedigree/Ainv bridge marshalling, Q bridge marshalling, broad bridge
+  support, public support, denominator admission, DRAC/Totoro execution,
+  SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
