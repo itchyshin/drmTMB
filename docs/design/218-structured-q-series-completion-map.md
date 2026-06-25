@@ -438,7 +438,11 @@ only: no bootstrap refits are executed, no Totoro or DRAC job is submitted, no
 all-target denominator is admitted, and interval reliability, coverage, q4
 REML, AI-REML, broad bridge support, public support, partial location-scale
 support, Q precision marshalling, K/Q parity, and broader q8 support remain
-unpromoted.
+unpromoted. The runner now writes provider-filtered dry-run artifacts with
+shard-specific manifest and run-log filenames while leaving the default
+dashboard contract unchanged. That hardens the next Totoro/DRAC review gate
+against accidental overwrite, but it is still not denominator or coverage
+evidence.
 
 `structured-re-mu-sigma-slope-parity-fixture.tsv` records the next exact gate:
 deterministic same-target native/direct/R-via-Julia fixtures for matched
@@ -676,7 +680,9 @@ The efficient completion order is:
    other than dry-run. This is runner-contract evidence only; no Totoro or
    DRAC job has been submitted and no denominator, interval-reliability,
    coverage, REML, AI-REML, bridge, public-support, Q precision, K/Q parity,
-   partial location-scale, or broader q8 status moves.
+   partial location-scale, or broader q8 status moves. Banked in the same draft
+   PR before compute review: shard-safe provider dry-runs write private
+   manifest/log filenames and leave the 16-row dashboard contract unchanged.
 22. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.

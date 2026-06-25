@@ -18,7 +18,8 @@ parse_cli_args <- function(args) {
   out <- list(
     mode = "dry-run",
     provider = "all",
-    endpoint_member = "all"
+    endpoint_member = "all",
+    shard_id = NULL
   )
   for (arg in args) {
     if (!startsWith(arg, "--")) {
@@ -68,6 +69,20 @@ run_log_path <- file.path(
   artifact_dir,
   "structured-re-q4-location-slope-bootstrap-runner-run-log.tsv"
 )
+
+sanitize_shard_id <- function(x) {
+  x <- clean_text(x)
+  x <- tolower(x)
+  x <- gsub("[^a-z0-9]+", "-", x)
+  x <- gsub("^-+|-+$", "", x)
+  if (!nzchar(x)) {
+    stop(
+      "`--shard_id` must contain at least one letter or digit.",
+      call. = FALSE
+    )
+  }
+  x
+}
 
 clean_text <- function(x) {
   x <- as.character(x)
@@ -183,6 +198,37 @@ endpoint_members <- c(
 )
 provider_filter <- args$provider %||% "all"
 endpoint_filter <- args$endpoint_member %||% "all"
+full_contract <- identical(provider_filter, "all") &&
+  identical(endpoint_filter, "all")
+shard_id <- args$shard_id %||%
+  if (full_contract) {
+    "all-targets"
+  } else {
+    paste(
+      c(
+        if (!identical(provider_filter, "all")) {
+          paste0("provider-", provider_filter)
+        },
+        if (!identical(endpoint_filter, "all")) {
+          paste0("endpoint-", endpoint_filter)
+        }
+      ),
+      collapse = "-"
+    )
+  }
+shard_id <- sanitize_shard_id(shard_id)
+if (!full_contract && identical(shard_id, "all-targets")) {
+  stop(
+    "`--shard_id=all-targets` is reserved for the unfiltered full dry-run contract.",
+    call. = FALSE
+  )
+}
+if (full_contract && !identical(shard_id, "all-targets")) {
+  stop(
+    "The unfiltered full dry-run contract must use `--shard_id=all-targets`.",
+    call. = FALSE
+  )
+}
 if (!identical(provider_filter, "all") && !provider_filter %in% providers) {
   stop(
     "`--provider` must be all, phylo, spatial, animal, or relmat.",
@@ -218,6 +264,27 @@ if (nrow(selected) == 0L) {
   stop("No dispatch targets match the requested filters.", call. = FALSE)
 }
 
+selected_manifest_file <- if (full_contract) {
+  "structured-re-q4-location-slope-bootstrap-runner-target-manifest.tsv"
+} else {
+  paste0(
+    "structured-re-q4-location-slope-bootstrap-runner-target-manifest-",
+    shard_id,
+    ".tsv"
+  )
+}
+run_log_file <- if (full_contract) {
+  "structured-re-q4-location-slope-bootstrap-runner-run-log.tsv"
+} else {
+  paste0(
+    "structured-re-q4-location-slope-bootstrap-runner-run-log-",
+    shard_id,
+    ".tsv"
+  )
+}
+selected_manifest_path <- file.path(artifact_dir, selected_manifest_file)
+run_log_path <- file.path(artifact_dir, run_log_file)
+
 source_dispatch_manifest <- paste(
   "docs/dev-log/dashboard",
   "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv",
@@ -226,13 +293,13 @@ source_dispatch_manifest <- paste(
 selected_manifest <- paste(
   "docs/dev-log/simulation-artifacts",
   "2026-06-24-q4-location-slope-bootstrap-runner-contract",
-  "structured-re-q4-location-slope-bootstrap-runner-target-manifest.tsv",
+  selected_manifest_file,
   sep = "/"
 )
 run_log <- paste(
   "docs/dev-log/simulation-artifacts",
   "2026-06-24-q4-location-slope-bootstrap-runner-contract",
-  "structured-re-q4-location-slope-bootstrap-runner-run-log.tsv",
+  run_log_file,
   sep = "/"
 )
 
@@ -281,9 +348,10 @@ runner_contract <- data.frame(
   )),
   next_gate = clean_text(paste(
     "After human review, execute one provider shard at a time with this",
-    "selected manifest; retain fit errors, nonconvergence, pdHess false,",
-    "nonfinite intervals, bootstrap refit attempts, and scheduler exit",
-    "status before denominator accounting."
+    "selected manifest; use shard-specific manifests and run logs so",
+    "provider/target dry-runs cannot overwrite the full contract; retain fit",
+    "errors, nonconvergence, pdHess false, nonfinite intervals, bootstrap",
+    "refit attempts, and scheduler exit status before denominator accounting."
   )),
   stringsAsFactors = FALSE,
   check.names = FALSE
@@ -295,8 +363,15 @@ runner_contract[character_cols] <- lapply(
 )
 
 run_log_row <- data.frame(
-  run_id = "q4_location_slope_bootstrap_runner_contract",
+  run_id = if (full_contract) {
+    "q4_location_slope_bootstrap_runner_contract"
+  } else {
+    paste0("q4_location_slope_bootstrap_runner_contract_", shard_id)
+  },
   mode = mode,
+  shard_id = shard_id,
+  provider_filter = provider_filter,
+  endpoint_member_filter = endpoint_filter,
   selected_targets = nrow(runner_contract),
   selected_providers = paste(
     sort(unique(runner_contract$structured_type)),
@@ -328,14 +403,16 @@ run_log_row <- data.frame(
 )
 run_log_row[] <- lapply(run_log_row, clean_text)
 
-utils::write.table(
-  runner_contract,
-  runner_contract_path,
-  sep = "\t",
-  quote = FALSE,
-  row.names = FALSE,
-  na = "NA"
-)
+if (full_contract) {
+  utils::write.table(
+    runner_contract,
+    runner_contract_path,
+    sep = "\t",
+    quote = FALSE,
+    row.names = FALSE,
+    na = "NA"
+  )
+}
 utils::write.table(
   runner_contract,
   selected_manifest_path,
@@ -353,14 +430,23 @@ utils::write.table(
   na = "NA"
 )
 
-cat(
-  "wrote ",
-  runner_contract_path,
-  " with ",
-  nrow(runner_contract),
-  " rows\n",
-  sep = ""
-)
+if (full_contract) {
+  cat(
+    "wrote ",
+    runner_contract_path,
+    " with ",
+    nrow(runner_contract),
+    " rows\n",
+    sep = ""
+  )
+} else {
+  cat(
+    "kept dashboard runner contract unchanged for shard ",
+    shard_id,
+    "\n",
+    sep = ""
+  )
+}
 cat(
   "wrote ",
   selected_manifest_path,

@@ -30,6 +30,13 @@ By default it writes all 16 selected targets and a one-row run log. Optional
 `--provider=` and `--endpoint_member=` filters are available for future shard
 selection, but the current artifact records the full target set.
 
+The runner now treats the full 16-row contract as the reserved
+`all-targets` shard. Provider-filtered dry-runs infer shard IDs such as
+`provider-phylo` and write shard-specific manifest and run-log filenames
+instead of overwriting the full contract artifacts. That gives the next
+Totoro/DRAC review gate private dry-run files for each provider shard while
+leaving the dashboard contract unchanged.
+
 The contract is fail-closed. Only `--mode=dry-run` is implemented. A non-dry
 run request exits before any refit work and reports that Totoro/DRAC execution
 needs reviewed submission approval.
@@ -45,6 +52,9 @@ Every output row remains `scheduler_status = dry_run_not_submitted`,
   log.
 - `Rscript --vanilla tools/run-structured-re-q4-location-slope-bootstrap-denominator-runner.R --mode=execute`
   failed before execution as intended.
+- Provider-filtered dry-runs for `phylo`, `spatial`, `animal`, and `relmat`
+  wrote separate `provider-*` target manifests and run logs without replacing
+  the 16-row dashboard contract.
 - `python3 -m py_compile tools/validate-mission-control.py` passed.
 - `python3 tools/validate-mission-control.py` passed and reported 16
   structured RE q4 location slope bootstrap-runner contract rows.

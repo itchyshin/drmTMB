@@ -67672,3 +67672,47 @@ Boundary:
   public support, partial location-scale support, Q precision marshalling,
   K/Q same-target parity, broader q8 support, SR150 coverage readiness, PR
   undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: q4 location bootstrap runner shard-safe dry-runs
+
+Goal:
+
+- Harden the q4 location one-slope bootstrap runner contract before any Totoro
+  or DRAC execution by ensuring filtered dry-runs cannot overwrite the full
+  16-row dashboard contract artifacts.
+
+Result:
+
+- Added a reserved `all-targets` full-contract shard to
+  `tools/run-structured-re-q4-location-slope-bootstrap-denominator-runner.R`.
+- Provider-filtered dry-runs now infer shard IDs such as `provider-phylo` and
+  write shard-specific selected manifests and run logs.
+- The unfiltered dry-run still writes
+  `structured-re-q4-location-slope-bootstrap-runner-contract.tsv`, the default
+  selected target manifest, and the default run log.
+- Added focused conversion-contract tests for the provider shard artifacts.
+- Updated the dashboard README, q-series completion map, and runner-contract
+  after-task report.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-location-slope-bootstrap-denominator-runner.R`
+  completed and regenerated the default 16-row dashboard contract.
+- `Rscript --vanilla tools/run-structured-re-q4-location-slope-bootstrap-denominator-runner.R --provider=phylo`
+  completed and wrote the `provider-phylo` manifest and run log without
+  updating the dashboard contract.
+- Matching provider dry-runs for `spatial`, `animal`, and `relmat` completed
+  with separate shard-specific manifest and run-log files.
+- `Rscript --vanilla tools/run-structured-re-q4-location-slope-bootstrap-denominator-runner.R --mode=execute`
+  failed before execution as intended.
+
+Boundary:
+
+- This is shard-safety dry-run evidence only. It does not execute bootstrap
+  refits, submit Totoro jobs, submit DRAC jobs, admit all-target bootstrap
+  denominators, promote derived-correlation intervals, interval reliability,
+  interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
+  AI-REML, non-Gaussian REML, broad bridge support, public optimizer controls,
+  public support, partial location-scale support, Q precision marshalling,
+  K/Q same-target parity, broader q8 support, SR150 coverage readiness, PR
+  undrafting/merging, or an Ayumi-facing reply.

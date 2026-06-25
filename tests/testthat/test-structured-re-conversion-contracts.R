@@ -4185,6 +4185,9 @@ test_that("q4 location one-slope bootstrap runner contract stays dry-run", {
 
   expect_equal(run_log$selected_targets, 16L)
   expect_equal(run_log$mode, "dry-run")
+  expect_equal(run_log$shard_id, "all-targets")
+  expect_equal(run_log$provider_filter, "all")
+  expect_equal(run_log$endpoint_member_filter, "all")
   expect_equal(run_log$execution_status, "validated_not_executed")
   expect_equal(run_log$scheduler_status, "dry_run_not_submitted")
   expect_equal(run_log$compute_status, "not_executed")
@@ -4193,6 +4196,95 @@ test_that("q4 location one-slope bootstrap runner contract stays dry-run", {
   expect_equal(run_log$coverage_status, "not_evaluated")
   expect_equal(run_log$interval_claim_status, "diagnostic_only")
   expect_equal(run_log$status, "covered")
+
+  for (provider in c("phylo", "spatial", "animal", "relmat")) {
+    shard_id <- paste0("provider-", provider)
+    shard_manifest <- utils::read.delim(
+      structured_re_artifact_path(
+        "docs",
+        "dev-log",
+        "simulation-artifacts",
+        "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+        paste0(
+          "structured-re-q4-location-slope-bootstrap-runner-target-manifest-",
+          shard_id,
+          ".tsv"
+        )
+      ),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    shard_log <- utils::read.delim(
+      structured_re_artifact_path(
+        "docs",
+        "dev-log",
+        "simulation-artifacts",
+        "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+        paste0(
+          "structured-re-q4-location-slope-bootstrap-runner-run-log-",
+          shard_id,
+          ".tsv"
+        )
+      ),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+
+    expect_equal(nrow(shard_manifest), 4L)
+    expect_equal(nrow(shard_log), 1L)
+    expect_equal(shard_manifest$structured_type, rep(provider, 4L))
+    expect_setequal(shard_manifest$endpoint_member, dispatch$endpoint_member)
+    expect_equal(shard_manifest$mode, rep("dry-run", 4L))
+    expect_equal(
+      shard_manifest$selected_manifest,
+      rep(
+        paste(
+          "docs/dev-log/simulation-artifacts",
+          "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+          paste0(
+            "structured-re-q4-location-slope-bootstrap-runner-target-manifest-",
+            shard_id,
+            ".tsv"
+          ),
+          sep = "/"
+        ),
+        4L
+      )
+    )
+    expect_equal(
+      shard_manifest$run_log,
+      rep(
+        paste(
+          "docs/dev-log/simulation-artifacts",
+          "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+          paste0(
+            "structured-re-q4-location-slope-bootstrap-runner-run-log-",
+            shard_id,
+            ".tsv"
+          ),
+          sep = "/"
+        ),
+        4L
+      )
+    )
+    expect_false(any(
+      shard_manifest$selected_manifest %in% runner$selected_manifest
+    ))
+    expect_false(any(shard_manifest$run_log %in% runner$run_log))
+    expect_equal(shard_log$selected_targets, 4L)
+    expect_equal(shard_log$shard_id, shard_id)
+    expect_equal(shard_log$provider_filter, provider)
+    expect_equal(shard_log$endpoint_member_filter, "all")
+    expect_equal(shard_log$execution_status, "validated_not_executed")
+    expect_equal(shard_log$compute_status, "not_executed")
+    expect_equal(shard_log$denominator_status, "runner_contract_only")
+    expect_equal(shard_log$coverage_evaluable, FALSE)
+    expect_equal(shard_log$coverage_status, "not_evaluated")
+  }
 })
 
 test_that("q4 all-four one-slope parity fixture records exact bridge fixture only", {

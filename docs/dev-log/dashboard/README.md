@@ -1128,7 +1128,11 @@ and run log, and refuses execution modes other than dry-run. Every row remains
 `coverage_evaluable = FALSE`; this sidecar does not submit Totoro or DRAC jobs,
 admit all-target bootstrap denominators, promote interval reliability or
 coverage, or change q4 REML, AI-REML, bridge, public-support, partial
-location-scale, Q precision, K/Q parity, or broader q8 boundaries.
+location-scale, Q precision, K/Q parity, or broader q8 boundaries. The runner
+also writes provider-filtered dry-run manifests with shard-specific filenames,
+so later provider/target rehearsals cannot overwrite the full 16-row contract.
+Those shard files are race-safety evidence only, not executed bootstrap
+denominators.
 
 `structured-re-type-gaps.tsv` records the remaining structured-type gaps for
 `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It
