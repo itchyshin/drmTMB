@@ -843,6 +843,17 @@ sidecar does not submit jobs, admit a coverage-evaluable denominator, promote
 MCSE-calibrated coverage, interval reliability, REML, AI-REML, q4/q8 support,
 broad bridge support, public support, or SR150 readiness.
 
+`structured-re-pr-stack-merge-readiness.tsv` records the ordered draft PR stack
+for the current q-series lane (#639 through #653). It separates merge-clean
+state from ordinary PR-attached checks: #639 has attached green checks against
+`main`, while #640 through #653 have green commit-level R-CMD-check evidence
+and must rerun normal PR checks after each retargets to `main`. This sidecar
+does not undraft, merge, submit Totoro or DRAC jobs, admit coverage-evaluable
+denominators, or promote interval, REML, AI-REML, bridge, public-support, or
+SR150 readiness claims. Its next gate is explicit maintainer approval, then
+merge from #639 upward with mission-control validation and normal PR checks
+refreshed after each layer lands.
+
 `structured-re-q-series-support-cells.tsv` now also records the first
 bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` covariance cells:
 matching `phylo(0 + x | p | species, tree = tree)`,

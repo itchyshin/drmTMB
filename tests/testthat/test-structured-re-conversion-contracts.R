@@ -3557,6 +3557,231 @@ test_that("sigma-slope coverage runner contract stays dry-run", {
   }
 })
 
+test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
+  stack <- structured_re_read_dashboard_tsv(
+    "structured-re-pr-stack-merge-readiness.tsv"
+  )
+  snapshot <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-pr-stack-merge-readiness",
+      "structured-re-pr-stack-merge-readiness-snapshot.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  run_log <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-pr-stack-merge-readiness",
+      "structured-re-pr-stack-merge-readiness-run-log.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    stack,
+    c(
+      "stack_row_id",
+      "merge_order",
+      "pr_number",
+      "title",
+      "base_ref",
+      "head_ref",
+      "head_sha",
+      "pr_url",
+      "observed_utc",
+      "draft_status",
+      "merge_state_status",
+      "pr_rollup_status",
+      "commit_check_status",
+      "r_cmd_check_run_id",
+      "platform_success_count",
+      "platform_successes",
+      "merge_gate",
+      "retarget_requirement",
+      "normal_pr_check_requirement",
+      "merge_action",
+      "compute_status",
+      "drac_status",
+      "totoro_status",
+      "coverage_claim_status",
+      "interval_claim_status",
+      "reml_claim_status",
+      "public_support_status",
+      "stack_status",
+      "dashboard_snapshot",
+      "artifact_snapshot",
+      "run_log",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(snapshot, stack)
+  expect_equal(nrow(stack), 15L)
+  expect_equal(nrow(run_log), 1L)
+  expect_equal(stack$merge_order, seq_len(15L))
+  expect_equal(stack$pr_number, 639:653)
+  expect_equal(
+    stack$stack_row_id,
+    paste0("structured_re_pr_stack_merge_", stack$pr_number)
+  )
+  expect_equal(stack$base_ref[[1L]], "main")
+  expect_equal(stack$base_ref[-1L], stack$head_ref[-nrow(stack)])
+  expect_equal(
+    stack$pr_url,
+    paste0("https://github.com/itchyshin/drmTMB/pull/", stack$pr_number)
+  )
+  expect_equal(stack$draft_status, rep("draft", 15L))
+  expect_equal(stack$merge_state_status, rep("CLEAN", 15L))
+  expect_equal(
+    stack$pr_rollup_status[[1L]],
+    "attached_pr_checks_green_on_main_base"
+  )
+  expect_equal(
+    stack$pr_rollup_status[-1L],
+    rep("commit_checks_green_pr_rollup_empty_on_stacked_base", 14L)
+  )
+  expect_equal(stack$commit_check_status, rep("three_platform_success", 15L))
+  expect_equal(stack$platform_success_count, rep(3L, 15L))
+  structured_re_expect_all_match(stack$platform_successes, "ubuntu-latest")
+  structured_re_expect_all_match(stack$platform_successes, "macos-latest")
+  structured_re_expect_all_match(stack$platform_successes, "windows-latest")
+  expect_equal(stack$merge_gate, rep("human_approval_required", 15L))
+  expect_equal(
+    stack$retarget_requirement[[1L]],
+    "none_first_pr_targets_main"
+  )
+  expect_equal(
+    stack$retarget_requirement[-1L],
+    rep("retarget_to_main_after_previous_merge", 14L)
+  )
+  expect_equal(
+    stack$normal_pr_check_requirement[[1L]],
+    "already_attached_to_main_base"
+  )
+  expect_equal(
+    stack$normal_pr_check_requirement[-1L],
+    rep("rerun_after_retarget_to_main", 14L)
+  )
+  expect_equal(stack$compute_status, rep("not_executed", 15L))
+  expect_equal(stack$drac_status, rep("not_submitted", 15L))
+  expect_equal(stack$totoro_status, rep("not_submitted", 15L))
+  expect_equal(stack$coverage_claim_status, rep("not_evaluated", 15L))
+  expect_equal(stack$interval_claim_status, rep("not_promoted", 15L))
+  expect_equal(stack$reml_claim_status, rep("not_promoted", 15L))
+  expect_equal(stack$public_support_status, rep("not_promoted", 15L))
+  expect_equal(stack$stack_status, rep("merge_readiness_snapshot", 15L))
+  expect_equal(
+    stack$dashboard_snapshot,
+    rep(
+      "docs/dev-log/dashboard/structured-re-pr-stack-merge-readiness.tsv",
+      15L
+    )
+  )
+  expect_equal(
+    stack$artifact_snapshot,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-25-pr-stack-merge-readiness",
+        "structured-re-pr-stack-merge-readiness-snapshot.tsv",
+        sep = "/"
+      ),
+      15L
+    )
+  )
+  expect_equal(
+    stack$run_log,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-25-pr-stack-merge-readiness",
+        "structured-re-pr-stack-merge-readiness-run-log.tsv",
+        sep = "/"
+      ),
+      15L
+    )
+  )
+
+  structured_re_expect_all_match(
+    stack$claim_boundary,
+    "merge-readiness snapshot only"
+  )
+  structured_re_expect_all_match(stack$claim_boundary, "PRs remain draft")
+  structured_re_expect_all_match(stack$claim_boundary, "no PR was undrafted")
+  structured_re_expect_all_match(stack$claim_boundary, "no PR was merged")
+  structured_re_expect_all_match(
+    stack$claim_boundary,
+    "no Totoro job submitted"
+  )
+  structured_re_expect_all_match(stack$claim_boundary, "no DRAC job submitted")
+  structured_re_expect_all_match(
+    stack$claim_boundary,
+    "no coverage-evaluable denominator evidence"
+  )
+  structured_re_expect_all_match(
+    stack$claim_boundary,
+    "no MCSE-calibrated coverage"
+  )
+  structured_re_expect_all_match(
+    stack$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(stack$claim_boundary, "no q4 REML")
+  structured_re_expect_all_match(stack$claim_boundary, "no native-TMB q4 REML")
+  structured_re_expect_all_match(stack$claim_boundary, "no q4 AI-REML")
+  structured_re_expect_all_match(stack$claim_boundary, "no HSquared AI-REML")
+  structured_re_expect_all_match(stack$claim_boundary, "no non-Gaussian REML")
+  structured_re_expect_all_match(
+    stack$claim_boundary,
+    "no broad bridge support"
+  )
+  structured_re_expect_all_match(stack$claim_boundary, "no public support")
+  structured_re_expect_all_match(stack$claim_boundary, "no SR150 readiness")
+  structured_re_expect_all_match(stack$next_gate, "Ask Shinichi")
+  structured_re_expect_all_match(stack$next_gate, "merge from PR #639 upward")
+  structured_re_expect_all_match(
+    stack$next_gate,
+    "retarget the next PR to main"
+  )
+  structured_re_expect_all_match(stack$next_gate, "rerun normal PR checks")
+  structured_re_expect_all_match(
+    stack$next_gate,
+    "rerun mission-control validation"
+  )
+  structured_re_expect_all_match(stack$next_gate, "return to sigma-slope")
+  structured_re_expect_all_match(stack$next_gate, "relmat runtime slices")
+
+  expect_equal(run_log$mode, "dry-run")
+  expect_equal(run_log$stack_rows, 15L)
+  expect_equal(run_log$first_pr, 639L)
+  expect_equal(run_log$last_pr, 653L)
+  expect_equal(run_log$draft_rows, 15L)
+  expect_equal(run_log$clean_rows, 15L)
+  expect_equal(run_log$commit_check_success_rows, 15L)
+  expect_equal(run_log$attached_pr_rollup_rows, 1L)
+  expect_equal(run_log$stacked_pr_rollup_empty_rows, 14L)
+  expect_equal(run_log$execution_status, "validated_snapshot_not_executed")
+  expect_equal(run_log$merge_status, "not_merged")
+  expect_equal(run_log$compute_status, "not_executed")
+  expect_equal(run_log$drac_status, "not_submitted")
+  expect_equal(run_log$totoro_status, "not_submitted")
+  expect_equal(run_log$status, "covered")
+  expect_match(run_log$source_live_commands, "gh pr list", fixed = TRUE)
+  expect_match(run_log$source_live_commands, "check-runs", fixed = TRUE)
+})
+
 test_that("matched mu+sigma one-slope readiness records native point fits only", {
   readiness <- structured_re_read_dashboard_tsv(
     "structured-re-mu-sigma-slope-readiness.tsv"

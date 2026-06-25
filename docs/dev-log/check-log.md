@@ -68316,3 +68316,42 @@ Boundary:
   coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
   non-Gaussian REML, broader q8 support, DRAC/Totoro execution, SR150 coverage
   readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: q-series PR stack merge-readiness snapshot
+
+Goal:
+
+- Bank a reviewable merge-readiness ledger for the current q-series draft PR
+  stack before adding more runtime cells or asking the stack to carry another
+  layer.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-pr-stack-merge-readiness.tsv` with 15
+  rows for PR #639 through #653 in merge order.
+- Added
+  `tools/plan-structured-re-pr-stack-merge-readiness.R`, which writes the
+  dashboard snapshot, artifact snapshot, and run log in dry-run mode and fails
+  closed for any non-dry-run mode.
+- Added artifact files under
+  `docs/dev-log/simulation-artifacts/2026-06-25-pr-stack-merge-readiness/`.
+- Wired mission-control validation and dashboard tests so the stack order,
+  draft state, merge-clean state, commit-level R-CMD-check run IDs, PR-rollup
+  caveat, and claim boundaries stay checked.
+
+Evidence:
+
+- Live GitHub sweep at `2026-06-25T11:52:40Z` found PR #639 through #653 draft
+  and `CLEAN`, with three successful platform R-CMD-check jobs on each head
+  commit. PR #639 has attached PR checks against `main`; #640 through #653 have
+  green commit-level checks and need ordinary PR checks refreshed after
+  retargeting.
+
+Boundary:
+
+- This is merge-readiness evidence only. It does not undraft or merge any PR,
+  submit Totoro or DRAC jobs, create coverage-evaluable denominator evidence,
+  promote MCSE-calibrated coverage, interval reliability, q4 REML, native-TMB
+  q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad bridge
+  support, public support, SR150 readiness, or an Ayumi-facing reply.

@@ -108,6 +108,9 @@ STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW = (
 STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_RUNNER_CONTRACT = (
     DASHBOARD / "structured-re-sigma-slope-coverage-runner-contract.tsv"
 )
+STRUCTURED_RE_PR_STACK_MERGE_READINESS = (
+    DASHBOARD / "structured-re-pr-stack-merge-readiness.tsv"
+)
 STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -419,6 +422,22 @@ SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG = (
     / "simulation-artifacts"
     / "2026-06-25-sigma-slope-coverage-runner-contract"
     / "structured-re-sigma-slope-coverage-runner-run-log.tsv"
+)
+PR_STACK_MERGE_READINESS_SNAPSHOT = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-pr-stack-merge-readiness"
+    / "structured-re-pr-stack-merge-readiness-snapshot.tsv"
+)
+PR_STACK_MERGE_READINESS_RUN_LOG = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-pr-stack-merge-readiness"
+    / "structured-re-pr-stack-merge-readiness-run-log.tsv"
 )
 Q4_DERIVED_CORRELATION_DELTA_GRID_ADEMP_DRY_RUN = (
     ROOT
@@ -1597,6 +1616,66 @@ SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG_FIELDS = (
     "coverage_evaluable",
     "coverage_status",
     "interval_claim_status",
+    "status",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_PR_STACK_MERGE_READINESS_FIELDS = (
+    "stack_row_id",
+    "merge_order",
+    "pr_number",
+    "title",
+    "base_ref",
+    "head_ref",
+    "head_sha",
+    "pr_url",
+    "observed_utc",
+    "draft_status",
+    "merge_state_status",
+    "pr_rollup_status",
+    "commit_check_status",
+    "r_cmd_check_run_id",
+    "platform_success_count",
+    "platform_successes",
+    "merge_gate",
+    "retarget_requirement",
+    "normal_pr_check_requirement",
+    "merge_action",
+    "compute_status",
+    "drac_status",
+    "totoro_status",
+    "coverage_claim_status",
+    "interval_claim_status",
+    "reml_claim_status",
+    "public_support_status",
+    "stack_status",
+    "dashboard_snapshot",
+    "artifact_snapshot",
+    "run_log",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+PR_STACK_MERGE_READINESS_RUN_LOG_FIELDS = (
+    "run_id",
+    "mode",
+    "observed_utc",
+    "stack_rows",
+    "first_pr",
+    "last_pr",
+    "draft_rows",
+    "clean_rows",
+    "commit_check_success_rows",
+    "attached_pr_rollup_rows",
+    "stacked_pr_rollup_empty_rows",
+    "dashboard_snapshot",
+    "artifact_snapshot",
+    "source_live_commands",
+    "execution_status",
+    "merge_status",
+    "compute_status",
+    "drac_status",
+    "totoro_status",
     "status",
     "claim_boundary",
     "next_gate",
@@ -4751,6 +4830,15 @@ def main() -> int:
     )
     sigma_slope_coverage_runner_run_log_rows = read_tsv(
         SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG
+    )
+    structured_re_pr_stack_merge_readiness_rows = read_tsv(
+        STRUCTURED_RE_PR_STACK_MERGE_READINESS
+    )
+    pr_stack_merge_readiness_snapshot_rows = read_tsv(
+        PR_STACK_MERGE_READINESS_SNAPSHOT
+    )
+    pr_stack_merge_readiness_run_log_rows = read_tsv(
+        PR_STACK_MERGE_READINESS_RUN_LOG
     )
     structured_re_mu_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -8376,6 +8464,355 @@ def main() -> int:
             for field, expected_value in expected_shard_common.items():
                 if shard_log.get(field) != expected_value:
                     errors.append(f"{shard_run_id}: {field} must be {expected_value}")
+
+    expected_pr_stack = [
+        {
+            "merge_order": "1",
+            "pr_number": "639",
+            "base_ref": "main",
+            "head_ref": "codex/structured-relmat-kq-mu-slope-fixture",
+            "head_sha": "d6b951fe9f3b6fabd1a9d4246bf3346d4ca86e8e",
+            "run_id": "28138055013",
+            "rollup": "attached_pr_checks_green_on_main_base",
+        },
+        {
+            "merge_order": "2",
+            "pr_number": "640",
+            "base_ref": "codex/structured-relmat-kq-mu-slope-fixture",
+            "head_ref": "codex/q4-location-bootstrap-dispatch-plan",
+            "head_sha": "822d5aeb6c0a9d6aa74bf666367d4fa597d9967b",
+            "run_id": "28139671019",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "3",
+            "pr_number": "641",
+            "base_ref": "codex/q4-location-bootstrap-dispatch-plan",
+            "head_ref": "codex/q4-location-bootstrap-runner-contract",
+            "head_sha": "d25ee3d710670a6793f1f9d2b675e32495f66d25",
+            "run_id": "28142464934",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "4",
+            "pr_number": "642",
+            "base_ref": "codex/q4-location-bootstrap-runner-contract",
+            "head_ref": "codex/relmat-q1-intercept-fixture-parity",
+            "head_sha": "56f41ae35712fa10839cf3aa0af3d0fd36fbbf8f",
+            "run_id": "28144362238",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "5",
+            "pr_number": "643",
+            "base_ref": "codex/relmat-q1-intercept-fixture-parity",
+            "head_ref": "codex/q1-scale-provider-fixture-parity",
+            "head_sha": "ed2a2767227324724176481f07997f8f4d89d9bf",
+            "run_id": "28145638566",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "6",
+            "pr_number": "644",
+            "base_ref": "codex/q1-scale-provider-fixture-parity",
+            "head_ref": "codex/q4-intercept-provider-fixture-parity",
+            "head_sha": "cff9b0e02ab3afcb6decc1027cfd8968d4e6530e",
+            "run_id": "28147092175",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "7",
+            "pr_number": "645",
+            "base_ref": "codex/q4-intercept-provider-fixture-parity",
+            "head_ref": "codex/q4-intercept-interval-contract",
+            "head_sha": "7c0618373c397120a1b532faa220d3c96a16bfa0",
+            "run_id": "28148455870",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "8",
+            "pr_number": "646",
+            "base_ref": "codex/q4-intercept-interval-contract",
+            "head_ref": "codex/q4-intercept-direct-sd-smoke-status",
+            "head_sha": "6730599f621376e743ec614fa234d615d2b016d0",
+            "run_id": "28150204549",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "9",
+            "pr_number": "647",
+            "base_ref": "codex/q4-intercept-direct-sd-smoke-status",
+            "head_ref": "codex/q4-intercept-stability-denominator-precheck",
+            "head_sha": "dc20a0507a3d8450d870ebe5b3e842fb8b805580",
+            "run_id": "28151981414",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "10",
+            "pr_number": "648",
+            "base_ref": "codex/q4-intercept-stability-denominator-precheck",
+            "head_ref": "codex/q4-intercept-hessian-bootstrap-diagnostic",
+            "head_sha": "a38c0338b43ffef90a22eae579a4089df4a3a988",
+            "run_id": "28154482855",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "11",
+            "pr_number": "649",
+            "base_ref": "codex/q4-intercept-hessian-bootstrap-diagnostic",
+            "head_ref": "codex/relmat-q-bridge-boundary-audit",
+            "head_sha": "a29cc71a4e52885ce55887eea9096089c9b230df",
+            "run_id": "28156818733",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "12",
+            "pr_number": "650",
+            "base_ref": "codex/relmat-q-bridge-boundary-audit",
+            "head_ref": "codex/relmat-q4-location-kq-native-parity",
+            "head_sha": "ac4f05047d7e91f8b0cecc46719b392807fc7b40",
+            "run_id": "28159429237",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "13",
+            "pr_number": "651",
+            "base_ref": "codex/relmat-q4-location-kq-native-parity",
+            "head_ref": "codex/relmat-q-payload-marshalling-gate",
+            "head_sha": "6861e0134827a66fc16f60c9081097c077b1fe2a",
+            "run_id": "28161964711",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "14",
+            "pr_number": "652",
+            "base_ref": "codex/relmat-q-payload-marshalling-gate",
+            "head_ref": "codex/sigma-slope-coverage-dispatch-review",
+            "head_sha": "4ac0e200032ad333920ad6eef6e69901f16890fc",
+            "run_id": "28164197137",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "15",
+            "pr_number": "653",
+            "base_ref": "codex/sigma-slope-coverage-dispatch-review",
+            "head_ref": "codex/sigma-slope-runner-contract",
+            "head_sha": "fdb7f78510d24f107f293e7339f4925bf6e3923d",
+            "run_id": "28166541285",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+    ]
+    expected_pr_stack_by_number = {
+        row["pr_number"]: row for row in expected_pr_stack
+    }
+    expected_pr_stack_dashboard = (
+        "docs/dev-log/dashboard/structured-re-pr-stack-merge-readiness.tsv"
+    )
+    expected_pr_stack_snapshot = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-pr-stack-merge-readiness/"
+        "structured-re-pr-stack-merge-readiness-snapshot.tsv"
+    )
+    expected_pr_stack_run_log = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-pr-stack-merge-readiness/"
+        "structured-re-pr-stack-merge-readiness-run-log.tsv"
+    )
+    if len(structured_re_pr_stack_merge_readiness_rows) != len(expected_pr_stack):
+        errors.append(
+            "structured-re-pr-stack-merge-readiness.tsv has "
+            f"{len(structured_re_pr_stack_merge_readiness_rows)} rows; "
+            f"expected {len(expected_pr_stack)}"
+        )
+    if pr_stack_merge_readiness_snapshot_rows != structured_re_pr_stack_merge_readiness_rows:
+        errors.append(
+            "structured-re-pr-stack-merge-readiness-snapshot.tsv must match "
+            "the dashboard merge-readiness snapshot"
+        )
+    if len(pr_stack_merge_readiness_run_log_rows) != 1:
+        errors.append(
+            "structured-re-pr-stack-merge-readiness-run-log.tsv must have one row"
+        )
+
+    seen_pr_numbers: set[str] = set()
+    for row in structured_re_pr_stack_merge_readiness_rows:
+        row_id = row.get("stack_row_id", "<structured RE PR stack row>")
+        if set(row.keys()) != set(STRUCTURED_RE_PR_STACK_MERGE_READINESS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-pr-stack-merge-readiness.tsv fields "
+                "do not match the schema"
+            )
+        for field in STRUCTURED_RE_PR_STACK_MERGE_READINESS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        pr_number = row.get("pr_number", "")
+        expected = expected_pr_stack_by_number.get(pr_number)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected PR number {pr_number!r}")
+            continue
+        if pr_number in seen_pr_numbers:
+            errors.append(f"duplicate structured RE PR stack row for PR #{pr_number}")
+        seen_pr_numbers.add(pr_number)
+        expected_row_id = f"structured_re_pr_stack_merge_{pr_number}"
+        if row_id != expected_row_id:
+            errors.append(f"{row_id}: stack_row_id must be {expected_row_id}")
+        for field in ("merge_order", "base_ref", "head_ref", "head_sha"):
+            if row.get(field) != expected[field]:
+                errors.append(f"{row_id}: {field} must be {expected[field]}")
+        expected_pr_url = f"https://github.com/itchyshin/drmTMB/pull/{pr_number}"
+        if row.get("pr_url") != expected_pr_url:
+            errors.append(f"{row_id}: pr_url must be {expected_pr_url}")
+        if row.get("draft_status") != "draft":
+            errors.append(f"{row_id}: draft_status must remain draft")
+        if row.get("merge_state_status") != "CLEAN":
+            errors.append(f"{row_id}: merge_state_status must remain CLEAN")
+        if row.get("pr_rollup_status") != expected["rollup"]:
+            errors.append(f"{row_id}: pr_rollup_status must be {expected['rollup']}")
+        if row.get("commit_check_status") != "three_platform_success":
+            errors.append(f"{row_id}: commit_check_status must be three_platform_success")
+        if row.get("r_cmd_check_run_id") != expected["run_id"]:
+            errors.append(f"{row_id}: r_cmd_check_run_id must be {expected['run_id']}")
+        if row.get("platform_success_count") != "3":
+            errors.append(f"{row_id}: platform_success_count must be 3")
+        for platform in ("ubuntu-latest", "macos-latest", "windows-latest"):
+            if platform not in row.get("platform_successes", ""):
+                errors.append(f"{row_id}: platform_successes must include {platform}")
+        expected_common = {
+            "merge_gate": "human_approval_required",
+            "compute_status": "not_executed",
+            "drac_status": "not_submitted",
+            "totoro_status": "not_submitted",
+            "coverage_claim_status": "not_evaluated",
+            "interval_claim_status": "not_promoted",
+            "reml_claim_status": "not_promoted",
+            "public_support_status": "not_promoted",
+            "stack_status": "merge_readiness_snapshot",
+            "dashboard_snapshot": expected_pr_stack_dashboard,
+            "artifact_snapshot": expected_pr_stack_snapshot,
+            "run_log": expected_pr_stack_run_log,
+            "evidence_url": (
+                "docs/dev-log/after-task/"
+                "2026-06-25-pr-stack-merge-readiness.md"
+            ),
+        }
+        for field, expected_value in expected_common.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if pr_number == "639":
+            if row.get("retarget_requirement") != "none_first_pr_targets_main":
+                errors.append(f"{row_id}: PR #639 must not require retargeting")
+            if row.get("normal_pr_check_requirement") != "already_attached_to_main_base":
+                errors.append(f"{row_id}: PR #639 must keep attached PR checks")
+            if row.get("merge_action") != "merge_first_after_approval":
+                errors.append(f"{row_id}: PR #639 merge action is wrong")
+        else:
+            previous_pr = str(int(pr_number) - 1)
+            if row.get("base_ref") != expected_pr_stack_by_number[previous_pr]["head_ref"]:
+                errors.append(f"{row_id}: base_ref must chain from PR #{previous_pr}")
+            if row.get("retarget_requirement") != "retarget_to_main_after_previous_merge":
+                errors.append(f"{row_id}: retarget_requirement must require retargeting")
+            if row.get("normal_pr_check_requirement") != "rerun_after_retarget_to_main":
+                errors.append(f"{row_id}: normal PR checks must rerun after retarget")
+            expected_merge_action = f"merge_after_pr_{int(pr_number) - 1}_lands_and_checks_refresh"
+            if row.get("merge_action") != expected_merge_action:
+                errors.append(f"{row_id}: merge_action must be {expected_merge_action}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "merge-readiness snapshot only",
+            "PRs remain draft",
+            "no PR was undrafted",
+            "no PR was merged",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no coverage-evaluable denominator evidence",
+            "no MCSE-calibrated coverage",
+            "no interval reliability",
+            "no q4 REML",
+            "no native-TMB q4 REML",
+            "no q4 AI-REML",
+            "no HSquared AI-REML",
+            "no non-Gaussian REML",
+            "no broad bridge support",
+            "no public support",
+            "no SR150 readiness",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "Ask Shinichi",
+            "merge from PR #639 upward",
+            "retarget the next PR to main",
+            "rerun normal PR checks",
+            "rerun mission-control validation",
+            "return to sigma-slope",
+            "relmat runtime slices",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        for field in ("dashboard_snapshot", "artifact_snapshot", "run_log", "evidence_url"):
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+    missing_pr_numbers = sorted(set(expected_pr_stack_by_number) - seen_pr_numbers)
+    if missing_pr_numbers:
+        errors.append(
+            "structured-re-pr-stack-merge-readiness.tsv missing PRs: "
+            + ", ".join(missing_pr_numbers)
+        )
+
+    if pr_stack_merge_readiness_run_log_rows:
+        stack_log = pr_stack_merge_readiness_run_log_rows[0]
+        run_id = stack_log.get("run_id", "<structured RE PR stack run log>")
+        if set(stack_log.keys()) != set(PR_STACK_MERGE_READINESS_RUN_LOG_FIELDS):
+            errors.append(
+                "structured-re-pr-stack-merge-readiness-run-log.tsv fields "
+                "do not match the run-log schema"
+            )
+        expected_stack_log_common = {
+            "run_id": "structured_re_pr_stack_merge_readiness_snapshot",
+            "mode": "dry-run",
+            "stack_rows": str(len(expected_pr_stack)),
+            "first_pr": "639",
+            "last_pr": "653",
+            "draft_rows": str(len(expected_pr_stack)),
+            "clean_rows": str(len(expected_pr_stack)),
+            "commit_check_success_rows": str(len(expected_pr_stack)),
+            "attached_pr_rollup_rows": "1",
+            "stacked_pr_rollup_empty_rows": str(len(expected_pr_stack) - 1),
+            "dashboard_snapshot": expected_pr_stack_dashboard,
+            "artifact_snapshot": expected_pr_stack_snapshot,
+            "execution_status": "validated_snapshot_not_executed",
+            "merge_status": "not_merged",
+            "compute_status": "not_executed",
+            "drac_status": "not_submitted",
+            "totoro_status": "not_submitted",
+            "status": "covered",
+        }
+        for field, expected_value in expected_stack_log_common.items():
+            if stack_log.get(field) != expected_value:
+                errors.append(f"{run_id}: {field} must be {expected_value}")
+        for phrase in (
+            "gh pr list",
+            "check-runs",
+            "merge-readiness snapshot only",
+            "no PR was merged",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no q4 REML",
+            "no AI-REML",
+            "no SR150 readiness",
+            "Ask Shinichi",
+            "rerun normal PR checks",
+        ):
+            run_log_text = (
+                stack_log.get("source_live_commands", "")
+                + " "
+                + stack_log.get("claim_boundary", "")
+                + " "
+                + stack_log.get("next_gate", "")
+            )
+            if phrase not in run_log_text:
+                errors.append(f"{run_id}: run log must mention {phrase}")
 
     expected_q2_slope_cells = {
         "phylo": {
@@ -22556,6 +22993,7 @@ def main() -> int:
         f", {len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} structured RE sigma-slope coverage-pregrid dry-run rows"
         f", {len(structured_re_sigma_slope_coverage_dispatch_review_rows)} structured RE sigma-slope coverage-dispatch review rows"
         f", {len(structured_re_sigma_slope_coverage_runner_contract_rows)} structured RE sigma-slope coverage-runner contract rows"
+        f", {len(structured_re_pr_stack_merge_readiness_rows)} structured RE PR stack merge-readiness rows"
         f", {len(structured_re_mu_sigma_slope_interval_diagnostic_plan_rows)} structured RE mu+sigma slope interval-diagnostic plan rows"
         f", {len(structured_re_mu_sigma_slope_interval_diagnostic_status_rows)} structured RE mu+sigma slope interval-diagnostic status rows"
         f", {len(structured_re_mu_sigma_slope_interval_stability_probe_rows)} structured RE mu+sigma slope interval-stability probe rows"

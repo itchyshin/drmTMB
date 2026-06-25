@@ -244,6 +244,16 @@ does not submit Totoro or DRAC jobs, create coverage-evaluable denominator
 evidence, satisfy the MCSE threshold, or move interval, coverage, REML,
 AI-REML, q4/q8, bridge, public-support, or SR150 readiness claims.
 
+`structured-re-pr-stack-merge-readiness.tsv` is the stack-control ledger for
+the q-series completion lane. It records PR #639 through #653 in merge order,
+their draft status, merge-clean state, head SHAs, and commit-level R-CMD-check
+run IDs. The ledger deliberately separates those commit-level checks from
+ordinary PR-attached checks: only the first PR targets `main`, and each stacked
+successor must retarget to `main` and refresh normal PR checks after the prior
+layer lands. The ledger is not an implementation, inference, or compute gate;
+it only prevents the project from treating a long green stack as a merged or
+public-support state.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the
