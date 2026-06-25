@@ -471,15 +471,21 @@ test_that("relmat Q bridge-boundary dashboard stays support-cell scoped", {
   expect_equal(boundary$dimension_pattern, qseries_boundary$dimension_pattern)
   expect_equal(boundary$endpoint_set, qseries_boundary$endpoint_set)
   expect_equal(boundary$native_k_status, rep("fixture_available", 6L))
-  expect_setequal(
-    unique(boundary$native_q_status),
-    c("runtime_kq_same_target_parity", "planned_not_banked")
+  expect_equal(
+    boundary$native_q_status,
+    rep("runtime_kq_same_target_parity", 6L)
   )
   expect_equal(
     boundary$native_q_status[
       boundary$boundary_id == "relmat_q_bridge_q4_mu1_mu2_one_slope"
     ],
-    "planned_not_banked"
+    "runtime_kq_same_target_parity"
+  )
+  expect_equal(
+    boundary$evidence_url[
+      boundary$boundary_id == "relmat_q_bridge_q4_mu1_mu2_one_slope"
+    ],
+    "docs/dev-log/dashboard/structured-re-relmat-q4-location-kq-native-parity.tsv"
   )
   expect_equal(boundary$bridge_k_status, rep("experimental", 6L))
   expect_equal(boundary$bridge_q_status, rep("unsupported", 6L))
@@ -516,6 +522,111 @@ test_that("relmat Q bridge-boundary dashboard stays support-cell scoped", {
     "REML",
     fixed = TRUE
   )
+})
+
+test_that("relmat q4 location K/Q parity sidecar is native-only", {
+  parity <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q4-location-kq-native-parity.tsv"
+  )
+  boundary <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-bridge-boundary.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    parity,
+    c(
+      "parity_id",
+      "cell_id",
+      "formula_cell",
+      "dimension_pattern",
+      "endpoint_set",
+      "slope_class",
+      "k_input_scale",
+      "q_input_scale",
+      "k_runtime_status",
+      "q_runtime_status",
+      "parity_status",
+      "extractor_status",
+      "bridge_q_status",
+      "direct_drmjl_q_status",
+      "r_via_julia_q_status",
+      "interval_status",
+      "coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(parity), 1L)
+  expect_equal(
+    parity$parity_id,
+    "relmat_q4_location_one_slope_kq_native_parity"
+  )
+  expect_equal(parity$cell_id, "qseries_relmat_q4_mu1_mu2_one_slope")
+  qseries_row <- qseries[match(parity$cell_id, qseries$cell_id), , drop = FALSE]
+  expect_equal(qseries_row$structure_provider, "relmat")
+  expect_equal(parity$dimension_pattern, qseries_row$dimension_pattern)
+  expect_equal(parity$endpoint_set, qseries_row$endpoint_set)
+  expect_equal(parity$slope_class, qseries_row$slope_class)
+  expect_equal(
+    parity$formula_cell,
+    "relmat(1 + x | p | id, K/Q = ...) in mu1 and mu2"
+  )
+  expect_equal(parity$k_input_scale, "user_covariance")
+  expect_equal(parity$q_input_scale, "user_precision")
+  expect_equal(parity$k_runtime_status, "point_fit")
+  expect_equal(parity$q_runtime_status, "point_fit")
+  expect_equal(parity$parity_status, "runtime_kq_same_target_parity")
+  expect_equal(parity$extractor_status, "matched_member_identity")
+  expect_equal(parity$bridge_q_status, "unsupported")
+  expect_equal(parity$direct_drmjl_q_status, "unsupported")
+  expect_equal(parity$r_via_julia_q_status, "unsupported")
+  expect_equal(parity$interval_status, "planned")
+  expect_equal(parity$coverage_status, "planned")
+  expect_equal(
+    parity$evidence_url,
+    "tests/testthat/test-animal-relmat-gaussian.R"
+  )
+
+  boundary_row <- boundary[
+    boundary$boundary_id == "relmat_q_bridge_q4_mu1_mu2_one_slope",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(boundary_row), 1L)
+  expect_equal(boundary_row$native_q_status, parity$parity_status)
+  expect_equal(
+    boundary_row$evidence_url,
+    "docs/dev-log/dashboard/structured-re-relmat-q4-location-kq-native-parity.tsv"
+  )
+  structured_re_expect_all_match(parity$claim_boundary, "Native R/TMB")
+  structured_re_expect_all_match(
+    parity$claim_boundary,
+    "K/Q same-target parity"
+  )
+  structured_re_expect_all_match(parity$claim_boundary, "Q precision")
+  structured_re_expect_all_match(
+    parity$claim_boundary,
+    "not direct DRM.jl or R-via-Julia bridge evidence"
+  )
+  structured_re_expect_all_match(parity$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(
+    parity$claim_boundary,
+    "partial location-scale support"
+  )
+  structured_re_expect_all_match(parity$claim_boundary, "interval reliability")
+  structured_re_expect_all_match(parity$claim_boundary, "coverage")
+  structured_re_expect_all_match(parity$claim_boundary, "q4 REML")
+  structured_re_expect_all_match(parity$claim_boundary, "native-TMB q4 REML")
+  structured_re_expect_all_match(parity$claim_boundary, "q4 AI-REML")
+  structured_re_expect_all_match(parity$claim_boundary, "HSquared AI-REML")
+  structured_re_expect_all_match(parity$claim_boundary, "non-Gaussian REML")
+  structured_re_expect_all_match(parity$claim_boundary, "public support")
+  structured_re_expect_all_match(parity$claim_boundary, "broader q8 support")
+  structured_re_expect_all_match(parity$next_gate, "payload marshalling")
 })
 
 test_that("q2 slope-only parity fixture dashboard is provider-specific", {

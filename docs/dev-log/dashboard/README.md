@@ -323,12 +323,21 @@ mesh/SPDE routes, and broad bridge support remain unsupported or planned.
 bridge split across the one-slope cells now visible in the q-series ledger.
 The rows keep K-matrix bridge fixtures separate from native R/TMB `Q`
 precision evidence. The q1 `mu`, q1 `sigma`, matched `mu+sigma`, q2
-`mu1+mu2`, and all-four one-slope rows can point to runtime K/Q same-target
-native evidence where it exists; the q4 location one-slope row explicitly stays
-`planned_not_banked` for native Q evidence. Every row keeps `bridge_q_status`,
+`mu1+mu2`, q4 location one-slope, and all-four one-slope rows now point to
+runtime K/Q same-target native evidence where it has been banked. The q4
+location row cites
+`structured-re-relmat-q4-location-kq-native-parity.tsv`, which is native R/TMB
+runtime evidence only. Every row keeps `bridge_q_status`,
 `direct_drmjl_q_status`, and `r_via_julia_q_status` at `unsupported`, so the
 ledger does not promote relmat Q bridge marshalling, broad bridge support,
 interval reliability, coverage, REML, or AI-REML.
+
+`structured-re-relmat-q4-location-kq-native-parity.tsv` records the one-row
+native R/TMB K/Q same-target parity result for
+`relmat(1 + x | p | id, K/Q = ...)` in `mu1` and `mu2`. It is a runtime
+evidence sidecar, not bridge marshalling evidence, and leaves interval
+reliability, coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
+AI-REML, non-Gaussian REML, public support, and broader q8 support unpromoted.
 
 `structured-re-q2-payload-contract.tsv` records the q2 payload shape and
 coefficient-ordering contract. It keeps `mu1`/`mu2` location covariance separate

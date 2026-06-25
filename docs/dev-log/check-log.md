@@ -68108,3 +68108,51 @@ Boundary:
   REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, public support,
   DRAC/Totoro execution, SR150 coverage readiness, PR undrafting/merging, or an
   Ayumi-facing reply.
+
+## 2026-06-25: relmat q4 location K/Q native parity
+
+Goal:
+
+- Bank native R/TMB K/Q same-target runtime evidence for the exact relmat q4
+  location one-slope `mu1+mu2` support cell, without promoting Q bridge
+  marshalling or inference claims.
+
+Result:
+
+- Added a relmat K-matrix fit beside the existing relmat Q-precision q4
+  location fit in `tests/testthat/test-animal-relmat-gaussian.R`, with
+  log-likelihood parity and matched SD/correlation member identity checks.
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-q4-location-kq-native-parity.tsv`
+  as the one-row native runtime evidence sidecar.
+- Updated
+  `docs/dev-log/dashboard/structured-re-relmat-q-bridge-boundary.tsv` so the
+  q4 location row now records `runtime_kq_same_target_parity` for native Q
+  evidence while keeping all Q bridge/export statuses unsupported.
+- Wired the new sidecar into mission-control validation, dashboard contract
+  tests, dashboard README, the q-series completion map, and an after-task
+  report.
+
+Evidence:
+
+- `air format tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 1 relmat q4
+  location K/Q native parity row.
+- `Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,699 assertions, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,936 assertions, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check` passed.
+- `Rscript --vanilla -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-relmat-q4-location-kq-native-parity.md')"`
+  passed.
+
+Boundary:
+
+- This is native R/TMB runtime parity evidence only. It does not implement
+  relmat Q bridge marshalling, direct DRM.jl Q export, R-via-Julia Q
+  transport, broad bridge support, partial location-scale support, interval
+  reliability, interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, public support, DRAC/Totoro execution,
+  SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.

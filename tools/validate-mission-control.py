@@ -204,6 +204,9 @@ STRUCTURED_RE_Q2_ACCEPTANCE_GATE = DASHBOARD / "structured-re-q2-acceptance-gate
 STRUCTURED_RE_RELMAT_Q_BRIDGE_BOUNDARY = (
     DASHBOARD / "structured-re-relmat-q-bridge-boundary.tsv"
 )
+STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY = (
+    DASHBOARD / "structured-re-relmat-q4-location-kq-native-parity.tsv"
+)
 STRUCTURED_RE_Q4_TARGET_CONTRACT = DASHBOARD / "structured-re-q4-target-contract.tsv"
 STRUCTURED_RE_Q4_PHYLOCOV_TARGET_MAP = DASHBOARD / "structured-re-q4-phylocov-target-map.tsv"
 STRUCTURED_RE_Q4_PROFILE_TARGET_BRIDGE_MAP = (
@@ -2473,6 +2476,28 @@ STRUCTURED_RE_RELMAT_Q_BRIDGE_BOUNDARY_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS = (
+    "parity_id",
+    "cell_id",
+    "formula_cell",
+    "dimension_pattern",
+    "endpoint_set",
+    "slope_class",
+    "k_input_scale",
+    "q_input_scale",
+    "k_runtime_status",
+    "q_runtime_status",
+    "parity_status",
+    "extractor_status",
+    "bridge_q_status",
+    "direct_drmjl_q_status",
+    "r_via_julia_q_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
 STRUCTURED_RE_Q4_TARGET_CONTRACT_FIELDS = (
     "target_id",
     "axes",
@@ -4672,6 +4697,9 @@ def main() -> int:
     )
     structured_re_relmat_q_bridge_boundary_rows = read_tsv(
         STRUCTURED_RE_RELMAT_Q_BRIDGE_BOUNDARY
+    )
+    structured_re_relmat_q4_location_kq_native_parity_rows = read_tsv(
+        STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY
     )
     structured_re_q4_target_contract_rows = read_tsv(STRUCTURED_RE_Q4_TARGET_CONTRACT)
     structured_re_q4_phylocov_target_map_rows = read_tsv(
@@ -15587,7 +15615,6 @@ def main() -> int:
     observed_relmat_q_boundary_ids: set[str] = set()
     relmat_q_native_statuses = {
         "runtime_kq_same_target_parity",
-        "planned_not_banked",
     }
     for row in structured_re_relmat_q_bridge_boundary_rows:
         row_id = row.get("boundary_id", "<relmat Q bridge boundary>")
@@ -15657,6 +15684,117 @@ def main() -> int:
             "structured-re-relmat-q-bridge-boundary.tsv lacks boundary ids: "
             + ", ".join(missing_relmat_q_boundary_ids)
         )
+
+    relmat_q4_boundary = [
+        row
+        for row in structured_re_relmat_q_bridge_boundary_rows
+        if row.get("boundary_id") == "relmat_q_bridge_q4_mu1_mu2_one_slope"
+    ]
+    if len(relmat_q4_boundary) == 1:
+        q4_row = relmat_q4_boundary[0]
+        if q4_row.get("native_q_status") != "runtime_kq_same_target_parity":
+            errors.append(
+                "relmat_q_bridge_q4_mu1_mu2_one_slope: native_q_status must be "
+                "runtime_kq_same_target_parity after the q4 K/Q parity slice"
+            )
+        if (
+            q4_row.get("evidence_url")
+            != "docs/dev-log/dashboard/structured-re-relmat-q4-location-kq-native-parity.tsv"
+        ):
+            errors.append(
+                "relmat_q_bridge_q4_mu1_mu2_one_slope: evidence_url must point "
+                "to structured-re-relmat-q4-location-kq-native-parity.tsv"
+            )
+
+    expected_relmat_q4_parity_id = "relmat_q4_location_one_slope_kq_native_parity"
+    if len(structured_re_relmat_q4_location_kq_native_parity_rows) != 1:
+        errors.append(
+            "structured-re-relmat-q4-location-kq-native-parity.tsv must contain "
+            "exactly one row"
+        )
+    for row in structured_re_relmat_q4_location_kq_native_parity_rows:
+        row_id = row.get("parity_id", "<relmat q4 K/Q native parity>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-relmat-q4-location-kq-native-parity.tsv "
+                "fields do not match the contract"
+            )
+        if row_id != expected_relmat_q4_parity_id:
+            errors.append(
+                f"{row_id}: parity_id must be {expected_relmat_q4_parity_id}"
+            )
+        if row.get("cell_id") != "qseries_relmat_q4_mu1_mu2_one_slope":
+            errors.append(
+                f"{row_id}: cell_id must be qseries_relmat_q4_mu1_mu2_one_slope"
+            )
+        qseries_row = qseries_by_cell.get(row.get("cell_id", ""))
+        if qseries_row is None:
+            errors.append(f"{row_id}: cell_id is not in q-series support cells")
+        else:
+            expected_qseries_values = {
+                "structure_provider": "relmat",
+                "dimension_pattern": row.get("dimension_pattern"),
+                "endpoint_set": row.get("endpoint_set"),
+                "slope_class": row.get("slope_class"),
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: {field} disagrees with q-series support cell"
+                    )
+        expected_values = {
+            "formula_cell": "relmat(1 + x | p | id, K/Q = ...) in mu1 and mu2",
+            "dimension_pattern": "q4",
+            "endpoint_set": "mu1+mu2",
+            "slope_class": "labelled_slope_covariance",
+            "k_input_scale": "user_covariance",
+            "q_input_scale": "user_precision",
+            "k_runtime_status": "point_fit",
+            "q_runtime_status": "point_fit",
+            "parity_status": "runtime_kq_same_target_parity",
+            "extractor_status": "matched_member_identity",
+            "bridge_q_status": "unsupported",
+            "direct_drmjl_q_status": "unsupported",
+            "r_via_julia_q_status": "unsupported",
+            "interval_status": "planned",
+            "coverage_status": "planned",
+            "evidence_url": "tests/testthat/test-animal-relmat-gaussian.R",
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "Native R/TMB",
+            "K/Q same-target parity",
+            "Q precision",
+            "not direct DRM.jl or R-via-Julia bridge evidence",
+            "broad bridge support",
+            "partial location-scale support",
+            "interval reliability",
+            "coverage",
+            "q4 REML",
+            "native-TMB q4 REML",
+            "q4 AI-REML",
+            "HSquared AI-REML",
+            "non-Gaussian REML",
+            "public support",
+            "broader q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        if "payload marshalling" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep payload marshalling separate")
+        row_text = " ".join(
+            str(row.get(field, ""))
+            for field in STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS
+        )
+        if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
+            errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
 
     if len(structured_re_q2_payload_contract_rows) < len(STRUCTURED_RE_Q2_PAYLOAD_TARGETS):
         errors.append(
@@ -21589,6 +21727,7 @@ def main() -> int:
         f", {len(structured_re_q2_direct_drmjl_export_rows)} q2 direct-DRM.jl export rows"
         f", {len(structured_re_q2_acceptance_gate_rows)} q2 acceptance-gate rows"
         f", {len(structured_re_relmat_q_bridge_boundary_rows)} relmat Q bridge-boundary rows"
+        f", {len(structured_re_relmat_q4_location_kq_native_parity_rows)} relmat q4 location K/Q native parity rows"
         f", {len(structured_re_q4_target_contract_rows)} q4 target-contract rows"
         f", {len(structured_re_q4_phylocov_target_map_rows)} q4 phylocov target-map rows"
         f", {len(structured_re_q4_profile_target_bridge_map_rows)} q4 profile-target bridge-map rows"

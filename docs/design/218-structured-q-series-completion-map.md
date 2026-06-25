@@ -453,14 +453,15 @@ and broader q8 support remain unpromoted.
 `structured-re-relmat-q-bridge-boundary.tsv` is the cross-cell guard for that
 same distinction. It covers the relmat q1 `mu` slope, q1 `sigma` slope,
 matched `mu+sigma` slope, q2 `mu1+mu2` slope-only, q4 location slope, and
-all-four one-slope q8-shaped cells. The q1, q2, matched, and q8-shaped rows
-may cite runtime K/Q same-target native evidence where it has been banked, but
-the q4 location row stays `planned_not_banked` for native Q evidence and every
-row leaves `bridge_q_status`, `direct_drmjl_q_status`, and
-`r_via_julia_q_status` at `unsupported`. This sidecar is bridge-boundary
-evidence only; it does not implement Q precision marshalling, broad bridge
-support, interval reliability, coverage, q4 REML, AI-REML, public support, or
-broader q8 support.
+all-four one-slope q8-shaped cells. All six rows now cite runtime K/Q
+same-target native evidence where it has been banked. The q4 location row points
+at `structured-re-relmat-q4-location-kq-native-parity.tsv`, which records native
+R/TMB evidence only for the exact `mu1+mu2` q4 location cell. Every row leaves
+`bridge_q_status`, `direct_drmjl_q_status`, and `r_via_julia_q_status` at
+`unsupported`. This sidecar is bridge-boundary evidence only; it does not
+implement Q precision marshalling, broad bridge support, interval reliability,
+coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+non-Gaussian REML, public support, or broader q8 support.
 
 `structured-re-q4-location-slope-interval-diagnostic-plan.tsv` records the
 target-level interval diagnostic plan for those same exact q4 location cells.
@@ -778,7 +779,15 @@ The efficient completion order is:
    partial location-scale, or broader q8 status moves. Banked in the same draft
    PR before compute review: shard-safe provider dry-runs write private
    manifest/log filenames and leave the 16-row dashboard contract unchanged.
-22. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+22. Banked in this stacked follow-up slice: add native R/TMB K/Q same-target
+   parity for the exact relmat q4 location one-slope `mu1+mu2` cell. This
+   moves only the native Q evidence boundary from `planned_not_banked` to
+   runtime parity; Q precision payload marshalling, direct DRM.jl Q export,
+   R-via-Julia Q transport, broad bridge support, interval reliability,
+   coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+   non-Gaussian REML, public support, and broader q8 support remain separate
+   gates.
+23. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 

@@ -1667,11 +1667,25 @@ test_that("bivariate Gaussian known-matrix one-slope location blocks expose part
       control = control
     )
   )
-  fit_relmat <- suppressWarnings(
+  fit_relmat_Q <- suppressWarnings(
     drmTMB(
       bf(
         mu1 = y1 ~ x + relmat(1 + x | p | id, Q = Q),
         mu2 = y2 ~ x + relmat(1 + x | p | id, Q = Q),
+        sigma1 = ~z,
+        sigma2 = ~z,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = control
+    )
+  )
+  fit_relmat_K <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + relmat(1 + x | p | id, K = K),
+        mu2 = y2 ~ x + relmat(1 + x | p | id, K = K),
         sigma1 = ~z,
         sigma2 = ~z,
         rho12 = ~1
@@ -1727,7 +1741,21 @@ test_that("bivariate Gaussian known-matrix one-slope location blocks expose part
   }
 
   expect_known_partial(fit_animal, "animal", "animal")
-  expect_known_partial(fit_relmat, "relmat", "relmat")
+  expect_known_partial(fit_relmat_K, "relmat", "relmat")
+  expect_known_partial(fit_relmat_Q, "relmat", "relmat")
+  expect_equal(
+    as.numeric(stats::logLik(fit_relmat_K)),
+    as.numeric(stats::logLik(fit_relmat_Q)),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    names(fit_relmat_K$sdpars$mu),
+    names(fit_relmat_Q$sdpars$mu)
+  )
+  expect_equal(
+    names(fit_relmat_K$corpars$relmat),
+    names(fit_relmat_Q$corpars$relmat)
+  )
 })
 
 test_that("relmat known-precision likelihood matches dense marginal Gaussian", {
