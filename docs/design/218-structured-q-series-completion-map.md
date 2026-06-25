@@ -450,6 +450,18 @@ claim K/Q same-target parity. Partial location-scale support, interval
 reliability, coverage, q4 REML, AI-REML, broad bridge support, public support,
 and broader q8 support remain unpromoted.
 
+`structured-re-relmat-q-bridge-boundary.tsv` is the cross-cell guard for that
+same distinction. It covers the relmat q1 `mu` slope, q1 `sigma` slope,
+matched `mu+sigma` slope, q2 `mu1+mu2` slope-only, q4 location slope, and
+all-four one-slope q8-shaped cells. The q1, q2, matched, and q8-shaped rows
+may cite runtime K/Q same-target native evidence where it has been banked, but
+the q4 location row stays `planned_not_banked` for native Q evidence and every
+row leaves `bridge_q_status`, `direct_drmjl_q_status`, and
+`r_via_julia_q_status` at `unsupported`. This sidecar is bridge-boundary
+evidence only; it does not implement Q precision marshalling, broad bridge
+support, interval reliability, coverage, q4 REML, AI-REML, public support, or
+broader q8 support.
+
 `structured-re-q4-location-slope-interval-diagnostic-plan.tsv` records the
 target-level interval diagnostic plan for those same exact q4 location cells.
 It names 16 direct-SD targets and 24 derived-correlation targets across

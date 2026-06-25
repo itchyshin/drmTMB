@@ -68066,3 +68066,45 @@ Boundary:
   controls, public support, range-estimating spatial support, pedigree/Ainv
   bridge marshalling, Q bridge marshalling, DRAC/Totoro execution, SR150
   coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: relmat Q bridge-boundary audit
+
+Goal:
+
+- Keep relmat K/Q one-slope evidence honest before any new runtime or bridge
+  work, separating native R/TMB Q precision evidence from R-via-Julia bridge
+  marshalling.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-q-bridge-boundary.tsv`
+  with six relmat one-slope boundary rows: q1 `mu`, q1 `sigma`, matched
+  `mu+sigma`, q2 `mu1+mu2`, q4 location, and all-four q8-shaped cells.
+- Updated mission-control validation, dashboard tests, dashboard README, and
+  the q-series completion map so the new ledger cross-checks against the
+  authoritative support-cell table.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,179 assertions, 0 failures, 0 warnings, and 0 skips.
+- `python3 tools/validate-mission-control.py` passed and reported 6 relmat Q
+  bridge-boundary rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,895 assertions, 0 failures, 0 warnings, and 0 skips.
+- `git diff --check` passed.
+- `Rscript --vanilla -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-relmat-q-bridge-boundary-audit.md')"`
+  passed.
+
+Boundary:
+
+- This is bridge-boundary evidence only. It does not implement relmat Q bridge
+  marshalling, direct DRM.jl Q export, R-via-Julia Q transport, broad bridge
+  support, interval reliability, interval coverage, q4 REML, native-TMB q4
+  REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, public support,
+  DRAC/Totoro execution, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.

@@ -319,6 +319,17 @@ for one fixed-covariance coordinate fixture. Q2 REML, one-axis and three-axis
 phylo partials, scale-only partial blocks, range-estimating spatial routes,
 mesh/SPDE routes, and broad bridge support remain unsupported or planned.
 
+`structured-re-relmat-q-bridge-boundary.tsv` records the relmat `K` versus `Q`
+bridge split across the one-slope cells now visible in the q-series ledger.
+The rows keep K-matrix bridge fixtures separate from native R/TMB `Q`
+precision evidence. The q1 `mu`, q1 `sigma`, matched `mu+sigma`, q2
+`mu1+mu2`, and all-four one-slope rows can point to runtime K/Q same-target
+native evidence where it exists; the q4 location one-slope row explicitly stays
+`planned_not_banked` for native Q evidence. Every row keeps `bridge_q_status`,
+`direct_drmjl_q_status`, and `r_via_julia_q_status` at `unsupported`, so the
+ledger does not promote relmat Q bridge marshalling, broad bridge support,
+interval reliability, coverage, REML, or AI-REML.
+
 `structured-re-q2-payload-contract.tsv` records the q2 payload shape and
 coefficient-ordering contract. It keeps `mu1`/`mu2` location covariance separate
 from q2-plus-q2, q4, REML, and interval coverage. The q2 phylo row is backed by

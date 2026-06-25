@@ -419,6 +419,105 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   )
 })
 
+test_that("relmat Q bridge-boundary dashboard stays support-cell scoped", {
+  boundary <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-bridge-boundary.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    boundary,
+    c(
+      "boundary_id",
+      "cell_id",
+      "formula_cell",
+      "dimension_pattern",
+      "endpoint_set",
+      "slope_class",
+      "native_k_status",
+      "native_q_status",
+      "bridge_k_status",
+      "bridge_q_status",
+      "direct_drmjl_q_status",
+      "r_via_julia_q_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(boundary), 6L)
+  expect_equal(anyDuplicated(boundary$boundary_id), 0L)
+  expect_setequal(
+    boundary$boundary_id,
+    c(
+      "relmat_q_bridge_q1_mu_one_slope",
+      "relmat_q_bridge_q1_sigma_one_slope",
+      "relmat_q_bridge_q1_mu_sigma_one_slope",
+      "relmat_q_bridge_q2_mu1_mu2_one_slope",
+      "relmat_q_bridge_q4_mu1_mu2_one_slope",
+      "relmat_q_bridge_q8_all_four_one_slope"
+    )
+  )
+  expect_true(all(boundary$cell_id %in% qseries$cell_id))
+  qseries_boundary <- qseries[
+    match(boundary$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(qseries_boundary$structure_provider, rep("relmat", 6L))
+  expect_equal(boundary$dimension_pattern, qseries_boundary$dimension_pattern)
+  expect_equal(boundary$endpoint_set, qseries_boundary$endpoint_set)
+  expect_equal(boundary$native_k_status, rep("fixture_available", 6L))
+  expect_setequal(
+    unique(boundary$native_q_status),
+    c("runtime_kq_same_target_parity", "planned_not_banked")
+  )
+  expect_equal(
+    boundary$native_q_status[
+      boundary$boundary_id == "relmat_q_bridge_q4_mu1_mu2_one_slope"
+    ],
+    "planned_not_banked"
+  )
+  expect_equal(boundary$bridge_k_status, rep("experimental", 6L))
+  expect_equal(boundary$bridge_q_status, rep("unsupported", 6L))
+  expect_equal(boundary$direct_drmjl_q_status, rep("unsupported", 6L))
+  expect_equal(boundary$r_via_julia_q_status, rep("unsupported", 6L))
+  expect_equal(boundary$status, rep("covered", 6L))
+  structured_re_expect_all_match(
+    boundary$formula_cell,
+    "K/Q",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    boundary$claim_boundary,
+    "Q precision",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    boundary$claim_boundary,
+    "not direct DRM.jl or R-via-Julia bridge evidence",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    boundary$claim_boundary,
+    "broad bridge support",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    boundary$claim_boundary,
+    "coverage",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    boundary$claim_boundary,
+    "REML",
+    fixed = TRUE
+  )
+})
+
 test_that("q2 slope-only parity fixture dashboard is provider-specific", {
   fixture <- structured_re_read_dashboard_tsv(
     "structured-re-q2-slope-parity-fixture.tsv"
