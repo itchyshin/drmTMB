@@ -1253,6 +1253,62 @@ test_that("q2 acceptance gate banks route-specific fixture rows", {
   )
 })
 
+test_that("relmat K/Q one-slope native parity stays runtime-only", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_relmat_kq_one_slope_native_parity_contract()
+
+  expect_equal(nrow(contract), 6L)
+  expect_setequal(
+    contract$parity_id,
+    c(
+      "relmat_kq_native_q1_mu_one_slope",
+      "relmat_kq_native_q1_sigma_one_slope",
+      "relmat_kq_native_q1_mu_sigma_one_slope",
+      "relmat_kq_native_q2_mu1_mu2_one_slope",
+      "relmat_kq_native_q4_mu1_mu2_one_slope",
+      "relmat_kq_native_q8_all_four_one_slope"
+    )
+  )
+  expect_equal(
+    contract$cell_id,
+    c(
+      "qseries_relmat_q1_mu_one_slope",
+      "qseries_relmat_q1_sigma_one_slope",
+      "qseries_relmat_q1_mu_sigma_one_slope",
+      "qseries_relmat_q2_mu1_mu2_one_slope",
+      "qseries_relmat_q4_mu1_mu2_one_slope",
+      "qseries_relmat_q4_all_four_one_slope_planned"
+    )
+  )
+  expect_equal(
+    contract$dimension_pattern,
+    c("q1", "q1", "q1_plus_q1", "q2", "q4", "q8")
+  )
+  expect_equal(contract$k_input_scale, rep("user_covariance", 6L))
+  expect_equal(contract$q_input_scale, rep("user_precision", 6L))
+  expect_equal(contract$k_runtime_status, rep("point_fit", 6L))
+  expect_equal(contract$q_runtime_status, rep("point_fit", 6L))
+  expect_equal(
+    contract$parity_status,
+    rep("runtime_kq_same_target_parity", 6L)
+  )
+  expect_equal(contract$bridge_q_status, rep("unsupported", 6L))
+  expect_equal(contract$direct_drmjl_q_status, rep("unsupported", 6L))
+  expect_equal(contract$r_via_julia_q_status, rep("unsupported", 6L))
+  expect_equal(contract$interval_status, rep("planned", 6L))
+  expect_equal(contract$coverage_status, rep("planned", 6L))
+  expect_match(contract$claim_boundary, "Native R/TMB", fixed = TRUE)
+  expect_match(contract$claim_boundary, "not direct DRM.jl", fixed = TRUE)
+  expect_match(contract$claim_boundary, "R-via-Julia", fixed = TRUE)
+  expect_match(contract$claim_boundary, "interval reliability", fixed = TRUE)
+  expect_match(contract$claim_boundary, "coverage", fixed = TRUE)
+  expect_match(contract$claim_boundary, "q4 REML", fixed = TRUE)
+  expect_match(contract$claim_boundary, "HSquared AI-REML", fixed = TRUE)
+  expect_match(contract$claim_boundary, "non-Gaussian REML", fixed = TRUE)
+  expect_match(contract$next_gate, "payload marshalling", fixed = TRUE)
+})
+
 test_that("q4 fixture contract separates direct SD and derived correlations", {
   source_structured_re_bridge_fixtures()
 

@@ -498,6 +498,14 @@ implement Q precision marshalling, broad bridge support, interval reliability,
 coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
 non-Gaussian REML, public support, or broader q8 support.
 
+`structured-re-relmat-kq-one-slope-native-parity.tsv` is the generated native
+runtime companion for that bridge-boundary ledger. It records six exact relmat
+K/Q one-slope parity cells: q1 `mu`, q1 `sigma`, matched q1 `mu+sigma`, q2
+`mu1+mu2` slope-only, q4 location one-slope, and the q8-shaped all-four
+one-slope row. The sidecar is not a Q bridge payload contract and does not move
+direct DRM.jl Q export, R-via-Julia Q transport, broad bridge support, interval
+reliability, coverage, REML, AI-REML, public support, or broader q8 support.
+
 `structured-re-relmat-q-payload-marshalling-gate.tsv` records the acceptance
 gate for future relmat `Q` precision payload work. It covers the same six
 relmat `K/Q` rows as the bridge-boundary sidecar and requires an explicit
@@ -837,7 +845,14 @@ The efficient completion order is:
    coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
    non-Gaussian REML, public support, and broader q8 support remain separate
    gates.
-23. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+23. Banked in this stacked follow-up slice: add the generated six-row native
+   R/TMB relmat K/Q same-target parity ledger for exact one-slope cells. This
+   consolidates q1 `mu`, q1 `sigma`, matched q1 `mu+sigma`, q2 `mu1+mu2`
+   slope-only, q4 location one-slope, and q8-shaped all-four one-slope runtime
+   evidence without moving relmat Q bridge marshalling, direct DRM.jl Q export,
+   R-via-Julia Q transport, intervals, coverage, REML, AI-REML, public support,
+   or broader q8 support.
+24. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 

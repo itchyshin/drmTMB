@@ -219,6 +219,9 @@ STRUCTURED_RE_RELMAT_Q_BRIDGE_BOUNDARY = (
 STRUCTURED_RE_RELMAT_Q_PAYLOAD_MARSHALLING_GATE = (
     DASHBOARD / "structured-re-relmat-q-payload-marshalling-gate.tsv"
 )
+STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY = (
+    DASHBOARD / "structured-re-relmat-kq-one-slope-native-parity.tsv"
+)
 STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY = (
     DASHBOARD / "structured-re-relmat-q4-location-kq-native-parity.tsv"
 )
@@ -2752,6 +2755,9 @@ STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY_FIELDS = (
+    STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS
+)
 STRUCTURED_RE_Q4_TARGET_CONTRACT_FIELDS = (
     "target_id",
     "axes",
@@ -4981,6 +4987,9 @@ def main() -> int:
     )
     structured_re_relmat_q_payload_marshalling_gate_rows = read_tsv(
         STRUCTURED_RE_RELMAT_Q_PAYLOAD_MARSHALLING_GATE
+    )
+    structured_re_relmat_kq_one_slope_native_parity_rows = read_tsv(
+        STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY
     )
     structured_re_relmat_q4_location_kq_native_parity_rows = read_tsv(
         STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY
@@ -17172,6 +17181,145 @@ def main() -> int:
             + ", ".join(missing_relmat_q_payload_boundary_ids)
         )
 
+    expected_relmat_kq_native_parity_ids = {
+        "relmat_kq_native_q1_mu_one_slope": "relmat_q_bridge_q1_mu_one_slope",
+        "relmat_kq_native_q1_sigma_one_slope": "relmat_q_bridge_q1_sigma_one_slope",
+        "relmat_kq_native_q1_mu_sigma_one_slope": "relmat_q_bridge_q1_mu_sigma_one_slope",
+        "relmat_kq_native_q2_mu1_mu2_one_slope": "relmat_q_bridge_q2_mu1_mu2_one_slope",
+        "relmat_kq_native_q4_mu1_mu2_one_slope": "relmat_q_bridge_q4_mu1_mu2_one_slope",
+        "relmat_kq_native_q8_all_four_one_slope": "relmat_q_bridge_q8_all_four_one_slope",
+    }
+    observed_relmat_kq_native_parity_ids: set[str] = set()
+    if len(structured_re_relmat_kq_one_slope_native_parity_rows) != len(
+        expected_relmat_kq_native_parity_ids
+    ):
+        errors.append(
+            "structured-re-relmat-kq-one-slope-native-parity.tsv has "
+            f"{len(structured_re_relmat_kq_one_slope_native_parity_rows)} rows; "
+            f"expected {len(expected_relmat_kq_native_parity_ids)}"
+        )
+    for row in structured_re_relmat_kq_one_slope_native_parity_rows:
+        row_id = row.get("parity_id", "<relmat K/Q one-slope native parity>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-relmat-kq-one-slope-native-parity.tsv "
+                "fields do not match the contract"
+            )
+        if row_id in observed_relmat_kq_native_parity_ids:
+            errors.append(f"duplicate relmat K/Q native parity id: {row_id}")
+        observed_relmat_kq_native_parity_ids.add(row_id)
+        boundary_id = expected_relmat_kq_native_parity_ids.get(row_id)
+        if boundary_id is None:
+            errors.append(f"{row_id}: unexpected relmat K/Q native parity id")
+            boundary_row = None
+        else:
+            boundary_row = relmat_q_boundary_by_id.get(boundary_id)
+            if boundary_row is None:
+                errors.append(f"{row_id}: missing relmat Q boundary id {boundary_id}")
+        qseries_row = qseries_by_cell.get(row.get("cell_id", ""))
+        if qseries_row is None:
+            errors.append(f"{row_id}: cell_id is not in q-series support cells")
+        else:
+            if qseries_row.get("structure_provider") != "relmat":
+                errors.append(f"{row_id}: q-series cell must be relmat-scoped")
+            for field in ("dimension_pattern", "endpoint_set", "slope_class"):
+                if qseries_row.get(field) != row.get(field):
+                    errors.append(
+                        f"{row_id}: {field} disagrees with q-series support cell"
+                    )
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: q-series coverage_status must remain planned")
+        if boundary_row is not None:
+            for field in (
+                "cell_id",
+                "formula_cell",
+                "dimension_pattern",
+                "endpoint_set",
+                "slope_class",
+                "bridge_q_status",
+                "direct_drmjl_q_status",
+                "r_via_julia_q_status",
+            ):
+                if row.get(field) != boundary_row.get(field):
+                    errors.append(
+                        f"{row_id}: {field} must match structured-re-relmat-q-bridge-boundary.tsv"
+                    )
+            if boundary_row.get("native_q_status") != row.get("parity_status"):
+                errors.append(
+                    f"{row_id}: parity_status must match boundary native_q_status"
+                )
+        expected_values = {
+            "k_input_scale": "user_covariance",
+            "q_input_scale": "user_precision",
+            "k_runtime_status": "point_fit",
+            "q_runtime_status": "point_fit",
+            "parity_status": "runtime_kq_same_target_parity",
+            "extractor_status": "matched_member_identity",
+            "bridge_q_status": "unsupported",
+            "direct_drmjl_q_status": "unsupported",
+            "r_via_julia_q_status": "unsupported",
+            "interval_status": "planned",
+            "coverage_status": "planned",
+            "evidence_url": "tests/testthat/test-animal-relmat-gaussian.R",
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if "K/Q" not in row.get("formula_cell", ""):
+            errors.append(f"{row_id}: formula_cell must display K/Q")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "Native R/TMB",
+            "K/Q same-target parity",
+            "Q precision",
+            "not direct DRM.jl or R-via-Julia bridge evidence",
+            "broad bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+            "q4 REML",
+            "native-TMB q4 REML",
+            "q4 AI-REML",
+            "HSquared AI-REML",
+            "non-Gaussian REML",
+            "public support",
+            "broader q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "Q precision payload marshalling",
+            "matrix digest",
+            "level alignment",
+            "coefficient order",
+            "provenance",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        row_text = " ".join(
+            str(row.get(field, ""))
+            for field in STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY_FIELDS
+        )
+        if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
+            errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
+    missing_relmat_kq_native_parity_ids = sorted(
+        set(expected_relmat_kq_native_parity_ids)
+        - observed_relmat_kq_native_parity_ids
+    )
+    if missing_relmat_kq_native_parity_ids:
+        errors.append(
+            "structured-re-relmat-kq-one-slope-native-parity.tsv lacks parity ids: "
+            + ", ".join(missing_relmat_kq_native_parity_ids)
+        )
+
     relmat_q4_boundary = [
         row
         for row in structured_re_relmat_q_bridge_boundary_rows
@@ -23219,6 +23367,7 @@ def main() -> int:
         f", {len(structured_re_q2_acceptance_gate_rows)} q2 acceptance-gate rows"
         f", {len(structured_re_relmat_q_bridge_boundary_rows)} relmat Q bridge-boundary rows"
         f", {len(structured_re_relmat_q_payload_marshalling_gate_rows)} relmat Q payload-marshalling gate rows"
+        f", {len(structured_re_relmat_kq_one_slope_native_parity_rows)} relmat K/Q one-slope native parity rows"
         f", {len(structured_re_relmat_q4_location_kq_native_parity_rows)} relmat q4 location K/Q native parity rows"
         f", {len(structured_re_q4_target_contract_rows)} q4 target-contract rows"
         f", {len(structured_re_q4_phylocov_target_map_rows)} q4 phylocov target-map rows"

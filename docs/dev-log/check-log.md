@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: relmat K/Q one-slope native parity ledger
+
+Goal:
+
+- Consolidate native R/TMB K/Q same-target runtime evidence for exact relmat
+  one-slope cells into a generated, mission-control-validated support-cell
+  ledger before any relmat Q bridge payload work.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-kq-one-slope-native-parity.tsv`
+  with six rows: q1 `mu`, q1 `sigma`, matched q1 `mu+sigma`, q2
+  `mu1+mu2` slope-only, q4 location one-slope, and the q8-shaped all-four
+  one-slope row.
+- Added
+  `phase18_structured_re_relmat_kq_one_slope_native_parity_contract()` and
+  `tools/run-structured-re-relmat-kq-one-slope-native-parity.R` so the sidecar
+  is generated rather than hand-maintained.
+- Wired the sidecar into `tools/validate-mission-control.py`, including schema
+  checks, q-series support-cell alignment, relmat Q bridge-boundary alignment,
+  native/runtime statuses, unsupported Q bridge statuses, and claim-boundary
+  guard phrases.
+- Updated the dashboard README and q-series completion map to make the new
+  six-row native parity ledger separate from the q4 one-row sidecar and the
+  relmat Q payload-marshalling gate.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-relmat-kq-one-slope-native-parity.R`
+  wrote six relmat K/Q one-slope native parity rows.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported six relmat
+  K/Q one-slope native parity rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures', stop_on_failure = TRUE)"`
+  passed with 739 assertions, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e "testthat::test_file('tests/testthat/test-structured-re-bridge-fixtures.R', filter = 'relmat K/Q one-slope native parity')"`
+  failed because this installed `testthat::test_file()` does not accept
+  `filter`; the follow-up `devtools::test()` command above is the accepted test
+  evidence.
+- `gh issue list --repo itchyshin/drmTMB --state open --search "relmat K Q one-slope structured random effect" --limit 10 --json number,title,url,state`
+  returned no matching open issues.
+
+Boundary:
+
+- This is native R/TMB runtime ledger evidence only. It does not implement
+  relmat Q bridge payload marshalling, direct DRM.jl Q export, R-via-Julia Q
+  transport, broad bridge support, interval reliability, coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML,
+  AI-REML, public support, broader q8 support, DRAC/Totoro execution, SR150
+  readiness, or an Ayumi-facing reply.
+
 ## 2026-06-25: q-series PR stack merge-readiness extension
 
 Goal:

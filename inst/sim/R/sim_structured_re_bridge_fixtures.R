@@ -1930,6 +1930,82 @@ phase18_structured_re_q4_slope_parity_fixture_contract <- function() {
   do.call(rbind, rows)
 }
 
+phase18_structured_re_relmat_kq_one_slope_native_parity_contract <- function() {
+  claim_boundary <- paste(
+    "Native R/TMB relmat K/Q same-target parity is banked only for",
+    "the exact named one-slope cell; Q precision remains native",
+    "runtime evidence only and is not direct DRM.jl or R-via-Julia",
+    "bridge evidence. No broad bridge support, interval reliability,",
+    "coverage, REML, AI-REML, q4 REML, native-TMB q4 REML, q4 AI-REML,",
+    "HSquared AI-REML, non-Gaussian REML, public support, or broader",
+    "q8 support is promoted."
+  )
+  next_gate <- paste(
+    "Use this native K/Q parity only as runtime evidence; review Q",
+    "precision payload marshalling, matrix digest, level alignment,",
+    "coefficient order, and provenance separately before any bridge",
+    "update."
+  )
+  data.frame(
+    parity_id = c(
+      "relmat_kq_native_q1_mu_one_slope",
+      "relmat_kq_native_q1_sigma_one_slope",
+      "relmat_kq_native_q1_mu_sigma_one_slope",
+      "relmat_kq_native_q2_mu1_mu2_one_slope",
+      "relmat_kq_native_q4_mu1_mu2_one_slope",
+      "relmat_kq_native_q8_all_four_one_slope"
+    ),
+    cell_id = c(
+      "qseries_relmat_q1_mu_one_slope",
+      "qseries_relmat_q1_sigma_one_slope",
+      "qseries_relmat_q1_mu_sigma_one_slope",
+      "qseries_relmat_q2_mu1_mu2_one_slope",
+      "qseries_relmat_q4_mu1_mu2_one_slope",
+      "qseries_relmat_q4_all_four_one_slope_planned"
+    ),
+    formula_cell = c(
+      "relmat(1 + x | id, K/Q = ...) in mu",
+      "relmat(1 + x | id, K/Q = ...) in sigma",
+      "relmat(1 + x | id, K/Q = ...) in mu and sigma",
+      "relmat(0 + x | p | id, K/Q = ...) in mu1 and mu2",
+      "relmat(1 + x | p | id, K/Q = ...) in mu1 and mu2",
+      "relmat(1 + x | p | id, K/Q = ...) in all four endpoints"
+    ),
+    dimension_pattern = c("q1", "q1", "q1_plus_q1", "q2", "q4", "q8"),
+    endpoint_set = c(
+      "mu",
+      "sigma",
+      "mu+sigma",
+      "mu1+mu2",
+      "mu1+mu2",
+      "mu1+mu2+sigma1+sigma2"
+    ),
+    slope_class = c(
+      "independent_one_slope",
+      "independent_one_slope",
+      "independent_one_slope",
+      "labelled_slope_covariance",
+      "labelled_slope_covariance",
+      "labelled_slope_covariance"
+    ),
+    k_input_scale = "user_covariance",
+    q_input_scale = "user_precision",
+    k_runtime_status = "point_fit",
+    q_runtime_status = "point_fit",
+    parity_status = "runtime_kq_same_target_parity",
+    extractor_status = "matched_member_identity",
+    bridge_q_status = "unsupported",
+    direct_drmjl_q_status = "unsupported",
+    r_via_julia_q_status = "unsupported",
+    interval_status = "planned",
+    coverage_status = "planned",
+    evidence_url = "tests/testthat/test-animal-relmat-gaussian.R",
+    claim_boundary = claim_boundary,
+    next_gate = next_gate,
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_structured_re_q2_fixture_contract <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   boundary <- vapply(

@@ -340,6 +340,15 @@ runtime evidence only. Every row keeps `bridge_q_status`,
 ledger does not promote relmat Q bridge marshalling, broad bridge support,
 interval reliability, coverage, REML, or AI-REML.
 
+`structured-re-relmat-kq-one-slope-native-parity.tsv` records the generated
+six-row native R/TMB K/Q same-target parity ledger for those exact relmat
+one-slope cells. It covers q1 `mu`, q1 `sigma`, matched q1 `mu+sigma`, q2
+`mu1+mu2` slope-only, q4 location one-slope, and the q8-shaped all-four
+one-slope row. This is native runtime evidence only: relmat Q bridge
+marshalling, direct DRM.jl Q export, R-via-Julia Q transport, interval
+reliability, coverage, REML, AI-REML, public support, and broader q8 support
+remain separate gates.
+
 `structured-re-relmat-q-payload-marshalling-gate.tsv` records the acceptance
 gate before any relmat `Q` precision bridge work. Each row links back to the
 relmat `K/Q` bridge-boundary row and requires an explicit payload contract for
