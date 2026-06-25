@@ -68010,3 +68010,59 @@ Boundary:
   support, range-estimating spatial support, pedigree/Ainv bridge marshalling,
   Q bridge marshalling, DRAC/Totoro execution, SR150 coverage readiness, PR
   undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: q4 intercept Hessian/bootstrap diagnostic
+
+Goal:
+
+- Diagnose the provider-level blocker behind the q4 all-four intercept
+  direct-SD denominator precheck, without admitting denominators or promoting
+  interval reliability, interval coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, broad bridge support, public support, or
+  DRAC/Totoro execution.
+
+Result:
+
+- Added
+  `tools/run-structured-re-q4-intercept-hessian-bootstrap-diagnostic.R`.
+- Generated
+  `docs/dev-log/dashboard/structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv`
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-25-q4-intercept-hessian-bootstrap-diagnostic/structured-re-q4-intercept-hessian-bootstrap-diagnostic-results.tsv`
+  with four provider rows.
+- Recorded phylo, fixed-covariance spatial, and K-matrix relmat as
+  `pdhess_false;indefinite_cov_fixed`.
+- Recorded A-matrix animal as `bootstrap_nonfinite_after_pdhess_true`.
+- Updated mission-control validation, dashboard tests, q-series support-cell
+  next gates, dashboard README, q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-25-q4-intercept-hessian-bootstrap-diagnostic.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-intercept-interval-smoke.R`
+  passed and restored the method-level smoke artifact with 48 rows plus the
+  16-row interval status sidecar.
+- `Rscript --vanilla tools/run-structured-re-q4-intercept-hessian-bootstrap-diagnostic.R`
+  passed and wrote 4 q4 intercept Hessian/bootstrap diagnostic rows.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `air format tools/run-structured-re-q4-intercept-hessian-bootstrap-diagnostic.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,157 assertions, 0 failures, 0 warnings, and 0 skips.
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE q4 intercept Hessian/bootstrap diagnostic rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,873 assertions, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-q4-intercept-hessian-bootstrap-diagnostic.md')"`
+  passed.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is a provider-level diagnostic sidecar only. It does not admit
+  denominators, evaluate coverage, claim q4 interval reliability, claim q4
+  interval coverage, promote q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, broad bridge support, public optimizer
+  controls, public support, range-estimating spatial support, pedigree/Ainv
+  bridge marshalling, Q bridge marshalling, DRAC/Totoro execution, SR150
+  coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.

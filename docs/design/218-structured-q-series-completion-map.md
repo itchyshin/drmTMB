@@ -348,6 +348,25 @@ coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad
 bridge support, public support, range-estimating spatial support,
 pedigree/Ainv bridge marshalling, or relmat Q bridge marshalling.
 
+`structured-re-q4-intercept-denominator-precheck.tsv` records the target-level
+denominator precheck implied by that smoke. The 12 phylo, fixed-covariance
+spatial, and K-matrix relmat direct-SD targets are marked
+`not_admitted_pdhess_false`. The four A-matrix animal direct-SD targets are
+marked `not_admitted_bootstrap_nonfinite`. This sidecar prevents the support
+cell from treating finite point fits, finite profile targets, or finite
+Wald/profile rows as coverage-evaluable denominators.
+
+`structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv` records the next
+provider-level diagnostic. It refits the deterministic q4 all-four intercept
+fixture and separates the blockers: phylo, fixed-covariance spatial, and
+K-matrix relmat have `pdHess = FALSE` with `finite_indefinite`
+fixed-effect covariance diagnostics, while the A-matrix animal row has
+`pdHess = TRUE`, `finite_positive` fixed-effect covariance, and nonfinite
+bootstrap rows for all four direct-SD targets. This is still diagnostic-only
+evidence; it does not move q4 interval reliability, q4 interval coverage,
+q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge
+support, public support, DRAC/Totoro execution, or denominator admission.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four one-slope bivariate Gaussian cells. The required
 endpoint-member set is

@@ -147,6 +147,9 @@ STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS = (
 STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK = (
     DASHBOARD / "structured-re-q4-intercept-denominator-precheck.tsv"
 )
+STRUCTURED_RE_Q4_INTERCEPT_HESSIAN_BOOTSTRAP_DIAGNOSTIC = (
+    DASHBOARD / "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv"
+)
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-q4-location-slope-parity-fixture.tsv"
 )
@@ -1880,6 +1883,67 @@ STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK_FIELDS = (
     "smoke_n_pdhess",
     "precheck_diagnosis",
     "denominator_admission",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_INTERCEPT_HESSIAN_BOOTSTRAP_DIAGNOSTIC_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "source_denominator_precheck",
+    "source_interval_status",
+    "source_interval_artifact",
+    "source_artifact",
+    "n_levels",
+    "n_each",
+    "intended_sd_mu1_intercept",
+    "intended_sd_mu2_intercept",
+    "intended_sd_sigma1_intercept",
+    "intended_sd_sigma2_intercept",
+    "fit_convergence",
+    "n_pdhess",
+    "logLik",
+    "max_abs_gradient_fixed",
+    "optimizer_attempt_count",
+    "optimizer_selected",
+    "optimizer_selected_preset",
+    "optimizer_selected_status",
+    "fallback_selected",
+    "optimizer_attempt_presets",
+    "optimizer_attempt_statuses",
+    "cov_fixed_status",
+    "cov_fixed_dim",
+    "cov_fixed_finite_count",
+    "cov_fixed_total",
+    "min_cov_fixed_eigenvalue",
+    "max_cov_fixed_eigenvalue",
+    "n_cov_fixed_nonpositive_eigenvalues",
+    "raw_hessian_status",
+    "raw_hessian_message",
+    "direct_sd_target_count",
+    "n_profile_ready_direct_sd",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "max_abs_derived_correlation",
+    "n_abs_derived_correlation_gt_0_95",
+    "n_derived_correlation_zero",
+    "n_precheck_targets",
+    "n_precheck_not_admitted_pdhess_false",
+    "n_precheck_not_admitted_bootstrap_nonfinite",
+    "smoke_interval_statuses",
+    "smoke_wald_statuses",
+    "smoke_profile_statuses",
+    "smoke_bootstrap_statuses",
+    "smoke_failure_classes",
+    "n_smoke_bootstrap_nonfinite",
+    "precheck_diagnosis",
+    "denominator_admission",
+    "diagnostic_status",
     "coverage_status",
     "interval_claim_status",
     "status",
@@ -4518,6 +4582,9 @@ def main() -> int:
     )
     structured_re_q4_intercept_denominator_precheck_rows = read_tsv(
         STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK
+    )
+    structured_re_q4_intercept_hessian_bootstrap_diagnostic_rows = read_tsv(
+        STRUCTURED_RE_Q4_INTERCEPT_HESSIAN_BOOTSTRAP_DIAGNOSTIC
     )
     structured_re_q4_location_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE
@@ -12962,11 +13029,11 @@ def main() -> int:
             if provider == "relmat" and "Q bridge" not in qseries_boundary:
                 errors.append(f"{row_id}: linked relmat q-series must block Q bridge")
             if (
-                "structured-re-q4-intercept-denominator-precheck.tsv"
+                "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv"
                 not in qseries_row.get("next_gate", "")
             ):
                 errors.append(
-                    f"{row_id}: linked q-series next_gate must name denominator precheck"
+                    f"{row_id}: linked q-series next_gate must name Hessian/bootstrap diagnostic"
                 )
             if "denominator accounting" not in qseries_row.get("next_gate", ""):
                 errors.append(
@@ -13526,6 +13593,219 @@ def main() -> int:
                 for provider, endpoint_member in missing_q4_intercept_denominator_targets
             )
         )
+
+    q4_intercept_denominator_by_provider = {
+        provider: [
+            row
+            for row in structured_re_q4_intercept_denominator_precheck_rows
+            if row.get("structured_type") == provider
+        ]
+        for provider in q4_intercept_provider_groups
+    }
+    q4_intercept_diagnostic_expected = {
+        "phylo": {
+            "n_pdhess": "0",
+            "cov_fixed_status": "finite_indefinite",
+            "n_precheck_not_admitted_pdhess_false": "4",
+            "n_precheck_not_admitted_bootstrap_nonfinite": "0",
+            "smoke_interval_statuses": "no_finite_intervals",
+            "smoke_wald_statuses": "not_run_pdhess_false",
+            "smoke_profile_statuses": "not_run_pdhess_false",
+            "smoke_bootstrap_statuses": "not_run_pdhess_false",
+            "smoke_failure_classes": "fit_pdhess_false",
+            "n_smoke_bootstrap_nonfinite": "0",
+            "precheck_diagnosis": "pdhess_blocker",
+            "denominator_admission": "not_admitted_pdhess_false",
+            "diagnostic_status": "pdhess_false;indefinite_cov_fixed",
+        },
+        "spatial": {
+            "n_pdhess": "0",
+            "cov_fixed_status": "finite_indefinite",
+            "n_precheck_not_admitted_pdhess_false": "4",
+            "n_precheck_not_admitted_bootstrap_nonfinite": "0",
+            "smoke_interval_statuses": "no_finite_intervals",
+            "smoke_wald_statuses": "not_run_pdhess_false",
+            "smoke_profile_statuses": "not_run_pdhess_false",
+            "smoke_bootstrap_statuses": "not_run_pdhess_false",
+            "smoke_failure_classes": "fit_pdhess_false",
+            "n_smoke_bootstrap_nonfinite": "0",
+            "precheck_diagnosis": "pdhess_blocker",
+            "denominator_admission": "not_admitted_pdhess_false",
+            "diagnostic_status": "pdhess_false;indefinite_cov_fixed",
+        },
+        "animal": {
+            "n_pdhess": "1",
+            "cov_fixed_status": "finite_positive",
+            "n_precheck_not_admitted_pdhess_false": "0",
+            "n_precheck_not_admitted_bootstrap_nonfinite": "4",
+            "smoke_interval_statuses": "wald_profile_finite_bootstrap_failed",
+            "smoke_wald_statuses": "finite",
+            "smoke_profile_statuses": "finite",
+            "smoke_bootstrap_statuses": "nonfinite",
+            "smoke_failure_classes": "bootstrap_failed_or_nonfinite",
+            "n_smoke_bootstrap_nonfinite": "4",
+            "precheck_diagnosis": "bootstrap_blocker",
+            "denominator_admission": "not_admitted_bootstrap_nonfinite",
+            "diagnostic_status": "bootstrap_nonfinite_after_pdhess_true",
+        },
+        "relmat": {
+            "n_pdhess": "0",
+            "cov_fixed_status": "finite_indefinite",
+            "n_precheck_not_admitted_pdhess_false": "4",
+            "n_precheck_not_admitted_bootstrap_nonfinite": "0",
+            "smoke_interval_statuses": "no_finite_intervals",
+            "smoke_wald_statuses": "not_run_pdhess_false",
+            "smoke_profile_statuses": "not_run_pdhess_false",
+            "smoke_bootstrap_statuses": "not_run_pdhess_false",
+            "smoke_failure_classes": "fit_pdhess_false",
+            "n_smoke_bootstrap_nonfinite": "0",
+            "precheck_diagnosis": "pdhess_blocker",
+            "denominator_admission": "not_admitted_pdhess_false",
+            "diagnostic_status": "pdhess_false;indefinite_cov_fixed",
+        },
+    }
+    seen_q4_intercept_diagnostic_providers: set[str] = set()
+    if len(structured_re_q4_intercept_hessian_bootstrap_diagnostic_rows) != 4:
+        errors.append(
+            "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv must "
+            "have 4 provider rows"
+        )
+    for row in structured_re_q4_intercept_hessian_bootstrap_diagnostic_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<q4 intercept Hessian/bootstrap diagnostic>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_INTERCEPT_HESSIAN_BOOTSTRAP_DIAGNOSTIC_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv "
+                "fields do not match the diagnostic contract"
+            )
+        for field in STRUCTURED_RE_Q4_INTERCEPT_HESSIAN_BOOTSTRAP_DIAGNOSTIC_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in q4_intercept_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if provider in seen_q4_intercept_diagnostic_providers:
+            errors.append(
+                "duplicate q4 intercept Hessian/bootstrap diagnostic provider: "
+                f"{provider}"
+            )
+        seen_q4_intercept_diagnostic_providers.add(provider)
+        expected_id = f"q4_intercept_hessian_bootstrap_{provider}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_all_four_intercept"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must be {expected_cell}")
+        provider_precheck = q4_intercept_denominator_by_provider[provider]
+        if len(provider_precheck) != 4:
+            errors.append(f"{row_id}: provider must have four precheck rows")
+        expected_formula = provider_precheck[0].get("formula_cell", "")
+        if row.get("formula_cell") != expected_formula:
+            errors.append(f"{row_id}: formula_cell must match the precheck sidecar")
+        expected_source_values = {
+            "source_denominator_precheck": (
+                "docs/dev-log/dashboard/"
+                "structured-re-q4-intercept-denominator-precheck.tsv"
+            ),
+            "source_interval_status": (
+                "docs/dev-log/dashboard/"
+                "structured-re-q4-intercept-interval-diagnostic-status.tsv"
+            ),
+            "source_interval_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-25-q4-intercept-interval-smoke/"
+                "structured-re-q4-intercept-interval-smoke-results.tsv"
+            ),
+            "source_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-25-q4-intercept-hessian-bootstrap-diagnostic/"
+                "structured-re-q4-intercept-hessian-bootstrap-diagnostic-results.tsv"
+            ),
+            "n_levels": "8",
+            "n_each": "18",
+            "direct_sd_target_count": "4",
+            "n_profile_ready_direct_sd": "4",
+            "n_precheck_targets": "4",
+            "raw_hessian_status": "unavailable_random_effects",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        expected_source_values.update(q4_intercept_diagnostic_expected[provider])
+        for field, expected_value in expected_source_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if "Hessian not yet implemented" not in row.get("raw_hessian_message", ""):
+            errors.append(f"{row_id}: raw_hessian_message must name random-effect Hessian unavailability")
+        if not evidence_reference_exists(row.get("source_denominator_precheck", "")):
+            errors.append(f"{row_id}: source_denominator_precheck does not resolve locally")
+        if not evidence_reference_exists(row.get("source_interval_status", "")):
+            errors.append(f"{row_id}: source_interval_status does not resolve locally")
+        if not evidence_reference_exists(row.get("source_interval_artifact", "")):
+            errors.append(f"{row_id}: source_interval_artifact does not resolve locally")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four intercept",
+            "Hessian/bootstrap diagnostic only",
+            "derived-correlation intervals still blocked",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "native-TMB q4 REML",
+            "q4 AI-REML",
+            "HSquared AI-REML",
+            "broad bridge support",
+            "public support",
+            "calibrated coverage wording",
+            "denominator admission",
+            "DRAC/Totoro execution",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_intercept_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if row.get("diagnostic_status", "") not in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must include diagnostic_status")
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if "coverage-grid design" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage-grid design gated")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            for field, expected_value in {
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+            if (
+                "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv"
+                not in qseries_row.get("next_gate", "")
+            ):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must name the diagnostic sidecar"
+                )
+            if "coverage-grid design" not in qseries_row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must keep coverage-grid design gated"
+                )
 
     q4_slope_provider_groups = {
         "phylo": "species",
@@ -21172,6 +21452,7 @@ def main() -> int:
         f", {len(structured_re_q4_intercept_interval_diagnostic_plan_rows)} structured RE q4 intercept interval-diagnostic plan rows"
         f", {len(structured_re_q4_intercept_interval_diagnostic_status_rows)} structured RE q4 intercept interval-diagnostic status rows"
         f", {len(structured_re_q4_intercept_denominator_precheck_rows)} structured RE q4 intercept denominator-precheck rows"
+        f", {len(structured_re_q4_intercept_hessian_bootstrap_diagnostic_rows)} structured RE q4 intercept Hessian/bootstrap diagnostic rows"
         f", {len(structured_re_q4_location_slope_parity_fixture_rows)} structured RE q4 location slope parity-fixture rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} structured RE q4 location slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"

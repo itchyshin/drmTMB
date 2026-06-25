@@ -1037,6 +1037,20 @@ coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad
 bridge support, public support, range-estimating spatial support,
 pedigree/Ainv animal bridge marshalling, or relmat Q bridge marshalling.
 
+`structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv` records the
+provider-level Hessian/bootstrap follow-up for the same q4 all-four intercept
+cells. It refits the deterministic smoke fixture and links back to both the
+interval-status and denominator-precheck sidecars. Phylo, fixed-covariance
+spatial, and K-matrix relmat have `pdHess = FALSE` with
+`finite_indefinite` fixed-effect covariance diagnostics; the A-matrix animal
+row has `pdHess = TRUE` and `finite_positive` fixed-effect covariance but keeps
+all four direct-SD targets blocked by nonfinite bootstrap rows. This sidecar is
+diagnostic only. It does not admit denominators, evaluate coverage, run
+DRAC/Totoro jobs, or promote interval reliability, interval coverage, q4 REML,
+native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge support, public
+support, range-estimating spatial support, pedigree/Ainv animal bridge
+marshalling, or relmat Q bridge marshalling.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four bivariate Gaussian one-slope cells. Each provider row
 names the eight endpoint members, the matching eight direct-SD targets, and the

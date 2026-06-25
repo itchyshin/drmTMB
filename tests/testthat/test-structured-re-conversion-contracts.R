@@ -4633,7 +4633,7 @@ test_that("q4 all-four intercept parity fixture records provider bridge fixture"
   structured_re_expect_all_match(provider_rows$claim_boundary, "AI-REML")
   structured_re_expect_all_match(
     provider_rows$next_gate,
-    "structured-re-q4-intercept-denominator-precheck.tsv"
+    "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv"
   )
   structured_re_expect_all_match(
     provider_rows$next_gate,
@@ -5321,6 +5321,239 @@ test_that("q4 all-four intercept denominator precheck blocks admission", {
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
+  )
+})
+
+test_that("q4 all-four intercept Hessian/bootstrap diagnostic stays blocked", {
+  diagnostic <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv"
+  )
+  precheck <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-denominator-precheck.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    diagnostic,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "source_denominator_precheck",
+      "source_interval_status",
+      "source_interval_artifact",
+      "source_artifact",
+      "n_levels",
+      "n_each",
+      "intended_sd_mu1_intercept",
+      "intended_sd_mu2_intercept",
+      "intended_sd_sigma1_intercept",
+      "intended_sd_sigma2_intercept",
+      "fit_convergence",
+      "n_pdhess",
+      "logLik",
+      "max_abs_gradient_fixed",
+      "optimizer_attempt_count",
+      "optimizer_selected",
+      "optimizer_selected_preset",
+      "optimizer_selected_status",
+      "fallback_selected",
+      "optimizer_attempt_presets",
+      "optimizer_attempt_statuses",
+      "cov_fixed_status",
+      "cov_fixed_dim",
+      "cov_fixed_finite_count",
+      "cov_fixed_total",
+      "min_cov_fixed_eigenvalue",
+      "max_cov_fixed_eigenvalue",
+      "n_cov_fixed_nonpositive_eigenvalues",
+      "raw_hessian_status",
+      "raw_hessian_message",
+      "direct_sd_target_count",
+      "n_profile_ready_direct_sd",
+      "min_direct_sd_estimate",
+      "max_direct_sd_estimate",
+      "max_abs_derived_correlation",
+      "n_abs_derived_correlation_gt_0_95",
+      "n_derived_correlation_zero",
+      "n_precheck_targets",
+      "n_precheck_not_admitted_pdhess_false",
+      "n_precheck_not_admitted_bootstrap_nonfinite",
+      "smoke_interval_statuses",
+      "smoke_wald_statuses",
+      "smoke_profile_statuses",
+      "smoke_bootstrap_statuses",
+      "smoke_failure_classes",
+      "n_smoke_bootstrap_nonfinite",
+      "precheck_diagnosis",
+      "denominator_admission",
+      "diagnostic_status",
+      "coverage_status",
+      "interval_claim_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(diagnostic), 4L)
+  expect_setequal(
+    diagnostic$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(diagnostic$n_levels, rep(8L, 4L))
+  expect_equal(diagnostic$n_each, rep(18L, 4L))
+  expect_equal(diagnostic$direct_sd_target_count, rep(4L, 4L))
+  expect_equal(diagnostic$n_profile_ready_direct_sd, rep(4L, 4L))
+  expect_equal(diagnostic$n_precheck_targets, rep(4L, 4L))
+  expect_equal(
+    diagnostic$source_denominator_precheck,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-intercept-denominator-precheck.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    diagnostic$source_interval_status,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-intercept-interval-diagnostic-status.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    diagnostic$source_interval_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-25-q4-intercept-interval-smoke/",
+        "structured-re-q4-intercept-interval-smoke-results.tsv"
+      ),
+      4L
+    )
+  )
+  expect_equal(diagnostic$coverage_status, rep("not_evaluated", 4L))
+  expect_equal(diagnostic$interval_claim_status, rep("diagnostic_only", 4L))
+  expect_equal(diagnostic$status, rep("covered", 4L))
+  expect_equal(
+    diagnostic$raw_hessian_status,
+    rep("unavailable_random_effects", 4L)
+  )
+  structured_re_expect_all_match(
+    diagnostic$raw_hessian_message,
+    "Hessian not yet implemented"
+  )
+
+  precheck_by_provider <- split(precheck, precheck$structured_type)
+  for (provider in diagnostic$structured_type) {
+    row <- diagnostic[diagnostic$structured_type == provider, , drop = FALSE]
+    provider_precheck <- precheck_by_provider[[provider]]
+    expect_equal(row$formula_cell, provider_precheck$formula_cell[[1L]])
+    expect_equal(
+      row$n_precheck_not_admitted_pdhess_false,
+      sum(
+        provider_precheck$denominator_admission == "not_admitted_pdhess_false"
+      )
+    )
+    expect_equal(
+      row$n_precheck_not_admitted_bootstrap_nonfinite,
+      sum(
+        provider_precheck$denominator_admission ==
+          "not_admitted_bootstrap_nonfinite"
+      )
+    )
+  }
+
+  hessian_blocked <- diagnostic[
+    diagnostic$structured_type %in% c("phylo", "spatial", "relmat"),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(hessian_blocked), 3L)
+  expect_equal(hessian_blocked$n_pdhess, rep(0L, 3L))
+  expect_equal(hessian_blocked$cov_fixed_status, rep("finite_indefinite", 3L))
+  expect_equal(
+    hessian_blocked$n_precheck_not_admitted_pdhess_false,
+    rep(4L, 3L)
+  )
+  expect_equal(
+    hessian_blocked$n_precheck_not_admitted_bootstrap_nonfinite,
+    rep(0L, 3L)
+  )
+  expect_equal(
+    hessian_blocked$smoke_bootstrap_statuses,
+    rep("not_run_pdhess_false", 3L)
+  )
+  expect_equal(
+    hessian_blocked$diagnostic_status,
+    rep("pdhess_false;indefinite_cov_fixed", 3L)
+  )
+
+  animal <- diagnostic[diagnostic$structured_type == "animal", , drop = FALSE]
+  expect_equal(nrow(animal), 1L)
+  expect_equal(animal$n_pdhess, 1L)
+  expect_equal(animal$cov_fixed_status, "finite_positive")
+  expect_equal(animal$smoke_wald_statuses, "finite")
+  expect_equal(animal$smoke_profile_statuses, "finite")
+  expect_equal(animal$smoke_bootstrap_statuses, "nonfinite")
+  expect_equal(animal$n_smoke_bootstrap_nonfinite, 4L)
+  expect_equal(animal$precheck_diagnosis, "bootstrap_blocker")
+  expect_equal(animal$denominator_admission, "not_admitted_bootstrap_nonfinite")
+  expect_equal(
+    animal$diagnostic_status,
+    "bootstrap_nonfinite_after_pdhess_true"
+  )
+
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "Hessian/bootstrap diagnostic only"
+  )
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "derived-correlation intervals still blocked"
+  )
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(diagnostic$claim_boundary, "interval coverage")
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "native-TMB q4 REML"
+  )
+  structured_re_expect_all_match(diagnostic$claim_boundary, "HSquared AI-REML")
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "broad bridge support"
+  )
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "denominator admission"
+  )
+  structured_re_expect_all_match(
+    diagnostic$claim_boundary,
+    "DRAC/Totoro execution"
+  )
+  structured_re_expect_all_match(diagnostic$next_gate, "denominator accounting")
+  structured_re_expect_all_match(diagnostic$next_gate, "coverage-grid design")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% diagnostic$cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 4L)
+  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$denominator_policy,
+    rep("fixture_not_coverage", 4L)
+  )
+  structured_re_expect_all_match(
+    qseries_status$next_gate,
+    "structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv"
   )
 })
 
