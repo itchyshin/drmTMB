@@ -2,6 +2,55 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: q-series PR stack merge-readiness extension
+
+Goal:
+
+- Extend the q-series merge-readiness ledger so it covers PR #654 and PR #655
+  after both stacked draft PRs received green three-platform R-CMD-check
+  evidence.
+
+Result:
+
+- Added PR #654 and PR #655 to
+  `docs/dev-log/dashboard/structured-re-pr-stack-merge-readiness.tsv` and the
+  mirrored artifact snapshot.
+- Updated the stack run log from 15 rows ending at PR #653 to 17 rows ending at
+  PR #655.
+- Updated `tools/plan-structured-re-pr-stack-merge-readiness.R`,
+  `tools/validate-mission-control.py`, dashboard README, and design note
+  wording so the stack-control source of truth no longer stops at PR #653.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-25-pr-stack-merge-readiness-extension.md`.
+
+Evidence:
+
+- `gh run view 28168795112 --repo itchyshin/drmTMB --json status,conclusion,url,jobs`
+  returned `conclusion = success` for PR #654 on Windows, Ubuntu, and macOS.
+- `gh run view 28170403815 --repo itchyshin/drmTMB --json status,conclusion,url,jobs`
+  returned `conclusion = success` for PR #655 on macOS, Windows, and Ubuntu.
+- `gh pr view 654 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url,baseRefName,headRefName`
+  showed draft, `CLEAN`, head
+  `f540fc711f558aeb2829f2d739d50401931ebcf0`, base
+  `codex/sigma-slope-runner-contract`, and head
+  `codex/q-series-pr-stack-merge-readiness`.
+- `gh pr view 655 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url,baseRefName,headRefName`
+  showed draft, `CLEAN`, head
+  `691bad99956bf593732395be88bc1269c76f37fc`, base
+  `codex/q-series-pr-stack-merge-readiness`, and head
+  `codex/q2-plus-q2-sigma-rejection-contract`.
+- `Rscript --vanilla tools/plan-structured-re-pr-stack-merge-readiness.R --mode=dry-run`
+  passed and wrote 17 PR stack merge-readiness rows.
+
+Boundary:
+
+- This is merge-readiness evidence only. It does not undraft or merge any PR,
+  submit Totoro or DRAC jobs, create coverage-evaluable denominator evidence,
+  promote MCSE-calibrated coverage, interval reliability, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML,
+  AI-REML, broad bridge support, public support, SR150 readiness, or an
+  Ayumi-facing reply.
+
 ## 2026-06-25: q2-plus-q2 sigma rejection contract
 
 Goal:

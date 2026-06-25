@@ -8760,6 +8760,24 @@ def main() -> int:
             "run_id": "28166541285",
             "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
         },
+        {
+            "merge_order": "16",
+            "pr_number": "654",
+            "base_ref": "codex/sigma-slope-runner-contract",
+            "head_ref": "codex/q-series-pr-stack-merge-readiness",
+            "head_sha": "f540fc711f558aeb2829f2d739d50401931ebcf0",
+            "run_id": "28168795112",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "17",
+            "pr_number": "655",
+            "base_ref": "codex/q-series-pr-stack-merge-readiness",
+            "head_ref": "codex/q2-plus-q2-sigma-rejection-contract",
+            "head_sha": "691bad99956bf593732395be88bc1269c76f37fc",
+            "run_id": "28170403815",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
     ]
     expected_pr_stack_by_number = {
         row["pr_number"]: row for row in expected_pr_stack
@@ -8932,7 +8950,7 @@ def main() -> int:
             "mode": "dry-run",
             "stack_rows": str(len(expected_pr_stack)),
             "first_pr": "639",
-            "last_pr": "653",
+            "last_pr": "655",
             "draft_rows": str(len(expected_pr_stack)),
             "clean_rows": str(len(expected_pr_stack)),
             "commit_check_success_rows": str(len(expected_pr_stack)),

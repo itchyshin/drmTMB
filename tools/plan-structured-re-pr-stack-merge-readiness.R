@@ -60,7 +60,7 @@ clean_text <- function(x) {
   trimws(x)
 }
 
-observed_utc <- "2026-06-25T11:52:40Z"
+observed_utc <- "2026-06-25T13:00:48Z"
 platforms_success <- paste(
   "ubuntu-latest (release)",
   "macos-latest (release)",
@@ -91,8 +91,8 @@ evidence_ref <- paste(
 )
 
 stack <- data.frame(
-  merge_order = seq_len(15),
-  pr_number = 639:653,
+  merge_order = seq_len(17),
+  pr_number = 639:655,
   title = c(
     "[codex] Bank structured q-series completion slices",
     "[codex] Plan q4 location bootstrap dispatch",
@@ -108,7 +108,9 @@ stack <- data.frame(
     "Bank relmat q4 K/Q native parity",
     "Bank relmat Q payload marshalling gate",
     "Bank sigma slope coverage dispatch review",
-    "Bank sigma slope coverage runner contract"
+    "Bank sigma slope coverage runner contract",
+    "Bank q-series PR stack merge-readiness",
+    "Bank q2-plus-q2 sigma rejection contract"
   ),
   base_ref = c(
     "main",
@@ -125,7 +127,9 @@ stack <- data.frame(
     "codex/relmat-q-bridge-boundary-audit",
     "codex/relmat-q4-location-kq-native-parity",
     "codex/relmat-q-payload-marshalling-gate",
-    "codex/sigma-slope-coverage-dispatch-review"
+    "codex/sigma-slope-coverage-dispatch-review",
+    "codex/sigma-slope-runner-contract",
+    "codex/q-series-pr-stack-merge-readiness"
   ),
   head_ref = c(
     "codex/structured-relmat-kq-mu-slope-fixture",
@@ -142,7 +146,9 @@ stack <- data.frame(
     "codex/relmat-q4-location-kq-native-parity",
     "codex/relmat-q-payload-marshalling-gate",
     "codex/sigma-slope-coverage-dispatch-review",
-    "codex/sigma-slope-runner-contract"
+    "codex/sigma-slope-runner-contract",
+    "codex/q-series-pr-stack-merge-readiness",
+    "codex/q2-plus-q2-sigma-rejection-contract"
   ),
   head_sha = c(
     "d6b951fe9f3b6fabd1a9d4246bf3346d4ca86e8e",
@@ -159,7 +165,9 @@ stack <- data.frame(
     "ac4f05047d7e91f8b0cecc46719b392807fc7b40",
     "6861e0134827a66fc16f60c9081097c077b1fe2a",
     "4ac0e200032ad333920ad6eef6e69901f16890fc",
-    "fdb7f78510d24f107f293e7339f4925bf6e3923d"
+    "fdb7f78510d24f107f293e7339f4925bf6e3923d",
+    "f540fc711f558aeb2829f2d739d50401931ebcf0",
+    "691bad99956bf593732395be88bc1269c76f37fc"
   ),
   r_cmd_check_run_id = c(
     "28138055013",
@@ -176,7 +184,9 @@ stack <- data.frame(
     "28159429237",
     "28161964711",
     "28164197137",
-    "28166541285"
+    "28166541285",
+    "28168795112",
+    "28170403815"
   ),
   stringsAsFactors = FALSE
 )
@@ -286,7 +296,7 @@ run_log <- data.frame(
   observed_utc = observed_utc,
   stack_rows = nrow(stack),
   first_pr = "639",
-  last_pr = "653",
+  last_pr = as.character(max(stack$pr_number)),
   draft_rows = sum(stack$draft_status == "draft"),
   clean_rows = sum(stack$merge_state_status == "CLEAN"),
   commit_check_success_rows = sum(
@@ -305,7 +315,10 @@ run_log <- data.frame(
     "gh pr list --repo itchyshin/drmTMB --state open --json",
     "number,title,isDraft,headRefName,baseRefName,mergeStateStatus,",
     "headRefOid,url,statusCheckRollup; gh api",
-    "repos/itchyshin/drmTMB/commits/<sha>/check-runs"
+    "repos/itchyshin/drmTMB/commits/<sha>/check-runs;",
+    "gh run view 28168795112 --repo itchyshin/drmTMB --json",
+    "status,conclusion,jobs; gh run view 28170403815 --repo",
+    "itchyshin/drmTMB --json status,conclusion,jobs"
   )),
   execution_status = "validated_snapshot_not_executed",
   merge_status = "not_merged",

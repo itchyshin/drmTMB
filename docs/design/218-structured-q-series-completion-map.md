@@ -245,7 +245,7 @@ evidence, satisfy the MCSE threshold, or move interval, coverage, REML,
 AI-REML, q4/q8, bridge, public-support, or SR150 readiness claims.
 
 `structured-re-pr-stack-merge-readiness.tsv` is the stack-control ledger for
-the q-series completion lane. It records PR #639 through #653 in merge order,
+the q-series completion lane. It records PR #639 through #655 in merge order,
 their draft status, merge-clean state, head SHAs, and commit-level R-CMD-check
 run IDs. The ledger deliberately separates those commit-level checks from
 ordinary PR-attached checks: only the first PR targets `main`, and each stacked
