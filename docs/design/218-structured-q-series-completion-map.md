@@ -430,6 +430,16 @@ reliability result, coverage result, q4 REML result, AI-REML result, broad
 bridge result, public-support result, partial location-scale result, Q
 precision result, K/Q parity result, or broader q8 result.
 
+`structured-re-q4-location-slope-bootstrap-runner-contract.tsv` records the
+next dry-run gate for those same 16 direct-SD provider/target cells. The runner
+validates the dispatch manifest, writes a selected target manifest plus run
+log, and fails closed for non-dry-run modes. It is runner-contract evidence
+only: no bootstrap refits are executed, no Totoro or DRAC job is submitted, no
+all-target denominator is admitted, and interval reliability, coverage, q4
+REML, AI-REML, broad bridge support, public support, partial location-scale
+support, Q precision marshalling, K/Q parity, and broader q8 support remain
+unpromoted.
+
 `structured-re-mu-sigma-slope-parity-fixture.tsv` records the next exact gate:
 deterministic same-target native/direct/R-via-Julia fixtures for matched
 `mu+sigma` one-slope cells in `phylo()`, fixed-covariance `spatial()`,
@@ -660,7 +670,14 @@ The efficient completion order is:
    submitted and no denominator, interval-reliability, coverage, REML,
    AI-REML, bridge, public-support, Q precision, K/Q parity, partial
    location-scale, or broader q8 status moves.
-21. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+21. Banked in the stacked follow-up slice: add the q4 location direct-SD
+   bootstrap runner contract. It validates the 16-row dispatch manifest,
+   writes a selected target manifest and run log, and refuses execution modes
+   other than dry-run. This is runner-contract evidence only; no Totoro or
+   DRAC job has been submitted and no denominator, interval-reliability,
+   coverage, REML, AI-REML, bridge, public-support, Q precision, K/Q parity,
+   partial location-scale, or broader q8 status moves.
+22. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 

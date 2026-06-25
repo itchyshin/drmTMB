@@ -150,6 +150,9 @@ STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE = (
 STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN = (
     DASHBOARD / "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv"
 )
+STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_RUNNER_CONTRACT = (
+    DASHBOARD / "structured-re-q4-location-slope-bootstrap-runner-contract.tsv"
+)
 STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-q4-slope-interval-diagnostic-plan.tsv"
 )
@@ -1911,6 +1914,36 @@ STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN_FIELDS = (
     "coverage_evaluable",
     "coverage_status",
     "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_RUNNER_CONTRACT_FIELDS = (
+    "runner_id",
+    "dispatch_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "mode",
+    "selected",
+    "source_dispatch_manifest",
+    "selected_manifest",
+    "run_log",
+    "bootstrap_replicates",
+    "bootstrap_seed",
+    "retention_policy",
+    "scheduler_status",
+    "compute_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "execution_status",
     "status",
     "evidence_url",
     "claim_boundary",
@@ -4439,6 +4472,9 @@ def main() -> int:
     )
     structured_re_q4_location_slope_bootstrap_dispatch_plan_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN
+    )
+    structured_re_q4_location_slope_bootstrap_runner_contract_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_RUNNER_CONTRACT
     )
     structured_re_q4_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -12339,6 +12375,157 @@ def main() -> int:
             )
         )
 
+    dispatch_by_id = {
+        row.get("dispatch_id", ""): row
+        for row in structured_re_q4_location_slope_bootstrap_dispatch_plan_rows
+    }
+    expected_q4_location_slope_runner_rows = len(
+        expected_q4_location_slope_bootstrap_dispatch_targets
+    )
+    if (
+        len(structured_re_q4_location_slope_bootstrap_runner_contract_rows)
+        != expected_q4_location_slope_runner_rows
+    ):
+        errors.append(
+            "structured-re-q4-location-slope-bootstrap-runner-contract.tsv has "
+            f"{len(structured_re_q4_location_slope_bootstrap_runner_contract_rows)} rows; "
+            f"expected {expected_q4_location_slope_runner_rows}"
+        )
+    seen_q4_location_slope_runner_targets: set[tuple[str, str]] = set()
+    expected_q4_location_slope_runner_selected_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-bootstrap-runner-contract/"
+        "structured-re-q4-location-slope-bootstrap-runner-target-manifest.tsv"
+    )
+    expected_q4_location_slope_runner_log = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-bootstrap-runner-contract/"
+        "structured-re-q4-location-slope-bootstrap-runner-run-log.tsv"
+    )
+    expected_q4_location_slope_runner_source = (
+        "docs/dev-log/dashboard/"
+        "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv"
+    )
+    for row in structured_re_q4_location_slope_bootstrap_runner_contract_rows:
+        row_id = row.get(
+            "runner_id",
+            "<structured RE q4 location slope bootstrap runner contract>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_RUNNER_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-slope-bootstrap-runner-contract.tsv "
+                "fields do not match the runner-contract schema"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_RUNNER_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        dispatch_id = row.get("dispatch_id", "")
+        dispatch_row = dispatch_by_id.get(dispatch_id)
+        if dispatch_row is None:
+            errors.append(f"{row_id}: dispatch_id does not link to dispatch plan")
+            continue
+        expected_runner_id = f"q4_location_slope_bootstrap_runner_{dispatch_id}"
+        if row_id != expected_runner_id:
+            errors.append(f"{row_id}: runner_id must be {expected_runner_id}")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider, endpoint_member)
+        if target_key not in expected_q4_location_slope_bootstrap_dispatch_targets:
+            errors.append(f"{row_id}: unexpected runner target {target_key!r}")
+        if target_key in seen_q4_location_slope_runner_targets:
+            errors.append(
+                f"duplicate q4 location slope bootstrap runner target: {target_key!r}"
+            )
+        seen_q4_location_slope_runner_targets.add(target_key)
+        for field in (
+            "cell_id",
+            "formula_cell",
+            "structured_type",
+            "target_kind",
+            "endpoint_member",
+            "estimand",
+            "profile_target",
+            "bootstrap_replicates",
+            "bootstrap_seed",
+            "retention_policy",
+        ):
+            if row.get(field) != dispatch_row.get(field):
+                errors.append(f"{row_id}: {field} must match the dispatch plan")
+        expected_runner_common = {
+            "mode": "dry-run",
+            "selected": "TRUE",
+            "source_dispatch_manifest": expected_q4_location_slope_runner_source,
+            "selected_manifest": expected_q4_location_slope_runner_selected_manifest,
+            "run_log": expected_q4_location_slope_runner_log,
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "denominator_status": "runner_contract_only",
+            "coverage_evaluable": "FALSE",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "execution_status": "validated_not_executed",
+            "status": "covered",
+            "evidence_url": (
+                "docs/dev-log/after-task/"
+                "2026-06-24-q4-location-slope-bootstrap-runner-contract.md"
+            ),
+        }
+        for field, expected_value in expected_runner_common.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for field in ("source_dispatch_manifest", "selected_manifest", "run_log"):
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "runner contract only",
+            "no bootstrap refits executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no all-target bootstrap denominator evidence",
+            "no derived-correlation intervals",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "partial location-scale support",
+            "broader q8 support",
+            "calibrated coverage wording",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if "coverage_evaluable = TRUE" in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must not imply evaluable coverage")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "one provider shard",
+            "fit errors",
+            "nonconvergence",
+            "pdHess false",
+            "scheduler exit status",
+            "denominator accounting",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_q4_location_slope_runner_targets = sorted(
+        expected_q4_location_slope_bootstrap_dispatch_targets
+        - seen_q4_location_slope_runner_targets
+    )
+    if missing_q4_location_slope_runner_targets:
+        errors.append(
+            "structured-re-q4-location-slope-bootstrap-runner-contract.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_location_slope_runner_targets
+            )
+        )
+
     expected_q4_slope_parity_fixtures = {
         "phylo": "q4_slope_phylo_same_target_ml",
         "spatial": "q4_slope_spatial_same_target_ml",
@@ -20171,6 +20358,7 @@ def main() -> int:
         f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"
         f", {len(structured_re_q4_location_slope_bootstrap_budget_probe_rows)} structured RE q4 location slope bootstrap-budget probe rows"
         f", {len(structured_re_q4_location_slope_bootstrap_dispatch_plan_rows)} structured RE q4 location slope bootstrap-dispatch plan rows"
+        f", {len(structured_re_q4_location_slope_bootstrap_runner_contract_rows)} structured RE q4 location slope bootstrap-runner contract rows"
         f", {len(structured_re_q4_slope_interval_diagnostic_plan_rows)} structured RE q4 slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_slope_interval_diagnostic_status_rows)} structured RE q4 slope interval-diagnostic status rows"
         f", {len(structured_re_q4_slope_interval_stability_probe_rows)} structured RE q4 slope interval-stability probe rows"

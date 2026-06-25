@@ -4014,6 +4014,187 @@ test_that("q4 location one-slope bootstrap dispatch plan stays not submitted", {
   )
 })
 
+test_that("q4 location one-slope bootstrap runner contract stays dry-run", {
+  runner <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-slope-bootstrap-runner-contract.tsv"
+  )
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv"
+  )
+  manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+      "structured-re-q4-location-slope-bootstrap-runner-target-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  run_log <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+      "structured-re-q4-location-slope-bootstrap-runner-run-log.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    runner,
+    c(
+      "runner_id",
+      "dispatch_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "mode",
+      "selected",
+      "source_dispatch_manifest",
+      "selected_manifest",
+      "run_log",
+      "bootstrap_replicates",
+      "bootstrap_seed",
+      "retention_policy",
+      "scheduler_status",
+      "compute_status",
+      "denominator_status",
+      "coverage_evaluable",
+      "coverage_status",
+      "interval_claim_status",
+      "execution_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(manifest, runner)
+  expect_equal(nrow(runner), 16L)
+  expect_equal(nrow(run_log), 1L)
+  expect_equal(
+    runner$dispatch_id,
+    dispatch$dispatch_id
+  )
+  expect_equal(
+    runner$runner_id,
+    paste0("q4_location_slope_bootstrap_runner_", dispatch$dispatch_id)
+  )
+  expect_equal(runner$cell_id, dispatch$cell_id)
+  expect_equal(runner$formula_cell, dispatch$formula_cell)
+  expect_equal(runner$structured_type, dispatch$structured_type)
+  expect_equal(runner$target_kind, dispatch$target_kind)
+  expect_equal(runner$endpoint_member, dispatch$endpoint_member)
+  expect_equal(runner$estimand, dispatch$estimand)
+  expect_equal(runner$profile_target, dispatch$profile_target)
+  expect_equal(runner$bootstrap_replicates, dispatch$bootstrap_replicates)
+  expect_equal(runner$bootstrap_seed, dispatch$bootstrap_seed)
+  expect_equal(runner$retention_policy, dispatch$retention_policy)
+  expect_equal(runner$mode, rep("dry-run", 16L))
+  expect_equal(runner$selected, rep(TRUE, 16L))
+  expect_equal(
+    runner$source_dispatch_manifest,
+    rep(
+      paste(
+        "docs/dev-log/dashboard",
+        "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv",
+        sep = "/"
+      ),
+      16L
+    )
+  )
+  expect_equal(
+    runner$selected_manifest,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+        "structured-re-q4-location-slope-bootstrap-runner-target-manifest.tsv",
+        sep = "/"
+      ),
+      16L
+    )
+  )
+  expect_equal(
+    runner$run_log,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-24-q4-location-slope-bootstrap-runner-contract",
+        "structured-re-q4-location-slope-bootstrap-runner-run-log.tsv",
+        sep = "/"
+      ),
+      16L
+    )
+  )
+  expect_equal(runner$scheduler_status, rep("dry_run_not_submitted", 16L))
+  expect_equal(runner$compute_status, rep("not_executed", 16L))
+  expect_equal(runner$denominator_status, rep("runner_contract_only", 16L))
+  expect_equal(runner$coverage_evaluable, rep(FALSE, 16L))
+  expect_equal(runner$coverage_status, rep("not_evaluated", 16L))
+  expect_equal(runner$interval_claim_status, rep("diagnostic_only", 16L))
+  expect_equal(runner$execution_status, rep("validated_not_executed", 16L))
+  expect_equal(runner$status, rep("covered", 16L))
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "runner contract only"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no bootstrap refits executed"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no Totoro job submitted"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no DRAC job submitted"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no all-target bootstrap denominator evidence"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no derived-correlation intervals"
+  )
+  structured_re_expect_all_match(runner$claim_boundary, "q4 REML")
+  structured_re_expect_all_match(runner$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(runner$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(runner$claim_boundary, "calibrated coverage")
+  structured_re_expect_all_match(runner$next_gate, "one provider shard")
+  structured_re_expect_all_match(runner$next_gate, "denominator accounting")
+  expect_false(any(grepl(
+    "coverage_evaluable = TRUE",
+    runner$claim_boundary,
+    fixed = TRUE
+  )))
+
+  expect_equal(run_log$selected_targets, 16L)
+  expect_equal(run_log$mode, "dry-run")
+  expect_equal(run_log$execution_status, "validated_not_executed")
+  expect_equal(run_log$scheduler_status, "dry_run_not_submitted")
+  expect_equal(run_log$compute_status, "not_executed")
+  expect_equal(run_log$denominator_status, "runner_contract_only")
+  expect_equal(run_log$coverage_evaluable, FALSE)
+  expect_equal(run_log$coverage_status, "not_evaluated")
+  expect_equal(run_log$interval_claim_status, "diagnostic_only")
+  expect_equal(run_log$status, "covered")
+})
+
 test_that("q4 all-four one-slope parity fixture records exact bridge fixture only", {
   fixture <- structured_re_read_dashboard_tsv(
     "structured-re-q4-slope-parity-fixture.tsv"

@@ -1120,6 +1120,16 @@ bootstrap denominators, promote interval reliability or coverage, or change
 q4 REML, AI-REML, bridge, public-support, partial location-scale, Q precision,
 K/Q parity, or broader q8 boundaries.
 
+`structured-re-q4-location-slope-bootstrap-runner-contract.tsv` records the
+fail-closed dry-run runner contract for the same 16 direct-SD provider/target
+cells. It validates the dispatch manifest, writes a selected target manifest
+and run log, and refuses execution modes other than dry-run. Every row remains
+`dry_run_not_submitted`, `not_executed`, `runner_contract_only`, and
+`coverage_evaluable = FALSE`; this sidecar does not submit Totoro or DRAC jobs,
+admit all-target bootstrap denominators, promote interval reliability or
+coverage, or change q4 REML, AI-REML, bridge, public-support, partial
+location-scale, Q precision, K/Q parity, or broader q8 boundaries.
+
 `structured-re-type-gaps.tsv` records the remaining structured-type gaps for
 `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It
 states what users can run now and which cells remain missing or deferred.
