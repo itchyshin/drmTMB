@@ -123,7 +123,10 @@ The current table records these broad facts without promoting beyond them:
   contract sidecar. It records existing native TMB ML/Laplace point-fit and
   extractor evidence, while native deterministic fixture status is now
   `native_fixture_banked` and calibrated recovery remains `designed_not_run`.
-  Native fixture status is not bridge parity.
+  Native fixture status is not bridge parity. The follow-up recovery-runner
+  contract is also now banked as a dry-run manifest and run log only; no
+  recovery simulation, Totoro job, DRAC job, coverage-evaluable denominator,
+  interval reliability, coverage, or public support has moved.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -879,7 +882,14 @@ The efficient completion order is:
    recovery, intervals, coverage, q2/q4 count covariance, REML, AI-REML,
    public support, labelled or multiple count slopes, structured count scale
    routes, or zero-inflated structure.
-26. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+26. Banked in this stacked follow-up slice: add the eight-row dry-run recovery
+   runner contract plus selected manifest and run log for the ordinary
+   Poisson/NB2 q1 structured `mu` one-slope cells. This names the provider and
+   family shards, fixed seed range, recovery targets, retention policy, and
+   Totoro/DRAC review gate, but no recovery simulation has been executed and no
+   coverage-evaluable denominator, interval reliability, coverage, bridge
+   parity, REML, AI-REML, q2/q4 count covariance, or public support has moved.
+27. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 

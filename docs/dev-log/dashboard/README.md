@@ -224,6 +224,15 @@ native TMB point/extractor fixtures only, with bridge parity, calibrated
 recovery, intervals, coverage, REML, AI-REML, q2/q4 count covariance, and
 public support still separate gates.
 
+`structured-re-count-slope-recovery-runner-contract.tsv` records the dry-run
+runner contract for the same eight ordinary count one-slope cells. It is a
+selected manifest and run-log contract only: no recovery simulation has been
+executed, no Totoro or DRAC job has been submitted, and the rows are not
+coverage-evaluable denominator evidence. The contract preserves fit-error,
+nonconvergence, `pdHess`, boundary-warning, nonfinite-estimate, seed/provider,
+and scheduler-exit retention requirements before any recovery or
+public-support wording can move.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB

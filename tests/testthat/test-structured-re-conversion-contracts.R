@@ -911,6 +911,260 @@ test_that("count structured mu one-slope native fixture status stays native-only
   )
 })
 
+test_that("count structured mu one-slope recovery runner contract is dry-run only", {
+  runner <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-runner-contract.tsv"
+  )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-fixture-recovery-contract.tsv"
+  )
+  fixture <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-native-fixture-status.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  target_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-count-slope-recovery-runner-contract",
+      "structured-re-count-slope-recovery-runner-target-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  run_log <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-count-slope-recovery-runner-contract",
+      "structured-re-count-slope-recovery-runner-run-log.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    runner,
+    c(
+      "runner_id",
+      "contract_id",
+      "fixture_id",
+      "cell_id",
+      "formula_cell",
+      "family",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "estimator_effective",
+      "recovery_design",
+      "runner_route",
+      "mode",
+      "selected",
+      "selected_manifest",
+      "run_log",
+      "planned_replicates",
+      "seed_start",
+      "seed_end",
+      "recovery_targets",
+      "recovery_metrics",
+      "retention_policy",
+      "scheduler_status",
+      "compute_status",
+      "recovery_status",
+      "denominator_status",
+      "coverage_evaluable",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(target_manifest, runner)
+  expect_equal(nrow(runner), 8L)
+  expect_equal(anyDuplicated(runner$runner_id), 0L)
+  expect_equal(sum(runner$family == "poisson()"), 4L)
+  expect_equal(sum(runner$family == "nbinom2()"), 4L)
+  expect_setequal(
+    runner$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+
+  expect_equal(runner$dimension, rep("q1", 8L))
+  expect_equal(runner$endpoint, rep("mu", 8L))
+  expect_equal(runner$slope_class, rep("independent_one_slope", 8L))
+  expect_equal(runner$estimator_effective, rep("ML_Laplace", 8L))
+  expect_equal(
+    runner$recovery_design,
+    rep("paired_family_provider_fixed_seed_recovery_grid", 8L)
+  )
+  expect_equal(
+    runner$runner_route,
+    rep("native_tmb_fixed_seed_recovery_grid", 8L)
+  )
+  expect_equal(runner$mode, rep("dry-run", 8L))
+  expect_equal(runner$selected, rep(TRUE, 8L))
+  expect_equal(runner$planned_replicates, rep(80L, 8L))
+  expect_equal(runner$seed_start, rep(760001L, 8L))
+  expect_equal(runner$seed_end, rep(760080L, 8L))
+  expect_equal(
+    runner$recovery_targets,
+    rep("mu_intercept;mu_x;sd_mu_intercept;sd_mu_x", 8L)
+  )
+  structured_re_expect_all_match(runner$recovery_metrics, "bias")
+  structured_re_expect_all_match(runner$recovery_metrics, "rmse")
+  structured_re_expect_all_match(runner$recovery_metrics, "pdHess_rate")
+  structured_re_expect_all_match(runner$retention_policy, "retain_fit_errors")
+  structured_re_expect_all_match(
+    runner$retention_policy,
+    "retain_scheduler_exit_status"
+  )
+  expect_equal(runner$scheduler_status, rep("dry_run_not_submitted", 8L))
+  expect_equal(runner$compute_status, rep("not_executed", 8L))
+  expect_equal(runner$recovery_status, rep("runner_contract_only", 8L))
+  expect_equal(runner$denominator_status, rep("not_coverage_evidence", 8L))
+  expect_equal(runner$coverage_evaluable, rep(FALSE, 8L))
+  expect_equal(runner$bridge_status, rep("unsupported", 8L))
+  expect_equal(runner$interval_status, rep("unsupported", 8L))
+  expect_equal(runner$coverage_status, rep("planned", 8L))
+  expect_equal(runner$status, rep("covered", 8L))
+  expect_equal(
+    runner$evidence_url,
+    rep(
+      "docs/dev-log/after-task/2026-06-25-count-slope-recovery-runner-contract.md",
+      8L
+    )
+  )
+
+  for (phrase in c(
+    "recovery runner contract only",
+    "no recovery simulation executed",
+    "no Totoro job submitted",
+    "no DRAC job submitted",
+    "bridge parity",
+    "interval reliability",
+    "coverage",
+    "q2",
+    "q4",
+    "REML",
+    "AI-REML",
+    "public support",
+    "broad bridge support"
+  )) {
+    structured_re_expect_all_match(runner$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    runner$next_gate,
+    "human review"
+  )
+  structured_re_expect_all_match(
+    runner$next_gate,
+    "Totoro"
+  )
+  structured_re_expect_all_match(
+    runner$next_gate,
+    "DRAC"
+  )
+
+  contract_rows <- contract[
+    match(runner$contract_id, contract$contract_id),
+    ,
+    drop = FALSE
+  ]
+  fixture_rows <- fixture[
+    match(runner$fixture_id, fixture$fixture_id),
+    ,
+    drop = FALSE
+  ]
+  qseries_rows <- qseries[
+    match(runner$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(contract_rows$contract_id))
+  expect_false(anyNA(fixture_rows$fixture_id))
+  expect_false(anyNA(qseries_rows$cell_id))
+  expect_equal(contract_rows$cell_id, runner$cell_id)
+  expect_equal(
+    contract_rows$fixture_contract_status,
+    rep("native_fixture_banked", 8L)
+  )
+  expect_equal(
+    contract_rows$recovery_contract_status,
+    rep("designed_not_run", 8L)
+  )
+  expect_equal(fixture_rows$contract_id, runner$contract_id)
+  expect_equal(
+    fixture_rows$native_fixture_status,
+    rep("native_fixture_banked", 8L)
+  )
+  expect_equal(qseries_rows$family_class, rep("non_gaussian", 8L))
+  expect_equal(qseries_rows$fit_status, rep("point_fit", 8L))
+  expect_equal(qseries_rows$extractor_status, rep("extractor_ready", 8L))
+  expect_equal(qseries_rows$bridge_status, runner$bridge_status)
+  expect_equal(qseries_rows$interval_status, runner$interval_status)
+  expect_equal(qseries_rows$coverage_status, runner$coverage_status)
+
+  expect_named(
+    run_log,
+    c(
+      "run_id",
+      "mode",
+      "provider_filter",
+      "family_filter",
+      "selected_targets",
+      "selected_structured_types",
+      "selected_families",
+      "source_contract",
+      "source_fixture_status",
+      "selected_manifest",
+      "dashboard_contract",
+      "execution_status",
+      "scheduler_status",
+      "compute_status",
+      "recovery_status",
+      "denominator_status",
+      "coverage_evaluable",
+      "coverage_status",
+      "status",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(run_log), 1L)
+  expect_equal(
+    run_log$run_id,
+    "count_slope_recovery_runner_contract_all-targets"
+  )
+  expect_equal(run_log$mode, "dry-run")
+  expect_equal(run_log$selected_targets, 8L)
+  expect_equal(run_log$execution_status, "validated_not_executed")
+  expect_equal(run_log$scheduler_status, "dry_run_not_submitted")
+  expect_equal(run_log$compute_status, "not_executed")
+  expect_equal(run_log$recovery_status, "runner_contract_only")
+  expect_equal(run_log$denominator_status, "not_coverage_evidence")
+  expect_equal(run_log$coverage_evaluable, FALSE)
+  expect_equal(run_log$coverage_status, "planned")
+  expect_equal(run_log$status, "covered")
+  expect_match(
+    run_log$claim_boundary,
+    "no recovery simulation executed",
+    fixed = TRUE
+  )
+  expect_match(run_log$claim_boundary, "no coverage evidence", fixed = TRUE)
+})
+
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"

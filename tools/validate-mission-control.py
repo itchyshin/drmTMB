@@ -54,6 +54,9 @@ STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT = (
 STRUCTURED_RE_COUNT_SLOPE_NATIVE_FIXTURE_STATUS = (
     DASHBOARD / "structured-re-count-slope-native-fixture-status.tsv"
 )
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT = (
+    DASHBOARD / "structured-re-count-slope-recovery-runner-contract.tsv"
+)
 STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
 )
@@ -434,6 +437,22 @@ SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG = (
     / "simulation-artifacts"
     / "2026-06-25-sigma-slope-coverage-runner-contract"
     / "structured-re-sigma-slope-coverage-runner-run-log.tsv"
+)
+COUNT_SLOPE_RECOVERY_RUNNER_TARGET_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-count-slope-recovery-runner-contract"
+    / "structured-re-count-slope-recovery-runner-target-manifest.tsv"
+)
+COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-count-slope-recovery-runner-contract"
+    / "structured-re-count-slope-recovery-runner-run-log.tsv"
 )
 PR_STACK_MERGE_READINESS_SNAPSHOT = (
     ROOT
@@ -1155,6 +1174,66 @@ STRUCTURED_RE_COUNT_SLOPE_NATIVE_FIXTURE_STATUS_FIELDS = (
     "interval_status",
     "coverage_status",
     "denominator_policy",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT_FIELDS = (
+    "runner_id",
+    "contract_id",
+    "fixture_id",
+    "cell_id",
+    "formula_cell",
+    "family",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "estimator_effective",
+    "recovery_design",
+    "runner_route",
+    "mode",
+    "selected",
+    "selected_manifest",
+    "run_log",
+    "planned_replicates",
+    "seed_start",
+    "seed_end",
+    "recovery_targets",
+    "recovery_metrics",
+    "retention_policy",
+    "scheduler_status",
+    "compute_status",
+    "recovery_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG_FIELDS = (
+    "run_id",
+    "mode",
+    "provider_filter",
+    "family_filter",
+    "selected_targets",
+    "selected_structured_types",
+    "selected_families",
+    "source_contract",
+    "source_fixture_status",
+    "selected_manifest",
+    "dashboard_contract",
+    "execution_status",
+    "scheduler_status",
+    "compute_status",
+    "recovery_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "status",
     "claim_boundary",
     "next_gate",
 )
@@ -4851,6 +4930,9 @@ def main() -> int:
     structured_re_count_slope_native_fixture_status_rows = read_tsv(
         STRUCTURED_RE_COUNT_SLOPE_NATIVE_FIXTURE_STATUS
     )
+    structured_re_count_slope_recovery_runner_contract_rows = read_tsv(
+        STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT
+    )
     structured_re_q2_plus_q2_sigma_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT
     )
@@ -4934,6 +5016,12 @@ def main() -> int:
     )
     sigma_slope_coverage_runner_run_log_rows = read_tsv(
         SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG
+    )
+    count_slope_recovery_runner_target_manifest_rows = read_tsv(
+        COUNT_SLOPE_RECOVERY_RUNNER_TARGET_MANIFEST
+    )
+    count_slope_recovery_runner_run_log_rows = read_tsv(
+        COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG
     )
     structured_re_pr_stack_merge_readiness_rows = read_tsv(
         STRUCTURED_RE_PR_STACK_MERGE_READINESS
@@ -7033,6 +7121,343 @@ def main() -> int:
             for field, expected_value in expected_q_series_values.items():
                 if q_series_row.get(field) != expected_value:
                     errors.append(f"{row_id}: linked q-series {field} changed")
+
+    count_slope_native_fixture_map = {
+        row.get("fixture_id", ""): row
+        for row in structured_re_count_slope_native_fixture_status_rows
+    }
+    expected_count_slope_recovery_runners = {
+        "count_slope_recovery_runner_phylo_poisson_q1_mu_one_slope": (
+            "count_slope_phylo_poisson_q1_mu_one_slope",
+            "count_slope_native_fixture_phylo_poisson_q1_mu_one_slope",
+            "qseries_phylo_poisson_q1_mu_one_slope",
+            "poisson()",
+            "phylo",
+        ),
+        "count_slope_recovery_runner_phylo_nbinom2_q1_mu_one_slope": (
+            "count_slope_phylo_nbinom2_q1_mu_one_slope",
+            "count_slope_native_fixture_phylo_nbinom2_q1_mu_one_slope",
+            "qseries_phylo_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "phylo",
+        ),
+        "count_slope_recovery_runner_spatial_poisson_q1_mu_one_slope": (
+            "count_slope_spatial_poisson_q1_mu_one_slope",
+            "count_slope_native_fixture_spatial_poisson_q1_mu_one_slope",
+            "qseries_spatial_poisson_q1_mu_one_slope",
+            "poisson()",
+            "spatial",
+        ),
+        "count_slope_recovery_runner_spatial_nbinom2_q1_mu_one_slope": (
+            "count_slope_spatial_nbinom2_q1_mu_one_slope",
+            "count_slope_native_fixture_spatial_nbinom2_q1_mu_one_slope",
+            "qseries_spatial_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "spatial",
+        ),
+        "count_slope_recovery_runner_animal_poisson_q1_mu_one_slope": (
+            "count_slope_animal_poisson_q1_mu_one_slope",
+            "count_slope_native_fixture_animal_poisson_q1_mu_one_slope",
+            "qseries_animal_poisson_q1_mu_one_slope",
+            "poisson()",
+            "animal",
+        ),
+        "count_slope_recovery_runner_animal_nbinom2_q1_mu_one_slope": (
+            "count_slope_animal_nbinom2_q1_mu_one_slope",
+            "count_slope_native_fixture_animal_nbinom2_q1_mu_one_slope",
+            "qseries_animal_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "animal",
+        ),
+        "count_slope_recovery_runner_relmat_poisson_q1_mu_one_slope": (
+            "count_slope_relmat_poisson_q1_mu_one_slope",
+            "count_slope_native_fixture_relmat_poisson_q1_mu_one_slope",
+            "qseries_relmat_poisson_q1_mu_one_slope",
+            "poisson()",
+            "relmat",
+        ),
+        "count_slope_recovery_runner_relmat_nbinom2_q1_mu_one_slope": (
+            "count_slope_relmat_nbinom2_q1_mu_one_slope",
+            "count_slope_native_fixture_relmat_nbinom2_q1_mu_one_slope",
+            "qseries_relmat_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "relmat",
+        ),
+    }
+    expected_count_slope_recovery_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-count-slope-recovery-runner-contract/"
+        "structured-re-count-slope-recovery-runner-target-manifest.tsv"
+    )
+    expected_count_slope_recovery_run_log = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-count-slope-recovery-runner-contract/"
+        "structured-re-count-slope-recovery-runner-run-log.tsv"
+    )
+    expected_count_slope_recovery_dashboard = (
+        "docs/dev-log/dashboard/"
+        "structured-re-count-slope-recovery-runner-contract.tsv"
+    )
+    expected_count_slope_recovery_evidence = (
+        "docs/dev-log/after-task/"
+        "2026-06-25-count-slope-recovery-runner-contract.md"
+    )
+    seen_count_slope_recovery_runners: set[str] = set()
+    if len(structured_re_count_slope_recovery_runner_contract_rows) != len(
+        expected_count_slope_recovery_runners
+    ):
+        errors.append(
+            "structured-re-count-slope-recovery-runner-contract.tsv has "
+            f"{len(structured_re_count_slope_recovery_runner_contract_rows)} "
+            f"rows; expected {len(expected_count_slope_recovery_runners)}"
+        )
+    if (
+        count_slope_recovery_runner_target_manifest_rows
+        != structured_re_count_slope_recovery_runner_contract_rows
+    ):
+        errors.append(
+            "structured-re-count-slope-recovery-runner target manifest must "
+            "match the dashboard runner contract exactly"
+        )
+    for row in structured_re_count_slope_recovery_runner_contract_rows:
+        row_id = row.get("runner_id", "<structured RE count slope recovery runner>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-count-slope-recovery-runner-contract.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id not in expected_count_slope_recovery_runners:
+            errors.append(f"{row_id}: unexpected count slope recovery runner id")
+            continue
+        if row_id in seen_count_slope_recovery_runners:
+            errors.append(f"duplicate structured RE count slope recovery runner id: {row_id}")
+        seen_count_slope_recovery_runners.add(row_id)
+        (
+            expected_contract,
+            expected_fixture,
+            expected_cell,
+            expected_family,
+            expected_provider,
+        ) = expected_count_slope_recovery_runners[row_id]
+        expected_values = {
+            "contract_id": expected_contract,
+            "fixture_id": expected_fixture,
+            "cell_id": expected_cell,
+            "family": expected_family,
+            "structured_type": expected_provider,
+            "dimension": "q1",
+            "endpoint": "mu",
+            "slope_class": "independent_one_slope",
+            "estimator_effective": "ML_Laplace",
+            "recovery_design": "paired_family_provider_fixed_seed_recovery_grid",
+            "runner_route": "native_tmb_fixed_seed_recovery_grid",
+            "mode": "dry-run",
+            "selected": "TRUE",
+            "selected_manifest": expected_count_slope_recovery_manifest,
+            "run_log": expected_count_slope_recovery_run_log,
+            "planned_replicates": "80",
+            "seed_start": "760001",
+            "seed_end": "760080",
+            "recovery_targets": "mu_intercept;mu_x;sd_mu_intercept;sd_mu_x",
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "recovery_status": "runner_contract_only",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+            "bridge_status": "unsupported",
+            "interval_status": "unsupported",
+            "coverage_status": "planned",
+            "status": "covered",
+            "evidence_url": expected_count_slope_recovery_evidence,
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for path_field in ("selected_manifest", "run_log", "evidence_url"):
+            if not evidence_reference_exists(row.get(path_field, "")):
+                errors.append(f"{row_id}: {path_field} does not resolve")
+        for phrase in (
+            "bias",
+            "rmse",
+            "convergence_rate",
+            "pdHess_rate",
+            "finite_estimate_rate",
+        ):
+            if phrase not in row.get("recovery_metrics", ""):
+                errors.append(f"{row_id}: recovery_metrics must mention {phrase}")
+        for phrase in (
+            "retain_fit_errors",
+            "retain_nonconverged_fits",
+            "retain_boundary_warnings",
+            "retain_nonfinite_estimates",
+            "retain_seed_and_provider_digest",
+            "retain_scheduler_exit_status",
+        ):
+            if phrase not in row.get("retention_policy", ""):
+                errors.append(f"{row_id}: retention_policy must mention {phrase}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "recovery runner contract only",
+            "no recovery simulation executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "bridge parity",
+            "interval reliability",
+            "coverage",
+            "q2",
+            "q4",
+            "REML",
+            "AI-REML",
+            "public support",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if expected_provider == "spatial" and "fixed-covariance" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if expected_provider == "animal" and "A/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name A/Ainv")
+        if expected_provider == "relmat" and "K/Q" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must name K/Q")
+        next_gate = row.get("next_gate", "")
+        for phrase in ("human review", "Totoro", "DRAC", "scheduler exit status"):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        contract_row = count_slope_contract_map.get(expected_contract)
+        if contract_row is None:
+            errors.append(f"{row_id}: linked count slope contract row is missing")
+        else:
+            for field, expected_value in (
+                ("cell_id", expected_cell),
+                ("formula_cell", row.get("formula_cell")),
+                ("family", expected_family),
+                ("structured_type", expected_provider),
+                ("dimension", "q1"),
+                ("endpoint", "mu"),
+                ("slope_class", "independent_one_slope"),
+                ("estimator_effective", "ML_Laplace"),
+                ("fixture_contract_status", "native_fixture_banked"),
+                ("recovery_contract_status", "designed_not_run"),
+                ("denominator_policy", "not_coverage_evidence"),
+                ("bridge_status", "unsupported"),
+                ("interval_status", "unsupported"),
+                ("coverage_status", "planned"),
+            ):
+                if contract_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked contract {field} changed")
+        fixture_row = count_slope_native_fixture_map.get(expected_fixture)
+        if fixture_row is None:
+            errors.append(f"{row_id}: linked native fixture row is missing")
+        else:
+            for field, expected_value in (
+                ("contract_id", expected_contract),
+                ("cell_id", expected_cell),
+                ("family", expected_family),
+                ("structured_type", expected_provider),
+                ("dimension", "q1"),
+                ("endpoint", "mu"),
+                ("slope_class", "independent_one_slope"),
+                ("estimator_effective", "ML_Laplace"),
+                ("native_fixture_status", "native_fixture_banked"),
+                ("denominator_policy", "not_coverage_evidence"),
+                ("bridge_status", "unsupported"),
+                ("interval_status", "unsupported"),
+                ("coverage_status", "planned"),
+            ):
+                if fixture_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked native fixture {field} changed")
+        q_series_row = q_series_cell_map.get(expected_cell)
+        if q_series_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            for field, expected_value in (
+                ("formula_cell", row.get("formula_cell")),
+                ("family_class", "non_gaussian"),
+                ("family", expected_family),
+                ("structure_provider", expected_provider),
+                ("dimension_pattern", "q1"),
+                ("endpoint_set", "mu"),
+                ("slope_class", "independent_one_slope"),
+                ("route", "native_tmb"),
+                ("estimator_effective", "ML_Laplace"),
+                ("fit_status", "point_fit"),
+                ("extractor_status", "extractor_ready"),
+                ("bridge_status", "unsupported"),
+                ("interval_status", "unsupported"),
+                ("coverage_status", "planned"),
+                ("denominator_policy", "not_coverage_evidence"),
+            ):
+                if q_series_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked q-series {field} changed")
+    if len(count_slope_recovery_runner_run_log_rows) != 1:
+        errors.append(
+            "structured-re-count-slope-recovery-runner-run-log.tsv must have exactly one row"
+        )
+    else:
+        run_log = count_slope_recovery_runner_run_log_rows[0]
+        if set(run_log.keys()) != set(COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG_FIELDS):
+            errors.append(
+                "structured-re-count-slope-recovery-runner-run-log.tsv fields "
+                "do not match the contract"
+            )
+        expected_run_log_values = {
+            "run_id": "count_slope_recovery_runner_contract_all-targets",
+            "mode": "dry-run",
+            "provider_filter": "all",
+            "family_filter": "all",
+            "selected_targets": "8",
+            "selected_structured_types": "phylo;spatial;animal;relmat",
+            "selected_families": "poisson();nbinom2()",
+            "source_contract": "docs/dev-log/dashboard/structured-re-count-slope-fixture-recovery-contract.tsv",
+            "source_fixture_status": "docs/dev-log/dashboard/structured-re-count-slope-native-fixture-status.tsv",
+            "selected_manifest": expected_count_slope_recovery_manifest,
+            "dashboard_contract": expected_count_slope_recovery_dashboard,
+            "execution_status": "validated_not_executed",
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "recovery_status": "runner_contract_only",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+            "coverage_status": "planned",
+            "status": "covered",
+        }
+        for field, expected_value in expected_run_log_values.items():
+            if run_log.get(field) != expected_value:
+                errors.append(
+                    "structured-re-count-slope-recovery-runner-run-log.tsv "
+                    f"{field} must be {expected_value}"
+                )
+        for path_field in (
+            "source_contract",
+            "source_fixture_status",
+            "selected_manifest",
+            "dashboard_contract",
+        ):
+            if not evidence_reference_exists(run_log.get(path_field, "")):
+                errors.append(
+                    "structured-re-count-slope-recovery-runner-run-log.tsv "
+                    f"{path_field} does not resolve"
+                )
+        claim_boundary = run_log.get("claim_boundary", "")
+        for phrase in (
+            "no recovery simulation executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no coverage evidence",
+            "no REML",
+            "no AI-REML",
+            "no broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(
+                    "structured-re-count-slope-recovery-runner-run-log.tsv "
+                    f"claim_boundary must mention {phrase}"
+                )
 
     expected_mu_slope_audits = {
         "phylo": "mu_slope_phylo_artifact_audit",
@@ -23764,6 +24189,7 @@ def main() -> int:
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
+        f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"

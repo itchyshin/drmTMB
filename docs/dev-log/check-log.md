@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: count structured mu one-slope recovery runner contract
+
+Goal:
+
+- Bank the dry-run recovery runner contract for the eight ordinary Poisson/NB2
+  q1 structured `mu` one-slope cells without executing recovery simulations or
+  promoting coverage, intervals, bridge parity, REML, AI-REML, q2/q4, or
+  public support.
+
+Result:
+
+- Added `structured-re-count-slope-recovery-runner-contract.tsv` with eight
+  provider/family rows tied to the count one-slope fixture/recovery contract
+  and native fixture status sidecar.
+- Added selected target and run-log artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-25-count-slope-recovery-runner-contract/`.
+- Added mission-control validation for row schema, exact identity, artifact
+  linkage, dry-run status, recovery metrics, retention policy, and conservative
+  claim boundaries.
+- Added an R dashboard contract test that compares the selected manifest to
+  the dashboard runner contract and joins each row back to the source
+  contract, native fixture status, and q-series support cell.
+- Updated the q-series support-cell next gate, dashboard README, and q-series
+  completion map.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with 86 structured RE
+  q-series cells, 8 structured RE count-slope fixture/recovery contract rows,
+  8 structured RE count-slope native-fixture rows, and 8 structured RE
+  count-slope recovery-runner rows.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-count-slope-recovery-runner-contract.md')"`
+  passed.
+- `gh issue list --repo itchyshin/drmTMB --search '"count slope recovery runner"' --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the clean local R library.
+  Non-vanilla startup points arm64 R 4.6 at an old
+  `x86_64-pc-linux-gnu-library/4.4` library.
+
+Boundaries:
+
+- This banks a dry-run runner contract only.
+- It does not claim executed recovery, coverage-evaluable denominator
+  evidence, MCSE-calibrated coverage, interval reliability, bridge parity,
+  q2/q4 count covariance, REML, AI-REML, public support, labelled or multiple
+  count slopes, structured count scale routes, zero-inflated structured
+  effects, or broad bridge support.
+
 ## 2026-06-25: count structured mu one-slope native fixture status
 
 Goal:
