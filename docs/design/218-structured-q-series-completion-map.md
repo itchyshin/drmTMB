@@ -85,6 +85,10 @@ The current table records these broad facts without promoting beyond them:
   `spatial()`, `animal()`, and `relmat()` for univariate `mu`, univariate
   `sigma`, matched `mu+sigma`, bivariate `mu1+mu2`, and constant all-four q4
   point/status cells.
+- The relmat q1 `sigma` and matched `mu+sigma` intercept cells now have
+  deterministic K-matrix fixture-parity contracts plus separate native K/Q
+  point-fit evidence. This does not promote Q precision bridge marshalling,
+  intervals, coverage, REML, AI-REML, or labelled covariance support.
 - One independent Gaussian structured `mu` slope has point-fit and
   deterministic same-target fixture evidence across `phylo()`, `spatial()`,
   `animal()`, and `relmat()`.
@@ -158,6 +162,12 @@ Gaussian structured `mu` artifact evidence for `phylo()`, `spatial()`,
 and grid-writer evidence plus extractor identity. They do not promote bridge
 fixture parity, residual-scale slopes, broader labelled structured slope covariance,
 interval reliability, or coverage.
+
+`structured-re-q1-parity-fixture-contract.tsv` records q1 deterministic
+fixture-parity contracts. The relmat scale-side rows are intentionally narrow:
+they use K-matrix payload fixtures and cite native K/Q point-fit/extractor
+evidence, but they keep Q precision bridge marshalling, intervals, coverage,
+REML, AI-REML, and public support unpromoted.
 
 `structured-re-mu-slope-parity-fixture.tsv` records the next gate for those
 one-slope Gaussian structured `mu` cells. It banks deterministic same-target

@@ -90,6 +90,48 @@ test_that("q1 parity fixture records three-route agreement without broad support
   expect_match(status$claim_boundary, "deterministic contract", fixed = TRUE)
 })
 
+test_that("q1 relmat scale fixtures stay deterministic and K-matrix scoped", {
+  source_structured_re_bridge_fixtures()
+
+  for (endpoint in c("sigma", "mu_sigma")) {
+    native_payload <- phase18_structured_re_q1_payload_fixture(
+      endpoint = endpoint,
+      structured_type = "relmat",
+      route = "native_tmb"
+    )
+    native <- phase18_structured_re_reconstruct_fixture(native_payload)
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q1_payload_fixture(
+        endpoint = endpoint,
+        structured_type = "relmat",
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q1_payload_fixture(
+        endpoint = endpoint,
+        structured_type = "relmat",
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native_payload$target$structured_type, "relmat")
+    expect_equal(native_payload$target$endpoint, endpoint)
+    expect_equal(native_payload$target$estimator, "ML")
+    expect_equal(native_payload$matrix$matrix_id, "fixture_q1_relmat")
+    expect_equal(
+      "sigma:(Intercept)" %in% names(native_payload$estimates$coef),
+      TRUE
+    )
+    expect_equal(status$endpoint, endpoint)
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+    expect_match(status$claim_boundary, "deterministic contract", fixed = TRUE)
+  }
+})
+
 test_that("one-slope structured mu fixtures record provider-specific agreement", {
   source_structured_re_bridge_fixtures()
 

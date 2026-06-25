@@ -67716,3 +67716,50 @@ Boundary:
   public support, partial location-scale support, Q precision marshalling,
   K/Q same-target parity, broader q8 support, SR150 coverage readiness, PR
   undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: relmat q1 scale fixture parity
+
+Goal:
+
+- Close the relmat q1 `sigma` and matched `mu+sigma` intercept evidence gap by
+  banking deterministic K-matrix fixture-parity rows without promoting Q
+  precision bridge marshalling, intervals, coverage, REML, AI-REML, or broad
+  bridge support.
+
+Result:
+
+- Added a focused q1 relmat scale fixture test in
+  `tests/testthat/test-structured-re-bridge-fixtures.R`.
+- Added `q1_sigma_relmat_gaussian_fixture` and
+  `q1_mu_sigma_relmat_gaussian_fixture` rows to
+  `structured-re-q1-parity-fixture-contract.tsv`.
+- Updated `qseries_relmat_q1_sigma_intercept` and
+  `qseries_relmat_q1_mu_sigma_intercept` to
+  `bridge_status = fixture_parity`, while keeping interval and coverage status
+  planned and denominator policy at `fixture_not_coverage`.
+- Updated dashboard tests, dashboard README, the q-series completion map, and
+  after-task report
+  `docs/dev-log/after-task/2026-06-25-relmat-q1-scale-fixture-parity.md`.
+
+Evidence:
+
+- `air format tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts|animal-relmat-gaussian', stop_on_failure = TRUE)"`
+  passed after one wording correction, with 4,481 assertions, 0 failures, 0
+  warnings, and 0 skips.
+- `python3 tools/validate-mission-control.py` passed and reported 9 q1
+  parity-fixture rows.
+- `git diff --check` passed.
+- `Rscript /Users/z3437171/shinichi-brain/tools/check-after-task.R docs/dev-log/after-task/2026-06-25-relmat-q1-scale-fixture-parity.md`
+  passed.
+
+Boundary:
+
+- This is deterministic fixture-parity and native K/Q point-fit/extractor
+  evidence only. It does not add live relmat scale-side bridge parity, Q
+  precision bridge marshalling, calibrated intervals, coverage evidence, REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, q2/q4/q8
+  support, broad bridge support, public optimizer controls, public support,
+  DRAC/Totoro execution, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.

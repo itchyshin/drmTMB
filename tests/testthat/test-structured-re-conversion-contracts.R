@@ -96,6 +96,8 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     "qseries_spatial_q1_mu_one_slope",
     "qseries_animal_q1_mu_one_slope",
     "qseries_relmat_q1_mu_one_slope",
+    "qseries_relmat_q1_sigma_intercept",
+    "qseries_relmat_q1_mu_sigma_intercept",
     "qseries_phylo_q1_sigma_one_slope",
     "qseries_spatial_q1_sigma_one_slope",
     "qseries_animal_q1_sigma_one_slope",
@@ -7349,6 +7351,25 @@ test_that("q1 reconstruction and parity ledgers keep unavailable routes explicit
   expect_equal(nchar(parity$next_gate) > 0, rep(TRUE, nrow(parity)))
   expect_true(any(grepl("coverage", parity$next_gate, fixed = TRUE)))
   expect_true(any(grepl("NB2", parity$next_gate, fixed = TRUE)))
+
+  relmat_scale <- parity[
+    parity$target %in%
+      c("gaussian_q1_sigma_relmat", "gaussian_q1_mu_sigma_relmat"),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(relmat_scale), 2L)
+  expect_equal(relmat_scale$status, rep("covered", 2L))
+  expect_equal(relmat_scale$bridge_status, rep("experimental", 2L))
+  structured_re_expect_all_match(relmat_scale$claim_boundary, "K-matrix")
+  structured_re_expect_all_match(
+    relmat_scale$claim_boundary,
+    "Q bridge marshalling"
+  )
+  structured_re_expect_all_match(
+    relmat_scale$claim_boundary,
+    "remain separate"
+  )
 })
 
 test_that("q1 parity acceptance gate ties fixtures, maps, and negative evidence", {
@@ -7373,11 +7394,26 @@ test_that("q1 parity acceptance gate ties fixtures, maps, and negative evidence"
     ,
     drop = FALSE
   ]
-  expect_true(nrow(banked_q1) >= 7L)
+  expect_true(nrow(banked_q1) >= 9L)
   expect_true(all(grepl("coef", banked_q1$parity_quantity, fixed = TRUE)))
   expect_true(all(grepl("logLik", banked_q1$parity_quantity, fixed = TRUE)))
   expect_true(all(nzchar(banked_q1$tolerance)))
   expect_true(all(banked_q1$r_via_julia_path != "planned"))
+  expect_setequal(
+    c(
+      "gaussian_q1_mu_relmat",
+      "gaussian_q1_sigma_relmat",
+      "gaussian_q1_mu_sigma_relmat"
+    ),
+    intersect(
+      c(
+        "gaussian_q1_mu_relmat",
+        "gaussian_q1_sigma_relmat",
+        "gaussian_q1_mu_sigma_relmat"
+      ),
+      banked_q1$target
+    )
+  )
 
   expect_setequal(
     c(
