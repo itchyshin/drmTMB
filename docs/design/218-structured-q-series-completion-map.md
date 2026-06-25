@@ -674,6 +674,16 @@ The efficient completion order is:
    support, public support, coverage denominators, range-estimating spatial
    support, pedigree/Ainv animal bridge marshalling, or relmat Q bridge
    marshalling.
+12b. Banked in this slice: add the q4 all-four intercept direct-SD denominator
+   precheck for those same provider cells. It records 16 direct-SD targets:
+   phylo, fixed-covariance spatial, and K-matrix relmat are blocked by
+   `pdHess = FALSE`; A-matrix animal has finite Wald/profile intervals but
+   nonfinite bootstrap intervals. The precheck keeps all 16 targets out of
+   denominator admission and coverage-grid design. It does not promote interval
+   reliability, coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
+   AI-REML, broad bridge support, public support, DRAC/Totoro execution,
+   coverage denominators, range-estimating spatial support, pedigree/Ainv
+   animal bridge marshalling, or relmat Q bridge marshalling.
 13. Banked in this slice: add the q4 all-four one-slope interval diagnostic
    plan for the same four exact provider cells. This creates 144 planned target
    rows: 32 direct-SD future smoke targets and 112 derived-correlation rows

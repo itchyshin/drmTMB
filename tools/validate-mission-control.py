@@ -144,6 +144,9 @@ STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_PLAN = (
 STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS = (
     DASHBOARD / "structured-re-q4-intercept-interval-diagnostic-status.tsv"
 )
+STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK = (
+    DASHBOARD / "structured-re-q4-intercept-denominator-precheck.tsv"
+)
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-q4-location-slope-parity-fixture.tsv"
 )
@@ -1855,6 +1858,34 @@ STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
 )
 STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
     STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+)
+STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK_FIELDS = (
+    "denominator_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_interval_status",
+    "source_interval_artifact",
+    "smoke_interval_status",
+    "smoke_n_finite_intervals",
+    "smoke_wald_status",
+    "smoke_profile_status",
+    "smoke_bootstrap_status",
+    "smoke_n_fit_ok",
+    "smoke_n_converged",
+    "smoke_n_pdhess",
+    "precheck_diagnosis",
+    "denominator_admission",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
 )
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE_FIELDS = (
     STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
@@ -4484,6 +4515,9 @@ def main() -> int:
     )
     structured_re_q4_intercept_interval_diagnostic_status_rows = read_tsv(
         STRUCTURED_RE_Q4_INTERCEPT_INTERVAL_DIAGNOSTIC_STATUS
+    )
+    structured_re_q4_intercept_denominator_precheck_rows = read_tsv(
+        STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK
     )
     structured_re_q4_location_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE
@@ -12927,9 +12961,16 @@ def main() -> int:
                 errors.append(f"{row_id}: linked animal q-series must name pedigree/Ainv")
             if provider == "relmat" and "Q bridge" not in qseries_boundary:
                 errors.append(f"{row_id}: linked relmat q-series must block Q bridge")
-            if "interval diagnostics" not in qseries_row.get("next_gate", ""):
+            if (
+                "structured-re-q4-intercept-denominator-precheck.tsv"
+                not in qseries_row.get("next_gate", "")
+            ):
                 errors.append(
-                    f"{row_id}: linked q-series next_gate must name interval diagnostics"
+                    f"{row_id}: linked q-series next_gate must name denominator precheck"
+                )
+            if "denominator accounting" not in qseries_row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must keep denominator accounting gated"
                 )
 
     q4_intercept_interval_direct_details = {
@@ -13319,6 +13360,170 @@ def main() -> int:
             + ", ".join(
                 f"{provider}:{endpoint_member}"
                 for provider, endpoint_member in missing_q4_intercept_status_targets
+            )
+        )
+
+    q4_intercept_status_by_target = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_intercept_interval_diagnostic_status_rows
+    }
+    q4_intercept_denominator_expected = {
+        "phylo": {
+            "precheck_diagnosis": "pdhess_blocker",
+            "denominator_admission": "not_admitted_pdhess_false",
+        },
+        "spatial": {
+            "precheck_diagnosis": "pdhess_blocker",
+            "denominator_admission": "not_admitted_pdhess_false",
+        },
+        "animal": {
+            "precheck_diagnosis": "bootstrap_blocker",
+            "denominator_admission": "not_admitted_bootstrap_nonfinite",
+        },
+        "relmat": {
+            "precheck_diagnosis": "pdhess_blocker",
+            "denominator_admission": "not_admitted_pdhess_false",
+        },
+    }
+    seen_q4_intercept_denominator_targets: set[tuple[str, str]] = set()
+    if len(structured_re_q4_intercept_denominator_precheck_rows) != 16:
+        errors.append(
+            "structured-re-q4-intercept-denominator-precheck.tsv must have 16 rows"
+        )
+    for row in structured_re_q4_intercept_denominator_precheck_rows:
+        row_id = row.get(
+            "denominator_id",
+            "<q4 intercept denominator precheck>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-intercept-denominator-precheck.tsv "
+                "fields do not match the precheck contract"
+            )
+        for field in STRUCTURED_RE_Q4_INTERCEPT_DENOMINATOR_PRECHECK_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in q4_intercept_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        target_key = (provider or "", endpoint_member or "")
+        status_row = q4_intercept_status_by_target.get(target_key)
+        if status_row is None:
+            errors.append(f"{row_id}: denominator target is missing status evidence")
+            continue
+        if target_key in seen_q4_intercept_denominator_targets:
+            errors.append(
+                "duplicate q4 intercept denominator precheck target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q4_intercept_denominator_targets.add(target_key)
+        endpoint_token = (
+            (endpoint_member or "")
+            .replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = f"q4_intercept_denominator_precheck_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: denominator_id must be {expected_id}")
+        for field in (
+            "cell_id",
+            "formula_cell",
+            "target_kind",
+            "endpoint_member",
+            "estimand",
+            "profile_target",
+        ):
+            if row.get(field) != status_row.get(field):
+                errors.append(f"{row_id}: {field} must match the status sidecar")
+        expected_precheck_values = {
+            "source_interval_status": (
+                "docs/dev-log/dashboard/"
+                "structured-re-q4-intercept-interval-diagnostic-status.tsv"
+            ),
+            "source_interval_artifact": status_row.get("source_artifact", ""),
+            "smoke_interval_status": status_row.get("interval_status", ""),
+            "smoke_n_finite_intervals": status_row.get("n_finite_intervals", ""),
+            "smoke_wald_status": status_row.get("wald_status", ""),
+            "smoke_profile_status": status_row.get("profile_status", ""),
+            "smoke_bootstrap_status": status_row.get("bootstrap_status", ""),
+            "smoke_n_fit_ok": status_row.get("n_fit_ok", ""),
+            "smoke_n_converged": status_row.get("n_converged", ""),
+            "smoke_n_pdhess": status_row.get("n_pdhess", ""),
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        expected_precheck_values.update(q4_intercept_denominator_expected[provider])
+        for field, expected_value in expected_precheck_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("cell_id") != f"qseries_{provider}_q4_all_four_intercept":
+            errors.append(f"{row_id}: cell_id must match the q4 intercept cell")
+        if not evidence_reference_exists(row.get("source_interval_status", "")):
+            errors.append(f"{row_id}: source_interval_status does not resolve locally")
+        if not evidence_reference_exists(row.get("source_interval_artifact", "")):
+            errors.append(f"{row_id}: source_interval_artifact does not resolve locally")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four intercept",
+            "direct-SD denominator precheck only",
+            "derived-correlation intervals still blocked",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "native-TMB q4 REML",
+            "q4 AI-REML",
+            "HSquared AI-REML",
+            "broad bridge support",
+            "public support",
+            "calibrated coverage wording",
+            "denominator admission",
+            "DRAC/Totoro execution",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_intercept_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if "coverage-grid design" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage-grid design gated")
+        qseries_row = qseries_by_cell.get(f"qseries_{provider}_q4_all_four_intercept")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            for field, expected_value in {
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    missing_q4_intercept_denominator_targets = sorted(
+        set(q4_intercept_status_by_target) - seen_q4_intercept_denominator_targets
+    )
+    if missing_q4_intercept_denominator_targets:
+        errors.append(
+            "structured-re-q4-intercept-denominator-precheck.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_intercept_denominator_targets
             )
         )
 
@@ -20966,6 +21171,7 @@ def main() -> int:
         f", {len(structured_re_q4_intercept_parity_fixture_rows)} structured RE q4 intercept parity-fixture rows"
         f", {len(structured_re_q4_intercept_interval_diagnostic_plan_rows)} structured RE q4 intercept interval-diagnostic plan rows"
         f", {len(structured_re_q4_intercept_interval_diagnostic_status_rows)} structured RE q4 intercept interval-diagnostic status rows"
+        f", {len(structured_re_q4_intercept_denominator_precheck_rows)} structured RE q4 intercept denominator-precheck rows"
         f", {len(structured_re_q4_location_slope_parity_fixture_rows)} structured RE q4 location slope parity-fixture rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} structured RE q4 location slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"

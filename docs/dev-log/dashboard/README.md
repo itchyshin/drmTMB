@@ -1026,6 +1026,17 @@ native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge support, public
 support, range-estimating spatial support, pedigree/Ainv animal bridge
 marshalling, and relmat Q bridge marshalling remain unpromoted.
 
+`structured-re-q4-intercept-denominator-precheck.tsv` records the denominator
+precheck implied by the direct-SD interval smoke. It covers the same 16
+direct-SD q4 all-four intercept targets. Phylo, fixed-covariance spatial, and
+K-matrix relmat are marked `not_admitted_pdhess_false`; the A-matrix animal
+targets are marked `not_admitted_bootstrap_nonfinite`. This precheck is a
+blocking diagnostic only. It does not admit coverage denominators, evaluate
+coverage, run DRAC/Totoro jobs, or promote interval reliability, interval
+coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad
+bridge support, public support, range-estimating spatial support,
+pedigree/Ainv animal bridge marshalling, or relmat Q bridge marshalling.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four bivariate Gaussian one-slope cells. Each provider row
 names the eight endpoint members, the matching eight direct-SD targets, and the

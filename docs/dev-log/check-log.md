@@ -67956,3 +67956,57 @@ Boundary:
   support, pedigree/Ainv bridge marshalling, Q bridge marshalling, broad bridge
   support, public support, denominator admission, DRAC/Totoro execution,
   SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: q4 intercept denominator precheck
+
+Goal:
+
+- Convert the q4 all-four intercept direct-SD interval smoke into an explicit
+  denominator-precheck sidecar, without admitting coverage denominators or
+  promoting interval reliability, interval coverage, q4 REML, native-TMB q4
+  REML, q4 AI-REML, HSquared AI-REML, broad bridge support, public support, or
+  DRAC/Totoro execution.
+
+Result:
+
+- Added `tools/run-structured-re-q4-intercept-denominator-precheck.R`.
+- Generated
+  `docs/dev-log/dashboard/structured-re-q4-intercept-denominator-precheck.tsv`
+  with 16 direct-SD rows linked to
+  `docs/dev-log/dashboard/structured-re-q4-intercept-interval-diagnostic-status.tsv`.
+- Marked phylo, fixed-covariance spatial, and K-matrix relmat targets as
+  `not_admitted_pdhess_false`.
+- Marked A-matrix animal targets as `not_admitted_bootstrap_nonfinite`.
+- Updated mission-control validation, dashboard tests, q-series support-cell
+  next gates, dashboard README, q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-25-q4-intercept-denominator-precheck.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-intercept-denominator-precheck.R`
+  passed and wrote 16 q4 intercept denominator-precheck rows.
+- `air format tools/run-structured-re-q4-intercept-denominator-precheck.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- Initial targeted test run failed on a stale q-series next-gate expectation
+  that still required `interval diagnostics`; this was corrected to the new
+  denominator-precheck wording.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  then passed with 4,096 assertions, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,812 assertions, 0 failures, 0 warnings, and 0 skips.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE q4 intercept denominator-precheck rows.
+- `Rscript --vanilla -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-q4-intercept-denominator-precheck.md')"`
+  passed.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is a blocking denominator precheck only. It does not admit denominators,
+  evaluate coverage, claim q4 interval reliability, claim q4 interval coverage,
+  promote q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, broad bridge support, public optimizer controls, public
+  support, range-estimating spatial support, pedigree/Ainv bridge marshalling,
+  Q bridge marshalling, DRAC/Totoro execution, SR150 coverage readiness, PR
+  undrafting/merging, or an Ayumi-facing reply.

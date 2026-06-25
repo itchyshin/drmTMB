@@ -4633,7 +4633,11 @@ test_that("q4 all-four intercept parity fixture records provider bridge fixture"
   structured_re_expect_all_match(provider_rows$claim_boundary, "AI-REML")
   structured_re_expect_all_match(
     provider_rows$next_gate,
-    "interval diagnostics"
+    "structured-re-q4-intercept-denominator-precheck.tsv"
+  )
+  structured_re_expect_all_match(
+    provider_rows$next_gate,
+    "denominator accounting"
   )
 })
 
@@ -5150,6 +5154,174 @@ test_that("q4 all-four intercept interval status stays diagnostic-only", {
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
   expect_equal(qseries_status$interval_status, rep("planned", 4L))
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
+})
+
+test_that("q4 all-four intercept denominator precheck blocks admission", {
+  precheck <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-denominator-precheck.tsv"
+  )
+  status <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-interval-diagnostic-status.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    precheck,
+    c(
+      "denominator_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "source_interval_status",
+      "source_interval_artifact",
+      "smoke_interval_status",
+      "smoke_n_finite_intervals",
+      "smoke_wald_status",
+      "smoke_profile_status",
+      "smoke_bootstrap_status",
+      "smoke_n_fit_ok",
+      "smoke_n_converged",
+      "smoke_n_pdhess",
+      "precheck_diagnosis",
+      "denominator_admission",
+      "coverage_status",
+      "interval_claim_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(precheck), 16L)
+  expect_setequal(
+    precheck$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(precheck$target_kind, rep("direct_sd", 16L))
+  expect_equal(precheck$coverage_status, rep("not_evaluated", 16L))
+  expect_equal(precheck$interval_claim_status, rep("diagnostic_only", 16L))
+  expect_equal(precheck$status, rep("covered", 16L))
+
+  precheck_key <- paste(precheck$structured_type, precheck$endpoint_member)
+  status_key <- paste(status$structured_type, status$endpoint_member)
+  expect_setequal(precheck_key, status_key)
+  for (key in precheck_key) {
+    precheck_row <- precheck[precheck_key == key, , drop = FALSE]
+    status_row <- status[status_key == key, , drop = FALSE]
+    expect_equal(nrow(precheck_row), 1L)
+    expect_equal(nrow(status_row), 1L)
+    for (field in c(
+      "cell_id",
+      "formula_cell",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target"
+    )) {
+      expect_equal(precheck_row[[field]], status_row[[field]])
+    }
+    expect_equal(
+      precheck_row$source_interval_status,
+      "docs/dev-log/dashboard/structured-re-q4-intercept-interval-diagnostic-status.tsv"
+    )
+    expect_equal(
+      precheck_row$source_interval_artifact,
+      status_row$source_artifact
+    )
+    expect_equal(
+      precheck_row$smoke_interval_status,
+      status_row$interval_status
+    )
+    expect_equal(
+      precheck_row$smoke_n_finite_intervals,
+      status_row$n_finite_intervals
+    )
+    expect_equal(precheck_row$smoke_wald_status, status_row$wald_status)
+    expect_equal(precheck_row$smoke_profile_status, status_row$profile_status)
+    expect_equal(
+      precheck_row$smoke_bootstrap_status,
+      status_row$bootstrap_status
+    )
+    expect_equal(precheck_row$smoke_n_fit_ok, status_row$n_fit_ok)
+    expect_equal(precheck_row$smoke_n_converged, status_row$n_converged)
+    expect_equal(precheck_row$smoke_n_pdhess, status_row$n_pdhess)
+  }
+
+  hessian_blocked <- precheck[
+    precheck$structured_type %in% c("phylo", "spatial", "relmat"),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(hessian_blocked), 12L)
+  expect_equal(hessian_blocked$precheck_diagnosis, rep("pdhess_blocker", 12L))
+  expect_equal(
+    hessian_blocked$denominator_admission,
+    rep("not_admitted_pdhess_false", 12L)
+  )
+  expect_equal(hessian_blocked$smoke_n_pdhess, rep(0L, 12L))
+  expect_equal(hessian_blocked$smoke_n_finite_intervals, rep(0L, 12L))
+
+  animal <- precheck[precheck$structured_type == "animal", , drop = FALSE]
+  expect_equal(nrow(animal), 4L)
+  expect_equal(animal$precheck_diagnosis, rep("bootstrap_blocker", 4L))
+  expect_equal(
+    animal$denominator_admission,
+    rep("not_admitted_bootstrap_nonfinite", 4L)
+  )
+  expect_equal(animal$smoke_n_pdhess, rep(1L, 4L))
+  expect_equal(animal$smoke_n_finite_intervals, rep(2L, 4L))
+  expect_equal(animal$smoke_wald_status, rep("finite", 4L))
+  expect_equal(animal$smoke_profile_status, rep("finite", 4L))
+  expect_equal(animal$smoke_bootstrap_status, rep("nonfinite", 4L))
+
+  structured_re_expect_all_match(
+    precheck$claim_boundary,
+    "direct-SD denominator precheck only"
+  )
+  structured_re_expect_all_match(
+    precheck$claim_boundary,
+    "derived-correlation intervals still blocked"
+  )
+  structured_re_expect_all_match(
+    precheck$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(precheck$claim_boundary, "interval coverage")
+  structured_re_expect_all_match(precheck$claim_boundary, "native-TMB q4 REML")
+  structured_re_expect_all_match(precheck$claim_boundary, "HSquared AI-REML")
+  structured_re_expect_all_match(
+    precheck$claim_boundary,
+    "broad bridge support"
+  )
+  structured_re_expect_all_match(
+    precheck$claim_boundary,
+    "denominator admission"
+  )
+  structured_re_expect_all_match(
+    precheck$claim_boundary,
+    "DRAC/Totoro execution"
+  )
+  structured_re_expect_all_match(precheck$next_gate, "denominator accounting")
+  structured_re_expect_all_match(precheck$next_gate, "coverage-grid design")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% precheck$cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 4L)
+  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$denominator_policy,
+    rep("fixture_not_coverage", 4L)
+  )
 })
 
 test_that("q4 all-four one-slope interval status stays Hessian-blocked", {
