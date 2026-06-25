@@ -139,6 +139,8 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     "qseries_animal_q8_planned",
     "qseries_relmat_q8_planned",
     "qseries_phylo_interaction_q1_mu",
+    "qseries_phylo_interaction_poisson_q1_mu",
+    "qseries_phylo_interaction_nbinom2_q1_mu",
     "qseries_phylo_poisson_q1_mu_intercept",
     "qseries_phylo_nbinom2_q1_mu_intercept",
     "qseries_phylo_poisson_q1_mu_one_slope",
@@ -425,6 +427,72 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
       4L
     )
   )
+})
+
+test_that("phylo_interaction count q1 support cells stay family-specific", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  expected_ids <- c(
+    "qseries_phylo_interaction_poisson_q1_mu",
+    "qseries_phylo_interaction_nbinom2_q1_mu"
+  )
+
+  expect_equal(
+    sum(qseries$cell_id == "qseries_phylo_interaction_q1_count_mu"),
+    0L
+  )
+  count_rows <- qseries[qseries$cell_id %in% expected_ids, , drop = FALSE]
+  expect_equal(nrow(count_rows), 2L)
+  expect_setequal(count_rows$cell_id, expected_ids)
+
+  count_rows <- count_rows[
+    match(expected_ids, count_rows$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(count_rows$family, c("poisson()", "nbinom2()"))
+  expect_equal(count_rows$family_class, rep("non_gaussian", 2L))
+  expect_equal(count_rows$structure_provider, rep("phylo_interaction", 2L))
+  expect_equal(count_rows$dimension_pattern, rep("q1", 2L))
+  expect_equal(count_rows$endpoint_set, rep("mu", 2L))
+  expect_equal(count_rows$slope_class, rep("intercept_only", 2L))
+  expect_equal(count_rows$covariance_layout, rep("structured_scalar", 2L))
+  expect_equal(count_rows$route, rep("native_tmb", 2L))
+  expect_equal(count_rows$estimator_requested, rep("ML", 2L))
+  expect_equal(count_rows$estimator_effective, rep("ML_Laplace", 2L))
+  expect_equal(count_rows$fit_status, rep("point_fit", 2L))
+  expect_equal(count_rows$extractor_status, rep("extractor_ready", 2L))
+  expect_equal(count_rows$bridge_status, rep("unsupported", 2L))
+  expect_equal(count_rows$interval_status, rep("unsupported", 2L))
+  expect_equal(count_rows$coverage_status, rep("planned", 2L))
+  expect_equal(count_rows$denominator_policy, rep("not_coverage_evidence", 2L))
+  expect_equal(
+    count_rows$evidence_url,
+    rep("tests/testthat/test-phylo-interaction.R", 2L)
+  )
+
+  structured_re_expect_all_match(count_rows$claim_boundary, "bridge")
+  structured_re_expect_all_match(count_rows$claim_boundary, "REML")
+  structured_re_expect_all_match(count_rows$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(count_rows$claim_boundary, "interval")
+  structured_re_expect_all_match(count_rows$claim_boundary, "coverage")
+  structured_re_expect_all_match(count_rows$claim_boundary, "q2")
+  structured_re_expect_all_match(count_rows$claim_boundary, "q4")
+  structured_re_expect_all_match(count_rows$claim_boundary, "slope")
+  structured_re_expect_all_match(
+    count_rows$claim_boundary,
+    "additive partner-main"
+  )
+  structured_re_expect_all_match(
+    count_rows$claim_boundary,
+    "binary incidence"
+  )
+  structured_re_expect_all_match(count_rows$claim_boundary, "public-support")
+
+  nb2_row <- count_rows[count_rows$family == "nbinom2()", , drop = FALSE]
+  expect_equal(nrow(nb2_row), 1L)
+  expect_match(nb2_row$claim_boundary, "structured sigma", fixed = TRUE)
 })
 
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {

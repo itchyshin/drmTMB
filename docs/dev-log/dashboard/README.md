@@ -208,6 +208,14 @@ effects, labelled count covariance, pure or multiple count slopes, and
 structured count scale routes remain planned or unsupported unless an exact
 future support-cell row says otherwise.
 
+For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
+NB2 q1 `mu` intercept support as separate family-specific rows backed by
+`tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB
+ML/Laplace point-fit and extractor evidence for a single pair-level Kronecker
+field. They do not promote bridge support, intervals, coverage, REML,
+AI-REML, q2/q4 endpoint covariance, slopes, additive partner-main effects,
+binary incidence, structured count scale routes, or public support.
+
 `structured-re-q2-plus-q2-sigma-rejection-contract.tsv` records the exact
 pre-optimization rejection evidence for the fixed-covariance `spatial()`,
 A-matrix `animal()`, and `relmat()` scale-only `sigma1+sigma2` q2-plus-q2

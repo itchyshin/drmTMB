@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: phylo_interaction count q1 support-cell split
+
+Goal:
+
+- Split the collapsed non-Gaussian q1 `phylo_interaction()` `mu` intercept
+  support-cell row into exact Poisson and NB2 rows, matching the existing
+  runtime evidence in `tests/testthat/test-phylo-interaction.R`.
+
+Result:
+
+- Replaced `qseries_phylo_interaction_q1_count_mu` with
+  `qseries_phylo_interaction_poisson_q1_mu` and
+  `qseries_phylo_interaction_nbinom2_q1_mu`.
+- Added the two exact rows to the mission-control required cell set and the
+  R dashboard contract.
+- Added a focused contract that rejects the stale collapsed row and verifies
+  the family, provider, endpoint, estimator, evidence URL, and conservative
+  claim boundaries for both count rows.
+- Updated the q-series dashboard README and completion map to keep
+  `phylo_interaction()` count intercept evidence separate from ordinary
+  provider count one-slope support.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 tools/validate-mission-control.py` passed with 86 structured RE
+  q-series cells.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- One-off Python TSV guard passed:
+  `phylo_interaction_count_cells_ok: 2`.
+- `git diff --check` passed.
+- `gh issue list --repo itchyshin/drmTMB --search "phylo_interaction count q1 NB2 support cell" --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+- Local `Rscript --vanilla -e "devtools::test(filter = 'phylo-interaction|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is not visible in the current R library.
+  The non-vanilla R startup currently forces an old
+  `~/R/x86_64-pc-linux-gnu-library/4.4` library into arm64 R 4.6 and package
+  availability probes can segfault while loading compiled packages. Use the
+  stacked PR R-CMD-check workflow as the R execution proof for this slice.
+
+Boundaries:
+
+- This is a support-cell/validator/docs correction, not new runtime support.
+- It does not claim slopes, q2/q4 endpoint covariance, bridge support,
+  intervals, coverage, REML, AI-REML, binary incidence, additive partner-main
+  effects, structured count scale routes, or public support.
+
 ## 2026-06-25: count structured mu one-slope q1 cells
 
 Goal:

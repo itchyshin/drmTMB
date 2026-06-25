@@ -4557,6 +4557,8 @@ STRUCTURED_RE_REQUIRED_Q_SERIES_CELLS = {
     "qseries_animal_q8_planned",
     "qseries_relmat_q8_planned",
     "qseries_phylo_interaction_q1_mu",
+    "qseries_phylo_interaction_poisson_q1_mu",
+    "qseries_phylo_interaction_nbinom2_q1_mu",
     "qseries_phylo_poisson_q1_mu_intercept",
     "qseries_phylo_nbinom2_q1_mu_intercept",
     "qseries_phylo_poisson_q1_mu_one_slope",

@@ -119,6 +119,11 @@ The current table records these broad facts without promoting beyond them:
   are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
   labelled non-Gaussian structured slopes, zero-inflated structure, structured
   count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
+- `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
+  `mu` intercept rows. They are not covered by the ordinary-provider one-slope
+  count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
+  slopes, additive partner-main effects, binary incidence, structured count
+  scale routes, public support, REML, AI-REML, intervals, or coverage.
 - Direct SD target visibility does not create derived-correlation interval
   support. Direct SD profile feasibility and derived correlation interval
   reliability are separate cells.
