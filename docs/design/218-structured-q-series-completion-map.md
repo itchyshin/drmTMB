@@ -254,6 +254,15 @@ layer lands. The ledger is not an implementation, inference, or compute gate;
 it only prevents the project from treating a long green stack as a merged or
 public-support state.
 
+`structured-re-q2-plus-q2-sigma-rejection-contract.tsv` records the exact
+pre-optimization rejection contract for scale-only structured `sigma1+sigma2`
+q2-plus-q2 sibling cells in fixed-covariance `spatial()`, A-matrix `animal()`,
+and `relmat()`. These rows answer the Ayumi-style half-cell question directly:
+balanced q4, q2 location fixtures, and larger all-four cells do not imply that
+the scale-only sibling is parser-ready or fit-ready. The rows remain
+`unsupported` until a supported scale-side route is designed, implemented, and
+tested for the exact provider/formula cell.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the
@@ -698,7 +707,12 @@ The efficient completion order is:
    optimizer failures while all upper crossings succeed. Banked in this slice:
    compare endpoint, `auto`, and `tmbprofile` engines and show that the existing
    fallback does not rescue the three seed-202 lower-side problem rows. Banked
-   in this slice: compare lower-side warm/reset/capped/fixed starts and show
+   in this slice: record the exact pre-optimization rejection contract for the
+   three scale-only structured `sigma1+sigma2` q2-plus-q2 sibling cells in
+   fixed-covariance `spatial()`, A-matrix `animal()`, and `relmat()`, without
+   promoting parser-ready, point-fit, bridge, interval, coverage, REML,
+   AI-REML, public-support, q4, or q8 wording. Banked in this slice: compare
+   lower-side warm/reset/capped/fixed starts and show
    that these start variants also do not rescue the three seed-202 lower-side
    problem rows. Next work should investigate constrained optimizer domain
    guards or keep those regimes out of coverage denominators before any

@@ -197,6 +197,14 @@ never promotes neighbouring half-cells, structured q6/q8, REML, intervals,
 coverage, broad bridge support, or public optimizer controls unless the exact
 cell row says so.
 
+`structured-re-q2-plus-q2-sigma-rejection-contract.tsv` records the exact
+pre-optimization rejection evidence for the fixed-covariance `spatial()`,
+A-matrix `animal()`, and `relmat()` scale-only `sigma1+sigma2` q2-plus-q2
+sibling cells. It keeps those rows `unsupported` and prevents q2 location
+fixtures, q4 all-four rows, or K/Q parity from being read as scale-only
+parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML, public
+support, q4, or q8 evidence.
+
 `structured-re-balance-100-slices.tsv` records the structured random-effect
 balance arc. SR001-SR060 bank the corrected scope, native ML q1/q2/q4, slope,
 and native exact-Gaussian REML status. SR061-SR090 bank inference, bridge

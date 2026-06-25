@@ -419,6 +419,125 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   )
 })
 
+test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
+  rejection <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    rejection,
+    c(
+      "rejection_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "expected_error_pattern",
+      "rejection_stage",
+      "fit_status",
+      "extractor_status",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(rejection), 3L)
+  expect_setequal(rejection$structured_type, c("spatial", "animal", "relmat"))
+  expect_equal(rejection$dimension, rep("q2_plus_q2", 3L))
+  expect_equal(rejection$endpoint, rep("sigma1+sigma2", 3L))
+  expect_equal(rejection$slope_class, rep("intercept_only", 3L))
+  expect_equal(
+    rejection$rejection_stage,
+    rep("pre_optimization_formula_gate", 3L)
+  )
+  for (field in c(
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status"
+  )) {
+    expect_equal(rejection[[field]], rep("unsupported", 3L))
+  }
+  expect_equal(
+    rejection$expected_error_pattern,
+    c(
+      "Partial spatial location-scale blocks",
+      "Partial animal-model location-scale blocks",
+      "Partial relmat location-scale blocks"
+    )
+  )
+  expect_equal(
+    rejection$evidence_url,
+    rep("tests/testthat/test-structured-re-q2-rejections.R", 3L)
+  )
+
+  qseries_rows <- qseries[
+    match(rejection$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(qseries_rows$cell_id))
+  expect_equal(qseries_rows$structure_provider, rejection$structured_type)
+  expect_equal(qseries_rows$dimension_pattern, rejection$dimension)
+  expect_equal(qseries_rows$endpoint_set, rejection$endpoint)
+  expect_equal(qseries_rows$slope_class, rejection$slope_class)
+  for (field in c(
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status"
+  )) {
+    expect_equal(qseries_rows[[field]], rep("unsupported", 3L))
+  }
+  expect_equal(
+    qseries_rows$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-plus-q2-sigma-rejection-contract.tsv",
+      3L
+    )
+  )
+  structured_re_expect_all_match(
+    qseries_rows$claim_boundary,
+    "pre-optimization rejection evidence"
+  )
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "rejection evidence only"
+  )
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "parser-ready support"
+  )
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "point-fit support"
+  )
+  structured_re_expect_all_match(rejection$claim_boundary, "bridge support")
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "interval reliability"
+  )
+  structured_re_expect_all_match(rejection$claim_boundary, "coverage")
+  structured_re_expect_all_match(rejection$claim_boundary, "REML")
+  structured_re_expect_all_match(rejection$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(rejection$claim_boundary, "public support")
+  structured_re_expect_all_match(rejection$claim_boundary, "q4/q8 support")
+  structured_re_expect_all_match(
+    rejection$next_gate,
+    "supported scale-side route"
+  )
+})
+
 test_that("relmat Q bridge-boundary dashboard stays support-cell scoped", {
   boundary <- structured_re_read_dashboard_tsv(
     "structured-re-relmat-q-bridge-boundary.tsv"

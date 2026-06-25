@@ -2,6 +2,49 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: q2-plus-q2 sigma rejection contract
+
+Goal:
+
+- Bank exact row-level rejection evidence for the fixed-covariance `spatial()`,
+  A-matrix `animal()`, and `relmat()` scale-only structured
+  `sigma1+sigma2` q2-plus-q2 sibling cells so q2 location, q4 all-four, or
+  K/Q parity evidence cannot be misread as support for those half-cells.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-plus-q2-sigma-rejection-contract.tsv`
+  with three pre-optimization rejection rows tied to the existing provider
+  error-message test.
+- Updated the three corresponding rows in
+  `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` to point
+  at the new rejection contract while keeping fit, extractor, bridge,
+  interval, and coverage statuses `unsupported`.
+- Wired the sidecar into `tools/validate-mission-control.py`, including schema,
+  linked support-cell status, expected provider-specific error patterns, and
+  forbidden-claim boundary checks.
+- Added dashboard contract coverage in
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/design/218-structured-q-series-completion-map.md`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-25-q2-plus-q2-sigma-rejection-contract.md`.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported three
+  structured RE q2-plus-q2 sigma rejection rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-q2-rejections|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,579 assertions, 0 failures, 0 warnings, and 0 skips.
+
+Boundary:
+
+- This is exact rejection evidence only. It does not promote parser-ready,
+  point-fit, bridge, interval, coverage, REML, AI-REML, public-support, q4, q8,
+  range-estimating spatial, pedigree/Ainv, or Q bridge wording.
+
 ## 2026-06-25: sigma slope coverage runner contract
 
 Goal:

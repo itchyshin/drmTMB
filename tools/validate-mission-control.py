@@ -48,6 +48,9 @@ STRUCTURED_RE_BALANCE_MATRIX = DASHBOARD / "structured-re-balance-matrix.tsv"
 STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS = (
     DASHBOARD / "structured-re-q-series-support-cells.tsv"
 )
+STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
+    DASHBOARD / "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
+)
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
     DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
 )
@@ -1093,6 +1096,25 @@ STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS = (
     "evidence_url",
     "claim_boundary",
     "denominator_policy",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT_FIELDS = (
+    "rejection_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "expected_error_pattern",
+    "rejection_stage",
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
     "next_gate",
 )
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT_FIELDS = (
@@ -4750,6 +4772,9 @@ def main() -> int:
     structured_re_q_series_support_cell_rows = read_tsv(
         STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS
     )
+    structured_re_q2_plus_q2_sigma_rejection_contract_rows = read_tsv(
+        STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT
+    )
     structured_re_mu_slope_fixture_audit_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
     )
@@ -6777,6 +6802,140 @@ def main() -> int:
     qseries_by_cell = {
         row.get("cell_id", ""): row for row in structured_re_q_series_support_cell_rows
     }
+    expected_q2_plus_q2_sigma_rejections = {
+        "spatial": {
+            "rejection_id": "q2_plus_q2_sigma_reject_spatial",
+            "cell_id": "qseries_spatial_q2_plus_q2_sigma_rejected",
+            "formula_fragment": "spatial(1 | ps | site",
+            "expected_error_pattern": "Partial spatial location-scale blocks",
+            "claim_fragment": "Fixed-covariance spatial",
+        },
+        "animal": {
+            "rejection_id": "q2_plus_q2_sigma_reject_animal",
+            "cell_id": "qseries_animal_q2_plus_q2_sigma_rejected",
+            "formula_fragment": "animal(1 | ps | id",
+            "expected_error_pattern": "Partial animal-model location-scale blocks",
+            "claim_fragment": "A-matrix",
+        },
+        "relmat": {
+            "rejection_id": "q2_plus_q2_sigma_reject_relmat",
+            "cell_id": "qseries_relmat_q2_plus_q2_sigma_rejected",
+            "formula_fragment": "relmat(1 | ps | id",
+            "expected_error_pattern": "Partial relmat location-scale blocks",
+            "claim_fragment": "K/Q",
+        },
+    }
+    seen_q2_plus_q2_sigma_rejections: set[str] = set()
+    if len(structured_re_q2_plus_q2_sigma_rejection_contract_rows) != len(
+        expected_q2_plus_q2_sigma_rejections
+    ):
+        errors.append(
+            "structured-re-q2-plus-q2-sigma-rejection-contract.tsv has "
+            f"{len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} rows; "
+            f"expected {len(expected_q2_plus_q2_sigma_rejections)}"
+        )
+    for row in structured_re_q2_plus_q2_sigma_rejection_contract_rows:
+        row_id = row.get(
+            "rejection_id",
+            "<structured RE q2-plus-q2 sigma rejection>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q2-plus-q2-sigma-rejection-contract.tsv "
+                "fields do not match the rejection contract"
+            )
+        for field in STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        expected = expected_q2_plus_q2_sigma_rejections.get(provider)
+        if expected is None:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if row_id != expected["rejection_id"]:
+            errors.append(
+                f"{row_id}: rejection_id does not match provider {provider!r}"
+            )
+        if row_id in seen_q2_plus_q2_sigma_rejections:
+            errors.append(f"duplicate q2-plus-q2 sigma rejection id: {row_id}")
+        seen_q2_plus_q2_sigma_rejections.add(row_id)
+        if row.get("cell_id") != expected["cell_id"]:
+            errors.append(f"{row_id}: cell_id must be {expected['cell_id']}")
+        qseries_row = qseries_by_cell.get(expected["cell_id"])
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series cell is missing")
+        else:
+            expected_qseries_values = {
+                "structure_provider": provider,
+                "dimension_pattern": "q2_plus_q2",
+                "endpoint_set": "sigma1+sigma2",
+                "fit_status": "unsupported",
+                "extractor_status": "unsupported",
+                "bridge_status": "unsupported",
+                "interval_status": "unsupported",
+                "coverage_status": "unsupported",
+                "evidence_url": (
+                    "docs/dev-log/dashboard/"
+                    "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
+                ),
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{expected['cell_id']}: {field} must be {expected_value}"
+                    )
+        expected_row_values = {
+            "dimension": "q2_plus_q2",
+            "endpoint": "sigma1+sigma2",
+            "slope_class": "intercept_only",
+            "expected_error_pattern": expected["expected_error_pattern"],
+            "rejection_stage": "pre_optimization_formula_gate",
+            "fit_status": "unsupported",
+            "extractor_status": "unsupported",
+            "bridge_status": "unsupported",
+            "interval_status": "unsupported",
+            "coverage_status": "unsupported",
+            "evidence_url": "tests/testthat/test-structured-re-q2-rejections.R",
+        }
+        for field, expected_value in expected_row_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if expected["formula_fragment"] not in row.get("formula_cell", ""):
+            errors.append(f"{row_id}: formula_cell must name the provider formula")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            expected["claim_fragment"],
+            "rejection evidence only",
+            "parser-ready support",
+            "point-fit support",
+            "bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+            "public support",
+            "q4/q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if "supported scale-side route" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must require a scale-side design")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_q2_plus_q2_sigma_rejections = sorted(
+        set(expected_q2_plus_q2_sigma_rejections)
+        - {
+            row.get("structured_type", "")
+            for row in structured_re_q2_plus_q2_sigma_rejection_contract_rows
+        }
+    )
+    if missing_q2_plus_q2_sigma_rejections:
+        errors.append(
+            "structured-re-q2-plus-q2-sigma-rejection-contract.tsv lacks providers: "
+            + ", ".join(missing_q2_plus_q2_sigma_rejections)
+        )
     expected_sigma_interval_profiles = {
         "phylo": {
             "sigma:(Intercept)": "sd:sigma:phylo(1 | species)",
@@ -22973,6 +23132,7 @@ def main() -> int:
         f", {len(ayumi_boundary_status_rows)} Ayumi boundary-status rows"
         f", {len(structured_re_balance_matrix_rows)} structured RE matrix rows"
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
+        f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"
