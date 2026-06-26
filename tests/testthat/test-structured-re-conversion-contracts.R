@@ -2208,6 +2208,140 @@ test_that("relmat Q payload contract review is exact-cell scoped", {
   structured_re_expect_all_match(contract$next_gate, "provenance")
 })
 
+test_that("relmat Q DRM.jl provider readiness is dependency-scoped", {
+  readiness <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-drmjl-provider-readiness.tsv"
+  )
+
+  expect_named(
+    readiness,
+    c(
+      "readiness_id",
+      "dependency_ref",
+      "repo",
+      "branch",
+      "base_branch",
+      "head_oid",
+      "review_state",
+      "merge_state_status",
+      "ci_status",
+      "documenter_status",
+      "local_validation_status",
+      "scope_boundary",
+      "upstream_dependency_status",
+      "relmat_q_bridge_status",
+      "drmtmb_transport_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(readiness), 3L)
+  expect_equal(anyDuplicated(readiness$readiness_id), 0L)
+  expect_setequal(
+    readiness$readiness_id,
+    c(
+      "drmjl_q2_known_precision_bridge_primitive_pr299",
+      "drmjl_q2_known_precision_provider_contract_pr300",
+      "drmtmb_relmat_q_transport_gate_after_pr665"
+    )
+  )
+  expect_equal(
+    grepl("^[0-9a-f]{40}$", readiness$head_oid),
+    rep(TRUE, 3L)
+  )
+  expect_equal(readiness$review_state, rep("draft", 3L))
+  expect_equal(readiness$merge_state_status, rep("CLEAN", 3L))
+
+  pr299 <- readiness[
+    readiness$readiness_id == "drmjl_q2_known_precision_bridge_primitive_pr299",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(pr299$dependency_ref, "DRM.jl#299")
+  expect_equal(pr299$repo, "DRM.jl")
+  expect_equal(pr299$branch, "codex/q2-known-precision-bridge")
+  expect_equal(pr299$ci_status, "manual_workflow_success")
+  expect_equal(pr299$documenter_status, "manual_workflow_success")
+  expect_equal(pr299$upstream_dependency_status, "draft_green_not_merged")
+  expect_equal(pr299$relmat_q_bridge_status, "not_r_bridge_transport")
+  expect_equal(
+    pr299$drmtmb_transport_status,
+    "blocked_pending_upstream_merge_and_r_payload_implementation"
+  )
+  expect_equal(
+    pr299$evidence_url,
+    "https://github.com/itchyshin/DRM.jl/pull/299"
+  )
+
+  pr300 <- readiness[
+    readiness$readiness_id ==
+      "drmjl_q2_known_precision_provider_contract_pr300",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(pr300$dependency_ref, "DRM.jl#300")
+  expect_equal(pr300$repo, "DRM.jl")
+  expect_equal(pr300$branch, "codex/q2-known-precision-provider-contract")
+  expect_equal(pr300$ci_status, "manual_workflow_success")
+  expect_equal(pr300$documenter_status, "manual_workflow_success")
+  expect_equal(pr300$upstream_dependency_status, "draft_green_not_merged")
+  expect_equal(pr300$relmat_q_bridge_status, "not_r_bridge_transport")
+  expect_equal(
+    pr300$drmtmb_transport_status,
+    "blocked_pending_upstream_merge_and_r_payload_implementation"
+  )
+  expect_equal(
+    pr300$evidence_url,
+    "https://github.com/itchyshin/DRM.jl/pull/300"
+  )
+
+  drmtmb <- readiness[
+    readiness$readiness_id == "drmtmb_relmat_q_transport_gate_after_pr665",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(drmtmb$dependency_ref, "drmTMB#665_payload_contract")
+  expect_equal(drmtmb$repo, "drmTMB")
+  expect_equal(drmtmb$ci_status, "manual_r_cmd_check_success")
+  expect_equal(drmtmb$documenter_status, "not_applicable")
+  expect_equal(
+    drmtmb$upstream_dependency_status,
+    "waiting_for_drmjl_299_300_review_merge"
+  )
+  expect_equal(drmtmb$relmat_q_bridge_status, "unsupported")
+  expect_equal(drmtmb$drmtmb_transport_status, "contract_only_not_implemented")
+  expect_equal(
+    drmtmb$evidence_url,
+    "docs/dev-log/dashboard/structured-re-relmat-q-payload-contract-review.tsv"
+  )
+
+  structured_re_expect_all_match(
+    readiness$claim_boundary,
+    "broad bridge support"
+  )
+  structured_re_expect_all_match(
+    readiness$claim_boundary,
+    "interval reliability"
+  )
+  structured_re_expect_all_match(readiness$claim_boundary, "coverage")
+  structured_re_expect_all_match(readiness$claim_boundary, "REML")
+  structured_re_expect_all_match(readiness$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(readiness$claim_boundary, "public support")
+  structured_re_expect_all_match(
+    readiness$next_gate[readiness$repo == "DRM.jl"],
+    "approval",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    drmtmb$next_gate,
+    "exact Q precision payload transport"
+  )
+  structured_re_expect_all_match(drmtmb$next_gate, "matrix digest")
+  structured_re_expect_all_match(drmtmb$next_gate, "level alignment")
+  structured_re_expect_all_match(drmtmb$next_gate, "provenance")
+})
+
 test_that("q2 slope-only parity fixture dashboard is provider-specific", {
   fixture <- structured_re_read_dashboard_tsv(
     "structured-re-q2-slope-parity-fixture.tsv"

@@ -237,6 +237,9 @@ STRUCTURED_RE_RELMAT_Q_PAYLOAD_MARSHALLING_GATE = (
 STRUCTURED_RE_RELMAT_Q_PAYLOAD_CONTRACT_REVIEW = (
     DASHBOARD / "structured-re-relmat-q-payload-contract-review.tsv"
 )
+STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS = (
+    DASHBOARD / "structured-re-relmat-q-drmjl-provider-readiness.tsv"
+)
 STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY = (
     DASHBOARD / "structured-re-relmat-kq-one-slope-native-parity.tsv"
 )
@@ -3001,6 +3004,26 @@ STRUCTURED_RE_RELMAT_Q_PAYLOAD_CONTRACT_REVIEW_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS_FIELDS = (
+    "readiness_id",
+    "dependency_ref",
+    "repo",
+    "branch",
+    "base_branch",
+    "head_oid",
+    "review_state",
+    "merge_state_status",
+    "ci_status",
+    "documenter_status",
+    "local_validation_status",
+    "scope_boundary",
+    "upstream_dependency_status",
+    "relmat_q_bridge_status",
+    "drmtmb_transport_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
 STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS = (
     "parity_id",
     "cell_id",
@@ -5292,6 +5315,9 @@ def main() -> int:
     )
     structured_re_relmat_q_payload_contract_review_rows = read_tsv(
         STRUCTURED_RE_RELMAT_Q_PAYLOAD_CONTRACT_REVIEW
+    )
+    structured_re_relmat_q_drmjl_provider_readiness_rows = read_tsv(
+        STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS
     )
     structured_re_relmat_kq_one_slope_native_parity_rows = read_tsv(
         STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY
@@ -19065,6 +19091,169 @@ def main() -> int:
             + ", ".join(missing_relmat_q_payload_contract_boundary_ids)
         )
 
+    expected_relmat_q_drmjl_readiness = {
+        "drmjl_q2_known_precision_bridge_primitive_pr299": {
+            "dependency_ref": "DRM.jl#299",
+            "repo": "DRM.jl",
+            "branch": "codex/q2-known-precision-bridge",
+            "base_branch": "codex/q2-q4-direct-export-contracts",
+            "head_oid": "c2c2404cb9883d3a7f111b7f2256572049d9f873",
+            "review_state": "draft",
+            "merge_state_status": "CLEAN",
+            "ci_status": "manual_workflow_success",
+            "documenter_status": "manual_workflow_success",
+            "local_validation_status": "local_recheck_passed",
+            "upstream_dependency_status": "draft_green_not_merged",
+            "relmat_q_bridge_status": "not_r_bridge_transport",
+            "drmtmb_transport_status": "blocked_pending_upstream_merge_and_r_payload_implementation",
+            "evidence_url": "https://github.com/itchyshin/DRM.jl/pull/299",
+        },
+        "drmjl_q2_known_precision_provider_contract_pr300": {
+            "dependency_ref": "DRM.jl#300",
+            "repo": "DRM.jl",
+            "branch": "codex/q2-known-precision-provider-contract",
+            "base_branch": "codex/q2-known-precision-bridge",
+            "head_oid": "e9510f230fb34e33ebf206e632eb8397c093f0a1",
+            "review_state": "draft",
+            "merge_state_status": "CLEAN",
+            "ci_status": "manual_workflow_success",
+            "documenter_status": "manual_workflow_success",
+            "local_validation_status": "local_recheck_passed",
+            "upstream_dependency_status": "draft_green_not_merged",
+            "relmat_q_bridge_status": "not_r_bridge_transport",
+            "drmtmb_transport_status": "blocked_pending_upstream_merge_and_r_payload_implementation",
+            "evidence_url": "https://github.com/itchyshin/DRM.jl/pull/300",
+        },
+        "drmtmb_relmat_q_transport_gate_after_pr665": {
+            "dependency_ref": "drmTMB#665_payload_contract",
+            "repo": "drmTMB",
+            "branch": "codex/relmat-q-payload-contract-review",
+            "base_branch": "codex/pr-stack-readiness-656-662",
+            "head_oid": "9216d723665414f0965e329dc580a4975fd80e42",
+            "review_state": "draft",
+            "merge_state_status": "CLEAN",
+            "ci_status": "manual_r_cmd_check_success",
+            "documenter_status": "not_applicable",
+            "local_validation_status": "mission_control_passed",
+            "upstream_dependency_status": "waiting_for_drmjl_299_300_review_merge",
+            "relmat_q_bridge_status": "unsupported",
+            "drmtmb_transport_status": "contract_only_not_implemented",
+            "evidence_url": "docs/dev-log/dashboard/structured-re-relmat-q-payload-contract-review.tsv",
+        },
+    }
+    seen_relmat_q_drmjl_readiness_ids: set[str] = set()
+    if len(structured_re_relmat_q_drmjl_provider_readiness_rows) != len(
+        expected_relmat_q_drmjl_readiness
+    ):
+        errors.append(
+            "structured-re-relmat-q-drmjl-provider-readiness.tsv has "
+            f"{len(structured_re_relmat_q_drmjl_provider_readiness_rows)} rows; "
+            f"expected {len(expected_relmat_q_drmjl_readiness)}"
+        )
+    for row in structured_re_relmat_q_drmjl_provider_readiness_rows:
+        row_id = row.get("readiness_id", "<relmat Q DRM.jl readiness>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-relmat-q-drmjl-provider-readiness.tsv "
+                "fields do not match the contract"
+            )
+        if row_id in seen_relmat_q_drmjl_readiness_ids:
+            errors.append(f"duplicate relmat Q DRM.jl readiness id: {row_id}")
+        seen_relmat_q_drmjl_readiness_ids.add(row_id)
+        expected_values = expected_relmat_q_drmjl_readiness.get(row_id)
+        if expected_values is None:
+            errors.append(f"{row_id}: unexpected relmat Q DRM.jl readiness id")
+            continue
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if not re.fullmatch(r"[0-9a-f]{40}", row.get("head_oid", "")):
+            errors.append(f"{row_id}: head_oid must be a full 40-character SHA")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve")
+        scope_boundary = row.get("scope_boundary", "")
+        if row_id.startswith("drmjl_"):
+            for phrase in ("q2 known-precision", "only", "not"):
+                if phrase not in scope_boundary:
+                    errors.append(f"{row_id}: scope_boundary must include {phrase!r}")
+        else:
+            for phrase in ("payload contract", "exact Q precision", "unimplemented"):
+                if phrase not in scope_boundary:
+                    errors.append(f"{row_id}: scope_boundary must include {phrase!r}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "not",
+            "broad bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+            "public support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        if row_id == "drmjl_q2_known_precision_bridge_primitive_pr299":
+            for phrase in ("draft upstream", "not merged", "not R-via-Julia relmat Q transport"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        if row_id == "drmjl_q2_known_precision_provider_contract_pr300":
+            for phrase in ("draft upstream", "relmat(Q)", "not six-cell drmTMB relmat"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        if row_id == "drmtmb_relmat_q_transport_gate_after_pr665":
+            for phrase in (
+                "not implementation",
+                "Direct DRM.jl Q support",
+                "R-via-Julia Q support",
+                "q4 REML",
+                "native-TMB q4 REML",
+                "q4 AI-REML",
+                "HSquared AI-REML",
+                "non-Gaussian REML",
+                "broader q8 support",
+            ):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        next_gate = row.get("next_gate", "")
+        if row_id == "drmjl_q2_known_precision_bridge_primitive_pr299":
+            for phrase in ("#297", "#298", "review #299", "#300 stacked"):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        elif row_id == "drmjl_q2_known_precision_provider_contract_pr300":
+            for phrase in ("#299", "rerun CI", "Documenter", "drmTMB bridge support"):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        else:
+            for phrase in (
+                "#299",
+                "#300",
+                "exact Q precision payload transport",
+                "Q source",
+                "matrix digest",
+                "level alignment",
+                "missing-level policy",
+                "coefficient order",
+                "provenance",
+            ):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        row_text = " ".join(
+            str(row.get(field, ""))
+            for field in STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS_FIELDS
+        )
+        if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
+            errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
+    missing_relmat_q_drmjl_readiness_ids = sorted(
+        set(expected_relmat_q_drmjl_readiness) - seen_relmat_q_drmjl_readiness_ids
+    )
+    if missing_relmat_q_drmjl_readiness_ids:
+        errors.append(
+            "structured-re-relmat-q-drmjl-provider-readiness.tsv lacks ids: "
+            + ", ".join(missing_relmat_q_drmjl_readiness_ids)
+        )
+
     expected_relmat_kq_native_parity_ids = {
         "relmat_kq_native_q1_mu_one_slope": "relmat_q_bridge_q1_mu_one_slope",
         "relmat_kq_native_q1_sigma_one_slope": "relmat_q_bridge_q1_sigma_one_slope",
@@ -25257,6 +25446,7 @@ def main() -> int:
         f", {len(structured_re_relmat_q_bridge_boundary_rows)} relmat Q bridge-boundary rows"
         f", {len(structured_re_relmat_q_payload_marshalling_gate_rows)} relmat Q payload-marshalling gate rows"
         f", {len(structured_re_relmat_q_payload_contract_review_rows)} relmat Q payload-contract review rows"
+        f", {len(structured_re_relmat_q_drmjl_provider_readiness_rows)} relmat Q DRM.jl provider-readiness rows"
         f", {len(structured_re_relmat_kq_one_slope_native_parity_rows)} relmat K/Q one-slope native parity rows"
         f", {len(structured_re_relmat_q4_location_kq_native_parity_rows)} relmat q4 location K/Q native parity rows"
         f", {len(structured_re_q4_target_contract_rows)} q4 target-contract rows"

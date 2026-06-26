@@ -2189,6 +2189,129 @@ phase18_structured_re_relmat_q_payload_marshalling_gate <- function() {
   )
 }
 
+phase18_structured_re_relmat_q_drmjl_provider_readiness <- function() {
+  data.frame(
+    readiness_id = c(
+      "drmjl_q2_known_precision_bridge_primitive_pr299",
+      "drmjl_q2_known_precision_provider_contract_pr300",
+      "drmtmb_relmat_q_transport_gate_after_pr665"
+    ),
+    dependency_ref = c(
+      "DRM.jl#299",
+      "DRM.jl#300",
+      "drmTMB#665_payload_contract"
+    ),
+    repo = c("DRM.jl", "DRM.jl", "drmTMB"),
+    branch = c(
+      "codex/q2-known-precision-bridge",
+      "codex/q2-known-precision-provider-contract",
+      "codex/relmat-q-payload-contract-review"
+    ),
+    base_branch = c(
+      "codex/q2-q4-direct-export-contracts",
+      "codex/q2-known-precision-bridge",
+      "codex/pr-stack-readiness-656-662"
+    ),
+    head_oid = c(
+      "c2c2404cb9883d3a7f111b7f2256572049d9f873",
+      "e9510f230fb34e33ebf206e632eb8397c093f0a1",
+      "9216d723665414f0965e329dc580a4975fd80e42"
+    ),
+    review_state = "draft",
+    merge_state_status = "CLEAN",
+    ci_status = c(
+      "manual_workflow_success",
+      "manual_workflow_success",
+      "manual_r_cmd_check_success"
+    ),
+    documenter_status = c(
+      "manual_workflow_success",
+      "manual_workflow_success",
+      "not_applicable"
+    ),
+    local_validation_status = c(
+      "local_recheck_passed",
+      "local_recheck_passed",
+      "mission_control_passed"
+    ),
+    scope_boundary = c(
+      paste(
+        "Upstream q2 known-precision bridge primitive for complete-response",
+        "exact-Gaussian ML fixtures only; not an R relmat Q payload route."
+      ),
+      paste(
+        "Upstream q2 known-precision provider contract for relmat(Q) and",
+        "animal(Ainv) identity only; not six-cell drmTMB relmat Q support."
+      ),
+      paste(
+        "R-side relmat Q payload contract and marshalling gate only; exact",
+        "Q precision transport remains unimplemented."
+      )
+    ),
+    upstream_dependency_status = c(
+      "draft_green_not_merged",
+      "draft_green_not_merged",
+      "waiting_for_drmjl_299_300_review_merge"
+    ),
+    relmat_q_bridge_status = c(
+      "not_r_bridge_transport",
+      "not_r_bridge_transport",
+      "unsupported"
+    ),
+    drmtmb_transport_status = c(
+      "blocked_pending_upstream_merge_and_r_payload_implementation",
+      "blocked_pending_upstream_merge_and_r_payload_implementation",
+      "contract_only_not_implemented"
+    ),
+    evidence_url = c(
+      "https://github.com/itchyshin/DRM.jl/pull/299",
+      "https://github.com/itchyshin/DRM.jl/pull/300",
+      "docs/dev-log/dashboard/structured-re-relmat-q-payload-contract-review.tsv"
+    ),
+    claim_boundary = c(
+      paste(
+        "DRM.jl #299 is draft upstream q2 known-precision primitive evidence",
+        "only; it is not merged, not R-via-Julia relmat Q transport, not",
+        "broad bridge support, not interval reliability, not coverage, not",
+        "REML, not AI-REML, and not public support."
+      ),
+      paste(
+        "DRM.jl #300 is draft upstream provider-contract evidence only;",
+        "relmat(Q) and animal(Ainv) identity is not six-cell drmTMB relmat",
+        "Q bridge implementation, not broad bridge support, not interval",
+        "reliability, not coverage, not REML, not AI-REML, and not public",
+        "support."
+      ),
+      paste(
+        "drmTMB relmat Q payload contract review is not implementation.",
+        "Direct DRM.jl Q support, R-via-Julia Q support, broad bridge",
+        "support, interval reliability, coverage, REML, AI-REML, q4 REML,",
+        "native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian",
+        "REML, public support, and broader q8 support remain unpromoted."
+      )
+    ),
+    next_gate = c(
+      paste(
+        "After DRM.jl #297 and #298 are accepted, review #299 at diff",
+        "granularity; merge only after approval, then keep #300 stacked",
+        "until #299 is accepted."
+      ),
+      paste(
+        "After #299 is accepted, retarget or rebase #300, rerun CI and",
+        "Documenter, and merge only after approval; do not treat draft-green",
+        "provider evidence as drmTMB bridge support."
+      ),
+      paste(
+        "After #299 and #300 are accepted, implement exact Q precision",
+        "payload transport matching the reviewed contract: Q source, matrix",
+        "digest, level alignment, missing-level policy, coefficient order,",
+        "and provenance."
+      )
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_structured_re_q2_fixture_contract <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   boundary <- vapply(

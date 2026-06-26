@@ -68970,3 +68970,48 @@ Boundary:
   promote MCSE-calibrated coverage, interval reliability, q4 REML, native-TMB
   q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad bridge
   support, public support, SR150 readiness, or an Ayumi-facing reply.
+
+## 2026-06-26: relmat Q DRM.jl provider-readiness snapshot
+
+Goal:
+
+- Bank a checked dependency snapshot between drmTMB relmat `Q` payload
+  transport and the active DRM.jl q2 known-precision draft stack, without
+  treating draft-green upstream work as R bridge support.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-q-drmjl-provider-readiness.tsv`
+  with three rows: DRM.jl #299, DRM.jl #300, and the drmTMB relmat `Q`
+  transport gate after #665.
+- Added
+  `tools/run-structured-re-relmat-q-drmjl-provider-readiness.R` and
+  `phase18_structured_re_relmat_q_drmjl_provider_readiness()`.
+- Wired mission-control validation, dashboard contract tests, dashboard README,
+  q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-26-relmat-q-drmjl-provider-readiness.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-relmat-q-drmjl-provider-readiness.R`
+  passed and wrote 3 rows.
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tools/run-structured-re-relmat-q-drmjl-provider-readiness.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 3 relmat `Q`
+  DRM.jl provider-readiness rows.
+- `devtools::test()` and direct `testthat::test_file()` could not run in this
+  app R library because `devtools` and `testthat` are unavailable.
+- A base-R generator/TSV round-trip sanity check passed.
+- `git diff --check` passed.
+- The after-task validator passed.
+
+Boundary:
+
+- This is dependency-readiness evidence only. It does not implement relmat `Q`
+  payload transport, direct DRM.jl `Q` export from drmTMB, R-via-Julia `Q`
+  transport, broad bridge support, public support, interval reliability,
+  interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
+  AI-REML, non-Gaussian REML, broader q8 support, DRAC/Totoro execution,
+  SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.

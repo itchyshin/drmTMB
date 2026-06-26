@@ -431,6 +431,15 @@ payload. This is contract-review evidence only. Direct DRM.jl `Q`,
 R-via-Julia `Q`, R bridge `Q`, intervals, coverage, REML, AI-REML, public
 support, and broader q8 support remain unsupported or planned.
 
+`structured-re-relmat-q-drmjl-provider-readiness.tsv` records the current
+upstream dependency snapshot for relmat `Q` transport. It has one row for
+DRM.jl #299, one row for DRM.jl #300, and one row for the R-side
+transport gate after drmTMB #665. The two DRM.jl rows are draft-green upstream
+q2 known-precision evidence, not merged support and not R-via-Julia relmat
+`Q` transport. The drmTMB row keeps exact `Q` precision transport at
+`contract_only_not_implemented` until the upstream stack is accepted and the
+reviewed payload contract is matched in R bridge code.
+
 `structured-re-relmat-q4-location-kq-native-parity.tsv` records the one-row
 native R/TMB K/Q same-target parity result for
 `relmat(1 + x | p | id, K/Q = ...)` in `mu1` and `mu2`. It is a runtime
