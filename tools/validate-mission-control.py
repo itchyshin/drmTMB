@@ -240,6 +240,9 @@ STRUCTURED_RE_RELMAT_Q_PAYLOAD_CONTRACT_REVIEW = (
 STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS = (
     DASHBOARD / "structured-re-relmat-q-drmjl-provider-readiness.tsv"
 )
+STRUCTURED_RE_RELMAT_Q_DRMJL_STACK_REVIEW = (
+    DASHBOARD / "structured-re-relmat-q-drmjl-stack-review.tsv"
+)
 STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY = (
     DASHBOARD / "structured-re-relmat-kq-one-slope-native-parity.tsv"
 )
@@ -3024,6 +3027,25 @@ STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_RELMAT_Q_DRMJL_STACK_REVIEW_FIELDS = (
+    "review_id",
+    "dependency_ref",
+    "repo",
+    "branch",
+    "base_branch",
+    "head_oid",
+    "pr_url",
+    "review_scope",
+    "remote_ci_status",
+    "remote_documenter_status",
+    "exact_head_local_tests",
+    "local_test_assertions",
+    "merge_state_status",
+    "review_decision",
+    "downstream_permission",
+    "claim_boundary",
+    "next_gate",
+)
 STRUCTURED_RE_RELMAT_Q4_LOCATION_KQ_NATIVE_PARITY_FIELDS = (
     "parity_id",
     "cell_id",
@@ -5318,6 +5340,9 @@ def main() -> int:
     )
     structured_re_relmat_q_drmjl_provider_readiness_rows = read_tsv(
         STRUCTURED_RE_RELMAT_Q_DRMJL_PROVIDER_READINESS
+    )
+    structured_re_relmat_q_drmjl_stack_review_rows = read_tsv(
+        STRUCTURED_RE_RELMAT_Q_DRMJL_STACK_REVIEW
     )
     structured_re_relmat_kq_one_slope_native_parity_rows = read_tsv(
         STRUCTURED_RE_RELMAT_KQ_ONE_SLOPE_NATIVE_PARITY
@@ -19254,6 +19279,205 @@ def main() -> int:
             + ", ".join(missing_relmat_q_drmjl_readiness_ids)
         )
 
+    expected_relmat_q_drmjl_stack_review = {
+        "drmjl_pr297_loconly_reml_review": {
+            "dependency_ref": "DRM.jl#297",
+            "repo": "DRM.jl",
+            "branch": "codex/ai-reml-gaussian-mme-pilot",
+            "base_branch": "main",
+            "head_oid": "2ca40a50cbc66634c25ae52a410cdda3bbb701d2",
+            "pr_url": "https://github.com/itchyshin/DRM.jl/pull/297",
+            "remote_ci_status": "attached_pr_checks_green",
+            "remote_documenter_status": "attached_documenter_green",
+            "local_test_assertions": "602/602",
+            "merge_state_status": "CLEAN_DRAFT",
+            "review_decision": "reviewed_green_keep_draft_until_approval",
+            "downstream_permission": "does_not_unblock_relmat_q_transport",
+        },
+        "drmjl_pr298_q2_q4_direct_export_review": {
+            "dependency_ref": "DRM.jl#298",
+            "repo": "DRM.jl",
+            "branch": "codex/q2-q4-direct-export-contracts",
+            "base_branch": "codex/ai-reml-gaussian-mme-pilot",
+            "head_oid": "17c6374f8f76bca2503030b9524adde7a576dc24",
+            "pr_url": "https://github.com/itchyshin/DRM.jl/pull/298",
+            "remote_ci_status": "manual_workflow_success",
+            "remote_documenter_status": "manual_documenter_success",
+            "local_test_assertions": "212/212",
+            "merge_state_status": "CLEAN_DRAFT",
+            "review_decision": "reviewed_green_keep_draft_until_297_accepted",
+            "downstream_permission": "unblocks_review_of_299_300_only_not_transport",
+        },
+        "drmjl_pr299_q2_known_precision_bridge_review": {
+            "dependency_ref": "DRM.jl#299",
+            "repo": "DRM.jl",
+            "branch": "codex/q2-known-precision-bridge",
+            "base_branch": "codex/q2-q4-direct-export-contracts",
+            "head_oid": "c2c2404cb9883d3a7f111b7f2256572049d9f873",
+            "pr_url": "https://github.com/itchyshin/DRM.jl/pull/299",
+            "remote_ci_status": "manual_workflow_success",
+            "remote_documenter_status": "manual_documenter_success",
+            "local_test_assertions": "228/228",
+            "merge_state_status": "CLEAN_DRAFT",
+            "review_decision": "reviewed_green_keep_draft_until_298_accepted",
+            "downstream_permission": "candidate_dependency_after_merge_not_support",
+        },
+        "drmjl_pr300_q2_known_precision_provider_review": {
+            "dependency_ref": "DRM.jl#300",
+            "repo": "DRM.jl",
+            "branch": "codex/q2-known-precision-provider-contract",
+            "base_branch": "codex/q2-known-precision-bridge",
+            "head_oid": "e9510f230fb34e33ebf206e632eb8397c093f0a1",
+            "pr_url": "https://github.com/itchyshin/DRM.jl/pull/300",
+            "remote_ci_status": "manual_workflow_success",
+            "remote_documenter_status": "manual_documenter_success",
+            "local_test_assertions": "264/264",
+            "merge_state_status": "CLEAN_DRAFT",
+            "review_decision": "reviewed_green_keep_draft_until_299_accepted",
+            "downstream_permission": "provider_contract_after_merge_not_transport",
+        },
+        "drmtmb_pr666_relmat_q_readiness_decision": {
+            "dependency_ref": "drmTMB#666",
+            "repo": "drmTMB",
+            "branch": "codex/relmat-q-drmjl-provider-readiness",
+            "base_branch": "codex/relmat-q-payload-contract-review",
+            "head_oid": "1a73dd62192f7248d2e1dedd32939cb2cb65489a",
+            "pr_url": "https://github.com/itchyshin/drmTMB/pull/666",
+            "remote_ci_status": "manual_r_cmd_check_success",
+            "remote_documenter_status": "not_applicable",
+            "local_test_assertions": "not_applicable",
+            "merge_state_status": "CLEAN_DRAFT",
+            "review_decision": "banked_dependency_gate_keep_draft_until_stack_order",
+            "downstream_permission": "next_code_slice_blocked_not_transport_until_upstream_merge",
+        },
+    }
+    seen_relmat_q_drmjl_stack_review_ids: set[str] = set()
+    if len(structured_re_relmat_q_drmjl_stack_review_rows) != len(
+        expected_relmat_q_drmjl_stack_review
+    ):
+        errors.append(
+            "structured-re-relmat-q-drmjl-stack-review.tsv has "
+            f"{len(structured_re_relmat_q_drmjl_stack_review_rows)} rows; "
+            f"expected {len(expected_relmat_q_drmjl_stack_review)}"
+        )
+    for row in structured_re_relmat_q_drmjl_stack_review_rows:
+        row_id = row.get("review_id", "<relmat Q DRM.jl stack review>")
+        if set(row.keys()) != set(STRUCTURED_RE_RELMAT_Q_DRMJL_STACK_REVIEW_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-relmat-q-drmjl-stack-review.tsv "
+                "fields do not match the contract"
+            )
+        if row_id in seen_relmat_q_drmjl_stack_review_ids:
+            errors.append(f"duplicate relmat Q DRM.jl stack review id: {row_id}")
+        seen_relmat_q_drmjl_stack_review_ids.add(row_id)
+        expected_values = expected_relmat_q_drmjl_stack_review.get(row_id)
+        if expected_values is None:
+            errors.append(f"{row_id}: unexpected relmat Q DRM.jl stack review id")
+            continue
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if not re.fullmatch(r"[0-9a-f]{40}", row.get("head_oid", "")):
+            errors.append(f"{row_id}: head_oid must be a full 40-character SHA")
+        if not evidence_reference_exists(row.get("pr_url", "")):
+            errors.append(f"{row_id}: pr_url does not resolve")
+        review_scope = row.get("review_scope", "")
+        for phrase in ("review", "exact", "only"):
+            if phrase not in review_scope:
+                errors.append(f"{row_id}: review_scope must include {phrase!r}")
+        exact_head_local_tests = row.get("exact_head_local_tests", "")
+        if row_id.startswith("drmjl_"):
+            for phrase in ("julia --project=.", "test/"):
+                if phrase not in exact_head_local_tests:
+                    errors.append(
+                        f"{row_id}: exact_head_local_tests must include {phrase!r}"
+                    )
+        else:
+            for phrase in ("validate-mission-control", "base-R"):
+                if phrase not in exact_head_local_tests:
+                    errors.append(
+                        f"{row_id}: exact_head_local_tests must include {phrase!r}"
+                    )
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "not",
+            "broad bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+            "public support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        if row_id in {
+            "drmjl_pr297_loconly_reml_review",
+            "drmjl_pr298_q2_q4_direct_export_review",
+            "drmjl_pr299_q2_known_precision_bridge_review",
+            "drmjl_pr300_q2_known_precision_provider_review",
+            "drmtmb_pr666_relmat_q_readiness_decision",
+        }:
+            for phrase in (
+                "q4 REML",
+                "native-TMB q4 REML",
+                "q4 AI-REML",
+                "HSquared AI-REML",
+                "non-Gaussian REML",
+            ):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: claim_boundary must include {phrase!r}")
+        downstream_permission = row.get("downstream_permission", "")
+        if "not" not in downstream_permission:
+            errors.append(f"{row_id}: downstream_permission must remain fail-closed")
+        next_gate = row.get("next_gate", "")
+        if row_id == "drmjl_pr297_loconly_reml_review":
+            for phrase in ("merge #297 first", "retarget #298"):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        elif row_id == "drmjl_pr298_q2_q4_direct_export_review":
+            for phrase in ("#297", "#298", "CI", "Documenter"):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        elif row_id == "drmjl_pr299_q2_known_precision_bridge_review":
+            for phrase in ("#298", "#299", "CI", "Documenter"):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        elif row_id == "drmjl_pr300_q2_known_precision_provider_review":
+            for phrase in ("#299", "#300", "CI", "Documenter"):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        else:
+            for phrase in (
+                "#297",
+                "#298",
+                "#299",
+                "#300",
+                "#666",
+                "exact Q precision payload transport",
+                "matrix digest",
+                "level alignment",
+                "missing-level policy",
+                "coefficient order",
+                "provenance",
+            ):
+                if phrase not in next_gate:
+                    errors.append(f"{row_id}: next_gate must include {phrase!r}")
+        row_text = " ".join(
+            str(row.get(field, ""))
+            for field in STRUCTURED_RE_RELMAT_Q_DRMJL_STACK_REVIEW_FIELDS
+        )
+        if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
+            errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
+    missing_relmat_q_drmjl_stack_review_ids = sorted(
+        set(expected_relmat_q_drmjl_stack_review)
+        - seen_relmat_q_drmjl_stack_review_ids
+    )
+    if missing_relmat_q_drmjl_stack_review_ids:
+        errors.append(
+            "structured-re-relmat-q-drmjl-stack-review.tsv lacks ids: "
+            + ", ".join(missing_relmat_q_drmjl_stack_review_ids)
+        )
+
     expected_relmat_kq_native_parity_ids = {
         "relmat_kq_native_q1_mu_one_slope": "relmat_q_bridge_q1_mu_one_slope",
         "relmat_kq_native_q1_sigma_one_slope": "relmat_q_bridge_q1_sigma_one_slope",
@@ -25447,6 +25671,7 @@ def main() -> int:
         f", {len(structured_re_relmat_q_payload_marshalling_gate_rows)} relmat Q payload-marshalling gate rows"
         f", {len(structured_re_relmat_q_payload_contract_review_rows)} relmat Q payload-contract review rows"
         f", {len(structured_re_relmat_q_drmjl_provider_readiness_rows)} relmat Q DRM.jl provider-readiness rows"
+        f", {len(structured_re_relmat_q_drmjl_stack_review_rows)} relmat Q DRM.jl stack-review rows"
         f", {len(structured_re_relmat_kq_one_slope_native_parity_rows)} relmat K/Q one-slope native parity rows"
         f", {len(structured_re_relmat_q4_location_kq_native_parity_rows)} relmat q4 location K/Q native parity rows"
         f", {len(structured_re_q4_target_contract_rows)} q4 target-contract rows"

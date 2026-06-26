@@ -440,6 +440,15 @@ q2 known-precision evidence, not merged support and not R-via-Julia relmat
 `contract_only_not_implemented` until the upstream stack is accepted and the
 reviewed payload contract is matched in R bridge code.
 
+`structured-re-relmat-q-drmjl-stack-review.tsv` records the exact-head review
+decision for the current DRM.jl draft stack and the drmTMB #666 readiness gate.
+It has rows for DRM.jl #297, #298, #299, #300, and drmTMB #666, including the
+reviewed PR heads, local focused-test assertion counts, manual or attached
+green evidence, and the next merge/retarget order. This sidecar keeps relmat
+`Q` transport blocked until the upstream stack is accepted and the R payload
+contract is implemented; it does not promote bridge support, intervals,
+coverage, REML, AI-REML, public support, or broader q8 support.
+
 `structured-re-relmat-q4-location-kq-native-parity.tsv` records the one-row
 native R/TMB K/Q same-target parity result for
 `relmat(1 + x | p | id, K/Q = ...)` in `mu1` and `mu2`. It is a runtime

@@ -554,6 +554,17 @@ reviewed payload contract is matched in code. This row does not promote broad
 bridge support, interval reliability, coverage, REML, AI-REML, public support,
 or broader q8 support.
 
+`structured-re-relmat-q-drmjl-stack-review.tsv` records the exact-head review
+decision after DRM.jl #297, #298, #299, and #300 were inspected with focused
+local tests and remote/manual green evidence. It keeps those upstream draft PRs
+and drmTMB #666 as five separate dependency rows. The sidecar says the stack is
+reviewed enough to plan the merge/retarget order, but not enough to implement
+or claim relmat `Q` payload transport while the upstream PRs remain draft and
+unmerged. It does not promote direct DRM.jl `Q`, R-via-Julia `Q`, broad bridge
+support, interval reliability, coverage, q4 REML, native-TMB q4 REML, q4
+AI-REML, HSquared AI-REML, non-Gaussian REML, public support, or broader q8
+support.
+
 `structured-re-q4-location-slope-interval-diagnostic-plan.tsv` records the
 target-level interval diagnostic plan for those same exact q4 location cells.
 It names 16 direct-SD targets and 24 derived-correlation targets across
@@ -904,6 +915,14 @@ The efficient completion order is:
    payload transport. This does not implement relmat Q bridge support,
    direct DRM.jl Q export from drmTMB, R-via-Julia Q transport, intervals,
    coverage, REML, AI-REML, public support, or broader q8 support.
+23c. Banked in this stacked follow-up slice: add the relmat `Q` DRM.jl stack
+   review ledger. It records exact-head review evidence for DRM.jl #297, #298,
+   #299, and #300, plus the drmTMB #666 readiness decision. This makes the next
+   merge/retarget order explicit while keeping exact `Q` transport blocked
+   until the upstream stack is accepted and the R payload contract is matched
+   in code. This does not implement relmat Q bridge support, direct DRM.jl Q
+   export from drmTMB, R-via-Julia Q transport, intervals, coverage, REML,
+   AI-REML, public support, or broader q8 support.
 24. Banked in this stacked follow-up slice: add the eight-row ordinary count
    one-slope fixture/recovery contract for Poisson and NB2 `mu` cells across
    `phylo()`, fixed-covariance `spatial()`, `animal()`, and `relmat()`. This

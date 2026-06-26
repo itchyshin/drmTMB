@@ -2312,6 +2312,196 @@ phase18_structured_re_relmat_q_drmjl_provider_readiness <- function() {
   )
 }
 
+phase18_structured_re_relmat_q_drmjl_stack_review <- function() {
+  data.frame(
+    review_id = c(
+      "drmjl_pr297_loconly_reml_review",
+      "drmjl_pr298_q2_q4_direct_export_review",
+      "drmjl_pr299_q2_known_precision_bridge_review",
+      "drmjl_pr300_q2_known_precision_provider_review",
+      "drmtmb_pr666_relmat_q_readiness_decision"
+    ),
+    dependency_ref = c(
+      "DRM.jl#297",
+      "DRM.jl#298",
+      "DRM.jl#299",
+      "DRM.jl#300",
+      "drmTMB#666"
+    ),
+    repo = c("DRM.jl", "DRM.jl", "DRM.jl", "DRM.jl", "drmTMB"),
+    branch = c(
+      "codex/ai-reml-gaussian-mme-pilot",
+      "codex/q2-q4-direct-export-contracts",
+      "codex/q2-known-precision-bridge",
+      "codex/q2-known-precision-provider-contract",
+      "codex/relmat-q-drmjl-provider-readiness"
+    ),
+    base_branch = c(
+      "main",
+      "codex/ai-reml-gaussian-mme-pilot",
+      "codex/q2-q4-direct-export-contracts",
+      "codex/q2-known-precision-bridge",
+      "codex/relmat-q-payload-contract-review"
+    ),
+    head_oid = c(
+      "2ca40a50cbc66634c25ae52a410cdda3bbb701d2",
+      "17c6374f8f76bca2503030b9524adde7a576dc24",
+      "c2c2404cb9883d3a7f111b7f2256572049d9f873",
+      "e9510f230fb34e33ebf206e632eb8397c093f0a1",
+      "1a73dd62192f7248d2e1dedd32939cb2cb65489a"
+    ),
+    pr_url = c(
+      "https://github.com/itchyshin/DRM.jl/pull/297",
+      "https://github.com/itchyshin/DRM.jl/pull/298",
+      "https://github.com/itchyshin/DRM.jl/pull/299",
+      "https://github.com/itchyshin/DRM.jl/pull/300",
+      "https://github.com/itchyshin/drmTMB/pull/666"
+    ),
+    review_scope = c(
+      paste(
+        "exact-Gaussian location-only REML diagnostic review at the PR head;",
+        "not relmat Q transport."
+      ),
+      paste(
+        "q2/q4 direct export contract review at the exact PR head;",
+        "point/export evidence only."
+      ),
+      paste(
+        "q2 known-precision bridge primitive review at the exact PR head;",
+        "complete-response exact-Gaussian ML fixtures only."
+      ),
+      paste(
+        "q2 known-precision provider contract review at the exact PR head;",
+        "relmat(Q) and animal(Ainv) identity only."
+      ),
+      paste(
+        "drmTMB relmat Q provider-readiness gate exact review after #665;",
+        "dependency evidence only."
+      )
+    ),
+    remote_ci_status = c(
+      "attached_pr_checks_green",
+      "manual_workflow_success",
+      "manual_workflow_success",
+      "manual_workflow_success",
+      "manual_r_cmd_check_success"
+    ),
+    remote_documenter_status = c(
+      "attached_documenter_green",
+      "manual_documenter_success",
+      "manual_documenter_success",
+      "manual_documenter_success",
+      "not_applicable"
+    ),
+    exact_head_local_tests = c(
+      "julia --project=. test/test_location_only_reml_mme.jl",
+      paste(
+        "julia --project=. test/test_bridge_q2_direct_export.jl;",
+        "julia --project=. test/test_bridge_q4_direct_export.jl;",
+        "julia --project=. test/test_bridge.jl"
+      ),
+      paste(
+        "julia --project=. test/test_bridge_q2_direct_export.jl;",
+        "julia --project=. test/test_bridge.jl;",
+        "julia --project=. test/test_bridge_q4_direct_export.jl"
+      ),
+      paste(
+        "julia --project=. test/test_bridge_q2_direct_export.jl;",
+        "julia --project=. test/test_bridge.jl;",
+        "julia --project=. test/test_bridge_q4_direct_export.jl"
+      ),
+      paste(
+        "python3 tools/validate-mission-control.py;",
+        "base-R provider-readiness generator/TSV round trip"
+      )
+    ),
+    local_test_assertions = c(
+      "602/602",
+      "212/212",
+      "228/228",
+      "264/264",
+      "not_applicable"
+    ),
+    merge_state_status = rep("CLEAN_DRAFT", 5L),
+    review_decision = c(
+      "reviewed_green_keep_draft_until_approval",
+      "reviewed_green_keep_draft_until_297_accepted",
+      "reviewed_green_keep_draft_until_298_accepted",
+      "reviewed_green_keep_draft_until_299_accepted",
+      "banked_dependency_gate_keep_draft_until_stack_order"
+    ),
+    downstream_permission = c(
+      "does_not_unblock_relmat_q_transport",
+      "unblocks_review_of_299_300_only_not_transport",
+      "candidate_dependency_after_merge_not_support",
+      "provider_contract_after_merge_not_transport",
+      "next_code_slice_blocked_not_transport_until_upstream_merge"
+    ),
+    claim_boundary = c(
+      paste(
+        "DRM.jl #297 is Gaussian location-only REML diagnostic evidence only;",
+        "not q4 REML, not native-TMB q4 REML, not q4 AI-REML, not",
+        "HSquared AI-REML, not non-Gaussian REML, not broad bridge support,",
+        "not interval reliability, not coverage, and not public support."
+      ),
+      paste(
+        "DRM.jl #298 is q2/q4 direct export contract evidence only; not q2",
+        "REML, not q4 REML, not native-TMB q4 REML, not q4 AI-REML, not",
+        "HSquared AI-REML, not non-Gaussian REML, not broad bridge support,",
+        "not interval reliability, not coverage, and not public support."
+      ),
+      paste(
+        "DRM.jl #299 is q2 known-precision primitive evidence only; not",
+        "merged, not R-via-Julia relmat Q transport, not q2 REML, not q4",
+        "REML, not native-TMB q4 REML, not q4 AI-REML, not HSquared",
+        "AI-REML, not non-Gaussian REML, not broad bridge support, not",
+        "interval reliability, not coverage, and not public support."
+      ),
+      paste(
+        "DRM.jl #300 is q2 known-precision provider-contract evidence only;",
+        "relmat(Q) and animal(Ainv) identity is not drmTMB relmat Q",
+        "transport, not q2 REML, not q4 REML, not native-TMB q4 REML,",
+        "not q4 AI-REML, not HSquared AI-REML, not non-Gaussian REML,",
+        "not broad bridge support, not interval reliability, not coverage,",
+        "and not public support."
+      ),
+      paste(
+        "drmTMB #666 is dependency-readiness evidence only; it is not",
+        "relmat Q payload transport, not direct DRM.jl Q export from drmTMB,",
+        "not R-via-Julia Q transport, not q4 REML, not native-TMB q4 REML,",
+        "not q4 AI-REML, not HSquared AI-REML, not non-Gaussian REML, not",
+        "broad bridge support, not interval reliability, not coverage, not",
+        "public support, and not broader q8 support."
+      )
+    ),
+    next_gate = c(
+      paste(
+        "After approval, merge #297 first; then retarget #298 to main and",
+        "rerun ordinary PR checks."
+      ),
+      paste(
+        "After #297 is accepted, retarget #298 to main, rerun CI and",
+        "Documenter, and merge only after approval."
+      ),
+      paste(
+        "After #298 is accepted, retarget or rebase #299, rerun CI and",
+        "Documenter, then merge only after approval."
+      ),
+      paste(
+        "After #299 is accepted, retarget or rebase #300, rerun CI and",
+        "Documenter, then merge only after approval."
+      ),
+      paste(
+        "After #297, #298, #299, and #300 are accepted and #666 is reviewed,",
+        "implement exact Q precision payload transport matching Q source,",
+        "matrix digest, level alignment, missing-level policy, coefficient",
+        "order, and provenance."
+      )
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_structured_re_q2_fixture_contract <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   boundary <- vapply(

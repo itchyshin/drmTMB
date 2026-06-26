@@ -69015,3 +69015,47 @@ Boundary:
   interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
   AI-REML, non-Gaussian REML, broader q8 support, DRAC/Totoro execution,
   SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-26: relmat Q DRM.jl stack-review ledger
+
+Goal:
+
+- Bank the final local review decision for the active DRM.jl q2/q4 draft stack
+  before using it to plan drmTMB relmat `Q` bridge work.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-q-drmjl-stack-review.tsv`
+  with five rows: DRM.jl #297, #298, #299, #300, and drmTMB #666.
+- Added
+  `tools/run-structured-re-relmat-q-drmjl-stack-review.R` and
+  `phase18_structured_re_relmat_q_drmjl_stack_review()`.
+- Wired mission-control validation, dashboard contract tests, dashboard README,
+  q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-26-relmat-q-drmjl-stack-review.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-relmat-q-drmjl-stack-review.R`
+  passed and wrote 5 rows.
+- Base-R generator checks passed for row count, dependency refs, full head
+  OIDs, `CLEAN_DRAFT` state, fail-closed downstream permissions, and boundary
+  text.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 5 relmat `Q`
+  DRM.jl stack-review rows.
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tools/run-structured-re-relmat-q-drmjl-stack-review.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `devtools::test()` and direct `testthat::test_file()` could not run in this
+  app R library because `devtools` and `testthat` are unavailable.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is stack-review evidence only. It does not implement relmat `Q` payload
+  transport, direct DRM.jl `Q` export from drmTMB, R-via-Julia `Q` transport,
+  broad bridge support, public support, interval reliability, interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, broader q8 support, DRAC/Totoro execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.

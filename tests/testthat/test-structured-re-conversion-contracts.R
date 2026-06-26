@@ -2342,6 +2342,92 @@ test_that("relmat Q DRM.jl provider readiness is dependency-scoped", {
   structured_re_expect_all_match(drmtmb$next_gate, "provenance")
 })
 
+test_that("relmat Q DRM.jl stack review keeps downstream transport blocked", {
+  review <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-drmjl-stack-review.tsv"
+  )
+
+  expect_named(
+    review,
+    c(
+      "review_id",
+      "dependency_ref",
+      "repo",
+      "branch",
+      "base_branch",
+      "head_oid",
+      "pr_url",
+      "review_scope",
+      "remote_ci_status",
+      "remote_documenter_status",
+      "exact_head_local_tests",
+      "local_test_assertions",
+      "merge_state_status",
+      "review_decision",
+      "downstream_permission",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(review), 5L)
+  expect_equal(anyDuplicated(review$review_id), 0L)
+  expect_setequal(
+    review$review_id,
+    c(
+      "drmjl_pr297_loconly_reml_review",
+      "drmjl_pr298_q2_q4_direct_export_review",
+      "drmjl_pr299_q2_known_precision_bridge_review",
+      "drmjl_pr300_q2_known_precision_provider_review",
+      "drmtmb_pr666_relmat_q_readiness_decision"
+    )
+  )
+  expect_equal(
+    grepl("^[0-9a-f]{40}$", review$head_oid),
+    rep(TRUE, 5L)
+  )
+  expect_equal(review$merge_state_status, rep("CLEAN_DRAFT", 5L))
+  expect_equal(
+    review$dependency_ref,
+    c("DRM.jl#297", "DRM.jl#298", "DRM.jl#299", "DRM.jl#300", "drmTMB#666")
+  )
+  expect_equal(
+    review$local_test_assertions,
+    c("602/602", "212/212", "228/228", "264/264", "not_applicable")
+  )
+  structured_re_expect_all_match(review$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(review$claim_boundary, "interval reliability")
+  structured_re_expect_all_match(review$claim_boundary, "coverage")
+  structured_re_expect_all_match(review$claim_boundary, "REML")
+  structured_re_expect_all_match(review$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(review$claim_boundary, "public support")
+  structured_re_expect_all_match(
+    review$downstream_permission,
+    "not",
+    fixed = TRUE
+  )
+
+  drmtmb <- review[
+    review$review_id == "drmtmb_pr666_relmat_q_readiness_decision",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(drmtmb$repo, "drmTMB")
+  expect_equal(drmtmb$dependency_ref, "drmTMB#666")
+  expect_equal(
+    drmtmb$downstream_permission,
+    "next_code_slice_blocked_not_transport_until_upstream_merge"
+  )
+  structured_re_expect_all_match(
+    drmtmb$next_gate,
+    "exact Q precision payload transport"
+  )
+  structured_re_expect_all_match(drmtmb$next_gate, "matrix digest")
+  structured_re_expect_all_match(drmtmb$next_gate, "level alignment")
+  structured_re_expect_all_match(drmtmb$next_gate, "missing-level policy")
+  structured_re_expect_all_match(drmtmb$next_gate, "coefficient order")
+  structured_re_expect_all_match(drmtmb$next_gate, "provenance")
+})
+
 test_that("q2 slope-only parity fixture dashboard is provider-specific", {
   fixture <- structured_re_read_dashboard_tsv(
     "structured-re-q2-slope-parity-fixture.tsv"
