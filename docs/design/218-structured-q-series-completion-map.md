@@ -1029,7 +1029,15 @@ The efficient completion order is:
     marshalling, REML, AI-REML, public-support, Totoro/DRAC, q2/q4 count
     covariance, structured count scale, zero-inflated structure, phylo,
     spatial, Poisson, relmat, labelled slope, or multiple-slope status.
-36. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+36. Banked in this stacked follow-up slice: execute the exact relmat K/Q
+    Poisson local micro-shard for `relmat(1 + x | id, Q = Q)` in `mu`, four
+    seeds, four converged point fits, and four `pdHess = TRUE` rows. This is
+    local diagnostic smoke evidence only. It does not move denominator,
+    coverage, interval, bridge, Q bridge marshalling, REML, AI-REML,
+    public-support, Totoro/DRAC, q2/q4 count covariance, structured count
+    scale, zero-inflated structure, phylo, spatial, animal, NB2, labelled
+    slope, or multiple-slope status.
+37. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 

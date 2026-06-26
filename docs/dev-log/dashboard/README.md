@@ -306,6 +306,15 @@ bridge support, intervals, coverage, REML, AI-REML, structured count `sigma`,
 labelled or multiple count slopes, zero-inflated structure, public support, and
 Totoro/DRAC execution closed.
 
+`structured-re-count-slope-relmat-poisson-local-micro-shard.tsv` records the
+matching local execution smoke row for the exact relmat K/Q `relmat()` plus
+`poisson()` q1 `mu` one-slope cell fit through `Q = Q`. The row links to its
+own per-replicate, summary, and run-log artifacts and keeps
+`coverage_evaluable = FALSE`, `denominator_status = not_coverage_evidence`, Q
+bridge marshalling, bridge support, intervals, coverage, REML, AI-REML,
+structured count `sigma`, labelled or multiple count slopes, zero-inflated
+structure, public support, and Totoro/DRAC execution closed.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB
