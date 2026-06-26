@@ -63,6 +63,9 @@ STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW = (
 STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT = (
     DASHBOARD / "structured-re-count-slope-recovery-shard-pack-contract.tsv"
 )
+STRUCTURED_RE_COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD = (
+    DASHBOARD / "structured-re-count-slope-phylo-poisson-local-micro-shard.tsv"
+)
 STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
 )
@@ -476,6 +479,30 @@ COUNT_SLOPE_RECOVERY_SHARD_PACK_INDEX = (
     / "simulation-artifacts"
     / "2026-06-25-count-slope-recovery-shard-pack-contract"
     / "structured-re-count-slope-recovery-shard-pack-index.tsv"
+)
+COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_REPLICATES = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-26-count-slope-phylo-poisson-local-micro-shard"
+    / "structured-re-count-slope-phylo-poisson-local-micro-shard-replicates.tsv"
+)
+COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_SUMMARY = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-26-count-slope-phylo-poisson-local-micro-shard"
+    / "structured-re-count-slope-phylo-poisson-local-micro-shard-summary.tsv"
+)
+COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_RUN_LOG = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-26-count-slope-phylo-poisson-local-micro-shard"
+    / "structured-re-count-slope-phylo-poisson-local-micro-shard-run-log.tsv"
 )
 PR_STACK_MERGE_READINESS_SNAPSHOT = (
     ROOT
@@ -1316,6 +1343,50 @@ STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT_FIELDS = (
     "aggregate_gate",
     "retention_policy",
     "human_approval_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_FIELDS = (
+    "micro_shard_id",
+    "pack_id",
+    "dispatch_id",
+    "runner_id",
+    "cell_id",
+    "formula_cell",
+    "family",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "estimator_effective",
+    "execution_surface",
+    "scheduler_surface",
+    "submission_status",
+    "compute_status",
+    "recovery_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "planned_replicates",
+    "attempted_replicates",
+    "fit_ok",
+    "fit_error",
+    "nonconverged",
+    "pdhess_false",
+    "finite_estimate_rows",
+    "seed_start",
+    "seed_end",
+    "artifact_dir",
+    "replicate_results",
+    "summary_results",
+    "run_log",
+    "runner_script",
+    "package_load_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "support_status",
     "status",
     "evidence_url",
     "claim_boundary",
@@ -5116,6 +5187,9 @@ def main() -> int:
     structured_re_count_slope_recovery_shard_pack_contract_rows = read_tsv(
         STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT
     )
+    structured_re_count_slope_phylo_poisson_local_micro_shard_rows = read_tsv(
+        STRUCTURED_RE_COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD
+    )
     structured_re_q2_plus_q2_sigma_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT
     )
@@ -5208,6 +5282,15 @@ def main() -> int:
     )
     count_slope_recovery_shard_pack_index_rows = read_tsv(
         COUNT_SLOPE_RECOVERY_SHARD_PACK_INDEX
+    )
+    count_slope_phylo_poisson_local_micro_shard_replicate_rows = read_tsv(
+        COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_REPLICATES
+    )
+    count_slope_phylo_poisson_local_micro_shard_summary_rows = read_tsv(
+        COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_SUMMARY
+    )
+    count_slope_phylo_poisson_local_micro_shard_run_log_rows = read_tsv(
+        COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_RUN_LOG
     )
     structured_re_pr_stack_merge_readiness_rows = read_tsv(
         STRUCTURED_RE_PR_STACK_MERGE_READINESS
@@ -8217,6 +8300,274 @@ def main() -> int:
             for phrase in ("human approval", "Totoro", "DRAC", "scheduler exit status"):
                 if phrase not in shard_log.get("next_gate", ""):
                     errors.append(f"{row_id}: shard run-log next_gate must mention {phrase}")
+
+    count_slope_shard_pack_map = {
+        row.get("pack_id", ""): row
+        for row in structured_re_count_slope_recovery_shard_pack_contract_rows
+    }
+    if len(structured_re_count_slope_phylo_poisson_local_micro_shard_rows) != 1:
+        errors.append(
+            "structured-re-count-slope-phylo-poisson-local-micro-shard.tsv "
+            "must have one row"
+        )
+    else:
+        row = structured_re_count_slope_phylo_poisson_local_micro_shard_rows[0]
+        row_id = row.get("micro_shard_id", "<count slope local micro-shard>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-count-slope-phylo-poisson-local-micro-shard.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        expected_values = {
+            "micro_shard_id": "count_slope_phylo_poisson_q1_mu_one_slope_local_micro_shard",
+            "pack_id": "count_slope_recovery_shard_pack_phylo_poisson_q1_mu_one_slope",
+            "dispatch_id": "count_slope_recovery_dispatch_phylo_poisson_q1_mu_one_slope",
+            "runner_id": "count_slope_recovery_runner_phylo_poisson_q1_mu_one_slope",
+            "cell_id": "qseries_phylo_poisson_q1_mu_one_slope",
+            "formula_cell": "phylo(1 + x | species, tree = tree) in mu",
+            "family": "poisson()",
+            "structured_type": "phylo",
+            "dimension": "q1",
+            "endpoint": "mu",
+            "slope_class": "independent_one_slope",
+            "estimator_effective": "ML_Laplace",
+            "execution_surface": "local_codex_micro_shard",
+            "scheduler_surface": "local_only_not_totoro_not_drac",
+            "submission_status": "not_submitted",
+            "compute_status": "local_completed",
+            "recovery_status": "local_micro_shard_executed_not_coverage",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+            "planned_replicates": "4",
+            "attempted_replicates": "4",
+            "fit_ok": "4",
+            "fit_error": "0",
+            "nonconverged": "0",
+            "pdhess_false": "0",
+            "finite_estimate_rows": "4",
+            "seed_start": "760001",
+            "seed_end": "760004",
+            "artifact_dir": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-26-count-slope-phylo-poisson-local-micro-shard"
+            ),
+            "replicate_results": rel_path(
+                COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_REPLICATES
+            ),
+            "summary_results": rel_path(
+                COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_SUMMARY
+            ),
+            "run_log": rel_path(
+                COUNT_SLOPE_PHYLO_POISSON_LOCAL_MICRO_SHARD_RUN_LOG
+            ),
+            "runner_script": (
+                "tools/run-structured-re-count-slope-phylo-poisson-local-micro-shard.R"
+            ),
+            "package_load_status": "temp_install_loaded",
+            "bridge_status": "unsupported",
+            "interval_status": "unsupported",
+            "coverage_status": "planned",
+            "support_status": "not_promoted",
+            "status": "covered",
+            "evidence_url": (
+                "docs/dev-log/after-task/"
+                "2026-06-26-count-slope-phylo-poisson-local-micro-shard.md"
+            ),
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for path_field in (
+            "artifact_dir",
+            "replicate_results",
+            "summary_results",
+            "run_log",
+            "runner_script",
+            "evidence_url",
+        ):
+            if not evidence_reference_exists(row.get(path_field, "")):
+                errors.append(f"{row_id}: {path_field} does not resolve")
+        for phrase in (
+            "micro-shard only",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "bridge parity",
+            "interval reliability",
+            "coverage evidence",
+            "coverage-evaluable denominator",
+            "q2",
+            "q4",
+            "REML",
+            "AI-REML",
+            "public support",
+            "broad bridge support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        for phrase in (
+            "smoke gate",
+            "Totoro",
+            "DRAC",
+            "MCSE-calibrated recovery",
+        ):
+            if phrase not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        pack_row = count_slope_shard_pack_map.get(row.get("pack_id", ""))
+        if pack_row is None:
+            errors.append(f"{row_id}: linked shard-pack row is missing")
+        else:
+            for field, expected_value in (
+                ("dispatch_id", row.get("dispatch_id")),
+                ("runner_id", row.get("runner_id")),
+                ("cell_id", row.get("cell_id")),
+                ("family", row.get("family")),
+                ("structured_type", row.get("structured_type")),
+                ("submission_status", "not_submitted"),
+                ("denominator_status", "not_coverage_evidence"),
+                ("coverage_evaluable", "FALSE"),
+            ):
+                if pack_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked shard-pack {field} changed")
+        q_series_row = q_series_cell_map.get(row.get("cell_id", ""))
+        if q_series_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            for field, expected_value in (
+                ("family", row.get("family")),
+                ("structure_provider", row.get("structured_type")),
+                ("dimension_pattern", row.get("dimension")),
+                ("endpoint_set", row.get("endpoint")),
+                ("slope_class", row.get("slope_class")),
+                ("route", "native_tmb"),
+                ("estimator_effective", "ML_Laplace"),
+                ("bridge_status", "unsupported"),
+                ("interval_status", "unsupported"),
+                ("coverage_status", "planned"),
+                ("denominator_policy", "not_coverage_evidence"),
+            ):
+                if q_series_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked q-series {field} changed")
+
+    if len(count_slope_phylo_poisson_local_micro_shard_summary_rows) != 1:
+        errors.append("count slope phylo Poisson local micro-shard summary must have one row")
+    else:
+        summary = count_slope_phylo_poisson_local_micro_shard_summary_rows[0]
+        expected_summary = {
+            "micro_shard_id": "count_slope_phylo_poisson_q1_mu_one_slope_local_micro_shard",
+            "cell_id": "qseries_phylo_poisson_q1_mu_one_slope",
+            "family": "poisson()",
+            "structured_type": "phylo",
+            "planned_replicates": "4",
+            "attempted_replicates": "4",
+            "fit_ok": "4",
+            "fit_error": "0",
+            "nonconverged": "0",
+            "pdhess_false": "0",
+            "finite_estimate_rows": "4",
+            "package_load_status": "temp_install_loaded",
+            "package_load_detail": "temporary_library_current_source",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+            "interval_status": "unsupported",
+            "coverage_status": "planned",
+            "support_status": "not_promoted",
+        }
+        for field, expected_value in expected_summary.items():
+            if summary.get(field) != expected_value:
+                errors.append(
+                    "count slope phylo Poisson local micro-shard summary "
+                    f"{field} must be {expected_value}"
+                )
+
+    if len(count_slope_phylo_poisson_local_micro_shard_replicate_rows) != 4:
+        errors.append("count slope phylo Poisson local micro-shard must have four replicate rows")
+    for i, replicate in enumerate(
+        count_slope_phylo_poisson_local_micro_shard_replicate_rows,
+        start=1,
+    ):
+        row_id = f"count slope phylo Poisson local micro-shard replicate {i}"
+        expected_seed = str(760000 + i)
+        expected_rep_values = {
+            "replicate_id": str(i),
+            "seed": expected_seed,
+            "attempt_status": "fit_ok",
+            "error_stage": "none",
+            "convergence": "0",
+            "pdHess": "TRUE",
+            "truth_mu_intercept": "0.55",
+            "truth_mu_x": "-0.15",
+            "truth_sd_mu_intercept": "0.25",
+            "truth_sd_mu_x": "0.45",
+        }
+        for field, expected_value in expected_rep_values.items():
+            if replicate.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for field in (
+            "mu_intercept",
+            "mu_x",
+            "sd_mu_intercept",
+            "sd_mu_x",
+            "elapsed_sec",
+        ):
+            try:
+                value = float(replicate.get(field, "nan"))
+            except ValueError:
+                errors.append(f"{row_id}: {field} is not numeric")
+                continue
+            if not math.isfinite(value):
+                errors.append(f"{row_id}: {field} is not finite")
+            if field.startswith("sd_") and value <= 0:
+                errors.append(f"{row_id}: {field} must be positive")
+
+    if len(count_slope_phylo_poisson_local_micro_shard_run_log_rows) != 1:
+        errors.append("count slope phylo Poisson local micro-shard run log must have one row")
+    else:
+        run_log = count_slope_phylo_poisson_local_micro_shard_run_log_rows[0]
+        expected_run_log = {
+            "run_id": "count_slope_phylo_poisson_q1_mu_one_slope_local_micro_shard_run",
+            "mode": "local_micro_shard",
+            "runner_script": (
+                "tools/run-structured-re-count-slope-phylo-poisson-local-micro-shard.R"
+            ),
+            "planned_replicates": "4",
+            "seed_start": "760001",
+            "seed_end": "760004",
+            "package_load_status": "temp_install_loaded",
+            "compute_status": "local_completed",
+            "recovery_status": "local_micro_shard_executed",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+        }
+        for field, expected_value in expected_run_log.items():
+            if run_log.get(field) != expected_value:
+                errors.append(
+                    "count slope phylo Poisson local micro-shard run log "
+                    f"{field} must be {expected_value}"
+                )
+        for phrase in (
+            "micro-shard only",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no bridge parity",
+            "no interval reliability",
+            "no coverage evidence",
+            "no q2",
+            "no q4",
+            "no REML",
+            "no AI-REML",
+            "no public support",
+            "no broad bridge support",
+        ):
+            if phrase not in run_log.get("claim_boundary", ""):
+                errors.append(
+                    "count slope phylo Poisson local micro-shard run log "
+                    f"claim_boundary must mention {phrase}"
+                )
 
     expected_mu_slope_audits = {
         "phylo": "mu_slope_phylo_artifact_audit",
@@ -25600,6 +25951,7 @@ def main() -> int:
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"
         f", {len(structured_re_count_slope_recovery_dispatch_review_rows)} structured RE count-slope recovery-dispatch review rows"
         f", {len(structured_re_count_slope_recovery_shard_pack_contract_rows)} structured RE count-slope recovery-shard-pack rows"
+        f", {len(structured_re_count_slope_phylo_poisson_local_micro_shard_rows)} structured RE count-slope phylo Poisson local micro-shard rows"
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"

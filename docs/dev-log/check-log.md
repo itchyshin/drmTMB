@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-26: count phylo Poisson one-slope local micro-shard
+
+Goal:
+
+- Execute the first local diagnostic micro-shard for the ordinary count
+  one-slope recovery lane, scoped only to the `phylo()` plus `poisson()` q1
+  `mu` one-slope cell, without submitting Totoro or DRAC jobs or moving
+  denominator, coverage, interval, bridge, REML, AI-REML, q2/q4, or support
+  status.
+
+Result:
+
+- Added
+  `tools/run-structured-re-count-slope-phylo-poisson-local-micro-shard.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-slope-phylo-poisson-local-micro-shard.tsv`
+  with one local diagnostic row linked back to the existing dry-run shard-pack
+  row.
+- Added per-replicate, summary, and run-log artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-26-count-slope-phylo-poisson-local-micro-shard/`.
+- Updated mission-control validation, focused dashboard contract tests,
+  dashboard README, q-series completion map, and after-task report.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-count-slope-phylo-poisson-local-micro-shard.R --n_rep=4 --attempt-temp-install`
+  passed after fixing path quoting and `tree` formula-environment scoping; the
+  final summary records 4 planned, 4 attempted, 4 fit OK, 0 fit errors, 0
+  nonconverged rows, 0 `pdHess` failures, 4 finite estimate rows,
+  `denominator_status = not_coverage_evidence`, and
+  `coverage_evaluable = FALSE`.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 1
+  structured RE count-slope phylo Poisson local micro-shard row.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-26-count-slope-phylo-poisson-local-micro-shard.md')"`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the local R library.
+- `Rscript --vanilla -e "testthat::test_file('tests/testthat/test-structured-re-conversion-contracts.R', stop_on_failure = TRUE)"`
+  could not run because `testthat` is absent from the local R library.
+
+Boundary:
+
+- This is a four-seed local diagnostic smoke shard only. It does not submit
+  Totoro or DRAC jobs, create coverage-evaluable denominator evidence, promote
+  MCSE-calibrated recovery, interval reliability, coverage, bridge parity,
+  q2/q4 count covariance, REML, AI-REML, public support, broad bridge support,
+  NB2, spatial, animal, relmat, structured count scale, zero-inflated
+  structured effects, labelled slopes, or multiple count slopes.
+
 ## 2026-06-26: relmat Q payload contract review
 
 Goal:

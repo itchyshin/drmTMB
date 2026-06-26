@@ -129,7 +129,13 @@ The current table records these broad facts without promoting beyond them:
   interval reliability, coverage, or public support has moved. A dispatch
   preflight sidecar now names provider/family shard boundaries and
   race-safety rules, but it is not human approval and no job has been
-  submitted.
+  submitted. A first local Codex micro-shard has now executed the exact
+  `phylo()` plus `poisson()` q1 `mu` one-slope cell for four seeds with four
+  converged `pdHess = TRUE` point fits. That row is local smoke evidence only:
+  it does not create a coverage-evaluable denominator, MCSE-calibrated
+  recovery evidence, interval reliability, bridge parity, Totoro/DRAC
+  execution evidence, REML, AI-REML, public support, or neighbouring count
+  support.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -968,7 +974,15 @@ The efficient completion order is:
     #663. This is stack-control evidence only; no PR is undrafted or merged, no Totoro or
     DRAC job is submitted, and no recovery, denominator, coverage, interval,
     bridge, REML, AI-REML, public-support, or SR150 status moves.
-30. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+30. Banked in this stacked follow-up slice: execute the first local
+    micro-shard for the ordinary count one-slope recovery lane:
+    `phylo(1 + x | species, tree = tree)` in `mu` with `poisson()`, four seeds,
+    four converged point fits, and four `pdHess = TRUE` rows. This is local
+    diagnostic smoke evidence only. It does not move denominator, coverage,
+    interval, bridge, REML, AI-REML, public-support, Totoro/DRAC, q2/q4 count
+    covariance, NB2, spatial, animal, relmat, structured count scale, labelled
+    slope, or multiple-slope status.
+31. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 

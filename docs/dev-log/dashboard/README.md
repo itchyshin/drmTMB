@@ -251,6 +251,15 @@ contract. Every row remains `submission_status = not_submitted`,
 `coverage_evaluable = FALSE`; this is not recovery, coverage, interval,
 bridge, REML, AI-REML, public-support, or broad bridge evidence.
 
+`structured-re-count-slope-phylo-poisson-local-micro-shard.tsv` records the
+first local execution smoke row for the ordinary count one-slope recovery
+lane. It is intentionally only the `phylo()` plus `poisson()` q1 `mu`
+one-slope cell, four seeds, and the local Codex source-install route. The row
+links to the per-replicate, summary, and run-log artifacts and keeps
+`coverage_evaluable = FALSE`, `denominator_status = not_coverage_evidence`,
+bridge support, intervals, coverage, REML, AI-REML, public support, and
+Totoro/DRAC execution closed.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB
