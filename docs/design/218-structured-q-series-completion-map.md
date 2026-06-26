@@ -130,16 +130,17 @@ The current table records these broad facts without promoting beyond them:
   preflight sidecar now names provider/family shard boundaries and
   race-safety rules, but it is not human approval and no job has been
   submitted. The first local Codex micro-shards have now executed the exact
-  `phylo()` plus `poisson()`, `phylo()` plus `nbinom2()`, and
-  fixed-covariance `spatial()` plus `poisson()` q1 `mu` one-slope cells for
-  four seeds each, with four converged `pdHess = TRUE` point fits per cell.
-  The NB2 row keeps `sigma` as fixed-effect overdispersion only, and the
-  spatial row keeps range-estimating spatial support closed. These rows are
-  local smoke evidence only: they do not create a coverage-evaluable
-  denominator, MCSE-calibrated recovery evidence, interval reliability, bridge
-  parity, Totoro/DRAC execution evidence, REML, AI-REML, public support,
-  structured count `sigma`, labelled or multiple count slopes, zero-inflated
-  structure, or neighbouring count support.
+  `phylo()` plus `poisson()`, `phylo()` plus `nbinom2()`,
+  fixed-covariance `spatial()` plus `poisson()`, and fixed-covariance
+  `spatial()` plus `nbinom2()` q1 `mu` one-slope cells for four seeds each,
+  with four converged `pdHess = TRUE` point fits per cell. The NB2 rows keep
+  `sigma` as fixed-effect overdispersion only, and the spatial rows keep
+  range-estimating spatial support closed. These rows are local smoke evidence
+  only: they do not create a coverage-evaluable denominator, MCSE-calibrated
+  recovery evidence, interval reliability, bridge parity, Totoro/DRAC execution
+  evidence, REML, AI-REML, public support, structured count `sigma`, labelled
+  or multiple count slopes, zero-inflated structure, or neighbouring count
+  support.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -1003,7 +1004,16 @@ The efficient completion order is:
     range-estimating spatial support, q2/q4 count covariance, structured
     count scale, zero-inflated structure, phylo, NB2, animal, relmat,
     labelled slope, or multiple-slope status.
-33. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+33. Banked in this stacked follow-up slice: execute the exact
+    fixed-covariance spatial NB2 local micro-shard for
+    `spatial(1 + x | site, coords = coords)` in `mu`, fixed-effect `sigma`,
+    four seeds, four converged point fits, and four `pdHess = TRUE` rows. This
+    is local diagnostic smoke evidence only. It does not move denominator,
+    coverage, interval, bridge, REML, AI-REML, public-support, Totoro/DRAC,
+    range-estimating spatial support, q2/q4 count covariance, structured count
+    scale, zero-inflated structure, phylo, Poisson, animal, relmat, labelled
+    slope, or multiple-slope status.
+34. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 
