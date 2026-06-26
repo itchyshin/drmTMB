@@ -1013,7 +1013,15 @@ The efficient completion order is:
     range-estimating spatial support, q2/q4 count covariance, structured count
     scale, zero-inflated structure, phylo, Poisson, animal, relmat, labelled
     slope, or multiple-slope status.
-34. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+34. Banked in this stacked follow-up slice: execute the exact animal A/Ainv
+    Poisson local micro-shard for `animal(1 + x | id, Ainv = Q)` in `mu`, four
+    seeds, four converged point fits, and four `pdHess = TRUE` rows. This is
+    local diagnostic smoke evidence only. It does not move denominator,
+    coverage, interval, bridge, pedigree/Ainv bridge marshalling, REML,
+    AI-REML, public-support, Totoro/DRAC, q2/q4 count covariance, structured
+    count scale, zero-inflated structure, phylo, spatial, NB2, relmat,
+    labelled slope, or multiple-slope status.
+35. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 

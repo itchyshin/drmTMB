@@ -2325,6 +2325,206 @@ test_that("count structured spatial NB2 local micro-shard stays diagnostic", {
   expect_match(run_log$claim_boundary, "no AI-REML", fixed = TRUE)
 })
 
+test_that("count structured animal Poisson local micro-shard stays diagnostic", {
+  micro <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-animal-poisson-local-micro-shard.tsv"
+  )
+  shard_pack <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-shard-pack-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  artifact_parts <- c(
+    "docs",
+    "dev-log",
+    "simulation-artifacts",
+    "2026-06-26-count-slope-animal-poisson-local-micro-shard"
+  )
+  replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      artifact_parts,
+      "structured-re-count-slope-animal-poisson-local-micro-shard-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  summary <- utils::read.delim(
+    structured_re_artifact_path(
+      artifact_parts,
+      "structured-re-count-slope-animal-poisson-local-micro-shard-summary.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  run_log <- utils::read.delim(
+    structured_re_artifact_path(
+      artifact_parts,
+      "structured-re-count-slope-animal-poisson-local-micro-shard-run-log.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_equal(nrow(micro), 1L)
+  expect_equal(
+    micro$micro_shard_id,
+    "count_slope_animal_poisson_q1_mu_one_slope_local_micro_shard"
+  )
+  expect_equal(
+    micro$pack_id,
+    "count_slope_recovery_shard_pack_animal_poisson_q1_mu_one_slope"
+  )
+  expect_equal(
+    micro$cell_id,
+    "qseries_animal_poisson_q1_mu_one_slope"
+  )
+  expect_equal(
+    micro$formula_cell,
+    "animal(1 + x | id, Ainv = Q) in mu"
+  )
+  expect_equal(micro$family, "poisson()")
+  expect_equal(micro$structured_type, "animal")
+  expect_equal(micro$dimension, "q1")
+  expect_equal(micro$endpoint, "mu")
+  expect_equal(micro$slope_class, "independent_one_slope")
+  expect_equal(micro$estimator_effective, "ML_Laplace")
+  expect_equal(micro$execution_surface, "local_codex_micro_shard")
+  expect_equal(micro$scheduler_surface, "local_only_not_totoro_not_drac")
+  expect_equal(micro$submission_status, "not_submitted")
+  expect_equal(micro$compute_status, "local_completed")
+  expect_equal(
+    micro$recovery_status,
+    "local_micro_shard_executed_not_coverage"
+  )
+  expect_equal(micro$denominator_status, "not_coverage_evidence")
+  expect_equal(micro$coverage_evaluable, FALSE)
+  expect_equal(micro$planned_replicates, 4L)
+  expect_equal(micro$attempted_replicates, 4L)
+  expect_equal(micro$fit_ok, 4L)
+  expect_equal(micro$fit_error, 0L)
+  expect_equal(micro$nonconverged, 0L)
+  expect_equal(micro$pdhess_false, 0L)
+  expect_equal(micro$finite_estimate_rows, 4L)
+  expect_equal(micro$seed_start, 760001L)
+  expect_equal(micro$seed_end, 760004L)
+  expect_equal(micro$package_load_status, "temp_install_loaded")
+  expect_equal(micro$bridge_status, "unsupported")
+  expect_equal(micro$interval_status, "unsupported")
+  expect_equal(micro$coverage_status, "planned")
+  expect_equal(micro$support_status, "not_promoted")
+  expect_equal(micro$status, "covered")
+
+  for (phrase in c(
+    "animal A/Ainv",
+    "pedigree/Ainv bridge marshalling",
+    "micro-shard only",
+    "no Totoro job submitted",
+    "no DRAC job submitted",
+    "bridge parity",
+    "interval reliability",
+    "coverage evidence",
+    "coverage-evaluable denominator",
+    "q2",
+    "q4",
+    "REML",
+    "AI-REML",
+    "public support",
+    "structured count sigma",
+    "labelled or multiple count slopes",
+    "zero-inflated structure",
+    "broad bridge support"
+  )) {
+    expect_match(micro$claim_boundary, phrase, fixed = TRUE)
+  }
+  expect_match(micro$next_gate, "MCSE-calibrated recovery", fixed = TRUE)
+
+  pack_row <- shard_pack[
+    match(micro$pack_id, shard_pack$pack_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(is.na(pack_row$pack_id))
+  expect_equal(pack_row$dispatch_id, micro$dispatch_id)
+  expect_equal(pack_row$runner_id, micro$runner_id)
+  expect_equal(pack_row$cell_id, micro$cell_id)
+  expect_equal(pack_row$family, micro$family)
+  expect_equal(pack_row$structured_type, micro$structured_type)
+  expect_equal(pack_row$submission_status, "not_submitted")
+  expect_equal(pack_row$coverage_evaluable, FALSE)
+
+  qseries_row <- qseries[match(micro$cell_id, qseries$cell_id), , drop = FALSE]
+  expect_false(is.na(qseries_row$cell_id))
+  expect_equal(qseries_row$bridge_status, "unsupported")
+  expect_equal(qseries_row$interval_status, "unsupported")
+  expect_equal(qseries_row$coverage_status, "planned")
+  expect_equal(qseries_row$denominator_policy, "not_coverage_evidence")
+
+  expect_equal(nrow(summary), 1L)
+  expect_equal(summary$planned_replicates, 4L)
+  expect_equal(summary$attempted_replicates, 4L)
+  expect_equal(summary$fit_ok, 4L)
+  expect_equal(summary$fit_error, 0L)
+  expect_equal(summary$nonconverged, 0L)
+  expect_equal(summary$pdhess_false, 0L)
+  expect_equal(summary$finite_estimate_rows, 4L)
+  expect_equal(summary$package_load_status, "temp_install_loaded")
+  expect_equal(summary$package_load_detail, "temporary_library_current_source")
+  expect_equal(summary$coverage_evaluable, FALSE)
+  expect_equal(summary$support_status, "not_promoted")
+
+  expect_equal(nrow(replicates), 4L)
+  expect_equal(replicates$seed, 760001:760004)
+  expect_equal(replicates$attempt_status, rep("fit_ok", 4L))
+  expect_equal(replicates$error_stage, rep("none", 4L))
+  expect_equal(replicates$convergence, rep(0L, 4L))
+  expect_equal(replicates$pdHess, rep(TRUE, 4L))
+  estimate_cols <- c(
+    "mu_intercept",
+    "mu_x",
+    "sd_mu_intercept",
+    "sd_mu_x",
+    "elapsed_sec"
+  )
+  expect_equal(
+    stats::complete.cases(replicates[, estimate_cols, drop = FALSE]),
+    rep(TRUE, 4L)
+  )
+  expect_equal(replicates$sd_mu_intercept > 0, rep(TRUE, 4L))
+  expect_equal(replicates$sd_mu_x > 0, rep(TRUE, 4L))
+
+  expect_equal(nrow(run_log), 1L)
+  expect_equal(run_log$mode, "local_micro_shard")
+  expect_equal(run_log$planned_replicates, 4L)
+  expect_equal(run_log$seed_start, 760001L)
+  expect_equal(run_log$seed_end, 760004L)
+  expect_equal(run_log$package_load_status, "temp_install_loaded")
+  expect_equal(run_log$compute_status, "local_completed")
+  expect_equal(run_log$recovery_status, "local_micro_shard_executed")
+  expect_equal(run_log$denominator_status, "not_coverage_evidence")
+  expect_equal(run_log$coverage_evaluable, FALSE)
+  expect_match(run_log$claim_boundary, "animal A/Ainv", fixed = TRUE)
+  expect_match(
+    run_log$claim_boundary,
+    "no pedigree/Ainv bridge marshalling",
+    fixed = TRUE
+  )
+  expect_match(
+    run_log$claim_boundary,
+    "no structured count sigma",
+    fixed = TRUE
+  )
+  expect_match(run_log$claim_boundary, "no coverage evidence", fixed = TRUE)
+  expect_match(run_log$claim_boundary, "no REML", fixed = TRUE)
+  expect_match(run_log$claim_boundary, "no AI-REML", fixed = TRUE)
+})
+
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
