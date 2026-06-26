@@ -129,12 +129,14 @@ The current table records these broad facts without promoting beyond them:
   interval reliability, coverage, or public support has moved. A dispatch
   preflight sidecar now names provider/family shard boundaries and
   race-safety rules, but it is not human approval and no job has been
-  submitted. A first local Codex micro-shard has now executed the exact
-  `phylo()` plus `poisson()` q1 `mu` one-slope cell for four seeds with four
-  converged `pdHess = TRUE` point fits. That row is local smoke evidence only:
-  it does not create a coverage-evaluable denominator, MCSE-calibrated
-  recovery evidence, interval reliability, bridge parity, Totoro/DRAC
-  execution evidence, REML, AI-REML, public support, or neighbouring count
+  submitted. The first local Codex micro-shards have now executed the exact
+  `phylo()` plus `poisson()` and `phylo()` plus `nbinom2()` q1 `mu`
+  one-slope cells for four seeds each, with four converged `pdHess = TRUE`
+  point fits per family. The NB2 row keeps `sigma` as fixed-effect
+  overdispersion only. These rows are local smoke evidence only: they do not
+  create a coverage-evaluable denominator, MCSE-calibrated recovery evidence,
+  interval reliability, bridge parity, Totoro/DRAC execution evidence, REML,
+  AI-REML, public support, structured count `sigma`, or neighbouring count
   support.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
@@ -982,7 +984,15 @@ The efficient completion order is:
     interval, bridge, REML, AI-REML, public-support, Totoro/DRAC, q2/q4 count
     covariance, NB2, spatial, animal, relmat, structured count scale, labelled
     slope, or multiple-slope status.
-31. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+31. Banked in this stacked follow-up slice: execute the exact NB2 sibling local
+    micro-shard for `phylo(1 + x | species, tree = tree)` in `mu` with
+    `nbinom2()`, fixed-effect `sigma`, four seeds, four converged point fits,
+    and four `pdHess = TRUE` rows. This is local diagnostic smoke evidence
+    only. It does not move denominator, coverage, interval, bridge, REML,
+    AI-REML, public-support, Totoro/DRAC, q2/q4 count covariance, structured
+    count scale, zero-inflated structure, spatial, animal, relmat, labelled
+    slope, or multiple-slope status.
+32. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 
