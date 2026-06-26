@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-06-26: relmat Q payload contract review
+
+Goal:
+
+- Bank a reviewed relmat `Q` payload contract for the six exact K/Q one-slope
+  support cells before any direct DRM.jl or R-via-Julia bridge implementation.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-q-payload-contract-review.tsv`
+  with six rows matching the relmat K/Q bridge-boundary and payload-marshalling
+  gate cells.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-relmat-q-payload-marshalling-gate.tsv`
+  so the gate now points to the reviewed contract sidecar and stays blocked on
+  exact Q transport.
+- Added generator helpers and runner wiring for the contract review sidecar.
+- Updated mission-control validation, focused dashboard contract tests,
+  dashboard README, q-series completion map, and after-task report.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-relmat-q-payload-contract-review.R`
+  passed and wrote six payload-contract rows plus six updated
+  payload-marshalling gate rows.
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tools/run-structured-re-relmat-q-payload-contract-review.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `git diff --check` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 6 relmat `Q`
+  payload-contract review rows.
+- `Rscript --vanilla -e 'source("inst/sim/R/sim_structured_re_bridge_fixtures.R"); contract <- phase18_structured_re_relmat_q_payload_contract_review(); gate <- phase18_structured_re_relmat_q_payload_marshalling_gate(); stopifnot(nrow(contract) == 6L, nrow(gate) == 6L, identical(gate$gate_id, contract$gate_id), all(contract$payload_schema_status == "contract_reviewed"), all(contract$payload_review_status == "reviewed_not_implemented"), all(contract$bridge_q_status == "unsupported"), all(contract$acceptance_status == "blocked_pending_exact_q_transport"))'`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the local R library.
+- `Rscript --vanilla -e "testthat::test_file('tests/testthat/test-structured-re-conversion-contracts.R', stop_on_failure = TRUE)"`
+  could not run because `testthat` is absent from the local R library.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-26-relmat-q-payload-contract-review.md')"`
+  passed.
+
+Boundary:
+
+- This is payload-contract review evidence only. It does not implement relmat
+  `Q` payload transport, direct DRM.jl `Q` export, R-via-Julia `Q` transport,
+  broad bridge support, public support, interval reliability, interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, broader q8 support, DRAC/Totoro execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
 ## 2026-06-25: q-series PR stack merge-readiness extension 656-663
 
 Goal:

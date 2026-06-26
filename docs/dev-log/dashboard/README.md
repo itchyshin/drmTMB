@@ -413,12 +413,23 @@ remain separate gates.
 
 `structured-re-relmat-q-payload-marshalling-gate.tsv` records the acceptance
 gate before any relmat `Q` precision bridge work. Each row links back to the
-relmat `K/Q` bridge-boundary row and requires an explicit payload contract for
-matrix digest, input scale, `Q` precision source, level alignment, missing-level
-policy, coefficient order, and provenance. The rows keep direct DRM.jl,
-R-via-Julia, and R bridge `Q` statuses unsupported; native `Q` runtime parity
-is not bridge evidence and does not promote intervals, coverage, REML, AI-REML,
-public support, or broader q8 support.
+relmat `K/Q` bridge-boundary row and now points to the reviewed payload
+contract sidecar for matrix digest, input scale, `Q` precision source, level
+alignment, missing-level policy, coefficient order, and provenance. The rows
+keep direct DRM.jl, R-via-Julia, and R bridge `Q` statuses unsupported; native
+`Q` runtime parity and the reviewed payload contract are not bridge
+implementation and do not promote intervals, coverage, REML, AI-REML, public
+support, or broader q8 support.
+
+`structured-re-relmat-q-payload-contract-review.tsv` records the reviewed
+payload contract for the same six relmat `K/Q` one-slope cells. It fixes the
+Q-specific payload policies: stable payload id, digesting the user-supplied
+precision matrix without implicit inversion, explicit `Q` input scale, observed
+level alignment, fail-closed missing-level policy, endpoint/member coefficient
+order, provenance, and no implicit `Q` to `K` conversion in the R bridge
+payload. This is contract-review evidence only. Direct DRM.jl `Q`,
+R-via-Julia `Q`, R bridge `Q`, intervals, coverage, REML, AI-REML, public
+support, and broader q8 support remain unsupported or planned.
 
 `structured-re-relmat-q4-location-kq-native-parity.tsv` records the one-row
 native R/TMB K/Q same-target parity result for

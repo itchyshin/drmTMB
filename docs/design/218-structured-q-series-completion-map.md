@@ -525,13 +525,22 @@ reliability, coverage, REML, AI-REML, public support, or broader q8 support.
 
 `structured-re-relmat-q-payload-marshalling-gate.tsv` records the acceptance
 gate for future relmat `Q` precision payload work. It covers the same six
-relmat `K/Q` rows as the bridge-boundary sidecar and requires an explicit
-payload contract for `matrix_id`, `matrix_digest`, input scale, `Q` precision
-source, level alignment, missing-level policy, coefficient order, and
+relmat `K/Q` rows as the bridge-boundary sidecar and now points to the reviewed
+payload contract sidecar for `matrix_id`, `matrix_digest`, input scale, `Q`
+precision source, level alignment, missing-level policy, coefficient order, and
 provenance before direct DRM.jl or R-via-Julia bridge status can move. This
-gate keeps native `Q` runtime parity separate from bridge evidence and does not
-promote broad bridge support, intervals, coverage, REML, AI-REML, public
-support, or broader q8 support.
+gate keeps native `Q` runtime parity and the reviewed payload contract separate
+from bridge implementation and does not promote broad bridge support, intervals,
+coverage, REML, AI-REML, public support, or broader q8 support.
+
+`structured-re-relmat-q-payload-contract-review.tsv` is the reviewed contract
+sidecar for those six cells. It fixes the expected Q-specific payload identity,
+matrix digest, explicit precision input scale, source provenance, observed-level
+alignment, fail-closed missing-level policy, endpoint/member coefficient order,
+and no-implicit-conversion boundary. The sidecar is not runtime or bridge
+implementation evidence; direct DRM.jl `Q`, R-via-Julia `Q`, R bridge `Q`,
+interval reliability, coverage, REML, AI-REML, public support, and broader q8
+support remain separate gates.
 
 `structured-re-q4-location-slope-interval-diagnostic-plan.tsv` records the
 target-level interval diagnostic plan for those same exact q4 location cells.
@@ -869,6 +878,13 @@ The efficient completion order is:
    evidence without moving relmat Q bridge marshalling, direct DRM.jl Q export,
    R-via-Julia Q transport, intervals, coverage, REML, AI-REML, public support,
    or broader q8 support.
+23a. Banked in this stacked follow-up slice: add the reviewed relmat `Q`
+   payload contract for those same six exact cells. This fixes payload id,
+   matrix digest, precision-source, level-alignment, missing-level, coefficient
+   order, provenance, and no-implicit-conversion policies before runtime bridge
+   work. It does not implement relmat Q payload transport, direct DRM.jl Q
+   export, R-via-Julia Q transport, broad bridge support, intervals, coverage,
+   REML, AI-REML, public support, or broader q8 support.
 24. Banked in this stacked follow-up slice: add the eight-row ordinary count
    one-slope fixture/recovery contract for Poisson and NB2 `mu` cells across
    `phylo()`, fixed-covariance `spatial()`, `animal()`, and `relmat()`. This

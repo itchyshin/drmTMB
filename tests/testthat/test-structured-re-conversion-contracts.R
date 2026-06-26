@@ -1837,6 +1837,9 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
   gate <- structured_re_read_dashboard_tsv(
     "structured-re-relmat-q-payload-marshalling-gate.tsv"
   )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-payload-contract-review.tsv"
+  )
   boundary <- structured_re_read_dashboard_tsv(
     "structured-re-relmat-q-bridge-boundary.tsv"
   )
@@ -1873,6 +1876,7 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
   expect_equal(anyDuplicated(gate$gate_id), 0L)
   expect_equal(anyDuplicated(gate$boundary_id), 0L)
   expect_setequal(gate$boundary_id, boundary$boundary_id)
+  expect_setequal(gate$gate_id, contract$gate_id)
 
   boundary_rows <- boundary[
     match(gate$boundary_id, boundary$boundary_id),
@@ -1889,6 +1893,25 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
   expect_equal(gate$r_via_julia_q_status, boundary_rows$r_via_julia_q_status)
   expect_equal(gate$bridge_q_status, boundary_rows$bridge_q_status)
 
+  contract_rows <- contract[
+    match(gate$gate_id, contract$gate_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(gate$boundary_id, contract_rows$boundary_id)
+  expect_equal(gate$cell_id, contract_rows$cell_id)
+  expect_equal(gate$formula_cell, contract_rows$formula_cell)
+  expect_equal(gate$dimension_pattern, contract_rows$dimension_pattern)
+  expect_equal(gate$endpoint_set, contract_rows$endpoint_set)
+  expect_equal(gate$slope_class, contract_rows$slope_class)
+  expect_equal(gate$payload_schema_status, contract_rows$payload_schema_status)
+  expect_equal(gate$payload_review_status, contract_rows$payload_review_status)
+  expect_equal(gate$direct_drmjl_q_status, contract_rows$direct_drmjl_q_status)
+  expect_equal(gate$r_via_julia_q_status, contract_rows$r_via_julia_q_status)
+  expect_equal(gate$bridge_q_status, contract_rows$bridge_q_status)
+  expect_equal(gate$acceptance_status, contract_rows$acceptance_status)
+  expect_equal(gate$status, contract_rows$status)
+
   qseries_rows <- qseries[match(gate$cell_id, qseries$cell_id), , drop = FALSE]
   expect_equal(qseries_rows$structure_provider, rep("relmat", 6L))
   expect_equal(qseries_rows$bridge_status, rep("fixture_parity", 6L))
@@ -1899,16 +1922,26 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
     gate$native_q_status,
     rep("runtime_kq_same_target_parity", 6L)
   )
-  expect_equal(gate$payload_schema_status, rep("planned", 6L))
-  expect_equal(gate$payload_review_status, rep("not_reviewed", 6L))
+  expect_equal(gate$payload_schema_status, rep("contract_reviewed", 6L))
+  expect_equal(
+    gate$payload_review_status,
+    rep("reviewed_not_implemented", 6L)
+  )
   expect_equal(gate$direct_drmjl_q_status, rep("unsupported", 6L))
   expect_equal(gate$r_via_julia_q_status, rep("unsupported", 6L))
   expect_equal(gate$bridge_q_status, rep("unsupported", 6L))
   expect_equal(
     gate$acceptance_status,
-    rep("blocked_pending_payload_contract_review", 6L)
+    rep("blocked_pending_exact_q_transport", 6L)
   )
   expect_equal(gate$status, rep("covered", 6L))
+  expect_equal(
+    gate$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-relmat-q-payload-contract-review.tsv",
+      6L
+    )
+  )
 
   structured_re_expect_all_match(gate$required_payload_fields, "matrix_digest")
   structured_re_expect_all_match(
@@ -1933,6 +1966,10 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
     gate$claim_boundary,
     "native Q runtime parity is not Q bridge evidence"
   )
+  structured_re_expect_all_match(
+    gate$claim_boundary,
+    "reviewed payload contract is not bridge implementation"
+  )
   structured_re_expect_all_match(gate$claim_boundary, "direct DRM.jl Q support")
   structured_re_expect_all_match(gate$claim_boundary, "R-via-Julia Q support")
   structured_re_expect_all_match(gate$claim_boundary, "broad bridge support")
@@ -1954,6 +1991,221 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
   structured_re_expect_all_match(gate$next_gate, "level alignment")
   structured_re_expect_all_match(gate$next_gate, "coefficient order")
   structured_re_expect_all_match(gate$next_gate, "provenance")
+})
+
+test_that("relmat Q payload contract review is exact-cell scoped", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-payload-contract-review.tsv"
+  )
+  gate <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-payload-marshalling-gate.tsv"
+  )
+  boundary <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-bridge-boundary.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "gate_id",
+      "boundary_id",
+      "cell_id",
+      "formula_cell",
+      "dimension_pattern",
+      "endpoint_set",
+      "slope_class",
+      "payload_schema_status",
+      "payload_review_status",
+      "matrix_id_policy",
+      "matrix_digest_policy",
+      "input_scale_policy",
+      "precision_source_policy",
+      "level_alignment_policy",
+      "missing_level_policy",
+      "coefficient_order_policy",
+      "provenance_policy",
+      "conversion_policy",
+      "direct_drmjl_q_status",
+      "r_via_julia_q_status",
+      "bridge_q_status",
+      "implementation_status",
+      "acceptance_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(contract), 6L)
+  expect_equal(anyDuplicated(contract$contract_id), 0L)
+  expect_equal(anyDuplicated(contract$gate_id), 0L)
+  expect_equal(anyDuplicated(contract$boundary_id), 0L)
+  expect_setequal(contract$gate_id, gate$gate_id)
+  expect_setequal(contract$boundary_id, boundary$boundary_id)
+
+  gate_rows <- gate[match(contract$gate_id, gate$gate_id), , drop = FALSE]
+  expect_equal(contract$boundary_id, gate_rows$boundary_id)
+  expect_equal(contract$cell_id, gate_rows$cell_id)
+  expect_equal(contract$formula_cell, gate_rows$formula_cell)
+  expect_equal(contract$dimension_pattern, gate_rows$dimension_pattern)
+  expect_equal(contract$endpoint_set, gate_rows$endpoint_set)
+  expect_equal(contract$slope_class, gate_rows$slope_class)
+  expect_equal(contract$payload_schema_status, gate_rows$payload_schema_status)
+  expect_equal(contract$payload_review_status, gate_rows$payload_review_status)
+  expect_equal(contract$acceptance_status, gate_rows$acceptance_status)
+  expect_equal(contract$status, gate_rows$status)
+
+  boundary_rows <- boundary[
+    match(contract$boundary_id, boundary$boundary_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(contract$cell_id, boundary_rows$cell_id)
+  expect_equal(contract$formula_cell, boundary_rows$formula_cell)
+  expect_equal(contract$dimension_pattern, boundary_rows$dimension_pattern)
+  expect_equal(contract$endpoint_set, boundary_rows$endpoint_set)
+  expect_equal(contract$slope_class, boundary_rows$slope_class)
+  expect_equal(
+    contract$direct_drmjl_q_status,
+    boundary_rows$direct_drmjl_q_status
+  )
+  expect_equal(
+    contract$r_via_julia_q_status,
+    boundary_rows$r_via_julia_q_status
+  )
+  expect_equal(contract$bridge_q_status, boundary_rows$bridge_q_status)
+
+  qseries_rows <- qseries[
+    match(contract$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(qseries_rows$structure_provider, rep("relmat", 6L))
+  expect_equal(contract$dimension_pattern, qseries_rows$dimension_pattern)
+  expect_equal(contract$endpoint_set, qseries_rows$endpoint_set)
+  expect_equal(contract$slope_class, qseries_rows$slope_class)
+  expect_equal(qseries_rows$bridge_status, rep("fixture_parity", 6L))
+  expect_equal(qseries_rows$interval_status, rep("planned", 6L))
+  expect_equal(qseries_rows$coverage_status, rep("planned", 6L))
+
+  expected_order <- c(
+    relmat_q_bridge_q1_mu_one_slope = "mu:(Intercept);mu:x",
+    relmat_q_bridge_q1_sigma_one_slope = "sigma:(Intercept);sigma:x",
+    relmat_q_bridge_q1_mu_sigma_one_slope = "mu:(Intercept);mu:x;sigma:(Intercept);sigma:x",
+    relmat_q_bridge_q2_mu1_mu2_one_slope = "mu1:x;mu2:x",
+    relmat_q_bridge_q4_mu1_mu2_one_slope = "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x",
+    relmat_q_bridge_q8_all_four_one_slope = paste0(
+      "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x;",
+      "sigma1:(Intercept);sigma1:x;sigma2:(Intercept);sigma2:x"
+    )
+  )
+  expect_equal(
+    contract$coefficient_order_policy,
+    unname(expected_order[contract$boundary_id])
+  )
+
+  expect_equal(contract$payload_schema_status, rep("contract_reviewed", 6L))
+  expect_equal(
+    contract$payload_review_status,
+    rep("reviewed_not_implemented", 6L)
+  )
+  expect_equal(
+    contract$matrix_id_policy,
+    rep("stable_relmat_q_payload_id_per_formula_cell", 6L)
+  )
+  expect_equal(
+    contract$matrix_digest_policy,
+    rep("digest_user_supplied_Q_precision_matrix_without_inverting", 6L)
+  )
+  expect_equal(contract$input_scale_policy, rep("user_precision", 6L))
+  expect_equal(
+    contract$precision_source_policy,
+    rep("Q_argument_must_be_explicit_precision_source", 6L)
+  )
+  expect_equal(
+    contract$level_alignment_policy,
+    rep(
+      "rownames_and_colnames_must_match_observed_relmat_levels_after_data_ordering",
+      6L
+    )
+  )
+  expect_equal(
+    contract$missing_level_policy,
+    rep("fail_closed_on_missing_or_extra_levels_before_julia_call", 6L)
+  )
+  expect_equal(
+    contract$conversion_policy,
+    rep("no_implicit_Q_to_K_conversion_in_R_bridge_payload", 6L)
+  )
+  expect_equal(contract$direct_drmjl_q_status, rep("unsupported", 6L))
+  expect_equal(contract$r_via_julia_q_status, rep("unsupported", 6L))
+  expect_equal(contract$bridge_q_status, rep("unsupported", 6L))
+  expect_equal(
+    contract$implementation_status,
+    rep("contract_only_not_implemented", 6L)
+  )
+  expect_equal(
+    contract$acceptance_status,
+    rep("blocked_pending_exact_q_transport", 6L)
+  )
+  expect_equal(contract$status, rep("covered", 6L))
+  expect_equal(
+    contract$evidence_url,
+    rep(
+      "docs/dev-log/after-task/2026-06-26-relmat-q-payload-contract-review.md",
+      6L
+    )
+  )
+
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "native Q runtime parity is not Q bridge evidence"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "reviewed contract is not implementation"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "Direct DRM.jl Q support"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "R-via-Julia Q support"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "broad bridge support"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "interval reliability"
+  )
+  structured_re_expect_all_match(contract$claim_boundary, "coverage")
+  structured_re_expect_all_match(contract$claim_boundary, "REML")
+  structured_re_expect_all_match(contract$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(contract$claim_boundary, "q4 REML")
+  structured_re_expect_all_match(contract$claim_boundary, "native-TMB q4 REML")
+  structured_re_expect_all_match(contract$claim_boundary, "q4 AI-REML")
+  structured_re_expect_all_match(contract$claim_boundary, "HSquared AI-REML")
+  structured_re_expect_all_match(contract$claim_boundary, "non-Gaussian REML")
+  structured_re_expect_all_match(contract$claim_boundary, "public support")
+  structured_re_expect_all_match(contract$claim_boundary, "broader q8 support")
+  structured_re_expect_all_match(
+    contract$next_gate,
+    "exact Q precision payload transport"
+  )
+  structured_re_expect_all_match(contract$next_gate, "DRM.jl payload contract")
+  structured_re_expect_all_match(contract$next_gate, "Q precision source")
+  structured_re_expect_all_match(contract$next_gate, "matrix digest")
+  structured_re_expect_all_match(contract$next_gate, "level alignment")
+  structured_re_expect_all_match(contract$next_gate, "missing-level policy")
+  structured_re_expect_all_match(contract$next_gate, "coefficient order")
+  structured_re_expect_all_match(contract$next_gate, "provenance")
 })
 
 test_that("q2 slope-only parity fixture dashboard is provider-specific", {

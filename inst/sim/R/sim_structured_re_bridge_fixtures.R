@@ -2006,6 +2006,189 @@ phase18_structured_re_relmat_kq_one_slope_native_parity_contract <- function() {
   )
 }
 
+phase18_structured_re_relmat_q_payload_cells <- function() {
+  data.frame(
+    suffix = c(
+      "q1_mu_one_slope",
+      "q1_sigma_one_slope",
+      "q1_mu_sigma_one_slope",
+      "q2_mu1_mu2_one_slope",
+      "q4_mu1_mu2_one_slope",
+      "q8_all_four_one_slope"
+    ),
+    boundary_id = c(
+      "relmat_q_bridge_q1_mu_one_slope",
+      "relmat_q_bridge_q1_sigma_one_slope",
+      "relmat_q_bridge_q1_mu_sigma_one_slope",
+      "relmat_q_bridge_q2_mu1_mu2_one_slope",
+      "relmat_q_bridge_q4_mu1_mu2_one_slope",
+      "relmat_q_bridge_q8_all_four_one_slope"
+    ),
+    cell_id = c(
+      "qseries_relmat_q1_mu_one_slope",
+      "qseries_relmat_q1_sigma_one_slope",
+      "qseries_relmat_q1_mu_sigma_one_slope",
+      "qseries_relmat_q2_mu1_mu2_one_slope",
+      "qseries_relmat_q4_mu1_mu2_one_slope",
+      "qseries_relmat_q4_all_four_one_slope_planned"
+    ),
+    formula_cell = c(
+      "relmat(1 + x | id, K/Q = ...) in mu",
+      "relmat(1 + x | id, K/Q = ...) in sigma",
+      "relmat(1 + x | id, K/Q = ...) in mu and sigma",
+      "relmat(0 + x | p | id, K/Q = ...) in mu1 and mu2",
+      "relmat(1 + x | p | id, K/Q = ...) in mu1 and mu2",
+      "relmat(1 + x | p | id, K/Q = ...) in all four endpoints"
+    ),
+    dimension_pattern = c("q1", "q1", "q1_plus_q1", "q2", "q4", "q8"),
+    endpoint_set = c(
+      "mu",
+      "sigma",
+      "mu+sigma",
+      "mu1+mu2",
+      "mu1+mu2",
+      "mu1+mu2+sigma1+sigma2"
+    ),
+    slope_class = c(
+      "independent_one_slope",
+      "independent_one_slope",
+      "independent_one_slope",
+      "labelled_slope_covariance",
+      "labelled_slope_covariance",
+      "labelled_slope_covariance"
+    ),
+    coefficient_order_policy = c(
+      "mu:(Intercept);mu:x",
+      "sigma:(Intercept);sigma:x",
+      "mu:(Intercept);mu:x;sigma:(Intercept);sigma:x",
+      "mu1:x;mu2:x",
+      "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x",
+      paste(
+        "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x;",
+        "sigma1:(Intercept);sigma1:x;sigma2:(Intercept);sigma2:x",
+        sep = ""
+      )
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_structured_re_relmat_q_payload_contract_review <- function() {
+  cells <- phase18_structured_re_relmat_q_payload_cells()
+  claim_boundary <- paste(
+    "Relmat Q payload contract review only; native Q runtime parity is not",
+    "Q bridge evidence, and this reviewed contract is not implementation.",
+    "Direct DRM.jl Q support, R-via-Julia Q support, broad bridge support,",
+    "interval reliability, coverage, REML, AI-REML, q4 REML, native-TMB q4",
+    "REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, public support,",
+    "and broader q8 support remain unpromoted."
+  )
+  next_gate <- paste(
+    "Implement exact Q precision payload transport only after this reviewed",
+    "DRM.jl payload contract is matched in code: Q precision source, matrix",
+    "digest, level alignment, missing-level policy, coefficient order, and",
+    "provenance must be tested before direct DRM.jl or R-via-Julia Q bridge",
+    "status can move."
+  )
+  data.frame(
+    contract_id = paste0("relmat_q_payload_contract_", cells$suffix),
+    gate_id = paste0("relmat_q_payload_gate_", cells$suffix),
+    boundary_id = cells$boundary_id,
+    cell_id = cells$cell_id,
+    formula_cell = cells$formula_cell,
+    dimension_pattern = cells$dimension_pattern,
+    endpoint_set = cells$endpoint_set,
+    slope_class = cells$slope_class,
+    payload_schema_status = "contract_reviewed",
+    payload_review_status = "reviewed_not_implemented",
+    matrix_id_policy = "stable_relmat_q_payload_id_per_formula_cell",
+    matrix_digest_policy = "digest_user_supplied_Q_precision_matrix_without_inverting",
+    input_scale_policy = "user_precision",
+    precision_source_policy = "Q_argument_must_be_explicit_precision_source",
+    level_alignment_policy = "rownames_and_colnames_must_match_observed_relmat_levels_after_data_ordering",
+    missing_level_policy = "fail_closed_on_missing_or_extra_levels_before_julia_call",
+    coefficient_order_policy = cells$coefficient_order_policy,
+    provenance_policy = "record_repo_branch_head_payload_version_formula_cell_matrix_digest_input_scale_levels_and_dirty_state",
+    conversion_policy = "no_implicit_Q_to_K_conversion_in_R_bridge_payload",
+    direct_drmjl_q_status = "unsupported",
+    r_via_julia_q_status = "unsupported",
+    bridge_q_status = "unsupported",
+    implementation_status = "contract_only_not_implemented",
+    acceptance_status = "blocked_pending_exact_q_transport",
+    status = "covered",
+    evidence_url = "docs/dev-log/after-task/2026-06-26-relmat-q-payload-contract-review.md",
+    claim_boundary = claim_boundary,
+    next_gate = next_gate,
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_structured_re_relmat_q_payload_marshalling_gate <- function() {
+  contract <- phase18_structured_re_relmat_q_payload_contract_review()
+  required_payload_fields <- paste(
+    c(
+      "matrix_id",
+      "matrix_digest",
+      "input_scale",
+      "precision_source",
+      "level_alignment",
+      "missing_level_policy",
+      "coefficient_order",
+      "provenance"
+    ),
+    collapse = ";"
+  )
+  required_payload_checks <- paste(
+    c(
+      "precision_source=Q",
+      "digest_user_Q",
+      "level_names_match_observed_ids",
+      "coefficient_order_matches_endpoint_members",
+      "no_implicit_K_conversion",
+      "provenance_records_precision_input"
+    ),
+    collapse = ";"
+  )
+  claim_boundary <- paste(
+    "Relmat Q payload-marshalling gate only; native Q runtime parity is not",
+    "Q bridge evidence, and the reviewed payload contract is not bridge",
+    "implementation. It does not promote direct DRM.jl Q support,",
+    "R-via-Julia Q support, broad bridge support, interval reliability,",
+    "coverage, REML, AI-REML, q4 REML, native-TMB q4 REML, q4 AI-REML,",
+    "HSquared AI-REML, non-Gaussian REML, public support, or broader q8",
+    "support."
+  )
+  next_gate <- paste(
+    "Use the reviewed DRM.jl payload contract to implement exact Q precision",
+    "source, matrix digest, level alignment, missing-level policy, coefficient",
+    "order, and provenance tests before direct DRM.jl or R-via-Julia Q bridge",
+    "status can move."
+  )
+  data.frame(
+    gate_id = contract$gate_id,
+    boundary_id = contract$boundary_id,
+    cell_id = contract$cell_id,
+    formula_cell = contract$formula_cell,
+    dimension_pattern = contract$dimension_pattern,
+    endpoint_set = contract$endpoint_set,
+    slope_class = contract$slope_class,
+    native_q_status = "runtime_kq_same_target_parity",
+    required_payload_fields = required_payload_fields,
+    required_payload_checks = required_payload_checks,
+    payload_schema_status = contract$payload_schema_status,
+    payload_review_status = contract$payload_review_status,
+    direct_drmjl_q_status = contract$direct_drmjl_q_status,
+    r_via_julia_q_status = contract$r_via_julia_q_status,
+    bridge_q_status = contract$bridge_q_status,
+    acceptance_status = contract$acceptance_status,
+    status = contract$status,
+    evidence_url = "docs/dev-log/dashboard/structured-re-relmat-q-payload-contract-review.tsv",
+    claim_boundary = claim_boundary,
+    next_gate = next_gate,
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_structured_re_q2_fixture_contract <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   boundary <- vapply(
