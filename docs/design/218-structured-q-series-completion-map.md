@@ -185,7 +185,22 @@ more engine work**.
    structured-mean bivariate restricted likelihood first, and even then reaches
    only the mean axis, not the `sigma`/`rho` axis where the bias sits.)
 
-**Therefore the validated completion path is the PROFILE channel at adequate g.**
+3. **The bootstrap channel does not rescue it either.** drmTMB's
+   `method = "bootstrap"` is a *parametric percentile* bootstrap
+   (`drm_bootstrap_confint` -> `bootstrap_percentile_interval`,
+   `probs = c(.025, .975)`): it simulates from the already-shrunk fitted model
+   and takes percentiles, so its interval is centred on the same biased estimate
+   and inherits the small-g shrinkage — it will under-cover at g=8 just like the
+   others. A coverage-correcting bootstrap (BCa / studentized bootstrap-t) is not
+   implemented. So **all four available interval methods — Wald, Wald-t, profile,
+   and percentile-bootstrap — are centred on the shrunk variance-component
+   estimate.** No interval method fixes a biased *centre*; that is the wall.
+
+**Therefore reaching nominal coverage at the deployment default g=8 needs a NEW
+estimator-side capability** (a bias-corrected variance-component estimator, a
+BCa/bootstrap-t interval, or scale-side REML) — each a real engine/research arc to
+commission, not a setting to flip. **The validated completion path today is the
+PROFILE channel at adequate g.**
 The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
 q4-location "walls" are small-sample artifacts: profile coverage reaches
 certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
