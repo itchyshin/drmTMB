@@ -22,6 +22,7 @@
   refit_control = NULL,
   sd_boundary = 1e-04,
   rho_boundary = 0.98,
+  small_sample_df = c("none", "group"),
   ...
 )
 }
@@ -96,6 +97,25 @@ unreliable: a variance-component standard deviation within \code{sd_boundary} of
 zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned with
 \code{conf.status = "wald_at_boundary"} and a warning pointing to
 \code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).}
+
+\item{small_sample_df}{Small-sample reference distribution for the
+\code{method = "wald"} interval. \code{"none"} (the default) uses the ordinary
+normal quantile \code{z = qnorm((1 + level) / 2)} for every target and is
+byte-identical to previous behaviour. \code{"group"} is opt-in: for each
+structured random-effect SD target (\code{phylo}, \code{spatial}, \code{animal},
+\code{relmat}) with a resolvable group count \code{g}, it references a t-quantile
+with \code{df = g - 1} -- a group-based, Satterthwaite-style between-group
+degrees of freedom -- and keeps the normal quantile for every other
+target (and for any SD target whose \code{g} cannot be matched). This widens
+only the structured-RE SD intervals, which under-cover at small \code{g} under
+the normal quantile; the t-quantile lifts their coverage and converges
+back to \code{z} as \code{g} grows. It is deliberately \emph{not} a default: dispersion
+(\code{sigma}) SD intervals already over-cover under the normal quantile, so a
+blanket t-reference would worsen them. Note also that the t-quantile only
+widens the interval; it does not move its centre. The residual small-\code{g}
+gap is ML shrinkage bias in the variance-component point estimate (a job
+for REML), not a quantile problem, so \code{"group"} corrects the reference
+distribution, not the bias.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.

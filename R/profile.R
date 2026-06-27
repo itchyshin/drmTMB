@@ -99,6 +99,24 @@
 #'   zero, or a correlation within `rho_boundary` of `+/-1`, is returned with
 #'   `conf.status = "wald_at_boundary"` and a warning pointing to
 #'   `method = "profile"`. Defaults match [check_drm()] (`1e-4`, `0.98`).
+#' @param small_sample_df Small-sample reference distribution for the
+#'   `method = "wald"` interval. `"none"` (the default) uses the ordinary
+#'   normal quantile `z = qnorm((1 + level) / 2)` for every target and is
+#'   byte-identical to previous behaviour. `"group"` is opt-in: for each
+#'   structured random-effect SD target (`phylo`, `spatial`, `animal`,
+#'   `relmat`) with a resolvable group count `g`, it references a t-quantile
+#'   with `df = g - 1` -- a group-based, Satterthwaite-style between-group
+#'   degrees of freedom -- and keeps the normal quantile for every other
+#'   target (and for any SD target whose `g` cannot be matched). This widens
+#'   only the structured-RE SD intervals, which under-cover at small `g` under
+#'   the normal quantile; the t-quantile lifts their coverage and converges
+#'   back to `z` as `g` grows. It is deliberately *not* a default: dispersion
+#'   (`sigma`) SD intervals already over-cover under the normal quantile, so a
+#'   blanket t-reference would worsen them. Note also that the t-quantile only
+#'   widens the interval; it does not move its centre. The residual small-`g`
+#'   gap is ML shrinkage bias in the variance-component point estimate (a job
+#'   for REML), not a quantile problem, so `"group"` corrects the reference
+#'   distribution, not the bias.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -147,12 +165,14 @@ confint.drmTMB <- function(
   refit_control = NULL,
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
+  small_sample_df = c("none", "group"),
   ...
 ) {
   profile_precision_missing <- missing(profile_precision)
   parallel_missing <- missing(parallel)
   method_missing <- missing(method)
   profile_engine <- match.arg(profile_engine)
+  small_sample_df <- match.arg(small_sample_df)
   method <- validate_interval_method(
     method,
     c("wald", "profile", "bootstrap"),
@@ -197,7 +217,8 @@ confint.drmTMB <- function(
       parm = parm,
       level = level,
       sd_boundary = sd_boundary,
-      rho_boundary = rho_boundary
+      rho_boundary = rho_boundary,
+      small_sample_df = small_sample_df
     ))
   }
 
@@ -1575,8 +1596,10 @@ drm_wald_confint <- function(
   parm,
   level,
   sd_boundary = 1e-4,
-  rho_boundary = 0.98
+  rho_boundary = 0.98,
+  small_sample_df = c("none", "group")
 ) {
+  small_sample_df <- match.arg(small_sample_df)
   targets <- drm_profile_targets(object)
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
   targets <- profile_match_confint_targets(
@@ -1590,6 +1613,17 @@ drm_wald_confint <- function(
   warn_skew_normal_slant_wald(object, targets)
 
   z <- stats::qnorm((1 + level) / 2)
+  # Critical-value vector: defaults to the ordinary normal quantile for every
+  # row. When `small_sample_df = "group"`, structured-RE SD rows with a
+  # resolvable group count reference a t-quantile with df = g - 1; all other
+  # rows keep the normal quantile. `small_sample_df = "none"` leaves `crit`
+  # exactly equal to `z`, so the interval is byte-identical to the default.
+  crit <- rep(z, nrow(targets))
+  if (identical(small_sample_df, "group")) {
+    df <- wald_target_df(object, targets)
+    has_df <- !is.na(df)
+    crit[has_df] <- stats::qt((1 + level) / 2, df[has_df])
+  }
   variances <- rep(NA_real_, nrow(targets))
   hessian_ready <- isTRUE(object$sdr$pdHess)
   if (hessian_ready) {
@@ -1610,9 +1644,9 @@ drm_wald_confint <- function(
   upper <- rep(NA_real_, nrow(targets))
   if (any(interval_ready)) {
     link_lower <- targets$link_estimate[interval_ready] -
-      z * se[interval_ready]
+      crit[interval_ready] * se[interval_ready]
     link_upper <- targets$link_estimate[interval_ready] +
-      z * se[interval_ready]
+      crit[interval_ready] * se[interval_ready]
     transformed <- mapply(
       function(lo, hi, row) {
         profile_transform_interval(c(lo, hi), targets[row, , drop = FALSE])
@@ -1667,6 +1701,126 @@ drm_wald_confint <- function(
 
   row.names(out) <- NULL
   out
+}
+
+# Small-sample (Satterthwaite-style) degrees of freedom for Wald SD intervals.
+#
+# Returns a numeric vector, one entry per row of `targets`. For each structured
+# random-effect SD target with a resolvable group count `g`, the entry is
+# `g - 1` (group-based between-group df). Every other target -- and any SD
+# target whose group count cannot be matched to a unique source -- gets
+# `NA_real_`. This never errors: an ambiguous or missing match falls back to
+# NA, and the caller substitutes the ordinary normal quantile for those rows.
+#
+# Group counts for structured SD targets (`phylo`/`spatial`/`animal`/`relmat`)
+# live in `object$model$structured$phylo_mu$group_levels`, NOT in the labelled
+# covariance-block registry (which is empty for these models) and NOT in the
+# augmented `n_re` count (phylo's `n_re` includes internal tree nodes, so it
+# overstates `g`). Labelled covariance-block SD targets instead carry a
+# per-block `n_groups` column in the registry; those are matched via the
+# registry members table.
+wald_target_df <- function(object, targets) {
+  if (nrow(targets) == 0L) {
+    return(numeric(0L))
+  }
+  df <- rep(NA_real_, nrow(targets))
+  is_sd <- !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd"
+  if (!any(is_sd)) {
+    return(df)
+  }
+
+  structured_g <- structured_sd_group_count(object)
+  registry <- object$model$random$covariance_blocks
+
+  for (i in which(is_sd)) {
+    g <- wald_sd_target_group_count(
+      object = object,
+      target = targets[i, , drop = FALSE],
+      structured_g = structured_g,
+      registry = registry
+    )
+    if (is.finite(g) && g >= 2L) {
+      df[i] <- g - 1
+    }
+  }
+  df
+}
+
+# Group count for the single structured-RE block (phylo/spatial/animal/relmat),
+# or NA_real_ when there is no scalar structured location SD block to reference.
+# `phylo_interaction` pairs two clades and has no single group count, so it is
+# deliberately left as NA.
+structured_sd_group_count <- function(object) {
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!is.list(phylo_mu) || !isTRUE(phylo_mu$has)) {
+    return(NA_real_)
+  }
+  type <- structured_mu_type(phylo_mu)
+  if (!type %in% c("phylo", "spatial", "animal", "relmat")) {
+    return(NA_real_)
+  }
+  g <- length(phylo_mu$group_levels)
+  if (g < 1L) {
+    return(NA_real_)
+  }
+  as.numeric(g)
+}
+
+# Resolve the group count for one SD target row. Tries the structured location
+# block first (matched on the target term's structured label), then a labelled
+# covariance-block registry match. Returns NA_real_ when no unique match exists.
+wald_sd_target_group_count <- function(object, target, structured_g, registry) {
+  tmb_parameter <- target$tmb_parameter[[1L]]
+  term <- target$term[[1L]]
+
+  if (
+    !is.na(tmb_parameter) &&
+      identical(tmb_parameter, "log_sd_phylo") &&
+      is.finite(structured_g)
+  ) {
+    phylo_mu <- object$model$structured$phylo_mu
+    label <- if (is.list(phylo_mu)) phylo_mu$label else NULL
+    if (
+      is.character(label) &&
+        length(label) == 1L &&
+        nzchar(label) &&
+        !is.na(term) &&
+        endsWith(term, label)
+    ) {
+      return(structured_g)
+    }
+    return(NA_real_)
+  }
+
+  registry_sd_target_group_count(target, registry)
+}
+
+# Match a labelled covariance-block SD target to its registry block and return
+# the block's `n_groups`. Only a single unique block match yields a count; zero
+# or multiple matches return NA_real_.
+registry_sd_target_group_count <- function(target, registry) {
+  if (!is.list(registry) || is.null(registry$members)) {
+    return(NA_real_)
+  }
+  members <- registry$members
+  if (!is.data.frame(members) || nrow(members) == 0L) {
+    return(NA_real_)
+  }
+  term <- target$term[[1L]]
+  if (is.na(term) || !("label" %in% names(members))) {
+    return(NA_real_)
+  }
+  hit <- which(!is.na(members$label) & members$label == term)
+  if (length(hit) == 0L || !("n_groups" %in% names(members))) {
+    return(NA_real_)
+  }
+  counts <- unique(members$n_groups[hit])
+  counts <- counts[is.finite(counts)]
+  if (length(counts) != 1L) {
+    return(NA_real_)
+  }
+  as.numeric(counts[[1L]])
 }
 
 # Identify confint targets whose Wald interval sits at a variance-component or
