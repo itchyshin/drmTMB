@@ -325,6 +325,17 @@ support, intervals, coverage, REML, AI-REML, structured count `sigma`,
 labelled or multiple count slopes, zero-inflated structure, public support,
 and Totoro/DRAC execution closed.
 
+`structured-re-count-slope-sigma-one-slope-rejection-contract.tsv` records the
+exact pre-optimization rejection contract for count NB2 `sigma` one-slope
+structured-scale cells in `phylo()`, fixed-covariance `spatial()`, A-matrix
+`animal()`, and K/Q `relmat()`. The engine rejects structured count scale
+routes (`Structured non-Gaussian paths`), so each linked
+`qseries_*_nbinom2_q1_sigma_one_slope_rejected` cell stays `unsupported`. This
+answers the count half-cell question: the banked count `mu` one-slope cells do
+not imply count `sigma` one-slope support, and Poisson has no `sigma`
+parameter. The contract does not promote parser-ready, point-fit, bridge,
+interval, coverage, REML, AI-REML, public support, or q4/q8 status.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB

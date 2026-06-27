@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-06-26: count NB2 sigma one-slope structured-scale rejection contract
+
+Goal:
+
+- Record the exact pre-optimization rejection contract for count NB2 `sigma`
+  one-slope structured-scale cells across `phylo()`, fixed-covariance
+  `spatial()`, A-matrix `animal()`, and K/Q `relmat()`, answering the half-cell
+  question (banked count `mu` one-slope coverage does not imply count `sigma`
+  one-slope support) without promoting any capability, bridge, interval,
+  coverage, REML, AI-REML, structured count scale, or public-support status.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-count-slope-sigma-one-slope-rejection-contract.tsv`
+  with one row per structured provider (NB2), all `unsupported`, citing the
+  `Structured non-Gaussian paths` formula-gate rejection.
+- Added four `qseries_*_nbinom2_q1_sigma_one_slope_rejected` rows to
+  `structured-re-q-series-support-cells.tsv`, all `unsupported`.
+- Added four NB2 one-slope `sigma` rejection assertions to
+  `tests/testthat/test-nongaussian-structured-boundary.R`.
+- Added a focused dashboard contract test to
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated mission-control validation, the dashboard README, and the q-series
+  completion map.
+
+Evidence:
+
+- `air format tests/testthat/test-nongaussian-structured-boundary.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE count-slope sigma one-slope rejection rows and 90 q-series cells.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-26-count-slope-sigma-one-slope-rejection-contract.md')"`
+  passed.
+- `Rscript --vanilla -e "invisible(parse('tests/testthat/test-nongaussian-structured-boundary.R')); invisible(parse('tests/testthat/test-structured-re-conversion-contracts.R')); cat('parse_ok\n')"`
+  passed.
+- `devtools::test(...)` / `testthat::test_file(...)` could not run locally
+  because `devtools`/`testthat` are absent; the engine rejection assertions and
+  the dashboard contract test run on CI.
+
+Boundary:
+
+- This is a pre-optimization rejection contract only. It documents that
+  structured count `sigma` one-slope routes are rejected; it does not implement
+  or promote structured count scale support, bridge parity, intervals,
+  coverage, REML, AI-REML, public support, or q2/q4 status. Poisson has no
+  `sigma` parameter and therefore no structured count scale cell.
+
 ## 2026-06-26: count relmat NB2 one-slope local micro-shard
 
 Goal:

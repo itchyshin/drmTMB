@@ -3366,6 +3366,131 @@ test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   )
 })
 
+test_that("count sigma one-slope rejection contract stays explicit", {
+  rejection <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-sigma-one-slope-rejection-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    rejection,
+    c(
+      "rejection_id",
+      "cell_id",
+      "formula_cell",
+      "family",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "expected_error_pattern",
+      "rejection_stage",
+      "fit_status",
+      "extractor_status",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(rejection), 4L)
+  expect_setequal(
+    rejection$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(rejection$family, rep("nbinom2()", 4L))
+  expect_equal(rejection$dimension, rep("q1", 4L))
+  expect_equal(rejection$endpoint, rep("sigma", 4L))
+  expect_equal(rejection$slope_class, rep("independent_one_slope", 4L))
+  expect_equal(
+    rejection$rejection_stage,
+    rep("pre_optimization_formula_gate", 4L)
+  )
+  expect_equal(
+    rejection$expected_error_pattern,
+    rep("Structured non-Gaussian paths", 4L)
+  )
+  for (field in c(
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status"
+  )) {
+    expect_equal(rejection[[field]], rep("unsupported", 4L))
+  }
+  expect_equal(
+    rejection$evidence_url,
+    rep("tests/testthat/test-nongaussian-structured-boundary.R", 4L)
+  )
+
+  qseries_rows <- qseries[
+    match(rejection$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(qseries_rows$cell_id))
+  expect_equal(qseries_rows$family, rejection$family)
+  expect_equal(qseries_rows$structure_provider, rejection$structured_type)
+  expect_equal(qseries_rows$dimension_pattern, rejection$dimension)
+  expect_equal(qseries_rows$endpoint_set, rejection$endpoint)
+  expect_equal(qseries_rows$slope_class, rejection$slope_class)
+  for (field in c(
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status"
+  )) {
+    expect_equal(qseries_rows[[field]], rep("unsupported", 4L))
+  }
+  expect_equal(
+    qseries_rows$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/dashboard/",
+        "structured-re-count-slope-sigma-one-slope-rejection-contract.tsv"
+      ),
+      4L
+    )
+  )
+  structured_re_expect_all_match(
+    qseries_rows$claim_boundary,
+    "pre-optimization rejection evidence"
+  )
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "rejection evidence only"
+  )
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "structured count scale"
+  )
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "parser-ready support"
+  )
+  structured_re_expect_all_match(rejection$claim_boundary, "point-fit support")
+  structured_re_expect_all_match(rejection$claim_boundary, "bridge support")
+  structured_re_expect_all_match(
+    rejection$claim_boundary,
+    "interval reliability"
+  )
+  structured_re_expect_all_match(rejection$claim_boundary, "coverage")
+  structured_re_expect_all_match(rejection$claim_boundary, "REML")
+  structured_re_expect_all_match(rejection$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(rejection$claim_boundary, "public support")
+  structured_re_expect_all_match(rejection$claim_boundary, "q4/q8 support")
+  structured_re_expect_all_match(
+    rejection$next_gate,
+    "supported scale-side route"
+  )
+})
+
 test_that("relmat Q bridge-boundary dashboard stays support-cell scoped", {
   boundary <- structured_re_read_dashboard_tsv(
     "structured-re-relmat-q-bridge-boundary.tsv"

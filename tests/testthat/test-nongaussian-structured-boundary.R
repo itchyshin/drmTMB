@@ -90,4 +90,41 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     ),
     "Structured non-Gaussian paths"
   )
+
+  # Count NB2 sigma one-slope structured-scale routes are rejected at the
+  # pre-optimization formula gate for every structured provider. These back the
+  # count-slope sigma one-slope rejection contract: count mu one-slope support
+  # does not imply count sigma one-slope support.
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ phylo(1 + x | id, tree = tree)),
+      family = nbinom2(),
+      data = dat_count
+    ),
+    "Structured non-Gaussian paths"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ spatial(1 + x | id, coords = coords)),
+      family = nbinom2(),
+      data = dat_count
+    ),
+    "Structured non-Gaussian paths"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ animal(1 + x | id, Ainv = Q)),
+      family = nbinom2(),
+      data = dat_count
+    ),
+    "Structured non-Gaussian paths"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ relmat(1 + x | id, Q = Q)),
+      family = nbinom2(),
+      data = dat_count
+    ),
+    "Structured non-Gaussian paths"
+  )
 })

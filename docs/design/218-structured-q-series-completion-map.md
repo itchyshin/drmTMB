@@ -291,6 +291,18 @@ the scale-only sibling is parser-ready or fit-ready. The rows remain
 `unsupported` until a supported scale-side route is designed, implemented, and
 tested for the exact provider/formula cell.
 
+`structured-re-count-slope-sigma-one-slope-rejection-contract.tsv` records the
+exact pre-optimization rejection contract for count NB2 `sigma` one-slope
+structured-scale cells in `phylo()`, fixed-covariance `spatial()`, A-matrix
+`animal()`, and K/Q `relmat()`. The engine rejects structured count scale
+routes at the formula gate (`Structured non-Gaussian paths`), so each
+`qseries_*_nbinom2_q1_sigma_one_slope_rejected` cell stays `unsupported`. These
+rows answer the count half-cell question: the banked count `mu` one-slope cells
+do not imply count `sigma` one-slope support. Poisson has no `sigma` parameter,
+so it has no structured count scale cell. The rows do not promote parser-ready,
+point-fit, bridge, interval, coverage, REML, AI-REML, public-support, or
+q4/q8 status.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the
@@ -1045,7 +1057,18 @@ The efficient completion order is:
     marshalling, REML, AI-REML, public-support, Totoro/DRAC, q2/q4 count
     covariance, structured count scale, zero-inflated structure, phylo,
     spatial, animal, Poisson, labelled slope, or multiple-slope status.
-38. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+38. Banked in this slice: record the count NB2 `sigma` one-slope
+    structured-scale rejection contract for `phylo()`, fixed-covariance
+    `spatial()`, A-matrix `animal()`, and K/Q `relmat()`. The engine rejects
+    structured count scale routes at the pre-optimization formula gate
+    (`Structured non-Gaussian paths`), so the
+    `qseries_*_nbinom2_q1_sigma_one_slope_rejected` cells stay `unsupported`.
+    This answers the half-cell question directly: banked count `mu` one-slope
+    coverage does not imply count `sigma` one-slope support, and Poisson has no
+    `sigma` parameter, so it has no structured count scale cell. It does not
+    promote parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML,
+    public-support, structured count sigma, or q4/q8 status.
+39. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 
