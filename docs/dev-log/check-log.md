@@ -69906,3 +69906,35 @@ Boundary:
   gates: the interval-reliability rung, the g-conditional-claim design decision,
   scale-side q4, and the relmat-Q bridge (upstream). No engine change shipped, no
   DRM.jl, no PR merge implied.
+
+
+## 2026-06-27: interval-reliability rung (slope/sigma evidence ladder complete)
+
+Goal:
+
+- Measure the interval-reliability rung (the last unmeasured evidence gate before
+  supported) for the slope/sigma cells, from the existing g=32 certification
+  replicates (no new grid).
+
+Result:
+
+- All 8 sigma+q2 cells PASS the rung on the profile channel at g=32: finite 100%,
+  width CV 0.08-0.13 (stable), symmetry 1.37-1.51 (correct SD right-skew), coverage
+  0.948-0.958 (nominal). Meets Fisher's pre-specified bar.
+- The full EVIDENCE ladder is now met for the slope/sigma lanes via the profile
+  channel at g=32: point-fit -> extractor -> fixture-parity -> coverage (certified
+  nominal) -> interval reliability. The only remaining gate to supported is a
+  DESIGN decision (g-agnostic cells; channel+g framing), NOT more evidence.
+
+Evidence:
+
+- Derived from the banked g=32 certification replicates (profile_lower/upper/
+  estimate). python3 tools/validate-mission-control.py: mission_control_ok.
+- After-task: docs/dev-log/after-task/2026-06-27-interval-reliability-rung.md.
+
+Boundary:
+
+- Diagnostic interval-reliability evidence; does NOT itself promote interval_status
+  or coverage_status (coordinated support-cell+test+validator edits gated on the
+  design decision). Deployment g=8 profile is a near-miss ~0.91; nominal at g=32.
+  Wald is not the supportable channel. Scale-side q4 + relmat-Q bridge untouched.
