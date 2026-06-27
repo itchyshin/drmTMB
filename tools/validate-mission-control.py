@@ -102,6 +102,9 @@ STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT = (
 STRUCTURED_RE_SLOPE_COVERAGE_RESULTS = (
     DASHBOARD / "structured-re-slope-coverage-results.tsv"
 )
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS = (
+    DASHBOARD / "structured-re-count-slope-recovery-results.tsv"
+)
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
     DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
 )
@@ -1737,6 +1740,29 @@ STRUCTURED_RE_SLOPE_COVERAGE_RESULTS_FIELDS = (
     "profile_channel_status",
     "bias",
     "coverage_verdict",
+    "linked_coverage_status",
+    "evidence_url",
+    "claim_boundary",
+)
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS_FIELDS = (
+    "recovery_id",
+    "cell_id",
+    "family",
+    "structured_type",
+    "n_rep",
+    "fit_ok",
+    "nonconverged",
+    "pdhess_false",
+    "finite_estimate_rows",
+    "true_sd_mu_x",
+    "mean_sd_mu_x",
+    "bias_sd_mu_x",
+    "rmse_sd_mu_x",
+    "true_sd_mu_intercept",
+    "mean_sd_mu_intercept",
+    "bias_sd_mu_intercept",
+    "recovery_verdict",
+    "linked_cell_id",
     "linked_coverage_status",
     "evidence_url",
     "claim_boundary",
@@ -5531,6 +5557,9 @@ def main() -> int:
     )
     structured_re_slope_coverage_results_rows = read_tsv(
         STRUCTURED_RE_SLOPE_COVERAGE_RESULTS
+    )
+    structured_re_count_slope_recovery_results_rows = read_tsv(
+        STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS
     )
     structured_re_mu_slope_fixture_audit_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
@@ -11778,6 +11807,45 @@ def main() -> int:
             errors.append(
                 f"{row_id}: linked cell coverage_status must still be 'planned' "
                 "(a coverage measurement does not promote it)"
+            )
+
+    # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
+    # RECOVERY evidence (convergence + SD bias/RMSE), NOT coverage: linked cells
+    # stay at coverage_status 'planned'.
+    seen_count_recovery_ids: set[str] = set()
+    if len(structured_re_count_slope_recovery_results_rows) != 8:
+        errors.append(
+            "structured-re-count-slope-recovery-results.tsv: expected 8 rows "
+            f"(4 providers x 2 families); got "
+            f"{len(structured_re_count_slope_recovery_results_rows)}"
+        )
+    for row in structured_re_count_slope_recovery_results_rows:
+        row_id = row.get("recovery_id", "<count recovery row>")
+        if set(row.keys()) != set(STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-count-slope-recovery-results.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_count_recovery_ids:
+            errors.append(f"duplicate count recovery id: {row_id}")
+        seen_count_recovery_ids.add(row_id)
+        if row.get("linked_coverage_status") != "planned":
+            errors.append(
+                f"{row_id}: linked_coverage_status must be 'planned' "
+                "(recovery evidence does not promote coverage_status)"
+            )
+        linked = qseries_by_cell.get(row.get("linked_cell_id", ""))
+        if linked is None:
+            errors.append(
+                f"{row_id}: linked_cell_id {row.get('linked_cell_id')!r} "
+                "not in the support-cell table"
+            )
+        elif linked.get("coverage_status") != "planned":
+            errors.append(
+                f"{row_id}: linked cell coverage_status must still be 'planned'"
             )
 
     missing_q2_plus_q2_sigma_rejections = sorted(
@@ -28812,6 +28880,7 @@ def main() -> int:
         f", {len(structured_re_nongaussian_structured_family_rejection_contract_rows)} structured RE non-Gaussian structured-family rejection rows"
         f", {len(structured_re_count_structured_mu_rejection_contract_rows)} structured RE count structured-mu rejection rows"
         f", {len(structured_re_slope_coverage_results_rows)} structured RE slope coverage-results rows"
+        f", {len(structured_re_count_slope_recovery_results_rows)} structured RE count-slope recovery-results rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"

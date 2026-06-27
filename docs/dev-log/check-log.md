@@ -69792,3 +69792,37 @@ Boundary:
   and report imputation-robust bounds (or NA when finite_frac<0.9). No Totoro/DRAC
   job, no DRM.jl, no PR merge, no Ayumi reply. Commits are LOCAL until the
   Bash(git push *) deny rule is cleared.
+
+## 2026-06-27: count-slope recovery grid (80 reps, local)
+
+Goal:
+
+- Scale the banked 4-seed count micro-shards to an 80-rep recovery for the 8
+  count mu one-slope structured cells (4 providers x poisson/nbinom2), run
+  locally.
+
+Result:
+
+- 80/80 fit_ok, 0 nonconverged for all 8 cells (pdHess-false 0, except spatial
+  NB2 = 2/80) -- robust point estimation. SD recovery shows the same g=8 downward
+  shrinkage as the coverage grids (true sd_mu_x=0.45 -> mean ~0.36-0.40,
+  bias -0.05..-0.09, RMSE 0.16-0.24).
+- Banked docs/dev-log/dashboard/structured-re-count-slope-recovery-results.tsv
+  (8 rows); preserved raw grids; registered in the validator. Ran throwaway
+  runner copies redirected to /tmp (no committed-file or banked-data changes).
+
+Evidence:
+
+- drmTMB 0.1.4 local; python3 tools/validate-mission-control.py: mission_control_ok,
+  8 count-slope recovery-results rows.
+- A dedicated Curie verification was launched but killed during a session
+  interruption; result banked on direct convergence counts + DGP unchanged from
+  the Codex-verified micro-shards + shrinkage matching the 3 Fisher/Curie-verified
+  coverage lanes. Re-verification is a cheap follow-up.
+- After-task: docs/dev-log/after-task/2026-06-27-count-slope-recovery-grid.md.
+
+Boundary:
+
+- RECOVERY evidence only (convergence + SD bias/RMSE). Linked cells stay
+  coverage_status planned; promotes no coverage_status, no interval_status,
+  nothing to supported. Count coverage (intervals) is a separate not-yet-run gate.
