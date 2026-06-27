@@ -711,6 +711,12 @@ run_one_rep <- function(seed, rep_id, provider, endpoint_member,
   conv     <- tryCatch(fit$opt$convergence, error = function(e) NA_integer_)
   if (is.null(conv) || length(conv) == 0L) conv <- NA_integer_
   pd_hess  <- tryCatch(isTRUE(fit$sdr$pdHess), error = function(e) FALSE)
+  # NOTE (Fisher 2026-06-27): with convergence==0 throughout, this flag is
+  # dominated by !pd_hess -- it is a NON-INVERTIBLE-HESSIAN diagnostic, NOT a
+  # parameter-at-bound flag (flagged reps have median estimate_sd ~0.39, not ~0).
+  # Wald-finiteness is deterministically equal to pdHess-pass, so Wald coverage is
+  # conditional on this subset and is selection-biased optimistic. Report
+  # imputation-robust bounds (or NA when wald_finite_frac < 0.9) before any pass.
   is_bdry  <- is.na(conv) || (isTRUE(conv != 0L)) || !pd_hess
 
   # Point estimate from sdpars$mu

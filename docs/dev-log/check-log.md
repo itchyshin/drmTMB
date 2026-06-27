@@ -69750,3 +69750,45 @@ Boundary:
   unmeasured. No Totoro/DRAC job, no DRM.jl, no PR merge, no Ayumi reply. Commits
   are LOCAL (the Bash(git push *) deny rule blocks push) until the maintainer
   clears the rule.
+
+## 2026-06-27: q4-location coverage grid (measured, INCONCLUSIVE pdHess-censored)
+
+Goal:
+
+- After confirming the q4-location D4 fix live, run the SR475 q4-location grid
+  (16 direct-SD targets), verify, and bank.
+
+Result:
+
+- D4 confirmed live (estimate_sd populates; mean_est_sd=0.4457) -> q4-location
+  un-HELD. Ran the 16-target SR475 grid locally; all 475/475 converged.
+- Fisher verdict: INCONCLUSIVE (pdHess-censored), NOT a positive result.
+  is_boundary is dominated by !pdHess (non-invertible joint bivariate Hessian),
+  not a variance-at-bound flag; Wald-finiteness == pdHess-pass (0/2568 boundary
+  reps Wald-finite), so 23-49% of reps are censored (wald_finite_frac 0.51-0.77)
+  and survivor Wald coverage is selection-biased optimistic. Slope-SD survivor
+  over-coverage (0.98-0.997) is a censoring artifact; the only qualified finding
+  is location RE-intercept SD profile coverage ~0.90-0.93 (mild under-coverage).
+- Added a clarifying comment at the is_boundary def; banked 16 q4-location rows in
+  structured-re-slope-coverage-results.tsv (sidecar now 33 rows); preserved the
+  raw grid; registered the q4_location lane in the validator.
+
+Evidence:
+
+- Full grid ran on drmTMB 0.1.4 locally; q4 runner parse OK.
+- python3 tools/validate-mission-control.py: mission_control_ok, 33 slope
+  coverage-results rows.
+- Fisher (inference_reviewer) confirmed is_boundary==!pdHess and quantified the
+  selection bias from the raw replicate TSVs.
+- After-task: docs/dev-log/after-task/2026-06-27-q4-location-coverage-grid.md.
+
+Boundary:
+
+- INCONCLUSIVE coverage measurement. coverage_status stays planned for all four
+  qseries_<provider>_q4_mu1_mu2_one_slope cells; promotes no coverage_status,
+  no interval_status, and keeps supported blocked. The pdHess-failure rate is the
+  known q4 Hessian-geometry blocker (engine/identifiability, not compute) -- more
+  reps will not fix it. Runner follow-up owed: relabel is_boundary -> non_pdHess
+  and report imputation-robust bounds (or NA when finite_frac<0.9). No Totoro/DRAC
+  job, no DRM.jl, no PR merge, no Ayumi reply. Commits are LOCAL until the
+  Bash(git push *) deny rule is cleared.

@@ -11733,10 +11733,20 @@ def main() -> int:
         for r in structured_re_slope_coverage_results_rows
         if r.get("lane") == "q2_slope"
     ]
-    if len(slope_cov_sigma) != 7 or len(slope_cov_q2) != 10:
+    slope_cov_q4 = [
+        r
+        for r in structured_re_slope_coverage_results_rows
+        if r.get("lane") == "q4_location"
+    ]
+    if (
+        len(slope_cov_sigma) != 7
+        or len(slope_cov_q2) != 10
+        or len(slope_cov_q4) != 16
+    ):
         errors.append(
             "structured-re-slope-coverage-results.tsv: expected 7 sigma_slope + "
-            f"10 q2_slope rows; got {len(slope_cov_sigma)} + {len(slope_cov_q2)}"
+            "10 q2_slope + 16 q4_location rows; got "
+            f"{len(slope_cov_sigma)} + {len(slope_cov_q2)} + {len(slope_cov_q4)}"
         )
     for row in structured_re_slope_coverage_results_rows:
         row_id = row.get("coverage_id", "<slope coverage row>")
@@ -11751,7 +11761,7 @@ def main() -> int:
         if row_id in seen_slope_coverage_ids:
             errors.append(f"duplicate slope coverage id: {row_id}")
         seen_slope_coverage_ids.add(row_id)
-        if row.get("lane") not in ("sigma_slope", "q2_slope"):
+        if row.get("lane") not in ("sigma_slope", "q2_slope", "q4_location"):
             errors.append(f"{row_id}: invalid lane {row.get('lane')!r}")
         if row.get("linked_coverage_status") != "planned":
             errors.append(
