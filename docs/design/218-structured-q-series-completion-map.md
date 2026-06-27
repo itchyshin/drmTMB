@@ -204,6 +204,24 @@ Until that decision is made, every cell keeps `interval_status = planned` and
 profile channel and an adequate group count (g>=32); the Wald-t opt-in narrows
 the small-g gap but does not by itself reach nominal at the deployment default.**
 
+### Decision executed (2026-06-27): four cells promoted to `interval_feasible`
+
+The maintainer signed off (after Fisher/Rose/Emmy and then Pat/`user_tester` +
+Darwin/`audience_reviewer` SIGN_OFF_WITH_CHANGES). Four cells —
+`qseries_phylo_q1_sigma_one_slope`, `qseries_phylo_q2_mu1_mu2_one_slope`,
+`qseries_relmat_q1_sigma_one_slope`, `qseries_relmat_q2_mu1_mu2_one_slope` — moved
+from `interval_status = planned` to `interval_feasible`. `coverage_status` stays
+`planned` on all 106 cells; no cell reaches `inference_ready` or `supported`.
+spatial + animal stay `planned` (no g=32 rung). The coordinated edit relaxed 96
+anti-over-promotion guards (three cell-id-keyed helpers in
+`tools/validate-mission-control.py`) so they admit `interval_feasible` for exactly
+these four cells and still reject every other cell; the `claim_boundary` text was
+rewritten per the reviewers (lead with the g=8 number, name `confint(method =
+"profile")`, record sigma:x's ~23% g=8 profile non-convergence, and that REML is
+not the fix). Verified: `mission_control_ok` green; a non-certified flip still
+errors; conversion + bridge-fixture tests green (bar 4 pre-existing artifact-path
+failures unrelated to this change).
+
 ## Why the Older Work Drifted
 
 The first q-series waves were productive because they chose valuable cells

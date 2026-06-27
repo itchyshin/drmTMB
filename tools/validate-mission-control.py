@@ -5262,6 +5262,67 @@ STRUCTURED_RE_Q_SERIES_STATUSES = {
     "diagnostic_only",
     "blocked",
 }
+
+# Cells the maintainer promoted from interval_status `planned` to
+# `interval_feasible` on 2026-06-27 (Fisher/Rose/Emmy/Pat/Darwin + maintainer
+# sign-off) on the strength of the g=32 profile certification + interval-
+# reliability rung. The anti-over-promotion guards in the diagnostic/denominator
+# sidecars allow `interval_feasible` ONLY for these cells; every other linked
+# cell still must read `planned`, and coverage_status stays `planned` for all.
+CERTIFIED_INTERVAL_FEASIBLE_CELLS = {
+    "qseries_phylo_q1_sigma_one_slope",
+    "qseries_phylo_q2_mu1_mu2_one_slope",
+    "qseries_relmat_q1_sigma_one_slope",
+    "qseries_relmat_q2_mu1_mu2_one_slope",
+}
+
+
+def _qseries_interval_status_within_planned_or_certified(qseries_row):
+    """True if a linked q-series cell's interval_status is still `planned`, or is
+    `interval_feasible` for a cell in CERTIFIED_INTERVAL_FEASIBLE_CELLS. Relaxes
+    the planned-pinning guards for exactly the certified cells without weakening
+    them for any other cell."""
+    status = qseries_row.get("interval_status")
+    if status == "planned":
+        return True
+    return (
+        status == "interval_feasible"
+        and qseries_row.get("cell_id") in CERTIFIED_INTERVAL_FEASIBLE_CELLS
+    )
+
+
+def _planned_field_violation(check_row, field):
+    """Field-loop variant of the planned-pinning guard. Returns True if `field`
+    violates the `planned` pin on `check_row`. `interval_status` may be
+    `interval_feasible` for a CERTIFIED cell (keyed on the row's own cell_id);
+    every other field, value, and cell still requires `planned`. Safe for
+    sidecar-own-field loops: a sidecar row's interval_status stays `planned`, so
+    the relaxation branch is never reached for it."""
+    value = check_row.get(field)
+    if value == "planned":
+        return False
+    if (
+        field == "interval_status"
+        and value == "interval_feasible"
+        and check_row.get("cell_id") in CERTIFIED_INTERVAL_FEASIBLE_CELLS
+    ):
+        return False
+    return True
+
+
+def _expected_value_violation(qrow, field, expected_value):
+    """Expected-value-dict variant of the planned-pinning guard (linked q-series
+    cell checked against a {field: expected_value} contract). Exact match for
+    every field except that `interval_status` may be `interval_feasible` for a
+    CERTIFIED cell. Identical to a plain `!= expected_value` for all other
+    fields/values/cells."""
+    if qrow.get(field) == expected_value:
+        return False
+    if field == "interval_status" and not _planned_field_violation(qrow, field):
+        return False
+    return True
+
+
 STRUCTURED_RE_Q_SERIES_AUTHORITY_STATUSES = {
     "source",
     "derived",
@@ -11000,7 +11061,7 @@ def main() -> int:
         if row.get("extractor_identity_status") != "banked":
             errors.append(f"{row_id}: extractor_identity_status must be banked")
         for field in ("bridge_fixture_status", "interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if "coverage" not in row.get("claim_boundary", ""):
             errors.append(f"{row_id}: claim_boundary must mention coverage boundary")
@@ -11051,7 +11112,7 @@ def main() -> int:
         if row.get("estimator") != "ML":
             errors.append(f"{row_id}: estimator must remain ML")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         implemented_mu_slope_parity = {"phylo", "spatial", "animal", "relmat"}
         if provider in implemented_mu_slope_parity:
@@ -11092,10 +11153,10 @@ def main() -> int:
                     errors.append(f"{row_id}: relmat next_gate must keep K/Q boundary")
         else:
             for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
-                if row.get(field) != "planned":
+                if _planned_field_violation(row, field):
                     errors.append(f"{row_id}: {field} must remain planned")
             for field in ("parity_status", "bridge_status"):
-                if row.get(field) != "planned":
+                if _planned_field_violation(row, field):
                     errors.append(f"{row_id}: {field} must remain planned")
             if row.get("coefficient_order") != "planned":
                 errors.append(f"{row_id}: coefficient_order must remain planned")
@@ -11164,7 +11225,7 @@ def main() -> int:
         ):
             errors.append(f"{row_id}: coefficient_order changed")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         expected_matrix_slot = {
             "phylo": "tree",
@@ -11284,7 +11345,7 @@ def main() -> int:
                 ),
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{expected['cell_id']}: {field} must be {expected_value}"
                     )
@@ -11415,7 +11476,7 @@ def main() -> int:
                 ),
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{expected['cell_id']}: {field} must be {expected_value}"
                     )
@@ -11589,7 +11650,7 @@ def main() -> int:
                 ),
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{expected['cell_id']}: {field} must be {expected_value}"
                     )
@@ -11742,7 +11803,7 @@ def main() -> int:
                 ),
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{expected['cell_id']}: {field} must be {expected_value}"
                     )
@@ -12137,7 +12198,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -12295,7 +12356,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -12461,7 +12522,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -12637,7 +12698,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -12824,7 +12885,7 @@ def main() -> int:
         if qseries_row is None:
             errors.append(f"{row_id}: linked q-series support cell is missing")
         else:
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -13113,7 +13174,7 @@ def main() -> int:
         if qseries_row is None:
             errors.append(f"{row_id}: linked q-series support cell is missing")
         else:
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -13220,7 +13281,7 @@ def main() -> int:
                 "coverage_status": "planned",
                 "denominator_policy": "fixture_not_coverage",
             }.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -14166,7 +14227,7 @@ def main() -> int:
         if row.get("bridge_status") != "fixture_parity":
             errors.append(f"{row_id}: bridge_status must remain fixture_parity")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if row.get("denominator_policy") != "fixture_not_coverage":
             errors.append(
@@ -14253,7 +14314,7 @@ def main() -> int:
         ):
             errors.append(f"{row_id}: coefficient_order changed")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if provider in expected_q2_slope_parity_fixtures:
             expected_matrix_slot = {
@@ -14331,7 +14392,13 @@ def main() -> int:
                         f"{row_id}: linked q-series bridge_status must be fixture_parity"
                     )
                 for field in ("interval_status", "coverage_status"):
-                    if qseries_row.get(field) != "planned":
+                    if field == "interval_status" and (
+                        _qseries_interval_status_within_planned_or_certified(
+                            qseries_row
+                        )
+                    ):
+                        continue
+                    if _planned_field_violation(qseries_row, field):
                         errors.append(
                             f"{row_id}: linked q-series {field} must remain planned"
                         )
@@ -14519,7 +14586,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -14706,7 +14773,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -14873,7 +14940,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -15036,7 +15103,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -15219,7 +15286,7 @@ def main() -> int:
         if qseries_row is None:
             errors.append(f"{row_id}: linked q-series support cell is missing")
         else:
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -15405,7 +15472,7 @@ def main() -> int:
         if qseries_row is None:
             errors.append(f"{row_id}: linked q-series support cell is missing")
         else:
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -15676,7 +15743,7 @@ def main() -> int:
         if qseries_row is None:
             errors.append(f"{row_id}: linked q-series support cell is missing")
         else:
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -15753,7 +15820,7 @@ def main() -> int:
         ):
             errors.append(f"{row_id}: coefficient_order changed")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if provider in expected_mu_sigma_slope_parity_fixtures:
             expected_matrix_slot = {
@@ -15826,7 +15893,13 @@ def main() -> int:
                         f"{row_id}: linked q-series bridge_status must be fixture_parity"
                     )
                 for field in ("interval_status", "coverage_status"):
-                    if qseries_row.get(field) != "planned":
+                    if field == "interval_status" and (
+                        _qseries_interval_status_within_planned_or_certified(
+                            qseries_row
+                        )
+                    ):
+                        continue
+                    if _planned_field_violation(qseries_row, field):
                         errors.append(
                             f"{row_id}: linked q-series {field} must remain planned"
                         )
@@ -16002,7 +16075,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -16178,7 +16251,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -16357,7 +16430,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -16618,7 +16691,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -16852,7 +16925,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -17070,7 +17143,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -17326,7 +17399,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -17555,7 +17628,7 @@ def main() -> int:
         else:
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: linked q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
@@ -17652,7 +17725,7 @@ def main() -> int:
         if row.get("runtime_status") != "point_fit":
             errors.append(f"{row_id}: runtime_status must remain point_fit")
         for field in ("bridge_status", "interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         claim_boundary = row.get("claim_boundary", "")
         if "point-fit" not in claim_boundary:
@@ -17693,7 +17766,7 @@ def main() -> int:
                     f"{row_id}: linked q-series bridge_status must be fixture_parity"
                 )
             for field in ("interval_status", "coverage_status"):
-                if qseries_row.get(field) != "planned":
+                if _planned_field_violation(qseries_row, field):
                     errors.append(f"{row_id}: linked q-series {field} must remain planned")
             if "four endpoint members" not in qseries_row.get("claim_boundary", ""):
                 errors.append(
@@ -17796,7 +17869,7 @@ def main() -> int:
                 f"{row_id}: runtime_status must be {expected_runtime_status}"
             )
         for field in ("bridge_status", "interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if (
             row.get("source_qseries_status")
@@ -17880,7 +17953,7 @@ def main() -> int:
                     }
                 )
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -18019,7 +18092,7 @@ def main() -> int:
         if row.get("bridge_status") != "fixture_parity":
             errors.append(f"{row_id}: bridge_status must be fixture_parity")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if row.get("coefficient_order") != expected_q4_location_slope_coef_order:
             errors.append(f"{row_id}: coefficient_order changed")
@@ -18095,7 +18168,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -18240,7 +18313,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -18556,7 +18629,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -18643,7 +18716,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -18893,7 +18966,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -19243,7 +19316,7 @@ def main() -> int:
         if row.get("bridge_status") != "fixture_parity":
             errors.append(f"{row_id}: bridge_status must be fixture_parity")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if row.get("coefficient_order") != expected_q4_slope_parity_coef_order:
             errors.append(f"{row_id}: coefficient_order changed")
@@ -19314,7 +19387,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -19431,7 +19504,7 @@ def main() -> int:
         if row.get("bridge_status") != "fixture_parity":
             errors.append(f"{row_id}: bridge_status must be fixture_parity")
         for field in ("interval_status", "coverage_status"):
-            if row.get(field) != "planned":
+            if _planned_field_violation(row, field):
                 errors.append(f"{row_id}: {field} must remain planned")
         if row.get("coefficient_order") != expected_q4_intercept_coef_order:
             errors.append(f"{row_id}: coefficient_order changed")
@@ -19505,7 +19578,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -19917,7 +19990,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -20082,7 +20155,7 @@ def main() -> int:
                 "coverage_status": "planned",
                 "denominator_policy": "fixture_not_coverage",
             }.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -20295,7 +20368,7 @@ def main() -> int:
                 "coverage_status": "planned",
                 "denominator_policy": "fixture_not_coverage",
             }.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -20419,7 +20492,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -20706,7 +20779,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -20918,7 +20991,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -21146,7 +21219,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -21518,7 +21591,7 @@ def main() -> int:
                 "denominator_policy": "fixture_not_coverage",
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: linked q-series {field} must be {expected_value}"
                     )
@@ -22235,7 +22308,7 @@ def main() -> int:
                 errors.append(f"{row_id}: q-series cell must be relmat-scoped")
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: q-series coverage_status must remain planned")
@@ -22426,7 +22499,7 @@ def main() -> int:
                 errors.append(f"{row_id}: slope_class disagrees with support cell")
             if qseries_row.get("bridge_status") != "fixture_parity":
                 errors.append(f"{row_id}: q-series bridge_status must remain fixture_parity")
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: q-series coverage_status must remain planned")
@@ -22921,7 +22994,7 @@ def main() -> int:
                     errors.append(
                         f"{row_id}: {field} disagrees with q-series support cell"
                     )
-            if qseries_row.get("interval_status") != "planned":
+            if not _qseries_interval_status_within_planned_or_certified(qseries_row):
                 errors.append(f"{row_id}: q-series interval_status must remain planned")
             if qseries_row.get("coverage_status") != "planned":
                 errors.append(f"{row_id}: q-series coverage_status must remain planned")
@@ -23067,7 +23140,7 @@ def main() -> int:
                 "slope_class": row.get("slope_class"),
             }
             for field, expected_value in expected_qseries_values.items():
-                if qseries_row.get(field) != expected_value:
+                if _expected_value_violation(qseries_row, field, expected_value):
                     errors.append(
                         f"{row_id}: {field} disagrees with q-series support cell"
                     )

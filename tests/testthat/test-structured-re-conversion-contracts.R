@@ -229,7 +229,13 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   expect_equal(native_sigma_slope$route, rep("native_tmb", 4L))
   expect_equal(native_sigma_slope$fit_status, rep("point_fit", 4L))
   expect_equal(native_sigma_slope$extractor_status, rep("extractor_ready", 4L))
-  expect_equal(native_sigma_slope$interval_status, rep("planned", 4L))
+  # phylo + relmat sigma cells promoted to interval_feasible (g=32 profile
+  # certification + interval-reliability rung; maintainer + Fisher/Rose/Emmy/Pat/
+  # Darwin sign-off, 2026-06-27). spatial + animal stay planned (no g=32 rung).
+  expect_equal(
+    native_sigma_slope$interval_status,
+    c("interval_feasible", "planned", "planned", "interval_feasible")
+  )
   expect_equal(native_sigma_slope$coverage_status, rep("planned", 4L))
   expect_equal(native_sigma_slope$bridge_status, rep("fixture_parity", 4L))
   expect_equal(
@@ -299,7 +305,12 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   expect_equal(native_q2_slope$fit_status, rep("point_fit", 4L))
   expect_equal(native_q2_slope$extractor_status, rep("extractor_ready", 4L))
   expect_equal(native_q2_slope$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(native_q2_slope$interval_status, rep("planned", 4L))
+  # phylo + relmat q2 slope-only cells promoted to interval_feasible (same
+  # 2026-06-27 sign-off). spatial + animal stay planned.
+  expect_equal(
+    native_q2_slope$interval_status,
+    c("interval_feasible", "planned", "planned", "interval_feasible")
+  )
   expect_equal(native_q2_slope$coverage_status, rep("planned", 4L))
   expect_equal(
     native_q2_slope$denominator_policy,
@@ -3933,7 +3944,10 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
   qseries_rows <- qseries[match(gate$cell_id, qseries$cell_id), , drop = FALSE]
   expect_equal(qseries_rows$structure_provider, rep("relmat", 6L))
   expect_equal(qseries_rows$bridge_status, rep("fixture_parity", 6L))
-  expect_equal(qseries_rows$interval_status, rep("planned", 6L))
+  expect_equal(
+    qseries_rows$interval_status,
+    ifelse(qseries_rows$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_rows$coverage_status, rep("planned", 6L))
 
   expect_equal(
@@ -4107,7 +4121,10 @@ test_that("relmat Q payload contract review is exact-cell scoped", {
   expect_equal(contract$endpoint_set, qseries_rows$endpoint_set)
   expect_equal(contract$slope_class, qseries_rows$slope_class)
   expect_equal(qseries_rows$bridge_status, rep("fixture_parity", 6L))
-  expect_equal(qseries_rows$interval_status, rep("planned", 6L))
+  expect_equal(
+    qseries_rows$interval_status,
+    ifelse(qseries_rows$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_rows$coverage_status, rep("planned", 6L))
 
   expected_order <- c(
@@ -4668,7 +4685,10 @@ test_that("q2 slope-only interval plan remains target-level", {
   qseries_plan <- qseries[qseries$cell_id %in% plan$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_plan), 4L)
   expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_plan$interval_status,
+    ifelse(qseries_plan$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_plan$denominator_policy,
@@ -4805,7 +4825,10 @@ test_that("q2 slope-only interval status remains diagnostic-only", {
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -4927,7 +4950,10 @@ test_that("q2 slope-only interval stability probe remains diagnostic-only", {
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -5117,7 +5143,10 @@ test_that("q2 slope-only denominator admission remains diagnostic-only", {
 
   qseries_status <- qseries[qseries$cell_id %in% denom$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -5297,7 +5326,10 @@ test_that("q2 slope-only denominator extension remains diagnostic-only", {
     drop = FALSE
   ]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -5496,7 +5528,10 @@ test_that("q2 slope-only replicated denominator rule keeps coverage blocked", {
 
   qseries_status <- qseries[qseries$cell_id %in% rule$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -5710,7 +5745,10 @@ test_that("q2 slope-only coverage pregrid dry-run does not execute coverage", {
     drop = FALSE
   ]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -5926,7 +5964,10 @@ test_that("sigma-slope interval plan remains sigma-only and target-level", {
   qseries_plan <- qseries[qseries$cell_id %in% plan$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_plan), 4L)
   expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_plan$interval_status,
+    ifelse(qseries_plan$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_plan$denominator_policy,
@@ -6065,7 +6106,10 @@ test_that("sigma-slope interval status remains diagnostic-only", {
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -6230,7 +6274,10 @@ test_that("sigma-slope interval stability probe remains diagnostic-only", {
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -6358,7 +6405,10 @@ test_that("sigma-slope denominator admission remains diagnostic-only", {
   qseries_status <- qseries[qseries$cell_id %in% denom$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -6524,7 +6574,10 @@ test_that("sigma-slope replicated denominator rule keeps coverage blocked", {
 
   qseries_status <- qseries[qseries$cell_id %in% rule$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -6716,7 +6769,10 @@ test_that("sigma-slope coverage pregrid dry-run remains not executed", {
     drop = FALSE
   ]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -6922,7 +6978,10 @@ test_that("sigma-slope coverage dispatch review remains not submitted", {
     drop = FALSE
   ]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -7591,7 +7650,10 @@ test_that("matched mu+sigma one-slope readiness records native point fits only",
   expect_equal(qseries_ready$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_ready$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_ready$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_ready$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_ready$interval_status,
+    ifelse(qseries_ready$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_ready$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_ready$evidence_url,
@@ -7785,7 +7847,10 @@ test_that("q4 all-four one-slope identity ledger records exact runtime promotion
     rep("extractor_ready", 4L)
   )
   expect_equal(qseries_planned$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_planned$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_planned$interval_status,
+    ifelse(qseries_planned$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_planned$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_planned$evidence_url,
@@ -7994,7 +8059,10 @@ test_that("q4 location one-slope parity fixture records exact bridge fixture onl
   expect_equal(qseries_ready$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_ready$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_ready$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_ready$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_ready$interval_status,
+    ifelse(qseries_ready$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_ready$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_ready$evidence_url,
@@ -8215,7 +8283,10 @@ test_that("q4 location one-slope interval plan remains target-level", {
   expect_equal(qseries_plan$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_plan$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_plan$interval_status,
+    ifelse(qseries_plan$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_plan$denominator_policy,
@@ -8414,7 +8485,10 @@ test_that("q4 location one-slope interval smoke records bounded direct-SD status
   expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -8626,7 +8700,10 @@ test_that("q4 location one-slope bootstrap budget probe stays diagnostic-only", 
   expect_equal(qseries_probe$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_probe$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_probe$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_probe$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_probe$interval_status,
+    ifelse(qseries_probe$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_probe$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_probe$denominator_policy,
@@ -8818,7 +8895,10 @@ test_that("q4 location one-slope bootstrap dispatch plan stays not submitted", {
   expect_equal(qseries_dispatch$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_dispatch$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_dispatch$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_dispatch$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_dispatch$interval_status,
+    ifelse(qseries_dispatch$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_dispatch$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_dispatch$denominator_policy,
@@ -9236,7 +9316,10 @@ test_that("q4 all-four one-slope parity fixture records exact bridge fixture onl
   expect_equal(qseries_ready$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_ready$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_ready$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_ready$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_ready$interval_status,
+    ifelse(qseries_ready$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_ready$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_ready$evidence_url,
@@ -9609,7 +9692,10 @@ test_that("q4 all-four one-slope interval plan remains target-level", {
   expect_equal(qseries_plan$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_plan$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_plan$interval_status,
+    ifelse(qseries_plan$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_plan$denominator_policy,
@@ -9769,7 +9855,10 @@ test_that("q4 all-four intercept interval plan remains target-level", {
   expect_equal(qseries_plan$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_plan$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_plan$interval_status,
+    ifelse(qseries_plan$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
 })
 
@@ -9958,7 +10047,10 @@ test_that("q4 all-four intercept interval status stays diagnostic-only", {
   expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
 })
 
@@ -10122,7 +10214,10 @@ test_that("q4 all-four intercept denominator precheck blocks admission", {
     drop = FALSE
   ]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -10351,7 +10446,10 @@ test_that("q4 all-four intercept Hessian/bootstrap diagnostic stays blocked", {
     drop = FALSE
   ]
   expect_equal(nrow(qseries_status), 4L)
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -10514,7 +10612,10 @@ test_that("q4 all-four one-slope interval status stays Hessian-blocked", {
   expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -10717,7 +10818,10 @@ test_that("q4 all-four one-slope interval stability probe stays Hessian-blocked"
   expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -10980,7 +11084,10 @@ test_that("q4 all-four one-slope Hessian geometry stays diagnostic-only", {
   expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -11259,7 +11366,10 @@ test_that("q4 sigma-axis differential records partial-axis guard blockers", {
   expect_equal(qseries_status$fit_status, rep("point_fit", 4L))
   expect_equal(qseries_status$extractor_status, rep("extractor_ready", 4L))
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -11498,7 +11608,10 @@ test_that("matched mu+sigma one-slope interval plan remains target-level", {
   qseries_plan <- qseries[qseries$cell_id %in% plan$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_plan), 4L)
   expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_plan$interval_status,
+    ifelse(qseries_plan$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_plan$denominator_policy,
@@ -11667,7 +11780,10 @@ test_that("matched mu+sigma one-slope interval status remains diagnostic-only", 
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -11821,7 +11937,10 @@ test_that("matched mu+sigma one-slope interval stability probe stays diagnostic-
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 4L)
   expect_equal(qseries_status$bridge_status, rep("fixture_parity", 4L))
-  expect_equal(qseries_status$interval_status, rep("planned", 4L))
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, rep("planned", 4L))
   expect_equal(
     qseries_status$denominator_policy,
@@ -11987,7 +12106,10 @@ test_that("spatial mu boundary diagnostic separates seed and profile failures", 
   qseries_status <- qseries[qseries$cell_id %in% status$cell_id, , drop = FALSE]
   expect_equal(nrow(qseries_status), 1L)
   expect_equal(qseries_status$bridge_status, "fixture_parity")
-  expect_equal(qseries_status$interval_status, "planned")
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, "planned")
   expect_equal(qseries_status$denominator_policy, "fixture_not_coverage")
 })
@@ -12157,7 +12279,10 @@ test_that("spatial mu x endpoint-profile geometry identifies lower-side failures
   ]
   expect_equal(nrow(qseries_status), 1L)
   expect_equal(qseries_status$bridge_status, "fixture_parity")
-  expect_equal(qseries_status$interval_status, "planned")
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, "planned")
   expect_equal(qseries_status$denominator_policy, "fixture_not_coverage")
 })
@@ -12347,7 +12472,10 @@ test_that("spatial mu x profile strategy confirms fallback is not enough", {
   ]
   expect_equal(nrow(qseries_status), 1L)
   expect_equal(qseries_status$bridge_status, "fixture_parity")
-  expect_equal(qseries_status$interval_status, "planned")
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, "planned")
   expect_equal(qseries_status$denominator_policy, "fixture_not_coverage")
 })
@@ -12569,7 +12697,10 @@ test_that("spatial mu x lower-start diagnostic keeps problem rows out of denomin
   ]
   expect_equal(nrow(qseries_status), 1L)
   expect_equal(qseries_status$bridge_status, "fixture_parity")
-  expect_equal(qseries_status$interval_status, "planned")
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, "planned")
   expect_equal(qseries_status$denominator_policy, "fixture_not_coverage")
 })
@@ -12788,7 +12919,10 @@ test_that("spatial mu x domain-guard diagnostic keeps problem rows out of denomi
   ]
   expect_equal(nrow(qseries_status), 1L)
   expect_equal(qseries_status$bridge_status, "fixture_parity")
-  expect_equal(qseries_status$interval_status, "planned")
+  expect_equal(
+    qseries_status$interval_status,
+    ifelse(qseries_status$cell_id %in% c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope"), "interval_feasible", "planned")
+  )
   expect_equal(qseries_status$coverage_status, "planned")
   expect_equal(qseries_status$denominator_policy, "fixture_not_coverage")
 })
