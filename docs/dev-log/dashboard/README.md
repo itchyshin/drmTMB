@@ -336,6 +336,19 @@ not imply count `sigma` one-slope support, and Poisson has no `sigma`
 parameter. The contract does not promote parser-ready, point-fit, bridge,
 interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
+`structured-re-nongaussian-structured-family-rejection-contract.tsv` records
+the exact pre-optimization rejection contract for structured-effect routes the
+engine already rejects across non-Gaussian families and endpoints: `student()`,
+`beta()`, `Gamma()`, `cumulative_logit()`, `poisson()`, and
+`truncated_nbinom2()` on `mu`, `sigma`, `nu`, `zi`, or `hu` with `spatial()`,
+`animal()`, `relmat()`, or `phylo()`. Each intercept-only `q1` route is rejected
+at the formula gate (`Structured non-Gaussian paths`), so each linked
+`qseries_*_rejected` cell stays `unsupported`. This completes the exact-cell
+boundary coverage: structured support for one family, endpoint, or provider
+never implies it for another. The contract does not promote parser-ready,
+point-fit, bridge, interval, coverage, REML, AI-REML, public support, or q4/q8
+status.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB

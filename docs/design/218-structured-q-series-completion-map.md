@@ -303,6 +303,22 @@ so it has no structured count scale cell. The rows do not promote parser-ready,
 point-fit, bridge, interval, coverage, REML, AI-REML, public-support, or
 q4/q8 status.
 
+`structured-re-nongaussian-structured-family-rejection-contract.tsv` records
+the exact pre-optimization rejection contract for structured-effect routes that
+the engine already rejects across non-Gaussian families and endpoints. It
+covers `student()`/`spatial`, `beta()`/`animal`, `Gamma()`/`relmat`, and
+`cumulative_logit()`/`phylo` on `mu`; `beta()`/`animal` on `sigma`;
+`student()`/`phylo` on `nu`; `poisson()`/`spatial` on `zi`; and
+`truncated_nbinom2()`/`relmat` on `hu`. Each intercept-only `q1` cell is
+rejected at the formula gate (`Structured non-Gaussian paths`), so each linked
+`qseries_*_rejected` cell stays `unsupported`. These rows complete the
+exact-cell boundary coverage: structured support for one family, endpoint, or
+provider never implies it for another. The rows are rejection evidence only and
+do not promote parser-ready, point-fit, bridge, interval, coverage, REML,
+AI-REML, public-support, or q4/q8 status; each stays `unsupported` until a
+supported route is designed, implemented, and tested for the exact
+provider/endpoint/family cell.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the
@@ -1068,7 +1084,20 @@ The efficient completion order is:
     `sigma` parameter, so it has no structured count scale cell. It does not
     promote parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML,
     public-support, structured count sigma, or q4/q8 status.
-39. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+39. Banked in this slice: record the non-Gaussian structured-family rejection
+    contract that documents structured-effect routes the engine already rejects
+    across non-Gaussian families and endpoints. The eight intercept-only `q1`
+    cells cover `student()`/`spatial`, `beta()`/`animal`, `Gamma()`/`relmat`,
+    and `cumulative_logit()`/`phylo` on `mu`; `beta()`/`animal` on `sigma`;
+    `student()`/`phylo` on `nu`; `poisson()`/`spatial` on `zi`; and
+    `truncated_nbinom2()`/`relmat` on `hu`. Each is rejected at the
+    pre-optimization formula gate (`Structured non-Gaussian paths`), so the
+    linked `qseries_*_rejected` cells stay `unsupported`. This completes the
+    exact-cell boundary coverage: structured support for one family, endpoint,
+    or provider never implies it for another. It is rejection evidence only and
+    does not promote parser-ready, point-fit, bridge, interval, coverage, REML,
+    AI-REML, public-support, or q4/q8 status.
+40. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.
 

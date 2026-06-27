@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-06-27: non-Gaussian structured-family rejection contract
+
+Goal:
+
+- Record the exact pre-optimization rejection contract for structured-effect
+  routes the engine already rejects across non-Gaussian families and endpoints,
+  completing the exact-cell boundary coverage so that structured support for one
+  family, endpoint, or provider never implies it for another, without promoting
+  any capability, bridge, interval, coverage, REML, AI-REML, or public-support
+  status.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-nongaussian-structured-family-rejection-contract.tsv`
+  with eight rows (`student()`/`spatial`/`mu`, `beta()`/`animal`/`mu`,
+  `Gamma()`/`relmat`/`mu`, `cumulative_logit()`/`phylo`/`mu`,
+  `beta()`/`animal`/`sigma`, `student()`/`phylo`/`nu`,
+  `poisson()`/`spatial`/`zi`, `truncated_nbinom2()`/`relmat`/`hu`), all
+  `unsupported`, citing the `Structured non-Gaussian paths` formula-gate
+  rejection.
+- Added eight `qseries_*_rejected` rows to
+  `structured-re-q-series-support-cells.tsv`, all `unsupported`.
+- Added a focused dashboard contract test to
+  `tests/testthat/test-structured-re-conversion-contracts.R`. The engine
+  evidence already lives in
+  `tests/testthat/test-nongaussian-structured-boundary.R`, so no new engine
+  test was needed.
+- Updated mission-control validation, the dashboard README, and the q-series
+  completion map.
+
+Evidence:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 8 structured
+  RE non-Gaussian structured-family rejection rows and 98 q-series cells.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-27-nongaussian-structured-family-rejection-contract.md')"`
+  passed.
+- `Rscript --vanilla -e "invisible(parse('tests/testthat/test-structured-re-conversion-contracts.R')); cat('parse_ok\n')"`
+  passed.
+- `devtools::test(...)` / `testthat::test_file(...)` could not run locally
+  because `devtools`/`testthat` are absent; the dashboard contract test runs on
+  CI.
+
+Boundary:
+
+- This is a pre-optimization rejection contract only. It documents that the
+  listed structured non-Gaussian routes are rejected; it does not implement or
+  promote structured support, bridge parity, intervals, coverage, REML,
+  AI-REML, public support, or q4/q8 status for any family, endpoint, or
+  provider.
+
 ## 2026-06-26: count NB2 sigma one-slope structured-scale rejection contract
 
 Goal:

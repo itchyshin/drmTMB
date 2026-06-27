@@ -93,6 +93,9 @@ STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
 STRUCTURED_RE_COUNT_SLOPE_SIGMA_ONE_SLOPE_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-count-slope-sigma-one-slope-rejection-contract.tsv"
 )
+STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT = (
+    DASHBOARD / "structured-re-nongaussian-structured-family-rejection-contract.tsv"
+)
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
     DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
 )
@@ -1649,6 +1652,26 @@ STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT_FIELDS = (
     "next_gate",
 )
 STRUCTURED_RE_COUNT_SLOPE_SIGMA_ONE_SLOPE_REJECTION_CONTRACT_FIELDS = (
+    "rejection_id",
+    "cell_id",
+    "formula_cell",
+    "family",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "expected_error_pattern",
+    "rejection_stage",
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT_FIELDS = (
     "rejection_id",
     "cell_id",
     "formula_cell",
@@ -5449,6 +5472,9 @@ def main() -> int:
     )
     structured_re_count_slope_sigma_one_slope_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_COUNT_SLOPE_SIGMA_ONE_SLOPE_REJECTION_CONTRACT
+    )
+    structured_re_nongaussian_structured_family_rejection_contract_rows = read_tsv(
+        STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT
     )
     structured_re_mu_slope_fixture_audit_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
@@ -11301,6 +11327,190 @@ def main() -> int:
             errors.append(f"{row_id}: next_gate must require a scale-side design")
         if not evidence_reference_exists(row.get("evidence_url", "")):
             errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
+    expected_nongaussian_structured_rejections = {
+        "nongaussian_struct_reject_student_mu_spatial": {
+            "cell_id": "qseries_student_mu_spatial_rejected",
+            "family": "student()",
+            "structured_type": "spatial",
+            "endpoint": "mu",
+            "formula_fragment": "spatial(1 | id, coords = coords) in mu",
+            "claim_fragment": "Fixed-covariance spatial",
+        },
+        "nongaussian_struct_reject_beta_mu_animal": {
+            "cell_id": "qseries_beta_mu_animal_rejected",
+            "family": "beta()",
+            "structured_type": "animal",
+            "endpoint": "mu",
+            "formula_fragment": "animal(1 | id, pedigree = ped) in mu",
+            "claim_fragment": "A-matrix animal",
+        },
+        "nongaussian_struct_reject_gamma_mu_relmat": {
+            "cell_id": "qseries_gamma_mu_relmat_rejected",
+            "family": "Gamma()",
+            "structured_type": "relmat",
+            "endpoint": "mu",
+            "formula_fragment": "relmat(1 | id, K = K) in mu",
+            "claim_fragment": "relmat K/Q",
+        },
+        "nongaussian_struct_reject_ordinal_mu_phylo": {
+            "cell_id": "qseries_ordinal_mu_phylo_rejected",
+            "family": "cumulative_logit()",
+            "structured_type": "phylo",
+            "endpoint": "mu",
+            "formula_fragment": "phylo(1 | id, tree = tree) in mu",
+            "claim_fragment": "phylo branch-length",
+        },
+        "nongaussian_struct_reject_beta_sigma_animal": {
+            "cell_id": "qseries_beta_sigma_animal_rejected",
+            "family": "beta()",
+            "structured_type": "animal",
+            "endpoint": "sigma",
+            "formula_fragment": "sigma ~ animal(1 | id, pedigree = ped)",
+            "claim_fragment": "A-matrix animal",
+        },
+        "nongaussian_struct_reject_student_nu_phylo": {
+            "cell_id": "qseries_student_nu_phylo_rejected",
+            "family": "student()",
+            "structured_type": "phylo",
+            "endpoint": "nu",
+            "formula_fragment": "nu ~ phylo(1 | id, tree = tree)",
+            "claim_fragment": "phylo branch-length",
+        },
+        "nongaussian_struct_reject_poisson_zi_spatial": {
+            "cell_id": "qseries_poisson_zi_spatial_rejected",
+            "family": "poisson()",
+            "structured_type": "spatial",
+            "endpoint": "zi",
+            "formula_fragment": "zi ~ spatial(1 | id, coords = coords)",
+            "claim_fragment": "Fixed-covariance spatial",
+        },
+        "nongaussian_struct_reject_truncnbinom2_hu_relmat": {
+            "cell_id": "qseries_truncnbinom2_hu_relmat_rejected",
+            "family": "truncated_nbinom2()",
+            "structured_type": "relmat",
+            "endpoint": "hu",
+            "formula_fragment": "hu ~ relmat(1 | id, Q = Q)",
+            "claim_fragment": "relmat K/Q",
+        },
+    }
+    seen_nongaussian_structured_rejections: set[str] = set()
+    if len(
+        structured_re_nongaussian_structured_family_rejection_contract_rows
+    ) != len(expected_nongaussian_structured_rejections):
+        errors.append(
+            "structured-re-nongaussian-structured-family-rejection-contract.tsv has "
+            f"{len(structured_re_nongaussian_structured_family_rejection_contract_rows)} rows; "
+            f"expected {len(expected_nongaussian_structured_rejections)}"
+        )
+    for row in structured_re_nongaussian_structured_family_rejection_contract_rows:
+        row_id = row.get(
+            "rejection_id",
+            "<structured RE non-Gaussian structured-family rejection>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: "
+                "structured-re-nongaussian-structured-family-rejection-contract.tsv "
+                "fields do not match the rejection contract"
+            )
+        for field in (
+            STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT_FIELDS
+        ):
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        expected = expected_nongaussian_structured_rejections.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: invalid rejection_id")
+            continue
+        if row_id in seen_nongaussian_structured_rejections:
+            errors.append(
+                f"duplicate non-Gaussian structured-family rejection id: {row_id}"
+            )
+        seen_nongaussian_structured_rejections.add(row_id)
+        if row.get("cell_id") != expected["cell_id"]:
+            errors.append(f"{row_id}: cell_id must be {expected['cell_id']}")
+        qseries_row = qseries_by_cell.get(expected["cell_id"])
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series cell is missing")
+        else:
+            expected_qseries_values = {
+                "family_class": "non_gaussian",
+                "family": expected["family"],
+                "structure_provider": expected["structured_type"],
+                "dimension_pattern": "q1",
+                "endpoint_set": expected["endpoint"],
+                "slope_class": "intercept_only",
+                "fit_status": "unsupported",
+                "extractor_status": "unsupported",
+                "bridge_status": "unsupported",
+                "interval_status": "unsupported",
+                "coverage_status": "unsupported",
+                "authority_status": "source",
+                "denominator_policy": "no_denominator_until_fit",
+                "evidence_url": (
+                    "docs/dev-log/dashboard/"
+                    "structured-re-nongaussian-structured-family-rejection-contract.tsv"
+                ),
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{expected['cell_id']}: {field} must be {expected_value}"
+                    )
+            if "pre-optimization rejection evidence" not in qseries_row.get(
+                "claim_boundary", ""
+            ):
+                errors.append(
+                    f"{expected['cell_id']}: claim_boundary must mention "
+                    "pre-optimization rejection evidence"
+                )
+        expected_row_values = {
+            "family": expected["family"],
+            "structured_type": expected["structured_type"],
+            "dimension": "q1",
+            "endpoint": expected["endpoint"],
+            "slope_class": "intercept_only",
+            "expected_error_pattern": "Structured non-Gaussian paths",
+            "rejection_stage": "pre_optimization_formula_gate",
+            "fit_status": "unsupported",
+            "extractor_status": "unsupported",
+            "bridge_status": "unsupported",
+            "interval_status": "unsupported",
+            "coverage_status": "unsupported",
+            "evidence_url": (
+                "tests/testthat/test-nongaussian-structured-boundary.R"
+            ),
+        }
+        for field, expected_value in expected_row_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if expected["formula_fragment"] not in row.get("formula_cell", ""):
+            errors.append(f"{row_id}: formula_cell must name the provider formula")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            expected["claim_fragment"],
+            "rejection evidence only",
+            "structured non-Gaussian",
+            "parser-ready support",
+            "point-fit support",
+            "bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+            "public support",
+            "q4/q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if "supported scale-side route" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must require a scale-side design")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
     missing_q2_plus_q2_sigma_rejections = sorted(
         set(expected_q2_plus_q2_sigma_rejections)
         - {
@@ -28330,6 +28540,7 @@ def main() -> int:
         f", {len(structured_re_count_slope_relmat_nbinom2_local_micro_shard_rows)} structured RE count-slope relmat NB2 local micro-shard rows"
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_count_slope_sigma_one_slope_rejection_contract_rows)} structured RE count-slope sigma one-slope rejection rows"
+        f", {len(structured_re_nongaussian_structured_family_rejection_contract_rows)} structured RE non-Gaussian structured-family rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"
