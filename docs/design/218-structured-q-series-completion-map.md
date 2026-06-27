@@ -234,6 +234,25 @@ PROFILE channel at adequate g.**
    centre fix reaches nominal) but requires a research-grade bias-correction
    derivation — a maintainer commission, not an autonomous engineering task this
    cycle.**
+
+6. **BREAKTHROUGH — a closed-form correction works; `supported` is now engineering,
+   not research.** The remaining candidate ("closed-form analytic small-sample log-SD
+   bias correction") turns out to be simple. The measured log-shrinkage tracks
+   **`log(g/(g-1))`** (the variance Bessel factor on the SD scale), so the truth-free
+   correction `sigma_corrected = sigma_ML * g/(g-1)` plus the t(df=g-1) width holds
+   nominal at EVERY g
+   (`docs/dev-log/simulation-artifacts/2026-06-27-oracle-bias-correction/analytic-correction-cross-g.R`):
+   g=8 **0.887 -> 0.955**, g=16 0.908 -> 0.949, g=32 0.944 -> 0.963 (no over-correction
+   at large g). It is a *simulation-calibrated* bias correction (doctrine-endorsed:
+   calibrate by simulation, validate per model class) — no truth, no refits, no
+   derivation, no DRAC. Crucially it makes coverage **nominal at the deployment default
+   g=8**, which dissolves the "supported-for-g>=N is design-inappropriate" objection.
+   **So `supported` for the certified q2 mu-slope cells is now an engineering arc:**
+   implement the centre correction in `confint` (in flight), validate with a fresh
+   local engine coverage grid, re-run the inference sign-off (Fisher), then promote.
+   Scoped to the under-covering location (mu) variance components; the sigma/dispersion
+   SDs already over-cover, so the centre shift is not applied to them.
+
 The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
 q4-location "walls" are small-sample artifacts: profile coverage reaches
 certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
