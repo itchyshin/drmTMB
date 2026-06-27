@@ -117,6 +117,27 @@
 #'   gap is ML shrinkage bias in the variance-component point estimate (a job
 #'   for REML), not a quantile problem, so `"group"` corrects the reference
 #'   distribution, not the bias.
+#' @param bias_correct Small-sample point-estimate bias correction for the
+#'   `method = "wald"` interval. `"none"` (the default) leaves every centre at
+#'   the ML estimate and is byte-identical to previous behaviour. `"group"` is
+#'   opt-in and complements `small_sample_df`: for each structured random-effect
+#'   SD target (`phylo`, `spatial`, `animal`, `relmat`) with a resolvable group
+#'   count `g` -- the same targets `small_sample_df = "group"` widens -- it adds
+#'   a simulation-calibrated shift `log(g / (g - 1))` to the log-scale point
+#'   estimate before back-transforming, and leaves every other target (and any
+#'   SD target whose `g` cannot be matched) unshifted. The ML estimate of a
+#'   structured-RE variance-component SD is biased low on the log scale by about
+#'   `log(g / (g - 1))` -- a downward shrinkage that REML, or simply a larger
+#'   `g`, removes asymptotically; this shift moves the interval centre up to
+#'   counter that shrinkage. Used together with `small_sample_df = "group"`, the
+#'   centre shift and the t(`df = g - 1`) width act independently, giving
+#'   `exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)` and
+#'   lifting small-`g` coverage of structured-RE SD targets to nominal. Like
+#'   `small_sample_df`, it is deliberately *not* a default and is scoped to the
+#'   location-axis variance components: dispersion (`sigma`) SD intervals
+#'   already over-cover under the normal quantile, so the upward centre shift
+#'   would only push them further toward conservatism -- do not apply it as a
+#'   blanket correction.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -166,6 +187,7 @@ confint.drmTMB <- function(
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
   small_sample_df = c("none", "group"),
+  bias_correct = c("none", "group"),
   ...
 ) {
   profile_precision_missing <- missing(profile_precision)
@@ -173,6 +195,7 @@ confint.drmTMB <- function(
   method_missing <- missing(method)
   profile_engine <- match.arg(profile_engine)
   small_sample_df <- match.arg(small_sample_df)
+  bias_correct <- match.arg(bias_correct)
   method <- validate_interval_method(
     method,
     c("wald", "profile", "bootstrap"),
@@ -218,7 +241,8 @@ confint.drmTMB <- function(
       level = level,
       sd_boundary = sd_boundary,
       rho_boundary = rho_boundary,
-      small_sample_df = small_sample_df
+      small_sample_df = small_sample_df,
+      bias_correct = bias_correct
     ))
   }
 
@@ -1597,9 +1621,11 @@ drm_wald_confint <- function(
   level,
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
-  small_sample_df = c("none", "group")
+  small_sample_df = c("none", "group"),
+  bias_correct = c("none", "group")
 ) {
   small_sample_df <- match.arg(small_sample_df)
+  bias_correct <- match.arg(bias_correct)
   targets <- drm_profile_targets(object)
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
   targets <- profile_match_confint_targets(
@@ -1611,6 +1637,20 @@ drm_wald_confint <- function(
     return(empty_confint_table(method = "wald"))
   }
   warn_skew_normal_slant_wald(object, targets)
+
+  # Small-sample bias correction: when `bias_correct = "group"`, shift the
+  # log-scale point estimate of each structured-RE SD target with a resolvable
+  # group count `g` by `+log(g/(g-1))` BEFORE building the interval. This moves
+  # the interval centre (and feeds the same shifted centre into the boundary
+  # check and the response-scale back-transform); it is independent of the
+  # t-width applied through `crit`. `bias_correct = "none"` leaves
+  # `link_estimate` untouched, so the interval is byte-identical to the default.
+  if (identical(bias_correct, "group")) {
+    log_bias <- wald_target_log_bias(object, targets)
+    has_bias <- !is.na(log_bias)
+    targets$link_estimate[has_bias] <-
+      targets$link_estimate[has_bias] + log_bias[has_bias]
+  }
 
   z <- stats::qnorm((1 + level) / 2)
   # Critical-value vector: defaults to the ordinary normal quantile for every
@@ -1745,6 +1785,44 @@ wald_target_df <- function(object, targets) {
     }
   }
   df
+}
+
+# Small-sample log-scale bias correction for structured-RE SD Wald intervals.
+#
+# Returns a numeric vector, one entry per row of `targets`. For each structured
+# random-effect SD target with a resolvable group count `g` (the SAME targets
+# `wald_target_df()` identifies, via the same g-resolution path), the entry is
+# `log(g / (g - 1))` -- the closed-form centre correction that lifts the
+# downward ML shrinkage of the variance-component SD back toward its expectation
+# on the log scale. Every other target -- and any SD target whose group count
+# cannot be matched -- gets `NA_real_`, so the caller leaves its centre
+# unshifted. This never errors: an ambiguous or missing match falls back to NA.
+wald_target_log_bias <- function(object, targets) {
+  if (nrow(targets) == 0L) {
+    return(numeric(0L))
+  }
+  bias <- rep(NA_real_, nrow(targets))
+  is_sd <- !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd"
+  if (!any(is_sd)) {
+    return(bias)
+  }
+
+  structured_g <- structured_sd_group_count(object)
+  registry <- object$model$random$covariance_blocks
+
+  for (i in which(is_sd)) {
+    g <- wald_sd_target_group_count(
+      object = object,
+      target = targets[i, , drop = FALSE],
+      structured_g = structured_g,
+      registry = registry
+    )
+    if (is.finite(g) && g >= 2L) {
+      bias[i] <- log(g / (g - 1))
+    }
+  }
+  bias
 }
 
 # Group count for the single structured-RE block (phylo/spatial/animal/relmat),

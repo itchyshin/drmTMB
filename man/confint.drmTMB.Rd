@@ -23,6 +23,7 @@
   sd_boundary = 1e-04,
   rho_boundary = 0.98,
   small_sample_df = c("none", "group"),
+  bias_correct = c("none", "group"),
   ...
 )
 }
@@ -116,6 +117,28 @@ widens the interval; it does not move its centre. The residual small-\code{g}
 gap is ML shrinkage bias in the variance-component point estimate (a job
 for REML), not a quantile problem, so \code{"group"} corrects the reference
 distribution, not the bias.}
+
+\item{bias_correct}{Small-sample point-estimate bias correction for the
+\code{method = "wald"} interval. \code{"none"} (the default) leaves every centre at
+the ML estimate and is byte-identical to previous behaviour. \code{"group"} is
+opt-in and complements \code{small_sample_df}: for each structured random-effect
+SD target (\code{phylo}, \code{spatial}, \code{animal}, \code{relmat}) with a resolvable group
+count \code{g} -- the same targets \code{small_sample_df = "group"} widens -- it adds
+a simulation-calibrated shift \code{log(g / (g - 1))} to the log-scale point
+estimate before back-transforming, and leaves every other target (and any
+SD target whose \code{g} cannot be matched) unshifted. The ML estimate of a
+structured-RE variance-component SD is biased low on the log scale by about
+\code{log(g / (g - 1))} -- a downward shrinkage that REML, or simply a larger
+\code{g}, removes asymptotically; this shift moves the interval centre up to
+counter that shrinkage. Used together with \code{small_sample_df = "group"}, the
+centre shift and the t(\code{df = g - 1}) width act independently, giving
+\verb{exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)} and
+lifting small-\code{g} coverage of structured-RE SD targets to nominal. Like
+\code{small_sample_df}, it is deliberately \emph{not} a default and is scoped to the
+location-axis variance components: dispersion (\code{sigma}) SD intervals
+already over-cover under the normal quantile, so the upward centre shift
+would only push them further toward conservatism -- do not apply it as a
+blanket correction.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
