@@ -349,6 +349,16 @@ never implies it for another. The contract does not promote parser-ready,
 point-fit, bridge, interval, coverage, REML, AI-REML, public support, or q4/q8
 status.
 
+`structured-re-count-structured-mu-rejection-contract.tsv` records the exact
+pre-optimization rejection contract for six structured count `mu` routes the
+engine rejects beyond the banked one-slope cells: non-canonical (slope-only)
+coefficient, labelled `q=2` covariance, structured-plus-ordinary combination,
+zero-inflated structured (Poisson and NB2), and simultaneous structured effect
+types. Each cell is rejected at the formula gate with its own message, backed by
+`tests/testthat/test-count-structured-mu.R`, and stays `unsupported`. It promotes
+no parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML, public
+support, or q4/q8 status.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB

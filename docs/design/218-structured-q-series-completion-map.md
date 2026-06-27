@@ -319,6 +319,23 @@ AI-REML, public-support, or q4/q8 status; each stays `unsupported` until a
 supported route is designed, implemented, and tested for the exact
 provider/endpoint/family cell.
 
+`structured-re-count-structured-mu-rejection-contract.tsv` records the exact
+pre-optimization rejection contract for structured count `mu` routes the engine
+rejects beyond the banked one-slope cells: a non-canonical (slope-only)
+coefficient, a labelled `q=2` covariance, a structured term combined with an
+ordinary random effect, a zero-inflated structured term (Poisson and NB2), and
+two simultaneous structured effect types. Each cell is rejected at the formula
+gate with its own message (for example `cannot be combined` or `Only one
+structured`), backed by `tests/testthat/test-count-structured-mu.R`, so each
+linked `qseries_count_mu_*_rejected` cell stays `unsupported`. These rows answer
+the count `mu` half-cell question: the banked count `mu` one-slope cells do not
+imply multiple, labelled, combined, zero-inflated, or multi-type structured count
+`mu` support. The rows are rejection evidence only and do not promote
+parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML, public
+support, or q4/q8 status. The contracts anchor on engine message substrings; see
+`docs/dev-log/2026-06-27-rejection-contract-anchor-robustness-memo.md` for the
+recommendation to re-anchor on a condition class.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the
