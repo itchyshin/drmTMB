@@ -215,6 +215,25 @@ PROFILE channel at adequate g.**
    `supported` at the deployment default from "undefined research" into a
    **specific, in-principle-validated engine deliverable** — a parametric-bootstrap
    bias prototype is the immediate next test.
+
+5. **The cheap practical bias estimator does NOT work — which narrows the arc.**
+   The parametric-bootstrap bias prototype
+   (`docs/dev-log/simulation-artifacts/2026-06-27-bootstrap-bias-prototype/`; phylo
+   mu1:x, g=8, 16 seeds x 100 refits, 100% refit success) estimates a log-bias of
+   only **~ -0.01** — one-tenth of the oracle's -0.13 — so a bootstrap-bias-corrected
+   centre is essentially the raw ML centre. This is principled, not a bug: the
+   single-level parametric bootstrap measures the estimator's bias *at* `theta_hat`,
+   where the log-SD ML estimator is nearly median-unbiased; the oracle's -0.13 is the
+   bias *at the true parameter*, which a truth-free bootstrap cannot see (shallow
+   local bias gradient near `theta_hat`). So Wald-t, percentile bootstrap, AND
+   single-level parametric-bootstrap bias correction all fail to deliver the centre
+   fix. The remaining candidates that *could* — a closed-form analytic/REML
+   small-sample log-SD bias correction, or a double/iterated bootstrap — are genuine
+   derivation/research arcs (the scale-side restricted likelihood is underived; see
+   `199:50-60`). **Net: `supported` at deployment-g is reachable in principle (the
+   centre fix reaches nominal) but requires a research-grade bias-correction
+   derivation — a maintainer commission, not an autonomous engineering task this
+   cycle.**
 The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
 q4-location "walls" are small-sample artifacts: profile coverage reaches
 certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility

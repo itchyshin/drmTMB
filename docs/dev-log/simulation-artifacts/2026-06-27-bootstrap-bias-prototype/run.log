@@ -1,0 +1,78 @@
+[bbp] provider=phylo target=mu1:x g=8 truth=1.050 parm=sd:mu:mu1:phylo(0 + x | p | species)
+[bbp] seeds=16 (730001..730016)  B=100 bootstrap refits/seed  df_t=7
+[bbp] seed=730001  theta_hat=1.2935  bias_boot=-0.0062  n_ok=100/100  bc_t=[0.718,2.359] cov_bc_t=TRUE  (8.2s)
+[bbp] seed=730002  theta_hat=0.6363  bias_boot=-0.0029  n_ok=100/100  bc_t=[0.352,1.158] cov_bc_t=TRUE  (6.9s)
+[bbp] seed=730003  theta_hat=0.8080  bias_boot=-0.0092  n_ok=100/100  bc_t=[0.448,1.484] cov_bc_t=TRUE  (6.4s)
+[bbp] seed=730004  theta_hat=0.9316  bias_boot=-0.0050  n_ok=100/100  bc_t=[0.516,1.700] cov_bc_t=TRUE  (6.8s)
+[bbp] seed=730005  theta_hat=0.8736  bias_boot=-0.0074  n_ok=100/100  bc_t=[0.485,1.598] cov_bc_t=TRUE  (6.8s)
+[bbp] seed=730006  theta_hat=1.1385  bias_boot=-0.0010  n_ok=100/100  bc_t=[0.629,2.065] cov_bc_t=TRUE  (6.6s)
+[bbp] seed=730007  theta_hat=0.9785  bias_boot=-0.0044  n_ok=100/100  bc_t=[0.542,1.782] cov_bc_t=TRUE  (6.3s)
+[bbp] seed=730008  theta_hat=0.5977  bias_boot=-0.0208  n_ok=100/100  bc_t=[0.333,1.120] cov_bc_t=TRUE  (6.6s)
+[bbp] seed=730009  theta_hat=0.6006  bias_boot=-0.0297  n_ok=100/100  bc_t=[0.337,1.135] cov_bc_t=TRUE  (7.0s)
+[bbp] seed=730010  theta_hat=0.8571  bias_boot=-0.0040  n_ok=100/100  bc_t=[0.474,1.561] cov_bc_t=TRUE  (6.7s)
+[bbp] seed=730011  theta_hat=0.8837  bias_boot=-0.0068  n_ok=100/100  bc_t=[0.491,1.614] cov_bc_t=TRUE  (6.5s)
+[bbp] seed=730012  theta_hat=0.9365  bias_boot=+0.0002  n_ok=100/100  bc_t=[0.516,1.698] cov_bc_t=TRUE  (6.9s)
+[bbp] seed=730013  theta_hat=0.8378  bias_boot=-0.0123  n_ok=100/100  bc_t=[0.467,1.541] cov_bc_t=TRUE  (7.0s)
+[bbp] seed=730014  theta_hat=0.5720  bias_boot=-0.0311  n_ok=100/100  bc_t=[0.319,1.091] cov_bc_t=TRUE  (6.5s)
+[bbp] seed=730015  theta_hat=0.7588  bias_boot=-0.0094  n_ok=100/100  bc_t=[0.421,1.392] cov_bc_t=TRUE  (6.4s)
+[bbp] seed=730016  theta_hat=0.8710  bias_boot=-0.0143  n_ok=100/100  bc_t=[0.486,1.608] cov_bc_t=TRUE  (7.0s)
+
+===========================================================
+ BOOTSTRAP BIAS PROTOTYPE -- AGGREGATE
+ provider=phylo  target=mu1:x  g=8  truth=1.05
+===========================================================
+seeds run                       : 16 (730001..730016)
+bootstrap refits / seed (B)     : 100
+refit success rate              : 1.000 (mean 100.0 ok / 100 per seed)
+-----------------------------------------------------------
+ORACLE log-bias (known truth)   : -0.130  [reported -0.12..-0.14]
+mean point log-bias this sample : -0.2378  (log(theta_hat)-log(truth))
+mean BOOTSTRAP log-bias estimate: -0.0103  (sd across seeds 0.0094)
+  -> bootstrap recovers oracle? : diff = +0.1197
+-----------------------------------------------------------
+COVERAGE across seeds (INDICATIVE; MCSE ~0.11 at n~16):
+  Wald-z                        : 0.750 (n=16, MCSE=0.108)
+  Wald-t (df=7)                 : 1.000 (n=16, MCSE=0.000)
+  oracle-bc + t (uses truth)    : 1.000 (n=16, MCSE=0.000)
+  bootstrap-bc + t (NO truth)   : 1.000 (n=16, MCSE=0.000)
+-----------------------------------------------------------
+total runtime                   : 109.2 s (1.8 min)
+results TSV                     : /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-27-bootstrap-bias-prototype/bootstrap-bias-prototype-results.tsv
+===========================================================
+
+   seed theta_hat     bias_boot n_refit_ok cover_wald_z cover_wald_t
+ 730001 1.2935180 -0.0061876741        100         TRUE         TRUE
+ 730002 0.6363173 -0.0028706467        100        FALSE         TRUE
+ 730003 0.8079732 -0.0092440213        100         TRUE         TRUE
+ 730004 0.9315652 -0.0049686386        100         TRUE         TRUE
+ 730005 0.8735920 -0.0074179842        100         TRUE         TRUE
+ 730006 1.1385197 -0.0010497342        100         TRUE         TRUE
+ 730007 0.9784510 -0.0044216783        100         TRUE         TRUE
+ 730008 0.5977265 -0.0208407101        100        FALSE         TRUE
+ 730009 0.6005962 -0.0296778269        100        FALSE         TRUE
+ 730010 0.8571206 -0.0039820111        100         TRUE         TRUE
+ 730011 0.8837438 -0.0067738256        100         TRUE         TRUE
+ 730012 0.9364652  0.0002152795        100         TRUE         TRUE
+ 730013 0.8378048 -0.0122534335        100         TRUE         TRUE
+ 730014 0.5719705 -0.0310637948        100        FALSE         TRUE
+ 730015 0.7587807 -0.0093709156        100         TRUE         TRUE
+ 730016 0.8710221 -0.0143262997        100         TRUE         TRUE
+ cover_oracle_bc cover_boot_bc_t fit_status
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+            TRUE            TRUE         ok
+
+VERDICT (heuristic): bootstrap-recovers-oracle=FALSE ; bc+t-near-nominal=FALSE
