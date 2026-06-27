@@ -150,6 +150,60 @@ The current table records these broad facts without promoting beyond them:
   support. Direct SD profile feasibility and derived correlation interval
   reliability are separate cells.
 
+## 2026-06-27 — Interval-Method Levers Exhausted; the Finish Line Is a Design Decision
+
+Two adversarially-checked scoping workflows this cycle settle what remains
+between the current evidence and a `supported` promotion. The answer is **not
+more engine work**.
+
+1. **The t-quantile lever is shipped and bounded.** `confint(..., method =
+   "wald", small_sample_df = "group")` (commit `34cece73`) references a
+   t-quantile with `df = g-1` for structured-RE SD targets. A paired g=8/16/32
+   recompute (`docs/dev-log/simulation-artifacts/2026-06-27-t-interval-recompute/`)
+   shows it lifts the under-covering q2 `mu`-slope SD lane (0.885 -> 0.931 at
+   g=8) and converges back to z by g=32. It is opt-in and scoped: the dispersion
+   (`sigma`) SDs already over-cover under z, so t over-inflates them — a blanket
+   default would harm them (flagged cross-team as gllvmTMB#565). The t-quantile
+   corrects the *reference distribution*, not the biased *centre*; a residual
+   ~0.93-at-g=8 gap remains on the q2 lane.
+
+2. **REML is NOT the fix for that residual, and is not a drmTMB-only deliverable.**
+   An adversarial scoping pass
+   (`docs/dev-log/simulation-artifacts/2026-06-27-reml-unblock-scoping/`) found:
+   (a) drmTMB native REML is exact restricted ML that marginalises only the mean
+   *fixed* effects (`R/drmTMB.R:825-833`) — location-only by construction;
+   (b) the g=8 bias lives on the structured location-*scale* SD (`sigma`/`rho`
+   submodels), where the restricted likelihood is a *different, underived*
+   objective (`docs/design/199:50-60`), and the scope-gate rows fence
+   `sigma`/q2/q4 REML as `unsupported_until_derived`; (c) the only relevant
+   correction (q4 Patterson-Thompson) lives in DRM.jl, not drmTMB; (d) the sole
+   banked REML un-shrinkage evidence is for an *ordinary* intercept (location-only,
+   n=18) — the wrong cell — and there is **no in-repo evidence REML moves the
+   structured-SD centre at g=8.** Treating "unblock REML" as the g=8 coverage fix
+   is unsupported optimism. (Unblocking biv structured-RE REML as a *separate*
+   estimation capability is tractable but large, gated on deriving the
+   structured-mean bivariate restricted likelihood first, and even then reaches
+   only the mean axis, not the `sigma`/`rho` axis where the bias sits.)
+
+**Therefore the validated completion path is the PROFILE channel at adequate g.**
+The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
+q4-location "walls" are small-sample artifacts: profile coverage reaches
+certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
+evaporates (phylo 48.6% -> 5.0%, relmat 22.9% -> 0.0%) by g=32, with the eight
+certified cells passing the interval-reliability rung via the profile channel.
+
+**What is left is a maintainer DESIGN DECISION, not code.** No cell earns
+`supported` this cycle: `supported` requires deployment-g nominal coverage, which
+needs either the future scale-side REML derivation (large; partly upstream
+DRM.jl) or accepting larger-g (g>=32) as the deployment recommendation. The
+maximal honest machine move is promoting the g=32-certified phylo+relmat cells to
+`interval_feasible` — a ~185-guard coordinated edit the standing HOLD panel gated
+behind maintainer + Pat/`user_tester` + Darwin/`audience_reviewer` sign-off.
+Until that decision is made, every cell keeps `interval_status = planned` and
+`coverage_status = planned`, and the honest public recommendation is: **use the
+profile channel and an adequate group count (g>=32); the Wald-t opt-in narrows
+the small-g gap but does not by itself reach nominal at the deployment default.**
+
 ## Why the Older Work Drifted
 
 The first q-series waves were productive because they chose valuable cells
