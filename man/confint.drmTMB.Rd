@@ -217,3 +217,75 @@ confint(fit, parm = "sigma", method = "profile")
 # Bootstrap intervals for positive scale and SD targets use link-scale
 # percentiles before back-transforming to the response scale.
 }
+\references{
+The small-sample options \code{small_sample_df = "group"} and
+\code{bias_correct = "group"} rest on established mixed-model theory; the specific
+\code{log(g / (g - 1))} SD-scale centre shift and its per-model-class simulation
+calibration are particular to \code{drmTMB} and are not attributable to a single
+source. Relevant references:
+
+Restricted maximum likelihood and the leading-order variance-component bias
+that \code{bias_correct} reproduces in closed form:
+
+Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
+when block sizes are unequal. Biometrika, 58(3), 545-554.
+\doi{10.1093/biomet/58.3.545}
+
+Harville, D. A. (1977). Maximum likelihood approaches to variance component
+estimation and to related problems. Journal of the American Statistical
+Association, 72(358), 320-338. \doi{10.1080/01621459.1977.10480998}
+
+Searle, S. R., Casella, G., & McCulloch, C. E. (1992). Variance Components.
+New York: Wiley. \doi{10.1002/9780470316856}
+
+Analytic and penalized first-order bias reduction of maximum likelihood
+estimates (the general framework an additive log-scale shift instantiates):
+
+Cox, D. R., & Snell, E. J. (1968). A general definition of residuals. Journal
+of the Royal Statistical Society, Series B, 30(2), 248-265.
+\doi{10.1111/j.2517-6161.1968.tb00724.x}
+
+Firth, D. (1993). Bias reduction of maximum likelihood estimates. Biometrika,
+80(1), 27-38. \doi{10.1093/biomet/80.1.27}
+
+The t-quantile / between-group effective degrees of freedom used by
+\code{small_sample_df}:
+
+Satterthwaite, F. E. (1946). An approximate distribution of estimates of
+variance components. Biometrics Bulletin, 2(6), 110-114.
+\doi{10.2307/3002019}
+
+Kenward, M. G., & Roger, J. H. (1997). Small sample inference for fixed
+effects from restricted maximum likelihood. Biometrics, 53(3), 983-997.
+\doi{10.2307/2533558}
+
+Boundary regime (a variance component at or near zero), where neither the
+t-width nor the centre shift restores nominal coverage:
+
+Self, S. G., & Liang, K.-Y. (1987). Asymptotic properties of maximum
+likelihood estimators and likelihood ratio tests under nonstandard
+conditions. Journal of the American Statistical Association, 82(398),
+605-610. \doi{10.1080/01621459.1987.10478472}
+
+Stram, D. O., & Lee, J. W. (1994). Variance components testing in the
+longitudinal mixed effects model. Biometrics, 50(4), 1171-1177.
+\doi{10.2307/2533455}
+
+Parametric-bootstrap bias correction of mixed-model variance components, and
+the general delicacy of bootstrap bias estimation (a single-level parametric
+bootstrap does not recover the centre bias for these targets at small \code{g}):
+
+Kubokawa, T., & Nagashima, B. (2012). Parametric bootstrap methods for bias
+correction in linear mixed models. Journal of Multivariate Analysis, 106,
+1-16. \doi{10.1016/j.jmva.2012.01.011}
+
+Efron, B., & Tibshirani, R. J. (1993). An Introduction to the Bootstrap. New
+York: Chapman & Hall.
+
+Small-sample variance-component (repeatability) interval coverage in ecology
+and evolution:
+
+Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
+estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
+\doi{10.1111/j.2041-210X.2011.00125.x}
+}

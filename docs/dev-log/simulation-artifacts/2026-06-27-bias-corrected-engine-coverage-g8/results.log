@@ -1,0 +1,14 @@
+[16:43:48] phylo mu1:x  parm=sd:mu:mu1:phylo(0 + x | p | species) truth=1.050
+[16:44:38] relmat mu1:x  parm=sd:mu:mu1:relmat(0 + x | p | id) truth=1.050
+[16:45:29] phylo mu2:x  parm=sd:mu:mu2:phylo(0 + x | p | species) truth=0.900
+[16:46:18] relmat mu2:x  parm=sd:mu:mu2:relmat(0 + x | p | id) truth=0.900
+
+=== ENGINE bias-corrected+t coverage at g=8 (SR475) ===
+cell                 n   wald_z     bc+t  mcse_bc
+phylo mu1:x        475    0.895    0.964   0.0085
+relmat mu1:x       475    0.893    0.964   0.0085
+phylo mu2:x        475    0.876    0.943   0.0106
+relmat mu2:x       475    0.874    0.945   0.0104
+
+POOLED  n=1900  wald_z=0.884  bc+t=0.954  (mcse 0.0048)
+DONE
