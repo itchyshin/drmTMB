@@ -69864,3 +69864,45 @@ Boundary:
   coverage_status, no interval_status, nothing to supported. Re-run plan to
   certify: g>=32, >=500 paired-seed reps (certification grid running) + a separate
   interval-reliability rung. No DRM.jl, no Ayumi reply.
+
+## 2026-06-27: certification + q4 reframe (the three walls were all small-sample)
+
+Goal:
+
+- Certify the g-sweep finding (sigma+q2 at g=32, 500 reps) and test whether q4's
+  pdHess fragility is also surmountable by g (Phase 3).
+
+Result:
+
+- CERTIFICATION (g=32, 500 reps, MCSE ~0.010): the PROFILE channel reaches NOMINAL
+  for all 8 sigma+q2 cells (0.948-0.958); Wald near-nominal (0.934-0.964). Banked
+  docs/dev-log/dashboard/structured-re-slope-coverage-certification.tsv (8 rows).
+- Fisher: q2 under-coverage is a WALD problem (ML SD-shrinkage); the PROFILE
+  interval self-corrects it (g=8 profile ~0.91 vs Wald ~0.88; g=32 profile
+  nominal). REML engine-blocked this cycle; 'supported for g>=N' design-
+  inappropriate (g-agnostic cells). Profile is the supportable channel.
+- Gauss: q4-LOCATION pdHess failure drops monotonically with g (phylo
+  48.6%->30%->5%; relmat 22.9%->8.3%->0% at g=8/16/32); finite-fraction -> 0.95-1.
+  q4-location censoring is small-sample, NOT an engine wall; reparam_still_needed
+  = false (log-Cholesky filed as optional hardening + A/B plan). Patched the
+  q4-location runner with the GSWEEP_N_GROUPS hook. Caveat: scale-side q4 (sigma-
+  SD lower bound) is a separate mechanism, not covered.
+- Reframe: the three 'walls' (q2 intervals, q4 pdHess, cluster-only coverage) were
+  all small-sample/assumption artifacts. The lanes are surmountable/near-nominal.
+
+Evidence:
+
+- All grids ran on drmTMB 0.1.4 locally; python3 tools/validate-mission-control.py:
+  mission_control_ok, 8 certification rows + 18 g-sweep rows.
+- Fisher+Curie verified the g-sweep; Gauss ran the q4-location g-sweep + read
+  src/drmTMB.cpp for the reparam.
+- After-task: docs/dev-log/after-task/2026-06-27-gsweep-certification-and-q4-reframe.md.
+
+Boundary:
+
+- DIAGNOSTIC + certification-at-g=32 only. NO coverage_status moved off planned;
+  interval_status untouched (coverage != supported); nothing reached supported; the
+  g-agnostic cells are NOT promoted by a g=32 certification. Genuine remaining
+  gates: the interval-reliability rung, the g-conditional-claim design decision,
+  scale-side q4, and the relmat-Q bridge (upstream). No engine change shipped, no
+  DRM.jl, no PR merge implied.

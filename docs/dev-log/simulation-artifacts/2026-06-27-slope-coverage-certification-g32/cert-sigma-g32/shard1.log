@@ -1,0 +1,69 @@
+[grid] Shard map:
+  shard 1: provider=phylo     target=sigma:(Intercept)
+  shard 2: provider=phylo     target=sigma:x
+  shard 3: provider=spatial   target=sigma:(Intercept)
+  shard 4: provider=spatial   target=sigma:x
+  shard 5: provider=animal    target=sigma:(Intercept)
+  shard 6: provider=relmat    target=sigma:(Intercept)
+  shard 7: provider=relmat    target=sigma:x
+[grid] animal sigma:x is an EXCLUDED holdout (profile failure) -- not in this map.
+[grid] shard=1  provider=phylo  target=sigma:(Intercept)  truth_sd=0.50
+[grid] n_rep=500  seed_start=7932001  bootstrap=0
+[grid] Seeds to run: 500 (of 500 total).
+[grid] drmTMB loaded (installed_namespace_loaded).
+[grid] rep 10/500 (seed 7932010): status=fit_ok  wald=finite  profile=finite  26.3s  (0.38 rep/s)
+[grid] rep 20/500 (seed 7932020): status=fit_ok  wald=finite  profile=finite  52.0s  (0.38 rep/s)
+[grid] rep 30/500 (seed 7932030): status=fit_ok  wald=finite  profile=finite  78.3s  (0.38 rep/s)
+[grid] rep 40/500 (seed 7932040): status=fit_ok  wald=finite  profile=finite  103.7s  (0.39 rep/s)
+[grid] rep 50/500 (seed 7932050): status=fit_ok  wald=finite  profile=finite  129.3s  (0.39 rep/s)
+[grid] rep 60/500 (seed 7932060): status=fit_ok  wald=finite  profile=finite  152.8s  (0.39 rep/s)
+[grid] rep 70/500 (seed 7932070): status=fit_ok  wald=finite  profile=finite  180.2s  (0.39 rep/s)
+[grid] rep 80/500 (seed 7932080): status=fit_ok  wald=finite  profile=finite  206.5s  (0.39 rep/s)
+[grid] rep 90/500 (seed 7932090): status=fit_ok  wald=finite  profile=finite  233.2s  (0.39 rep/s)
+[grid] rep 100/500 (seed 7932100): status=fit_ok  wald=finite  profile=finite  259.7s  (0.39 rep/s)
+[grid] rep 110/500 (seed 7932110): status=fit_ok  wald=finite  profile=finite  284.3s  (0.39 rep/s)
+[grid] rep 120/500 (seed 7932120): status=fit_ok  wald=finite  profile=finite  310.6s  (0.39 rep/s)
+[grid] rep 130/500 (seed 7932130): status=fit_ok  wald=finite  profile=finite  338.0s  (0.38 rep/s)
+[grid] rep 140/500 (seed 7932140): status=fit_ok  wald=finite  profile=finite  363.9s  (0.38 rep/s)
+[grid] rep 150/500 (seed 7932150): status=fit_ok  wald=finite  profile=finite  388.2s  (0.39 rep/s)
+[grid] rep 160/500 (seed 7932160): status=fit_ok  wald=finite  profile=finite  412.6s  (0.39 rep/s)
+[grid] rep 170/500 (seed 7932170): status=fit_ok  wald=finite  profile=finite  437.1s  (0.39 rep/s)
+[grid] rep 180/500 (seed 7932180): status=fit_ok  wald=finite  profile=finite  462.0s  (0.39 rep/s)
+[grid] rep 190/500 (seed 7932190): status=fit_ok  wald=finite  profile=finite  488.7s  (0.39 rep/s)
+[grid] rep 200/500 (seed 7932200): status=fit_ok  wald=finite  profile=finite  514.2s  (0.39 rep/s)
+[grid] rep 210/500 (seed 7932210): status=fit_ok  wald=finite  profile=finite  539.8s  (0.39 rep/s)
+[grid] rep 220/500 (seed 7932220): status=fit_ok  wald=finite  profile=finite  564.4s  (0.39 rep/s)
+[grid] rep 230/500 (seed 7932230): status=fit_ok  wald=finite  profile=finite  589.3s  (0.39 rep/s)
+[grid] rep 240/500 (seed 7932240): status=fit_ok  wald=finite  profile=finite  615.3s  (0.39 rep/s)
+[grid] rep 250/500 (seed 7932250): status=fit_ok  wald=finite  profile=finite  640.6s  (0.39 rep/s)
+[grid] rep 260/500 (seed 7932260): status=fit_ok  wald=finite  profile=finite  667.9s  (0.39 rep/s)
+[grid] rep 270/500 (seed 7932270): status=fit_ok  wald=finite  profile=finite  692.8s  (0.39 rep/s)
+[grid] rep 280/500 (seed 7932280): status=fit_ok  wald=finite  profile=finite  717.9s  (0.39 rep/s)
+[grid] rep 290/500 (seed 7932290): status=fit_ok  wald=finite  profile=finite  744.6s  (0.39 rep/s)
+[grid] rep 300/500 (seed 7932300): status=fit_ok  wald=finite  profile=finite  768.2s  (0.39 rep/s)
+[grid] rep 310/500 (seed 7932310): status=fit_ok  wald=finite  profile=finite  794.0s  (0.39 rep/s)
+[grid] rep 320/500 (seed 7932320): status=fit_ok  wald=finite  profile=finite  819.3s  (0.39 rep/s)
+[grid] rep 330/500 (seed 7932330): status=fit_ok  wald=finite  profile=finite  842.5s  (0.39 rep/s)
+[grid] rep 340/500 (seed 7932340): status=fit_ok  wald=finite  profile=finite  867.7s  (0.39 rep/s)
+[grid] rep 350/500 (seed 7932350): status=fit_ok  wald=finite  profile=finite  892.8s  (0.39 rep/s)
+[grid] rep 360/500 (seed 7932360): status=fit_ok  wald=finite  profile=finite  916.9s  (0.39 rep/s)
+[grid] rep 370/500 (seed 7932370): status=fit_ok  wald=finite  profile=finite  941.5s  (0.39 rep/s)
+[grid] rep 380/500 (seed 7932380): status=fit_ok  wald=finite  profile=finite  965.5s  (0.39 rep/s)
+[grid] rep 390/500 (seed 7932390): status=fit_ok  wald=finite  profile=finite  990.6s  (0.39 rep/s)
+[grid] rep 400/500 (seed 7932400): status=fit_ok  wald=finite  profile=finite  1013.7s  (0.39 rep/s)
+[grid] rep 410/500 (seed 7932410): status=fit_ok  wald=finite  profile=finite  1037.1s  (0.40 rep/s)
+[grid] rep 420/500 (seed 7932420): status=fit_ok  wald=finite  profile=finite  1061.2s  (0.40 rep/s)
+[grid] rep 430/500 (seed 7932430): status=fit_ok  wald=finite  profile=finite  1086.7s  (0.40 rep/s)
+[grid] rep 440/500 (seed 7932440): status=fit_ok  wald=finite  profile=finite  1111.6s  (0.40 rep/s)
+[grid] rep 450/500 (seed 7932450): status=fit_ok  wald=finite  profile=finite  1136.3s  (0.40 rep/s)
+[grid] rep 460/500 (seed 7932460): status=fit_ok  wald=finite  profile=finite  1160.4s  (0.40 rep/s)
+[grid] rep 470/500 (seed 7932470): status=fit_ok  wald=finite  profile=finite  1184.8s  (0.40 rep/s)
+[grid] rep 480/500 (seed 7932480): status=fit_ok  wald=finite  profile=finite  1209.5s  (0.40 rep/s)
+[grid] rep 490/500 (seed 7932490): status=fit_ok  wald=finite  profile=finite  1233.4s  (0.40 rep/s)
+[grid] rep 500/500 (seed 7932500): status=fit_ok  wald=finite  profile=finite  1257.0s  (0.40 rep/s)
+[grid] wrote /tmp/cert-sigma-g32/01-phylo-sigma_intercept-replicates.tsv
+[grid] wrote /tmp/cert-sigma-g32/01-phylo-sigma_intercept-summary.tsv
+[grid] DONE: shard=1  provider=phylo  target=sigma:(Intercept)
+[grid] n_fit_ok=500  n_boundary=0  n_wald_fin=500  wald_cov=0.940  wald_mcse=0.0106
+[grid] n_profile_fin=500  prof_cov=0.948  prof_mcse=0.0099
+[grid] total elapsed 1257.0 s  (2.51 s/rep)

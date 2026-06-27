@@ -108,6 +108,9 @@ STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS = (
 STRUCTURED_RE_SLOPE_COVERAGE_GSWEEP = (
     DASHBOARD / "structured-re-slope-coverage-gsweep.tsv"
 )
+STRUCTURED_RE_SLOPE_COVERAGE_CERTIFICATION = (
+    DASHBOARD / "structured-re-slope-coverage-certification.tsv"
+)
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
     DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
 )
@@ -1783,6 +1786,24 @@ STRUCTURED_RE_SLOPE_COVERAGE_GSWEEP_FIELDS = (
     "bias",
     "g8_baseline_coverage",
     "verdict",
+    "linked_cell_id",
+    "linked_coverage_status",
+    "evidence_url",
+    "claim_boundary",
+)
+STRUCTURED_RE_SLOPE_COVERAGE_CERTIFICATION_FIELDS = (
+    "cert_id",
+    "lane",
+    "provider",
+    "target",
+    "n_groups",
+    "n_rep",
+    "wald_coverage",
+    "wald_mcse",
+    "profile_coverage",
+    "profile_mcse",
+    "bias",
+    "certified_verdict",
     "linked_cell_id",
     "linked_coverage_status",
     "evidence_url",
@@ -5584,6 +5605,9 @@ def main() -> int:
     )
     structured_re_slope_coverage_gsweep_rows = read_tsv(
         STRUCTURED_RE_SLOPE_COVERAGE_GSWEEP
+    )
+    structured_re_slope_coverage_certification_rows = read_tsv(
+        STRUCTURED_RE_SLOPE_COVERAGE_CERTIFICATION
     )
     structured_re_mu_slope_fixture_audit_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
@@ -11899,6 +11923,47 @@ def main() -> int:
             errors.append(
                 f"{row_id}: linked_coverage_status must be 'planned' "
                 "(g-sweep is diagnostic, promotes nothing)"
+            )
+        linked = qseries_by_cell.get(row.get("linked_cell_id", ""))
+        if linked is None:
+            errors.append(
+                f"{row_id}: linked_cell_id {row.get('linked_cell_id')!r} "
+                "not in the support-cell table"
+            )
+        elif linked.get("coverage_status") != "planned":
+            errors.append(
+                f"{row_id}: linked cell coverage_status must still be 'planned'"
+            )
+
+    # --- structured-re slope coverage certification (g=32, 500 reps; profile nominal) ---
+    # CERTIFIES coverage AT g=32 only; does NOT promote g-agnostic cells, does NOT
+    # advance interval_status. Linked cells stay coverage_status 'planned'.
+    seen_cert_ids: set[str] = set()
+    if len(structured_re_slope_coverage_certification_rows) != 8:
+        errors.append(
+            "structured-re-slope-coverage-certification.tsv: expected 8 rows "
+            f"(4 sigma + 4 q2); got "
+            f"{len(structured_re_slope_coverage_certification_rows)}"
+        )
+    for row in structured_re_slope_coverage_certification_rows:
+        row_id = row.get("cert_id", "<cert row>")
+        if set(row.keys()) != set(STRUCTURED_RE_SLOPE_COVERAGE_CERTIFICATION_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-slope-coverage-certification.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_SLOPE_COVERAGE_CERTIFICATION_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_cert_ids:
+            errors.append(f"duplicate certification id: {row_id}")
+        seen_cert_ids.add(row_id)
+        if row.get("lane") not in ("sigma_slope", "q2_slope"):
+            errors.append(f"{row_id}: invalid lane {row.get('lane')!r}")
+        if row.get("linked_coverage_status") != "planned":
+            errors.append(
+                f"{row_id}: linked_coverage_status must be 'planned' "
+                "(certification at g=32 does not promote the g-agnostic cell)"
             )
         linked = qseries_by_cell.get(row.get("linked_cell_id", ""))
         if linked is None:
@@ -28945,6 +29010,7 @@ def main() -> int:
         f", {len(structured_re_slope_coverage_results_rows)} structured RE slope coverage-results rows"
         f", {len(structured_re_count_slope_recovery_results_rows)} structured RE count-slope recovery-results rows"
         f", {len(structured_re_slope_coverage_gsweep_rows)} structured RE slope coverage g-sweep rows"
+        f", {len(structured_re_slope_coverage_certification_rows)} structured RE slope coverage certification rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"

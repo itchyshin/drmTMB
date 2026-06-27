@@ -1,0 +1,73 @@
+[grid] Shard map:
+  shard 1: provider=phylo     target=mu1:x                 kind=direct_sd
+  shard 2: provider=phylo     target=mu2:x                 kind=direct_sd
+  shard 3: provider=phylo     target=mu1:x+mu2:x           kind=direct_correlation
+  shard 4: provider=spatial   target=mu1:x                 kind=direct_sd
+  shard 5: provider=spatial   target=mu2:x                 kind=direct_sd
+  shard 6: provider=spatial   target=mu1:x+mu2:x           kind=direct_correlation
+  shard 7: provider=animal    target=mu1:x                 kind=direct_sd
+  shard 8: provider=animal    target=mu2:x                 kind=direct_sd
+  shard 9: provider=relmat    target=mu1:x                 kind=direct_sd
+  shard 10: provider=relmat    target=mu2:x                 kind=direct_sd
+[grid] EXCLUDED HOLDOUTS (not in map; profile failures): animal cor(mu1:x,mu2:x) and relmat cor(mu1:x,mu2:x)
+[grid] shard=1  provider=phylo  target=mu1:x  truth=1.050
+[grid] parm_name=sd:mu:mu1:phylo(0 + x | p | species)
+[grid] n_rep=500  seed_start=7932001  bootstrap=0
+[grid] Seeds to run: 500 (of 500 total).
+[grid] drmTMB loaded (installed_namespace_loaded).
+[grid] rep 10/500 (seed 7932010): status=fit_ok  wald=finite  profile=finite  20.3s  (0.49 rep/s)
+[grid] rep 20/500 (seed 7932020): status=fit_ok  wald=finite  profile=finite  41.3s  (0.48 rep/s)
+[grid] rep 30/500 (seed 7932030): status=fit_ok  wald=finite  profile=finite  61.0s  (0.49 rep/s)
+[grid] rep 40/500 (seed 7932040): status=fit_ok  wald=finite  profile=finite  79.1s  (0.51 rep/s)
+[grid] rep 50/500 (seed 7932050): status=fit_ok  wald=finite  profile=finite  98.4s  (0.51 rep/s)
+[grid] rep 60/500 (seed 7932060): status=fit_ok  wald=finite  profile=finite  116.7s  (0.51 rep/s)
+[grid] rep 70/500 (seed 7932070): status=fit_ok  wald=finite  profile=finite  135.3s  (0.52 rep/s)
+[grid] rep 80/500 (seed 7932080): status=fit_ok  wald=finite  profile=finite  155.8s  (0.51 rep/s)
+[grid] rep 90/500 (seed 7932090): status=fit_ok  wald=finite  profile=finite  175.7s  (0.51 rep/s)
+[grid] rep 100/500 (seed 7932100): status=fit_ok  wald=finite  profile=finite  196.2s  (0.51 rep/s)
+[grid] rep 110/500 (seed 7932110): status=fit_ok  wald=finite  profile=finite  214.7s  (0.51 rep/s)
+[grid] rep 120/500 (seed 7932120): status=fit_ok  wald=finite  profile=finite  233.8s  (0.51 rep/s)
+[grid] rep 130/500 (seed 7932130): status=fit_ok  wald=finite  profile=finite  252.7s  (0.51 rep/s)
+[grid] rep 140/500 (seed 7932140): status=fit_ok  wald=finite  profile=finite  272.5s  (0.51 rep/s)
+[grid] rep 150/500 (seed 7932150): status=fit_ok  wald=finite  profile=finite  291.7s  (0.51 rep/s)
+[grid] rep 160/500 (seed 7932160): status=fit_ok  wald=finite  profile=finite  310.8s  (0.51 rep/s)
+[grid] rep 170/500 (seed 7932170): status=fit_ok  wald=finite  profile=finite  328.0s  (0.52 rep/s)
+[grid] rep 180/500 (seed 7932180): status=fit_ok  wald=finite  profile=finite  346.8s  (0.52 rep/s)
+[grid] rep 190/500 (seed 7932190): status=fit_ok  wald=finite  profile=finite  366.5s  (0.52 rep/s)
+[grid] rep 200/500 (seed 7932200): status=fit_ok  wald=finite  profile=finite  385.7s  (0.52 rep/s)
+[grid] rep 210/500 (seed 7932210): status=fit_ok  wald=finite  profile=finite  405.5s  (0.52 rep/s)
+[grid] rep 220/500 (seed 7932220): status=fit_ok  wald=finite  profile=finite  425.5s  (0.52 rep/s)
+[grid] rep 230/500 (seed 7932230): status=fit_ok  wald=finite  profile=finite  444.2s  (0.52 rep/s)
+[grid] rep 240/500 (seed 7932240): status=fit_ok  wald=finite  profile=finite  462.2s  (0.52 rep/s)
+[grid] rep 250/500 (seed 7932250): status=fit_ok  wald=finite  profile=finite  481.2s  (0.52 rep/s)
+[grid] rep 260/500 (seed 7932260): status=fit_ok  wald=finite  profile=finite  500.7s  (0.52 rep/s)
+[grid] rep 270/500 (seed 7932270): status=fit_ok  wald=finite  profile=finite  520.7s  (0.52 rep/s)
+[grid] rep 280/500 (seed 7932280): status=fit_ok  wald=finite  profile=finite  540.1s  (0.52 rep/s)
+[grid] rep 290/500 (seed 7932290): status=fit_ok  wald=finite  profile=finite  559.7s  (0.52 rep/s)
+[grid] rep 300/500 (seed 7932300): status=fit_ok  wald=finite  profile=finite  579.2s  (0.52 rep/s)
+[grid] rep 310/500 (seed 7932310): status=fit_ok  wald=finite  profile=finite  597.5s  (0.52 rep/s)
+[grid] rep 320/500 (seed 7932320): status=fit_ok  wald=finite  profile=finite  616.0s  (0.52 rep/s)
+[grid] rep 330/500 (seed 7932330): status=fit_ok  wald=finite  profile=finite  634.0s  (0.52 rep/s)
+[grid] rep 340/500 (seed 7932340): status=fit_ok  wald=finite  profile=finite  653.3s  (0.52 rep/s)
+[grid] rep 350/500 (seed 7932350): status=fit_ok  wald=finite  profile=finite  672.1s  (0.52 rep/s)
+[grid] rep 360/500 (seed 7932360): status=fit_ok  wald=finite  profile=finite  690.9s  (0.52 rep/s)
+[grid] rep 370/500 (seed 7932370): status=fit_ok  wald=finite  profile=finite  709.5s  (0.52 rep/s)
+[grid] rep 380/500 (seed 7932380): status=fit_ok  wald=finite  profile=finite  728.3s  (0.52 rep/s)
+[grid] rep 390/500 (seed 7932390): status=fit_ok  wald=finite  profile=finite  747.4s  (0.52 rep/s)
+[grid] rep 400/500 (seed 7932400): status=fit_ok  wald=finite  profile=finite  765.9s  (0.52 rep/s)
+[grid] rep 410/500 (seed 7932410): status=fit_ok  wald=finite  profile=finite  785.8s  (0.52 rep/s)
+[grid] rep 420/500 (seed 7932420): status=fit_ok  wald=finite  profile=finite  803.7s  (0.52 rep/s)
+[grid] rep 430/500 (seed 7932430): status=fit_ok  wald=finite  profile=finite  822.5s  (0.52 rep/s)
+[grid] rep 440/500 (seed 7932440): status=fit_ok  wald=finite  profile=finite  843.5s  (0.52 rep/s)
+[grid] rep 450/500 (seed 7932450): status=fit_ok  wald=finite  profile=finite  862.1s  (0.52 rep/s)
+[grid] rep 460/500 (seed 7932460): status=fit_ok  wald=finite  profile=finite  881.9s  (0.52 rep/s)
+[grid] rep 470/500 (seed 7932470): status=fit_ok  wald=finite  profile=finite  901.0s  (0.52 rep/s)
+[grid] rep 480/500 (seed 7932480): status=fit_ok  wald=finite  profile=finite  919.8s  (0.52 rep/s)
+[grid] rep 490/500 (seed 7932490): status=fit_ok  wald=finite  profile=finite  938.8s  (0.52 rep/s)
+[grid] rep 500/500 (seed 7932500): status=fit_ok  wald=finite  profile=finite  957.0s  (0.52 rep/s)
+[grid] wrote /tmp/cert-q2-g32/01-phylo-mu1_x-replicates.tsv
+[grid] wrote /tmp/cert-q2-g32/01-phylo-mu1_x-summary.tsv
+[grid] DONE: shard=1  provider=phylo  target=mu1:x
+[grid] n_fit_ok=500  n_boundary=0  n_wald_fin=500  wald_cov=0.934  wald_mcse=0.0111
+[grid] n_profile_fin=500  prof_cov=0.948  prof_mcse=0.0099
+[grid] total elapsed 957.1 s  (1.91 s/rep)

@@ -327,7 +327,9 @@ correlated_effects <- function(K, sds) {
 # ---------------------------------------------------------------------------
 make_q4_location_data <- function(provider, seed, n_each = 20L) {
   set.seed(seed)
-  n_groups <- 8L
+  # g-sweep hook: GSWEEP_N_GROUPS overrides the default 8 groups (phylo/spatial/
+  # relmat scale with it; animal is a fixed 8-pedigree -- do NOT sweep animal).
+  n_groups <- as.integer(Sys.getenv("GSWEEP_N_GROUPS", "8"))
 
   if (identical(provider, "phylo")) {
     tree   <- balanced_tree(n_groups)
