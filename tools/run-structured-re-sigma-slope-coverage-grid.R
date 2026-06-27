@@ -872,7 +872,10 @@ make_summary <- function(
     bootstrap_R = bootstrap_R,
     mean_est_sd = round(mean_est, 4L),
     bias_mean_est = round(mean_est - truth_sd, 4L),
-    mcse_threshold_met = if (!is.na(wald_mcse)) wald_mcse <= 0.01 else NA,
+    # SR475 denominator floor + non-degenerate guard: a saturated-coverage MCSE
+    # of exactly 0 (p in {0,1}) must not fake a threshold pass, and a sub-475
+    # smoke denominator is never coverage-evaluable. NA = "not assessable".
+    mcse_threshold_met = if (!is.na(wald_mcse) && planned_reps >= 475L && wald_mcse > 0) wald_mcse <= 0.01 else NA,
     denominator_status = "grid_shard_local_or_cluster",
     coverage_evaluable = "pending_mcse_check",
     claim_boundary = paste(

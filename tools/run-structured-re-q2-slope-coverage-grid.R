@@ -965,7 +965,7 @@ make_summary <- function(rows, shard, provider, target, truth, planned_reps,
     # of exactly 0 (p in {0,1}) must not fake a threshold pass, and a sub-475
     # smoke denominator is never coverage-evaluable. NA = "not assessable".
     # Wald-only; profile_mcse is reported but not gated -- see after-task note.
-    mcse_threshold_met       = if (!is.na(wald_mcse) && n_wald_fin >= 475L && wald_mcse > 0) wald_mcse <= 0.01 else NA,
+    mcse_threshold_met       = if (!is.na(wald_mcse) && planned_reps >= 475L && wald_mcse > 0) wald_mcse <= 0.01 else NA,
     denominator_status       = "grid_shard_local_or_cluster",
     coverage_evaluable       = "pending_mcse_check",
     claim_boundary           = paste(

@@ -69696,3 +69696,57 @@ Boundary:
   Ayumi reply. The contracts share the message-substring fragility flagged in
   handover item 5 (the maintainer's anchor-on-error-class decision applies here
   too).
+
+## 2026-06-27: first q-series coverage evidence (local SR475 sigma + q2 grids)
+
+Goal:
+
+- Produce the decisive missing rung -- coverage -- for the sigma-slope and
+  q2-slope lanes (previously 0% coverage, assumed cluster-gated), by testing that
+  assumption, running the grids, verifying, and banking honestly.
+
+Result:
+
+- Installed drmTMB LOCALLY (R CMD INSTALL, TMB compiled) and ran the full SR475
+  sigma-slope grid (7 targets x 475 reps) and q2-slope grid (10 x 475) on this
+  Mac in ~7-10 min each (parallel shards, ~1 s/fit). The cluster was never needed
+  for these grids; only the agent's transfer-block forced the cluster framing.
+- Sigma-slope WALD coverage near-nominal (0.94-0.99; 5/7 clear MCSE<=0.01, phylo
+  and relmat sigma:(Int) borderline at 0.0109). Sigma PROFILE coverage is
+  censoring-suspect (non-finite profiles are the high-shrinkage reps Wald misses)
+  -- report Wald only.
+- q2-slope coverage UNDER-nominal (Wald 0.87-0.91, profile 0.90-0.92, ~4-5 MCSE
+  below 0.95) -- banked as a NEGATIVE: intervals unreliable (g=8 SD shrinkage +
+  narrow SE; correlation SE deficit ~27%).
+- Fixed the MCSE gate in all 3 runners: floor on planned_reps>=475L (not
+  n_wald_fin), MCSE on the finite denominator. The prior n_wald_fin>=475L floor
+  (reviewed but untested) returned NA for every target because non-finite drops
+  put the finite count below 475.
+- Banked docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv (17 rows)
+  + raw replicate/summary TSVs; registered in the validator.
+
+Evidence:
+
+- drmTMB 0.1.4 installed + loaded locally; both runners ran end-to-end; all
+  475/475 converged, 0 boundary, per target.
+- Fisher (inference_reviewer) + Curie (simulation_tester) independently verified:
+  DGP<->model alignment; sigma Wald trustworthy; sigma profile censoring
+  informative; q2 under-coverage real (Curie reproduced the shrinkage); MCSE gate.
+- python3 tools/validate-mission-control.py: mission_control_ok, 104 q-series
+  cells, 17 slope coverage-results rows. Every number reproduces from the raw TSVs.
+- After-task: docs/dev-log/after-task/2026-06-27-local-coverage-grids-sigma-q2.md.
+
+Boundary:
+
+- A diagnostic coverage MEASUREMENT only. The linked cells' coverage_status stays
+  'planned' (the validator enforces it via 24 cross-checks); this does NOT promote
+  coverage_status, does NOT advance interval_status, and does NOT promote
+  'supported', REML, AI-REML, bridge, or public support. The formal coverage_status
+  promotion is a separate gate (needs interval reliability + the cross-check
+  update). Sigma uses the Wald channel only (profile censoring-suspect); 2 sigma
+  intercept targets need ~560 reps to clear MCSE<=0.01. q2-slope intervals are
+  unreliable and the lane cannot progress toward supported without an interval/
+  design fix. Excluded holdouts (animal sigma:x, animal/relmat cor) stay
+  unmeasured. No Totoro/DRAC job, no DRM.jl, no PR merge, no Ayumi reply. Commits
+  are LOCAL (the Bash(git push *) deny rule blocks push) until the maintainer
+  clears the rule.

@@ -99,6 +99,9 @@ STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT = (
 STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-count-structured-mu-rejection-contract.tsv"
 )
+STRUCTURED_RE_SLOPE_COVERAGE_RESULTS = (
+    DASHBOARD / "structured-re-slope-coverage-results.tsv"
+)
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
     DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
 )
@@ -1713,6 +1716,30 @@ STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT_FIELDS = (
     "evidence_url",
     "claim_boundary",
     "next_gate",
+)
+STRUCTURED_RE_SLOPE_COVERAGE_RESULTS_FIELDS = (
+    "coverage_id",
+    "lane",
+    "provider",
+    "target",
+    "linked_cell_id",
+    "truth",
+    "n_rep",
+    "n_converged",
+    "n_boundary",
+    "n_wald_finite",
+    "wald_coverage",
+    "wald_mcse",
+    "wald_mcse_threshold_met",
+    "n_profile_finite",
+    "profile_coverage",
+    "profile_mcse",
+    "profile_channel_status",
+    "bias",
+    "coverage_verdict",
+    "linked_coverage_status",
+    "evidence_url",
+    "claim_boundary",
 )
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT_FIELDS = (
     "audit_id",
@@ -5501,6 +5528,9 @@ def main() -> int:
     )
     structured_re_count_structured_mu_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT
+    )
+    structured_re_slope_coverage_results_rows = read_tsv(
+        STRUCTURED_RE_SLOPE_COVERAGE_RESULTS
     )
     structured_re_mu_slope_fixture_audit_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
@@ -11686,6 +11716,59 @@ def main() -> int:
             )
         if not evidence_reference_exists(row.get("evidence_url", "")):
             errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
+    # --- structured-re slope coverage-results (local SR475 sigma + q2 grids) ---
+    # A diagnostic coverage MEASUREMENT: it records measured coverage but must NOT
+    # have promoted the linked cell's coverage_status off 'planned'. The formal
+    # coverage_status promotion is a separate gate (it also requires interval
+    # reliability and updating the 24 'coverage_status == planned' cross-checks).
+    seen_slope_coverage_ids: set[str] = set()
+    slope_cov_sigma = [
+        r
+        for r in structured_re_slope_coverage_results_rows
+        if r.get("lane") == "sigma_slope"
+    ]
+    slope_cov_q2 = [
+        r
+        for r in structured_re_slope_coverage_results_rows
+        if r.get("lane") == "q2_slope"
+    ]
+    if len(slope_cov_sigma) != 7 or len(slope_cov_q2) != 10:
+        errors.append(
+            "structured-re-slope-coverage-results.tsv: expected 7 sigma_slope + "
+            f"10 q2_slope rows; got {len(slope_cov_sigma)} + {len(slope_cov_q2)}"
+        )
+    for row in structured_re_slope_coverage_results_rows:
+        row_id = row.get("coverage_id", "<slope coverage row>")
+        if set(row.keys()) != set(STRUCTURED_RE_SLOPE_COVERAGE_RESULTS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-slope-coverage-results.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_SLOPE_COVERAGE_RESULTS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_slope_coverage_ids:
+            errors.append(f"duplicate slope coverage id: {row_id}")
+        seen_slope_coverage_ids.add(row_id)
+        if row.get("lane") not in ("sigma_slope", "q2_slope"):
+            errors.append(f"{row_id}: invalid lane {row.get('lane')!r}")
+        if row.get("linked_coverage_status") != "planned":
+            errors.append(
+                f"{row_id}: linked_coverage_status must be 'planned' "
+                "(this is a measurement, not a coverage_status promotion)"
+            )
+        linked = qseries_by_cell.get(row.get("linked_cell_id", ""))
+        if linked is None:
+            errors.append(
+                f"{row_id}: linked_cell_id {row.get('linked_cell_id')!r} "
+                "not in the support-cell table"
+            )
+        elif linked.get("coverage_status") != "planned":
+            errors.append(
+                f"{row_id}: linked cell coverage_status must still be 'planned' "
+                "(a coverage measurement does not promote it)"
+            )
 
     missing_q2_plus_q2_sigma_rejections = sorted(
         set(expected_q2_plus_q2_sigma_rejections)
@@ -28718,6 +28801,7 @@ def main() -> int:
         f", {len(structured_re_count_slope_sigma_one_slope_rejection_contract_rows)} structured RE count-slope sigma one-slope rejection rows"
         f", {len(structured_re_nongaussian_structured_family_rejection_contract_rows)} structured RE non-Gaussian structured-family rejection rows"
         f", {len(structured_re_count_structured_mu_rejection_contract_rows)} structured RE count structured-mu rejection rows"
+        f", {len(structured_re_slope_coverage_results_rows)} structured RE slope coverage-results rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"
