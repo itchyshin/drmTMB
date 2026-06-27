@@ -3071,28 +3071,28 @@ test_that("count structured relmat NB2 local micro-shard stays diagnostic", {
   expect_equal(micro$seed_end, 760004L)
   expect_equal(
     micro$artifact_dir,
-    file.path(artifact_parts)
+    do.call(file.path, as.list(artifact_parts))
   )
   expect_equal(
     micro$replicate_results,
-    file.path(
-      artifact_parts,
+    do.call(file.path, c(
+      as.list(artifact_parts),
       "structured-re-count-slope-relmat-nbinom2-local-micro-shard-replicates.tsv"
-    )
+    ))
   )
   expect_equal(
     micro$summary_results,
-    file.path(
-      artifact_parts,
+    do.call(file.path, c(
+      as.list(artifact_parts),
       "structured-re-count-slope-relmat-nbinom2-local-micro-shard-summary.tsv"
-    )
+    ))
   )
   expect_equal(
     micro$run_log,
-    file.path(
-      artifact_parts,
+    do.call(file.path, c(
+      as.list(artifact_parts),
       "structured-re-count-slope-relmat-nbinom2-local-micro-shard-run-log.tsv"
-    )
+    ))
   )
   expect_equal(
     micro$runner_script,
