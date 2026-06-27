@@ -201,6 +201,20 @@ estimator-side capability** (a bias-corrected variance-component estimator, a
 BCa/bootstrap-t interval, or scale-side REML) — each a real engine/research arc to
 commission, not a setting to flip. **The validated completion path today is the
 PROFILE channel at adequate g.**
+
+4. **The centre fix is identified and bounded — bias-correction reaches nominal.**
+   An oracle recompute
+   (`docs/dev-log/simulation-artifacts/2026-06-27-oracle-bias-correction/`)
+   debiased each banked g=8 q2 replicate's log-scale centre by the *measured* mean
+   log-shrinkage (~ -0.12 to -0.14) and rebuilt the interval with a t(df=7) width.
+   Pooled coverage (n=3800) rises **0.887 (Wald-z) -> 0.932 (Wald-t) -> 0.956
+   (bias-corrected + t)** — correcting the centre reaches nominal. So of the three
+   arcs, the **bias-corrected variance-component estimator is the validated path**;
+   the only open question is whether a *usable* bias estimate (parametric bootstrap,
+   analytic, or REML) recovers the ~ -0.12 the oracle uses. This converts
+   `supported` at the deployment default from "undefined research" into a
+   **specific, in-principle-validated engine deliverable** — a parametric-bootstrap
+   bias prototype is the immediate next test.
 The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
 q4-location "walls" are small-sample artifacts: profile coverage reaches
 certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility

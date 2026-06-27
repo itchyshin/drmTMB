@@ -1,0 +1,11 @@
+cell                        n  wald_z  wald_t  oracle_bc_t  logbias
+phylo mu1_x               475   0.895   0.939        0.966   -0.121
+phylo mu2_x               475   0.876   0.920        0.943   -0.137
+spatial mu1_x             475   0.897   0.941        0.968   -0.120
+spatial mu2_x             475   0.878   0.928        0.941   -0.138
+animal mu1_x              475   0.905   0.937        0.968   -0.116
+animal mu2_x              475   0.880   0.935        0.952   -0.143
+relmat mu1_x              475   0.893   0.937        0.962   -0.121
+relmat mu2_x              475   0.874   0.920        0.945   -0.136
+
+POOLED (n=3800)   wald_z=0.887  wald_t=0.932  ORACLE_bc+t=0.956
