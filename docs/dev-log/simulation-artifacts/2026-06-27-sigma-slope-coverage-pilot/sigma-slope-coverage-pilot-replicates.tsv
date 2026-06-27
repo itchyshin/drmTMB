@@ -1,0 +1,401 @@
+replicate_id	seed	provider	endpoint_member	target_parm	truth_sd	attempt_status	message	convergence	pdHess	estimate_sd	ci_lower	ci_upper	ci_status	ci_warnings	contains_truth	elapsed_sec
+1	820001	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.266820862154436	0.135291050763065	0.526223812139044	finite		TRUE	0.122
+2	820002	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.468465688886904	0.266954460433587	0.822088161807954	finite		TRUE	0.0910000000000011
+3	820003	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.308149180986715	0.162227430500124	0.585325906044667	finite		TRUE	0.0890000000000057
+4	820004	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.472862596839665	0.274855451743923	0.813515009694165	finite		TRUE	0.103000000000002
+5	820005	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.665860344331355	0.396266600791386	1.1188679471538	finite		TRUE	0.0970000000000013
+6	820006	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.521544589053239	0.304238529650549	0.894064136725694	finite		TRUE	0.080999999999996
+7	820007	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.434965910464667	0.247381270302519	0.764792512525272	finite		TRUE	0.0879999999999939
+8	820008	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.263272172871625	0.132453996776865	0.523292906935164	finite		TRUE	0.0899999999999963
+9	820009	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	5.07148420792453e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:phylo(1 | species)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.119999999999997
+10	820010	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.540985806672375	0.313320639055871	0.934077129112367	finite		TRUE	0.103999999999999
+11	820011	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.330019254944847	0.179839965356815	0.605609039226965	finite		TRUE	0.0859999999999985
+12	820012	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.417678263015899	0.234924810162142	0.742599861102673	finite		TRUE	0.097999999999999
+13	820013	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.26154372681245	0.135905301736166	0.50332930475178	finite		TRUE	0.0940000000000083
+14	820014	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.267634641718677	0.141870874357893	0.504883766820175	finite		TRUE	0.0960000000000036
+15	820015	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.634495587771597	0.37645295184282	1.06941557751343	finite		TRUE	0.0950000000000131
+16	820016	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.280948630688932	0.146034654315348	0.540502755705777	finite		TRUE	0.0870000000000033
+17	820017	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.587360770234266	0.345460196784698	0.998646667897317	finite		TRUE	0.0990000000000038
+18	820018	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.460113188661443	0.26651423278491	0.794344617801541	finite		TRUE	0.0870000000000033
+19	820019	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.454698807334393	0.260393145666901	0.793995574890435	finite		TRUE	0.0919999999999987
+20	820020	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.306386619242554	0.163563766460497	0.573921489351086	finite		TRUE	0.090999999999994
+21	820021	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.317199443095119	0.172075875284797	0.584715821048873	finite		TRUE	0.0869999999999891
+22	820022	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.465322219431924	0.266671589659474	0.811952889970554	finite		TRUE	0.0919999999999987
+23	820023	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.310009568096675	0.163347203823363	0.588353703412101	finite		TRUE	0.0849999999999937
+24	820024	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.574941835942607	0.33804616622089	0.977849026990763	finite		TRUE	0.0960000000000036
+25	820025	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.659455704608308	0.391572939208861	1.11060234963908	finite		TRUE	0.101000000000013
+26	820026	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.447699843094189	0.25654768363877	0.781278344297128	finite		TRUE	0.0900000000000034
+27	820027	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.465970390166662	0.269958504195814	0.804302887804479	finite		TRUE	0.118000000000009
+28	820028	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.374900873011108	0.207422453310003	0.677605834573902	finite		TRUE	0.0879999999999939
+29	820029	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.498154821723229	0.286127981890246	0.867297999890455	finite		TRUE	0.092000000000013
+30	820030	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.216033406902285	0.0964556359237432	0.483853871791437	finite		FALSE	0.0880000000000081
+31	820031	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.515503706796217	0.300931518771399	0.883071579891606	finite		TRUE	0.0859999999999985
+32	820032	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.552156724963281	0.323367492057408	0.942819103374964	finite		TRUE	0.0769999999999982
+33	820033	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.494654470019233	0.2874869250374	0.851110166760372	finite		TRUE	0.0799999999999983
+34	820034	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.484421937512111	0.278367517868896	0.843002859455422	finite		TRUE	0.0969999999999942
+35	820035	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.470125244738197	0.268846477139205	0.822096491990518	finite		TRUE	0.0919999999999987
+36	820036	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.430450153278919	0.246078907756882	0.752959025000641	finite		TRUE	0.0890000000000128
+37	820037	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.425092471257085	0.241742338539874	0.747505009717814	finite		TRUE	0.097999999999999
+38	820038	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.395419523668842	0.219803069101866	0.711348573690897	finite		TRUE	0.10199999999999
+39	820039	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.587871986143609	0.346639480119534	0.9969824325067	finite		TRUE	0.097999999999999
+40	820040	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.323607004389276	0.176073281416993	0.594760843025298	finite		TRUE	0.0930000000000035
+41	820041	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.704907494676196	0.420815967014449	1.18078831365638	finite		TRUE	0.0919999999999987
+42	820042	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.41249673761264	0.2340266441352	0.727069172699719	finite		TRUE	0.0869999999999891
+43	820043	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.414615706978132	0.233882177284414	0.735011904151759	finite		TRUE	0.085000000000008
+44	820044	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.43733229628599	0.248758862553452	0.768855169265298	finite		TRUE	0.0799999999999983
+45	820045	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.533442849044966	0.311107221087831	0.914672672020279	finite		TRUE	0.0949999999999989
+46	820046	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.409686904291936	0.233081534923189	0.720105775876334	finite		TRUE	0.0870000000000033
+47	820047	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.717183893105544	0.427820806143904	1.20226208997656	finite		TRUE	0.0999999999999943
+48	820048	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.331052260177411	0.17988437800325	0.609255790775739	finite		TRUE	0.0930000000000035
+49	820049	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.327369894478523	0.173853217872922	0.616445580485121	finite		TRUE	0.0969999999999942
+50	820050	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.386654325432084	0.217585180460633	0.687094438411853	finite		TRUE	0.108000000000004
+51	820051	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.316483321014985	0.169722803746531	0.590148702882961	finite		TRUE	0.0899999999999892
+52	820052	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.411789069560704	0.23382886311301	0.725189506343007	finite		TRUE	0.090999999999994
+53	820053	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.390441886179366	0.22187342866281	0.687080320532555	finite		TRUE	0.0869999999999891
+54	820054	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.676450109843932	0.401905205835318	1.13853899990378	finite		TRUE	0.0999999999999943
+55	820055	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.202353681321388	0.0854587030663713	0.479143853991285	finite		FALSE	0.0820000000000078
+56	820056	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.448992535393385	0.255026784895067	0.790482838584693	finite		TRUE	0.102999999999994
+57	820057	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.58603267618389	0.344867128783439	0.995845265876043	finite		TRUE	0.0849999999999937
+58	820058	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.240292114071099	0.116687993089811	0.494826404635457	finite		FALSE	0.0889999999999986
+59	820059	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.626646539514258	0.37034547925234	1.06032315090751	finite		TRUE	0.0990000000000038
+60	820060	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.449882168175267	0.258220037972669	0.783804257915497	finite		TRUE	0.0840000000000032
+61	820061	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.277389839433884	0.143262411670007	0.537092194136676	finite		TRUE	0.114000000000004
+62	820062	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.268927356534577	0.135872591800354	0.532277497134541	finite		TRUE	0.0870000000000033
+63	820063	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.753204028528706	0.451083107190366	1.25767580197246	finite		TRUE	0.102000000000004
+64	820064	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.272949269844017	0.140919205682353	0.528680981046091	finite		TRUE	0.0799999999999983
+65	820065	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.215889159085613	0.100082534184674	0.465696930941925	finite		FALSE	0.0810000000000031
+66	820066	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.602637551989989	0.353944430469159	1.02607072694179	finite		TRUE	0.0910000000000082
+67	820067	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.361688844651909	0.201201760819896	0.650187253891551	finite		TRUE	0.0880000000000081
+68	820068	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.424054304576036	0.240481789051482	0.747757466121351	finite		TRUE	0.0939999999999941
+69	820069	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.518595628476434	0.301528395657514	0.891927359903909	finite		TRUE	0.0880000000000081
+70	820070	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.451723677825556	0.259858230704031	0.785252329916219	finite		TRUE	0.0879999999999939
+71	820071	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.422913103599863	0.240144335193318	0.744783311471777	finite		TRUE	0.0930000000000035
+72	820072	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.301801649994411	0.162137145800656	0.561772784944265	finite		TRUE	0.0879999999999939
+73	820073	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.513486442312657	0.300036473533673	0.878787579835084	finite		TRUE	0.0939999999999941
+74	820074	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.380121654800029	0.207996556228304	0.694686849955883	finite		TRUE	0.0949999999999989
+75	820075	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.434936310264361	0.250110467374865	0.756344170525457	finite		TRUE	0.0919999999999987
+76	820076	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.768423245355288	0.458723546009715	1.28721163135988	finite		TRUE	0.0910000000000082
+77	820077	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.64324564207966	0.380852201376052	1.08641870667809	finite		TRUE	0.097999999999999
+78	820078	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.376757301209462	0.20603497998245	0.688941576943527	finite		TRUE	0.0930000000000035
+79	820079	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.274615720466958	0.143342040853471	0.52611078702777	finite		TRUE	0.0949999999999989
+80	820080	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.637316262365366	0.377960637874489	1.07464105405135	finite		TRUE	0.0900000000000034
+81	820081	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.495042549810839	0.286595731936878	0.855096914622554	finite		TRUE	0.0840000000000032
+82	820082	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.424068641265162	0.239188993077134	0.751849866463076	finite		TRUE	0.090999999999994
+83	820083	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.468382080708664	0.269950126885158	0.812675200639215	finite		TRUE	0.0879999999999939
+84	820084	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.38654839633022	0.218304434120783	0.684455463798752	finite		TRUE	0.125
+85	820085	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.49454914324063	0.286414457188601	0.85393334359162	finite		TRUE	0.0930000000000035
+86	820086	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.324810390810993	0.17470901496434	0.603871471660029	finite		TRUE	0.0959999999999894
+87	820087	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.464595296488481	0.268970747698309	0.802499124407856	finite		TRUE	0.0959999999999894
+88	820088	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.448081540504111	0.257078521045493	0.780995106569048	finite		TRUE	0.0840000000000032
+89	820089	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.473492573936605	0.271490226137556	0.825794802128599	finite		TRUE	0.0929999999999893
+90	820090	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.454345931680368	0.260132173967522	0.793558991515888	finite		TRUE	0.0860000000000127
+91	820091	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.486860707545388	0.279345355899136	0.848531552596069	finite		TRUE	0.0870000000000033
+92	820092	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.445919318890526	0.256366068433903	0.77562541788192	finite		TRUE	0.085000000000008
+93	820093	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.383667859016346	0.209666850692968	0.70207105012392	finite		TRUE	0.085000000000008
+94	820094	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.473263354210523	0.272807154261309	0.821012935108208	finite		TRUE	0.0949999999999989
+95	820095	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.327988355195518	0.178444773677565	0.602855207954944	finite		TRUE	0.117000000000004
+96	820096	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.565409847574421	0.332751543080743	0.960741737737209	finite		TRUE	0.0939999999999941
+97	820097	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.385826289239538	0.216053671810985	0.68900437664667	finite		TRUE	0.118000000000009
+98	820098	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.505977969918855	0.293268644947371	0.872966511947258	finite		TRUE	0.0859999999999985
+99	820099	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.433258950823574	0.245784048654234	0.763732713723896	finite		TRUE	0.0870000000000033
+100	820100	phylo	sigma:(Intercept)	sd:sigma:phylo(1 | species)	0.5	fit_ok		0	TRUE	0.713015124123907	0.425331738027632	1.19528011144187	finite		TRUE	0.0919999999999987
+1	820001	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.395724240975716	0.201522320773388	0.77707359807503	finite		TRUE	0.0859999999999985
+2	820002	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.490364823502906	0.268643593786913	0.895080566558255	finite		TRUE	0.0910000000000082
+3	820003	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.523855086230708	0.276087464928868	0.993975410801378	finite		TRUE	0.0919999999999987
+4	820004	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.0823077133035282	0.000882795376552382	7.67398634971647	finite		TRUE	0.103999999999999
+5	820005	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.436745803117361	0.2360879523171	0.807948455939962	finite		TRUE	0.100000000000009
+6	820006	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.420510518910601	0.222808384224057	0.793637533570742	finite		TRUE	0.0840000000000032
+7	820007	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.207504140855509	0.0534568421112531	0.805471606096216	finite		TRUE	0.0900000000000034
+8	820008	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.340200292920085	0.15416442527939	0.750732466930451	finite		TRUE	0.0910000000000082
+9	820009	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.25877191693992	0.105396826543973	0.635340808566217	finite		TRUE	0.11999999999999
+10	820010	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.509520705425638	0.280235750085873	0.926403391351342	finite		TRUE	0.0999999999999943
+11	820011	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.634649007676043	0.357877187397622	1.1254681134416	finite		TRUE	0.085000000000008
+12	820012	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.360983402838515	0.175187395539444	0.743826442100019	finite		TRUE	0.0960000000000036
+13	820013	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.312158677934438	0.144897456921604	0.67249655225141	finite		TRUE	0.092000000000013
+14	820014	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.536527050190898	0.302450470564405	0.951763358309102	finite		TRUE	0.0959999999999894
+15	820015	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.500837903817328	0.276185005581165	0.908226735091231	finite		TRUE	0.0949999999999989
+16	820016	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.316168286207526	0.142659810227419	0.700704599592906	finite		TRUE	0.0889999999999986
+17	820017	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.272926298157039	0.11908903277051	0.625488027677982	finite		TRUE	0.0990000000000038
+18	820018	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.460049134766778	0.2476374787221	0.854657410872653	finite		TRUE	0.0919999999999987
+19	820019	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.0506775981465347	7.13352173839144e-07	3600.21185619991	finite		TRUE	0.090999999999994
+20	820020	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.205187963233542	0.0704528088111496	0.597592927327921	finite		TRUE	0.090999999999994
+21	820021	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.194690097019426	0.0554284675992864	0.683840551960733	finite		TRUE	0.0880000000000081
+22	820022	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.215587156229469	0.079875523757219	0.581878149210994	finite		TRUE	0.0930000000000035
+23	820023	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.507733372642396	0.277196154994123	0.930002718473088	finite		TRUE	0.0870000000000033
+24	820024	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.561783286856476	0.315383138160805	1.00068907688511	finite		TRUE	0.0960000000000036
+25	820025	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.830605808356219	0.487790207889757	1.41434985310531	finite		FALSE	0.100999999999999
+26	820026	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.219687605024726	0.0822116148312791	0.587053835404502	finite		TRUE	0.0889999999999986
+27	820027	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	2.50980261888554e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:phylo(0 + x | species)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.119
+28	820028	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.201733956469689	0.0611204859882631	0.665842041909307	finite		TRUE	0.0900000000000034
+29	820029	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.39248926493023	0.194552351769878	0.79180653270994	finite		TRUE	0.0919999999999987
+30	820030	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.32049241773994	0.156660169669134	0.655657338082341	finite		TRUE	0.0859999999999985
+31	820031	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.0913974643533848	0.00298571348664989	2.79782253976461	finite		TRUE	0.0860000000000127
+32	820032	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.174370573844364	0.0539156664011617	0.56393807314895	finite		TRUE	0.078000000000003
+33	820033	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.345117103396586	0.151741824630387	0.784924099515533	finite		TRUE	0.078000000000003
+34	820034	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.427434532247292	0.223498782990746	0.817455365584817	finite		TRUE	0.0949999999999989
+35	820035	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.283947336296915	0.131814571496956	0.611662951026437	finite		TRUE	0.0880000000000081
+36	820036	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.425665349993727	0.218964135401367	0.827491633975374	finite		TRUE	0.0899999999999892
+37	820037	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.415091396701832	0.213859077389882	0.805674791637482	finite		TRUE	0.0900000000000034
+38	820038	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.412230532445238	0.212649737800383	0.799126364498991	finite		TRUE	0.090999999999994
+39	820039	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.491358088308908	0.271371303476828	0.889676866541639	finite		TRUE	0.0969999999999942
+40	820040	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.29958087914784	0.139317757143229	0.64420146427368	finite		TRUE	0.090999999999994
+41	820041	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.335738667145798	0.164371876823856	0.685764832737357	finite		TRUE	0.0919999999999987
+42	820042	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.389952131466124	0.211558450424497	0.718773769281519	finite		TRUE	0.0849999999999937
+43	820043	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.440705773036355	0.225032522874577	0.863082259873261	finite		TRUE	0.085000000000008
+44	820044	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.215923570330255	0.0671977781069246	0.69381740792052	finite		TRUE	0.0810000000000031
+45	820045	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.432730752178317	0.237580454994476	0.788178909267456	finite		TRUE	0.0949999999999989
+46	820046	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.316977820399634	0.142708066498818	0.704059280532226	finite		TRUE	0.0859999999999985
+47	820047	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.411270997415265	0.213412506478337	0.792567577721209	finite		TRUE	0.0990000000000038
+48	820048	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.535550712586791	0.292076361961684	0.981984861170811	finite		TRUE	0.0939999999999941
+49	820049	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.668759478385637	0.388384510946959	1.15153727124743	finite		FALSE	0.0969999999999942
+50	820050	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.34046782197426	0.164904877284096	0.702940626796586	finite		TRUE	0.0889999999999986
+51	820051	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.358547895808274	0.177630067114741	0.723732168076584	finite		TRUE	0.0849999999999937
+52	820052	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.391571613595054	0.187629394334759	0.817187142329488	finite		TRUE	0.0889999999999986
+53	820053	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.46892459826077	0.256480414872822	0.857337504553943	finite		TRUE	0.0889999999999986
+54	820054	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.398664942102275	0.202878795680634	0.783392544934066	finite		TRUE	0.0969999999999942
+55	820055	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.283771873978272	0.126126641966718	0.638457309300201	finite		TRUE	0.0810000000000031
+56	820056	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.55372031171412	0.309780425278243	0.989753252902892	finite		TRUE	0.102999999999994
+57	820057	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.544213771590909	0.300537373399937	0.985463557622428	finite		TRUE	0.0849999999999937
+58	820058	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.241004899530998	0.102209039848521	0.568280082505706	finite		TRUE	0.0879999999999939
+59	820059	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.297735726757961	0.137410162178766	0.645123778201829	finite		TRUE	0.0969999999999942
+60	820060	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.337415800840961	0.156545110403925	0.72726271911903	finite		TRUE	0.0829999999999984
+61	820061	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	4.50744907247228e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:phylo(0 + x | species)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.112000000000009
+62	820062	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.393583863803442	0.20892577631054	0.741451153524473	finite		TRUE	0.0879999999999939
+63	820063	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.363192145057371	0.185131072450981	0.712514287769284	finite		TRUE	0.100999999999999
+64	820064	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.284040202913002	0.129253171549235	0.624192318871863	finite		TRUE	0.0799999999999983
+65	820065	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.502585677887015	0.273462858912035	0.923680695148448	finite		TRUE	0.0810000000000031
+66	820066	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.387507271700162	0.197101231695665	0.761851584227347	finite		TRUE	0.0889999999999986
+67	820067	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.48241155993625	0.260887684644563	0.892034874996832	finite		TRUE	0.0869999999999891
+68	820068	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.430321866427903	0.230779621588861	0.802397141702099	finite		TRUE	0.0939999999999941
+69	820069	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.430029107641132	0.227381634159051	0.813280430948417	finite		TRUE	0.0900000000000034
+70	820070	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.331614880925478	0.160384996850514	0.685652844160445	finite		TRUE	0.0879999999999939
+71	820071	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.611677996135013	0.350352215222541	1.06792523266362	finite		TRUE	0.0940000000000083
+72	820072	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.248148155330829	0.105374617273353	0.584367550625166	finite		TRUE	0.0879999999999939
+73	820073	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.440606491079371	0.231263486080025	0.839449769057354	finite		TRUE	0.0930000000000035
+74	820074	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.412069549753822	0.211064752762425	0.804498674515525	finite		TRUE	0.0959999999999894
+75	820075	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.396476877462499	0.208167889540906	0.75513046084624	finite		TRUE	0.0960000000000036
+76	820076	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.301933072335333	0.133250953052155	0.684149554518923	finite		TRUE	0.090999999999994
+77	820077	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.3332413398335	0.172005376301127	0.645618136840171	finite		TRUE	0.0949999999999989
+78	820078	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.442232405111438	0.230251713845442	0.84937261427693	finite		TRUE	0.0910000000000082
+79	820079	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.484959204251598	0.258590206735596	0.90949086107045	finite		TRUE	0.0970000000000084
+80	820080	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.265862830541406	0.116115122624702	0.608732463659746	finite		TRUE	0.0889999999999986
+81	820081	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.496277424870691	0.271739586949674	0.9063503967197	finite		TRUE	0.0810000000000031
+82	820082	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.595674031733919	0.345057731866109	1.02831358150764	finite		TRUE	0.0900000000000034
+83	820083	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.226122553783412	0.0919323842977354	0.556184958326936	finite		TRUE	0.0870000000000033
+84	820084	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	1.74110895520297e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:phylo(0 + x | species)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.125
+85	820085	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.225900435108437	0.0889632989226341	0.573618640497578	finite		TRUE	0.0930000000000035
+86	820086	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.290655943176161	0.13019813907638	0.648863938478135	finite		TRUE	0.0949999999999989
+87	820087	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.392667711641394	0.203228265761862	0.758693340159497	finite		TRUE	0.0949999999999989
+88	820088	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.3346734270061	0.16455413521376	0.680665378591114	finite		TRUE	0.0840000000000032
+89	820089	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.240253745039427	0.0979612739199342	0.589231434991823	finite		TRUE	0.0939999999999941
+90	820090	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.356284363483986	0.17787764872894	0.713628432634757	finite		TRUE	0.0840000000000032
+91	820091	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.240077012660311	0.0932240154371539	0.618263134639966	finite		TRUE	0.0860000000000127
+92	820092	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.439135501164048	0.231960373921034	0.831348842575361	finite		TRUE	0.0900000000000034
+93	820093	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.43831580877299	0.228440610960649	0.841009606008344	finite		TRUE	0.0940000000000083
+94	820094	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.307005704374992	0.144827129392512	0.650793141548368	finite		TRUE	0.0859999999999985
+95	820095	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.65379388283023	0.378620007482092	1.12895893713817	finite		TRUE	0.100999999999999
+96	820096	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.411473046156157	0.216544963445661	0.781870263888695	finite		TRUE	0.0970000000000084
+97	820097	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	2.04362171731305e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:phylo(0 + x | species)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.120000000000005
+98	820098	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.221033419518997	0.0863678967495338	0.565670513963564	finite		TRUE	0.0889999999999986
+99	820099	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.500243524657544	0.27005573313205	0.926636813296018	finite		TRUE	0.0890000000000128
+100	820100	phylo	sigma:x	sd:sigma:phylo(0 + x | species)	0.38	fit_ok		0	TRUE	0.420891079620391	0.224474604735038	0.789173016311216	finite		TRUE	0.0930000000000035
+1	820001	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.30354980167775	0.16595170415288	0.555236733295108	finite		TRUE	0.0929999999999893
+2	820002	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.454561290185431	0.257630029335907	0.802025940328709	finite		TRUE	0.0899999999999892
+3	820003	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.324275158263895	0.173352006848041	0.606594525088203	finite		TRUE	0.0829999999999984
+4	820004	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.474777888494449	0.271668219925689	0.8297402009882	finite		TRUE	0.0870000000000033
+5	820005	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.667644461291106	0.398557668963751	1.11840559448182	finite		TRUE	0.111000000000004
+6	820006	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.538983290338698	0.316594595832749	0.917586690007166	finite		TRUE	0.0910000000000082
+7	820007	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.410148313460607	0.22781054722838	0.73842779046546	finite		TRUE	0.0859999999999985
+8	820008	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.254587316186155	0.126563501629463	0.512112107585531	finite		TRUE	0.0859999999999985
+9	820009	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	1.81080869067809e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:relmat(1 | id)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.112000000000009
+10	820010	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.540503528805352	0.315918548790293	0.924744893168536	finite		TRUE	0.103999999999999
+11	820011	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.307525333768736	0.163822733545526	0.577281485071128	finite		TRUE	0.0949999999999989
+12	820012	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.402225201842526	0.221270692451198	0.731163766900323	finite		TRUE	0.0769999999999982
+13	820013	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.259402551430248	0.133381655460379	0.504489792515067	finite		TRUE	0.0940000000000083
+14	820014	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.245968659398585	0.123060032888089	0.491634692324165	finite		FALSE	0.085000000000008
+15	820015	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.623747836122565	0.364903187541633	1.06620434227693	finite		TRUE	0.0899999999999892
+16	820016	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.27374966773256	0.145755460669153	0.514141152857312	finite		TRUE	0.0799999999999983
+17	820017	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.610343738121934	0.360472396110617	1.03342026375396	finite		TRUE	0.116
+18	820018	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.442772217930679	0.249660100710116	0.785256580501368	finite		TRUE	0.0969999999999942
+19	820019	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.469521422184481	0.264863070695354	0.832318243956706	finite		TRUE	0.085000000000008
+20	820020	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.286698297907461	0.154866857319559	0.530752127638447	finite		TRUE	0.0859999999999985
+21	820021	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.331933602376325	0.175905921524824	0.626357063090544	finite		TRUE	0.0859999999999985
+22	820022	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.469199940744926	0.271538343843336	0.810745846347419	finite		TRUE	0.0899999999999892
+23	820023	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.336635705570094	0.184502902429946	0.614210382450232	finite		TRUE	0.0829999999999984
+24	820024	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.569556683918044	0.33666483661805	0.963554196673493	finite		TRUE	0.0999999999999943
+25	820025	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.637234714321243	0.372757920717287	1.08936137521824	finite		TRUE	0.10799999999999
+26	820026	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.427132766200973	0.242588932282043	0.752063988436126	finite		TRUE	0.0889999999999986
+27	820027	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.456969505597853	0.260819085519182	0.80063592213994	finite		TRUE	0.10799999999999
+28	820028	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.352661298202614	0.186030722981558	0.668545438391282	finite		TRUE	0.0940000000000083
+29	820029	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.46691859102747	0.263913545900688	0.826077228825221	finite		TRUE	0.097999999999999
+30	820030	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.237583443296408	0.114683459396253	0.49218861050874	finite		FALSE	0.085000000000008
+31	820031	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.50526423618276	0.292543616924837	0.872662856393616	finite		TRUE	0.0939999999999941
+32	820032	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.53616284921609	0.307519237999317	0.93480525885068	finite		TRUE	0.0820000000000078
+33	820033	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.485711532022845	0.280291000594891	0.841681294937297	finite		TRUE	0.0900000000000034
+34	820034	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.495592721520104	0.283792367725577	0.865464239197604	finite		TRUE	0.0859999999999985
+35	820035	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.433495030046718	0.237162767397917	0.79235852717097	finite		TRUE	0.0930000000000035
+36	820036	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.408533597350601	0.229010228195809	0.728787100380163	finite		TRUE	0.0999999999999943
+37	820037	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.436530340311121	0.249021750133524	0.765229293866766	finite		TRUE	0.0949999999999989
+38	820038	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.399094874213644	0.222543994882935	0.715708903794007	finite		TRUE	0.0769999999999982
+39	820039	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.61782789554164	0.367213257953693	1.0394812829921	finite		TRUE	0.0930000000000035
+40	820040	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.250943142352614	0.116160316102911	0.542116815849699	finite		TRUE	0.0819999999999936
+41	820041	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.702447199846005	0.415472486618645	1.18764078119186	finite		TRUE	0.0810000000000031
+42	820042	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.434649909507664	0.251565078362118	0.750980800137439	finite		TRUE	0.102000000000004
+43	820043	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.41523812957344	0.235785648915069	0.731268866638088	finite		TRUE	0.0960000000000036
+44	820044	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.435467202572735	0.244796339217078	0.774650818402819	finite		TRUE	0.0919999999999987
+45	820045	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.563320375151304	0.32844327665795	0.96616331529015	finite		TRUE	0.0990000000000038
+46	820046	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.375252752884273	0.210415002038698	0.669223330954926	finite		TRUE	0.0870000000000033
+47	820047	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.728437740494758	0.435562042692864	1.21824559940196	finite		TRUE	0.0990000000000038
+48	820048	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.291758107387776	0.14687082022548	0.579575936839015	finite		TRUE	0.083999999999989
+49	820049	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.316650022997842	0.167321163911162	0.599250176850132	finite		TRUE	0.0849999999999937
+50	820050	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.392827921861138	0.221545175766557	0.696534129708791	finite		TRUE	0.0840000000000032
+51	820051	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.346960056342436	0.189156771412137	0.636410104689608	finite		TRUE	0.0820000000000078
+52	820052	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.403360989186897	0.229077197217111	0.710241305439192	finite		TRUE	0.0820000000000078
+53	820053	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.396103439849377	0.224919118480988	0.697574915463539	finite		TRUE	0.0859999999999985
+54	820054	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.663857062066824	0.393527886079607	1.11988556451841	finite		TRUE	0.0889999999999986
+55	820055	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.257414094713283	0.12234433700031	0.54160264203231	finite		TRUE	0.0760000000000076
+56	820056	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.444521810641146	0.253778146550985	0.778631425996267	finite		TRUE	0.078000000000003
+57	820057	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.587507965710708	0.345004216137958	1.00046780192249	finite		TRUE	0.0879999999999939
+58	820058	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.255352638871213	0.120283602795199	0.54209359100686	finite		TRUE	0.0829999999999984
+59	820059	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.612698013637992	0.360486362166516	1.04136770572901	finite		TRUE	0.0889999999999986
+60	820060	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.449647999132117	0.25471379997406	0.793766663384969	finite		TRUE	0.0720000000000027
+61	820061	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.232573528607156	0.108201534639977	0.499904612155094	finite		FALSE	0.123000000000005
+62	820062	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.222464606817426	0.0970623304774675	0.50988371125007	finite		TRUE	0.0870000000000033
+63	820063	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.77524668760996	0.464089362393754	1.29502521572622	finite		TRUE	0.0840000000000032
+64	820064	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.284970600881633	0.152161949730657	0.533696127780868	finite		TRUE	0.0820000000000078
+65	820065	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.157371112079285	0.0579235793233318	0.427557606183625	finite		FALSE	0.0770000000000124
+66	820066	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.618092532845357	0.361735090821481	1.05612750560528	finite		TRUE	0.0870000000000033
+67	820067	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.31695099042606	0.165053756013985	0.608637650896889	finite		TRUE	0.0769999999999982
+68	820068	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.424426219874633	0.240273421620978	0.749719277736969	finite		TRUE	0.0829999999999984
+69	820069	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.521272992662286	0.299289318753537	0.907902540627786	finite		TRUE	0.0939999999999941
+70	820070	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.45949712441896	0.267870498745198	0.788207765835872	finite		TRUE	0.0919999999999987
+71	820071	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.403601188599726	0.222123936995549	0.733346984761825	finite		TRUE	0.0940000000000083
+72	820072	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.281956855284652	0.144498784785126	0.550175341337499	finite		TRUE	0.0820000000000078
+73	820073	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.513752885209449	0.295856188168979	0.892129479172095	finite		TRUE	0.0739999999999981
+74	820074	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.392353405652554	0.222760459041719	0.691061580629654	finite		TRUE	0.0820000000000078
+75	820075	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.419442327428231	0.23904357506729	0.735982408181804	finite		TRUE	0.0820000000000078
+76	820076	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.758700267008377	0.453033191959244	1.27060468278088	finite		TRUE	0.0799999999999983
+77	820077	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.627060611965241	0.373763770064172	1.05201478198572	finite		TRUE	0.0840000000000032
+78	820078	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.392131656064327	0.221742229706159	0.69345039008364	finite		TRUE	0.0840000000000032
+79	820079	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.289371817500754	0.151301597563904	0.553437968348768	finite		TRUE	0.0790000000000077
+80	820080	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.622176370516534	0.364175517856432	1.0629584281438	finite		TRUE	0.0810000000000031
+81	820081	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.505451055538855	0.297189745224002	0.85965540080388	finite		TRUE	0.0840000000000032
+82	820082	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.412222121109084	0.235203186431872	0.72246928160088	finite		TRUE	0.0799999999999983
+83	820083	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.480282012861336	0.276136420785859	0.835350915397791	finite		TRUE	0.0889999999999986
+84	820084	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.376617386117648	0.213502168369303	0.664352294917877	finite		TRUE	0.117000000000004
+85	820085	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.532360163610243	0.311350563678643	0.910251584100681	finite		TRUE	0.0790000000000077
+86	820086	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.3279256472436	0.175954461697833	0.611153755821234	finite		TRUE	0.0919999999999987
+87	820087	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.450781911305341	0.257971356916642	0.787701138563835	finite		TRUE	0.0870000000000033
+88	820088	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.476301963650617	0.267279891866677	0.848786487427181	finite		TRUE	0.0939999999999941
+89	820089	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.432536342378297	0.244245514131569	0.76598208218152	finite		TRUE	0.0749999999999886
+90	820090	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.4195338190845	0.238334714854826	0.738493448018413	finite		TRUE	0.0820000000000078
+91	820091	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.500213560217423	0.287522202053481	0.870240990220463	finite		TRUE	0.0840000000000032
+92	820092	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.425695446574354	0.245846930566481	0.73711155480599	finite		TRUE	0.090999999999994
+93	820093	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.345878150678484	0.18238406696475	0.655932818626584	finite		TRUE	0.0769999999999982
+94	820094	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.476359187057149	0.273543482954778	0.829550288102684	finite		TRUE	0.0810000000000031
+95	820095	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.282289707072941	0.143185461055816	0.556533310936251	finite		TRUE	0.0960000000000036
+96	820096	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.552441904352981	0.325550315652427	0.937465095291092	finite		TRUE	0.0849999999999937
+97	820097	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.377995305699428	0.212350160276284	0.67285304115102	finite		TRUE	0.0919999999999987
+98	820098	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.529184295106474	0.3077870008425	0.909837054264143	finite		TRUE	0.103999999999999
+99	820099	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.403149299260417	0.221502994865846	0.733756929980118	finite		TRUE	0.114000000000004
+100	820100	relmat	sigma:(Intercept)	sd:sigma:relmat(1 | id)	0.5	fit_ok		0	TRUE	0.721951376182485	0.429125439726558	1.21459541038608	finite		TRUE	0.103999999999999
+1	820001	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.374493314409401	0.176512444774084	0.794534587727437	finite		TRUE	0.0880000000000081
+2	820002	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.513502293881668	0.281158061244715	0.937851842676596	finite		TRUE	0.0900000000000034
+3	820003	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.501514711433802	0.25264024961665	0.995553979091517	finite		TRUE	0.0829999999999984
+4	820004	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.142532637759066	0.0289545383301637	0.701636220025417	finite		TRUE	0.0860000000000127
+5	820005	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.427937693277438	0.230313473297788	0.795136587996449	finite		TRUE	0.111999999999995
+6	820006	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.371391921553073	0.189643496567808	0.727322380630996	finite		TRUE	0.090999999999994
+7	820007	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.188700907604633	0.0451363942366928	0.788898473903022	finite		TRUE	0.0889999999999986
+8	820008	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.338764889746252	0.153105019098062	0.749561648604652	finite		TRUE	0.0840000000000032
+9	820009	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.185429739515325	0.0423426753360212	0.812045720395717	finite		TRUE	0.109000000000009
+10	820010	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.488382498713045	0.259301094028015	0.919847507559797	finite		TRUE	0.106999999999999
+11	820011	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.656305124120257	0.360933147781053	1.19339666803836	finite		TRUE	0.0960000000000036
+12	820012	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.253903985093999	0.0765711537039884	0.841925849724474	finite		TRUE	0.0829999999999984
+13	820013	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.317898505791187	0.151999339621809	0.664867756897604	finite		TRUE	0.0949999999999989
+14	820014	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.504531991348508	0.280401504747109	0.907814423191733	finite		TRUE	0.0840000000000032
+15	820015	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.482865076744843	0.273094607550403	0.853765237004068	finite		TRUE	0.0879999999999939
+16	820016	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.362855534409083	0.180913269703571	0.727774911519951	finite		TRUE	0.0819999999999936
+17	820017	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.273115394065139	0.123078253855865	0.606053597109931	finite		TRUE	0.114999999999995
+18	820018	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.471026988427165	0.263593261966478	0.841699906027871	finite		TRUE	0.0900000000000034
+19	820019	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.145544223260673	0.0399676697480541	0.530006404128278	finite		TRUE	0.0789999999999935
+20	820020	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.239639506370272	0.101940889716711	0.563337176798974	finite		TRUE	0.0789999999999935
+21	820021	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.234997730524998	0.0950041668217271	0.581279065954294	finite		TRUE	0.0810000000000031
+22	820022	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.211327054846743	0.0843433797163074	0.529491754544475	finite		TRUE	0.0840000000000032
+23	820023	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.523116041853053	0.273716292122808	0.999759243856872	finite		TRUE	0.0779999999999887
+24	820024	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.583518526085968	0.323432878571616	1.05274971360139	finite		TRUE	0.097999999999999
+25	820025	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.773393617395295	0.450794565650374	1.3268520363923	finite		FALSE	0.103000000000009
+26	820026	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.28168780810771	0.128979319862545	0.615199563163215	finite		TRUE	0.0840000000000032
+27	820027	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	1.45755981595549e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:relmat(0 + x | id)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.102999999999994
+28	820028	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.194602428871432	0.0607473592495362	0.62340331811131	finite		TRUE	0.0849999999999937
+29	820029	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.41210134008518	0.208405681932949	0.814889080397724	finite		TRUE	0.0880000000000081
+30	820030	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.303016307804664	0.15086881037547	0.608600827215776	finite		TRUE	0.0790000000000077
+31	820031	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.0702644038486289	0.000578785571502921	8.53007865310667	finite		TRUE	0.0900000000000034
+32	820032	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.180651740664824	0.0623562940570347	0.523364191197459	finite		TRUE	0.0769999999999982
+33	820033	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.377788231112529	0.174288049574363	0.818896923315664	finite		TRUE	0.0860000000000127
+34	820034	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.445399343848792	0.240721070830594	0.824109725070739	finite		TRUE	0.0819999999999936
+35	820035	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.31217627793229	0.15488725259904	0.629193344632048	finite		TRUE	0.0859999999999985
+36	820036	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.449508105975644	0.241022352989174	0.838335261571721	finite		TRUE	0.0960000000000036
+37	820037	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.413011184584887	0.216516277165832	0.787831015871216	finite		TRUE	0.0889999999999986
+38	820038	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.452960685907843	0.248090229343905	0.827011138329394	finite		TRUE	0.0759999999999934
+39	820039	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.459223634296008	0.247697292921386	0.851387368060434	finite		TRUE	0.0930000000000035
+40	820040	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.264097660239131	0.112253207580393	0.621341480098304	finite		TRUE	0.078000000000003
+41	820041	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.331031916235265	0.155632682247205	0.704107440571721	finite		TRUE	0.078000000000003
+42	820042	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.37641594429644	0.21187297021187	0.668744875662495	finite		TRUE	0.097999999999999
+43	820043	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.448903293438414	0.237812526170981	0.847365654385132	finite		TRUE	0.100999999999999
+44	820044	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.189530924965143	0.0550380657075023	0.652675036020499	finite		TRUE	0.0960000000000036
+45	820045	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.457008133018295	0.256379713833613	0.814637127570915	finite		TRUE	0.097999999999999
+46	820046	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.317995593774482	0.159053715947912	0.635767589944904	finite		TRUE	0.0849999999999937
+47	820047	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.405527076205784	0.210881936984368	0.779830704742635	finite		TRUE	0.108999999999995
+48	820048	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.518069719417742	0.284542314234264	0.943255961419528	finite		TRUE	0.0900000000000034
+49	820049	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.655891149148989	0.384448841349531	1.11898685406847	finite		FALSE	0.085000000000008
+50	820050	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.318656663404249	0.145447889091134	0.698133673623172	finite		TRUE	0.0840000000000032
+51	820051	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.323415496552409	0.151774325678938	0.689165199333558	finite		TRUE	0.0819999999999936
+52	820052	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.360685921197749	0.16291892716688	0.798521915240771	finite		TRUE	0.0840000000000032
+53	820053	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.45049870991816	0.243995319223532	0.831774512247912	finite		TRUE	0.0859999999999985
+54	820054	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.383525929090847	0.190700312339013	0.771326152961445	finite		TRUE	0.0889999999999986
+55	820055	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.201609092660173	0.0579069227046352	0.701923437558263	finite		TRUE	0.0759999999999934
+56	820056	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.566503702022907	0.323780096467403	0.99118645002309	finite		TRUE	0.0789999999999935
+57	820057	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.542295680831269	0.296252284731809	0.992682995557242	finite		TRUE	0.0889999999999986
+58	820058	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.146473366358108	0.0400051871153672	0.536291631142883	finite		TRUE	0.0829999999999984
+59	820059	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.305299480296273	0.143072453795082	0.651472524562085	finite		TRUE	0.0879999999999939
+60	820060	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.355610909921983	0.172418742076188	0.733441838936868	finite		TRUE	0.0729999999999933
+61	820061	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	1.06462915112957e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:relmat(0 + x | id)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.123999999999995
+62	820062	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.359827049335761	0.185489236826778	0.698021662327466	finite		TRUE	0.0870000000000033
+63	820063	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.345323795467649	0.164398793104639	0.725361308706697	finite		TRUE	0.0829999999999984
+64	820064	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.299503370587078	0.15108197947024	0.593732418039241	finite		TRUE	0.0819999999999936
+65	820065	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.514193481196767	0.280317007152656	0.943199767972925	finite		TRUE	0.0769999999999982
+66	820066	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.356542464263949	0.174938722644053	0.726668898126485	finite		TRUE	0.0869999999999891
+67	820067	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.474588581278281	0.246625713101736	0.913263741428372	finite		TRUE	0.078000000000003
+68	820068	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.466102965529605	0.254321181095553	0.854242550854883	finite		TRUE	0.0840000000000032
+69	820069	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.471084509174857	0.257144469922004	0.86301920026446	finite		TRUE	0.0929999999999893
+70	820070	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.285664014847422	0.12834073750457	0.635838089802487	finite		TRUE	0.0930000000000035
+71	820071	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.634928280214751	0.369983452508228	1.08959986800355	finite		TRUE	0.0940000000000083
+72	820072	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.227640826891103	0.0859311391642772	0.603045026187752	finite		TRUE	0.0810000000000031
+73	820073	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.3991704470193	0.202720396065866	0.785994151875161	finite		TRUE	0.0739999999999981
+74	820074	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.410781702870094	0.221516969312437	0.761754767305675	finite		TRUE	0.0819999999999936
+75	820075	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.387903496958427	0.207572436266033	0.724899344341312	finite		TRUE	0.0820000000000078
+76	820076	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.306014325982763	0.139748753372076	0.670093760746178	finite		TRUE	0.0810000000000031
+77	820077	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.367023617457112	0.200134688318429	0.673078399867276	finite		TRUE	0.083999999999989
+78	820078	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.441912424262021	0.228726935711226	0.853797958294214	finite		TRUE	0.0840000000000032
+79	820079	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.481589839484965	0.260318554805159	0.890942152274726	finite		TRUE	0.0789999999999935
+80	820080	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.258691881472205	0.111604079516427	0.599633004721656	finite		TRUE	0.0809999999999889
+81	820081	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.487668780364176	0.260456302200846	0.913093049898602	finite		TRUE	0.0840000000000032
+82	820082	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.604121160452462	0.350333593094035	1.04175672473541	finite		TRUE	0.0810000000000031
+83	820083	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.227858128677284	0.0917434431919524	0.565918664025771	finite		TRUE	0.0890000000000128
+84	820084	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	2.54183800339056e-05	0	Inf	nonfinite	Wald interval for "sd:sigma:relmat(0 + x | id)" is at a variance-component or correlation boundary. Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.	NA	0.116
+85	820085	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.239298088623383	0.104964213919601	0.54555331841637	finite		TRUE	0.078000000000003
+86	820086	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.312417023905029	0.155169075860264	0.629019643795342	finite		TRUE	0.090999999999994
+87	820087	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.435065435136805	0.223627646818394	0.846415617852887	finite		TRUE	0.0879999999999939
+88	820088	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.323721818673532	0.153176822542268	0.684149299783139	finite		TRUE	0.0939999999999941
+89	820089	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.247400548092586	0.111129162494693	0.55077380070632	finite		TRUE	0.0760000000000076
+90	820090	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.336348454169506	0.16425761855358	0.688736897675852	finite		TRUE	0.0820000000000078
+91	820091	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.239559655567934	0.0851356343597915	0.674087049534351	finite		TRUE	0.0840000000000032
+92	820092	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.384154085365163	0.185638545243297	0.794955385528013	finite		TRUE	0.0929999999999893
+93	820093	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.420542417276805	0.221673953009154	0.79782005205508	finite		TRUE	0.0769999999999982
+94	820094	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.339137238985143	0.172148705033823	0.668108812342611	finite		TRUE	0.0799999999999983
+95	820095	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.634461762855983	0.364375172512827	1.10474521562566	finite		TRUE	0.0849999999999937
+96	820096	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.404219102917251	0.205698336147341	0.79433351880002	finite		TRUE	0.0829999999999984
+97	820097	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.0829969257305882	0.00247742491328256	2.78050391912851	finite		TRUE	0.0889999999999986
+98	820098	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.219706434921965	0.0928114874539955	0.520096368135965	finite		TRUE	0.090999999999994
+99	820099	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.548894411644973	0.304907136992935	0.988120770495648	finite		TRUE	0.097999999999999
+100	820100	relmat	sigma:x	sd:sigma:relmat(0 + x | id)	0.38	fit_ok		0	TRUE	0.444266595390231	0.243315400024736	0.811180910700935	finite		TRUE	0.0880000000000081
