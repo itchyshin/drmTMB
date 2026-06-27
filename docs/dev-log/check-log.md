@@ -69826,3 +69826,41 @@ Boundary:
 - RECOVERY evidence only (convergence + SD bias/RMSE). Linked cells stay
   coverage_status planned; promotes no coverage_status, no interval_status,
   nothing to supported. Count coverage (intervals) is a separate not-yet-run gate.
+
+## 2026-06-27: slope-coverage g-sweep (q2 under-coverage is small-sample, not a wall)
+
+Goal:
+
+- Decide whether the slope-lane under-coverage (q2 0.87-0.91; sigma near-nominal)
+  is a small-sample (group count g) effect or a method wall, by sweeping
+  g in {8,16,32}.
+
+Result:
+
+- Added a GSWEEP_N_GROUPS env hook to the sigma + q2 runners (default 8;
+  phylo/spatial/relmat scale, animal fixed-8 excluded). Ran g=16/32 x 300 reps.
+- Fisher + Curie verified: q2 under-coverage is SMALL-SAMPLE, NOT a method wall --
+  coverage climbs monotonically with g (CA significant for 3/5 targets), SD-slope
+  bias shrinks -8%->-2% as g 8->32. q2 is surmountable. Sigma Wald is g-robust
+  near-nominal (diagnostic).
+- HONESTY corrections: NOT 'supported for g>=32' (300-rep MCSE ~0.015; pooled q2
+  g32 = 0.944, Wilson95 [0.930,0.956] straddles 0.95); g/N confounded (n_each
+  fixed); deployment g=8 q2 still under-covers; coverage != supported (interval
+  reliability is a separate rung); correlation target is a documented near-miss
+  (structural Wald-width). Curie found balanced_tree fails at non-power-of-2 tips.
+- Banked docs/dev-log/dashboard/structured-re-slope-coverage-gsweep.tsv (18
+  diagnostic rows); preserved raw grids; registered in the validator.
+
+Evidence:
+
+- python3 tools/validate-mission-control.py: mission_control_ok, 18 g-sweep rows.
+- Fisher + Curie reproduced every figure from raw wald_contains + ran an
+  independent g=48 confirmatory slice.
+- After-task: docs/dev-log/after-task/2026-06-27-slope-coverage-gsweep.md.
+
+Boundary:
+
+- DIAGNOSTIC g-sweep. Linked cells stay coverage_status planned; promotes no
+  coverage_status, no interval_status, nothing to supported. Re-run plan to
+  certify: g>=32, >=500 paired-seed reps (certification grid running) + a separate
+  interval-reliability rung. No DRM.jl, no Ayumi reply.
