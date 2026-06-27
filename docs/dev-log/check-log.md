@@ -69593,3 +69593,61 @@ Boundary:
   coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
   non-Gaussian REML, broader q8 support, DRAC/Totoro execution, SR150 coverage
   readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-27: coverage-runner hardening + bank q2-slope runner
+
+Goal:
+
+- Fix the degenerate MCSE gate in both new coverage runners, fix the SLURM
+  copy-back defect in all three coverage sbatch, apply the blind-safe
+  q4-location fixes, and bank the q2-slope coverage runner as deploy-ready
+  scaffolding. No cluster job submitted; no coverage evidence produced.
+
+Result:
+
+- `mcse_threshold_met` gate hardened byte-identically in
+  `tools/run-structured-re-q2-slope-coverage-grid.R` and
+  `tools/run-structured-re-q4-location-coverage-grid.R`: now requires
+  `n_wald_fin >= 475L && wald_mcse > 0` before `<= 0.01`, else `NA`. A
+  saturated-coverage MCSE of exactly 0 no longer fakes a pass at the n=6 smoke.
+- SLURM copy-back made fail-safe in all three sbatch
+  (`tools/slurm/sigma-/q2-/q4-...grid.sbatch`): the `Rscript` call is wrapped
+  `set +e` / `EXIT_CODE=$?` / `set -eo pipefail`, so a non-zero R exit reaches
+  the `cp ... $RESULTS_DIR` step instead of stranding results on purged
+  `$SCRATCH`. Honest note: the sigma-slope sbatch banked in #677 was NOT
+  copy-back-safe when first banked; this slice closes that.
+- q4-location (stays HELD): added `wald_finite_frac`/`profile_finite_frac` to
+  surface boundary-censoring, and fixed `sd_label_in_sdpars()` to use the native
+  `mu1:provider(...)` key (estimate_sd was all-NA). Both blind-safe; the key fix
+  is flagged for live confirmation.
+
+Evidence:
+
+- No live R / `devtools` / `testthat` was run this session (unavailable in this
+  app R library; `~/.Rprofile` segfaults R 4.6). Evidence is source-reasoning +
+  syntax checks + an adversarial 4-agent review panel.
+- `Rscript --no-init-file -e 'parse(...)'` on both runners: parse OK.
+- `bash -n` on all three sbatch: OK.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, 98 q-series
+  cells (no banked sidecar touched).
+- `git diff --check`: clean.
+- Review panel: Fisher certified the MCSE fix correct + q2 runner
+  SOUND_WITH_CAVEATS (DGP<->model alignment numerically confirmed); Grace
+  certified the copy-back fix across all 3 files; an independent investigator
+  confirmed the 4 q4 defects + the blind-fixable subset; Rose returned GO to
+  bank q2 with `moves_disallowed_status = false`.
+- After-task: `docs/dev-log/after-task/2026-06-27-coverage-runner-hardening-and-q2-slope-bank.md`.
+
+Boundary:
+
+- Scaffolding hardening only. No coverage evidence is produced, no
+  `coverage_status` moves off `planned`, and no support is promoted. q2 is
+  "verified-ready" only in the scaffolding sense (Fisher SOUND: DGP<->model
+  aligned, resumable, denominator honest) — NOT interval-reliability or coverage
+  verified, and no local fit was run. SR475 sizes the coverage estimate, not a
+  passable 0.01-MCSE gate (Fisher's tension caveat). q4-location stays HELD
+  (D3 artifact regen + D4 key confirmation owed to Codex/maintainer). This slice
+  does not submit any Totoro/DRAC job, touch DRM.jl, promote interval
+  reliability, coverage, REML, AI-REML, bridge, public support, SR150 readiness,
+  PR undrafting/merging, or an Ayumi-facing reply. Coverage execution remains
+  externally gated to the maintainer's cluster run.

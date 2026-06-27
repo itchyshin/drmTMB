@@ -471,11 +471,18 @@ mu_parm_name <- function(provider, endpoint_member) {
   paste0("sd:mu:", response, ":", provider, "(", coef, " | p | ", grp, ")")
 }
 
-# sdpars$mu key: provider(coef | p | group)
+# sdpars$mu key for native biv_gaussian: "<mu1|mu2>:provider(coef | p | group)".
+# The endpoint prefix is required -- phylo_mu_sd_labels() -> format_structured_label()
+# names each SD "mu1:phylo(1 | p | species)" etc. The prefix-less key never matched,
+# leaving estimate_sd (hence mean_est_sd/bias_mean_est) all-NA. Fix derived from
+# source (R/drmTMB.R phylo_mu_sd_labels/phylo_mu_dpars; R/parse-formula.R
+# format_structured_label). NEEDS LIVE CONFIRMATION of names(fit$sdpars$mu) for one
+# phylo + one non-phylo fit before estimate_sd/bias are trusted -- q4 runner is HELD.
 sd_label_in_sdpars <- function(provider, endpoint_member) {
-  grp  <- mu_group(provider)
-  coef <- if (grepl("Intercept", endpoint_member, fixed = TRUE)) "1" else "0 + x"
-  paste0(provider, "(", coef, " | p | ", grp, ")")
+  response <- sub(":.*", "", endpoint_member)          # "mu1" or "mu2"
+  grp      <- mu_group(provider)
+  coef     <- if (grepl("Intercept", endpoint_member, fixed = TRUE)) "1" else "0 + x"
+  paste0(response, ":", provider, "(", coef, " | p | ", grp, ")")
 }
 
 target_token <- function(endpoint_member) {
@@ -819,10 +826,15 @@ make_summary <- function(rows, shard, provider, endpoint_member,
     n_pdhess            = n_pdhess,
     n_boundary          = n_boundary,
     n_wald_finite       = n_wald_fin,
+    # Finite-interval fraction surfaces boundary-censoring: coverage is computed
+    # on the finite subset only, so a low fraction (e.g. < ~0.9) means coverage
+    # is a censored-subsample estimate and must not be read as trustworthy.
+    wald_finite_frac    = round(if (n_fit_ok > 0L) n_wald_fin / n_fit_ok else NA_real_, 4L),
     n_wald_covered      = n_wald_cov,
     wald_coverage       = round(wald_cov, 4L),
     wald_mcse           = round(wald_mcse, 4L),
     n_profile_finite    = n_prof_fin,
+    profile_finite_frac = round(if (n_fit_ok > 0L) n_prof_fin / n_fit_ok else NA_real_, 4L),
     n_profile_covered   = n_prof_cov,
     profile_coverage    = round(prof_cov, 4L),
     profile_mcse        = round(prof_mcse, 4L),
@@ -832,7 +844,11 @@ make_summary <- function(rows, shard, provider, endpoint_member,
     bootstrap_R         = bootstrap_R,
     mean_est_sd         = round(mean_est, 4L),
     bias_mean_est       = round(mean_est - truth_sd, 4L),
-    mcse_threshold_met  = if (!is.na(wald_mcse)) wald_mcse <= 0.01 else NA,
+    # SR475 denominator floor + non-degenerate guard: a saturated-coverage MCSE
+    # of exactly 0 (p in {0,1}) must not fake a threshold pass, and a sub-475
+    # smoke denominator is never coverage-evaluable. NA = "not assessable".
+    # Wald-only; profile_mcse is reported but not gated -- see after-task note.
+    mcse_threshold_met  = if (!is.na(wald_mcse) && n_wald_fin >= 475L && wald_mcse > 0) wald_mcse <= 0.01 else NA,
     denominator_status  = "grid_shard_local_or_cluster",
     coverage_evaluable  = "pending_mcse_check",
     claim_boundary      = paste(

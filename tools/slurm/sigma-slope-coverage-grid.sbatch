@@ -71,6 +71,11 @@ echo "[sbatch] out_dir=$OUT_DIR"
 echo "[sbatch] R_LIBS=$R_LIBS"
 
 # --- Run -------------------------------------------------------------------
+# Wrap in `set +e` so a non-zero Rscript exit does NOT abort the script before
+# the copy-back below -- per-rep results live on purged $SCRATCH until copied to
+# /project. Restore with `set -eo pipefail` (faithful to the top-of-file guard;
+# bare `set -e` would drop pipefail). `set -u` is unaffected by +e/-e and stays on.
+set +e
 Rscript --no-init-file \
   "$REPO/tools/run-structured-re-sigma-slope-coverage-grid.R" \
   --shard="$SLURM_ARRAY_TASK_ID" \
@@ -78,8 +83,8 @@ Rscript --no-init-file \
   --seed_start=740001 \
   --out_dir="$OUT_DIR" \
   --bootstrap=0
-
 EXIT_CODE=$?
+set -eo pipefail
 echo "[sbatch] R exit code: $EXIT_CODE"
 
 # --- Copy results to project -----------------------------------------------
