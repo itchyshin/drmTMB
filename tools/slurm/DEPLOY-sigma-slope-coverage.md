@@ -133,8 +133,56 @@ scp 'fir:/project/def-snakagaw/snakagaw/sigcov-results/*.tsv' \
   full ladder (point-fit + fixture-parity + interval reliability + coverage).
 - Keep animal `sigma:x` a visible holdout until its profile failure is resolved.
 
+## Second lane — q2-slope coverage grid (optional, after sigma)
+
+The bivariate Gaussian structured **q2 slope-only** lane (`mu1:x + mu2:x`) is also
+deploy-ready (banked in PR #681; runner Fisher-verified SOUND, DGP↔model aligned).
+drmTMB is already installed from Steps 2–3, so this lane only needs transfer +
+submit + collect.
+
+| shard | provider | target |
+|---|---|---|
+| 1 | phylo | mu1:x |
+| 2 | phylo | mu2:x |
+| 3 | phylo | cor(mu1:x, mu2:x) |
+| 4 | spatial | mu1:x |
+| 5 | spatial | mu2:x |
+| 6 | spatial | cor(mu1:x, mu2:x) |
+| 7 | animal | mu1:x |
+| 8 | animal | mu2:x |
+| 9 | relmat | mu1:x |
+| 10 | relmat | mu2:x |
+
+`animal cor` and `relmat cor` are excluded profile-failure holdouts (not in the
+array). Seed manifest 730001..730475.
+
+```sh
+# (a) transfer the two q2 files (drmTMB already installed):
+DEST=/project/def-snakagaw/snakagaw/sigcov-deploy
+scp tools/run-structured-re-q2-slope-coverage-grid.R fir:$DEST/tools/
+scp tools/slurm/q2-slope-coverage-grid.sbatch        fir:$DEST/tools/slurm/
+
+# (b) submit all 10 shards (on fir, with DRMTMB_RLIB/DRMTMB_REPO exported):
+sbatch --export=ALL,DRMTMB_RLIB,DRMTMB_REPO tools/slurm/q2-slope-coverage-grid.sbatch
+
+# (c) collect (run locally):
+scp 'fir:/project/def-snakagaw/snakagaw/q2slopcov-results/*.tsv' \
+  "/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-27-q2-slope-coverage-grid/"
+```
+
+Then Step 7 applies identically (per-target coverage → bank a coverage sidecar →
+move only the exact q2 slope cells' `coverage_status` off `planned`).
+
+**Note (MCSE bar):** 475 reps gives MCSE ≈ 0.01 only *at* nominal 0.95 coverage;
+under-coverage inflates MCSE above 0.01, so SR475 sizes the coverage *estimate*,
+not a guaranteed-passable 0.01-MCSE *gate*. Read the `mcse_threshold_met` column
+accordingly. The **q4-location** runner exists but is **HELD** (unverified
+`sdpars$mu` key + a stale pilot artifact) — do **not** deploy it until Codex
+regenerates its pilot and confirms the SD key against a live fit.
+
 ## Guard reminders
 
-- This grid is the **sigma one-slope** lane only. It does not touch q4/bridge/
-  REML/AI-REML, and it does not by itself promote public support.
+- These grids are the **sigma one-slope** and **q2 slope-only** lanes only. They
+  do not touch q4/bridge/REML/AI-REML, and they do not by themselves promote
+  public support.
 - `def-snakagaw_cpu` allocation; jobs are tiny (~minutes), so cost is minimal.
