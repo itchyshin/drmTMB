@@ -3,7 +3,15 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-06-14).** The Ayumi σ-phylo arc just closed
+> **▶ Latest handover — start here (2026-06-27).** Q-series structured-RE completion lane.
+> 4 PRs banked (draft, stacked): #675 (relmat-NB2, CI recorded) · #676 (count-sigma rejection) ·
+> #677 (sigma-slope coverage scaffolding — **deploy-ready**) · #678 (non-Gaussian family
+> rejection; q-series cells 90→98). q2-slope coverage runner verified-ready (MCSE fix pending);
+> q4-location runner HELD (defects). Coverage execution is **maintainer-run on fir** (agent is
+> exfiltration-blocked from transferring code to the cluster). START HERE:
+> [`docs/dev-log/handover/2026-06-27-claude-handover.md`](docs/dev-log/handover/2026-06-27-claude-handover.md).
+>
+> **▶ Prior handover (2026-06-14).** The Ayumi σ-phylo arc just closed
 > (DRM.jl#289 REML on all four among-axis axes; drmTMB#542/#543; reply posted to
 > `Ayumi-495/LS_ecogeographical-rules#2`). Rehydration anchor:
 > [`docs/dev-log/codex-handover-2026-06-14-ayumi-arc-closeout.md`](docs/dev-log/codex-handover-2026-06-14-ayumi-arc-closeout.md).
