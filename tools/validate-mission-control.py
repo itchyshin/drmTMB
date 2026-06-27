@@ -96,6 +96,9 @@ STRUCTURED_RE_COUNT_SLOPE_SIGMA_ONE_SLOPE_REJECTION_CONTRACT = (
 STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-nongaussian-structured-family-rejection-contract.tsv"
 )
+STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT = (
+    DASHBOARD / "structured-re-count-structured-mu-rejection-contract.tsv"
+)
 STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
     DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
 )
@@ -1672,6 +1675,26 @@ STRUCTURED_RE_COUNT_SLOPE_SIGMA_ONE_SLOPE_REJECTION_CONTRACT_FIELDS = (
     "next_gate",
 )
 STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT_FIELDS = (
+    "rejection_id",
+    "cell_id",
+    "formula_cell",
+    "family",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "expected_error_pattern",
+    "rejection_stage",
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT_FIELDS = (
     "rejection_id",
     "cell_id",
     "formula_cell",
@@ -5475,6 +5498,9 @@ def main() -> int:
     )
     structured_re_nongaussian_structured_family_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_NONGAUSSIAN_STRUCTURED_FAMILY_REJECTION_CONTRACT
+    )
+    structured_re_count_structured_mu_rejection_contract_rows = read_tsv(
+        STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT
     )
     structured_re_mu_slope_fixture_audit_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
@@ -11508,6 +11534,156 @@ def main() -> int:
                 errors.append(f"{row_id}: claim_boundary must mention {phrase}")
         if "supported scale-side route" not in row.get("next_gate", ""):
             errors.append(f"{row_id}: next_gate must require a scale-side design")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
+    expected_count_structured_mu_rejections = {
+        "count_struct_mu_reject_noncanonical_poisson_spatial": {
+            "cell_id": "qseries_count_mu_noncanonical_term_rejected",
+            "family": "poisson()",
+            "structured_type": "spatial",
+            "expected_error_pattern": "intercept-only or one-slope",
+            "formula_fragment": "spatial(0 + x | site",
+        },
+        "count_struct_mu_reject_labelled_q2_poisson_spatial": {
+            "cell_id": "qseries_count_mu_labelled_q2_rejected",
+            "family": "poisson()",
+            "structured_type": "spatial",
+            "expected_error_pattern": "unlabelled q=1",
+            "formula_fragment": "spatial(1 | p | site",
+        },
+        "count_struct_mu_reject_struct_plus_ordinary_poisson_spatial": {
+            "cell_id": "qseries_count_mu_structured_plus_ordinary_rejected",
+            "family": "poisson()",
+            "structured_type": "spatial",
+            "expected_error_pattern": "cannot be combined",
+            "formula_fragment": "spatial(1 | site",
+        },
+        "count_struct_mu_reject_zi_poisson_spatial": {
+            "cell_id": "qseries_count_mu_zeroinflated_poisson_structured_rejected",
+            "family": "poisson()",
+            "structured_type": "spatial",
+            "expected_error_pattern": "Zero-inflated Poisson structured random effects",
+            "formula_fragment": "spatial(1 | site",
+        },
+        "count_struct_mu_reject_zi_nbinom2_spatial": {
+            "cell_id": "qseries_count_mu_zeroinflated_nbinom2_structured_rejected",
+            "family": "nbinom2()",
+            "structured_type": "spatial",
+            "expected_error_pattern": "Zero-inflated NB2 structured random effects",
+            "formula_fragment": "spatial(1 | site",
+        },
+        "count_struct_mu_reject_simultaneous_types_nbinom2": {
+            "cell_id": "qseries_count_mu_simultaneous_structured_types_rejected",
+            "family": "nbinom2()",
+            "structured_type": "spatial",
+            "expected_error_pattern": "Only one structured",
+            "formula_fragment": "spatial(1 | site",
+        },
+    }
+    seen_count_structured_mu_rejections: set[str] = set()
+    if len(structured_re_count_structured_mu_rejection_contract_rows) != len(
+        expected_count_structured_mu_rejections
+    ):
+        errors.append(
+            "structured-re-count-structured-mu-rejection-contract.tsv has "
+            f"{len(structured_re_count_structured_mu_rejection_contract_rows)} rows; "
+            f"expected {len(expected_count_structured_mu_rejections)}"
+        )
+    for row in structured_re_count_structured_mu_rejection_contract_rows:
+        row_id = row.get("rejection_id", "<count structured mu rejection>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: "
+                "structured-re-count-structured-mu-rejection-contract.tsv "
+                "fields do not match the rejection contract"
+            )
+        for field in STRUCTURED_RE_COUNT_STRUCTURED_MU_REJECTION_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        expected = expected_count_structured_mu_rejections.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: invalid rejection_id")
+            continue
+        if row_id in seen_count_structured_mu_rejections:
+            errors.append(f"duplicate count structured mu rejection id: {row_id}")
+        seen_count_structured_mu_rejections.add(row_id)
+        if row.get("cell_id") != expected["cell_id"]:
+            errors.append(f"{row_id}: cell_id must be {expected['cell_id']}")
+        qseries_row = qseries_by_cell.get(expected["cell_id"])
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series cell is missing")
+        else:
+            expected_qseries_values = {
+                "family_class": "non_gaussian",
+                "family": expected["family"],
+                "structure_provider": expected["structured_type"],
+                "dimension_pattern": "q1",
+                "endpoint_set": "mu",
+                "fit_status": "unsupported",
+                "extractor_status": "unsupported",
+                "bridge_status": "unsupported",
+                "interval_status": "unsupported",
+                "coverage_status": "unsupported",
+                "authority_status": "source",
+                "denominator_policy": "no_denominator_until_fit",
+                "evidence_url": (
+                    "docs/dev-log/dashboard/"
+                    "structured-re-count-structured-mu-rejection-contract.tsv"
+                ),
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{expected['cell_id']}: {field} must be {expected_value}"
+                    )
+            if "pre-optimization rejection evidence" not in qseries_row.get(
+                "claim_boundary", ""
+            ):
+                errors.append(
+                    f"{expected['cell_id']}: claim_boundary must mention "
+                    "pre-optimization rejection evidence"
+                )
+        expected_row_values = {
+            "family": expected["family"],
+            "structured_type": expected["structured_type"],
+            "dimension": "q1",
+            "endpoint": "mu",
+            "expected_error_pattern": expected["expected_error_pattern"],
+            "rejection_stage": "pre_optimization_formula_gate",
+            "fit_status": "unsupported",
+            "extractor_status": "unsupported",
+            "bridge_status": "unsupported",
+            "interval_status": "unsupported",
+            "coverage_status": "unsupported",
+            "evidence_url": "tests/testthat/test-count-structured-mu.R",
+        }
+        for field, expected_value in expected_row_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if expected["formula_fragment"] not in row.get("formula_cell", ""):
+            errors.append(f"{row_id}: formula_cell must name the provider formula")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "rejection evidence only",
+            "parser-ready support",
+            "point-fit support",
+            "bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+            "public support",
+            "q4/q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if "beyond unsupported" not in row.get("next_gate", ""):
+            errors.append(
+                f"{row_id}: next_gate must describe the route to leave unsupported"
+            )
         if not evidence_reference_exists(row.get("evidence_url", "")):
             errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
 
@@ -28541,6 +28717,7 @@ def main() -> int:
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_count_slope_sigma_one_slope_rejection_contract_rows)} structured RE count-slope sigma one-slope rejection rows"
         f", {len(structured_re_nongaussian_structured_family_rejection_contract_rows)} structured RE non-Gaussian structured-family rejection rows"
+        f", {len(structured_re_count_structured_mu_rejection_contract_rows)} structured RE count structured-mu rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"

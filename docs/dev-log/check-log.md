@@ -69651,3 +69651,48 @@ Boundary:
   reliability, coverage, REML, AI-REML, bridge, public support, SR150 readiness,
   PR undrafting/merging, or an Ayumi-facing reply. Coverage execution remains
   externally gated to the maintainer's cluster run.
+
+## 2026-06-27: count-structured-mu rejection contract (6 boundary cells)
+
+Goal:
+
+- Bank the exact pre-optimization rejection boundaries for structured count `mu`
+  routes the engine already rejects but that were only documented as prose inside
+  neighbour cells. Surfaced by a 145-sidecar consolidation sweep's adversarial
+  refuter; same class as #676 (count sigma) and #678 (non-Gaussian family).
+
+Result:
+
+- Added `docs/dev-log/dashboard/structured-re-count-structured-mu-rejection-contract.tsv`
+  (6 rows: non-canonical/slope-only, labelled q=2, structured+ordinary,
+  zero-inflated Poisson, zero-inflated NB2, simultaneous structured types). Each
+  records its REAL engine message (e.g. "cannot be combined", "Only one
+  structured"), not the shared "Structured non-Gaussian paths" string.
+- Added 6 `unsupported` rows to
+  `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`
+  (q-series cells 98 -> 104), `family_class = non_gaussian`, all status columns
+  `unsupported`.
+- Registered in `tools/validate-mission-control.py` (path, read_tsv, fields,
+  per-row validation block mirroring the #678 nongaussian block, summary count).
+- Cited the EXISTING `tests/testthat/test-count-structured-mu.R` `expect_error`
+  block; no new message-anchor test was added.
+
+Evidence:
+
+- No live R run this session. Engine gates + messages confirmed by reading
+  `R/drmTMB.R:6772-6881` and `tests/testthat/test-count-structured-mu.R:391-465`.
+- `python3 -m py_compile tools/validate-mission-control.py`: OK.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, 104 q-series
+  cells, 6 count structured-mu rejection rows.
+- `git diff --check`: clean.
+- After-task: `docs/dev-log/after-task/2026-06-27-count-structured-mu-rejection-contract.md`.
+
+Boundary:
+
+- Rejection evidence only. Every new cell stays `unsupported`; this promotes no
+  parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML, public
+  support, or q4/q8 status, and moves no `coverage_status`. It does not run any
+  fit, submit any Totoro/DRAC job, touch DRM.jl, undraft/merge a PR, or send an
+  Ayumi reply. The contracts share the message-substring fragility flagged in
+  handover item 5 (the maintainer's anchor-on-error-class decision applies here
+  too).
