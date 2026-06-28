@@ -104,10 +104,14 @@ The current table records these broad facts without promoting beyond them:
 - Bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` covariance cells
   now have native point-fit/extractor evidence plus deterministic same-target
   fixtures across `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`,
-  and K-matrix `relmat()`. These are exact `mu1:x+mu2:x` cells only; they do
-  not promote intercept-plus-slope q4/q8, interval reliability, coverage,
-  REML, AI-REML, range-estimating spatial support, pedigree/Ainv bridge
-  marshalling, or relmat Q bridge marshalling.
+  and K-matrix `relmat()`. The exact phylo and relmat q2 slope rows have also
+  reached `inference_ready` for interval and coverage status through the
+  default small-sample `confint()` correction. The spatial and animal q2 rows
+  remain future row-level arcs; the pooled all-provider g=8 engine coverage is
+  not a promotion of those rows. These are exact `mu1:x+mu2:x` cells only; they
+  do not promote intercept-plus-slope q4/q8, `supported`, REML, AI-REML,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, or relmat
+  Q bridge marshalling.
 - Q2 bridge fixture evidence is banked only for complete-response
   exact-Gaussian ML fixtures: phylo, fixed-covariance spatial, animal A-matrix,
   and relmat K-matrix.
@@ -235,25 +239,20 @@ PROFILE channel at adequate g.**
    derivation — a maintainer commission, not an autonomous engineering task this
    cycle.**
 
-6. **BREAKTHROUGH — a closed-form correction works; `supported` is now engineering,
-   not research.** The remaining candidate ("closed-form analytic small-sample log-SD
-   bias correction") turns out to be simple. The measured log-shrinkage tracks
-   **`log(g/(g-1))`** (a *simulation-calibrated* shift — REML-motivated but ~2x the
-   leading-order REML SD term `0.5*log(g/(g-1))`, because the structured/bivariate
-   model's effective df is well below `g-1`; see doc 219), so the truth-free
-   correction `sigma_corrected = sigma_ML * g/(g-1)` plus the t(df=g-1) width holds
-   nominal at EVERY g
+6. **The default correction is accepted for a narrower row-level claim.** The
+   measured log-shrinkage tracks **`log(g/(g-1))`** (a *simulation-calibrated*
+   shift — REML-motivated but ~2x the leading-order REML SD term
+   `0.5*log(g/(g-1))`, because the structured/bivariate model's effective df is
+   well below `g-1`; see doc 219). The truth-free correction
+   `sigma_corrected = sigma_ML * g/(g-1)` plus the t(df=g-1) width reached nominal
+   coverage in the oracle/analytic sweep
    (`docs/dev-log/simulation-artifacts/2026-06-27-oracle-bias-correction/analytic-correction-cross-g.R`):
-   g=8 **0.887 -> 0.955**, g=16 0.908 -> 0.949, g=32 0.944 -> 0.963 (no over-correction
-   at large g). It is a *simulation-calibrated* bias correction (doctrine-endorsed:
-   calibrate by simulation, validate per model class) — no truth, no refits, no
-   derivation, no DRAC. Crucially it makes coverage **nominal at the deployment default
-   g=8**, which dissolves the "supported-for-g>=N is design-inappropriate" objection.
-   **So `supported` for the certified q2 mu-slope cells is now an engineering arc:**
-   implement the centre correction in `confint` (in flight), validate with a fresh
-   local engine coverage grid, re-run the inference sign-off (Fisher), then promote.
-   Scoped to the under-covering location (mu) variance components; the sigma/dispersion
-   SDs already over-cover, so the centre shift is not applied to them.
+   g=8 **0.887 -> 0.955**, g=16 0.908 -> 0.949, g=32 0.944 -> 0.963. Fresh
+   engine validation then accepted the correction as the default for
+   location-axis structured SD targets only. It does not create a broad
+   `supported` claim: the later engine grids still measured right-tail miss
+   asymmetry and g-dependence. The sigma/dispersion SDs already over-cover, so
+   the centre shift is not applied to them by default.
 
 The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
 q4-location "walls" are small-sample artifacts: profile coverage reaches
@@ -261,35 +260,37 @@ certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
 evaporates (phylo 48.6% -> 5.0%, relmat 22.9% -> 0.0%) by g=32, with the eight
 certified cells passing the interval-reliability rung via the profile channel.
 
-**What is left is a maintainer DESIGN DECISION, not code.** No cell earns
-`supported` this cycle: `supported` requires deployment-g nominal coverage, which
-needs either the future scale-side REML derivation (large; partly upstream
-DRM.jl) or accepting larger-g (g>=32) as the deployment recommendation. The
-maximal honest machine move is promoting the g=32-certified phylo+relmat cells to
-`interval_feasible` — a ~185-guard coordinated edit the standing HOLD panel gated
-behind maintainer + Pat/`user_tester` + Darwin/`audience_reviewer` sign-off.
-Until that decision is made, every cell keeps `interval_status = planned` and
-`coverage_status = planned`, and the honest public recommendation is: **use the
-profile channel and an adequate group count (g>=32); the Wald-t opt-in narrows
-the small-g gap but does not by itself reach nominal at the deployment default.**
-
 ### Decision executed (2026-06-27): four cells promoted to `interval_feasible`
 
 The maintainer signed off (after Fisher/Rose/Emmy and then Pat/`user_tester` +
 Darwin/`audience_reviewer` SIGN_OFF_WITH_CHANGES). Four cells —
 `qseries_phylo_q1_sigma_one_slope`, `qseries_phylo_q2_mu1_mu2_one_slope`,
-`qseries_relmat_q1_sigma_one_slope`, `qseries_relmat_q2_mu1_mu2_one_slope` — moved
-from `interval_status = planned` to `interval_feasible`. `coverage_status` stays
-`planned` on all 106 cells; no cell reaches `inference_ready` or `supported`.
-spatial + animal stay `planned` (no g=32 rung). The coordinated edit relaxed 96
-anti-over-promotion guards (three cell-id-keyed helpers in
-`tools/validate-mission-control.py`) so they admit `interval_feasible` for exactly
-these four cells and still reject every other cell; the `claim_boundary` text was
-rewritten per the reviewers (lead with the g=8 number, name `confint(method =
-"profile")`, record sigma:x's ~23% g=8 profile non-convergence, and that REML is
-not the fix). Verified: `mission_control_ok` green; a non-certified flip still
-errors; conversion + bridge-fixture tests green (bar 4 pre-existing artifact-path
-failures unrelated to this change).
+`qseries_relmat_q1_sigma_one_slope`, `qseries_relmat_q2_mu1_mu2_one_slope` —
+moved from `interval_status = planned` to `interval_feasible`. That 2026-06-27
+move did not promote coverage or `supported`.
+
+### Decision executed (2026-06-28): q2 phylo/relmat to `inference_ready`
+
+After the default correction shipped and a fresh engine-validated g=8 grid ran,
+the q-series TSV contains 104 rows. Exactly two structured rows are
+`inference_ready` for both interval and coverage status:
+
+- `qseries_phylo_q2_mu1_mu2_one_slope`
+- `qseries_relmat_q2_mu1_mu2_one_slope`
+
+No structured row is `supported`. The validator admits `inference_ready` only
+for those two q2 location-axis rows and still rejects `supported`
+over-promotion. The pooled all-provider g=8 engine result is evidence for the
+default correction, not a claim that all four providers are `inference_ready`:
+fixed-covariance spatial q2, animal q2, sigma, q4/q8, count, and non-Gaussian
+rows remain separate future arcs.
+
+`supported` is withheld because two measured defects remain: a roughly 6:1
+right-tail miss asymmetry at SD about 0.9, and g-dependent under-correction
+(relmat g=12 about 0.93). Those are sampling-shape and effective-df problems,
+not stale label work. The next bounded tier arc is sigma to `inference_ready`;
+q2 `supported` needs a skew-aware interval or a derived, tested bivariate
+structured-location REML route.
 
 ## Why the Older Work Drifted
 

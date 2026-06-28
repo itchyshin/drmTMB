@@ -9,15 +9,14 @@ the linked repo files. Read `AGENTS.md` first (native), then this doc.
 
 ## ‼ Critical Context (read these three first)
 
-1. **THE ENTIRE SESSION IS UNPUSHED — the work will be lost if the branch is not pushed.**
-   `origin/main` is at `c1e9d15a`; local `main` and the branch
-   `claude/local-coverage-grids-sigma-q2` are **15 commits ahead at `9ae75bf1`**, on
-   **no remote**. The handover commit (this doc + the `AGENTS.md` snapshot) lands on that
-   same branch. **Pushing is the maintainer's call** (project rule + global "push only
-   when asked"). If you/the maintainer do not push
-   `claude/local-coverage-grids-sigma-q2`, a fresh checkout sees NONE of this. → **Ask
-   the maintainer to `git push -u origin claude/local-coverage-grids-sigma-q2` before
-   anything else.**
+1. **Codex follow-up, 2026-06-28: the branch is now pushed.**
+   `origin/main` remains at `c1e9d15a`, but
+   `claude/local-coverage-grids-sigma-q2` now tracks the remote branch at
+   `922defda` with the full 16-commit small-sample interval arc visible after a
+   fresh fetch. The q2 status move itself landed at `9ae75bf1`; `922defda` is the
+   handover/snapshot commit on top. If later consolidation commits sit on this
+   branch, treat `922defda` as the validated incoming arc head, not the latest
+   PR head.
 
 2. **Run R with the segfault-safe invocation.** The `.Rprofile` loads an R-4.5 library
    that **segfaults R 4.6**. Always:
@@ -67,7 +66,8 @@ mapped in `docs/design/218-structured-q-series-completion-map.md`) up the ladder
 
 ## What Was Accomplished (concrete, this session)
 
-The breakthrough chain (all committed, `c1e9d15a..9ae75bf1`):
+The breakthrough chain (functional arc committed in `c1e9d15a..9ae75bf1`, then
+handover/snapshot commit `922defda` on top):
 
 - **`confint(..., method="wald")` small-sample machinery** (`R/profile.R`): opt-in
   `small_sample_df` (t(g−1) width) → opt-in `bias_correct` (centre shift `+log(g/(g−1))`)
@@ -76,9 +76,12 @@ The breakthrough chain (all committed, `c1e9d15a..9ae75bf1`):
   `wald_sd_target_is_location_axis`, `structured_sd_group_count`. Group count `g` resolves
   from `object$model$structured$phylo_mu$group_levels` (NOT the empty covariance-block
   registry, NOT the augmented `n_re`). New test `tests/testthat/test-wald-small-sample-default.R`.
-- **Engine-validated coverage** (fresh `confint` fits, not post-hoc): pooled **0.954
-  (MCSE 0.005) at the deployment default g=8** across all 4 providers (0.94–0.97);
-  g=16 0.954, g=32 0.953. Near-boundary (SD=0.35) conservative 0.96–0.97. Artifacts in
+- **Engine-validated correction evidence** (fresh `confint` fits, not post-hoc):
+  pooled **0.954 (MCSE 0.005) at the deployment default g=8** across the four
+  provider grids (0.94–0.97); g=16 0.954, g=32 0.953. This is evidence for the
+  default correction, not a four-provider row-status promotion: only phylo and
+  relmat q2 slope rows moved to `inference_ready`. Near-boundary (SD=0.35) was
+  conservative 0.96–0.97. Artifacts in
   `docs/dev-log/simulation-artifacts/2026-06-27-bias-corrected-*`.
 - **Math honesty correction (Noether, blocking):** the `log(g/(g−1))` shift is **~2× the
   leading-order REML SD term `0.5·log(g/(g−1))`** — *simulation-calibrated*, NOT "REML in
@@ -120,7 +123,7 @@ The breakthrough chain (all committed, `c1e9d15a..9ae75bf1`):
   Rose-checked: a non-certified cell raises 60 errors, over-promotion to `supported`
   raises 29.
 
-## Files Created / Modified (session diff `c1e9d15a..9ae75bf1`)
+## Files Created / Modified (session diff `c1e9d15a..922defda`)
 
 Source/tests/docs:
 `R/profile.R` · `REFERENCES.bib` · `man/confint.drmTMB.Rd` ·
@@ -153,11 +156,11 @@ Plus this handover doc + the `AGENTS.md` snapshot edit.
 
 ## Next Immediate Steps (ordered; ⟶ marks LIVE-toolchain = your job, Codex)
 
-1. **⟶ Confirm the branch is pushed** (ask the maintainer). Without it the work is lost.
-2. **⟶ Full `R CMD check` with compilation** — Claude could not compile TMB; you can:
-   `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'devtools::check()'`.
-   Confirm the default-flip + `test-wald-small-sample-default.R` pass under a real check
-   (the in-session run used `devtools::test`, not full `check`).
+1. **Done by Codex follow-up:** branch pushed to
+   `origin/claude/local-coverage-grids-sigma-q2`.
+2. **Done by Codex follow-up:** full `devtools::check()` with
+   `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+   'devtools::check()'` passed with 0 errors, 0 warnings, and 0 notes.
 3. **Maintainer decision on the next arc** (the AskUserQuestion that was open when the
    session ended — three options): **(a)** `sigma → inference_ready` (achievable now,
    profile channel + bounded sign-off); **(b)** **start the REML-unblock arc** (the real
@@ -202,9 +205,8 @@ Plus this handover doc + the `AGENTS.md` snapshot edit.
 
 ```sh
 cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
-# 0. CONFIRM the branch is pushed first (maintainer's call):
-#    git push -u origin claude/local-coverage-grids-sigma-q2
-git checkout claude/local-coverage-grids-sigma-q2     # == main, 9ae75bf1
+git fetch origin
+git checkout claude/local-coverage-grids-sigma-q2     # incoming arc head: 922defda
 # live-env (Codex runs the real toolchain):
 export R_PROFILE_USER=/dev/null          # avoid the R-4.5-lib segfault
 export NOT_CRAN=true
@@ -215,10 +217,10 @@ python3 tools/validate-mission-control.py | tail -1     # expect: mission_contro
 
 **Paste to a fresh Codex session (run from repo root):**
 > Rehydrate from `docs/dev-log/handover/2026-06-28-codex-handover.md` + the `AGENTS.md`
-> snapshot, then continue with the Next Immediate Steps. Confirm the branch is pushed,
-> run `devtools::check()` with `R_PROFILE_USER=/dev/null NOT_CRAN=true`, then take the
-> maintainer's decision on (a) sigma→inference_ready / (b) the REML-unblock arc / (c)
-> consolidate. Launch the `.codex/agents/` team for bounded reviews; **Rose
+> snapshot, then continue with the Next Immediate Steps. The branch has been pushed
+> and `devtools::check()` has passed locally; continue from the maintainer's decision
+> on (a) sigma→inference_ready / (b) the REML-unblock arc / (c) consolidate. Launch
+> the `.codex/agents/` team for bounded reviews; **Rose
 > (`systems-auditor.toml`) audit is mandatory before any tier/status claim.**
 
 **Cross-tool routing.** *Codex (you):* the live toolchain — `R CMD check` with
@@ -233,9 +235,9 @@ engine → Claude reviews the diff + writes the claim_boundary prose.
 
 | Item | State |
 | --- | --- |
-| Repo / branch | `drmTMB` · `claude/local-coverage-grids-sigma-q2` (== local `main`, `9ae75bf1`) |
-| Remote / CI | **UNPUSHED** — `origin/main` at `c1e9d15a`, 15 commits behind; no CI run on this work |
-| Local verification | validator `mission_control_ok`; full suite 19588 PASS / 0 FAIL / 43 SKIP; conversion FAIL 0 |
+| Repo / branch | `drmTMB` · `claude/local-coverage-grids-sigma-q2` (incoming arc head `922defda`) |
+| Remote / CI | **PUSHED** to `origin/claude/local-coverage-grids-sigma-q2`; `origin/main` remains at `c1e9d15a` until PR/merge; CI belongs to the PR run |
+| Local verification | validator `mission_control_ok`; full suite 19588 PASS / 0 FAIL / 43 SKIP; conversion FAIL 0; Codex `devtools::check()` 0 errors / 0 warnings / 0 notes |
 | What shipped | bias correction **default** for location-axis structured SD; q2 phylo/relmat → `inference_ready`; engine-validated 0.954 @ g=8; 12 citations + doc 219; gllvmTMB#565; 42 PRs closed |
 | Plan by leverage | (1) `supported` via REML-unblock **or** skew-aware interval [large] · (2) sigma→`inference_ready` [small] · (3) spatial q2 climb · (4) effective-df refinement / animal / q4 Hessian |
 | Withheld (no compromise) | `supported` (6:1 miss asymmetry + g-dependence); animal q2 (g=32 under-cover); q4/q8 (pdHess); non-Gaussian structured (engine-rejected) |

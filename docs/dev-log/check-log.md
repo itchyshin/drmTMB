@@ -69938,3 +69938,58 @@ Boundary:
   or coverage_status (coordinated support-cell+test+validator edits gated on the
   design decision). Deployment g=8 profile is a near-miss ~0.91; nominal at g=32.
   Wald is not the supportable channel. Scale-side q4 + relmat-Q bridge untouched.
+
+
+## 2026-06-28: Q-Series v1 consolidation after the default small-sample interval arc
+
+Goal:
+
+- Preserve and close the current Q-Series small-sample interval branch as a
+  row-level evidence/status arc, not as broad structured-RE `supported` support.
+
+Result:
+
+- Pushed `claude/local-coverage-grids-sigma-q2` to origin before editing, making
+  the incoming 16-commit arc at `922defda` durable on GitHub.
+- Reconciled stale status prose in README, NEWS, ROADMAP, formula grammar, design
+  doc 218, and the 2026-06-28 handover. The narrative now follows the validator
+  table: 104 Q-Series rows; exactly two structured rows
+  (`qseries_phylo_q2_mu1_mu2_one_slope` and
+  `qseries_relmat_q2_mu1_mu2_one_slope`) are `inference_ready` for interval and
+  coverage status; no structured row is `supported`.
+- Kept the default `confint()` correction scoped to location-axis structured SD
+  targets. The correction uses t(g - 1) width plus a simulation-calibrated
+  `log(g/(g - 1))` centre shift; it is not REML in closed form.
+- Made the row boundary explicit: spatial q2, animal q2, sigma, q4/q8, count, and
+  non-Gaussian structured rows remain future arcs. `supported` remains blocked by
+  right-tail miss asymmetry and g-dependence.
+
+Evidence:
+
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells.
+- `git diff --check`: no whitespace errors.
+- Forbidden-claim scan over README, NEWS, ROADMAP, formula grammar, doc 218, and
+  the handover found only contextual guard text (`not a claim that all four
+  providers are inference_ready`; `Do NOT re-label the shift "REML in closed
+  form"`).
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test()'`: FAIL 0 / WARN 17 / SKIP 43 / PASS 19588; duration 548.5 s.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::check()'`: Status OK, 0 errors / 0 warnings / 0 notes; duration
+  11m 59.9s.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'pkgdown::check_pkgdown()'`: no problems found.
+- Ada/Rose/Fisher/Gauss/Grace read-only audits agreed on the closure boundary:
+  consolidate v1 first, keep q2 at `inference_ready`, withhold `supported`, and
+  make sigma the next bounded compute arc only after PR/CI durability.
+- After-task: docs/dev-log/after-task/2026-06-28-q-series-v1-consolidation.md.
+
+Boundary:
+
+- No support-cell TSV row changed in this consolidation patch. This is a
+  source-of-truth reconciliation and PR-readiness patch over the already validated
+  default correction and q2 phylo/relmat row promotion.
+- No new inference/status promotion is bundled into v1. Sigma, spatial q2,
+  q2 `supported`, q4/q8, count, non-Gaussian structured covariance, and REML
+  derivation work are v1.1+ arcs.

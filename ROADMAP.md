@@ -469,6 +469,17 @@ Phase 5 closure boundary:
 | animal and user-supplied relatedness | Gaussian `mu` and `sigma` intercepts for `animal(1 | id, pedigree/A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, matching univariate `mu`/`sigma` structured correlations, one numeric `mu`, sigma-only, and matched `mu+sigma` one-slope cells for A-matrix `animal()` and K/Q `relmat()` with deterministic same-target fixtures, matching labelled `mu1`/`mu2` q=2 location covariance, constant all-four q=4 location-scale covariance, and ordinary Poisson/NB2 q=1 `mu` intercept and unlabelled one-slope cells with `corpairs()`, `summary()$covariance`, profile-target status, diagnostics, and dense-likelihood tests where relevant | sparse large-pedigree construction, multiple structured slopes, slope correlations, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, pure, multiple, or labelled animal/`relmat()` count slopes, generic direct-SD naming design, and broad bridge/inference beyond deterministic same-target fixtures |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
+Q-Series v1 closes as a row-level evidence arc, not broad structured-RE support.
+The authority table is
+`docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` with 104 rows:
+exactly `qseries_phylo_q2_mu1_mu2_one_slope` and
+`qseries_relmat_q2_mu1_mu2_one_slope` are `inference_ready` for interval and
+coverage status. No structured row is `supported`. The default `confint()`
+small-sample correction is accepted only for location-axis structured SD
+targets; right-tail miss asymmetry and g-dependence keep q2 `supported`
+blocked. Sigma, fixed-covariance spatial q2, animal q2, q4/q8, count, and
+non-Gaussian structured rows remain separate future arcs.
+
 Spatial parity now has its own ladder. The smallest missing phylogenetic
 sibling has landed for the constant q=2 location layer:
 coordinate-spatial bivariate location covariance for `mu1` and `mu2`, with
