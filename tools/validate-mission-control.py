@@ -174,6 +174,9 @@ STRUCTURED_RE_HIGH_Q_STATUS_AUDIT = (
 STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT = (
     DASHBOARD / "structured-re-nongaussian-status-audit.tsv"
 )
+STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT = (
+    DASHBOARD / "structured-re-gaussian-lowq-status-audit.tsv"
+)
 STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
     DASHBOARD / "structured-re-q2-slope-coverage-pregrid-dry-run.tsv"
 )
@@ -1888,6 +1891,22 @@ STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT_FIELDS = (
     "family_group",
     "structure_provider",
     "endpoint_set",
+    "widget_state",
+    "evidence_basis",
+    "stability_signal",
+    "inference_signal",
+    "linked_fit_status",
+    "linked_interval_status",
+    "linked_coverage_status",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT_FIELDS = (
+    "audit_id",
+    "cell_id",
+    "low_q_scope",
     "widget_state",
     "evidence_basis",
     "stability_signal",
@@ -5897,6 +5916,9 @@ def main() -> int:
     )
     structured_re_nongaussian_status_audit_rows = read_tsv(
         STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT
+    )
+    structured_re_gaussian_lowq_status_audit_rows = read_tsv(
+        STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT
     )
     structured_re_q2_slope_coverage_pregrid_dry_run_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN
@@ -12976,6 +12998,166 @@ def main() -> int:
             "structured-re-nongaussian-status-audit.tsv family counts must be "
             f"{expected_nongaussian_family_counts}; saw "
             f"{nongaussian_family_counts}"
+        )
+
+    # --- structured-re Gaussian low-q status audit ---
+    # DISPLAY/AUDIT evidence only: this sidecar accounts for the remaining
+    # Gaussian q1/q2/q2-plus-q2 rows after exact inference-ready, admission,
+    # high-q, and non-Gaussian rows are removed. It promotes no row.
+    expected_gaussian_lowq_state_counts = {
+        "gaussian_lowq_gate_required": 27,
+        "gaussian_baseline_comparator": 3,
+        "gaussian_lowq_rejected": 3,
+        "gaussian_lowq_diagnostic": 2,
+    }
+    expected_gaussian_lowq_scopes = {
+        "gaussian_baseline_comparator": "ordinary_baseline",
+        "gaussian_lowq_gate_required": "structured_lowq_fixture_or_point_gate",
+        "gaussian_lowq_diagnostic": "ordinary_lowq_diagnostic",
+        "gaussian_lowq_rejected": "unsupported_lowq_rejection",
+    }
+    excluded_gaussian_lowq_cells = {
+        row.get("cell_id", "")
+        for row in structured_re_q_series_inference_evidence_summary_rows
+    } | {
+        row.get("cell_id", "")
+        for row in structured_re_sigma_slope_spatial_animal_admission_audit_rows
+    } | {
+        row.get("cell_id", "")
+        for row in structured_re_q2_slope_spatial_animal_admission_audit_rows
+    } | {
+        row.get("cell_id", "") for row in structured_re_high_q_status_audit_rows
+    } | {
+        row.get("cell_id", "") for row in structured_re_nongaussian_status_audit_rows
+    }
+    expected_gaussian_lowq_cell_ids = {
+        row.get("cell_id", "")
+        for row in structured_re_q_series_support_cell_rows
+        if row.get("family_class") == "gaussian"
+        and row.get("dimension_pattern") in {"q1", "q1_plus_q1", "q2", "q2_plus_q2"}
+        and row.get("cell_id", "") not in excluded_gaussian_lowq_cells
+    }
+    if len(expected_gaussian_lowq_cell_ids) != 35:
+        errors.append(
+            "structured-re-q-series-support-cells.tsv: expected 35 remaining "
+            "Gaussian low-q rows after inference/admission/high-q/non-Gaussian "
+            f"exclusions; saw {len(expected_gaussian_lowq_cell_ids)}"
+        )
+    if len(structured_re_gaussian_lowq_status_audit_rows) != 35:
+        errors.append(
+            "structured-re-gaussian-lowq-status-audit.tsv: expected 35 rows"
+        )
+    seen_gaussian_lowq_audit_ids: set[str] = set()
+    seen_gaussian_lowq_cell_ids: set[str] = set()
+    gaussian_lowq_state_counts: dict[str, int] = {}
+    for row in structured_re_gaussian_lowq_status_audit_rows:
+        row_id = row.get("audit_id", "<Gaussian low-q status audit>")
+        cell_id = row.get("cell_id", "")
+        if set(row.keys()) != set(STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-gaussian-lowq-status-audit.tsv fields "
+                "do not match the contract"
+            )
+        for field in STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_gaussian_lowq_audit_ids:
+            errors.append(f"duplicate Gaussian low-q audit id: {row_id}")
+        seen_gaussian_lowq_audit_ids.add(row_id)
+        if cell_id in seen_gaussian_lowq_cell_ids:
+            errors.append(f"duplicate Gaussian low-q audit cell_id: {cell_id}")
+        seen_gaussian_lowq_cell_ids.add(cell_id)
+        gaussian_lowq_state_counts[row.get("widget_state", "")] = (
+            gaussian_lowq_state_counts.get(row.get("widget_state", ""), 0) + 1
+        )
+        support_row = q_series_cell_map.get(cell_id)
+        if support_row is None:
+            errors.append(f"{row_id}: linked support cell {cell_id!r} is missing")
+            continue
+        if cell_id not in expected_gaussian_lowq_cell_ids:
+            errors.append(f"{row_id}: unexpected Gaussian low-q audit cell_id {cell_id!r}")
+        if support_row.get("family_class") != "gaussian":
+            errors.append(f"{row_id}: linked support cell is not gaussian")
+        if support_row.get("dimension_pattern") not in {"q1", "q1_plus_q1", "q2", "q2_plus_q2"}:
+            errors.append(f"{row_id}: linked support cell is not low-q")
+        for audit_field, support_field in (
+            ("linked_fit_status", "fit_status"),
+            ("linked_interval_status", "interval_status"),
+            ("linked_coverage_status", "coverage_status"),
+        ):
+            if row.get(audit_field) != support_row.get(support_field):
+                errors.append(
+                    f"{row_id}: {audit_field} must match support-cell "
+                    f"{support_field}={support_row.get(support_field)!r}"
+                )
+        support_statuses = {
+            support_row.get("fit_status", ""),
+            support_row.get("interval_status", ""),
+            support_row.get("coverage_status", ""),
+        }
+        if support_row.get("fit_status") == "supported":
+            expected_widget_state = "gaussian_baseline_comparator"
+        elif "diagnostic_only" in support_statuses:
+            expected_widget_state = "gaussian_lowq_diagnostic"
+        elif support_statuses & {"unsupported", "blocked"}:
+            expected_widget_state = "gaussian_lowq_rejected"
+        else:
+            expected_widget_state = "gaussian_lowq_gate_required"
+        if row.get("widget_state") != expected_widget_state:
+            errors.append(
+                f"{row_id}: widget_state must be {expected_widget_state!r}"
+            )
+        expected_scope = expected_gaussian_lowq_scopes.get(expected_widget_state)
+        if row.get("low_q_scope") != expected_scope:
+            errors.append(f"{row_id}: low_q_scope must be {expected_scope!r}")
+        if row.get("promotion_decision") != "do_not_promote":
+            errors.append(f"{row_id}: promotion_decision must be do_not_promote")
+        if support_row.get("interval_status") == "inference_ready":
+            errors.append(
+                f"{row_id}: Gaussian low-q audit row must not link to inference_ready interval"
+            )
+        if support_row.get("coverage_status") == "inference_ready":
+            errors.append(
+                f"{row_id}: Gaussian low-q audit row must not link to inference_ready coverage"
+            )
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in ("not", "inference_ready", "REML", "AI-REML", "public support"):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if expected_widget_state == "gaussian_baseline_comparator" and (
+            "fit-supported ordinary baseline comparator only" not in claim_boundary
+        ):
+            errors.append(
+                f"{row_id}: baseline claim_boundary must name the ordinary "
+                "baseline-comparator-only scope"
+            )
+        if expected_widget_state == "gaussian_lowq_gate_required" and (
+            "point/fixture evidence only" not in claim_boundary
+        ):
+            errors.append(f"{row_id}: gate row claim_boundary must name point/fixture evidence only")
+        if expected_widget_state == "gaussian_lowq_diagnostic" and (
+            "diagnostic-only" not in claim_boundary
+        ):
+            errors.append(f"{row_id}: diagnostic row claim_boundary must name diagnostic-only")
+        if expected_widget_state == "gaussian_lowq_rejected" and (
+            "unsupported rejection-contract" not in claim_boundary
+        ):
+            errors.append(
+                f"{row_id}: rejected row claim_boundary must name unsupported "
+                "rejection-contract scope"
+            )
+    if seen_gaussian_lowq_cell_ids != expected_gaussian_lowq_cell_ids:
+        errors.append(
+            "structured-re-gaussian-lowq-status-audit.tsv cell_ids must match "
+            "the remaining Gaussian low-q q-series support-cell rows"
+        )
+    if gaussian_lowq_state_counts != expected_gaussian_lowq_state_counts:
+        errors.append(
+            "structured-re-gaussian-lowq-status-audit.tsv widget_state counts "
+            f"must be {expected_gaussian_lowq_state_counts}; saw "
+            f"{gaussian_lowq_state_counts}"
         )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
@@ -30126,6 +30308,7 @@ def main() -> int:
         f", {len(structured_re_q_series_inference_evidence_summary_rows)} structured RE q-series inference-evidence summary rows"
         f", {len(structured_re_high_q_status_audit_rows)} structured RE high-q status-audit rows"
         f", {len(structured_re_nongaussian_status_audit_rows)} structured RE non-Gaussian status-audit rows"
+        f", {len(structured_re_gaussian_lowq_status_audit_rows)} structured RE Gaussian low-q status-audit rows"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"

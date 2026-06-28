@@ -70453,3 +70453,61 @@ Boundary:
 - No non-Gaussian row moved to `coverage_status = inference_ready`,
   `supported`, REML, AI-REML, bridge support, q2/q4 covariance support, or
   public support.
+
+
+## 2026-06-28: Q-Series Gaussian low-q status audit widget state
+
+Goal:
+
+- Surface the remaining Gaussian low-q Q-Series rows by row-level evidence
+  state so ordinary baselines, point/fixture gates, diagnostics, and rejection
+  contracts do not remain in generic widget buckets.
+
+Result:
+
+- Added `structured-re-gaussian-lowq-status-audit.tsv`, a 35-row sidecar
+  covering the remaining Gaussian q1/q1-plus-q1/q2/q2-plus-q2 rows after exact
+  `inference_ready`, sigma/q2 admission, high-q, and non-Gaussian rows are
+  accounted for.
+- Added widget states for `gaussian_baseline_comparator`,
+  `gaussian_lowq_gate_required`, `gaussian_lowq_diagnostic`, and
+  `gaussian_lowq_rejected`.
+- Updated the Q-Series widget to let the audit overlay control those row-state
+  labels before the generic fit-baseline fallback.
+- Registered the Gaussian low-q audit in `tools/validate-mission-control.py`;
+  the validator now requires all 35 rows, the 3 / 27 / 2 / 3 widget-state
+  split, matching linked support-cell fit/interval/coverage statuses,
+  `do_not_promote` for every row, local evidence paths, and conservative
+  claim-boundary wording.
+- Updated the dashboard README, timestamp, and build marker to `r71`.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 35 structured RE Gaussian low-q
+  status-audit rows.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r71`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-gaussian-lowq-status-audit.tsv | wc -l`:
+  returned 36 lines, meaning header plus 35 audit rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: Q-Series
+  board rendered the `Gaussian baselines`, `Low-q gate`,
+  `Low-q diagnostic`, and `Low-q rejected` cards; representative baseline,
+  gate, diagnostic, and rejection row labels rendered as expected.
+- State accounting after all overlays: 104 rows assigned to specific evidence
+  states, 4 `inference_ready`, and no generic `fit_supported_baseline`,
+  `tried_not_inference_ready`, `tried_diagnostic`, `unsupported_or_blocked`,
+  `recovery_only`, or `planned` leftovers.
+
+Boundary:
+
+- No Gaussian low-q support-cell status changed.
+- No row moved to `interval_status = inference_ready`,
+  `coverage_status = inference_ready`, `supported`, REML, AI-REML, structured
+  covariance support, bridge support, high-q support, non-Gaussian support, or
+  public support.

@@ -213,11 +213,14 @@ q8 stability-blocked, and high-q planned states are visible separately from
 inference readiness. It also joins all non-Gaussian rows to
 `structured-re-nongaussian-status-audit.tsv` so count recovery-only,
 point-only, rejected, and planned family-design rows are visible separately
-from Gaussian interval claims. The support-cell denominator policy remains the
-route/status contract; the evidence summary is the reader-facing denominator
-for rows already promoted to `inference_ready`, the count recovery summary is
-reader-facing recovery evidence only, and the high-q and non-Gaussian audits
-are blocker ledgers only.
+from Gaussian interval claims. It also joins the remaining Gaussian low-q rows
+to `structured-re-gaussian-lowq-status-audit.tsv` so ordinary baselines,
+point/fixture gates, diagnostic-only rows, and rejection-contract rows no
+longer collapse into a generic tried bucket. The support-cell denominator
+policy remains the route/status contract; the evidence summary is the
+reader-facing denominator for rows already promoted to `inference_ready`, the
+count recovery summary is reader-facing recovery evidence only, and the high-q,
+non-Gaussian, and Gaussian low-q audits are blocker ledgers only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
 24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
@@ -227,6 +230,17 @@ are blocker ledgers only.
 `high_q_planned`. Every linked support cell keeps its existing fit, interval,
 and coverage statuses; no high-q row is `inference_ready`, and the audit does
 not promote q4/q6/q8 intervals, coverage, REML, AI-REML, bridge support,
+`supported`, or public support.
+
+`structured-re-gaussian-lowq-status-audit.tsv` records the 35 remaining
+Gaussian low-q Q-Series cells after the exact `inference_ready`, sigma/q2
+admission, high-q, and non-Gaussian rows are accounted for. It assigns three
+ordinary comparator rows to `gaussian_baseline_comparator`, twenty-seven
+point/fixture rows to `gaussian_lowq_gate_required`, two ordinary diagnostic
+rows to `gaussian_lowq_diagnostic`, and three q2-plus-q2 sigma rejection rows
+to `gaussian_lowq_rejected`. Every linked row keeps its current fit, interval,
+and coverage statuses; this audit does not promote interval+coverage
+readiness, REML, AI-REML, structured covariance support, bridge support,
 `supported`, or public support.
 
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
