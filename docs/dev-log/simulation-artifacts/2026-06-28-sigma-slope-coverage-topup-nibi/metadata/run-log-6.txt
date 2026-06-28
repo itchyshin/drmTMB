@@ -1,0 +1,10 @@
+date=2026-06-28T10:52:19-04:00
+job=16844251
+array_task=6
+node=c542
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260628-sigma-phylo-relmat-topup-77b3730f
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260628-sigma-phylo-relmat-topup-77b3730f/repo
+git_sha=77b3730fa563b022f04fff31e29907ba3f4f7e37
+R_LIBS=/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4
+exit_code=0
+done=2026-06-28T11:05:57-04:00

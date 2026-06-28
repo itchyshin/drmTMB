@@ -272,25 +272,40 @@ move did not promote coverage or `supported`.
 ### Decision executed (2026-06-28): q2 phylo/relmat to `inference_ready`
 
 After the default correction shipped and a fresh engine-validated g=8 grid ran,
-the q-series TSV contains 104 rows. Exactly two structured rows are
+the q-series TSV contains 104 rows. Two q2 structured rows are
 `inference_ready` for both interval and coverage status:
 
 - `qseries_phylo_q2_mu1_mu2_one_slope`
 - `qseries_relmat_q2_mu1_mu2_one_slope`
 
-No structured row is `supported`. The validator admits `inference_ready` only
-for those two q2 location-axis rows and still rejects `supported`
-over-promotion. The pooled all-provider g=8 engine result is evidence for the
-default correction, not a claim that all four providers are `inference_ready`:
-fixed-covariance spatial q2, animal q2, sigma, q4/q8, count, and non-Gaussian
-rows remain separate future arcs.
+No structured row is `supported`. The pooled all-provider g=8 engine result is
+evidence for the default correction, not a claim that all four providers are
+`inference_ready`: fixed-covariance spatial q2, animal q2, q4/q8, count, and
+non-Gaussian rows remain separate future arcs.
 
 `supported` is withheld because two measured defects remain: a roughly 6:1
 right-tail miss asymmetry at SD about 0.9, and g-dependent under-correction
 (relmat g=12 about 0.93). Those are sampling-shape and effective-df problems,
-not stale label work. The next bounded tier arc is sigma to `inference_ready`;
-q2 `supported` needs a skew-aware interval or a derived, tested bivariate
-structured-location REML route.
+not stale label work. q2 `supported` needs a skew-aware interval or a derived,
+tested bivariate structured-location REML route.
+
+### Decision executed (2026-06-28): q1 sigma phylo/relmat to `inference_ready`
+
+The first follow-on sigma arc promoted exactly two q1 sigma one-slope rows:
+
+- `qseries_phylo_q1_sigma_one_slope`
+- `qseries_relmat_q1_sigma_one_slope`
+
+This is an uncorrected raw Wald-z claim on the log-SD scale, not a use of the
+location-axis bias+t correction. At deployment g=8, the Nibi top-up and banked
+SR475 slope grid show 100% fit and pdHess pass rates, Wald finite rates above
+0.97, and Wald MCSE at or below 0.01. The caveat is explicit: intercept SD
+coverage is near-nominal but upper-tail misses dominate (phylo 5 lower vs 56
+upper; relmat 5 lower vs 53 upper), while the sigma:x SDs over-cover. Profile
+intervals stay diagnostic-only at g=8 because the sigma:x profile finite rates
+are 0.7579 and 0.8042. Spatial sigma, animal sigma, matched `mu+sigma`, q4/q8,
+count, non-Gaussian rows, REML, AI-REML, bridge support, and `supported` remain
+future gates.
 
 ## Why the Older Work Drifted
 

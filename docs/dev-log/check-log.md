@@ -69996,3 +69996,78 @@ Boundary:
 - No new inference/status promotion is bundled into v1. Sigma, spatial q2,
   q2 `supported`, q4/q8, count, non-Gaussian structured covariance, and REML
   derivation work are v1.1+ arcs.
+
+
+## 2026-06-28: q1 sigma phylo/relmat rows to inference_ready
+
+Goal:
+
+- Complete the first post-v1 sigma arc as a row-level evidence/status update:
+  promote only the exact Gaussian q1 `phylo()` and `relmat()` sigma one-slope
+  rows to `inference_ready` under the raw uncorrected log-SD Wald-z channel.
+
+Result:
+
+- Ran Nibi top-up job `16844251` for the two sigma intercept targets. Array tasks
+  `16844251_1` and `16844251_6` completed with exit code 0 in 00:13:55 and
+  00:13:43. Raw artifacts are preserved under
+  `docs/dev-log/simulation-artifacts/2026-06-28-sigma-slope-coverage-topup-nibi/`.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-inference-evidence.tsv`
+  with four evidence rows: Nibi SR1000 intercept rows for phylo/relmat plus the
+  banked SR475 sigma:x rows.
+- Promoted exactly `qseries_phylo_q1_sigma_one_slope` and
+  `qseries_relmat_q1_sigma_one_slope` to `interval_status=inference_ready` and
+  `coverage_status=inference_ready` in
+  `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`.
+- Hardened the sigma grid runner's installed-namespace load path for cluster
+  project-library installs, added the Nibi SLURM wrapper, registered the evidence
+  table in `tools/validate-mission-control.py`, and updated the focused
+  structured conversion contract tests.
+- Updated README, NEWS, ROADMAP, formula grammar, design doc 218, the v1
+  after-task report, and the 2026-06-28 handover to say the new sigma rows are
+  `inference_ready` only under raw uncorrected Wald-z evidence.
+
+Evidence:
+
+- Sigma intercept top-up: phylo N=1000, fit/pdHess 100%, Wald finite 996/1000,
+  coverage 0.9388, MCSE 0.0076, lower/upper misses 5/56; relmat N=1000,
+  fit/pdHess 100%, Wald finite 993/1000, coverage 0.9416, MCSE 0.0074,
+  lower/upper misses 5/53.
+- Sigma:x banked SR475: phylo Wald coverage 0.9935, MCSE 0.0037, profile finite
+  rate 0.7579; relmat Wald coverage 0.9957, MCSE 0.0030, profile finite rate
+  0.8042.
+- Fisher signed off with caveats: row-level phylo/relmat q1 sigma only; raw
+  Wald-z primary; profile diagnostic-only; no `supported`, spatial/animal,
+  q2/q4/q8, count, non-Gaussian, REML, AI-REML, or broad bridge claim.
+- Rose signed off after raw artifacts, validator guard, focused test, check-log,
+  after-task report, and forbidden-claim scan were part of the closeout path.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 4 structured RE sigma-slope
+  inference-evidence rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: FAIL 0 /
+  WARN 0 / SKIP 0 / PASS 6225.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test()'`: FAIL 0 / WARN 17 / SKIP 43 / PASS 19604; duration
+  492.9 s.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::check()'`: Status OK, 0 errors / 0 warnings / 0 notes; duration
+  10m 39.7s.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'pkgdown::check_pkgdown()'`: no problems found.
+- `git diff --check`: no whitespace errors.
+- After-task:
+  `docs/dev-log/after-task/2026-06-28-sigma-q1-inference-ready.md`.
+
+Boundary:
+
+- This is not structured-RE `supported`. Intercept upper-tail miss ratios remain
+  about 11.2 for phylo and 10.6 for relmat, so support-grade claims require a
+  separate g-stress and miss-balance arc.
+- The default bias+t correction remains location-axis q2 evidence only; it does
+  not apply to sigma.
+- Spatial sigma, animal sigma, matched `mu+sigma`, q4/q8, count, non-Gaussian,
+  relmat Q bridge, REML, and AI-REML remain unpromoted.
+- The profile channel is diagnostic-only at g=8 for sigma:x because finite rates
+  are 0.7579 and 0.8042.

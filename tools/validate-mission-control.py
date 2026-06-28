@@ -120,6 +120,9 @@ STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE = (
 STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-sigma-slope-parity-fixture.tsv"
 )
+STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE = (
+    DASHBOARD / "structured-re-sigma-slope-inference-evidence.tsv"
+)
 STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -1748,6 +1751,47 @@ STRUCTURED_RE_SLOPE_COVERAGE_RESULTS_FIELDS = (
     "coverage_verdict",
     "linked_coverage_status",
     "evidence_url",
+    "claim_boundary",
+)
+STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE_FIELDS = (
+    "evidence_id",
+    "linked_cell_id",
+    "provider",
+    "endpoint_member",
+    "source_run",
+    "source_artifact",
+    "cluster_host",
+    "cluster_job",
+    "package_git_sha",
+    "seed_start",
+    "seed_end",
+    "truth_sd",
+    "planned_reps",
+    "n_fit_ok",
+    "n_fit_error",
+    "n_converged",
+    "n_pdhess",
+    "n_pdhess_false",
+    "n_boundary",
+    "n_wald_finite",
+    "wald_finite_rate_of_fit",
+    "n_wald_covered",
+    "wald_coverage",
+    "wald_mcse",
+    "wald_lower_miss",
+    "wald_upper_miss",
+    "wald_upper_lower_miss_ratio",
+    "n_profile_finite",
+    "profile_finite_rate_of_fit",
+    "n_profile_covered",
+    "profile_coverage",
+    "profile_mcse",
+    "profile_lower_miss",
+    "profile_upper_miss",
+    "profile_upper_lower_miss_ratio",
+    "primary_channel_status",
+    "profile_channel_status",
+    "promotion_status",
     "claim_boundary",
 )
 STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS_FIELDS = (
@@ -5279,11 +5323,16 @@ CERTIFIED_INTERVAL_FEASIBLE_CELLS = {
 # maintainer sign-off): the default-corrected bias+t interval reaches
 # nominal-in-total coverage at the deployment default g=8 (engine-validated SR475
 # across providers) plus a second grid (near-boundary + extra g + one-sided rates).
-# `supported` is withheld for the residual right-tail miss asymmetry and the
-# g-dependent under-correction (documented in claim_boundary). interval_status AND
-# coverage_status may read `inference_ready` for exactly these cells.
+# q1 sigma one-slope phylo/relmat cells were promoted on 2026-06-28 after Fisher
+# and Rose sign-off: raw uncorrected log-SD Wald-z evidence clears the row-level
+# MCSE/convergence/finite-interval gates, with caveats for upper-tail miss
+# asymmetry and sigma:x overcoverage. `supported` is withheld for both groups of
+# cells (documented in claim_boundary). interval_status AND coverage_status may
+# read `inference_ready` for exactly these cells.
 CERTIFIED_INFERENCE_READY_CELLS = {
+    "qseries_phylo_q1_sigma_one_slope",
     "qseries_phylo_q2_mu1_mu2_one_slope",
+    "qseries_relmat_q1_sigma_one_slope",
     "qseries_relmat_q2_mu1_mu2_one_slope",
 }
 
@@ -5688,6 +5737,9 @@ def main() -> int:
     )
     structured_re_sigma_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_sigma_slope_inference_evidence_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE
     )
     structured_re_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -11927,6 +11979,140 @@ def main() -> int:
                 f"{row_id}: linked cell coverage_status must still be 'planned' "
                 "(a coverage measurement does not promote it)"
             )
+
+    # --- structured-re sigma-slope inference evidence (2026-06-28 Nibi top-up) ---
+    expected_sigma_inference = {
+        "sigma_slope_inference_phylo_intercept": {
+            "linked_cell_id": "qseries_phylo_q1_sigma_one_slope",
+            "provider": "phylo",
+            "endpoint_member": "sigma:(Intercept)",
+            "source_run": "nibi_sr1000_topup",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "primary": "wald_primary_near_nominal_asymmetric",
+            "profile": "profile_diagnostic_only",
+        },
+        "sigma_slope_inference_phylo_x": {
+            "linked_cell_id": "qseries_phylo_q1_sigma_one_slope",
+            "provider": "phylo",
+            "endpoint_member": "sigma:x",
+            "source_run": "local_sr475_banked",
+            "planned_reps": "475",
+            "n_fit_ok": "475",
+            "n_pdhess": "475",
+            "n_boundary": "0",
+            "primary": "wald_primary_conservative",
+            "profile": "profile_diagnostic_low_finite_rate",
+        },
+        "sigma_slope_inference_relmat_intercept": {
+            "linked_cell_id": "qseries_relmat_q1_sigma_one_slope",
+            "provider": "relmat",
+            "endpoint_member": "sigma:(Intercept)",
+            "source_run": "nibi_sr1000_topup",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "primary": "wald_primary_near_nominal_asymmetric",
+            "profile": "profile_diagnostic_only",
+        },
+        "sigma_slope_inference_relmat_x": {
+            "linked_cell_id": "qseries_relmat_q1_sigma_one_slope",
+            "provider": "relmat",
+            "endpoint_member": "sigma:x",
+            "source_run": "local_sr475_banked",
+            "planned_reps": "475",
+            "n_fit_ok": "475",
+            "n_pdhess": "475",
+            "n_boundary": "0",
+            "primary": "wald_primary_conservative",
+            "profile": "profile_diagnostic_low_finite_rate",
+        },
+    }
+    seen_sigma_inference_ids: set[str] = set()
+    if len(structured_re_sigma_slope_inference_evidence_rows) != 4:
+        errors.append(
+            "structured-re-sigma-slope-inference-evidence.tsv: expected 4 rows "
+            "(phylo/relmat x intercept/sigma:x)"
+        )
+    for row in structured_re_sigma_slope_inference_evidence_rows:
+        row_id = row.get("evidence_id", "<sigma inference evidence>")
+        if set(row.keys()) != set(STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-inference-evidence.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_sigma_inference_ids:
+            errors.append(f"duplicate sigma inference evidence id: {row_id}")
+        seen_sigma_inference_ids.add(row_id)
+        expected = expected_sigma_inference.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected sigma inference evidence row")
+            continue
+        for field in (
+            "linked_cell_id",
+            "provider",
+            "endpoint_member",
+            "source_run",
+            "planned_reps",
+            "n_fit_ok",
+            "n_pdhess",
+            "n_boundary",
+        ):
+            if row.get(field) != expected[field]:
+                errors.append(
+                    f"{row_id}: {field} must be {expected[field]!r}"
+                )
+        if row.get("primary_channel_status") != expected["primary"]:
+            errors.append(f"{row_id}: unexpected primary_channel_status")
+        if row.get("profile_channel_status") != expected["profile"]:
+            errors.append(f"{row_id}: unexpected profile_channel_status")
+        if row.get("promotion_status") != "inference_ready_with_caveats":
+            errors.append(f"{row_id}: promotion_status must retain caveats")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve")
+        linked = qseries_by_cell.get(row.get("linked_cell_id", ""))
+        if linked is None:
+            errors.append(
+                f"{row_id}: linked_cell_id {row.get('linked_cell_id')!r} "
+                "not in the support-cell table"
+            )
+        else:
+            for field in ("interval_status", "coverage_status"):
+                if linked.get(field) != "inference_ready":
+                    errors.append(
+                        f"{row_id}: linked cell {field} must be inference_ready"
+                    )
+            if linked.get("authority_status") == "supported":
+                errors.append(f"{row_id}: linked cell must not be supported")
+        for field in ("wald_mcse", "wald_coverage", "wald_finite_rate_of_fit"):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if field == "wald_mcse" and value > 0.01:
+                errors.append(f"{row_id}: Wald MCSE must be <= 0.01")
+            if field == "wald_finite_rate_of_fit" and value < 0.95:
+                errors.append(f"{row_id}: Wald finite rate must be >= 0.95")
+            if field == "wald_coverage" and not (0.93 <= value <= 1.0):
+                errors.append(f"{row_id}: Wald coverage outside accepted caveat band")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in ("Wald", "not supported", "sigma"):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if "bias+t" in claim_boundary and "does not apply" not in claim_boundary:
+            errors.append(f"{row_id}: bias+t must be excluded for sigma")
+    if seen_sigma_inference_ids != set(expected_sigma_inference):
+        errors.append(
+            "structured-re-sigma-slope-inference-evidence.tsv row ids must be "
+            + ", ".join(sorted(expected_sigma_inference))
+        )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
     # RECOVERY evidence (convergence + SD bias/RMSE), NOT coverage: linked cells
@@ -29097,6 +29283,7 @@ def main() -> int:
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"
+        f", {len(structured_re_sigma_slope_inference_evidence_rows)} structured RE sigma-slope inference-evidence rows"
         f", {len(structured_re_sigma_slope_interval_diagnostic_plan_rows)} structured RE sigma-slope interval-diagnostic plan rows"
         f", {len(structured_re_sigma_slope_interval_diagnostic_status_rows)} structured RE sigma-slope interval-diagnostic status rows"
         f", {len(structured_re_sigma_slope_interval_stability_probe_rows)} structured RE sigma-slope interval-stability probe rows"

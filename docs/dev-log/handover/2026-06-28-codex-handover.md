@@ -5,6 +5,14 @@ You are **Codex**, picking up the drmTMB Q-series structured-RE completion lane.
 never saw the Claude session that produced this; everything you need is below and in
 the linked repo files. Read `AGENTS.md` first (native), then this doc.
 
+> **Supersession note, later 2026-06-28.** Codex subsequently opened the
+> `codex/qseries-sigma-inference-ready` arc and promoted exactly the phylo and
+> relmat q1 sigma one-slope rows to `inference_ready` under raw uncorrected
+> log-SD Wald-z evidence. The location-axis bias+t correction remains q2-only;
+> sigma `supported`, spatial/animal sigma, REML, AI-REML, q4/q8, count, and
+> non-Gaussian rows remain future gates. See
+> `docs/dev-log/dashboard/structured-re-sigma-slope-inference-evidence.tsv`.
+
 ---
 
 ## ‼ Critical Context (read these three first)
@@ -55,9 +63,10 @@ mapped in `docs/design/218-structured-q-series-completion-map.md`) up the ladder
    biv structured-location models** (principled: REML debiases the slope-SD by the exact
    df, removing both defects), or (b) a **skew-aware interval**. Both are real engine +
    simulation work; see Blockers.
-2. **sigma → `inference_ready`** — achievable now via the profile channel (sigma reaches
-   nominal at g=8 via `method="profile"`; the default z over-covers = safe). Needs its
-   own bounded sign-off.
+2. **sigma → `inference_ready`** — superseded by the later
+   `codex/qseries-sigma-inference-ready` arc for exactly the phylo and relmat q1
+   sigma one-slope rows, using raw uncorrected log-SD Wald-z evidence. Profile
+   evidence remains diagnostic-only at g=8.
 3. **spatial q2 → climb** — spatial q2 has g=32 profile-nominal (0.95–0.97) + g=8 bc+t
    nominal, but starts at `planned`; would need the full rung climb.
 4. Effective-df refinement of the correction; animal-specific treatment; q4 Hessian work.
@@ -102,8 +111,9 @@ handover/snapshot commit `922defda` on top):
   suite **19588 PASS / 0 FAIL / 43 SKIP** (skips = `{JuliaCall}` absent); conversion test
   FAIL 0 / PASS 6209. Tree clean.
 - **In progress:** none (clean working tree; all committed).
-- **Withheld / not done:** `supported` (defects); `sigma → inference_ready` (offered, not
-  executed); animal q2 (excluded); q4/q8; non-Gaussian.
+- **Withheld / not done:** `supported` (defects); spatial/animal sigma; animal q2
+  (excluded); q4/q8; non-Gaussian. The later sigma follow-up promoted only the
+  phylo/relmat q1 sigma one-slope rows to `inference_ready`.
 
 ## Key Decisions & Rationale
 
@@ -218,8 +228,9 @@ python3 tools/validate-mission-control.py | tail -1     # expect: mission_contro
 **Paste to a fresh Codex session (run from repo root):**
 > Rehydrate from `docs/dev-log/handover/2026-06-28-codex-handover.md` + the `AGENTS.md`
 > snapshot, then continue with the Next Immediate Steps. The branch has been pushed
-> and `devtools::check()` has passed locally; continue from the maintainer's decision
-> on (a) sigma→inference_ready / (b) the REML-unblock arc / (c) consolidate. Launch
+> and `devtools::check()` has passed locally. Later Codex work already completed the
+> narrow sigma→inference_ready follow-up for phylo/relmat q1 sigma; continue from the
+> next maintainer decision without re-promoting sigma by profile analogy. Launch
 > the `.codex/agents/` team for bounded reviews; **Rose
 > (`systems-auditor.toml`) audit is mandatory before any tier/status claim.**
 
@@ -239,5 +250,5 @@ engine → Claude reviews the diff + writes the claim_boundary prose.
 | Remote / CI | **PUSHED** to `origin/claude/local-coverage-grids-sigma-q2`; `origin/main` remains at `c1e9d15a` until PR/merge; CI belongs to the PR run |
 | Local verification | validator `mission_control_ok`; full suite 19588 PASS / 0 FAIL / 43 SKIP; conversion FAIL 0; Codex `devtools::check()` 0 errors / 0 warnings / 0 notes |
 | What shipped | bias correction **default** for location-axis structured SD; q2 phylo/relmat → `inference_ready`; engine-validated 0.954 @ g=8; 12 citations + doc 219; gllvmTMB#565; 42 PRs closed |
-| Plan by leverage | (1) `supported` via REML-unblock **or** skew-aware interval [large] · (2) sigma→`inference_ready` [small] · (3) spatial q2 climb · (4) effective-df refinement / animal / q4 Hessian |
+| Plan by leverage | (1) `supported` via REML-unblock **or** skew-aware interval [large] · (2) spatial q2 climb · (3) effective-df refinement / animal / q4 Hessian. Later Codex work completed the narrow phylo/relmat q1 sigma `inference_ready` follow-up under raw Wald-z evidence. |
 | Withheld (no compromise) | `supported` (6:1 miss asymmetry + g-dependence); animal q2 (g=32 under-cover); q4/q8 (pdHess); non-Gaussian structured (engine-rejected) |

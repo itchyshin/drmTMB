@@ -1,0 +1,11 @@
+Job ID: 16844460
+Array Job ID: 16844251_1
+Cluster: nibi
+User/Group: snakagaw/snakagaw
+State: COMPLETED (exit code 0)
+Cores: 1
+CPU Utilized: 00:13:39
+CPU Efficiency: 98.08% of 00:13:55 core-walltime
+Job Wall-clock time: 00:13:55
+Memory Utilized: 227.89 MB
+Memory Efficiency: 7.42% of 3.00 GB (3.00 GB/core)
