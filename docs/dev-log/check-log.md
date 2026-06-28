@@ -69980,6 +69980,9 @@ Evidence:
   11m 59.9s.
 - `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
   'pkgdown::check_pkgdown()'`: no problems found.
+- PR #684 R-CMD-check CI on consolidation head `45b4e9d8`: macOS, Ubuntu, and
+  Windows completed successfully; the PR was marked ready for review and has
+  merge state `CLEAN`.
 - Ada/Rose/Fisher/Gauss/Grace read-only audits agreed on the closure boundary:
   consolidate v1 first, keep q2 at `inference_ready`, withhold `supported`, and
   make sigma the next bounded compute arc only after PR/CI durability.

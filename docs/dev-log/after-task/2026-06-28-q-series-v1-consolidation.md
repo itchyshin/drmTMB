@@ -1,6 +1,7 @@
 # After-task: Q-Series v1 consolidation after the default small-sample interval arc
 
-Meta: 2026-06-28 · Codex · branch `claude/local-coverage-grids-sigma-q2`.
+Meta: 2026-06-28 · Codex · branch `claude/local-coverage-grids-sigma-q2`;
+incoming arc head `922defda`, consolidation head `45b4e9d8`.
 
 ## 1. Goal
 
@@ -14,6 +15,8 @@ or non-Gaussian work.
 
 - Pushed `claude/local-coverage-grids-sigma-q2` to origin before making new edits,
   so the incoming 16-commit arc at `922defda` is no longer local-only.
+- Opened PR #684, waited for public R-CMD-check CI to pass on macOS, Ubuntu, and
+  Windows, then marked the PR ready for review.
 - Updated `docs/design/218-structured-q-series-completion-map.md`,
   `README.md`, `NEWS.md`, `ROADMAP.md`,
   `docs/design/01-formula-grammar.md`, and the 2026-06-28 handover so they agree
@@ -75,6 +78,8 @@ Rejected alternatives:
   11m 59.9s.
 - `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
   'pkgdown::check_pkgdown()'`: no problems found.
+- PR #684 R-CMD-check CI on consolidation head `45b4e9d8`: macOS, Ubuntu, and
+  Windows all completed successfully; PR merge state `CLEAN`.
 
 ## 6. Tests of the Tests
 
@@ -98,7 +103,8 @@ are validator errors.
   interval/coverage status.
 - Added the missing final after-task/check-log closeout for the default
   correction plus q2 phylo/relmat `inference_ready` promotion.
-- Deferred PR CI to the PR gate after this consolidation commit is pushed.
+- Carried PR #684 through public CI and marked it ready for review after the
+  three-platform R-CMD-check run passed.
 
 ## 8. Consistency Audit
 
@@ -124,7 +130,7 @@ pattern resolved that.
 
 ## 10. Known Residuals
 
-- PR CI still has to run on the pushed consolidation commit.
+- PR #684 is ready for review and green, but not merged.
 - `supported` for q2 remains a research/engine arc: skew-aware intervals or a
   derived and tested bivariate structured-location REML route.
 - Sigma can move toward `inference_ready` next, but only as its own bounded
