@@ -207,10 +207,24 @@ evidence summary that names the interval channel, denominator, coverage, and
 miss-balance caveat for the two q1 sigma and two q2 location-slope rows. The
 widget also joins count one-slope rows to
 `structured-re-count-slope-recovery-results.tsv` when 80-rep recovery evidence
-has been banked. The support-cell denominator policy remains the route/status
-contract; the evidence summary is the reader-facing denominator for rows
-already promoted to `inference_ready`, and the count recovery summary is
-reader-facing recovery evidence only.
+has been banked, and it joins q4/q6/q8 rows to
+`structured-re-high-q-status-audit.tsv` so high-q diagnostic, q4 gate-required,
+q8 stability-blocked, and high-q planned states are visible separately from
+inference readiness. The support-cell denominator policy remains the
+route/status contract; the evidence summary is the reader-facing denominator
+for rows already promoted to `inference_ready`, the count recovery summary is
+reader-facing recovery evidence only, and the high-q audit is a blocker ledger
+only.
+
+`structured-re-high-q-status-audit.tsv` records one audit row for each of the
+24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
+`high_q_gate_required`, five q8 or q8-shaped rows to
+`q8_stability_blocked`, three ordinary/direct-SD high-q comparator rows to
+`high_q_diagnostic`, and eight broader q6/q8 future-design rows to
+`high_q_planned`. Every linked support cell keeps its existing fit, interval,
+and coverage statuses; no high-q row is `inference_ready`, and the audit does
+not promote q4/q6/q8 intervals, coverage, REML, AI-REML, bridge support,
+`supported`, or public support.
 
 The same q-series support-cell table now includes provider-specific Poisson
 and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,

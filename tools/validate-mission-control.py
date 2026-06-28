@@ -168,6 +168,9 @@ STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE = (
 STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT = (
     DASHBOARD / "structured-re-q2-slope-spatial-animal-admission-audit.tsv"
 )
+STRUCTURED_RE_HIGH_Q_STATUS_AUDIT = (
+    DASHBOARD / "structured-re-high-q-status-audit.tsv"
+)
 STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
     DASHBOARD / "structured-re-q2-slope-coverage-pregrid-dry-run.tsv"
 )
@@ -1851,6 +1854,23 @@ STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
     "denominator_status",
     "admission_status",
     "widget_state",
+    "linked_interval_status",
+    "linked_coverage_status",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_HIGH_Q_STATUS_AUDIT_FIELDS = (
+    "audit_id",
+    "cell_id",
+    "dimension_pattern",
+    "high_q_scope",
+    "widget_state",
+    "evidence_basis",
+    "stability_signal",
+    "inference_signal",
+    "linked_fit_status",
     "linked_interval_status",
     "linked_coverage_status",
     "promotion_decision",
@@ -5849,6 +5869,9 @@ def main() -> int:
     )
     structured_re_q2_slope_spatial_animal_admission_audit_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT
+    )
+    structured_re_high_q_status_audit_rows = read_tsv(
+        STRUCTURED_RE_HIGH_Q_STATUS_AUDIT
     )
     structured_re_q2_slope_coverage_pregrid_dry_run_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN
@@ -12650,6 +12673,144 @@ def main() -> int:
             "structured-re-q2-slope-spatial-animal-admission-audit.tsv "
             "row ids must be "
             + ", ".join(sorted(expected_q2_admission_audit))
+        )
+
+    # --- structured-re high-q status audit ---
+    # DISPLAY/AUDIT evidence only: the 24 q4/q6/q8 Q-Series cells get explicit
+    # board states, but none are promoted to inference_ready or supported.
+    expected_high_q_widget_states = {
+        "qseries_ordinary_q4_location_one_slope": "high_q_diagnostic",
+        "qseries_ordinary_q6_location_two_slopes": "high_q_diagnostic",
+        "qseries_ordinary_q8_all_endpoint_one_slope": "q8_stability_blocked",
+        "qseries_phylo_q4_mu1_mu2_one_slope": "high_q_gate_required",
+        "qseries_phylo_q4_all_four_intercept": "high_q_gate_required",
+        "qseries_phylo_q4_all_four_one_slope_planned": "q8_stability_blocked",
+        "qseries_phylo_q6_planned": "high_q_planned",
+        "qseries_phylo_q8_planned": "high_q_planned",
+        "qseries_spatial_q4_mu1_mu2_one_slope": "high_q_gate_required",
+        "qseries_spatial_q4_all_four_intercept": "high_q_gate_required",
+        "qseries_spatial_q4_all_four_one_slope_planned": "q8_stability_blocked",
+        "qseries_spatial_q6_planned": "high_q_planned",
+        "qseries_spatial_q8_planned": "high_q_planned",
+        "qseries_animal_q4_mu1_mu2_one_slope": "high_q_gate_required",
+        "qseries_animal_q4_all_four_intercept": "high_q_gate_required",
+        "qseries_animal_q4_all_four_one_slope_planned": "q8_stability_blocked",
+        "qseries_animal_q6_planned": "high_q_planned",
+        "qseries_animal_q8_planned": "high_q_planned",
+        "qseries_relmat_q4_mu1_mu2_one_slope": "high_q_gate_required",
+        "qseries_relmat_q4_all_four_intercept": "high_q_gate_required",
+        "qseries_relmat_q4_all_four_one_slope_planned": "q8_stability_blocked",
+        "qseries_relmat_q6_planned": "high_q_planned",
+        "qseries_relmat_q8_planned": "high_q_planned",
+        "qseries_phylo_direct_sd_bivariate": "high_q_diagnostic",
+    }
+    expected_high_q_state_counts = {
+        "high_q_gate_required": 8,
+        "high_q_planned": 8,
+        "q8_stability_blocked": 5,
+        "high_q_diagnostic": 3,
+    }
+    high_q_cell_ids = {
+        row.get("cell_id", "")
+        for row in structured_re_q_series_support_cell_rows
+        if row.get("dimension_pattern") in {"q4", "q6", "q8"}
+    }
+    if high_q_cell_ids != set(expected_high_q_widget_states):
+        errors.append(
+            "structured-re-q-series-support-cells.tsv high-q q4/q6/q8 cells "
+            "must match structured-re-high-q-status-audit.tsv expected cells"
+        )
+    if len(structured_re_high_q_status_audit_rows) != 24:
+        errors.append(
+            "structured-re-high-q-status-audit.tsv: expected 24 q4/q6/q8 rows"
+        )
+    seen_high_q_audit_ids: set[str] = set()
+    seen_high_q_cell_ids: set[str] = set()
+    high_q_state_counts: dict[str, int] = {}
+    for row in structured_re_high_q_status_audit_rows:
+        row_id = row.get("audit_id", "<high-q status audit>")
+        cell_id = row.get("cell_id", "")
+        if set(row.keys()) != set(STRUCTURED_RE_HIGH_Q_STATUS_AUDIT_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-high-q-status-audit.tsv fields "
+                "do not match the contract"
+            )
+        for field in STRUCTURED_RE_HIGH_Q_STATUS_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_high_q_audit_ids:
+            errors.append(f"duplicate high-q audit id: {row_id}")
+        seen_high_q_audit_ids.add(row_id)
+        if cell_id in seen_high_q_cell_ids:
+            errors.append(f"duplicate high-q audit cell_id: {cell_id}")
+        seen_high_q_cell_ids.add(cell_id)
+        expected_widget_state = expected_high_q_widget_states.get(cell_id)
+        if expected_widget_state is None:
+            errors.append(f"{row_id}: unexpected high-q audit cell_id {cell_id!r}")
+            continue
+        if row.get("widget_state") != expected_widget_state:
+            errors.append(
+                f"{row_id}: widget_state must be {expected_widget_state!r}"
+            )
+        high_q_state_counts[row.get("widget_state", "")] = (
+            high_q_state_counts.get(row.get("widget_state", ""), 0) + 1
+        )
+        support_row = q_series_cell_map.get(cell_id)
+        if support_row is None:
+            errors.append(f"{row_id}: linked support cell {cell_id!r} is missing")
+            continue
+        if support_row.get("dimension_pattern") not in {"q4", "q6", "q8"}:
+            errors.append(f"{row_id}: linked support cell is not q4/q6/q8")
+        if row.get("dimension_pattern") != support_row.get("dimension_pattern"):
+            errors.append(
+                f"{row_id}: dimension_pattern must match support cell "
+                f"{support_row.get('dimension_pattern')!r}"
+            )
+        for audit_field, support_field in (
+            ("linked_fit_status", "fit_status"),
+            ("linked_interval_status", "interval_status"),
+            ("linked_coverage_status", "coverage_status"),
+        ):
+            if row.get(audit_field) != support_row.get(support_field):
+                errors.append(
+                    f"{row_id}: {audit_field} must match support-cell "
+                    f"{support_field}={support_row.get(support_field)!r}"
+                )
+        if row.get("promotion_decision") != "do_not_promote":
+            errors.append(f"{row_id}: promotion_decision must be do_not_promote")
+        if support_row.get("interval_status") == "inference_ready":
+            errors.append(f"{row_id}: high-q interval_status must not be inference_ready")
+        if support_row.get("coverage_status") == "inference_ready":
+            errors.append(f"{row_id}: high-q coverage_status must not be inference_ready")
+        if support_row.get("fit_status") == "supported":
+            errors.append(f"{row_id}: high-q fit_status must not be supported")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in ("not", "coverage", "REML", "AI-REML", "supported", "public support"):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if "q8" in cell_id or support_row.get("dimension_pattern") == "q8":
+            if row.get("widget_state") == "q8_stability_blocked" and (
+                "stability" not in row.get("stability_signal", "")
+                and "Hessian" not in row.get("stability_signal", "")
+                and "pdHess" not in row.get("stability_signal", "")
+            ):
+                errors.append(
+                    f"{row_id}: q8_stability_blocked row must name stability, "
+                    "Hessian, or pdHess"
+                )
+        if not row.get("next_gate"):
+            errors.append(f"{row_id}: next_gate is empty")
+    if seen_high_q_cell_ids != set(expected_high_q_widget_states):
+        errors.append(
+            "structured-re-high-q-status-audit.tsv cell_ids must be "
+            + ", ".join(sorted(expected_high_q_widget_states))
+        )
+    if high_q_state_counts != expected_high_q_state_counts:
+        errors.append(
+            "structured-re-high-q-status-audit.tsv widget_state counts must be "
+            f"{expected_high_q_state_counts}; saw {high_q_state_counts}"
         )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
@@ -29798,6 +29959,7 @@ def main() -> int:
         f", {len(structured_re_balance_matrix_rows)} structured RE matrix rows"
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
         f", {len(structured_re_q_series_inference_evidence_summary_rows)} structured RE q-series inference-evidence summary rows"
+        f", {len(structured_re_high_q_status_audit_rows)} structured RE high-q status-audit rows"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"

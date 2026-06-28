@@ -177,8 +177,11 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .tried-not-inference-ready, .interval-feasible, .point-fit,
 .extractor-ready, .fixture-parity { background: var(--blue-bg); color: var(--blue); }
 .tried-diagnostic, .diagnostic-only, .topup-required,
-.calibration-required { background: var(--gold-bg); color: var(--gold); }
-.unsupported-or-blocked, .inference-blocked, .admission-blocked { background: var(--rose-bg); color: var(--rose); }
+.calibration-required, .high-q-gate-required,
+.high-q-diagnostic { background: var(--gold-bg); color: var(--gold); }
+.unsupported-or-blocked, .inference-blocked, .admission-blocked,
+.q8-stability-blocked { background: var(--rose-bg); color: var(--rose); }
+.high-q-planned { background: var(--gray-bg); color: var(--muted); }
 .slices { padding: 0 14px 12px 110px; }
 .slice {
   display: grid;
@@ -426,7 +429,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r68";
+const BUILD = "r69";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -755,9 +758,14 @@ function qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell, admissionAu
   }
   const admission = admissionAuditByCell[row.cell_id];
   if (admission) {
-    return `<div class="note"><strong>${esc(admission.admission_status)}</strong></div>
-      <div class="note">${esc(admission.wald_finite_summary)}</div>
-      <div class="note">${esc(admission.denominator_status)}</div>
+    const status = admission.admission_status || admission.widget_state || "status_audit";
+    const summary = admission.wald_finite_summary || admission.raw_coverage_summary || admission.evidence_basis || "";
+    const denominator = admission.denominator_status || admission.inference_signal || "";
+    const stability = admission.stability_signal || "";
+    return `<div class="note"><strong>${esc(status)}</strong></div>
+      <div class="note">${esc(summary)}</div>
+      <div class="note">${esc(denominator)}</div>
+      ${stability ? `<div class="note">${esc(stability)}</div>` : ""}
       <div class="note">${esc(admission.claim_boundary)}</div>`;
   }
   return `<div class="note">${esc(row.denominator_policy)}</div>`;
@@ -774,8 +782,12 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     "topup_required",
     "calibration_required",
     "admission_blocked",
+    "high_q_gate_required",
+    "q8_stability_blocked",
+    "high_q_diagnostic",
     "tried_not_inference_ready",
     "tried_diagnostic",
+    "high_q_planned",
     "planned",
     "unsupported_or_blocked"
   ];
@@ -796,9 +808,13 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     ["Top-up needed", stateCounts.topup_required || 0, "Coverage measured, not enough"],
     ["Calibration needed", stateCounts.calibration_required || 0, "Correction not row-signed"],
     ["Admission blocked", stateCounts.admission_blocked || 0, "Denominator gap first"],
+    ["High-q gate", stateCounts.high_q_gate_required || 0, "q4 fixture, no inference"],
+    ["q8 stability", stateCounts.q8_stability_blocked || 0, "Hessian/geometry first"],
+    ["High-q diagnostic", stateCounts.high_q_diagnostic || 0, "Tried, diagnostic-only"],
     ["Tried", stateCounts.tried_not_inference_ready || 0, "Fit/fixture/interval work"],
     ["Diagnostic", stateCounts.tried_diagnostic || 0, "Tried but diagnostic-only"],
     ["Blocked/unsupported", stateCounts.unsupported_or_blocked || 0, "No promotion from these rows"],
+    ["High-q planned", stateCounts.high_q_planned || 0, "q6/q8 future design rows"],
     ["Planned", stateCounts.planned || 0, "Not yet tried at evidence tier"],
     ["High-q", highQRows, "q4/q6/q8 rows"],
     ["q8", q8Rows, "Stability first, not coverage"]
@@ -844,7 +860,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     `<div class="qseries-summary">${summary.map(([label, value, note]) =>
       `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
     ).join("")}</div>
-    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, top-up-required, calibration-required, or admission-blocked row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; spatial/animal sigma and q2 admission rows show blocker audits from their admission-audit sidecars; other rows show the support-cell denominator policy.</div>
+    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, top-up-required, calibration-required, admission-blocked, or high-q-gated row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; spatial/animal sigma, q2, and high-q admission rows show blocker audits from their sidecars; other rows show the support-cell denominator policy.</div>
     <div class="qseries-table">
       <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
       ${table}
@@ -1020,7 +1036,8 @@ function render(data, gates, capabilities, sidecars) {
   renderMetrics(data, sidecars);
   const admissionAudits = [
     ...(sidecars.sigmaSlopeSpatialAnimalAdmissionAudit || []),
-    ...(sidecars.q2SlopeSpatialAnimalAdmissionAudit || [])
+    ...(sidecars.q2SlopeSpatialAnimalAdmissionAudit || []),
+    ...(sidecars.highQStatusAudit || [])
   ];
   renderQSeriesBoard(sidecars.qSeriesCells || [], sidecars.qSeriesInferenceEvidence || [], sidecars.countSlopeRecoveryResults || [], admissionAudits);
   renderFinishBoard(data);
@@ -1061,6 +1078,7 @@ async function tick() {
       countSlopeRecoveryResults: parseTsv(await readText("structured-re-count-slope-recovery-results.tsv")),
       sigmaSlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-sigma-slope-spatial-animal-admission-audit.tsv")),
       q2SlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-q2-slope-spatial-animal-admission-audit.tsv")),
+      highQStatusAudit: parseTsv(await readText("structured-re-high-q-status-audit.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
       finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
       conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),

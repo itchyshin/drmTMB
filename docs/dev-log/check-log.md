@@ -70341,3 +70341,60 @@ Boundary:
 - No Q-Series support-cell status changed. No range-estimating spatial,
   pedigree/Ainv bridge marshalling, q4/q8, REML, AI-REML, bridge support,
   `supported`, or public-support claim is promoted.
+
+
+## 2026-06-28: Q-Series high-q status audit widget state
+
+Goal:
+
+- Make the q4/q6/q8 portion of the 104-row Q-Series board explicit, so high-q
+  point, diagnostic, stability, and planned rows are not mistaken for completed
+  inference support.
+
+Result:
+
+- Added `structured-re-high-q-status-audit.tsv`, a 24-row audit sidecar covering
+  every q4, q6, and q8 support cell.
+- Added widget states for `high_q_gate_required`, `q8_stability_blocked`,
+  `high_q_diagnostic`, and `high_q_planned`.
+- Updated the Q-Series widget to merge the high-q audit with the existing
+  sigma and q2 admission sidecars.
+- Generalized the admission-overlay renderer so sigma, q2, and high-q sidecars
+  can display their own evidence summaries instead of relying on one
+  `wald_finite_summary` field.
+- Registered the high-q audit in `tools/validate-mission-control.py`; the
+  validator now requires all 24 high-q rows, the 10 q4 / 5 q6 / 9 q8
+  dimension split, the 8 / 5 / 3 / 8 widget-state split, matching support-cell
+  statuses, and `do_not_promote` for every row.
+- Updated the dashboard README, timestamp, and build marker to `r69`.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 24 structured RE high-q status-audit
+  rows.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r69`.
+- `curl -fsS http://127.0.0.1:8765/structured-re-high-q-status-audit.tsv |
+  wc -l`: returned 25 lines, meaning header plus 24 audit rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: Q-Series
+  board rendered the `High-q gate`, `q8 stability`, `High-q diagnostic`, and
+  `High-q planned` summary cards plus representative q4/q8 cell IDs.
+- `git diff --check`: no whitespace errors.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-28-q-series-high-q-status-widget.md')"`:
+  after-task structure check passed.
+
+Boundary:
+
+- No q4, q6, or q8 row moved to `interval_status = inference_ready`,
+  `coverage_status = inference_ready`, `supported`, REML, AI-REML, bridge
+  support, coverage support, or public support.
+- The high-q audit is display and blocker evidence only. It separates q4
+  fixture gates, q8 stability blockers, diagnostic comparator rows, and planned
+  q6/q8 design rows.
