@@ -219,15 +219,17 @@ point/fixture gates, diagnostic-only rows, and rejection-contract rows no
 longer collapse into a generic tried bucket. Four Gaussian q1 `mu` one-slope
 rows also join to `structured-re-gaussian-mu-slope-smoke-status.tsv`, which
 records local one-rep smoke evidence for `phylo()`, fixed-covariance
-`spatial()`, `animal()`, and `relmat()`. Six non-Gaussian q1 count `mu`
+`spatial()`, `animal()`, and `relmat()`. Eight non-Gaussian q1 count `mu`
 intercept rows also join to
 `structured-re-count-intercept-recovery-smoke-status.tsv`, which records local
 recovery-smoke evidence for the exact spatial, animal, and relmat
-Poisson/NB2 intercept formulas. The support-cell denominator policy remains
+Poisson/NB2 intercept formulas, and
+`structured-re-phylo-count-intercept-recovery-smoke-status.tsv`, which records
+the exact phylo Poisson/NB2 formal-runner smoke. The support-cell denominator policy remains
 the route/status contract; the evidence summary is the reader-facing
 denominator for rows already promoted to `inference_ready`, the count recovery
 summary is reader-facing recovery evidence only, and the high-q, non-Gaussian,
-count-intercept smoke, Gaussian low-q, and Gaussian q1 `mu` smoke audits are
+count-intercept smoke, phylo count-intercept smoke, Gaussian low-q, and Gaussian q1 `mu` smoke audits are
 blocker ledgers only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
@@ -290,6 +292,19 @@ recovery grid, and does not promote non-Gaussian intervals, coverage,
 q2/q4 covariance, REML, AI-REML, bridge support, `supported`, or public
 support. A replicated recovery grid with MCSE and a boundary ledger remains
 the next gate.
+
+`structured-re-phylo-count-intercept-recovery-smoke-status.tsv` records the
+first local smoke rung for the two exact phylo non-Gaussian q1 structured `mu`
+intercept rows: Poisson and NB2. The artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-28-phylo-count-intercept-recovery-smoke-local/`
+come from the formal `poisson_phylo_q1_formal` and
+`nbinom2_phylo_q1_formal` runners, restricted to shard 7 so the four
+condition-replicates per family have nonzero `sd_phylo = 0.25`. Each family
+has zero failures and 4/4 phylo SD rows with converged fits, `pdHess = TRUE`,
+and finite estimates. This sidecar does not replace a replicated recovery
+grid, does not promote non-Gaussian intervals, coverage, q2/q4 covariance,
+REML, AI-REML, bridge support, `supported`, or public support, and leaves
+`qseries_phylo_interaction_*` rows separate.
 
 The same q-series support-cell table now includes provider-specific Poisson
 and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,

@@ -1,0 +1,5 @@
+"surface","cell_id","replicate","parameter","profile_target_status","profile_target_parameter","artifact_grain"
+"nbinom2_phylo_q1","nbinom2_phylo_q1_001",1,"sd:mu:phylo(1 | species)","ready","log_sd_phylo","profile_target"
+"nbinom2_phylo_q1","nbinom2_phylo_q1_002",1,"sd:mu:phylo(1 | species)","ready","log_sd_phylo","profile_target"
+"nbinom2_phylo_q1","nbinom2_phylo_q1_003",1,"sd:mu:phylo(1 | species)","ready","log_sd_phylo","profile_target"
+"nbinom2_phylo_q1","nbinom2_phylo_q1_004",1,"sd:mu:phylo(1 | species)","ready","log_sd_phylo","profile_target"

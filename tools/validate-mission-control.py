@@ -112,6 +112,9 @@ STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS = (
 STRUCTURED_RE_COUNT_INTERCEPT_RECOVERY_SMOKE_STATUS = (
     DASHBOARD / "structured-re-count-intercept-recovery-smoke-status.tsv"
 )
+STRUCTURED_RE_PHYLO_COUNT_INTERCEPT_RECOVERY_SMOKE_STATUS = (
+    DASHBOARD / "structured-re-phylo-count-intercept-recovery-smoke-status.tsv"
+)
 STRUCTURED_RE_SLOPE_COVERAGE_GSWEEP = (
     DASHBOARD / "structured-re-slope-coverage-gsweep.tsv"
 )
@@ -5915,6 +5918,9 @@ def main() -> int:
     )
     structured_re_count_intercept_recovery_smoke_status_rows = read_tsv(
         STRUCTURED_RE_COUNT_INTERCEPT_RECOVERY_SMOKE_STATUS
+    )
+    structured_re_phylo_count_intercept_recovery_smoke_status_rows = read_tsv(
+        STRUCTURED_RE_PHYLO_COUNT_INTERCEPT_RECOVERY_SMOKE_STATUS
     )
     structured_re_slope_coverage_gsweep_rows = read_tsv(
         STRUCTURED_RE_SLOPE_COVERAGE_GSWEEP
@@ -13340,6 +13346,270 @@ def main() -> int:
         errors.append(
             "structured-re-count-intercept-recovery-smoke-status.tsv cell_ids "
             "must match the six spatial/animal/relmat count intercept rows"
+        )
+
+    # --- structured-re phylo count intercept local recovery smoke status ---
+    # SMOKE/RECOVERY evidence only: exact q1 phylo count mu intercept fits from
+    # the formal Poisson/NB2 runners. This is intentionally separate from the
+    # spatial/animal/relmat count_structured_q1 runner above.
+    expected_phylo_count_intercept_smoke = {
+        "phylo_count_intercept_recovery_smoke_poisson": {
+            "cell_id": "qseries_phylo_poisson_q1_mu_intercept",
+            "family": "poisson()",
+            "source_task": "poisson_phylo_q1_formal",
+            "artifact_dir": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-28-phylo-count-intercept-recovery-smoke-local/poisson"
+            ),
+            "prefix": "poisson-phylo-q1",
+            "condition_shard": "7",
+            "condition_shards": "54",
+            "full_condition_count": "216",
+        },
+        "phylo_count_intercept_recovery_smoke_nbinom2": {
+            "cell_id": "qseries_phylo_nbinom2_q1_mu_intercept",
+            "family": "nbinom2()",
+            "source_task": "nbinom2_phylo_q1_formal",
+            "artifact_dir": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-28-phylo-count-intercept-recovery-smoke-local/nbinom2"
+            ),
+            "prefix": "nbinom2-phylo-q1",
+            "condition_shard": "7",
+            "condition_shards": "72",
+            "full_condition_count": "288",
+        },
+    }
+    if len(structured_re_phylo_count_intercept_recovery_smoke_status_rows) != 2:
+        errors.append(
+            "structured-re-phylo-count-intercept-recovery-smoke-status.tsv: "
+            "expected 2 rows"
+        )
+    seen_phylo_count_intercept_smoke_ids: set[str] = set()
+    seen_phylo_count_intercept_smoke_cells: set[str] = set()
+    for row in structured_re_phylo_count_intercept_recovery_smoke_status_rows:
+        row_id = row.get("smoke_id", "<phylo count intercept recovery smoke>")
+        cell_id = row.get("cell_id", "")
+        if set(row.keys()) != set(STRUCTURED_RE_COUNT_INTERCEPT_RECOVERY_SMOKE_STATUS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-phylo-count-intercept-recovery-smoke-status.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_INTERCEPT_RECOVERY_SMOKE_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_phylo_count_intercept_smoke_ids:
+            errors.append(f"duplicate phylo count intercept recovery smoke id: {row_id}")
+        seen_phylo_count_intercept_smoke_ids.add(row_id)
+        if cell_id in seen_phylo_count_intercept_smoke_cells:
+            errors.append(
+                f"duplicate phylo count intercept recovery smoke cell_id: {cell_id}"
+            )
+        seen_phylo_count_intercept_smoke_cells.add(cell_id)
+        expected = expected_phylo_count_intercept_smoke.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected phylo count intercept smoke row")
+            continue
+        for field in ("cell_id", "family", "source_task", "artifact_dir"):
+            if row.get(field) != expected[field]:
+                errors.append(f"{row_id}: {field} must be {expected[field]!r}")
+        if row.get("provider") != "phylo":
+            errors.append(f"{row_id}: provider must be 'phylo'")
+        support_row = q_series_cell_map.get(cell_id)
+        if support_row is None:
+            errors.append(f"{row_id}: linked support cell {cell_id!r} is missing")
+            continue
+        expected_support_values = {
+            "family_class": "non_gaussian",
+            "family": expected["family"],
+            "structure_provider": "phylo",
+            "dimension_pattern": "q1",
+            "endpoint_set": "mu",
+            "slope_class": "intercept_only",
+            "fit_status": "point_fit",
+            "extractor_status": "extractor_ready",
+            "interval_status": "unsupported",
+            "coverage_status": "planned",
+        }
+        for field, expected_value in expected_support_values.items():
+            if support_row.get(field) != expected_value:
+                errors.append(
+                    f"{row_id}: linked support-cell {field} must be "
+                    f"{expected_value!r}"
+                )
+        if row.get("evidence_url") != row.get("artifact_dir"):
+            errors.append(f"{row_id}: evidence_url must match artifact_dir")
+        artifact_dir = ROOT / row.get("artifact_dir", "")
+        if not artifact_dir.exists():
+            errors.append(f"{row_id}: artifact_dir does not exist")
+            continue
+        table_dir = artifact_dir / "tables"
+        prefix = expected["prefix"]
+        expected_files = [
+            artifact_dir / "phase18-actions-result.rds",
+            table_dir / f"{prefix}-aggregate.csv",
+            table_dir / f"{prefix}-failures.csv",
+            table_dir / f"{prefix}-formal-spec.csv",
+            table_dir / f"{prefix}-interval-evidence.csv",
+            table_dir / f"{prefix}-manifest.csv",
+            table_dir / f"{prefix}-replicates.csv",
+        ]
+        for path in expected_files:
+            if not path.exists():
+                errors.append(f"{row_id}: missing smoke artifact {path.relative_to(ROOT)}")
+        try:
+            formal_spec = list(csv.DictReader(open(
+                table_dir / f"{prefix}-formal-spec.csv",
+                newline="",
+            )))
+            manifest = list(csv.DictReader(open(
+                table_dir / f"{prefix}-manifest.csv",
+                newline="",
+            )))
+            failures = list(csv.DictReader(open(
+                table_dir / f"{prefix}-failures.csv",
+                newline="",
+            )))
+            replicates = list(csv.DictReader(open(
+                table_dir / f"{prefix}-replicates.csv",
+                newline="",
+            )))
+        except FileNotFoundError:
+            formal_spec = manifest = failures = replicates = []
+        phylo_sd_rows = [
+            replicate
+            for replicate in replicates
+            if replicate.get("parameter_class") == "phylo_sd"
+            and replicate.get("parameter") == "sd:mu:phylo(1 | species)"
+        ]
+        phylo_cell_ids = {
+            replicate.get("cell_id", "") for replicate in phylo_sd_rows
+        }
+        manifest_rows = [
+            manifest_row
+            for manifest_row in manifest
+            if manifest_row.get("cell_id", "") in phylo_cell_ids
+        ]
+        observed_counts = {
+            "n_condition_replicates": len(phylo_cell_ids),
+            "n_manifest_ok": sum(
+                manifest_row.get("status", "") == "ok"
+                for manifest_row in manifest_rows
+            ),
+            "n_failures": len(failures),
+            "n_structured_sd_rows": len(phylo_sd_rows),
+            "n_converged_sd_rows": sum(
+                replicate.get("converged", "") == "TRUE"
+                for replicate in phylo_sd_rows
+            ),
+            "n_pdhess_sd_rows": sum(
+                replicate.get("pdHess", "") == "TRUE"
+                for replicate in phylo_sd_rows
+            ),
+            "n_finite_sd_estimate_rows": sum(
+                _is_finite_number(replicate.get("estimate", ""))
+                for replicate in phylo_sd_rows
+            ),
+            "n_boundary_warning_rows": sum(
+                "boundary" in replicate.get("diagnostic_message", "").lower()
+                or "lower" in replicate.get("diagnostic_message", "").lower()
+                for replicate in phylo_sd_rows
+            ),
+        }
+        expected_count_values = {
+            "n_condition_replicates": "4",
+            "n_manifest_ok": "4",
+            "n_failures": "0",
+            "n_structured_sd_rows": "4",
+            "n_converged_sd_rows": "4",
+            "n_pdhess_sd_rows": "4",
+            "n_finite_sd_estimate_rows": "4",
+            "n_boundary_warning_rows": "0",
+        }
+        for field, observed in observed_counts.items():
+            try:
+                actual = int(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be an integer")
+                continue
+            if actual != observed:
+                errors.append(f"{row_id}: {field} must match artifact count {observed}")
+            if row.get(field) != expected_count_values[field]:
+                errors.append(
+                    f"{row_id}: {field} must be "
+                    f"{expected_count_values[field]!r}"
+                )
+        if not formal_spec:
+            errors.append(f"{row_id}: formal spec is empty")
+        else:
+            for spec_field in ("condition_shard", "condition_shards", "full_condition_count"):
+                if any(spec.get(spec_field) != expected[spec_field] for spec in formal_spec):
+                    errors.append(
+                        f"{row_id}: formal spec {spec_field} must be "
+                        f"{expected[spec_field]!r}"
+                    )
+            for spec_field, expected_value in (
+                ("n_rep", "1"),
+                ("target_replicates", "4"),
+                ("formal_recovery_gate", "FALSE"),
+                ("coverage_claim_allowed", "FALSE"),
+            ):
+                if any(spec.get(spec_field) != expected_value for spec in formal_spec):
+                    errors.append(
+                        f"{row_id}: formal spec {spec_field} must be "
+                        f"{expected_value!r}"
+                    )
+            if any(spec.get("sd_phylo") != "0.25" for spec in formal_spec):
+                errors.append(f"{row_id}: formal spec must use sd_phylo 0.25")
+        expected_sidecar_values = {
+            "widget_state": "non_gaussian_intercept_recovery_smoke",
+            "recovery_status": "local_recovery_smoke_passed",
+            "inference_status": "not_inference_ready",
+            "promotion_decision": "do_not_promote",
+        }
+        for field, expected_value in expected_sidecar_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value!r}")
+        evidence_basis = row.get("evidence_basis", "")
+        for phrase in ("4 nonzero-SD condition-replicates", "exact", "phylo(1 | species, tree = tree)"):
+            if phrase not in evidence_basis:
+                errors.append(f"{row_id}: evidence_basis must mention {phrase!r}")
+        denominator_status = row.get("denominator_status", "")
+        for phrase in ("not_coverage_evidence", "n_rep=1", "no interval denominator"):
+            if phrase not in denominator_status:
+                errors.append(f"{row_id}: denominator_status must mention {phrase!r}")
+        if "4/4 structured-SD rows" not in row.get("stability_signal", ""):
+            errors.append(f"{row_id}: stability_signal must summarize 4/4 structured-SD rows")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "local recovery smoke only",
+            "not",
+            "interval-ready",
+            "coverage-ready",
+            "inference_ready",
+            "supported",
+            "REML",
+            "AI-REML",
+            "public support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        next_gate = row.get("next_gate", "")
+        for phrase in ("replicated recovery grid", "MCSE", "intervals and coverage remain unsupported"):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase!r}")
+    if seen_phylo_count_intercept_smoke_ids != set(expected_phylo_count_intercept_smoke):
+        errors.append(
+            "structured-re-phylo-count-intercept-recovery-smoke-status.tsv row ids "
+            "must be "
+            + ", ".join(sorted(expected_phylo_count_intercept_smoke))
+        )
+    if seen_phylo_count_intercept_smoke_cells != {
+        expected["cell_id"] for expected in expected_phylo_count_intercept_smoke.values()
+    }:
+        errors.append(
+            "structured-re-phylo-count-intercept-recovery-smoke-status.tsv cell_ids "
+            "must match the two phylo count intercept rows"
         )
 
     # --- structured-re Gaussian low-q status audit ---
@@ -30830,6 +31100,7 @@ def main() -> int:
         f", {len(structured_re_high_q_status_audit_rows)} structured RE high-q status-audit rows"
         f", {len(structured_re_nongaussian_status_audit_rows)} structured RE non-Gaussian status-audit rows"
         f", {len(structured_re_count_intercept_recovery_smoke_status_rows)} structured RE count-intercept recovery-smoke rows"
+        f", {len(structured_re_phylo_count_intercept_recovery_smoke_status_rows)} structured RE phylo count-intercept recovery-smoke rows"
         f", {len(structured_re_gaussian_lowq_status_audit_rows)} structured RE Gaussian low-q status-audit rows"
         f", {len(structured_re_gaussian_mu_slope_smoke_status_rows)} structured RE Gaussian mu-slope smoke-status rows"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"

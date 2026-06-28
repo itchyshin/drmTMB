@@ -70629,3 +70629,54 @@ Boundary:
 - A replicated recovery grid with MCSE and a boundary ledger is still required
   before any recovery claim. Non-Gaussian intervals and coverage remain
   unsupported.
+
+
+## 2026-06-28: Q-Series phylo count q1 intercept recovery smoke
+
+Goal:
+
+- Move the two phylo Poisson/NB2 q1 structured `mu` intercept rows from the
+  non-Gaussian point-only display into a local recovery-smoke rung without
+  promoting intervals, coverage, REML, AI-REML, bridge, q2/q4 covariance, or
+  support claims.
+
+Result:
+
+- Ran the Phase 18 Actions wrapper locally for `poisson_phylo_q1_formal` and
+  `nbinom2_phylo_q1_formal` with `n_rep = 1`, `master_seed = 20260628`,
+  `cores = 1`, `backend = none`, and shard 7 of each formal grid
+  (`7/54` for Poisson, `7/72` for NB2).
+- Banked artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-28-phylo-count-intercept-recovery-smoke-local/`.
+- Added `structured-re-phylo-count-intercept-recovery-smoke-status.tsv`, a
+  two-row dashboard sidecar for the exact phylo Poisson/NB2 q1 `mu` intercept
+  support cells.
+- Updated the Q-Series widget so the `NG intercept smoke` card now counts the
+  six spatial/animal/relmat count-intercept smoke rows plus these two phylo
+  rows, while support-cell statuses remain unchanged.
+- Registered the phylo smoke sidecar in `tools/validate-mission-control.py`;
+  the validator reads the generated formal spec, manifest, failure, replicate,
+  and interval-evidence CSVs, verifies exact row membership, and requires each
+  sidecar count to match the artifact counts.
+- Updated the dashboard README and build marker to `r74`.
+
+Evidence:
+
+- Poisson formal shard 7/54: four nonzero-SD condition-replicates
+  (`sd_phylo = 0.25`), zero failures, and 4/4 phylo SD rows with converged
+  fits, `pdHess = TRUE`, and finite estimates.
+- NB2 formal shard 7/72: four nonzero-SD condition-replicates
+  (`sd_phylo = 0.25`), zero failures, and 4/4 phylo SD rows with converged
+  fits, `pdHess = TRUE`, and finite estimates.
+
+Boundary:
+
+- No Q-Series support-cell status changed.
+- This sidecar covers only the two phylo count intercept rows; it does not
+  cover `phylo_interaction()` count rows.
+- This is local recovery smoke only. It is not interval-ready,
+  coverage-ready, `inference_ready`, `supported`, REML, AI-REML, bridge
+  support, q2/q4 count covariance support, high-q support, or public support.
+- A replicated recovery grid with MCSE and a boundary ledger is still required
+  before any recovery claim. Non-Gaussian intervals and coverage remain
+  unsupported.
