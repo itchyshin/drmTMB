@@ -171,6 +171,9 @@ STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT = (
 STRUCTURED_RE_HIGH_Q_STATUS_AUDIT = (
     DASHBOARD / "structured-re-high-q-status-audit.tsv"
 )
+STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT = (
+    DASHBOARD / "structured-re-nongaussian-status-audit.tsv"
+)
 STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
     DASHBOARD / "structured-re-q2-slope-coverage-pregrid-dry-run.tsv"
 )
@@ -1866,6 +1869,25 @@ STRUCTURED_RE_HIGH_Q_STATUS_AUDIT_FIELDS = (
     "cell_id",
     "dimension_pattern",
     "high_q_scope",
+    "widget_state",
+    "evidence_basis",
+    "stability_signal",
+    "inference_signal",
+    "linked_fit_status",
+    "linked_interval_status",
+    "linked_coverage_status",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT_FIELDS = (
+    "audit_id",
+    "cell_id",
+    "family",
+    "family_group",
+    "structure_provider",
+    "endpoint_set",
     "widget_state",
     "evidence_basis",
     "stability_signal",
@@ -5872,6 +5894,9 @@ def main() -> int:
     )
     structured_re_high_q_status_audit_rows = read_tsv(
         STRUCTURED_RE_HIGH_Q_STATUS_AUDIT
+    )
+    structured_re_nongaussian_status_audit_rows = read_tsv(
+        STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT
     )
     structured_re_q2_slope_coverage_pregrid_dry_run_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN
@@ -12811,6 +12836,146 @@ def main() -> int:
         errors.append(
             "structured-re-high-q-status-audit.tsv widget_state counts must be "
             f"{expected_high_q_state_counts}; saw {high_q_state_counts}"
+        )
+
+    # --- structured-re non-Gaussian status audit ---
+    # DISPLAY/AUDIT evidence only: all 37 non-Gaussian rows are bucketed by
+    # point/recovery/rejection/planned state, but intervals remain unsupported
+    # and no coverage/support wording is promoted.
+    expected_nongaussian_state_counts = {
+        "non_gaussian_recovery_only": 8,
+        "non_gaussian_point_only": 10,
+        "non_gaussian_rejected": 18,
+        "non_gaussian_planned": 1,
+    }
+    expected_nongaussian_family_counts = {
+        "nbinom2()": 15,
+        "poisson()": 14,
+        "student()": 2,
+        "beta()": 2,
+        "non-count or extended count families": 1,
+        "Gamma()": 1,
+        "cumulative_logit()": 1,
+        "truncated_nbinom2()": 1,
+    }
+    nongaussian_cell_ids = {
+        row.get("cell_id", "")
+        for row in structured_re_q_series_support_cell_rows
+        if row.get("family_class") == "non_gaussian"
+    }
+    if len(nongaussian_cell_ids) != 37:
+        errors.append(
+            "structured-re-q-series-support-cells.tsv: expected 37 "
+            f"non-Gaussian rows; saw {len(nongaussian_cell_ids)}"
+        )
+    if len(structured_re_nongaussian_status_audit_rows) != 37:
+        errors.append(
+            "structured-re-nongaussian-status-audit.tsv: expected 37 rows"
+        )
+    seen_nongaussian_audit_ids: set[str] = set()
+    seen_nongaussian_cell_ids: set[str] = set()
+    nongaussian_state_counts: dict[str, int] = {}
+    nongaussian_family_counts: dict[str, int] = {}
+    for row in structured_re_nongaussian_status_audit_rows:
+        row_id = row.get("audit_id", "<non-Gaussian status audit>")
+        cell_id = row.get("cell_id", "")
+        if set(row.keys()) != set(STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-nongaussian-status-audit.tsv fields "
+                "do not match the contract"
+            )
+        for field in STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_nongaussian_audit_ids:
+            errors.append(f"duplicate non-Gaussian audit id: {row_id}")
+        seen_nongaussian_audit_ids.add(row_id)
+        if cell_id in seen_nongaussian_cell_ids:
+            errors.append(f"duplicate non-Gaussian audit cell_id: {cell_id}")
+        seen_nongaussian_cell_ids.add(cell_id)
+        nongaussian_state_counts[row.get("widget_state", "")] = (
+            nongaussian_state_counts.get(row.get("widget_state", ""), 0) + 1
+        )
+        nongaussian_family_counts[row.get("family", "")] = (
+            nongaussian_family_counts.get(row.get("family", ""), 0) + 1
+        )
+        support_row = q_series_cell_map.get(cell_id)
+        if support_row is None:
+            errors.append(f"{row_id}: linked support cell {cell_id!r} is missing")
+            continue
+        if support_row.get("family_class") != "non_gaussian":
+            errors.append(f"{row_id}: linked support cell is not non_gaussian")
+        for audit_field, support_field in (
+            ("family", "family"),
+            ("structure_provider", "structure_provider"),
+            ("endpoint_set", "endpoint_set"),
+            ("linked_fit_status", "fit_status"),
+            ("linked_interval_status", "interval_status"),
+            ("linked_coverage_status", "coverage_status"),
+        ):
+            if row.get(audit_field) != support_row.get(support_field):
+                errors.append(
+                    f"{row_id}: {audit_field} must match support-cell "
+                    f"{support_field}={support_row.get(support_field)!r}"
+                )
+        expected_widget_state = None
+        if support_row.get("fit_status") == "unsupported":
+            expected_widget_state = "non_gaussian_rejected"
+        elif cell_id == "qseries_nongaussian_structured_slope_neighbors_planned":
+            expected_widget_state = "non_gaussian_planned"
+        elif (
+            support_row.get("slope_class") == "independent_one_slope"
+            and support_row.get("endpoint_set") == "mu"
+            and support_row.get("structure_provider") in {"phylo", "spatial", "animal", "relmat"}
+            and support_row.get("family") in {"poisson()", "nbinom2()"}
+        ):
+            expected_widget_state = "non_gaussian_recovery_only"
+        else:
+            expected_widget_state = "non_gaussian_point_only"
+        if row.get("widget_state") != expected_widget_state:
+            errors.append(
+                f"{row_id}: widget_state must be {expected_widget_state!r}"
+            )
+        if row.get("promotion_decision") != "do_not_promote":
+            errors.append(f"{row_id}: promotion_decision must be do_not_promote")
+        if support_row.get("interval_status") != "unsupported":
+            errors.append(f"{row_id}: non-Gaussian interval_status must be unsupported")
+        if support_row.get("coverage_status") == "inference_ready":
+            errors.append(f"{row_id}: non-Gaussian coverage must not be inference_ready")
+        if support_row.get("fit_status") == "supported":
+            errors.append(f"{row_id}: non-Gaussian fit_status must not be supported")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in ("not", "interval-ready", "coverage-ready", "REML", "AI-REML", "supported", "public support"):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if row.get("widget_state") == "non_gaussian_recovery_only":
+            if "80-rep recovery grid" not in row.get("evidence_basis", ""):
+                errors.append(f"{row_id}: recovery row must cite the 80-rep recovery grid")
+            if cell_id not in {
+                recovery.get("linked_cell_id", recovery.get("cell_id", ""))
+                for recovery in structured_re_count_slope_recovery_results_rows
+            }:
+                errors.append(f"{row_id}: recovery row lacks a recovery-results match")
+        if row.get("widget_state") == "non_gaussian_rejected" and support_row.get("fit_status") != "unsupported":
+            errors.append(f"{row_id}: rejected widget row must link to unsupported fit")
+    if seen_nongaussian_cell_ids != nongaussian_cell_ids:
+        errors.append(
+            "structured-re-nongaussian-status-audit.tsv cell_ids must match all "
+            "non-Gaussian q-series support-cell rows"
+        )
+    if nongaussian_state_counts != expected_nongaussian_state_counts:
+        errors.append(
+            "structured-re-nongaussian-status-audit.tsv widget_state counts "
+            f"must be {expected_nongaussian_state_counts}; saw "
+            f"{nongaussian_state_counts}"
+        )
+    if nongaussian_family_counts != expected_nongaussian_family_counts:
+        errors.append(
+            "structured-re-nongaussian-status-audit.tsv family counts must be "
+            f"{expected_nongaussian_family_counts}; saw "
+            f"{nongaussian_family_counts}"
         )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
@@ -29960,6 +30125,7 @@ def main() -> int:
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
         f", {len(structured_re_q_series_inference_evidence_summary_rows)} structured RE q-series inference-evidence summary rows"
         f", {len(structured_re_high_q_status_audit_rows)} structured RE high-q status-audit rows"
+        f", {len(structured_re_nongaussian_status_audit_rows)} structured RE non-Gaussian status-audit rows"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"

@@ -70398,3 +70398,58 @@ Boundary:
 - The high-q audit is display and blocker evidence only. It separates q4
   fixture gates, q8 stability blockers, diagnostic comparator rows, and planned
   q6/q8 design rows.
+
+
+## 2026-06-28: Q-Series non-Gaussian status audit widget state
+
+Goal:
+
+- Surface all 37 non-Gaussian Q-Series rows by row-level evidence state without
+  promoting non-Gaussian interval, coverage, REML, AI-REML, bridge, or support
+  claims.
+
+Result:
+
+- Added `structured-re-nongaussian-status-audit.tsv`, a 37-row sidecar covering
+  every non-Gaussian support cell.
+- Added widget states for `non_gaussian_recovery_only`,
+  `non_gaussian_point_only`, `non_gaussian_rejected`, and
+  `non_gaussian_planned`.
+- Updated the Q-Series widget to merge the non-Gaussian audit with the existing
+  sigma, q2, and high-q sidecars.
+- Registered the non-Gaussian audit in `tools/validate-mission-control.py`; the
+  validator now requires all 37 rows, the 8 / 10 / 18 / 1 widget-state split,
+  the family distribution, matching support-cell statuses, recovery-result
+  linkage for the eight recovery rows, and `do_not_promote` for every row.
+- Updated the dashboard README, timestamp, and build marker to `r70`.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 37 structured RE non-Gaussian
+  status-audit rows.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r70`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-nongaussian-status-audit.tsv | wc -l`:
+  returned 38 lines, meaning header plus 37 audit rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: Q-Series
+  board rendered the `NG recovery`, `NG point`, `NG rejected`, `NG planned`,
+  and `Non-Gaussian` summary cards plus representative recovery, rejection, and
+  planned cell IDs.
+- `git diff --check`: no whitespace errors.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-28-q-series-nongaussian-status-widget.md')"`:
+  after-task structure check passed.
+
+Boundary:
+
+- Every linked non-Gaussian support cell keeps `interval_status = unsupported`.
+- No non-Gaussian row moved to `coverage_status = inference_ready`,
+  `supported`, REML, AI-REML, bridge support, q2/q4 covariance support, or
+  public support.

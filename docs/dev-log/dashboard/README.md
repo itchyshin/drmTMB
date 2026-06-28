@@ -210,11 +210,14 @@ widget also joins count one-slope rows to
 has been banked, and it joins q4/q6/q8 rows to
 `structured-re-high-q-status-audit.tsv` so high-q diagnostic, q4 gate-required,
 q8 stability-blocked, and high-q planned states are visible separately from
-inference readiness. The support-cell denominator policy remains the
+inference readiness. It also joins all non-Gaussian rows to
+`structured-re-nongaussian-status-audit.tsv` so count recovery-only,
+point-only, rejected, and planned family-design rows are visible separately
+from Gaussian interval claims. The support-cell denominator policy remains the
 route/status contract; the evidence summary is the reader-facing denominator
 for rows already promoted to `inference_ready`, the count recovery summary is
-reader-facing recovery evidence only, and the high-q audit is a blocker ledger
-only.
+reader-facing recovery evidence only, and the high-q and non-Gaussian audits
+are blocker ledgers only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
 24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
@@ -224,6 +227,19 @@ only.
 `high_q_planned`. Every linked support cell keeps its existing fit, interval,
 and coverage statuses; no high-q row is `inference_ready`, and the audit does
 not promote q4/q6/q8 intervals, coverage, REML, AI-REML, bridge support,
+`supported`, or public support.
+
+`structured-re-nongaussian-status-audit.tsv` records one audit row for each of
+the 37 non-Gaussian Q-Series cells. It assigns eight Poisson/NB2 count
+one-slope rows to `non_gaussian_recovery_only`, ten count or
+`phylo_interaction()` point-fit rows to `non_gaussian_point_only`, eighteen
+intentional rejection rows to `non_gaussian_rejected`, and one broader
+family-design row to `non_gaussian_planned`. The table preserves the current
+family distribution: 14 Poisson rows, 15 NB2 rows, two Student rows, two beta
+rows, and one row each for Gamma, cumulative-logit, truncated-NB2, and the
+non-count/extended-count future-design bucket. All linked rows keep
+`interval_status = unsupported`; none of this audit promotes non-Gaussian
+intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge support,
 `supported`, or public support.
 
 The same q-series support-cell table now includes provider-specific Poisson
@@ -241,8 +257,10 @@ unless an exact future support-cell row says otherwise.
 `structured-re-count-slope-recovery-results.tsv` records the local 80-rep
 recovery grid for the eight Poisson/NB2 q1 `mu` one-slope count cells. It
 records fit_ok counts, nonconvergence, `pdHess` false counts, finite estimate
-counts, SD bias/RMSE, and a recovery-only verdict. The widget renders these
-rows as `recovery_only`: they have point and recovery evidence, but
+counts, SD bias/RMSE, and a recovery-only verdict. The Q-Series board renders
+these rows with the more specific `non_gaussian_recovery_only` row state from
+`structured-re-nongaussian-status-audit.tsv`; the recovery metrics still come
+from this recovery-results sidecar. They have point and recovery evidence, but
 `interval_status = unsupported`, `coverage_status = planned`, and no
 `supported` claim.
 
