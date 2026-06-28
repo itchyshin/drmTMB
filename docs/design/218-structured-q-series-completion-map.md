@@ -238,7 +238,9 @@ PROFILE channel at adequate g.**
 6. **BREAKTHROUGH — a closed-form correction works; `supported` is now engineering,
    not research.** The remaining candidate ("closed-form analytic small-sample log-SD
    bias correction") turns out to be simple. The measured log-shrinkage tracks
-   **`log(g/(g-1))`** (the variance Bessel factor on the SD scale), so the truth-free
+   **`log(g/(g-1))`** (a *simulation-calibrated* shift — REML-motivated but ~2x the
+   leading-order REML SD term `0.5*log(g/(g-1))`, because the structured/bivariate
+   model's effective df is well below `g-1`; see doc 219), so the truth-free
    correction `sigma_corrected = sigma_ML * g/(g-1)` plus the t(df=g-1) width holds
    nominal at EVERY g
    (`docs/dev-log/simulation-artifacts/2026-06-27-oracle-bias-correction/analytic-correction-cross-g.R`):

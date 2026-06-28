@@ -169,13 +169,18 @@
 #' # percentiles before back-transforming to the response scale.
 #' @references
 #' The small-sample options `small_sample_df = "group"` and
-#' `bias_correct = "group"` rest on established mixed-model theory; the specific
-#' `log(g / (g - 1))` SD-scale centre shift and its per-model-class simulation
-#' calibration are particular to `drmTMB` and are not attributable to a single
+#' `bias_correct = "group"` are *motivated* by established mixed-model theory but
+#' are simulation-calibrated, not derived: the `log(g / (g - 1))` SD-scale centre
+#' shift is about **twice** the leading-order REML SD correction
+#' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
+#' structured/bivariate cells (their effective df is well below `g - 1`). The
+#' magnitude's authority is the per-model-class simulation in
+#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
 #' source. Relevant references:
 #'
-#' Restricted maximum likelihood and the leading-order variance-component bias
-#' that `bias_correct` reproduces in closed form:
+#' Restricted maximum likelihood and the variance-component bias that motivates
+#' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
+#' the SD log scale and ~2x the leading-order REML SD term):
 #'
 #' Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
 #' when block sizes are unequal. Biometrika, 58(3), 545-554.

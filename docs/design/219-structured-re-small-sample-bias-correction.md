@@ -41,29 +41,48 @@ and both are **scoped to location-axis variance components**: dispersion (`sigma
 SDs already over-cover under the normal quantile, so neither adjustment is applied
 to them.
 
-## Why `g/(g-1)` — it is REML's debiasing in closed form
+## Why `log(g/(g-1))` — a simulation-calibrated shift, REML-*motivated* but ~2× the REML SD term
 
-The centre shift is not an ad-hoc fudge; it reproduces the **REML** leading-order
-variance-component correction. The canonical illustration: estimating a variance
-from `g` observations around an estimated mean,
+**The shift is calibrated to the measured shrinkage, not derived from REML.** Be
+precise about the magnitude, because it is easy to overclaim (and an earlier draft
+of this note did). The authority for the `log(g/(g-1))` shift is the empirical bias
+table below — the mean log-scale ML shrinkage measured on these cells — not a
+theorem.
+
+REML supplies the *motivation and direction*, not the magnitude. The canonical
+illustration — estimating a variance from `g` observations around an estimated
+mean:
 
 - ML: `E[sigma^2_ML] = sigma^2 (g-1)/g` (biased low),
 - REML / unbiased: `sigma^2_REML = sigma^2_ML * g/(g-1)`.
 
-So **REML's variance debiasing _is_ the `g/(g-1)` factor** (Patterson & Thompson
-1971; Harville 1977; Searle, Casella & McCulloch 1992). `bias_correct = "group"`
-applies that same factor on the SD log scale, giving a structured-RE SD interval
-the centre a REML fit would have produced — without needing the restricted
-likelihood (which, for `drmTMB`'s scale axis, is not derived). It is the
-additive-shift instance of the general first-order ML bias-correction framework
-(Cox & Snell 1968; the penalized alternative is Firth 1993).
+REML debiases the **variance** by `g/(g-1)`. On the **SD** that is a factor
+`sqrt(g/(g-1))`, i.e. a log-SD shift of **`0.5 * log(g/(g-1))`** (≈ +0.067 at g=8).
+But `bias_correct = "group"` shifts the log-SD by the **full** `log(g/(g-1))`
+(≈ +0.134 at g=8) — **about twice the leading-order REML SD correction**. So this
+is *not* "REML on the SD in closed form"; applying the variance Bessel factor
+directly to the SD scale would be a category error.
 
-**This makes REML less _urgent_ for honest small-`g` intervals on these cells, but
-not less important in general:** `g/(g-1)` is the *leading-order* term, exact only
-in the balanced one-component case; REML is exact-by-construction for arbitrary
-unbalanced designs and jointly debiases all components, their correlations, and
-the fixed-effect SEs. The closed-form shift is a calibrated approximation,
-validated per model class (below), in the spirit drmTMB's doctrine prescribes.
+The full `log(g/(g-1))` is used because that is what the data require: the measured
+log-SD shrinkage of these *structured, bivariate, labelled-covariance* variance
+components is ~`log(g/(g-1))` (g=8: −0.129 vs −0.134), roughly double the simple
+balanced-one-component REML SD term. The excess is real: the bivariate correlated
+structure, the fixed effects, and the integrated-out random effects together leave
+an **effective df well below `g-1`**, so the shrinkage is larger than the textbook
+Bessel factor predicts. At g=16 the measured bias (−0.081) even *exceeds*
+`log(16/15)` (−0.065), which a clean closed-form `g/(g-1)` story cannot explain —
+it is calibration, with the residual absorbed by the t-width.
+
+So: the references (Patterson & Thompson 1971; Harville 1977; Searle, Casella &
+McCulloch 1992) support the **variance** Bessel factor and the general first-order
+ML bias-correction framework (Cox & Snell 1968; Firth 1993) — they motivate *a*
+log-scale shift and its direction, but they do **not** derive this specific
+magnitude. The magnitude is a **simulation-calibrated, per-model-class** quantity,
+and must be re-validated by simulation before it is trusted on any other cell
+class, truth, or design (see Scope and caveats). REML remains the principled,
+exact, general tool; this is a calibrated approximation that reproduces REML's
+*qualitative* small-`g` correction on the validated cells, at roughly twice the
+naive SD-scale magnitude.
 
 ## Evidence
 
