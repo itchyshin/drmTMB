@@ -70830,3 +70830,55 @@ Boundary:
   channel remains low-finite/censoring-suspect.
 - This does not promote pedigree/Ainv bridge marshalling, matched `mu+sigma`,
   q4/q8, REML, AI-REML, bridge support, `supported`, or public support.
+
+
+## 2026-06-28: Q-Series animal q1 sigma one-slope to inference_ready
+
+Goal:
+
+- Promote exactly `qseries_animal_q1_sigma_one_slope` from planned interval
+  and coverage status to `inference_ready` after Fisher accepted the SR1000
+  raw-Wald sigma evidence and Rose required a synchronized status edit.
+
+Result:
+
+- Updated `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`
+  so only the exact animal A-matrix q1 sigma one-slope cell moved to
+  `interval_status = inference_ready` and `coverage_status = inference_ready`.
+- Added two animal endpoint rows to
+  `docs/dev-log/dashboard/structured-re-sigma-slope-inference-evidence.tsv`.
+- Added the compact animal row to
+  `docs/dev-log/dashboard/structured-re-q-series-inference-evidence-summary.tsv`.
+- Updated
+  `docs/dev-log/dashboard/structured-re-sigma-slope-spatial-animal-admission-audit.tsv`
+  from `candidate_wald_channel_pending_fisher_rose_signoff` to
+  `promoted_after_fisher_rose_signoff`.
+- Updated the validator and focused support-cell tests so mission control now
+  expects exactly five interval+coverage `inference_ready` Q-Series rows and
+  six sigma endpoint evidence rows.
+- Synchronized NEWS, README, ROADMAP, formula grammar, the Q-Series completion
+  map, and the dashboard README.
+
+Evidence:
+
+- Fisher sign-off accepted the exact row under the raw uncorrected log-SD
+  Wald-z sigma interval channel.
+- Animal `sigma:(Intercept)`: 1000/1000 fit-ok, 1000/1000 converged,
+  1000/1000 `pdHess = TRUE`, 0 boundary flags, 981/1000 finite Wald intervals,
+  Wald coverage 0.9633 with MCSE 0.0060, and one-sided misses 26 lower / 10
+  upper.
+- Animal `sigma:x`: 1000/1000 fit-ok, 1000/1000 converged,
+  1000/1000 `pdHess = TRUE`, 0 boundary flags, 953/1000 finite Wald intervals,
+  Wald coverage 0.9895 with MCSE 0.0033, and one-sided misses 0 lower / 10
+  upper.
+
+Boundary:
+
+- This promotes exactly `qseries_animal_q1_sigma_one_slope` under the raw
+  uncorrected log-SD Wald-z interval channel with SR1000 retained-attempt
+  denominator accounting and does not claim pedigree/Ainv bridge marshalling,
+  matched `mu+sigma`, spatial sigma, animal q2, q4/q8, REML, AI-REML, bridge
+  support, `supported`, or public support.
+- Profile intervals remain diagnostic-only at deployment g=8: finite rates are
+  891/1000 for `sigma:(Intercept)` and 726/1000 for `sigma:x`.
+- The location-axis bias+t correction does not apply to sigma.

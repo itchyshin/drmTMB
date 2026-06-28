@@ -5599,6 +5599,7 @@ CERTIFIED_INTERVAL_FEASIBLE_CELLS = {
 CERTIFIED_INFERENCE_READY_CELLS = {
     "qseries_phylo_q1_sigma_one_slope",
     "qseries_phylo_q2_mu1_mu2_one_slope",
+    "qseries_animal_q1_sigma_one_slope",
     "qseries_relmat_q1_sigma_one_slope",
     "qseries_relmat_q2_mu1_mu2_one_slope",
 }
@@ -7930,6 +7931,11 @@ def main() -> int:
             "interval_channel": "raw_log_sd_wald_z",
             "evidence_scope": "deployment_g8_sigma_sd_targets",
         },
+        "qseries_inference_animal_q1_sigma": {
+            "cell_id": "qseries_animal_q1_sigma_one_slope",
+            "interval_channel": "raw_log_sd_wald_z",
+            "evidence_scope": "deployment_g8_sigma_sd_targets",
+        },
         "qseries_inference_relmat_q1_sigma": {
             "cell_id": "qseries_relmat_q1_sigma_one_slope",
             "interval_channel": "raw_log_sd_wald_z",
@@ -7947,10 +7953,10 @@ def main() -> int:
         },
     }
     seen_q_series_inference_evidence_summary_ids: set[str] = set()
-    if len(structured_re_q_series_inference_evidence_summary_rows) != 4:
+    if len(structured_re_q_series_inference_evidence_summary_rows) != 5:
         errors.append(
             "structured-re-q-series-inference-evidence-summary.tsv: expected "
-            "4 rows for the current inference_ready cells"
+            "5 rows for the current inference_ready cells"
         )
     for row in structured_re_q_series_inference_evidence_summary_rows:
         row_id = row.get("summary_id", "<q-series inference evidence summary>")
@@ -12394,6 +12400,30 @@ def main() -> int:
             "primary": "wald_primary_conservative",
             "profile": "profile_diagnostic_low_finite_rate",
         },
+        "sigma_slope_inference_animal_intercept": {
+            "linked_cell_id": "qseries_animal_q1_sigma_one_slope",
+            "provider": "animal",
+            "endpoint_member": "sigma:(Intercept)",
+            "source_run": "local_sr1000_reconciliation",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "primary": "wald_primary_near_nominal_asymmetric",
+            "profile": "profile_diagnostic_low_finite_rate",
+        },
+        "sigma_slope_inference_animal_x": {
+            "linked_cell_id": "qseries_animal_q1_sigma_one_slope",
+            "provider": "animal",
+            "endpoint_member": "sigma:x",
+            "source_run": "local_sr1000_reconciliation",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "primary": "wald_primary_conservative_asymmetric",
+            "profile": "profile_diagnostic_low_finite_rate",
+        },
         "sigma_slope_inference_relmat_intercept": {
             "linked_cell_id": "qseries_relmat_q1_sigma_one_slope",
             "provider": "relmat",
@@ -12420,10 +12450,10 @@ def main() -> int:
         },
     }
     seen_sigma_inference_ids: set[str] = set()
-    if len(structured_re_sigma_slope_inference_evidence_rows) != 4:
+    if len(structured_re_sigma_slope_inference_evidence_rows) != 6:
         errors.append(
-            "structured-re-sigma-slope-inference-evidence.tsv: expected 4 rows "
-            "(phylo/relmat x intercept/sigma:x)"
+            "structured-re-sigma-slope-inference-evidence.tsv: expected 6 rows "
+            "(phylo/animal/relmat x intercept/sigma:x)"
         )
     for row in structured_re_sigma_slope_inference_evidence_rows:
         row_id = row.get("evidence_id", "<sigma inference evidence>")
@@ -12731,9 +12761,12 @@ def main() -> int:
             "cell_id": "qseries_animal_q1_sigma_one_slope",
             "provider": "animal",
             "admission_status": (
-                "candidate_wald_channel_pending_fisher_rose_signoff"
+                "promoted_after_fisher_rose_signoff"
             ),
-            "widget_state": "calibration_required",
+            "widget_state": "inference_ready",
+            "linked_interval_status": "inference_ready",
+            "linked_coverage_status": "inference_ready",
+            "promotion_decision": "promote_exact_cell",
             "source_coverage_artifact": (
                 "docs/dev-log/simulation-artifacts/"
                 "2026-06-28-animal-sigma-slope-coverage-topup-local/"
@@ -12764,7 +12797,7 @@ def main() -> int:
                 "sigma:x": "visible_holdout_until_smoke_profile_reconciled",
             },
             "claim_phrases": (
-                "not inference_ready",
+                "is inference_ready",
                 "0.9810",
                 "0.9530",
                 "profile finite rates remain low",
@@ -12772,7 +12805,7 @@ def main() -> int:
                 "does not promote",
                 "supported",
             ),
-            "next_gate_phrase": "Ask Fisher and Rose",
+            "next_gate_phrase": "For support",
         },
     }
     sigma_coverage_by_provider_target = {
@@ -12824,12 +12857,26 @@ def main() -> int:
                 f"{row_id}: source_coverage_artifact must be "
                 f"{expected['source_coverage_artifact']!r}"
             )
-        if row.get("linked_interval_status") != "planned":
-            errors.append(f"{row_id}: linked_interval_status must remain planned")
-        if row.get("linked_coverage_status") != "planned":
-            errors.append(f"{row_id}: linked_coverage_status must remain planned")
-        if row.get("promotion_decision") != "do_not_promote":
-            errors.append(f"{row_id}: promotion_decision must be do_not_promote")
+        expected_linked_interval = expected.get("linked_interval_status", "planned")
+        expected_linked_coverage = expected.get("linked_coverage_status", "planned")
+        expected_promotion_decision = expected.get(
+            "promotion_decision", "do_not_promote"
+        )
+        if row.get("linked_interval_status") != expected_linked_interval:
+            errors.append(
+                f"{row_id}: linked_interval_status must be "
+                f"{expected_linked_interval}"
+            )
+        if row.get("linked_coverage_status") != expected_linked_coverage:
+            errors.append(
+                f"{row_id}: linked_coverage_status must be "
+                f"{expected_linked_coverage}"
+            )
+        if row.get("promotion_decision") != expected_promotion_decision:
+            errors.append(
+                f"{row_id}: promotion_decision must be "
+                f"{expected_promotion_decision}"
+            )
         for source_field in (
             "source_coverage_artifact",
             "source_denominator_rule",
@@ -12889,10 +12936,16 @@ def main() -> int:
         if linked is None:
             errors.append(f"{row_id}: linked q-series support cell is missing")
         else:
-            if linked.get("interval_status") != "planned":
-                errors.append(f"{row_id}: linked interval_status must remain planned")
-            if linked.get("coverage_status") != "planned":
-                errors.append(f"{row_id}: linked coverage_status must remain planned")
+            if linked.get("interval_status") != expected_linked_interval:
+                errors.append(
+                    f"{row_id}: linked interval_status must be "
+                    f"{expected_linked_interval}"
+                )
+            if linked.get("coverage_status") != expected_linked_coverage:
+                errors.append(
+                    f"{row_id}: linked coverage_status must be "
+                    f"{expected_linked_coverage}"
+                )
             if linked.get("authority_status") == "supported":
                 errors.append(f"{row_id}: linked cell must not be supported")
         for phrase in expected["claim_phrases"]:

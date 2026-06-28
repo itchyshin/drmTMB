@@ -289,23 +289,25 @@ right-tail miss asymmetry at SD about 0.9, and g-dependent under-correction
 not stale label work. q2 `supported` needs a skew-aware interval or a derived,
 tested bivariate structured-location REML route.
 
-### Decision executed (2026-06-28): q1 sigma phylo/relmat to `inference_ready`
+### Decision executed (2026-06-28): q1 sigma phylo/animal/relmat to `inference_ready`
 
-The first follow-on sigma arc promoted exactly two q1 sigma one-slope rows:
+The first follow-on sigma arc promoted exactly three q1 sigma one-slope rows:
 
 - `qseries_phylo_q1_sigma_one_slope`
+- `qseries_animal_q1_sigma_one_slope`
 - `qseries_relmat_q1_sigma_one_slope`
 
 This is an uncorrected raw Wald-z claim on the log-SD scale, not a use of the
-location-axis bias+t correction. At deployment g=8, the Nibi top-up and banked
-SR475 slope grid show 100% fit and pdHess pass rates, Wald finite rates above
-0.97, and Wald MCSE at or below 0.01. The caveat is explicit: intercept SD
-coverage is near-nominal but upper-tail misses dominate (phylo 5 lower vs 56
-upper; relmat 5 lower vs 53 upper), while the sigma:x SDs over-cover. Profile
-intervals stay diagnostic-only at g=8 because the sigma:x profile finite rates
-are 0.7579 and 0.8042. Spatial sigma, animal sigma, matched `mu+sigma`, q4/q8,
-count, non-Gaussian rows, REML, AI-REML, bridge support, and `supported` remain
-future gates.
+location-axis bias+t correction. At deployment g=8, the Nibi top-up, banked
+SR475 slope grid, and local animal SR1000 reconciliation show 100% fit and
+pdHess pass rates, Wald finite rates at or above 0.953, and Wald MCSE at or
+below 0.01. The caveat is explicit: one-sided misses are asymmetric (phylo
+intercept 5 lower vs 56 upper; animal intercept 26 lower vs 10 upper; relmat
+intercept 5 lower vs 53 upper), while the sigma:x SDs over-cover or are
+conservative. Profile intervals stay diagnostic-only at g=8 because low-finite
+sigma targets remain visible, including animal `sigma:x` at 0.726. Spatial
+sigma, matched `mu+sigma`, q4/q8, count, non-Gaussian rows, REML, AI-REML,
+bridge support, and `supported` remain future gates.
 
 ## Why the Older Work Drifted
 

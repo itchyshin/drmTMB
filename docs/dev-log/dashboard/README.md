@@ -202,9 +202,9 @@ page. The widget deliberately separates row state, fit/stability state,
 inference readiness, interval status, and coverage status so a row that has
 been tried or fit-stabilized is not confused with a row that is
 `inference_ready`. Promoted rows also join to
-`structured-re-q-series-inference-evidence-summary.tsv`, a compact four-row
+`structured-re-q-series-inference-evidence-summary.tsv`, a compact five-row
 evidence summary that names the interval channel, denominator, coverage, and
-miss-balance caveat for the two q1 sigma and two q2 location-slope rows. The
+miss-balance caveat for the three q1 sigma and two q2 location-slope rows. The
 widget also joins count one-slope rows to
 `structured-re-count-slope-recovery-results.tsv` when 80-rep recovery evidence
 has been banked, and it joins q4/q6/q8 rows to
@@ -1152,13 +1152,14 @@ All 16 variant-target combinations had finite Wald/profile intervals,
 including the animal `sigma:x` target that failed endpoint profiling in the
 smoke run. This sidecar is still diagnostic-only evidence and does not itself
 promote interval or coverage status. Later Q-Series evidence supersedes it only
-for the exact phylo/relmat q1 sigma one-slope rows in
-`structured-re-sigma-slope-inference-evidence.tsv`; spatial and animal sigma
-rows remain unpromoted.
+for the exact phylo/animal/relmat q1 sigma one-slope rows in
+`structured-re-sigma-slope-inference-evidence.tsv`; spatial sigma remains
+unpromoted.
 
 `structured-re-sigma-slope-spatial-animal-admission-audit.tsv` records the
-current blocker state for the spatial and animal q1 sigma one-slope support
-cells. Spatial now has retained-denominator SR1000 evidence for both direct-SD
+current admission or promotion state for the spatial and animal q1 sigma
+one-slope support cells. Spatial now has retained-denominator SR1000 evidence
+for both direct-SD
 endpoints, combining the SR475 local grid with the 2026-06-28 local top-up in
 `docs/dev-log/simulation-artifacts/2026-06-28-spatial-sigma-slope-coverage-topup-local/spatial-sigma-sr1000-combined-summary.tsv`.
 The `sigma:x` endpoint passes the finite-Wald gate at 954/1000 = 0.9540, but
@@ -1169,13 +1170,15 @@ endpoints in
 `docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/animal-sigma-sr1000-combined-summary.tsv`.
 Both animal endpoints pass the raw-Wald finite-rate and MCSE gates
 (`sigma:(Intercept)` 981/1000 = 0.9810, `sigma:x` 953/1000 = 0.9530), but
-the profile channel remains low-finite/censoring-suspect and Fisher/Rose
-sign-off has not been recorded, so the widget marks the cell
-`calibration_required`, not `inference_ready`. Both linked support cells keep
-`interval_status = planned` and `coverage_status = planned`; this ledger does
-not promote range-estimating spatial support, pedigree/Ainv bridge marshalling,
-matched `mu+sigma`, q4/q8, REML, AI-REML, bridge support, `supported`, or
-public support.
+the profile channel remains low-finite/censoring-suspect. Fisher accepted the
+raw-Wald sigma channel for the exact animal row and Rose required the
+coordinated status edit, so the widget now marks the animal cell
+`inference_ready`. The spatial support cell keeps `interval_status = planned`
+and `coverage_status = planned`; the animal support cell is
+`inference_ready` only under the raw uncorrected log-SD Wald-z sigma channel.
+This ledger does not promote range-estimating spatial support, pedigree/Ainv
+bridge marshalling, matched `mu+sigma`, q4/q8, REML, AI-REML, bridge support,
+`supported`, or public support.
 
 `structured-re-sigma-slope-denominator-admission.tsv` records the first
 sigma-only one-slope denominator-admission ledger. Seven of eight direct SD
@@ -1183,7 +1186,7 @@ targets are marked `diagnostic_denominator_candidate`; animal `sigma:x`
 remains `not_admitted_profile_failure` because the first Wald/profile/bootstrap
 smoke still had endpoint-profile failure for that target. Coverage remains
 `not_evaluated` in this admission sidecar. Later Q-Series promotion for the
-exact phylo/relmat q1 sigma rows comes from
+exact phylo/animal/relmat q1 sigma rows comes from
 `structured-re-sigma-slope-inference-evidence.tsv`, not from this denominator
 admission table.
 

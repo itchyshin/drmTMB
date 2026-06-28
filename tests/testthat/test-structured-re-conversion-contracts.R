@@ -46,16 +46,24 @@ structured_re_artifact_path <- function(...) {
 }
 
 # Signed-off promoted cells. q2 mu-slope -> inference_ready (2026-06-27);
-# phylo/relmat q1 sigma one-slope -> inference_ready with caveats (2026-06-28).
+# phylo/animal/relmat q1 sigma one-slope -> inference_ready with caveats
+# (2026-06-28).
 # Everything else stays planned unless it is one of the already-certified
 # interval_feasible cells.
 .ir_cells <- c(
   "qseries_phylo_q1_sigma_one_slope",
   "qseries_phylo_q2_mu1_mu2_one_slope",
+  "qseries_animal_q1_sigma_one_slope",
   "qseries_relmat_q1_sigma_one_slope",
   "qseries_relmat_q2_mu1_mu2_one_slope"
 )
-.if_cells <- c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope")
+.if_cells <- c(
+  "qseries_phylo_q1_sigma_one_slope",
+  "qseries_phylo_q2_mu1_mu2_one_slope",
+  "qseries_animal_q1_sigma_one_slope",
+  "qseries_relmat_q1_sigma_one_slope",
+  "qseries_relmat_q2_mu1_mu2_one_slope"
+)
 .expected_interval <- function(ids) ifelse(ids %in% .ir_cells, "inference_ready",
   ifelse(ids %in% .if_cells, "interval_feasible", "planned"))
 .expected_coverage <- function(ids) ifelse(ids %in% .ir_cells, "inference_ready", "planned")
@@ -244,9 +252,9 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   expect_equal(native_sigma_slope$route, rep("native_tmb", 4L))
   expect_equal(native_sigma_slope$fit_status, rep("point_fit", 4L))
   expect_equal(native_sigma_slope$extractor_status, rep("extractor_ready", 4L))
-  # phylo + relmat sigma cells are now inference_ready with caveats under the raw
-  # Wald-z channel (Fisher/Rose sign-off, 2026-06-28). spatial + animal stay
-  # planned.
+  # phylo + animal + relmat sigma cells are now inference_ready with caveats
+  # under the raw Wald-z channel (Fisher/Rose sign-off, 2026-06-28). spatial
+  # stays planned.
   expect_equal(
     native_sigma_slope$interval_status,
     .expected_interval(native_sigma_slope$cell_id)
@@ -257,7 +265,11 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     native_sigma_slope$evidence_url,
     ifelse(
       native_sigma_slope$cell_id %in%
-        c("qseries_phylo_q1_sigma_one_slope", "qseries_relmat_q1_sigma_one_slope"),
+        c(
+          "qseries_phylo_q1_sigma_one_slope",
+          "qseries_animal_q1_sigma_one_slope",
+          "qseries_relmat_q1_sigma_one_slope"
+        ),
       "docs/dev-log/dashboard/structured-re-sigma-slope-inference-evidence.tsv",
       "docs/dev-log/dashboard/structured-re-sigma-slope-parity-fixture.tsv"
     )
@@ -295,7 +307,11 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   structured_re_expect_all_match(
     native_sigma_slope[
       native_sigma_slope$cell_id %in%
-        c("qseries_phylo_q1_sigma_one_slope", "qseries_relmat_q1_sigma_one_slope"),
+        c(
+          "qseries_phylo_q1_sigma_one_slope",
+          "qseries_animal_q1_sigma_one_slope",
+          "qseries_relmat_q1_sigma_one_slope"
+        ),
       "claim_boundary"
     ],
     "not supported",
@@ -304,7 +320,11 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   structured_re_expect_all_match(
     native_sigma_slope[
       native_sigma_slope$cell_id %in%
-        c("qseries_phylo_q1_sigma_one_slope", "qseries_relmat_q1_sigma_one_slope"),
+        c(
+          "qseries_phylo_q1_sigma_one_slope",
+          "qseries_animal_q1_sigma_one_slope",
+          "qseries_relmat_q1_sigma_one_slope"
+        ),
       "claim_boundary"
     ],
     "does not apply to sigma",
@@ -481,12 +501,16 @@ test_that("sigma slope inference evidence stays row-scoped", {
     "structured-re-sigma-slope-inference-evidence.tsv"
   )
 
-  expect_equal(nrow(evidence), 4L)
+  expect_equal(nrow(evidence), 6L)
   expect_setequal(
     evidence$linked_cell_id,
-    c("qseries_phylo_q1_sigma_one_slope", "qseries_relmat_q1_sigma_one_slope")
+    c(
+      "qseries_phylo_q1_sigma_one_slope",
+      "qseries_animal_q1_sigma_one_slope",
+      "qseries_relmat_q1_sigma_one_slope"
+    )
   )
-  expect_equal(evidence$promotion_status, rep("inference_ready_with_caveats", 4L))
+  expect_equal(evidence$promotion_status, rep("inference_ready_with_caveats", 6L))
   expect_true(all(grepl("wald_primary", evidence$primary_channel_status, fixed = TRUE)))
   expect_true(all(grepl("diagnostic", evidence$profile_channel_status, fixed = TRUE)))
   expect_true(all(as.numeric(evidence$wald_mcse) <= 0.01))
@@ -494,10 +518,18 @@ test_that("sigma slope inference evidence stays row-scoped", {
 
   intercept <- evidence[evidence$endpoint_member == "sigma:(Intercept)", , drop = FALSE]
   slope <- evidence[evidence$endpoint_member == "sigma:x", , drop = FALSE]
-  expect_equal(nrow(intercept), 2L)
-  expect_equal(nrow(slope), 2L)
-  expect_true(all(as.numeric(intercept$wald_upper_lower_miss_ratio) >= 10))
-  expect_true(all(as.numeric(slope$wald_coverage) >= 0.99))
+  expect_equal(nrow(intercept), 3L)
+  expect_equal(nrow(slope), 3L)
+  phylo_relmat_intercept <- intercept[
+    intercept$provider %in% c("phylo", "relmat"),
+    ,
+    drop = FALSE
+  ]
+  animal_intercept <- intercept[intercept$provider == "animal", , drop = FALSE]
+  expect_true(all(as.numeric(phylo_relmat_intercept$wald_upper_lower_miss_ratio) >= 10))
+  expect_equal(as.integer(animal_intercept$wald_lower_miss), 26L)
+  expect_equal(as.integer(animal_intercept$wald_upper_miss), 10L)
+  expect_true(all(as.numeric(slope$wald_coverage) >= 0.989))
   expect_true(all(as.numeric(slope$profile_finite_rate_of_fit) < 0.85))
   structured_re_expect_all_match(evidence$claim_boundary, "not supported", fixed = TRUE)
   structured_re_expect_all_match(evidence$claim_boundary, "Wald", fixed = TRUE)
