@@ -205,20 +205,32 @@ been tried or fit-stabilized is not confused with a row that is
 `structured-re-q-series-inference-evidence-summary.tsv`, a compact four-row
 evidence summary that names the interval channel, denominator, coverage, and
 miss-balance caveat for the two q1 sigma and two q2 location-slope rows. The
-support-cell denominator policy remains the route/status contract; the evidence
-summary is the reader-facing denominator for rows already promoted to
-`inference_ready`.
+widget also joins count one-slope rows to
+`structured-re-count-slope-recovery-results.tsv` when 80-rep recovery evidence
+has been banked. The support-cell denominator policy remains the route/status
+contract; the evidence summary is the reader-facing denominator for rows
+already promoted to `inference_ready`, and the count recovery summary is
+reader-facing recovery evidence only.
 
 The same q-series support-cell table now includes provider-specific Poisson
 and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,
 `animal()`, and `relmat()`. Those rows cite
-`tests/testthat/test-count-structured-mu.R` as native TMB ML/Laplace
-point-fit and extractor evidence for the exact unlabelled
-intercept-plus-one-slope count cells only. Bridge support, intervals,
-coverage, REML, AI-REML, q2/q4 count covariance, zero-inflated structured
-effects, labelled count covariance, pure or multiple count slopes, and
-structured count scale routes remain planned or unsupported unless an exact
-future support-cell row says otherwise.
+`tests/testthat/test-count-structured-mu.R` as native TMB ML/Laplace point-fit
+and extractor evidence for the exact unlabelled intercept-plus-one-slope count
+cells, and the row text now also records the banked 80-rep local recovery grid.
+That recovery grid is convergence and SD bias/RMSE evidence only. Bridge
+support, intervals, coverage, REML, AI-REML, q2/q4 count covariance,
+zero-inflated structured effects, labelled count covariance, pure or multiple
+count slopes, and structured count scale routes remain planned or unsupported
+unless an exact future support-cell row says otherwise.
+
+`structured-re-count-slope-recovery-results.tsv` records the local 80-rep
+recovery grid for the eight Poisson/NB2 q1 `mu` one-slope count cells. It
+records fit_ok counts, nonconvergence, `pdHess` false counts, finite estimate
+counts, SD bias/RMSE, and a recovery-only verdict. The widget renders these
+rows as `recovery_only`: they have point and recovery evidence, but
+`interval_status = unsupported`, `coverage_status = planned`, and no
+`supported` claim.
 
 `structured-re-count-slope-fixture-recovery-contract.tsv` records the next
 evidence gate for those eight ordinary count one-slope cells. It ties each
@@ -1026,17 +1038,21 @@ by
 `docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-interval-stability-probe/structured-re-sigma-slope-interval-stability-probe-results.tsv`.
 All 16 variant-target combinations had finite Wald/profile intervals,
 including the animal `sigma:x` target that failed endpoint profiling in the
-smoke run. This is still diagnostic-only evidence: the linked q-series cells
-keep `interval_status = planned`, `coverage_status = planned`, and
-`denominator_policy = fixture_not_coverage`.
+smoke run. This sidecar is still diagnostic-only evidence and does not itself
+promote interval or coverage status. Later Q-Series evidence supersedes it only
+for the exact phylo/relmat q1 sigma one-slope rows in
+`structured-re-sigma-slope-inference-evidence.tsv`; spatial and animal sigma
+rows remain unpromoted.
 
 `structured-re-sigma-slope-denominator-admission.tsv` records the first
 sigma-only one-slope denominator-admission ledger. Seven of eight direct SD
 targets are marked `diagnostic_denominator_candidate`; animal `sigma:x`
 remains `not_admitted_profile_failure` because the first Wald/profile/bootstrap
 smoke still had endpoint-profile failure for that target. Coverage remains
-`not_evaluated`, and the linked support cells do not move to interval or
-coverage support.
+`not_evaluated` in this admission sidecar. Later Q-Series promotion for the
+exact phylo/relmat q1 sigma rows comes from
+`structured-re-sigma-slope-inference-evidence.tsv`, not from this denominator
+admission table.
 
 `structured-re-sigma-slope-replicated-denominator-rule.tsv` records the
 replicated-denominator rule for those same sigma-only one-slope targets. Seven

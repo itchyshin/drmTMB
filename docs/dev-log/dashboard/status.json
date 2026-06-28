@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now with a validated member board, structured-RE sidecar ledgers, and SC201-SC400 conversion rows banked as infrastructure/design/closeout state only. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-28 12:50 MDT",
+  "updated": "2026-06-28 13:30 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,

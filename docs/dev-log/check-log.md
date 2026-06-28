@@ -70169,3 +70169,53 @@ Boundary:
 - The new sidecar is display and audit support only. It does not promote
   spatial q2, animal q2, spatial/animal sigma, q4/q8, count, non-Gaussian,
   REML, AI-REML, broad bridge support, or `supported`.
+
+
+## 2026-06-28: Q-Series count recovery-only widget state
+
+Goal:
+
+- Move the Q-Series board one step closer to row-level completion by surfacing
+  the already-banked 80-rep count one-slope recovery grid on the 104-row widget,
+  without converting recovery evidence into interval, coverage, bridge, or
+  support claims.
+
+Result:
+
+- Updated the eight non-Gaussian Poisson/NB2 q1 `mu` one-slope support-cell
+  rows so their claim boundary and next gate reflect the banked local 80-rep
+  recovery grid instead of saying the recovery runner still needs to execute.
+- Added a `recovery_only` widget state for rows linked to
+  `structured-re-count-slope-recovery-results.tsv`.
+- Updated the widget to display fit_ok, `pdHess` false count, SD bias/RMSE, and
+  the recovery-only claim boundary for those rows.
+- Refreshed the stale Q-Series restart warning in `AGENTS.md` and the
+  sigma-sidecar dashboard README wording so older diagnostic sidecars do not
+  contradict the later phylo/relmat q1 sigma promotion.
+- Updated the dashboard README, timestamp, and build marker to `r66`.
+
+Evidence:
+
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 8 structured RE count-slope
+  recovery-results rows.
+- `git diff --check`: no whitespace errors.
+- Stale wording scan:
+  `rg -n "Execute the count slope recovery runner contract|count.*recovery.*designed_not_run|recovery_only|structured-re-count-slope-recovery-results" docs/dev-log/dashboard docs/dev-log/check-log.md tools/validate-mission-control.py`.
+- Superseded restart/sigma wording scan:
+  `rg -n '15 commits, \`9ae75bf1\`|UNPUSHED|push it or it is lost|linked q-series cells keep \`interval_status = planned\`|linked support cells do not move to interval' AGENTS.md docs/dev-log/dashboard/README.md`: no hits.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-28-q-series-count-recovery-widget.md')"`:
+  after-task structure check passed.
+- After-task:
+  `docs/dev-log/after-task/2026-06-28-q-series-count-recovery-widget.md`.
+
+Boundary:
+
+- No count row moved to `interval_status = inference_ready`,
+  `coverage_status = inference_ready`, bridge support, REML, AI-REML, q2/q4
+  count covariance, or `supported`.
+- The count recovery grid remains convergence plus SD bias/RMSE evidence only.

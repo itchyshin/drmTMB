@@ -10,8 +10,12 @@ regression using Template Model Builder.
 > coverage at the deployment default **g=8 (0.954, all four providers)**; **q2 mu-slope (phylo,
 > relmat) promoted to `inference_ready`** (interval + coverage). `supported` is **withheld** —
 > measured 6:1 right-tail miss asymmetry + g-dependence → a REML-unblock or skew-aware-interval
-> arc. **⚠ The whole arc (15 commits, `9ae75bf1`) is UNPUSHED on
-> `claude/local-coverage-grids-sigma-q2` — push it or it is lost.** Run R with
+> arc. **Supersession note:** the old "15 commits at `9ae75bf1` are unpushed"
+> warning is no longer current. The consolidation branch
+> `claude/local-coverage-grids-sigma-q2` has been pushed, and the active Q-Series
+> widget/status continuation is PR #685 from `codex/qseries-sigma-inference-ready`.
+> Verify the current branch/head with `git status --short --branch` before editing.
+> Run R with
 > `R_PROFILE_USER=/dev/null Rscript --no-init-file` (the `.Rprofile` R-4.5 lib segfaults R 4.6).
 > START HERE:
 > [`docs/dev-log/handover/2026-06-28-codex-handover.md`](docs/dev-log/handover/2026-06-28-codex-handover.md).
