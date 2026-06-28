@@ -3,12 +3,25 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-06-27).** Q-series structured-RE completion lane.
+> **▶ Latest handover — start here (2026-06-28, → Codex).** Small-sample interval arc.
+> The bias correction is now the **DEFAULT** for location-axis structured-RE SD targets:
+> `confint(fit)` applies a t(g−1) width + a `+log(g/(g−1))` centre shift (simulation-calibrated,
+> ~2× the leading-order REML SD term — *not* "REML in closed form"). Engine-validated nominal
+> coverage at the deployment default **g=8 (0.954, all four providers)**; **q2 mu-slope (phylo,
+> relmat) promoted to `inference_ready`** (interval + coverage). `supported` is **withheld** —
+> measured 6:1 right-tail miss asymmetry + g-dependence → a REML-unblock or skew-aware-interval
+> arc. **⚠ The whole arc (15 commits, `9ae75bf1`) is UNPUSHED on
+> `claude/local-coverage-grids-sigma-q2` — push it or it is lost.** Run R with
+> `R_PROFILE_USER=/dev/null Rscript --no-init-file` (the `.Rprofile` R-4.5 lib segfaults R 4.6).
+> START HERE:
+> [`docs/dev-log/handover/2026-06-28-codex-handover.md`](docs/dev-log/handover/2026-06-28-codex-handover.md).
+>
+> **▶ Prior handover (2026-06-27).** Q-series structured-RE completion lane.
 > 4 PRs banked (draft, stacked): #675 (relmat-NB2, CI recorded) · #676 (count-sigma rejection) ·
 > #677 (sigma-slope coverage scaffolding — **deploy-ready**) · #678 (non-Gaussian family
 > rejection; q-series cells 90→98). q2-slope coverage runner verified-ready (MCSE fix pending);
 > q4-location runner HELD (defects). Coverage execution is **maintainer-run on fir** (agent is
-> exfiltration-blocked from transferring code to the cluster). START HERE:
+> exfiltration-blocked from transferring code to the cluster). See:
 > [`docs/dev-log/handover/2026-06-27-claude-handover.md`](docs/dev-log/handover/2026-06-27-claude-handover.md).
 >
 > **▶ Prior handover (2026-06-14).** The Ayumi σ-phylo arc just closed
