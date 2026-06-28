@@ -216,11 +216,14 @@ point-only, rejected, and planned family-design rows are visible separately
 from Gaussian interval claims. It also joins the remaining Gaussian low-q rows
 to `structured-re-gaussian-lowq-status-audit.tsv` so ordinary baselines,
 point/fixture gates, diagnostic-only rows, and rejection-contract rows no
-longer collapse into a generic tried bucket. The support-cell denominator
-policy remains the route/status contract; the evidence summary is the
-reader-facing denominator for rows already promoted to `inference_ready`, the
-count recovery summary is reader-facing recovery evidence only, and the high-q,
-non-Gaussian, and Gaussian low-q audits are blocker ledgers only.
+longer collapse into a generic tried bucket. Four Gaussian q1 `mu` one-slope
+rows also join to `structured-re-gaussian-mu-slope-smoke-status.tsv`, which
+records local one-rep smoke evidence for `phylo()`, fixed-covariance
+`spatial()`, `animal()`, and `relmat()`. The support-cell denominator policy
+remains the route/status contract; the evidence summary is the reader-facing
+denominator for rows already promoted to `inference_ready`, the count recovery
+summary is reader-facing recovery evidence only, and the high-q, non-Gaussian,
+Gaussian low-q, and Gaussian q1 `mu` smoke audits are blocker ledgers only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
 24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
@@ -242,6 +245,19 @@ to `gaussian_lowq_rejected`. Every linked row keeps its current fit, interval,
 and coverage statuses; this audit does not promote interval+coverage
 readiness, REML, AI-REML, structured covariance support, bridge support,
 `supported`, or public support.
+
+`structured-re-gaussian-mu-slope-smoke-status.tsv` records the first local
+smoke rung for the four Gaussian q1 `mu` one-slope provider rows:
+`qseries_phylo_q1_mu_one_slope`, `qseries_spatial_q1_mu_one_slope`,
+`qseries_animal_q1_mu_one_slope`, and `qseries_relmat_q1_mu_one_slope`. The
+smoke artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-28-gaussian-mu-slope-smoke-local/`
+show two condition-replicates per provider, zero failures, 10/10 converged
+summary rows, 10/10 `pdHess` rows, and 10/10 finite estimates. This is a local
+fit/recovery smoke only: linked support cells keep `interval_status = planned`
+and `coverage_status = planned`, and the sidecar does not promote
+`inference_ready`, REML, AI-REML, bridge support, `supported`, or public
+support. A replicated interval/coverage denominator grid remains the next gate.
 
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
 the 37 non-Gaussian Q-Series cells. It assigns eight Poisson/NB2 count

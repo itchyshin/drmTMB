@@ -7,6 +7,7 @@ developer guard for status drift; it is not part of the R package runtime.
 
 from __future__ import annotations
 
+import csv
 import json
 import math
 import pathlib
@@ -176,6 +177,9 @@ STRUCTURED_RE_NONGAUSSIAN_STATUS_AUDIT = (
 )
 STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT = (
     DASHBOARD / "structured-re-gaussian-lowq-status-audit.tsv"
+)
+STRUCTURED_RE_GAUSSIAN_MU_SLOPE_SMOKE_STATUS = (
+    DASHBOARD / "structured-re-gaussian-mu-slope-smoke-status.tsv"
 )
 STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
     DASHBOARD / "structured-re-q2-slope-coverage-pregrid-dry-run.tsv"
@@ -1914,6 +1918,28 @@ STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT_FIELDS = (
     "linked_fit_status",
     "linked_interval_status",
     "linked_coverage_status",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_GAUSSIAN_MU_SLOPE_SMOKE_STATUS_FIELDS = (
+    "smoke_id",
+    "cell_id",
+    "provider",
+    "source_task",
+    "artifact_dir",
+    "n_conditions",
+    "n_rep_per_condition",
+    "n_manifest_ok",
+    "n_failures",
+    "n_summary_rows",
+    "n_converged_rows",
+    "n_pdhess_rows",
+    "n_finite_estimate_rows",
+    "widget_state",
+    "smoke_status",
+    "inference_status",
     "promotion_decision",
     "evidence_url",
     "claim_boundary",
@@ -5730,6 +5756,13 @@ def evidence_reference_exists(reference: str) -> bool:
     return (ROOT / reference).exists()
 
 
+def _is_finite_number(value: str | None) -> bool:
+    try:
+        return math.isfinite(float(value or ""))
+    except ValueError:
+        return False
+
+
 def expect_float_close(
     errors: list[str],
     row_id: str,
@@ -5919,6 +5952,9 @@ def main() -> int:
     )
     structured_re_gaussian_lowq_status_audit_rows = read_tsv(
         STRUCTURED_RE_GAUSSIAN_LOWQ_STATUS_AUDIT
+    )
+    structured_re_gaussian_mu_slope_smoke_status_rows = read_tsv(
+        STRUCTURED_RE_GAUSSIAN_MU_SLOPE_SMOKE_STATUS
     )
     structured_re_q2_slope_coverage_pregrid_dry_run_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN
@@ -13158,6 +13194,185 @@ def main() -> int:
             "structured-re-gaussian-lowq-status-audit.tsv widget_state counts "
             f"must be {expected_gaussian_lowq_state_counts}; saw "
             f"{gaussian_lowq_state_counts}"
+        )
+
+    # --- structured-re Gaussian q1 mu one-slope local smoke status ---
+    # SMOKE evidence only: these four rows have tiny local fit/recovery smokes
+    # with finite summaries, but no interval or coverage denominator.
+    expected_gaussian_mu_slope_smoke = {
+        "gaussian_mu_slope_smoke_phylo": {
+            "cell_id": "qseries_phylo_q1_mu_one_slope",
+            "provider": "phylo",
+            "source_task": "phylo_mu_slope",
+        },
+        "gaussian_mu_slope_smoke_spatial": {
+            "cell_id": "qseries_spatial_q1_mu_one_slope",
+            "provider": "spatial",
+            "source_task": "spatial_mu_slope",
+        },
+        "gaussian_mu_slope_smoke_animal": {
+            "cell_id": "qseries_animal_q1_mu_one_slope",
+            "provider": "animal",
+            "source_task": "animal_mu_slope",
+        },
+        "gaussian_mu_slope_smoke_relmat": {
+            "cell_id": "qseries_relmat_q1_mu_one_slope",
+            "provider": "relmat",
+            "source_task": "relmat_mu_slope",
+        },
+    }
+    if len(structured_re_gaussian_mu_slope_smoke_status_rows) != 4:
+        errors.append(
+            "structured-re-gaussian-mu-slope-smoke-status.tsv: expected 4 rows"
+        )
+    seen_gaussian_mu_slope_smoke_ids: set[str] = set()
+    seen_gaussian_mu_slope_smoke_cells: set[str] = set()
+    for row in structured_re_gaussian_mu_slope_smoke_status_rows:
+        row_id = row.get("smoke_id", "<Gaussian mu-slope smoke status>")
+        cell_id = row.get("cell_id", "")
+        if set(row.keys()) != set(STRUCTURED_RE_GAUSSIAN_MU_SLOPE_SMOKE_STATUS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-gaussian-mu-slope-smoke-status.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_GAUSSIAN_MU_SLOPE_SMOKE_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_gaussian_mu_slope_smoke_ids:
+            errors.append(f"duplicate Gaussian mu-slope smoke id: {row_id}")
+        seen_gaussian_mu_slope_smoke_ids.add(row_id)
+        if cell_id in seen_gaussian_mu_slope_smoke_cells:
+            errors.append(f"duplicate Gaussian mu-slope smoke cell_id: {cell_id}")
+        seen_gaussian_mu_slope_smoke_cells.add(cell_id)
+        expected = expected_gaussian_mu_slope_smoke.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected Gaussian mu-slope smoke row")
+            continue
+        for field, expected_value in expected.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value!r}")
+        support_row = q_series_cell_map.get(cell_id)
+        if support_row is None:
+            errors.append(f"{row_id}: linked support cell {cell_id!r} is missing")
+            continue
+        expected_support_values = {
+            "family_class": "gaussian",
+            "family": "gaussian()",
+            "dimension_pattern": "q1",
+            "endpoint_set": "mu",
+            "slope_class": "independent_one_slope",
+            "fit_status": "point_fit",
+            "interval_status": "planned",
+            "coverage_status": "planned",
+        }
+        for field, expected_value in expected_support_values.items():
+            if support_row.get(field) != expected_value:
+                errors.append(f"{row_id}: linked support-cell {field} must be {expected_value!r}")
+        if support_row.get("structure_provider") != row.get("provider"):
+            errors.append(
+                f"{row_id}: provider must match support-cell structure_provider"
+            )
+        expected_artifact_dir = (
+            "docs/dev-log/simulation-artifacts/"
+            "2026-06-28-gaussian-mu-slope-smoke-local/"
+            f"{row.get('provider')}"
+        )
+        if row.get("artifact_dir") != expected_artifact_dir:
+            errors.append(f"{row_id}: artifact_dir must be {expected_artifact_dir!r}")
+        if row.get("evidence_url") != row.get("artifact_dir"):
+            errors.append(f"{row_id}: evidence_url must match artifact_dir")
+        artifact_dir = ROOT / row.get("artifact_dir", "")
+        if not artifact_dir.exists():
+            errors.append(f"{row_id}: artifact_dir does not exist")
+            continue
+        provider = row.get("provider", "")
+        expected_files = [
+            artifact_dir / "phase18-actions-result.rds",
+            artifact_dir / "tables" / f"{provider}-mu-slope-aggregate.csv",
+            artifact_dir / "tables" / f"{provider}-mu-slope-failures.csv",
+            artifact_dir / "tables" / f"{provider}-mu-slope-manifest.csv",
+            artifact_dir / "tables" / f"{provider}-mu-slope-replicates.csv",
+        ]
+        for path in expected_files:
+            if not path.exists():
+                errors.append(f"{row_id}: missing smoke artifact {path.relative_to(ROOT)}")
+        try:
+            manifest = list(csv.DictReader(open(
+                artifact_dir / "tables" / f"{provider}-mu-slope-manifest.csv",
+                newline="",
+            )))
+            failures = list(csv.DictReader(open(
+                artifact_dir / "tables" / f"{provider}-mu-slope-failures.csv",
+                newline="",
+            )))
+            replicates = list(csv.DictReader(open(
+                artifact_dir / "tables" / f"{provider}-mu-slope-replicates.csv",
+                newline="",
+            )))
+        except FileNotFoundError:
+            manifest = failures = replicates = []
+        observed_counts = {
+            "n_conditions": len(manifest),
+            "n_rep_per_condition": len({r.get("replicate", "") for r in manifest}),
+            "n_manifest_ok": sum(r.get("status", "") == "ok" for r in manifest),
+            "n_failures": len(failures),
+            "n_summary_rows": len(replicates),
+            "n_converged_rows": sum(r.get("converged", "") == "TRUE" for r in replicates),
+            "n_pdhess_rows": sum(r.get("pdHess", "") == "TRUE" for r in replicates),
+            "n_finite_estimate_rows": sum(
+                _is_finite_number(r.get("estimate", "")) for r in replicates
+            ),
+        }
+        for field, observed in observed_counts.items():
+            try:
+                actual = int(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be an integer")
+                continue
+            if actual != observed:
+                errors.append(f"{row_id}: {field} must match artifact count {observed}")
+        expected_sidecar_values = {
+            "n_conditions": "2",
+            "n_rep_per_condition": "1",
+            "n_manifest_ok": "2",
+            "n_failures": "0",
+            "n_summary_rows": "10",
+            "n_converged_rows": "10",
+            "n_pdhess_rows": "10",
+            "n_finite_estimate_rows": "10",
+            "widget_state": "gaussian_mu_slope_smoke_passed",
+            "smoke_status": "local_smoke_passed",
+            "inference_status": "not_inference_ready",
+            "promotion_decision": "do_not_promote",
+        }
+        for field, expected_value in expected_sidecar_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value!r}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "smoke evidence only",
+            "not",
+            "inference_ready",
+            "supported",
+            "REML",
+            "AI-REML",
+            "public support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if "replicated interval/coverage denominator grid" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must require replicated interval/coverage work")
+    if seen_gaussian_mu_slope_smoke_ids != set(expected_gaussian_mu_slope_smoke):
+        errors.append(
+            "structured-re-gaussian-mu-slope-smoke-status.tsv row ids must be "
+            + ", ".join(sorted(expected_gaussian_mu_slope_smoke))
+        )
+    if seen_gaussian_mu_slope_smoke_cells != {
+        expected["cell_id"] for expected in expected_gaussian_mu_slope_smoke.values()
+    }:
+        errors.append(
+            "structured-re-gaussian-mu-slope-smoke-status.tsv cell_ids must match "
+            "the four q1 mu one-slope provider rows"
         )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
@@ -30309,6 +30524,7 @@ def main() -> int:
         f", {len(structured_re_high_q_status_audit_rows)} structured RE high-q status-audit rows"
         f", {len(structured_re_nongaussian_status_audit_rows)} structured RE non-Gaussian status-audit rows"
         f", {len(structured_re_gaussian_lowq_status_audit_rows)} structured RE Gaussian low-q status-audit rows"
+        f", {len(structured_re_gaussian_mu_slope_smoke_status_rows)} structured RE Gaussian mu-slope smoke-status rows"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"

@@ -70511,3 +70511,69 @@ Boundary:
   `coverage_status = inference_ready`, `supported`, REML, AI-REML, structured
   covariance support, bridge support, high-q support, non-Gaussian support, or
   public support.
+
+
+## 2026-06-28: Q-Series Gaussian q1 mu one-slope smoke evidence
+
+Goal:
+
+- Move the four Gaussian q1 structured `mu` one-slope provider rows from a
+  pure point/fixture gate into a local smoke-evidence rung without promoting
+  interval, coverage, REML, AI-REML, bridge, or support claims.
+
+Result:
+
+- Ran the Phase 18 Actions wrapper locally for `phylo_mu_slope`,
+  `spatial_mu_slope`, `animal_mu_slope`, and `relmat_mu_slope` with
+  `n_rep = 1`, `master_seed = 20260628`, `cores = 1`, and `backend = none`.
+- Banked artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-28-gaussian-mu-slope-smoke-local/`.
+- Added `structured-re-gaussian-mu-slope-smoke-status.tsv`, a four-row
+  dashboard sidecar for:
+  `qseries_phylo_q1_mu_one_slope`,
+  `qseries_spatial_q1_mu_one_slope`,
+  `qseries_animal_q1_mu_one_slope`, and
+  `qseries_relmat_q1_mu_one_slope`.
+- Updated the Q-Series widget with `gaussian_mu_slope_smoke_passed` and the
+  `Mu-slope smoke` summary card. The overlay moves those four rows out of the
+  generic low-q gate display state while leaving support-cell statuses at
+  `interval_status = planned` and `coverage_status = planned`.
+- Registered the smoke sidecar in `tools/validate-mission-control.py`; the
+  validator reads the generated manifest, failure, and replicate CSVs and
+  requires each sidecar count to match the artifact counts.
+- Updated the dashboard README, timestamp, and build marker to `r72`.
+
+Evidence:
+
+- Local smoke artifacts: each provider has two condition-replicates, zero
+  failures, 10/10 converged summary rows, 10/10 `pdHess` rows, and 10/10 finite
+  estimates.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter =
+  "phase18-(phylo|spatial|animal|relmat)-mu-slope|phase18-structured-dependence-wrapper-readiness")'`:
+  200 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 4 structured RE Gaussian mu-slope
+  smoke-status rows.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r72`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-gaussian-mu-slope-smoke-status.tsv |
+  wc -l`: returned 5 lines, meaning header plus 4 smoke rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: Q-Series
+  board rendered the `Mu-slope smoke` card with count 4, all four linked cell
+  IDs, the `gaussian mu slope smoke passed` row label, and the no-promotion
+  wording.
+
+Boundary:
+
+- No Q-Series support-cell status changed.
+- This is local fit/recovery smoke evidence only. It is not interval+coverage
+  `inference_ready`, `supported`, REML, AI-REML, bridge support, high-q
+  support, non-Gaussian support, or public support.
+- A replicated interval/coverage denominator grid is still required before any
+  `inference_ready` or support promotion for these four q1 `mu` one-slope rows.

@@ -1,0 +1,11 @@
+"surface","cell_id","parameter","n_replicate","artifact_grain","mean_truth","mean_estimate","bias","rmse","mean_abs_error","empirical_se","convergence_rate","pdHess_rate","warning_rate","mean_elapsed","bias_mcse","rmse_mcse"
+"relmat_mu_slope","relmat_mu_slope_001","mu:(Intercept)",1,"aggregate",0.25,0.123701173552175,-0.126298826447825,0.126298826447825,0.126298826447825,NA,1,1,0,0.158,NA,NA
+"relmat_mu_slope","relmat_mu_slope_001","mu:x",1,"aggregate",0.45,0.915345630887333,0.465345630887333,0.465345630887333,0.465345630887333,NA,1,1,0,0.158,NA,NA
+"relmat_mu_slope","relmat_mu_slope_001","sd:mu:relmat(0 + x | id)",1,"aggregate",0.32,0.192174521661916,-0.127825478338084,0.127825478338084,0.127825478338084,NA,1,1,0,0.158,NA,NA
+"relmat_mu_slope","relmat_mu_slope_001","sd:mu:relmat(1 | id)",1,"aggregate",0.55,0.48584589022619,-0.0641541097738102,0.0641541097738102,0.0641541097738102,NA,1,1,0,0.158,NA,NA
+"relmat_mu_slope","relmat_mu_slope_001","sigma",1,"aggregate",0.22,0.247652474384178,0.0276524743841776,0.0276524743841776,0.0276524743841776,NA,1,1,0,0.158,NA,NA
+"relmat_mu_slope","relmat_mu_slope_002","mu:(Intercept)",1,"aggregate",0.25,0.453720127773898,0.203720127773898,0.203720127773898,0.203720127773898,NA,1,1,0,0.062,NA,NA
+"relmat_mu_slope","relmat_mu_slope_002","mu:x",1,"aggregate",0.45,0.381210789148462,-0.0687892108515376,0.0687892108515376,0.0687892108515376,NA,1,1,0,0.062,NA,NA
+"relmat_mu_slope","relmat_mu_slope_002","sd:mu:relmat(0 + x | id)",1,"aggregate",0.32,0.295372882449693,-0.0246271175503073,0.0246271175503073,0.0246271175503073,NA,1,1,0,0.062,NA,NA
+"relmat_mu_slope","relmat_mu_slope_002","sd:mu:relmat(1 | id)",1,"aggregate",0.55,0.367131311670599,-0.182868688329401,0.182868688329401,0.182868688329401,NA,1,1,0,0.062,NA,NA
+"relmat_mu_slope","relmat_mu_slope_002","sigma",1,"aggregate",0.22,0.227055821565126,0.00705582156512558,0.00705582156512558,0.00705582156512558,NA,1,1,0,0.062,NA,NA
