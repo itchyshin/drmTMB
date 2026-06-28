@@ -70780,3 +70780,53 @@ Boundary:
 - A replicated recovery grid with MCSE and a boundary ledger is still required
   before any recovery claim. Non-Gaussian intervals and coverage remain
   unsupported.
+
+
+## 2026-06-28: Q-Series animal q1 sigma one-slope SR1000 reconciliation
+
+Goal:
+
+- Replace the stale animal `sigma:x` missing-coverage holdout in the Q-Series
+  widget with measured retained-denominator evidence, while keeping the exact
+  animal q1 sigma support cell unpromoted until Fisher/Rose audit.
+
+Result:
+
+- Added an artifact-local wrapper,
+  `docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/run-animal-sigma-x-grid.R`,
+  that reuses the canonical sigma-slope coverage runner with an additional
+  animal `sigma:x` shard. The canonical runner was not changed.
+- Ran animal `sigma:(Intercept)` top-up for 525 replicates and animal
+  `sigma:x` for 1000 replicates with retained denominators, one BLAS/TMB
+  thread, `R_PROFILE_USER=/dev/null`, and `NOT_CRAN=true`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/animal-sigma-sr1000-combined-summary.tsv`,
+  plus run metadata and logs.
+- Updated
+  `docs/dev-log/dashboard/structured-re-sigma-slope-spatial-animal-admission-audit.tsv`
+  so the animal row is now `candidate_wald_channel_pending_fisher_rose_signoff`
+  with widget state `calibration_required`, not an admission holdout.
+- Registered the new artifact in `tools/validate-mission-control.py`; the
+  validator now checks the exact SR1000 counts and refuses support-cell
+  promotion from this audit row.
+
+Evidence:
+
+- Animal `sigma:(Intercept)`: 1000/1000 fit-ok, 1000/1000 converged,
+  1000/1000 `pdHess = TRUE`, 0 boundary flags, 981/1000 finite Wald
+  intervals (`0.9810`), Wald coverage 0.9633 with MCSE 0.0060, Wald
+  lower/upper misses 26/10, profile finite 891/1000.
+- Animal `sigma:x`: 1000/1000 fit-ok, 1000/1000 converged,
+  1000/1000 `pdHess = TRUE`, 0 boundary flags, 953/1000 finite Wald
+  intervals (`0.9530`), Wald coverage 0.9895 with MCSE 0.0033, Wald
+  lower/upper misses 0/10, profile finite 726/1000.
+
+Boundary:
+
+- No Q-Series support-cell status changed; `qseries_animal_q1_sigma_one_slope`
+  remains `interval_status = planned` and `coverage_status = planned`.
+- This is candidate raw-Wald sigma-channel evidence only. It is not
+  `inference_ready` because Fisher/Rose sign-off is absent and the profile
+  channel remains low-finite/censoring-suspect.
+- This does not promote pedigree/Ainv bridge marshalling, matched `mu+sigma`,
+  q4/q8, REML, AI-REML, bridge support, `supported`, or public support.

@@ -1,0 +1,24 @@
+Run: animal q1 sigma one-slope retained-denominator reconciliation
+Date: 2026-06-28
+Host: psychdhcp68.psych.ualberta.ca
+Git SHA at run start: 060596f94e3056a0f78d326aae79c9983979b9b4
+
+Environment:
+R_PROFILE_USER=/dev/null
+NOT_CRAN=true
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+TMB_NTHREADS=1
+
+Commands:
+Rscript --no-init-file tools/run-structured-re-sigma-slope-coverage-grid.R --shard=5 --n_rep=525 --seed_start=740476 --out_dir=docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/results/shard_5 --bootstrap=0
+Rscript --no-init-file docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/run-animal-sigma-x-grid.R --shard=8 --n_rep=1000 --seed_start=740001 --out_dir=docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/results/shard_8 --bootstrap=0
+Rscript --no-init-file docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/summarize-animal-sigma-sr1000.R
+
+Seeds:
+sigma:(Intercept): 740001..740475 from 2026-06-27 local SR475 grid plus 740476..741000 top-up.
+sigma:x: 740001..741000 from the artifact-local shard 8 wrapper.
+
+Result:
+Both endpoints reached 1000 fit-ok retained-denominator replicates with pdHess TRUE and no boundary flags. Raw Wald finite rates passed the 0.95 gate for both endpoints. Profile finite rates did not pass the 0.95 gate, especially sigma:x, so this is candidate evidence pending Fisher/Rose audit, not an inference_ready promotion.

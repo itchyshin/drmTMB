@@ -147,6 +147,14 @@ STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY = (
     / "2026-06-28-spatial-sigma-slope-coverage-topup-local"
     / "spatial-sigma-sr1000-combined-summary.tsv"
 )
+STRUCTURED_RE_ANIMAL_SIGMA_SLOPE_SR1000_SUMMARY = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-28-animal-sigma-slope-coverage-topup-local"
+    / "animal-sigma-sr1000-combined-summary.tsv"
+)
 STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -6024,6 +6032,9 @@ def main() -> int:
     )
     structured_re_spatial_sigma_slope_sr1000_summary_rows = read_tsv(
         STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY
+    )
+    structured_re_animal_sigma_slope_sr1000_summary_rows = read_tsv(
+        STRUCTURED_RE_ANIMAL_SIGMA_SLOPE_SR1000_SUMMARY
     )
     structured_re_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -12583,6 +12594,95 @@ def main() -> int:
             if phrase not in row.get("claim_boundary", ""):
                 errors.append(f"{evidence_id}: claim_boundary must mention {phrase!r}")
 
+    expected_animal_sigma_sr1000_summary = {
+        "animal_sigma_sr1000_intercept": {
+            "endpoint_member": "sigma:(Intercept)",
+            "target_parm": "sd:sigma:animal(1 | id)",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_fit_error": "0",
+            "n_converged": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "n_wald_finite": "981",
+            "wald_finite_rate": "0.981",
+            "n_wald_covered": "945",
+            "wald_coverage": "0.9633",
+            "wald_mcse": "0.006",
+            "wald_lower_miss": "26",
+            "wald_upper_miss": "10",
+            "n_profile_finite": "891",
+            "profile_finite_rate": "0.891",
+            "finite_rate_gate": "pass",
+            "mcse_gate": "pass",
+            "promotion_status": "candidate_not_promoted",
+        },
+        "animal_sigma_sr1000_x": {
+            "endpoint_member": "sigma:x",
+            "target_parm": "sd:sigma:animal(0 + x | id)",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_fit_error": "0",
+            "n_converged": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "n_wald_finite": "953",
+            "wald_finite_rate": "0.953",
+            "n_wald_covered": "943",
+            "wald_coverage": "0.9895",
+            "wald_mcse": "0.0033",
+            "wald_lower_miss": "0",
+            "wald_upper_miss": "10",
+            "n_profile_finite": "726",
+            "profile_finite_rate": "0.726",
+            "finite_rate_gate": "pass",
+            "mcse_gate": "pass",
+            "promotion_status": "candidate_not_promoted",
+        },
+    }
+    animal_sr1000_summary_by_id = {
+        row.get("evidence_id"): row
+        for row in structured_re_animal_sigma_slope_sr1000_summary_rows
+    }
+    if set(animal_sr1000_summary_by_id) != set(expected_animal_sigma_sr1000_summary):
+        errors.append(
+            "animal-sigma-sr1000-combined-summary.tsv row ids must be "
+            + ", ".join(sorted(expected_animal_sigma_sr1000_summary))
+        )
+    for evidence_id, expected_row in expected_animal_sigma_sr1000_summary.items():
+        row = animal_sr1000_summary_by_id.get(evidence_id)
+        if row is None:
+            continue
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY_FIELDS):
+            errors.append(
+                f"{evidence_id}: animal-sigma-sr1000-combined-summary.tsv "
+                "fields do not match the contract"
+            )
+        if row.get("linked_cell_id") != "qseries_animal_q1_sigma_one_slope":
+            errors.append(f"{evidence_id}: linked_cell_id must be the animal q1 sigma cell")
+        if row.get("provider") != "animal":
+            errors.append(f"{evidence_id}: provider must be animal")
+        if row.get("seed_start") != "740001" or row.get("seed_end") != "741000":
+            errors.append(f"{evidence_id}: seed range must be 740001..741000")
+        for source_field in ("source_sr475_replicates", "source_topup_replicates"):
+            if not evidence_reference_exists(row.get(source_field, "")):
+                errors.append(f"{evidence_id}: {source_field} does not resolve locally")
+        for field, expected_value in expected_row.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{evidence_id}: {field} must be {expected_value!r}")
+        for phrase in (
+            "no inference_ready promotion",
+            "profile channel",
+            "pedigree/Ainv",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "supported",
+            "public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{evidence_id}: claim_boundary must mention {phrase!r}")
+
     expected_sigma_admission_audit = {
         "sigma_slope_admission_spatial_q1_sigma_one_slope": {
             "cell_id": "qseries_spatial_q1_sigma_one_slope",
@@ -12631,30 +12731,48 @@ def main() -> int:
             "cell_id": "qseries_animal_q1_sigma_one_slope",
             "provider": "animal",
             "admission_status": (
-                "blocked_missing_sigma_x_coverage_and_denominator_holdout"
+                "candidate_wald_channel_pending_fisher_rose_signoff"
             ),
-            "widget_state": "admission_blocked",
+            "widget_state": "calibration_required",
+            "source_coverage_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-28-animal-sigma-slope-coverage-topup-local/"
+                "animal-sigma-sr1000-combined-summary.tsv"
+            ),
             "coverage_targets": {
                 "sigma:(Intercept)": {
-                    "n_rep": "475",
-                    "n_wald_finite": "467",
-                    "wald_coverage": "0.9743",
-                    "wald_mcse": "0.0073",
+                    "evidence_id": "animal_sigma_sr1000_intercept",
+                    "planned_reps": "1000",
+                    "n_wald_finite": "981",
+                    "wald_finite_rate": "0.981",
+                    "wald_coverage": "0.9633",
+                    "wald_mcse": "0.006",
+                    "finite_rate_gate": "pass",
+                },
+                "sigma:x": {
+                    "evidence_id": "animal_sigma_sr1000_x",
+                    "planned_reps": "1000",
+                    "n_wald_finite": "953",
+                    "wald_finite_rate": "0.953",
+                    "wald_coverage": "0.9895",
+                    "wald_mcse": "0.0033",
+                    "finite_rate_gate": "pass",
                 },
             },
-            "missing_coverage_targets": ("sigma:x",),
             "denominator_actions": {
                 "sigma:(Intercept)": "eligible_for_pregrid_with_retention",
                 "sigma:x": "visible_holdout_until_smoke_profile_reconciled",
             },
             "claim_phrases": (
                 "not inference_ready",
-                "sigma:x has no coverage-grid row",
+                "0.9810",
+                "0.9530",
+                "profile finite rates remain low",
                 "pedigree/Ainv",
                 "does not promote",
                 "supported",
             ),
-            "next_gate_phrase": "Reconcile animal sigma:x",
+            "next_gate_phrase": "Ask Fisher and Rose",
         },
     }
     sigma_coverage_by_provider_target = {
@@ -12723,7 +12841,12 @@ def main() -> int:
         provider = expected["provider"]
         for target, target_expected in expected["coverage_targets"].items():
             if "evidence_id" in target_expected:
-                coverage_row = sr1000_summary_by_id.get(target_expected["evidence_id"])
+                summary_by_id = (
+                    animal_sr1000_summary_by_id
+                    if provider == "animal"
+                    else sr1000_summary_by_id
+                )
+                coverage_row = summary_by_id.get(target_expected["evidence_id"])
             else:
                 coverage_row = sigma_coverage_by_provider_target.get((provider, target))
             if coverage_row is None:

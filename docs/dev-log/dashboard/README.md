@@ -1164,14 +1164,18 @@ endpoints, combining the SR475 local grid with the 2026-06-28 local top-up in
 The `sigma:x` endpoint passes the finite-Wald gate at 954/1000 = 0.9540, but
 `sigma:(Intercept)` remains below the row-promotion gate at 936/1000 = 0.9360,
 so the widget marks the cell `admission_blocked`, not `inference_ready`.
-Animal has SR475 diagnostic coverage for `sigma:(Intercept)`, but `sigma:x` is
-absent from the coverage grid and remains a replicated-denominator holdout
-after the smoke endpoint-profile failure, so the widget also marks the cell
-`admission_blocked`. Both linked support cells keep `interval_status =
-planned` and `coverage_status = planned`; this ledger does not promote
-range-estimating spatial support, pedigree/Ainv bridge marshalling, matched
-`mu+sigma`, q4/q8, REML, AI-REML, bridge support, `supported`, or public
-support.
+Animal now has retained-denominator SR1000 evidence for both direct-SD
+endpoints in
+`docs/dev-log/simulation-artifacts/2026-06-28-animal-sigma-slope-coverage-topup-local/animal-sigma-sr1000-combined-summary.tsv`.
+Both animal endpoints pass the raw-Wald finite-rate and MCSE gates
+(`sigma:(Intercept)` 981/1000 = 0.9810, `sigma:x` 953/1000 = 0.9530), but
+the profile channel remains low-finite/censoring-suspect and Fisher/Rose
+sign-off has not been recorded, so the widget marks the cell
+`calibration_required`, not `inference_ready`. Both linked support cells keep
+`interval_status = planned` and `coverage_status = planned`; this ledger does
+not promote range-estimating spatial support, pedigree/Ainv bridge marshalling,
+matched `mu+sigma`, q4/q8, REML, AI-REML, bridge support, `supported`, or
+public support.
 
 `structured-re-sigma-slope-denominator-admission.tsv` records the first
 sigma-only one-slope denominator-admission ledger. Seven of eight direct SD
@@ -1184,11 +1188,14 @@ exact phylo/relmat q1 sigma rows comes from
 admission table.
 
 `structured-re-sigma-slope-replicated-denominator-rule.tsv` records the
-replicated-denominator rule for those same sigma-only one-slope targets. Seven
-targets are `eligible_for_pregrid_with_retention`; animal `sigma:x` remains a
-visible holdout until the smoke endpoint-profile failure is reconciled. The
-rule requires failed profiles, nonconverged fits, nonfinite intervals, and
-bootstrap refit attempts to be retained in any future denominator.
+historical replicated-denominator rule for those same sigma-only one-slope
+targets. Seven targets are `eligible_for_pregrid_with_retention`; animal
+`sigma:x` remains a visible holdout in that June 24 rule because the first
+smoke had endpoint-profile failure. The June 28 animal SR1000 admission audit
+supersedes the missing-coverage state for the Q-Series widget but does not
+rewrite this provenance sidecar. The rule requires failed profiles,
+nonconverged fits, nonfinite intervals, and bootstrap refit attempts to be
+retained in any future denominator.
 
 `structured-re-sigma-slope-coverage-pregrid-dry-run.tsv` records a dry-run
 manifest for a future sigma-only one-slope coverage pre-grid. It declares 150
