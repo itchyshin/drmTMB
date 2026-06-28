@@ -22,8 +22,8 @@
   refit_control = NULL,
   sd_boundary = 1e-04,
   rho_boundary = 0.98,
-  small_sample_df = c("none", "group"),
-  bias_correct = c("none", "group"),
+  small_sample_df = c("location", "none", "group"),
+  bias_correct = c("location", "none", "group"),
   ...
 )
 }
@@ -100,45 +100,52 @@ zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned wi
 \code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).}
 
 \item{small_sample_df}{Small-sample reference distribution for the
-\code{method = "wald"} interval. \code{"none"} (the default) uses the ordinary
-normal quantile \code{z = qnorm((1 + level) / 2)} for every target and is
-byte-identical to previous behaviour. \code{"group"} is opt-in: for each
-structured random-effect SD target (\code{phylo}, \code{spatial}, \code{animal},
-\code{relmat}) with a resolvable group count \code{g}, it references a t-quantile
-with \code{df = g - 1} -- a group-based, Satterthwaite-style between-group
-degrees of freedom -- and keeps the normal quantile for every other
-target (and for any SD target whose \code{g} cannot be matched). This widens
-only the structured-RE SD intervals, which under-cover at small \code{g} under
-the normal quantile; the t-quantile lifts their coverage and converges
-back to \code{z} as \code{g} grows. It is deliberately \emph{not} a default: dispersion
-(\code{sigma}) SD intervals already over-cover under the normal quantile, so a
-blanket t-reference would worsen them. Note also that the t-quantile only
-widens the interval; it does not move its centre. The residual small-\code{g}
-gap is ML shrinkage bias in the variance-component point estimate (a job
-for REML), not a quantile problem, so \code{"group"} corrects the reference
-distribution, not the bias.}
+\code{method = "wald"} interval. \code{"location"} (the default) references a
+t-quantile with \code{df = g - 1} -- a group-based, Satterthwaite-style
+between-group degrees of freedom -- for each \emph{location-axis} (\code{mu},
+\code{mu1}, \code{mu2}) structured random-effect SD target (\code{phylo}, \code{spatial},
+\code{animal}, \code{relmat}) with a resolvable group count \code{g}, and keeps the
+ordinary normal quantile \code{z = qnorm((1 + level) / 2)} for every other
+target. This widens only the location-axis structured-RE SD intervals,
+which under-cover at small \code{g} under the normal quantile; the t-quantile
+lifts their coverage and converges back to \code{z} as \code{g} grows. Dispersion
+(\code{sigma}, \code{sigma1}, \code{sigma2}) structured SD targets are deliberately left
+at the normal quantile because they already over-cover; non-structured and
+fixed-effect targets are never widened; and a plain labelled covariance
+block such as \code{(1 + x | p | id)} is also left at the normal quantile by
+default, because the correction magnitude was calibrated for structured
+blocks only. \code{"none"} is the opt-out: it uses the normal quantile for
+\emph{every} target and is byte-identical to the pre-default behaviour.
+\code{"group"} widens \emph{every} resolvable SD target -- structured and
+labelled-covariance, location and dispersion axis alike; use it only when
+you deliberately want to t-reference the dispersion axis or a labelled
+covariance block too. Note
+that the t-quantile only widens the interval; it does not move its centre.
+The residual small-\code{g} gap is ML shrinkage bias in the variance-component
+point estimate (a job for REML), not a quantile problem, so the centre
+shift is handled by \code{bias_correct}.}
 
 \item{bias_correct}{Small-sample point-estimate bias correction for the
-\code{method = "wald"} interval. \code{"none"} (the default) leaves every centre at
-the ML estimate and is byte-identical to previous behaviour. \code{"group"} is
-opt-in and complements \code{small_sample_df}: for each structured random-effect
-SD target (\code{phylo}, \code{spatial}, \code{animal}, \code{relmat}) with a resolvable group
-count \code{g} -- the same targets \code{small_sample_df = "group"} widens -- it adds
-a simulation-calibrated shift \code{log(g / (g - 1))} to the log-scale point
-estimate before back-transforming, and leaves every other target (and any
-SD target whose \code{g} cannot be matched) unshifted. The ML estimate of a
-structured-RE variance-component SD is biased low on the log scale by about
+\code{method = "wald"} interval. \code{"location"} (the default) adds a
+simulation-calibrated shift \code{log(g / (g - 1))} to the log-scale point
+estimate -- before back-transforming -- of each \emph{location-axis} (\code{mu},
+\code{mu1}, \code{mu2}) structured random-effect SD target with a resolvable group
+count \code{g} (the same targets \code{small_sample_df = "location"} widens), and
+leaves every other target unshifted. The ML estimate of a structured-RE
+variance-component SD is biased low on the log scale by about
 \code{log(g / (g - 1))} -- a downward shrinkage that REML, or simply a larger
 \code{g}, removes asymptotically; this shift moves the interval centre up to
-counter that shrinkage. Used together with \code{small_sample_df = "group"}, the
-centre shift and the t(\code{df = g - 1}) width act independently, giving
+counter that shrinkage. Used together with \code{small_sample_df = "location"},
+the centre shift and the t(\code{df = g - 1}) width act independently, giving
 \verb{exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)} and
-lifting small-\code{g} coverage of structured-RE SD targets to nominal. Like
-\code{small_sample_df}, it is deliberately \emph{not} a default and is scoped to the
-location-axis variance components: dispersion (\code{sigma}) SD intervals
-already over-cover under the normal quantile, so the upward centre shift
-would only push them further toward conservatism -- do not apply it as a
-blanket correction.}
+lifting small-\code{g} coverage of location-axis structured-RE SD targets to
+nominal. \code{"none"} is the opt-out: it leaves every centre at the ML estimate
+and is byte-identical to the pre-default behaviour. \code{"group"} shifts
+\emph{every} resolvable SD target -- structured and labelled-covariance, location
+and dispersion axis alike. The default deliberately excludes the dispersion
+axis (\code{sigma} SD intervals already over-cover, so the upward shift would
+push them further conservative) and plain labelled covariance blocks (whose
+correction magnitude is not yet simulation-calibrated).}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
@@ -218,9 +225,10 @@ confint(fit, parm = "sigma", method = "profile")
 # percentiles before back-transforming to the response scale.
 }
 \references{
-The small-sample options \code{small_sample_df = "group"} and
-\code{bias_correct = "group"} are \emph{motivated} by established mixed-model theory but
-are simulation-calibrated, not derived: the \code{log(g / (g - 1))} SD-scale centre
+The small-sample corrections applied by \code{small_sample_df} and \code{bias_correct}
+(whether the default \code{"location"} scope or the broader \code{"group"} scope) are
+\emph{motivated} by established mixed-model theory but are simulation-calibrated,
+not derived: the \code{log(g / (g - 1))} SD-scale centre
 shift is about \strong{twice} the leading-order REML SD correction
 (\code{0.5 * log(g / (g - 1))}), matching the larger ML shrinkage measured on these
 structured/bivariate cells (their effective df is well below \code{g - 1}). The

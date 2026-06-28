@@ -1,0 +1,17 @@
+=== (a) NEAR-BOUNDARY small-SD truth (0.35), g=8 ===
+phylo mu1:x            g=8  truth=0.35  n=300  cov=0.963  miss_below=0.027  miss_above=0.010
+phylo mu2:x            g=8  truth=0.35  n=300  cov=0.970  miss_below=0.030  miss_above=0.000
+relmat mu1:x           g=8  truth=0.35  n=300  cov=0.970  miss_below=0.027  miss_above=0.003
+relmat mu2:x           g=8  truth=0.35  n=300  cov=0.963  miss_below=0.033  miss_above=0.003
+
+=== (b) original truths, extra g (6, 12) + one-sided misses ===
+phylo mu1:x            g=6  truth=1.05  n=0  cov=NaN  miss_below=NaN  miss_above=NaN
+phylo mu2:x            g=6  truth=0.90  n=0  cov=NaN  miss_below=NaN  miss_above=NaN
+relmat mu1:x           g=6  truth=1.05  n=300  cov=0.977  miss_below=0.023  miss_above=0.000
+relmat mu2:x           g=6  truth=0.90  n=300  cov=0.963  miss_below=0.033  miss_above=0.003
+phylo mu1:x            g=12 truth=1.05  n=0  cov=NaN  miss_below=NaN  miss_above=NaN
+phylo mu2:x            g=12 truth=0.90  n=0  cov=NaN  miss_below=NaN  miss_above=NaN
+relmat mu1:x           g=12 truth=1.05  n=300  cov=0.930  miss_below=0.057  miss_above=0.013
+relmat mu2:x           g=12 truth=0.90  n=300  cov=0.953  miss_below=0.043  miss_above=0.003
+
+DONE secondgrid

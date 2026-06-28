@@ -3,11 +3,12 @@
 ## Reader and purpose
 
 For maintainers and statistically-literate users of `drmTMB`. It documents the
-opt-in small-sample interval for structured random-effect SD targets — what it
-does, why it works, its scope and caveats, the simulation evidence, and the
-literature it rests on. The method makes Wald intervals on structured-RE
-variance-component SDs reach nominal coverage at small group counts, including
-the deployment default.
+small-sample interval for structured random-effect SD targets — what it does, why
+it works, its scope and caveats, the simulation evidence, and the literature it
+rests on. The method makes Wald intervals on structured-RE variance-component SDs
+reach nominal coverage at small group counts. As of 2026-06-27 the correction is
+the **default** for location-axis structured SD targets (see "Default scope"
+below); it remains opt-out via `"none"` and has a broader `"group"` opt-in.
 
 ## The problem
 
@@ -22,24 +23,45 @@ shortfall is a **centre** (point-estimate bias) problem, not a width problem.
 
 ## The correction (two independent pieces)
 
-`confint(object, method = "wald", small_sample_df = "group", bias_correct = "group")`
-applies two independent small-sample adjustments to each structured-RE SD target
-with a resolvable group count `g`:
+`confint(object, method = "wald")` applies two independent small-sample
+adjustments to each structured-RE SD target with a resolvable group count `g`:
 
-1. **Width** (`small_sample_df = "group"`): replace the normal quantile `z` with a
+1. **Width** (`small_sample_df`): replace the normal quantile `z` with a
    t-quantile, `qt(p, df = g - 1)` — a between-group, Satterthwaite/Kenward-Roger
    style effective df (Satterthwaite 1946; Kenward & Roger 1997).
-2. **Centre** (`bias_correct = "group"`): shift the log-scale point estimate up by
+2. **Centre** (`bias_correct`): shift the log-scale point estimate up by
    `log(g / (g - 1))`, i.e. `sigma_corrected = sigma_ML * g/(g - 1)`, before
    back-transforming.
 
 They compose to
 `exp( (log(sigma_hat) + log(g/(g-1))) +/- qt(p, g-1) * se_log )`.
 
-Both are **opt-in** and default to `"none"` (byte-identical to prior behaviour),
-and both are **scoped to location-axis variance components**: dispersion (`sigma`)
-SDs already over-cover under the normal quantile, so neither adjustment is applied
-to them.
+### Default scope (changed 2026-06-27)
+
+Both adjustments now **default to `"location"`**: the correction is applied
+**by the default `confint(fit)` / `summary(fit, conf.int = TRUE)` path** to the
+location-axis (`mu`, `mu1`, `mu2`) **structured** (`phylo`/`spatial`/`animal`/
+`relmat`) SD targets that resolve a `g`, and to nothing else. The default was
+promoted from opt-in because a six-reviewer panel ruled the cells cannot reach a
+public tier while nominal coverage hides behind a two-argument opt-in that the
+default `confint(fit)` does not apply.
+
+The default is deliberately narrow:
+
+- **Location axis only.** Dispersion (`sigma`, `sigma1`, `sigma2`) structured SDs
+  already over-cover under the normal quantile, so neither adjustment is applied
+  to them by default — they keep the raw `z`-interval.
+- **Structured blocks only.** A plain labelled covariance block such as
+  `(1 + x | p | id)` resolves a registry `g`, but its correction magnitude is not
+  yet simulation-calibrated, so the default leaves it at the raw `z`-interval too.
+- **Opt-out.** `small_sample_df = "none"` and/or `bias_correct = "none"` force the
+  raw `z`-interval for **every** target, byte-identical to the pre-default
+  behaviour, so users can recover the previous numbers exactly.
+- **Broader opt-in.** `small_sample_df = "group"` / `bias_correct = "group"`
+  widen/shift **every** resolvable SD target — structured and labelled-covariance,
+  location and dispersion axis alike — for users who deliberately want that scope.
+
+Non-structured and fixed-effect targets are never adjusted in any mode.
 
 ## Why `log(g/(g-1))` — a simulation-calibrated shift, REML-*motivated* but ~2× the REML SD term
 
@@ -129,8 +151,13 @@ nominal at every g, no over-correction at large g.
 - **Calibrated per model class.** Validated for the q2 mu-slope SD cells
   (phylo/relmat) at g=8/16/32. Other cells/designs must be re-validated by
   simulation before relying on the correction (the doctrine's standing rule).
-- **Location axis only.** Not applied to dispersion (`sigma`) SDs, which already
-  over-cover; applying the upward shift there would push them further conservative.
+  This is exactly why the *default* (`"location"`) excludes plain labelled
+  covariance blocks such as `(1 + x | p | id)`: they resolve a registry `g` but
+  their correction magnitude is not yet simulation-calibrated, so the default
+  leaves them at the raw `z`-interval (the `"group"` opt-in still corrects them).
+- **Location axis only.** Not applied by default to dispersion (`sigma`) SDs,
+  which already over-cover; applying the upward shift there would push them
+  further conservative. The `"group"` opt-in does reach the dispersion axis.
 - **Boundary regime.** When a true variance component is at or near zero, the
   sampling distribution is one-sided and neither the centre shift nor the t-width
   restores nominal coverage (Self & Liang 1987; Stram & Lee 1994). The covered
