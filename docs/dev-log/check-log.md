@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-06-28: q-series support-cell table in mission-control widget
+
+Goal:
+
+- Make the 104-row Q-Series source table visible near the top of the
+  mission-control widget, with row state, fit/stability state, inference
+  readiness, interval status, coverage status, evidence, and next gate shown as
+  separate signals.
+
+Result:
+
+- Added a `Q-Series Support Cells` panel immediately after the top metrics in
+  `docs/dev-log/dashboard/index.html`.
+- The panel reads
+  `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` directly
+  and renders all 104 rows.
+- Added derived board states without changing the TSV: 4 `inference_ready`,
+  3 fit-supported baseline comparator rows, 43 tried-but-not-inference-ready
+  rows, 6 diagnostic-only rows, 8 planned rows, and 40 unsupported/blocked
+  rows.
+- Added separate fit/stability and inference-readiness columns so point-fit or
+  fixture evidence does not collapse into interval/coverage readiness.
+- Updated the dashboard build marker to `r64`, the dashboard timestamp to
+  `2026-06-28 12:31 MDT`, and the dashboard README to describe the new panel.
+
+Evidence:
+
+- `node --check /tmp/drmtmb-dashboard-index.js`: passed after extracting the
+  dashboard script from `docs/dev-log/dashboard/index.html`.
+- `python3 tools/validate-mission-control.py`: passed and reported 104
+  structured RE Q-Series cells.
+- `git diff --check`: passed.
+- `tools/start-mission-control.sh --background`: passed; dashboard already
+  listening at `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r64`.
+- Served-asset scan confirmed the rendered source includes
+  `Q-Series Support Cells`, `qSeriesSupportState`, `qSeriesStability`,
+  `qSeriesInference`, and the TSV fetch for
+  `structured-re-q-series-support-cells.tsv`.
+- Served TSV summary from `/tmp/drm-dashboard` reported 104 rows; support-state
+  counts were 4 inference-ready, 3 fit-supported baseline, 43 tried-not-ready,
+  6 diagnostic, 8 planned, and 40 unsupported/blocked.
+
+Boundary:
+
+- This is a dashboard visibility/status-separation patch only. It does not
+  promote any Q-Series row, change the source TSV, change interval methods,
+  change coverage evidence, or claim q4/q8/non-Gaussian readiness.
+- Playwright's bundled browser binary was not installed, so no screenshot-based
+  rendered-browser check was run. The live HTML/TSV assets and JavaScript syntax
+  were checked instead.
+
 ## 2026-06-27: non-Gaussian structured-family rejection contract
 
 Goal:

@@ -172,6 +172,12 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .blocked { background: var(--rose-bg); color: var(--rose); }
 .planned, .experimental, .partial { background: var(--blue-bg); color: var(--blue); }
 .unsupported, .deferred { background: var(--gray-bg); color: var(--muted); }
+.supported, .inference-ready { background: var(--green-bg); color: var(--green); }
+.fit-supported-baseline, .fit-stable, .stable-fit-baseline,
+.tried-not-inference-ready, .interval-feasible, .point-fit,
+.extractor-ready, .fixture-parity { background: var(--blue-bg); color: var(--blue); }
+.tried-diagnostic, .diagnostic-only { background: var(--gold-bg); color: var(--gold); }
+.unsupported-or-blocked, .inference-blocked { background: var(--rose-bg); color: var(--rose); }
 .slices { padding: 0 14px 12px 110px; }
 .slice {
   display: grid;
@@ -264,6 +270,48 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
   padding: 10px;
   font-size: 12px;
 }
+.qseries-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.qseries-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.qseries-row {
+  display: grid;
+  grid-template-columns:
+    minmax(140px, .7fr)
+    minmax(230px, 1.2fr)
+    minmax(120px, .55fr)
+    minmax(140px, .65fr)
+    minmax(140px, .65fr)
+    minmax(140px, .65fr)
+    minmax(92px, .45fr)
+    minmax(110px, .5fr)
+    minmax(110px, .5fr)
+    minmax(110px, .5fr)
+    minmax(290px, 1.35fr);
+  gap: 8px;
+  align-items: start;
+  min-width: 1640px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  font-size: 12px;
+}
+.qseries-head {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  padding-top: 0;
+}
 .gate-head {
   background: transparent;
   border: 0;
@@ -287,7 +335,9 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   .slices { padding-left: 14px; }
   .matrix-row { grid-template-columns: 1fr; }
   .gate-row { grid-template-columns: 1fr; min-width: 0; }
-  .matrix-head, .gate-head { display: none; }
+  .qseries-row { grid-template-columns: 1fr; min-width: 0; }
+  .qseries-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .matrix-head, .gate-head, .qseries-head { display: none; }
 }
 @media (max-width: 560px) {
   .wrap { padding-left: 12px; padding-right: 12px; }
@@ -295,6 +345,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   .team { grid-template-columns: 1fr; }
   .ledger-summary { grid-template-columns: 1fr; }
   .status-grid { grid-template-columns: 1fr; }
+  .qseries-summary { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -310,6 +361,9 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 
   <section class="grid" id="metrics"></section>
   <section id="progress"></section>
+
+  <h2>Q-Series Support Cells</h2>
+  <section class="panel" id="q-series-board"></section>
 
   <h2>Finish Board</h2>
   <section class="finish-board" id="finish-board"></section>
@@ -371,7 +425,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r63";
+const BUILD = "r64";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -393,12 +447,13 @@ const FINISH_FIELDS = [
   ["simulation", "Sim"],
   ["release_gate", "Release"]
 ];
-const statusClass = (x) => String(x || "queued").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+const statusClass = (x) => String(x || "queued").toLowerCase().replace(/_/g, "-").replace(/[^a-z0-9-]/g, "-");
 const text = (x) => String(x == null ? "" : x);
 const esc = (x) => text(x).replace(/[&<>"']/g, (m) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 })[m]);
-const pill = (x) => `<span class="pill ${statusClass(x)}">${esc(x)}</span>`;
+const statusLabel = (x) => text(x).replace(/_/g, " ");
+const pill = (x) => `<span class="pill ${statusClass(x)}">${esc(statusLabel(x))}</span>`;
 const link = (x, label) => x ? `<a href="${esc(x)}">${esc(label || x)}</a>` : "";
 const values = (x) => Array.isArray(x) ? x : (x ? [x] : []);
 const splitList = (x) => text(x).split(";").map((part) => part.trim()).filter(Boolean);
@@ -618,6 +673,135 @@ function renderStructuredLedgers(sidecars) {
     <div class="note">Sidecar counts are validator-owned dashboard state; fit, inference, bridge, REML, and coverage claims remain row-specific.</div>`;
 }
 
+function qSeriesSupportState(row) {
+  if (row.interval_status === "inference_ready" && row.coverage_status === "inference_ready") {
+    return "inference_ready";
+  }
+  if (row.fit_status === "supported") return "fit_supported_baseline";
+  if (["fit_status", "interval_status", "coverage_status"].some((field) =>
+    row[field] === "unsupported" || row[field] === "blocked"
+  )) {
+    return "unsupported_or_blocked";
+  }
+  if (["fit_status", "interval_status", "coverage_status"].some((field) =>
+    row[field] === "diagnostic_only"
+  )) {
+    return "tried_diagnostic";
+  }
+  if (
+    row.fit_status === "point_fit" ||
+    row.extractor_status === "extractor_ready" ||
+    row.bridge_status === "fixture_parity" ||
+    row.interval_status === "interval_feasible"
+  ) {
+    return "tried_not_inference_ready";
+  }
+  return "planned";
+}
+
+function qSeriesStability(row) {
+  if (row.fit_status === "unsupported" || row.fit_status === "blocked") {
+    return "unsupported_or_blocked";
+  }
+  if (row.fit_status === "diagnostic_only") return "diagnostic_only";
+  if (row.fit_status === "supported") return "stable_fit_baseline";
+  if (row.fit_status === "point_fit" && row.extractor_status === "extractor_ready") {
+    return "fit_stable";
+  }
+  return row.fit_status || "planned";
+}
+
+function qSeriesInference(row) {
+  if (row.interval_status === "inference_ready" && row.coverage_status === "inference_ready") {
+    return "inference_ready";
+  }
+  if (row.interval_status === "unsupported" || row.coverage_status === "unsupported") {
+    return "inference_blocked";
+  }
+  if (row.interval_status === "diagnostic_only" || row.coverage_status === "diagnostic_only") {
+    return "diagnostic_only";
+  }
+  if (row.interval_status === "interval_feasible") return "interval_feasible";
+  return "planned";
+}
+
+function renderQSeriesBoard(rows) {
+  const orderedStates = [
+    "inference_ready",
+    "fit_supported_baseline",
+    "tried_not_inference_ready",
+    "tried_diagnostic",
+    "planned",
+    "unsupported_or_blocked"
+  ];
+  const stateCounts = rows.reduce((acc, row) => {
+    const state = qSeriesSupportState(row);
+    acc[state] = (acc[state] || 0) + 1;
+    return acc;
+  }, {});
+  const q8Rows = rows.filter((row) => row.dimension_pattern === "q8").length;
+  const highQRows = rows.filter((row) =>
+    ["q4", "q6", "q8"].includes(row.dimension_pattern)
+  ).length;
+  const summary = [
+    ["Total rows", rows.length, "Source TSV rows"],
+    ["Inference-ready", stateCounts.inference_ready || 0, "Interval + coverage ready"],
+    ["Fit baseline", stateCounts.fit_supported_baseline || 0, "Supported fit comparators only"],
+    ["Tried", stateCounts.tried_not_inference_ready || 0, "Fit/fixture/interval work"],
+    ["Diagnostic", stateCounts.tried_diagnostic || 0, "Tried but diagnostic-only"],
+    ["Blocked/unsupported", stateCounts.unsupported_or_blocked || 0, "No promotion from these rows"],
+    ["Planned", stateCounts.planned || 0, "Not yet tried at evidence tier"],
+    ["High-q", highQRows, "q4/q6/q8 rows"],
+    ["q8", q8Rows, "Stability first, not coverage"]
+  ];
+  const orderIndex = Object.fromEntries(orderedStates.map((state, i) => [state, i]));
+  const sortedRows = [...rows].sort((a, b) => {
+    const stateDelta = (orderIndex[qSeriesSupportState(a)] ?? 99) -
+      (orderIndex[qSeriesSupportState(b)] ?? 99);
+    if (stateDelta) return stateDelta;
+    return ["family_class", "dimension_pattern", "structure_provider", "endpoint_set", "cell_id"]
+      .map((field) => (a[field] || "").localeCompare(b[field] || ""))
+      .find((delta) => delta) || 0;
+  });
+  const head = [
+    "Row state",
+    "Cell",
+    "Family",
+    "Provider/q",
+    "Endpoint/slope",
+    "Stability",
+    "Inference",
+    "Fit",
+    "Interval",
+    "Coverage",
+    "Evidence and next gate"
+  ];
+  const table = sortedRows.map((row) =>
+    `<article class="qseries-row">
+      <div class="cell">${pill(qSeriesSupportState(row))}</div>
+      <div class="cell"><strong>${esc(row.cell_id)}</strong><div class="note"><code>${esc(row.formula_cell)}</code></div></div>
+      <div class="cell">${esc(row.family)}<div class="note">${esc(row.family_class)}</div></div>
+      <div class="cell">${esc(row.structure_provider)}<div class="note">${esc(row.dimension_pattern)} ${esc(row.covariance_layout)}</div></div>
+      <div class="cell">${esc(row.endpoint_set)}<div class="note">${esc(row.slope_class)}</div></div>
+      <div class="cell">${pill(qSeriesStability(row))}<div class="note">${esc(row.extractor_status)} / ${esc(row.bridge_status)}</div></div>
+      <div class="cell">${pill(qSeriesInference(row))}</div>
+      <div class="cell">${pill(row.fit_status)}</div>
+      <div class="cell">${pill(row.interval_status)}</div>
+      <div class="cell">${pill(row.coverage_status)}</div>
+      <div class="cell">${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div><div class="note">${esc(row.denominator_policy)}</div></div>
+    </article>`
+  ).join("");
+  document.getElementById("q-series-board").innerHTML =
+    `<div class="qseries-summary">${summary.map(([label, value, note]) =>
+      `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
+    ).join("")}</div>
+    <div class="note">Rows are sorted by evidence state. Fit stability, inference readiness, interval status, and coverage status are separate signals; a tried or fit-stable row is not inference-ready unless both interval and coverage are <code>inference_ready</code>.</div>
+    <div class="qseries-table">
+      <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
+      ${table}
+    </div>`;
+}
+
 function renderStructuredContracts(sidecars) {
   const groups = [
     ["Vocabulary", sidecars.statusVocabulary || [], ["term", "allowed_scope", "not_claimed", "status"]],
@@ -785,6 +969,7 @@ function render(data, gates, capabilities, sidecars) {
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
   renderMetrics(data, sidecars);
+  renderQSeriesBoard(sidecars.qSeriesCells || []);
   renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
@@ -818,6 +1003,7 @@ async function tick() {
       roster: parseTsv(await readText("member-roster.tsv")),
       discussions: parseTsv(await readText("member-discussions.tsv")),
       assignments: parseTsv(await readText("member-wave-assignments.tsv")),
+      qSeriesCells: parseTsv(await readText("structured-re-q-series-support-cells.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
       finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
       conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),

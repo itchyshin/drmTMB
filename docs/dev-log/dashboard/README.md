@@ -197,6 +197,12 @@ never promotes neighbouring half-cells, structured q6/q8, REML, intervals,
 coverage, broad bridge support, or public optimizer controls unless the exact
 cell row says so.
 
+The mission-control widget renders this 104-row table near the top of the
+page. The widget deliberately separates row state, fit/stability state,
+inference readiness, interval status, and coverage status so a row that has
+been tried or fit-stabilized is not confused with a row that is
+`inference_ready`.
+
 The same q-series support-cell table now includes provider-specific Poisson
 and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,
 `animal()`, and `relmat()`. Those rows cite
