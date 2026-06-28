@@ -1,0 +1,14 @@
+
+===== g=16 (GSWEEP_N_GROUPS=16) =====
+cell                 n   wald_z     bc+t
+phylo mu1:x        300    0.917    0.963
+relmat mu1:x       300    0.910    0.953
+phylo mu2:x        300    0.930    0.943
+relmat mu2:x       300    0.927    0.957
+POOLED g=16  n=1200  wald_z=0.921  bc+t=0.954
+
+===== g=32 (GSWEEP_N_GROUPS=32) =====
+cell                 n   wald_z     bc+t
+phylo mu1:x        300    0.937    0.953
+relmat mu1:x       300    0.930    0.953
+phylo mu2:x        300    0.950    0.967
