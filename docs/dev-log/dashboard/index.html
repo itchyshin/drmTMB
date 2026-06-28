@@ -425,7 +425,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r64";
+const BUILD = "r65";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -725,7 +725,19 @@ function qSeriesInference(row) {
   return "planned";
 }
 
-function renderQSeriesBoard(rows) {
+function qSeriesEvidenceSummary(row, evidenceByCell) {
+  const evidence = evidenceByCell[row.cell_id];
+  if (!evidence) {
+    return `<div class="note">${esc(row.denominator_policy)}</div>`;
+  }
+  return `<div class="note"><strong>${esc(evidence.interval_channel)}</strong></div>
+    <div class="note">${esc(evidence.denominator_summary)}</div>
+    <div class="note">${esc(evidence.coverage_summary)}</div>
+    <div class="note">${esc(evidence.miss_balance_summary)}</div>`;
+}
+
+function renderQSeriesBoard(rows, inferenceEvidence) {
+  const evidenceByCell = Object.fromEntries((inferenceEvidence || []).map((row) => [row.cell_id, row]));
   const orderedStates = [
     "inference_ready",
     "fit_supported_baseline",
@@ -788,14 +800,14 @@ function renderQSeriesBoard(rows) {
       <div class="cell">${pill(row.fit_status)}</div>
       <div class="cell">${pill(row.interval_status)}</div>
       <div class="cell">${pill(row.coverage_status)}</div>
-      <div class="cell">${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div><div class="note">${esc(row.denominator_policy)}</div></div>
+      <div class="cell">${link(row.evidence_url, "evidence")}${evidenceByCell[row.cell_id] ? ` ${link(evidenceByCell[row.cell_id].evidence_url, "summary")}` : ""}<div class="note">${esc(row.next_gate)}</div>${qSeriesEvidenceSummary(row, evidenceByCell)}</div>
     </article>`
   ).join("");
   document.getElementById("q-series-board").innerHTML =
     `<div class="qseries-summary">${summary.map(([label, value, note]) =>
       `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
     ).join("")}</div>
-    <div class="note">Rows are sorted by evidence state. Fit stability, inference readiness, interval status, and coverage status are separate signals; a tried or fit-stable row is not inference-ready unless both interval and coverage are <code>inference_ready</code>.</div>
+    <div class="note">Rows are sorted by evidence state. Fit stability, inference readiness, interval status, and coverage status are separate signals; a tried or fit-stable row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; other rows show the support-cell denominator policy.</div>
     <div class="qseries-table">
       <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
       ${table}
@@ -969,7 +981,7 @@ function render(data, gates, capabilities, sidecars) {
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
   renderMetrics(data, sidecars);
-  renderQSeriesBoard(sidecars.qSeriesCells || []);
+  renderQSeriesBoard(sidecars.qSeriesCells || [], sidecars.qSeriesInferenceEvidence || []);
   renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
@@ -1004,6 +1016,7 @@ async function tick() {
       discussions: parseTsv(await readText("member-discussions.tsv")),
       assignments: parseTsv(await readText("member-wave-assignments.tsv")),
       qSeriesCells: parseTsv(await readText("structured-re-q-series-support-cells.tsv")),
+      qSeriesInferenceEvidence: parseTsv(await readText("structured-re-q-series-inference-evidence-summary.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
       finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
       conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),

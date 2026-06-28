@@ -201,6 +201,12 @@ The mission-control widget renders this 104-row table near the top of the
 page. The widget deliberately separates row state, fit/stability state,
 inference readiness, interval status, and coverage status so a row that has
 been tried or fit-stabilized is not confused with a row that is
+`inference_ready`. Promoted rows also join to
+`structured-re-q-series-inference-evidence-summary.tsv`, a compact four-row
+evidence summary that names the interval channel, denominator, coverage, and
+miss-balance caveat for the two q1 sigma and two q2 location-slope rows. The
+support-cell denominator policy remains the route/status contract; the evidence
+summary is the reader-facing denominator for rows already promoted to
 `inference_ready`.
 
 The same q-series support-cell table now includes provider-specific Poisson

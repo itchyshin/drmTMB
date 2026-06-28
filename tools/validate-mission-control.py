@@ -48,6 +48,9 @@ STRUCTURED_RE_BALANCE_MATRIX = DASHBOARD / "structured-re-balance-matrix.tsv"
 STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS = (
     DASHBOARD / "structured-re-q-series-support-cells.tsv"
 )
+STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY = (
+    DASHBOARD / "structured-re-q-series-inference-evidence-summary.tsv"
+)
 STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT = (
     DASHBOARD / "structured-re-count-slope-fixture-recovery-contract.tsv"
 )
@@ -1388,6 +1391,19 @@ STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS = (
     "claim_boundary",
     "denominator_policy",
     "next_gate",
+)
+STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY_FIELDS = (
+    "summary_id",
+    "cell_id",
+    "interval_channel",
+    "evidence_scope",
+    "denominator_summary",
+    "finite_interval_summary",
+    "coverage_summary",
+    "miss_balance_summary",
+    "promotion_status",
+    "evidence_url",
+    "claim_boundary",
 )
 STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT_FIELDS = (
     "contract_id",
@@ -5666,6 +5682,9 @@ def main() -> int:
     structured_re_q_series_support_cell_rows = read_tsv(
         STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS
     )
+    structured_re_q_series_inference_evidence_summary_rows = read_tsv(
+        STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY
+    )
     structured_re_count_slope_fixture_recovery_contract_rows = read_tsv(
         STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT
     )
@@ -7614,6 +7633,84 @@ def main() -> int:
     q_series_cell_map = {
         row.get("cell_id", ""): row for row in structured_re_q_series_support_cell_rows
     }
+    expected_q_series_inference_evidence_summaries = {
+        "qseries_inference_phylo_q1_sigma": {
+            "cell_id": "qseries_phylo_q1_sigma_one_slope",
+            "interval_channel": "raw_log_sd_wald_z",
+            "evidence_scope": "deployment_g8_sigma_sd_targets",
+        },
+        "qseries_inference_relmat_q1_sigma": {
+            "cell_id": "qseries_relmat_q1_sigma_one_slope",
+            "interval_channel": "raw_log_sd_wald_z",
+            "evidence_scope": "deployment_g8_sigma_sd_targets",
+        },
+        "qseries_inference_phylo_q2_mu1_mu2": {
+            "cell_id": "qseries_phylo_q2_mu1_mu2_one_slope",
+            "interval_channel": "default_bias_t_location_wald",
+            "evidence_scope": "deployment_g8_location_axis_q2_sd_targets",
+        },
+        "qseries_inference_relmat_q2_mu1_mu2": {
+            "cell_id": "qseries_relmat_q2_mu1_mu2_one_slope",
+            "interval_channel": "default_bias_t_location_wald",
+            "evidence_scope": "deployment_g8_location_axis_q2_sd_targets",
+        },
+    }
+    seen_q_series_inference_evidence_summary_ids: set[str] = set()
+    if len(structured_re_q_series_inference_evidence_summary_rows) != 4:
+        errors.append(
+            "structured-re-q-series-inference-evidence-summary.tsv: expected "
+            "4 rows for the current inference_ready cells"
+        )
+    for row in structured_re_q_series_inference_evidence_summary_rows:
+        row_id = row.get("summary_id", "<q-series inference evidence summary>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q-series-inference-evidence-summary.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_q_series_inference_evidence_summary_ids:
+            errors.append(
+                f"duplicate q-series inference evidence summary id: {row_id}"
+            )
+        seen_q_series_inference_evidence_summary_ids.add(row_id)
+        expected = expected_q_series_inference_evidence_summaries.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected q-series inference evidence summary row")
+            continue
+        for field, expected_value in expected.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value!r}")
+        linked = q_series_cell_map.get(row.get("cell_id", ""))
+        if linked is None:
+            errors.append(f"{row_id}: cell_id is not in q-series support cells")
+        else:
+            for field in ("interval_status", "coverage_status"):
+                if linked.get(field) != "inference_ready":
+                    errors.append(
+                        f"{row_id}: linked cell {field} must be inference_ready"
+                    )
+            if linked.get("authority_status") == "supported":
+                errors.append(f"{row_id}: linked cell must not be supported")
+        if row.get("promotion_status") != "inference_ready_with_caveats":
+            errors.append(f"{row_id}: promotion_status must retain caveats")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in ("Exactly", "inference_ready", "not"):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+    if seen_q_series_inference_evidence_summary_ids != set(
+        expected_q_series_inference_evidence_summaries
+    ):
+        errors.append(
+            "structured-re-q-series-inference-evidence-summary.tsv row ids must be "
+            + ", ".join(sorted(expected_q_series_inference_evidence_summaries))
+        )
     expected_count_slope_contracts = {
         "count_slope_phylo_poisson_q1_mu_one_slope": (
             "qseries_phylo_poisson_q1_mu_one_slope",
@@ -29259,6 +29356,7 @@ def main() -> int:
         f", {len(ayumi_boundary_status_rows)} Ayumi boundary-status rows"
         f", {len(structured_re_balance_matrix_rows)} structured RE matrix rows"
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
+        f", {len(structured_re_q_series_inference_evidence_summary_rows)} structured RE q-series inference-evidence summary rows"
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"

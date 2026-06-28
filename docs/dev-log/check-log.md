@@ -70123,3 +70123,49 @@ Boundary:
   relmat Q bridge, REML, and AI-REML remain unpromoted.
 - The profile channel is diagnostic-only at g=8 for sigma:x because finite rates
   are 0.7579 and 0.8042.
+
+
+## 2026-06-28: Q-Series widget inference-evidence summaries
+
+Goal:
+
+- Make the top Q-Series widget self-contained for the four rows already at
+  `inference_ready`, without changing the 104-row support-cell source of truth
+  or promoting any new row.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q-series-inference-evidence-summary.tsv`
+  with exactly four rows: the phylo/relmat q1 sigma one-slope cells and the
+  phylo/relmat q2 `mu1+mu2` one-slope cells.
+- Updated the mission-control widget so promoted rows display their interval
+  channel, denominator summary, coverage summary, and miss-balance caveat beside
+  the existing evidence and next-gate links. Non-promoted rows continue to show
+  the support-cell denominator policy.
+- Registered the evidence-summary sidecar in
+  `tools/validate-mission-control.py`; the validator now requires the four
+  summary rows to match the four current `inference_ready` support cells.
+- Updated the dashboard README, timestamp, and build marker to `r65`.
+
+Evidence:
+
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 4 structured RE Q-Series
+  inference-evidence summary rows.
+- `git diff --check`: no whitespace errors.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r65`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-q-series-inference-evidence-summary.tsv |
+  wc -l`: returned 5 lines, meaning header plus four summary rows.
+
+Boundary:
+
+- No Q-Series support-cell status changed.
+- The new sidecar is display and audit support only. It does not promote
+  spatial q2, animal q2, spatial/animal sigma, q4/q8, count, non-Gaussian,
+  REML, AI-REML, broad bridge support, or `supported`.
