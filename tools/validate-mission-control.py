@@ -139,6 +139,14 @@ STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE = (
 STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT = (
     DASHBOARD / "structured-re-sigma-slope-spatial-animal-admission-audit.tsv"
 )
+STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-28-spatial-sigma-slope-coverage-topup-local"
+    / "spatial-sigma-sr1000-combined-summary.tsv"
+)
 STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -1859,6 +1867,45 @@ STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
     "evidence_url",
     "claim_boundary",
     "next_gate",
+)
+STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY_FIELDS = (
+    "evidence_id",
+    "linked_cell_id",
+    "provider",
+    "endpoint_member",
+    "target_parm",
+    "source_sr475_replicates",
+    "source_topup_replicates",
+    "seed_start",
+    "seed_end",
+    "planned_reps",
+    "n_fit_ok",
+    "n_fit_error",
+    "n_converged",
+    "n_pdhess",
+    "n_boundary",
+    "n_wald_finite",
+    "wald_finite_rate",
+    "n_wald_covered",
+    "wald_coverage",
+    "wald_mcse",
+    "wald_lower_miss",
+    "wald_upper_miss",
+    "wald_upper_lower_miss_ratio",
+    "n_profile_finite",
+    "profile_finite_rate",
+    "n_profile_covered",
+    "profile_coverage",
+    "profile_mcse",
+    "profile_lower_miss",
+    "profile_upper_miss",
+    "profile_upper_lower_miss_ratio",
+    "mean_est_sd",
+    "bias_mean_est",
+    "finite_rate_gate",
+    "mcse_gate",
+    "promotion_status",
+    "claim_boundary",
 )
 STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
     "audit_id",
@@ -5974,6 +6021,9 @@ def main() -> int:
     )
     structured_re_sigma_slope_spatial_animal_admission_audit_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT
+    )
+    structured_re_spatial_sigma_slope_sr1000_summary_rows = read_tsv(
+        STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY
     )
     structured_re_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -12445,24 +12495,123 @@ def main() -> int:
     # DISPLAY/AUDIT evidence only: these rows explain why spatial/animal q1 sigma
     # one-slope cells remain planned, rather than promoting them by analogy with
     # phylo/relmat.
+    expected_spatial_sigma_sr1000_summary = {
+        "spatial_sigma_sr1000_intercept": {
+            "endpoint_member": "sigma:(Intercept)",
+            "target_parm": "sd:sigma:spatial(1 | site)",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_fit_error": "0",
+            "n_converged": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "n_wald_finite": "936",
+            "wald_finite_rate": "0.936",
+            "n_wald_covered": "925",
+            "wald_coverage": "0.9882",
+            "wald_mcse": "0.0035",
+            "wald_lower_miss": "3",
+            "wald_upper_miss": "8",
+            "n_profile_finite": "832",
+            "profile_finite_rate": "0.832",
+            "finite_rate_gate": "fail",
+            "mcse_gate": "pass",
+            "promotion_status": "blocked_not_promoted",
+        },
+        "spatial_sigma_sr1000_x": {
+            "endpoint_member": "sigma:x",
+            "target_parm": "sd:sigma:spatial(0 + x | site)",
+            "planned_reps": "1000",
+            "n_fit_ok": "1000",
+            "n_fit_error": "0",
+            "n_converged": "1000",
+            "n_pdhess": "1000",
+            "n_boundary": "0",
+            "n_wald_finite": "954",
+            "wald_finite_rate": "0.954",
+            "n_wald_covered": "939",
+            "wald_coverage": "0.9843",
+            "wald_mcse": "0.004",
+            "wald_lower_miss": "0",
+            "wald_upper_miss": "15",
+            "n_profile_finite": "711",
+            "profile_finite_rate": "0.711",
+            "finite_rate_gate": "pass",
+            "mcse_gate": "pass",
+            "promotion_status": "candidate_not_promoted",
+        },
+    }
+    sr1000_summary_by_id = {
+        row.get("evidence_id"): row
+        for row in structured_re_spatial_sigma_slope_sr1000_summary_rows
+    }
+    if set(sr1000_summary_by_id) != set(expected_spatial_sigma_sr1000_summary):
+        errors.append(
+            "spatial-sigma-sr1000-combined-summary.tsv row ids must be "
+            + ", ".join(sorted(expected_spatial_sigma_sr1000_summary))
+        )
+    for evidence_id, expected_row in expected_spatial_sigma_sr1000_summary.items():
+        row = sr1000_summary_by_id.get(evidence_id)
+        if row is None:
+            continue
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_SIGMA_SLOPE_SR1000_SUMMARY_FIELDS):
+            errors.append(
+                f"{evidence_id}: spatial-sigma-sr1000-combined-summary.tsv "
+                "fields do not match the contract"
+            )
+        if row.get("linked_cell_id") != "qseries_spatial_q1_sigma_one_slope":
+            errors.append(f"{evidence_id}: linked_cell_id must be the spatial q1 sigma cell")
+        if row.get("provider") != "spatial":
+            errors.append(f"{evidence_id}: provider must be spatial")
+        if row.get("seed_start") != "740001" or row.get("seed_end") != "741000":
+            errors.append(f"{evidence_id}: seed range must be 740001..741000")
+        for source_field in ("source_sr475_replicates", "source_topup_replicates"):
+            if not evidence_reference_exists(row.get(source_field, "")):
+                errors.append(f"{evidence_id}: {source_field} does not resolve locally")
+        for field, expected_value in expected_row.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{evidence_id}: {field} must be {expected_value!r}")
+        for phrase in (
+            "no inference_ready promotion",
+            "range-estimating spatial",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "supported",
+            "public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{evidence_id}: claim_boundary must mention {phrase!r}")
+
     expected_sigma_admission_audit = {
         "sigma_slope_admission_spatial_q1_sigma_one_slope": {
             "cell_id": "qseries_spatial_q1_sigma_one_slope",
             "provider": "spatial",
-            "admission_status": "topup_required_low_finite_wald_intercept",
-            "widget_state": "topup_required",
+            "admission_status": "blocked_low_finite_wald_intercept_after_sr1000",
+            "widget_state": "admission_blocked",
+            "source_coverage_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-28-spatial-sigma-slope-coverage-topup-local/"
+                "spatial-sigma-sr1000-combined-summary.tsv"
+            ),
             "coverage_targets": {
                 "sigma:(Intercept)": {
-                    "n_rep": "475",
-                    "n_wald_finite": "442",
-                    "wald_coverage": "0.991",
-                    "wald_mcse": "0.0045",
+                    "evidence_id": "spatial_sigma_sr1000_intercept",
+                    "planned_reps": "1000",
+                    "n_wald_finite": "936",
+                    "wald_finite_rate": "0.936",
+                    "wald_coverage": "0.9882",
+                    "wald_mcse": "0.0035",
+                    "finite_rate_gate": "fail",
                 },
                 "sigma:x": {
-                    "n_rep": "475",
-                    "n_wald_finite": "454",
-                    "wald_coverage": "0.9912",
-                    "wald_mcse": "0.0044",
+                    "evidence_id": "spatial_sigma_sr1000_x",
+                    "planned_reps": "1000",
+                    "n_wald_finite": "954",
+                    "wald_finite_rate": "0.954",
+                    "wald_coverage": "0.9843",
+                    "wald_mcse": "0.004",
+                    "finite_rate_gate": "pass",
                 },
             },
             "denominator_actions": {
@@ -12471,12 +12620,12 @@ def main() -> int:
             },
             "claim_phrases": (
                 "not inference_ready",
-                "0.9305",
+                "0.9360",
                 "range-estimating spatial",
                 "does not promote",
                 "supported",
             ),
-            "next_gate_phrase": "Top up spatial",
+            "next_gate_phrase": "Investigate and reduce spatial sigma:(Intercept)",
         },
         "sigma_slope_admission_animal_q1_sigma_one_slope": {
             "cell_id": "qseries_animal_q1_sigma_one_slope",
@@ -12550,6 +12699,13 @@ def main() -> int:
         ):
             if row.get(field) != expected[field]:
                 errors.append(f"{row_id}: {field} must be {expected[field]!r}")
+        if "source_coverage_artifact" in expected and (
+            row.get("source_coverage_artifact") != expected["source_coverage_artifact"]
+        ):
+            errors.append(
+                f"{row_id}: source_coverage_artifact must be "
+                f"{expected['source_coverage_artifact']!r}"
+            )
         if row.get("linked_interval_status") != "planned":
             errors.append(f"{row_id}: linked_interval_status must remain planned")
         if row.get("linked_coverage_status") != "planned":
@@ -12566,16 +12722,24 @@ def main() -> int:
                 errors.append(f"{row_id}: {source_field} does not resolve locally")
         provider = expected["provider"]
         for target, target_expected in expected["coverage_targets"].items():
-            coverage_row = sigma_coverage_by_provider_target.get((provider, target))
+            if "evidence_id" in target_expected:
+                coverage_row = sr1000_summary_by_id.get(target_expected["evidence_id"])
+            else:
+                coverage_row = sigma_coverage_by_provider_target.get((provider, target))
             if coverage_row is None:
                 errors.append(f"{row_id}: missing coverage row for {provider} {target}")
                 continue
             for field, value in target_expected.items():
+                if field == "evidence_id":
+                    continue
                 if coverage_row.get(field) != value:
                     errors.append(
                         f"{row_id}: coverage {target} {field} must be {value}"
                     )
-            if coverage_row.get("linked_coverage_status") != "planned":
+            if (
+                "evidence_id" not in target_expected
+                and coverage_row.get("linked_coverage_status") != "planned"
+            ):
                 errors.append(
                     f"{row_id}: source coverage row for {target} must stay planned"
                 )

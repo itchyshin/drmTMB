@@ -1,0 +1,7 @@
+local_host=psychdhcp68.psych.ualberta.ca
+artifact=2026-06-28-spatial-sigma-slope-coverage-topup-local
+shards=3,4
+seed_start=740476
+n_rep_per_shard=525
+bootstrap=0
+status=completed

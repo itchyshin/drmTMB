@@ -1158,16 +1158,20 @@ rows remain unpromoted.
 
 `structured-re-sigma-slope-spatial-animal-admission-audit.tsv` records the
 current blocker state for the spatial and animal q1 sigma one-slope support
-cells. Spatial has SR475 diagnostic coverage for both direct-SD endpoints, but
-the `sigma:(Intercept)` finite-Wald rate is 442/475 = 0.9305, below the
-row-promotion gate, so the widget marks the cell `topup_required`. Animal has
-SR475 diagnostic coverage for `sigma:(Intercept)`, but `sigma:x` is absent from
-the coverage grid and remains a replicated-denominator holdout after the smoke
-endpoint-profile failure, so the widget marks the cell `admission_blocked`.
-Both linked support cells keep `interval_status = planned` and
-`coverage_status = planned`; this ledger does not promote range-estimating
-spatial support, pedigree/Ainv bridge marshalling, matched `mu+sigma`, q4/q8,
-REML, AI-REML, bridge support, `supported`, or public support.
+cells. Spatial now has retained-denominator SR1000 evidence for both direct-SD
+endpoints, combining the SR475 local grid with the 2026-06-28 local top-up in
+`docs/dev-log/simulation-artifacts/2026-06-28-spatial-sigma-slope-coverage-topup-local/spatial-sigma-sr1000-combined-summary.tsv`.
+The `sigma:x` endpoint passes the finite-Wald gate at 954/1000 = 0.9540, but
+`sigma:(Intercept)` remains below the row-promotion gate at 936/1000 = 0.9360,
+so the widget marks the cell `admission_blocked`, not `inference_ready`.
+Animal has SR475 diagnostic coverage for `sigma:(Intercept)`, but `sigma:x` is
+absent from the coverage grid and remains a replicated-denominator holdout
+after the smoke endpoint-profile failure, so the widget also marks the cell
+`admission_blocked`. Both linked support cells keep `interval_status =
+planned` and `coverage_status = planned`; this ledger does not promote
+range-estimating spatial support, pedigree/Ainv bridge marshalling, matched
+`mu+sigma`, q4/q8, REML, AI-REML, bridge support, `supported`, or public
+support.
 
 `structured-re-sigma-slope-denominator-admission.tsv` records the first
 sigma-only one-slope denominator-admission ledger. Seven of eight direct SD

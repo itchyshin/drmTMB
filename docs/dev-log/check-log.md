@@ -70631,6 +70631,54 @@ Boundary:
   unsupported.
 
 
+## 2026-06-28: Q-Series spatial sigma SR1000 top-up blocker
+
+Goal:
+
+- Resolve the `topup_required` state for
+  `qseries_spatial_q1_sigma_one_slope` by running the retained-denominator
+  spatial sigma top-up from seeds 740476-741000 for both direct-SD endpoints.
+
+Result:
+
+- Ran `tools/run-structured-re-sigma-slope-coverage-grid.R` locally for
+  `--shard=3` (`spatial`, `sigma:(Intercept)`) and `--shard=4` (`spatial`,
+  `sigma:x`) with `n_rep = 525`, `seed_start = 740476`, `bootstrap = 0`, and
+  single-threaded BLAS/TMB settings.
+- Banked the new top-up artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-28-spatial-sigma-slope-coverage-topup-local/`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-28-spatial-sigma-slope-coverage-topup-local/spatial-sigma-sr1000-combined-summary.tsv`,
+  combining the old SR475 local grid and the new SR525 top-up into retained
+  SR1000 endpoint summaries.
+- Updated `structured-re-sigma-slope-spatial-animal-admission-audit.tsv` so
+  the spatial row is no longer `topup_required`; it is now
+  `admission_blocked` with `admission_status =
+  blocked_low_finite_wald_intercept_after_sr1000`.
+- Updated the dashboard README, build marker (`r76`), and validator guard.
+
+Evidence:
+
+- Spatial `sigma:(Intercept)`: 1000/1000 fit-ok, 1000/1000 converged,
+  1000/1000 `pdHess = TRUE`, 0 boundary flags, 936/1000 finite Wald intervals
+  (`0.9360`, below the `0.95` gate), Wald coverage 0.9882 with MCSE 0.0035,
+  Wald lower/upper misses 3/8, profile finite 832/1000.
+- Spatial `sigma:x`: 1000/1000 fit-ok, 1000/1000 converged, 1000/1000
+  `pdHess = TRUE`, 0 boundary flags, 954/1000 finite Wald intervals (`0.9540`,
+  above the `0.95` gate), Wald coverage 0.9843 with MCSE 0.0040, Wald
+  lower/upper misses 0/15, profile finite 711/1000.
+
+Boundary:
+
+- No Q-Series support-cell status changed; `qseries_spatial_q1_sigma_one_slope`
+  remains `interval_status = planned` and `coverage_status = planned`.
+- This is not `inference_ready` because the `sigma:(Intercept)` finite-Wald
+  denominator remains below the gate after SR1000.
+- This does not promote range-estimating spatial support, profile-channel
+  reliability, matched `mu+sigma`, q4/q8, REML, AI-REML, bridge support,
+  `supported`, or public support.
+
+
 ## 2026-06-28: Q-Series phylo_interaction count q1 recovery smoke
 
 Goal:
