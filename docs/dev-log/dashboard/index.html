@@ -178,6 +178,7 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .tried-not-inference-ready, .interval-feasible, .point-fit,
 .extractor-ready, .fixture-parity,
 .non-gaussian-recovery-only, .non-gaussian-point-only,
+.non-gaussian-intercept-recovery-smoke,
 .gaussian-mu-slope-smoke-passed { background: var(--blue-bg); color: var(--blue); }
 .tried-diagnostic, .diagnostic-only, .topup-required,
 .calibration-required, .high-q-gate-required,
@@ -434,7 +435,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r72";
+const BUILD = "r73";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -787,6 +788,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     "non_gaussian_recovery_only",
     "recovery_only",
     "non_gaussian_point_only",
+    "non_gaussian_intercept_recovery_smoke",
     "gaussian_mu_slope_smoke_passed",
     "gaussian_lowq_gate_required",
     "topup_required",
@@ -823,6 +825,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     ["NG recovery", stateCounts.non_gaussian_recovery_only || 0, "Count recovery only"],
     ["Recovery-only", stateCounts.recovery_only || 0, "Point recovery, no intervals"],
     ["NG point", stateCounts.non_gaussian_point_only || 0, "Point/extractor only"],
+    ["NG intercept smoke", stateCounts.non_gaussian_intercept_recovery_smoke || 0, "Count intercept local smoke"],
     ["Mu-slope smoke", stateCounts.gaussian_mu_slope_smoke_passed || 0, "Gaussian q1 local smoke"],
     ["Low-q gate", stateCounts.gaussian_lowq_gate_required || 0, "Gaussian point/fixture only"],
     ["Top-up needed", stateCounts.topup_required || 0, "Coverage measured, not enough"],
@@ -885,7 +888,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     `<div class="qseries-summary">${summary.map(([label, value, note]) =>
       `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
     ).join("")}</div>
-    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, local smoke evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, non-Gaussian point-only, local-smoke-passed, low-q-gated, top-up-required, calibration-required, admission-blocked, or high-q-gated row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; spatial/animal sigma, q2, high-q, non-Gaussian, Gaussian mu-slope smoke, and Gaussian low-q status rows show blocker audits from their sidecars; other rows show the support-cell denominator policy.</div>
+    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, local smoke evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, non-Gaussian point-only, count-intercept-smoke, local-smoke-passed, low-q-gated, top-up-required, calibration-required, admission-blocked, or high-q-gated row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; count intercept smoke, spatial/animal sigma, q2, high-q, non-Gaussian, Gaussian mu-slope smoke, and Gaussian low-q status rows show blocker audits from their sidecars; other rows show the support-cell denominator policy.</div>
     <div class="qseries-table">
       <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
       ${table}
@@ -1064,6 +1067,7 @@ function render(data, gates, capabilities, sidecars) {
     ...(sidecars.q2SlopeSpatialAnimalAdmissionAudit || []),
     ...(sidecars.highQStatusAudit || []),
     ...(sidecars.nongaussianStatusAudit || []),
+    ...(sidecars.countInterceptRecoverySmokeStatus || []),
     ...(sidecars.gaussianLowQStatusAudit || []),
     ...(sidecars.gaussianMuSlopeSmokeStatus || [])
   ];
@@ -1108,6 +1112,7 @@ async function tick() {
       q2SlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-q2-slope-spatial-animal-admission-audit.tsv")),
       highQStatusAudit: parseTsv(await readText("structured-re-high-q-status-audit.tsv")),
       nongaussianStatusAudit: parseTsv(await readText("structured-re-nongaussian-status-audit.tsv")),
+      countInterceptRecoverySmokeStatus: parseTsv(await readText("structured-re-count-intercept-recovery-smoke-status.tsv")),
       gaussianLowQStatusAudit: parseTsv(await readText("structured-re-gaussian-lowq-status-audit.tsv")),
       gaussianMuSlopeSmokeStatus: parseTsv(await readText("structured-re-gaussian-mu-slope-smoke-status.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),

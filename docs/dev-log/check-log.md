@@ -70577,3 +70577,55 @@ Boundary:
   support, non-Gaussian support, or public support.
 - A replicated interval/coverage denominator grid is still required before any
   `inference_ready` or support promotion for these four q1 `mu` one-slope rows.
+
+
+## 2026-06-28: Q-Series non-Gaussian count q1 intercept recovery smoke
+
+Goal:
+
+- Move the six spatial/animal/relmat Poisson/NB2 q1 structured `mu`
+  intercept rows from non-Gaussian point-only display into a local
+  recovery-smoke rung without promoting intervals, coverage, REML, AI-REML,
+  bridge, or support claims.
+
+Result:
+
+- Ran the Phase 18 Actions wrapper locally for `count_structured_q1` with
+  `condition_set = all`, `n_rep = 1`, `master_seed = 20260628`, `cores = 1`,
+  and `backend = none`.
+- Banked artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-28-count-intercept-recovery-smoke-local/`.
+- Added `structured-re-count-intercept-recovery-smoke-status.tsv`, a six-row
+  dashboard sidecar for the exact spatial, animal, and relmat Poisson/NB2 q1
+  `mu` intercept support cells.
+- Updated the Q-Series widget with `non_gaussian_intercept_recovery_smoke` and
+  the `NG intercept smoke` summary card. The overlay moves those six rows out
+  of the broader non-Gaussian point-only display state while leaving support
+  cell statuses unchanged.
+- Registered the smoke sidecar in `tools/validate-mission-control.py`; the
+  validator reads the generated manifest, failure, replicate, and interval
+  evidence CSVs, verifies exact row membership, and requires each sidecar
+  count to match the artifact counts.
+- Updated the dashboard README and build marker to `r73`.
+
+Evidence:
+
+- Local smoke artifacts: 24/24 manifest rows OK, zero failures, and 96
+  replicate-summary rows.
+- For each of the six linked support-cell subsets, 4/4 structured-SD rows
+  converged, 4/4 had `pdHess = TRUE`, and 4/4 had finite estimates.
+- Boundary caveat: spatial NB2 has 3/4 structured-SD rows with lower-boundary
+  warnings; the sidecar records `local_recovery_smoke_boundary_warning` for
+  `qseries_spatial_nbinom2_q1_mu_intercept`.
+
+Boundary:
+
+- No Q-Series support-cell status changed.
+- This sidecar covers spatial, animal, and relmat count intercept rows only;
+  it does not cover the phylo count intercept rows.
+- This is local recovery smoke only. It is not interval-ready,
+  coverage-ready, `inference_ready`, `supported`, REML, AI-REML, bridge
+  support, q2/q4 count covariance support, high-q support, or public support.
+- A replicated recovery grid with MCSE and a boundary ledger is still required
+  before any recovery claim. Non-Gaussian intervals and coverage remain
+  unsupported.

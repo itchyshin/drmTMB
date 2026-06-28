@@ -219,11 +219,16 @@ point/fixture gates, diagnostic-only rows, and rejection-contract rows no
 longer collapse into a generic tried bucket. Four Gaussian q1 `mu` one-slope
 rows also join to `structured-re-gaussian-mu-slope-smoke-status.tsv`, which
 records local one-rep smoke evidence for `phylo()`, fixed-covariance
-`spatial()`, `animal()`, and `relmat()`. The support-cell denominator policy
-remains the route/status contract; the evidence summary is the reader-facing
+`spatial()`, `animal()`, and `relmat()`. Six non-Gaussian q1 count `mu`
+intercept rows also join to
+`structured-re-count-intercept-recovery-smoke-status.tsv`, which records local
+recovery-smoke evidence for the exact spatial, animal, and relmat
+Poisson/NB2 intercept formulas. The support-cell denominator policy remains
+the route/status contract; the evidence summary is the reader-facing
 denominator for rows already promoted to `inference_ready`, the count recovery
 summary is reader-facing recovery evidence only, and the high-q, non-Gaussian,
-Gaussian low-q, and Gaussian q1 `mu` smoke audits are blocker ledgers only.
+count-intercept smoke, Gaussian low-q, and Gaussian q1 `mu` smoke audits are
+blocker ledgers only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
 24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
@@ -271,6 +276,20 @@ non-count/extended-count future-design bucket. All linked rows keep
 `interval_status = unsupported`; none of this audit promotes non-Gaussian
 intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge support,
 `supported`, or public support.
+
+`structured-re-count-intercept-recovery-smoke-status.tsv` records the first
+local smoke rung for six exact non-Gaussian q1 structured `mu` intercept
+rows: spatial, animal, and relmat Poisson/NB2. The artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-28-count-intercept-recovery-smoke-local/`
+show 24 total condition-replicates, zero failures, and for each of the six
+cell subsets, 4/4 structured-SD rows with converged fits, `pdHess = TRUE`, and
+finite estimates. The spatial NB2 subset is explicitly flagged because 3/4
+structured-SD rows have lower-boundary warnings. This sidecar does not cover
+the phylo count intercept rows, does not replace the 80-rep count one-slope
+recovery grid, and does not promote non-Gaussian intervals, coverage,
+q2/q4 covariance, REML, AI-REML, bridge support, `supported`, or public
+support. A replicated recovery grid with MCSE and a boundary ledger remains
+the next gate.
 
 The same q-series support-cell table now includes provider-specific Poisson
 and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,
