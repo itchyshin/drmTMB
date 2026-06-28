@@ -176,8 +176,8 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .fit-supported-baseline, .fit-stable, .stable-fit-baseline,
 .tried-not-inference-ready, .interval-feasible, .point-fit,
 .extractor-ready, .fixture-parity { background: var(--blue-bg); color: var(--blue); }
-.tried-diagnostic, .diagnostic-only { background: var(--gold-bg); color: var(--gold); }
-.unsupported-or-blocked, .inference-blocked { background: var(--rose-bg); color: var(--rose); }
+.tried-diagnostic, .diagnostic-only, .topup-required { background: var(--gold-bg); color: var(--gold); }
+.unsupported-or-blocked, .inference-blocked, .admission-blocked { background: var(--rose-bg); color: var(--rose); }
 .slices { padding: 0 14px 12px 110px; }
 .slice {
   display: grid;
@@ -425,7 +425,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r66";
+const BUILD = "r67";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -673,11 +673,14 @@ function renderStructuredLedgers(sidecars) {
     <div class="note">Sidecar counts are validator-owned dashboard state; fit, inference, bridge, REML, and coverage claims remain row-specific.</div>`;
 }
 
-function qSeriesSupportState(row, recoveryByCell = {}) {
+function qSeriesSupportState(row, recoveryByCell = {}, admissionAuditByCell = {}) {
   if (row.interval_status === "inference_ready" && row.coverage_status === "inference_ready") {
     return "inference_ready";
   }
   if (row.fit_status === "supported") return "fit_supported_baseline";
+  if (admissionAuditByCell[row.cell_id]) {
+    return admissionAuditByCell[row.cell_id].widget_state || "tried_not_inference_ready";
+  }
   if (
     recoveryByCell[row.cell_id] &&
     row.fit_status === "point_fit" &&
@@ -734,7 +737,7 @@ function qSeriesInference(row) {
   return "planned";
 }
 
-function qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell) {
+function qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell, admissionAuditByCell) {
   const evidence = evidenceByCell[row.cell_id];
   if (evidence) {
     return `<div class="note"><strong>${esc(evidence.interval_channel)}</strong></div>
@@ -749,23 +752,33 @@ function qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell) {
       <div class="note">sd_mu:x bias ${esc(recovery.bias_sd_mu_x)}, RMSE ${esc(recovery.rmse_sd_mu_x)}</div>
       <div class="note">${esc(recovery.claim_boundary)}</div>`;
   }
+  const admission = admissionAuditByCell[row.cell_id];
+  if (admission) {
+    return `<div class="note"><strong>${esc(admission.admission_status)}</strong></div>
+      <div class="note">${esc(admission.wald_finite_summary)}</div>
+      <div class="note">${esc(admission.denominator_status)}</div>
+      <div class="note">${esc(admission.claim_boundary)}</div>`;
+  }
   return `<div class="note">${esc(row.denominator_policy)}</div>`;
 }
 
-function renderQSeriesBoard(rows, inferenceEvidence, countRecovery) {
+function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAudit) {
   const evidenceByCell = Object.fromEntries((inferenceEvidence || []).map((row) => [row.cell_id, row]));
   const recoveryByCell = Object.fromEntries((countRecovery || []).map((row) => [row.linked_cell_id || row.cell_id, row]));
+  const admissionAuditByCell = Object.fromEntries((admissionAudit || []).map((row) => [row.cell_id, row]));
   const orderedStates = [
     "inference_ready",
     "fit_supported_baseline",
     "recovery_only",
+    "topup_required",
+    "admission_blocked",
     "tried_not_inference_ready",
     "tried_diagnostic",
     "planned",
     "unsupported_or_blocked"
   ];
   const stateCounts = rows.reduce((acc, row) => {
-    const state = qSeriesSupportState(row, recoveryByCell);
+    const state = qSeriesSupportState(row, recoveryByCell, admissionAuditByCell);
     acc[state] = (acc[state] || 0) + 1;
     return acc;
   }, {});
@@ -778,6 +791,8 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery) {
     ["Inference-ready", stateCounts.inference_ready || 0, "Interval + coverage ready"],
     ["Fit baseline", stateCounts.fit_supported_baseline || 0, "Supported fit comparators only"],
     ["Recovery-only", stateCounts.recovery_only || 0, "Point recovery, no intervals"],
+    ["Top-up needed", stateCounts.topup_required || 0, "Coverage measured, not enough"],
+    ["Admission blocked", stateCounts.admission_blocked || 0, "Denominator gap first"],
     ["Tried", stateCounts.tried_not_inference_ready || 0, "Fit/fixture/interval work"],
     ["Diagnostic", stateCounts.tried_diagnostic || 0, "Tried but diagnostic-only"],
     ["Blocked/unsupported", stateCounts.unsupported_or_blocked || 0, "No promotion from these rows"],
@@ -787,8 +802,8 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery) {
   ];
   const orderIndex = Object.fromEntries(orderedStates.map((state, i) => [state, i]));
   const sortedRows = [...rows].sort((a, b) => {
-    const stateDelta = (orderIndex[qSeriesSupportState(a, recoveryByCell)] ?? 99) -
-      (orderIndex[qSeriesSupportState(b, recoveryByCell)] ?? 99);
+    const stateDelta = (orderIndex[qSeriesSupportState(a, recoveryByCell, admissionAuditByCell)] ?? 99) -
+      (orderIndex[qSeriesSupportState(b, recoveryByCell, admissionAuditByCell)] ?? 99);
     if (stateDelta) return stateDelta;
     return ["family_class", "dimension_pattern", "structure_provider", "endpoint_set", "cell_id"]
       .map((field) => (a[field] || "").localeCompare(b[field] || ""))
@@ -809,7 +824,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery) {
   ];
   const table = sortedRows.map((row) =>
     `<article class="qseries-row">
-      <div class="cell">${pill(qSeriesSupportState(row, recoveryByCell))}</div>
+      <div class="cell">${pill(qSeriesSupportState(row, recoveryByCell, admissionAuditByCell))}</div>
       <div class="cell"><strong>${esc(row.cell_id)}</strong><div class="note"><code>${esc(row.formula_cell)}</code></div></div>
       <div class="cell">${esc(row.family)}<div class="note">${esc(row.family_class)}</div></div>
       <div class="cell">${esc(row.structure_provider)}<div class="note">${esc(row.dimension_pattern)} ${esc(row.covariance_layout)}</div></div>
@@ -819,14 +834,14 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery) {
       <div class="cell">${pill(row.fit_status)}</div>
       <div class="cell">${pill(row.interval_status)}</div>
       <div class="cell">${pill(row.coverage_status)}</div>
-      <div class="cell">${link(row.evidence_url, "evidence")}${evidenceByCell[row.cell_id] ? ` ${link(evidenceByCell[row.cell_id].evidence_url, "summary")}` : ""}${recoveryByCell[row.cell_id] ? ` ${link(recoveryByCell[row.cell_id].evidence_url, "recovery")}` : ""}<div class="note">${esc(row.next_gate)}</div>${qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell)}</div>
+      <div class="cell">${link(row.evidence_url, "evidence")}${evidenceByCell[row.cell_id] ? ` ${link(evidenceByCell[row.cell_id].evidence_url, "summary")}` : ""}${recoveryByCell[row.cell_id] ? ` ${link(recoveryByCell[row.cell_id].evidence_url, "recovery")}` : ""}${admissionAuditByCell[row.cell_id] ? ` ${link(admissionAuditByCell[row.cell_id].evidence_url, "admission")}` : ""}<div class="note">${esc(row.next_gate)}</div>${qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell, admissionAuditByCell)}</div>
     </article>`
   ).join("");
   document.getElementById("q-series-board").innerHTML =
     `<div class="qseries-summary">${summary.map(([label, value, note]) =>
       `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
     ).join("")}</div>
-    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, or recovery-only row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; other rows show the support-cell denominator policy.</div>
+    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, top-up-required, or admission-blocked row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; spatial/animal sigma admission rows show the blocker audit from <code>structured-re-sigma-slope-spatial-animal-admission-audit.tsv</code>; other rows show the support-cell denominator policy.</div>
     <div class="qseries-table">
       <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
       ${table}
@@ -1000,7 +1015,7 @@ function render(data, gates, capabilities, sidecars) {
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
   renderMetrics(data, sidecars);
-  renderQSeriesBoard(sidecars.qSeriesCells || [], sidecars.qSeriesInferenceEvidence || [], sidecars.countSlopeRecoveryResults || []);
+  renderQSeriesBoard(sidecars.qSeriesCells || [], sidecars.qSeriesInferenceEvidence || [], sidecars.countSlopeRecoveryResults || [], sidecars.sigmaSlopeSpatialAnimalAdmissionAudit || []);
   renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
@@ -1037,6 +1052,7 @@ async function tick() {
       qSeriesCells: parseTsv(await readText("structured-re-q-series-support-cells.tsv")),
       qSeriesInferenceEvidence: parseTsv(await readText("structured-re-q-series-inference-evidence-summary.tsv")),
       countSlopeRecoveryResults: parseTsv(await readText("structured-re-count-slope-recovery-results.tsv")),
+      sigmaSlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-sigma-slope-spatial-animal-admission-audit.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
       finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
       conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),

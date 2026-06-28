@@ -126,6 +126,9 @@ STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE = (
 STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE = (
     DASHBOARD / "structured-re-sigma-slope-inference-evidence.tsv"
 )
+STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT = (
+    DASHBOARD / "structured-re-sigma-slope-spatial-animal-admission-audit.tsv"
+)
 STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -1809,6 +1812,28 @@ STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE_FIELDS = (
     "profile_channel_status",
     "promotion_status",
     "claim_boundary",
+)
+STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
+    "audit_id",
+    "cell_id",
+    "provider",
+    "endpoint_scope",
+    "source_coverage_artifact",
+    "source_denominator_rule",
+    "source_stability_probe",
+    "n_rep_summary",
+    "wald_finite_summary",
+    "wald_coverage_summary",
+    "profile_finite_summary",
+    "denominator_status",
+    "admission_status",
+    "widget_state",
+    "linked_interval_status",
+    "linked_coverage_status",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
 )
 STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RESULTS_FIELDS = (
     "recovery_id",
@@ -5759,6 +5784,9 @@ def main() -> int:
     )
     structured_re_sigma_slope_inference_evidence_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_INFERENCE_EVIDENCE
+    )
+    structured_re_sigma_slope_spatial_animal_admission_audit_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT
     )
     structured_re_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -12209,6 +12237,190 @@ def main() -> int:
         errors.append(
             "structured-re-sigma-slope-inference-evidence.tsv row ids must be "
             + ", ".join(sorted(expected_sigma_inference))
+        )
+
+    # --- structured-re sigma-slope spatial/animal admission audit ---
+    # DISPLAY/AUDIT evidence only: these rows explain why spatial/animal q1 sigma
+    # one-slope cells remain planned, rather than promoting them by analogy with
+    # phylo/relmat.
+    expected_sigma_admission_audit = {
+        "sigma_slope_admission_spatial_q1_sigma_one_slope": {
+            "cell_id": "qseries_spatial_q1_sigma_one_slope",
+            "provider": "spatial",
+            "admission_status": "topup_required_low_finite_wald_intercept",
+            "widget_state": "topup_required",
+            "coverage_targets": {
+                "sigma:(Intercept)": {
+                    "n_rep": "475",
+                    "n_wald_finite": "442",
+                    "wald_coverage": "0.991",
+                    "wald_mcse": "0.0045",
+                },
+                "sigma:x": {
+                    "n_rep": "475",
+                    "n_wald_finite": "454",
+                    "wald_coverage": "0.9912",
+                    "wald_mcse": "0.0044",
+                },
+            },
+            "denominator_actions": {
+                "sigma:(Intercept)": "eligible_for_pregrid_with_retention",
+                "sigma:x": "eligible_for_pregrid_with_retention",
+            },
+            "claim_phrases": (
+                "not inference_ready",
+                "0.9305",
+                "range-estimating spatial",
+                "does not promote",
+                "supported",
+            ),
+            "next_gate_phrase": "Top up spatial",
+        },
+        "sigma_slope_admission_animal_q1_sigma_one_slope": {
+            "cell_id": "qseries_animal_q1_sigma_one_slope",
+            "provider": "animal",
+            "admission_status": (
+                "blocked_missing_sigma_x_coverage_and_denominator_holdout"
+            ),
+            "widget_state": "admission_blocked",
+            "coverage_targets": {
+                "sigma:(Intercept)": {
+                    "n_rep": "475",
+                    "n_wald_finite": "467",
+                    "wald_coverage": "0.9743",
+                    "wald_mcse": "0.0073",
+                },
+            },
+            "missing_coverage_targets": ("sigma:x",),
+            "denominator_actions": {
+                "sigma:(Intercept)": "eligible_for_pregrid_with_retention",
+                "sigma:x": "visible_holdout_until_smoke_profile_reconciled",
+            },
+            "claim_phrases": (
+                "not inference_ready",
+                "sigma:x has no coverage-grid row",
+                "pedigree/Ainv",
+                "does not promote",
+                "supported",
+            ),
+            "next_gate_phrase": "Reconcile animal sigma:x",
+        },
+    }
+    sigma_coverage_by_provider_target = {
+        (row.get("provider"), row.get("target")): row
+        for row in structured_re_slope_coverage_results_rows
+        if row.get("lane") == "sigma_slope"
+    }
+    sigma_rule_by_provider_target = {
+        (row.get("structured_type"), row.get("endpoint_member")): row
+        for row in structured_re_sigma_slope_replicated_denominator_rule_rows
+    }
+    seen_sigma_admission_audit_ids: set[str] = set()
+    if len(structured_re_sigma_slope_spatial_animal_admission_audit_rows) != 2:
+        errors.append(
+            "structured-re-sigma-slope-spatial-animal-admission-audit.tsv: "
+            "expected 2 rows (spatial and animal q1 sigma one-slope)"
+        )
+    for row in structured_re_sigma_slope_spatial_animal_admission_audit_rows:
+        row_id = row.get("audit_id", "<sigma spatial/animal admission audit>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-spatial-animal-"
+                "admission-audit.tsv fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_sigma_admission_audit_ids:
+            errors.append(f"duplicate sigma admission audit id: {row_id}")
+        seen_sigma_admission_audit_ids.add(row_id)
+        expected = expected_sigma_admission_audit.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected sigma admission audit row")
+            continue
+        for field in (
+            "cell_id",
+            "provider",
+            "admission_status",
+            "widget_state",
+        ):
+            if row.get(field) != expected[field]:
+                errors.append(f"{row_id}: {field} must be {expected[field]!r}")
+        if row.get("linked_interval_status") != "planned":
+            errors.append(f"{row_id}: linked_interval_status must remain planned")
+        if row.get("linked_coverage_status") != "planned":
+            errors.append(f"{row_id}: linked_coverage_status must remain planned")
+        if row.get("promotion_decision") != "do_not_promote":
+            errors.append(f"{row_id}: promotion_decision must be do_not_promote")
+        for source_field in (
+            "source_coverage_artifact",
+            "source_denominator_rule",
+            "source_stability_probe",
+            "evidence_url",
+        ):
+            if not evidence_reference_exists(row.get(source_field, "")):
+                errors.append(f"{row_id}: {source_field} does not resolve locally")
+        provider = expected["provider"]
+        for target, target_expected in expected["coverage_targets"].items():
+            coverage_row = sigma_coverage_by_provider_target.get((provider, target))
+            if coverage_row is None:
+                errors.append(f"{row_id}: missing coverage row for {provider} {target}")
+                continue
+            for field, value in target_expected.items():
+                if coverage_row.get(field) != value:
+                    errors.append(
+                        f"{row_id}: coverage {target} {field} must be {value}"
+                    )
+            if coverage_row.get("linked_coverage_status") != "planned":
+                errors.append(
+                    f"{row_id}: source coverage row for {target} must stay planned"
+                )
+        for target in expected.get("missing_coverage_targets", ()):
+            if (provider, target) in sigma_coverage_by_provider_target:
+                errors.append(
+                    f"{row_id}: {provider} {target} should remain absent from "
+                    "the coverage grid until the denominator holdout is reconciled"
+                )
+        for target, action in expected["denominator_actions"].items():
+            rule_row = sigma_rule_by_provider_target.get((provider, target))
+            if rule_row is None:
+                errors.append(f"{row_id}: missing denominator rule for {provider} {target}")
+                continue
+            if rule_row.get("current_denominator_action") != action:
+                errors.append(
+                    f"{row_id}: denominator action for {target} must be {action}"
+                )
+            if rule_row.get("coverage_evaluable") != "FALSE":
+                errors.append(
+                    f"{row_id}: denominator rule for {target} must not be coverage-evaluable"
+                )
+        linked = qseries_by_cell.get(expected["cell_id"])
+        if linked is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if linked.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked interval_status must remain planned")
+            if linked.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked coverage_status must remain planned")
+            if linked.get("authority_status") == "supported":
+                errors.append(f"{row_id}: linked cell must not be supported")
+        for phrase in expected["claim_phrases"]:
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if expected["next_gate_phrase"] not in row.get("next_gate", ""):
+            errors.append(
+                f"{row_id}: next_gate must mention {expected['next_gate_phrase']!r}"
+            )
+        for forbidden in ("REML", "AI-REML", "q4/q8"):
+            if forbidden not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must block {forbidden}")
+    if seen_sigma_admission_audit_ids != set(expected_sigma_admission_audit):
+        errors.append(
+            "structured-re-sigma-slope-spatial-animal-admission-audit.tsv "
+            "row ids must be "
+            + ", ".join(sorted(expected_sigma_admission_audit))
         )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
@@ -29382,6 +29594,7 @@ def main() -> int:
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"
         f", {len(structured_re_sigma_slope_inference_evidence_rows)} structured RE sigma-slope inference-evidence rows"
+        f", {len(structured_re_sigma_slope_spatial_animal_admission_audit_rows)} structured RE sigma-slope spatial/animal admission-audit rows"
         f", {len(structured_re_sigma_slope_interval_diagnostic_plan_rows)} structured RE sigma-slope interval-diagnostic plan rows"
         f", {len(structured_re_sigma_slope_interval_diagnostic_status_rows)} structured RE sigma-slope interval-diagnostic status rows"
         f", {len(structured_re_sigma_slope_interval_stability_probe_rows)} structured RE sigma-slope interval-stability probe rows"

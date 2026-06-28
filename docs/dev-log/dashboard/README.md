@@ -1044,6 +1044,19 @@ for the exact phylo/relmat q1 sigma one-slope rows in
 `structured-re-sigma-slope-inference-evidence.tsv`; spatial and animal sigma
 rows remain unpromoted.
 
+`structured-re-sigma-slope-spatial-animal-admission-audit.tsv` records the
+current blocker state for the spatial and animal q1 sigma one-slope support
+cells. Spatial has SR475 diagnostic coverage for both direct-SD endpoints, but
+the `sigma:(Intercept)` finite-Wald rate is 442/475 = 0.9305, below the
+row-promotion gate, so the widget marks the cell `topup_required`. Animal has
+SR475 diagnostic coverage for `sigma:(Intercept)`, but `sigma:x` is absent from
+the coverage grid and remains a replicated-denominator holdout after the smoke
+endpoint-profile failure, so the widget marks the cell `admission_blocked`.
+Both linked support cells keep `interval_status = planned` and
+`coverage_status = planned`; this ledger does not promote range-estimating
+spatial support, pedigree/Ainv bridge marshalling, matched `mu+sigma`, q4/q8,
+REML, AI-REML, bridge support, `supported`, or public support.
+
 `structured-re-sigma-slope-denominator-admission.tsv` records the first
 sigma-only one-slope denominator-admission ledger. Seven of eight direct SD
 targets are marked `diagnostic_denominator_candidate`; animal `sigma:x`

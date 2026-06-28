@@ -70219,3 +70219,63 @@ Boundary:
   `coverage_status = inference_ready`, bridge support, REML, AI-REML, q2/q4
   count covariance, or `supported`.
 - The count recovery grid remains convergence plus SD bias/RMSE evidence only.
+
+
+## 2026-06-28: Q-Series spatial/animal sigma admission audit widget state
+
+Goal:
+
+- Surface what is left before the spatial and animal q1 `sigma` one-slope cells
+  can be considered for inference readiness, without promoting either row by
+  analogy from the phylo/relmat sigma evidence.
+
+Result:
+
+- Added `structured-re-sigma-slope-spatial-animal-admission-audit.tsv`, a
+  two-row cell-level blocker ledger for
+  `qseries_spatial_q1_sigma_one_slope` and
+  `qseries_animal_q1_sigma_one_slope`.
+- Updated the Q-Series widget with separate `topup_required` and
+  `admission_blocked` row states. These are display states only; the support
+  cells still show `interval_status = planned` and `coverage_status = planned`.
+- Registered the sidecar in `tools/validate-mission-control.py`. The validator
+  now requires the spatial SR475 coverage metrics, the animal missing
+  `sigma:x` coverage row, the denominator holdout, and the no-promotion
+  boundary.
+- Updated the dashboard README, timestamp, and build marker to `r67`.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 2 structured RE sigma-slope
+  spatial/animal admission-audit rows.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r67`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-sigma-slope-spatial-animal-admission-audit.tsv
+  | wc -l`: returned 3 lines, meaning header plus two audit rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: Q-Series
+  board rendered `topup required`, `admission blocked`,
+  `qseries_spatial_q1_sigma_one_slope`, and
+  `qseries_animal_q1_sigma_one_slope`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test()'`: passed, `19604 PASS / 0 FAIL / 17 WARN / 43 SKIP`.
+- `git diff --check`: no whitespace errors.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-28-q-series-spatial-animal-sigma-admission-widget.md')"`:
+  after-task structure check passed.
+
+Boundary:
+
+- Spatial q1 sigma one-slope is `topup_required`, not `inference_ready`,
+  because the SR475 intercept finite-Wald rate is 442/475 = 0.9305.
+- Animal q1 sigma one-slope is `admission_blocked`, not `inference_ready`,
+  because `sigma:x` has no coverage-grid row and remains a denominator holdout.
+- No Q-Series support-cell status changed. No range-estimating spatial,
+  pedigree/Ainv bridge marshalling, matched `mu+sigma`, q4/q8, REML,
+  AI-REML, bridge support, `supported`, or public-support claim is promoted.
