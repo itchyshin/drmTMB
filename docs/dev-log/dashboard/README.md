@@ -219,18 +219,21 @@ point/fixture gates, diagnostic-only rows, and rejection-contract rows no
 longer collapse into a generic tried bucket. Four Gaussian q1 `mu` one-slope
 rows also join to `structured-re-gaussian-mu-slope-smoke-status.tsv`, which
 records local one-rep smoke evidence for `phylo()`, fixed-covariance
-`spatial()`, `animal()`, and `relmat()`. Eight non-Gaussian q1 count `mu`
+`spatial()`, `animal()`, and `relmat()`. Ten non-Gaussian q1 count `mu`
 intercept rows also join to
 `structured-re-count-intercept-recovery-smoke-status.tsv`, which records local
 recovery-smoke evidence for the exact spatial, animal, and relmat
 Poisson/NB2 intercept formulas, and
 `structured-re-phylo-count-intercept-recovery-smoke-status.tsv`, which records
-the exact phylo Poisson/NB2 formal-runner smoke. The support-cell denominator policy remains
+the exact phylo Poisson/NB2 formal-runner smoke, and
+`structured-re-phylo-interaction-count-recovery-smoke-status.tsv`, which
+records the exact pair-level `phylo_interaction()` Poisson/NB2 smoke. The support-cell denominator policy remains
 the route/status contract; the evidence summary is the reader-facing
 denominator for rows already promoted to `inference_ready`, the count recovery
 summary is reader-facing recovery evidence only, and the high-q, non-Gaussian,
-count-intercept smoke, phylo count-intercept smoke, Gaussian low-q, and Gaussian q1 `mu` smoke audits are
-blocker ledgers only.
+count-intercept smoke, phylo count-intercept smoke, phylo-interaction count
+smoke, Gaussian low-q, and Gaussian q1 `mu` smoke audits are blocker ledgers
+only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
 24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
@@ -303,8 +306,21 @@ condition-replicates per family have nonzero `sd_phylo = 0.25`. Each family
 has zero failures and 4/4 phylo SD rows with converged fits, `pdHess = TRUE`,
 and finite estimates. This sidecar does not replace a replicated recovery
 grid, does not promote non-Gaussian intervals, coverage, q2/q4 covariance,
-REML, AI-REML, bridge support, `supported`, or public support, and leaves
-`qseries_phylo_interaction_*` rows separate.
+REML, AI-REML, bridge support, `supported`, or public support.
+
+`structured-re-phylo-interaction-count-recovery-smoke-status.tsv` records the
+first local smoke rung for the two exact `phylo_interaction()` non-Gaussian q1
+structured `mu` rows: Poisson and NB2. The artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-28-phylo-interaction-count-recovery-smoke-local/`
+come from a reproducible local script with four replicate seeds, true pair SD
+0.45, and the exact
+`phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`
+formula in `mu`. Each family has zero failures and 4/4 pair-level SD rows with
+converged fits, `pdHess = TRUE`, finite estimates, and ready profile targets.
+This sidecar does not replace a replicated recovery grid, does not promote
+non-Gaussian intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge
+support, additive partner-main support, structured-sigma support, `supported`,
+or public support.
 
 The same q-series support-cell table now includes provider-specific Poisson
 and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,

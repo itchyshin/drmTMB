@@ -435,7 +435,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r74";
+const BUILD = "r75";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -1069,6 +1069,7 @@ function render(data, gates, capabilities, sidecars) {
     ...(sidecars.nongaussianStatusAudit || []),
     ...(sidecars.countInterceptRecoverySmokeStatus || []),
     ...(sidecars.phyloCountInterceptRecoverySmokeStatus || []),
+    ...(sidecars.phyloInteractionCountRecoverySmokeStatus || []),
     ...(sidecars.gaussianLowQStatusAudit || []),
     ...(sidecars.gaussianMuSlopeSmokeStatus || [])
   ];
@@ -1115,6 +1116,7 @@ async function tick() {
       nongaussianStatusAudit: parseTsv(await readText("structured-re-nongaussian-status-audit.tsv")),
       countInterceptRecoverySmokeStatus: parseTsv(await readText("structured-re-count-intercept-recovery-smoke-status.tsv")),
       phyloCountInterceptRecoverySmokeStatus: parseTsv(await readText("structured-re-phylo-count-intercept-recovery-smoke-status.tsv")),
+      phyloInteractionCountRecoverySmokeStatus: parseTsv(await readText("structured-re-phylo-interaction-count-recovery-smoke-status.tsv")),
       gaussianLowQStatusAudit: parseTsv(await readText("structured-re-gaussian-lowq-status-audit.tsv")),
       gaussianMuSlopeSmokeStatus: parseTsv(await readText("structured-re-gaussian-mu-slope-smoke-status.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),

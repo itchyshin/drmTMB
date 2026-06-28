@@ -70631,6 +70631,58 @@ Boundary:
   unsupported.
 
 
+## 2026-06-28: Q-Series phylo_interaction count q1 recovery smoke
+
+Goal:
+
+- Move the two `phylo_interaction()` Poisson/NB2 q1 structured `mu` rows out
+  of the non-Gaussian point-only display and into a local recovery-smoke rung
+  without promoting intervals, coverage, REML, AI-REML, bridge, q2/q4
+  covariance, additive partner-main, structured-sigma, or support claims.
+
+Result:
+
+- Added and ran
+  `docs/dev-log/simulation-artifacts/2026-06-28-phylo-interaction-count-recovery-smoke-local/run-phylo-interaction-count-smoke.R`
+  with four replicate seeds, true pair SD 0.45, and the exact
+  `phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`
+  `mu` formula for Poisson and NB2.
+- Banked manifest, failure, aggregate, replicate, `sessionInfo`, git SHA, and
+  run-log artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-28-phylo-interaction-count-recovery-smoke-local/`.
+- Added `structured-re-phylo-interaction-count-recovery-smoke-status.tsv`, a
+  two-row dashboard sidecar for the exact `phylo_interaction()` Poisson/NB2 q1
+  `mu` support cells.
+- Updated the Q-Series widget so the `NG intercept smoke` card now counts ten
+  rows: six spatial/animal/relmat rows, two phylo rows, and these two
+  `phylo_interaction()` rows. Support-cell statuses remain unchanged.
+- Registered the sidecar in `tools/validate-mission-control.py`; the validator
+  reads the generated manifest, failure, aggregate, and replicate CSVs,
+  verifies exact row membership, and requires each sidecar count to match the
+  artifact counts.
+- Updated the dashboard README and build marker to `r75`.
+
+Evidence:
+
+- Poisson `phylo_interaction()` local smoke: four replicate seeds, zero
+  failures, and 4/4 pair-level SD rows with converged fits, `pdHess = TRUE`,
+  finite estimates, profile target ready, and no boundary warnings.
+- NB2 `phylo_interaction()` local smoke: four replicate seeds, zero failures,
+  and 4/4 pair-level SD rows with converged fits, `pdHess = TRUE`, finite
+  estimates, profile target ready, and no boundary warnings.
+
+Boundary:
+
+- No Q-Series support-cell status changed.
+- This is local recovery smoke only. It is not interval-ready,
+  coverage-ready, `inference_ready`, `supported`, REML, AI-REML, bridge
+  support, q2/q4 count covariance support, additive partner-main support,
+  structured-sigma support, high-q support, or public support.
+- A replicated recovery grid with MCSE and a boundary ledger is still required
+  before any recovery claim. Non-Gaussian intervals and coverage remain
+  unsupported.
+
+
 ## 2026-06-28: Q-Series phylo count q1 intercept recovery smoke
 
 Goal:
