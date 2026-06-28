@@ -165,6 +165,9 @@ STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_EXTENSION = (
 STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE = (
     DASHBOARD / "structured-re-q2-slope-replicated-denominator-rule.tsv"
 )
+STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT = (
+    DASHBOARD / "structured-re-q2-slope-spatial-animal-admission-audit.tsv"
+)
 STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
     DASHBOARD / "structured-re-q2-slope-coverage-pregrid-dry-run.tsv"
 )
@@ -1825,6 +1828,26 @@ STRUCTURED_RE_SIGMA_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
     "wald_finite_summary",
     "wald_coverage_summary",
     "profile_finite_summary",
+    "denominator_status",
+    "admission_status",
+    "widget_state",
+    "linked_interval_status",
+    "linked_coverage_status",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
+    "audit_id",
+    "cell_id",
+    "provider",
+    "endpoint_scope",
+    "source_raw_coverage_artifact",
+    "source_bias_correction_evidence",
+    "source_denominator_rule",
+    "raw_coverage_summary",
+    "bias_correction_status",
     "denominator_status",
     "admission_status",
     "widget_state",
@@ -5823,6 +5846,9 @@ def main() -> int:
     )
     structured_re_q2_slope_replicated_denominator_rule_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE
+    )
+    structured_re_q2_slope_spatial_animal_admission_audit_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT
     )
     structured_re_q2_slope_coverage_pregrid_dry_run_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN
@@ -12421,6 +12447,209 @@ def main() -> int:
             "structured-re-sigma-slope-spatial-animal-admission-audit.tsv "
             "row ids must be "
             + ", ".join(sorted(expected_sigma_admission_audit))
+        )
+
+    # --- structured-re q2-slope spatial/animal admission audit ---
+    # DISPLAY/AUDIT evidence only: these rows prevent the phylo/relmat q2
+    # promotion from being generalized to spatial/animal without row-specific
+    # bias+t coverage and denominator sign-off.
+    expected_q2_admission_audit = {
+        "q2_slope_admission_spatial_mu1_mu2_one_slope": {
+            "cell_id": "qseries_spatial_q2_mu1_mu2_one_slope",
+            "provider": "spatial",
+            "admission_status": "row_specific_bias_t_revalidation_required",
+            "widget_state": "calibration_required",
+            "coverage_targets": {
+                "mu1:x": {
+                    "n_rep": "475",
+                    "n_wald_finite": "475",
+                    "wald_coverage": "0.8968",
+                    "wald_mcse": "0.014",
+                },
+                "mu2:x": {
+                    "n_rep": "475",
+                    "n_wald_finite": "475",
+                    "wald_coverage": "0.8779",
+                    "wald_mcse": "0.015",
+                },
+                "mu1:x+mu2:x": {
+                    "n_rep": "475",
+                    "n_wald_finite": "475",
+                    "wald_coverage": "0.8905",
+                    "wald_mcse": "0.0143",
+                },
+            },
+            "denominator_actions": {
+                "mu1:x": "eligible_for_pregrid_with_retention",
+                "mu2:x": "eligible_for_pregrid_with_retention",
+                "mu1:x+mu2:x": "eligible_for_pregrid_with_retention",
+            },
+            "claim_phrases": (
+                "not inference_ready",
+                "raw Wald/profile coverage under-covers",
+                "no row-specific default bias+t promotion",
+                "range-estimating spatial",
+                "does not promote",
+                "supported",
+            ),
+            "next_gate_phrase": "row-specific spatial q2 default bias+t coverage",
+        },
+        "q2_slope_admission_animal_mu1_mu2_one_slope": {
+            "cell_id": "qseries_animal_q2_mu1_mu2_one_slope",
+            "provider": "animal",
+            "admission_status": "animal_correlation_denominator_holdout",
+            "widget_state": "admission_blocked",
+            "coverage_targets": {
+                "mu1:x": {
+                    "n_rep": "475",
+                    "n_wald_finite": "475",
+                    "wald_coverage": "0.9053",
+                    "wald_mcse": "0.0134",
+                },
+                "mu2:x": {
+                    "n_rep": "475",
+                    "n_wald_finite": "475",
+                    "wald_coverage": "0.88",
+                    "wald_mcse": "0.0149",
+                },
+            },
+            "missing_coverage_targets": ("mu1:x+mu2:x",),
+            "denominator_actions": {
+                "mu1:x": "eligible_for_pregrid_with_retention",
+                "mu2:x": "eligible_for_pregrid_with_retention",
+                "mu1:x+mu2:x": "visible_holdout_until_smoke_profile_reconciled",
+            },
+            "claim_phrases": (
+                "not inference_ready",
+                "raw coverage under-covers",
+                "correlation target has no coverage-grid row",
+                "denominator holdout",
+                "pedigree/Ainv",
+                "does not promote",
+                "supported",
+            ),
+            "next_gate_phrase": "Reconcile animal q2 correlation",
+        },
+    }
+    q2_coverage_by_provider_target = {
+        (row.get("provider"), row.get("target")): row
+        for row in structured_re_slope_coverage_results_rows
+        if row.get("lane") == "q2_slope"
+    }
+    q2_rule_by_provider_target = {
+        (row.get("structured_type"), row.get("endpoint_member")): row
+        for row in structured_re_q2_slope_replicated_denominator_rule_rows
+    }
+    seen_q2_admission_audit_ids: set[str] = set()
+    if len(structured_re_q2_slope_spatial_animal_admission_audit_rows) != 2:
+        errors.append(
+            "structured-re-q2-slope-spatial-animal-admission-audit.tsv: "
+            "expected 2 rows (spatial and animal q2 one-slope)"
+        )
+    for row in structured_re_q2_slope_spatial_animal_admission_audit_rows:
+        row_id = row.get("audit_id", "<q2 spatial/animal admission audit>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-spatial-animal-"
+                "admission-audit.tsv fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_q2_admission_audit_ids:
+            errors.append(f"duplicate q2 admission audit id: {row_id}")
+        seen_q2_admission_audit_ids.add(row_id)
+        expected = expected_q2_admission_audit.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected q2 admission audit row")
+            continue
+        for field in (
+            "cell_id",
+            "provider",
+            "admission_status",
+            "widget_state",
+        ):
+            if row.get(field) != expected[field]:
+                errors.append(f"{row_id}: {field} must be {expected[field]!r}")
+        if row.get("linked_interval_status") != "planned":
+            errors.append(f"{row_id}: linked_interval_status must remain planned")
+        if row.get("linked_coverage_status") != "planned":
+            errors.append(f"{row_id}: linked_coverage_status must remain planned")
+        if row.get("promotion_decision") != "do_not_promote":
+            errors.append(f"{row_id}: promotion_decision must be do_not_promote")
+        for source_field in (
+            "source_raw_coverage_artifact",
+            "source_bias_correction_evidence",
+            "source_denominator_rule",
+            "evidence_url",
+        ):
+            if not evidence_reference_exists(row.get(source_field, "")):
+                errors.append(f"{row_id}: {source_field} does not resolve locally")
+        provider = expected["provider"]
+        for target, target_expected in expected["coverage_targets"].items():
+            coverage_row = q2_coverage_by_provider_target.get((provider, target))
+            if coverage_row is None:
+                errors.append(f"{row_id}: missing q2 coverage row for {provider} {target}")
+                continue
+            for field, value in target_expected.items():
+                if coverage_row.get(field) != value:
+                    errors.append(
+                        f"{row_id}: q2 coverage {target} {field} must be {value}"
+                    )
+            if coverage_row.get("linked_coverage_status") != "planned":
+                errors.append(
+                    f"{row_id}: source q2 coverage row for {target} must stay planned"
+                )
+            if coverage_row.get("coverage_verdict") != "under_nominal_intervals_unreliable":
+                errors.append(
+                    f"{row_id}: source q2 coverage row for {target} must remain negative"
+                )
+        for target in expected.get("missing_coverage_targets", ()):
+            if (provider, target) in q2_coverage_by_provider_target:
+                errors.append(
+                    f"{row_id}: {provider} {target} should remain absent from "
+                    "the q2 coverage grid until the denominator holdout is reconciled"
+                )
+        for target, action in expected["denominator_actions"].items():
+            rule_row = q2_rule_by_provider_target.get((provider, target))
+            if rule_row is None:
+                errors.append(f"{row_id}: missing q2 denominator rule for {provider} {target}")
+                continue
+            if rule_row.get("current_denominator_action") != action:
+                errors.append(
+                    f"{row_id}: q2 denominator action for {target} must be {action}"
+                )
+            if rule_row.get("coverage_evaluable") != "FALSE":
+                errors.append(
+                    f"{row_id}: q2 denominator rule for {target} must not be coverage-evaluable"
+                )
+        linked = qseries_by_cell.get(expected["cell_id"])
+        if linked is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if linked.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked interval_status must remain planned")
+            if linked.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked coverage_status must remain planned")
+            if linked.get("authority_status") == "supported":
+                errors.append(f"{row_id}: linked cell must not be supported")
+        for phrase in expected["claim_phrases"]:
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if expected["next_gate_phrase"] not in row.get("next_gate", ""):
+            errors.append(
+                f"{row_id}: next_gate must mention {expected['next_gate_phrase']!r}"
+            )
+        for required in ("bias+t", "REML", "AI-REML", "q4/q8"):
+            if required not in row.get("claim_boundary", "") + row.get("bias_correction_status", ""):
+                errors.append(f"{row_id}: audit row must name {required}")
+    if seen_q2_admission_audit_ids != set(expected_q2_admission_audit):
+        errors.append(
+            "structured-re-q2-slope-spatial-animal-admission-audit.tsv "
+            "row ids must be "
+            + ", ".join(sorted(expected_q2_admission_audit))
         )
 
     # --- structured-re count-slope recovery-results (local 80-rep recovery) ---
@@ -29607,6 +29836,7 @@ def main() -> int:
         f", {len(structured_re_q2_slope_denominator_admission_rows)} structured RE q2 slope denominator-admission rows"
         f", {len(structured_re_q2_slope_denominator_extension_rows)} structured RE q2 slope denominator-extension rows"
         f", {len(structured_re_q2_slope_replicated_denominator_rule_rows)} structured RE q2 slope replicated-denominator rule rows"
+        f", {len(structured_re_q2_slope_spatial_animal_admission_audit_rows)} structured RE q2 slope spatial/animal admission-audit rows"
         f", {len(structured_re_q2_slope_coverage_pregrid_dry_run_rows)} structured RE q2 slope coverage-pregrid dry-run rows"
         f", {len(structured_re_sigma_slope_replicated_denominator_rule_rows)} structured RE sigma-slope replicated-denominator rule rows"
         f", {len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} structured RE sigma-slope coverage-pregrid dry-run rows"

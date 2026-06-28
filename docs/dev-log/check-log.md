@@ -70279,3 +70279,65 @@ Boundary:
 - No Q-Series support-cell status changed. No range-estimating spatial,
   pedigree/Ainv bridge marshalling, matched `mu+sigma`, q4/q8, REML,
   AI-REML, bridge support, `supported`, or public-support claim is promoted.
+
+
+## 2026-06-28: Q-Series spatial/animal q2 admission audit widget state
+
+Goal:
+
+- Surface why the spatial and animal q2 `mu1+mu2` one-slope support cells do
+  not inherit the phylo/relmat q2 `inference_ready` promotion.
+
+Result:
+
+- Added `structured-re-q2-slope-spatial-animal-admission-audit.tsv`, a two-row
+  blocker ledger for `qseries_spatial_q2_mu1_mu2_one_slope` and
+  `qseries_animal_q2_mu1_mu2_one_slope`.
+- Added a widget state `calibration_required` for the spatial q2 cell and reused
+  `admission_blocked` for the animal q2 cell.
+- Updated the widget to merge sigma and q2 admission audits before rendering
+  the 104-row Q-Series board.
+- Registered the q2 audit in `tools/validate-mission-control.py`; the validator
+  now requires the raw SR475 under-coverage metrics, the missing animal
+  correlation coverage row, the denominator holdout, and the no-promotion
+  boundary.
+- Updated the dashboard README, timestamp, and build marker to `r68`.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok`, including
+  104 structured RE Q-Series cells and 2 structured RE q2 slope spatial/animal
+  admission-audit rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  "devtools::test(filter = 'structured-re-conversion-contracts')"`: passed,
+  `6225 PASS / 0 FAIL / 0 WARN / 0 SKIP`.
+- `tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r68`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-q2-slope-spatial-animal-admission-audit.tsv
+  | wc -l`: returned 3 lines, meaning header plus two audit rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: Q-Series
+  board rendered `calibration required`, `admission blocked`,
+  `qseries_spatial_q2_mu1_mu2_one_slope`, and
+  `qseries_animal_q2_mu1_mu2_one_slope`.
+- `git diff --check`: no whitespace errors.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-28-q-series-spatial-animal-q2-admission-widget.md')"`:
+  after-task structure check passed.
+
+Boundary:
+
+- Spatial q2 `mu1+mu2` one-slope is `calibration_required`, not
+  `inference_ready`, because raw SR475 coverage under-covers and row-specific
+  default bias+t corrected coverage/sign-off has not been banked.
+- Animal q2 `mu1+mu2` one-slope is `admission_blocked`, not
+  `inference_ready`, because the correlation target has no coverage-grid row
+  and remains a replicated-denominator holdout.
+- No Q-Series support-cell status changed. No range-estimating spatial,
+  pedigree/Ainv bridge marshalling, q4/q8, REML, AI-REML, bridge support,
+  `supported`, or public-support claim is promoted.

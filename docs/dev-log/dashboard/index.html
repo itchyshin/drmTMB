@@ -176,7 +176,8 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .fit-supported-baseline, .fit-stable, .stable-fit-baseline,
 .tried-not-inference-ready, .interval-feasible, .point-fit,
 .extractor-ready, .fixture-parity { background: var(--blue-bg); color: var(--blue); }
-.tried-diagnostic, .diagnostic-only, .topup-required { background: var(--gold-bg); color: var(--gold); }
+.tried-diagnostic, .diagnostic-only, .topup-required,
+.calibration-required { background: var(--gold-bg); color: var(--gold); }
 .unsupported-or-blocked, .inference-blocked, .admission-blocked { background: var(--rose-bg); color: var(--rose); }
 .slices { padding: 0 14px 12px 110px; }
 .slice {
@@ -425,7 +426,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r67";
+const BUILD = "r68";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -771,6 +772,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     "fit_supported_baseline",
     "recovery_only",
     "topup_required",
+    "calibration_required",
     "admission_blocked",
     "tried_not_inference_ready",
     "tried_diagnostic",
@@ -792,6 +794,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     ["Fit baseline", stateCounts.fit_supported_baseline || 0, "Supported fit comparators only"],
     ["Recovery-only", stateCounts.recovery_only || 0, "Point recovery, no intervals"],
     ["Top-up needed", stateCounts.topup_required || 0, "Coverage measured, not enough"],
+    ["Calibration needed", stateCounts.calibration_required || 0, "Correction not row-signed"],
     ["Admission blocked", stateCounts.admission_blocked || 0, "Denominator gap first"],
     ["Tried", stateCounts.tried_not_inference_ready || 0, "Fit/fixture/interval work"],
     ["Diagnostic", stateCounts.tried_diagnostic || 0, "Tried but diagnostic-only"],
@@ -841,7 +844,7 @@ function renderQSeriesBoard(rows, inferenceEvidence, countRecovery, admissionAud
     `<div class="qseries-summary">${summary.map(([label, value, note]) =>
       `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
     ).join("")}</div>
-    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, top-up-required, or admission-blocked row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; spatial/animal sigma admission rows show the blocker audit from <code>structured-re-sigma-slope-spatial-animal-admission-audit.tsv</code>; other rows show the support-cell denominator policy.</div>
+    <div class="note">Rows are sorted by evidence state. Fit stability, recovery evidence, admission state, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, top-up-required, calibration-required, or admission-blocked row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; count recovery-only rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>; spatial/animal sigma and q2 admission rows show blocker audits from their admission-audit sidecars; other rows show the support-cell denominator policy.</div>
     <div class="qseries-table">
       <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
       ${table}
@@ -1015,7 +1018,11 @@ function render(data, gates, capabilities, sidecars) {
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
   renderMetrics(data, sidecars);
-  renderQSeriesBoard(sidecars.qSeriesCells || [], sidecars.qSeriesInferenceEvidence || [], sidecars.countSlopeRecoveryResults || [], sidecars.sigmaSlopeSpatialAnimalAdmissionAudit || []);
+  const admissionAudits = [
+    ...(sidecars.sigmaSlopeSpatialAnimalAdmissionAudit || []),
+    ...(sidecars.q2SlopeSpatialAnimalAdmissionAudit || [])
+  ];
+  renderQSeriesBoard(sidecars.qSeriesCells || [], sidecars.qSeriesInferenceEvidence || [], sidecars.countSlopeRecoveryResults || [], admissionAudits);
   renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
@@ -1053,6 +1060,7 @@ async function tick() {
       qSeriesInferenceEvidence: parseTsv(await readText("structured-re-q-series-inference-evidence-summary.tsv")),
       countSlopeRecoveryResults: parseTsv(await readText("structured-re-count-slope-recovery-results.tsv")),
       sigmaSlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-sigma-slope-spatial-animal-admission-audit.tsv")),
+      q2SlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-q2-slope-spatial-animal-admission-audit.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
       finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
       conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),

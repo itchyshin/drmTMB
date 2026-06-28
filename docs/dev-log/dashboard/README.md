@@ -1193,6 +1193,20 @@ table is policy-only: it keeps `coverage_evaluable = FALSE` and does not
 promote interval reliability, calibrated coverage, REML, AI-REML, q4/q8,
 DRAC execution, SR150 readiness, or broad bridge support.
 
+`structured-re-q2-slope-spatial-animal-admission-audit.tsv` records the
+current blocker state for the spatial and animal q2 location one-slope support
+cells. Spatial has SR475 raw coverage for `mu1:x`, `mu2:x`, and
+`mu1:x+mu2:x`, but the raw Wald/Profile intervals under-cover and no
+row-specific default bias+t promotion has been banked for the fixed-covariance
+spatial cell, so the widget marks the cell `calibration_required`. Animal has
+raw coverage for the two SD endpoints, but the `mu1:x+mu2:x` correlation target
+is absent from the coverage grid and remains a replicated-denominator holdout
+after the smoke endpoint-profile failure, so the widget marks the cell
+`admission_blocked`. Both linked support cells keep
+`interval_status = planned` and `coverage_status = planned`; this ledger does
+not promote range-estimating spatial support, pedigree/Ainv bridge marshalling,
+q4/q8, REML, AI-REML, bridge support, `supported`, or public support.
+
 `structured-re-q2-slope-coverage-pregrid-dry-run.tsv` records the executable
 manifest shape for that future q2 slope coverage pre-grid without running any
 coverage fits. It links to a 150-row predeclared seed manifest and a 1500-row
