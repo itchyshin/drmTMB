@@ -194,6 +194,9 @@ STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE = (
 STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT = (
     DASHBOARD / "structured-re-q2-slope-spatial-animal-admission-audit.tsv"
 )
+STRUCTURED_RE_Q2_SLOPE_BIAS_T_COVERAGE_EVIDENCE = (
+    DASHBOARD / "structured-re-q2-slope-bias-t-coverage-evidence.tsv"
+)
 STRUCTURED_RE_HIGH_Q_STATUS_AUDIT = (
     DASHBOARD / "structured-re-high-q-status-audit.tsv"
 )
@@ -1934,6 +1937,31 @@ STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT_FIELDS = (
     "evidence_url",
     "claim_boundary",
     "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_BIAS_T_COVERAGE_EVIDENCE_FIELDS = (
+    "evidence_id",
+    "linked_cell_id",
+    "provider",
+    "endpoint_member",
+    "source_run",
+    "source_artifact",
+    "seed_start",
+    "seed_end",
+    "planned_reps",
+    "n_fit_ok",
+    "n_bc_finite",
+    "n_bc_covered",
+    "bc_coverage",
+    "bc_mcse",
+    "bc_lower_miss",
+    "bc_upper_miss",
+    "n_wald_eval",
+    "n_wald_covered",
+    "wald_coverage",
+    "wald_mcse",
+    "endpoint_status",
+    "promotion_status",
+    "claim_boundary",
 )
 STRUCTURED_RE_HIGH_Q_STATUS_AUDIT_FIELDS = (
     "audit_id",
@@ -6075,6 +6103,9 @@ def main() -> int:
     )
     structured_re_q2_slope_spatial_animal_admission_audit_rows = read_tsv(
         STRUCTURED_RE_Q2_SLOPE_SPATIAL_ANIMAL_ADMISSION_AUDIT
+    )
+    structured_re_q2_slope_bias_t_coverage_evidence_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_BIAS_T_COVERAGE_EVIDENCE
     )
     structured_re_high_q_status_audit_rows = read_tsv(
         STRUCTURED_RE_HIGH_Q_STATUS_AUDIT
@@ -13003,7 +13034,9 @@ def main() -> int:
             "claim_phrases": (
                 "not inference_ready",
                 "raw Wald/profile coverage under-covers",
-                "no row-specific default bias+t promotion",
+                "default bias+t SD-endpoint diagnostics",
+                "mu2:x bias+t remains below nominal",
+                "correlation target",
                 "range-estimating spatial",
                 "does not promote",
                 "supported",
@@ -13038,6 +13071,8 @@ def main() -> int:
             "claim_phrases": (
                 "not inference_ready",
                 "raw coverage under-covers",
+                "default bias+t SD-endpoint diagnostics",
+                "mu2:x bias+t remains borderline",
                 "correlation target has no coverage-grid row",
                 "denominator holdout",
                 "pedigree/Ainv",
@@ -13166,6 +13201,161 @@ def main() -> int:
             "structured-re-q2-slope-spatial-animal-admission-audit.tsv "
             "row ids must be "
             + ", ".join(sorted(expected_q2_admission_audit))
+        )
+
+    # --- structured-re q2-slope bias+t coverage evidence ---
+    # BLOCKER evidence only: these endpoint rows record the spatial/animal q2
+    # default-correction revalidation, but they do not promote the linked row.
+    expected_q2_bias_t_evidence = {
+        "q2_slope_bias_t_spatial_mu1_x": {
+            "linked_cell_id": "qseries_spatial_q2_mu1_mu2_one_slope",
+            "provider": "spatial",
+            "endpoint_member": "mu1:x",
+            "n_bc_covered": "459",
+            "bc_coverage": "0.9663",
+            "bc_mcse": "0.0083",
+            "bc_lower_miss": "5",
+            "bc_upper_miss": "11",
+            "n_wald_covered": "426",
+            "wald_coverage": "0.8968",
+            "wald_mcse": "0.0140",
+            "endpoint_status": "bias_t_near_nominal_but_row_blocked",
+            "provider_phrase": "range-estimating spatial",
+        },
+        "q2_slope_bias_t_spatial_mu2_x": {
+            "linked_cell_id": "qseries_spatial_q2_mu1_mu2_one_slope",
+            "provider": "spatial",
+            "endpoint_member": "mu2:x",
+            "n_bc_covered": "447",
+            "bc_coverage": "0.9411",
+            "bc_mcse": "0.0108",
+            "bc_lower_miss": "4",
+            "bc_upper_miss": "24",
+            "n_wald_covered": "417",
+            "wald_coverage": "0.8779",
+            "wald_mcse": "0.0150",
+            "endpoint_status": "bias_t_below_nominal_mcse_over_gate",
+            "provider_phrase": "range-estimating spatial",
+        },
+        "q2_slope_bias_t_animal_mu1_x": {
+            "linked_cell_id": "qseries_animal_q2_mu1_mu2_one_slope",
+            "provider": "animal",
+            "endpoint_member": "mu1:x",
+            "n_bc_covered": "459",
+            "bc_coverage": "0.9663",
+            "bc_mcse": "0.0083",
+            "bc_lower_miss": "6",
+            "bc_upper_miss": "10",
+            "n_wald_covered": "430",
+            "wald_coverage": "0.9053",
+            "wald_mcse": "0.0134",
+            "endpoint_status": "bias_t_near_nominal_but_row_blocked",
+            "provider_phrase": "pedigree/Ainv",
+        },
+        "q2_slope_bias_t_animal_mu2_x": {
+            "linked_cell_id": "qseries_animal_q2_mu1_mu2_one_slope",
+            "provider": "animal",
+            "endpoint_member": "mu2:x",
+            "n_bc_covered": "450",
+            "bc_coverage": "0.9474",
+            "bc_mcse": "0.0102",
+            "bc_lower_miss": "6",
+            "bc_upper_miss": "19",
+            "n_wald_covered": "418",
+            "wald_coverage": "0.8800",
+            "wald_mcse": "0.0149",
+            "endpoint_status": "bias_t_borderline_mcse_over_gate",
+            "provider_phrase": "pedigree/Ainv",
+        },
+    }
+    seen_q2_bias_t_evidence_ids: set[str] = set()
+    if len(structured_re_q2_slope_bias_t_coverage_evidence_rows) != 4:
+        errors.append(
+            "structured-re-q2-slope-bias-t-coverage-evidence.tsv: "
+            "expected 4 endpoint rows (spatial/animal x mu1:x/mu2:x)"
+        )
+    for row in structured_re_q2_slope_bias_t_coverage_evidence_rows:
+        row_id = row.get("evidence_id", "<q2 bias+t evidence row>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_BIAS_T_COVERAGE_EVIDENCE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-bias-t-coverage-evidence.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_BIAS_T_COVERAGE_EVIDENCE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_q2_bias_t_evidence_ids:
+            errors.append(f"duplicate q2 bias+t evidence id: {row_id}")
+        seen_q2_bias_t_evidence_ids.add(row_id)
+        expected = expected_q2_bias_t_evidence.get(row_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected q2 bias+t evidence row")
+            continue
+        exact_values = {
+            "linked_cell_id": expected["linked_cell_id"],
+            "provider": expected["provider"],
+            "endpoint_member": expected["endpoint_member"],
+            "source_run": "local_sr475_spatial_animal_bias_t_revalidation",
+            "source_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-27-bias-corrected-engine-coverage-g8-spatial-animal/"
+                "replicates.tsv"
+            ),
+            "seed_start": "730001",
+            "seed_end": "730475",
+            "planned_reps": "475",
+            "n_fit_ok": "475",
+            "n_bc_finite": "475",
+            "n_bc_covered": expected["n_bc_covered"],
+            "bc_coverage": expected["bc_coverage"],
+            "bc_mcse": expected["bc_mcse"],
+            "bc_lower_miss": expected["bc_lower_miss"],
+            "bc_upper_miss": expected["bc_upper_miss"],
+            "n_wald_eval": "475",
+            "n_wald_covered": expected["n_wald_covered"],
+            "wald_coverage": expected["wald_coverage"],
+            "wald_mcse": expected["wald_mcse"],
+            "endpoint_status": expected["endpoint_status"],
+            "promotion_status": "block_row_promotion",
+        }
+        for field, expected_value in exact_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value!r}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        linked = qseries_by_cell.get(row.get("linked_cell_id", ""))
+        if linked is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            for field, expected_value in {
+                "interval_status": "planned",
+                "coverage_status": "planned",
+            }.items():
+                if linked.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked {field} must remain {expected_value}"
+                    )
+            if linked.get("authority_status") == "supported":
+                errors.append(f"{row_id}: linked cell must not be supported")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "SD-endpoint-only",
+            "not inference_ready",
+            "not supported",
+            "correlation target",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "bridge",
+            "public support",
+            expected["provider_phrase"],
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+    if seen_q2_bias_t_evidence_ids != set(expected_q2_bias_t_evidence):
+        errors.append(
+            "structured-re-q2-slope-bias-t-coverage-evidence.tsv row ids must be "
+            + ", ".join(sorted(expected_q2_bias_t_evidence))
         )
 
     # --- structured-re high-q status audit ---
@@ -14628,6 +14818,29 @@ def main() -> int:
         elif _planned_field_violation(linked, "coverage_status"):
             errors.append(
                 f"{row_id}: linked cell coverage_status must still be 'planned'"
+            )
+        try:
+            pdhess_false = int(row.get("pdhess_false", ""))
+        except ValueError:
+            errors.append(f"{row_id}: pdhess_false must be an integer")
+            pdhess_false = None
+        claim_boundary = row.get("claim_boundary", "")
+        if pdhess_false is not None and pdhess_false > 0:
+            if "pdHess clean" in claim_boundary:
+                errors.append(
+                    f"{row_id}: claim_boundary must not say pdHess clean "
+                    "when pdhess_false > 0"
+                )
+            for phrase in ("pdHess false", "Hessian caveat"):
+                if phrase not in claim_boundary:
+                    errors.append(
+                        f"{row_id}: claim_boundary must mention {phrase!r} "
+                        "when pdhess_false > 0"
+                    )
+        elif pdhess_false == 0 and "pdHess clean" not in claim_boundary:
+            errors.append(
+                f"{row_id}: zero-pdHess-false recovery rows should keep "
+                "the pdHess clean claim explicit"
             )
 
     # --- structured-re slope coverage g-sweep (DIAGNOSTIC; promotes nothing) ---
@@ -31783,6 +31996,7 @@ def main() -> int:
         f", {len(structured_re_q2_slope_denominator_extension_rows)} structured RE q2 slope denominator-extension rows"
         f", {len(structured_re_q2_slope_replicated_denominator_rule_rows)} structured RE q2 slope replicated-denominator rule rows"
         f", {len(structured_re_q2_slope_spatial_animal_admission_audit_rows)} structured RE q2 slope spatial/animal admission-audit rows"
+        f", {len(structured_re_q2_slope_bias_t_coverage_evidence_rows)} structured RE q2 slope bias+t coverage-evidence rows"
         f", {len(structured_re_q2_slope_coverage_pregrid_dry_run_rows)} structured RE q2 slope coverage-pregrid dry-run rows"
         f", {len(structured_re_sigma_slope_replicated_denominator_rule_rows)} structured RE sigma-slope replicated-denominator rule rows"
         f", {len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} structured RE sigma-slope coverage-pregrid dry-run rows"

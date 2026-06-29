@@ -3353,6 +3353,76 @@ test_that("count structured relmat NB2 local micro-shard stays diagnostic", {
   expect_match(run_log$claim_boundary, "no AI-REML", fixed = TRUE)
 })
 
+test_that("count slope recovery results keep pdHess caveats row-specific", {
+  recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-results.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    recovery,
+    c(
+      "recovery_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "n_rep",
+      "fit_ok",
+      "nonconverged",
+      "pdhess_false",
+      "finite_estimate_rows",
+      "true_sd_mu_x",
+      "mean_sd_mu_x",
+      "bias_sd_mu_x",
+      "rmse_sd_mu_x",
+      "true_sd_mu_intercept",
+      "mean_sd_mu_intercept",
+      "bias_sd_mu_intercept",
+      "recovery_verdict",
+      "linked_cell_id",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary"
+    )
+  )
+  expect_equal(nrow(recovery), 8L)
+  expect_equal(recovery$n_rep, rep(80L, 8L))
+  expect_equal(recovery$fit_ok, rep(80L, 8L))
+  expect_equal(recovery$nonconverged, rep(0L, 8L))
+  expect_equal(recovery$finite_estimate_rows, rep(80L, 8L))
+  expect_equal(recovery$linked_coverage_status, rep("planned", 8L))
+  structured_re_expect_all_match(recovery$claim_boundary, "RECOVERY evidence only")
+  structured_re_expect_all_match(recovery$claim_boundary, "does NOT promote supported")
+  structured_re_expect_all_match(recovery$claim_boundary, "REML")
+  structured_re_expect_all_match(recovery$claim_boundary, "AI-REML")
+
+  hessian_caveat <- recovery[recovery$pdhess_false > 0L, , drop = FALSE]
+  expect_equal(nrow(hessian_caveat), 1L)
+  expect_equal(
+    hessian_caveat$recovery_id,
+    "recov_spatial_nbinom2_q1_mu_one_slope"
+  )
+  expect_equal(hessian_caveat$pdhess_false, 2L)
+  expect_match(hessian_caveat$claim_boundary, "pdHess false", fixed = TRUE)
+  expect_match(hessian_caveat$claim_boundary, "Hessian caveat", fixed = TRUE)
+  expect_false(grepl("pdHess clean", hessian_caveat$claim_boundary, fixed = TRUE))
+
+  clean <- recovery[recovery$pdhess_false == 0L, , drop = FALSE]
+  expect_equal(nrow(clean), 7L)
+  structured_re_expect_all_match(clean$claim_boundary, "pdHess clean")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% recovery$linked_cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 8L)
+  expect_equal(qseries_status$interval_status, rep("unsupported", 8L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 8L))
+})
+
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
@@ -5429,6 +5499,128 @@ test_that("q2 slope-only denominator extension remains diagnostic-only", {
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
+  )
+})
+
+test_that("q2 spatial/animal bias+t evidence blocks row promotion", {
+  evidence <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-bias-t-coverage-evidence.tsv"
+  )
+  admission <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-spatial-animal-admission-audit.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    evidence,
+    c(
+      "evidence_id",
+      "linked_cell_id",
+      "provider",
+      "endpoint_member",
+      "source_run",
+      "source_artifact",
+      "seed_start",
+      "seed_end",
+      "planned_reps",
+      "n_fit_ok",
+      "n_bc_finite",
+      "n_bc_covered",
+      "bc_coverage",
+      "bc_mcse",
+      "bc_lower_miss",
+      "bc_upper_miss",
+      "n_wald_eval",
+      "n_wald_covered",
+      "wald_coverage",
+      "wald_mcse",
+      "endpoint_status",
+      "promotion_status",
+      "claim_boundary"
+    )
+  )
+  expect_equal(nrow(evidence), 4L)
+  expect_equal(evidence$source_run, rep("local_sr475_spatial_animal_bias_t_revalidation", 4L))
+  expect_equal(evidence$seed_start, rep(730001L, 4L))
+  expect_equal(evidence$seed_end, rep(730475L, 4L))
+  expect_equal(evidence$planned_reps, rep(475L, 4L))
+  expect_equal(evidence$n_fit_ok, rep(475L, 4L))
+  expect_equal(evidence$n_bc_finite, rep(475L, 4L))
+  expect_equal(evidence$n_wald_eval, rep(475L, 4L))
+  expect_equal(evidence$promotion_status, rep("block_row_promotion", 4L))
+
+  key <- paste(evidence$provider, evidence$endpoint_member)
+  expect_equal(
+    evidence$n_bc_covered[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(459L, 447L, 459L, 450L)
+  )
+  expect_equal(
+    evidence$bc_coverage[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(0.9663, 0.9411, 0.9663, 0.9474)
+  )
+  expect_equal(
+    evidence$bc_mcse[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(0.0083, 0.0108, 0.0083, 0.0102)
+  )
+  expect_equal(
+    evidence$bc_upper_miss[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(11L, 24L, 10L, 19L)
+  )
+  expect_equal(
+    evidence$wald_coverage[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(0.8968, 0.8779, 0.9053, 0.8800)
+  )
+  structured_re_expect_all_match(evidence$claim_boundary, "SD-endpoint-only")
+  structured_re_expect_all_match(evidence$claim_boundary, "not inference_ready")
+  structured_re_expect_all_match(evidence$claim_boundary, "not supported")
+  structured_re_expect_all_match(evidence$claim_boundary, "q4/q8")
+  structured_re_expect_all_match(evidence$claim_boundary, "REML")
+  structured_re_expect_all_match(evidence$claim_boundary, "AI-REML")
+
+  spatial <- evidence[evidence$provider == "spatial", , drop = FALSE]
+  animal <- evidence[evidence$provider == "animal", , drop = FALSE]
+  structured_re_expect_all_match(spatial$claim_boundary, "range-estimating spatial")
+  structured_re_expect_all_match(animal$claim_boundary, "pedigree/Ainv")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% evidence$linked_cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 2L)
+  expect_equal(qseries_status$interval_status, rep("planned", 2L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 2L))
+
+  admission_status <- admission[
+    admission$cell_id %in% evidence$linked_cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(admission_status), 2L)
+  expect_equal(
+    admission_status$evidence_url,
+    rep("docs/dev-log/dashboard/structured-re-q2-slope-bias-t-coverage-evidence.tsv", 2L)
+  )
+  structured_re_expect_all_match(
+    admission_status$claim_boundary,
+    "not inference_ready"
   )
 })
 

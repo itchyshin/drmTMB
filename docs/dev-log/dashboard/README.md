@@ -342,16 +342,19 @@ these rows with the more specific `non_gaussian_recovery_only` row state from
 `structured-re-nongaussian-status-audit.tsv`; the recovery metrics still come
 from this recovery-results sidecar. They have point and recovery evidence, but
 `interval_status = unsupported`, `coverage_status = planned`, and no
-`supported` claim.
+`supported` claim. The fixed-covariance spatial NB2 row is not `pdHess` clean:
+it records 80/80 fit_ok and finite estimates, but 2/80 `pdHess = FALSE`, so
+the row carries a Hessian caveat and remains recovery-only.
 
 `structured-re-count-slope-fixture-recovery-contract.tsv` records the next
-evidence gate for those eight ordinary count one-slope cells. It ties each
+evidence contract for those eight ordinary count one-slope cells. It ties each
 Poisson/NB2 provider row to the existing native TMB ML/Laplace point-fit and
-extractor evidence, while keeping calibrated recovery `designed_not_run`. The
-native deterministic fixture step is now `native_fixture_banked`; this is not
-bridge parity. It does not promote bridge support, intervals, coverage, REML,
-AI-REML, q2/q4 count covariance, public support, labelled or multiple count
-slopes, structured count scale routes, or zero-inflated structured effects.
+extractor evidence, while the current 80-rep recovery metrics now live in
+`structured-re-count-slope-recovery-results.tsv`. The native deterministic
+fixture step is now `native_fixture_banked`; this is not bridge parity. It does
+not promote bridge support, intervals, coverage, REML, AI-REML, q2/q4 count
+covariance, public support, labelled or multiple count slopes, structured count
+scale routes, or zero-inflated structured effects.
 
 `structured-re-count-slope-native-fixture-status.tsv` records the eight exact
 native-only deterministic fixture rows behind that status. Each row cites
@@ -362,12 +365,12 @@ public support still separate gates.
 
 `structured-re-count-slope-recovery-runner-contract.tsv` records the dry-run
 runner contract for the same eight ordinary count one-slope cells. It is a
-selected manifest and run-log contract only: no recovery simulation has been
-executed, no Totoro or DRAC job has been submitted, and the rows are not
-coverage-evaluable denominator evidence. The contract preserves fit-error,
-nonconvergence, `pdHess`, boundary-warning, nonfinite-estimate, seed/provider,
-and scheduler-exit retention requirements before any recovery or
-public-support wording can move.
+selected manifest and run-log contract only; it is superseded as recovery
+evidence by the local 80-rep recovery-results sidecar, and no Totoro or DRAC job
+has been submitted. The rows are not coverage-evaluable denominator evidence.
+The contract preserves fit-error, nonconvergence, `pdHess`, boundary-warning,
+nonfinite-estimate, seed/provider, and scheduler-exit retention requirements
+before any public-support wording can move.
 
 `structured-re-count-slope-recovery-dispatch-review.tsv` records the
 provider/family dispatch preflight for those runner rows. It names shard
@@ -1322,13 +1325,15 @@ DRAC execution, SR150 readiness, or broad bridge support.
 `structured-re-q2-slope-spatial-animal-admission-audit.tsv` records the
 current blocker state for the spatial and animal q2 location one-slope support
 cells. Spatial has SR475 raw coverage for `mu1:x`, `mu2:x`, and
-`mu1:x+mu2:x`, but the raw Wald/Profile intervals under-cover and no
-row-specific default bias+t promotion has been banked for the fixed-covariance
-spatial cell, so the widget marks the cell `calibration_required`. Animal has
-raw coverage for the two SD endpoints, but the `mu1:x+mu2:x` correlation target
-is absent from the coverage grid and remains a replicated-denominator holdout
-after the smoke endpoint-profile failure, so the widget marks the cell
-`admission_blocked`. Both linked support cells keep
+`mu1:x+mu2:x`, but the raw Wald/Profile intervals under-cover. The companion
+`structured-re-q2-slope-bias-t-coverage-evidence.tsv` sidecar records the
+SR475 default bias+t SD-endpoint revalidation: spatial `mu2:x` remains below
+nominal at 0.9411 with MCSE 0.0108 and 24 upper-tail misses, so the widget
+marks the cell `calibration_required`. Animal has raw coverage for the two SD
+endpoints and bias+t endpoint revalidation, but `mu2:x` remains borderline at
+0.9474 with MCSE 0.0102 and the `mu1:x+mu2:x` correlation target is absent from
+the coverage grid after the replicated-denominator holdout, so the widget marks
+the cell `admission_blocked`. Both linked support cells keep
 `interval_status = planned` and `coverage_status = planned`; this ledger does
 not promote range-estimating spatial support, pedigree/Ainv bridge marshalling,
 q4/q8, REML, AI-REML, bridge support, `supported`, or public support.

@@ -70882,3 +70882,64 @@ Boundary:
 - Profile intervals remain diagnostic-only at deployment g=8: finite rates are
   891/1000 for `sigma:(Intercept)` and 726/1000 for `sigma:x`.
 - The location-axis bias+t correction does not apply to sigma.
+
+
+## 2026-06-28: Q-Series evidence hygiene blockers for q2 and count recovery
+
+Goal:
+
+- Make the Q-Series widget and validator sharper without promoting any new
+  rows: count recovery must keep Hessian caveats row-specific, and spatial/
+  animal q2 bias+t endpoint evidence must remain blocker evidence until the
+  row-level gates pass.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-slope-bias-t-coverage-evidence.tsv`
+  with four SR475 endpoint rows for spatial/animal q2 `mu1:x` and `mu2:x`.
+- Updated the spatial/animal q2 admission audit so it cites the measured
+  default bias+t endpoint evidence while keeping both rows at
+  `interval_status = planned` and `coverage_status = planned`.
+- Fixed the spatial NB2 count recovery claim boundary: it has 80/80 fit_ok and
+  finite estimates, but 2/80 `pdHess = FALSE`, so it now carries a Hessian
+  caveat instead of a `pdHess clean` claim.
+- Added mission-control and testthat guards so positive `pdhess_false` rows
+  cannot claim `pdHess clean`, and the q2 endpoint sidecar cannot promote the
+  linked support rows.
+- Bumped the dashboard widget build to `r79`.
+
+Evidence:
+
+- Spatial q2 `mu1:x`: bias+t 459/475 = 0.9663, MCSE 0.0083, misses 5 lower /
+  11 upper; raw Wald 426/475 = 0.8968.
+- Spatial q2 `mu2:x`: bias+t 447/475 = 0.9411, MCSE 0.0108, misses 4 lower /
+  24 upper; raw Wald 417/475 = 0.8779.
+- Animal q2 `mu1:x`: bias+t 459/475 = 0.9663, MCSE 0.0083, misses 6 lower /
+  10 upper; raw Wald 430/475 = 0.9053.
+- Animal q2 `mu2:x`: bias+t 450/475 = 0.9474, MCSE 0.0102, misses 6 lower /
+  19 upper; raw Wald 418/475 = 0.8800.
+
+Boundary:
+
+- No support-cell row moved to `inference_ready` or `supported`.
+- The q2 sidecar is SD-endpoint-only evidence; it does not promote the q2
+  correlation target, range-estimating spatial support, pedigree/Ainv bridge
+  marshalling, q4/q8, REML, AI-REML, bridge support, or public support.
+- Non-Gaussian count rows remain recovery-only or unsupported; no interval or
+  coverage claim moved.
+
+Validation:
+
+- `python3 tools/validate-mission-control.py`: passed with
+  `mission_control_ok`, including 104 Q-Series cells, five
+  inference-evidence summary rows, eight count-slope recovery-result rows, and
+  four q2 bias+t coverage-evidence rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6278 PASS /
+  0 FAIL.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test()'`: 19657 PASS / 0 FAIL / 17 warnings / 43 skips.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::check()'`: 0 errors / 0 warnings / 0 notes.

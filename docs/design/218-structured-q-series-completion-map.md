@@ -137,14 +137,18 @@ The current table records these broad facts without promoting beyond them:
   `phylo()` plus `poisson()`, `phylo()` plus `nbinom2()`,
   fixed-covariance `spatial()` plus `poisson()`, and fixed-covariance
   `spatial()` plus `nbinom2()` q1 `mu` one-slope cells for four seeds each,
-  with four converged `pdHess = TRUE` point fits per cell. The NB2 rows keep
-  `sigma` as fixed-effect overdispersion only, and the spatial rows keep
-  range-estimating spatial support closed. These rows are local smoke evidence
-  only: they do not create a coverage-evaluable denominator, MCSE-calibrated
-  recovery evidence, interval reliability, bridge parity, Totoro/DRAC execution
-  evidence, REML, AI-REML, public support, structured count `sigma`, labelled
-  or multiple count slopes, zero-inflated structure, or neighbouring count
-  support.
+  with four converged `pdHess = TRUE` point fits per cell. The later local
+  80-rep recovery grid covers all eight ordinary Poisson/NB2 provider rows:
+  it records convergence, finite estimates, SD bias/RMSE, and recovery-only
+  status. The fixed-covariance spatial NB2 row has 80/80 fit_ok and finite
+  estimates but 2/80 `pdHess = FALSE`, so it carries a Hessian caveat rather
+  than a clean-Hessian claim. The NB2 rows keep `sigma` as fixed-effect
+  overdispersion only, and the spatial rows keep range-estimating spatial
+  support closed. These rows are recovery evidence only: they do not create a
+  coverage-evaluable denominator, interval reliability, coverage, bridge
+  parity, Totoro/DRAC execution evidence, REML, AI-REML, public support,
+  structured count `sigma`, labelled or multiple count slopes,
+  zero-inflated structure, or neighbouring count support.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -254,11 +258,13 @@ PROFILE channel at adequate g.**
    asymmetry and g-dependence. The sigma/dispersion SDs already over-cover, so
    the centre shift is not applied to them by default.
 
-The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
-q4-location "walls" are small-sample artifacts: profile coverage reaches
-certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
-evaporates (phylo 48.6% -> 5.0%, relmat 22.9% -> 0.0%) by g=32, with the eight
-certified cells passing the interval-reliability rung via the profile channel.
+The g-sweep capstone and interval-reliability rung show that some
+slope/sigma/q2/q4-location numerical walls relax at larger g: profile coverage
+reaches certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess
+fragility is much lower by g=32 in the diagnostic runs. This is not a q4/q8
+promotion. q4 remains diagnostic-only until denominator admission, finite
+direct-SD intervals, derived-correlation interval machinery, and retained
+coverage denominators pass row-specific gates; q8 remains stability-first.
 
 ### Decision executed (2026-06-27): four cells promoted to `interval_feasible`
 
@@ -559,6 +565,19 @@ intervals, record bootstrap-refit attempts, and satisfy MCSE <= 0.01 before
 coverage wording can move. The rule itself keeps `coverage_evaluable = FALSE`;
 it is not coverage evidence and it does not move q2 interval, coverage, REML,
 AI-REML, q4/q8, or public support status.
+
+`structured-re-q2-slope-spatial-animal-admission-audit.tsv` and
+`structured-re-q2-slope-bias-t-coverage-evidence.tsv` record the row-specific
+spatial/animal q2 blocker state after the default bias+t correction. Spatial
+has measured SR475 bias+t SD-endpoint evidence, but `mu2:x` remains below
+nominal at 0.9411 with MCSE 0.0108 and 24 upper-tail misses, and the
+endpoint-only sidecar does not promote the correlation target. Animal has
+measured SR475 bias+t SD-endpoint evidence, but `mu2:x` remains borderline at
+0.9474 with MCSE 0.0102 and the correlation target has no coverage-grid row
+after the denominator holdout. These rows stay `planned` for interval and
+coverage status; no range-estimating spatial, pedigree/Ainv bridge
+marshalling, q4/q8, REML, AI-REML, bridge, `supported`, or public-support
+claim moves.
 
 `structured-re-q2-slope-coverage-pregrid-dry-run.tsv` records the next
 execution-planning layer without running any coverage fits. It writes a
