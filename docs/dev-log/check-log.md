@@ -70943,3 +70943,61 @@ Validation:
   'devtools::test()'`: 19657 PASS / 0 FAIL / 17 warnings / 43 skips.
 - `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
   'devtools::check()'`: 0 errors / 0 warnings / 0 notes.
+
+
+## 2026-06-29: Q-Series non-Gaussian smoke ledger reconciliation
+
+Goal:
+
+- Make the main non-Gaussian Q-Series audit ledger agree with the ten
+  count-intercept / `phylo_interaction()` local recovery-smoke sidecar rows
+  already shown in the widget, without promoting support-cell status.
+
+Result:
+
+- Updated the ten exact non-Gaussian q1 count `mu` intercept-style audit rows
+  from `non_gaussian_point_only` to
+  `non_gaussian_intercept_recovery_smoke`.
+- The ten rows are two `phylo_interaction()` Poisson/NB2 rows, two phylo
+  Poisson/NB2 intercept rows, and six spatial/animal/relmat Poisson/NB2
+  intercept rows.
+- Updated `tools/validate-mission-control.py` so the expected non-Gaussian
+  audit split is now 10 intercept-smoke rows, eight recovery-only rows,
+  eighteen rejected rows, and one planned row.
+- Added a focused testthat guard tying the main non-Gaussian audit to the
+  three local smoke sidecars.
+- Updated the dashboard README and bumped the mission-control widget build to
+  `r80`.
+
+Boundary:
+
+- No Q-Series support-cell row changed.
+- The smoke rows remain local recovery smoke only. They are not
+  interval-ready, coverage-ready, `inference_ready`, `supported`, REML,
+  AI-REML, bridge support, q2/q4 count covariance support, q4/q8 support, or
+  public support.
+
+Validation:
+
+- `python3 tools/validate-mission-control.py`: passed with
+  `mission_control_ok`, including 104 Q-Series cells, 37 non-Gaussian
+  status-audit rows, six count-intercept recovery-smoke rows, two phylo
+  count-intercept recovery-smoke rows, and two phylo-interaction count
+  recovery-smoke rows.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `sed -n '/<script>/,/<\\/script>/p' docs/dev-log/dashboard/index.html | sed
+  '1d;$d' | node --check -`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6288 PASS /
+  0 FAIL.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-nongaussian-smoke-ledger-reconciliation.md')"`:
+  after-task structure check passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test()'`: 19667 PASS / 0 FAIL / 17 warnings / 43 skips.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::check()'`: 0 errors / 0 warnings / 0 notes.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'pkgdown::check_pkgdown()'`: no problems found.

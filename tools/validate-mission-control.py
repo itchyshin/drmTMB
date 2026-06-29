@@ -13502,7 +13502,7 @@ def main() -> int:
     # and no coverage/support wording is promoted.
     expected_nongaussian_state_counts = {
         "non_gaussian_recovery_only": 8,
-        "non_gaussian_point_only": 10,
+        "non_gaussian_intercept_recovery_smoke": 10,
         "non_gaussian_rejected": 18,
         "non_gaussian_planned": 1,
     }
@@ -13534,6 +13534,20 @@ def main() -> int:
     seen_nongaussian_cell_ids: set[str] = set()
     nongaussian_state_counts: dict[str, int] = {}
     nongaussian_family_counts: dict[str, int] = {}
+    nongaussian_intercept_smoke_cell_ids = {
+        row.get("cell_id", "")
+        for row in structured_re_count_intercept_recovery_smoke_status_rows
+    } | {
+        row.get("cell_id", "")
+        for row in structured_re_phylo_count_intercept_recovery_smoke_status_rows
+    } | {
+        row.get("cell_id", "")
+        for row in structured_re_phylo_interaction_count_recovery_smoke_status_rows
+    }
+    if len(nongaussian_intercept_smoke_cell_ids) != 10:
+        errors.append(
+            "non-Gaussian intercept smoke sidecars must cover exactly 10 cells"
+        )
     for row in structured_re_nongaussian_status_audit_rows:
         row_id = row.get("audit_id", "<non-Gaussian status audit>")
         cell_id = row.get("cell_id", "")
@@ -13581,6 +13595,8 @@ def main() -> int:
             expected_widget_state = "non_gaussian_rejected"
         elif cell_id == "qseries_nongaussian_structured_slope_neighbors_planned":
             expected_widget_state = "non_gaussian_planned"
+        elif cell_id in nongaussian_intercept_smoke_cell_ids:
+            expected_widget_state = "non_gaussian_intercept_recovery_smoke"
         elif (
             support_row.get("slope_class") == "independent_one_slope"
             and support_row.get("endpoint_set") == "mu"
@@ -13616,6 +13632,21 @@ def main() -> int:
                 for recovery in structured_re_count_slope_recovery_results_rows
             }:
                 errors.append(f"{row_id}: recovery row lacks a recovery-results match")
+        if row.get("widget_state") == "non_gaussian_intercept_recovery_smoke":
+            if "local recovery-smoke sidecar evidence only" not in row.get("evidence_basis", ""):
+                errors.append(
+                    f"{row_id}: intercept smoke row must cite local recovery-smoke sidecar evidence only"
+                )
+            if cell_id not in nongaussian_intercept_smoke_cell_ids:
+                errors.append(f"{row_id}: intercept smoke row lacks a smoke sidecar match")
+            if "local recovery smoke only" not in row.get("claim_boundary", ""):
+                errors.append(
+                    f"{row_id}: intercept smoke claim_boundary must say local recovery smoke only"
+                )
+            if "replicated recovery grid" not in row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: intercept smoke next_gate must require a replicated recovery grid"
+                )
         if row.get("widget_state") == "non_gaussian_rejected" and support_row.get("fit_status") != "unsupported":
             errors.append(f"{row_id}: rejected widget row must link to unsupported fit")
     if seen_nongaussian_cell_ids != nongaussian_cell_ids:

@@ -212,8 +212,8 @@ has been banked, and it joins q4/q6/q8 rows to
 q8 stability-blocked, and high-q planned states are visible separately from
 inference readiness. It also joins all non-Gaussian rows to
 `structured-re-nongaussian-status-audit.tsv` so count recovery-only,
-point-only, rejected, and planned family-design rows are visible separately
-from Gaussian interval claims. It also joins the remaining Gaussian low-q rows
+count-intercept smoke, rejected, and planned family-design rows are visible
+separately from Gaussian interval claims. It also joins the remaining Gaussian low-q rows
 to `structured-re-gaussian-lowq-status-audit.tsv` so ordinary baselines,
 point/fixture gates, diagnostic-only rows, and rejection-contract rows no
 longer collapse into a generic tried bucket. Four Gaussian q1 `mu` one-slope
@@ -271,9 +271,9 @@ support. A replicated interval/coverage denominator grid remains the next gate.
 
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
 the 37 non-Gaussian Q-Series cells. It assigns eight Poisson/NB2 count
-one-slope rows to `non_gaussian_recovery_only`, ten count or
-`phylo_interaction()` point-fit rows to `non_gaussian_point_only`, eighteen
-intentional rejection rows to `non_gaussian_rejected`, and one broader
+one-slope rows to `non_gaussian_recovery_only`, ten count-intercept or
+`phylo_interaction()` smoke rows to `non_gaussian_intercept_recovery_smoke`,
+eighteen intentional rejection rows to `non_gaussian_rejected`, and one broader
 family-design row to `non_gaussian_planned`. The table preserves the current
 family distribution: 14 Poisson rows, 15 NB2 rows, two Student rows, two beta
 rows, and one row each for Gamma, cumulative-logit, truncated-NB2, and the
