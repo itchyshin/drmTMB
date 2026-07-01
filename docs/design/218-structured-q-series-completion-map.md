@@ -1127,6 +1127,29 @@ The efficient completion order is:
    partial location-scale, or broader q8 status moves. Banked in the same draft
    PR before compute review: shard-safe provider dry-runs write private
    manifest/log filenames and leave the 16-row dashboard contract unchanged.
+21a. Banked in the Tranche 3 q4-admission slice: add the no-promotion
+   q4 admission-denominator contract, the 14-row admission-review synthesis,
+   and the exact 16-row q4 location target-admission map. The target map links
+   each direct-SD provider/endpoint member to its `profile_targets()` name,
+   dispatch-plan row, interval-diagnostic row, and SR475 retained-denominator
+   source row. All q4 location targets remain
+   `not_admitted_cell_pdhess_below_threshold`; all rows remain
+   `coverage_not_authorized` and `do_not_promote`. This records admission
+   blockers only; no Totoro, DRAC, Fir, Nibi, or Rorqual job has been launched
+   and no denominator, interval-reliability, coverage, `inference_ready`,
+   `supported`, REML, AI-REML, q8 inference, derived-correlation interval,
+   bridge, public-support, Q precision, K/Q parity, partial location-scale, or
+   broader q8 status moves.
+21b. Closed in the Tranche 3 q4-admission slice: add the seven-row
+   source-linked q4 admission closure audit. It rechecks the clean Tranche 2
+   support-cell invariants, records high-q no-promotion orientation, freezes
+   the q4 denominator contract and admission review, links the exact target map,
+   and records the compute policy that Totoro and DRAC remain available but do
+   not replace failed admission gates. The closure admits exactly zero q4 rows
+   and authorizes exactly zero coverage jobs; no denominator,
+   interval-reliability, coverage, `inference_ready`, `supported`, REML,
+   AI-REML, q8 inference, derived-correlation interval, bridge, public-support,
+   Q precision, K/Q parity, partial location-scale, or broader q8 status moves.
 22. Banked in this stacked follow-up slice: add native R/TMB K/Q same-target
    parity for the exact relmat q4 location one-slope `mu1+mu2` cell. This
    moves only the native Q evidence boundary from `planned_not_banked` to
