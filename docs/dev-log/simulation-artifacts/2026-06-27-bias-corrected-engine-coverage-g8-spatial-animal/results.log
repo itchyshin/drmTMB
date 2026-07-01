@@ -1,0 +1,12 @@
+[21:46:28] spatial mu1:x
+[21:47:17] animal mu1:x
+[21:48:04] spatial mu2:x
+[21:48:50] animal mu2:x
+
+=== ENGINE bc+t coverage g=8 (spatial+animal, SR475) ===
+cell                 n   wald_z     bc+t     mcse
+spatial mu1:x      475    0.897    0.966   0.0083
+animal mu1:x       475    0.905    0.966   0.0083
+spatial mu2:x      475    0.878    0.941   0.0108
+animal mu2:x       475    0.880    0.947   0.0102
+DONE spatial+animal

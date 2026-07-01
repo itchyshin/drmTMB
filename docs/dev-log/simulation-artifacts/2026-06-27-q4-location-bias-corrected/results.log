@@ -1,0 +1,25 @@
+
+===== q4-location g=8 =====
+cell                           n_fin  pdHess   wald_z     bc+t
+phylo mu1:(Intercept)            109    0.55    0.936    0.936
+phylo mu1:x                      109    0.55    1.000    1.000
+phylo mu2:(Intercept)            109    0.55    0.917    0.917
+phylo mu2:x                      109    0.55    1.000    1.000
+relmat mu1:(Intercept)           146    0.73    0.925    0.925
+relmat mu1:x                     146    0.73    1.000    1.000
+relmat mu2:(Intercept)           146    0.73    0.870    0.870
+relmat mu2:x                     146    0.73    0.993    0.993
+
+===== q4-location g=16 =====
+cell                           n_fin  pdHess   wald_z     bc+t
+phylo mu1:(Intercept)            137    0.69    0.891    0.891
+phylo mu1:x                      137    0.69    0.978    0.978
+phylo mu2:(Intercept)            137    0.69    0.927    0.927
+phylo mu2:x                      137    0.69    0.971    0.971
+relmat mu1:(Intercept)           193    0.96    0.912    0.912
+relmat mu1:x                     193    0.96    0.990    0.990
+relmat mu2:(Intercept)           193    0.96    0.922    0.922
+relmat mu2:x                     193    0.96    0.979    0.979
+There were 50 or more warnings (use warnings() to see the first 50)
+
+DONE q4-location

@@ -22,6 +22,8 @@
   refit_control = NULL,
   sd_boundary = 1e-04,
   rho_boundary = 0.98,
+  small_sample_df = c("location", "none", "group"),
+  bias_correct = c("location", "none", "group"),
   ...
 )
 }
@@ -96,6 +98,54 @@ unreliable: a variance-component standard deviation within \code{sd_boundary} of
 zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned with
 \code{conf.status = "wald_at_boundary"} and a warning pointing to
 \code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).}
+
+\item{small_sample_df}{Small-sample reference distribution for the
+\code{method = "wald"} interval. \code{"location"} (the default) references a
+t-quantile with \code{df = g - 1} -- a group-based, Satterthwaite-style
+between-group degrees of freedom -- for each \emph{location-axis} (\code{mu},
+\code{mu1}, \code{mu2}) structured random-effect SD target (\code{phylo}, \code{spatial},
+\code{animal}, \code{relmat}) with a resolvable group count \code{g}, and keeps the
+ordinary normal quantile \code{z = qnorm((1 + level) / 2)} for every other
+target. This widens only the location-axis structured-RE SD intervals,
+which under-cover at small \code{g} under the normal quantile; the t-quantile
+lifts their coverage and converges back to \code{z} as \code{g} grows. Dispersion
+(\code{sigma}, \code{sigma1}, \code{sigma2}) structured SD targets are deliberately left
+at the normal quantile because they already over-cover; non-structured and
+fixed-effect targets are never widened; and a plain labelled covariance
+block such as \code{(1 + x | p | id)} is also left at the normal quantile by
+default, because the correction magnitude was calibrated for structured
+blocks only. \code{"none"} is the opt-out: it uses the normal quantile for
+\emph{every} target and is byte-identical to the pre-default behaviour.
+\code{"group"} widens \emph{every} resolvable SD target -- structured and
+labelled-covariance, location and dispersion axis alike; use it only when
+you deliberately want to t-reference the dispersion axis or a labelled
+covariance block too. Note
+that the t-quantile only widens the interval; it does not move its centre.
+The residual small-\code{g} gap is ML shrinkage bias in the variance-component
+point estimate (a job for REML), not a quantile problem, so the centre
+shift is handled by \code{bias_correct}.}
+
+\item{bias_correct}{Small-sample point-estimate bias correction for the
+\code{method = "wald"} interval. \code{"location"} (the default) adds a
+simulation-calibrated shift \code{log(g / (g - 1))} to the log-scale point
+estimate -- before back-transforming -- of each \emph{location-axis} (\code{mu},
+\code{mu1}, \code{mu2}) structured random-effect SD target with a resolvable group
+count \code{g} (the same targets \code{small_sample_df = "location"} widens), and
+leaves every other target unshifted. The ML estimate of a structured-RE
+variance-component SD is biased low on the log scale by about
+\code{log(g / (g - 1))} -- a downward shrinkage that REML, or simply a larger
+\code{g}, removes asymptotically; this shift moves the interval centre up to
+counter that shrinkage. Used together with \code{small_sample_df = "location"},
+the centre shift and the t(\code{df = g - 1}) width act independently, giving
+\verb{exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)} and
+lifting small-\code{g} coverage of location-axis structured-RE SD targets to
+nominal. \code{"none"} is the opt-out: it leaves every centre at the ML estimate
+and is byte-identical to the pre-default behaviour. \code{"group"} shifts
+\emph{every} resolvable SD target -- structured and labelled-covariance, location
+and dispersion axis alike. The default deliberately excludes the dispersion
+axis (\code{sigma} SD intervals already over-cover, so the upward shift would
+push them further conservative) and plain labelled covariance blocks (whose
+correction magnitude is not yet simulation-calibrated).}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
@@ -173,4 +223,82 @@ confint(fit, parm = "sigma", method = "profile")
 # confint(fit, parm = "sigma", method = "bootstrap", R = 99)
 # Bootstrap intervals for positive scale and SD targets use link-scale
 # percentiles before back-transforming to the response scale.
+}
+\references{
+The small-sample corrections applied by \code{small_sample_df} and \code{bias_correct}
+(whether the default \code{"location"} scope or the broader \code{"group"} scope) are
+\emph{motivated} by established mixed-model theory but are simulation-calibrated,
+not derived: the \code{log(g / (g - 1))} SD-scale centre
+shift is about \strong{twice} the leading-order REML SD correction
+(\code{0.5 * log(g / (g - 1))}), matching the larger ML shrinkage measured on these
+structured/bivariate cells (their effective df is well below \code{g - 1}). The
+magnitude's authority is the per-model-class simulation in
+\code{docs/design/219-structured-re-small-sample-bias-correction.md}, not a single
+source. Relevant references:
+
+Restricted maximum likelihood and the variance-component bias that motivates
+the centre shift (REML debiases the variance by \code{g/(g-1)}; the shift here is on
+the SD log scale and ~2x the leading-order REML SD term):
+
+Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
+when block sizes are unequal. Biometrika, 58(3), 545-554.
+\doi{10.1093/biomet/58.3.545}
+
+Harville, D. A. (1977). Maximum likelihood approaches to variance component
+estimation and to related problems. Journal of the American Statistical
+Association, 72(358), 320-338. \doi{10.1080/01621459.1977.10480998}
+
+Searle, S. R., Casella, G., & McCulloch, C. E. (1992). Variance Components.
+New York: Wiley. \doi{10.1002/9780470316856}
+
+Analytic and penalized first-order bias reduction of maximum likelihood
+estimates (the general framework an additive log-scale shift instantiates):
+
+Cox, D. R., & Snell, E. J. (1968). A general definition of residuals. Journal
+of the Royal Statistical Society, Series B, 30(2), 248-265.
+\doi{10.1111/j.2517-6161.1968.tb00724.x}
+
+Firth, D. (1993). Bias reduction of maximum likelihood estimates. Biometrika,
+80(1), 27-38. \doi{10.1093/biomet/80.1.27}
+
+The t-quantile / between-group effective degrees of freedom used by
+\code{small_sample_df}:
+
+Satterthwaite, F. E. (1946). An approximate distribution of estimates of
+variance components. Biometrics Bulletin, 2(6), 110-114.
+\doi{10.2307/3002019}
+
+Kenward, M. G., & Roger, J. H. (1997). Small sample inference for fixed
+effects from restricted maximum likelihood. Biometrics, 53(3), 983-997.
+\doi{10.2307/2533558}
+
+Boundary regime (a variance component at or near zero), where neither the
+t-width nor the centre shift restores nominal coverage:
+
+Self, S. G., & Liang, K.-Y. (1987). Asymptotic properties of maximum
+likelihood estimators and likelihood ratio tests under nonstandard
+conditions. Journal of the American Statistical Association, 82(398),
+605-610. \doi{10.1080/01621459.1987.10478472}
+
+Stram, D. O., & Lee, J. W. (1994). Variance components testing in the
+longitudinal mixed effects model. Biometrics, 50(4), 1171-1177.
+\doi{10.2307/2533455}
+
+Parametric-bootstrap bias correction of mixed-model variance components, and
+the general delicacy of bootstrap bias estimation (a single-level parametric
+bootstrap does not recover the centre bias for these targets at small \code{g}):
+
+Kubokawa, T., & Nagashima, B. (2012). Parametric bootstrap methods for bias
+correction in linear mixed models. Journal of Multivariate Analysis, 106,
+1-16. \doi{10.1016/j.jmva.2012.01.011}
+
+Efron, B., & Tibshirani, R. J. (1993). An Introduction to the Bootstrap. New
+York: Chapman & Hall.
+
+Small-sample variance-component (repeatability) interval coverage in ecology
+and evolution:
+
+Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
+estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
+\doi{10.1111/j.2041-210X.2011.00125.x}
 }

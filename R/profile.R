@@ -99,6 +99,52 @@
 #'   zero, or a correlation within `rho_boundary` of `+/-1`, is returned with
 #'   `conf.status = "wald_at_boundary"` and a warning pointing to
 #'   `method = "profile"`. Defaults match [check_drm()] (`1e-4`, `0.98`).
+#' @param small_sample_df Small-sample reference distribution for the
+#'   `method = "wald"` interval. `"location"` (the default) references a
+#'   t-quantile with `df = g - 1` -- a group-based, Satterthwaite-style
+#'   between-group degrees of freedom -- for each *location-axis* (`mu`,
+#'   `mu1`, `mu2`) structured random-effect SD target (`phylo`, `spatial`,
+#'   `animal`, `relmat`) with a resolvable group count `g`, and keeps the
+#'   ordinary normal quantile `z = qnorm((1 + level) / 2)` for every other
+#'   target. This widens only the location-axis structured-RE SD intervals,
+#'   which under-cover at small `g` under the normal quantile; the t-quantile
+#'   lifts their coverage and converges back to `z` as `g` grows. Dispersion
+#'   (`sigma`, `sigma1`, `sigma2`) structured SD targets are deliberately left
+#'   at the normal quantile because they already over-cover; non-structured and
+#'   fixed-effect targets are never widened; and a plain labelled covariance
+#'   block such as `(1 + x | p | id)` is also left at the normal quantile by
+#'   default, because the correction magnitude was calibrated for structured
+#'   blocks only. `"none"` is the opt-out: it uses the normal quantile for
+#'   *every* target and is byte-identical to the pre-default behaviour.
+#'   `"group"` widens *every* resolvable SD target -- structured and
+#'   labelled-covariance, location and dispersion axis alike; use it only when
+#'   you deliberately want to t-reference the dispersion axis or a labelled
+#'   covariance block too. Note
+#'   that the t-quantile only widens the interval; it does not move its centre.
+#'   The residual small-`g` gap is ML shrinkage bias in the variance-component
+#'   point estimate (a job for REML), not a quantile problem, so the centre
+#'   shift is handled by `bias_correct`.
+#' @param bias_correct Small-sample point-estimate bias correction for the
+#'   `method = "wald"` interval. `"location"` (the default) adds a
+#'   simulation-calibrated shift `log(g / (g - 1))` to the log-scale point
+#'   estimate -- before back-transforming -- of each *location-axis* (`mu`,
+#'   `mu1`, `mu2`) structured random-effect SD target with a resolvable group
+#'   count `g` (the same targets `small_sample_df = "location"` widens), and
+#'   leaves every other target unshifted. The ML estimate of a structured-RE
+#'   variance-component SD is biased low on the log scale by about
+#'   `log(g / (g - 1))` -- a downward shrinkage that REML, or simply a larger
+#'   `g`, removes asymptotically; this shift moves the interval centre up to
+#'   counter that shrinkage. Used together with `small_sample_df = "location"`,
+#'   the centre shift and the t(`df = g - 1`) width act independently, giving
+#'   `exp((log(sigma_hat) + log(g / (g - 1))) +/- qt(p, g - 1) * se_log)` and
+#'   lifting small-`g` coverage of location-axis structured-RE SD targets to
+#'   nominal. `"none"` is the opt-out: it leaves every centre at the ML estimate
+#'   and is byte-identical to the pre-default behaviour. `"group"` shifts
+#'   *every* resolvable SD target -- structured and labelled-covariance, location
+#'   and dispersion axis alike. The default deliberately excludes the dispersion
+#'   axis (`sigma` SD intervals already over-cover, so the upward shift would
+#'   push them further conservative) and plain labelled covariance blocks (whose
+#'   correction magnitude is not yet simulation-calibrated).
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -128,6 +174,83 @@
 #' # confint(fit, parm = "sigma", method = "bootstrap", R = 99)
 #' # Bootstrap intervals for positive scale and SD targets use link-scale
 #' # percentiles before back-transforming to the response scale.
+#' @references
+#' The small-sample corrections applied by `small_sample_df` and `bias_correct`
+#' (whether the default `"location"` scope or the broader `"group"` scope) are
+#' *motivated* by established mixed-model theory but are simulation-calibrated,
+#' not derived: the `log(g / (g - 1))` SD-scale centre
+#' shift is about **twice** the leading-order REML SD correction
+#' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
+#' structured/bivariate cells (their effective df is well below `g - 1`). The
+#' magnitude's authority is the per-model-class simulation in
+#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
+#' source. Relevant references:
+#'
+#' Restricted maximum likelihood and the variance-component bias that motivates
+#' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
+#' the SD log scale and ~2x the leading-order REML SD term):
+#'
+#' Patterson, H. D., & Thompson, R. (1971). Recovery of inter-block information
+#' when block sizes are unequal. Biometrika, 58(3), 545-554.
+#' \doi{10.1093/biomet/58.3.545}
+#'
+#' Harville, D. A. (1977). Maximum likelihood approaches to variance component
+#' estimation and to related problems. Journal of the American Statistical
+#' Association, 72(358), 320-338. \doi{10.1080/01621459.1977.10480998}
+#'
+#' Searle, S. R., Casella, G., & McCulloch, C. E. (1992). Variance Components.
+#' New York: Wiley. \doi{10.1002/9780470316856}
+#'
+#' Analytic and penalized first-order bias reduction of maximum likelihood
+#' estimates (the general framework an additive log-scale shift instantiates):
+#'
+#' Cox, D. R., & Snell, E. J. (1968). A general definition of residuals. Journal
+#' of the Royal Statistical Society, Series B, 30(2), 248-265.
+#' \doi{10.1111/j.2517-6161.1968.tb00724.x}
+#'
+#' Firth, D. (1993). Bias reduction of maximum likelihood estimates. Biometrika,
+#' 80(1), 27-38. \doi{10.1093/biomet/80.1.27}
+#'
+#' The t-quantile / between-group effective degrees of freedom used by
+#' `small_sample_df`:
+#'
+#' Satterthwaite, F. E. (1946). An approximate distribution of estimates of
+#' variance components. Biometrics Bulletin, 2(6), 110-114.
+#' \doi{10.2307/3002019}
+#'
+#' Kenward, M. G., & Roger, J. H. (1997). Small sample inference for fixed
+#' effects from restricted maximum likelihood. Biometrics, 53(3), 983-997.
+#' \doi{10.2307/2533558}
+#'
+#' Boundary regime (a variance component at or near zero), where neither the
+#' t-width nor the centre shift restores nominal coverage:
+#'
+#' Self, S. G., & Liang, K.-Y. (1987). Asymptotic properties of maximum
+#' likelihood estimators and likelihood ratio tests under nonstandard
+#' conditions. Journal of the American Statistical Association, 82(398),
+#' 605-610. \doi{10.1080/01621459.1987.10478472}
+#'
+#' Stram, D. O., & Lee, J. W. (1994). Variance components testing in the
+#' longitudinal mixed effects model. Biometrics, 50(4), 1171-1177.
+#' \doi{10.2307/2533455}
+#'
+#' Parametric-bootstrap bias correction of mixed-model variance components, and
+#' the general delicacy of bootstrap bias estimation (a single-level parametric
+#' bootstrap does not recover the centre bias for these targets at small `g`):
+#'
+#' Kubokawa, T., & Nagashima, B. (2012). Parametric bootstrap methods for bias
+#' correction in linear mixed models. Journal of Multivariate Analysis, 106,
+#' 1-16. \doi{10.1016/j.jmva.2012.01.011}
+#'
+#' Efron, B., & Tibshirani, R. J. (1993). An Introduction to the Bootstrap. New
+#' York: Chapman & Hall.
+#'
+#' Small-sample variance-component (repeatability) interval coverage in ecology
+#' and evolution:
+#'
+#' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
+#' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
+#' \doi{10.1111/j.2041-210X.2011.00125.x}
 #' @export
 confint.drmTMB <- function(
   object,
@@ -147,12 +270,16 @@ confint.drmTMB <- function(
   refit_control = NULL,
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
+  small_sample_df = c("location", "none", "group"),
+  bias_correct = c("location", "none", "group"),
   ...
 ) {
   profile_precision_missing <- missing(profile_precision)
   parallel_missing <- missing(parallel)
   method_missing <- missing(method)
   profile_engine <- match.arg(profile_engine)
+  small_sample_df <- match.arg(small_sample_df)
+  bias_correct <- match.arg(bias_correct)
   method <- validate_interval_method(
     method,
     c("wald", "profile", "bootstrap"),
@@ -197,7 +324,9 @@ confint.drmTMB <- function(
       parm = parm,
       level = level,
       sd_boundary = sd_boundary,
-      rho_boundary = rho_boundary
+      rho_boundary = rho_boundary,
+      small_sample_df = small_sample_df,
+      bias_correct = bias_correct
     ))
   }
 
@@ -1575,8 +1704,12 @@ drm_wald_confint <- function(
   parm,
   level,
   sd_boundary = 1e-4,
-  rho_boundary = 0.98
+  rho_boundary = 0.98,
+  small_sample_df = c("location", "none", "group"),
+  bias_correct = c("location", "none", "group")
 ) {
+  small_sample_df <- match.arg(small_sample_df)
+  bias_correct <- match.arg(bias_correct)
   targets <- drm_profile_targets(object)
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
   targets <- profile_match_confint_targets(
@@ -1589,7 +1722,45 @@ drm_wald_confint <- function(
   }
   warn_skew_normal_slant_wald(object, targets)
 
+  # Small-sample bias correction shifts the log-scale point estimate of a
+  # structured-RE SD target with a resolvable group count `g` by `+log(g/(g-1))`
+  # BEFORE building the interval, moving the interval centre (and feeding the
+  # shifted centre into the boundary check and back-transform); it is
+  # independent of the t-width applied through `crit`. Three states:
+  #   "location" (default): shift only LOCATION-axis (mu) structured SD targets;
+  #     dispersion (sigma) and non-structured targets keep the ML centre.
+  #   "group" (opt-in): shift every structured SD target (mu and sigma alike).
+  #   "none" (opt-out): leave every centre at the ML estimate, byte-identical to
+  #     the pre-default behaviour.
+  if (!identical(bias_correct, "none")) {
+    log_bias <- wald_target_log_bias(
+      object,
+      targets,
+      location_only = identical(bias_correct, "location")
+    )
+    has_bias <- !is.na(log_bias)
+    targets$link_estimate[has_bias] <-
+      targets$link_estimate[has_bias] + log_bias[has_bias]
+  }
+
   z <- stats::qnorm((1 + level) / 2)
+  # Critical-value vector: the ordinary normal quantile for every row, except
+  # structured-RE SD rows that receive a t-quantile with df = g - 1. Three
+  # states mirror `bias_correct`:
+  #   "location" (default): widen only LOCATION-axis (mu) structured SD targets.
+  #   "group" (opt-in): widen every structured SD target (mu and sigma alike).
+  #   "none" (opt-out): leave `crit` exactly equal to `z` for every target,
+  #     byte-identical to the pre-default behaviour.
+  crit <- rep(z, nrow(targets))
+  if (!identical(small_sample_df, "none")) {
+    df <- wald_target_df(
+      object,
+      targets,
+      location_only = identical(small_sample_df, "location")
+    )
+    has_df <- !is.na(df)
+    crit[has_df] <- stats::qt((1 + level) / 2, df[has_df])
+  }
   variances <- rep(NA_real_, nrow(targets))
   hessian_ready <- isTRUE(object$sdr$pdHess)
   if (hessian_ready) {
@@ -1610,9 +1781,9 @@ drm_wald_confint <- function(
   upper <- rep(NA_real_, nrow(targets))
   if (any(interval_ready)) {
     link_lower <- targets$link_estimate[interval_ready] -
-      z * se[interval_ready]
+      crit[interval_ready] * se[interval_ready]
     link_upper <- targets$link_estimate[interval_ready] +
-      z * se[interval_ready]
+      crit[interval_ready] * se[interval_ready]
     transformed <- mapply(
       function(lo, hi, row) {
         profile_transform_interval(c(lo, hi), targets[row, , drop = FALSE])
@@ -1667,6 +1838,227 @@ drm_wald_confint <- function(
 
   row.names(out) <- NULL
   out
+}
+
+# A structured random-effect SD target sits on the location (mu) axis when its
+# `dpar` family is `mu` (`mu`, `mu1`, `mu2`), and on the dispersion (sigma) axis
+# when its family is `sigma` (`sigma`, `sigma1`, `sigma2`). The trailing response
+# index is stripped before matching, so q2/q4 endpoints share the family of
+# their univariate counterpart. The DEFAULT small-sample correction is scoped to
+# the location axis only; the dispersion axis already over-covers under the
+# normal quantile and is left raw unless the caller opts in with `"group"`.
+wald_sd_target_is_location_axis <- function(target) {
+  dpar <- target$dpar[[1L]]
+  if (is.na(dpar)) {
+    return(FALSE)
+  }
+  family <- sub("[0-9]+$", "", dpar)
+  identical(family, "mu")
+}
+
+# Small-sample (Satterthwaite-style) degrees of freedom for Wald SD intervals.
+#
+# Returns a numeric vector, one entry per row of `targets`. For each structured
+# random-effect SD target with a resolvable group count `g`, the entry is
+# `g - 1` (group-based between-group df). Every other target -- and any SD
+# target whose group count cannot be matched to a unique source -- gets
+# `NA_real_`. This never errors: an ambiguous or missing match falls back to
+# NA, and the caller substitutes the ordinary normal quantile for those rows.
+#
+# `location_only = TRUE` (the path used by the DEFAULT correction) restricts the
+# resolved df to location-axis (mu) *structured* (phylo/spatial/animal/relmat) SD
+# targets: it skips dispersion (sigma) SD targets and the labelled
+# covariance-block registry, so the default widens only the under-covering
+# location-axis structured intervals whose magnitude was simulation-calibrated.
+# `location_only = FALSE` reproduces the `small_sample_df = "group"` opt-in scope
+# (every structured and labelled-covariance SD target on either axis).
+#
+# Group counts for structured SD targets (`phylo`/`spatial`/`animal`/`relmat`)
+# live in `object$model$structured$phylo_mu$group_levels`, NOT in the labelled
+# covariance-block registry (which is empty for these models) and NOT in the
+# augmented `n_re` count (phylo's `n_re` includes internal tree nodes, so it
+# overstates `g`). Labelled covariance-block SD targets instead carry a
+# per-block `n_groups` column in the registry; those are matched via the
+# registry members table.
+wald_target_df <- function(object, targets, location_only = FALSE) {
+  if (nrow(targets) == 0L) {
+    return(numeric(0L))
+  }
+  df <- rep(NA_real_, nrow(targets))
+  is_sd <- !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd"
+  if (!any(is_sd)) {
+    return(df)
+  }
+
+  structured_g <- structured_sd_group_count(object)
+  registry <- object$model$random$covariance_blocks
+
+  for (i in which(is_sd)) {
+    if (
+      isTRUE(location_only) &&
+        !wald_sd_target_is_location_axis(targets[i, , drop = FALSE])
+    ) {
+      next
+    }
+    g <- wald_sd_target_group_count(
+      object = object,
+      target = targets[i, , drop = FALSE],
+      structured_g = structured_g,
+      registry = registry,
+      structured_only = location_only
+    )
+    if (is.finite(g) && g >= 2L) {
+      df[i] <- g - 1
+    }
+  }
+  df
+}
+
+# Small-sample log-scale bias correction for structured-RE SD Wald intervals.
+#
+# Returns a numeric vector, one entry per row of `targets`. For each structured
+# random-effect SD target with a resolvable group count `g` (the SAME targets
+# `wald_target_df()` identifies, via the same g-resolution path), the entry is
+# `log(g / (g - 1))` -- the closed-form centre correction that lifts the
+# downward ML shrinkage of the variance-component SD back toward its expectation
+# on the log scale. Every other target -- and any SD target whose group count
+# cannot be matched -- gets `NA_real_`, so the caller leaves its centre
+# unshifted. This never errors: an ambiguous or missing match falls back to NA.
+#
+# `location_only = TRUE` (the path used by the DEFAULT correction) restricts the
+# shift to location-axis (mu) *structured* (phylo/spatial/animal/relmat) SD
+# targets, skipping dispersion (sigma) SD targets and the labelled
+# covariance-block registry, matching `wald_target_df()`. `location_only = FALSE`
+# reproduces the `bias_correct = "group"` opt-in scope.
+wald_target_log_bias <- function(object, targets, location_only = FALSE) {
+  if (nrow(targets) == 0L) {
+    return(numeric(0L))
+  }
+  bias <- rep(NA_real_, nrow(targets))
+  is_sd <- !is.na(targets$target_class) &
+    targets$target_class == "random-effect-sd"
+  if (!any(is_sd)) {
+    return(bias)
+  }
+
+  structured_g <- structured_sd_group_count(object)
+  registry <- object$model$random$covariance_blocks
+
+  for (i in which(is_sd)) {
+    if (
+      isTRUE(location_only) &&
+        !wald_sd_target_is_location_axis(targets[i, , drop = FALSE])
+    ) {
+      next
+    }
+    g <- wald_sd_target_group_count(
+      object = object,
+      target = targets[i, , drop = FALSE],
+      structured_g = structured_g,
+      registry = registry,
+      structured_only = location_only
+    )
+    if (is.finite(g) && g >= 2L) {
+      bias[i] <- log(g / (g - 1))
+    }
+  }
+  bias
+}
+
+# Group count for the single structured-RE block (phylo/spatial/animal/relmat),
+# or NA_real_ when there is no scalar structured location SD block to reference.
+# `phylo_interaction` pairs two clades and has no single group count, so it is
+# deliberately left as NA.
+structured_sd_group_count <- function(object) {
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!is.list(phylo_mu) || !isTRUE(phylo_mu$has)) {
+    return(NA_real_)
+  }
+  type <- structured_mu_type(phylo_mu)
+  if (!type %in% c("phylo", "spatial", "animal", "relmat")) {
+    return(NA_real_)
+  }
+  g <- length(phylo_mu$group_levels)
+  if (g < 1L) {
+    return(NA_real_)
+  }
+  as.numeric(g)
+}
+
+# Resolve the group count for one SD target row. Tries the structured location
+# block first (matched on the target term's structured label), then a labelled
+# covariance-block registry match. Returns NA_real_ when no unique match exists.
+#
+# `structured_only = TRUE` (the path used by the DEFAULT correction) restricts
+# resolution to the genuinely *structured* RE block (phylo/spatial/animal/relmat,
+# resolved via `log_sd_phylo`) and skips the labelled covariance-block registry.
+# The default is scoped to structured cells because the `log(g/(g-1))` magnitude
+# was simulation-calibrated for those (design doc 219); a plain labelled
+# covariance block such as `(1 + x | p | id)` resolves a registry `g` but its
+# correction is not validated, so the default leaves it at the raw z-interval.
+# `structured_only = FALSE` reproduces the `"group"` opt-in scope (structured and
+# labelled-covariance blocks alike).
+wald_sd_target_group_count <- function(
+  object,
+  target,
+  structured_g,
+  registry,
+  structured_only = FALSE
+) {
+  tmb_parameter <- target$tmb_parameter[[1L]]
+  term <- target$term[[1L]]
+
+  if (
+    !is.na(tmb_parameter) &&
+      identical(tmb_parameter, "log_sd_phylo") &&
+      is.finite(structured_g)
+  ) {
+    phylo_mu <- object$model$structured$phylo_mu
+    label <- if (is.list(phylo_mu)) phylo_mu$label else NULL
+    if (
+      is.character(label) &&
+        length(label) == 1L &&
+        nzchar(label) &&
+        !is.na(term) &&
+        endsWith(term, label)
+    ) {
+      return(structured_g)
+    }
+    return(NA_real_)
+  }
+
+  if (isTRUE(structured_only)) {
+    return(NA_real_)
+  }
+  registry_sd_target_group_count(target, registry)
+}
+
+# Match a labelled covariance-block SD target to its registry block and return
+# the block's `n_groups`. Only a single unique block match yields a count; zero
+# or multiple matches return NA_real_.
+registry_sd_target_group_count <- function(target, registry) {
+  if (!is.list(registry) || is.null(registry$members)) {
+    return(NA_real_)
+  }
+  members <- registry$members
+  if (!is.data.frame(members) || nrow(members) == 0L) {
+    return(NA_real_)
+  }
+  term <- target$term[[1L]]
+  if (is.na(term) || !("label" %in% names(members))) {
+    return(NA_real_)
+  }
+  hit <- which(!is.na(members$label) & members$label == term)
+  if (length(hit) == 0L || !("n_groups" %in% names(members))) {
+    return(NA_real_)
+  }
+  counts <- unique(members$n_groups[hit])
+  counts <- counts[is.finite(counts)]
+  if (length(counts) != 1L) {
+    return(NA_real_)
+  }
+  as.numeric(counts[[1L]])
 }
 
 # Identify confint targets whose Wald interval sits at a variance-component or

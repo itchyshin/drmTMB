@@ -104,10 +104,14 @@ The current table records these broad facts without promoting beyond them:
 - Bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` covariance cells
   now have native point-fit/extractor evidence plus deterministic same-target
   fixtures across `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`,
-  and K-matrix `relmat()`. These are exact `mu1:x+mu2:x` cells only; they do
-  not promote intercept-plus-slope q4/q8, interval reliability, coverage,
-  REML, AI-REML, range-estimating spatial support, pedigree/Ainv bridge
-  marshalling, or relmat Q bridge marshalling.
+  and K-matrix `relmat()`. The exact phylo and relmat q2 slope rows have also
+  reached `inference_ready` for interval and coverage status through the
+  default small-sample `confint()` correction. The spatial and animal q2 rows
+  remain future row-level arcs; the pooled all-provider g=8 engine coverage is
+  not a promotion of those rows. These are exact `mu1:x+mu2:x` cells only; they
+  do not promote intercept-plus-slope q4/q8, `supported`, REML, AI-REML,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, or relmat
+  Q bridge marshalling.
 - Q2 bridge fixture evidence is banked only for complete-response
   exact-Gaussian ML fixtures: phylo, fixed-covariance spatial, animal A-matrix,
   and relmat K-matrix.
@@ -149,6 +153,144 @@ The current table records these broad facts without promoting beyond them:
 - Direct SD target visibility does not create derived-correlation interval
   support. Direct SD profile feasibility and derived correlation interval
   reliability are separate cells.
+
+## 2026-06-27 — Interval-Method Levers Exhausted; the Finish Line Is a Design Decision
+
+Two adversarially-checked scoping workflows this cycle settle what remains
+between the current evidence and a `supported` promotion. The answer is **not
+more engine work**.
+
+1. **The t-quantile lever is shipped and bounded.** `confint(..., method =
+   "wald", small_sample_df = "group")` (commit `34cece73`) references a
+   t-quantile with `df = g-1` for structured-RE SD targets. A paired g=8/16/32
+   recompute (`docs/dev-log/simulation-artifacts/2026-06-27-t-interval-recompute/`)
+   shows it lifts the under-covering q2 `mu`-slope SD lane (0.885 -> 0.931 at
+   g=8) and converges back to z by g=32. It is opt-in and scoped: the dispersion
+   (`sigma`) SDs already over-cover under z, so t over-inflates them — a blanket
+   default would harm them (flagged cross-team as gllvmTMB#565). The t-quantile
+   corrects the *reference distribution*, not the biased *centre*; a residual
+   ~0.93-at-g=8 gap remains on the q2 lane.
+
+2. **REML is NOT the fix for that residual, and is not a drmTMB-only deliverable.**
+   An adversarial scoping pass
+   (`docs/dev-log/simulation-artifacts/2026-06-27-reml-unblock-scoping/`) found:
+   (a) drmTMB native REML is exact restricted ML that marginalises only the mean
+   *fixed* effects (`R/drmTMB.R:825-833`) — location-only by construction;
+   (b) the g=8 bias lives on the structured location-*scale* SD (`sigma`/`rho`
+   submodels), where the restricted likelihood is a *different, underived*
+   objective (`docs/design/199:50-60`), and the scope-gate rows fence
+   `sigma`/q2/q4 REML as `unsupported_until_derived`; (c) the only relevant
+   correction (q4 Patterson-Thompson) lives in DRM.jl, not drmTMB; (d) the sole
+   banked REML un-shrinkage evidence is for an *ordinary* intercept (location-only,
+   n=18) — the wrong cell — and there is **no in-repo evidence REML moves the
+   structured-SD centre at g=8.** Treating "unblock REML" as the g=8 coverage fix
+   is unsupported optimism. (Unblocking biv structured-RE REML as a *separate*
+   estimation capability is tractable but large, gated on deriving the
+   structured-mean bivariate restricted likelihood first, and even then reaches
+   only the mean axis, not the `sigma`/`rho` axis where the bias sits.)
+
+3. **The bootstrap channel does not rescue it either.** drmTMB's
+   `method = "bootstrap"` is a *parametric percentile* bootstrap
+   (`drm_bootstrap_confint` -> `bootstrap_percentile_interval`,
+   `probs = c(.025, .975)`): it simulates from the already-shrunk fitted model
+   and takes percentiles, so its interval is centred on the same biased estimate
+   and inherits the small-g shrinkage — it will under-cover at g=8 just like the
+   others. A coverage-correcting bootstrap (BCa / studentized bootstrap-t) is not
+   implemented. So **all four available interval methods — Wald, Wald-t, profile,
+   and percentile-bootstrap — are centred on the shrunk variance-component
+   estimate.** No interval method fixes a biased *centre*; that is the wall.
+
+**Therefore reaching nominal coverage at the deployment default g=8 needs a NEW
+estimator-side capability** (a bias-corrected variance-component estimator, a
+BCa/bootstrap-t interval, or scale-side REML) — each a real engine/research arc to
+commission, not a setting to flip. **The validated completion path today is the
+PROFILE channel at adequate g.**
+
+4. **The centre fix is identified and bounded — bias-correction reaches nominal.**
+   An oracle recompute
+   (`docs/dev-log/simulation-artifacts/2026-06-27-oracle-bias-correction/`)
+   debiased each banked g=8 q2 replicate's log-scale centre by the *measured* mean
+   log-shrinkage (~ -0.12 to -0.14) and rebuilt the interval with a t(df=7) width.
+   Pooled coverage (n=3800) rises **0.887 (Wald-z) -> 0.932 (Wald-t) -> 0.956
+   (bias-corrected + t)** — correcting the centre reaches nominal. So of the three
+   arcs, the **bias-corrected variance-component estimator is the validated path**;
+   the only open question is whether a *usable* bias estimate (parametric bootstrap,
+   analytic, or REML) recovers the ~ -0.12 the oracle uses. This converts
+   `supported` at the deployment default from "undefined research" into a
+   **specific, in-principle-validated engine deliverable** — a parametric-bootstrap
+   bias prototype is the immediate next test.
+
+5. **The cheap practical bias estimator does NOT work — which narrows the arc.**
+   The parametric-bootstrap bias prototype
+   (`docs/dev-log/simulation-artifacts/2026-06-27-bootstrap-bias-prototype/`; phylo
+   mu1:x, g=8, 16 seeds x 100 refits, 100% refit success) estimates a log-bias of
+   only **~ -0.01** — one-tenth of the oracle's -0.13 — so a bootstrap-bias-corrected
+   centre is essentially the raw ML centre. This is principled, not a bug: the
+   single-level parametric bootstrap measures the estimator's bias *at* `theta_hat`,
+   where the log-SD ML estimator is nearly median-unbiased; the oracle's -0.13 is the
+   bias *at the true parameter*, which a truth-free bootstrap cannot see (shallow
+   local bias gradient near `theta_hat`). So Wald-t, percentile bootstrap, AND
+   single-level parametric-bootstrap bias correction all fail to deliver the centre
+   fix. The remaining candidates that *could* — a closed-form analytic/REML
+   small-sample log-SD bias correction, or a double/iterated bootstrap — are genuine
+   derivation/research arcs (the scale-side restricted likelihood is underived; see
+   `199:50-60`). **Net: `supported` at deployment-g is reachable in principle (the
+   centre fix reaches nominal) but requires a research-grade bias-correction
+   derivation — a maintainer commission, not an autonomous engineering task this
+   cycle.**
+
+6. **The default correction is accepted for a narrower row-level claim.** The
+   measured log-shrinkage tracks **`log(g/(g-1))`** (a *simulation-calibrated*
+   shift — REML-motivated but ~2x the leading-order REML SD term
+   `0.5*log(g/(g-1))`, because the structured/bivariate model's effective df is
+   well below `g-1`; see doc 219). The truth-free correction
+   `sigma_corrected = sigma_ML * g/(g-1)` plus the t(df=g-1) width reached nominal
+   coverage in the oracle/analytic sweep
+   (`docs/dev-log/simulation-artifacts/2026-06-27-oracle-bias-correction/analytic-correction-cross-g.R`):
+   g=8 **0.887 -> 0.955**, g=16 0.908 -> 0.949, g=32 0.944 -> 0.963. Fresh
+   engine validation then accepted the correction as the default for
+   location-axis structured SD targets only. It does not create a broad
+   `supported` claim: the later engine grids still measured right-tail miss
+   asymmetry and g-dependence. The sigma/dispersion SDs already over-cover, so
+   the centre shift is not applied to them by default.
+
+The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
+q4-location "walls" are small-sample artifacts: profile coverage reaches
+certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
+evaporates (phylo 48.6% -> 5.0%, relmat 22.9% -> 0.0%) by g=32, with the eight
+certified cells passing the interval-reliability rung via the profile channel.
+
+### Decision executed (2026-06-27): four cells promoted to `interval_feasible`
+
+The maintainer signed off (after Fisher/Rose/Emmy and then Pat/`user_tester` +
+Darwin/`audience_reviewer` SIGN_OFF_WITH_CHANGES). Four cells —
+`qseries_phylo_q1_sigma_one_slope`, `qseries_phylo_q2_mu1_mu2_one_slope`,
+`qseries_relmat_q1_sigma_one_slope`, `qseries_relmat_q2_mu1_mu2_one_slope` —
+moved from `interval_status = planned` to `interval_feasible`. That 2026-06-27
+move did not promote coverage or `supported`.
+
+### Decision executed (2026-06-28): q2 phylo/relmat to `inference_ready`
+
+After the default correction shipped and a fresh engine-validated g=8 grid ran,
+the q-series TSV contains 104 rows. Exactly two structured rows are
+`inference_ready` for both interval and coverage status:
+
+- `qseries_phylo_q2_mu1_mu2_one_slope`
+- `qseries_relmat_q2_mu1_mu2_one_slope`
+
+No structured row is `supported`. The validator admits `inference_ready` only
+for those two q2 location-axis rows and still rejects `supported`
+over-promotion. The pooled all-provider g=8 engine result is evidence for the
+default correction, not a claim that all four providers are `inference_ready`:
+fixed-covariance spatial q2, animal q2, sigma, q4/q8, count, and non-Gaussian
+rows remain separate future arcs.
+
+`supported` is withheld because two measured defects remain: a roughly 6:1
+right-tail miss asymmetry at SD about 0.9, and g-dependent under-correction
+(relmat g=12 about 0.93). Those are sampling-shape and effective-df problems,
+not stale label work. The next bounded tier arc is sigma to `inference_ready`;
+q2 `supported` needs a skew-aware interval or a derived, tested bivariate
+structured-location REML route.
 
 ## Why the Older Work Drifted
 
