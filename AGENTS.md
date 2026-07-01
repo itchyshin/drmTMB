@@ -3,7 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-06-29, → Codex).** Q-Series evidence board continuation.
+> **▶ Latest handover — start here (2026-07-01, → Codex).** Q-Series Tranche 3 clean start.
+> Tranche 2 is done and merged: PR #684 and PR #685 landed on `main`, with local
+> `HEAD` and `origin/main` verified at `4d6d2339eb48`, no open drmTMB PRs, a clean
+> worktree, `mission_control_ok`, and final-base R-CMD-check success for #685 on
+> macOS/Ubuntu/Windows (`https://github.com/itchyshin/drmTMB/actions/runs/28492010510`).
+> The current Q-Series support-cell truth is 104 rows, 8 interval/coverage
+> `inference_ready` rows, 0 structured `supported` rows, 0 high-q
+> (`q4`/`q6`/`q8`) `inference_ready` rows, and 0 non-Gaussian interval/coverage
+> `inference_ready` rows. Do **not** claim the Q-Series is finished. The next
+> work is Tranche 3: q4 admission before coverage, with Rose/Fisher/Gauss/Noether
+> review before any status claim.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-01-codex-handover.md`](docs/dev-log/handover/2026-07-01-codex-handover.md).
+>
+> **▶ Prior handover (2026-06-29, → Codex).** Q-Series evidence board continuation.
 > The active branch is `codex/qseries-sigma-inference-ready` at local
 > `HEAD=77b634ed` with a large dirty working tree. The 104-row support-cell widget is present
 > and separates fit, interval, coverage, stability, recovery, diagnostic, blocked, and planned
