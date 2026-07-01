@@ -2,6 +2,305 @@
 
 Record meaningful development checks here.
 
+## 2026-07-01: Q-Series Tranche 3 q4 admission closure audit
+
+Scope:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-admission-tranche3-closure-audit.tsv`,
+  a seven-row closure audit for the Tranche 3 q4 admission-before-coverage
+  slice.
+- Wired the closure sidecar into Mission Control with a `Q4 Tranche 3 closure`
+  summary card, a Structured RE contracts table, dashboard version `r195`, and
+  source-linked validator/test coverage.
+- The closure rows verify the clean Tranche 2 support-cell invariants, high-q
+  no-promotion orientation, the 14-row q4 denominator contract, the 14-row q4
+  admission review, the 16-row q4 location target map, the compute policy, and
+  final no-promotion status.
+
+Boundary:
+
+- This closes the current Tranche 3 q4 admission audit as a no-admission,
+  no-coverage decision artifact.
+- All seven closure rows have
+  `coverage_decision = coverage_not_authorized` and
+  `promotion_decision = do_not_promote`.
+- No q4 row is admitted, no q4 coverage job is authorized, no Totoro/DRAC run
+  is launched, and no interval/coverage `inference_ready`, `supported`, q4
+  REML, REML, AI-REML, q8 inference, derived-correlation interval, broad bridge,
+  or public-support claim changed.
+
+Rose/Fisher/Gauss/Noether audit:
+
+- Rose: the closure records a completed decision, not a status/tier promotion.
+- Fisher: coverage remains unauthorized until q4 admission succeeds.
+- Gauss: existing q4 coverage runners and SLURM scripts are not claim-bearing
+  from the current pdHess/finite-interval blockers.
+- Noether: exact q4 location `profile_targets()` names are recorded, but no
+  derived-correlation interval claim is made.
+
+Validation:
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile tools/validate-mission-control.py`:
+  passed.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}'
+  docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js &&
+  node --check /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "parse('tests/testthat/test-structured-re-conversion-contracts.R');
+  invisible(NULL)"`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 14 q4 admission-denominator contract
+  rows, 14 q4 admission-review synthesis rows, 16 q4 location
+  target-admission map rows, and seven q4 admission Tranche 3 closure-audit
+  rows.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed `10736 PASS / 0 FAIL / 0
+  WARN / 0 SKIP`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-admission-closure.md')"`:
+  passed.
+- `git diff --check`: passed.
+- Direct support-cell invariant check: `rows=104`, `ready=8`,
+  `structured_supported=0`, `highq_ready=0`, `nongaussian_ready=0`.
+- `curl -fsS
+  http://127.0.0.1:8766/docs/design/218-structured-q-series-completion-map.md
+  | rg -n "21b|Tranche 3 q4-admission slice|seven-row"`: passed; the served
+  plan shows `21b`.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-admission-closure.md`
+
+## 2026-07-01: Q-Series Tranche 3 q4 location target admission map
+
+Scope:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-target-admission-map.tsv`,
+  a 16-row target-level q4 location admission map for the exact direct-SD
+  provider/endpoint members across `phylo()`, fixed-covariance `spatial()`,
+  A-matrix `animal()`, and K-matrix `relmat()`.
+- The map links each row to its dispatch-plan `profile_targets()` name,
+  interval-diagnostic status row, and SR475 q4-location retained-denominator
+  source row.
+- Wired the map into Mission Control with a `Q4 target map` summary card and a
+  Structured RE contracts table showing `profile_target`,
+  `admission_decision`, `coverage_decision`, and `promotion_decision`.
+- Updated `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R` so the 16-row
+  grid, exact source links, finite Wald/profile counts, rates, no-coverage
+  decision, no-promotion decision, Rose/Fisher/Gauss/Noether no-claim guards,
+  and rendered widget wiring are checked.
+
+Boundary:
+
+- This admits exactly no q4 target and promotes exactly no Q-Series row.
+- All 16 target rows have
+  `admission_decision = not_admitted_cell_pdhess_below_threshold`,
+  `coverage_decision = coverage_not_authorized`, and
+  `promotion_decision = do_not_promote`.
+- No interval/coverage `inference_ready`, no `supported`, no q4 REML, no REML,
+  no AI-REML, no q8 inference, no derived-correlation interval claim, no broad
+  bridge support, and no public-support claim changed.
+- Totoro and DRAC/Fir/Nibi/Rorqual remain compute options for a future
+  admission design, but this slice does not launch compute because the current
+  q4 location target map fails the retained-denominator admission gate.
+
+Rose/Fisher/Gauss/Noether audit:
+
+- Rose: no tier/status wording; the target map is visible as a no-claim map.
+- Fisher: no coverage before q4 admission; SR475 target rows remain negative
+  admission evidence because finite-Wald/pdHess survivor rates are below 95%.
+- Gauss: do not send a cluster run from the current pdHess blocker.
+- Noether: exact `profile_targets()` names are now recorded target by target,
+  but that map is not derived-correlation interval support.
+
+Validation:
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile tools/validate-mission-control.py`:
+  passed.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}' docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js && node --check /tmp/drmtmb-dashboard-index.js`:
+  passed.
+- `git diff --check`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 14 q4 admission-denominator contract
+  rows, 14 q4 admission-review synthesis rows, and 16 q4 location
+  target-admission map rows.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed `10692 PASS / 0 FAIL / 0
+  WARN / 0 SKIP`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-location-target-admission-map.md')"`:
+  passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-location-target-admission-map.md`
+
+## 2026-07-01: Q-Series Tranche 3 q4 admission-review synthesis
+
+Scope:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-admission-review-synthesis.tsv`,
+  a 14-row Tranche 3 q4 admission review that uses the same row scope as the
+  q4 admission-denominator contract.
+- The review records the current admission decision from existing evidence:
+  q4 location rows fail the retained-denominator admission threshold because
+  SR475 `pdHess`/finite-Wald survivor rates are below 95%; all-four intercept
+  rows fail the denominator precheck; q8-shaped all-four one-slope rows remain
+  design-first Hessian/geometry holds; and the direct-SD bivariate row remains
+  diagnostic visibility only.
+- Wired the sidecar into Mission Control with a `Q4 admission review` summary
+  card and a Structured RE contracts table that shows `admission_decision`,
+  `coverage_decision`, `claim_boundary`, `threshold_status`, and `next_gate`.
+- Updated `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R` so the sidecar
+  row count, exact cell IDs, linked contract IDs, no-coverage/no-promotion
+  decisions, evidence references, source-sidecar counts, `profile_targets()`
+  gate wording, and rendered widget wiring are checked.
+
+Boundary:
+
+- This admits exactly no q4 row and promotes exactly no Q-Series row.
+- All 14 rows have `coverage_decision = coverage_not_authorized` and
+  `promotion_decision = do_not_promote`.
+- No interval/coverage `inference_ready`, no `supported`, no q4 REML, no REML,
+  no AI-REML, no q8 inference, no derived-correlation interval claim, no broad
+  bridge support, and no public-support claim changed.
+- Totoro and DRAC/Fir/Nibi/Rorqual remain compute options for future admission
+  or coverage work, but this slice does not launch compute because the current
+  q4 admission gates do not authorize coverage.
+
+Rose/Fisher/Gauss/Noether audit:
+
+- Rose found the contract-only/no-promotion artifact internally coherent but
+  warned against tier/status language before a no-promotion decision artifact
+  existed.
+- Fisher found no q4 provider/target currently admissible for coverage or
+  `inference_ready`; the next admissible work is a q4 location retained
+  denominator admission design, not coverage.
+- Gauss found animal all-four and q8-shaped routes blocked by Hessian/geometry
+  and production-transform problems; no q4 coverage job should be sent to
+  Totoro, Nibi/Rorqual, or DRAC from this evidence.
+- Noether approved only a no-promotion denominator/review artifact and required
+  exact `profile_targets()` names before any coverage launch.
+
+Validation:
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile tools/validate-mission-control.py`:
+  passed.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}' docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js && node --check /tmp/drmtmb-dashboard-index.js`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 14 q4 admission-denominator contract
+  rows, and 14 q4 admission-review synthesis rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: first failed because the new test
+  incorrectly flattened the ordinary comparator's derived-correlation boundary
+  into the structured-row boundary; after fixing that expectation, passed
+  `10357 PASS / 0 FAIL / 0 WARN / 0 SKIP`.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-admission-review-synthesis.md`
+
+## 2026-07-01: Q-Series Tranche 3 q4 admission-denominator contract
+
+Scope:
+
+- Rehydrated from the 2026-07-01 Codex handover and confirmed the Tranche 2
+  merged-main invariants before editing: PR #684 and PR #685 were merged,
+  `main`/`origin/main` were at `4d6d2339eb482f574293f30464276b284cb3e949`,
+  mission control was green, and the Q-Series support-cell truth remained 104
+  rows, 8 interval/coverage `inference_ready` rows, 0 structured `supported`
+  rows, 0 high-q `inference_ready` rows, and 0 non-Gaussian interval/coverage
+  `inference_ready` rows.
+- Created the fresh Tranche 3 branch
+  `codex/qseries-q4-admission-tranche3` from `main` so the docs-only handover
+  branch/PR #688 stays clean.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-admission-denominator-contract.tsv`,
+  a 14-row retained-denominator contract for q4 admission before any coverage
+  launch.
+- Wired the sidecar into Mission Control with a `Q4 denom contract` summary
+  card, a Structured RE contracts table, and visible `promotion_decision` plus
+  `claim_boundary` fields.
+- Updated `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R` so the sidecar
+  row count, support-cell status links, denominator gates, evidence references,
+  no-promotion boundary, visible rendered columns, and Q-Series render-call
+  wiring are checked.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- All 14 contract rows have `promotion_decision = do_not_promote`.
+- No interval/coverage `inference_ready`, no `supported`, no q4 REML, no REML,
+  no AI-REML, no q8 inference, no derived-correlation interval claim, no broad
+  bridge support, and no public-support claim changed.
+- Coverage remains blocked until q4 admission denominator and direct-SD interval
+  gates pass with retained failures counted.
+
+Rose audit:
+
+- Rose found no status/tier promotion in the TSV, test, validator, or README,
+  but flagged the rendered dashboard table because it did not visibly show the
+  strongest no-promotion boundary.
+- Fixed the rendered table to show `promotion_decision: do_not_promote` and the
+  full `claim_boundary`; the browser check then caught and forced a fix for the
+  missing Q-Series render-call argument.
+
+Validation:
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile tools/validate-mission-control.py`:
+  passed.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}' docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js && node --check /tmp/drmtmb-dashboard-index.js`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells and 14 q4 admission-denominator contract
+  rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: first failed on a brittle new
+  `table()` assertion; after fixing that assertion, passed `10285 PASS / 0
+  FAIL / 0 WARN / 0 SKIP`.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed and served
+  Mission Control at `http://127.0.0.1:8765/`.
+- Served/browser checks: `version.txt` returned `r192`; the new TSV served 15
+  lines; the in-app browser loaded without a data-load error; the Q4 denom card
+  was visible; the Structured RE contracts section rendered
+  `promotion_decision: do_not_promote`, `no inference_ready`, and
+  `no supported`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-admission-denominator-contract.md')"`:
+  passed.
+- `git diff --check`: passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-07-01-q-series-tranche3-q4-admission-denominator-contract.md`
+
 ## 2026-06-30: Q-Series animal q1 mu boundary-profile blocker sync
 
 Scope:
