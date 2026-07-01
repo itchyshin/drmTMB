@@ -21714,6 +21714,166 @@ test_that("q4 location target admission map freezes exact targets before coverag
   )))
 })
 
+test_that("Tranche 4 q4 location admission-runner design maps exact targets", {
+  design <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-admission-runner-design.tsv"
+  )
+  target_map <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-target-admission-map.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    design,
+    c(
+      "design_id",
+      "cell_id",
+      "structured_type",
+      "endpoint_member",
+      "profile_target",
+      "source_target_map_id",
+      "source_dispatch_id",
+      "n_rep_planned",
+      "host_policy",
+      "denominator_policy",
+      "failure_retention_policy",
+      "pdhess_gate",
+      "finite_interval_gate",
+      "derived_correlation_policy",
+      "coverage_decision",
+      "promotion_decision",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(design), 16L)
+  expect_equal(
+    anyDuplicated(paste(design$structured_type, design$endpoint_member)),
+    0L
+  )
+  expect_setequal(
+    paste(design$structured_type, design$endpoint_member),
+    paste(target_map$structured_type, target_map$endpoint_member)
+  )
+
+  expected_token <- function(member) {
+    gsub(
+      "_$",
+      "",
+      gsub("[^A-Za-z0-9]+", "_", tolower(member))
+    )
+  }
+  for (i in seq_len(nrow(design))) {
+    row <- design[i, , drop = FALSE]
+    provider <- row$structured_type
+    member <- row$endpoint_member
+    source <- target_map[
+      target_map$structured_type == provider &
+        target_map$endpoint_member == member,
+      ,
+      drop = FALSE
+    ]
+    expect_equal(nrow(source), 1L)
+    expect_equal(
+      row$design_id,
+      paste0(
+        "q4_location_admission_runner_design_",
+        provider,
+        "_",
+        expected_token(member)
+      )
+    )
+    expect_equal(row$cell_id, source$cell_id)
+    expect_equal(row$profile_target, source$profile_target)
+    expect_equal(row$source_target_map_id, source$status_id)
+    expect_equal(row$source_dispatch_id, source$source_dispatch_id)
+    expect_equal(as.character(row$n_rep_planned), "5")
+    expect_true(grepl(provider, row$next_gate, fixed = TRUE))
+    expect_true(grepl(member, row$next_gate, fixed = TRUE))
+    expect_true(grepl("profile_targets()", row$next_gate, fixed = TRUE))
+    expect_true(grepl(row$profile_target, row$next_gate, fixed = TRUE))
+    expect_true(grepl("host provenance", row$next_gate, fixed = TRUE))
+    expect_true(grepl(
+      "before any coverage design",
+      row$next_gate,
+      fixed = TRUE
+    ))
+  }
+
+  qseries <- qseries[
+    match(unique(design$cell_id), qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(any(qseries$interval_status == "inference_ready"))
+  expect_false(any(qseries$coverage_status == "inference_ready"))
+  expect_equal(design$coverage_decision, rep("coverage_not_authorized", 16L))
+  expect_equal(design$promotion_decision, rep("do_not_promote", 16L))
+  expect_equal(
+    design$pdhess_gate,
+    rep("require_pdHess_true_rate_ge_0.95_on_retained_denominator", 16L)
+  )
+  expect_equal(
+    design$finite_interval_gate,
+    rep(
+      paste0(
+        "require_finite_wald_and_profile_direct_sd_rate_ge_0.95_",
+        "on_retained_denominator"
+      ),
+      16L
+    )
+  )
+  expect_equal(
+    design$derived_correlation_policy,
+    rep(
+      "record_unavailable_no_interval_claim_until_reconstruction_designed",
+      16L
+    )
+  )
+  for (phrase in c(
+    "local_or_totoro_smoke_first",
+    "DRAC_after_schema_review",
+    "single_threaded_workers",
+    "host_provenance_required",
+    "do_not_mix_denominators"
+  )) {
+    expect_true(all(grepl(phrase, design$host_policy, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "retain_fit_errors",
+    "retain_nonconvergence",
+    "retain_pdHess_false",
+    "retain_gradient_warnings",
+    "retain_profile_warnings",
+    "retain_boundary_estimates",
+    "count_finite_direct_sd_intervals",
+    "record_derived_correlation_unavailable",
+    "retain_all_attempted_replicates"
+  )) {
+    expect_true(all(grepl(phrase, design$denominator_policy, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "Tranche 4 q4 location admission-runner design only",
+    "no runner execution",
+    "no denominator result",
+    "no coverage grid",
+    "no interval reliability",
+    "no inference_ready",
+    "no supported",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no q8 inference",
+    "no derived-correlation interval claim",
+    "no broad bridge support",
+    "no public support"
+  )) {
+    expect_true(all(grepl(phrase, design$claim_boundary, fixed = TRUE)))
+  }
+})
+
 test_that("Tranche 3 q4 admission closure audit keeps no-promotion boundaries", {
   closure <- structured_re_read_dashboard_tsv(
     "structured-re-q4-admission-tranche3-closure-audit.tsv"

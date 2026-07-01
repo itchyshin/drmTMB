@@ -2496,6 +2496,19 @@ interval reliability, coverage, `inference_ready`, `supported`, q4 REML, REML,
 AI-REML, q8 inference, derived-correlation interval support, broad bridge
 support, or public support.
 
+`structured-re-q4-location-admission-runner-design.tsv` records the Tranche 4
+q4 location admission-runner design before any retained-denominator smoke is
+executed. It maps one-to-one to the same 16 direct-SD `profile_targets()` rows,
+sets the first smoke size to `n_rep_planned = 5`, and requires host provenance
+plus separate Totoro/DRAC denominators. The runner design retains fit errors,
+nonconvergence, `pdHess = FALSE`, gradient/profile warnings, boundary
+estimates, finite direct-SD Wald/profile intervals, derived-correlation
+unavailable status, and every attempted replicate. Every row remains
+`coverage_not_authorized` and `do_not_promote`; this is design-only, not runner
+execution, denominator evidence, interval reliability, coverage,
+`inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval support, broad bridge support, or public support.
+
 `structured-re-q4-admission-tranche3-closure-audit.tsv` records the Tranche 3
 q4 admission closure audit. It ties the clean checkpoint recheck, high-q
 orientation, denominator contract, admission review, target map, compute policy,

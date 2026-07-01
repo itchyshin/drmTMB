@@ -1150,6 +1150,18 @@ The efficient completion order is:
    interval-reliability, coverage, `inference_ready`, `supported`, REML,
    AI-REML, q8 inference, derived-correlation interval, bridge, public-support,
    Q precision, K/Q parity, partial location-scale, or broader q8 status moves.
+21c. Started in the Tranche 4 q4-location admission-runner slice: add the
+   16-row retained-denominator admission-runner design for the exact q4 location
+   direct-SD targets. The design maps one-to-one to the Tranche 3 target map,
+   sets the first smoke to `n_rep_planned = 5`, and requires host provenance,
+   single-threaded workers, separated Totoro/DRAC denominators, retained fit
+   errors, nonconvergence, `pdHess = FALSE`, gradient/profile warnings,
+   boundary estimates, finite direct-SD Wald/profile intervals, and
+   derived-correlation unavailable status before any q4 coverage design. This
+   is design-only; no runner has executed, no denominator result has been
+   banked, and no coverage, `inference_ready`, `supported`, REML, AI-REML, q8
+   inference, derived-correlation interval, bridge, public-support, Q
+   precision, K/Q parity, partial location-scale, or broader q8 status moves.
 22. Banked in this stacked follow-up slice: add native R/TMB K/Q same-target
    parity for the exact relmat q4 location one-slope `mu1+mu2` cell. This
    moves only the native Q evidence boundary from `planned_not_banked` to

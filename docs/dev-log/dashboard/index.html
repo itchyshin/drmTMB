@@ -457,7 +457,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r195";
+const BUILD = "r196";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -1252,6 +1252,7 @@ function renderQSeriesBoard(
   q4AdmissionDenominatorContracts,
   q4AdmissionReviewSynthesis,
   q4LocationTargetAdmissionMap,
+  q4LocationAdmissionRunnerDesign,
   q4AdmissionTranche3ClosureAudit
 ) {
   const evidenceByCell = Object.fromEntries((inferenceEvidence || []).map((row) => [row.cell_id, row]));
@@ -1494,6 +1495,7 @@ function renderQSeriesBoard(
     ["Q4 denom contract", (q4AdmissionDenominatorContracts || []).length, "Admission gates, no compute"],
     ["Q4 admission review", (q4AdmissionReviewSynthesis || []).length, "No rows admitted"],
     ["Q4 target map", (q4LocationTargetAdmissionMap || []).length, "Exact targets, no coverage"],
+    ["Q4 T4 runner design", (q4LocationAdmissionRunnerDesign || []).length, "Admission smoke, no coverage"],
     ["Q4 Tranche 3 closure", (q4AdmissionTranche3ClosureAudit || []).length, "No admission, no coverage"],
     ["Calibration needed", stateCounts.calibration_required || 0, "Correction not row-signed"],
     ["Admission blocked", stateCounts.admission_blocked || 0, "Denominator gap first"],
@@ -2126,6 +2128,7 @@ function renderStructuredContracts(sidecars) {
     ["Q4 admission denominator", sidecars.q4AdmissionDenominatorContracts || [], ["contract_id", "cell_id", "current_decision", "promotion_decision", "claim_boundary", "q4_scope", "minimum_admission_threshold"]],
     ["Q4 admission review", sidecars.q4AdmissionReviewSynthesis || [], ["review_id", "cell_id", "admission_decision", "coverage_decision", "claim_boundary", "threshold_status", "next_gate"]],
     ["Q4 location target admission", sidecars.q4LocationTargetAdmissionMap || [], ["status_id", "structured_type", "endpoint_member", "profile_target", "admission_decision", "coverage_decision", "promotion_decision"]],
+    ["Q4 Tranche 4 runner design", sidecars.q4LocationAdmissionRunnerDesign || [], ["design_id", "structured_type", "endpoint_member", "profile_target", "n_rep_planned", "coverage_decision", "promotion_decision", "next_gate"]],
     ["Q4 Tranche 3 closure", sidecars.q4AdmissionTranche3ClosureAudit || [], ["closure_id", "handover_step", "observed_result", "coverage_decision", "promotion_decision", "next_gate"]],
     ["Q4 targets", sidecars.q4TargetContracts || [], ["target_id", "direct_sd_targets", "interval_status", "status"]],
     ["Q4 phylocov target map", sidecars.q4PhylocovTargetMaps || [], ["map_id", "target_kind", "direct_sd_target", "bridge_status"]],
@@ -2364,6 +2367,7 @@ function render(data, gates, capabilities, sidecars) {
     sidecars.q4AdmissionDenominatorContracts || [],
     sidecars.q4AdmissionReviewSynthesis || [],
     sidecars.q4LocationTargetAdmissionMap || [],
+    sidecars.q4LocationAdmissionRunnerDesign || [],
     sidecars.q4AdmissionTranche3ClosureAudit || []
   );
   renderFinishBoard(data);
@@ -2491,6 +2495,7 @@ async function tick() {
       q4AdmissionDenominatorContracts: parseTsv(await readText("structured-re-q4-admission-denominator-contract.tsv")),
       q4AdmissionReviewSynthesis: parseTsv(await readText("structured-re-q4-admission-review-synthesis.tsv")),
       q4LocationTargetAdmissionMap: parseTsv(await readText("structured-re-q4-location-target-admission-map.tsv")),
+      q4LocationAdmissionRunnerDesign: parseTsv(await readText("structured-re-q4-location-admission-runner-design.tsv")),
       q4AdmissionTranche3ClosureAudit: parseTsv(await readText("structured-re-q4-admission-tranche3-closure-audit.tsv")),
       q4TargetContracts: parseTsv(await readText("structured-re-q4-target-contract.tsv")),
       q4PhylocovTargetMaps: parseTsv(await readText("structured-re-q4-phylocov-target-map.tsv")),

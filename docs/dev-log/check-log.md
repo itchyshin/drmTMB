@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-07-01: Q-Series Tranche 4 q4 location admission-runner design
+
+Scope:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-admission-runner-design.tsv`,
+  a 16-row Tranche 4 design contract for the exact q4 location direct-SD
+  provider/endpoint targets from the Tranche 3 target map.
+- Wired the sidecar into Mission Control with a `Q4 T4 runner design` summary
+  card, a Structured RE contracts table, dashboard version `r196`, validator
+  checks, and focused testthat coverage.
+- The design sets `n_rep_planned = 5` for the first retained-denominator
+  admission smoke and requires host provenance, single-threaded workers, and
+  separated Totoro/DRAC denominators.
+
+Boundary:
+
+- This is a runner-design artifact only. No Tranche 4 runner execution, Totoro
+  job, DRAC job, denominator result, admission result, or q4 coverage grid was
+  launched.
+- All 16 rows have `coverage_decision = coverage_not_authorized` and
+  `promotion_decision = do_not_promote`.
+- No support-cell status changed; no interval/coverage `inference_ready`,
+  `supported`, q4 REML, REML, AI-REML, q8 inference, derived-correlation
+  interval, broad bridge, or public-support claim changed.
+
+Rose/Fisher/Gauss/Noether audit:
+
+- Rose: the new sidecar is deliberately a design-only contract and repeats the
+  no-claim boundary on every row.
+- Fisher: the retained denominator must keep fit errors, nonconvergence,
+  `pdHess = FALSE`, warnings, boundaries, finite direct-SD Wald/profile
+  intervals, and unavailable derived correlations before coverage is designed.
+- Gauss: no cluster job is treated as admissible before the q4 admission gate
+  has a retained-denominator runner result.
+- Noether: every row maps back to the exact Tranche 3 `profile_targets()` name;
+  derived correlations remain unavailable rather than interval targets.
+
+Validation:
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile tools/validate-mission-control.py`:
+  passed.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}'
+  docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js &&
+  node --check /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "invisible(parse('tests/testthat/test-structured-re-conversion-contracts.R'))"`:
+  passed.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 16 q4 location target-admission map
+  rows, 16 q4 location admission-runner design rows, and seven q4 admission
+  Tranche 3 closure-audit rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed `10983 PASS / 0 FAIL / 0
+  WARN / 0 SKIP`.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-07-01-q-series-tranche4-q4-location-admission-runner-design.md`
+
 ## 2026-07-01: Q-Series Tranche 3 q4 admission closure audit
 
 Scope:

@@ -692,6 +692,9 @@ STRUCTURED_RE_Q4_ADMISSION_REVIEW_SYNTHESIS = (
 STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP = (
     DASHBOARD / "structured-re-q4-location-target-admission-map.tsv"
 )
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN = (
+    DASHBOARD / "structured-re-q4-location-admission-runner-design.tsv"
+)
 STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT = (
     DASHBOARD / "structured-re-q4-admission-tranche3-closure-audit.tsv"
 )
@@ -6118,6 +6121,26 @@ STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN_FIELDS = (
+    "design_id",
+    "cell_id",
+    "structured_type",
+    "endpoint_member",
+    "profile_target",
+    "source_target_map_id",
+    "source_dispatch_id",
+    "n_rep_planned",
+    "host_policy",
+    "denominator_policy",
+    "failure_retention_policy",
+    "pdhess_gate",
+    "finite_interval_gate",
+    "derived_correlation_policy",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+    "next_gate",
+)
 STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT_FIELDS = (
     "closure_id",
     "handover_step",
@@ -9746,6 +9769,9 @@ def main() -> int:
     structured_re_q4_location_target_admission_map_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP
     )
+    structured_re_q4_location_admission_runner_design_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN
+    )
     structured_re_q4_admission_tranche3_closure_audit_rows = read_tsv(
         STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT
     )
@@ -10045,6 +10071,7 @@ def main() -> int:
         "q4AdmissionDenominatorContracts,\n"
         "  q4AdmissionReviewSynthesis,\n"
         "  q4LocationTargetAdmissionMap,\n"
+        "  q4LocationAdmissionRunnerDesign,\n"
         "  q4AdmissionTranche3ClosureAudit\n"
         ") {"
     )
@@ -10054,6 +10081,7 @@ def main() -> int:
         "sidecars.q4AdmissionDenominatorContracts || [],\n"
         "    sidecars.q4AdmissionReviewSynthesis || [],\n"
         "    sidecars.q4LocationTargetAdmissionMap || [],\n"
+        "    sidecars.q4LocationAdmissionRunnerDesign || [],\n"
         "    sidecars.q4AdmissionTranche3ClosureAudit || []\n"
         "  );"
     )
@@ -10073,6 +10101,7 @@ def main() -> int:
         "q4AdmissionDenominatorContracts,\n"
         "  q4AdmissionReviewSynthesis,\n"
         "  q4LocationTargetAdmissionMap,\n"
+        "  q4LocationAdmissionRunnerDesign,\n"
         "  q4AdmissionTranche3ClosureAudit\n"
         ") {"
     )
@@ -10082,6 +10111,7 @@ def main() -> int:
         "sidecars.q4AdmissionDenominatorContracts || [],\n"
         "    sidecars.q4AdmissionReviewSynthesis || [],\n"
         "    sidecars.q4LocationTargetAdmissionMap || [],\n"
+        "    sidecars.q4LocationAdmissionRunnerDesign || [],\n"
         "    sidecars.q4AdmissionTranche3ClosureAudit || []\n"
         "  );"
     )
@@ -10092,6 +10122,8 @@ def main() -> int:
         not in index
     ):
         errors.append("tick() must load structured-re-q4-admission-review-synthesis.tsv")
+    if "q4LocationAdmissionRunnerDesign" not in index:
+        errors.append("renderQSeriesBoard must accept q4LocationAdmissionRunnerDesign")
     q4_location_target_render_columns = (
         '["Q4 location target admission", sidecars.q4LocationTargetAdmissionMap || [], '
         '["status_id", "structured_type", "endpoint_member", "profile_target", '
@@ -10101,6 +10133,23 @@ def main() -> int:
         errors.append(
             "index.html must render q4 location target admission profile_target, "
             "admission_decision, coverage_decision, and promotion_decision columns"
+        )
+    q4_location_runner_design_render_columns = (
+        '["Q4 Tranche 4 runner design", sidecars.q4LocationAdmissionRunnerDesign || [], '
+        '["design_id", "structured_type", "endpoint_member", "profile_target", '
+        '"n_rep_planned", "coverage_decision", "promotion_decision", "next_gate"]]'
+    )
+    if q4_location_runner_design_render_columns not in index:
+        errors.append(
+            "index.html must render q4 location admission-runner design profile_target, "
+            "n_rep_planned, coverage_decision, promotion_decision, and next_gate columns"
+        )
+    if (
+        'q4LocationAdmissionRunnerDesign: parseTsv(await readText("structured-re-q4-location-admission-runner-design.tsv"))'
+        not in index
+    ):
+        errors.append(
+            "tick() must load structured-re-q4-location-admission-runner-design.tsv"
         )
     q4_tranche3_closure_render_columns = (
         '["Q4 Tranche 3 closure", sidecars.q4AdmissionTranche3ClosureAudit || [], '
@@ -42924,6 +42973,163 @@ def main() -> int:
             f"missing={missing}, extra={extra}"
         )
 
+    target_admission_by_target = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_location_target_admission_map_rows
+    }
+    seen_q4_location_runner_design_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_location_admission_runner_design_rows)
+        != len(expected_q4_location_target_admission_targets)
+    ):
+        errors.append(
+            "structured-re-q4-location-admission-runner-design.tsv has "
+            f"{len(structured_re_q4_location_admission_runner_design_rows)} rows; "
+            f"expected {len(expected_q4_location_target_admission_targets)}"
+        )
+    for row in structured_re_q4_location_admission_runner_design_rows:
+        row_id = row.get("design_id", "<q4 location admission runner design>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-admission-runner-design.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type", "")
+        endpoint_member = row.get("endpoint_member", "")
+        target_key = (provider, endpoint_member)
+        if target_key not in expected_q4_location_target_admission_targets:
+            errors.append(f"{row_id}: unexpected q4 location runner target {target_key}")
+            continue
+        if target_key in seen_q4_location_runner_design_targets:
+            errors.append(f"{row_id}: duplicate q4 location runner target {target_key}")
+        seen_q4_location_runner_design_targets.add(target_key)
+
+        expected_design_id = (
+            "q4_location_admission_runner_design_"
+            f"{provider}_{q4_location_slope_dispatch_token(endpoint_member)}"
+        )
+        if row_id != expected_design_id:
+            errors.append(f"{row_id}: design_id must be {expected_design_id}")
+        target_row = target_admission_by_target.get(target_key)
+        if target_row is None:
+            errors.append(f"{row_id}: missing source target-map row")
+        else:
+            expected_source_values = {
+                "cell_id": target_row.get("cell_id"),
+                "profile_target": target_row.get("profile_target"),
+                "source_target_map_id": target_row.get("status_id"),
+                "source_dispatch_id": target_row.get("source_dispatch_id"),
+            }
+            for field, expected_value in expected_source_values.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if target_row.get("coverage_decision") != "coverage_not_authorized":
+                errors.append(f"{row_id}: source target map must withhold coverage")
+            if target_row.get("promotion_decision") != "do_not_promote":
+                errors.append(f"{row_id}: source target map must withhold promotion")
+        if row.get("n_rep_planned") != "5":
+            errors.append(f"{row_id}: n_rep_planned must be 5 for the first smoke")
+        for phrase in (
+            "local_or_totoro_smoke_first",
+            "DRAC_after_schema_review",
+            "single_threaded_workers",
+            "host_provenance_required",
+            "do_not_mix_denominators",
+        ):
+            if phrase not in row.get("host_policy", ""):
+                errors.append(f"{row_id}: host_policy must mention {phrase}")
+        for phrase in (
+            "retain_fit_errors",
+            "retain_nonconvergence",
+            "retain_pdHess_false",
+            "retain_gradient_warnings",
+            "retain_profile_warnings",
+            "retain_boundary_estimates",
+            "count_finite_direct_sd_intervals",
+            "record_derived_correlation_unavailable",
+            "retain_all_attempted_replicates",
+        ):
+            if phrase not in row.get("denominator_policy", ""):
+                errors.append(f"{row_id}: denominator_policy must mention {phrase}")
+        for phrase in (
+            "failed_fit_in_denominator",
+            "nonconvergence_in_denominator",
+            "pdHess_false_in_denominator",
+            "warnings_in_denominator",
+            "boundary_estimates_flagged_not_dropped",
+            "unavailable_intervals_recorded",
+        ):
+            if phrase not in row.get("failure_retention_policy", ""):
+                errors.append(f"{row_id}: failure_retention_policy must mention {phrase}")
+        fixed_values = {
+            "pdhess_gate": "require_pdHess_true_rate_ge_0.95_on_retained_denominator",
+            "finite_interval_gate": (
+                "require_finite_wald_and_profile_direct_sd_rate_ge_0.95_"
+                "on_retained_denominator"
+            ),
+            "derived_correlation_policy": (
+                "record_unavailable_no_interval_claim_until_reconstruction_designed"
+            ),
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+        }
+        for field, expected_value in fixed_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for phrase in (
+            "Tranche 4 q4 location admission-runner design only",
+            "no runner execution",
+            "no denominator result",
+            "no coverage grid",
+            "no interval reliability",
+            "no inference_ready",
+            "no supported",
+            "no q4 REML",
+            "no REML",
+            "no AI-REML",
+            "no q8 inference",
+            "no derived-correlation interval claim",
+            "no broad bridge support",
+            "no public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "retained-denominator q4 location admission smoke n=5",
+            provider,
+            endpoint_member,
+            "profile_targets()",
+            row.get("profile_target", ""),
+            "host provenance",
+            "retained denominator",
+            "pdHess",
+            "before any coverage design",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+    if (
+        seen_q4_location_runner_design_targets
+        != expected_q4_location_target_admission_targets
+    ):
+        missing = sorted(
+            expected_q4_location_target_admission_targets
+            - seen_q4_location_runner_design_targets
+        )
+        extra = sorted(
+            seen_q4_location_runner_design_targets
+            - expected_q4_location_target_admission_targets
+        )
+        errors.append(
+            "structured-re-q4-location-admission-runner-design.tsv targets changed: "
+            f"missing={missing}, extra={extra}"
+        )
+
     q4_tranche3_closure_claim_boundary = (
         "Tranche 3 q4 admission closure audit only; no coverage grid; "
         "no interval reliability; no inference_ready; no supported; no q4 REML; "
@@ -54840,6 +55046,7 @@ def main() -> int:
         f", {len(structured_re_q4_admission_denominator_contract_rows)} structured RE q4 admission-denominator contract rows"
         f", {len(structured_re_q4_admission_review_synthesis_rows)} structured RE q4 admission-review synthesis rows"
         f", {len(structured_re_q4_location_target_admission_map_rows)} structured RE q4 location target-admission map rows"
+        f", {len(structured_re_q4_location_admission_runner_design_rows)} structured RE q4 location admission-runner design rows"
         f", {len(structured_re_q4_admission_tranche3_closure_audit_rows)} structured RE q4 admission Tranche 3 closure-audit rows"
         f", {len(structured_re_q4_slope_hessian_geometry_rows)} structured RE q4 slope Hessian-geometry rows"
         f", {len(structured_re_q4_slope_sigma_axis_differential_rows)} structured RE q4 slope sigma-axis differential rows"
