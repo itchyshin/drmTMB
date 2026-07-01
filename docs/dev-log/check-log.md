@@ -78744,3 +78744,65 @@ Validation:
   OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
   --no-init-file -e 'devtools::check()'`: R CMD check completed in 11m
   56.9s with 0 errors / 0 warnings / 0 notes.
+
+## 2026-07-01: Q-Series Tranche 2 q2 status closure sync
+
+Scope:
+
+- Applied Fisher/Rose review of the current Gaussian structured low-q Tranche 2
+  state. No remaining q1/q2 row can be promoted under the current evidence
+  routes.
+- Updated `docs/dev-log/dashboard/README.md`,
+  `tools/summarize-structured-re-gaussian-lowq-row-selection.R`, and
+  `tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R`
+  so q2 retained-denominator wording no longer describes the historical SR150
+  path as current host permission.
+- Made the q2 repair-smoke next-campaign queue overlay idempotent and added
+  validator/test guards so the low-q queue row cannot accumulate repeated
+  readiness, precondition, or stop-rule prose on regeneration.
+- Regenerated `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv`
+  and the artifact mirror, then reapplied the q2 repair-smoke review overlay.
+
+Result:
+
+- The five q2 retained-denominator row-selection entries now say no current
+  host escalation: Rorqual SR150 and Totoro existing-route repair-smoke
+  artifacts are review-only historical evidence, and Nibi, Rorqual, Trillium,
+  Totoro/FIIA, and DRAC remain blocked for top-up until Fisher/Rose/Grace
+  accept a named q2 interval-repair route and it passes a small host-separated
+  no-promotion smoke.
+- No support-cell status changed. The support-cell table remains at 104 rows,
+  exactly 8 structured `inference_ready` rows, and no structured `supported`
+  row.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-gaussian-lowq-row-selection.R"));
+  invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R"))'`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  --overwrite=true`: passed and wrote 20 Gaussian low-q row-selection rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R
+  --dispatch=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv
+  --output=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv
+  --sync-dashboard=true --overwrite=true`: passed and synced q2 gates.
+- `rg -n "eligible for an SR150 pregrid|no denominator evidence is imported|Nibi primary for SR150 retained-denominator pregrid|Rorqual is confirmation or overflow|q2 retained-denominator pregrid.*ready|Run only the q2 intercept target rows marked|Run only q2-plus-q2 target rows marked"
+  docs/dev-log/dashboard/README.md
+  docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/dashboard/structured-re-q-series-next-campaign-queue.tsv
+  docs/dev-log/dashboard/structured-re-q-series-closure-triage.tsv
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R
+  || true`: no matches.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10239 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.

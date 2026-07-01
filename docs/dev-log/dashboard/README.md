@@ -220,22 +220,26 @@ local/Totoro smoke candidates, or DRAC-held replacement-rule work. It is a
 cluster-use guard only: it prevents connected hosts from becoming broad
 unreviewed denominator campaigns and does not promote support status.
 
-`structured-re-q2-retained-denominator-design.tsv` records the Tranche 2 q2
-retained-denominator gate after the Nibi/Rorqual substitute smokes. It joins
-the q2 intercept and q2-plus-q2 interval contracts to the reviewed n=5 Nibi
-smoke rows, names the interval channel and denominator policy per target, and
-keeps endpoint SD, direct-correlation, sigma-side, and profile-repair targets
-separate. Seventeen target rows are eligible for an SR150 pregrid under
-`do_not_promote`; the q2-plus-q2 sigma1/sigma2 correlation target remains a
-profile-repair hold. The table does not promote interval status, coverage,
-`inference_ready`, `supported`, q2 slope, q4/q8, non-Gaussian, REML,
-AI-REML, bridge, or public-support claims.
+`structured-re-q2-retained-denominator-design.tsv` is now historical Tranche 2
+q2 design evidence, not a current run permission. The Rorqual SR150 pregrid was
+imported as review-only evidence in
+`structured-re-q2-retained-denominator-pregrid-results.tsv`, and the later
+Totoro repair smoke was summarized in
+`structured-re-q2-retained-denominator-repair-smoke-review.tsv`. That review
+found that the smoke reran the existing interval route
+(`interval_repair_channel = none`), promoted no row, and blocks SR475/SR1000 or
+host top-up until Fisher/Rose/Grace accept a named interval-repair route and it
+passes the small retained-denominator smoke. The q2 intercept and q2-plus-q2
+cells remain `point_fit/planned/planned`; this evidence does not promote
+interval status, coverage, `inference_ready`, `supported`, q2 slope, q4/q8,
+non-Gaussian, REML, AI-REML, bridge, or public-support claims.
 
 `tools/run-structured-re-q2-retained-denominator-pregrid.R` and
-`tools/slurm/q2-retained-denominator-pregrid-nibi.sbatch` are the executable
-SR150 artifact-only pregrid path for those ready targets. The wrapper dry-run
-and the five-shard Nibi array are validated, but no denominator evidence is
-imported until reviewed artifacts are summarized separately.
+`tools/slurm/q2-retained-denominator-pregrid-nibi.sbatch` remain reproducibility
+artifacts for the reviewed SR150 path. They are not a current invitation to run
+more q2 denominator work. New q2 compute must start with a row-specific
+repair-route design, host-separated source and seed provenance, and a small
+no-promotion smoke before any cluster escalation.
 
 The widget also joins count one-slope rows to the local
 `structured-re-count-slope-recovery-results.tsv` sidecar and then to the

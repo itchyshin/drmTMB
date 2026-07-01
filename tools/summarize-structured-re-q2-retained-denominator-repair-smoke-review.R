@@ -539,6 +539,13 @@ if (sync_dashboard) {
   }
   selection$selection_status[selection_idx] <- out$review_status
   selection$run_mode[selection_idx] <- "q2_named_interval_repair_design_first"
+  selection$allowed_hosts[selection_idx] <- paste(
+    "No current host escalation. Rorqual SR150 and Totoro existing-route",
+    "repair-smoke artifacts are review-only historical evidence; Nibi,",
+    "Rorqual, Trillium, Totoro/FIIA, and DRAC stay blocked for top-up until",
+    "Fisher/Rose/Grace accept a named q2 interval-repair route and it passes",
+    "a small host-separated no-promotion smoke."
+  )
   selection$required_preconditions[selection_idx] <- paste(
     "Use",
     review_rel,
@@ -644,22 +651,29 @@ if (sync_dashboard) {
     )
   }
   queue$readiness_state[queue_idx] <- paste(
-    queue$readiness_state[queue_idx],
-    "Q2 retained-denominator repair smoke has now been reviewed in",
+    "Nibi SR475 q1 mu-intercept evidence promoted phylo/spatial/relmat",
+    "to inference_ready with caveats; animal q1 mu is boundary/profile",
+    "blocked after hard-seed replay. Animal/relmat q1 sigma also has",
+    "endpoint zero-boundary profile SR1000 upper-tail blocker evidence.",
+    "Q2 retained-denominator repair smoke has been reviewed in",
     review_rel,
     "as existing-route-only diagnostic evidence: four q2 intercept rows need",
     "a named interval-repair route before top-up, and the q2-plus row remains",
     "profile-finiteness blocked."
   )
   queue$required_preconditions[queue_idx] <- paste(
-    queue$required_preconditions[queue_idx],
+    "For animal q1 mu, design a new interval route or write a blocker",
+    "decision before any Totoro/DRAC top-up or status edit. For q1 sigma,",
+    "choose a new interval route or blocker decision.",
     "For q2 retained-denominator rows, write the named interval-repair route",
     "first, replay retained artifacts if possible, rerun the small smoke on",
     "one host with pinned threads, and get Fisher/Rose/Grace review before",
     "SR475/SR1000 top-up or any support-cell status edit."
   )
   queue$stop_rule[queue_idx] <- paste(
-    queue$stop_rule[queue_idx],
+    "Stop if animal q1 mu hard-seed boundary/profile upper misses are ignored,",
+    "if q1 sigma or q2 blockers are top-up escalated without a new route,",
+    "or if any low-q row is promoted from point stability or host reachability.",
     "Stop if q2 retained-denominator compute is escalated on Totoro, Nibi,",
     "Rorqual, Trillium, or DRAC without a named interval-repair route that",
     "already passed the small smoke."

@@ -447,7 +447,13 @@ summary$run_mode[q2_plus_rows] <-
 summary$first_smoke_n_rep[q2_intercept_rows] <- "32"
 summary$first_smoke_n_rep[q2_plus_rows] <- "16"
 summary$allowed_hosts[q2_intercept_rows | q2_plus_rows] <-
-  "Nibi primary for SR150 retained-denominator pregrid only under structured-re-q2-retained-denominator-design.tsv; Rorqual is confirmation or overflow under the same seed manifest; Totoro/FIIA remain optional smoke-only hosts if access is restored"
+  paste(
+    "No current host escalation. Rorqual SR150 and Totoro existing-route",
+    "repair-smoke artifacts are review-only historical evidence; Nibi,",
+    "Rorqual, Trillium, Totoro/FIIA, and DRAC stay blocked for top-up until",
+    "Fisher/Rose/Grace accept a named q2 interval-repair route and it passes",
+    "a small host-separated no-promotion smoke."
+  )
 summary$blocked_hosts[q2_intercept_rows] <-
   "Any Nibi/Rorqual/DRAC denominator work that omits structured-re-q2-retained-denominator-design.tsv, mixes hosts without a new seed manifest, or bundles q2 slopes, q2-plus-q2 failed targets, q1, q4/q8, non-Gaussian, REML, AI-REML, bridge support, public support, or supported claims"
 summary$blocked_hosts[q2_plus_rows] <- paste(
@@ -484,19 +490,20 @@ summary$required_preconditions[q2_plus_rows] <- paste(
   "sigma1/sigma2 correlation profile-failure blocker."
 )
 summary$next_gate[q2_intercept_rows] <- paste(
-  "Run only the q2 intercept target rows marked sr150_pregrid_ready_no_promotion",
-  "in structured-re-q2-retained-denominator-design.tsv; retain all attempted",
-  "rows, keep bootstrap accounting explicit, endpoint SD and correlation",
-  "targets separate, report one-sided misses and MCSE <= 0.01 as a top-up",
-  "target, and make no status promotion before Fisher/Rose/Grace review."
+  "Do not run more q2 intercept denominator work from the historical SR150",
+  "pregrid path. Design a named interval-repair route first, then run a small",
+  "host-separated no-promotion smoke with retained attempted rows, explicit",
+  "bootstrap accounting, separate endpoint SD and correlation targets,",
+  "one-sided misses, MCSE reporting, and Fisher/Rose/Grace review before any",
+  "SR475/SR1000 top-up or support-cell status edit."
 )
 summary$next_gate[q2_plus_rows] <- paste(
-  "Run only q2-plus-q2 target rows marked sr150_pregrid_ready_no_promotion in",
-  "structured-re-q2-retained-denominator-design.tsv; repair or explain the",
-  "sigma1/sigma2 correlation profile-failure blocker before any pregrid for",
-  "that target; cross-block correlations stay blocked, sigma-side targets do",
-  "not inherit the location-axis bias+t default, and no status promotion is",
-  "allowed before Fisher/Rose/Grace review."
+  "Do not run more q2-plus-q2 denominator work from the historical SR150",
+  "pregrid path. Repair or explicitly block the sigma1/sigma2 correlation",
+  "profile-failure route, keep cross-block correlations blocked, keep",
+  "sigma-side targets separate from the location-axis bias+t default, and",
+  "require a named interval-repair route plus Fisher/Rose/Grace review before",
+  "any smoke escalation, SR475/SR1000 top-up, or support-cell status edit."
 )
 summary$evidence_url[q2_intercept_rows | q2_plus_rows] <-
   "docs/dev-log/dashboard/structured-re-q2-retained-denominator-design.tsv"

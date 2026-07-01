@@ -735,6 +735,37 @@ test_that("q-series next-campaign queue gates cluster use", {
       grepl("DRAC", queue$blocked_hosts) |
       grepl("DRAC", queue$next_action)
   ))
+  lowq_queue <- queue[
+    queue$queue_id == "qseries_queue_gaussian_lowq_interval_design",
+  ]
+  count_fixed <- function(x, pattern) {
+    matches <- gregexpr(pattern, x, fixed = TRUE)[[1L]]
+    if (identical(matches, -1L)) {
+      return(0L)
+    }
+    length(matches)
+  }
+  expect_equal(
+    count_fixed(
+      lowq_queue$readiness_state,
+      "Q2 retained-denominator repair smoke has been reviewed"
+    ),
+    1L
+  )
+  expect_equal(
+    count_fixed(
+      lowq_queue$required_preconditions,
+      "For q2 retained-denominator rows, write the named interval-repair route"
+    ),
+    1L
+  )
+  expect_equal(
+    count_fixed(
+      lowq_queue$stop_rule,
+      "Stop if q2 retained-denominator compute is escalated"
+    ),
+    1L
+  )
   for (path in queue$primary_evidence) {
     expect_true(file.exists(
       structured_re_artifact_path(strsplit(path, "/", fixed = TRUE)[[1L]])

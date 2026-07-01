@@ -11671,6 +11671,21 @@ def main() -> int:
             row.get("allowed_hosts", "") + row.get("blocked_hosts", "") + row.get("next_action", "")
         ):
             errors.append(f"{row_id}: cluster mode must mention DRAC boundary")
+        if row_id == "qseries_queue_gaussian_lowq_interval_design":
+            singleton_phrases = {
+                "readiness_state": "Q2 retained-denominator repair smoke has been reviewed",
+                "required_preconditions": (
+                    "For q2 retained-denominator rows, write the named "
+                    "interval-repair route"
+                ),
+                "stop_rule": "Stop if q2 retained-denominator compute is escalated",
+            }
+            for field, phrase in singleton_phrases.items():
+                count = row.get(field, "").count(phrase)
+                if count != 1:
+                    errors.append(
+                        f"{row_id}: {field} must contain {phrase!r} exactly once"
+                    )
     if seen_next_campaign_ids != set(expected_q_series_next_campaign_queue):
         errors.append(
             "structured-re-q-series-next-campaign-queue.tsv row ids must be "
