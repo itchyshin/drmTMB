@@ -2509,6 +2509,19 @@ execution, denominator evidence, interval reliability, coverage,
 `inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
 derived-correlation interval support, broad bridge support, or public support.
 
+`structured-re-q4-location-admission-smoke.tsv` records the Tranche 4 local
+`n = 5` retained-denominator admission smoke for the same 16 q4 location
+direct-SD targets. Its raw retained target rows live in
+`docs/dev-log/simulation-artifacts/2026-07-01-q4-location-admission-smoke/structured-re-q4-location-admission-smoke-results.tsv`.
+Phylo, spatial, and animal fail the first local smoke gate because their
+retained `pdHess`/Wald-finite rates are 2/5, 3/5, and 4/5 respectively for
+each provider target; relmat is 5/5 on retained `pdHess`, Wald-finite, and
+profile-finite rows but remains review-required with no admission claim. Every
+row keeps `coverage_not_authorized` and `do_not_promote`; this is local
+retained-denominator evidence, not interval reliability, coverage,
+`inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval support, broad bridge support, or public support.
+
 `structured-re-q4-admission-tranche3-closure-audit.tsv` records the Tranche 3
 q4 admission closure audit. It ties the clean checkpoint recheck, high-q
 orientation, denominator contract, admission review, target map, compute policy,

@@ -21874,6 +21874,211 @@ test_that("Tranche 4 q4 location admission-runner design maps exact targets", {
   }
 })
 
+test_that("Tranche 4 q4 location admission smoke records retained denominator", {
+  smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-admission-smoke.tsv"
+  )
+  design <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-admission-runner-design.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  raw <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-07-01-q4-location-admission-smoke",
+      "structured-re-q4-location-admission-smoke-results.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  run_log <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-07-01-q4-location-admission-smoke",
+      "structured-re-q4-location-admission-smoke-run-log.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    smoke,
+    c(
+      "result_id",
+      "design_id",
+      "cell_id",
+      "structured_type",
+      "endpoint_member",
+      "profile_target",
+      "source_target_map_id",
+      "n_rep_planned",
+      "n_attempted",
+      "host_label",
+      "n_fit_error",
+      "n_converged",
+      "n_pdhess",
+      "pdhess_rate",
+      "n_wald_finite",
+      "wald_finite_rate",
+      "n_profile_finite",
+      "profile_finite_rate",
+      "n_gradient_warning",
+      "n_profile_warning",
+      "n_boundary_estimate",
+      "derived_correlation_interval_status",
+      "admission_decision",
+      "coverage_decision",
+      "promotion_decision",
+      "rose_audit",
+      "fisher_review",
+      "gauss_review",
+      "noether_review",
+      "evidence_url",
+      "raw_artifact_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_named(
+    raw,
+    c(
+      "run_id",
+      "replicate_id",
+      "seed",
+      "host_label",
+      "provider",
+      "endpoint_member",
+      "cell_id",
+      "design_id",
+      "source_target_map_id",
+      "profile_target",
+      "attempt_status",
+      "fit_message",
+      "convergence",
+      "pdHess",
+      "max_abs_gradient",
+      "boundary_estimate",
+      "estimate_sd",
+      "target_found",
+      "wald_lower",
+      "wald_upper",
+      "wald_status",
+      "wald_warnings",
+      "wald_finite",
+      "profile_lower",
+      "profile_upper",
+      "profile_status",
+      "profile_conf_status",
+      "profile_message",
+      "profile_warnings",
+      "profile_finite",
+      "derived_correlation_interval_status",
+      "coverage_decision",
+      "promotion_decision",
+      "elapsed_sec"
+    )
+  )
+  expect_equal(nrow(smoke), 16L)
+  expect_equal(nrow(raw), 80L)
+  expect_equal(nrow(run_log), 1L)
+  expect_equal(run_log$mode, "execute")
+  expect_equal(run_log$host_label, "local")
+  expect_equal(run_log$provider, "all")
+  expect_equal(run_log$n_rep, 5L)
+  expect_equal(run_log$coverage_decision, "coverage_not_authorized")
+  expect_equal(run_log$promotion_decision, "do_not_promote")
+
+  expect_setequal(smoke$design_id, design$design_id)
+  expect_equal(smoke$coverage_decision, rep("coverage_not_authorized", 16L))
+  expect_equal(smoke$promotion_decision, rep("do_not_promote", 16L))
+  expect_equal(smoke$host_label, rep("local", 16L))
+  expect_equal(smoke$n_attempted, rep(5L, 16L))
+  expect_equal(smoke$n_fit_error, rep(0L, 16L))
+  expect_equal(raw$host_label, rep("local", 80L))
+  expect_equal(raw$attempt_status, rep("fit_ok", 80L))
+  expect_equal(raw$target_found, rep(TRUE, 80L))
+  expect_equal(raw$coverage_decision, rep("coverage_not_authorized", 80L))
+  expect_equal(raw$promotion_decision, rep("do_not_promote", 80L))
+  expect_equal(
+    raw$derived_correlation_interval_status,
+    rep("derived_correlation_unavailable", 80L)
+  )
+
+  expected_decision <- function(n_pdhess, n_wald, n_profile) {
+    if (n_pdhess == 5L && n_wald == 5L && n_profile == 5L) {
+      "local_smoke_gate_passed_review_required_no_admission"
+    } else {
+      "not_admitted_local_smoke_gate_failed"
+    }
+  }
+  for (i in seq_len(nrow(smoke))) {
+    row <- smoke[i, , drop = FALSE]
+    source <- design[design$design_id == row$design_id, , drop = FALSE]
+    expect_equal(nrow(source), 1L)
+    expect_equal(row$cell_id, source$cell_id)
+    expect_equal(row$profile_target, source$profile_target)
+    retained <- raw[raw$design_id == row$design_id, , drop = FALSE]
+    expect_equal(nrow(retained), 5L)
+    n_pdhess <- sum(retained$pdHess)
+    n_wald <- sum(retained$wald_finite)
+    n_profile <- sum(retained$profile_finite)
+    expect_equal(row$n_pdhess, n_pdhess)
+    expect_equal(row$pdhess_rate, n_pdhess / 5)
+    expect_equal(row$n_wald_finite, n_wald)
+    expect_equal(row$wald_finite_rate, n_wald / 5)
+    expect_equal(row$n_profile_finite, n_profile)
+    expect_equal(row$profile_finite_rate, n_profile / 5)
+    expect_equal(
+      row$admission_decision,
+      expected_decision(n_pdhess, n_wald, n_profile)
+    )
+    expect_true(grepl(row$structured_type, row$next_gate, fixed = TRUE))
+    expect_true(grepl(row$endpoint_member, row$next_gate, fixed = TRUE))
+    expect_true(grepl(row$profile_target, row$next_gate, fixed = TRUE))
+    expect_true(grepl("host provenance", row$next_gate, fixed = TRUE))
+    expect_true(grepl(
+      "before any coverage design",
+      row$next_gate,
+      fixed = TRUE
+    ))
+  }
+
+  qseries <- qseries[
+    match(unique(smoke$cell_id), qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(any(qseries$interval_status == "inference_ready"))
+  expect_false(any(qseries$coverage_status == "inference_ready"))
+  for (phrase in c(
+    "Tranche 4 q4 location admission smoke only",
+    "retained denominator recorded",
+    "no coverage grid",
+    "no interval reliability",
+    "no inference_ready",
+    "no supported",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no q8 inference",
+    "no derived-correlation interval claim",
+    "no broad bridge support",
+    "no public support"
+  )) {
+    expect_true(all(grepl(phrase, smoke$claim_boundary, fixed = TRUE)))
+  }
+})
+
 test_that("Tranche 3 q4 admission closure audit keeps no-promotion boundaries", {
   closure <- structured_re_read_dashboard_tsv(
     "structured-re-q4-admission-tranche3-closure-audit.tsv"

@@ -1162,6 +1162,20 @@ The efficient completion order is:
    banked, and no coverage, `inference_ready`, `supported`, REML, AI-REML, q8
    inference, derived-correlation interval, bridge, public-support, Q
    precision, K/Q parity, partial location-scale, or broader q8 status moves.
+21d. Banked in the Tranche 4 q4-location admission-runner slice: execute the
+   local `n = 5` retained-denominator q4 location admission smoke for the exact
+   16 direct-SD targets. The raw artifact has 80 retained target rows under
+   `docs/dev-log/simulation-artifacts/2026-07-01-q4-location-admission-smoke/`.
+   Phylo, spatial, and animal fail the first smoke gate on retained
+   `pdHess`/Wald-finite rates (2/5, 3/5, and 4/5 respectively for each
+   provider target); relmat is the only provider with 5/5 `pdHess`,
+   Wald-finite, and profile-finite rows in this tiny local smoke and remains
+   `local_smoke_gate_passed_review_required_no_admission`. The smoke keeps
+   host provenance as `local`, keeps derived-correlation intervals
+   unavailable, and promotes zero q4 rows. No coverage, interval reliability,
+   `inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+   derived-correlation interval, bridge, public-support, Q precision, K/Q
+   parity, partial location-scale, or broader q8 status moves.
 22. Banked in this stacked follow-up slice: add native R/TMB K/Q same-target
    parity for the exact relmat q4 location one-slope `mu1+mu2` cell. This
    moves only the native Q evidence boundary from `planned_not_banked` to

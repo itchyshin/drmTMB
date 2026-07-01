@@ -695,6 +695,25 @@ STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP = (
 STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN = (
     DASHBOARD / "structured-re-q4-location-admission-runner-design.tsv"
 )
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE = (
+    DASHBOARD / "structured-re-q4-location-admission-smoke.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RESULTS = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-07-01-q4-location-admission-smoke"
+    / "structured-re-q4-location-admission-smoke-results.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RUN_LOG = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-07-01-q4-location-admission-smoke"
+    / "structured-re-q4-location-admission-smoke-run-log.tsv"
+)
 STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT = (
     DASHBOARD / "structured-re-q4-admission-tranche3-closure-audit.tsv"
 )
@@ -6141,6 +6160,93 @@ STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_FIELDS = (
+    "result_id",
+    "design_id",
+    "cell_id",
+    "structured_type",
+    "endpoint_member",
+    "profile_target",
+    "source_target_map_id",
+    "n_rep_planned",
+    "n_attempted",
+    "host_label",
+    "n_fit_error",
+    "n_converged",
+    "n_pdhess",
+    "pdhess_rate",
+    "n_wald_finite",
+    "wald_finite_rate",
+    "n_profile_finite",
+    "profile_finite_rate",
+    "n_gradient_warning",
+    "n_profile_warning",
+    "n_boundary_estimate",
+    "derived_correlation_interval_status",
+    "admission_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "rose_audit",
+    "fisher_review",
+    "gauss_review",
+    "noether_review",
+    "evidence_url",
+    "raw_artifact_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RESULT_FIELDS = (
+    "run_id",
+    "replicate_id",
+    "seed",
+    "host_label",
+    "provider",
+    "endpoint_member",
+    "cell_id",
+    "design_id",
+    "source_target_map_id",
+    "profile_target",
+    "attempt_status",
+    "fit_message",
+    "convergence",
+    "pdHess",
+    "max_abs_gradient",
+    "boundary_estimate",
+    "estimate_sd",
+    "target_found",
+    "wald_lower",
+    "wald_upper",
+    "wald_status",
+    "wald_warnings",
+    "wald_finite",
+    "profile_lower",
+    "profile_upper",
+    "profile_status",
+    "profile_conf_status",
+    "profile_message",
+    "profile_warnings",
+    "profile_finite",
+    "derived_correlation_interval_status",
+    "coverage_decision",
+    "promotion_decision",
+    "elapsed_sec",
+)
+STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RUN_LOG_FIELDS = (
+    "run_id",
+    "mode",
+    "host_label",
+    "provider",
+    "n_rep",
+    "seed_start",
+    "n_each",
+    "load_status",
+    "load_detail",
+    "raw_artifact_url",
+    "summary_url",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+)
 STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT_FIELDS = (
     "closure_id",
     "handover_step",
@@ -9772,6 +9878,15 @@ def main() -> int:
     structured_re_q4_location_admission_runner_design_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_ADMISSION_RUNNER_DESIGN
     )
+    structured_re_q4_location_admission_smoke_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE
+    )
+    structured_re_q4_location_admission_smoke_result_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RESULTS
+    )
+    structured_re_q4_location_admission_smoke_run_log_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RUN_LOG
+    )
     structured_re_q4_admission_tranche3_closure_audit_rows = read_tsv(
         STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT
     )
@@ -10072,6 +10187,7 @@ def main() -> int:
         "  q4AdmissionReviewSynthesis,\n"
         "  q4LocationTargetAdmissionMap,\n"
         "  q4LocationAdmissionRunnerDesign,\n"
+        "  q4LocationAdmissionSmoke,\n"
         "  q4AdmissionTranche3ClosureAudit\n"
         ") {"
     )
@@ -10082,6 +10198,7 @@ def main() -> int:
         "    sidecars.q4AdmissionReviewSynthesis || [],\n"
         "    sidecars.q4LocationTargetAdmissionMap || [],\n"
         "    sidecars.q4LocationAdmissionRunnerDesign || [],\n"
+        "    sidecars.q4LocationAdmissionSmoke || [],\n"
         "    sidecars.q4AdmissionTranche3ClosureAudit || []\n"
         "  );"
     )
@@ -10102,6 +10219,7 @@ def main() -> int:
         "  q4AdmissionReviewSynthesis,\n"
         "  q4LocationTargetAdmissionMap,\n"
         "  q4LocationAdmissionRunnerDesign,\n"
+        "  q4LocationAdmissionSmoke,\n"
         "  q4AdmissionTranche3ClosureAudit\n"
         ") {"
     )
@@ -10112,6 +10230,7 @@ def main() -> int:
         "    sidecars.q4AdmissionReviewSynthesis || [],\n"
         "    sidecars.q4LocationTargetAdmissionMap || [],\n"
         "    sidecars.q4LocationAdmissionRunnerDesign || [],\n"
+        "    sidecars.q4LocationAdmissionSmoke || [],\n"
         "    sidecars.q4AdmissionTranche3ClosureAudit || []\n"
         "  );"
     )
@@ -10151,6 +10270,22 @@ def main() -> int:
         errors.append(
             "tick() must load structured-re-q4-location-admission-runner-design.tsv"
         )
+    q4_location_admission_smoke_render_columns = (
+        '["Q4 Tranche 4 local smoke", sidecars.q4LocationAdmissionSmoke || [], '
+        '["result_id", "structured_type", "endpoint_member", "n_attempted", '
+        '"pdhess_rate", "wald_finite_rate", "profile_finite_rate", '
+        '"admission_decision", "coverage_decision", "promotion_decision"]]'
+    )
+    if q4_location_admission_smoke_render_columns not in index:
+        errors.append(
+            "index.html must render q4 location admission-smoke retained-denominator "
+            "rates, admission_decision, coverage_decision, and promotion_decision"
+        )
+    if (
+        'q4LocationAdmissionSmoke: parseTsv(await readText("structured-re-q4-location-admission-smoke.tsv"))'
+        not in index
+    ):
+        errors.append("tick() must load structured-re-q4-location-admission-smoke.tsv")
     q4_tranche3_closure_render_columns = (
         '["Q4 Tranche 3 closure", sidecars.q4AdmissionTranche3ClosureAudit || [], '
         '["closure_id", "handover_step", "observed_result", "coverage_decision", '
@@ -43130,6 +43265,249 @@ def main() -> int:
             f"missing={missing}, extra={extra}"
         )
 
+    q4_admission_smoke_summary_url = (
+        "docs/dev-log/dashboard/structured-re-q4-location-admission-smoke.tsv"
+    )
+    q4_admission_smoke_raw_url = (
+        "docs/dev-log/simulation-artifacts/2026-07-01-q4-location-admission-smoke/"
+        "structured-re-q4-location-admission-smoke-results.tsv"
+    )
+    if structured_re_q4_location_admission_smoke_result_rows:
+        raw_fields = set(structured_re_q4_location_admission_smoke_result_rows[0])
+        if raw_fields != set(STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RESULT_FIELDS):
+            errors.append(
+                "structured-re-q4-location-admission-smoke-results.tsv fields "
+                "do not match the contract"
+            )
+    if structured_re_q4_location_admission_smoke_run_log_rows:
+        log_fields = set(structured_re_q4_location_admission_smoke_run_log_rows[0])
+        if log_fields != set(STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_RUN_LOG_FIELDS):
+            errors.append(
+                "structured-re-q4-location-admission-smoke-run-log.tsv fields "
+                "do not match the contract"
+            )
+    if len(structured_re_q4_location_admission_smoke_run_log_rows) != 1:
+        errors.append(
+            "structured-re-q4-location-admission-smoke-run-log.tsv must have one run row"
+        )
+    else:
+        run_log = structured_re_q4_location_admission_smoke_run_log_rows[0]
+        expected_log_values = {
+            "mode": "execute",
+            "host_label": "local",
+            "provider": "all",
+            "n_rep": "5",
+            "raw_artifact_url": q4_admission_smoke_raw_url,
+            "summary_url": q4_admission_smoke_summary_url,
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+        }
+        for field, expected_value in expected_log_values.items():
+            if run_log.get(field) != expected_value:
+                errors.append(
+                    "structured-re-q4-location-admission-smoke-run-log.tsv: "
+                    f"{field} must be {expected_value}"
+                )
+        for phrase in (
+            "Tranche 4 q4 location admission smoke only",
+            "retained denominator recorded",
+            "no coverage grid",
+            "no interval reliability",
+            "no inference_ready",
+            "no supported",
+            "no q4 REML",
+            "no REML",
+            "no AI-REML",
+            "no q8 inference",
+            "no derived-correlation interval claim",
+            "no broad bridge support",
+            "no public support",
+        ):
+            if phrase not in run_log.get("claim_boundary", ""):
+                errors.append(
+                    "structured-re-q4-location-admission-smoke-run-log.tsv: "
+                    f"claim_boundary must mention {phrase}"
+                )
+
+    if (
+        len(structured_re_q4_location_admission_smoke_rows)
+        != len(expected_q4_location_target_admission_targets)
+    ):
+        errors.append(
+            "structured-re-q4-location-admission-smoke.tsv has "
+            f"{len(structured_re_q4_location_admission_smoke_rows)} rows; "
+            f"expected {len(expected_q4_location_target_admission_targets)}"
+        )
+    if (
+        len(structured_re_q4_location_admission_smoke_result_rows)
+        != len(expected_q4_location_target_admission_targets) * 5
+    ):
+        errors.append(
+            "structured-re-q4-location-admission-smoke-results.tsv has "
+            f"{len(structured_re_q4_location_admission_smoke_result_rows)} rows; "
+            f"expected {len(expected_q4_location_target_admission_targets) * 5}"
+        )
+
+    runner_design_by_target = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_location_admission_runner_design_rows
+    }
+    raw_by_design: dict[str, list[dict[str, str]]] = {}
+    for raw in structured_re_q4_location_admission_smoke_result_rows:
+        raw_by_design.setdefault(raw.get("design_id", ""), []).append(raw)
+        for field, expected_value in {
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+            "derived_correlation_interval_status": "derived_correlation_unavailable",
+            "host_label": "local",
+            "attempt_status": "fit_ok",
+        }.items():
+            if raw.get(field) != expected_value:
+                errors.append(
+                    f"{raw.get('design_id', '<q4 smoke raw>')}: raw {field} "
+                    f"must be {expected_value}"
+                )
+        if raw.get("target_found") != "TRUE":
+            errors.append(
+                f"{raw.get('design_id', '<q4 smoke raw>')}: raw target_found must be TRUE"
+            )
+
+    seen_q4_location_smoke_targets: set[tuple[str, str]] = set()
+    for row in structured_re_q4_location_admission_smoke_rows:
+        row_id = row.get("result_id", "<q4 location admission smoke>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-admission-smoke.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_ADMISSION_SMOKE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type", "")
+        endpoint_member = row.get("endpoint_member", "")
+        target_key = (provider, endpoint_member)
+        if target_key not in expected_q4_location_target_admission_targets:
+            errors.append(f"{row_id}: unexpected q4 location smoke target {target_key}")
+            continue
+        if target_key in seen_q4_location_smoke_targets:
+            errors.append(f"{row_id}: duplicate q4 location smoke target {target_key}")
+        seen_q4_location_smoke_targets.add(target_key)
+        expected_result_id = (
+            "q4_location_admission_smoke_"
+            f"{provider}_{q4_location_slope_dispatch_token(endpoint_member)}"
+        )
+        if row_id != expected_result_id:
+            errors.append(f"{row_id}: result_id must be {expected_result_id}")
+        design_row = runner_design_by_target.get(target_key)
+        if design_row is None:
+            errors.append(f"{row_id}: missing source runner-design row")
+            continue
+        for field, expected_value in {
+            "design_id": design_row.get("design_id"),
+            "cell_id": design_row.get("cell_id"),
+            "profile_target": design_row.get("profile_target"),
+            "source_target_map_id": design_row.get("source_target_map_id"),
+            "n_rep_planned": "5",
+            "n_attempted": "5",
+            "host_label": "local",
+            "derived_correlation_interval_status": "derived_correlation_unavailable",
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+            "rose_audit": "rose_no_status_claim_retained_denominator_recorded",
+            "fisher_review": "fisher_no_coverage_before_admission_review",
+            "gauss_review": "gauss_fit_hessian_warning_denominator_retained",
+            "noether_review": "noether_exact_profile_target_preserved",
+            "evidence_url": q4_admission_smoke_summary_url,
+            "raw_artifact_url": q4_admission_smoke_raw_url,
+        }.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        raw_rows = raw_by_design.get(row.get("design_id", ""), [])
+        if len(raw_rows) != 5:
+            errors.append(f"{row_id}: raw retained denominator must have 5 rows")
+            continue
+        n_pdhess = sum(raw.get("pdHess") == "TRUE" for raw in raw_rows)
+        n_wald = sum(raw.get("wald_finite") == "TRUE" for raw in raw_rows)
+        n_profile = sum(raw.get("profile_finite") == "TRUE" for raw in raw_rows)
+        n_converged = sum(raw.get("convergence") == "0" for raw in raw_rows)
+        n_boundary = sum(raw.get("boundary_estimate") == "TRUE" for raw in raw_rows)
+        n_gradient_warning = sum(
+            _is_finite_number(raw.get("max_abs_gradient"))
+            and float(raw.get("max_abs_gradient", "nan")) > 1e-3
+            for raw in raw_rows
+        )
+        n_profile_warning = sum(
+            (raw.get("profile_warnings", "") not in {"", "NA"})
+            or (raw.get("profile_message", "") not in {"", "NA"})
+            for raw in raw_rows
+        )
+        for field, expected_value in {
+            "n_fit_error": "0",
+            "n_converged": str(n_converged),
+            "n_pdhess": str(n_pdhess),
+            "n_wald_finite": str(n_wald),
+            "n_profile_finite": str(n_profile),
+            "n_gradient_warning": str(n_gradient_warning),
+            "n_profile_warning": str(n_profile_warning),
+            "n_boundary_estimate": str(n_boundary),
+        }.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for field, numerator in {
+            "pdhess_rate": n_pdhess,
+            "wald_finite_rate": n_wald,
+            "profile_finite_rate": n_profile,
+        }.items():
+            expect_float_close(errors, row_id, field, row.get(field), numerator / 5)
+        expected_decision = (
+            "local_smoke_gate_passed_review_required_no_admission"
+            if n_pdhess == 5 and n_wald == 5 and n_profile == 5
+            else "not_admitted_local_smoke_gate_failed"
+        )
+        if row.get("admission_decision") != expected_decision:
+            errors.append(f"{row_id}: admission_decision must be {expected_decision}")
+        for phrase in (
+            "Tranche 4 q4 location admission smoke only",
+            "retained denominator recorded",
+            "no coverage grid",
+            "no interval reliability",
+            "no inference_ready",
+            "no supported",
+            "no q4 REML",
+            "no REML",
+            "no AI-REML",
+            "no q8 inference",
+            "no derived-correlation interval claim",
+            "no broad bridge support",
+            "no public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        for phrase in (
+            "retained-denominator q4 location admission smoke n=5",
+            provider,
+            endpoint_member,
+            "profile_targets()",
+            row.get("profile_target", ""),
+            "host provenance",
+            "before any coverage design",
+        ):
+            if phrase not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+    if seen_q4_location_smoke_targets != expected_q4_location_target_admission_targets:
+        missing = sorted(
+            expected_q4_location_target_admission_targets
+            - seen_q4_location_smoke_targets
+        )
+        extra = sorted(
+            seen_q4_location_smoke_targets
+            - expected_q4_location_target_admission_targets
+        )
+        errors.append(
+            "structured-re-q4-location-admission-smoke.tsv targets changed: "
+            f"missing={missing}, extra={extra}"
+        )
+
     q4_tranche3_closure_claim_boundary = (
         "Tranche 3 q4 admission closure audit only; no coverage grid; "
         "no interval reliability; no inference_ready; no supported; no q4 REML; "
@@ -55047,6 +55425,8 @@ def main() -> int:
         f", {len(structured_re_q4_admission_review_synthesis_rows)} structured RE q4 admission-review synthesis rows"
         f", {len(structured_re_q4_location_target_admission_map_rows)} structured RE q4 location target-admission map rows"
         f", {len(structured_re_q4_location_admission_runner_design_rows)} structured RE q4 location admission-runner design rows"
+        f", {len(structured_re_q4_location_admission_smoke_rows)} structured RE q4 location admission-smoke rows"
+        f", {len(structured_re_q4_location_admission_smoke_result_rows)} structured RE q4 location admission-smoke raw rows"
         f", {len(structured_re_q4_admission_tranche3_closure_audit_rows)} structured RE q4 admission Tranche 3 closure-audit rows"
         f", {len(structured_re_q4_slope_hessian_geometry_rows)} structured RE q4 slope Hessian-geometry rows"
         f", {len(structured_re_q4_slope_sigma_axis_differential_rows)} structured RE q4 slope sigma-axis differential rows"

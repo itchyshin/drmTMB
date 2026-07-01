@@ -2,6 +2,106 @@
 
 Record meaningful development checks here.
 
+## 2026-07-01: Q-Series Tranche 4 q4 location admission smoke
+
+Scope:
+
+- Added `tools/run-structured-re-q4-location-admission-smoke.R`, an
+  execute-capable retained-denominator smoke runner for the exact 16 q4
+  location direct-SD targets frozen by the Tranche 3 target map.
+- Executed the local `n = 5` smoke with `host_label = local`, writing 80 raw
+  retained target rows to
+  `docs/dev-log/simulation-artifacts/2026-07-01-q4-location-admission-smoke/structured-re-q4-location-admission-smoke-results.tsv`
+  and a 16-row dashboard sidecar at
+  `docs/dev-log/dashboard/structured-re-q4-location-admission-smoke.tsv`.
+- Wired the sidecar into Mission Control with a `Q4 T4 local smoke` summary
+  card, a Structured RE contracts table, dashboard version `r197`, validator
+  checks, and focused testthat coverage.
+
+Result:
+
+- Phylo retained `pdHess`/Wald-finite rate: 2/5 for each of the four direct-SD
+  targets; first smoke gate failed.
+- Spatial retained `pdHess`/Wald-finite rate: 3/5 for each target; first smoke
+  gate failed.
+- Animal retained `pdHess`/Wald-finite rate: 4/5 for each target; first smoke
+  gate failed.
+- Relmat retained `pdHess`, Wald-finite, and profile-finite rate: 5/5 for each
+  target; recorded as `local_smoke_gate_passed_review_required_no_admission`.
+
+Boundary:
+
+- This is local retained-denominator evidence only. No Totoro, DRAC, Nibi,
+  Rorqual, or Fir q4 admission job was launched.
+- All 16 rows have `coverage_decision = coverage_not_authorized` and
+  `promotion_decision = do_not_promote`.
+- No support-cell status changed; no interval/coverage `inference_ready`,
+  `supported`, q4 REML, REML, AI-REML, q8 inference, derived-correlation
+  interval, broad bridge, or public-support claim changed.
+
+Rose/Fisher/Gauss/Noether audit:
+
+- Rose: the local smoke is evidence, not a status/tier claim; even relmat's
+  5/5 local gate pass remains review-required and not admitted.
+- Fisher: q4 coverage remains unauthorized because q4 admission has not passed
+  across providers and this is not an MCSE-controlled coverage grid.
+- Gauss: fit, Hessian, gradient-warning, profile-warning, and boundary flags
+  are retained in the raw denominator.
+- Noether: all rows preserve the exact Tranche 3 `profile_targets()` names and
+  keep derived-correlation intervals unavailable.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "invisible(parse('tools/run-structured-re-q4-location-admission-smoke.R'))"`:
+  passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-location-admission-smoke.R --mode=dry-run
+  --provider=phylo --n_rep=1 --summary_path=NA
+  --out_dir=/tmp/drmtmb-q4-admission-debug`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-location-admission-smoke.R
+  --mode=execute --provider=phylo --n_rep=1 --summary_path=NA
+  --out_dir=/tmp/drmtmb-q4-admission-debug`: passed; the four phylo target rows
+  had exact `profile_targets()` matches and finite Wald/profile intervals.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-location-admission-smoke.R
+  --mode=execute --provider=all --n_rep=5 --host_label=local`: passed and wrote
+  the Tranche 4 raw artifact, run log, and dashboard sidecar.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile
+  tools/validate-mission-control.py`: passed.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}'
+  docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js &&
+  node --check /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "invisible(parse('tools/run-structured-re-q4-location-admission-smoke.R'));
+  invisible(parse('tests/testthat/test-structured-re-conversion-contracts.R'))"`:
+  passed.
+- `air format tools/run-structured-re-q4-location-admission-smoke.R
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 16 q4 location target-admission map
+  rows, 16 q4 location admission-runner design rows, 16 q4 location
+  admission-smoke rows, 80 q4 location admission-smoke raw rows, and seven q4
+  admission Tranche 3 closure-audit rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed `11277 PASS / 0 FAIL / 0
+  WARN / 0 SKIP`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-07-01-q-series-tranche4-q4-location-admission-smoke.md')"`:
+  passed.
+- `git diff --check`: passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-07-01-q-series-tranche4-q4-location-admission-smoke.md`
+
 ## 2026-07-01: Q-Series Tranche 4 q4 location admission-runner design
 
 Scope:
