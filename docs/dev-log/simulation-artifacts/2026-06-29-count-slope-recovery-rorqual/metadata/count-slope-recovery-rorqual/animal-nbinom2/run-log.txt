@@ -1,0 +1,17 @@
+date=2026-06-29T14:22:00-04:00
+job=14917226
+array_job=14916938
+array_task=6
+node=rc32420
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1
+source_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/source
+work_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/work/source-animal-nbinom2
+git_sha=77b634eda91b-dirty-qseries-count-slope-rorqual-srcfix1
+shard=animal-nbinom2
+cell_id=qseries_animal_nbinom2_q1_mu_one_slope
+script=run-structured-re-count-slope-animal-nbinom2-local-micro-shard.R
+n_rep=80
+seed_start=760001
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/rlib/animal-nbinom2
+runner_exit_code=0
+done=2026-06-29T14:24:44-04:00

@@ -1,0 +1,16 @@
+date=2026-06-30T07:32:34-04:00
+job=16977254
+node=c321
+slurm_cluster_name=nibi
+slurm_job_id=16977254
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r162
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r162/source
+task_repo=/local/scratch/snakagaw.16977254.0/drmTMB-source
+git_sha=77b634ed-dirty-r162
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r162/rlib:/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4
+contract=structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv
+n_rep=150
+promotion_decision=do_not_promote
+mcse_rule=MCSE <= 0.01 is a top-up target, not an SR150 pass claim
+runner_exit_code=0
+done=2026-06-30T07:36:05-04:00

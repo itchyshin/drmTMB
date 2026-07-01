@@ -1,0 +1,5 @@
+Warning message:
+In system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE) :
+  running command ''git' rev-parse HEAD 2>&1' had status 128
+Wrote 3 q2 intercept local-smoke summary rows to docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro-parallel/04-qseries_relmat_q2_mu1_mu2_intercept/artifacts/structured-re-q2-intercept-local-smoke.tsv
+Wrote 96 q2 intercept local-smoke replicate rows to docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro-parallel/04-qseries_relmat_q2_mu1_mu2_intercept/artifacts/structured-re-q2-intercept-local-smoke-replicates.tsv

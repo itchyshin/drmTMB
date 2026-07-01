@@ -1,0 +1,13 @@
+date=2026-06-29T19:12:01-04:00
+job=14936834
+node=rc32426
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-phylo-interaction-nb2-topup-77b634ed-dirty
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-phylo-interaction-nb2-topup-77b634ed-dirty/source
+git_sha=77b634eda91b0173926557ce5c4a3d20853fb215-dirty-phylo-interaction-nb2-topup
+n_rep=80
+seed_start=2026063011
+lanes=phylo_interaction
+families=nbinom2
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-phylo-interaction-nb2-topup-77b634ed-dirty/rlib
+runner_exit_code=0
+done=2026-06-29T19:14:07-04:00

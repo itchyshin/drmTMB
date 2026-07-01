@@ -1,0 +1,10 @@
+date=2026-06-29T07:32:08-04:00
+job=16920961
+node=c633
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-spatial-sigma-boundary-nibi-77b634ed
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-spatial-sigma-boundary-nibi-77b634ed/source
+task_repo=/local/scratch/snakagaw.16920961.0/drmTMB-source
+git_sha=77b634eda91b0173926557ce5c4a3d20853fb215
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-spatial-sigma-boundary-nibi-77b634ed/rlib
+runner_exit_code=0
+done=2026-06-29T07:42:40-04:00

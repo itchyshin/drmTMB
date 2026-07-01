@@ -1986,6 +1986,56 @@ structured_sd_group_count <- function(object) {
   as.numeric(g)
 }
 
+structured_sd_term_matches_label <- function(term, label) {
+  if (
+    !is.character(term) ||
+      !is.character(label) ||
+      length(term) != 1L ||
+      length(label) != 1L ||
+      is.na(term) ||
+      is.na(label)
+  ) {
+    return(FALSE)
+  }
+  term <- trimws(term)
+  label <- trimws(label)
+  if (!nzchar(term) || !nzchar(label)) {
+    return(FALSE)
+  }
+  if (identical(term, label) || endsWith(term, label)) {
+    return(TRUE)
+  }
+  term_sig <- structured_sd_term_signature(term)
+  label_sig <- structured_sd_term_signature(label)
+  if (is.null(term_sig) || is.null(label_sig)) {
+    return(FALSE)
+  }
+  identical(term_sig$type, label_sig$type) &&
+    identical(term_sig$group, label_sig$group)
+}
+
+structured_sd_term_signature <- function(term) {
+  match <- regexec(
+    "^\\s*([[:alnum:]_]+)\\s*\\((.*)\\)\\s*$",
+    term,
+    perl = TRUE
+  )
+  parts <- regmatches(term, match)[[1L]]
+  if (length(parts) != 3L) {
+    return(NULL)
+  }
+  pieces <- strsplit(parts[[3L]], "|", fixed = TRUE)[[1L]]
+  if (length(pieces) < 2L) {
+    return(NULL)
+  }
+  group <- trimws(paste(pieces[-1L], collapse = "|"))
+  group <- trimws(sub(",.*$", "", group))
+  if (!nzchar(group)) {
+    return(NULL)
+  }
+  list(type = parts[[2L]], group = group)
+}
+
 # Resolve the group count for one SD target row. Tries the structured location
 # block first (matched on the target term's structured label), then a labelled
 # covariance-block registry match. Returns NA_real_ when no unique match exists.
@@ -2020,8 +2070,7 @@ wald_sd_target_group_count <- function(
       is.character(label) &&
         length(label) == 1L &&
         nzchar(label) &&
-        !is.na(term) &&
-        endsWith(term, label)
+        structured_sd_term_matches_label(term, label)
     ) {
       return(structured_g)
     }
@@ -2854,7 +2903,8 @@ drm_profile_endpoint_result <- function(
       max_bracket_steps = max_bracket_steps,
       target_name = target$parm,
       curvature_se = curvature_se,
-      max_eval = max_eval
+      max_eval = max_eval,
+      allow_lower_boundary = identical(target$transformation, "exp")
     )
   }
   crossings <- profile_lapply(c(-1L, 1L), endpoint_worker, endpoint_plan)
@@ -2983,7 +3033,8 @@ profile_endpoint_crossing <- function(
   max_bracket_steps,
   target_name,
   curvature_se = NA_real_,
-  max_eval = NULL
+  max_eval = NULL,
+  allow_lower_boundary = FALSE
 ) {
   n_eval <- 0L
   last_free <- evaluator$start_free
@@ -3019,15 +3070,54 @@ profile_endpoint_crossing <- function(
   initial_step <- step
   n_bracket_step <- 0L
   outer <- theta_hat + direction * step
-  outer_value <- eval_root(outer)
+  lower_boundary_floor <- log(sqrt(.Machine$double.eps))
+  lower_boundary_result <- function() {
+    list(
+      theta = -Inf,
+      root_error = NA_real_,
+      n_eval = n_eval,
+      initial_step = initial_step,
+      bracket_step = step,
+      n_bracket_step = n_bracket_step,
+      step_source = paste(step_info$source, "lower_boundary", sep = "_")
+    )
+  }
+  eval_or_boundary <- function(theta) {
+    eval_root(theta)
+  }
+  outer_value <- eval_or_boundary(outer)
+  if (is.list(outer_value)) {
+    return(outer_value)
+  }
   for (i in seq_len(max_bracket_steps)) {
     if (is.finite(outer_value) && outer_value >= 0) {
       break
     }
+    if (
+      direction < 0 &&
+        isTRUE(allow_lower_boundary) &&
+        outer <= lower_boundary_floor &&
+        is.finite(outer_value) &&
+        outer_value < 0
+    ) {
+      return(lower_boundary_result())
+    }
     step <- step * 1.6
     n_bracket_step <- i
     outer <- theta_hat + direction * step
-    outer_value <- eval_root(outer)
+    outer_value <- eval_or_boundary(outer)
+    if (is.list(outer_value)) {
+      return(outer_value)
+    }
+  }
+  if (
+    direction < 0 &&
+      isTRUE(allow_lower_boundary) &&
+      outer <= lower_boundary_floor &&
+      is.finite(outer_value) &&
+      outer_value < 0
+  ) {
+    return(lower_boundary_result())
   }
   if (!is.finite(outer_value) || outer_value < 0) {
     cli::cli_abort(c(
@@ -3084,6 +3174,10 @@ profile_endpoint_initial_step <- function(
   ) {
     step <- sqrt(2 * cutoff) * curvature_se * 1.1
     if (is.finite(step) && step > sqrt(.Machine$double.eps)) {
+      step_cap <- max(2, abs(theta_hat) * 0.5)
+      if (step > step_cap) {
+        return(list(step = step_cap, source = "curvature_capped"))
+      }
       return(list(step = step, source = "curvature"))
     }
   }

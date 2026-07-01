@@ -1,0 +1,12 @@
+Job ID: 14918220
+Cluster: rorqual
+User/Group: snakagaw/snakagaw
+State: RUNNING
+Nodes: 1
+Cores per node: 4
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 00:17:24 core-walltime
+Job Wall-clock time: 00:04:21
+Memory Utilized: 0.00 MB
+Memory Efficiency: 0.00% of 16.00 GB (4.00 GB/core)
+WARNING: Efficiency statistics can only be obtained after the job has ended as seff tool is based on the accounting database data.

@@ -1,0 +1,4 @@
+host=totoro
+modules=none
+R_LIBS=/home/snakagaw/drmtmb-qseries/20260630-totoro-standby-77b634eda91b/rlib
+R version: R version 4.5.3 (2026-03-11)

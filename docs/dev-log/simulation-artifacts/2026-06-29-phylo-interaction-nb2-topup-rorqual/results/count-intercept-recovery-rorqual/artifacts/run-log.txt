@@ -1,0 +1,8 @@
+structured RE count-intercept recovery grid
+output_dir: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-phylo-interaction-nb2-topup-77b634ed-dirty/results/count-intercept-recovery-rorqual/artifacts
+n_rep: 80
+seed_start: 2026063011
+cores: 4
+backend: multicore
+lanes: phylo_interaction
+families: nbinom2

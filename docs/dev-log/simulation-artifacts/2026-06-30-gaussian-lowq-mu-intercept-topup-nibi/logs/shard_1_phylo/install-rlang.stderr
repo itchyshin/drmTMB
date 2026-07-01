@@ -1,0 +1,26 @@
+trying URL 'https://cloud.r-project.org/src/contrib/rlang_1.2.0.tar.gz'
+Content type 'application/x-gzip' length 780860 bytes (762 KB)
+==================================================
+downloaded 762 KB
+
+* installing *source* package ‘rlang’ ...
+** package ‘rlang’ successfully unpacked and MD5 sums checked
+** using staged installation
+** libs
+using C compiler: ‘gcc (Gentoo 12.3.1_p20230526 p2) 12.3.1 20230526’
+installing to /project/6098264/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163/rlib/shard_1/00LOCK-rlang/00new/rlang/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (rlang)
+
+The downloaded source packages are in
+	‘/tmp/Rtmp7v4DTR/downloaded_packages’

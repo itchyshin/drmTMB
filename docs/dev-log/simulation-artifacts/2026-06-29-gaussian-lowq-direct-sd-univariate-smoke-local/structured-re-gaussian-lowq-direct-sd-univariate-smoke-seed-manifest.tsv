@@ -1,0 +1,3 @@
+target_axis	replicate_index	seed	seed_role	execution_status	source_contract	host_class	host_name
+mu	1	2026062902	gaussian_lowq_direct_sd_univariate_smoke	executed	docs/dev-log/dashboard/structured-re-gaussian-lowq-special-target-contract.tsv	local_rehearsal	psychdhcp68.psych.ualberta.ca
+sigma	1	2026062903	gaussian_lowq_direct_sd_univariate_smoke	executed	docs/dev-log/dashboard/structured-re-gaussian-lowq-special-target-contract.tsv	local_rehearsal	psychdhcp68.psych.ualberta.ca

@@ -1,0 +1,8 @@
+structured RE count-intercept denominator diagnostic
+output_dir: /lustre09/project/6098264/snakagaw/drmtmb-qseries/20260629-count-intercept-topup-rorqual-77b634eda91b/results/count-intercept-topup-rorqual/artifacts
+dashboard_output: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-topup-rorqual-77b634eda91b/results/count-intercept-topup-rorqual/count-intercept-topup-condition-diagnostic.tsv
+n_rep: 80
+seed_start: 2026062921
+cores: 4
+backend: multicore
+near_zero_threshold: 1e-04

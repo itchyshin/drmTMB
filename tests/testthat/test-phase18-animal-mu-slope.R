@@ -69,6 +69,42 @@ test_that("Phase 18 animal mu slope DGP is seeded and self-describing", {
   )
 })
 
+test_that("Phase 18 animal mu slope boundary profiles use zero lower endpoint", {
+  source_phase18_animal_mu_slope()
+
+  conditions <- phase18_animal_mu_slope_conditions(
+    n_id = 8L,
+    n_each = 7L
+  )[1L, , drop = FALSE]
+  dat <- phase18_dgp_animal_mu_slope_cell(
+    conditions,
+    seed = 791004,
+    cell_id = "animal_mu_slope_boundary_profile",
+    replicate = 4L
+  )
+  fit <- phase18_fit_animal_mu_slope(dat, conditions)
+  parm <- "sd:mu:animal(0 + x | id)"
+
+  ci <- suppressWarnings(stats::confint(
+    fit,
+    parm = parm,
+    method = "profile",
+    profile_engine = "endpoint",
+    profile_endpoint_max_eval = 80L
+  ))
+
+  expect_equal(fit$opt$convergence, 0L)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(ci$parm, parm)
+  expect_equal(ci$profile.engine, "endpoint")
+  expect_equal(ci$conf.status, "profile")
+  expect_true(ci$profile.boundary)
+  expect_equal(ci$profile.message, "near_sd_boundary")
+  expect_equal(ci$lower, 0)
+  expect_true(is.finite(ci$upper))
+  expect_gt(ci$upper, attr(dat, "truth")$sd[[sub("^sd:mu:", "", parm)]])
+})
+
 test_that("Phase 18 animal mu slope smoke runner summarises output", {
   source_phase18_animal_mu_slope()
 

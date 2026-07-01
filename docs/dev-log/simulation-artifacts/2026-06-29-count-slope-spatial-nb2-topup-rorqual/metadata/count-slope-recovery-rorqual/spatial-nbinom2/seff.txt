@@ -1,0 +1,12 @@
+Job ID: 14936279
+Array Job ID: 14936279_4
+Cluster: rorqual
+User/Group: snakagaw/snakagaw
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 2
+CPU Utilized: 00:01:53
+CPU Efficiency: 46.31% of 00:04:04 core-walltime
+Job Wall-clock time: 00:02:02
+Memory Utilized: 3.17 GB
+Memory Efficiency: 39.65% of 8.00 GB (4.00 GB/core)

@@ -1,0 +1,15 @@
+date=2026-06-30T05:40:49-04:00
+job=16974191
+node=c332
+slurm_cluster_name=nibi
+slurm_job_id=16974191
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-intercept-nibi-r44-smoke-77b634eda91b
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-intercept-nibi-r44-smoke-77b634eda91b/source
+task_repo=/local/scratch/snakagaw.16974191.0/drmTMB-source
+git_sha=77b634eda91b0173926557ce5c4a3d20853fb215
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-intercept-nibi-r44-smoke-77b634eda91b/rlib:/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4
+contract=qseries_smoke_substitution_q2_intercept
+n_rep=5
+promotion_decision=do_not_promote
+runner_exit_code=0
+done=2026-06-30T05:44:00-04:00

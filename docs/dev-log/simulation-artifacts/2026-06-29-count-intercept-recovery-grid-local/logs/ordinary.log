@@ -1,0 +1,23 @@
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+Phase 18 Actions task=count_structured_q1
+output_dir=/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-grid-local/ordinary
+n_rep=80
+master_seed=2026062901
+backend=multicore
+cores=4
+render=FALSE
+require_complete=FALSE
+profile_parameters=
+profile_level=0.7
+condition_shard=1
+condition_shards=1
+condition_set=all
+bootstrap_nsim=0
+bootstrap_backend=none
+bootstrap_cores=1

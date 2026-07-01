@@ -1,0 +1,7 @@
+artifact	path	rows
+seed_manifest	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/structured-re-gaussian-mu-slope-coverage-pregrid-seed-manifest.tsv	1
+fit_status	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/structured-re-gaussian-mu-slope-coverage-pregrid-fit-status.tsv	3
+replicates	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/structured-re-gaussian-mu-slope-coverage-pregrid-replicates.tsv	6
+target_summary	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/structured-re-gaussian-mu-slope-coverage-pregrid-target-summary.tsv	6
+provider_summary	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/structured-re-gaussian-mu-slope-coverage-pregrid-provider-summary.tsv	3
+dashboard_results	not_written	0

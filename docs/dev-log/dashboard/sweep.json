@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-28 11:18 MDT",
+  "updated": "2026-06-30 08:43 MDT",
   "active_work": [
     {
-      "when": "2026-06-28 11:18 MDT",
-      "who": "Ada + Rose + Fisher + Grace",
-      "text": "Q-Series v1 is closed as a row-level evidence arc, not broad structured-RE support. PR #684 is open and green on automatic R-CMD-check for macOS, Ubuntu, and Windows; PR #685 is open, stacked on #684, and its manual workflow_dispatch R-CMD-check passed on the exact sigma head fff3a8e6 for macOS, Ubuntu, and Windows. The source-of-truth table structured-re-q-series-support-cells.tsv has 104 rows: exactly four rows are interval+coverage inference_ready (phylo/relmat q2 mu1+mu2 one-slope and phylo/relmat q1 sigma one-slope), no structured row is supported, and non-Gaussian, spatial/animal sigma, spatial/animal q2, q4/q8, count intervals/coverage, REML, AI-REML, broad bridge, and public-support claims remain future gates."
+      "when": "2026-06-30 08:43 MDT",
+      "who": "Ada + Fisher + Gauss + Rose + Grace",
+      "text": "Q-Series remains a row-level evidence arc, not broad structured-RE support. The source-of-truth table structured-re-q-series-support-cells.tsv has 104 rows: exactly eight rows are interval+coverage inference_ready (phylo/animal/relmat q1 sigma one-slope, phylo/spatial/relmat q1 mu intercept, and phylo/relmat q2 mu1+mu2 one-slope), no structured row is supported, animal q1 mu intercept is blocked by retained SR475 wald_at_boundary infinite intervals, and the imported Nibi SR150 q1 sigma-intercept animal/relmat pregrid is diagnostic-blocked by 115/150 usable raw-Wald intervals and 118/150 warning replicates. Non-Gaussian intervals, spatial/animal q2 one-slope, q1 sigma intercepts, matched mu+sigma, q4/q8, count intervals/coverage, REML, AI-REML, broad bridge, and public-support claims remain future gates."
     },
     {
       "when": "2026-06-23 10:31 MDT",

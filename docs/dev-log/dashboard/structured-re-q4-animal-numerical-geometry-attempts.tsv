@@ -1,0 +1,8 @@
+seed	replicate_index	attempt	optimizer	optimizer_preset	status	convergence	message	objective	elapsed_sec	selected	control	objective_delta_from_best
+1920101	910101	1	nlminb	default	ok	1	false convergence (8)	182.9323953	2.3470000	FALSE	1600,1600	0
+1920101	910101	2	nlminb	fallback:BFGS	ok	0	NA	190.3316501	16.181000	TRUE	1000	7.399254764
+1920102	910102	1	nlminb	default	ok	1	false convergence (8)	197.4486642	5.3640000	FALSE	1600,1600	0
+1920102	910102	2	nlminb	fallback:BFGS	ok	0	NA	228.5821703	13.261000	TRUE	1000	31.13350607
+1920107	910107	1	nlminb	default	ok	0	relative convergence (4)	170.6582498	1.5100000	TRUE	1600,1600	0
+1920110	910110	1	nlminb	default	ok	1	false convergence (8)	231.1402230	5.6770000	FALSE	1600,1600	0
+1920110	910110	2	nlminb	fallback:BFGS	ok	0	NA	276.4884544	9.7760000	TRUE	1000	45.34823138

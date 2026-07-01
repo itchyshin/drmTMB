@@ -1,0 +1,7 @@
+cell_id	provider	endpoint_member	direct_sd_target	denominator_action	denominator_role	n_total	n_coverage_evaluable	n_fit_ok	n_converged	n_pdhess	n_confint_ok	n_usable_interval	finite_interval_rate	n_covered	coverage_all	coverage_all_mcse	coverage_interval_available	n_lower_miss	n_upper_miss	n_unusable_interval	n_boundary_or_nonwald	mcse_status	target_gate
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	eligible_for_pregrid_with_retention	pregrid_target	1	1	1	1	1	1	1	1	1	1	0	1	0	0	0	0	mcse_met	target_pregrid_passed_topup_required
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	eligible_for_pregrid_with_retention	pregrid_target	1	1	1	1	1	1	1	1	1	1	0	1	0	0	0	0	mcse_met	target_pregrid_passed_topup_required
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	eligible_for_pregrid_with_retention	pregrid_target	1	1	1	1	1	1	1	1	1	1	0	1	0	0	0	0	mcse_met	target_pregrid_passed_topup_required
+qseries_relmat_q1_mu_one_slope	relmat	mu:x	sd_mu_x	eligible_for_pregrid_with_retention	pregrid_target	1	1	1	1	1	1	1	1	1	1	0	1	0	0	0	0	mcse_met	target_pregrid_passed_topup_required
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	eligible_for_pregrid_with_retention	pregrid_target	1	1	1	1	1	1	1	1	0	0	0	0	1	0	0	0	mcse_met	target_pregrid_blocked
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	eligible_for_pregrid_with_retention	pregrid_target	1	1	1	1	1	1	1	1	1	1	0	1	0	0	0	0	mcse_met	target_pregrid_passed_topup_required

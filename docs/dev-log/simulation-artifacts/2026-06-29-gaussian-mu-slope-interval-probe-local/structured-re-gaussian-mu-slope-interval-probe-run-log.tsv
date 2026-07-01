@@ -1,0 +1,8 @@
+artifact	path	rows
+probe_results	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/structured-re-gaussian-mu-slope-interval-probe-results.tsv	16
+probe_summary	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/structured-re-gaussian-mu-slope-interval-probe-summary.tsv	8
+seed_manifest	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/structured-re-gaussian-mu-slope-interval-probe-seed-manifest.tsv	8
+pregrid_seed_manifest	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/structured-re-gaussian-mu-slope-pregrid-seed-manifest.tsv	150
+pregrid_cell_manifest	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/structured-re-gaussian-mu-slope-pregrid-cell-manifest.tsv	1050
+admission_audit	docs/dev-log/dashboard/structured-re-gaussian-mu-slope-admission-audit.tsv	4
+pregrid_dry_run	docs/dev-log/dashboard/structured-re-gaussian-mu-slope-coverage-pregrid-dry-run.tsv	8

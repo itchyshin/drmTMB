@@ -1,0 +1,13 @@
+"internal_cell_id","qseries_cell_id","family","provider","diagnostic_condition_id","n_species","n_per_species","sd_phylo","mean_count","beta_mu_x","tree_shape","sigma_baseline","beta_sigma_z","structured_type","n_level","n_per_level","sd_structured","geometry","matrix_decay"
+"poisson_phylo_q1_001","qseries_phylo_poisson_q1_mu_intercept","poisson()","phylo","phylo_poisson_medium_balanced",40,8,0.6,4,-0.2,"balanced",NA,NA,NA,NA,NA,NA,NA,NA
+"poisson_phylo_q1_002","qseries_phylo_poisson_q1_mu_intercept","poisson()","phylo","phylo_poisson_medium_mildly_uneven",40,8,0.6,4,-0.2,"mildly_uneven",NA,NA,NA,NA,NA,NA,NA,NA
+"poisson_phylo_q1_003","qseries_phylo_poisson_q1_mu_intercept","poisson()","phylo","phylo_poisson_large_denominator",40,12,0.6,6,-0.2,"balanced",NA,NA,NA,NA,NA,NA,NA,NA
+"poisson_phylo_q1_004","qseries_phylo_poisson_q1_mu_intercept","poisson()","phylo","phylo_poisson_stronger_signal",40,8,0.9,4,-0.2,"balanced",NA,NA,NA,NA,NA,NA,NA,NA
+"nbinom2_phylo_q1_001","qseries_phylo_nbinom2_q1_mu_intercept","nbinom2()","phylo","phylo_nbinom2_medium_balanced",40,8,0.6,4,-0.2,"balanced",0.35,0.15,NA,NA,NA,NA,NA,NA
+"nbinom2_phylo_q1_002","qseries_phylo_nbinom2_q1_mu_intercept","nbinom2()","phylo","phylo_nbinom2_medium_mildly_uneven",40,8,0.6,4,-0.2,"mildly_uneven",0.35,0.15,NA,NA,NA,NA,NA,NA
+"nbinom2_phylo_q1_003","qseries_phylo_nbinom2_q1_mu_intercept","nbinom2()","phylo","phylo_nbinom2_large_denominator",40,12,0.6,6,-0.2,"balanced",0.35,0.15,NA,NA,NA,NA,NA,NA
+"nbinom2_phylo_q1_004","qseries_phylo_nbinom2_q1_mu_intercept","nbinom2()","phylo","phylo_nbinom2_stronger_signal",40,8,0.9,4,-0.2,"balanced",0.45,0.15,NA,NA,NA,NA,NA,NA
+"count_structured_q1_001","qseries_spatial_nbinom2_q1_mu_intercept","nbinom2()","spatial","spatial_nbinom2_large_ring",NA,NA,NA,5,-0.2,NA,0.35,0.15,"spatial",16,16,0.6,"ring",0.4
+"count_structured_q1_002","qseries_spatial_nbinom2_q1_mu_intercept","nbinom2()","spatial","spatial_nbinom2_more_levels",NA,NA,NA,5,-0.2,NA,0.35,0.15,"spatial",24,12,0.6,"ring",0.4
+"count_structured_q1_003","qseries_spatial_nbinom2_q1_mu_intercept","nbinom2()","spatial","spatial_nbinom2_stronger_signal",NA,NA,NA,5,-0.2,NA,0.45,0.15,"spatial",16,16,0.9,"ring",0.4
+"count_structured_q1_004","qseries_spatial_nbinom2_q1_mu_intercept","nbinom2()","spatial","spatial_nbinom2_stretched_check",NA,NA,NA,6,-0.2,NA,0.35,0.15,"spatial",24,16,0.6,"stretched",0.4

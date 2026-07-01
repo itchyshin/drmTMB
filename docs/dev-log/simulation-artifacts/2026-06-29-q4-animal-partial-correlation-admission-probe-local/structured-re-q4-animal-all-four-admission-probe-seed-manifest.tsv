@@ -1,0 +1,4 @@
+variant	qgt2_parameterization	replicate_index	seed	n_levels	n_each
+more_levels	partial_cholesky	910101	1920101	16	12
+more_levels	partial_cholesky	910102	1920102	16	12
+more_levels	partial_cholesky	910110	1920110	16	12

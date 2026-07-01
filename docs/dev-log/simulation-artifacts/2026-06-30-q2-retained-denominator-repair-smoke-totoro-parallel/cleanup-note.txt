@@ -1,0 +1,1 @@
+Totoro q2 retained-denominator repair smoke used five concurrent single-threaded R jobs with R_LIBS=/home/snakagaw/drmtmb-qseries/20260630-totoro-standby-77b634eda91b/rlib; no persistent workers were started, so cleanup is verifying no matching Rscript commands remain after completion.

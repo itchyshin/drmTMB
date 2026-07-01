@@ -1,0 +1,20 @@
+date=2026-06-30T08:12:54-04:00
+job=16978965
+array_job=16978889
+array_task=1
+provider=phylo
+node=c470
+slurm_cluster_name=nibi
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163/source
+task_repo=/local/scratch/snakagaw.16978965.0/drmTMB-source
+git_sha=77b634ed-dirty-q1-mu-topup-r163
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163/rlib/shard_1:/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4
+contract=structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv
+n_rep=325
+seed_start=151
+promotion_decision=do_not_promote
+claim_boundary=topup_shard_only_not_status_promotion
+mcse_rule=MCSE <= 0.01 is a top-up target, not a shard-level pass claim
+runner_exit_code=0
+done=2026-06-30T08:16:10-04:00

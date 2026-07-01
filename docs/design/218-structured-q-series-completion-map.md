@@ -118,6 +118,16 @@ The current table records these broad facts without promoting beyond them:
 - Phylo q4 point parity and extractor evidence exist, but q4 interval
   reliability, q4 interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
   HSquared AI-REML, and non-Gaussian AI-REML remain outside support.
+- The animal all-four one-slope row is q8-shaped in the implementation: the
+  shared labelled block has eight endpoints and 28 `theta_phylo` coordinates.
+  Existing bounded, one-theta, MAP/penalty, and ridge-continuation diagnostics
+  localize the free-correlation blocker, and the local partial-Cholesky
+  coordinate diagnostic attempted the three hard seeds but produced zero clean
+  all-free admission passes. These diagnostics do not supply a production
+  transform. The next gate is the lower-level TMB/C++ parameterization design in
+  `docs/design/220-structured-q4-animal-production-transform-gate.md`, followed
+  by objective/report equivalence tests and a new local hard-seed admission
+  runner before any Totoro, Nibi/Rorqual, or DRAC work.
 - Ordinary q6/q8 diagnostic routes do not imply structured q6/q8 support.
 - Poisson and NB2 q1 structured `mu` intercept and unlabelled one-slope rows
   are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
@@ -125,15 +135,11 @@ The current table records these broad facts without promoting beyond them:
   count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
 - The ordinary count one-slope rows now have an explicit fixture/recovery
   contract sidecar. It records existing native TMB ML/Laplace point-fit and
-  extractor evidence, while native deterministic fixture status is now
-  `native_fixture_banked` and calibrated recovery remains `designed_not_run`.
-  Native fixture status is not bridge parity. The follow-up recovery-runner
-  contract is also now banked as a dry-run manifest and run log only; no
-  recovery simulation, Totoro job, DRAC job, coverage-evaluable denominator,
-  interval reliability, coverage, or public support has moved. A dispatch
-  preflight sidecar now names provider/family shard boundaries and
-  race-safety rules, but it is not human approval and no job has been
-  submitted. The first local Codex micro-shards have now executed the exact
+  extractor evidence, while native deterministic fixture status is
+  `native_fixture_banked`; native fixture status is not bridge parity. The
+  earlier recovery-runner contract, dispatch preflight, and shard-pack sidecars
+  bank the execution contract only. The first local Codex micro-shards executed
+  the exact
   `phylo()` plus `poisson()`, `phylo()` plus `nbinom2()`,
   fixed-covariance `spatial()` plus `poisson()`, and fixed-covariance
   `spatial()` plus `nbinom2()` q1 `mu` one-slope cells for four seeds each,
@@ -692,12 +698,13 @@ bridge support, public support, and broader q8 support remain unpromoted.
 Hessian-stability probe for those same direct-SD targets. It runs two
 deterministic variants, `strong` and `more_levels`, across `phylo()`,
 fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
-All eight provider-variant fits converged, but all eight returned
-`pdHess = FALSE`, so Wald and profile intervals were not attempted. This
-confirms that the current q4 all-four one-slope interval lane remains
-Hessian-blocked before any denominator or coverage work; it does not promote
-interval reliability, coverage, q4 REML, AI-REML, broad bridge support, public
-support, or broader q8 support.
+The current-source refresh keeps the `phylo()`, fixed-covariance `spatial()`,
+and K-matrix `relmat()` variants Hessian-blocked, while A-matrix `animal()`
+now reaches `pdHess = TRUE` with finite Wald intervals and a mixed profile
+signal. Across the 16 animal direct-SD endpoints, 9 are Wald/profile finite
+and 7 are Wald-finite/profile-nonfinite. This is still diagnostic-only
+admission evidence: it does not promote interval reliability, coverage, q4
+REML, AI-REML, broad bridge support, public support, or broader q8 support.
 
 `structured-re-q4-slope-hessian-geometry.tsv` records the follow-up
 Hessian-geometry audit for those same provider-variant fits. It keeps one row

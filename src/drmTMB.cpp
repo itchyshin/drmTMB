@@ -75,6 +75,52 @@ Type drm_phylo_penalty_value(const vector<Type>& log_sd_phylo,
 }
 
 template<class Type>
+matrix<Type> drm_partial_correlation_cholesky_corr(const vector<Type>& eta,
+                                                   int q) {
+  matrix<Type> lower(q, q);
+  lower.setZero();
+  lower(0, 0) = Type(1.0);
+
+  int pos = 0;
+  for (int row = 1; row < q; ++row) {
+    Type remaining = Type(1.0);
+    for (int col = 0; col < row; ++col) {
+      Type partial = tanh(eta(pos));
+      lower(row, col) = partial * sqrt(remaining);
+      remaining *= Type(1.0) - partial * partial;
+      pos += 1;
+    }
+    lower(row, row) = sqrt(remaining);
+  }
+
+  matrix<Type> corr(q, q);
+  corr.setZero();
+  for (int row = 0; row < q; ++row) {
+    for (int col = 0; col < q; ++col) {
+      int max_k = row < col ? row : col;
+      for (int k = 0; k <= max_k; ++k) {
+        corr(row, col) += lower(row, k) * lower(col, k);
+      }
+    }
+  }
+  for (int row = 0; row < q; ++row) {
+    corr(row, row) = Type(1.0);
+  }
+  return corr;
+}
+
+template<class Type>
+matrix<Type> drm_qgt2_corr_matrix(const vector<Type>& theta,
+                                  int q,
+                                  int parameterization) {
+  if (parameterization == 1) {
+    return drm_partial_correlation_cholesky_corr(theta, q);
+  }
+  density::UNSTRUCTURED_CORR_t<Type> density(theta);
+  return density.cov();
+}
+
+template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
@@ -173,6 +219,7 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(phylo_cor_penalty_sd);
   DATA_INTEGER(use_logsigma_clamp);
   DATA_VECTOR(logsigma_clamp);
+  DATA_INTEGER(qgt2_corr_parameterization);
   DATA_INTEGER(n_re_cov_blocks);
   DATA_IVECTOR(re_cov_block_size);
   DATA_IVECTOR(re_cov_block_group_count);
@@ -261,8 +308,11 @@ Type objective_function<Type>::operator()()
         effect(i, j) = u_re_cov_probe(pos);
       }
     }
-    density::UNSTRUCTURED_CORR_t<Type> phylo_q4_density(theta_phylo);
-    matrix<Type> phylo_q4_corr = phylo_q4_density.cov();
+    matrix<Type> phylo_q4_corr = drm_qgt2_corr_matrix(
+      theta_phylo,
+      q,
+      qgt2_corr_parameterization
+    );
     vector<Type> sd_phylo = exp(log_sd_phylo);
     matrix<Type> phylo_q4_covariance(q, q);
     for (int a = 0; a < q; ++a) {
@@ -3343,8 +3393,11 @@ Type objective_function<Type>::operator()()
           REPORT(quadratic_matrix);
           ADREPORT(theta_phylo);
         } else {
-          density::UNSTRUCTURED_CORR_t<Type> phylo_q4_density(theta_phylo);
-          matrix<Type> phylo_q4_corr = phylo_q4_density.cov();
+          matrix<Type> phylo_q4_corr = drm_qgt2_corr_matrix(
+            theta_phylo,
+            q_phylo,
+            qgt2_corr_parameterization
+          );
           matrix<Type> phylo_q4_covariance(q_phylo, q_phylo);
           for (int a = 0; a < q_phylo; ++a) {
             for (int b = 0; b < q_phylo; ++b) {

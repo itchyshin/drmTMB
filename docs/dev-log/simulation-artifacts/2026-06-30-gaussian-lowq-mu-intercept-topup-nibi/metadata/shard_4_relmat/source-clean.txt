@@ -1,0 +1,3 @@
+/local/scratch/snakagaw.16979505.0/drmTMB-source/src/drmTMB.so
+/local/scratch/snakagaw.16979505.0/drmTMB-source/src/init.o
+/local/scratch/snakagaw.16979505.0/drmTMB-source/src/drmTMB.o

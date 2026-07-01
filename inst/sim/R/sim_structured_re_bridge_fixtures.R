@@ -284,6 +284,102 @@ phase18_structured_re_q2_payload_fixture <- function(
   )
 }
 
+phase18_structured_re_q2_plus_q2_intercept_payload_fixture <- function(
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+  matrix_value <- phase18_structured_re_fixture_matrix("q2")
+  endpoint_members <- paste0(
+    c("mu1", "mu2", "sigma1", "sigma2"),
+    ":(Intercept)"
+  )
+  coef <- c(
+    setNames(c(0.25, -0.10, -0.85, -0.95), endpoint_members),
+    "sd_mu1:structured(Intercept)" = 0.42,
+    "sd_mu2:structured(Intercept)" = 0.31,
+    "cor_mu1_mu2:structured(Intercept)" = 0.18,
+    "sd_sigma1:structured(Intercept)" = 0.22,
+    "sd_sigma2:structured(Intercept)" = 0.20,
+    "cor_sigma1_sigma2:structured(Intercept)" = 0.12
+  )
+  vcov <- diag(seq(0.012, 0.030, length.out = length(coef)))
+  dimnames(vcov) <- list(names(coef), names(coef))
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = "q2_plus_q2_phylo_mu_sigma_intercept_ml",
+      dimension = "q2_plus_q2",
+      structured_type = "phylo",
+      endpoint = "mu1+mu2;sigma1+sigma2",
+      slope_class = "intercept_only",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = "fixture_q2_plus_q2_phylo_location_scale",
+      matrix_digest = paste(
+        "location",
+        phase18_structured_re_matrix_digest(matrix_value),
+        "scale",
+        phase18_structured_re_matrix_digest(matrix_value),
+        sep = ":"
+      ),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_q2_plus_q2_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -31.789
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "cross_block_correlations",
+        "REML",
+        "AI_REML"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "unsupported",
+        "unsupported",
+        "unsupported"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "block-diagonal q2-plus-q2 route has no mu-to-sigma correlations",
+        "q2-plus-q2 REML is not banked by this fixture",
+        "AI-REML is outside this fixture contract"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 phase18_structured_re_mu_slope_payload_fixture <- function(
   structured_type = "phylo",
   estimator = "ML",
@@ -2545,17 +2641,17 @@ phase18_structured_re_q2_fixture_contract <- function() {
     ),
     native_status = c(
       rep("fixture_available", length(structured_types)),
-      "planned",
+      "fixture_available",
       "unsupported"
     ),
     direct_drmjl_status = c(
       rep("fixture_available", length(structured_types)),
-      "planned",
+      "fixture_available",
       "unsupported"
     ),
     r_via_julia_status = c(
       rep("fixture_available", length(structured_types)),
-      "planned",
+      "fixture_available",
       "unsupported"
     ),
     separated_from = c(
@@ -2565,12 +2661,16 @@ phase18_structured_re_q2_fixture_contract <- function() {
     ),
     bridge_status = c(
       rep("experimental", length(structured_types)),
-      "planned",
+      "fixture_parity",
       "unsupported"
     ),
     claim_boundary = c(
       boundary,
-      "Two q2 blocks are not full q4 structured covariance.",
+      paste(
+        "Two q2 blocks have deterministic same-target fixture parity but",
+        "are not full q4 structured covariance, interval reliability,",
+        "coverage, REML, AI-REML, broad bridge support, or public support."
+      ),
       "q2 REML remains unsupported and is not HSquared AI-REML."
     ),
     stringsAsFactors = FALSE

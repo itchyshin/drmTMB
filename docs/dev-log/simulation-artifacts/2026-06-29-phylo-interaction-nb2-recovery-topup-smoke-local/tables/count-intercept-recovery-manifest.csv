@@ -1,0 +1,3 @@
+"lane","family","cell_id","replicate","seed","status","skipped","warning_count","error","elapsed"
+"phylo_interaction","nbinom2()","qseries_phylo_interaction_nbinom2_q1_mu",1,2026364001,"ok",FALSE,0,NA,NA
+"phylo_interaction","nbinom2()","qseries_phylo_interaction_nbinom2_q1_mu",2,2026364002,"ok",FALSE,0,NA,NA

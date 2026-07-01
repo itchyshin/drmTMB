@@ -1,0 +1,13 @@
+date=2026-06-29T09:15:50-04:00
+job=16923114
+node=c479
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed-noload
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed-noload/source
+task_repo=/local/scratch/snakagaw.16923114.0/drmTMB-source
+git_sha=77b634eda91b0173926557ce5c4a3d20853fb215
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed-noload/rlib
+n_rep=16
+seed_start=910101
+variant=more_levels
+runner_exit_code=0
+done=2026-06-29T09:23:51-04:00

@@ -1,0 +1,10 @@
+            package available
+cli             cli      TRUE
+RcppEigen RcppEigen      TRUE
+TMB             TMB      TRUE
+ape             ape      TRUE
+        cli   RcppEigen         TMB         ape
+    "3.6.5" "0.3.4.0.2"    "1.9.18"     "5.8.1"
+[1] "/project/6098264/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed-noload/rlib"
+[2] "/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/r-bundle-bioconductor/3.21"
+[3] "/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.5.0/lib64/R/library"

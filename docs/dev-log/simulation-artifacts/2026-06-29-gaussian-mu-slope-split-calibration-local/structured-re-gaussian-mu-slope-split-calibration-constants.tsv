@@ -1,0 +1,3 @@
+endpoint_member	calibration_n_usable	calibration_delta_log_upper	calibration_upper_multiplier	calibration_upper_miss	calibration_upper_miss_rate
+mu:(Intercept)	450	0.054082	1.0556	16	0.035556
+mu:x	448	0.245039	1.2777	12	0.026786

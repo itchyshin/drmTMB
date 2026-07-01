@@ -1,0 +1,6 @@
+artifact	path	rows
+fit_status	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/structured-re-gaussian-mu-slope-coverage-pregrid-fit-status.tsv	600
+replicates	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/structured-re-gaussian-mu-slope-coverage-pregrid-replicates.tsv	1200
+target_summary	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/structured-re-gaussian-mu-slope-coverage-pregrid-target-summary.tsv	8
+provider_summary	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/structured-re-gaussian-mu-slope-coverage-pregrid-provider-summary.tsv	4
+dashboard_results	docs/dev-log/dashboard/structured-re-gaussian-mu-slope-coverage-pregrid-results.tsv	4

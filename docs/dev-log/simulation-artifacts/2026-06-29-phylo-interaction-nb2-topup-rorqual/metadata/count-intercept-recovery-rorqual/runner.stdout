@@ -1,0 +1,36 @@
+                                                                                             recovery_id
+qseries_phylo_interaction_nbinom2_q1_mu count_intercept_recovery_qseries_phylo_interaction_nbinom2_q1_mu
+                                                                        cell_id
+qseries_phylo_interaction_nbinom2_q1_mu qseries_phylo_interaction_nbinom2_q1_mu
+                                           family   structured_type n_rep
+qseries_phylo_interaction_nbinom2_q1_mu nbinom2() phylo_interaction    80
+                                        n_seed_replicates n_internal_conditions
+qseries_phylo_interaction_nbinom2_q1_mu                80                     1
+                                        fit_ok nonconverged pdhess_false
+qseries_phylo_interaction_nbinom2_q1_mu     80            0            0
+                                        finite_estimate_rows
+qseries_phylo_interaction_nbinom2_q1_mu                   80
+                                        near_zero_threshold
+qseries_phylo_interaction_nbinom2_q1_mu               1e-04
+                                        near_zero_estimate_rows
+qseries_phylo_interaction_nbinom2_q1_mu                       1
+                                        near_zero_estimate_rate
+qseries_phylo_interaction_nbinom2_q1_mu                  0.0125
+                                        boundary_warning_rows true_sd   mean_sd
+qseries_phylo_interaction_nbinom2_q1_mu                     1    0.45 0.4060733
+                                            bias_sd   rmse_sd  bias_mcse
+qseries_phylo_interaction_nbinom2_q1_mu -0.04392669 0.1493457 0.01605946
+                                         rmse_mcse     recovery_verdict
+qseries_phylo_interaction_nbinom2_q1_mu 0.01304932 recovery_only_passed
+                                                      widget_state
+qseries_phylo_interaction_nbinom2_q1_mu non_gaussian_recovery_only
+                                                                 linked_cell_id
+qseries_phylo_interaction_nbinom2_q1_mu qseries_phylo_interaction_nbinom2_q1_mu
+                                        linked_coverage_status
+qseries_phylo_interaction_nbinom2_q1_mu                planned
+                                                                                                                                                                                evidence_url
+qseries_phylo_interaction_nbinom2_q1_mu /project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-phylo-interaction-nb2-topup-77b634ed-dirty/results/count-intercept-recovery-rorqual/artifacts
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          claim_boundary
+qseries_phylo_interaction_nbinom2_q1_mu Non-Gaussian count-intercept recovery measured locally with 80 structured-SD rows for nbinom2() phylo_interaction q1 mu. The sidecar reports fit, pdHess, finite-estimate, near-zero-estimate, bias, RMSE, and MCSE diagnostics. This is RECOVERY evidence only and is not interval-ready or coverage-ready: it does NOT promote interval_status, coverage_status, inference_ready, supported, REML, AI-REML, bridge support, q2/q4 count covariance, high-q, or public support.
+                                                                                                                                                                                                                                                    next_gate
+qseries_phylo_interaction_nbinom2_q1_mu If the row is clean, rerun or top up on the primary cluster before any public recovery wording; if caveated, diagnose the Hessian or near-zero lower-tail mechanism first. Intervals and coverage remain unsupported.

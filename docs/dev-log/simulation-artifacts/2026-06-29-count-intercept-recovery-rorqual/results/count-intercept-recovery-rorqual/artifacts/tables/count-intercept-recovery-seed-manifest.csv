@@ -1,0 +1,5 @@
+"lane","seed_start","n_rep"
+"ordinary_structured",2026062931,80
+"phylo_poisson",2026162931,80
+"phylo_nbinom2",2026262931,80
+"phylo_interaction",2026362931,80

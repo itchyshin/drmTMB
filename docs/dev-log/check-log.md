@@ -2,6 +2,5198 @@
 
 Record meaningful development checks here.
 
+## 2026-06-30: Q-Series animal q1 mu boundary-profile blocker sync
+
+Scope:
+
+- Added the animal q1 `mu:(Intercept)` hard-seed boundary-profile blocker as a
+  first-class mission-control sidecar.
+- Synced the 104-row support-cell table, Gaussian low-q audit, row-selection
+  table, dashboard README, validator, and focused conversion-contract tests so
+  `qseries_animal_q1_mu_intercept` points at
+  `structured-re-gaussian-lowq-mu-intercept-animal-boundary-profile.tsv`.
+- Kept phylo, spatial, and relmat q1 `mu:(Intercept)` at
+  interval+coverage `inference_ready` with caveats under the SR475 raw/default
+  Wald direct-SD evidence.
+
+Evidence:
+
+- Nibi SR475 retained-denominator aggregate: animal has 473/475 usable Wald
+  intervals, coverage 0.9747, MCSE 0.007200, and lower/upper misses 6/4.
+- Local hard-seed replay of seeds `812407` and `812444`: fits converge with
+  `pdHess = TRUE`; endpoint profiles are finite 2/2 but upper-miss 2/2; full
+  `tmbprofile` fallback is finite 0/2 with `nonfinite_interval`.
+
+Boundary:
+
+- This promotes exactly no additional Q-Series row.
+- Animal q1 `mu:(Intercept)` remains `point_fit/planned/planned`.
+- Do not top up this route on Totoro, FIIA, Nibi, Rorqual, Trillium, or DRAC;
+  Fisher/Gauss/Rose must design a new animal q1 `mu` interval route or write an
+  explicit blocker decision before any status edit.
+- No `supported`, q1 `sigma`, matched `mu+sigma`, q2, q4/q8, non-Gaussian
+  interval, REML, AI-REML, mixed-host denominator, broad bridge, or public
+  support claim changed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells and 1 animal q1 `mu`
+  boundary-profile blocker row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed, 10226 tests / 0 failures /
+  0 warnings / 0 skips.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-animal-q1-mu-boundary-profile-blocker.md`
+
+## 2026-06-30: Q-Series q1 sigma profile-route blocker wording sync
+
+Scope:
+
+- Reconciled the human-readable q1 `sigma` intercept route-review wording with
+  the machine ledger for `qseries_animal_q1_sigma_intercept` and
+  `qseries_relmat_q1_sigma_intercept`.
+- The support cells, row-selection table, closure triage, validator, and focused
+  test already recorded `sigma_profile_channel_upper_tail_blocked`,
+  `profile_channel_blocker_no_topup`, and
+  `endpoint_zero_boundary_patch_sr1000_upper_tail_blocked`.
+- Updated the dashboard README, check-log, and after-task prose so the route is
+  no longer described as merely review-hold evidence.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- Animal and relmat q1 `sigma` intercept rows remain
+  `point_fit/planned/planned`.
+- No top-up is authorized on Totoro, Nibi, Rorqual, Trillium, or other DRAC
+  hosts for this endpoint zero-boundary profile route.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`, q1
+  `mu`, matched `mu+sigma`, q2, q4/q8, non-Gaussian interval, REML, AI-REML,
+  bridge support, mixed-host denominator, or public-support claim changed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells and 2 sigma profile-route review rows.
+- `git diff --check`: passed.
+- Stale-phrase scan over the touched q1 sigma README, check-log, and after-task
+  surfaces found no remaining `review-hold evidence only`,
+  `Fisher/Gauss/Rose review hold`, `accept or reject the endpoint`, or
+  `upper-tail miss balance` wording.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-profile-route-blocker-sync.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator repair smoke on Totoro
+
+Goal:
+
+- Use Totoro as a bounded, host-separated accelerator for the five q2
+  retained-denominator repair-smoke cells, without changing any support-cell
+  status.
+
+Result:
+
+- Ran the repair-smoke dry run on Totoro and generated a host-stamped manifest
+  under
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro-parallel/`.
+- Launched the five manifest cells concurrently as single-threaded R jobs:
+  four q2 `mu1+mu2` intercept cells at `n_rep = 32` and the phylo q2_plus_q2
+  intercept cell at `n_rep = 16`.
+- Imported the complete Totoro artifacts into
+  `structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv` with
+  `--require-artifacts=true`.
+- Wrote
+  `structured-re-q2-retained-denominator-repair-smoke-review.tsv` and synced the
+  no-promotion gates back to the support-cell table and next-campaign queue.
+- Advanced the dashboard build marker to `r187`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- All five cells remain `point_fit/planned/planned`.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`, q2
+  slope inheritance, q2_plus inheritance, q4/q8, non-Gaussian interval, REML,
+  AI-REML, bridge support, mixed-host denominator, or public-support claim
+  changed.
+
+Evidence:
+
+- Four q2 intercept rows had complete fit/convergence/`pdHess`/finite-interval
+  counts at `n_rep = 32`, but the small-smoke MCSE remains above 0.01:
+  phylo min profile coverage 0.7500, spatial 0.9375, animal 0.8438, relmat
+  0.8438. Profile upper misses were phylo 12, spatial 5, animal 7, relmat 8
+  across three targets per cell.
+- The phylo q2_plus_q2 intercept row had profile finite loss:
+  `n_profile_finite_min = 14/16`, min profile coverage 0.8750, and profile
+  upper misses 6 across five direct targets.
+- Fisher/Rose/Grace review blocks all five rows from top-up or status edit:
+  no Totoro, Nibi, Rorqual, Trillium, or other DRAC top-up until a named
+  interval-repair route exists and this same retained-denominator smoke passes.
+
+Remote/toolchain notes:
+
+- First Totoro attempt failed because default `.libPaths()` lacked `TMB`.
+- Second attempt failed because the source snapshot still contained a
+  macOS-built `src/drmTMB.so`; Linux reported `invalid ELF header`.
+- Cleaned Totoro compiled objects, verified
+  `R_LIBS=/home/snakagaw/drmtmb-qseries/20260630-totoro-standby-77b634eda91b/rlib`
+  with `library(TMB)`, `library(RcppEigen)`, and `devtools::load_all()`, then
+  reran the same five-cell smoke successfully.
+- Replaced `.git`-less Totoro `git-sha.txt` outputs with local source SHA
+  `77b634eda91b0173926557ce5c4a3d20853fb215`; wrote a Totoro module/library
+  note; verified no matching q2 runner remained after completion.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke.R
+  --manifest=docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro-parallel/structured-re-q2-retained-denominator-repair-smoke-command.tsv
+  --output=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv
+  --overwrite=true --require-artifacts=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R
+  --dispatch=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv
+  --output=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv
+  --sync-dashboard=true --overwrite=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- Required after-task header check for
+  `docs/dev-log/after-task/2026-06-30-q-series-q2-repair-smoke-totoro-review.md`:
+  passed with `after_task_headers_ok` (`tools/check-after-task.R` is not present
+  in this repository).
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 10206 PASS
+  / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q2-repair-smoke-totoro-review.md`
+
+## 2026-06-30: Q-Series q1 sigma endpoint zero-boundary profile review
+
+Goal:
+
+- Harden and review the animal/relmat q1 `sigma` intercept profile route before
+  any status promotion, while using parallel shards efficiently and preserving
+  host/denominator provenance.
+
+Result:
+
+- Added `--profile-engine=endpoint|tmbprofile` to
+  `tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R`, then added
+  profile-channel coverage/miss accounting for endpoint profile intervals.
+- Hardened the endpoint profile lower side for positive SD targets: once the
+  lower log-SD side reaches numerical zero while the likelihood-ratio distance
+  remains below the cutoff, the profile interval lands on response-scale zero
+  instead of chasing a spurious finite lower root.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-profile-route-review.tsv`.
+  Endpoint budget 48 rescued 2/3 selected endpoint-profile failures per
+  provider; the endpoint zero-boundary patch rescued the remaining selected
+  seed and produced local SR1000 profile-channel evidence. For both animal and
+  relmat: 1000/1000 profiles finite, coverage 0.9430, MCSE 0.007332, misses
+  lower=12/upper=45, and 757/1000 lower-boundary profiles. The `tmbprofile`
+  fallback remains negative with 0/5 finite profiles.
+- Synchronized the 104-row support-cell table, Gaussian low-q audit,
+  row-selection gate and artifact mirror, next-campaign queue, closure triage,
+  dashboard README, widget table, mission-control validator, and focused tests.
+  Dashboard build/version advanced to `r186`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- Animal and relmat q1 `sigma` intercept rows remain
+  `point_fit/planned/planned`.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`, q1
+  `mu`, matched `mu+sigma`, q2, q4/q8, non-Gaussian interval, REML, AI-REML,
+  bridge support, host-denominator, or public-support claim changed.
+- Fisher/Gauss/Rose now block top-up and promotion from this endpoint
+  zero-boundary profile route: SR1000 already has finite intervals and an
+  upper-tail miss imbalance, so more replicas on the same route would not fix
+  the interval shape problem.
+
+Member review:
+
+- Fisher: no promotion and no top-up from this route. The profile channel is
+  useful route-repair evidence, but the 12 lower / 45 upper miss imbalance and
+  one-scenario DGP keep it from `inference_ready`.
+- Gauss: the zero-boundary convention is numerically defensible in principle,
+  but the lower-side error branch must not convert optimizer/evaluation errors
+  into zero-boundary intervals. Tightened that branch so only finite below-cutoff
+  evaluations at or below the numerical-zero floor can return `theta = -Inf`.
+- Rose: no overclaim found; support cells stay `point_fit/planned/planned`.
+  Rose flagged stale Trillium source-readiness wording, now reconciled in the
+  host-access sidecar and dashboard README.
+
+Validation:
+
+- Endpoint budget-48 replay before patch: passed as diagnostic; 4/5 finite
+  profiles per provider, with seed 914011 exposing the lower-boundary root
+  diagnostic that motivated the endpoint zero-boundary patch.
+- Endpoint zero-boundary hard-seed replay after patch: passed; seed 914011
+  returned finite profile intervals `[0, 0.272805]` for animal and relmat with
+  `profile.message = near_sd_boundary`.
+- Endpoint zero-boundary hard-seed replay after the lower-side error-branch
+  hardening: passed; seed 914011 still returned finite profile intervals
+  `[0, 0.272805]` for animal and relmat, with `profile_error = NA`.
+- Production-path hard-seed regression for seed 914011: passed in
+  `tests/testthat/test-profile-targets.R`; `confint(..., method = "profile",
+  profile_engine = "endpoint")` returns `[0, 0.272805]` with
+  `profile.message = near_sd_boundary` for both animal and relmat.
+- Endpoint zero-boundary selected five-seed replay: passed; 5/5 finite profiles
+  per provider.
+- Endpoint zero-boundary SR150 local replay: passed; 150/150 finite profiles,
+  coverage 0.9533, MCSE 0.017222, misses lower=2/upper=5 per provider.
+- Endpoint zero-boundary SR1000 local top-up: passed via parallel shards; 1000/1000
+  finite profiles, coverage 0.9430, MCSE 0.007332, misses lower=12/upper=45 per
+  provider.
+- `tmbprofile` replay: passed as a negative fallback; 0/5 finite profiles per
+  provider.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-sigma-profile-route-review.R
+  --overwrite=true --sync-dashboard=true`: passed.
+- `/opt/homebrew/bin/air format ...`: passed for touched R files.
+- Quiet parse check for touched R/test files: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "profile-targets")'`: 816 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 10206 PASS
+  / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- Totoro source snapshot: synced to `/home/snakagaw/codex/drmTMB` excluding
+  `.git` and simulation artifacts; remote `const BUILD = "r186"` and touched
+  R files parse with `R_PROFILE_USER=/dev/null Rscript --no-init-file`.
+- Trillium source snapshot: synced to
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/source/drmTMB` excluding
+  `.git` and simulation artifacts; after loading `StdEnv/2023 gcc/12.3 r/4.4.0`,
+  remote `const BUILD = "r186"` and touched R files parse with
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`.
+- Post-review widget/host-ledger reconciliation advanced dashboard build/version
+  to `r186`; Totoro and Trillium source snapshots were resynced after the host
+  ledger and lower-boundary branch hardening edits.
+- Final touched-file resync after the production hard-seed regression: Totoro
+  `/home/snakagaw/codex/drmTMB` and Trillium
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/source/drmTMB` both parse
+  `R/profile.R` and `tests/testthat/test-profile-targets.R`.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-profile-route-review.md`
+
+## 2026-06-30: Q-Series Trillium run-root staging
+
+Goal:
+
+- Record the newly available Trillium access without turning host reachability
+  into denominator, interval, coverage, or support evidence.
+
+Result:
+
+- Probed Trillium as `tri-login03` with BatchMode SSH. The project area
+  `/project/def-snakagaw/snakagaw` exists; plain `Rscript` is not on the login
+  PATH, but the documented DRAC module stack
+  `module load StdEnv/2023 gcc/12.3 r/4.4.0` exposes R 4.4.0.
+- Staged the prescribed run root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries`.
+- Updated
+  `docs/dev-log/dashboard/structured-re-q-series-host-access-recheck.tsv` so
+  Trillium is
+  `reachable_root_staged_source_sync_required` with
+  `qseries_root_status = qseries_run_root_exists` and
+  `source_root_status = source_root_not_found`.
+- Updated the q2 retained-denominator repair contract generator, generated
+  repair-contract TSV, repair-smoke runner guard, mission-control validator,
+  focused tests, dashboard README, and dashboard build/version to `r176` so
+  Trillium is blocked until source sync and explicit
+  `--allow-trillium=true`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- No `fit_status`, `interval_status`, `coverage_status`, `inference_ready`,
+  `supported`, q2 slope inheritance, q4/q8, non-Gaussian interval status,
+  REML, AI-REML, bridge support, or public-support claim changed.
+- No Trillium jobs were launched. Future Trillium use still needs source sync,
+  a row-specific smoke or repair contract, retained artifacts, and
+  Fisher/Rose/Grace review.
+
+Validation:
+
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 trillium 'set -e; ...'`: reached
+  `tri-login03`; confirmed project root exists, qseries/source roots were not
+  initially present, and plain `Rscript` was absent from PATH.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 trillium 'module load
+  StdEnv/2023 gcc/12.3 r/4.4.0 ...'`: passed; Rscript resolved under
+  `/cvmfs/soft.computecanada.ca/.../r/4.4.0/bin/Rscript`.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 trillium 'mkdir -p
+  /project/def-snakagaw/snakagaw/drmtmb-qseries ...'`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-contract.R
+  --overwrite=true --sync-dashboard=true`: passed.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-q2-retained-denominator-repair-contract.R
+  tools/run-structured-re-q2-retained-denominator-repair-smoke.R
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-contract.R"));
+  invisible(parse("tools/run-structured-re-q2-retained-denominator-repair-smoke.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 6 host-access recheck rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10132 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-trillium-run-root-staging.md`
+
+## 2026-06-30: Q-Series Gaussian mu-slope review-hold sync
+
+Goal:
+
+- Make the Gaussian q1 `mu` one-slope blocker lane explicit after Trillium
+  became reachable, so connected hosts do not invite premature top-up compute.
+
+Result:
+
+- Added
+  `tools/summarize-structured-re-gaussian-mu-slope-review-decision.R` and
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-review-decision.tsv`.
+- The new review table has four rows: phylo, spatial, animal, and relmat q1
+  `mu` one-slope. It keeps all four linked support cells at
+  `point_fit/planned/planned`.
+- The table records the current decision:
+  `fisher_rose_noether_interval_rule_required_no_topup`.
+- The queue now says local derivation and retained-artifact replay come first;
+  one Totoro/FIIA smoke is allowed only after Fisher/Rose/Noether accept a
+  named replacement interval rule. Totoro, Nibi, Rorqual, Trillium, and DRAC
+  top-ups remain blocked before that rule and smoke.
+- The widget now renders the review-hold table above the raw interval-shape,
+  rule-screen, and split-calibration details; dashboard build `r175`.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-mu-slope-review-decision.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-gaussian-mu-slope-review-decision.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-mu-slope-review-decision.R
+  --overwrite=true --sync-dashboard=true`: passed.
+- Dashboard JavaScript parse check: passed with `dashboard_js_parse_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10130 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  /Users/z3437171/shinichi-brain/tools/check-after-task.R
+  docs/dev-log/after-task/2026-06-30-q-series-gaussian-mu-slope-review-hold-sync.md`:
+  passed.
+- `git diff --check` on the review-hold files: passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-gaussian-mu-slope-review-hold-sync.md`
+
+## 2026-06-30: Q-Series q1 sigma SR150 reviewed blocker sync
+
+Goal:
+
+- Convert the animal/relmat q1 `sigma:(Intercept)` SR150 pregrid from
+  review-pending evidence into an explicit reviewed blocker, while keeping both
+  support cells unpromoted.
+
+Result:
+
+- Updated
+  `tools/summarize-structured-re-gaussian-lowq-sigma-intercept-pregrid.R` so
+  rerunning the generator writes
+  `completed_imported_reviewed_blocked_no_topup`,
+  `sr150_pregrid_completed_diagnostic_blocked_no_topup`, and
+  `fisher_gauss_rose_route_hardening_required_no_topup`.
+- The generator now syncs the linked Q-Series support cells and Gaussian low-q
+  audit rows to say Fisher/Gauss/Rose reviewed the SR150 evidence; it also
+  updates the closure triage and next-campaign queue so the board points to
+  interval-route hardening rather than a review that is already done.
+- The two q1 sigma animal/relmat intercept cells remain
+  `point_fit/planned/planned`; no interval, coverage, `inference_ready`, or
+  `supported` claim changed.
+- The blocker remains 115/150 usable raw-Wald intervals plus 118/150 warning
+  replicates; the next work is a hardened or replacement sigma interval route,
+  not SR475/SR1000 top-up on the same route.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-sigma-intercept-pregrid.R
+  --overwrite=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-gaussian-lowq-sigma-intercept-pregrid.R"));
+  invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10090 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  /Users/z3437171/shinichi-brain/tools/check-after-task.R
+  docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-sr150-reviewed-blocker-sync.md`:
+  passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-sr150-reviewed-blocker-sync.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator repair-smoke review
+
+Goal:
+
+- Convert the imported Totoro q2 retained-denominator repair smoke into an
+  explicit Fisher/Rose/Grace no-top-up review so the smoke is not mistaken for
+  promotion evidence.
+
+Result:
+
+- Added
+  `tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R`.
+  The generator reads the repair-smoke dispatch/import sidecar, the SR150
+  decision table, and the repair contract, then writes
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv`.
+- The review generator now also syncs the Q-Series row-level next gates,
+  closure triage, and next-campaign queue when run with `--sync-dashboard=true`.
+  The five q2 retained-denominator support cells still remain
+  `point_fit/planned/planned`.
+- The review table has five rows, one per blocked q2 retained-denominator cell.
+- Four q2 intercept rows are
+  `repair_smoke_existing_route_not_enough_no_topup`: the Totoro smoke reran the
+  existing interval route, has MCSE above 0.01, and does not repair the SR150
+  interval-shape blocker.
+- The q2-plus-q2 phylo intercept row is
+  `repair_smoke_finiteness_blocked_no_topup`: the smoke still records
+  `profile_finite_min=14`.
+- Every row remains `promotion_decision = do_not_promote` and
+  `status_edit_decision = do_not_promote_keep_point_fit_planned_planned`.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It does not change `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, q2 slope status, q4/q8,
+  non-Gaussian interval status, REML, AI-REML, bridge support, or public
+  support.
+- Do not submit Totoro, Nibi, Rorqual, Trillium, or other DRAC top-up jobs for
+  these five cells until a named interval-repair route exists and passes this
+  same retained-denominator smoke gate.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R
+  --overwrite=true --sync-dashboard=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`, now
+  including 5 q2 retained-denominator repair-smoke review rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10089 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  /Users/z3437171/shinichi-brain/tools/check-after-task.R
+  docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-repair-smoke-review.md`:
+  passed.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-repair-smoke-review.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator repair-smoke dispatch sidecar
+
+Goal:
+
+- Add a reviewed dashboard sidecar for the five-row q2 retained-denominator
+  repair-smoke dispatch/import manifest, while keeping the evidence diagnostic-only and
+  preserving the no-promotion boundary.
+
+Result:
+
+- Added
+  `tools/summarize-structured-re-q2-retained-denominator-repair-smoke.R`.
+  The summarizer reads the repair-smoke command manifest, writes
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv`,
+  and records either manifest-only dispatch rows or imported smoke-artifact
+  rows without changing support-cell status.
+- Generated the dry-run command manifest at
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-dispatch/structured-re-q2-retained-denominator-repair-smoke-command.tsv`.
+- Ran the five-cell repair smoke on Totoro from the staged
+  `77b634eda91b` source with five single-threaded R processes and imported the
+  artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro/`.
+- Imported five dispatch rows: four q2 intercept cells with three observed
+  repair targets each and one q2-plus-q2 phylo intercept cell with five
+  observed repair targets.
+- The four q2 intercept cells are
+  `repair_smoke_mcse_gt_0.01_review_required_no_promotion`; the q2-plus-q2
+  phylo intercept cell is
+  `repair_smoke_finiteness_review_required_no_promotion`.
+- Every row remains `promotion_decision = do_not_promote`.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It does not change `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, q2 slope status, q4/q8,
+  non-Gaussian interval status, REML, AI-REML, bridge support, or public
+  support.
+- Totoro is available for bounded no-queue smoke work with worker caps and
+  cleanup. This smoke used no persistent worker pool; the cleanup note is
+  recorded in the Totoro metadata. Trillium is connected, but
+  denominator-sensitive runs still need synced source and qseries artifact roots
+  before use.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/run-structured-re-q2-retained-denominator-repair-smoke.R
+  --host-class=local_repair_smoke --host-name=local
+  --output-root=docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-dispatch
+  --overwrite=true --write-dashboard=false --dry-run=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke.R
+  --manifest=docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-dispatch/structured-re-q2-retained-denominator-repair-smoke-command.tsv
+  --overwrite=true`: passed.
+- Totoro smoke launch through the ControlMaster socket: five commands ran in
+  parallel with status `0`; q2 intercept cells used `n_rep = 32` and seed ranges
+  `920001-920032` through `923001-923032`, and q2-plus-q2 used `n_rep = 16` and
+  seed range `924001-924016`.
+- `rsync` import of Totoro results, metadata, and logs into
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro/`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke.R
+  --manifest=docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-totoro/structured-re-q2-retained-denominator-repair-smoke-command-local.tsv
+  --overwrite=true --require-artifacts=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-smoke.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `git diff --check -- tools/summarize-structured-re-q2-retained-denominator-repair-smoke.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R
+  docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv
+  docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-repair-smoke-dispatch/structured-re-q2-retained-denominator-repair-smoke-command.tsv`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10006 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-repair-smoke-dispatch.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator repair-smoke runner
+
+Goal:
+
+- Turn the five-row q2 retained-denominator repair contract into an executable
+  dry-run/dispatch wrapper while preserving the no-promotion boundary.
+
+Result:
+
+- Added `tools/run-structured-re-q2-retained-denominator-repair-smoke.R`.
+  The wrapper reads
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-contract.tsv`,
+  requires the exact five repair-contract cells, maps `smoke_seed_range` to
+  runner seeds, and forwards to the existing q2 intercept or q2-plus-q2 smoke
+  runner with `--write-dashboard=false`.
+- The dry-run manifest records one command per selected cell at
+  `structured-re-q2-retained-denominator-repair-smoke-command.tsv`.
+- The q2-plus command is locked to the five direct repair targets
+  (`mu1`, `mu2`, `cor_mu1_mu2`, `sigma1`, `sigma2`) and excludes the held
+  `cor_sigma1_sigma2` target.
+- Totoro execution now requires a cleanup note; Trillium remains blocked unless
+  the run/source roots have been synced and `--allow-trillium=true` is passed.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It does not change `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, q2 slope status, q4/q8,
+  non-Gaussian interval status, REML, AI-REML, bridge support, or public
+  support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q2-retained-denominator-repair-smoke.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- Dry-run command-manifest check for
+  `qseries_phylo_q2_mu1_mu2_intercept` and
+  `qseries_phylo_q2_plus_q2_intercept`: passed; seed bases were `920000` and
+  `924000`, and the q2-plus command selected exactly the five direct targets.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `git diff --check -- tools/run-structured-re-q2-retained-denominator-repair-smoke.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9956 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-repair-smoke-runner.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator SR150 import and host ledger
+
+Goal:
+
+- Import the completed Rorqual q2 retained-denominator SR150 pregrid as a
+  review-only dashboard sidecar, update host-access truth for Totoro and
+  Trillium, and keep every Q-Series support cell status unchanged.
+
+Result:
+
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-pregrid-results.tsv`
+  from the imported Rorqual artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-retained-denominator-sr150-pregrid-rorqual/`.
+- Added mission-control and focused-test guards for the 17 result rows: exact
+  schema, exact SR150 target set, local artifact references, retained
+  denominator, Rorqual provenance, status counts, and no-promotion wording.
+- Patched
+  `tools/summarize-structured-re-q2-retained-denominator-pregrid.R` so source
+  summaries that omit SLURM provenance are backfilled from the imported
+  `_rorqual-metadata/shard_*` run logs instead of hand-edited.
+- Updated
+  `docs/dev-log/dashboard/structured-re-q-series-host-access-recheck.tsv`:
+  Totoro is now recorded as interactive ControlMaster/staged private-library
+  access with a q2-plus n=1 host smoke, and Trillium is recorded as reachable
+  at `tri-login03` but missing the checked qseries run root.
+
+Evidence summary:
+
+- SR150 rows imported: 17.
+- Status split: 10 top-up candidates with MCSE still above 0.01; 5 q2-plus
+  rows requiring convergence/`pdHess` review; 1 spatial correlation row
+  requiring profile-finiteness review; 1 animal correlation row requiring
+  Wald-finiteness review.
+- Rorqual provenance in the sidecar records job ids `14966681`, `14966791`,
+  `14966827`, `14966828`, and `14966829`.
+- Host ledger now has 6 rows: Totoro, FIIA, Nibi, Rorqual, Fir, and Trillium.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It does not change `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, q2 slope status, q4/q8,
+  non-Gaussian interval status, REML, AI-REML, bridge support, or public
+  support.
+
+Validation:
+
+- `ssh -o BatchMode=yes -o ConnectTimeout=5 trillium hostname`: reached
+  `tri-login03`.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 trillium 'hostname; ...'`:
+  confirmed `/project/def-snakagaw/snakagaw` exists, while the checked
+  `drmtmb-qseries` and source roots are not staged there yet.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-pregrid.R
+  --overwrite=true`: regenerated the 17-row sidecar.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'parse("tools/summarize-structured-re-q2-retained-denominator-pregrid.R")'`:
+  passed.
+- `git diff --check -- tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/summarize-structured-re-q2-retained-denominator-pregrid.R
+  docs/dev-log/dashboard/structured-re-q-series-host-access-recheck.tsv
+  docs/dev-log/dashboard/structured-re-q2-retained-denominator-pregrid-results.tsv`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`, now
+  including 6 host-access rows and 17 q2 retained-denominator pregrid-result
+  rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9788 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-pregrid-import-and-hosts.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator pregrid runner
+
+Goal:
+
+- Turn the q2 retained-denominator design gate into an executable SR150
+  pregrid dispatch pack without promoting any Q-Series support cell.
+
+Result:
+
+- Added `tools/run-structured-re-q2-retained-denominator-pregrid.R`.
+  It reads `structured-re-q2-retained-denominator-design.tsv`, requires the
+  17-ready/1-repair-held target split, enforces `--n-rep=150`, keeps
+  `--write-dashboard=false`, and requires Nibi/Rorqual SLURM runtime outside
+  dry-run mode.
+- Added `tools/slurm/q2-retained-denominator-pregrid-nibi.sbatch`, a
+  five-shard Nibi array for q2 intercept phylo/spatial/animal/relmat plus the
+  five ready q2-plus-q2 phylo targets.
+- Updated `tools/run-structured-re-q2-plus-q2-intercept-smoke.R` with
+  `--contract-ids` so the pregrid wrapper can exclude the repair-held
+  `cor_sigma1_sigma2` target while the exact Nibi/Rorqual n=5 substitute smoke
+  still requires the full six-target contract.
+- Added mission-control and focused-test guards for the wrapper, q2-plus
+  target filter, dry-run manifests, and Nibi array shape.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It prepares artifact-only SR150
+  pregrid execution; it is not denominator evidence, coverage evidence,
+  `inference_ready`, `supported`, q2 slope, q4/q8, non-Gaussian interval, REML,
+  AI-REML, bridge support, or public support.
+
+Validation:
+
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 nibi hostname`: reached
+  `l5.nibi.sharcnet`.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 rorqual hostname`: reached
+  `rorqual2`.
+- Staged Nibi run root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex`
+  and submitted array `16987720`; canceled it while still pending because Nibi
+  reported `(ReqNodeNotAvail, Reserved for maintenance)`.
+- Staged Rorqual run root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual`
+  and submitted array `14966341`; at log update it was pending with reason
+  `(Priority)` and had not produced runner logs yet.
+- Local q2-plus target-filter probe with one replicate and five
+  `--contract-ids`: passed and excluded the repair-held sigma1/sigma2
+  correlation target.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file=...)'` for
+  the new wrapper, q2-plus smoke runner, and focused test file: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `bash -n tools/slurm/q2-retained-denominator-pregrid-nibi.sbatch`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9698 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-pregrid-runner.md`
+
+## 2026-06-30: Q-Series q2 retained-denominator design gate
+
+Goal:
+
+- Convert the reviewed q2 intercept and q2-plus-q2 Nibi/Rorqual substitute
+  smokes into a target-level retained-denominator design gate without promoting
+  any Q-Series support cell.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-design.tsv`
+  via `tools/summarize-structured-re-q2-retained-denominator-design.R`.
+- The design has 18 target rows: 12 q2 intercept targets and six q2-plus-q2
+  within-block targets.
+- Seventeen targets are `sr150_pregrid_ready_no_promotion`; the q2-plus-q2
+  sigma1/sigma2 correlation target is
+  `profile_repair_required_no_pregrid`.
+- Updated `structured-re-gaussian-lowq-row-selection.tsv` so the four q2
+  intercept cells and the q2-plus-q2 cell point at the retained-denominator
+  design instead of the older "design required" gate.
+- Kept linked support cells at `point_fit/planned/planned`.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It is a design gate for future SR150
+  pregrid work, not denominator evidence, coverage evidence, `inference_ready`,
+  `supported`, q2 slope, q4/q8, non-Gaussian interval, REML, AI-REML, bridge
+  support, or public support.
+
+Validation:
+
+- Final validation for this slice is recorded in
+  `docs/dev-log/after-task/2026-06-30-q-series-q2-retained-denominator-design.md`.
+
+## 2026-06-30: Q-Series q1 sigma row-selection generator sync
+
+Goal:
+
+- Make the active Gaussian low-q row-selection generator and both generated TSV
+  copies agree that animal/relmat q1 `sigma:(Intercept)` are blocked by the
+  imported SR150 raw-Wald route result, while support cells remain
+  `point_fit/planned/planned`.
+
+Result:
+
+- Updated `tools/summarize-structured-re-gaussian-lowq-row-selection.R` from
+  the older 27/23-row universe to the current 24/20-row universe after q1
+  `mu` promotions.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv` and
+  the artifact mirror under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/`.
+- Changed only the active row-selection state for
+  `qseries_animal_q1_sigma_intercept` and
+  `qseries_relmat_q1_sigma_intercept` to
+  `sigma_sr150_raw_wald_route_blocked_harden_before_topup` with run mode
+  `fisher_gauss_rose_route_hardening_before_topup`.
+- Kept phylo/spatial q1 sigma-intercept rows at
+  `sigma_smoke_diagnostic_blocked`.
+- Preserved the imported Nibi q1 `mu`, q2 intercept, and q2-plus-q2 smoke
+  overlays in the generator so reruns no longer revert them to local-smoke
+  readiness wording.
+- Repaired
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-pregrid-blocker-status-sync.md`
+  to the 11-section after-task protocol and added
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-row-selection-generator-sync.md`.
+- Bumped the dashboard widget build to `r174`.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. The animal/relmat q1
+  `sigma:(Intercept)` support cells remain `point_fit/planned/planned`. The
+  SR150 result is a hard negative for the current raw log-SD Wald interval
+  route, not evidence that the animal or relmat model cells are unsupported.
+  No `interval_status`, `coverage_status`, `inference_ready`, `supported`,
+  denominator-pass, top-up authorization, q1 `mu`, matched `mu+sigma`, q2,
+  q4/q8, non-Gaussian interval, REML, AI-REML, bridge support, or public
+  support is claimed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  --overwrite=true`: passed and wrote 20 rows.
+- `cmp -s docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9607 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 mu SR475 inference-ready promotion
+
+Goal:
+
+- Promote only the Rose/Fisher/Grace-signed q1 `mu:(Intercept)` rows from the
+  corrected Nibi SR475 retained-denominator surface, while keeping animal
+  blocked and preserving all no-spillover claim boundaries.
+
+Result:
+
+- Promoted exactly `qseries_phylo_q1_mu_intercept`,
+  `qseries_spatial_q1_mu_intercept`, and `qseries_relmat_q1_mu_intercept` to
+  `interval_status = inference_ready` and
+  `coverage_status = inference_ready`.
+- Kept `qseries_animal_q1_mu_intercept` at `point_fit/planned/planned` because
+  seeds `812407` and `812444` retain `wald_at_boundary` infinite intervals.
+- Added three rows to
+  `docs/dev-log/dashboard/structured-re-q-series-inference-evidence-summary.tsv`
+  under the raw/default Wald direct-SD interval channel.
+- Moved the live Q-Series accounting from 5 to 8 inference-ready rows, and from
+  23 to 20 Gaussian low-q gate-required rows.
+- Removed the promoted q1 `mu` rows from the Gaussian low-q audit and active
+  row-selection gate; animal remains in both as the blocker row.
+- Added
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-mu-sr475-inference-ready.md`.
+- Bumped the dashboard widget build to `r173`.
+
+Claim boundary:
+
+- This promotes exactly the three named q1 `mu:(Intercept)` rows under the
+  raw/default Wald direct-SD interval channel. It does not claim `supported`,
+  animal q1 `mu`, q1 `sigma`, matched `mu+sigma`, q2, q4/q8, non-Gaussian
+  intervals, REML, AI-REML, broad bridge support, denominator-pass public
+  support, or public support.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 8 inference-evidence summary rows, 32 Gaussian
+  low-q audit rows, and 20 Gaussian low-q row-selection rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9594 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Scoped `git diff --check` over the touched dashboard, validator, test,
+  check-log, and after-task files: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check`: passed.
+
+## 2026-06-30: Q-Series q1 mu SR475 status-surface sync
+
+Goal:
+
+- Replace stale q1 `mu:(Intercept)` n=5 smoke-only wording on the live
+  support/status surfaces with the imported SR475 retained-denominator review
+  evidence, without promoting any row.
+
+Result:
+
+- Updated the four q1 `mu:(Intercept)` support-cell rows and matching Gaussian
+  low-q audit rows to point at
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv`.
+- Preserved all four rows at `point_fit/planned/planned`.
+- Recorded the reviewer split in row-level wording:
+  phylo/spatial/relmat are SR475 review candidates from Fisher/Grace with Rose
+  corrected-surface audit required; animal is blocked by 473/475 usable
+  intervals and retained `wald_at_boundary` infinite intervals at seeds
+  `812407` and `812444`.
+- Updated the next-campaign queue and closure-triage text so q1 `mu` no longer
+  reads as "smoke only, no denominator evidence".
+- Updated mission-control validation and focused conversion-contract tests to
+  require the SR475 surface and the animal blocker.
+- Added
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-mu-sr475-status-surface-sync.md`.
+- Bumped the dashboard widget build to `r172`.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. It does not claim `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, q1 `sigma`, matched
+  `mu+sigma`, q2, q4/q8, non-Gaussian intervals, REML, AI-REML, bridge support,
+  denominator-pass public support, or public support.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Scoped `git diff --check` over the touched dashboard, validator, and focused
+  test files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 4 structured RE Gaussian low-q q1
+  `mu`-intercept SR475 result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9563 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check`: passed.
+
+## 2026-06-30: Q-Series q1 sigma SR150 blocker status sync
+
+Goal:
+
+- Make the imported animal/relmat q1 `sigma:(Intercept)` SR150 pregrid visible
+  in the support-cell table, low-q audit, compute queue, closure triage, and
+  sweep summary without promoting either row.
+
+Result:
+
+- Updated `qseries_animal_q1_sigma_intercept` and
+  `qseries_relmat_q1_sigma_intercept` in
+  `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` so their
+  evidence URL points to the imported SR150 pregrid result and their
+  denominator policy reads `sr150_pregrid_diagnostic_blocked_not_coverage`.
+- Updated `docs/dev-log/dashboard/structured-re-gaussian-lowq-status-audit.tsv`
+  to record the same imported SR150 diagnostic blocker while keeping both
+  linked rows at `point_fit/planned/planned`.
+- Updated the next-campaign queue and closure-triage ledgers to say the SR150
+  animal/relmat sigma-intercept result is diagnostic-blocked, not a denominator
+  pass or top-up authorization.
+- Corrected the sweep summary from four to five current interval+coverage
+  `inference_ready` rows: phylo/animal/relmat q1 sigma one-slope plus
+  phylo/relmat q2 `mu1+mu2` one-slope.
+- Added
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-pregrid-blocker-status-sync.md`.
+- Bumped the dashboard widget build to `r171`.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. The animal/relmat q1
+  `sigma:(Intercept)` rows remain `point_fit/planned/planned` because the SR150
+  route has only 115/150 usable raw-Wald intervals and 118/150 warning
+  replicates. It does not claim `interval_status`, `coverage_status`,
+  `inference_ready`, `supported`, location-axis bias+t correction, q1 `mu`,
+  matched `mu+sigma`, q2, q4/q8, non-Gaussian intervals, REML, AI-REML, bridge
+  support, denominator pass, top-up authorization, or public support.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Scoped `git diff --check` over the touched dashboard, validator, and focused
+  test files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 2 structured RE Gaussian low-q
+  sigma-intercept pregrid-result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9527 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check`: passed.
+
+## 2026-06-30: Q-Series q1 sigma SR150 Nibi import
+
+Goal:
+
+- Import the completed Nibi SR150 retained-denominator pregrid for the animal
+  and relmat q1 `sigma:(Intercept)` rows and expose the result in mission
+  control without changing any support-cell status.
+
+Result:
+
+- Confirmed failed original job `16982141` failed before simulation because the
+  compute-node library did not contain `devtools`.
+- Patched `tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R` so
+  the cluster runner can fall back to `library(drmTMB)` after the SLURM script
+  installs the source snapshot.
+- Confirmed retry job `16982458` completed `0:0` on Nibi node `c321`.
+- Imported raw summary, replicate, seed, log, metadata, session, SHA, module,
+  and scheduler artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-sigma-intercept-pregrid-nibi/`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-pregrid-results.tsv`
+  and updated the dispatch TSV to `completed_imported_review_pending`; this was
+  superseded later the same day by the reviewed-blocked generator sync.
+- The imported result is diagnostic-blocked: both rows have 150/150 fit,
+  convergence, `pdHess`, and `confint()` success, but only 115/150 usable raw
+  Wald intervals and 118/150 warning replicates.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row and does not claim `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, location-axis bias+t
+  correction, q1 `mu`, matched `mu+sigma`, q2, q4/q8, non-Gaussian intervals,
+  REML, AI-REML, bridge support, or public support.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Scoped `git diff --check` over the touched sigma import/widget/test files:
+  passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file =
+  "tools/summarize-structured-re-gaussian-lowq-sigma-intercept-pregrid.R");
+  parse(file = "tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R")'`:
+  passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  `node --check /tmp/drmtmb-dashboard-r170.js`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 2 structured RE Gaussian low-q
+  sigma-intercept pregrid-result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9517 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 sigma SR150 pregrid prep
+
+Goal:
+
+- Move the reviewed animal/relmat q1 `sigma:(Intercept)` retained-denominator
+  contract to pregrid-ready state and add the guarded artifact-only Nibi
+  execution path without changing any support-cell status.
+
+Result:
+
+- Updated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv`
+  to `fisher_gauss_rose_reviewed_sr150_pregrid_ready` for exactly
+  `qseries_animal_q1_sigma_intercept` and
+  `qseries_relmat_q1_sigma_intercept`.
+- Preserved `promotion_decision = do_not_promote` and kept the linked support
+  cells at `point_fit/planned/planned`.
+- Added `tools/run-structured-re-gaussian-lowq-sigma-intercept-pregrid.R`,
+  which requires SR150, animal+relmat only, `--write-dashboard=false`, a
+  Nibi/Rorqual host class, the reviewed contract status, and
+  `do_not_promote`.
+- Added `tools/slurm/q1-sigma-intercept-pregrid-nibi.sbatch` for source
+  snapshot execution, exact command capture, module list, session info, source
+  manifest, scheduler stdout/stderr, and `seff` when available.
+- Added
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-pregrid-prep.md` and
+  updated the dashboard README plus focused conversion-contract tests.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row and does not claim `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, location-axis bias+t
+  correction, q1 `mu`, matched `mu+sigma`, q2, q4/q8, non-Gaussian intervals,
+  REML, AI-REML, bridge support, DRAC evidence, or public support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file =
+  "tools/run-structured-re-gaussian-lowq-sigma-intercept-pregrid.R"); parse(file
+  = "tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R")'`: passed.
+- `bash -n tools/slurm/q1-sigma-intercept-pregrid-nibi.sbatch`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Scoped `git diff --check` over the touched sigma pregrid files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 2 structured RE Gaussian low-q
+  sigma-intercept denominator-contract rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9419 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 sigma-intercept denominator contract
+
+Goal:
+
+- Add the first retained-denominator review contract for Gaussian low-q q1
+  `sigma:(Intercept)` rows without changing support-cell status.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv`
+  with exactly two rows: `qseries_animal_q1_sigma_intercept` and
+  `qseries_relmat_q1_sigma_intercept`.
+- The contract is review-only. It uses raw log-SD Wald intervals with
+  `small_sample_df=none` and `bias_correct=none`, keeps endpoint profiles
+  diagnostic-only, retains warning/boundary/profile-failure rows in the
+  denominator policy, and names SR150 on Nibi as the first possible pregrid only
+  after Fisher/Gauss/Rose review.
+- The linked support cells remain `point_fit/planned/planned`; phylo/spatial q1
+  `sigma` intercept rows stay blocked by retained local boundary/profile smoke
+  signals.
+- Added a visible `Low-q sigma denom` widget summary card, row-level
+  `sigma denom contract` evidence links, and a stacked denominator-contract
+  table; bumped the dashboard build to `r167`.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/dev-log/after-task/2026-06-30-q-series-q1-sigma-denominator-contract.md`.
+- Added focused test coverage for the two-row denominator contract against the
+  route contract, local smoke, row-selection state, and support-cell statuses.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row and does not claim `interval_status`,
+  `coverage_status`, `inference_ready`, `supported`, location-axis bias+t
+  correction, q1 `mu`, matched `mu+sigma`, q2, q4/q8, non-Gaussian intervals,
+  REML, AI-REML, bridge support, DRAC evidence, or public support.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- Scoped `git diff --check` over the dashboard, validator, focused test,
+  contract TSV, and after-task files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 2 structured RE Gaussian low-q sigma-intercept denominator-contract
+  rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9391 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 mu retained-denominator review acceptance and pregrid runner
+
+Goal:
+
+- Record Fisher/Rose/Grace acceptance of the q1 `mu` intercept retained-
+  denominator contract, make the widget wording explicit that this is a
+  contract, and add the artifact-only SR150 pregrid execution path.
+
+Result:
+
+- Updated
+  `structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv`
+  from `retained_denominator_contract_ready_for_review` to
+  `fisher_rose_grace_reviewed_sr150_pregrid_ready`.
+- Preserved `promotion_decision = do_not_promote` and kept the four linked
+  q1 `mu` support cells at `point_fit/planned/planned`.
+- Tightened the next gate: SR150 is now allowed on one primary DRAC host under
+  the row-specific reviewed contract, but `MCSE <= 0.01` remains a top-up target
+  and not an SR150 pass claim.
+- Renamed the widget summary card and row-level link to `mu denom contract` so
+  the dashboard does not imply denominator evidence has already been generated.
+- Added `pregrid` mode to the q1 `mu` runner, an artifact-only pregrid wrapper,
+  and `tools/slurm/q1-mu-intercept-pregrid-nibi.sbatch` for scheduler-safe
+  Nibi dispatch with run metadata and raw artifact retention.
+- Added pregrid summary fields for lower/upper miss rates and the upper:lower
+  miss ratio.
+- Copied a source snapshot to Nibi under
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r160`
+  and submitted job `16976756`; initial scheduler state was pending with reason
+  `Priority`.
+- Job `16976756` failed before simulation after package install because the
+  pregrid runner still rejected the reviewed row-selection state
+  `nibi_rorqual_substitution_smoke_reviewed`; patched the runner to accept that
+  reviewed state while keeping the exact four-cell, Nibi/Rorqual-only, and
+  retained-denominator contract checks intact.
+- Patched the smoke and pregrid wrappers to quote the wrapped runner path, so
+  local rehearsals from the `Github Local` checkout do not split the path at the
+  space.
+- Copied a patched source snapshot to Nibi under
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r162`
+  and resubmitted job `16977254`; scheduler state at resubmission was pending
+  with reason `Priority`.
+- Added
+  `structured-re-gaussian-lowq-mu-intercept-pregrid-dispatch.tsv` with one
+  dispatch row per q1 `mu` provider, all `do_not_promote`, and surfaced the job
+  in the widget as `Low-q mu SR150 job`.
+
+Checks:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 4 q1 `mu` retained-denominator contract rows,
+  and 4 q1 `mu` pregrid-dispatch rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file =
+  "tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R");
+  parse(file = "tools/run-structured-re-gaussian-lowq-mu-intercept-pregrid.R");
+  parse(file = "tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R")'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-mu-intercept-pregrid.R
+  --host-class=local_rehearsal --host-name=local
+  --output-dir=/tmp/drmtmb-q1-mu-pregrid-guard-check --overwrite=true
+  --write-dashboard=false`: stopped at the intended pregrid host gate with
+  `SR150 pregrid mode is allowed only on Nibi/Rorqual`, proving the old
+  row-selection error is cleared before simulation.
+- `bash -n tools/slurm/q1-mu-intercept-pregrid-nibi.sbatch`: passed.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `git diff --check` on the touched dashboard, validator, runner, SLURM,
+  check-log, after-task, and focused-test files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8997 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row. The review acceptance authorizes the
+  first SR150 retained-denominator pregrid dispatch only; it does not claim
+  interval coverage, `inference_ready`, `supported`, q1 sigma, matched
+  `mu+sigma`, q2, q4/q8, non-Gaussian interval evidence, REML, AI-REML, bridge
+  support, or public support.
+
+## 2026-06-30: Q-Series q1 mu retained-denominator contract
+
+Goal:
+
+- Add the first retained-denominator design artifact after reviewed Nibi
+  substitute smoke, scoped only to the four Gaussian low-q q1 `mu` intercept
+  direct-SD rows.
+
+Result:
+
+- Added
+  `structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv`
+  with four rows: phylo, spatial, animal, and relmat q1 `mu` intercept.
+- The contract names the default location-axis direct-SD interval channel,
+  all-attempted-row retention, SR150 pregrid size, MCSE <= 0.01 target,
+  one-sided miss reporting, Nibi/Rorqual host policy after Fisher/Rose/Grace
+  review, required artifacts, stop rules, and blocked neighbours.
+- Added the `Low-q mu denom contract` summary card, retained-denominator table,
+  and row-level `mu denom contract` evidence links to the Q-Series widget;
+  bumped the local dashboard build to `r159`.
+- Kept all linked support cells at `point_fit/planned/planned`; no row was
+  promoted.
+
+Checks:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 4 q1 `mu` retained-denominator contract rows.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `git diff --check` on the touched dashboard, validator, and focused-test
+  files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8917 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row under a review-ready retained-denominator
+  contract and does not claim denominator results, interval coverage,
+  `inference_ready`, `supported`, q1 sigma, matched `mu+sigma`, q2, q4/q8,
+  non-Gaussian intervals, REML, AI-REML, bridge support, or public support.
+
+## 2026-06-30: Q-Series Nibi substitute-smoke review sync
+
+Goal:
+
+- Close the three already-imported Nibi substitute-smoke lanes as reviewed
+  smoke-only evidence and move the linked Gaussian low-q row-selection rows to
+  exact retained-denominator or calibration design, without promoting any
+  support cell.
+
+Result:
+
+- Marked nine Gaussian low-q row-selection rows as
+  `nibi_rorqual_substitution_smoke_reviewed` with
+  `retained_denominator_design_required`: four q1 `mu` intercept rows, four q2
+  `mu1+mu2` intercept rows, and the phylo q2-plus-q2 intercept row.
+- Updated the smoke-substitution contract, next-campaign queue, low-q status
+  audit, row-selection ledger, and support-cell rows so the reviewed Nibi
+  artifacts are linked as host/fixture smoke evidence only.
+- Reconciled the predecessor q1 `mu`, q2 intercept, and q2-plus-q2 contract
+  sidecars so their current contract statuses also say reviewed substitute
+  smoke with retained-denominator design required; local smoke artifact-mirror
+  sidecars were restored to match their historical artifacts instead of being
+  rewritten as current-state contracts.
+- Kept all linked support cells at `point_fit/planned/planned`; the support
+  table still has 104 rows, 5 rows with both interval and coverage
+  `inference_ready`, and no `authority_status = supported` rows.
+- Preserved the q2-plus-q2 blocker: the sigma1/sigma2 direct-correlation target
+  has one retained profile failure and must be repaired or explained before
+  denominator design.
+- Bumped the local dashboard build to `r158`.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 23 Gaussian low-q row-selection rows, 4 q1
+  `mu` Nibi smoke rows, 12 q2 intercept Nibi smoke rows, and 6 q2-plus-q2 Nibi
+  smoke rows.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- Stale wording scan for old substitute-host review-pending phrases returned
+  no matches in dashboard README, dashboard TSVs, validator, or focused tests.
+- `git diff --check` on the touched dashboard, validator, and focused-test
+  files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8819 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row under reviewed Nibi `n=5`
+  substitute-host smoke and does not claim denominator evidence, interval
+  coverage, `inference_ready`, `supported`, q1 sigma, matched `mu+sigma`, q2
+  slope, q2-plus-q2 denominator readiness, q4/q8, non-Gaussian intervals, REML,
+  AI-REML, bridge support, or public support.
+
+## 2026-06-30: Q-Series q2 intercept Nibi substitute smoke import
+
+Goal:
+
+- Import the exact Nibi `n=5` substitute-host smoke for all 12 Gaussian q2
+  intercept direct-SD and direct-correlation targets under
+  `structured-re-q-series-smoke-substitution-contract.tsv`, without promoting
+  any linked support cell or starting denominator work.
+
+Result:
+
+- Used Nibi job `16974191` on node `c332` from campaign root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-intercept-nibi-r44-smoke-77b634eda91b`.
+- Fetched artifacts to
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-intercept-smoke-nibi-r44/`.
+- Added dashboard sidecar `structured-re-q2-intercept-nibi-smoke.tsv` with 12
+  target rows, 60 raw target-replicate rows, 20 seed-manifest rows, session
+  info, source SHA manifest, local-state metadata, exact command, module list,
+  install logs, smoke logs, scheduler stdout, and `seff` metadata.
+- Added the `Q2 intercept Nibi n5` card/table near the top of the Q-Series
+  widget and added row-level `q2 Nibi n5` evidence summaries for the four q2
+  intercept support cells.
+- Kept all linked q2 intercept support cells at `point_fit/planned/planned`;
+  this is smoke evidence only and promotes no `interval_status`,
+  `coverage_status`, `inference_ready`, or `supported` claim.
+
+Checks:
+
+- Nibi smoke result: 12/12 target summaries passed; 60/60 raw target-replicate
+  rows were fit-ok, converged, `pdHess` true, Wald finite, and profile finite.
+- Seed manifest: seeds `823001` through `823005` retained for phylo, spatial,
+  animal, and relmat.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 12 q2 intercept Nibi smoke rows.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check`: passed.
+- `git diff --check -- tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R
+  docs/dev-log/dashboard/index.html docs/dev-log/dashboard/README.md
+  docs/dev-log/dashboard/structured-re-q2-intercept-nibi-smoke.tsv
+  docs/dev-log/simulation-artifacts/2026-06-30-q2-intercept-smoke-nibi-r44`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  8821 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row under substitute-host `n=5` smoke with
+  all attempted rows retained and does not claim denominator evidence, interval
+  coverage, `inference_ready`, `supported`, q2 slope, q2-plus-q2, q4/q8,
+  non-Gaussian, REML, AI-REML, bridge, or public support.
+
+## 2026-06-30: Q-Series q2+q2 intercept Nibi substitute smoke import
+
+Goal:
+
+- Import the exact Nibi `n=5` substitute-host smoke for the Gaussian phylo
+  q2-plus-q2 intercept row under
+  `structured-re-q-series-smoke-substitution-contract.tsv`, without promoting
+  the linked support cell or starting denominator work.
+
+Result:
+
+- Used Nibi host `l5.nibi.sharcnet` from campaign root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-plus-q2-nibi-smoke-77b634eda91b`.
+- Repaired the remote snapshot layout so `docs/dev-log/dashboard/` was present
+  inside the synced source tree, then installed missing run-local `rlang` before
+  rerunning the exact smoke.
+- Fetched artifacts to
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-plus-q2-intercept-smoke-nibi/`.
+- Added dashboard sidecar
+  `structured-re-q2-plus-q2-intercept-nibi-smoke.tsv` with six target rows, 30
+  raw target-replicate rows, five seed-manifest rows, session info, source SHA,
+  exact command, module list, install logs, and smoke logs.
+- Added the `Q2+Q2 Nibi n5` card/table near the top of the Q-Series widget and
+  kept q2+q2 stability/inference/coverage separated.
+- Kept `qseries_phylo_q2_plus_q2_intercept` at `point_fit/planned/planned`; this
+  is smoke evidence only and promotes no `interval_status`, `coverage_status`,
+  `inference_ready`, or `supported` claim.
+
+Checks:
+
+- Nibi smoke result: 5/6 target summaries passed; the retained failed target is
+  `q2_plus_q2_intercept_phylo_cor_sigma1_sigma2`, with 5/5 fit/convergence/
+  `pdHess`/Wald-finite rows but 4/5 endpoint-profile intervals finite.
+- Raw replicate blocker: seed `823003` estimated the direct scale-block
+  correlation at the boundary and retained the endpoint-profile root-failure
+  message.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 6 q2-plus-q2 Nibi smoke rows.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check`: passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  8762 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row under substitute-host `n=5` smoke with
+  all attempted rows retained and does not claim denominator evidence, interval
+  coverage, `inference_ready`, `supported`, q2-only location support, q4/q8,
+  non-Gaussian, REML, AI-REML, bridge, or public support. Cross-block q2+q2
+  correlations remain blocked.
+
+## 2026-06-30: Q-Series q1 mu intercept Nibi substitute smoke import
+
+Goal:
+
+- Run and import the exact `n=5` Nibi substitute-host smoke for the four
+  Gaussian low-q q1 `mu` intercept rows under
+  `structured-re-q-series-smoke-substitution-contract.tsv`, without promoting
+  any row or starting denominator work.
+
+Result:
+
+- Used Nibi host `l5.nibi.sharcnet` from campaign root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-nibi-smoke-77b634eda91b`.
+- Installed the synced source snapshot into the run-local library and ran
+  `tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R --n-rep=5
+  --providers=phylo,spatial,animal,relmat
+  --host-class=nibi_rorqual_contract_smoke`.
+- Fetched artifacts to
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi/`.
+- Added dashboard sidecar
+  `structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv` with four
+  rows, 20 raw replicate rows, 20 seed-manifest rows, session info, git SHA,
+  exact command, module list, install logs, and run logs.
+- Added the `Low-q mu Nibi n5` card/table to the Q-Series widget and linked the
+  Nibi artifact from the four q1 `mu` intercept support rows.
+- Kept all four linked support cells at `point_fit/planned/planned`; this is
+  smoke evidence only and promotes no `interval_status`, `coverage_status`,
+  `inference_ready`, or `supported` claim.
+
+Checks:
+
+- Nibi smoke result: 4/4 summary rows, 20/20 replicate rows, 5/5 fit,
+  convergence, `pdHess`, `confint()`, usable finite Wald intervals, and zero
+  warning replicates per provider.
+- Seed manifest records
+  `structured-re-q-series-smoke-substitution-contract.tsv` and
+  `qseries_smoke_substitution_q1_mu_intercept`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 4 Gaussian low-q q1 `mu` Nibi smoke-result
+  rows.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 8710 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+
+Claim boundary:
+
+- This promotes exactly no Q-Series row under substitute-host `n=5` smoke with
+  all attempted rows retained and does not claim denominator evidence,
+  interval coverage, `inference_ready`, `supported`, sigma, matched
+  `mu+sigma`, q2, q4/q8, non-Gaussian, REML, AI-REML, bridge, or public
+  support.
+
+## 2026-06-29: Q-Series q1 mu+sigma one-slope ledger split
+
+Goal:
+
+- Split the four Gaussian low-q q1 `mu+sigma` one-slope row-selection states by
+  target-level diagnostic evidence, without promoting any row.
+
+Result:
+
+- Changed `phylo` to `mu_sigma_slope_mixed_interval_review_pending`.
+- Changed `spatial` to `mu_sigma_slope_spatial_boundary_blocked`.
+- Changed `animal` to `mu_sigma_slope_bootstrap_boundary_blocked`.
+- Changed `relmat` to `mu_sigma_slope_profile_failure_review_pending`.
+- Kept all four linked support cells at `point_fit/planned/planned`.
+- Updated the row-selection generator, validator, focused test, dashboard TSV,
+  artifact mirror, after-task note, and dashboard build (`r148`).
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp -s docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- Row-selection status audit confirmed 1
+  `mu_sigma_slope_bootstrap_boundary_blocked`, 1
+  `mu_sigma_slope_mixed_interval_review_pending`, 1
+  `mu_sigma_slope_profile_failure_review_pending`, 1
+  `mu_sigma_slope_spatial_boundary_blocked`, 1
+  `mu_sigma_smoke_diagnostic_blocked`, 3
+  `mu_sigma_smoke_fixture_review_pending`, 2
+  `sigma_smoke_diagnostic_blocked`, 2
+  `sigma_smoke_route_review_pending`, 5 `ready_for_totoro_fiia_smoke`, 4
+  `totoro_fiia_smoke_operational_hold`, 1
+  `direct_sd_contract_banked_review_pending`, and 1
+  `phylo_interaction_contract_banked_review_pending`.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8547 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `git diff --check` on the q1 `mu+sigma` one-slope ledger files: passed.
+
+## 2026-06-29: Q-Series q1 mu+sigma intercept ledger split
+
+Goal:
+
+- Split the four Gaussian low-q q1 `mu+sigma` intercept row-selection states by
+  local target-smoke evidence, without promoting any row.
+
+Result:
+
+- Changed `phylo` q1 `mu+sigma` intercept to
+  `mu_sigma_smoke_diagnostic_blocked` because the local n=1 target smoke has a
+  retained nonusable boundary/correlation interval and warning targets.
+- Changed `spatial`, `animal`, and `relmat` q1 `mu+sigma` intercept rows to
+  `mu_sigma_smoke_fixture_review_pending`.
+- Kept all four linked support cells at `point_fit/planned/planned`.
+- Updated the row-selection generator, validator, focused test, dashboard TSV,
+  artifact mirror, after-task note, and dashboard build (`r147`).
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp -s docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- Row-selection status audit confirmed 1
+  `mu_sigma_smoke_diagnostic_blocked`, 3
+  `mu_sigma_smoke_fixture_review_pending`, 2
+  `sigma_smoke_diagnostic_blocked`, 2
+  `sigma_smoke_route_review_pending`, 4
+  `interval_diagnostic_completed_review_pending`, 5
+  `ready_for_totoro_fiia_smoke`, 4 `totoro_fiia_smoke_operational_hold`, 1
+  `direct_sd_contract_banked_review_pending`, and 1
+  `phylo_interaction_contract_banked_review_pending`.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8544 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `git diff --check` on the q1 `mu+sigma` ledger files: passed.
+
+## 2026-06-29: Q-Series q1 sigma smoke ledger split
+
+Goal:
+
+- Split the four Gaussian low-q q1 `sigma` intercept rows by local smoke
+  evidence, without promoting interval, coverage, `inference_ready`, or
+  `supported` status.
+
+Result:
+
+- Changed q1 `sigma` row-selection status to provider-specific states:
+  `phylo`/`spatial` are `sigma_smoke_diagnostic_blocked`, while
+  `animal`/`relmat` are `sigma_smoke_route_review_pending`.
+- Kept all four linked support cells at `point_fit/planned/planned`.
+- Updated the low-q audit wording to name point/fixture evidence only, local
+  q1 sigma smoke, Fisher/Gauss/Rose review, boundary/profile/warning ledgers,
+  one-sided misses, profile policy, Totoro/FIIA, and the Nibi/Rorqual/DRAC
+  denominator block.
+- Updated validator and focused tests so the provider-specific split is
+  enforced.
+- Bumped the dashboard build to `r146`.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp -s docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- Row-selection status audit confirmed 2 `sigma_smoke_diagnostic_blocked`, 2
+  `sigma_smoke_route_review_pending`, 4
+  `local_smoke_completed_review_pending`, 4
+  `interval_diagnostic_completed_review_pending`, 5
+  `ready_for_totoro_fiia_smoke`, 4 `totoro_fiia_smoke_operational_hold`, 1
+  `direct_sd_contract_banked_review_pending`, and 1
+  `phylo_interaction_contract_banked_review_pending`.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8542 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `git diff --check` on the q1 sigma smoke ledger files: passed.
+
+## 2026-06-29: Q-Series low-q smoke ledger sync
+
+Goal:
+
+- Sync Gaussian low-q q1/q2 smoke ledgers after Fisher/Rose/Rose review found
+  stale status wording, without promoting any Q-Series row.
+
+Result:
+
+- Changed the four q1 `mu` intercept row-selection rows to
+  `totoro_fiia_smoke_operational_hold`, keeping support cells at
+  `point_fit/planned/planned`.
+- Updated the four q2 `mu1+mu2` intercept support-cell rows and matching
+  Gaussian low-q status-audit rows to point at
+  `docs/dev-log/dashboard/structured-re-q2-intercept-local-smoke.tsv`.
+- Added validator and focused-test guards so q2 intercept support/audit ledgers
+  must mention the local q2 smoke, Fisher/Rose, Totoro/FIIA host hold,
+  endpoint-SD/correlation separation, no status promotion, and the
+  Nibi/Rorqual/DRAC denominator block.
+- Bumped the dashboard build to `r145`.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp -s docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- R parse check for the row-selection generator and focused test file: passed
+  with `parse_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8526 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+
+## 2026-06-29: Q-Series low-q special-target contracts
+
+Goal:
+
+- Remove the last two generic Gaussian low-q row-selection holds by banking
+  explicit contracts for `qseries_phylo_direct_sd_univariate` and
+  `qseries_phylo_interaction_q1_mu`, without promoting either row.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-special-target-contract.tsv`
+  with one direct-SD contract row and one `phylo_interaction()` provider-boundary
+  contract row.
+- Updated the Gaussian low-q row-selection generator so the two special rows now
+  report `direct_sd_contract_banked_review_pending` and
+  `phylo_interaction_contract_banked_review_pending` instead of
+  `hold_until_row_contract`.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv` and
+  its artifact mirror. The low-q row-selection queue now has no generic hold
+  rows.
+- Updated the two matching Gaussian low-q status-audit rows to point at the
+  special-target contract and keep support-cell statuses unchanged.
+- Added the special-target contract table to the Q-Series widget and bumped the
+  dashboard build to `r144`.
+- Updated mission-control validation and focused conversion-contract tests so
+  these special targets remain no-promotion contracts.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- Row-selection audit confirmed 23 rows: 12
+  `local_smoke_completed_review_pending`, 4
+  `interval_diagnostic_completed_review_pending`, 5
+  `ready_for_totoro_fiia_smoke`, 1
+  `direct_sd_contract_banked_review_pending`, and 1
+  `phylo_interaction_contract_banked_review_pending`.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check passed with `dashboard_js_ok`.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8502 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+
+## 2026-06-29: Q-Series q1 mu+sigma one-slope diagnostic-review sync
+
+Goal:
+
+- Move the four Gaussian low-q q1 `mu+sigma` one-slope rows out of generic
+  row-contract hold now that readiness, interval-diagnostic, and
+  interval-stability sidecars exist, without promoting interval or coverage
+  status.
+
+Result:
+
+- Updated the Gaussian low-q row-selection generator so the phylo, spatial,
+  animal, and relmat q1 `mu+sigma` one-slope rows report
+  `interval_diagnostic_completed_review_pending`.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv` and
+  its artifact mirror. The row-selection queue is now 12 local-smoke-review
+  rows, 4 diagnostic-review rows, 5 Totoro/FIIA-smoke-ready q2 rows, and 2
+  remaining generic contract holds.
+- Updated the Gaussian low-q status-audit rows to point at
+  `structured-re-mu-sigma-slope-interval-diagnostic-status.tsv` and to name the
+  finite/nonfinite diagnostic sidecars while keeping all four support cells at
+  `point_fit/planned/planned`.
+- Updated mission-control validation and the focused conversion-contract tests
+  so these rows cannot be mistaken for `inference_ready`, `supported`, q2,
+  q4/q8, non-Gaussian, REML, AI-REML, or public-support evidence.
+- Bumped the dashboard widget build to `r143`.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- Row-selection audit confirmed 23 rows: 12
+  `local_smoke_completed_review_pending`, 4
+  `interval_diagnostic_completed_review_pending`, 5
+  `ready_for_totoro_fiia_smoke`, and 2 `hold_until_row_contract`.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells and 23 Gaussian low-q row-selection
+  rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8462 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- Dashboard JavaScript parse check passed with `dashboard_js_ok`.
+
+## 2026-06-29: Q-Series q1 mu+sigma smoke status sync
+
+Goal:
+
+- Sync the Gaussian low-q q1 `mu+sigma` intercept support-cell, status-audit,
+  and row-selection ledgers to the executed local n=1 target smoke without
+  promoting any Q-Series support status.
+
+Result:
+
+- Updated the four q1 `mu+sigma` intercept support-cell rows so their evidence
+  points at `structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv`
+  while keeping `point_fit/planned/planned`.
+- Updated the four matching Gaussian low-q status-audit rows to name local n=1
+  target-smoke bookkeeping and the phylo nonusable boundary/correlation
+  interval signal.
+- Updated `tools/summarize-structured-re-gaussian-lowq-row-selection.R` so the
+  four q1 `mu+sigma` intercept rows now report
+  `local_smoke_completed_review_pending`,
+  `fisher_noether_rose_review_before_endpoint_denominator`, and
+  `first_smoke_n_rep=1`.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv` and
+  its artifact mirror.
+- Updated mission-control validation and the focused conversion-contract tests.
+- Bumped the dashboard widget build to `r142` and added the q1 `mu+sigma`
+  smoke sidecar to the widget note.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 35 Gaussian low-q status-audit rows, 23
+  Gaussian low-q row-selection rows, and 4 Gaussian low-q `mu+sigma` intercept
+  smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8433 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- Row-selection audit confirmed 23 rows: 12
+  `local_smoke_completed_review_pending`, 6 `hold_until_row_contract`, and 5
+  `ready_for_totoro_fiia_smoke`.
+- Dashboard JavaScript parse check passed with `dashboard_js_ok`.
+- The after-task structure check passed for
+  `docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-smoke-status-sync.md`.
+- `git diff --check` over the touched files passed.
+- `rm -rf tools/__pycache__ && find tools -type d -name '__pycache__' -print`
+  returned no paths.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background && curl -fsS
+  http://127.0.0.1:8765/version.txt`: passed and returned `r142`.
+- Served row-selection TSV check confirmed 23 rows with 12
+  `local_smoke_completed_review_pending`, 6 `hold_until_row_contract`, and 5
+  `ready_for_totoro_fiia_smoke`; all four q1 `mu+sigma` intercept rows point
+  at `structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The local n=1 target smoke is
+  diagnostic bookkeeping only, not calibrated interval evidence, not coverage
+  evidence, not `inference_ready`, not `supported`, not q2 covariance support,
+  not q4/q8, not non-Gaussian, not REML, not AI-REML, not DRAC evidence, and
+  not public support.
+
+## 2026-06-29: Q-Series q1 mu smoke status sync
+
+Goal:
+
+- Sync the Gaussian low-q q1 `mu` intercept support-cell, status-audit, and
+  row-selection ledgers to the executed local n=5 smoke without promoting any
+  Q-Series support status.
+
+Result:
+
+- Updated the four q1 `mu` intercept support-cell rows so their evidence points
+  at `structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv` while keeping
+  `point_fit/planned/planned`.
+- Updated the four matching Gaussian low-q status-audit rows to name the local
+  n=5 fixture smoke as diagnostic fixture evidence only.
+- Updated `tools/summarize-structured-re-gaussian-lowq-row-selection.R` so the
+  four q1 `mu` intercept rows now report
+  `local_smoke_completed_review_pending` and
+  `fisher_rose_review_before_host_or_denominator_escalation`.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv` and
+  its artifact mirror.
+- Updated the q1 `mu` smoke runner filter, mission-control validator, and
+  focused conversion-contract tests.
+- Bumped the dashboard widget build to `r141` and added the q1 `mu` smoke
+  sidecar to the widget note.
+
+Checks:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells, 35 Gaussian low-q status-audit rows, 23
+  Gaussian low-q row-selection rows, 4 q1 `mu` dry-run rows, 4 q1 `mu`
+  smoke-contract rows, and 4 q1 `mu` smoke-result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8415 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- Dashboard JavaScript parse check from `docs/dev-log/dashboard/index.html`:
+  passed with `dashboard_js_ok`.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed and confirmed the
+  dashboard was already listening.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r141`, `/` contained `Q-Series Support Cells`, `r141`, and
+  `structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv`, and the served
+  row-selection TSV showed the four q1 `mu` intercept rows at
+  `local_smoke_completed_review_pending`.
+- Stale q1 `mu` smoke-state scan:
+  `rg -n "q1 mu.*ready_for_totoro_fiia_smoke|ready_for_totoro_fiia_smoke.*q1 mu|linked row-selection status must be ready_for_totoro_fiia_smoke|structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv; local n=2 q1 mu-intercept dry-run passed" tools tests docs/dev-log/dashboard docs/dev-log/after-task docs/dev-log/check-log.md`
+  returned no matches.
+- Forbidden-claim scan for the four q1 `mu` intercept rows returned only
+  explicit non-claim boundary text such as "not inference_ready", "not
+  supported", and "not coverage evidence".
+- `rm -rf tools/__pycache__ && find tools -type d -name '__pycache__' -print`:
+  returned no paths.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The local n=5 smoke is fixture-route
+  evidence only, not calibrated interval evidence, not coverage evidence, not
+  `inference_ready`, not `supported`, not q2/q4/q8, not non-Gaussian, not REML,
+  not AI-REML, and not public support.
+
+## 2026-06-29: Q-Series q1 sigma smoke status sync
+
+Goal:
+
+- Sync the Gaussian low-q q1 `sigma` intercept row-selection and status-audit
+  ledgers to the executed local n=5 smoke without promoting any support-cell
+  status.
+
+Result:
+
+- Updated `tools/summarize-structured-re-gaussian-lowq-row-selection.R` so the
+  four q1 `sigma` intercept rows now report
+  `local_smoke_completed_review_pending` and
+  `fisher_gauss_rose_review_before_host_escalation`.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv` and
+  its artifact mirror under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/`.
+- Updated the four q1 `sigma` intercept rows in
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-status-audit.tsv` so
+  their `evidence_url` points at
+  `structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv`.
+- Updated `tools/validate-mission-control.py` and the focused conversion
+  contract tests so the executed-smoke state is guarded.
+- Bumped the dashboard widget build to `r140`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked q1 `sigma` intercept
+  support cells remain `point_fit/planned/planned`.
+- The local smoke is route evidence only. It is not coverage evidence, not
+  interval reliability, not `inference_ready`, not `supported`, not q1 `mu`,
+  not matched `mu+sigma`, not q2/q4/q8, not non-Gaussian, not REML, not
+  AI-REML, not bridge support, not public support, and not cluster
+  authorization.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  --overwrite=true`: passed and wrote 23 row-selection rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check from `docs/dev-log/dashboard/index.html`:
+  passed.
+- First mission-control and focused test reruns failed on stale generated text
+  that had dropped the `raw log-SD Wald` and `endpoint profile` route phrases.
+  The generator was patched and the row-selection TSVs were regenerated.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 35 Gaussian low-q status rows, 23 Gaussian
+  low-q row-selection rows, and 4 Gaussian low-q sigma-intercept smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8411 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-smoke-status-sync.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- `find tools -type d -name '__pycache__' -print`: returned no paths after
+  removing the `py_compile` scratch directory.
+
+## 2026-06-29: Q-Series q1 sigma intercept local smoke
+
+Goal:
+
+- Run the reviewed Gaussian low-q q1 `sigma` intercept route contract as a
+  local n=5 direct sigma-SD smoke, without promoting any Q-Series support-cell
+  status.
+
+Result:
+
+- Added `tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R`.
+- Ran a one-provider rehearsal for spatial, then the full local n=5 smoke for
+  phylo, spatial, animal, and relmat.
+- Wrote the dashboard summary sidecar
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv`.
+- Wrote 20 retained replicate rows, a seed manifest, `sessionInfo.txt`, and
+  `git-sha.txt` under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-sigma-intercept-smoke-local/`.
+- All four providers fit, converged, reported `pdHess = TRUE`, and used raw
+  Wald intervals with `small_sample_df = "none"` and
+  `bias_correct = "none"`.
+- Animal and relmat had 5/5 usable raw-Wald intervals. Phylo retained one
+  `wald_at_boundary` row; spatial retained three `wald_at_boundary` rows.
+- Endpoint profile diagnostics were attempted and retained; profile failures or
+  warning rows are diagnostic evidence, not promotion blockers to be dropped.
+- Updated `tools/validate-mission-control.py` so the new sidecar mirrors its
+  artifact summary exactly and validates the retained replicate rows.
+- Updated the Q-Series widget to show a separate `Low-q sigma smoke` card and
+  row-level `sigma smoke` links; dashboard version is now `r139`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked q1 `sigma` intercept cells
+  remain `point_fit/planned/planned`.
+- This is not coverage evidence, not interval reliability, not
+  `inference_ready`, not `supported`, not q1 `mu`, not matched `mu+sigma`, not
+  q2/q4/q8, not non-Gaussian, not REML, not AI-REML, not bridge support, not
+  public support, and not Totoro/FIIA/Nibi/Rorqual/DRAC authorization.
+- Fisher/Gauss/Rose review is required before any host escalation, denominator
+  design, or status edit.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R --help`:
+  passed and printed the runner options.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R
+  --providers=spatial --n-rep=1
+  --output-dir=/tmp/drmtmb-sigma-intercept-smoke-rehearsal
+  --overwrite=true --write-dashboard=false --profile-endpoint-max-eval=6`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R
+  --overwrite=true --profile-endpoint-max-eval=12`: passed and wrote 4 summary
+  rows / 20 replicate rows.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check from `docs/dev-log/dashboard/index.html`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 4 Gaussian low-q sigma-intercept route-contract
+  rows, and 4 Gaussian low-q sigma-intercept smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8409 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-intercept-local-smoke.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- `find tools -type d -name '__pycache__' -print`: returned no paths after
+  removing the py_compile scratch directory.
+
+## 2026-06-29: Q-Series q1 sigma intercept route contract
+
+Goal:
+
+- Replace the vague Gaussian low-q q1 `sigma` intercept route hold with an
+  explicit Fisher/Gauss-reviewed interval-route contract, without running
+  compute and without promoting any support-cell status.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv`
+  with one route row each for phylo, spatial, animal, and relmat q1 `sigma`
+  intercept cells.
+- Pinned the candidate first interval channel to raw uncorrected log-SD Wald-z
+  direct structured-SD targets with `small_sample_df = "none"` and
+  `bias_correct = "none"`.
+- Marked endpoint profiles as diagnostic-only boundary triage.
+- Regenerated the Gaussian low-q row-selection ledger so the four sigma
+  intercept rows now point at the route contract and wait for a local n=5 direct
+  sigma-SD smoke.
+- Updated mission-control validation and the widget display; dashboard version
+  is now `r138`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked cells remain
+  `point_fit/planned/planned`. This is not interval readiness, not coverage
+  evidence, not `inference_ready`, not `supported`, not location-axis bias+t,
+  not q1 `mu`, not matched `mu+sigma`, not q2, not q4/q8, not non-Gaussian,
+  not REML, not AI-REML, not bridge support, and not public support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed; wrote 23 Gaussian low-q row-selection rows and artifact mirror rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- Dashboard JavaScript parse check from `docs/dev-log/dashboard/index.html`:
+  passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-intercept-route-contract.md')"`:
+  passed with `after-task structure check passed`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8302 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 5 inference-evidence summary rows, and 4
+  Gaussian low-q sigma-intercept route-contract rows.
+- `git diff --check`: passed.
+
+## 2026-06-29: Q-Series q1 mu+sigma intercept local smoke
+
+Goal:
+
+- Add a guarded local target-smoke for the four Gaussian low-q q1 matched
+  `mu+sigma` intercept support cells without promoting any row.
+
+Result:
+
+- Added `tools/run-structured-re-gaussian-lowq-mu-sigma-intercept-smoke.R`.
+- Ran the local n=1 smoke for phylo, spatial, animal, and relmat.
+- Wrote four dashboard summary rows to
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv`.
+- Wrote 12 retained target rows, a seed manifest, `sessionInfo.txt`, and
+  `git-sha.txt` under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-sigma-intercept-smoke-local/`.
+- All four providers fit and converged with `pdHess = TRUE`.
+- Spatial, animal, and relmat had 3/3 usable default-Wald target intervals in
+  this seed.
+- Phylo is diagnostic-only: the `mu`-to-`sigma` correlation target reported
+  `wald_at_boundary`, so only 2/3 targets were usable and the boundary warning
+  is retained in the raw target rows.
+- Updated `tools/validate-mission-control.py` so the new sidecar is
+  validator-owned and cannot promote `interval_status`, `coverage_status`,
+  `inference_ready`, or `supported`.
+- Updated the Q-Series widget to show the new local `mu+sigma` smoke count,
+  row links, and detail table; dashboard version is now `r137`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. It is not coverage evidence, not
+  interval readiness, not `inference_ready`, not `supported`, not q2/q4/q8, not
+  non-Gaussian, not REML, not AI-REML, not bridge support, and not
+  Totoro/FIIA/Nibi/Rorqual/DRAC authorization.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-gaussian-lowq-mu-sigma-intercept-smoke.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-lowq-mu-sigma-intercept-smoke.R
+  --overwrite=true`: passed and wrote 4 summary rows / 12 target rows.
+- Artifact inspection: four support-cell summaries; `fit_ok = 3/3`,
+  `converged = 3/3`, `pdHess = 3/3`, and `confint_ok = 3/3` target rows for
+  each provider; phylo has `n_usable_intervals = 2/3` with
+  `blocker_signal = nonusable_interval;warnings_recorded`, and spatial,
+  animal, and relmat have `n_usable_intervals = 3/3`.
+- Dashboard JavaScript parse check from `docs/dev-log/dashboard/index.html`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 4 Gaussian low-q `mu+sigma` intercept smoke
+  rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-intercept-local-smoke.md')"`:
+  passed with `after-task structure check passed`.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8253 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+
+## 2026-06-29: Q-Series q4 animal partial-correlation hard-seed smoke
+
+Goal:
+
+- Wire the hidden q>2 `partial_cholesky` route into the animal q4 all-four
+  admission runner and test the retained hard seeds `910101`, `910102`, and
+  `910110` without touching the dashboard status sidecar.
+
+Result:
+
+- Added `--replicate-indexes` and `--qgt2-parameterization` to
+  `tools/run-structured-re-q4-animal-all-four-admission-probe.R`.
+- Kept the partial-correlation route hidden behind the internal option
+  `drmTMB.internal.qgt2_corr_parameterization`; partial runs must use
+  `--write-dashboard=false` so the public all-four dashboard sidecar is not
+  overwritten.
+- Ran the local retained hard-seed smoke for the `more_levels` variant with
+  `qgt2_parameterization = partial_cholesky` and `methods = wald`.
+- Preserved the artifact bundle under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-correlation-admission-probe-local/`.
+- All three fits converged with code 0, but zero of three had `pdHess = TRUE`.
+  All 24 direct-SD Wald target rows were retained as
+  `not_run_pdhess_false`; no profile intervals were attempted.
+- Updated `docs/design/220-structured-q4-animal-production-transform-gate.md`
+  so the next gate is Hessian/geometry diagnosis, not cluster admission.
+- Updated `structured-re-high-q-status-audit.tsv`,
+  `structured-re-q-series-next-campaign-queue.tsv`, the dashboard README, and
+  `version.txt` so the widget points the animal q8-shaped all-four row at the
+  hidden TMB partial-correlation hard-seed blocker instead of only the older
+  optimizer-layer partial-Cholesky diagnostic.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. It is not q4/q8 `inference_ready`, not
+  `supported`, not interval reliability, not coverage evidence, not REML, not
+  AI-REML, not a public production transform, and not permission for
+  Totoro/FIIA/Nibi/Rorqual/DRAC admission or coverage.
+- The hard-seed result is `pdhess_admission_blocked`.
+
+Validation:
+
+- `/opt/homebrew/bin/air format R/drmTMB.R
+  tests/testthat/test-phylo-utils.R
+  tools/run-structured-re-q4-animal-all-four-admission-probe.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "phylo-utils")'`: passed with
+  172 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-all-four-admission-probe.R
+  --replicate-indexes=910101,910102,910110 --seed-base=910000
+  --variant=more_levels
+  --qgt2-parameterization=partial_cholesky --methods=wald
+  --profile-max-eval=20
+  --output-dir=docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-correlation-admission-probe-local
+  --overwrite=true --write-dashboard=false`: passed and wrote artifact TSVs.
+- Artifact inspection: fit-status TSV has 3 rows, `fit_ok = 3`, `pdHess = 0`;
+  replicate TSV has 24 rows, all `method_status =
+  not_run_pdhess_false`; target-summary TSV reports
+  `admission_status = pdhess_admission_blocked` and `coverage_status =
+  not_evaluable`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells and 5 structured RE q-series
+  inference-evidence summary rows.
+- Dashboard JavaScript parse check from `docs/dev-log/dashboard/index.html`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8253 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- Widget source check: the high-q row
+  `qseries_animal_q4_all_four_one_slope_planned` and queue row
+  `qseries_queue_high_q_geometry_stability` both point to
+  `docs/dev-log/after-task/2026-06-29-q-series-q4-animal-partial-correlation-hard-seed-smoke.md`
+  and both include the `0/3 pdHess` blocker; dashboard version is `r136`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "wald-small-sample-default")'`: passed with 21 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-partial-correlation-hard-seed-smoke.md')"`:
+  passed.
+
+## 2026-06-29: Q-Series q>2 partial-correlation equivalence harness
+
+Goal:
+
+- Bank the first hidden lower-level q>2 correlation-parameterization harness
+  for the animal q4/q8 production-transform gate.
+
+Result:
+
+- Added the internal TMB data flag `qgt2_corr_parameterization`.
+- Kept the R-side production data builder fixed at
+  `qgt2_corr_parameterization = 0`, preserving the current
+  `UNSTRUCTURED_CORR_t` route for all public fits.
+- Added a hidden `qgt2_corr_parameterization = 1` route for `model_type = 93`
+  that reconstructs q>2 correlations through a partial-correlation Cholesky
+  transform.
+- Strengthened `tests/testthat/test-phylo-utils.R` so the hidden route is
+  checked against independent R algebra and against the current
+  `UNSTRUCTURED_CORR_t` route at matched q=8 correlation matrices.
+- Updated `docs/design/03-likelihoods.md` and
+  `docs/design/220-structured-q4-animal-production-transform-gate.md` with the
+  internal-only claim boundary.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. It is not q4/q8 `inference_ready`, not
+  `supported`, not interval reliability, not coverage evidence, not REML, not
+  AI-REML, not a public production transform, and not permission for
+  Nibi/Rorqual/DRAC coverage.
+- The next high-q gate is still a retained hard-seed local admission runner for
+  seeds `910101`, `910102`, and `910110`.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tests/testthat/test-phylo-utils.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "phylo-utils")'`: passed with
+  167 PASS / 0 FAIL / 0 WARN / 0 SKIP after the row-major
+  lower-triangle packing helper fix.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "wald-small-sample-default")'`: passed with 21 PASS / 0 FAIL / 0 WARN /
+  0 SKIP, exercising the production fit path with the new hidden data default.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells and 5 structured RE q-series
+  inference-evidence summary rows.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-qgt2-partial-correlation-equivalence-harness.md')"`:
+  passed.
+
+## 2026-06-29: Q-Series q1 mu intercept local n=5 smoke rehearsal import
+
+Goal:
+
+- Run and import a local rehearsal of the reviewed Gaussian low-q q1 `mu`
+  intercept n=5 smoke runner without satisfying or bypassing the Totoro/FIIA
+  host gate.
+
+Result:
+
+- Ran `tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R` locally for
+  the four q1 `mu` intercept rows: phylo, spatial, animal, and relmat.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv`
+  as a validator-owned dashboard sidecar mirroring the artifact summary under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-smoke-local/`.
+- Updated the Q-Series widget so local n=5 rehearsal rows are visible separately
+  from dry-run rows, smoke contracts, inference readiness, interval status, and
+  coverage status.
+- Fixed the Q-Series widget state counter to prefer
+  `structured-re-nongaussian-recovery-rollup.tsv` over older recovery sidecars,
+  so the visible non-Gaussian recovery count matches the current 18-row rollup.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The four q1 `mu` intercept cells remain
+  `point_fit/planned/planned`.
+- The local smoke had 5/5 fit, convergence, `pdHess`, finite usable Wald
+  intervals, and zero warning replicates for each provider, but n=5 is smoke,
+  not coverage evidence.
+- It is not the reviewed Totoro/FIIA host smoke and does not authorize
+  Nibi/Rorqual/DRAC denominator work.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R
+  --run-kind=smoke --n-rep=5 --seed-start=1 --seed-base=812000
+  --providers=phylo,spatial,animal,relmat --host-class=local_rehearsal
+  --host-name=$(hostname -s)
+  --output-dir=docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-smoke-local
+  --overwrite=true --write-dashboard=false`: passed; wrote 4 smoke summary rows
+  and 20 replicate rows.
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells, 4 Gaussian low-q q1 `mu`
+  intercept dry-run rows, 4 smoke-contract rows, and 4 local smoke-result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8253 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q1-mu-intercept-local-smoke-import.md')"`:
+  passed.
+
+## 2026-06-29: Q-Series q1 mu intercept row-selection sync
+
+Goal:
+
+- Sync the Gaussian q1 `mu` intercept row-selection and dry-run surfaces with
+  the already reviewed Fisher/Rose tiny-smoke contract.
+
+Result:
+
+- Updated the four q1 `mu` intercept row-selection rows from local dry-run
+  candidates to reviewed Totoro/FIIA `n=5` smoke rows.
+- Updated the dry-run dashboard TSV and artifact mirror so the smoke decision
+  is `totoro_fiia_smoke_accepted_fisher_rose`, not pending review.
+- Updated the q1 `mu` smoke-contract connectivity marker to record the current
+  host hold: Totoro non-interactive SSH denied, no `fiia` alias, and reachable
+  `fir` without a `drmTMB` checkout.
+- Updated `AGENTS.md`, the dashboard README, validator, and focused tests with
+  the reviewed-but-host-held state.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The q1 `mu` intercept support cells
+  remain `point_fit/planned/planned`.
+- The sign-off permits only the four q1 `mu` intercept targets in a
+  Totoro/FIIA smoke with all attempted rows retained and bootstrap accounting
+  explicit.
+- It is not interval reliability, coverage, MCSE adequacy, `inference_ready`,
+  `supported`, sigma, q2, q4/q8, non-Gaussian, REML, AI-REML, bridge, or
+  public-support evidence.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells, 23 Gaussian low-q row-selection
+  rows, 4 Gaussian low-q q1 `mu` intercept dry-run rows, and 4 Gaussian low-q
+  q1 `mu` intercept smoke-contract rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R"));
+  cat("parse_ok\n")'`: passed with `parse_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8182 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-29: Q-Series q2 intercept Fisher/Rose next-smoke sign-off
+
+Goal:
+
+- Record Fisher/Rose sign-off for the q2 intercept local-smoke gate and advance
+  only the next q2 intercept step to a tiny Totoro/FIIA `n=5` smoke.
+
+Result:
+
+- Updated the 12-row q2 intercept interval contract so every target is
+  `ready_for_totoro_fiia_n5_smoke`, while all linked support cells remain
+  `point_fit/planned/planned`.
+- Updated the q2 intercept local-smoke dashboard TSV and artifact mirror so the
+  next gate says Fisher/Rose signed off the local smoke.
+- Updated the Gaussian low-q row-selection dashboard TSV and artifact mirror so
+  the four q2 intercept rows are reviewed Totoro/FIIA smoke rows, not stale
+  contract holds.
+- Updated `AGENTS.md`, the dashboard README, validator, and focused tests with
+  the operational hold: Totoro non-interactive SSH denied, no `fiia` alias, and
+  reachable `fir` without a `drmTMB` checkout.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The sign-off permits only the 12 q2
+  intercept targets in a Totoro/FIIA smoke with all attempted rows retained and
+  bootstrap accounting explicit.
+- It is not interval reliability, coverage, MCSE adequacy, `inference_ready`,
+  `supported`, q2 slope, q2-plus-q2, q4/q8, non-Gaussian, REML, AI-REML,
+  bridge, or public-support evidence.
+- Nibi/Rorqual/DRAC denominator work remains blocked before the smoke result is
+  reviewed.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells, 23 Gaussian low-q row-selection
+  rows, 12 q2 intercept contract rows, and 12 q2 intercept local-smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8168 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-fisher-rose-signoff.md');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-local-smoke.md')"`:
+  passed with two `after-task structure check passed` lines.
+- `git diff --check`: passed.
+- Stale-current-tense scan for q2 intercept Fisher/Rose review-required wording
+  across the dashboard README, check-log, after-task reports, and q2 intercept
+  TSVs: returned no matches.
+
+## 2026-06-29: Q-Series q2-plus-q2 local smoke
+
+Goal:
+
+- Bank local deterministic smoke for
+  `qseries_phylo_q2_plus_q2_intercept` without changing its support-cell
+  tier.
+
+Result:
+
+- Added `tools/run-structured-re-q2-plus-q2-intercept-smoke.R`.
+- Ran one retained local replicate for the six within-block phylo q2-plus-q2
+  targets under `mu1+mu2;sigma1+sigma2`.
+- Wrote
+  `docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-local-smoke.tsv`
+  plus raw replicate, seed-manifest, `sessionInfo.txt`, and `git-sha.txt`
+  artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q2-plus-q2-intercept-local-smoke/`.
+- All six within-block targets passed the smoke gate: convergence 0,
+  `pdHess = TRUE`, finite Wald intervals, and finite endpoint-profile
+  intervals. The four cross-block correlations remain blocked and were not
+  attempted.
+- Aligned q2-plus-q2 sigma direct-SD profile-target names with the current
+  structured q>2 `profile_targets()` inventory:
+  `sd:mu:sigma1:phylo(1 | pl | species)` and
+  `sd:mu:sigma2:phylo(1 | pl | species)`.
+- Updated the support-cell, Gaussian low-q audit, row-selection ledger,
+  mission-control validator, and focused conversion-contract test to show
+  local smoke passed and Fisher/Rose review as the next gate.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The support cell remains
+  `fit_status = point_fit`, `interval_status = planned`, and
+  `coverage_status = planned`.
+- The smoke is not coverage evidence, not MCSE evidence, not q4/q8 evidence,
+  not non-Gaussian evidence, not REML/AI-REML evidence, not bridge support,
+  not `supported`, and not public support.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-q2-plus-q2-intercept-smoke.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q2-plus-q2-intercept-smoke.R
+  --overwrite=true`: passed and wrote the artifact bundle.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells, 10 q2-plus-q2
+  intercept-contract rows, and 6 q2-plus-q2 intercept local-smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8148 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-local-smoke.md')"`:
+  passed with `after-task structure check passed`.
+- Stale-source scans for old q2-plus-q2 local-smoke next-gate wording and
+  stale `sd:sigma:sigma1/sigma2` q2-plus-q2 target names returned no matches.
+
+## 2026-06-29: Q-Series phylo_interaction NB2 count-intercept Rorqual top-up recovery
+
+Goal:
+
+- Close the final current non-Gaussian recovery caveat with a narrow
+  recovery-only top-up for `qseries_phylo_interaction_nbinom2_q1_mu`, using the
+  connected Rorqual/DRAC lane without promoting intervals, coverage, or support.
+
+Result:
+
+- Recorded Rorqual SLURM job `14936834` as the top-up companion to original
+  count-intercept recovery job `14918220` for the exact NB2
+  `phylo_interaction()` q1 `mu` row.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv`
+  and preserved the fetched artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-phylo-interaction-nb2-topup-rorqual/`.
+- The combined denominator is 160/160 fit_ok, 0 nonconverged, 0/160
+  `pdHess = FALSE`, 160/160 finite estimates, 6/160 near-zero structured-SD
+  estimates at `1e-04`, and 6/160 boundary-warning rows.
+- Updated the non-Gaussian status audit, non-Gaussian recovery rollup,
+  support-cell row, dashboard README/build, mission-control validator, and
+  focused structured-RE conversion test so all 18 non-Gaussian Poisson/NB2
+  count `mu` recovery rows are now `cluster_confirmed_recovery_only`, with zero
+  current `cluster_recovery_caveat` rows.
+- Refreshed the fetched `seff.txt` metadata from live Rorqual accounting:
+  `14936834` completed with exit code 0, 00:02:07 wall time, and 3.20 GB memory.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. It changes only the recovery-grade
+  display for the NB2 `phylo_interaction()` row from a retained caveat to
+  `cluster_confirmed_recovery_only`.
+- The linked support-cell row remains `fit_status = point_fit`,
+  `interval_status = unsupported`, `coverage_status = planned`, and
+  `promotion_decision = do_not_promote`.
+- No non-Gaussian interval, coverage, `inference_ready`, `supported`, REML,
+  AI-REML, q2/q4 count covariance, high-q, bridge, structured count sigma,
+  zero-inflation, labelled/multiple count slope, count-scale, or public support
+  claim is made.
+
+Validation:
+
+- Rorqual SLURM job `14936834`: live `sacct` reported `COMPLETED|0:0` for the
+  batch job; `seff` reported `State: COMPLETED (exit code 0)`, 00:02:07 wall
+  time, and 3.20 GB memory.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 Q-Series cells, 37 non-Gaussian
+  status-audit rows, 18 non-Gaussian recovery-rollup rows, and 1
+  phylo-interaction NB2 top-up recovery sidecar row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8,025 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-phylo-interaction-nb2-topup-recovery.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r132`, the new top-up sidecar served 2 lines including the header, and the
+  non-Gaussian recovery rollup served 18 `cluster_confirmed_recovery_only`
+  rows with zero current `cluster_recovery_caveat` rows.
+
+## 2026-06-29: Q-Series spatial NB2 count-slope Rorqual top-up recovery
+
+Goal:
+
+- Use the connected DRAC/Rorqual lane for a narrow non-Gaussian recovery
+  top-up only: the fixed-covariance spatial NB2 q1 `mu` one-slope row that
+  carried the original count-slope cluster Hessian caveat.
+
+Result:
+
+- Updated `tools/slurm/count-slope-recovery-rorqual.sbatch` so the count-slope
+  Rorqual wrapper can run a seed-window top-up through
+  `DRMTMB_COUNT_SLOPE_N_REP` and `DRMTMB_COUNT_SLOPE_SEED_START`, while keeping
+  the original 80-rep defaults intact.
+- Submitted the one-row Rorqual top-up as SLURM job `14936279`; it completed
+  with exit code 0, `runner_exit_code=0`, 80/80 fit_ok, 0 nonconverged rows,
+  0/80 `pdHess = FALSE`, and 80/80 finite estimates.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv`
+  and fetched the preserved artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-slope-spatial-nb2-topup-rorqual/`.
+- Updated the non-Gaussian rollup, non-Gaussian audit, support-cell TSV,
+  dashboard README/build, mission-control validator, and focused structured-RE
+  conversion test so the combined spatial NB2 slope denominator is recorded as
+  160/160 fit_ok, 0 nonconverged, 2/160 `pdHess = FALSE` overall, 0/80
+  `pdHess = FALSE` in the top-up, and recovery-only point-estimation evidence.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. It changes the row's recovery grade
+  display from a cluster caveat to `cluster_confirmed_recovery_only`, but keeps
+  `interval_status = unsupported`, `coverage_status = planned`, and
+  `promotion_decision = do_not_promote`.
+- No non-Gaussian interval, coverage, `inference_ready`, `supported`, REML,
+  AI-REML, q2/q4 count covariance, high-q, bridge, structured count sigma,
+  zero-inflation, labelled/multiple count slope, count-scale, or public support
+  claim is made.
+- Staging-only Rorqual job `14935975` failed before fit evidence because the
+  source tree lacked `drmTMB.so`; staging job `14936258` was cancelled before
+  running. Neither job is used as evidence.
+
+Validation:
+
+- Rorqual SLURM job `14936279`: completed with `State: COMPLETED (exit code 0)`;
+  `seff` reported 00:02:02 wall time and 3.17 GB memory.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `python3 tools/validate-mission-control.py`: passed with
+  `mission_control_ok`, including 104 Q-Series cells, 37 non-Gaussian status
+  rows, 18 non-Gaussian recovery-rollup rows, and 1 count-slope spatial NB2
+  top-up recovery row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 8,002 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-count-slope-spatial-nb2-topup-recovery.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r131`, `structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv`
+  served 2 lines including the header, and the served non-Gaussian recovery
+  rollup shows `qseries_spatial_nbinom2_q1_mu_one_slope` as
+  `cluster_confirmed_recovery_only` with `2/160 pdHess false`.
+
+## 2026-06-29: Q-Series q2 intercept local smoke
+
+Goal:
+
+- Run and register the first local q2 intercept smoke for the 12-row
+  interval-denominator contract before using Totoro/FIIA, Nibi/Rorqual, or
+  DRAC compute.
+
+Result:
+
+- Added `tools/run-structured-re-q2-intercept-smoke.R` and ran the default
+  all-provider n=1 local smoke with `--profile-max-eval=25`, `--bootstrap=0`,
+  and `--overwrite=true`.
+- Wrote
+  `docs/dev-log/dashboard/structured-re-q2-intercept-local-smoke.tsv` plus the
+  mirrored artifact summary, raw replicate TSV, seed manifest,
+  `sessionInfo.txt`, and `git-sha.txt` under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q2-intercept-local-smoke/`.
+- Registered the sidecar in `tools/validate-mission-control.py`, added
+  artifact-parity/replicate/seed checks to the focused
+  structured-RE conversion-contract test, and documented the sidecar in the
+  dashboard README.
+- Updated `tools/start-mission-control.sh` so comparator and simulation
+  artifact trees are mirrored by file content rather than by `cp -R`
+  permission replay. This keeps old DRAC/Rorqual setgid artifact directories
+  from breaking the local `/tmp/drm-dashboard` refresh.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked q2 intercept support cells
+  remain `fit_status = point_fit`, `interval_status = planned`, and
+  `coverage_status = planned`.
+- The n=1 smoke is not coverage evidence. It only verifies local fit,
+  convergence, `pdHess`, finite default-Wald intervals, finite endpoint-profile
+  intervals, and bootstrap-off accounting for the direct-SD and
+  direct-correlation targets. Wald and endpoint-profile lower/upper miss fields
+  are recorded separately; the legacy `lower_miss`/`upper_miss` fields remain
+  Wald aliases for continuity.
+- At the time of this smoke entry, Fisher/Rose review was still required before
+  any Totoro/FIIA smoke. That gate was later superseded by the 2026-06-29 q2
+  intercept Fisher/Rose sign-off entry above; the current q2 intercept gate is
+  reviewed but host-held, and Nibi/Rorqual/DRAC remain blocked for this row set.
+- Post-review host probe: `ssh -o BatchMode=yes totoro` resolved but required
+  interactive authentication, `fiia`/`FIIA` did not resolve as SSH aliases in
+  this shell, and Nibi/Rorqual responded but remain blocked by the q2
+  intercept smoke gate. The n=5 smoke was therefore not run on Nibi/Rorqual.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q2-intercept-smoke.R --n-rep=1
+  --profile-max-eval=25 --bootstrap=0 --overwrite=true`: passed; wrote 12
+  summary rows and 12 raw replicate rows.
+- `python3 tools/validate-mission-control.py`: passed with
+  `mission_control_ok`, including 12 structured RE q2 intercept local-smoke
+  rows.
+- `/opt/homebrew/bin/air format tests/testthat/test-structured-re-conversion-contracts.R
+  tools/run-structured-re-q2-intercept-smoke.R`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'parse("tools/run-structured-re-q2-intercept-smoke.R"); cat("parse_ok\n")'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed with 7,996 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-local-smoke.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- `sh -n tools/start-mission-control.sh`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed after the content-only
+  artifact mirror fix; the dashboard was already listening at
+  `http://127.0.0.1:8765/`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file tools/codex-checkpoint.R
+  --goal "Q-Series q2 intercept local smoke closed; Totoro/FIIA remote smoke
+  blocked by SSH alias/auth" --next "Prime non-interactive Totoro or FIIA
+  access, then run tools/run-structured-re-q2-intercept-smoke.R --n-rep=5
+  --profile-max-eval=25 --bootstrap=0 --write-dashboard=false in a separate
+  artifact directory; do not use Nibi/Rorqual for this q2 intercept smoke
+  without Fisher/Rose approval"`: wrote
+  local ignored checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-06-29-171621-codex-checkpoint.md`.
+
+## 2026-06-29: Q-Series q2 intercept interval-denominator contract
+
+Goal:
+
+- Replace the Gaussian low-q q2 intercept "write target contract" hold with an
+  exact row-level interval-denominator contract before using connected Totoro,
+  FIIA, Nibi, Rorqual, or DRAC compute.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-intercept-interval-contract.tsv`
+  with 12 rows: phylo, spatial, animal, and relmat each have separate
+  `mu1:(Intercept)` direct-SD, `mu2:(Intercept)` direct-SD, and
+  `mu1:(Intercept)+mu2:(Intercept)` direct-correlation targets.
+- Updated
+  `tools/summarize-structured-re-gaussian-lowq-row-selection.R` and regenerated
+  `structured-re-gaussian-lowq-row-selection.tsv` plus its local artifact so the
+  four q2 intercept rows point at the new sidecar, while
+  `qseries_phylo_q2_plus_q2_intercept` stays held for a separate
+  location-and-scale contract.
+- Registered the sidecar in `tools/validate-mission-control.py`, the focused
+  structured-RE conversion-contract test, and the dashboard README.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked q2 intercept support cells
+  remain `fit_status = point_fit`, `interval_status = planned`, and
+  `coverage_status = planned`.
+- Totoro/FIIA are smoke-only after Fisher/Rose review; Nibi/Rorqual/DRAC remain
+  blocked until local deterministic q2 intercept smoke passes with retained
+  denominator accounting.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed; wrote 23 Gaussian low-q row-selection rows.
+- `/opt/homebrew/bin/air format tests/testthat/test-structured-re-conversion-contracts.R tools/summarize-structured-re-gaussian-lowq-row-selection.R`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  passed with 7,918 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `python3 tools/validate-mission-control.py`: passed with
+  `mission_control_ok`, including 104 structured RE q-series cells, 23
+  Gaussian low-q row-selection rows, and 12 structured RE q2 intercept
+  interval-contract rows.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-interval-contract.md')"`:
+  passed with `after-task structure check passed`.
+
+## 2026-06-29: Q-Series q8 objective/report equivalence harness
+
+Goal:
+
+- Bank a local q=8 objective/report equivalence harness for the current
+  phylogenetic q>2 `UNSTRUCTURED_CORR_t` covariance route before spending
+  connected Totoro, FIIA, Nibi, Rorqual, or DRAC compute on q4/q8 animal
+  admission work.
+
+Result:
+
+- Added a q=8 `model_type = 93` test to
+  `tests/testthat/test-phylo-utils.R`.
+- The test exercises both the zero-correlation point and three finite
+  28-coordinate `theta_phylo` vectors.
+- The test compares `sd_phylo`, `theta_phylo`, `phylo_q4_corr`,
+  `phylo_q4_covariance`, `log_det_covariance`, `quadratic`,
+  `quadratic_matrix`, and the objective against independent R algebra.
+- Updated
+  `docs/design/220-structured-q4-animal-production-transform-gate.md` to
+  record the harness as a baseline for future lower-level TMB/C++ transform
+  candidates.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. It is not q4/q8 `inference_ready`,
+  not `supported`, not interval reliability, not coverage evidence, not REML,
+  not AI-REML, and not a production replacement transform.
+- The animal q4 all-four row remains blocked until a lower-level transform
+  candidate and local hard-seed admission runner pass.
+
+Validation:
+
+- First focused run failed inside the new q=8 test because the fixture
+  provided 24 effects while the augmented precision requires 32 effects for
+  q=8. The fixture was corrected before acceptance.
+- `/opt/homebrew/bin/air format tests/testthat/test-phylo-utils.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "phylo-utils")'`: passed with
+  119 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- `python3 tools/validate-mission-control.py`: passed with
+  `mission_control_ok`, including 104 structured RE q-series cells and 5
+  structured RE q-series inference-evidence summary rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q8-objective-equivalence-harness.md')"`:
+  passed.
+- Compute route probe: `ssh nibi hostname` returned `l5.nibi.sharcnet`,
+  `ssh rorqual hostname` returned `rorqual2`, and `ssh narval hostname`
+  returned `narval2`. Totoro still requires interactive authentication from
+  this shell, and the FIIA alias is not present.
+
+## 2026-06-29: Q-Series q4 animal partial-Cholesky transform diagnostic
+
+Goal:
+
+- Test the next local q4 animal all-four hard-seed route before using Totoro,
+  FIIA, Nibi, Rorqual, or DRAC.
+- Keep the row diagnostic-only unless all three hard seeds pass the admission
+  gate.
+
+Result:
+
+- Added
+  `tools/run-structured-re-q4-animal-partial-cholesky-transform-diagnostic.R`.
+- Ran hard seeds `910101`, `910102`, and `910110` under the `more_levels`
+  animal all-four design, crossing each seed with the zero-correlation
+  control, current all-free staged route, and partial-Cholesky all-free route.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv`
+  with 9 rows and preserved the raw artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-cholesky-transform-local/`.
+- The zero-correlation controls pass 3/3, but the partial-Cholesky all-free
+  route has 0/3 admission passes. All partial rows have convergence code 1 and
+  `pdHess = FALSE`; seeds `910101` and `910110` are large-eta blocked, and
+  direct-SD interval finiteness is 7/8, 0/8, and 2/8.
+- Updated the mission-control widget, validator, focused conversion-contract
+  test, support-cell row, high-q audit row, campaign queue, transform-admission
+  contract, dashboard README, completion map, and production-transform design
+  gate. The dashboard build is `r130`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked
+  `qseries_animal_q4_all_four_one_slope_planned` row remains high-q gated and
+  diagnostic-only, not `inference_ready` and not `supported`.
+- The partial-Cholesky route is not coverage evidence, not interval
+  reliability, not q8 evidence, not q4 REML, not REML, not AI-REML, not
+  derived-correlation interval evidence, not production parameterization
+  evidence, not broad bridge support, and not public support.
+- Connected Totoro/FIIA, Nibi/Rorqual, and DRAC hosts stay on hold for this
+  route because the local admission gate failed.
+
+What did not go smoothly:
+
+- The first smoke caught a copied-prefix path bug and briefly wrote
+  partial-Cholesky rows into the old q4 slope stability artifact path. I reset
+  the runner output paths after sourcing and reran the original q4 slope
+  interval stability probe to restore the raw and dashboard artifacts.
+- The first full local run failed in `log10_condition()` on a nonnumeric value.
+  I hardened the helper and reran the full diagnostic.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q4-animal-partial-cholesky-transform-diagnostic.R"));
+  cat("partial_cholesky_runner_parse_ok\n")'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-animal-partial-cholesky-transform-diagnostic.R
+  --help`: passed.
+- Full local diagnostic:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-partial-cholesky-transform-diagnostic.R
+  --replicates=910101,910102,910110 --variant=more_levels --overwrite=true
+  --write-dashboard=true`: passed after the numeric guard fix.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null python3 -m py_compile
+  tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells and 9
+  structured RE q4 animal partial-Cholesky transform diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7890 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-partial-cholesky-transform-diagnostic.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt`
+  returned `r130`; the partial-Cholesky TSV served 10 lines including the
+  header; `/` contained `BUILD = "r130"`, `Animal q4 partial`,
+  `q4AnimalPartialCholeskyDiagnostic`, `q4 partial`, and
+  `partial-Cholesky`; the served TSV status counts were 3
+  `zero_correlation_control_pass`, 4 `gradient_hessian_blocked`, 2
+  `partial_cholesky_large_eta_blocked`, 6 `reference_not_admission`, and 3
+  `hard_seed_route_blocked_local_admission_smoke`.
+
+## 2026-06-29: Q-Series q4 animal production-transform design gate
+
+Goal:
+
+- Record the Gauss/Noether/Fisher consensus before spending connected compute
+  on the q4 animal all-four row.
+- Keep the row diagnostic-only while making the next gate explicit:
+  lower-level TMB parameterization design first, production-transform
+  admission runner second, cluster admission third.
+
+Result:
+
+- Added
+  `docs/design/220-structured-q4-animal-production-transform-gate.md`.
+- Updated the Q-Series queue, high-q audit, support-cell next gate, transform
+  contract, dashboard README, likelihood design note, completion map,
+  validator, and focused conversion-contract test to require the
+  `lower-level TMB parameterization design` gate.
+- Bumped the dashboard build to `r129`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The animal all-four one-slope row
+  remains `diagnostic_only` / `planned`.
+- No q4/q8 `inference_ready`, no `supported`, no interval reliability, no
+  coverage, no q4 REML, no REML, no AI-REML, no derived-correlation interval
+  claim, no production support, no public support, and no DRAC coverage grid
+  are claimed.
+- Nibi and Rorqual are reachable, but this row stays on cluster hold until the
+  local TMB design and hard-seed admission gate pass.
+
+Validation:
+
+- `python3 tools/validate-mission-control.py`: passed after wiring the design
+  gate.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}'
+  docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js &&
+  node --check /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-production-transform-design-gate.md')"`:
+  passed.
+- `git diff --check`: passed.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r129`, the support-cell TSV served 104 data rows, and the inference-evidence
+  summary served five data rows.
+- System-Chrome Playwright smoke against `http://127.0.0.1:8765/`: the
+  Q-Series board rendered `Total rows = 104`, `Inference-ready = 5`, campaign
+  queue `10`, `High-q = 24`, and `q8 = 9`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::check()'`: passed in 12m 48.6s with
+  0 errors, 0 warnings, and 0 notes.
+
+## 2026-06-29: Q-Series q4 animal ridge-continuation diagnostic
+
+Goal:
+
+- Bank the local q4 animal all-four ridge-continuation diagnostic before
+  spending Nibi/Rorqual or DRAC time, and keep it diagnostic-only.
+
+Result:
+
+- Added
+  `tools/run-structured-re-q4-animal-ridge-continuation-diagnostic.R`.
+- Ran hard seeds `910101`, `910102`, and `910110` under the `more_levels`
+  q4 animal design, crossing each seed with `seed_nonpass`,
+  `global_nonpass`, and `all28` coordinate sets and the ridge schedule
+  `1 -> 0.1 -> 0.01 -> 0`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-animal-ridge-continuation-diagnostic.tsv`
+  with 36 rows and preserved the raw artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-ridge-continuation-local/`.
+- The result split is 25 `continuation_penalty_stabilized_local_mode` rows, 6
+  `continuation_runaway_theta_hessian_blocked` rows, 2
+  `continuation_hessian_blocked` rows, 2 `continuation_convergence_watch`
+  rows, and 1 `continuation_unpenalized_large_theta_watch` row. At final
+  `lambda = 0`, 0/9 hard-seed strategy rows are clean admission passes.
+- Updated the mission-control widget, validator, focused conversion-contract
+  test, support-cell row, high-q audit row, transform-admission contract, and
+  campaign queue. The dashboard build is `r128`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked
+  `qseries_animal_q4_all_four_one_slope_planned` row remains a high-q gated
+  diagnostic row, not `inference_ready` and not `supported`.
+- Ridge-continuation annealing is not a production prior, not an interval
+  method, not coverage evidence, not denominator evidence, not q8 evidence,
+  not q4 REML, not REML, not AI-REML, not derived-correlation interval
+  evidence, not production parameterization evidence, not broad bridge
+  support, and not public support.
+
+What did not go smoothly:
+
+- The first smoke caught a scalar/vector bug in the schedule label.
+- The second smoke wrote rows but failed at the final status summary because
+  the `git_sha` helper reused the name `out` and overwrote the result data
+  frame.
+- The first full run classified one final unpenalized row as an admission smoke
+  pass. Rose/Fisher review caught that the row had very large theta magnitude,
+  so I tightened the status rule to mark final unpenalized `theta_max_abs >
+  100` rows as `continuation_unpenalized_large_theta_watch` and reran the full
+  diagnostic.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'parse("tools/run-structured-re-q4-animal-ridge-continuation-diagnostic.R");
+  cat("parse_ok\n")'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-animal-ridge-continuation-diagnostic.R --help`:
+  passed.
+- Smoke:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-ridge-continuation-diagnostic.R
+  --replicates=910101 --strategies=seed_nonpass
+  --lambda-schedule=1,0.1,0
+  --output-dir=/tmp/drmtmb-q4-animal-ridge-continuation-smoke
+  --overwrite=true --write-dashboard=false`: passed after the two runner
+  bookkeeping fixes.
+- Full local diagnostic:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-ridge-continuation-diagnostic.R
+  --replicates=910101,910102,910110 --overwrite=true --write-dashboard=true`:
+  passed; wrote 36 dashboard and artifact rows. This was rerun after the
+  large-theta status-rule correction.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null python3 -m py_compile
+  tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 36
+  structured RE q4 animal ridge-continuation diagnostic rows, and 7 structured
+  RE q4 animal transform-admission contract rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7819 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-ridge-continuation-diagnostic.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt`
+  returned `r128`; the ridge-continuation TSV served 37 lines including the
+  header; `/` contained `q4AnimalRidgeContinuationDiagnostic`, `Animal q4
+  anneal`, and `q4 ridge continuation`; the support cell and high-q queue
+  served the no-large-theta / no-DRAC next gate.
+
+## 2026-06-29: Q-Series q4 animal MAP/penalty sensitivity diagnostic
+
+Goal:
+
+- Bank the local q4 animal all-four multi-coordinate MAP/penalty sensitivity
+  diagnostic requested by the one-theta release next gate, without launching
+  DRAC coverage or promoting any Q-Series row.
+
+Result:
+
+- Added `tools/run-structured-re-q4-animal-map-penalty-sensitivity.R`.
+- Ran hard seeds `910101`, `910102`, and `910110` under the `more_levels`
+  q4 animal design, crossing each seed with 10 multi-coordinate strategies
+  derived from the one-theta non-pass, top-gain, global non-pass, and all-28
+  coordinate sets.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-animal-map-penalty-sensitivity.tsv`
+  with 30 rows and preserved the raw artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-map-penalty-local/`.
+- The result split is 21 `penalty_stabilized_local_mode` rows, 7
+  `runaway_theta_hessian_blocked` rows, and 2 `convergence_watch` rows. Ridge
+  rows stabilize local modes, but unpenalized multi-coordinate releases still
+  block q4 animal admission.
+- Updated the mission-control widget, validator, dashboard README, focused
+  conversion-contract test, support-cell row, high-q audit row, and campaign
+  queue so the sidecar is visible as diagnostic-only evidence. The dashboard
+  build is `r125`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked
+  `qseries_animal_q4_all_four_one_slope_planned` row remains a high-q gated
+  diagnostic row, not `inference_ready` and not `supported`.
+- Optimizer-layer ridge stabilization is not a production prior, not an
+  interval method, not coverage evidence, not denominator evidence, not q8
+  evidence, not q4 REML, not REML, not AI-REML, not derived-correlation
+  interval evidence, not production parameterization evidence, not broad bridge
+  support, and not public support.
+
+What did not go smoothly:
+
+- The first MAP/penalty smoke repeated the q4 helper output-path reset bug and
+  briefly wrote MAP/penalty rows into the old q4 slope stability raw artifact
+  path. I reset the MAP/penalty paths after sourcing, reran
+  `tools/run-structured-re-q4-slope-interval-stability-probe.R` to restore the
+  q4 slope stability raw artifact and dashboard sidecar, verified the q4 slope
+  schema and 129-line count, and reran the smoke before writing the real
+  artifact.
+- Validator review corrected two contract details: the all-28 runaway rows can
+  warn with `NA/NaN function evaluation` instead of `NaNs produced`, and the
+  support-cell next gate still needs to name interval diagnostics while
+  pointing to a production-transform/admission design.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse(file =
+  "tools/run-structured-re-q4-animal-map-penalty-sensitivity.R"));
+  cat("parse_ok\n")'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-animal-map-penalty-sensitivity.R --help`: passed.
+- Repair run:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-slope-interval-stability-probe.R`:
+  passed; restored 128 raw q4 slope stability rows and 64 dashboard summary
+  rows.
+- Corrected smoke:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-map-penalty-sensitivity.R
+  --replicates=910101
+  --output-dir=/tmp/drmtmb-q4-animal-map-penalty-smoke
+  --overwrite=true --write-dashboard=false`: passed and wrote the intended
+  `/private/tmp` artifact.
+- Full local diagnostic:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-map-penalty-sensitivity.R
+  --replicates=910101,910102,910110 --overwrite=true --write-dashboard=true`:
+  passed; wrote 30 dashboard and
+  artifact rows.
+- `R_PROFILE_USER=/dev/null python3 -m py_compile
+  tools/validate-mission-control.py`: passed; `tools/__pycache__` was removed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells and 30
+  structured RE q4 animal MAP/penalty sensitivity rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7724 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-map-penalty-sensitivity.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- Stale wording scan for old MAP/penalty-next phrases:
+  `rg -n "multi-coordinate MAP/penalty sensitivity or a production-transform|MAP/penalty sensitivity or a production-transform|next work is local multi-coordinate MAP/penalty|before MAP/penalty sensitivity" docs/dev-log/dashboard docs/dev-log/after-task docs/dev-log/check-log.md tests tools`:
+  only matched the historical q4 animal next-gate synthesis after-task note.
+- `env R_PROFILE_USER=/dev/null DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard
+  DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`:
+  passed with `mission_control_ok`; the server was already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r125`; the MAP/penalty TSV served 31 lines including the header; `/`
+  contained `q4AnimalMapPenaltySensitivity`, `Animal q4 MAP`, and
+  `q4 MAP/penalty`; the high-q queue row served the production-transform /
+  no-DRAC-coverage next action.
+
+## 2026-06-29: Q-Series q4 animal one-theta release diagnostic
+
+Goal:
+
+- Execute the local hard-seed q4 animal all-four one-theta release diagnostic
+  requested by the Gauss/Noether next gate, without launching DRAC coverage or
+  promoting any Q-Series row.
+
+Result:
+
+- Added `tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R`.
+- Ran hard seeds `910101`, `910102`, and `910110` under the `more_levels`
+  q4 animal design, releasing all 28 assumed lower-triangle `theta_phylo`
+  coordinates one at a time.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-animal-one-theta-release-diagnostic.tsv`
+  with 84 rows and preserved the raw artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-one-theta-release-local/`.
+- The zero-correlation controls pass for all three seeds. The one-theta
+  releases produce 73 `one_theta_release_pass_smoke` rows, 9 `release_watch`
+  rows, and 2 `hessian_blocked` rows. The hessian-blocked rows are
+  `910101/theta26` and `910110/theta13`, both with runaway `theta` and negative
+  `sdr$cov.fixed` eigenvalues.
+- Updated the mission-control widget, validator, dashboard README, and focused
+  conversion-contract test so the sidecar is visible as diagnostic-only
+  evidence.
+- Updated the support-cell row, high-q audit, and campaign queue so the next
+  gate is local multi-coordinate MAP/penalty sensitivity or a production
+  transform diagnostic, not DRAC coverage. The dashboard build is `r124`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked
+  `qseries_animal_q4_all_four_one_slope_planned` row remains a high-q gated
+  diagnostic row, not `inference_ready` and not `supported`.
+- A passing one-coordinate release is not unrestricted all-free q4 support.
+  The result points to a multi-coordinate MAP/penalty sensitivity or production
+  transform gate before any DRAC coverage grid.
+- This is not coverage evidence, denominator evidence, q8 evidence, q4 REML,
+  REML, AI-REML, derived-correlation interval evidence, production
+  parameterization evidence, broad bridge support, or public support.
+
+What did not go smoothly:
+
+- The first smoke exposed an output-path reset bug after sourcing the q4
+  stability helper. I fixed the runner and reran
+  `tools/run-structured-re-q4-slope-interval-stability-probe.R` to restore the
+  old q4 stability raw artifact and dashboard sidecar to the expected schema.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse(file =
+  "tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R"));
+  cat("parse_ok\n")'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R --help`:
+  passed.
+- First one-theta smoke exposed the output-path reset bug:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R
+  --replicates=910101 --theta-indices=1
+  --output-dir=/tmp/drmtmb-q4-animal-one-theta-smoke --overwrite=true
+  --write-dashboard=false`.
+- Repair run:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-slope-interval-stability-probe.R`:
+  passed; restored 128 raw q4 slope stability rows and 64 dashboard summary
+  rows.
+- Corrected one-theta smoke:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R
+  --replicates=910101 --theta-indices=1
+  --output-dir=/tmp/drmtmb-q4-animal-one-theta-smoke --overwrite=true
+  --write-dashboard=false`: passed.
+- Three-seed/three-theta rehearsal:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R
+  --replicates=910101,910102,910110 --theta-indices=1,8,28
+  --output-dir=/tmp/drmtmb-q4-animal-one-theta-3x3 --overwrite=true
+  --write-dashboard=false`: passed with 8 pass-smoke rows and one watch row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R
+  --replicates=910101,910102,910110 --theta-indices=all
+  --overwrite=true --write-dashboard=true`: passed; wrote 84 dashboard and
+  artifact rows.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  passed with `mission_control_ok`, including 104 structured RE q-series cells
+  and 84 structured RE q4 animal one-theta release diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7665 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-one-theta-release-diagnostic.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check`: passed.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Stale wording scan for pre-result one-theta next-gate phrases returned no
+  matches.
+- `env R_PROFILE_USER=/dev/null DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard
+  DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`:
+  passed with `mission_control_ok`; the server was already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r124`, `/` contained `q4AnimalOneThetaReleaseDiagnostic`, `q4 one-theta`,
+  and `one-theta release diagnostic`, the one-theta TSV served 85 lines
+  including the header, and the high-q queue row served the updated
+  MAP/penalty/production-transform next action.
+
+## 2026-06-29: Q-Series Gaussian low-q q1 mu-intercept smoke runner
+
+Goal:
+
+- Make the reviewed n=5 Gaussian low-q q1 `mu` intercept smoke contract
+  executable without reusing n=2 dry-run artifact names, IDs, or claim wording.
+- Keep the smoke artifact path separate from widget promotion: the runner must
+  not write a dashboard result sidecar until a validator-owned import/review
+  path exists.
+
+Result:
+
+- Updated `tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R` with
+  `--run-kind=dry_run|smoke`.
+- Added `tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R`, which
+  injects `--run-kind=smoke` and `--write-dashboard=false`.
+- Smoke mode now requires `--n-rep=5`, reads
+  `structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv`, verifies the
+  Totoro/FIIA-only host gate and `do_not_promote` decision, writes
+  `smoke-results` artifact files with `smoke_id` and `source_contract_id`, and
+  refuses dashboard writes.
+- A local smoke-mode rehearsal wrote 4 summary rows and 20 replicate rows under
+  `/tmp/drmtmb-lowq-mu-smoke-rehearsal`; those artifacts are execution-path
+  evidence only and are not imported into the widget.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked q1 `mu` intercept rows
+  remain `point_fit/planned/planned`, not `inference_ready` or `supported`.
+- The local rehearsal is not the reviewed Totoro/FIIA smoke result. It is not
+  interval evidence, coverage evidence, denominator evidence, sigma evidence,
+  matched `mu+sigma` evidence, q2/q4/q8 evidence, direct-SD evidence,
+  `phylo_interaction()` evidence, non-Gaussian evidence, REML, AI-REML, bridge
+  support, or public support.
+- Nibi/Rorqual/DRAC remain blocked for this row gate unless Fisher/Rose approve
+  a host-gate change.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R
+  tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R"));
+  invisible(parse("tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R"));
+  cat("parse_ok\n")'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R --help`:
+  passed and printed the shared runner help with `--run-kind=dry_run|smoke`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R
+  --run-kind=smoke --n-rep=1 --write-dashboard=false
+  --output-dir=/tmp/drmtmb-lowq-mu-smoke-should-fail --overwrite=true`:
+  failed as intended with `Smoke mode is the reviewed n=5 fixture smoke. Use
+  --n-rep=5.`
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R
+  --n-rep=5 --seed-start=201 --seed-base=814000
+  --host-class=local_rehearsal
+  --output-dir=/tmp/drmtmb-lowq-mu-smoke-rehearsal --overwrite=true`:
+  passed; wrote 4 smoke summary rows and 20 replicate rows, all with
+  `smoke_status = smoke_passed_fixture_only`, `review_decision =
+  fisher_rose_review_pending_no_promotion`, `promotion_decision =
+  do_not_promote`, `source_contract_id`, and `host_class = local_rehearsal`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R --n-rep=1
+  --seed-start=301 --seed-base=815000
+  --output-dir=/tmp/drmtmb-lowq-mu-dry-run-rehearsal
+  --write-dashboard=false --overwrite=true`: passed; dry-run mode kept
+  `dry_run_id` and dry-run fields while naming `n=1` as not coverage evidence.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  passed with `mission_control_ok`, including 104 structured RE q-series
+  cells, 4 Gaussian low-q mu-intercept dry-run rows, and 4 Gaussian low-q
+  mu-intercept smoke-contract rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7598 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-mu-intercept-smoke-runner.md')"`:
+  passed after the required numbered section headings were synced.
+- `env DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`, followed by a detached
+  `drmtmb-mission-control` server restart: passed; served checks returned
+  `version.txt = r123` and `/` contained `Q-Series Support Cells`, `r123`, and
+  `Low-q mu smoke`.
+- `git diff --check`: passed.
+
+## 2026-06-29: Q-Series q4 animal correlation next-gate synthesis
+
+Goal:
+
+- Reconcile the q4 animal all-four one-slope row with Gauss/Noether review of
+  the bounded-correlation diagnostic.
+- Keep the row unpromoted while making the next diagnostic precise.
+
+Result:
+
+- Updated the animal q4 all-four one-slope support-cell claim boundary to name
+  the active free q4 correlation blocker while preserving the exact
+  eight-member endpoint-map and `pedigree/Ainv` guard phrases.
+- Updated the high-q audit row to link the q8-shaped animal all-four row to
+  `structured-re-q4-animal-bounded-correlation-diagnostic.tsv`.
+- Updated the high-q campaign queue at the time: the next work was a local
+  hard-seed one-theta release diagnostic from the zero-correlation map before
+  MAP/penalty sensitivity or any DRAC coverage grid. Supersession: the
+  one-theta diagnostic is now banked in the section above; the current next
+  gate is local multi-coordinate MAP/penalty sensitivity or a production
+  transform diagnostic.
+- Bumped the dashboard build to `r123`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. q4/q8 interval status, coverage,
+  `inference_ready`, `supported`, q4 REML, REML, AI-REML, bridge support,
+  production parameterization, derived-correlation intervals, and public
+  support remain unclaimed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-correlation-next-gate-synthesis.md')"`:
+  passed with `after-task structure check passed`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7598 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- `git diff --check`: passed.
+
+## 2026-06-29: Q-Series Gaussian low-q q1 mu-intercept smoke contract
+
+Goal:
+
+- Record the Fisher/Rose-reviewed tiny-smoke contract for the four Gaussian
+  low-q q1 `mu` intercept rows selected by the local dry-run.
+- Keep DRAC usage gated: Nibi/Rorqual are reachable after modules load, but
+  this slice still requires a Totoro/FIIA n=5 smoke before denominator work.
+- Promote no Q-Series row.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv`.
+- The sidecar records four planned smoke rows:
+  `qseries_phylo_q1_mu_intercept`, `qseries_spatial_q1_mu_intercept`,
+  `qseries_animal_q1_mu_intercept`, and
+  `qseries_relmat_q1_mu_intercept`.
+- Fisher and Rose sign off on a tiny `n = 5` Totoro/FIIA smoke only, using
+  default `confint()` Wald extraction for direct `sd:mu:<provider>` targets.
+- The smoke is not executed in this sidecar. Non-interactive Totoro SSH still
+  fails from this local session, and the `fiia` alias is unresolved. Nibi and
+  Rorqual both expose R 4.4.0 after loading `StdEnv/2023 gcc/12.3 r/4.4.0`,
+  but remain blocked until the Totoro/FIIA smoke gate is run.
+- The dashboard build is `r122` and now renders a "Low-q mu smoke" card/table.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked rows remain
+  `point_fit/planned/planned`, not `inference_ready` or `supported`.
+- The contract is fixture-only smoke planning, not interval evidence, coverage
+  evidence, denominator evidence, sigma evidence, matched `mu+sigma` evidence,
+  q2/q4/q8 evidence, direct-SD evidence, `phylo_interaction()` evidence,
+  non-Gaussian evidence, REML, AI-REML, bridge support, or public support.
+
+Validation:
+
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 totoro 'hostname; pwd; command -v Rscript || true; Rscript --version 2>&1 || true'`:
+  failed with `Permission denied (publickey,password)`.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 fiia 'hostname; pwd; command -v Rscript || true; Rscript --version 2>&1 || true'`:
+  failed because the `fiia` hostname could not be resolved.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 nibi 'module load StdEnv/2023 gcc/12.3 r/4.4.0 >/dev/null 2>&1; command -v Rscript; Rscript --version 2>&1'`:
+  passed; R 4.4.0 was available from the DRAC module stack.
+- `ssh -o BatchMode=yes -o ConnectTimeout=8 rorqual 'module load StdEnv/2023 gcc/12.3 r/4.4.0 >/dev/null 2>&1; command -v Rscript; Rscript --version 2>&1'`:
+  passed; R 4.4.0 was available from the DRAC module stack.
+- Stale scan for the superseded Rorqual job id across the count-intercept
+  cluster sidecar, validator, focused test, dashboard README, after-task, and
+  check-log surfaces: no matches before this smoke-contract section was added.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"));
+  cat("parse_ok\n")'`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 4
+  Gaussian low-q mu-intercept dry-run rows, and 4 Gaussian low-q mu-intercept
+  smoke-contract rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7587 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Dashboard JavaScript parse check with `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+- Served dashboard refresh: stopped a stale local `python3 -m http.server
+  8765 --directory /tmp/drm-dashboard` process that was returning empty
+  replies, relaunched the detached `drmtmb-mission-control` server, and
+  verified `http://127.0.0.1:8765/version.txt` returned `r122`,
+  `structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv` served 5
+  lines including the header, and `/` contained `Low-q mu smoke`, the smoke
+  contract TSV fetch path, and build `r122`.
+- Harmful-phrase scan for `n=5 coverage evidence`, `smoke coverage evidence`,
+  `smoke passed coverage`, `ready for DRAC`, `promoted to inference_ready`, and
+  `promoted to supported` across the dashboard, check log, and after-task
+  directory: passed with no misleading smoke-promotion hits.
+- `git diff --check`: passed after the smoke-contract close-out text landed.
+
+## 2026-06-29: Q-Series count-intercept Rorqual recovery reproduction
+
+Goal:
+
+- Preserve the Rorqual primary-cluster reproduction for all ten non-Gaussian
+  Poisson/NB2 q1 count `mu` count-intercept and `phylo_interaction()` recovery
+  rows as row-level evidence in the Q-Series widget.
+- Keep recovery, fit stability, interval status, and coverage status separate:
+  this slice must not promote non-Gaussian intervals, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, bridge support, or public
+  support.
+
+Result:
+
+- Added `tools/summarize-structured-re-count-intercept-cluster-recovery.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-cluster-recovery-results.tsv`.
+- Fetched and wired the completed Rorqual artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-rorqual/`;
+  the source job was Rorqual SLURM job `14918220`.
+- The cluster sidecar preserves all ten reproduced rows: six
+  `cluster_confirmed_recovery_only` rows and four original-grid
+  `cluster_recovery_caveat` rows.
+- The stronger-denominator top-up sidecar still supersedes the phylo Poisson,
+  phylo NB2, and spatial NB2 count-intercept caveats for widget row state. The
+  retained count-intercept cluster caveat is
+  `qseries_phylo_interaction_nbinom2_q1_mu` with 5/80 boundary-warning rows.
+- After top-up precedence, the non-Gaussian recovery rollup records 18 rows:
+  16 `cluster_confirmed_recovery_only` and two
+  `cluster_recovery_caveat` rows.
+- The dashboard build is `r121`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. Non-Gaussian linked rows remain
+  `interval_status = unsupported` and `coverage_status = planned`.
+- The sidecar is provenance for recovery-only point-estimation evidence. It
+  does not claim intervals, coverage, `inference_ready`, `supported`, REML,
+  AI-REML, q2/q4 count covariance, high-q readiness, bridge support,
+  structured count sigma, zero-inflation, labelled/multiple count slopes,
+  count scale routes, non-Gaussian intervals, or public support.
+- Totoro/FIIA remain smoke/rehearsal hosts. Nibi/Rorqual/DRAC remain the
+  durable campaign hosts and should be used only for row-specific campaigns
+  with a frozen denominator and artifact plan.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-count-intercept-cluster-recovery.R
+  --artifact_dir=docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-rorqual/results/count-intercept-recovery-rorqual/artifacts
+  --output=docs/dev-log/dashboard/structured-re-count-intercept-cluster-recovery-results.tsv
+  --evidence_url=docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-rorqual
+  --cluster_job_id=14918220 --expected_rows=10`: passed; wrote ten rows.
+- Stale scan for the old Rorqual job id and obsolete seven-row sidecar
+  wording across dashboard, after-task, focused-test, validator, and
+  summarizer surfaces: no matches after the final repair.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-count-intercept-cluster-recovery.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"));
+  cat("parse_ok\n")'`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 37
+  structured RE non-Gaussian status-audit rows, 18 structured RE
+  non-Gaussian recovery-rollup rows, and 10 structured RE count-intercept
+  cluster recovery-results rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7523 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-count-intercept-cluster-recovery.md')"`:
+  passed with `after-task structure check passed`.
+- `env DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765
+  sh tools/start-mission-control.sh --background`: passed the wrapper
+  validation and refreshed `/tmp/drm-dashboard`, but the `http.server`
+  background process was reaped in this tool environment after startup.
+- `python3 -m http.server 8765 --bind 127.0.0.1 --directory
+  /tmp/drm-dashboard`: launched as a temporary foreground server for served
+  checks and was stopped cleanly afterwards.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt`
+  returned `r121`; `structured-re-count-intercept-cluster-recovery-results.tsv`
+  served 11 lines including the header; the sidecar served 10 `14918220`
+  claim-boundary matches; and `/` contained `Q-Series Support Cells`,
+  `Recovery`, `structured-re-count-intercept-cluster-recovery-results`,
+  `cluster`, and build `r121` references.
+- `screen -dmS drmtmb-mission-control python3 -m http.server 8765 --bind
+  127.0.0.1 --directory /tmp/drm-dashboard`: launched a detached live widget
+  server for the in-app browser. Follow-up served checks returned `r121`, 11
+  sidecar lines including the header, and 10 `14918220` matches.
+- The final validation intentionally used parse/`py_compile` rather than
+  re-running `air format`, because a formatter pass in this slice repeatedly
+  brought back a stale seven-row/job-id draft for the count-intercept cluster
+  sidecar contract.
+
+## 2026-06-29: Q-Series Gaussian low-q q1 mu-intercept dry-run
+
+Goal:
+
+- Run the first local screen for the four Gaussian low-q q1 `mu` intercept rows
+  selected by `structured-re-gaussian-lowq-row-selection.tsv`, without using
+  DRAC or promoting any row.
+
+Result:
+
+- Added `tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-dry-run.tsv`
+  and mirrored raw artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-dry-run-local/`.
+- The runner uses true intercept-only Gaussian structured-RE DGPs for phylo,
+  spatial, animal, and relmat q1 `mu` intercept rows.
+- All four provider rows passed the local n=2 screen: 2/2 fits, 2/2
+  convergence, 2/2 `pdHess`, and 2/2 usable default Wald intervals per
+  provider.
+- The mission-control widget now renders a "Low-q mu dry" card/table and the
+  dashboard build is `r119`, with the dry-run table explicitly marked as an
+  n=2 screen rather than coverage evidence.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked q1 `mu` intercept rows
+  remain `point_fit/planned/planned`, not `inference_ready` or `supported`.
+- n=2 is not coverage evidence. At the time of this dry-run entry,
+  Fisher/Rose still needed to accept the dry-run contract before a tiny
+  Totoro/FIIA smoke. That gate was later superseded by the
+  `structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv` review; the
+  current q1 `mu` intercept gate is reviewed but host-held, and
+  Nibi/Rorqual/DRAC remain blocked until that smoke passes.
+- Sigma, matched `mu+sigma`, q2, q4/q8, direct-SD, `phylo_interaction()`,
+  non-Gaussian intervals, REML, AI-REML, bridge support, `supported`, and
+  public support remain unpromoted.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse("tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R"); cat("parse_ok\n")'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R --n-rep=2
+  --overwrite=true`: passed; wrote 4 summary rows and 8 replicate rows.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check: passed with `dashboard_js_parse_ok`.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 23
+  Gaussian low-q row-selection rows, and 4 Gaussian low-q mu-intercept dry-run
+  rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7445 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed after a fresh
+  `mission_control_ok`; the dashboard was already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r119`, `structured-re-gaussian-lowq-mu-intercept-dry-run.tsv` served 5
+  lines including the header, `/` contained `Low-q mu dry`, `/` contained the
+  dry-run TSV fetch path, `/` contained `gaussianLowQMuInterceptDryRun`, and
+  the rendered dry-run table marks the values as `n=2 screen only` / not
+  coverage evidence.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-mu-intercept-dry-run.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `find tools -type d -name __pycache__ -print`: returned no paths after
+  removing the `tools/__pycache__` directory created by `py_compile`.
+
+## 2026-06-29: Q-Series count recovery hygiene sync
+
+Goal:
+
+- Sync the current Q-Series design narrative with the already-banked
+  non-Gaussian count recovery sidecars without promoting any row.
+
+Result:
+
+- Updated `docs/design/218-structured-q-series-completion-map.md` so the count
+  one-slope paragraph no longer says calibrated recovery remains
+  `designed_not_run` after the local 80-rep recovery grid was banked.
+- Added
+  `docs/dev-log/after-task/2026-06-29-q-series-count-recovery-hygiene-sync.md`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The eight ordinary Poisson/NB2 q1
+  structured `mu` one-slope rows remain recovery-only; linked interval status
+  stays unsupported and coverage status stays planned.
+- The fixed-covariance spatial NB2 one-slope row keeps its 2/80 `pdHess =
+  FALSE` Hessian caveat. It is not a clean-Hessian, interval, coverage,
+  `inference_ready`, `supported`, bridge, REML, AI-REML, structured count
+  scale, q2/q4 count covariance, zero-inflated, or public-support claim.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 18
+  structured RE non-Gaussian recovery-rollup rows, and 8 structured RE
+  count-slope recovery-results rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7199 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `git diff --check`: passed.
+- ``rg -n 'calibrated recovery remains `designed_not_run`|count.*recovery.*designed_not_run|native_fixture_banked.*designed_not_run'
+  docs/design/218-structured-q-series-completion-map.md
+  docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md vignettes R
+  tests``: no matches in current status surfaces.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-count-recovery-hygiene-sync.md')"`:
+  passed after the required section names were synced.
+
+## 2026-06-29: Q-Series q4 animal bounded-correlation diagnostic
+
+Goal:
+
+- Run the smallest q4 animal all-four hard-seed continuation experiment after
+  the start/map diagnostic localized the blocker to the free q4 correlation
+  block.
+
+Result:
+
+- Added
+  `tools/run-structured-re-q4-animal-bounded-correlation-diagnostic.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-animal-bounded-correlation-diagnostic.tsv`
+  and the matching artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-bounded-correlation-local/`.
+- The runner compares the zero-correlation map control, the current unbounded
+  staged fit, and optimizer-layer bounded continuations with
+  `theta = cap * tanh(eta)` at caps `0.50`, `0.80`, and `0.95`.
+
+Signal:
+
+- Zero-correlation controls passed on all three hard seeds.
+- The current unbounded staged fit remained gradient/Hessian blocked on all
+  three hard seeds.
+- All nine bounded rows had `pdHess = TRUE`, but all nine saturated their caps
+  and retained large ordinary fixed-gradient signals.
+- This is boundary-seeking q4 correlation geometry evidence, not q4 admission
+  evidence. Do not spend DRAC/Totoro on q4 coverage from this result.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked animal q4 all-four
+  one-slope cell remains `interval_status = diagnostic_only` and
+  `coverage_status = planned`; the bounded-correlation sidecar records
+  `coverage_status = not_evaluable`.
+- No q4 coverage, `inference_ready`, `supported`, q8 inference, q4 REML, REML,
+  AI-REML, production parameterization change, derived-correlation interval,
+  broad bridge, or public-support claim is made.
+
+Validation so far:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q4-animal-bounded-correlation-diagnostic.R"));
+  cat("bounded_runner_parse_ok\n")'`: passed.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-q4-animal-bounded-correlation-diagnostic.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-bounded-correlation-diagnostic.R
+  --overwrite=true --write-dashboard=true`: passed and wrote 15 rows.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-q4-animal-bounded-correlation-diagnostic.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- Dashboard JavaScript parse check via `node`: `dashboard_js_ok`.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 15 structured RE q4 animal
+  bounded-correlation diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7199 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-bounded-correlation-diagnostic.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed after a fresh
+  `mission_control_ok`; the dashboard was already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r112`; `index.html` contained the
+  `q4AnimalBoundedCorrelationDiagnostic`, `Animal q4 bounded`, `q4 bounded`,
+  `structured-re-q4-animal-bounded-correlation-diagnostic`, and
+  `bounded-correlation diagnostic` markers; the bounded-correlation TSV served
+  16 lines including the header.
+
+## 2026-06-29: Q-Series q4 runner help and stability refresh
+
+Goal:
+
+- Make q4 runner orientation safe before DRAC use and reconcile the q4
+  all-four one-slope stability sidecar with current-source diagnostic evidence.
+
+Result:
+
+- Added no-compute `--help` / `-h` exits to:
+  - `tools/run-structured-re-q4-location-slope-interval-smoke.R`;
+  - `tools/run-structured-re-q4-slope-interval-stability-probe.R`;
+  - `tools/run-structured-re-q4-location-coverage-grid.R`.
+- Refreshed the current-source q4 all-four one-slope stability sidecar after
+  discovering that `--help` had previously executed the fixed probe.
+- Updated the validator and focused R dashboard contract so q4 all-four
+  stability is no longer forced into the stale "all provider-variant fits have
+  `pdHess = FALSE`" shape.
+- Updated dashboard README and design-map prose so current q4 evidence is
+  mixed diagnostic-only evidence: non-animal providers remain Hessian-blocked,
+  while animal has finite Wald intervals and mixed profile status.
+- Bumped the dashboard build marker to `r105`.
+
+Evidence:
+
+- Current-source q4 all-four stability probe:
+  - `phylo()`, fixed-covariance `spatial()`, and K-matrix `relmat()` remain
+    `pdHess = FALSE` in both `strong` and `more_levels` variants, across all
+    48 non-animal direct-SD endpoint rows.
+  - A-matrix `animal()` has `pdHess = TRUE` for all 16 direct-SD endpoint rows.
+  - Animal Wald intervals are finite for 16/16 endpoints.
+  - Animal profile intervals are finite for 9/16 endpoints and nonfinite for
+    7/16 endpoints.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-location-slope-interval-smoke.R --help`: now
+  prints usage and exits 0 without fitting.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-slope-interval-stability-probe.R --help`: now
+  prints usage and exits 0 without fitting.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-q4-location-coverage-grid.R --help`: now prints
+  usage, options, the 16 direct-SD shard map, and exits 0 without fitting.
+- `air format tools/run-structured-re-q4-location-slope-interval-smoke.R
+  tools/run-structured-re-q4-slope-interval-stability-probe.R
+  tools/run-structured-re-q4-location-coverage-grid.R`: passed.
+- `air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`, including 64 structured RE q4 slope
+  interval-stability probe rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 6819 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-runner-help-and-stability-refresh.md')"`:
+  passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `git diff --check`: passed.
+
+## 2026-06-29: Q-Series animal q4 all-four admission probe
+
+Goal:
+
+- Add and run a replicated animal q4 all-four direct-SD admission smoke before
+  any q4 coverage-grid or DRAC spend.
+
+Result:
+
+- Added `tools/run-structured-re-q4-animal-all-four-admission-probe.R`, an
+  animal-only replicated admission diagnostic for
+  `qseries_animal_q4_all_four_one_slope_planned`.
+- The runner uses the existing q4 all-four stability-probe helper prefix for
+  the DGP, formula, target map, and Wald/profile interval call shape, but writes
+  new replicate, fit-status, target-summary, seed-manifest, run-log,
+  `sessionInfo.txt`, and `git-sha.txt` artifacts.
+- Added dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-animal-all-four-admission-probe.tsv`
+  and wired it into the Q-Series widget as an animal q4 admission table and
+  row-level evidence note.
+- Updated `docs/dev-log/dashboard/README.md` and added after-task report
+  `docs/dev-log/after-task/2026-06-29-q-series-q4-animal-all-four-admission-probe.md`.
+
+Boundary:
+
+- This promotes no Q-Series row. It is animal q4 all-four direct-SD
+  admission-smoke evidence only, with coverage `not_evaluable` and
+  `interval_claim_status = diagnostic_only`.
+- It does not claim q4 interval reliability, q4 coverage, `inference_ready`,
+  `supported`, q8 support, REML, AI-REML, bridge support, derived-correlation
+  intervals, or public support.
+- Nibi/Rorqual/Totoro should not be used for q4 coverage from this result. The
+  next compute, if requested, is a bounded 16-32 replicate admission tranche,
+  not a coverage grid.
+
+Observed smoke:
+
+- Command:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file tools/run-structured-re-q4-animal-all-four-admission-probe.R --n-rep=2 --seed-start=910001 --variant=more_levels --output-dir=docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-all-four-admission-probe-local --write-dashboard=true --overwrite=true`
+- Git SHA recorded in the artifact: `77b634eda91b0173926557ce5c4a3d20853fb215`.
+- Fit status: 2/2 fits converged, both through fallback BFGS; one fit had
+  `pdHess = TRUE`, one had `pdHess = FALSE`.
+- Retained target denominator: 16 direct-SD target-replicate rows.
+- Interval finiteness: 8/16 finite Wald rows and 8/16 finite endpoint-profile
+  rows; the `pdHess = FALSE` replicate is retained as `not_run_pdhess_false`.
+- Dashboard sidecar verdict:
+  `smoke_only_insufficient_denominator`, with `pdhess_rate = 0.500`,
+  `profile_finite_rate = 0.500`, and `coverage_status = not_evaluable`.
+
+Cluster admission dispatch:
+
+- Submitted Nibi SLURM job `16922989` from campaign root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed`
+  using source snapshot
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed/source`.
+- The job runs
+  `tools/run-structured-re-q4-animal-all-four-admission-probe.R` with
+  `--n-rep=16`, `--seed-start=910101`, `--variant=more_levels`,
+  `--methods=wald,profile`, `--profile-max-eval=60`,
+  `--write-dashboard=false`, and `--overwrite=true`.
+- Dispatch metadata includes `local-git-status.txt`, `local-diff-stat.txt`,
+  `local-untracked-files.txt`, and `local-head-sha.txt` because the source
+  snapshot includes current uncommitted Q-Series work.
+- Job `16922989` failed fast before fitting because the Nibi
+  `r-bundle-bioconductor/3.21` module did not provide `devtools`, and the q4
+  animal runner inherited `devtools::load_all()` from the q4 stability-probe
+  prefix. `sacct` reported `FAILED` / `1:0` after `00:00:35`; no result
+  artifacts were written.
+- Fixed the runner to support `--attempt-temp-install` and `--no-load-all`,
+  filter the inherited `devtools::load_all()` line out of the sourced q4
+  stability prefix, and record `load_status` in the run log. The local
+  no-`devtools` route passed a one-replicate Wald-only smoke:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file tools/run-structured-re-q4-animal-all-four-admission-probe.R --n-rep=1 --seed-start=910201 --variant=more_levels --methods=wald --output-dir=/tmp/drmtmb-q4-animal-admission-no-load-all --write-dashboard=false --overwrite=true --attempt-temp-install --no-load-all`.
+- Submitted corrected Nibi SLURM job `16923114` from campaign root
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed-noload`
+  using source snapshot
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q4-animal-admission-77b634ed-noload/source`.
+- Job `16923114` completed on node `c479` with `sacct` state `COMPLETED`,
+  exit `0:0`, elapsed `00:08:06`, and batch MaxRSS about 4.6 GB.
+- Fetched the result and metadata into
+  `docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-all-four-admission-probe-nibi/`.
+- Nibi admission result: 16/16 fits converged with no fit errors, but only
+  2/16 fits had `pdHess = TRUE`. The retained interval artifact has 256
+  method-target-replicate rows: 112 Wald rows and 112 profile rows retained as
+  `not_run_pdhess_false`, 16 finite Wald rows, 14 finite profile rows, and 2
+  nonfinite profile rows. The dashboard sidecar is now
+  `pdhess_admission_blocked`, with `pdhess_rate = 0.125`,
+  `wald_finite_rate = 0.125`, `profile_finite_rate = 0.109`, and
+  `coverage_status = not_evaluable`.
+- This is a bounded admission tranche, not q4 coverage. It blocks q4 animal
+  all-four admission and points to Gauss/Noether numerical geometry plus
+  Fisher/Rose denominator review before any larger q4 DRAC grid.
+
+Validation so far:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-structured-re-q4-animal-all-four-admission-probe.R --help`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse("tools/run-structured-re-q4-animal-all-four-admission-probe.R"); cat("parse_ok\n")'`: passed.
+- `air format tools/run-structured-re-q4-animal-all-four-admission-probe.R`: passed.
+- `air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Plumbing check with `--out-dir=/tmp/drmtmb-q4-animal-admission-plumbing`: passed and recorded the git SHA despite the space in `Github Local`.
+- `node -e 'const fs=require("fs"); const html=fs.readFileSync("docs/dev-log/dashboard/index.html","utf8"); const m=html.match(/<script>([\s\S]*)<\/script>/); if(!m) throw new Error("no script"); new Function(m[1]); console.log("dashboard_js_ok");'`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-all-four-admission-probe.md')"`: passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed with `mission_control_ok`, including 104 Q-Series support cells, 64 structured RE q4 slope interval-stability probe rows, and 1 structured RE q4 animal all-four admission probe row. The validator now requires the animal q4 sidecar, raw Nibi source artifact, exact 2/16 `pdHess` split, 16 finite Wald rows, 14 finite profile rows, 2 nonfinite profile rows, 224 retained `not_run_pdhess_false` rows, coverage `not_evaluable`, no inference/status promotion wording, and the linked Q-Series row's diagnostic/fixture-only status.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`: passed; dashboard already listening at `http://127.0.0.1:8765/`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: returned `r106`.
+- `curl -fsS http://127.0.0.1:8765/structured-re-q4-animal-all-four-admission-probe.tsv`: served the new animal q4 admission sidecar.
+- In-app browser verification at `http://127.0.0.1:8765/`: dashboard build
+  `r106` loaded and the Q-Series widget text includes `Animal q4 admission`,
+  `smoke_only_insufficient_denominator`, and `1/2 pdHess`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`: 6819 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- After adding the focused sidecar contract to `tests/testthat/test-structured-re-conversion-contracts.R`, `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`: 6876 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- After replacing the dashboard sidecar with the Nibi 16-replicate admission
+  blocker and bumping the widget build to `r107`, `R_PROFILE_USER=/dev/null
+  NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+  MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6878
+  PASS / 0 FAIL / 0 WARN / 0 SKIP.
+
+Boundary:
+
+- This is q4 diagnostic/admission evidence only. It does not promote q4
+  interval reliability, q4 coverage, q8, REML, AI-REML, bridge support,
+  `supported`, or public support.
+- No q4 coverage grid should be submitted from this result alone. The animal
+  q4 signal needs replicated deterministic fixtures and denominator accounting
+  before any admission or coverage-grid decision.
+
+## 2026-06-29: Q-Series spatial sigma boundary diagnostic on Nibi
+
+Goal:
+
+- Confirm whether the current spatial q1 `sigma:(Intercept)` finite-Wald
+  blocker is still present under current source, and make the answer visible
+  in mission control without promoting `qseries_spatial_q1_sigma_one_slope`.
+
+Result:
+
+- Used Nibi as the primary DRAC host for a current-source 475-replicate
+  diagnostic; Rorqual remains available for confirmation/overflow, while
+  Totoro was not used because the current batch key path fails authentication.
+- Added `tools/slurm/spatial-sigma-boundary-nibi.sbatch` and
+  `tools/summarize-structured-re-spatial-sigma-boundary-diagnostic.R`.
+- Banked the fetched Nibi artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-spatial-sigma-boundary-nibi/`.
+- Added
+  `docs/dev-log/dashboard/structured-re-spatial-sigma-boundary-diagnostic.tsv`,
+  a one-row sidecar for `qseries_spatial_q1_sigma_one_slope`.
+- Updated the Q-Series widget to render a "Spatial sigma diag" card/table,
+  link the affected 104-row support-cell row to the diagnostic, and keep
+  stability, inference readiness, interval status, and coverage status
+  separate.
+- Bumped the dashboard build to `r104`.
+
+Evidence:
+
+- Local current-source smoke for shard 3, `n_rep = 20`, seeds starting
+  742001, `bootstrap = 0`: 20/20 fits, 18/20 finite Wald intervals, 16/20
+  finite profile intervals.
+- Nibi job `16920961` completed with exit code `0:0`, elapsed `00:10:36`, and
+  MaxRSS about 3.65 GB.
+- Nibi diagnostic, package SHA `77b634eda91b0173926557ce5c4a3d20853fb215`:
+  475/475 fits converged with `pdHess = TRUE`; 443/475 Wald intervals were
+  finite; 32 estimates were boundary-small; finite-Wald coverage was
+  438/443 = 0.9887; retained Wald coverage was 438/475 = 0.9221; profile
+  coverage was 423/475 = 0.8905, with lower/upper misses 5/47.
+- `air format tools/validate-mission-control.py tests/testthat/test-structured-re-conversion-contracts.R tools/summarize-structured-re-spatial-sigma-boundary-diagnostic.R`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `bash -n tools/slurm/spatial-sigma-boundary-nibi.sbatch`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`, including 1 structured RE spatial sigma
+  boundary-diagnostic row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 6803 PASS / 0 FAIL / 0 WARN /
+  0 SKIP after fixing the test's SLURM-id type and repo-relative artifact
+  path.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-spatial-sigma-boundary-diagnostic.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed after normalizing
+  permissions on the fetched Nibi artifact directory.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: `r104`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-spatial-sigma-boundary-diagnostic.tsv`:
+  served the diagnostic sidecar.
+- `curl -fsS http://127.0.0.1:8765/index.html | rg
+  'r104|Spatial sigma diag|structured-re-spatial-sigma-boundary-diagnostic|spatialSigmaBoundaryDiagnostic'`:
+  found all markers.
+- `curl -fsS
+  http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-29-spatial-sigma-boundary-nibi/03-spatial-sigma_intercept-replicates.tsv`:
+  served the linked replicate artifact.
+
+Boundary:
+
+- This is blocker evidence only. `qseries_spatial_q1_sigma_one_slope` remains
+  `interval_status = planned`, `coverage_status = planned`, and not
+  `supported`.
+- The diagnostic does not claim spatial sigma `inference_ready`, profile
+  rescue, range-estimating spatial support, matched `mu+sigma`, q2, q4/q8,
+  non-Gaussian support, REML, AI-REML, bridge support, or public support.
+- More top-up alone is not the next efficient action while the nonfinite Wald
+  intervals are boundary-small; the next sigma slice needs a sigma-specific
+  interval route or estimator/DGP adjustment.
+
+## 2026-06-29: Q-Series Gaussian q1 mu-slope SR475 top-up
+
+Goal:
+
+- Top up the Gaussian q1 `mu` one-slope phylo, relmat, and spatial rows from
+  SR150 to an SR475 retained hybrid denominator, then decide whether the rows
+  are promotable or still blocked.
+
+Result:
+
+- Ran the generated-seed top-up for replicate indices 151-475 with animal
+  excluded.
+- Ran endpoint-profile repair on the 27 top-up boundary/non-Wald rows.
+- Added `tools/summarize-structured-re-gaussian-mu-slope-hybrid-sr475.R`.
+- Wrote
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-hybrid-sr475-audit.tsv`
+  and the six-row target summary under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-sr475-local/`.
+- Updated the widget to display phylo, relmat, and spatial as
+  `mcse_met_upper_tail_blocked`.
+- Bumped the dashboard build to `r95`.
+
+Evidence:
+
+- Top-up pregrid: 325 generated seeds, 975 fit-status rows, 1950 retained
+  target-replicate rows, six target summaries, and three provider summaries.
+  All 975 fits converged with `pdHess = TRUE`.
+- Top-up boundary profiles: 27 boundary/non-Wald rows profiled; phylo 18/18
+  finite with 5 covered and 13 upper misses, relmat 2/2 finite with 0 covered
+  and 2 upper misses, spatial 6/7 finite with 0 covered, 6 upper misses, and
+  one profile failure.
+- Combined SR475 hybrid audit: phylo 913/950 covered, MCSE 0.006277, misses
+  5/31; relmat 926/950 covered, MCSE 0.005091, misses 3/20; spatial 912/950
+  covered, MCSE 0.006358, misses 15/22.
+- All six target summaries meet MCSE `<= 0.01`; worst target is phylo `mu:x`
+  with coverage 0.9537, MCSE 0.009643, and lower/upper misses 1/20.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok` with three Gaussian mu-slope hybrid-SR475 audit rows.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+
+Boundary:
+
+- This is MCSE-qualified negative/routing evidence, not a status promotion. The
+  support-cell TSV remains `fit_status = point_fit`, `interval_status =
+  planned`, and `coverage_status = planned` for the three SR475 rows. No
+  `inference_ready`, `supported`, q2/q4/q8, sigma, non-Gaussian, REML,
+  AI-REML, bridge support, or public support is promoted.
+
+## 2026-06-29: Q-Series Gaussian q1 mu-slope top-up runner
+
+Goal:
+
+- Make the phylo, relmat, and spatial Gaussian q1 `mu` one-slope top-up lane
+  executable from generated non-overlapping seeds while keeping animal excluded
+  and preventing smoke runs from overwriting the dashboard sidecar.
+
+Result:
+
+- Extended `tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R` with
+  `--seed-start`, `--seed-base`, `--providers`, `--write-dashboard`, copied
+  seed manifests, and a help path.
+- Extended
+  `tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R`
+  with `--source-replicates` and a help path so future top-up artifacts can use
+  the same endpoint-profile boundary repair channel.
+- Wrote a one-replicate top-up smoke artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/`.
+
+Evidence:
+
+- `air format tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R`:
+  passed.
+- `air format
+  tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R`:
+  passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R --help`:
+  passed and printed the new runner options.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R
+  --help`: passed and printed the new source-override options.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R
+  --n-rep=1 --seed-start=151 --providers=phylo,relmat,spatial
+  --output-dir=docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local
+  --write-dashboard=false --overwrite=true`: passed, writing one generated
+  seed, three fit rows, six retained target-replicate rows, six target
+  summaries, three provider summaries, `sessionInfo.txt`, `git-sha.txt`, and a
+  run log with `dashboard_results = not_written`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R
+  --source-replicates=docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/structured-re-gaussian-mu-slope-coverage-pregrid-replicates.tsv
+  --max-rows=1 --output-dir=/tmp/drmtmb-gaussian-mu-slope-boundary-source-smoke
+  --write-dashboard=false --overwrite=true`: passed, writing one diagnostic
+  detail row and one summary row.
+
+Boundary:
+
+- This is executable-runner evidence only. It does not promote
+  `inference_ready`, `supported`, q2/q4/q8, sigma, non-Gaussian, REML,
+  AI-REML, bridge support, or public support; the support-cell TSV is unchanged.
+
+## 2026-06-29: Q-Series Gaussian q1 mu-slope hybrid boundary audit
+
+Goal:
+
+- Overlay the repaired endpoint-profile boundary rows onto the original SR150
+  Gaussian q1 `mu` slope pregrid denominator and update the widget routing
+  without promoting interval or coverage status.
+
+Result:
+
+- Added
+  `tools/summarize-structured-re-gaussian-mu-slope-hybrid-boundary.R`.
+- Wrote
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-hybrid-boundary-audit.tsv`.
+- Updated the widget to load the hybrid sidecar as the current q1 `mu` slope
+  admission overlay. Animal remains `mu_slope_pregrid_blocked`; phylo, relmat,
+  and spatial move to `topup_required`.
+- Bumped the mission-control dashboard build to `r94`.
+
+Evidence:
+
+- Hybrid audit split: animal 132/150 covered, 147/150 usable intervals,
+  coverage 0.880, lower/upper misses 0/15, hard blocked; phylo 284/300
+  covered, 299/300 usable, coverage 0.947, misses 3/12, top-up candidate;
+  relmat 289/300 covered, 299/300 usable, coverage 0.963, misses 2/8, top-up
+  candidate; spatial 286/300 covered, 300/300 usable, coverage 0.953, misses
+  6/8, top-up candidate.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-mu-slope-hybrid-boundary.R
+  --overwrite=true`: passed, writing four dashboard rows.
+- `air format
+  tools/summarize-structured-re-gaussian-mu-slope-hybrid-boundary.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok` with four Gaussian mu-slope hybrid-boundary audit rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6353 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `git diff --check`: passed.
+
+## 2026-06-29: Q-Series q2 animal g32 correction and fixed-8 holdout
+
+Goal:
+
+- Correct the animal q2 g=32 smoke overclaim, guard the runner against fixed
+  pedigree recycling, and bank a separate fixed-8 animal correlation holdout
+  diagnostic without promoting any Q-Series row.
+
+Result:
+
+- Updated `tools/run-structured-re-q2-slope-coverage-grid.R` so the generated
+  `x` vector uses the actual provider label count after provider-specific
+  covariance construction; animal therefore stays fixed at the 8-pedigree
+  design even if `GSWEEP_N_GROUPS` is set.
+- Added the explicit runner route `--holdout=animal_cor` for the animal
+  `mu1:x+mu2:x` correlation diagnostic while leaving the standard 10-shard
+  map unchanged.
+- Ran the fixed-8 animal correlation holdout with `n_rep=5`, `seed_start=733001`,
+  `n_each=20`, and `bootstrap=0`; result was 5/5 fits, 5/5 convergence,
+  5/5 `pdHess`, 0 boundary flags, 5/5 finite Wald intervals, and 5/5 finite
+  endpoint-profile intervals.
+- Added `structured-re-q2-animal-correlation-holdout-diagnostic.tsv` as a
+  one-row fixed-8 smoke sidecar and updated
+  `structured-re-q2-slope-g32-profile-wald-smoke.tsv` so the animal rows are
+  zero-count invalidated/not-applicable guard rows.
+- Updated the Q-Series widget to show the fixed-8 animal holdout mini-table,
+  added row-level links/notes, and bumped the dashboard build to `r99`.
+
+Boundary:
+
+- This promotes exactly no q-series row. Animal q2 remains
+  `interval_status = planned` and `coverage_status = planned`; no animal g=32,
+  coverage, MCSE, tail-balance, `inference_ready`, `supported`, q4/q8, REML,
+  AI-REML, bridge, or public-support claim is made.
+
+Validation:
+
+- Fixed-8 holdout command: `R_PROFILE_USER=/dev/null NOT_CRAN=true
+  OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1
+  Rscript --no-init-file tools/run-structured-re-q2-slope-coverage-grid.R
+  --holdout=animal_cor --n_rep=5 --seed_start=733001 --n_each=20
+  --bootstrap=0
+  --out_dir=docs/dev-log/simulation-artifacts/2026-06-29-q2-animal-correlation-holdout-diagnostic-local`:
+  passed with 5 finite Wald and 5 finite endpoint-profile intervals.
+- `air format tools/run-structured-re-q2-slope-coverage-grid.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 6 q2 slope g32 profile/Wald smoke rows
+  and 1 q2 animal correlation holdout diagnostic row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  6633 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- Stale wording scan for the invalid animal g=32 claim returned no matches:
+  `rg -n 'five executed target[s]|five executable local g=3[2]|animal g=32 smoke
+  as finit[e]|g32_smoke_animal_sd_target[s]|correlation_holdout_not_ru[n]|holdout_not_run_profile_failure_not_reconcile[d]|animal.*finite g=3[2]'
+  docs/dev-log/dashboard docs/dev-log/after-task docs/dev-log/check-log.md
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-animal-g32-correction-holdout.md')"`:
+  after-task structure check passed.
+
+## 2026-06-29: Q-Series closure triage ledger
+
+Goal:
+
+- Add a compact, validator-owned closure ledger for the full 104-row Q-Series
+  board so the widget shows what is evidence-complete, recovery-only,
+  intentionally rejected, blocked, diagnostic-only, or still planned.
+
+Result:
+
+- Added `structured-re-q-series-closure-triage.tsv`, a 16-row board-facing
+  triage table whose `row_count` values sum to the 104
+  `structured-re-q-series-support-cells.tsv` rows.
+- Updated the Q-Series widget to render the closure table immediately below
+  the summary cards and above the q2/high-q diagnostic sidecars; dashboard
+  build is `r103`.
+- Updated mission-control validation and the focused R dashboard contract test
+  so the triage counts, example cells, closure buckets, and 104-row total are
+  checked.
+
+Current closure buckets:
+
+- 5 `inference_ready` exact rows.
+- 3 Gaussian baseline comparator rows.
+- 18 non-Gaussian recovery-only rows.
+- 21 intentional rejection rows: 18 non-Gaussian plus 3 Gaussian low-q
+  rejection-contract rows.
+- 23 Gaussian low-q point/fixture gate rows.
+- 2 Gaussian low-q diagnostic rows.
+- 1 q1 mu-slope pregrid-blocked row.
+- 3 q1 mu-slope MCSE-met upper-tail blocked rows.
+- 2 admission-blocked rows.
+- 1 calibration-required row.
+- 8 high-q gate-required rows, 3 high-q diagnostic rows, 8 high-q planned rows,
+  and 5 q8 stability-blocked rows.
+- 1 non-Gaussian planned design row.
+
+Boundary:
+
+- This is closure triage only. It does not promote any support cell,
+  `interval_status`, `coverage_status`, `inference_ready`, `supported`, q4/q8,
+  REML, AI-REML, non-Gaussian interval support, or public support.
+
+Validation:
+
+- `air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 16 Q-Series closure-triage rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  6771 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-closure-triage-ledger.md')"`:
+  passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`, after a fresh `mission_control_ok`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: `r103`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-q-series-closure-triage.tsv`: served
+  the closure triage TSV.
+- `curl -fsS http://127.0.0.1:8765/index.html | rg
+  'r103|Closure bucket|structured-re-q-series-closure-triage|qSeriesClosureTriage'`:
+  found all widget markers.
+
+## 2026-06-29: Q-Series q2 animal correlation miss diagnostic
+
+Goal:
+
+- Bank the animal q2 fixed-8 SR150 correlation miss taxonomy as blocker
+  evidence, without promoting the linked Q-Series row.
+
+Result:
+
+- Added `structured-re-q2-animal-correlation-miss-diagnostic.tsv`, a one-row
+  blocker sidecar derived from the SR150 replicate TSV.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-29-q2-animal-correlation-miss-diagnostic-local/animal-cor-miss-rows.tsv`,
+  a 19-row miss-or-boundary ledger.
+- Updated `structured-re-q2-slope-row-gate-synthesis.tsv` so animal q2 points
+  at the miss diagnostic and asks Fisher/Rose to choose a skew-aware
+  correlation-interval or animal-specific calibration route before any top-up
+  or status edit.
+- Updated the Q-Series widget to show an "Animal q2 miss diag" summary card,
+  a compact miss table, and an `animal miss` evidence link; dashboard build is
+  `r101`.
+
+Diagnostic result:
+
+- Wald/profile intervals remained finite for 150/150 replicates, but the
+  retained denominator still undercovered: Wald 0.8800 and endpoint profile
+  0.8867.
+- The miss taxonomy has 13 shared upper-tail misses, 4 shared lower-tail
+  misses, 1 Wald-only upper miss, and retained boundary/convergence seed
+  733197.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. Animal q2 remains
+  `interval_status = planned` and `coverage_status = planned`; no
+  `inference_ready`, `supported`, q4/q8, REML, AI-REML, bridge, or public
+  support claim is made.
+
+Validation:
+
+- `air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 1 q2 animal correlation miss diagnostic
+  row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  6762 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-animal-correlation-miss-diagnostic.md')"`:
+  passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`, after a fresh `mission_control_ok`.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: `r101`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-q2-animal-correlation-miss-diagnostic.tsv`:
+  served the one-row diagnostic sidecar.
+- `curl -fsS http://127.0.0.1:8765/index.html | rg
+  'r101|Animal q2 miss diag|structured-re-q2-animal-correlation-miss-diagnostic|animal miss'`:
+  found all widget markers.
+
+## 2026-06-29: Q-Series q2 animal correlation SR150 pregrid
+
+Goal:
+
+- Move animal q2 correlation from five-replicate fixed-8 smoke to a
+  retained-denominator SR150 pregrid without promoting the linked Q-Series row.
+
+Result:
+
+- Ran `tools/run-structured-re-q2-slope-coverage-grid.R --holdout=animal_cor`
+  locally with `n_rep=150`, `seed_start=733101`, `n_each=20`, `bootstrap=0`,
+  and `GSWEEP_N_GROUPS` unset.
+- Added `structured-re-q2-animal-correlation-pregrid-results.tsv`, a one-row
+  blocker sidecar for `qseries_animal_q2_mu1_mu2_one_slope`.
+- Updated `structured-re-q2-slope-row-gate-synthesis.tsv` so animal q2 now
+  records the fixed-8 correlation pregrid as measured and blocked, not missing.
+- Updated the Q-Series widget to show an "Animal q2 pregrid" mini-table near
+  the top and bumped the dashboard build to `r100`.
+
+Boundary:
+
+- This promotes exactly no q-series row. Animal q2 remains
+  `interval_status = planned` and `coverage_status = planned`; no coverage
+  readiness, interval readiness, `inference_ready`, `supported`, q4/q8, REML,
+  AI-REML, bridge, or public-support claim is made.
+
+Pregrid result:
+
+- 150/150 fits; 149/150 convergence; 150/150 `pdHess`; 1 retained
+  boundary/convergence flag at seed 733197.
+- Wald: 150/150 finite intervals, 132/150 covered, coverage 0.8800, MCSE
+  0.0265, lower/upper misses 4/14.
+- Endpoint profile: 150/150 finite intervals, 133/150 covered, coverage
+  0.8867, MCSE 0.0259, lower/upper misses 4/13.
+
+Validation:
+
+- Fixed-8 pregrid command: `R_PROFILE_USER=/dev/null NOT_CRAN=true
+  OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1
+  Rscript --no-init-file tools/run-structured-re-q2-slope-coverage-grid.R
+  --holdout=animal_cor --n_rep=150 --seed_start=733101 --n_each=20
+  --bootstrap=0
+  --out_dir=docs/dev-log/simulation-artifacts/2026-06-29-q2-animal-correlation-pregrid-local`:
+  completed.
+- `air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 1 q2 animal correlation pregrid result
+  row.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  6689 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background` plus
+  `curl -fsS http://127.0.0.1:8765/version.txt`: dashboard listening, served
+  build `r94`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-q-series-support-cells.tsv | wc -l`:
+  105 lines, meaning header plus 104 Q-Series rows.
+
+Boundary:
+
+- This is SR150 routing evidence only. It does not promote
+  `inference_ready`, `supported`, q2/q4/q8, sigma, non-Gaussian, REML,
+  AI-REML, bridge support, or public support; all linked support cells remain
+  `interval_status = planned` and `coverage_status = planned`.
+
+## 2026-06-29: Q-Series profile endpoint lower-boundary fix
+
+Goal:
+
+- Fix the scalar endpoint-profile path for positive SD targets whose lower
+  confidence endpoint should land on the zero boundary instead of failing after
+  an unstable first step near the ML boundary.
+
+Result:
+
+- Updated `R/profile.R` so positive-scale endpoint profiles cap absurd
+  curvature-derived initial steps and permit a lower-side zero endpoint for
+  `exp`-transformed targets when the likelihood endpoint is on the boundary.
+- Added unit coverage for the capped initial-step source and for lower-boundary
+  endpoint handling.
+- Added a regression fixture for the failing animal q1 `mu` slope replicate
+  (`seed = 791004`, replicate 4, `sd:mu:animal(0 + x | id)`).
+- Reran the 42-row Gaussian q1 `mu` one-slope boundary-profile diagnostic.
+  The fix partially rescued finite lower endpoints but did not unblock the
+  rows: animal has 25/27 finite profile intervals, 10 covered, 15 upper misses,
+  and two profile failures; phylo has 8/9 finite, one covered, seven upper
+  misses, and one profile failure; relmat has 2/3 finite, zero covered, two
+  upper misses, and one profile failure; spatial has 3/3 finite, zero covered,
+  and three upper misses.
+- The four linked support cells remain `fit_status = point_fit`,
+  `interval_status = planned`, and `coverage_status = planned`.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "phase18-animal-mu-slope")'`: 58 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "profile-targets")'`: 797 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R
+  --overwrite=true`: passed, rewriting 42 detail rows and four dashboard rows.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6353 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-boundary-profile-diagnostic.md');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-profile-endpoint-lower-boundary-fix.md')"`:
+  both after-task structure checks passed.
+- `sed -n '/<script>/,/<\/script>/p'
+  docs/dev-log/dashboard/index.html | sed '1d;$d' | node --check -`: passed.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/` after a passing mission-control check.
+- `curl -fsS http://127.0.0.1:8765/version.txt`: served build `r93`.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-q-series-support-cells.tsv | wc -l`:
+  105 lines, meaning header plus 104 Q-Series rows.
+- `curl -fsS
+  http://127.0.0.1:8765/structured-re-gaussian-mu-slope-boundary-profile-diagnostic.tsv
+  | head -n 5`: served the four updated boundary-profile diagnostic rows.
+- `air format R/profile.R tests/testthat/test-profile-targets.R
+  tests/testthat/test-phase18-animal-mu-slope.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test()'`: 19754 PASS / 0 FAIL / 17 WARN / 43 SKIP. The warnings
+  are existing warning-path tests for non-convergence, clamp, and missing-data
+  edge cases; no endpoint/profile regression failed.
+
+Boundary:
+
+- This is a profile-domain repair and negative diagnostic update. It does not
+  promote Gaussian q1 `mu` one-slope rows to top-up readiness,
+  `inference_ready`, or `supported`, and it does not claim sigma, q2/q4/q8,
+  non-Gaussian, REML, AI-REML, bridge support, or public support.
+
+## 2026-06-29: Q-Series q1 mu-slope boundary profile diagnostic
+
+Goal:
+
+- Diagnose whether endpoint profiles rescue the 42 SR150 Gaussian q1 `mu`
+  one-slope boundary/non-Wald interval rows before any top-up or promotion work.
+
+Result:
+
+- Added
+  `tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R`.
+- Wrote 42 detail rows and four dashboard summary rows under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-boundary-profile-diagnostic-local/`
+  and
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-boundary-profile-diagnostic.tsv`.
+- The first run showed that the exact 42 boundary rows refit with convergence
+  and `pdHess = TRUE`, but the endpoint profile failed for every row.
+- After the follow-up endpoint lower-boundary fix, the rerun still keeps all
+  four rows blocked: animal has 25/27 finite profile intervals, 10 covered, 15
+  upper misses, and two profile failures; phylo has 8/9 finite, one covered,
+  seven upper misses, and one profile failure; relmat has 2/3 finite, zero
+  covered, two upper misses, and one profile failure; spatial has 3/3 finite,
+  zero covered, and three upper misses.
+- The Q-Series widget now shows this separate boundary-profile blocker beside
+  the four Gaussian q1 `mu` one-slope rows. Their support-cell statuses remain
+  `interval_status = planned` and `coverage_status = planned`.
+- Bumped the mission-control dashboard build to `r93`.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R
+  --max-rows=2 --output-dir=/tmp/drmtmb-mu-boundary-profile-smoke
+  --overwrite=true --write-dashboard=false`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R
+  --overwrite=true`: passed, writing 42 detail rows and four dashboard rows.
+- `python3 -m py_compile tools/validate-mission-control.py` plus
+  `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6353 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-boundary-profile-diagnostic.md')"`:
+  after-task structure check passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background` plus
+  `curl -fsS http://127.0.0.1:8765/version.txt`: dashboard listening, served
+  build `r93`.
+
+Boundary:
+
+- This is negative interval-geometry evidence only. It does not promote
+  top-up readiness, interval coverage, `inference_ready`, `supported`, REML,
+  AI-REML, bridge support, q2/q4/q8, sigma, non-Gaussian, or public-support
+  wording.
+
+## 2026-06-29: Q-Series q1 mu-slope small-sample correction fix
+
+Goal:
+
+- Fix the q1 structured `mu` slope Wald default so decomposed component rows
+  from `provider(1 + x | group)` resolve the structured group count and receive
+  the documented location-axis t-width plus `log(g/(g-1))` centre shift.
+
+Result:
+
+- Updated `R/profile.R` so `provider(1 | group)` and `provider(0 + x | group)`
+  target terms match the parent structured block label `provider(1 + x |
+  group)` by provider type and grouping variable.
+- Added a regression test in `test-wald-small-sample-default.R` for decomposed
+  structured slope SD components.
+- Reran the Gaussian q1 `mu` one-slope SR150 pregrid. The correction moved
+  phylo/relmat/spatial retained coverage close to nominal, but all four rows
+  remain `mu_slope_pregrid_blocked` and `planned/planned`.
+- Bumped the mission-control dashboard build to `r92`.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "wald-small-sample-default")'`: 21 PASS / 0 FAIL /
+  0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R
+  --n-rep=150 --overwrite=true`: passed, writing the corrected SR150 pregrid
+  artifacts.
+- Corrected SR150 summary: animal 122/150 usable intervals for its eligible
+  slope target plus one visible holdout; phylo 291/300 usable intervals with
+  retained coverage 0.940-0.947 and 3 lower / 5 upper misses; relmat 297/300
+  usable intervals with retained coverage 0.953-0.973 and 2 lower / 6 upper
+  misses; spatial 297/300 usable intervals with retained coverage 0.947-0.960
+  and 6 lower / 5 upper misses.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`.
+- `git diff --check`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6353 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-mu-slope-small-sample-correction-fix.md');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-coverage-pregrid.md')"`:
+  both after-task structure checks passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background` plus
+  `curl -fsS http://127.0.0.1:8765/version.txt`: dashboard listening, served
+  build `r92`.
+
+Boundary:
+
+- This fixes the documented default correction for q1 structured location
+  slope components and updates negative SR150 evidence. It does not promote
+  interval coverage, `inference_ready`, `supported`, REML, AI-REML, bridge
+  support, q2/q4/q8, sigma, non-Gaussian, or public-support wording.
+
+## 2026-06-29: Q-Series Gaussian q1 mu-slope SR150 pregrid
+
+Goal:
+
+- Execute the retained-outcome SR150 pregrid for the Gaussian q1 `mu`
+  one-slope provider rows, without changing interval, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, bridge, q2/q4/q8, sigma,
+  non-Gaussian, or public-support claims.
+
+Result:
+
+- Added `tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R`.
+- Wrote artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/`:
+  600 fit-status rows, 1200 retained target-replicate rows, eight target
+  summary rows, four provider summary rows, `sessionInfo`, `git-sha`, and a
+  run log.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-coverage-pregrid-results.tsv`.
+- Updated the Q-Series widget so all four Gaussian q1 `mu` one-slope rows now
+  display `mu_slope_pregrid_blocked`.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R --n-rep=2 --output-dir=/tmp/drmtmb-gaussian-mu-slope-pregrid-smoke --overwrite=true`:
+  passed.
+- `Rscript --no-init-file -e 'parse("tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R")'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R --n-rep=150 --overwrite=true`:
+  passed, writing the SR150 pregrid artifacts.
+- SR150 summary after the q1 mu-slope small-sample correction fix: animal
+  122/150 usable intervals for its eligible slope target plus one holdout;
+  phylo 291/300 usable intervals with retained coverage 0.940-0.947 and
+  3 lower / 5 upper misses; relmat 297/300 usable intervals with retained
+  coverage 0.953-0.973 and 2 lower / 6 upper misses; spatial 297/300 usable
+  intervals with retained coverage 0.947-0.960 and 6 lower / 5 upper misses.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6353 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-coverage-pregrid.md')"`:
+  after-task structure check passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background` plus
+  `curl -fsS http://127.0.0.1:8765/version.txt`: dashboard listening, served
+  build `r91`.
+
+Boundary:
+
+- This is negative SR150 pregrid evidence only. It does not promote interval
+  coverage, `inference_ready`, `supported`, REML, AI-REML, bridge support,
+  q2/q4/q8, sigma, non-Gaussian, or public-support wording.
+
+## 2026-06-29: Q-Series Gaussian q1 mu-slope interval probe
+
+Goal:
+
+- Move the four Gaussian q1 `mu` one-slope provider rows from smoke-only
+  evidence to a local interval-admission rung, while keeping interval,
+  coverage, `inference_ready`, `supported`, REML, AI-REML, bridge, q2/q4/q8,
+  sigma, non-Gaussian, and public-support claims unpromoted.
+
+Result:
+
+- Added `tools/run-structured-re-gaussian-mu-slope-interval-probe.R`, a
+  rerunnable local probe for the direct location-axis structured-SD targets.
+- Wrote artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/`:
+  16 interval-probe result rows, eight target summary rows, a seed manifest, a
+  150-seed pregrid manifest, a 1050-row pregrid cell manifest, `sessionInfo`,
+  `git-sha`, and a run log.
+- Added `structured-re-gaussian-mu-slope-admission-audit.tsv` and
+  `structured-re-gaussian-mu-slope-coverage-pregrid-dry-run.tsv`.
+- Updated the Q-Series widget so phylo, spatial, and relmat q1 `mu`
+  one-slope rows display `mu_slope_pregrid_planned`; animal displays
+  `admission_blocked` because one `sd:mu:animal(1 | id)` interval hit a
+  boundary Wald status.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript --no-init-file tools/run-structured-re-gaussian-mu-slope-interval-probe.R`:
+  passed, writing the four-row admission audit, eight-row pregrid dry-run
+  ledger, 16-row probe results, and 1050-row pregrid cell manifest.
+- Probe summary: phylo, spatial, and relmat each have 4/4 finite default
+  intervals and zero boundary Wald statuses; animal has 3/4 finite default
+  intervals and one boundary Wald status at `sd:mu:animal(1 | id)`.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-interval-probe.md')"`:
+  passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  passed, 6353 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`:
+  passed; the served dashboard reports build `r90` at
+  `http://127.0.0.1:8765/version.txt`.
+- Data-side widget check: 104 Q-Series rows; three q1 `mu` rows are
+  `mu_slope_pregrid_planned`; `qseries_animal_q1_mu_one_slope` is
+  `admission_blocked`; all four q1 `mu` rows keep `interval_status = planned`
+  and `coverage_status = planned`.
+
+Boundary:
+
+- This is local interval-admission evidence only. It does not promote
+  interval coverage, `inference_ready`, `supported`, REML, AI-REML, bridge
+  support, q2/q4/q8, sigma, non-Gaussian, or public-support wording.
+
+## 2026-06-29: Q-Series count-intercept caveat diagnostic
+
+Goal:
+
+- Explain the three non-Gaussian count-intercept recovery caveats from the
+  80-rep local recovery grid without changing interval, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, bridge, q2/q4, high-q, or
+  public-support claims.
+
+Result:
+
+- Added `tools/summarize-structured-re-count-intercept-caveat-diagnostic.R`, a
+  rerunnable summarizer that derives condition-level diagnostics from
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-grid-local/tables/count-intercept-recovery-replicates.csv`.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-caveat-diagnostic.tsv`
+  with 12 condition rows for the three caveated count-intercept cells.
+- Updated the mission-control widget to show the caveat diagnostic link and
+  worst near-zero condition for recovery-caveated count-intercept rows.
+- Updated `tools/validate-mission-control.py` and the focused
+  `structured-re-conversion-contracts` test so the 12-row sidecar, exact
+  verdict classes, no-promotion boundary, and unsupported interval/coverage
+  statuses are guarded.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file tools/summarize-structured-re-count-intercept-caveat-diagnostic.R`:
+  passed, writing 12 condition-level caveat diagnostic rows.
+- Diagnostic split: phylo Poisson has four
+  `condition_near_zero_caveat` rows; phylo NB2 has four
+  `condition_pdhess_caveat` rows; spatial NB2 has two weak-signal
+  `condition_near_zero_caveat` rows and two stronger-signal
+  `condition_recovery_ok` rows.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`, including 12 structured RE count-intercept
+  caveat-diagnostic rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-count-intercept-caveat-diagnostic.md')"`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  passed, 6307 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+
+Boundary:
+
+- This is condition-level blocker evidence only. It does not promote
+  non-Gaussian recovery wording, interval readiness, coverage readiness,
+  `inference_ready`, `supported`, REML, AI-REML, q2/q4 count covariance,
+  high-q, bridge support, or public support.
+
+## 2026-06-29: Q-Series non-Gaussian count-intercept recovery grid
+
+Goal:
+
+- Move the ten non-Gaussian q1 count `mu` intercept rows from local smoke
+  evidence to row-level recovery evidence, without changing interval,
+  coverage, `inference_ready`, `supported`, REML, AI-REML, bridge, q2/q4, or
+  public-support claims.
+
+Result:
+
+- Added `tools/run-structured-re-count-intercept-recovery-grid.R`, a
+  reproducible local runner that executes the ordinary structured count q1
+  action task, the exact phylo Poisson/NB2 formal shards, and the exact
+  `phylo_interaction()` Poisson/NB2 count fits.
+- Wrote artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-grid-local/`
+  with raw replicate rows, summary rows, failures, manifest, seed manifest,
+  logs, `sessionInfo.txt`, `git-sha.txt`, and `module-list.txt`.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-recovery-results.tsv`
+  with ten row-level recovery summaries.
+- Updated `structured-re-nongaussian-status-audit.tsv` and the mission-control
+  widget so seven intercept rows are `non_gaussian_recovery_only` and three
+  rows are `non_gaussian_recovery_caveat`: phylo NB2 because 13/320
+  structured-SD rows had `pdHess = FALSE`, and phylo Poisson plus spatial NB2
+  because at least 25% of structured-SD estimates fell below the near-zero
+  threshold `1e-4`.
+- The support-cell TSV remains unchanged: all ten linked rows keep
+  `interval_status = unsupported`, `coverage_status = planned`, and
+  `authority_status = source`.
+
+Evidence:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file tools/run-structured-re-count-intercept-recovery-grid.R --n_rep=80 --seed_start=2026062901 --cores=4 --backend=multicore --overwrite`: passed.
+- Recovery summary: 7 count-intercept `non_gaussian_recovery_only`, 3
+  count-intercept `non_gaussian_recovery_caveat`; the all-up non-Gaussian
+  audit is 15 recovery-only, 3 recovery-caveat, 18 rejected, and 1 planned.
+  No interval or coverage row was promoted.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check -`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  `mission_control_ok`, including 10 structured RE count-intercept
+  recovery-results rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'devtools::test(filter = "structured-re-conversion-contracts")'`:
+  passed before the near-zero diagnostic refinement with 6292 PASS / 0 FAIL,
+  then passed after the refinement with 6295 PASS / 0 FAIL.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-count-intercept-recovery-grid.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'devtools::test()'`:
+  passed after the near-zero diagnostic refinement, 19674 PASS / 0 FAIL /
+  17 WARN / 43 SKIP in 529.9s.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'devtools::check()'`:
+  passed after the near-zero diagnostic refinement, 0 errors / 0 warnings /
+  0 notes in 11m 15.2s.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'pkgdown::check_pkgdown()'`:
+  passed, no problems found.
+- Near-zero diagnostic refinement after the first full check: the recovery
+  runner, sidecar, widget, validator, audit TSV, README, check-log, and
+  after-task report now report near-zero structured-SD estimates at threshold
+  `1e-4`; `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`,
+  dashboard `node --check -`, focused `structured-re-conversion-contracts`,
+  full `devtools::test()`, full `devtools::check()`, `pkgdown::check_pkgdown()`,
+  and `git diff --check` all passed.
+
+Boundary:
+
+- This is recovery evidence only. It is not interval-ready, coverage-ready,
+  `inference_ready`, `supported`, REML, AI-REML, bridge support, q2/q4 count
+  covariance support, high-q evidence, or public support.
+- `qseries_phylo_nbinom2_q1_mu_intercept`,
+  `qseries_phylo_poisson_q1_mu_intercept`, and
+  `qseries_spatial_nbinom2_q1_mu_intercept` need the pdHess or near-zero
+  lower-tail caveat diagnosed before clean recovery wording.
+
 ## 2026-06-28: q-series support-cell table in mission-control widget
 
 Goal:
@@ -70032,6 +75224,62 @@ Evidence:
   11m 59.9s.
 - `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
   'pkgdown::check_pkgdown()'`: no problems found.
+
+
+## 2026-06-29: Q-Series count-intercept denominator diagnostic
+
+Goal:
+
+- Test whether the three non-Gaussian q1 count `mu` intercept recovery caveats
+  persist under larger denominators and stronger structured-SD signals, without
+  changing support-cell status.
+
+Result:
+
+- Added `tools/run-structured-re-count-intercept-denominator-diagnostic.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-denominator-diagnostic.tsv`
+  with 12 condition rows: four stronger-denominator conditions each for
+  `qseries_phylo_poisson_q1_mu_intercept`,
+  `qseries_phylo_nbinom2_q1_mu_intercept`, and
+  `qseries_spatial_nbinom2_q1_mu_intercept`.
+- The local 30-rep diagnostic cleared all 12 conditions: 30/30 fits, zero
+  `pdHess = FALSE`, and zero structured-SD estimates below `1e-4`.
+- Updated the Q-Series widget to show a separate "NG denominator conditions"
+  tile plus a per-row denominator-diagnostic link and verdict note for the
+  three recovery-caveated count-intercept cells.
+
+Boundary:
+
+- No Q-Series support-cell row changed.
+- The three rows remain `non_gaussian_recovery_caveat`; the new sidecar only
+  shows that the caveats are design-sensitive under stronger local conditions.
+- The sidecar does not promote non-Gaussian intervals, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, bridge support, q2/q4 count
+  covariance, high-q evidence, or public support.
+
+Validation:
+
+- 2-rep smoke run to `/tmp`: wrote 12 denominator diagnostic rows.
+- 30-rep local run: wrote 12 denominator diagnostic rows to the dashboard
+  sidecar and raw artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-denominator-diagnostic-local/`.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-count-intercept-denominator-diagnostic.R
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript syntax check with `node --check`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 12 structured RE count-intercept
+  denominator-diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6319 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::check()'`: passed in 11m 11.3s with 0 errors / 0 warnings /
+  0 notes.
+
+
 - PR #684 R-CMD-check CI on consolidation head `45b4e9d8`: macOS, Ubuntu, and
   Windows completed successfully; the PR was marked ready for review and has
   merge state `CLEAN`.
@@ -70048,6 +75296,79 @@ Boundary:
 - No new inference/status promotion is bundled into v1. Sigma, spatial q2,
   q2 `supported`, q4/q8, count, non-Gaussian structured covariance, and REML
   derivation work are v1.1+ arcs.
+
+
+## 2026-06-29: Q-Series count-intercept top-up recovery
+
+Goal:
+
+- Test whether the three formerly recovery-caveated non-Gaussian q1 count
+  `mu` intercept rows can move to recovery-only display state under an 80-seed
+  stronger-denominator local top-up, without changing support-cell interval or
+  coverage status.
+
+Result:
+
+- Added `tools/summarize-structured-re-count-intercept-topup-recovery.R`.
+- Ran the stronger-denominator runner at 80 seeds x four conditions for each of
+  `qseries_phylo_poisson_q1_mu_intercept`,
+  `qseries_phylo_nbinom2_q1_mu_intercept`, and
+  `qseries_spatial_nbinom2_q1_mu_intercept`.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-topup-recovery-results.tsv`
+  with three row-level top-up recovery summaries.
+- All three rows passed the local top-up recovery-only gate: 320/320 fit
+  success, zero `pdHess = FALSE`, zero finite-estimate losses, and zero
+  structured-SD estimates below `1e-4`.
+- Updated `structured-re-nongaussian-status-audit.tsv` so non-Gaussian
+  recovery-only rows move from 15 to 18 and recovery-caveated rows move from 3
+  to 0. The original weak-denominator caveat sidecars remain visible as
+  provenance.
+- Bumped the mission-control widget to `r85`; it now reads
+  `structured-re-count-intercept-topup-recovery-results.tsv` after the original
+  count-intercept recovery sidecar.
+
+Boundary:
+
+- No Q-Series support-cell row changed.
+- The sidecar is recovery-only evidence. It does not promote non-Gaussian
+  intervals, coverage, `inference_ready`, `supported`, REML, AI-REML, bridge
+  support, q2/q4 count covariance, high-q evidence, or public support.
+- Primary-cluster confirmation remains the next gate before public recovery
+  wording.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-count-intercept-denominator-diagnostic.R
+  --output_dir=docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-local
+  --dashboard_output=/tmp/drmtmb-count-intercept-topup-condition-diagnostic.tsv
+  --n_rep=80 --seed_start=2026062921 --overwrite`: wrote 12 condition rows
+  and 960 structured-SD replicate rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-count-intercept-topup-recovery.R`: wrote three
+  top-up recovery rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-count-intercept-topup-recovery.R
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript extracted from `docs/dev-log/dashboard/index.html` and
+  checked with `node --check`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including three structured RE count-intercept
+  top-up recovery-result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6335 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test()'`: 19714 PASS / 0 FAIL / 17 WARN /
+  43 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::check()'`: passed in 11m 9.7s with 0 errors /
+  0 warnings / 0 notes.
 
 
 ## 2026-06-28: q1 sigma phylo/relmat rows to inference_ready
@@ -71001,3 +76322,2425 @@ Validation:
   'devtools::check()'`: 0 errors / 0 warnings / 0 notes.
 - `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
   'pkgdown::check_pkgdown()'`: no problems found.
+## 2026-06-29: Q-Series high-q diagnostic status sync and Rorqual dispatch retry
+
+Goal:
+
+- Make the 104-row Q-Series widget show existing q4/q8-shaped interval
+  diagnostics as `diagnostic_only` interval signals while keeping high-q
+  coverage and inference promotions blocked.
+- Complete the count-intercept top-up primary-cluster confirmation as
+  recovery-only evidence, not as interval, coverage, or support evidence.
+
+Result:
+
+- Updated exactly twelve high-q or q8-shaped support-cell rows from
+  `interval_status = planned` to `interval_status = diagnostic_only`.
+- The twelve rows are the four q4 location one-slope rows, four q4 all-four
+  intercept rows, and four q8-shaped all-four one-slope rows. All twelve keep
+  `coverage_status = planned`, `fit_status = point_fit`,
+  `bridge_status = fixture_parity`, and `denominator_policy =
+  fixture_not_coverage`.
+- Synced `structured-re-high-q-status-audit.tsv` so the linked interval status
+  matches the support-cell table and the high-q audit explains the diagnostic
+  signal.
+- Added a validator/test allow-list for those exact twelve diagnostic interval
+  cells. The allow-list only applies to `interval_status`; high-q coverage
+  remains blocked.
+- Bumped the mission-control widget to `r89`. The served dashboard at
+  `http://127.0.0.1:8765/` reports interval counts: 40 unsupported, 37 planned,
+  18 diagnostic-only, 5 inference-ready, and 4 interval-feasible; coverage
+  counts remain 78 planned, 21 unsupported, and 5 inference-ready.
+- Patched `tools/slurm/count-intercept-topup-rorqual.sbatch` to use Rorqual's
+  module-backed `r-bundle-bioconductor/3.21` dependency stack, fixed the
+  dependency-version logger, added source-cleaning for stale local build
+  products after the `14896924` retry failed with an invalid ELF header, and
+  added `cd "$REPO"` after the `14896996` retry installed successfully but
+  launched repo-relative simulation helpers from the campaign root.
+- SLURM job `14897050` completed on Rorqual with `runner_exit_code=0` and
+  `summary_exit_code=0`. Fetched the result TSV and metadata into
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-rorqual/`.
+  The three-row Rorqual summary matches the local top-up sidecar on row
+  identity, retained denominators, `pdHess`, near-zero counts, recovery
+  verdicts, and numeric summaries.
+- Updated `structured-re-count-intercept-topup-cluster-dispatch.tsv` to
+  `job_state = completed_passed` and changed the top-up recovery sidecar wording
+  to cluster-confirmed recovery-only evidence.
+
+Boundary:
+
+- This promotes no q4, q6, q8, non-Gaussian, REML, AI-REML, bridge, or public
+  support claim.
+- No high-q row is `inference_ready`; no high-q row has coverage evidence.
+- The Rorqual confirmation is recovery-only evidence. It still promotes no
+  non-Gaussian interval, coverage, `inference_ready`, `supported`, REML,
+  AI-REML, bridge, or public-support claim.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`.
+- `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6353 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening;
+  served copy updated to `r89`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-high-q-diagnostic-status-sync.md')"`:
+  after-task structure check passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::check()'`: passed in 11m 8.5s with 0 errors,
+  0 warnings, and 0 notes.
+
+## 2026-06-29: Q-Series non-Gaussian recovery rollup and Recovery widget column
+
+Goal:
+
+- Make non-Gaussian count recovery evidence visible as its own row-level signal
+  in the 104-row Q-Series widget, separate from fit stability, interval status,
+  coverage status, and inference readiness.
+- Sync the three Rorqual-confirmed count-intercept top-up rows back into the
+  source support-cell TSV without changing `fit_status`, `interval_status`, or
+  `coverage_status`.
+
+Result:
+
+- Added `structured-re-nongaussian-recovery-rollup.tsv` with exactly 18
+  recovery rows: 3 `cluster_confirmed_recovery_only`, 14
+  `local_recovery_only`, and 1 `local_recovery_hessian_caveat`.
+- Added a separate `Recovery` column to the Q-Series widget beside `Stability`
+  and `Inference`.
+- Updated the three formerly caveated count-intercept source rows
+  (`qseries_phylo_poisson_q1_mu_intercept`,
+  `qseries_phylo_nbinom2_q1_mu_intercept`, and
+  `qseries_spatial_nbinom2_q1_mu_intercept`) so their evidence URL and claim
+  boundary point to the fetched Rorqual top-up artifact. All three remain
+  `fit_status = point_fit`, `interval_status = unsupported`, and
+  `coverage_status = planned`.
+- Synced the local rollup-linked count `mu` support-cell rows so their source
+  text names recovery evidence instead of stale "add recovery evidence" fixture
+  gates; the spatial NB2 one-slope row now carries the retained
+  `2/80 pdHess false` caveat in both source and audit tables.
+- Bumped the served dashboard build to `r96`. The served
+  `structured-re-nongaussian-recovery-rollup.tsv` is reachable at
+  `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is recovery-only evidence. It does not promote non-Gaussian intervals,
+  coverage, `inference_ready`, `supported`, REML, AI-REML, q2/q4 covariance,
+  high-q rows, bridge support, count sigma, zero-inflation, or public support.
+- The 104-row support-cell counts are unchanged: 5 `inference_ready` interval
+  rows and 5 `inference_ready` coverage rows remain the only inference-ready
+  rows.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 18 non-Gaussian recovery-rollup rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6381 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r96`, and the rollup TSV served with the expected header and first
+  rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-nongaussian-recovery-rollup.md')"`:
+  after-task structure check passed.
+
+## 2026-06-29: Q-Series q2 bias+t top-up runner contract
+
+Goal:
+
+- Make the next spatial/animal q2 bias+t coverage top-up executable and visible
+  without promoting either linked support row.
+
+Result:
+
+- Added `tools/run-structured-re-q2-bias-t-coverage-topup.R`, an endpoint-only
+  runner for spatial/animal q2 `mu1:x` and `mu2:x` SD endpoints. The runner
+  prefers current source via `devtools::load_all()` for local smoke and supports
+  `--no-load-all` for cluster installed/temp-install execution.
+- Added `tools/slurm/q2-bias-t-topup-rorqual.sbatch` with real Rorqual account
+  routing, pinned BLAS/TMB threads, module-backed R, and shard array 1-4.
+- Added `structured-re-q2-slope-bias-t-topup-runner-contract.tsv` with four
+  smoked endpoint shards: spatial `mu1:x`, spatial `mu2:x`, animal `mu1:x`,
+  and animal `mu2:x`. Each shard plans 525 top-up replicates over seeds
+  730476-731000.
+- Added current-source one-rep smoke artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-current-source-smoke-local/`.
+  Each endpoint had one fit, convergence, `pdHess = TRUE`, and finite default
+  bias+t Wald interval output.
+- Synced the q2 spatial/animal admission audit and dashboard README so the next
+  gate points to the top-up contract.
+- Submitted the top-up array to Rorqual under
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1`.
+  Shards 1 and 3 completed in array job `14901064`; shard 2 was retried as
+  `14901210` and shard 4 as `14901126` after the first array exposed a
+  shared-source install race. The failed first attempts are archived beside the
+  valid outputs.
+- Fetched the Rorqual results to
+  `docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-rorqual/` and
+  added `structured-re-q2-slope-bias-t-topup-results.tsv`.
+- Combined with the SR475 sidecar, the SR1000 default bias+t endpoint totals
+  are spatial `mu1:x` 959/1000 (0.9590, MCSE 0.006270), spatial `mu2:x`
+  948/1000 (0.9480, MCSE 0.007021), animal `mu1:x` 960/1000 (0.9600, MCSE
+  0.006197), and animal `mu2:x` 954/1000 (0.9540, MCSE 0.006624).
+- Updated the spatial/animal q2 support cells and admission audit to point at
+  the SR1000 result table while keeping both linked rows `interval_status =
+  planned` and `coverage_status = planned`.
+
+Boundary:
+
+- This is endpoint top-up evidence only. It promotes no spatial q2 or animal q2
+  interval status, coverage status, `inference_ready`, `supported`,
+  correlation target, q4/q8, REML, AI-REML, bridge, or public-support claim.
+- The top-up passed the MCSE gate for the four SD endpoints, but spatial `mu2:x`
+  still has 47 upper-tail misses versus 5 lower misses, animal `mu2:x` has 36
+  versus 10, and row-level correlation gates remain unresolved.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 4 q2 slope bias+t top-up
+  runner-contract rows and 4 q2 slope bias+t top-up result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6508 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r96`, and the top-up runner-contract/results TSVs served with the
+  expected headers and first rows.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-bias-t-topup-runner-contract.md')"`:
+  after-task structure check passed.
+
+## 2026-06-29: Q-Series q2 row-gate synthesis
+
+Goal:
+
+- Make the remaining spatial/animal q2 row-level blockers visible in the
+  Q-Series widget without promoting either linked support cell.
+
+Result:
+
+- Added `structured-re-q2-slope-row-gate-synthesis.tsv`, a two-row
+  board-facing gate table for spatial and animal q2 `mu1+mu2` one-slope rows.
+- The table summarizes the SR1000 default bias+t SD endpoints, retained
+  `mu2:x` upper-tail imbalance, unresolved correlation target, missing g=32
+  profile/Wald comparison, linked planned/planned status, and
+  `do_not_promote` decision.
+- Updated the widget to show a compact Q2 row-gate mini-table above the full
+  104-row ledger and bumped the dashboard build to `r97`.
+- Updated the validator, focused structured-RE conversion contract test,
+  dashboard README, and after-task report.
+
+Boundary:
+
+- This promotes exactly no q-series row. Spatial q2 and animal q2 remain
+  `interval_status = planned` and `coverage_status = planned`; no correlation
+  target, q4/q8, REML, AI-REML, bridge, `supported`, or public-support claim is
+  made.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 5
+  q-series inference-evidence summary rows, and 2 q2 slope row-gate synthesis
+  rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6548 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/` after mission-control validation.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r97`, and
+  `curl -fsS http://127.0.0.1:8765/structured-re-q2-slope-row-gate-synthesis.tsv`
+  served the new two-row TSV.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-row-gate-synthesis.md')"`:
+  after-task structure check passed.
+
+## 2026-06-29: Q-Series q2 g32 profile/Wald smoke
+
+Goal:
+
+- Bank a tiny local g=32 profile/Wald diagnostic for the spatial q2 row and
+  make the animal fixed-pedigree boundary explicit.
+
+Result:
+
+- Ran `tools/run-structured-re-q2-slope-coverage-grid.R` locally with
+  `GSWEEP_N_GROUPS=32`, `n_each=8`, `n_rep=1`, `bootstrap=0`, and seed 732001
+  for shards 4-8. Review later invalidated the animal shard outputs because
+  the animal design is a fixed 8-pedigree and the pre-guard runner recycled
+  labels under `GSWEEP_N_GROUPS=32`.
+- Added `structured-re-q2-slope-g32-profile-wald-smoke.tsv`, a six-row
+  diagnostic table: three valid spatial g=32 targets with finite Wald/profile
+  intervals and three zero-count animal guard rows.
+- Updated `structured-re-q2-slope-row-gate-synthesis.tsv` so the spatial gate
+  records finite g=32 smoke for all three spatial targets, while the animal
+  gate records g=32 as not applicable to the fixed 8-pedigree and points to
+  the separate fixed-8 animal correlation holdout diagnostic.
+- Updated the Q-Series widget to render the g=32 smoke table near the q2
+  row-gate table and bumped the dashboard build to `r98`.
+
+Boundary:
+
+- This is one-replicate smoke evidence only. It promotes no spatial q2 or
+  animal q2 interval status, coverage status, `inference_ready`, `supported`,
+  correlation-target reliability, q4/q8, REML, AI-REML, bridge, or public
+  support claim.
+
+Validation:
+
+- Local smoke command: `R_PROFILE_USER=/dev/null NOT_CRAN=true
+  OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1
+  GSWEEP_N_GROUPS=32 Rscript --no-init-file
+  tools/run-structured-re-q2-slope-coverage-grid.R --shard=<4..8> --n_rep=1
+  --seed_start=732001 --n_each=8 --bootstrap=0
+  --out_dir=docs/dev-log/simulation-artifacts/2026-06-29-q2-slope-g32-profile-wald-smoke-local`:
+  the three spatial shards completed with 1/1 fit, convergence,
+  `pdHess = TRUE`, 0 boundary flags, 1/1 finite Wald interval, and 1/1 finite
+  endpoint-profile interval; the animal shard outputs are retained only as
+  invalidated audit artifacts.
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 6 structured RE q2 slope g32
+  profile/Wald smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 6595 PASS /
+  0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+
+## 2026-06-29: Q-Series q4 animal Hessian-geometry diagnostic
+
+Goal:
+
+- Make the corrected Nibi q4 animal all-four admission blocker visible as
+  endpoint-level Hessian/correlation geometry evidence, without promoting the
+  row or launching any q4 coverage grid.
+
+Result:
+
+- Added `structured-re-q4-animal-hessian-geometry-diagnostic.tsv`, an eight-row
+  endpoint diagnostic derived from the 16-replicate Nibi admission artifact.
+- The diagnostic records 16/16 converged fits, 2/16 `pdHess`, zero estimates
+  below 0.10 for every direct-SD endpoint, incomplete profile finiteness, and
+  `hessian_geometry_not_simple_boundary`.
+- Updated the Q-Series widget to show the geometry table beside the q4 animal
+  admission table and bumped the dashboard build to `r108`.
+- Updated the validator, focused structured-RE conversion contract test,
+  dashboard README, and after-task report.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked animal all-four one-slope
+  cell remains `interval_status = diagnostic_only` and
+  `coverage_status = planned`; the admission sidecar remains
+  `coverage_status = not_evaluable`.
+- No q4 coverage, `inference_ready`, `supported`, q8 inference, q4 REML, REML,
+  AI-REML, derived-correlation interval, broad bridge, or public-support claim
+  is made.
+- Fisher review agrees that no q4 coverage, no q1 `mu` top-up, and no spatial
+  sigma top-up is inference-safe until the active blockers change.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check via `node`: `dashboard_js_ok`.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-all-four-admission-probe.md')"`:
+  after-task structure check passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including one structured RE q4 animal all-four
+  admission probe row and eight structured RE q4 animal Hessian-geometry
+  diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 6996 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/` after mission-control validation.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r108`; `structured-re-q4-animal-hessian-geometry-diagnostic.tsv`
+  served the new eight-row Nibi-derived geometry sidecar; `index.html`
+  contained the `q4AnimalGeometryDiagnostic` markers.
+
+## 2026-06-29: Q-Series q4 animal numerical-geometry diagnostic
+
+Goal:
+
+- Add a focused four-seed q4 animal all-four numerical-geometry diagnostic
+  after the Nibi admission probe showed 2/16 `pdHess`, without promoting any
+  Q-Series row or launching q4 coverage work.
+
+Result:
+
+- Added `tools/run-structured-re-q4-animal-numerical-geometry-diagnostic.R`.
+- Added
+  `structured-re-q4-animal-numerical-geometry-diagnostic.tsv`, with four
+  selected seeds contrasting two `pdHess = FALSE` rows against two
+  `pdHess = TRUE` rows.
+- Added
+  `structured-re-q4-animal-numerical-geometry-attempts.tsv`, with seven
+  optimizer-attempt rows.
+- Updated the Q-Series widget to show separate animal q4 numerical-geometry
+  and optimizer-attempt tables and bumped the dashboard build to `r109`.
+- Updated the validator, focused structured-RE conversion contract test,
+  dashboard README, and after-task report.
+
+Signal:
+
+- The two `pdHess = FALSE` rows retain large fixed gradients, negative
+  `sdr$cov.fixed` eigenvalues, extreme q4 theta values, and selected
+  fallback-BFGS fits whose objective is worse than the best failed default
+  attempt.
+- The two `pdHess = TRUE` smoke rows have finite covariance geometry, but one
+  still selects a worse fallback objective.
+- This keeps the next gate in the Gauss/Noether optimizer-start or
+  parameter-transform lane before any q4 coverage-grid design.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked animal all-four one-slope
+  cell remains `interval_status = diagnostic_only` and
+  `coverage_status = planned`; the numerical sidecar records
+  `coverage_status = not_evaluable`.
+- No q4 coverage, `inference_ready`, `supported`, q8 inference, q4 REML, REML,
+  AI-REML, derived-correlation interval, broad bridge, or public-support claim
+  is made.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-numerical-geometry-diagnostic.R
+  --overwrite=true --write-dashboard=true`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-slope-interval-stability-probe.R`:
+  reran the original q4 stability probe to repair an early path leak from the
+  first draft of the numerical diagnostic runner.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q4-animal-numerical-geometry-diagnostic.R"));
+  cat("runner_parse_ok\n")'`: passed.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-q4-animal-numerical-geometry-diagnostic.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check via `node`: `dashboard_js_ok`.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including four structured RE q4 animal
+  numerical-geometry diagnostic rows and seven optimizer-attempt rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7051 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-numerical-geometry-diagnostic.md')"`:
+  after-task structure check passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r109`; `index.html` contained the
+  `q4AnimalNumericalGeometryDiagnostic` markers; the new diagnostic TSV served
+  four rows; the optimizer-attempt TSV served seven rows.
+
+## 2026-06-29: Q-Series q4 animal optimizer-route diagnostic
+
+Goal:
+
+- Add a focused optimizer-route diagnostic for the animal q4 all-four
+  one-slope row after the numerical-geometry diagnostic showed failed-Hessian
+  seeds with large gradients, negative `sdreport` covariance eigenvalues,
+  extreme q4 theta values, and fallback-selected objectives worse than the best
+  failed default attempt.
+
+Result:
+
+- Added `tools/run-structured-re-q4-animal-optimizer-route-diagnostic.R`.
+- Added
+  `structured-re-q4-animal-optimizer-route-diagnostic.tsv`, with 20 route rows:
+  four selected seeds crossed with custom fallback, default ladder without
+  fallback, robust without fallback, two-start multistart without fallback, and
+  two-start multistart with fallback.
+- Updated the Q-Series widget to show the `Animal q4 routes` diagnostic card
+  and route table and bumped the dashboard build to `r110`.
+- Updated the validator, focused structured-RE conversion contract test,
+  dashboard README, and after-task report.
+
+Signal:
+
+- Seeds `910101` and `910102` were not rescued by any route.
+- Seven route rows passed the smoke gate, but only on seeds that already had a
+  passing baseline route.
+- Selected-worse-objective fallback rows remain visible, so fallback
+  convergence is not treated as a q4 admission rescue.
+- The next gate stays in the Gauss/Noether parameter-transform or staged-start
+  map lane, not in a q4 coverage-grid lane.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked animal all-four one-slope
+  cell remains `interval_status = diagnostic_only` and
+  `coverage_status = planned`; the optimizer-route sidecar records
+  `coverage_status = not_evaluable`.
+- No q4 coverage, `inference_ready`, `supported`, q8 inference, q4 REML, REML,
+  AI-REML, derived-correlation interval, broad bridge, or public-support claim
+  is made.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/run-structured-re-q4-animal-optimizer-route-diagnostic.R
+  --overwrite=true --write-dashboard=true`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q4-animal-optimizer-route-diagnostic.R"));
+  cat("route_runner_parse_ok\n")'`: passed.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-q4-animal-optimizer-route-diagnostic.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check via `node`: `dashboard_js_ok`.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 20 structured RE q4 animal
+  optimizer-route diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7095 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: dashboard already listening at
+  `http://127.0.0.1:8765/` after mission-control validation.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r110`; `index.html` contained the
+  `q4AnimalOptimizerRouteDiagnostic`, `Animal q4 routes`, and
+  `q4 optimizer routes` markers; the new optimizer-route TSV served 21 lines
+  including the header.
+
+## 2026-06-29: Q-Series q4 animal start-map diagnostic
+
+Goal:
+
+- Add a lower-level TMB start/map diagnostic for the animal q4 all-four
+  one-slope row after optimizer-route comparisons failed to rescue the
+  failed-Hessian seeds.
+
+Result:
+
+- Added `tools/run-structured-re-q4-animal-start-map-diagnostic.R`.
+- Added `structured-re-q4-animal-start-map-diagnostic.tsv`, with 28 strategy
+  rows: four selected seeds crossed with all-free default starts, all-free
+  small-correlation starts, all-free DGP-SD starts, zero-correlation maps with
+  default and DGP-SD starts, fixed-SD zero-correlation maps, and all-free fits
+  seeded from the zero-correlation solution.
+- Updated the Q-Series widget to show the `Animal q4 start/map` diagnostic
+  card and start/map table and bumped the dashboard build to `r111`.
+- Updated the validator, focused structured-RE conversion contract test,
+  dashboard README, and after-task report.
+
+Signal:
+
+- The q4 animal blocker localizes to the free q4 correlation block.
+- Zero-correlation map rows had `pdHess = TRUE` in 12/12 cases and passed the
+  smoke gate in 11/12 cases.
+- All-free and diagonal-staged all-free strategies remained blocked on seeds
+  `910101`, `910102`, and `910110`.
+- The next gate is a q4 correlation-parameter transform or constrained
+  correlation admission experiment, not a q4 coverage-grid lane.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked animal all-four one-slope
+  cell remains `interval_status = diagnostic_only` and
+  `coverage_status = planned`; the start/map sidecar records
+  `coverage_status = not_evaluable`.
+- No q4 coverage, `inference_ready`, `supported`, q8 inference, q4 REML, REML,
+  AI-REML, derived-correlation interval, broad bridge, or public-support claim
+  is made.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q4-animal-start-map-diagnostic.R
+  --overwrite=true --write-dashboard=true`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q4-animal-start-map-diagnostic.R"));
+  cat("start_map_runner_parse_ok\n")'`: passed.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-q4-animal-start-map-diagnostic.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check via `node`: `dashboard_js_ok`.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 28 structured RE q4 animal start-map
+  diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7146 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `git diff --check`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-start-map-diagnostic.md')"`:
+  passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed after a fresh
+  `mission_control_ok`; the dashboard was already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard verification: `curl -fsS http://127.0.0.1:8765/version.txt`
+  returned `r111`; `index.html` contained the
+  `q4AnimalStartMapDiagnostic`, `Animal q4 start/map`,
+  `structured-re-q4-animal-start-map-diagnostic`, and `q4 start/map` markers;
+  the start/map TSV served 29 lines including the header.
+
+## 2026-06-29: Q-Series evidence-link hygiene and latest-tail checkpoint
+
+Goal:
+
+- Fix promoted-row evidence-link drift and leave the latest Q-Series state
+  visible at the check-log tail for future handoffs.
+
+Result:
+
+- Updated `qseries_phylo_q2_mu1_mu2_one_slope` and
+  `qseries_relmat_q2_mu1_mu2_one_slope` in
+  `structured-re-q-series-support-cells.tsv` so their primary `evidence_url`
+  points to `docs/design/219-structured-re-small-sample-bias-correction.md`
+  instead of the q2 parity-fixture sidecar.
+- Added a mission-control guard requiring promoted support-cell evidence URLs
+  to match their `structured-re-q-series-inference-evidence-summary.tsv` rows.
+- Updated the focused structured-RE conversion contract tests for the q2 link
+  hygiene.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The board remains 104 support cells,
+  exactly 5 `inference_ready` rows, and no structured `supported` row.
+- The two q2 rows remain bridge `fixture_parity` plus separate interval
+  calibration evidence; spatial q2, animal q2, q4/q8, Gaussian q1 `mu`
+  one-slope, spatial sigma, non-Gaussian intervals, REML, AI-REML, bridge
+  support, and public support remain unpromoted.
+- Fisher/Rose review says no broad DRAC/Totoro promotion run is justified now:
+  Gaussian q1 `mu` one-slope rows need interval-shape diagnostics before more
+  denominator spend, spatial sigma is boundary blocked, q4/q8 need geometry
+  and stability work first, and non-Gaussian rows remain recovery-only or
+  rejected.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells and 5
+  structured RE q-series inference-evidence summary rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7199 PASS / 0 FAIL / 0 WARN /
+  0 SKIP after updating a second stale q2 parity-fixture URL expectation.
+- `git diff --check`: passed.
+- Promoted-row URL audit: all five rows with
+  `interval_status = coverage_status = inference_ready` matched their
+  `structured-re-q-series-inference-evidence-summary.tsv` evidence URLs.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-evidence-link-hygiene.md')"`:
+  passed.
+- Removed `tools/__pycache__`; follow-up `find . -type d -name '__pycache__'
+  -print` returned no paths.
+
+## 2026-06-29: Q-Series Gaussian q1 mu interval-shape diagnostic
+
+Goal:
+
+- Make the SR475 Gaussian q1 `mu` one-slope blocker visible at target level
+  before using Totoro/FIIA/DRAC for another denominator campaign.
+
+Result:
+
+- Added `tools/summarize-structured-re-gaussian-mu-slope-interval-shape.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv`
+  and mirrored it under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-shape-local/`.
+- Added the retained upper-miss ledger
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-shape-local/structured-re-gaussian-mu-slope-interval-shape-upper-miss-rows.tsv`.
+- The diagnostic has six target rows: phylo, relmat, and spatial q1 `mu`
+  one-slope intercept/slope targets. All six meet MCSE `<= 0.01`, but all six
+  have more upper misses than lower misses. Total retained upper misses: 73.
+- The Q-Series widget now shows a compact "Mu shape targets" table above the
+  104-row support-cell ledger and links the three linked q1 `mu` support cells
+  to this diagnostic.
+- Mission control validates that the sidecar remains artifact-matched,
+  target-scoped, `planned/planned`, and `do_not_promote`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked phylo, relmat, and spatial
+  q1 `mu` one-slope support cells remain `fit_status = point_fit`,
+  `interval_status = planned`, and `coverage_status = planned`.
+- No `supported` claim, no q2/q4/q8 claim, no sigma claim, no non-Gaussian
+  interval claim, no REML/AI-REML claim, and no public-support claim.
+- Totoro/FIIA/Nibi/Rorqual/DRAC were not used for this step; Fisher/Rose must
+  accept a new interval-shape or calibration rule before another cluster
+  top-up is useful.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-mu-slope-interval-shape.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/summarize-structured-re-gaussian-mu-slope-interval-shape.R
+  --overwrite=true`: passed; wrote 6 diagnostic rows and 73 upper-miss rows.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard script parse via `node -e '...'`: passed with
+  `dashboard_js_parse_ok`.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells and 6
+  structured RE Gaussian mu-slope interval-shape diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7233 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-interval-shape-diagnostic.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `node - <<'NODE' ... NODE`: passed with `dashboard_js_parse_ok` after
+  extracting and parsing the dashboard script block.
+- `find . -type d -name '__pycache__' -print`: returned no paths after
+  removing the `tools/__pycache__` directory created by `py_compile`.
+
+## 2026-06-29: Q-Series q2-plus-q2 same-target fixture parity
+
+Goal:
+
+- Close the fixture/extractor prerequisite for
+  `qseries_phylo_q2_plus_q2_intercept` before local deterministic smoke, while
+  keeping the row out of interval, coverage, `inference_ready`, and `supported`
+  status.
+
+Result:
+
+- Added
+  `phase18_structured_re_q2_plus_q2_intercept_payload_fixture()` as a
+  deterministic block-diagonal q2-plus-q2 phylo fixture with location-block
+  SD/correlation targets and scale-block SD/correlation targets.
+- Updated the q2 fixture contract so `q2_plus_q2_not_q4` is
+  `fixture_available` across native, direct DRM.jl, and R-via-Julia fixture
+  routes, with `bridge_status = fixture_parity`.
+- Updated `structured-re-q2-plus-q2-intercept-contract.tsv` from
+  `same_target_fixture_pending` to `same_target_fixture_parity` and pointed all
+  10 contract rows at
+  `docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-same-target-fixture-parity.md`.
+- Propagated the next gate into the support-cell and low-q ledgers: run local
+  deterministic q2-plus-q2 intercept smoke before any denominator work or
+  Totoro/FIIA, Nibi/Rorqual, or DRAC escalation.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The linked support cell remains
+  `fit_status = point_fit`, `interval_status = planned`, and
+  `coverage_status = planned`.
+- The fixture proves same-target fixture parity only. It does not provide
+  interval reliability, coverage, MCSE, one-sided misses, profile/bootstrap
+  accounting, q4/q8 support, non-Gaussian support, REML, AI-REML, broad bridge
+  support, public support, or `supported` status.
+- Cross-block `mu`-to-`sigma` correlations remain unavailable until a true q4
+  route exists.
+
+Validation:
+
+- `rg -n "same_target_fixture_pending|Add same-target q2-plus-q2|add same-target fixture" docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-gaussian-lowq-status-audit.tsv docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv tests/testthat/test-structured-re-conversion-contracts.R tools/validate-mission-control.py inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R || true`:
+  returned no stale pending-fixture text.
+- `python3 - <<'PY' ... PY`: confirmed the q2-plus-q2 intercept contract has
+  10 rows, one evidence URL pointing at the same-target fixture-parity report,
+  one `required_fit_evidence` value containing `same_target_fixture_parity`,
+  and one `promotion_decision` value, `do_not_promote`.
+- `/opt/homebrew/bin/air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R tools/validate-mission-control.py`:
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3 tools/validate-mission-control.py`:
+  passed with `mission_control_ok`, including 104 structured RE q-series cells,
+  35 Gaussian low-q status-audit rows, 23 Gaussian low-q row-selection rows,
+  and 10 q2-plus-q2 intercept-contract rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-bridge-fixtures")'`: 755 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8071 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-same-target-fixture-parity.md')"`:
+  passed with `after-task structure check passed`.
+- `git diff --check -- inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R tools/validate-mission-control.py docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-gaussian-lowq-status-audit.tsv docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-same-target-fixture-parity.md`:
+  passed.
+
+Next gate:
+
+- Run local deterministic q2-plus-q2 intercept smoke with retained
+  fit/convergence/`pdHess`/`confint`/profile/bootstrap-attempt accounting. Keep
+  Totoro/FIIA, Nibi/Rorqual, and DRAC blocked until Fisher/Rose review accepts
+  the local-smoke contract.
+
+## 2026-06-29: Q-Series phylo-interaction NB2 count-intercept top-up recovery
+
+Goal:
+
+- Use Rorqual for one narrow recovery-only top-up of
+  `qseries_phylo_interaction_nbinom2_q1_mu`, the last non-Gaussian recovery
+  rollup row whose original count-intercept cluster reproduction retained a
+  5/80 near-zero and boundary-warning caveat.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv`,
+  a one-row top-up sidecar for Rorqual SLURM job `14936834`.
+- Updated `structured-re-nongaussian-recovery-rollup.tsv` so all 18
+  non-Gaussian Poisson/NB2 count `mu` recovery rows are now
+  `cluster_confirmed_recovery_only`; zero current rows are
+  `cluster_recovery_caveat`.
+- Updated `structured-re-nongaussian-status-audit.tsv` and
+  `structured-re-q-series-support-cells.tsv` so the NB2
+  `phylo_interaction()` row cites the combined Rorqual denominator:
+  160/160 fit_ok, 0 nonconverged, 0/160 `pdHess = FALSE`, 160/160 finite
+  estimates, 6/160 near-zero/boundary-warning rows, bias -0.055491, RMSE
+  0.16845, bias MCSE 0.012613, and RMSE MCSE 0.010747.
+- Updated mission-control `r132`, the dashboard README, validator, and focused
+  tests to keep the new recovery-only display state separate from interval,
+  coverage, `inference_ready`, and `supported` claims.
+
+Boundary:
+
+- This promotes exactly no Q-Series row to interval readiness, coverage
+  readiness, `inference_ready`, or `supported`.
+- The original Rorqual job `14918220` sidecar remains unchanged as provenance
+  for the historical 5/80 boundary-warning caveat.
+- Non-Gaussian intervals, coverage, q2/q4 count covariance, REML, AI-REML,
+  bridge support, high-q readiness, structured count sigma, zero inflation,
+  labelled/multiple count slopes, count-scale routes, public support, and
+  Gaussian q4/q8 rows remain unpromoted.
+
+Validation:
+
+- Local exact-lane smoke for `--lanes=phylo_interaction --families=nbinom2`
+  at `n_rep=2`: passed with 2/2 fit_ok, 0 nonconverged, 0/2 `pdHess = FALSE`,
+  and `recovery_only_passed`.
+- Rorqual SLURM job `14936834`: completed with `State: COMPLETED (exit code
+  0)` in `sacct`; runner exit code 0.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE Q-Series cells, 37
+  non-Gaussian status-audit rows, 18 non-Gaussian recovery-rollup rows, and the
+  one-row phylo-interaction NB2 top-up sidecar.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8,025 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-phylo-interaction-nb2-topup-recovery.md')"`:
+  passed.
+- `git diff --check`: passed.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r132`; the top-up TSV served 2 lines including the header; the served
+  non-Gaussian recovery rollup shows
+  `qseries_phylo_interaction_nbinom2_q1_mu` as
+  `cluster_confirmed_recovery_only` with 160/160 fit_ok and 0/160 `pdHess =
+  FALSE`.
+
+## 2026-06-29: Q-Series q4 animal transform-admission contract
+
+Goal:
+
+- Turn the animal q4 all-four hard-seed evidence into an explicit
+  transform-admission contract before spending Nibi/Rorqual or DRAC time.
+- Keep q4/q8 high-q rows diagnostic-only unless a production transform passes
+  hard-seed admission without cap saturation, optimizer-layer ridge penalties,
+  convergence-watch rows, or Hessian-blocked multi-coordinate rows.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-animal-transform-admission-contract.tsv`,
+  a seven-route contract for
+  `qseries_animal_q4_all_four_one_slope_planned`.
+- The contract separates the zero-correlation reference, current all-free
+  parameterization, fixed soft-cap route, sparse one-theta localization route,
+  ridge MAP/penalty sensitivity route, ridge-continuation annealing route, and
+  the required next production-transform admission experiment.
+- Updated the Q-Series widget to show an `Animal q4 transform` summary card,
+  the contract table, a `q4 transform` per-row evidence link, and a row-summary
+  note.
+- Updated the high-q queue, high-q audit, and support-cell next gate so the
+  next action is a production-transform interval diagnostics/admission
+  experiment, not a broad cluster coverage grid.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The animal q4 all-four row remains
+  `diagnostic_only` / `planned`.
+- No q4/q8 `inference_ready`, no `supported`, no q4 REML, no REML, no AI-REML,
+  no production parameterization change, no derived-correlation interval claim,
+  and no DRAC coverage grid are claimed.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `python3 tools/validate-mission-control.py`: first caught the stale
+  `index.html` build constant and missing `interval diagnostics` wording; after
+  fixes, passed with `mission_control_ok`, including 104 Q-Series cells and 7
+  q4 animal transform-admission contract rows.
+- `awk '/<script>/{flag=1; next} /<\\/script>/{flag=0} flag {print}'
+  docs/dev-log/dashboard/index.html > /tmp/drmtmb-dashboard-index.js &&
+  node --check /tmp/drmtmb-dashboard-index.js`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: first caught the same missing
+  `interval diagnostics` wording plus a brittle table comparison; after fixes,
+  7768 PASS / 0 FAIL / 0 WARN / 0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-q4-animal-transform-admission-contract.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: after refreshing the
+  copied dashboard, `version.txt` returned `r128`;
+  `structured-re-q4-animal-transform-admission-contract.tsv` served 8 lines
+  including the header and all seven `no large-theta rows` gates; `/`
+  contained `Animal q4 transform`, `q4 transform`, and
+  `final lambda=0 clean admission passes`.
+
+## 2026-06-29: Q-Series count-intercept Rorqual cluster recovery sidecar
+
+Goal:
+
+- Ingest the Rorqual count-intercept recovery reproduction into the Q-Series
+  widget as recovery-only evidence, without changing any interval, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, bridge, or public-support
+  claim.
+
+Result:
+
+- Added `structured-re-count-intercept-cluster-recovery-results.tsv` as the
+  ten-row Rorqual SLURM job 14918220 sidecar for all count-intercept and
+  `phylo_interaction()` non-Gaussian q1 count `mu` rows.
+- The sidecar has six `cluster_confirmed_recovery_only` rows and four visible
+  original-grid `cluster_recovery_caveat` rows. Three caveats are superseded
+  for widget state by the stronger-denominator top-up sidecar; the retained new
+  caveat is `qseries_phylo_interaction_nbinom2_q1_mu`, with 80/80 fit success,
+  0 `pdHess = FALSE`, 80/80 finite estimates, and 5/80 boundary-warning rows.
+- The non-Gaussian recovery rollup remains 18 rows: 16
+  `cluster_confirmed_recovery_only` and two `cluster_recovery_caveat` rows.
+  The two retained caveats are `qseries_phylo_interaction_nbinom2_q1_mu` and
+  `qseries_spatial_nbinom2_q1_mu_one_slope`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. Non-Gaussian count evidence remains
+  recovery-only point-estimation evidence; all linked rows keep
+  `interval_status = unsupported` and `coverage_status = planned`.
+- The three top-up rows remain in
+  `structured-re-count-intercept-topup-recovery-results.tsv` and supersede the
+  original-grid caveats for widget/rollup state.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 37
+  non-Gaussian status-audit rows, 18 non-Gaussian recovery-rollup rows, 10
+  count-intercept recovery-results rows, 10 count-intercept cluster
+  recovery-results rows, and 3 count-intercept top-up recovery-results rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7523 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Dashboard JavaScript parse check via `node --check
+  /tmp/drmtmb-dashboard-index.js`: passed.
+
+## 2026-06-29: Q-Series count-slope Rorqual recovery reproduction
+
+Goal:
+
+- Ingest the Rorqual primary-cluster reproduction for the eight non-Gaussian
+  Poisson/NB2 q1 `mu` one-slope Q-Series rows.
+- Keep recovery/stability evidence separate from interval readiness, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, bridge support, and public
+  support.
+
+Result:
+
+- Added `tools/slurm/count-slope-recovery-rorqual.sbatch` and
+  `tools/summarize-structured-re-count-slope-cluster-recovery.R`.
+- Fetched Rorqual SLURM array 14916938 artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-count-slope-recovery-rorqual/`.
+  All eight array tasks completed with runner exit code 0.
+- Added
+  `docs/dev-log/dashboard/structured-re-count-slope-cluster-recovery-results.tsv`
+  with 8 recovery-only rows.
+- Updated the Q-Series widget, non-Gaussian recovery rollup, non-Gaussian status
+  audit, dashboard README, support-cell claim boundaries, mission-control
+  validator, and focused tests so the board prefers the Rorqual count-slope
+  sidecar over local count-slope recovery rows.
+- Dashboard build bumped to `r120`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- Seven count q1 `mu` one-slope rows are
+  `cluster_confirmed_recovery_only`; `qseries_spatial_nbinom2_q1_mu_one_slope`
+  remains `cluster_recovery_caveat` because Rorqual reproduced 2/80
+  `pdHess = FALSE`.
+- All eight count-slope rows remain `interval_status = unsupported` and
+  `coverage_status = planned`; no non-Gaussian interval, coverage,
+  `inference_ready`, `supported`, REML, AI-REML, q2/q4 count covariance, high-q,
+  bridge, or public-support claim is made.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/summarize-structured-re-count-slope-cluster-recovery.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Dashboard JavaScript parse check from extracted `index.html` script:
+  `node --check /tmp/drmtmb-dashboard-index.js` passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 37
+  non-Gaussian status-audit rows, 18 non-Gaussian recovery-rollup rows, 8
+  count-slope local recovery rows, and 8 count-slope cluster recovery rows.
+- First focused test run failed with two stale aggregate expectations, proving
+  the test still assumed 18 clean non-Gaussian recovery rows and 0 caveats.
+  After updating the expected state counts, the rerun passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7485 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-count-slope-cluster-recovery.md')"`:
+  passed.
+- `find docs/dev-log/simulation-artifacts/2026-06-29-count-slope-recovery-rorqual -type d -exec chmod u+rwx,go+rx,g-s {} +`
+  and `find docs/dev-log/simulation-artifacts/2026-06-29-count-slope-recovery-rorqual -type f -exec chmod u+rw,go+r {} +`:
+  normalized fetched Rorqual artifact permissions for local dashboard serving;
+  raw artifact contents were unchanged.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed after permission
+  normalization; the dashboard was already listening at
+  `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r120`, `structured-re-count-slope-cluster-recovery-results.tsv` served 9
+  lines including the header, and `/` contained `Cluster recovery`, `Recovery
+  caveat`, and `structured-re-count-slope-cluster-recovery-results.tsv`.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-campaign-queue-and-mu-blocker-hygiene.md')"`:
+  passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served widget checks: `version.txt` returned `r114`, the next-campaign queue
+  TSV served 11 lines including the header, and `/` contained both
+  `Campaign queue` and the queue TSV fetch path.
+
+## 2026-06-29: Q-Series Gaussian q1 mu rule-screen replay
+
+Goal:
+
+- Replay the retained Gaussian q1 `mu` one-slope SR150/SR475 artifacts under
+  simple candidate interval variants before spending Totoro/FIIA/DRAC time.
+
+Result:
+
+- Added `tools/summarize-structured-re-gaussian-mu-slope-rule-screen.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-rule-screen.tsv`
+  and mirrored it under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-rule-screen-local/`.
+- Added the target-detail artifact
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-rule-screen-local/structured-re-gaussian-mu-slope-rule-screen-target-detail.tsv`.
+- The screen records 13 candidate rows and 78 target-detail rows. Modest
+  upper-endpoint, log-width, and profile-boundary upper multipliers still leave
+  target-level upper-tail blockers. The 3x upper-endpoint and 3x log-width
+  variants remove upper misses only as large ad hoc retained-artifact screens,
+  not smoke-ready interval rules.
+- The mission-control widget renders a "Mu rule screen" table; after the
+  split-calibration follow-up, the current dashboard build is `r116`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The board remains 104 support cells,
+  exactly 5 interval-and-coverage `inference_ready` rows, and no structured
+  `supported` row.
+- The rule screen does not change `confint()`, does not authorize
+  Totoro/FIIA/DRAC smoke, and does not promote q1 `mu`, sigma, q2, q4/q8,
+  non-Gaussian intervals, REML, AI-REML, bridge support, `supported`, or public
+  support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/summarize-structured-re-gaussian-mu-slope-rule-screen.R
+  --overwrite=true`: passed; wrote 13 rule-screen rows and 78 target-detail
+  rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-mu-slope-rule-screen.R
+  tools/summarize-structured-re-gaussian-mu-slope-split-calibration.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  passed with `mission_control_ok`, including 104 structured RE q-series
+  cells, 13 Gaussian mu-slope rule-screen rows, and 6 Gaussian mu-slope
+  split-calibration rows.
+- Dashboard JavaScript parse check: passed with `dashboard_js_parse_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7359 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-rule-screen.md');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-split-calibration.md')"`:
+  passed for both after-task reports.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r116`, `structured-re-gaussian-mu-slope-rule-screen.tsv` served 14 lines
+  including the header, and the page contained the rule-screen TSV fetch path.
+
+## 2026-06-29: Q-Series Gaussian q1 mu split-calibration holdout
+
+Goal:
+
+- Test a Fisher-style split-sample log-upper calibration for Gaussian q1 `mu`
+  one-slope blockers before spending Totoro/FIIA/DRAC time.
+
+Result:
+
+- Added
+  `tools/summarize-structured-re-gaussian-mu-slope-split-calibration.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-split-calibration.tsv`
+  and mirrored it under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-split-calibration-local/`.
+- Added the learned-constant artifact
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-split-calibration-local/structured-re-gaussian-mu-slope-split-calibration-constants.tsv`.
+- The SR150/base calibration learns upper multipliers of 1.0556 for
+  `mu:(Intercept)` and 1.2777 for `mu:x`. The SR325/top-up holdout has three
+  intercept screen-only passes and three slope holdout failures, so no
+  Totoro/FIIA/DRAC smoke is authorized.
+- The mission-control widget now renders a "Mu split cal" table and the
+  dashboard build is `r116`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The board remains 104 support cells,
+  exactly 5 interval-and-coverage `inference_ready` rows, and no structured
+  `supported` row.
+- The split calibration does not change `confint()`, does not authorize
+  Totoro/FIIA/DRAC smoke, and does not promote q1 `mu`, sigma, q2, q4/q8,
+  non-Gaussian intervals, REML, AI-REML, bridge support, `supported`, or public
+  support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/summarize-structured-re-gaussian-mu-slope-split-calibration.R
+  --overwrite=true`: passed; wrote six split-calibration rows and two learned
+  constants.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-mu-slope-rule-screen.R
+  tools/summarize-structured-re-gaussian-mu-slope-split-calibration.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  passed with `mission_control_ok`, including 104 structured RE q-series
+  cells, 13 Gaussian mu-slope rule-screen rows, and 6 Gaussian mu-slope
+  split-calibration rows.
+- Dashboard JavaScript parse check: passed with `dashboard_js_parse_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7359 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-rule-screen.md');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-split-calibration.md')"`:
+  passed for both after-task reports.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r116`, `structured-re-gaussian-mu-slope-split-calibration.tsv` served 7
+  lines including the header, `structured-re-gaussian-mu-slope-rule-screen.tsv`
+  served 14 lines including the header, `/` contained `Mu split cal`, `/`
+  contained the split-calibration TSV fetch path, and the split-calibration TSV
+  contained `upper_lower_miss_ratio_above_2;mcse_above_0_01`.
+
+## 2026-06-29: Q-Series Gaussian low-q row-selection contract
+
+Goal:
+
+- Turn the broad Gaussian low-q point/fixture queue into an exact row-selection
+  and host-gate contract before using Totoro, FIIA, Nibi, Rorqual, or DRAC.
+
+Result:
+
+- Added `tools/summarize-structured-re-gaussian-lowq-row-selection.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv`
+  and mirrored it under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/`.
+- The generated sidecar excludes the four q1 `mu` one-slope rows already
+  blocked by interval-shape evidence, keeps 23 Gaussian low-q point/fixture
+  rows, and marks exactly four q1 `mu` intercept rows as local-dry-run
+  candidates.
+- Sigma, matched `mu+sigma`, q2 intercept, direct-SD, and
+  `phylo_interaction()` rows remain local design holds.
+- The mission-control widget now renders a "Low-q row select" table and the
+  dashboard build is `r117`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The board remains 104 support cells,
+  exactly 5 interval-and-coverage `inference_ready` rows, and no structured
+  `supported` row.
+- The row-selection contract does not change `confint()`, does not authorize
+  DRAC, and does not promote q1 `mu`, sigma, q2, q4/q8, non-Gaussian intervals,
+  REML, AI-REML, bridge support, `supported`, or public support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  --overwrite=true`: passed; wrote 23 Gaussian low-q row-selection rows.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tests/testthat/test-structured-re-conversion-contracts.R
+  tools/validate-mission-control.py`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`:
+  passed with `mission_control_ok`, including 104 structured RE q-series
+  cells, 35 Gaussian low-q status-audit rows, and 23 Gaussian low-q
+  row-selection rows.
+- Dashboard JavaScript parse check: passed with `dashboard_js_parse_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7392 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R');
+  main_check_after_task('docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-row-selection.md')"`:
+  passed.
+- `git diff --check`: passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh
+  tools/start-mission-control.sh --background`: passed; the dashboard was
+  already listening at `http://127.0.0.1:8765/`.
+- Served dashboard checks at `http://127.0.0.1:8765/`: `version.txt` returned
+  `r117`, `structured-re-gaussian-lowq-row-selection.tsv` served 24 lines
+  including the header, `/` contained `Low-q row select`, `/` contained the
+  row-selection TSV fetch path, and the TSV contained both
+  `first_smoke_candidate_location_intercept` and
+  `Nibi/Rorqual/DRAC before local dry-run`.
+
+## 2026-06-29: Q-Series q2-plus-q2 intercept contract closure
+
+Goal:
+
+- Close the q2-plus-q2 intercept row as a row-level contract without promoting
+  the linked support cell or spending cluster compute.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv`, a
+  10-row contract for `qseries_phylo_q2_plus_q2_intercept`.
+- The contract names six admissible within-block targets: direct SD targets for
+  `mu1`, `mu2`, `sigma1`, and `sigma2`, plus direct correlations for
+  `cor(mu1, mu2)` and `cor(sigma1, sigma2)`.
+- The contract also names four blocked cross-block correlations:
+  `cor(mu1, sigma1)`, `cor(mu1, sigma2)`, `cor(mu2, sigma1)`, and
+  `cor(mu2, sigma2)`.
+- The linked support-cell row remains `point_fit/planned/planned`; this is not
+  interval, coverage, `inference_ready`, `supported`, q4/q8, non-Gaussian,
+  REML, AI-REML, bridge, or public-support evidence.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells, 35 Gaussian low-q status-audit
+  rows, 23 Gaussian low-q row-selection rows, 12 q2 intercept
+  interval-contract rows, 10 q2-plus-q2 intercept-contract rows, and 12 q2
+  intercept local-smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8070 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-29: Q-Series campaign queue and q1 mu blocker propagation hygiene
+
+Goal:
+
+- Make the connected local, Totoro, FIIA, Nibi, Rorqual, and DRAC resources
+  usable through an explicit Q-Series queue rather than broad unreviewed
+  denominator runs.
+- Propagate the Gaussian q1 `mu` one-slope interval-shape and boundary-profile
+  blockers into the support-cell and low-q audit ledgers.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-q-series-next-campaign-queue.tsv`, a
+  ten-row compute/hold queue whose row counts sum to all 104 Q-Series support
+  cells.
+- Updated the mission-control widget to render the queue near the top of the
+  Q-Series section and bumped the dashboard build to `r114`.
+- Updated `structured-re-q-series-support-cells.tsv` and
+  `structured-re-gaussian-lowq-status-audit.tsv` so
+  `qseries_phylo_q1_mu_one_slope`, `qseries_relmat_q1_mu_one_slope`, and
+  `qseries_spatial_q1_mu_one_slope` point at the SR475 interval-shape
+  diagnostic, while `qseries_animal_q1_mu_one_slope` points at the hybrid
+  boundary audit.
+- Added mission-control and focused-test guards requiring those four rows to
+  remain `planned/planned`, not `supported`, and explicitly blocked from DRAC
+  top-up, TSV promotion, or public wording changes until Fisher/Rose accept a
+  replacement interval rule.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The board remains 104 support cells,
+  exactly 5 interval-and-coverage `inference_ready` rows, and no structured
+  `supported` row.
+- The campaign queue is a host-use and stop-rule overlay only. It does not
+  turn stability, recovery, smoke, or diagnostic evidence into inference
+  readiness.
+- q1 `mu`, spatial sigma, spatial/animal q2, q4/q6/q8, non-Gaussian intervals,
+  REML, AI-REML, bridge support, `supported`, and public support remain
+  unpromoted.
+
+Validation:
+
+- `/opt/homebrew/bin/air format
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null python3 tools/validate-mission-control.py`: passed
+  with `mission_control_ok`, including 104 structured RE q-series cells, 16
+  structured RE q-series closure-triage rows, 10 structured RE q-series
+  next-campaign queue rows, and 6 structured RE Gaussian mu-slope
+  interval-shape diagnostic rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 7271 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `git diff --check`: passed.
+- `find . -type d -name '__pycache__' -print`: returned no paths after
+  removing the `tools/__pycache__` directory created by `py_compile`.
+
+## 2026-06-29: Q-Series q2-plus-q2 Fisher/Rose next-smoke sign-off
+
+Goal:
+
+- Record Fisher and Rose sign-off for the
+  `qseries_phylo_q2_plus_q2_intercept` local-smoke gate and advance only the
+  next gate to a tiny Totoro/FIIA `n=5` smoke.
+
+Result:
+
+- Updated the q2-plus-q2 support cell, Gaussian low-q audit row,
+  row-selection row and mirror artifact, q2-plus-q2 interval contract, and
+  local-smoke sidecar/mirror so the row now says Fisher/Rose signed off the
+  local smoke and the next allowed work is a six-target Totoro/FIIA `n=5`
+  smoke.
+- Updated `AGENTS.md` to remove the stale statement that
+  `tools/validate-mission-control.py` is red on the q2-plus-q2 contract.
+- Updated mission-control and focused-test expectations so direct
+  q2-plus-q2 rows are `ready_for_totoro_fiia_n5_smoke`, while the four
+  cross-block correlations remain blocked until a true q4 route exists.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The support-cell statuses remain
+  `point_fit`, `planned`, and `planned`.
+- The sign-off permits only the six within-block q2-plus-q2 targets in a
+  Totoro/FIIA smoke with all attempted rows retained. It is not interval
+  reliability, coverage, MCSE adequacy, `inference_ready`, `supported`, q4/q8,
+  non-Gaussian, REML, AI-REML, bridge, or public-support evidence.
+- Nibi/Rorqual/DRAC denominator work remains blocked before the smoke result
+  is reviewed.
+
+Validation:
+
+- `/opt/homebrew/bin/air format tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 structured RE q-series cells, 10 q2-plus-q2
+  intercept-contract rows, and 6 q2-plus-q2 intercept local-smoke rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8150 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Host access recheck for the next smoke: `ssh ... nibi` and `ssh ...
+  rorqual` succeeded; `ssh ... totoro` failed with non-interactive auth
+  denied; `ssh ... fiia` had no configured alias; `ssh ... fir` succeeded but
+  shallow home/project searches found no `drmTMB` checkout. The q2-plus-q2
+  widget rows now record the smoke as scientifically allowed but
+  operationally held until Totoro/FIIA access or checkout is resolved.
+
+## 2026-06-29: Q-Series direct-SD univariate target-split smoke
+
+Goal:
+
+- Advance `qseries_phylo_direct_sd_univariate` from a pure special-target
+  contract hold to retained target-level smoke evidence, without promoting the
+  support cell.
+
+Result:
+
+- Added and ran
+  `tools/run-structured-re-gaussian-lowq-direct-sd-univariate-smoke.R`.
+- Banked
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv`
+  plus raw replicate, seed-manifest, `sessionInfo.txt`, and `git-sha.txt`
+  artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-direct-sd-univariate-smoke-local/`.
+- The smoke retained two target rows: `sd:mu:phylo(1 | species)` passed the
+  local n=1 raw-Wald plus endpoint-profile smoke, while
+  `sd:sigma:phylo(1 | species)` retained a boundary Wald interval and endpoint
+  profile-budget failure.
+- Updated the low-q row-selection, special-target contract, low-q status audit,
+  support-cell evidence URL, mission-control widget, validator, and focused R
+  test. The dashboard build is now `r149`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The support cell remains
+  `point_fit / interval_feasible / planned`.
+- The n=1 smoke is not coverage, MCSE adequacy, `inference_ready`, `supported`,
+  REML, AI-REML, q2, q4/q8, non-Gaussian, bridge, public-support, or
+  derived-correlation interval evidence.
+- `qseries_phylo_interaction_q1_mu` remains held at provider-boundary review
+  with no interval route.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-direct-sd-univariate-smoke.R
+  --overwrite=true`: passed and wrote 2 summary rows and 2 replicate rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `/opt/homebrew/bin/air format
+  tools/run-structured-re-gaussian-lowq-direct-sd-univariate-smoke.R
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells and the new direct-SD target-split
+  smoke guard.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8610 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true tools/start-mission-control.sh
+  --background`: passed and refreshed the served widget at
+  `http://127.0.0.1:8765/` to `r149`.
+- Browser preview: Q-Series board rendered with `Low-q direct SD = 2`, both
+  direct-SD target rows, the mu-axis pass, the sigma-axis
+  boundary/profile-budget blocker, and no subtitle data-load error.
+
+## 2026-06-30: Q-Series phylo_interaction provider-boundary contract
+
+Goal:
+
+- Close the review-pending state for `qseries_phylo_interaction_q1_mu` without
+  promoting the row.
+
+Result:
+
+- Updated the support cell, Gaussian low-q audit row, special-target contract,
+  generated row-selection TSV, row-selection mirror artifact, mission-control
+  validator, and focused R test.
+- The row now uses
+  `selection_status = phylo_interaction_provider_boundary_no_interval_route`
+  and `run_mode = no_compute_provider_boundary_hold`.
+- Boole confirmed that `phylo_interaction()` cannot inherit ordinary or
+  single-tree `phylo()` q1 interval logic: it is a q1 pair-level Kronecker
+  field, not ordinary q1, not `phylo(1 | species)`, and has no single
+  structured group count.
+- Fisher confirmed there is no interval, coverage, or `inference_ready`
+  evidence for the Gaussian row, and that Poisson/NB2 recovery rows do not
+  transfer.
+- The dashboard build is now `r150`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. The support cell remains
+  `point_fit / planned / planned`.
+- No smoke, Totoro/FIIA, Nibi/Rorqual, DRAC, interval, coverage,
+  `inference_ready`, `supported`, q2/q4, non-Gaussian, REML, AI-REML, bridge,
+  or public-support claim is made.
+- Future work must start with a row-specific Gaussian q1 `phylo_interaction()`
+  interval design that names the target, denominator, one-sided misses, bridge
+  exclusion, and blocked neighbours.
+
+Validation:
+
+- Host access recheck: `nibi` and `rorqual` were reachable; `totoro` still
+  rejected non-interactive SSH; `fiia` still had no configured alias.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8617 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 sigma-intercept route-pass hold
+
+Goal:
+
+- Split the q1 sigma-intercept local-smoke route states more precisely without
+  promoting any support cell.
+
+Result:
+
+- Changed `qseries_animal_q1_sigma_intercept` and
+  `qseries_relmat_q1_sigma_intercept` from
+  `sigma_smoke_route_review_pending` to
+  `sigma_smoke_route_passed_denominator_review_hold`.
+- Changed their run mode to
+  `fisher_gauss_rose_denominator_review_before_host`.
+- Kept `qseries_phylo_q1_sigma_intercept` and
+  `qseries_spatial_q1_sigma_intercept` at
+  `sigma_smoke_diagnostic_blocked`.
+- Updated the row-selection generator, generated row-selection TSV, mirror
+  artifact, support-cell rows, Gaussian low-q audit rows, validator, focused
+  test, and after-task note.
+- The dashboard build is now `r151`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. Animal/relmat remain
+  `point_fit / planned / planned`.
+- Animal/relmat have local n=5 route-pass evidence only: 5/5 usable raw-Wald
+  intervals, 0 boundary rows, 0 profile failures, and 5 retained warning
+  replicates.
+- No interval_status, coverage_status, `inference_ready`, `supported`, q1 mu,
+  matched mu+sigma, q2, q4/q8, non-Gaussian, REML, AI-REML, bridge support,
+  denominator evidence, DRAC denominator, or public-support claim is made.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8619 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 mu+sigma intercept fixture-hold split
+
+Goal:
+
+- Split the q1 `mu+sigma` intercept local-smoke route states more precisely
+  without promoting any support cell.
+
+Result:
+
+- Kept `qseries_phylo_q1_mu_sigma_intercept` at
+  `mu_sigma_smoke_diagnostic_blocked`.
+- Changed `qseries_spatial_q1_mu_sigma_intercept`,
+  `qseries_animal_q1_mu_sigma_intercept`, and
+  `qseries_relmat_q1_mu_sigma_intercept` from
+  `mu_sigma_smoke_fixture_review_pending` to
+  `mu_sigma_smoke_fixture_passed_denominator_review_hold`.
+- Changed their run mode to
+  `fisher_noether_rose_denominator_review_before_host`.
+- Updated the row-selection generator, generated row-selection TSV, mirror
+  artifact, support-cell rows, Gaussian low-q audit rows, validator, focused
+  test, dashboard build, and after-task note.
+- The dashboard build is now `r152`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row. All four q1 `mu+sigma` intercept rows
+  remain `point_fit / planned / planned`.
+- The local smoke has `n=1` target bookkeeping only: direct `sd_mu`, direct
+  `sd_sigma`, and `mu-sigma` correlation targets are separate.
+- Spatial/animal/relmat have fixture-pass denominator-review-hold evidence
+  only. Phylo remains diagnostic-blocked by the nonusable boundary/correlation
+  signal.
+- No interval_status, coverage_status, `inference_ready`, `supported`, q1 mu,
+  q1 sigma, q2, q4/q8, non-Gaussian, REML, AI-REML, bridge support, denominator
+  evidence, DRAC denominator, or public-support claim is made.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `cmp docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `/opt/homebrew/bin/air format
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  tools/validate-mission-control.py
+  tests/testthat/test-structured-re-conversion-contracts.R`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series support cells and 23 Gaussian low-q row-selection rows.
+- First focused test run caught an over-broad test assertion:
+  `devtools::test(filter = "structured-re-conversion-contracts")` failed with
+  8620 PASS / 1 FAIL / 0 WARN / 0 SKIP because the test required
+  `denominator-review-held` on the phylo diagnostic row.
+- Final focused test run after row-specific assertion:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8622 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series host-access gate sync
+
+Goal:
+
+- Make the Q-Series widget and live dashboard ledgers distinguish host
+  reachability from row-level evidence.
+
+Result:
+
+- Added `structured-re-q-series-host-access-recheck.tsv` with five host rows:
+  Totoro, FIIA, Nibi, Rorqual, and Fir.
+- Updated the Q-Series widget to show the host recheck near the support-cell
+  table; dashboard build remains `r153`.
+- Updated next-campaign, Gaussian low-q row-selection, q1 `mu` dry-run,
+  q1 `mu` smoke-contract, q2 intercept, q2-plus-q2, local-smoke, status-audit,
+  support-cell, README, runner, validator, and focused-test wording so
+  Nibi/Rorqual reachability is not treated as a Totoro/FIIA smoke substitute
+  without a Fisher/Rose/Grace smoke-substitution contract.
+- Updated the after-task report:
+  `docs/dev-log/after-task/2026-06-30-q-series-host-access-gate-sync.md`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- No `fit_status`, `interval_status`, `coverage_status`, `inference_ready`, or
+  `supported` status changed.
+- No new smoke, denominator, interval, coverage, REML, AI-REML, DRAC
+  denominator, bridge, or public-support claim is made.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R --overwrite=true`:
+  passed and wrote 23 Gaussian low-q row-selection rows.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 10 next-campaign rows, and 5 host-access recheck
+  rows.
+- `cmp` checks passed for row-selection, q1 `mu` dry-run, q2 intercept local
+  smoke, and q2-plus-q2 local smoke dashboard/artifact mirrors.
+- `git diff --check`: passed.
+- Stale live-surface scan:
+  `rg -n "fir is reachable but has no drmTMB checkout|fir checkout|fir_no_drmtmb|live host checkout|resolve Totoro/FIIA host access|host access or checkout|fir reachable with no drmTMB checkout" docs/dev-log/dashboard tools tests/testthat README.md NEWS.md ROADMAP.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd`:
+  returned no matches.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8645 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series smoke-substitution contract sync
+
+Goal:
+
+- Make the Fisher/Rose/Grace smoke-substitution contract first-class in the
+  Q-Series widget and guard the Nibi/Rorqual route as exact `n=5` smoke only.
+
+Result:
+
+- Added `structured-re-q-series-smoke-substitution-contract.tsv` with three
+  contract rows: q1 `mu` intercept, q2 `mu1+mu2` intercept, and phylo
+  q2-plus-q2 intercept.
+- Updated the Q-Series widget build to `r154` so the support-cell section shows
+  the smoke contract near the 104-row table.
+- Updated Nibi/Rorqual host decisions from reachable-but-not-substitute to
+  `reachable_for_contract_bounded_smoke_only`.
+- Updated q1/q2 row-selection, dry-run, q2 contract, q2-plus-q2 contract,
+  local-smoke, runner, README, validator, and focused-test text so Nibi/Rorqual
+  are reachable only for exact substitute smoke and remain blocked for
+  denominator work.
+- Synchronized q2 contract wording so every q2 intercept row records the
+  Totoro/FIIA access failure, Nibi/Rorqual reachability, Fir missing qseries
+  root, smoke-substitution contract filename, and denominator block.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- No `fit_status`, `interval_status`, `coverage_status`, `inference_ready`, or
+  `supported` status changed.
+- The contract does not authorize q4/q8, non-Gaussian, REML, AI-REML, bridge,
+  DRAC denominator, or public-support claims.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells, 5 host-access recheck rows, and 3
+  smoke-substitution contract rows.
+- `cmp docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/structured-re-gaussian-lowq-row-selection.tsv`:
+  passed.
+- `cmp docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-dry-run.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-dry-run-local/structured-re-gaussian-lowq-mu-intercept-dry-run.tsv`:
+  passed.
+- `cmp docs/dev-log/dashboard/structured-re-q2-intercept-local-smoke.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-q2-intercept-local-smoke/structured-re-q2-intercept-local-smoke.tsv`:
+  passed.
+- `cmp docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-local-smoke.tsv
+  docs/dev-log/simulation-artifacts/2026-06-29-q2-plus-q2-intercept-local-smoke/structured-re-q2-plus-q2-intercept-local-smoke.tsv`:
+  passed.
+- `git diff --check`: passed.
+- Stale live-surface scan:
+  `rg -n "write a Fisher/Rose/Grace|without a Fisher/Rose/Grace smoke-substitution contract|not smoke substitutes without review|blocked as smoke substitutes before Fisher/Rose/Grace contract|before Fisher/Rose/Grace contract|restore Totoro/FIIA access or write|does not make Nibi/Rorqual|reachable_but_not_smoke_substitute_without_contract|ready_for_totoro_fiia_smoke|totoro_fiia_smoke_operational_hold|totoro_fiia_n5_smoke_after_fisher_rose_signoff" docs/dev-log/dashboard/structured-re-*.tsv tools/run-structured-re-q2-intercept-smoke.R tools/run-structured-re-q2-plus-q2-intercept-smoke.R tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R tools/validate-mission-control.py tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/dashboard/README.md`:
+  returned no matches.
+- Positive contract scan confirmed current live q2 surfaces contain
+  `Nibi/Rorqual reachable with qseries roots`,
+  `Nibi/Rorqual allowed only for exact n=5 smoke`, the smoke-substitution
+  contract filename, and the denominator-work block.
+- First focused test run caught under-specified q2 contract wording:
+  `devtools::test(filter = "structured-re-conversion-contracts")` failed with
+  8662 PASS / 8 FAIL / 0 WARN / 0 SKIP.
+- Second focused test run caught the missing plain-language
+  `smoke-substitution contract` phrase: 8669 PASS / 1 FAIL / 0 WARN / 0 SKIP.
+- Final focused test run:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 8670 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 mu-intercept SR150 Nibi result import
+
+Goal:
+
+- Import the completed Nibi SR150 retained-denominator pregrid for the four
+  Gaussian q1 `mu` intercept direct-SD rows into mission control without
+  promoting any Q-Series status.
+
+Result:
+
+- Job `16976756` is retained as failure provenance: it installed the package but
+  stopped before simulation because the runner did not yet accept
+  `nibi_rorqual_substitution_smoke_reviewed`.
+- Patched runner/source job `16977254` completed on Nibi from
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r162`.
+- Imported raw artifacts to
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-pregrid-nibi/`
+  and added
+  `structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv`.
+- Updated the Q-Series widget build to `r163` so it separates the SR150 job
+  ledger from the imported SR150 result table.
+
+Measured SR150 summary:
+
+- phylo: 150/150 fit/converged/`pdHess`/finite interval, coverage 0.9800,
+  MCSE 0.011431, lower/upper misses 2/1.
+- spatial: 150/150 fit/converged/`pdHess`/finite interval, coverage 0.9733,
+  MCSE 0.013154, lower/upper misses 2/2.
+- animal: 150/150 fit/converged/`pdHess`/finite interval, coverage 0.9800,
+  MCSE 0.011431, lower/upper misses 2/1.
+- relmat: 150/150 fit/converged/`pdHess`/finite interval, coverage 0.9800,
+  MCSE 0.011431, lower/upper misses 1/2.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- The linked support cells remain `point_fit/planned/planned`.
+- MCSE <= 0.01 remains the top-up target, not an SR150 pass claim.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`, q1
+  sigma, matched `mu+sigma`, q2, q4/q8, non-Gaussian interval, REML, AI-REML,
+  bridge, or public-support claim changed.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 4 structured RE Gaussian low-q `mu` intercept pregrid-result rows.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `git diff --check` on touched files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9076 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q1 mu-intercept parallel top-up route
+
+Goal:
+
+- Add a parallel Nibi/Rorqual-ready top-up route for the four Gaussian q1 `mu`
+  intercept direct-SD rows, without importing results or promoting any
+  Q-Series status.
+
+Result:
+
+- Extended `tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R` with
+  `--run-kind=topup`, `topup_id`, `topup_status`, retained-denominator
+  contract metadata, and artifact-only no-dashboard behavior.
+- Added `tools/run-structured-re-gaussian-lowq-mu-intercept-topup.R`, defaulting
+  to `--run-kind=topup`, `--n-rep=325`, `--seed-start=151`, and
+  `--write-dashboard=false`.
+- Added `tools/slurm/q1-mu-intercept-topup-nibi.sbatch`, a four-task array that
+  maps one provider per shard and writes to
+  `results/q1-mu-intercept-topup-sr475/shard_<task>_<provider>`.
+- The SLURM plan uses pinned BLAS/TMB threads and per-shard R libraries to avoid
+  concurrent install locks during parallel array execution.
+- Copied a source snapshot to Nibi under
+  `/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163`
+  and submitted array job `16978889`; initial scheduler state was pending with
+  reason `Priority`.
+- Array tasks 1-3 completed (`phylo`, `spatial`, `animal`). Array task 4
+  (`relmat`) failed before the R runner with a CVMFS R `INSTALL`
+  input/output error on node `c24`, exit `126:0`.
+- Resubmitted only array task 4 as job `16979505`; immediate state was pending
+  with reason `Priority`.
+- Added `structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv`, a
+  four-row dispatch ledger that surfaces the submitted top-up array in the
+  widget without importing results.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- The linked support cells remain `point_fit/planned/planned`.
+- MCSE <= 0.01 remains a top-up target, not a shard-level pass claim.
+- The top-up artifacts must be aggregated with SR150 and reviewed before any
+  widget import, `interval_status`, `coverage_status`, `inference_ready`,
+  `supported`, q1 sigma, matched `mu+sigma`, q2, q4/q8, non-Gaussian interval,
+  REML, AI-REML, bridge, or public-support claim.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file =
+  "tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R"); parse(file =
+  "tools/run-structured-re-gaussian-lowq-mu-intercept-topup.R")'`: passed.
+- `bash -n tools/slurm/q1-mu-intercept-topup-nibi.sbatch`: passed.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- Local top-up host guard:
+  `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-gaussian-lowq-mu-intercept-topup.R
+  --providers=phylo --n-rep=1 --seed-start=151 --host-class=local_rehearsal
+  --host-name=local --output-dir=/tmp/drmtmb-q1-mu-topup-local-guard
+  --overwrite=true --write-dashboard=false`: refused with the expected
+  Nibi/Rorqual retained-denominator host gate.
+- Local one-replicate top-up writer smoke, using a fake Nibi host label and
+  writing only to `/tmp/drmtmb-q1-mu-topup-positive`: passed and produced
+  `topup_id`, `topup_status`, retained-denominator contract metadata,
+  `host_class = nibi_retained_denominator_topup`, seed 151, and one retained
+  denominator row. This smoke is not imported and is not evidence for a status
+  claim.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `git diff --check` on the top-up runner, SLURM script, validator, and focused
+  test files: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9104 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Nibi submission check: `ssh nibi "squeue -j 16978889 -o '%i %T %M %R'"`
+  reported `16978889_[1-4] PENDING 0:00 (Priority)` immediately after
+  submission.
+- `ssh nibi "sacct -j 16978889 --format=JobID,JobName%20,State,ExitCode,Elapsed,NodeList%20 -P"`:
+  tasks 1-3 completed with exit `0:0`; task 4 failed with exit `126:0`.
+- Relmat retry submission check:
+  `ssh nibi "squeue -j 16979505 -o '%i %T %M %R'"` reported
+  `16979505_[4] PENDING 0:00 (Priority)`.
+
+## 2026-06-30: Q-Series q1 mu-intercept SR475 aggregate
+
+Goal:
+
+- Import the completed Nibi q1 `mu` intercept top-up shards, aggregate them
+  with the reviewed SR150 pregrid to SR475 per provider, and expose the result
+  as review-pending evidence without promoting any Q-Series status.
+
+Result:
+
+- Nibi relmat retry job `16979505` completed with exit `0:0` after the
+  original relmat task `16978889_4` failed before the R runner with a CVMFS R
+  `INSTALL` input/output error.
+- Imported the four top-up shard summaries, raw replicate TSVs, seed manifests,
+  session info, git SHA files, and scheduler logs into
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-topup-nibi/`.
+- Added `tools/summarize-structured-re-gaussian-lowq-mu-intercept-sr475.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv`
+  and the combined retained replicate artifact
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-topup-nibi/structured-re-gaussian-lowq-mu-intercept-sr475-results-replicates.tsv`.
+- Updated `structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv` from
+  submitted/pending to completed/imported for phylo, spatial, animal, and
+  relmat retry.
+- Updated the widget build to `r166`; it now shows a separate "Low-q mu SR475
+  review" card and review table.
+- Updated mission-control validation and the focused conversion-contract test
+  to require the SR475 aggregate and to keep animal's finite-interval caveat
+  visible.
+- Imported the Nibi per-shard top-up metadata into
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-topup-nibi/metadata/`
+  and replaced the broken result-level `git-sha.txt` mirrors with the run's
+  dirty-source label `77b634ed-dirty-q1-mu-topup-r163`.
+- Mission control now requires top-up exact commands, module lists, run logs,
+  run status, source manifests, source provenance, and the dirty-source label.
+
+Measured SR475 summary:
+
+- phylo: 475/475 fit/converged/`pdHess`/finite interval, coverage 0.9832,
+  MCSE 0.005904, lower/upper misses 4/4.
+- spatial: 475/475 fit/converged/`pdHess`/finite interval, coverage 0.9705,
+  MCSE 0.007760, lower/upper misses 4/10.
+- animal: 475/475 fit/converged/`pdHess`, 473/475 finite intervals, coverage
+  0.9747, MCSE 0.007200, lower/upper misses 6/4.
+- relmat: 475/475 fit/converged/`pdHess`/finite interval, coverage 0.9789,
+  MCSE 0.006587, lower/upper misses 3/7.
+- The two animal unusable intervals are seeds `812407` and `812444`, both
+  `wald_at_boundary` rows with `conf.low = 0` and `conf.high = Inf`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- The linked support cells remain `point_fit/planned/planned`.
+- The SR475 aggregate is Fisher/Rose/Grace review evidence only.
+- Animal's two unusable intervals, spatial's 10 upper misses, and relmat's
+  upper/lower miss ratio 2.3333 remain review inputs, not hidden passes.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`, q1
+  sigma, matched `mu+sigma`, q2, q4/q8, non-Gaussian interval, REML, AI-REML,
+  bridge, or public-support claim changed.
+
+Validation:
+
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file =
+  "tools/summarize-structured-re-gaussian-lowq-mu-intercept-sr475.R")'`:
+  passed.
+- Embedded dashboard script syntax check via extracted `<script>` and
+  `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+- `git diff --check` on touched files before this check-log append: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 4 structured RE Gaussian low-q `mu` intercept SR475 result rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9223 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- Post-provenance rerun:
+  - `python3 -m py_compile tools/validate-mission-control.py`: passed.
+  - `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'parse(file =
+    "tools/summarize-structured-re-gaussian-lowq-mu-intercept-sr475.R")'`:
+    passed.
+  - Embedded dashboard script syntax check via extracted `<script>` and
+    `node --check /tmp/drmtmb-dashboard-script.js`: passed.
+  - Scoped `git diff --check` over the provenance/widget/check-log/test files:
+    passed.
+  - `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+    tools/validate-mission-control.py`: passed with `mission_control_ok`,
+    including the new top-up provenance requirements.
+  - `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+    OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+    --no-init-file -e 'devtools::test(filter =
+    "structured-re-conversion-contracts")'`: 9335 PASS / 0 FAIL / 0 WARN /
+    0 SKIP.
+
+## 2026-06-30: Q-Series q2 retained-denominator review synthesis
+
+Scope:
+
+- Added a five-row cell-level synthesis for the imported Rorqual SR150
+  retained-denominator q2 pregrid:
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-review-synthesis.tsv`.
+- Synced the five affected widget/support surfaces to that synthesis:
+  `qseries_phylo_q2_mu1_mu2_intercept`,
+  `qseries_spatial_q2_mu1_mu2_intercept`,
+  `qseries_animal_q2_mu1_mu2_intercept`,
+  `qseries_relmat_q2_mu1_mu2_intercept`, and
+  `qseries_phylo_q2_plus_q2_intercept`.
+- Updated the Gaussian low-q status audit, row-selection table, and support
+  cells so the imported SR150 evidence is visible as review-required evidence
+  rather than stale Nibi n=5/design-stage wording.
+- Updated mission-control validation and the focused conversion-contract test
+  to require the review synthesis, exact per-cell review states, no-promotion
+  status, source links back to the 17-row pregrid result TSV, and the
+  no-promotion boundary.
+
+Review states:
+
+- phylo q2 intercept: `sr150_topup_or_shape_review_required_no_promotion`
+  from 3 target rows.
+- spatial q2 intercept:
+  `sr150_profile_finiteness_review_required_no_promotion` from 3 target rows.
+- animal q2 intercept:
+  `sr150_wald_finiteness_review_required_no_promotion` from 3 target rows.
+- relmat q2 intercept: `sr150_topup_or_shape_review_required_no_promotion`
+  from 3 target rows.
+- phylo q2-plus-q2 intercept:
+  `sr150_pdhess_review_required_no_promotion` from 5 target rows.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- All five linked support cells remain `point_fit/planned/planned`.
+- The synthesis is Fisher/Rose/Grace review evidence only.
+- Totoro, Nibi, Rorqual, Trillium, and other DRAC use remains blocked for
+  top-up or repair until the review chooses an exact cell, target, seed range,
+  interval channel, denominator policy, finite-interval policy, and one-sided
+  miss policy.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`,
+  q2 slope inheritance, q2-plus inheritance, q4/q8, non-Gaussian interval,
+  REML, AI-REML, bridge, or public-support claim changed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-review.R
+  --overwrite=true`: passed and regenerated the five-row synthesis.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'parse("tools/summarize-structured-re-q2-retained-denominator-review.R")'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'parse("tests/testthat/test-structured-re-conversion-contracts.R")'`:
+  passed.
+- Scoped `git diff --check` over the validator, focused test, synthesis
+  generator, synthesis TSV, and synced dashboard TSVs: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 5 structured RE q2 retained-denominator review-synthesis rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9812 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q2 retained-denominator review decision
+
+Scope:
+
+- Added `tools/summarize-structured-re-q2-retained-denominator-review-decision.R`
+  and generated
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-review-decision.tsv`.
+- The decision table converts the five-row q2 retained-denominator review
+  synthesis into Fisher/Rose/Grace no-top-up decisions for:
+  `qseries_phylo_q2_mu1_mu2_intercept`,
+  `qseries_spatial_q2_mu1_mu2_intercept`,
+  `qseries_animal_q2_mu1_mu2_intercept`,
+  `qseries_relmat_q2_mu1_mu2_intercept`, and
+  `qseries_phylo_q2_plus_q2_intercept`.
+- Synced the support-cell, Gaussian low-q audit, row-selection, and closure
+  triage surfaces so the widget points at the decision layer rather than
+  treating the earlier synthesis as the final gate.
+
+Decision summary:
+
+- phylo q2 intercept: `fisher_rose_grace_shape_blocked_no_topup`,
+  min coverage `0.8600`, max MCSE `0.028331`.
+- spatial q2 intercept:
+  `fisher_rose_grace_profile_finiteness_shape_blocked_no_topup`, min coverage
+  `0.8467`, max MCSE `0.029419`.
+- animal q2 intercept:
+  `fisher_rose_grace_wald_finiteness_shape_blocked_no_topup`, min coverage
+  `0.8926`, max MCSE `0.025363`.
+- relmat q2 intercept: `fisher_rose_grace_shape_blocked_no_topup`,
+  min coverage `0.8800`, max MCSE `0.026533`.
+- phylo q2-plus-q2 intercept:
+  `fisher_rose_grace_pdhess_shape_blocked_no_topup`, min coverage `0.8867`,
+  max MCSE `0.025883`.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- All five linked support cells remain `point_fit/planned/planned`.
+- Totoro, Nibi, Rorqual, Trillium, FIIA, and other DRAC top-up/repair/status
+  jobs are blocked until Fisher/Rose/Grace accept a row-specific repair
+  contract.
+- Trillium is reachable in the host ledger, but remains unusable for this
+  lane until the qseries run root and source root are synced there.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`,
+  q2 slope inheritance, q4/q8, non-Gaussian interval, REML, AI-REML, bridge,
+  or public-support claim changed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-review-decision.R
+  --overwrite=true`: passed and regenerated the five-row decision table.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-q2-retained-denominator-review-decision.R"))'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- Scoped `git diff --check` over the validator, focused test, decision
+  summarizer, decision TSV, and synced dashboard TSVs: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 5 structured RE q2 retained-denominator review-decision rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9859 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q2 retained-denominator repair contract
+
+Scope:
+
+- Added `tools/summarize-structured-re-q2-retained-denominator-repair-contract.R`
+  and generated
+  `docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-contract.tsv`.
+- The repair-contract table covers exactly the five blocked q2
+  retained-denominator review-decision cells:
+  `qseries_phylo_q2_mu1_mu2_intercept`,
+  `qseries_spatial_q2_mu1_mu2_intercept`,
+  `qseries_animal_q2_mu1_mu2_intercept`,
+  `qseries_relmat_q2_mu1_mu2_intercept`, and
+  `qseries_phylo_q2_plus_q2_intercept`.
+- Synced the support-cell, Gaussian low-q audit, row-selection, and closure
+  triage surfaces so the widget points at the repair contract while preserving
+  `point_fit/planned/planned` for all five support cells.
+
+Contract summary:
+
+- The four q2 intercept cells are small-repair-smoke ready at `n_rep=32` with
+  seed ranges `920001-920032`, `921001-921032`, `922001-922032`, and
+  `923001-923032`.
+- The phylo q2-plus-q2 cell is small-repair-smoke ready at `n_rep=16` with seed
+  range `924001-924016`.
+- Totoro is allowed only for small repair smokes, defaulting to 50 workers and
+  capped at <=100 workers with a cleanup note; Nibi or Rorqual may be one-host
+  SLURM smoke hosts after source/root checks; Trillium remains blocked until
+  qseries run root and source root are synced there.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- No SR475/SR1000 top-up, mixed-host denominator, support-cell status edit, or
+  public/support wording is authorized by this contract.
+- No `interval_status`, `coverage_status`, `inference_ready`, `supported`, q2
+  slope inheritance, q2-plus inheritance, q4/q8, non-Gaussian interval, REML,
+  AI-REML, bridge, or public-support claim changed.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-contract.R
+  --overwrite=true --sync-dashboard=true`: passed and synced the dashboard
+  surfaces.
+- `python3 -m py_compile tools/validate-mission-control.py`: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-contract.R"));
+  invisible(parse("tests/testthat/test-structured-re-conversion-contracts.R"))'`:
+  passed.
+- Scoped `git diff --check` over the repair summarizer, validator, focused
+  test, repair TSV, and synced dashboard TSVs: passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 5 structured RE q2 retained-denominator repair-contract rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 9927 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+
+## 2026-06-30: Q-Series q2 direct-SD endpoint route Totoro blocker
+
+Scope:
+
+- Added target-scoped dashboard evidence for
+  `qseries_phylo_q2_mu1_mu2_intercept`, estimand `sd_mu2_intercept`, under
+  `endpoint_zero_boundary_profile_channel`:
+  `docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv`.
+- Updated the exact phylo q2 intercept support-cell, Gaussian low-q audit, and
+  row-selection rows to point at this blocker while preserving
+  `point_fit/planned/planned`.
+- Kept direct correlations, q2-plus, q2 slopes, q4/q8, non-Gaussian rows, REML,
+  AI-REML, `inference_ready`, and `supported` out of scope.
+
+Result:
+
+- Local schema smoke: `n=2`, fit/converged/pdHess/profile finite `2/2`.
+- Totoro target smoke: 32 one-replicate shards from isolated run root
+  `/home/snakagaw/codex-runs/2026-06-30-q2-direct-sd-phylo-77b634ed-163356`,
+  imported to
+  `docs/dev-log/simulation-artifacts/2026-06-30-q2-direct-sd-endpoint-route-phylo-totoro/`.
+- Totoro fit/converged/pdHess/Wald finite/profile finite: `32/32`.
+- Wald coverage: `0.9375`, MCSE `0.042791`, lower/upper misses `0/2`.
+- Profile coverage: `0.8750`, MCSE `0.058463`, lower/upper misses `0/4`.
+- Decision: `do_not_promote`; no top-up from this route.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/run-structured-re-q2-intercept-smoke.R"));
+  invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R"))'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "profile-targets")'`: 816 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'devtools::test(filter = "structured-re-conversion-contracts")'`: 10201 PASS
+  / 0 FAIL / 0 WARN / 0 SKIP.
+- `git diff --check`: passed.
+
+## 2026-06-30: Q-Series q2 repair-sidecar plumbing and NotebookLM issue parking
+
+Scope:
+
+- Added a diagnostic-only `--interval-repair-channel` path for q2 retained-
+  denominator repair smokes. The first channel is
+  `bounded_tmbprofile_direct_correlation_sidecar`, and it is intentionally
+  restricted to direct-correlation targets.
+- Extended the q2 repair-smoke dispatch and Fisher/Rose/Grace review surfaces
+  with separate repair-sidecar metrics:
+  `interval_repair_channel`, attempted/finite repair counts, repair coverage
+  smoke summaries, and lower/upper repair misses.
+- Regenerated the current Totoro repair-smoke review from existing artifacts
+  with `interval_repair_channel=none`. This records the sidecar fields without
+  changing row status.
+- Fixed the review dashboard sync so
+  `qseries_phylo_q2_mu1_mu2_intercept` keeps
+  `docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv`
+  as its row-state evidence and keeps
+  `q2_direct_sd_endpoint_route_smoke_blocked_no_topup` /
+  `q2_direct_sd_endpoint_route_failed_design_next`.
+- Read the NotebookLM notebook
+  `Fast & Accurate Algorithms for Mixed & Latent-Variable Model Fitting
+  (HSquared * DRM * GLLVM)` as a scout note only, then parked future-method
+  leads in GitHub issues:
+  - drmTMB#687: q2 retained-denominator DDF repair sidecars.
+  - drmTMB#686: non-Gaussian recovery warm starts and soft penalties.
+  - drmTMB#555 comment: high-q sparse-Hessian/selected-inversion scout lead.
+
+Boundary:
+
+- This promotes exactly no Q-Series row.
+- NotebookLM evidence is triage only; primary sources must be verified before
+  any algorithm, interval route, support-cell edit, or public claim.
+- Repair-sidecar metrics cannot replace the primary endpoint route, change
+  `interval_status` or `coverage_status`, authorize SR475/SR1000 top-up, or
+  imply `inference_ready`, `supported`, q4/q8, non-Gaussian interval, REML,
+  AI-REML, bridge, or public support.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e
+  'invisible(parse("tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R"))'`:
+  passed.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R
+  --dispatch=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv
+  --output=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv
+  --sync-dashboard=true --overwrite=true`: passed and synced the dashboard
+  gates.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10234 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file tools/run-structured-re-q2-intercept-smoke.R --n-rep=2
+  --seed-start=1 --seed-base=930000 --providers=phylo
+  --estimands=cor_mu1_mu2_intercept --bootstrap=0 --profile-max-eval=30
+  --interval-repair-channel=bounded_tmbprofile_direct_correlation_sidecar
+  --host-class=local --host-name=codex
+  --output-dir=docs/dev-log/simulation-artifacts/2026-06-30-q2-direct-correlation-repair-sidecar-local
+  --overwrite=true --write-dashboard=false`: passed as a diagnostic plumbing
+  smoke only.
+  - Output summary:
+    `docs/dev-log/simulation-artifacts/2026-06-30-q2-direct-correlation-repair-sidecar-local/structured-re-q2-intercept-local-smoke.tsv`.
+  - `phylo` `cor_mu1_mu2_intercept`: `n_rep=2`, fit/converged/pdHess
+    `2/2`, Wald/profile finite `2/2`, repair attempted/finite `2/2`,
+    repair coverage smoke `1.0000`, repair lower/upper misses `0/0`.
+  - This remains schema smoke evidence only and authorizes no top-up or status
+    edit.
+
+## 2026-06-30: Q-Series q1 matched mu+sigma intercept n=5 blocker
+
+Scope:
+
+- Ran a local retained-denominator smoke for the Gaussian q1 matched
+  `mu+sigma` intercept rows for `spatial`, `animal`, and `relmat`:
+  `docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-sigma-intercept-n5-local/`.
+- Updated the support-cell and Gaussian low-q row-selection surfaces so those
+  three rows now point at the n=5 blocker artifact and remain
+  `point_fit/planned/planned`.
+- Fixed the row-selection generator so regeneration preserves the current
+  animal q1 `mu` blocker, animal/relmat q1 `sigma` profile-channel blockers,
+  q2 retained-repair smoke counts, and the new n=5 matched `mu+sigma`
+  blocker.
+
+Result:
+
+- `spatial`: 15/15 fit and converged, 12/15 `pdHess`, 8/15 usable intervals,
+  finite interval rate `0.5333`, correlation usable `0/5`.
+- `animal`: 15/15 fit/converged/`pdHess`, 12/15 usable intervals, finite
+  interval rate `0.8000`, correlation usable `2/5`.
+- `relmat`: 15/15 fit/converged/`pdHess`, 12/15 usable intervals, finite
+  interval rate `0.8000`, correlation usable `2/5`.
+- Decision: `do_not_promote`. The matched row is blocked on the current Wald
+  route because the mu-sigma correlation target is boundary/nonfinite. Direct
+  `sd_mu` and `sd_sigma` signals are target-split diagnostics only.
+
+Validation:
+
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-gaussian-lowq-row-selection.R
+  --overwrite=true`: passed and regenerated 20 row-selection rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file
+  tools/summarize-structured-re-q2-retained-denominator-repair-smoke-review.R
+  --dispatch=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv
+  --output=docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv
+  --sync-dashboard=true --overwrite=true`: passed and preserved the q2 repair
+  overlay.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true python3
+  tools/validate-mission-control.py`: passed with `mission_control_ok`,
+  including 104 Q-Series cells and 8 Q-Series inference-evidence summary rows.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::test(filter =
+  "structured-re-conversion-contracts")'`: 10236 PASS / 0 FAIL / 0 WARN /
+  0 SKIP.
+- `R_PROFILE_USER=/dev/null NOT_CRAN=true OMP_NUM_THREADS=1
+  OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 TMB_NTHREADS=1 Rscript
+  --no-init-file -e 'devtools::check()'`: R CMD check completed in 11m
+  56.9s with 0 errors / 0 warnings / 0 notes.

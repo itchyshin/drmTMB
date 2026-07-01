@@ -18,12 +18,43 @@ for tsv in "$SRC"/*.tsv; do
 done
 cp "$ROOT/docs/design/"*.md "$DEST/docs/design/"
 cp "$ROOT/docs/dev-log/after-task/"*.md "$DEST/docs/dev-log/after-task/"
-if [ -d "$ROOT/docs/dev-log/comparator-results" ]; then
-  cp -R "$ROOT/docs/dev-log/comparator-results/." "$DEST/docs/dev-log/comparator-results/"
-fi
-if [ -d "$ROOT/docs/dev-log/simulation-artifacts" ]; then
-  cp -R "$ROOT/docs/dev-log/simulation-artifacts/." "$DEST/docs/dev-log/simulation-artifacts/"
-fi
+python3 - "$ROOT" "$DEST" <<'PY'
+import os
+import pathlib
+import shutil
+import sys
+
+root = pathlib.Path(sys.argv[1])
+dest = pathlib.Path(sys.argv[2])
+
+def mirror_tree(relative_text: str) -> None:
+    relative = pathlib.Path(relative_text)
+    src = root / relative
+    dst = dest / relative
+    if not src.is_dir():
+        return
+
+    if dst.exists():
+        shutil.rmtree(dst)
+    dst.mkdir(parents=True, exist_ok=True)
+
+    for dirpath, dirnames, filenames in os.walk(src):
+        rel_dir = pathlib.Path(dirpath).relative_to(src)
+        out_dir = dst / rel_dir
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for dirname in dirnames:
+            (out_dir / dirname).mkdir(exist_ok=True)
+        for filename in filenames:
+            source = pathlib.Path(dirpath) / filename
+            target = out_dir / filename
+            shutil.copyfile(source, target)
+
+for artifact_tree in (
+    "docs/dev-log/comparator-results",
+    "docs/dev-log/simulation-artifacts",
+):
+    mirror_tree(artifact_tree)
+PY
 python3 - "$DEST/status.json" "$ROOT" <<'PY'
 import json
 import pathlib

@@ -1,0 +1,5 @@
+provider	replicate_index	seed	seed_role	execution_status
+phylo	1	823001	q2_intercept_local_smoke	executed
+spatial	1	823001	q2_intercept_local_smoke	executed
+animal	1	823001	q2_intercept_local_smoke	executed
+relmat	1	823001	q2_intercept_local_smoke	executed

@@ -1,0 +1,2 @@
+replicate_id	seed	linked_cell_id	provider	target	target_parm	truth_value	attempt_status	message	convergence	pdHess	estimate	wald_lower	wald_upper	wald_status	wald_message	wald_warnings	wald_contains	bias_t_lower	bias_t_upper	bias_t_status	bias_t_message	bias_t_warnings	bias_t_contains	elapsed_sec
+1	760101	qseries_animal_q2_mu1_mu2_one_slope	animal	mu1:x	sd:mu:mu1:animal(0 + x | p | id)	1.05	fit_ok		0	TRUE	0.838795078656462	0.527069026666921	1.74352486693291	finite	NA		TRUE	0.527069026666921	1.74352486693291	finite	NA		TRUE	0.337

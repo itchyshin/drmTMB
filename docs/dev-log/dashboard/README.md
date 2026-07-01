@@ -201,26 +201,130 @@ The mission-control widget renders this 104-row table near the top of the
 page. The widget deliberately separates row state, fit/stability state,
 inference readiness, interval status, and coverage status so a row that has
 been tried or fit-stabilized is not confused with a row that is
-`inference_ready`. Promoted rows also join to
-`structured-re-q-series-inference-evidence-summary.tsv`, a compact five-row
+`inference_ready`. `structured-re-q-series-closure-triage.tsv` is the compact
+closure ledger shown above the detailed rows: its 16 buckets sum to all 104
+support cells and separate evidence-complete inference rows, baseline
+comparators, recovery-only non-Gaussian rows, intentional rejections,
+point/fixture gates, q1 mu-slope pregrid and upper-tail blockers,
+diagnostic-only rows, admission blockers, calibration blockers, high-q
+planned/gated rows, and q8 stability blockers. It is a board triage table, not
+a support promotion table. Promoted rows also join to
+`structured-re-q-series-inference-evidence-summary.tsv`, a compact eight-row
 evidence summary that names the interval channel, denominator, coverage, and
-miss-balance caveat for the three q1 sigma and two q2 location-slope rows. The
-widget also joins count one-slope rows to
-`structured-re-count-slope-recovery-results.tsv` when 80-rep recovery evidence
-has been banked, and it joins q4/q6/q8 rows to
+miss-balance caveat for the three q1 sigma, three q1 `mu:(Intercept)`, and two
+q2 location-slope rows. The
+widget also renders `structured-re-q-series-next-campaign-queue.tsv`, a
+ten-row compute/hold queue whose row counts sum to the same 104 support cells.
+That queue names which lanes are no-compute holds, recovery reproduction,
+local/Totoro smoke candidates, or DRAC-held replacement-rule work. It is a
+cluster-use guard only: it prevents connected hosts from becoming broad
+unreviewed denominator campaigns and does not promote support status.
+
+`structured-re-q2-retained-denominator-design.tsv` records the Tranche 2 q2
+retained-denominator gate after the Nibi/Rorqual substitute smokes. It joins
+the q2 intercept and q2-plus-q2 interval contracts to the reviewed n=5 Nibi
+smoke rows, names the interval channel and denominator policy per target, and
+keeps endpoint SD, direct-correlation, sigma-side, and profile-repair targets
+separate. Seventeen target rows are eligible for an SR150 pregrid under
+`do_not_promote`; the q2-plus-q2 sigma1/sigma2 correlation target remains a
+profile-repair hold. The table does not promote interval status, coverage,
+`inference_ready`, `supported`, q2 slope, q4/q8, non-Gaussian, REML,
+AI-REML, bridge, or public-support claims.
+
+`tools/run-structured-re-q2-retained-denominator-pregrid.R` and
+`tools/slurm/q2-retained-denominator-pregrid-nibi.sbatch` are the executable
+SR150 artifact-only pregrid path for those ready targets. The wrapper dry-run
+and the five-shard Nibi array are validated, but no denominator evidence is
+imported until reviewed artifacts are summarized separately.
+
+The widget also joins count one-slope rows to the local
+`structured-re-count-slope-recovery-results.tsv` sidecar and then to the
+Rorqual `structured-re-count-slope-cluster-recovery-results.tsv` sidecar when
+primary-cluster recovery evidence has been banked. The cluster sidecar is used
+for the board state while keeping the local provenance visible. It joins q4/q6/q8 rows to
 `structured-re-high-q-status-audit.tsv` so high-q diagnostic, q4 gate-required,
 q8 stability-blocked, and high-q planned states are visible separately from
 inference readiness. It also joins all non-Gaussian rows to
-`structured-re-nongaussian-status-audit.tsv` so count recovery-only,
-count-intercept smoke, rejected, and planned family-design rows are visible
-separately from Gaussian interval claims. It also joins the remaining Gaussian low-q rows
-to `structured-re-gaussian-lowq-status-audit.tsv` so ordinary baselines,
+`structured-re-nongaussian-status-audit.tsv` so count recovery-only, rejected,
+and planned family-design rows are visible separately from Gaussian interval
+claims. It also joins the remaining
+Gaussian low-q rows to `structured-re-gaussian-lowq-status-audit.tsv` so ordinary baselines,
 point/fixture gates, diagnostic-only rows, and rejection-contract rows no
 longer collapse into a generic tried bucket. Four Gaussian q1 `mu` one-slope
 rows also join to `structured-re-gaussian-mu-slope-smoke-status.tsv`, which
 records local one-rep smoke evidence for `phylo()`, fixed-covariance
-`spatial()`, `animal()`, and `relmat()`. Ten non-Gaussian q1 count `mu`
+`spatial()`, `animal()`, and `relmat()`.
+`structured-re-q2-slope-row-gate-synthesis.tsv` is the compact board-facing
+gate table for the two remaining spatial/animal q2 `mu1+mu2` one-slope rows:
+it summarizes the SR1000 default bias+t SD endpoints, the retained tail
+imbalance, the unresolved correlation target, and the missing g=32
+profile/Wald comparison while keeping both linked q-series rows
+`interval_status = planned` and `coverage_status = planned`.
+`structured-re-q2-slope-g32-profile-wald-smoke.tsv` records the first local
+g=32 profile/Wald smoke for the same rows: spatial `mu1:x`, `mu2:x`, and
+`mu1:x+mu2:x` had one finite Wald/profile replicate. The animal rows in that
+sidecar are zero-count guard rows: the earlier animal direct-SD g=32 artifacts
+were invalidated because the animal design is a fixed 8-pedigree and the
+pre-guard runner recycled labels when `GSWEEP_N_GROUPS=32`.
+`structured-re-q2-animal-correlation-holdout-diagnostic.tsv` separately records
+the clean fixed-8 animal correlation holdout smoke: 5/5 fits, 5/5 `pdHess`, and
+5/5 finite Wald/profile intervals.
+`structured-re-q2-animal-correlation-pregrid-results.tsv` records the next
+fixed-8 retained-denominator pregrid for the same animal correlation target:
+150/150 finite Wald/profile intervals, but Wald coverage 0.8800 and profile
+coverage 0.8867 with upper-tail miss imbalance and one retained
+boundary/convergence flag. These sidecars do not promote the spatial or animal
+q2 rows. `structured-re-q2-animal-correlation-miss-diagnostic.tsv` derives the
+miss-shape blocker from the SR150 replicate TSV: 19 miss-or-boundary rows, 13
+shared upper-tail misses, 4 shared lower-tail misses, 1 Wald-only upper miss,
+and retained boundary seed 733197. It keeps the animal q2 row
+`planned/planned` while Fisher/Rose choose whether a skew-aware correlation
+interval or other animal-specific calibration is worth testing.
+`structured-re-spatial-sigma-boundary-diagnostic.tsv` records the Nibi
+current-source spatial `sigma:(Intercept)` diagnostic for
+`qseries_spatial_q1_sigma_one_slope`: 443/475 finite Wald intervals, 32
+boundary-small estimates, and a `do_not_promote` decision. It explains why the
+row remains `admission_blocked` and does not change its `planned/planned`
+interval or coverage status. Ten
+non-Gaussian q1 count
+`mu`
 intercept rows also join to
+`structured-re-count-intercept-recovery-results.tsv`, which records the local
+80-rep recovery grid for the ten exact count-intercept rows and flags the
+phylo NB2 intercept pdHess caveat plus the phylo Poisson and spatial NB2
+near-zero lower-tail caveats, while keeping interval and coverage claims
+unsupported/planned. The three caveated count-intercept rows also join to
+`structured-re-count-intercept-caveat-diagnostic.tsv`, which breaks the same
+local 80-rep recovery grid down by condition: phylo Poisson is near-zero
+caveated in all four formal-shard conditions, phylo NB2 keeps pdHess caveats
+in all four formal-shard conditions, and spatial NB2 separates two weak-signal
+near-zero caveats from two stronger-signal recovery-ok conditions. They also
+join to `structured-re-count-intercept-denominator-diagnostic.tsv`, which
+records a 30-rep stronger-denominator diagnostic where all 12 condition rows
+cleared locally with 30/30 fits, zero `pdHess = FALSE`, and zero near-zero SD
+estimates. The same three rows now join to
+`structured-re-count-intercept-topup-recovery-results.tsv`, an 80-seed x
+4-condition stronger-denominator recovery top-up with 320/320 fit success,
+zero `pdHess = FALSE`, and zero near-zero SD estimates per row. The ten
+count-intercept and `phylo_interaction()` count `mu` recovery rows also join to
+`structured-re-count-intercept-cluster-recovery-results.tsv`, a Rorqual SLURM
+job 14918220 reproduction sidecar. After the stronger-denominator top-up
+supersedes the three original weak-denominator caveats, the Rorqual sidecar
+confirms six count-intercept/`phylo_interaction()` rows as
+cluster-confirmed recovery-only while retaining the original NB2
+`phylo_interaction()` 5/80 boundary-warning caveat as provenance. The NB2
+`phylo_interaction()` row now also joins to
+`structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv`,
+which combines the original job 14918220 seed block with Rorqual top-up job
+14936834 for a clean 160-seed recovery-only denominator.
+`structured-re-nongaussian-recovery-rollup.tsv` is the widget-facing recovery
+grade table for the 18 non-Gaussian Poisson/NB2 count `mu` rows: all 18 are
+cluster-confirmed recovery-only rows, with zero current recovery caveats. The
+fixed-covariance spatial NB2 count-slope row is now
+recovery-confirmed only after the Rorqual job 14936279 top-up is combined with
+the original array 14916938; it still has no interval, coverage,
+`inference_ready`, or `supported` claim. The earlier smoke rungs remain
+available in
 `structured-re-count-intercept-recovery-smoke-status.tsv`, which records local
 recovery-smoke evidence for the exact spatial, animal, and relmat
 Poisson/NB2 intercept formulas, and
@@ -231,24 +335,39 @@ records the exact pair-level `phylo_interaction()` Poisson/NB2 smoke. The suppor
 the route/status contract; the evidence summary is the reader-facing
 denominator for rows already promoted to `inference_ready`, the count recovery
 summary is reader-facing recovery evidence only, and the high-q, non-Gaussian,
+non-Gaussian recovery rollup, count-intercept recovery, count-intercept caveat,
+count-intercept denominator, count-intercept top-up,
+count-intercept cluster recovery,
+count-intercept top-up cluster dispatch,
 count-intercept smoke, phylo count-intercept smoke, phylo-interaction count
-smoke, Gaussian low-q, and Gaussian q1 `mu` smoke audits are blocker ledgers
-only.
+smoke, Gaussian low-q, Gaussian q1 `mu` smoke/admission/pregrid, and Gaussian
+q1 `mu` boundary-profile audits are blocker ledgers only.
 
 `structured-re-high-q-status-audit.tsv` records one audit row for each of the
 24 q4/q6/q8 support cells. It assigns eight q4 fixture rows to
 `high_q_gate_required`, five q8 or q8-shaped rows to
 `q8_stability_blocked`, three ordinary/direct-SD high-q comparator rows to
 `high_q_diagnostic`, and eight broader q6/q8 future-design rows to
-`high_q_planned`. Every linked support cell keeps its existing fit, interval,
-and coverage statuses; no high-q row is `inference_ready`, and the audit does
-not promote q4/q6/q8 intervals, coverage, REML, AI-REML, bridge support,
-`supported`, or public support.
+`high_q_planned`. The tried q4 location, q4 all-four intercept, and
+q8-shaped all-four one-slope rows now expose `interval_status =
+diagnostic_only` in the 104-row table because row-specific interval diagnostic
+sidecars exist, but coverage stays `planned`; no high-q row is
+`inference_ready`, and the audit does not promote q4/q6/q8 calibrated
+intervals, coverage, REML, AI-REML, bridge support, `supported`, or public
+support.
 
-`structured-re-gaussian-lowq-status-audit.tsv` records the 35 remaining
+The animal q8-shaped all-four row now points to the retained hidden TMB
+partial-correlation hard-seed smoke report as its current high-q blocker. That
+smoke is artifact-only: all three hard-seed fits converged, zero of three had
+`pdHess = TRUE`, and all 24 direct-SD Wald rows were retained as
+`not_run_pdhess_false`. It does not overwrite the public q4 animal admission
+sidecar and does not authorize Totoro/FIIA, Nibi/Rorqual, DRAC, coverage, or a
+status promotion.
+
+`structured-re-gaussian-lowq-status-audit.tsv` records the 32 remaining
 Gaussian low-q Q-Series cells after the exact `inference_ready`, sigma/q2
 admission, high-q, and non-Gaussian rows are accounted for. It assigns three
-ordinary comparator rows to `gaussian_baseline_comparator`, twenty-seven
+ordinary comparator rows to `gaussian_baseline_comparator`, twenty-four
 point/fixture rows to `gaussian_lowq_gate_required`, two ordinary diagnostic
 rows to `gaussian_lowq_diagnostic`, and three q2-plus-q2 sigma rejection rows
 to `gaussian_lowq_rejected`. Every linked row keeps its current fit, interval,
@@ -269,17 +388,581 @@ and `coverage_status = planned`, and the sidecar does not promote
 `inference_ready`, REML, AI-REML, bridge support, `supported`, or public
 support. A replicated interval/coverage denominator grid remains the next gate.
 
+`structured-re-gaussian-mu-slope-admission-audit.tsv` records the next local
+interval-probe rung for those same four Gaussian q1 `mu` one-slope rows. The
+artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/`
+show two small default-`confint()` probes per provider for the direct
+location-axis structured-SD targets. Phylo, fixed-covariance spatial, and
+relmat each have 4/4 finite default intervals with no boundary Wald statuses
+and therefore move to `mu_slope_pregrid_planned` in the widget. Animal has
+3/4 finite default intervals because the intercept SD hit one boundary Wald
+status, so the row stays `admission_blocked` until that endpoint is diagnosed.
+`structured-re-gaussian-mu-slope-coverage-pregrid-dry-run.tsv` records the
+retained-outcome SR150 pregrid manifest: seven clean target endpoints are
+pregrid targets and the animal intercept endpoint is a visible holdout. These
+sidecars still do not promote interval+coverage readiness, REML, AI-REML,
+bridge support, `supported`, or public support.
+
+`structured-re-gaussian-mu-slope-coverage-pregrid-results.tsv` records the
+executed local SR150 retained-outcome pregrid for those exact Gaussian q1
+`mu` one-slope rows. The current artifact was rerun after fixing the structured
+SD group-count matcher so decomposed slope targets from `provider(1 + x |
+group)` receive the documented location-axis t-width and `log(g/(g-1))` centre
+shift. It remains negative admission evidence, not a promotion: all four rows
+display as `mu_slope_pregrid_blocked`. The target summaries show 1200 retained
+target-replicate rows across the four providers. Animal has only 122/150 usable
+intervals for the eligible slope SD target and keeps the intercept SD as a
+visible holdout; phylo has 291/300 usable intervals, retained coverage
+0.940-0.947, and 3 lower / 5 upper misses; relmat has 297/300 usable intervals,
+retained coverage 0.953-0.973, and 2 lower / 6 upper misses; spatial has
+297/300 usable intervals, retained coverage 0.947-0.960, and 6 lower / 5 upper
+misses. Linked support cells still keep `interval_status = planned` and
+`coverage_status = planned`; the sidecar does not promote `inference_ready`,
+REML, AI-REML, bridge support, `supported`, or public support.
+
+`structured-re-gaussian-mu-slope-boundary-profile-diagnostic.tsv` records the
+endpoint-profile follow-up for all 42 SR150 boundary/non-Wald rows from that
+pregrid. All 42 rows refit with convergence and `pdHess = TRUE`; the
+zero-lower-boundary endpoint fix rescued finite lower endpoints for many rows,
+but the profile channel is still blocked by upper misses and remaining profile
+failures. Animal has 25/27 finite profile intervals, 10 covered, 15 upper
+misses, and two profile failures; phylo has 8/9 finite, one covered, seven
+upper misses, and one profile failure; relmat has 2/3 finite, zero covered, two
+upper misses, and one profile failure; spatial has 3/3 finite, zero covered,
+and three upper misses. The four linked support cells therefore remain
+`mu_slope_pregrid_blocked` with `interval_status = planned` and
+`coverage_status = planned`. This sidecar is negative interval-geometry
+evidence only; it does not promote top-up readiness, `inference_ready`, REML,
+AI-REML, bridge support, `supported`, or public support.
+
+`structured-re-gaussian-mu-slope-hybrid-boundary-audit.tsv` overlays those
+repaired endpoint-profile boundary rows back onto the original SR150 pregrid
+denominator. This routing audit splits the four rows without promoting any of
+them: animal remains `mu_slope_pregrid_blocked` because the eligible slope
+target has 132/150 covered, coverage 0.880, 147/150 usable intervals, and 15
+upper misses; phylo, relmat, and spatial move to `topup_required` because their
+hybrid SR150 coverage remains near nominal but MCSE is still above 0.01. Phylo
+has 284/300 covered, 299/300 usable, coverage 0.947, and lower/upper misses
+3/12; relmat has 289/300 covered, 299/300 usable, coverage 0.963, and misses
+2/8; spatial has 286/300 covered, 300/300 usable, coverage 0.953, and misses
+6/8. These are top-up candidates only; the support-cell TSV still keeps all
+four rows at `interval_status = planned` and `coverage_status = planned`.
+
+The top-up runner is now executable for those three candidate rows without
+touching the visible dashboard. `tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R`
+accepts generated non-overlapping seed slices, provider selection, and
+`--write-dashboard=false`; a one-replicate smoke under
+`docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/`
+used seed 791151 for phylo, relmat, and spatial only. The boundary-profile
+diagnostic runner also accepts `--source-replicates`, so future top-up
+replicates can be passed through the same endpoint-profile repair channel. This
+is executable-contract evidence only, not a support-cell promotion.
+
+`structured-re-gaussian-mu-slope-hybrid-sr475-audit.tsv` records the completed
+SR475 hybrid audit for the three top-up candidates. The stronger denominator
+meets the MCSE gate but does not promote the rows: phylo has 913/950 covered,
+MCSE 0.006277, and lower/upper misses 5/31; relmat has 926/950 covered, MCSE
+0.005091, and misses 3/20; spatial has 912/950 covered, MCSE 0.006358, and
+misses 15/22. Each provider still has one profile-failed row after combining
+the original SR150 boundary profiles and the top-up boundary profiles. The
+widget therefore shows phylo, relmat, and spatial as
+`mcse_met_upper_tail_blocked`; all linked support cells remain
+`interval_status = planned` and `coverage_status = planned`.
+
+`structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv` splits that
+SR475 result to the target level for phylo, relmat, and spatial q1 `mu`
+one-slope rows. All six target rows meet the MCSE gate, but every target has
+more upper misses than lower misses; the slope targets also concentrate many
+upper misses in endpoint-profile boundary rows. The sidecar is blocker
+evidence only and keeps all linked support cells at `planned/planned` until
+Fisher/Rose accept a new interval-shape or calibration rule.
+
+`structured-re-gaussian-mu-slope-rule-screen.tsv` records the next local
+retained-artifact replay for those same q1 `mu` blockers. It screens 13
+candidate interval variants: the current hybrid Wald/profile channel plus
+upper-endpoint, log-width, and profile-boundary upper multipliers at 1.25,
+1.50, 2.00, and 3.00. The modest variants leave target-level upper-tail
+blockers, while the 3x variants that remove upper misses are labelled
+large-ad-hoc screens, not smoke-ready interval rules. The sidecar is a
+no-promotion rule screen: it does not change `confint()`, does not launch
+Totoro/FIIA/DRAC work, and keeps the linked support cells at `planned/planned`
+until Fisher/Rose/Noether accept a principled skew-aware or boundary-aware
+interval route.
+
+`structured-re-gaussian-mu-slope-split-calibration.tsv` records the stricter
+split-sample replay for the same retained artifacts. The SR150/base slice
+learns one log-upper endpoint offset for `mu:(Intercept)` and one for `mu:x`;
+the SR325/top-up holdout then tests those frozen offsets without provider-
+specific constants. The intercept targets pass the local screen-only holdout,
+but all three slope targets fail at least one gate, so the sidecar remains
+non-promotional and blocks Totoro/FIIA/DRAC smoke until Fisher/Rose/Noether
+accept a replacement interval rule.
+
+`structured-re-gaussian-mu-slope-review-decision.tsv` is the compact
+four-row review overlay for the Gaussian q1 `mu` one-slope bucket. It freezes
+phylo, spatial, animal, and relmat at `point_fit/planned/planned`, names the
+animal SR150 hard block and the phylo/spatial/relmat SR475 upper-tail blockers,
+and records the host rule: local derivation and retained-artifact replay first,
+then one Totoro/FIIA smoke only after Fisher/Rose/Noether accept a named
+replacement interval rule. Totoro, Nibi, Rorqual, Trillium, and DRAC top-ups
+remain blocked until that smoke passes.
+
+`structured-re-gaussian-lowq-row-selection.tsv` records the exact host gate for
+the remaining Gaussian low-q point/fixture rows. It excludes the four q1 `mu`
+one-slope rows already blocked by interval-shape evidence, keeps 23
+point/fixture rows in scope, and marks nine rows as reviewed Nibi/Rorqual
+substitute-smoke rows: four q1 `mu` intercept rows, four q2 intercept rows, and
+the phylo q2-plus-q2 intercept row. Matched `mu+sigma`, direct-SD, and
+`phylo_interaction()` rows remain local design holds, and sigma rows are split
+by row-specific route evidence. The sidecar is
+row-selection evidence only; it does not change interval or coverage statuses
+and blocks Nibi/Rorqual/DRAC denominator work until a row-specific retained-
+denominator or calibration contract is reviewed.
+`structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv` and
+`structured-re-gaussian-lowq-sigma-intercept-pregrid-results.tsv` record the
+animal/relmat q1 `sigma:(Intercept)` denominator review and imported Nibi
+SR150 diagnostic blocker. Both rows keep `point_fit/planned/planned` because
+the imported route had 150/150 fit/convergence/`pdHess`/`confint()` success but
+only 115/150 usable raw-Wald intervals and 118/150 warning replicates. The
+sidecars do not authorize top-up, `inference_ready`, or public support.
+`structured-re-q-series-host-access-recheck.tsv` is the current host-access
+sidecar: Totoro has interactive ControlMaster access for reviewed bounded smoke,
+the `fiia` alias is unresolved, Nibi and Rorqual are reachable with qseries
+project roots, Fir is reachable but still lacks the checked qseries run root,
+and Trillium now has the qseries run root, R 4.4.0 after module load, and a
+parse-ready source snapshot at dashboard build `r187`.
+`structured-re-q-series-smoke-substitution-contract.tsv` is the Fisher/Rose/Grace
+contract that permits Nibi/Rorqual only for exact q1/q2 n=5 substitute smoke;
+Trillium still needs a row-specific command, seed manifest, module list, source
+snapshot, and host-separated provenance before any Trillium output can be used
+as evidence. The host ledger does not authorize denominator grids or promotion.
+
+`structured-re-q2-intercept-interval-contract.tsv` turns the q2 intercept hold
+into an exact 12-row interval-denominator contract: phylo, spatial, animal, and
+relmat each get separate direct-SD targets for `mu1:(Intercept)` and
+`mu2:(Intercept)`, plus a separate direct-correlation target for
+`mu1:(Intercept)+mu2:(Intercept)`. It does not include the q2-plus-q2
+location-and-scale row and does not promote any support-cell status. After the
+local smoke below, Fisher/Rose signed off only the next tiny `n=5` smoke for
+these 12 targets. The Nibi substitute-host smoke below has now been reviewed as
+smoke-only evidence under `structured-re-q-series-smoke-substitution-contract.tsv`;
+denominator work stays blocked until a target-specific retained-denominator or
+calibration contract is reviewed.
+
+`structured-re-q2-intercept-local-smoke.tsv` records the first local n=1 smoke
+for that 12-row q2 intercept contract. It mirrors the summary under
+`docs/dev-log/simulation-artifacts/2026-06-29-q2-intercept-local-smoke/` and
+is backed by raw replicate rows, a seed manifest, `sessionInfo.txt`, and
+`git-sha.txt`. The smoke verifies fit, convergence, `pdHess`, finite
+default-Wald intervals, finite endpoint-profile intervals, and explicit
+bootstrap-off accounting for all direct-SD and direct-correlation targets. It
+records Wald and endpoint-profile lower/upper miss fields separately. It
+is not coverage evidence and does not change `interval_status`,
+`coverage_status`, `inference_ready`, `supported`, q2 slope, q2-plus-q2,
+q4/q8, non-Gaussian, REML, AI-REML, bridge support, or public support claims.
+Fisher/Rose sign-off is recorded for only the next `n=5` smoke. That smoke may
+run on Totoro/FIIA if access is restored or on Nibi/Rorqual only under
+`structured-re-q-series-smoke-substitution-contract.tsv`. The Nibi smoke has
+now been reviewed as smoke-only evidence; denominator work stays blocked until a
+target-specific retained-denominator or calibration contract is reviewed.
+
+`structured-re-q2-intercept-nibi-smoke.tsv` records the Nibi `n=5`
+substitute-host smoke for the 12 q2 intercept direct-SD and direct-correlation
+targets. It mirrors the fetched artifact under
+`docs/dev-log/simulation-artifacts/2026-06-30-q2-intercept-smoke-nibi-r44/`
+with local artifact paths, SLURM host/runtime provenance, raw replicate rows, a
+20-row seed manifest, source SHA manifest, local-state metadata, module list,
+install logs, smoke logs, and exact-command metadata. All 12 target summaries
+passed with 5/5 fit, convergence, `pdHess`, Wald-finite, and profile-finite
+replicates. The sidecar promotes no support-cell status and leaves q2 intercept
+denominator grids, q2 slope, q2-plus-q2, q4/q8, non-Gaussian rows, REML,
+AI-REML, `inference_ready`, `supported`, bridge support, and public support
+unclaimed. Its reviewed next gate is a target-specific retained-denominator or
+calibration design; the Nibi smoke itself is not coverage evidence.
+
+`structured-re-q2-plus-q2-intercept-nibi-smoke.tsv` records the Nibi n=5
+substitute-host smoke for the phylo q2-plus-q2 intercept row. It mirrors the
+fetched artifact under
+`docs/dev-log/simulation-artifacts/2026-06-30-q2-plus-q2-intercept-smoke-nibi/`
+with local artifact paths, host provenance, raw replicate rows, a five-seed
+manifest, install logs, module metadata, and exact-command metadata. Five of
+the six within-block direct targets passed; the `cor_sigma1_sigma2_intercept`
+target retained one boundary profile failure at seed `823003` after the
+run-local `rlang` dependency was installed. The sidecar promotes no
+support-cell status and leaves q2-plus-q2 denominator grids, cross-block
+correlations, q4/q8, non-Gaussian rows, REML, AI-REML, `inference_ready`,
+`supported`, bridge support, and public support unclaimed.
+
+`structured-re-gaussian-lowq-mu-intercept-dry-run.tsv` records the local n=2
+screen for those four q1 `mu` intercept candidates. The run uses true
+intercept-only Gaussian structured-RE DGPs for phylo, spatial, animal, and
+relmat, and verifies fit, convergence, `pdHess`, and default Wald interval
+extraction before any host smoke. Fisher/Rose later accepted only the next tiny
+`n=5` smoke for these four rows. That smoke may run on Nibi/Rorqual only under
+`structured-re-q-series-smoke-substitution-contract.tsv`; the Nibi substitute
+smoke below has now passed review as smoke-only evidence. This row remains a
+local dry-run only: it does not change interval, coverage, inference-readiness,
+or support status, and Nibi/Rorqual/DRAC denominator work remains blocked until
+a row-specific retained-denominator or calibration contract is reviewed.
+
+`structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv` records the
+Fisher/Rose-reviewed n=5 smoke contract for the same four rows. The accepted
+channel is default `confint()` Wald extraction for direct `sd:mu:<provider>`
+targets, with all attempted smoke replicates retained and the result treated as
+fixture evidence rather than coverage evidence. The smoke has not been executed
+from this sidecar: Totoro/FIIA remain valid if access is restored, and
+Nibi/Rorqual are now valid only for exact n=5 substitute smoke under
+`structured-re-q-series-smoke-substitution-contract.tsv`. The contract promotes
+no row and does not authorize interval,
+coverage, `inference_ready`, `supported`, sigma, q2, q4/q8, non-Gaussian, REML,
+AI-REML, bridge, or public-support claims.
+
+`structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv` imports the local
+n=5 smoke rehearsal for the same four q1 `mu` intercept rows. All four provider
+rows have 5/5 fit, convergence, `pdHess`, `confint()`, usable finite Wald
+intervals, and zero warning replicates, with 20 raw replicate rows and a seed
+manifest mirrored under
+`docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-smoke-local/`.
+This is deliberately labelled `local_rehearsal`: it proves the smoke runner and
+artifact path, not the reviewed Totoro/FIIA host gate. It promotes no row and
+does not authorize Nibi/Rorqual/DRAC denominator work.
+
+`structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv` imports the
+contract-bounded Nibi substitute-host n=5 smoke for the same four q1 `mu`
+intercept rows. The fetched artifact is mirrored under
+`docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi/`
+with the replicate TSV, seed manifest, session info, install/run logs, module
+list, git SHA, and exact command. The seed manifest records
+`structured-re-q-series-smoke-substitution-contract.tsv` and
+`qseries_smoke_substitution_q1_mu_intercept`; all four provider rows are
+`smoke_passed_fixture_only` and `do_not_promote`. This is substitute-host smoke
+review material only: it does not authorize denominator work, interval or
+coverage status, `inference_ready`, `supported`, sigma, q2, q4/q8,
+non-Gaussian, REML, AI-REML, bridge, or public support claims. Its next gate is
+a row-specific retained-denominator or calibration design that names interval
+channel, MCSE target, one-sided misses, artifact retention, host, seeds, blocked
+neighbours, and stop rules.
+
+`structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv`
+records the reviewed next gate for those four q1 `mu` intercept rows. It
+defines an SR150 retained-denominator pregrid using the default location-axis
+direct-SD Wald channel, with all attempted fit, convergence, `pdHess`,
+non-finite interval, and warning rows retained in the denominator. Fisher,
+Rose, and Grace accepted this contract on 2026-06-30 for the first SR150 pregrid
+dispatch on one primary DRAC host. The contract requires one-sided miss
+reporting, raw replicate and seed artifacts, scheduler logs, `sessionInfo.txt`,
+`git-sha.txt`, `module-list.txt`, and an after-task report. `MCSE <= 0.01` is a
+top-up target before any inference claim, not an SR150 pass claim. It promotes
+no row and does not authorize
+`inference_ready`, `supported`, q1 sigma, matched `mu+sigma`, q2, q4/q8,
+non-Gaussian interval, REML, AI-REML, bridge, or public-support claims.
+
+`tools/run-structured-re-gaussian-lowq-mu-intercept-pregrid.R` and
+`tools/slurm/q1-mu-intercept-pregrid-nibi.sbatch` are the reviewed execution
+path for that contract. The wrapper defaults to SR150 and artifact-only output;
+the SLURM script captures the source snapshot, module list, exact command,
+session info, git SHA, scheduler logs, raw replicate TSV, summary TSV, seed
+manifest, and `seff` when available. The runner refuses non-Nibi/Rorqual
+pregrid host labels, refuses dashboard writes, and keeps all support cells at
+`point_fit/planned/planned`.
+
+`structured-re-gaussian-lowq-mu-intercept-pregrid-dispatch.tsv` records the
+Nibi SR150 dispatch for those four rows. Job `16976756` failed before
+simulation because the runner rejected the reviewed row-selection state; the
+patched resubmission is job `16977254`, submitted from the source
+snapshot rooted at
+`/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr150-77b634ed-r162`
+and completed on Nibi. This sidecar is a job ledger only; it is not a status
+promotion and still promotes no row.
+
+`structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv` imports the
+completed Nibi SR150 summary for the same four q1 `mu` intercept rows. All four
+providers retained 150/150 attempted replicates with convergence, `pdHess`, and
+finite intervals. Coverage was 0.9800 for phylo, animal, and relmat and 0.9733
+for spatial; MCSE remains above the 0.01 top-up target for all four rows
+(0.011431 or 0.013154), so the result is Fisher/Rose/Grace review and
+SR475/SR1000 top-up evidence only. The linked support cells remain
+`point_fit/planned/planned`.
+
+`tools/run-structured-re-gaussian-lowq-mu-intercept-topup.R` and
+`tools/slurm/q1-mu-intercept-topup-nibi.sbatch` define the parallel SR475
+top-up route for the same four rows. The SLURM script runs one provider per
+array task, defaults to seeds 151..475 (`n=325`) after the reviewed SR150
+pregrid, uses per-shard R libraries to avoid concurrent install locks, and
+writes artifacts only. It does not import results, update the widget, or promote
+any support cell; the SR150 and shard outputs must be aggregated and reviewed
+before any future status edit.
+
+`structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv` records the Nibi
+array submission for that top-up route. It is a dispatch/import ledger only: job
+`16978889` was submitted as a four-task array from the dirty source snapshot at
+`/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163`.
+Tasks 1-3 completed; task 4 (`relmat`) failed before the R runner with a CVMFS
+R `INSTALL` input/output error and was resubmitted as relmat-only retry job
+`16979505`, which completed and was imported. The sidecar keeps all rows at
+`do_not_promote`; the completed shards feed the separate SR475 aggregate
+sidecar, not a support-cell status edit.
+
+`structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv` aggregates the
+reviewed SR150 pregrid plus the completed SR325 top-up shards for the same four
+q1 `mu` intercept rows. Each provider retains 475 attempted replicates. Phylo,
+spatial, and relmat have 475/475 usable intervals and MCSE <= 0.01; animal has
+473/475 usable intervals, so the finite-interval caveat is retained. Coverage
+is 0.9832 (phylo), 0.9705 (spatial), 0.9747 (animal), and 0.9789 (relmat).
+After Fisher/Grace review and Rose's corrected-surface audit, phylo, spatial,
+and relmat are promoted to interval+coverage `inference_ready` with caveats
+under the raw/default Wald direct-SD interval channel. Animal remains
+`point_fit/planned/planned` and is blocked by two retained infinite-boundary
+intervals at seeds `812407` and `812444`. The 104-row support-cell table points
+the phylo, spatial, and relmat q1 `mu:(Intercept)` rows at this SR475 sidecar;
+the animal row points at the separate hard-seed boundary-profile blocker
+sidecar. The Gaussian low-q audit table retains only the animal blocker, while
+the promoted rows join the eight-row inference-evidence summary. None of these
+rows is `supported`, and the q1 `mu:(Intercept)` evidence does not promote q1
+`sigma`, matched `mu+sigma`, q2, q4/q8, non-Gaussian intervals, REML, AI-REML,
+broad bridge, or public-support claims.
+
+`structured-re-gaussian-lowq-mu-intercept-animal-boundary-profile.tsv` records
+the local hard-seed replay for the two retained animal q1 `mu` seeds that made
+the SR475 aggregate non-finite at the Wald boundary (`812407` and `812444`).
+Both fits converge with `pdHess = TRUE`; endpoint profiles are finite 2/2 but
+upper-miss the truth 2/2, while the `tmbprofile` fallback is finite 0/2. This
+is a boundary/profile interval-shape blocker and a no-top-up decision for the
+current route, not an MCSE problem and not new support-cell promotion evidence.
+
+The imported SR475 artifact also carries the Nibi per-shard metadata under
+`docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-topup-nibi/metadata/`.
+Mission control now requires each shard's exact command, module list, run log,
+run status, session info, source manifest, and source label
+`77b634ed-dirty-q1-mu-topup-r163`. The result-level `git-sha.txt` files mirror
+that dirty-source label; they are not claimed as clean repository SHAs.
+
+`tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R` is the
+smoke-specific executable path for that contract. It wraps the local dry-run
+harness in `--run-kind=smoke`, requires the reviewed n=5 replicate count, reads
+the smoke-contract sidecar, writes `smoke_id`/`source_contract_id` artifact
+fields, and refuses dashboard writes. Smoke artifacts must be reviewed and
+imported through a validator-owned sidecar before they appear in the widget or
+change any row status.
+
+`structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv` records the
+first local n=1 target smoke for the four q1 matched `mu+sigma` intercept rows.
+Each provider retains three targets separately: direct `sd_mu`, direct
+`sd_sigma`, and the same-group `mu`-to-`sigma` random-effect correlation. The
+smoke fits and reaches `pdHess` for all four providers. Spatial, animal, and
+relmat have 3/3 usable default-Wald target intervals in this seed; phylo is
+diagnostic-only because the correlation target hits `wald_at_boundary`, with the
+boundary warning retained in the raw target rows. The sidecar mirrors the
+artifact directory under
+`docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-sigma-intercept-smoke-local/`
+and is guarded by mission control. It promotes no row, does not change
+`interval_status` or `coverage_status`, and does not authorize Totoro/FIIA,
+Nibi/Rorqual/DRAC, q2, q4/q8, non-Gaussian, REML, AI-REML, bridge, or public
+support claims.
+
+`structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv` records the
+route contract for the four q1 `sigma` intercept rows. Fisher accepts only the
+route shape, and Gauss accepts the direct structured-SD target names:
+`sd:sigma:phylo(1 | species)`, `sd:sigma:spatial(1 | site)`,
+`sd:sigma:animal(1 | id)`, and `sd:sigma:relmat(1 | id)`. The first interval
+channel is raw uncorrected log-SD Wald-z with `small_sample_df = "none"` and
+`bias_correct = "none"`; endpoint profiles are diagnostic-only boundary
+triage. The sidecar promotes no row, leaves the linked support cells at
+`point_fit/planned/planned`, and keeps Totoro/FIIA, Nibi/Rorqual, denominator
+work, and status edits blocked until a local n=5 direct sigma-SD smoke is run
+and Fisher/Gauss/Rose review the retained rows.
+
+`structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv` records that
+local n=5 direct sigma-SD smoke. It mirrors the summary under
+`docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-sigma-intercept-smoke-local/`
+and is backed by 20 retained replicate rows, a seed manifest,
+`sessionInfo.txt`, and `git-sha.txt`. All four providers fit, converged,
+reported `pdHess = TRUE`, and used raw Wald intervals with
+`small_sample_df = "none"` and `bias_correct = "none"`. Animal and relmat have
+5/5 usable raw-Wald intervals in this local seed set; phylo retains one
+`wald_at_boundary` row, and spatial retains three `wald_at_boundary` rows.
+Endpoint profiles are diagnostic-only: failed or budget-limited profile rows
+stay in the denominator-facing artifact instead of being dropped. The sidecar
+promotes no row, does not change `interval_status` or `coverage_status`, and
+does not authorize Totoro/FIIA, Nibi/Rorqual/DRAC, q2, q4/q8, non-Gaussian,
+REML, AI-REML, bridge, or public support claims.
+
+`structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv` records
+the reviewed pregrid contract for only the animal and relmat q1 `sigma`
+intercept rows. Those two rows passed the local route-smoke shape with 5/5
+usable raw-Wald intervals and no boundary/profile failures, but all warning
+rows stay inside the evidence ledger. The contract pins raw log-SD Wald
+intervals with `small_sample_df = "none"` and `bias_correct = "none"`,
+endpoint profiles as diagnostics only, SR150 as the first Nibi pregrid, MCSE
+`<= 0.01` as the top-up threshold, and all attempted
+fit/convergence/`pdHess`/warning/boundary/profile rows retained. Fisher,
+Gauss, and Rose accepted this warning ledger for pregrid execution only. It
+promotes no row, leaves the linked support cells at `point_fit/planned/planned`,
+and does not authorize `inference_ready`, `supported`, location-axis bias+t
+correction, q1 `mu`, matched `mu+sigma`, q2, q4/q8, non-Gaussian intervals,
+REML, AI-REML, bridge, completed DRAC denominator evidence, or public support
+claims.
+
+`structured-re-gaussian-lowq-sigma-intercept-pregrid-dispatch.tsv` records the
+Nibi SR150 dispatch for those same animal and relmat q1 `sigma` intercept
+rows. Job `16982141` failed before simulation because `devtools` was not
+available in the isolated compute-node R library; retry job `16982458`
+completed `0:0` after the runner fell back to the package installed by the
+SLURM script. The dispatch table is still no-promotion evidence: it records
+completed/imported reviewed-blocked artifacts, not an `interval_status`,
+`coverage_status`, `inference_ready`, `supported`, q2, q4/q8, non-Gaussian,
+REML, AI-REML, bridge, or public-support claim.
+
+`structured-re-gaussian-lowq-sigma-intercept-pregrid-results.tsv` records the
+imported Nibi SR150 result summary for the same two rows. Fit, convergence,
+`pdHess`, and `confint()` all succeeded for 150/150 replicates per row, but
+only 115/150 raw Wald intervals were usable and 118/150 replicates retained
+warnings. The result is therefore `sr150_pregrid_completed_diagnostic_blocked_no_topup`:
+Fisher/Gauss/Rose reviewed the finite-interval censoring, warning ledger,
+profile failures, boundary rows, miss counts, and failure taxonomy; the sigma
+interval route must be hardened or replaced before any SR475/SR1000 top-up or
+status edit.
+
+`structured-re-gaussian-lowq-sigma-profile-route-review.tsv` records the
+route-hardening sequence for those animal and relmat q1 `sigma` intercept rows.
+Raising the endpoint-profile budget from 12 to 48 rescued two of the three
+selected profile failures per provider; the endpoint zero-boundary patch then
+rescued the remaining selected seed and produced a local SR1000 profile-channel
+aggregate. The current profile evidence is 1000/1000 finite intervals, coverage
+0.9430 with MCSE 0.007332, and a lower/upper miss split of 12/45 for each row;
+757/1000 profiles land on the lower SD boundary. The `tmbprofile` fallback is
+still a negative smoke with 0/5 finite profile intervals. Fisher/Gauss/Rose now
+treat this as profile-route blocker evidence, not a top-up candidate: support
+cells stay `point_fit/planned/planned`, and no `interval_status`,
+`coverage_status`, `inference_ready`, or `supported` claim is made from this
+endpoint zero-boundary profile channel. The next q1 `sigma` move is a new
+interval route or an explicit blocker decision, not more Totoro/DRAC replicas
+on the current route.
+
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
-the 37 non-Gaussian Q-Series cells. It assigns eight Poisson/NB2 count
-one-slope rows to `non_gaussian_recovery_only`, ten count-intercept or
-`phylo_interaction()` smoke rows to `non_gaussian_intercept_recovery_smoke`,
-eighteen intentional rejection rows to `non_gaussian_rejected`, and one broader
-family-design row to `non_gaussian_planned`. The table preserves the current
+the 37 non-Gaussian Q-Series cells. It assigns eighteen Poisson/NB2 count
+rows to `non_gaussian_recovery_only`, zero rows to
+`non_gaussian_recovery_caveat`, eighteen intentional rejection rows to
+`non_gaussian_rejected`, and one broader family-design row to
+`non_gaussian_planned`. The table preserves the current
 family distribution: 14 Poisson rows, 15 NB2 rows, two Student rows, two beta
 rows, and one row each for Gamma, cumulative-logit, truncated-NB2, and the
 non-count/extended-count future-design bucket. All linked rows keep
 `interval_status = unsupported`; none of this audit promotes non-Gaussian
 intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge support,
+`supported`, or public support.
+
+`structured-re-count-intercept-recovery-results.tsv` records the local
+80-rep recovery grid for the ten non-Gaussian q1 count `mu` intercept rows.
+The artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-grid-local/`
+include raw replicate tables, summary tables, a seed manifest, run logs,
+`sessionInfo.txt`, `git-sha.txt`, and local module information. Seven rows pass
+the local recovery-only gate. Three rows remain in this local sidecar as
+`non_gaussian_recovery_caveat`: `qseries_phylo_nbinom2_q1_mu_intercept`
+because the run retained 13/320 `pdHess = FALSE` structured-SD rows, and
+`qseries_phylo_poisson_q1_mu_intercept` plus
+`qseries_spatial_nbinom2_q1_mu_intercept` because at least 25% of
+structured-SD estimates fell below the near-zero threshold `1e-4`. This
+sidecar is recovery evidence only: linked support cells keep
+`interval_status = unsupported` and `coverage_status = planned`, and it does
+not promote non-Gaussian intervals, coverage, q2/q4 covariance, REML,
+AI-REML, bridge support, `supported`, or public support.
+
+`structured-re-count-intercept-caveat-diagnostic.tsv` records 12 condition-level
+diagnostic rows for the three caveated count-intercept recovery cells. It is
+derived from the same local 80-rep recovery grid and explains the caveats
+without changing any support-cell status: phylo Poisson has four
+`condition_near_zero_caveat` rows; phylo NB2 has four
+`condition_pdhess_caveat` rows; spatial NB2 has two weak-signal
+`condition_near_zero_caveat` rows and two stronger-signal
+`condition_recovery_ok` rows. This sidecar points the next gate toward a
+targeted denominator diagnostic with stronger signal and/or larger count
+denominators before public recovery wording; intervals and coverage remain
+unsupported.
+
+`structured-re-count-intercept-denominator-diagnostic.tsv` records the targeted
+30-rep stronger-denominator follow-up for those same three caveated cells. It
+uses larger phylo/spatial denominators, larger count means, and stronger
+structured-SD signals than the caveated local 80-rep grid. All 12 condition
+rows cleared locally: 30/30 fits, zero `pdHess = FALSE`, and zero structured-SD
+estimates below `1e-4`. This makes the three row-level caveats
+design-sensitive recovery blockers, not engine-wide non-Gaussian support
+failures. It still does not promote intervals, coverage, `inference_ready`,
+REML, AI-REML, bridge support, `supported`, or public support.
+
+`structured-re-count-intercept-topup-recovery-results.tsv` records the
+80-seed x four-condition stronger-denominator recovery top-up for the three
+formerly caveated count-intercept cells, now reproduced by Rorqual SLURM job
+`14897050`. The local artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-local/`
+and the fetched Rorqual artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-rorqual/`
+include raw replicate tables, condition manifests, summary tables, a seed
+manifest, run logs, `sessionInfo.txt`, `git-sha.txt`, and module information.
+All three rows pass the cluster-confirmed recovery-only top-up gate:
+`qseries_phylo_poisson_q1_mu_intercept`,
+`qseries_phylo_nbinom2_q1_mu_intercept`, and
+`qseries_spatial_nbinom2_q1_mu_intercept` each have 320/320 fit success,
+zero `pdHess = FALSE`, and zero structured-SD estimates below `1e-4`. This
+sidecar supersedes the original weak-denominator caveat for widget row state
+but preserves the original caveat sidecars as provenance. It does not promote
+non-Gaussian intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge
+support, `supported`, or public support.
+
+`structured-re-count-intercept-cluster-recovery-results.tsv` records the
+Rorqual SLURM job `14918220` reproduction for all ten count-intercept and
+`phylo_interaction()` non-Gaussian q1 count `mu` recovery rows. The fetched
+artifacts under
+`docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-rorqual/`
+include raw replicate tables, summaries, seed manifests, run logs,
+`sessionInfo.txt`, `git-sha.txt`, module lists, scheduler logs, and `seff`
+metadata. Six rows are `cluster_confirmed_recovery_only`. Four original-grid
+cluster caveats remain visible in this sidecar: the phylo Poisson, phylo NB2,
+and spatial NB2 count-intercept rows are superseded by the stronger-denominator
+top-up, while `qseries_phylo_interaction_nbinom2_q1_mu` remains a retained
+historical cluster recovery caveat because the reproduction kept 5/80
+boundary-warning rows. This sidecar is recovery evidence only; it does not promote
+non-Gaussian intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge
+support, `supported`, or public support.
+
+`structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv`
+records the Rorqual SLURM job `14936834` top-up for
+`qseries_phylo_interaction_nbinom2_q1_mu`. Combined with the original Rorqual
+job `14918220`, the retained denominator is 160/160 fit_ok, 0 nonconverged,
+0/160 `pdHess = FALSE`, 160/160 finite estimates, and 6/160 near-zero or
+boundary-warning rows. The current widget recovery rollup therefore treats the
+row as `cluster_confirmed_recovery_only`, while preserving the original 5/80
+caveat as provenance. This is recovery-only evidence; it does not promote
+non-Gaussian intervals, coverage, q2/q4 covariance, REML, AI-REML, bridge
+support, `supported`, or public support.
+
+`structured-re-nongaussian-recovery-rollup.tsv` records the separate Recovery
+column used by the Q-Series widget for all 18 non-Gaussian Poisson/NB2 count
+`mu` rows with recovery evidence. It deliberately separates recovery grade from
+fit stability, interval status, and coverage status. All 18 rows are
+`cluster_confirmed_recovery_only` after combining the Rorqual count-slope
+array, the spatial NB2 count-slope top-up, the Rorqual count-intercept
+reproduction, the stronger-denominator Rorqual count-intercept top-up, and the
+Rorqual phylo-interaction NB2 top-up. No row is currently retained as
+`cluster_recovery_caveat`. All linked support-cell rows keep
+`interval_status = unsupported` and `coverage_status = planned`; the rollup
+does not promote non-Gaussian intervals, coverage, q2/q4 covariance, REML,
+AI-REML, bridge support, `supported`, or public support. Rollup-linked
+support-cell source rows must also name recovery evidence in their
+`claim_boundary` or `next_gate`; mission control rejects stale gates such as
+"add recovery evidence" for rows where recovery is already banked.
+
+`structured-re-count-intercept-topup-cluster-dispatch.tsv` records the
+Rorqual confirmation job for those same three top-up rows. The current dispatch
+row is `completed_passed` for SLURM job `14897050`, under
+`/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-topup-rorqual-77b634eda91b/`.
+It is cluster confirmation evidence for recovery-only row state: the runner and
+summary both exited 0, and the fetched result TSV matches the local top-up
+sidecar on the three target cells, retained denominators, `pdHess`, near-zero
+counts, and recovery verdicts. It does not promote intervals, coverage,
+`inference_ready`, REML, AI-REML, q2/q4 covariance, bridge support,
 `supported`, or public support.
 
 `structured-re-count-intercept-recovery-smoke-status.tsv` records the first
@@ -290,11 +973,10 @@ show 24 total condition-replicates, zero failures, and for each of the six
 cell subsets, 4/4 structured-SD rows with converged fits, `pdHess = TRUE`, and
 finite estimates. The spatial NB2 subset is explicitly flagged because 3/4
 structured-SD rows have lower-boundary warnings. This sidecar does not cover
-the phylo count intercept rows, does not replace the 80-rep count one-slope
-recovery grid, and does not promote non-Gaussian intervals, coverage,
+the phylo count intercept rows, has been superseded for dashboard row state by
+the 80-rep count-intercept recovery grid, and does not promote non-Gaussian intervals, coverage,
 q2/q4 covariance, REML, AI-REML, bridge support, `supported`, or public
-support. A replicated recovery grid with MCSE and a boundary ledger remains
-the next gate.
+support.
 
 `structured-re-phylo-count-intercept-recovery-smoke-status.tsv` records the
 first local smoke rung for the two exact phylo non-Gaussian q1 structured `mu`
@@ -345,6 +1027,24 @@ from this recovery-results sidecar. They have point and recovery evidence, but
 `supported` claim. The fixed-covariance spatial NB2 row is not `pdHess` clean:
 it records 80/80 fit_ok and finite estimates, but 2/80 `pdHess = FALSE`, so
 the row carries a Hessian caveat and remains recovery-only.
+
+`structured-re-count-slope-cluster-recovery-results.tsv` records the Rorqual
+SLURM array 14916938 reproduction for the same eight Poisson/NB2 q1 `mu`
+one-slope count cells. Seven rows are `cluster_confirmed_recovery_only`; the
+fixed-covariance spatial NB2 row remains a historical `cluster_recovery_caveat`
+inside this sidecar because the original array had 2/80 `pdHess = FALSE`. The
+fetched artifacts live under
+`docs/dev-log/simulation-artifacts/2026-06-29-count-slope-recovery-rorqual`.
+
+`structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv` records the
+Rorqual SLURM job 14936279 top-up for that fixed-covariance spatial NB2
+count-slope row. The top-up has 80/80 fit_ok, 0 nonconverged rows, 0/80
+`pdHess = FALSE`, and 80/80 finite estimates. Combined with the original
+array, the retained denominator is 160/160 fit_ok, 0 nonconverged, 2/160
+`pdHess = FALSE`, and 160/160 finite estimates, so the widget recovery rollup
+now treats the row as `cluster_confirmed_recovery_only`. This is still
+recovery-only evidence; intervals, coverage, `inference_ready`, `supported`,
+REML, AI-REML, q2/q4 count covariance, and public support remain unpromoted.
 
 `structured-re-count-slope-fixture-recovery-contract.tsv` records the next
 evidence contract for those eight ordinary count one-slope cells. It ties each
@@ -1338,6 +2038,28 @@ the cell `admission_blocked`. Both linked support cells keep
 not promote range-estimating spatial support, pedigree/Ainv bridge marshalling,
 q4/q8, REML, AI-REML, bridge support, `supported`, or public support.
 
+`structured-re-q2-slope-bias-t-topup-runner-contract.tsv` records the executable
+top-up contract for those four spatial/animal q2 SD endpoints. Shards 1-4 cover
+spatial `mu1:x`, spatial `mu2:x`, animal `mu1:x`, and animal `mu2:x` with
+525 planned replicates each for seeds 730476-731000. The local current-source
+smoke has one finite fit, `pdHess = TRUE`, and finite default bias+t Wald
+interval output for each endpoint. This is runner-contract evidence only: the
+linked q-series rows remain `interval_status = planned` and
+`coverage_status = planned`, and the contract does not promote inference
+readiness, calibrated coverage, correlation targets, q4/q8, REML, AI-REML,
+bridge support, `supported`, or public support.
+
+`structured-re-q2-slope-bias-t-topup-results.tsv` records the completed Rorqual
+top-up for those four SD endpoints. Shards 1 and 3 completed in array job
+`14901064`; shard 2 was retried as `14901210` and shard 4 as `14901126` after
+the first array exposed a shared-source install race, and the failed first
+attempts remain archived beside the valid results. Combined with the SR475
+sidecar, the SR1000 bias+t endpoint totals are spatial `mu1:x` 0.9590, spatial
+`mu2:x` 0.9480, animal `mu1:x` 0.9600, and animal `mu2:x` 0.9540, all with MCSE
+<= 0.01. This still does not promote the linked rows: spatial `mu2:x` has 47
+upper-tail misses versus 5 lower misses, animal `mu2:x` has 36 versus 10, and
+the q2 row-level correlation/denominator gates remain unresolved.
+
 `structured-re-q2-slope-coverage-pregrid-dry-run.tsv` records the executable
 manifest shape for that future q2 slope coverage pre-grid without running any
 coverage fits. It links to a 150-row predeclared seed manifest and a 1500-row
@@ -1554,11 +2276,186 @@ Hessian-stability probe for the same 32 direct-SD q4 all-four one-slope targets.
 It links to
 `docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-stability-probe/structured-re-q4-slope-interval-stability-probe-results.tsv`
 and covers two deterministic variants: a stronger signal design and a
-more-levels design. All eight provider-variant fits converged, but all eight
-returned `pdHess = FALSE`, so the 128 Wald/profile method rows are recorded as
-`not_run_pdhess_false`. This is diagnostic negative evidence only: denominator
-admission, interval reliability, coverage, q4 REML, AI-REML, broad bridge
-support, public support, and broader q8 support remain unpromoted.
+more-levels design. The current-source refresh keeps `phylo()`, fixed-covariance
+`spatial()`, and K-matrix `relmat()` Hessian-blocked in both variants. The
+A-matrix `animal()` rows now have `pdHess = TRUE`, finite Wald intervals, and a
+mixed profile signal: 9/16 animal endpoints are Wald/profile finite and 7/16
+are Wald-finite/profile-nonfinite. This remains diagnostic evidence only:
+denominator admission, interval reliability, coverage, q4 REML, AI-REML, broad
+bridge support, public support, and broader q8 support remain unpromoted.
+
+`structured-re-q4-animal-all-four-admission-probe.tsv` records the first
+replicated admission smoke for the animal q4 all-four one-slope row. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-all-four-admission-probe-nibi/structured-re-q4-animal-all-four-admission-probe-replicates.tsv`
+and retains the 16 corrected Nibi `more_levels` replicates in the denominator:
+all 16 fits converged, only two had `pdHess = TRUE`, 112 Wald and 112 profile
+target-replicate rows are retained as `not_run_pdhess_false`, and two profile
+rows are nonfinite even among the positive-Hessian fits. The sidecar is
+admission-smoke evidence only. It does not promote q4 interval reliability,
+coverage, `inference_ready`, `supported`, q8 support, REML, AI-REML, broad
+bridge support, or public support.
+
+`structured-re-q4-animal-hessian-geometry-diagnostic.tsv` records an
+endpoint-level diagnostic derived from the same 16-replicate Nibi artifact. The
+eight direct-SD endpoint rows show that retained direct-SD estimates are not a
+simple near-zero boundary collapse (`n_estimate_lt_0_10 = 0` for every
+endpoint), while the admission denominator is still blocked by the 2/16
+positive-Hessian rate and incomplete profile finiteness. The sidecar separates
+Hessian/correlation geometry from coverage and promotion status: no q4 coverage
+grid, `inference_ready`, `supported`, q8 inference, q4 REML, REML, AI-REML,
+derived-correlation interval, or broad bridge claim follows from this table.
+
+`structured-re-q4-animal-numerical-geometry-diagnostic.tsv` records a focused
+four-seed local numerical-geometry smoke for the same animal q4 all-four
+one-slope row. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-numerical-geometry-local/structured-re-q4-animal-numerical-geometry-diagnostic.tsv`
+and contrasts two `pdHess = FALSE` admission seeds with two `pdHess = TRUE`
+seeds. The blocked seeds retain large fixed-gradient norms, negative
+`sdreport` covariance eigenvalues, extreme q4 theta magnitudes, and selected
+fallback-BFGS fits whose objective is worse than the best failed default
+attempt. The two `pdHess = TRUE` smoke rows have finite covariance geometry,
+but one still selects a worse fallback objective. The companion
+`structured-re-q4-animal-numerical-geometry-attempts.tsv` sidecar stores the
+seven optimizer attempts behind those four fits. These tables are diagnostic
+stability evidence only: they do not change interval status, coverage status,
+`inference_ready`, `supported`, q8 inference, q4 REML, REML, AI-REML,
+derived-correlation interval, or broad bridge support.
+
+`structured-re-q4-animal-optimizer-route-diagnostic.tsv` records the matching
+optimizer-route smoke for those four animal q4 all-four seeds. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-optimizer-route-local/structured-re-q4-animal-optimizer-route-diagnostic.tsv`
+and stores 20 rows: four seeds crossed with the custom fallback route, the
+default ladder without fallback, the robust preset without fallback, two-start
+multistart without fallback, and two-start multistart with fallback. The two
+failed-Hessian seeds (`910101`, `910102`) were not rescued by any route. The
+seven `pdhess_pass_smoke` rows occur only on seeds that already had a passing
+baseline route, and the selected-worse-objective rows keep the fallback
+objective problem visible. This is diagnostic route evidence only: it does not
+change interval status, coverage status, `inference_ready`, `supported`, q8
+inference, q4 REML, REML, AI-REML, derived-correlation interval, or broad
+bridge support.
+
+`structured-re-q4-animal-start-map-diagnostic.tsv` records the lower-level
+start/map follow-up for the same four animal q4 all-four seeds. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-start-map-local/structured-re-q4-animal-start-map-diagnostic.tsv`
+and stores 28 rows: four seeds crossed with all-free default starts, all-free
+small-correlation starts, all-free DGP-SD starts, zero-correlation maps with
+default and DGP-SD starts, fixed-SD zero-correlation maps, and an all-free fit
+seeded from the zero-correlation solution. The start/map diagnostic localizes
+the q4 animal blocker to the free q4 correlation block: zero-correlation map
+rows pass smoke in 11/12 cases and keep finite covariance geometry, while the
+all-free and diagonal-staged all-free strategies remain blocked on seeds
+`910101`, `910102`, and `910110`. This is diagnostic start/map evidence only:
+it does not change interval status, coverage status, `inference_ready`,
+`supported`, q8 inference, q4 REML, REML, AI-REML, derived-correlation
+interval, or broad bridge support.
+
+`structured-re-q4-animal-bounded-correlation-diagnostic.tsv` records the
+bounded-correlation continuation follow-up for the three hard animal q4
+all-four seeds (`910101`, `910102`, and `910110`). It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-bounded-correlation-local/structured-re-q4-animal-bounded-correlation-diagnostic.tsv`
+and stores 15 rows: three seeds crossed with the zero-correlation control, the
+current unbounded staged fit, and optimizer-layer
+`theta = cap * tanh(eta)` continuations at caps `0.50`, `0.80`, and `0.95`.
+The zero-correlation controls pass, the current unbounded staged fits remain
+gradient/Hessian blocked, and all nine bounded rows reach `pdHess = TRUE` only
+by saturating their caps. This is boundary-seeking q4 correlation geometry
+evidence only: it does not change interval status, coverage status,
+`inference_ready`, `supported`, q8 inference, q4 REML, REML, AI-REML, the
+production parameterization, derived-correlation intervals, or broad bridge
+support.
+
+The bounded-correlation diagnostic led to the local one-theta release gate
+below, which then led to the multi-coordinate MAP/penalty sensitivity gate.
+Both gates remain before any DRAC coverage grid. They retain the eight
+direct-SD estimands as the only admission targets. A passing zero-correlation
+map is not unrestricted all-free support, cap-saturated bounded fits are not
+admission evidence, and optimizer-layer ridge stabilization is not a
+production prior.
+
+`structured-re-q4-animal-one-theta-release-diagnostic.tsv` records that
+one-theta release diagnostic. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-one-theta-release-local/structured-re-q4-animal-one-theta-release-diagnostic.tsv`
+and stores 84 rows: hard seeds `910101`, `910102`, and `910110` crossed with
+the 28 assumed lower-triangle `theta_phylo` coordinates. The zero-correlation
+controls pass for all three seeds; 73 one-coordinate releases pass the local
+smoke gate, nine remain `release_watch`, and two remain `hessian_blocked`
+with runaway `theta` and negative `sdr$cov.fixed` eigenvalues. This narrows the
+next q4 animal gate toward multi-coordinate MAP/penalty sensitivity or a
+production transform, but it is still diagnostic geometry evidence only: it
+does not change interval status, coverage status, `inference_ready`,
+`supported`, q8 inference, q4 REML, REML, AI-REML, derived-correlation
+intervals, or broad bridge support.
+
+`structured-re-q4-animal-map-penalty-sensitivity.tsv` records the follow-up
+multi-coordinate MAP/penalty sensitivity diagnostic. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-map-penalty-local/structured-re-q4-animal-map-penalty-sensitivity.tsv`
+and stores 30 rows: the three hard seeds crossed with 10 multi-coordinate
+strategies derived from the one-theta non-pass, top-gain, global non-pass, and
+all-28 coordinate sets. The unpenalized multi-coordinate releases still show
+seven runaway/Hessian-blocked rows and two convergence-watch rows; the 21
+ridge-penalized rows stabilize local modes at the optimizer layer. This is a
+diagnostic sensitivity result, not a production prior or interval method: it
+does not change interval status, coverage status, `inference_ready`,
+`supported`, q8 inference, q4 REML, REML, AI-REML, derived-correlation
+intervals, production parameterization, or broad bridge support.
+
+`structured-re-q4-animal-ridge-continuation-diagnostic.tsv` records the
+annealing follow-up to the MAP/penalty diagnostic. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-ridge-continuation-local/structured-re-q4-animal-ridge-continuation-diagnostic.tsv`
+and stores 36 rows: hard seeds `910101`, `910102`, and `910110` crossed with
+`seed_nonpass`, `global_nonpass`, and `all28` coordinate sets and the ridge
+schedule `1 -> 0.1 -> 0.01 -> 0`. Twenty-five penalized stages stabilize local
+modes, but final `lambda = 0` stages have zero clean admission passes: six are
+runaway/Hessian-blocked, two are convergence-watch, and one is a large-theta
+watch. This keeps q4 animal admission local and diagnostic; it does not change
+interval status, coverage status, `inference_ready`, `supported`, q8
+inference, q4 REML, REML, AI-REML, derived-correlation intervals, production
+parameterization, or broad bridge support.
+
+`structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv` records
+the local partial-Cholesky coordinate diagnostic for the same animal all-four
+hard seeds. It links to
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-cholesky-transform-local/structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv`
+and stores nine rows: three zero-correlation controls, three current all-free
+reference fits, and three all-free partial-correlation Cholesky coordinate
+fits. The partial-Cholesky route has zero clean admission passes: all three
+partial rows have convergence code 1 and `pdHess = FALSE`; seeds `910101` and
+`910110` are additionally large-eta blocked, and direct-SD interval finiteness
+is only 7/8, 0/8, and 2/8. This is a blocked local diagnostic, not a cluster
+candidate: it does not change interval status, coverage status,
+`inference_ready`, `supported`, q8 inference, q4 REML, REML, AI-REML,
+derived-correlation intervals, production parameterization, or broad bridge
+support.
+
+`docs/dev-log/after-task/2026-06-29-q-series-q4-animal-partial-correlation-hard-seed-smoke.md`
+records the follow-up hidden TMB partial-correlation hard-seed smoke. Unlike
+the optimizer-layer diagnostic above, this route reached the public all-four
+fit and converged for seeds `910101`, `910102`, and `910110`, but still failed
+admission because all three retained fits had `pdHess = FALSE`. The output
+bundle is
+`docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-correlation-admission-probe-local/`.
+The result keeps the high-q row in `q8_stability_blocked` and makes the next
+gate Hessian/geometry diagnosis, not cluster admission.
+
+`structured-re-q4-animal-transform-admission-contract.tsv` records the
+seven-row admission contract that turns the animal q4 hard-seed diagnostics
+into a cluster-use gate. It separates the zero-correlation reference, current
+all-free route, fixed soft-cap route, sparse one-theta localization route,
+ridge MAP/penalty sensitivity route, ridge-continuation annealing route, the
+blocked partial-Cholesky coordinate diagnostic, and the required next
+production-transform experiment. The contract now routes that
+experiment through
+`docs/design/220-structured-q4-animal-production-transform-gate.md`: member
+review says another optimizer-layer wrapper around current `theta_phylo` is not
+a production transform. The contract keeps Nibi/Rorqual admission and any later
+DRAC coverage grid on hold until a lower-level TMB parameterization design and
+production route pass hard seeds `910101`, `910102`, and `910110` without cap
+saturation, optimizer-layer ridge penalties, large-theta rows,
+convergence-watch rows, or Hessian-blocked multi-coordinate rows. It does not
+change interval status, coverage status, `inference_ready`, `supported`, q8
+inference, q4 REML, REML, AI-REML, derived-correlation intervals, production
+parameterization, or broad bridge support.
 
 `structured-re-q4-slope-hessian-geometry.tsv` records the follow-up
 Hessian-geometry audit for those same provider-variant fits. It links to

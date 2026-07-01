@@ -1,0 +1,5 @@
+"diagnostic_condition_id","n_species","n_per_species","sd_phylo","mean_count","sigma_baseline","beta_mu_x","beta_sigma_z","tree_shape","n_rep","master_seed","target_replicates","formal_recovery_gate","profile_parameters","profile_level","condition_shard","condition_shards","full_condition_count","shard_condition_count","shard_recovery_gate","mcse_required","overdispersion_confounding_explicit","coverage_claim_allowed"
+"phylo_nbinom2_medium_balanced",40,8,0.6,4,0.35,-0.2,0.15,"balanced",30,2026162911,120,FALSE,"",0.7,1,1,4,4,FALSE,TRUE,TRUE,FALSE
+"phylo_nbinom2_medium_mildly_uneven",40,8,0.6,4,0.35,-0.2,0.15,"mildly_uneven",30,2026162911,120,FALSE,"",0.7,1,1,4,4,FALSE,TRUE,TRUE,FALSE
+"phylo_nbinom2_large_denominator",40,12,0.6,6,0.35,-0.2,0.15,"balanced",30,2026162911,120,FALSE,"",0.7,1,1,4,4,FALSE,TRUE,TRUE,FALSE
+"phylo_nbinom2_stronger_signal",40,8,0.9,4,0.45,-0.2,0.15,"balanced",30,2026162911,120,FALSE,"",0.7,1,1,4,4,FALSE,TRUE,TRUE,FALSE

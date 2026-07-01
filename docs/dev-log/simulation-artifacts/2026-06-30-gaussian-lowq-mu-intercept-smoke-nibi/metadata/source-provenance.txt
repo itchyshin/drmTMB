@@ -1,0 +1,1 @@
+source synced from local dirty worktree on 2026-06-30; installed into run-local rlib before smoke

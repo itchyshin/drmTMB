@@ -1,0 +1,4 @@
+Warning message:
+In system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE) :
+  running command ''git' rev-parse HEAD 2>&1' had status 128
+wrote q2-plus-q2 intercept local-smoke artifacts to /lustre09/project/6098264/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/results/q2-retained-denominator-sr150-pregrid/shard_5_q2-plus-q2-phylo-ready-targets/artifacts
