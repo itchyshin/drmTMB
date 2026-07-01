@@ -1,0 +1,11 @@
+date=2026-06-29T14:59:16-04:00
+job=14918220
+node=rc31705
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-recovery-rorqual-77b634ed-dirty1
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-recovery-rorqual-77b634ed-dirty1/source
+git_sha=77b634ed-dirty-qseries-count-intercept-rorqual1
+n_rep=80
+seed_start=2026062931
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-recovery-rorqual-77b634ed-dirty1/rlib
+runner_exit_code=0
+done=2026-06-29T15:03:35-04:00

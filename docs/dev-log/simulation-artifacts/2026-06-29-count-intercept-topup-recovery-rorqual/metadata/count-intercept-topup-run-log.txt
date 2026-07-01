@@ -1,0 +1,10 @@
+date=2026-06-29T01:29:39-04:00
+job=14897050
+node=rc32505
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-topup-rorqual-77b634eda91b
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-topup-rorqual-77b634eda91b/source
+git_sha=77b634eda91b-dirty-qseries-count-topup-clean-src-cwd
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-topup-rorqual-77b634eda91b/rlib
+runner_exit_code=0
+summary_exit_code=0
+done=2026-06-29T01:34:59-04:00

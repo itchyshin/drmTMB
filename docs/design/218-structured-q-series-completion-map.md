@@ -118,6 +118,16 @@ The current table records these broad facts without promoting beyond them:
 - Phylo q4 point parity and extractor evidence exist, but q4 interval
   reliability, q4 interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
   HSquared AI-REML, and non-Gaussian AI-REML remain outside support.
+- The animal all-four one-slope row is q8-shaped in the implementation: the
+  shared labelled block has eight endpoints and 28 `theta_phylo` coordinates.
+  Existing bounded, one-theta, MAP/penalty, and ridge-continuation diagnostics
+  localize the free-correlation blocker, and the local partial-Cholesky
+  coordinate diagnostic attempted the three hard seeds but produced zero clean
+  all-free admission passes. These diagnostics do not supply a production
+  transform. The next gate is the lower-level TMB/C++ parameterization design in
+  `docs/design/220-structured-q4-animal-production-transform-gate.md`, followed
+  by objective/report equivalence tests and a new local hard-seed admission
+  runner before any Totoro, Nibi/Rorqual, or DRAC work.
 - Ordinary q6/q8 diagnostic routes do not imply structured q6/q8 support.
 - Poisson and NB2 q1 structured `mu` intercept and unlabelled one-slope rows
   are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
@@ -125,26 +135,26 @@ The current table records these broad facts without promoting beyond them:
   count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
 - The ordinary count one-slope rows now have an explicit fixture/recovery
   contract sidecar. It records existing native TMB ML/Laplace point-fit and
-  extractor evidence, while native deterministic fixture status is now
-  `native_fixture_banked` and calibrated recovery remains `designed_not_run`.
-  Native fixture status is not bridge parity. The follow-up recovery-runner
-  contract is also now banked as a dry-run manifest and run log only; no
-  recovery simulation, Totoro job, DRAC job, coverage-evaluable denominator,
-  interval reliability, coverage, or public support has moved. A dispatch
-  preflight sidecar now names provider/family shard boundaries and
-  race-safety rules, but it is not human approval and no job has been
-  submitted. The first local Codex micro-shards have now executed the exact
+  extractor evidence, while native deterministic fixture status is
+  `native_fixture_banked`; native fixture status is not bridge parity. The
+  earlier recovery-runner contract, dispatch preflight, and shard-pack sidecars
+  bank the execution contract only. The first local Codex micro-shards executed
+  the exact
   `phylo()` plus `poisson()`, `phylo()` plus `nbinom2()`,
   fixed-covariance `spatial()` plus `poisson()`, and fixed-covariance
   `spatial()` plus `nbinom2()` q1 `mu` one-slope cells for four seeds each,
-  with four converged `pdHess = TRUE` point fits per cell. The NB2 rows keep
-  `sigma` as fixed-effect overdispersion only, and the spatial rows keep
-  range-estimating spatial support closed. These rows are local smoke evidence
-  only: they do not create a coverage-evaluable denominator, MCSE-calibrated
-  recovery evidence, interval reliability, bridge parity, Totoro/DRAC execution
-  evidence, REML, AI-REML, public support, structured count `sigma`, labelled
-  or multiple count slopes, zero-inflated structure, or neighbouring count
-  support.
+  with four converged `pdHess = TRUE` point fits per cell. The later local
+  80-rep recovery grid covers all eight ordinary Poisson/NB2 provider rows:
+  it records convergence, finite estimates, SD bias/RMSE, and recovery-only
+  status. The fixed-covariance spatial NB2 row has 80/80 fit_ok and finite
+  estimates but 2/80 `pdHess = FALSE`, so it carries a Hessian caveat rather
+  than a clean-Hessian claim. The NB2 rows keep `sigma` as fixed-effect
+  overdispersion only, and the spatial rows keep range-estimating spatial
+  support closed. These rows are recovery evidence only: they do not create a
+  coverage-evaluable denominator, interval reliability, coverage, bridge
+  parity, Totoro/DRAC execution evidence, REML, AI-REML, public support,
+  structured count `sigma`, labelled or multiple count slopes,
+  zero-inflated structure, or neighbouring count support.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -254,11 +264,13 @@ PROFILE channel at adequate g.**
    asymmetry and g-dependence. The sigma/dispersion SDs already over-cover, so
    the centre shift is not applied to them by default.
 
-The g-sweep capstone and interval-reliability rung show the slope/sigma/q2/
-q4-location "walls" are small-sample artifacts: profile coverage reaches
-certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess fragility
-evaporates (phylo 48.6% -> 5.0%, relmat 22.9% -> 0.0%) by g=32, with the eight
-certified cells passing the interval-reliability rung via the profile channel.
+The g-sweep capstone and interval-reliability rung show that some
+slope/sigma/q2/q4-location numerical walls relax at larger g: profile coverage
+reaches certified-nominal (0.948-0.958, MCSE ~0.01) and q4-location pdHess
+fragility is much lower by g=32 in the diagnostic runs. This is not a q4/q8
+promotion. q4 remains diagnostic-only until denominator admission, finite
+direct-SD intervals, derived-correlation interval machinery, and retained
+coverage denominators pass row-specific gates; q8 remains stability-first.
 
 ### Decision executed (2026-06-27): four cells promoted to `interval_feasible`
 
@@ -272,25 +284,42 @@ move did not promote coverage or `supported`.
 ### Decision executed (2026-06-28): q2 phylo/relmat to `inference_ready`
 
 After the default correction shipped and a fresh engine-validated g=8 grid ran,
-the q-series TSV contains 104 rows. Exactly two structured rows are
+the q-series TSV contains 104 rows. Two q2 structured rows are
 `inference_ready` for both interval and coverage status:
 
 - `qseries_phylo_q2_mu1_mu2_one_slope`
 - `qseries_relmat_q2_mu1_mu2_one_slope`
 
-No structured row is `supported`. The validator admits `inference_ready` only
-for those two q2 location-axis rows and still rejects `supported`
-over-promotion. The pooled all-provider g=8 engine result is evidence for the
-default correction, not a claim that all four providers are `inference_ready`:
-fixed-covariance spatial q2, animal q2, sigma, q4/q8, count, and non-Gaussian
-rows remain separate future arcs.
+No structured row is `supported`. The pooled all-provider g=8 engine result is
+evidence for the default correction, not a claim that all four providers are
+`inference_ready`: fixed-covariance spatial q2, animal q2, q4/q8, count, and
+non-Gaussian rows remain separate future arcs.
 
 `supported` is withheld because two measured defects remain: a roughly 6:1
 right-tail miss asymmetry at SD about 0.9, and g-dependent under-correction
 (relmat g=12 about 0.93). Those are sampling-shape and effective-df problems,
-not stale label work. The next bounded tier arc is sigma to `inference_ready`;
-q2 `supported` needs a skew-aware interval or a derived, tested bivariate
-structured-location REML route.
+not stale label work. q2 `supported` needs a skew-aware interval or a derived,
+tested bivariate structured-location REML route.
+
+### Decision executed (2026-06-28): q1 sigma phylo/animal/relmat to `inference_ready`
+
+The first follow-on sigma arc promoted exactly three q1 sigma one-slope rows:
+
+- `qseries_phylo_q1_sigma_one_slope`
+- `qseries_animal_q1_sigma_one_slope`
+- `qseries_relmat_q1_sigma_one_slope`
+
+This is an uncorrected raw Wald-z claim on the log-SD scale, not a use of the
+location-axis bias+t correction. At deployment g=8, the Nibi top-up, banked
+SR475 slope grid, and local animal SR1000 reconciliation show 100% fit and
+pdHess pass rates, Wald finite rates at or above 0.953, and Wald MCSE at or
+below 0.01. The caveat is explicit: one-sided misses are asymmetric (phylo
+intercept 5 lower vs 56 upper; animal intercept 26 lower vs 10 upper; relmat
+intercept 5 lower vs 53 upper), while the sigma:x SDs over-cover or are
+conservative. Profile intervals stay diagnostic-only at g=8 because low-finite
+sigma targets remain visible, including animal `sigma:x` at 0.726. Spatial
+sigma, matched `mu+sigma`, q4/q8, count, non-Gaussian rows, REML, AI-REML,
+bridge support, and `supported` remain future gates.
 
 ## Why the Older Work Drifted
 
@@ -543,6 +572,19 @@ coverage wording can move. The rule itself keeps `coverage_evaluable = FALSE`;
 it is not coverage evidence and it does not move q2 interval, coverage, REML,
 AI-REML, q4/q8, or public support status.
 
+`structured-re-q2-slope-spatial-animal-admission-audit.tsv` and
+`structured-re-q2-slope-bias-t-coverage-evidence.tsv` record the row-specific
+spatial/animal q2 blocker state after the default bias+t correction. Spatial
+has measured SR475 bias+t SD-endpoint evidence, but `mu2:x` remains below
+nominal at 0.9411 with MCSE 0.0108 and 24 upper-tail misses, and the
+endpoint-only sidecar does not promote the correlation target. Animal has
+measured SR475 bias+t SD-endpoint evidence, but `mu2:x` remains borderline at
+0.9474 with MCSE 0.0102 and the correlation target has no coverage-grid row
+after the denominator holdout. These rows stay `planned` for interval and
+coverage status; no range-estimating spatial, pedigree/Ainv bridge
+marshalling, q4/q8, REML, AI-REML, bridge, `supported`, or public-support
+claim moves.
+
 `structured-re-q2-slope-coverage-pregrid-dry-run.tsv` records the next
 execution-planning layer without running any coverage fits. It writes a
 150-row seed manifest and a 1500-row target-by-seed cell manifest for the 10
@@ -656,12 +698,13 @@ bridge support, public support, and broader q8 support remain unpromoted.
 Hessian-stability probe for those same direct-SD targets. It runs two
 deterministic variants, `strong` and `more_levels`, across `phylo()`,
 fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
-All eight provider-variant fits converged, but all eight returned
-`pdHess = FALSE`, so Wald and profile intervals were not attempted. This
-confirms that the current q4 all-four one-slope interval lane remains
-Hessian-blocked before any denominator or coverage work; it does not promote
-interval reliability, coverage, q4 REML, AI-REML, broad bridge support, public
-support, or broader q8 support.
+The current-source refresh keeps the `phylo()`, fixed-covariance `spatial()`,
+and K-matrix `relmat()` variants Hessian-blocked, while A-matrix `animal()`
+now reaches `pdHess = TRUE` with finite Wald intervals and a mixed profile
+signal. Across the 16 animal direct-SD endpoints, 9 are Wald/profile finite
+and 7 are Wald-finite/profile-nonfinite. This is still diagnostic-only
+admission evidence: it does not promote interval reliability, coverage, q4
+REML, AI-REML, broad bridge support, public support, or broader q8 support.
 
 `structured-re-q4-slope-hessian-geometry.tsv` records the follow-up
 Hessian-geometry audit for those same provider-variant fits. It keeps one row

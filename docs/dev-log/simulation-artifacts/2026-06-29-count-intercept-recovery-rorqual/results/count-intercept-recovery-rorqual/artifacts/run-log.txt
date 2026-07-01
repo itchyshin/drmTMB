@@ -1,0 +1,6 @@
+structured RE count-intercept recovery grid
+output_dir: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-intercept-recovery-rorqual-77b634ed-dirty1/results/count-intercept-recovery-rorqual/artifacts
+n_rep: 80
+seed_start: 2026062931
+cores: 4
+backend: multicore

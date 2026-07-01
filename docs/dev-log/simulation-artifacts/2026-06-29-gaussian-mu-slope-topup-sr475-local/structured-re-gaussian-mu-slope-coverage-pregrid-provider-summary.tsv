@@ -1,0 +1,4 @@
+cell_id	provider	n_targets	n_eligible_targets	n_holdout_targets	n_total_target_replicates	n_usable_intervals	min_finite_interval_rate	min_coverage_all	max_coverage_all	max_coverage_mcse	n_lower_miss	n_upper_miss	target_gate	widget_state
+qseries_phylo_q1_mu_one_slope	phylo	2	2	0	650	632	0.944615384615385	0.941538461538462	0.978461538461538	0.0130140500385898	2	6	pregrid_blocked	mu_slope_pregrid_blocked
+qseries_relmat_q1_mu_one_slope	relmat	2	2	0	650	648	0.993846153846154	0.966153846153846	0.993846153846154	0.010030812792587	1	10	pregrid_blocked	mu_slope_pregrid_blocked
+qseries_spatial_q1_mu_one_slope	spatial	2	2	0	650	643	0.978461538461538	0.96	0.966153846153846	0.0108698595277881	9	8	pregrid_blocked	mu_slope_pregrid_blocked

@@ -1,0 +1,74 @@
+cell_id	provider	endpoint_member	direct_sd_target	replicate_index	seed	parameter	truth	hybrid_interval_channel	hybrid_estimate	hybrid_conf_high	source_slice
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	5	791005	sd:mu:phylo(1 | species)	0.55	wald	0.234013747006648	0.546956051394229	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	15	791015	sd:mu:phylo(1 | species)	0.55	wald	0.222655407243994	0.521122351755944	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	24	791024	sd:mu:phylo(1 | species)	0.55	wald	0.223033636340563	0.54287173867647	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	33	791033	sd:mu:phylo(1 | species)	0.55	wald	0.214280895265767	0.531754673859282	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	35	791035	sd:mu:phylo(1 | species)	0.55	wald	0.175209081847081	0.476247055839274	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	227	791227	sd:mu:phylo(1 | species)	0.55	wald	0.216760821155308	0.484478682771839	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	238	791238	sd:mu:phylo(1 | species)	0.55	wald	0.206269339135597	0.518417211242043	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	273	791273	sd:mu:phylo(1 | species)	0.55	wald	0.197752795549652	0.4627711739803	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	381	791381	sd:mu:phylo(1 | species)	0.55	wald	0.231338900104673	0.526499241200668	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	388	791388	sd:mu:phylo(1 | species)	0.55	wald	0.134215024011888	0.356766462712624	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	391	791391	sd:mu:phylo(1 | species)	0.55	wald	0.208375773753811	0.505616479633781	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	48	791048	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	2.79954669689476e-06	0.149099142997881	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	58	791058	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	3.68401485891464e-06	0.242083862800978	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	60	791060	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	2.80498936834925e-06	0.177577736579912	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	92	791092	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	1.36102460788899e-06	0.111271653975604	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	95	791095	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	7.23642832086523e-06	0.204345078932842	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	96	791096	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	1.63718316075341e-05	0.257765370412113	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	104	791104	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	4.08027860792525e-06	0.174443480568192	sr150_base
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	165	791165	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	1.62481060198625e-06	0.135818729244092	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	180	791180	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	3.62063370333261e-06	0.260406759085466	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	191	791191	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	4.05478184795576e-06	0.170844838579094	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	220	791220	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	2.3061367544905e-06	0.159824817139341	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	246	791246	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	1.60797360679967e-06	0.186481041306008	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	254	791254	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	2.86329599727073e-06	0.169479654899692	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	255	791255	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	1.39007556538558e-06	0.112907367214633	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	270	791270	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	2.69445203580304e-06	0.205049920834726	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	278	791278	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	3.21189946273513e-06	0.195990321272008	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	330	791330	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	2.44888217674394e-06	0.14822937847706	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	370	791370	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	8.66040467512391e-07	0.208429626369807	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	389	791389	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	6.58289862436894e-06	0.258391196697466	sr151_475_topup
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	459	791459	sd:mu:phylo(0 + x | species)	0.32	endpoint_profile	4.47822293578273e-06	0.248796266659044	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	1	791001	sd:mu:relmat(1 | id)	0.55	wald	0.226700241634947	0.49852125993197	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	5	791005	sd:mu:relmat(1 | id)	0.55	wald	0.242691860716306	0.537097820882601	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	15	791015	sd:mu:relmat(1 | id)	0.55	wald	0.172861168251542	0.406327127626627	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	24	791024	sd:mu:relmat(1 | id)	0.55	wald	0.214481966244462	0.493885616026689	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	33	791033	sd:mu:relmat(1 | id)	0.55	wald	0.195782136991739	0.454153448055221	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	35	791035	sd:mu:relmat(1 | id)	0.55	wald	0.179349357111817	0.414158151953534	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	227	791227	sd:mu:relmat(1 | id)	0.55	wald	0.23961323644261	0.522539686510956	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	238	791238	sd:mu:relmat(1 | id)	0.55	wald	0.218980089644678	0.507793634996634	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	242	791242	sd:mu:relmat(1 | id)	0.55	wald	0.229662570074765	0.532170822843627	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	273	791273	sd:mu:relmat(1 | id)	0.55	wald	0.222241525070279	0.492076926983988	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	323	791323	sd:mu:relmat(1 | id)	0.55	wald	0.216707612670027	0.503230467524706	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	358	791358	sd:mu:relmat(1 | id)	0.55	wald	0.253136505677215	0.548822230869692	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	359	791359	sd:mu:relmat(1 | id)	0.55	wald	0.222101117315486	0.5233469514051	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	371	791371	sd:mu:relmat(1 | id)	0.55	wald	0.243304078366166	0.535420585012004	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	388	791388	sd:mu:relmat(1 | id)	0.55	wald	0.159330647444833	0.359536691236917	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	391	791391	sd:mu:relmat(1 | id)	0.55	wald	0.210094684790797	0.499237139536553	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:x	sd_mu_x	60	791060	sd:mu:relmat(0 + x | id)	0.32	endpoint_profile	6.59995769097016e-06	0.200947224683611	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:x	sd_mu_x	104	791104	sd:mu:relmat(0 + x | id)	0.32	endpoint_profile	7.6947268220249e-06	0.188268762607766	sr150_base
+qseries_relmat_q1_mu_one_slope	relmat	mu:x	sd_mu_x	220	791220	sd:mu:relmat(0 + x | id)	0.32	endpoint_profile	3.53024141049194e-06	0.150861071738009	sr151_475_topup
+qseries_relmat_q1_mu_one_slope	relmat	mu:x	sd_mu_x	256	791256	sd:mu:relmat(0 + x | id)	0.32	endpoint_profile	2.53111227912986e-05	0.214349165444311	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	1	791001	sd:mu:spatial(1 | site)	0.45	wald	0.226498297231581	0.42621796657023	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	15	791015	sd:mu:spatial(1 | site)	0.45	wald	0.122167342774914	0.298417509878729	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	24	791024	sd:mu:spatial(1 | site)	0.45	wald	0.202796172662255	0.376329844034712	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	33	791033	sd:mu:spatial(1 | site)	0.45	wald	0.217621649789938	0.402483904876063	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	92	791092	sd:mu:spatial(1 | site)	0.45	wald	0.20134164850543	0.409301651261385	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	227	791227	sd:mu:spatial(1 | site)	0.45	wald	0.153424556416947	0.287839831225714	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	242	791242	sd:mu:spatial(1 | site)	0.45	wald	0.193876230331152	0.367435886134222	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	291	791291	sd:mu:spatial(1 | site)	0.45	wald	0.208346817611595	0.395222030594053	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	310	791310	sd:mu:spatial(1 | site)	0.45	wald	0.243533762063859	0.435845778047973	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	358	791358	sd:mu:spatial(1 | site)	0.45	wald	0.239762708617179	0.433010613890121	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	381	791381	sd:mu:spatial(1 | site)	0.45	wald	0.170344806898208	0.34983442964217	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	51	791051	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	3.78022976739177e-06	0.164901070061822	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	95	791095	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	3.47914860531704e-06	0.196503387763915	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	131	791131	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	3.23696100878271e-06	0.176577970844887	sr150_base
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	162	791162	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	4.18643930129629e-06	0.203886051762602	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	178	791178	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	2.11705641091416e-06	0.184619163026188	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	290	791290	sd:mu:spatial(0 + x | site)	0.3	wald	0.144967834205981	0.29919678016525	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	362	791362	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	1.89179229867385e-06	0.146942277410054	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	375	791375	sd:mu:spatial(0 + x | site)	0.3	wald	0.116608889863295	0.288582173524944	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	388	791388	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	3.13243977151495e-06	0.141662082418239	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	389	791389	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	3.15822537431314e-06	0.171462644096753	sr151_475_topup
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	422	791422	sd:mu:spatial(0 + x | site)	0.3	endpoint_profile	2.69062530245317e-06	0.157451725552956	sr151_475_topup

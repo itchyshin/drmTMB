@@ -1,0 +1,10 @@
+[sbatch] date=2026-06-29T05:15:12-04:00
+[sbatch] job=14901078 array_task=2
+[sbatch] node=rc31801
+[sbatch] repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/source
+[sbatch] run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1
+[sbatch] git_sha=77b634eda91b0173926557ce5c4a3d20853fb215
+[sbatch] results_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/results/shard_2
+[sbatch] R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/rlib
+[sbatch] R exit code: 0
+[sbatch] done 2026-06-29T05:17:53-04:00

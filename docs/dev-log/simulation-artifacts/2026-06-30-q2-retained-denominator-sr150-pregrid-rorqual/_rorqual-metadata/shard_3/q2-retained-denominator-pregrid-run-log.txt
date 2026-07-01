@@ -1,0 +1,20 @@
+date=2026-06-30T12:36:05-04:00
+job=14966829
+array_task=3
+node=rc32425
+slurm_cluster_name=rorqual
+slurm_job_id=14966829
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual
+repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/source
+task_repo=/localscratch/snakagaw.14966829.0/drmTMB-source
+git_sha=77b634eda91b-dirty-q2-retained-pregrid-rorqual-q2intercept-contract1
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/rlib/shard_3:/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4
+package_cache=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/package-cache
+contract=structured-re-q2-retained-denominator-design.tsv
+pregrid_family=q2_intercept
+providers=animal
+n_rep=150
+promotion_decision=do_not_promote
+mcse_rule=MCSE <= 0.01 is a top-up target, not an SR150 pass claim
+runner_exit_code=0
+done=2026-06-30T12:43:14-04:00

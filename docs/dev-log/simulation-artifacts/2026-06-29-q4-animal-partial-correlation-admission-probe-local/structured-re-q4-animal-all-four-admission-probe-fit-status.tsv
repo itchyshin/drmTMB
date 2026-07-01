@@ -1,0 +1,4 @@
+variant	qgt2_parameterization	replicate_index	seed	n_levels	n_each	fit_error	fit_ok	convergence	pdHess	logLik	fit_message
+more_levels	partial_cholesky	910101	1920101	16	12	FALSE	TRUE	0	FALSE	-190.301253176682	ok
+more_levels	partial_cholesky	910102	1920102	16	12	FALSE	TRUE	0	FALSE	-228.488608652997	ok
+more_levels	partial_cholesky	910110	1920110	16	12	FALSE	TRUE	0	FALSE	-276.480994198326	ok

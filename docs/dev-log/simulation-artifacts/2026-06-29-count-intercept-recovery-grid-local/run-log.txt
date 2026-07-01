@@ -1,0 +1,6 @@
+structured RE count-intercept recovery grid
+output_dir: /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-grid-local
+n_rep: 80
+seed_start: 2026062901
+cores: 4
+backend: multicore

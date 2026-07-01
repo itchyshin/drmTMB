@@ -1,0 +1,11 @@
+Job ID: 14936834
+Cluster: rorqual
+User/Group: snakagaw/snakagaw
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 4
+CPU Utilized: 00:01:45
+CPU Efficiency: 20.67% of 00:08:28 core-walltime
+Job Wall-clock time: 00:02:07
+Memory Utilized: 3.20 GB
+Memory Efficiency: 19.97% of 16.00 GB (4.00 GB/core)

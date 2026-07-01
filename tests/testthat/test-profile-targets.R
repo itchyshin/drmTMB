@@ -37,6 +37,32 @@ new_profile_q4_pair_registry <- function(
   )
 }
 
+new_profile_structured_sigma_hard_seed <- function(seed = 914011L) {
+  set.seed(seed)
+  n_group <- 10L
+  n_each <- 10L
+  levels <- paste0("id_", seq_len(n_group))
+  K <- outer(
+    seq_len(n_group),
+    seq_len(n_group),
+    function(i, j) 0.35^abs(i - j)
+  )
+  diag(K) <- diag(K) + 0.20
+  dimnames(K) <- list(levels, levels)
+  L <- t(chol(K))
+  effect_sigma <- as.vector(L %*% (0.20 * stats::rnorm(n_group)))
+  names(effect_sigma) <- levels
+  id <- rep(levels, each = n_each)
+  sigma <- exp(unname(-1 + effect_sigma[id]))
+  dat <- data.frame(
+    y = stats::rnorm(length(id), mean = 0.30, sd = sigma),
+    id = id,
+    stringsAsFactors = FALSE
+  )
+  attr(dat, "K") <- K
+  dat
+}
+
 new_profile_biv_group_data <- function(
   n_id = 14L,
   n_each = 5L,
@@ -1957,11 +1983,179 @@ test_that("endpoint initial steps use curvature when available", {
     cutoff = cutoff,
     curvature_se = NA_real_
   )
+  capped <- drmTMB:::profile_endpoint_initial_step(
+    theta_hat = -12,
+    direction = -1,
+    cutoff = cutoff,
+    curvature_se = 10000
+  )
 
   expect_equal(seeded$source, "curvature")
   expect_equal(seeded$step, sqrt(2 * cutoff) * 0.2 * 1.1)
   expect_equal(fallback$source, "fixed")
   expect_equal(fallback$step, 0.25)
+  expect_equal(capped$source, "curvature_capped")
+  expect_equal(capped$step, 6)
+})
+
+test_that("endpoint positive-scale lower side can land on the zero boundary", {
+  evaluator <- list(
+    start_free = numeric(),
+    evaluate = function(theta, start) {
+      list(nll = 0, par = start)
+    }
+  )
+
+  bounded <- drmTMB:::profile_endpoint_crossing(
+    evaluator = evaluator,
+    theta_hat = 0,
+    nll_hat = 0,
+    cutoff = 1,
+    direction = -1,
+    root_tol = 1e-4,
+    max_bracket_steps = 40L,
+    target_name = "sd:mu:(0 + x | id)",
+    curvature_se = NA_real_,
+    allow_lower_boundary = TRUE
+  )
+
+  expect_equal(bounded$theta, -Inf)
+  expect_true(is.na(bounded$root_error))
+  expect_match(bounded$step_source, "lower_boundary")
+
+  flat_then_spurious <- list(
+    start_free = numeric(),
+    evaluate = function(theta, start) {
+      nll <- if (theta < -40) 2 else 0
+      list(nll = nll, par = start)
+    }
+  )
+  numerical_zero <- drmTMB:::profile_endpoint_crossing(
+    evaluator = flat_then_spurious,
+    theta_hat = 0,
+    nll_hat = 0,
+    cutoff = 1,
+    direction = -1,
+    root_tol = 1e-4,
+    max_bracket_steps = 40L,
+    target_name = "sd:mu:(0 + x | id)",
+    curvature_se = NA_real_,
+    allow_lower_boundary = TRUE
+  )
+
+  expect_equal(numerical_zero$theta, -Inf)
+  expect_true(is.na(numerical_zero$root_error))
+  expect_match(numerical_zero$step_source, "lower_boundary")
+
+  failing_before_floor <- list(
+    start_free = numeric(),
+    evaluate = function(theta, start) {
+      stop("synthetic endpoint failure before floor", call. = FALSE)
+    }
+  )
+  expect_error(
+    drmTMB:::profile_endpoint_crossing(
+      evaluator = failing_before_floor,
+      theta_hat = 0,
+      nll_hat = 0,
+      cutoff = 1,
+      direction = -1,
+      root_tol = 1e-4,
+      max_bracket_steps = 2L,
+      target_name = "sd:mu:(0 + x | id)",
+      curvature_se = NA_real_,
+      allow_lower_boundary = TRUE
+    ),
+    "synthetic endpoint failure before floor"
+  )
+
+  failing_at_floor <- list(
+    start_free = numeric(),
+    evaluate = function(theta, start) {
+      if (theta <= log(sqrt(.Machine$double.eps))) {
+        stop("synthetic endpoint failure at floor", call. = FALSE)
+      }
+      list(nll = 0, par = start)
+    }
+  )
+  expect_error(
+    drmTMB:::profile_endpoint_crossing(
+      evaluator = failing_at_floor,
+      theta_hat = 0,
+      nll_hat = 0,
+      cutoff = 1,
+      direction = -1,
+      root_tol = 1e-4,
+      max_bracket_steps = 40L,
+      target_name = "sd:mu:(0 + x | id)",
+      curvature_se = NA_real_,
+      allow_lower_boundary = TRUE
+    ),
+    "synthetic endpoint failure at floor"
+  )
+
+  expect_error(
+    drmTMB:::profile_endpoint_crossing(
+      evaluator = evaluator,
+      theta_hat = 0,
+      nll_hat = 0,
+      cutoff = 1,
+      direction = -1,
+      root_tol = 1e-4,
+      max_bracket_steps = 2L,
+      target_name = "sd:mu:(0 + x | id)",
+      curvature_se = NA_real_,
+      allow_lower_boundary = FALSE
+    ),
+    "Could not bracket profile endpoint"
+  )
+})
+
+test_that("endpoint q1 sigma hard seed keeps zero boundary on production path", {
+  dat <- new_profile_structured_sigma_hard_seed()
+  K <- attr(dat, "K", exact = TRUE)
+  ctrl <- drm_control(
+    keep_tmb_object = TRUE,
+    optimizer = list(eval.max = 500, iter.max = 500)
+  )
+  fits <- list(
+    animal = drmTMB(
+      bf(y ~ 1, sigma ~ animal(1 | id, A = K)),
+      family = gaussian(),
+      data = dat,
+      control = ctrl
+    ),
+    relmat = drmTMB(
+      bf(y ~ 1, sigma ~ relmat(1 | id, K = K)),
+      family = gaussian(),
+      data = dat,
+      control = ctrl
+    )
+  )
+  targets <- c(
+    animal = "sd:sigma:animal(1 | id)",
+    relmat = "sd:sigma:relmat(1 | id)"
+  )
+
+  for (provider in names(fits)) {
+    ci <- confint(
+      fits[[provider]],
+      parm = targets[[provider]],
+      method = "profile",
+      profile_engine = "endpoint",
+      profile_endpoint_max_eval = 48
+    )
+    hit <- ci$parm == targets[[provider]]
+    expect_true(any(hit), info = provider)
+    row <- ci[which(hit)[[1L]], , drop = FALSE]
+
+    expect_equal(row$conf.status[[1L]], "profile", info = provider)
+    expect_equal(row$lower[[1L]], 0, info = provider)
+    expect_true(is.finite(row$upper[[1L]]), info = provider)
+    expect_gt(row$upper[[1L]], 0.20)
+    expect_lt(row$upper[[1L]], 0.40)
+    expect_equal(row$profile.message[[1L]], "near_sd_boundary", info = provider)
+  }
 })
 
 test_that("NULL workers use a bounded automatic multicore default", {

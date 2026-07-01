@@ -1,0 +1,3 @@
+variant	replicate_index	seed	n_levels	n_each	fit_error	fit_ok	convergence	pdHess	logLik	fit_message
+more_levels	910001	1920001	16	12	FALSE	TRUE	0	TRUE	-226.95701329608	ok
+more_levels	910002	1920002	16	12	FALSE	TRUE	0	FALSE	-253.184527145781	ok

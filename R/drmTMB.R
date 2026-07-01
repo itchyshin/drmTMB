@@ -14383,9 +14383,39 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),
       use_logsigma_clamp = 1L,
-      logsigma_clamp = c(-12, 12, 3)
+      logsigma_clamp = c(-12, 12, 3),
+      qgt2_corr_parameterization = drm_qgt2_corr_parameterization()
     )
   )
+}
+
+drm_qgt2_corr_parameterization <- function(
+  value = getOption("drmTMB.internal.qgt2_corr_parameterization", 0L)
+) {
+  if (
+    is.null(value) ||
+      identical(value, FALSE) ||
+      identical(value, 0L) ||
+      identical(value, 0) ||
+      identical(value, "0") ||
+      identical(value, "unstructured")
+  ) {
+    return(0L)
+  }
+  if (
+    identical(value, TRUE) ||
+      identical(value, 1L) ||
+      identical(value, 1) ||
+      identical(value, "1") ||
+      identical(value, "partial_cholesky")
+  ) {
+    return(1L)
+  }
+  cli::cli_abort(c(
+    "Invalid internal q>2 correlation parameterization.",
+    "i" = "Use {.val unstructured} or {.val partial_cholesky}.",
+    "i" = "This is an internal diagnostic option, not a public control surface."
+  ))
 }
 
 structured_mu_tmb_data <- function(spec) {

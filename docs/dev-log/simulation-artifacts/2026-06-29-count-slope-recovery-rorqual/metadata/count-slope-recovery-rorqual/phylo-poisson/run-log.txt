@@ -1,0 +1,17 @@
+date=2026-06-29T14:15:49-04:00
+job=14917029
+array_job=14916938
+array_task=1
+node=rc32103
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1
+source_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/source
+work_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/work/source-phylo-poisson
+git_sha=77b634eda91b-dirty-qseries-count-slope-rorqual-srcfix1
+shard=phylo-poisson
+cell_id=qseries_phylo_poisson_q1_mu_one_slope
+script=run-structured-re-count-slope-phylo-poisson-local-micro-shard.R
+n_rep=80
+seed_start=760001
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/rlib/phylo-poisson
+runner_exit_code=0
+done=2026-06-29T14:17:53-04:00

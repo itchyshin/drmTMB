@@ -1,5 +1,26 @@
 #!/usr/bin/env Rscript
 
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (any(cli_args %in% c("--help", "-h"))) {
+  cat(
+    paste(
+      "Usage: Rscript tools/run-structured-re-q4-location-slope-interval-smoke.R",
+      "",
+      "Runs the fixed q4 location one-slope direct-SD interval smoke for",
+      "phylo, spatial, animal, and relmat, then writes:",
+      "  docs/dev-log/simulation-artifacts/2026-06-24-q4-location-slope-interval-smoke/structured-re-q4-location-slope-interval-smoke-results.tsv",
+      "  docs/dev-log/dashboard/structured-re-q4-location-slope-interval-diagnostic-status.tsv",
+      "",
+      "No command-line options are currently supported other than --help.",
+      "This is diagnostic-only evidence; it does not promote q4 interval",
+      "coverage, REML, AI-REML, bridge support, supported, or public support.",
+      sep = "\n"
+    ),
+    "\n"
+  )
+  quit(status = 0L)
+}
+
 devtools::load_all(quiet = TRUE)
 
 `%||%` <- function(x, y) {

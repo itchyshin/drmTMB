@@ -1,0 +1,5 @@
+"n_species","n_per_species","sd_phylo","mean_count","beta_mu_x","tree_shape","n_rep","master_seed","target_replicates","formal_recovery_gate","profile_parameters","profile_level","condition_shard","condition_shards","full_condition_count","shard_condition_count","shard_recovery_gate","mcse_required","coverage_claim_allowed"
+20,4,0.25,1.5,0,"balanced",80,2026162931,320,FALSE,"",0.7,7,54,216,4,FALSE,TRUE,FALSE
+20,4,0.25,1.5,0.35,"balanced",80,2026162931,320,FALSE,"",0.7,7,54,216,4,FALSE,TRUE,FALSE
+20,4,0.25,1.5,0,"mildly_uneven",80,2026162931,320,FALSE,"",0.7,7,54,216,4,FALSE,TRUE,FALSE
+20,4,0.25,1.5,0.35,"mildly_uneven",80,2026162931,320,FALSE,"",0.7,7,54,216,4,FALSE,TRUE,FALSE

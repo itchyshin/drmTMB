@@ -1,0 +1,8 @@
+structured RE count-intercept recovery grid
+output_dir: docs/dev-log/simulation-artifacts/2026-06-29-phylo-interaction-nb2-recovery-topup-smoke-local
+n_rep: 2
+seed_start: 2026064001
+cores: 1
+backend: none
+lanes: phylo_interaction
+families: nbinom2

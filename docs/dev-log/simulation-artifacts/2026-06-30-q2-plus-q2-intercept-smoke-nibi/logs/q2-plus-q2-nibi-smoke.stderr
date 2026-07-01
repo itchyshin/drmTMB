@@ -1,0 +1,6 @@
+Error in file(file, "rt") : cannot open the connection
+Calls: read_tsv -> <Anonymous> -> read.table -> file
+In addition: Warning message:
+In file(file, "rt") :
+  cannot open file '/project/6098264/snakagaw/drmtmb-qseries/20260630-q2-plus-q2-nibi-smoke-77b634eda91b/source/docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv': No such file or directory
+Execution halted

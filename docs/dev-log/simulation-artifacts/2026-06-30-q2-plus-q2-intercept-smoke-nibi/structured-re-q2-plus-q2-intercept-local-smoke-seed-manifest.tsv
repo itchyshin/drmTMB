@@ -1,0 +1,6 @@
+provider	replicate_index	seed	seed_role	execution_status	host_class	host_name	source_substitution_contract	source_substitution_contract_id
+phylo	1	823001	q2_plus_q2_intercept_substitute_smoke	executed	nibi_rorqual_contract_smoke	l5.nibi.sharcnet	docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv	qseries_smoke_substitution_q2_plus_q2_intercept
+phylo	2	823002	q2_plus_q2_intercept_substitute_smoke	executed	nibi_rorqual_contract_smoke	l5.nibi.sharcnet	docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv	qseries_smoke_substitution_q2_plus_q2_intercept
+phylo	3	823003	q2_plus_q2_intercept_substitute_smoke	executed	nibi_rorqual_contract_smoke	l5.nibi.sharcnet	docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv	qseries_smoke_substitution_q2_plus_q2_intercept
+phylo	4	823004	q2_plus_q2_intercept_substitute_smoke	executed	nibi_rorqual_contract_smoke	l5.nibi.sharcnet	docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv	qseries_smoke_substitution_q2_plus_q2_intercept
+phylo	5	823005	q2_plus_q2_intercept_substitute_smoke	executed	nibi_rorqual_contract_smoke	l5.nibi.sharcnet	docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv	qseries_smoke_substitution_q2_plus_q2_intercept

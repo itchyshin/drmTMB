@@ -45,13 +45,60 @@ structured_re_artifact_path <- function(...) {
   normalizePath(candidates[[1L]], winslash = "/", mustWork = TRUE)
 }
 
-# Signed-off promoted cells (2026-06-27). q2 mu-slope -> inference_ready;
-# phylo/relmat sigma + q2 -> interval_feasible; everything else planned.
-.ir_cells <- c("qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope")
-.if_cells <- c("qseries_phylo_q1_sigma_one_slope", "qseries_phylo_q2_mu1_mu2_one_slope", "qseries_relmat_q1_sigma_one_slope", "qseries_relmat_q2_mu1_mu2_one_slope")
-.expected_interval <- function(ids) ifelse(ids %in% .ir_cells, "inference_ready",
-  ifelse(ids %in% .if_cells, "interval_feasible", "planned"))
-.expected_coverage <- function(ids) ifelse(ids %in% .ir_cells, "inference_ready", "planned")
+# Signed-off promoted cells. q2 mu-slope -> inference_ready (2026-06-27);
+# phylo/animal/relmat q1 sigma one-slope -> inference_ready with caveats
+# (2026-06-28); phylo/spatial/relmat q1 mu-intercept -> inference_ready with
+# caveats (2026-06-30).
+# Everything else stays planned unless it is one of the already-certified
+# interval_feasible cells.
+.ir_cells <- c(
+  "qseries_phylo_q1_mu_intercept",
+  "qseries_spatial_q1_mu_intercept",
+  "qseries_relmat_q1_mu_intercept",
+  "qseries_phylo_q1_sigma_one_slope",
+  "qseries_phylo_q2_mu1_mu2_one_slope",
+  "qseries_animal_q1_sigma_one_slope",
+  "qseries_relmat_q1_sigma_one_slope",
+  "qseries_relmat_q2_mu1_mu2_one_slope"
+)
+.if_cells <- c(
+  "qseries_phylo_q1_mu_intercept",
+  "qseries_spatial_q1_mu_intercept",
+  "qseries_relmat_q1_mu_intercept",
+  "qseries_phylo_q1_sigma_one_slope",
+  "qseries_phylo_q2_mu1_mu2_one_slope",
+  "qseries_animal_q1_sigma_one_slope",
+  "qseries_relmat_q1_sigma_one_slope",
+  "qseries_relmat_q2_mu1_mu2_one_slope"
+)
+.diagnostic_interval_cells <- c(
+  "qseries_phylo_q4_mu1_mu2_one_slope",
+  "qseries_spatial_q4_mu1_mu2_one_slope",
+  "qseries_animal_q4_mu1_mu2_one_slope",
+  "qseries_relmat_q4_mu1_mu2_one_slope",
+  "qseries_phylo_q4_all_four_intercept",
+  "qseries_spatial_q4_all_four_intercept",
+  "qseries_animal_q4_all_four_intercept",
+  "qseries_relmat_q4_all_four_intercept",
+  "qseries_phylo_q4_all_four_one_slope_planned",
+  "qseries_spatial_q4_all_four_one_slope_planned",
+  "qseries_animal_q4_all_four_one_slope_planned",
+  "qseries_relmat_q4_all_four_one_slope_planned"
+)
+.expected_interval <- function(ids) {
+  ifelse(
+    ids %in% .ir_cells,
+    "inference_ready",
+    ifelse(
+      ids %in% .if_cells,
+      "interval_feasible",
+      ifelse(ids %in% .diagnostic_interval_cells, "diagnostic_only", "planned")
+    )
+  )
+}
+.expected_coverage <- function(ids) {
+  ifelse(ids %in% .ir_cells, "inference_ready", "planned")
+}
 
 structured_re_expect_all_match <- function(x, pattern, fixed = TRUE) {
   expect_equal(grepl(pattern, x, fixed = fixed), rep(TRUE, length(x)))
@@ -60,6 +107,9 @@ structured_re_expect_all_match <- function(x, pattern, fixed = TRUE) {
 test_that("q-series support-cell dashboard owns exact structured rows", {
   qseries <- structured_re_read_dashboard_tsv(
     "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
   )
 
   expect_named(
@@ -237,20 +287,29 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   expect_equal(native_sigma_slope$route, rep("native_tmb", 4L))
   expect_equal(native_sigma_slope$fit_status, rep("point_fit", 4L))
   expect_equal(native_sigma_slope$extractor_status, rep("extractor_ready", 4L))
-  # phylo + relmat sigma cells promoted to interval_feasible (g=32 profile
-  # certification + interval-reliability rung; maintainer + Fisher/Rose/Emmy/Pat/
-  # Darwin sign-off, 2026-06-27). spatial + animal stay planned (no g=32 rung).
+  # phylo + animal + relmat sigma cells are now inference_ready with caveats
+  # under the raw Wald-z channel (Fisher/Rose sign-off, 2026-06-28). spatial
+  # stays planned.
   expect_equal(
     native_sigma_slope$interval_status,
-    c("interval_feasible", "planned", "planned", "interval_feasible")
+    .expected_interval(native_sigma_slope$cell_id)
   )
-  expect_equal(native_sigma_slope$coverage_status, .expected_coverage(native_sigma_slope$cell_id))
+  expect_equal(
+    native_sigma_slope$coverage_status,
+    .expected_coverage(native_sigma_slope$cell_id)
+  )
   expect_equal(native_sigma_slope$bridge_status, rep("fixture_parity", 4L))
   expect_equal(
     native_sigma_slope$evidence_url,
-    rep(
-      "docs/dev-log/dashboard/structured-re-sigma-slope-parity-fixture.tsv",
-      4L
+    ifelse(
+      native_sigma_slope$cell_id %in%
+        c(
+          "qseries_phylo_q1_sigma_one_slope",
+          "qseries_animal_q1_sigma_one_slope",
+          "qseries_relmat_q1_sigma_one_slope"
+        ),
+      "docs/dev-log/dashboard/structured-re-sigma-slope-inference-evidence.tsv",
+      "docs/dev-log/dashboard/structured-re-sigma-slope-parity-fixture.tsv"
     )
   )
   spatial_sigma_slope <- native_sigma_slope[
@@ -281,6 +340,32 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   expect_match(
     relmat_sigma_slope$claim_boundary,
     "K/Q",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    native_sigma_slope[
+      native_sigma_slope$cell_id %in%
+        c(
+          "qseries_phylo_q1_sigma_one_slope",
+          "qseries_animal_q1_sigma_one_slope",
+          "qseries_relmat_q1_sigma_one_slope"
+        ),
+      "claim_boundary"
+    ],
+    "not supported",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    native_sigma_slope[
+      native_sigma_slope$cell_id %in%
+        c(
+          "qseries_phylo_q1_sigma_one_slope",
+          "qseries_animal_q1_sigma_one_slope",
+          "qseries_relmat_q1_sigma_one_slope"
+        ),
+      "claim_boundary"
+    ],
+    "does not apply to sigma",
     fixed = TRUE
   )
 
@@ -320,7 +405,10 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     native_q2_slope$interval_status,
     .expected_interval(native_q2_slope$cell_id)
   )
-  expect_equal(native_q2_slope$coverage_status, .expected_coverage(native_q2_slope$cell_id))
+  expect_equal(
+    native_q2_slope$coverage_status,
+    .expected_coverage(native_q2_slope$cell_id)
+  )
   expect_equal(
     native_q2_slope$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -362,9 +450,10 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   )
   expect_equal(
     native_q2_slope$evidence_url,
-    rep(
-      "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv",
-      4L
+    ifelse(
+      native_q2_slope$structure_provider %in% c("spatial", "animal"),
+      "docs/dev-log/dashboard/structured-re-q2-slope-bias-t-topup-results.tsv",
+      "docs/design/219-structured-re-small-sample-bias-correction.md"
     )
   )
 
@@ -399,8 +488,14 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     native_q4_location_slope$bridge_status,
     rep("fixture_parity", 4L)
   )
-  expect_equal(native_q4_location_slope$interval_status, rep("planned", 4L))
-  expect_equal(native_q4_location_slope$coverage_status, .expected_coverage(native_q4_location_slope$cell_id))
+  expect_equal(
+    native_q4_location_slope$interval_status,
+    .expected_interval(native_q4_location_slope$cell_id)
+  )
+  expect_equal(
+    native_q4_location_slope$coverage_status,
+    .expected_coverage(native_q4_location_slope$cell_id)
+  )
   expect_equal(
     native_q4_location_slope$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -449,6 +544,5302 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
   )
 })
 
+test_that("q-series closure triage accounts for all support cells", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  triage <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-closure-triage.tsv"
+  )
+
+  expect_named(
+    triage,
+    c(
+      "triage_id",
+      "widget_state",
+      "closure_bucket",
+      "row_count",
+      "gaussian_rows",
+      "non_gaussian_rows",
+      "q1_rows",
+      "q2_rows",
+      "high_q_rows",
+      "example_cells",
+      "status_meaning",
+      "next_action",
+      "promotion_boundary"
+    )
+  )
+  expect_equal(nrow(triage), 16L)
+  expect_equal(sum(triage$row_count), nrow(qseries))
+  expect_equal(
+    triage$gaussian_rows + triage$non_gaussian_rows,
+    triage$row_count
+  )
+  expect_equal(
+    triage$triage_id,
+    paste0("qseries_closure_", triage$widget_state)
+  )
+  expect_equal(
+    triage$row_count[match(
+      c(
+        "inference_ready",
+        "gaussian_baseline_comparator",
+        "non_gaussian_recovery_only",
+        "non_gaussian_rejected",
+        "gaussian_lowq_rejected",
+        "gaussian_lowq_gate_required",
+        "gaussian_lowq_diagnostic",
+        "mu_slope_pregrid_blocked",
+        "mcse_met_upper_tail_blocked",
+        "admission_blocked",
+        "calibration_required",
+        "high_q_gate_required",
+        "high_q_diagnostic",
+        "high_q_planned",
+        "q8_stability_blocked",
+        "non_gaussian_planned"
+      ),
+      triage$widget_state
+    )],
+    c(
+      8L,
+      3L,
+      18L,
+      18L,
+      3L,
+      20L,
+      2L,
+      1L,
+      3L,
+      2L,
+      1L,
+      8L,
+      3L,
+      8L,
+      5L,
+      1L
+    )
+  )
+  expect_equal(
+    triage$closure_bucket[match(
+      c(
+        "inference_ready",
+        "non_gaussian_recovery_only",
+        "mu_slope_pregrid_blocked",
+        "mcse_met_upper_tail_blocked",
+        "admission_blocked",
+        "calibration_required",
+        "q8_stability_blocked"
+      ),
+      triage$widget_state
+    )],
+    c(
+      "evidence_complete_inference_ready",
+      "recovery_evidence_complete_for_now",
+      "evidence_blocked_open",
+      "evidence_blocked_open",
+      "evidence_blocked_open",
+      "calibration_required_open",
+      "stability_blocked_open"
+    )
+  )
+  example_cells <- unlist(strsplit(triage$example_cells, ";", fixed = TRUE))
+  expect_true(all(example_cells %in% qseries$cell_id))
+  expect_true(all(grepl(
+    "no|not",
+    triage$promotion_boundary,
+    ignore.case = TRUE
+  )))
+})
+
+test_that("q-series next-campaign queue gates cluster use", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  triage <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-closure-triage.tsv"
+  )
+  queue <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-next-campaign-queue.tsv"
+  )
+
+  expect_named(
+    queue,
+    c(
+      "queue_id",
+      "row_scope",
+      "row_count",
+      "closure_buckets",
+      "run_mode",
+      "allowed_hosts",
+      "blocked_hosts",
+      "readiness_state",
+      "owner_review",
+      "primary_evidence",
+      "required_preconditions",
+      "stop_rule",
+      "no_claims",
+      "next_action"
+    )
+  )
+  expect_equal(nrow(queue), 10L)
+  expect_equal(sum(queue$row_count), nrow(qseries))
+
+  closure_counts <- stats::setNames(triage$row_count, triage$widget_state)
+  bucket_totals <- vapply(
+    strsplit(queue$closure_buckets, ";", fixed = TRUE),
+    function(buckets) sum(closure_counts[buckets]),
+    numeric(1)
+  )
+  expect_equal(bucket_totals, queue$row_count)
+  expect_equal(sum(bucket_totals), nrow(qseries))
+  expect_setequal(
+    queue$queue_id,
+    c(
+      "qseries_queue_evidence_complete_no_compute",
+      "qseries_queue_baseline_comparator_no_compute",
+      "qseries_queue_nongaussian_recovery_only",
+      "qseries_queue_intentional_rejections_hold",
+      "qseries_queue_gaussian_lowq_interval_design",
+      "qseries_queue_gaussian_lowq_diagnostic_hold",
+      "qseries_queue_gaussian_mu_slope_shape_rule",
+      "qseries_queue_q2_spatial_animal_row_blockers",
+      "qseries_queue_high_q_geometry_stability",
+      "qseries_queue_nongaussian_family_design_hold"
+    )
+  )
+  expect_equal(
+    queue$row_count[
+      queue$queue_id == "qseries_queue_high_q_geometry_stability"
+    ],
+    24L
+  )
+  expect_equal(
+    queue$row_count[
+      queue$queue_id == "qseries_queue_gaussian_mu_slope_shape_rule"
+    ],
+    4L
+  )
+  expect_equal(
+    queue$run_mode[
+      queue$queue_id == "qseries_queue_gaussian_mu_slope_shape_rule"
+    ],
+    "interval_rule_design"
+  )
+  structured_re_expect_all_match(queue$stop_rule, "Stop if")
+  structured_re_expect_all_match(queue$no_claims, "supported")
+  structured_re_expect_all_match(queue$no_claims, "No")
+  expect_true(all(
+    grepl("DRAC", queue$allowed_hosts) |
+      grepl("DRAC", queue$blocked_hosts) |
+      grepl("DRAC", queue$next_action)
+  ))
+  lowq_queue <- queue[
+    queue$queue_id == "qseries_queue_gaussian_lowq_interval_design",
+  ]
+  count_fixed <- function(x, pattern) {
+    matches <- gregexpr(pattern, x, fixed = TRUE)[[1L]]
+    if (identical(matches, -1L)) {
+      return(0L)
+    }
+    length(matches)
+  }
+  expect_equal(
+    count_fixed(
+      lowq_queue$readiness_state,
+      "Q2 retained-denominator repair smoke has been reviewed"
+    ),
+    1L
+  )
+  expect_equal(
+    count_fixed(
+      lowq_queue$required_preconditions,
+      "For q2 retained-denominator rows, write the named interval-repair route"
+    ),
+    1L
+  )
+  expect_equal(
+    count_fixed(
+      lowq_queue$stop_rule,
+      "Stop if q2 retained-denominator compute is escalated"
+    ),
+    1L
+  )
+  for (path in queue$primary_evidence) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/", fixed = TRUE)[[1L]])
+    ))
+  }
+})
+
+test_that("q-series host-access recheck is access evidence only", {
+  host <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-host-access-recheck.tsv"
+  )
+
+  expect_named(
+    host,
+    c(
+      "host_id",
+      "host_role",
+      "checked_at",
+      "command_status",
+      "hostname",
+      "project_root_status",
+      "qseries_root_status",
+      "source_root_status",
+      "gate_decision",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(host), 6L)
+  expect_equal(
+    host$host_id,
+    c("totoro", "fiia", "nibi", "rorqual", "fir", "trillium")
+  )
+  expect_equal(host$checked_at, rep("2026-06-30", 6L))
+  expect_equal(
+    host$command_status,
+    c(
+      "ssh_controlmaster_interactive_ok",
+      "ssh_alias_unresolved",
+      "ssh_batchmode_ok",
+      "ssh_batchmode_ok",
+      "ssh_batchmode_ok",
+      "ssh_batchmode_modules_r44_source_parse_ok"
+    )
+  )
+  expect_equal(
+    host$gate_decision,
+    c(
+      "reachable_for_reviewed_bounded_smoke_and_worker_staging_only",
+      "blocked_until_alias_or_host_is_configured",
+      "reachable_for_contract_bounded_smoke_only",
+      "reachable_for_contract_bounded_smoke_only",
+      "reachable_but_no_qseries_root",
+      "reachable_for_reviewed_bounded_smoke_and_worker_staging_only"
+    )
+  )
+  structured_re_expect_all_match(
+    host$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  structured_re_expect_all_match(host$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(host$claim_boundary, "supported")
+  structured_re_expect_all_match(host$claim_boundary, "REML")
+  structured_re_expect_all_match(host$claim_boundary, "AI-REML")
+
+  drac_hosts <- host[host$host_id %in% c("nibi", "rorqual"), , drop = FALSE]
+  structured_re_expect_all_match(
+    drac_hosts$claim_boundary,
+    "exact q1/q2 n=5 smoke only"
+  )
+  structured_re_expect_all_match(
+    drac_hosts$next_gate,
+    "structured-re-q-series-smoke-substitution-contract.tsv"
+  )
+  structured_re_expect_all_match(
+    host$claim_boundary[host$host_id == "fir"],
+    "no qseries root was found"
+  )
+  structured_re_expect_all_match(
+    host$claim_boundary[host$host_id == "trillium"],
+    "qseries run root exist"
+  )
+  structured_re_expect_all_match(
+    host$claim_boundary[host$host_id == "trillium"],
+    "R 4.4.0"
+  )
+  structured_re_expect_all_match(
+    host$claim_boundary[host$host_id == "trillium"],
+    "source snapshot"
+  )
+  structured_re_expect_all_match(
+    host$claim_boundary[host$host_id == "trillium"],
+    "parse-ready"
+  )
+  structured_re_expect_all_match(
+    host$next_gate[host$host_id == "trillium"],
+    "host-separated provenance"
+  )
+  structured_re_expect_all_match(
+    host$next_gate[host$host_id == "trillium"],
+    "Fisher/Rose/Grace review"
+  )
+  totoro_host <- host[host$host_id == "totoro", , drop = FALSE]
+  structured_re_expect_all_match(
+    totoro_host$claim_boundary,
+    "interactive ControlMaster access"
+  )
+  structured_re_expect_all_match(
+    totoro_host$claim_boundary,
+    "q2-plus n=1 host smoke"
+  )
+  structured_re_expect_all_match(
+    totoro_host$next_gate,
+    "capped single-thread workers"
+  )
+  structured_re_expect_all_match(
+    totoro_host$next_gate,
+    "same artifact contract as DRAC"
+  )
+})
+
+test_that("q-series smoke-substitution contract bounds Nibi/Rorqual to n5 smoke", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-smoke-substitution-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "contract_date",
+      "row_scope",
+      "target_cells",
+      "target_count",
+      "allowed_hosts",
+      "substitutes_for",
+      "allowed_run_mode",
+      "required_reviewers",
+      "required_preconditions",
+      "required_artifacts",
+      "denominator_policy",
+      "blocked_uses",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(contract), 3L)
+  expect_equal(contract$contract_date, rep("2026-06-30", 3L))
+  expect_equal(
+    contract$allowed_run_mode,
+    rep("contract_bounded_n5_smoke_only", 3L)
+  )
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 3L))
+  structured_re_expect_all_match(contract$allowed_hosts, "Nibi or Rorqual only")
+  structured_re_expect_all_match(
+    contract$substitutes_for,
+    "Totoro/FIIA n=5 smoke gate"
+  )
+  structured_re_expect_all_match(
+    contract$required_reviewers,
+    "Fisher;Rose;Grace"
+  )
+  structured_re_expect_all_match(
+    contract$denominator_policy,
+    "n=5 is smoke evidence, not coverage evidence"
+  )
+  structured_re_expect_all_match(
+    contract$blocked_uses,
+    "DRAC denominator grids"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  structured_re_expect_all_match(contract$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(contract$claim_boundary, "supported")
+  structured_re_expect_all_match(contract$claim_boundary, "q4/q8")
+  structured_re_expect_all_match(contract$claim_boundary, "non-Gaussian")
+  structured_re_expect_all_match(contract$claim_boundary, "REML")
+  structured_re_expect_all_match(contract$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "DRAC denominator evidence"
+  )
+  structured_re_expect_all_match(
+    contract$next_gate,
+    "Fisher/Rose reviewed"
+  )
+
+  expected_cells <- strsplit(contract$target_cells, ";", fixed = TRUE)
+  expect_true(all(unlist(expected_cells) %in% qseries$cell_id))
+  expect_equal(length(expected_cells[[1L]]), 4L)
+  expect_equal(length(expected_cells[[2L]]), 4L)
+  expect_equal(length(expected_cells[[3L]]), 1L)
+  expect_equal(as.integer(contract$target_count), c(4L, 12L, 6L))
+})
+
+test_that("Gaussian mu-slope interval-shape diagnostic keeps SR475 blockers target-scoped", {
+  shape <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
+  )
+
+  expect_named(
+    shape,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "provider",
+      "endpoint_member",
+      "direct_sd_target",
+      "source_replicates",
+      "source_boundary_profiles",
+      "n_replicates",
+      "n_usable_hybrid_intervals",
+      "finite_interval_rate",
+      "n_covered",
+      "hybrid_coverage_all",
+      "hybrid_coverage_mcse",
+      "n_lower_miss",
+      "n_upper_miss",
+      "upper_lower_miss_ratio",
+      "n_wald_lower_miss",
+      "n_wald_upper_miss",
+      "n_profile_boundary_rows",
+      "n_profile_finite",
+      "n_profile_failed",
+      "n_profile_upper_miss",
+      "median_estimate_all",
+      "median_estimate_upper_miss",
+      "median_conf_high_upper_miss",
+      "upper_miss_estimate_range",
+      "diagnostic_verdict",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(shape), 6L)
+  expect_setequal(shape$provider, c("phylo", "relmat", "spatial"))
+  expect_setequal(shape$endpoint_member, c("mu:(Intercept)", "mu:x"))
+  expect_equal(shape$n_replicates, rep(475L, 6L))
+  expect_true(all(shape$hybrid_coverage_mcse <= 0.01))
+  expect_true(all(shape$n_upper_miss > shape$n_lower_miss))
+  expect_equal(sum(shape$n_upper_miss), 73L)
+  expect_equal(
+    shape$diagnostic_verdict,
+    rep("interval_shape_upper_tail_blocker", 6L)
+  )
+  expect_equal(shape$linked_interval_status, rep("planned", 6L))
+  expect_equal(shape$linked_coverage_status, rep("planned", 6L))
+  expect_equal(shape$promotion_decision, rep("do_not_promote", 6L))
+
+  linked <- qseries[match(unique(shape$cell_id), qseries$cell_id), ]
+  expect_equal(linked$fit_status, rep("point_fit", nrow(linked)))
+  expect_equal(linked$interval_status, rep("planned", nrow(linked)))
+  expect_equal(linked$coverage_status, rep("planned", nrow(linked)))
+
+  upper_miss_rows <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-mu-slope-interval-shape-local",
+      "structured-re-gaussian-mu-slope-interval-shape-upper-miss-rows.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(upper_miss_rows), 73L)
+  expect_setequal(
+    upper_miss_rows$hybrid_interval_channel,
+    c("wald", "endpoint_profile")
+  )
+  for (phrase in c(
+    "This promotes exactly no q-series row",
+    "interval-shape diagnostic only",
+    "SR475 MCSE-qualified retained denominator",
+    "upper-tail miss pressure",
+    "planned",
+    "inference_ready",
+    "supported",
+    "sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(shape$claim_boundary, phrase)
+  }
+  for (phrase in c("Fisher/Rose", "new interval-shape", "DRAC")) {
+    structured_re_expect_all_match(shape$next_gate, phrase)
+  }
+})
+
+test_that("Gaussian mu-slope rule screen blocks ad hoc interval shortcuts", {
+  screen <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-mu-slope-rule-screen.tsv"
+  )
+
+  expect_named(
+    screen,
+    c(
+      "screen_id",
+      "candidate_rule",
+      "candidate_factor",
+      "candidate_label",
+      "source_replicates",
+      "source_boundary_profiles",
+      "n_target_rows",
+      "n_target_replicates",
+      "n_usable_intervals",
+      "min_target_coverage",
+      "max_target_coverage",
+      "max_target_mcse",
+      "total_lower_miss",
+      "total_upper_miss",
+      "max_target_upper_lower_ratio",
+      "n_targets_upper_gt_lower",
+      "n_targets_coverage_ge_0_95",
+      "n_targets_mcse_le_0_01",
+      "screen_status",
+      "smoke_decision",
+      "promotion_decision",
+      "evidence_url",
+      "artifact_dir",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(screen), 13L)
+  candidate_counts <- table(screen$candidate_rule)
+  expect_equal(
+    stats::setNames(as.integer(candidate_counts), names(candidate_counts)),
+    c(
+      current_hybrid = 1L,
+      log_width_multiplier = 4L,
+      profile_boundary_upper_multiplier = 4L,
+      upper_endpoint_multiplier = 4L
+    )
+  )
+  expect_equal(screen$n_target_rows, rep(6L, nrow(screen)))
+  expect_equal(screen$n_target_replicates, rep(2850L, nrow(screen)))
+  expect_equal(screen$n_usable_intervals, rep(2847L, nrow(screen)))
+  expect_equal(screen$n_targets_coverage_ge_0_95, rep(6L, nrow(screen)))
+  expect_equal(screen$n_targets_mcse_le_0_01, rep(6L, nrow(screen)))
+  expect_equal(screen$promotion_decision, rep("do_not_promote", nrow(screen)))
+  structured_re_expect_all_match(screen$smoke_decision, "do_not_smoke")
+
+  current <- screen[
+    screen$screen_id == "gaussian_mu_slope_rule_screen_current_hybrid_1p00",
+  ]
+  expect_equal(current$screen_status, "current_upper_tail_blocked")
+  expect_equal(current$total_lower_miss, 23L)
+  expect_equal(current$total_upper_miss, 73L)
+  expect_equal(current$n_targets_upper_gt_lower, 6L)
+
+  upper2 <- screen[
+    screen$screen_id ==
+      "gaussian_mu_slope_rule_screen_upper_endpoint_multiplier_2p00",
+  ]
+  expect_equal(upper2$screen_status, "upper_tail_blocker_remains")
+  expect_equal(upper2$total_upper_miss, 9L)
+  expect_equal(upper2$n_targets_upper_gt_lower, 1L)
+
+  large <- screen[screen$candidate_factor == 3, ]
+  expect_equal(nrow(large), 3L)
+  expect_true(all(
+    large$screen_status %in%
+      c(
+        "large_ad_hoc_multiplier_screen_only",
+        "upper_tail_blocker_remains"
+      )
+  ))
+  expect_true(any(large$screen_status == "large_ad_hoc_multiplier_screen_only"))
+
+  target_detail <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-mu-slope-rule-screen-local",
+      "structured-re-gaussian-mu-slope-rule-screen-target-detail.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(target_detail), 78L)
+  target_counts <- table(target_detail$screen_id)
+  expect_setequal(names(target_counts), screen$screen_id)
+  expect_equal(as.integer(target_counts), rep(6L, nrow(screen)))
+  expect_setequal(target_detail$provider, c("phylo", "relmat", "spatial"))
+  expect_setequal(target_detail$endpoint_member, c("mu:(Intercept)", "mu:x"))
+  expect_equal(target_detail$n_replicates, rep(475L, nrow(target_detail)))
+
+  for (phrase in c(
+    "Rule-screen replay only",
+    "promotes exactly no Q-Series row",
+    "post hoc retained-artifact screens",
+    "not confint() defaults",
+    "no inference_ready",
+    "supported",
+    "sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(screen$claim_boundary, phrase)
+  }
+  for (phrase in c("Fisher/Rose/Noether", "Totoro/FIIA", "DRAC")) {
+    structured_re_expect_all_match(screen$next_gate, phrase)
+  }
+})
+
+test_that("Gaussian mu-slope split calibration screen keeps holdout failures non-promotional", {
+  split <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-mu-slope-split-calibration.tsv"
+  )
+
+  expect_named(
+    split,
+    c(
+      "calibration_id",
+      "cell_id",
+      "provider",
+      "endpoint_member",
+      "direct_sd_target",
+      "source_replicates",
+      "source_boundary_profiles",
+      "calibration_slice",
+      "validation_slice",
+      "calibration_n_usable",
+      "calibration_delta_log_upper",
+      "calibration_upper_multiplier",
+      "validation_n_replicates",
+      "validation_n_usable",
+      "validation_finite_rate",
+      "validation_coverage",
+      "validation_mcse",
+      "validation_lower_miss",
+      "validation_upper_miss",
+      "validation_lower_miss_rate",
+      "validation_upper_miss_rate",
+      "holdout_gate_status",
+      "gate_failures",
+      "smoke_decision",
+      "promotion_decision",
+      "evidence_url",
+      "artifact_dir",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(split), 6L)
+  expect_setequal(split$provider, c("phylo", "relmat", "spatial"))
+  endpoint_counts <- table(split$endpoint_member)
+  expect_equal(
+    stats::setNames(as.integer(endpoint_counts), names(endpoint_counts)),
+    c("mu:(Intercept)" = 3L, "mu:x" = 3L)
+  )
+  expect_equal(split$calibration_slice, rep("sr150_base", nrow(split)))
+  expect_equal(
+    split$validation_slice,
+    rep("sr151_475_topup_holdout", nrow(split))
+  )
+  expect_equal(split$validation_n_replicates, rep(325L, nrow(split)))
+  expect_equal(split$promotion_decision, rep("do_not_promote", nrow(split)))
+  structured_re_expect_all_match(split$smoke_decision, "do_not_smoke")
+
+  intercept <- split[split$endpoint_member == "mu:(Intercept)", ]
+  slope <- split[split$endpoint_member == "mu:x", ]
+  expect_equal(
+    intercept$holdout_gate_status,
+    rep("holdout_gate_passed_screen_only", nrow(intercept))
+  )
+  expect_equal(intercept$gate_failures, rep("none", nrow(intercept)))
+  expect_equal(
+    intercept$calibration_delta_log_upper,
+    rep(0.054082, nrow(intercept))
+  )
+  expect_equal(
+    intercept$calibration_upper_multiplier,
+    rep(1.0556, nrow(intercept))
+  )
+  expect_equal(
+    slope$holdout_gate_status,
+    rep("holdout_gate_failed", nrow(slope))
+  )
+  expect_equal(slope$calibration_delta_log_upper, rep(0.245039, nrow(slope)))
+  expect_equal(slope$calibration_upper_multiplier, rep(1.2777, nrow(slope)))
+  expect_setequal(
+    slope$gate_failures,
+    c(
+      "upper_lower_miss_ratio_above_2;mcse_above_0_01",
+      "coverage_above_0_985",
+      "mcse_above_0_01"
+    )
+  )
+  expect_equal(
+    slope$smoke_decision,
+    rep("do_not_smoke_holdout_failed", nrow(slope))
+  )
+
+  phylo_slope <- split[
+    split$calibration_id == "gaussian_mu_slope_split_calibration_phylo_mu_x",
+  ]
+  expect_equal(phylo_slope$validation_upper_miss, 11L)
+  expect_equal(phylo_slope$validation_mcse, 0.01046)
+  relmat_slope <- split[
+    split$calibration_id == "gaussian_mu_slope_split_calibration_relmat_mu_x",
+  ]
+  expect_equal(relmat_slope$validation_coverage, 0.9938)
+  spatial_slope <- split[
+    split$calibration_id == "gaussian_mu_slope_split_calibration_spatial_mu_x",
+  ]
+  expect_equal(spatial_slope$validation_n_usable, 324L)
+  expect_equal(spatial_slope$validation_finite_rate, 0.9969)
+
+  constants <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-mu-slope-split-calibration-local",
+      "structured-re-gaussian-mu-slope-split-calibration-constants.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(constants), 2L)
+  expect_equal(constants$endpoint_member, c("mu:(Intercept)", "mu:x"))
+  expect_equal(constants$calibration_n_usable, c(450L, 448L))
+  expect_equal(constants$calibration_delta_log_upper, c(0.054082, 0.245039))
+  expect_equal(constants$calibration_upper_multiplier, c(1.0556, 1.2777))
+  expect_equal(constants$calibration_upper_miss, c(16L, 12L))
+  expect_equal(constants$calibration_upper_miss_rate, c(0.035556, 0.026786))
+
+  for (phrase in c(
+    "Split-sample calibration replay only",
+    "promotes exactly no Q-Series row",
+    "constants are learned on SR150",
+    "validated on SR325 holdout",
+    "no inference_ready",
+    "supported",
+    "sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(split$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Totoro/FIIA/DRAC",
+    "Fisher/Rose/Noether",
+    "without provider-specific constants"
+  )) {
+    structured_re_expect_all_match(split$next_gate, phrase)
+  }
+})
+
+test_that("Gaussian mu-slope review decision blocks host top-ups before a replacement rule", {
+  decision <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-mu-slope-review-decision.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  queue <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-next-campaign-queue.tsv"
+  )
+
+  expect_named(
+    decision,
+    c(
+      "decision_id",
+      "cell_id",
+      "provider",
+      "row_bucket",
+      "source_interval_shape",
+      "source_boundary_audit",
+      "source_rule_screen",
+      "source_split_calibration",
+      "denominator_summary",
+      "finite_interval_signal",
+      "coverage_signal",
+      "miss_signal",
+      "rule_screen_signal",
+      "calibration_signal",
+      "review_decision",
+      "promotion_decision",
+      "host_decision",
+      "blocked_hosts",
+      "linked_fit_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(decision), 4L)
+  expect_equal(
+    decision$decision_id,
+    c(
+      "gaussian_mu_slope_review_decision_phylo",
+      "gaussian_mu_slope_review_decision_spatial",
+      "gaussian_mu_slope_review_decision_animal",
+      "gaussian_mu_slope_review_decision_relmat"
+    )
+  )
+  expect_equal(
+    decision$cell_id,
+    c(
+      "qseries_phylo_q1_mu_one_slope",
+      "qseries_spatial_q1_mu_one_slope",
+      "qseries_animal_q1_mu_one_slope",
+      "qseries_relmat_q1_mu_one_slope"
+    )
+  )
+  expect_equal(
+    decision$row_bucket,
+    c(
+      "mcse_met_upper_tail_blocked",
+      "mcse_met_upper_tail_blocked",
+      "mu_slope_pregrid_blocked",
+      "mcse_met_upper_tail_blocked"
+    )
+  )
+  expect_equal(
+    decision$review_decision,
+    rep("fisher_rose_noether_interval_rule_required_no_topup", 4L)
+  )
+  expect_equal(decision$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(
+    decision$host_decision,
+    rep("local_derivation_only_then_totoro_fiia_smoke_after_review", 4L)
+  )
+  for (phrase in c("Totoro", "Nibi", "Rorqual", "Trillium", "DRAC")) {
+    structured_re_expect_all_match(decision$blocked_hosts, phrase)
+    structured_re_expect_all_match(decision$next_gate, phrase)
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "Fisher",
+    "Rose",
+    "Noether",
+    "inference_ready",
+    "supported",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(decision$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(decision$next_gate, "coverage MCSE <= 0.01")
+  structured_re_expect_all_match(decision$next_gate, "one-sided miss-balance")
+
+  linked <- qseries[match(decision$cell_id, qseries$cell_id), ]
+  expect_equal(linked$fit_status, rep("point_fit", 4L))
+  expect_equal(linked$interval_status, rep("planned", 4L))
+  expect_equal(linked$coverage_status, rep("planned", 4L))
+  expect_true(all(grepl("Trillium", linked$next_gate)))
+  expect_true(all(grepl("do not submit", linked$next_gate)))
+
+  mu_queue <- queue[
+    queue$queue_id == "qseries_queue_gaussian_mu_slope_shape_rule",
+  ]
+  expect_equal(nrow(mu_queue), 1L)
+  expect_equal(mu_queue$run_mode, "interval_rule_design")
+  expect_match(mu_queue$allowed_hosts, "Totoro/FIIA")
+  expect_match(mu_queue$allowed_hosts, "Trillium/DRAC only after smoke")
+  expect_match(
+    mu_queue$blocked_hosts,
+    "Trillium/DRAC top-up before replacement rule"
+  )
+  expect_match(mu_queue$next_action, "replacement interval/calibration rule")
+})
+
+test_that("Gaussian low-q row selection gates exact smoke candidates", {
+  selection <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-row-selection.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    selection,
+    c(
+      "selection_id",
+      "cell_id",
+      "structure_provider",
+      "dimension_pattern",
+      "endpoint_set",
+      "slope_class",
+      "formula_cell",
+      "row_selection_class",
+      "selection_status",
+      "run_mode",
+      "allowed_hosts",
+      "blocked_hosts",
+      "required_preconditions",
+      "first_smoke_n_rep",
+      "linked_fit_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "artifact_dir",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(selection), 20L)
+  class_counts <- table(selection$row_selection_class)
+  expect_equal(
+    stats::setNames(as.integer(class_counts), names(class_counts)),
+    c(
+      first_smoke_candidate_location_intercept = 1L,
+      matched_mu_sigma_design_hold = 8L,
+      q2_intercept_contract_hold = 5L,
+      scale_interval_design_hold = 4L,
+      special_target_contract_hold = 2L
+    )
+  )
+  expect_equal(
+    selection$promotion_decision,
+    rep("do_not_promote", nrow(selection))
+  )
+  structured_re_expect_all_match(
+    selection$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  non_animal_selection <- selection[
+    selection$cell_id != "qseries_animal_q1_mu_intercept",
+  ]
+  structured_re_expect_all_match(
+    non_animal_selection$claim_boundary,
+    "not interval_status"
+  )
+  expect_match(
+    selection$claim_boundary[
+      selection$cell_id == "qseries_animal_q1_mu_intercept"
+    ],
+    "no interval_status",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(selection$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(selection$claim_boundary, "supported")
+  structured_re_expect_all_match(selection$claim_boundary, "REML")
+  structured_re_expect_all_match(selection$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(selection$claim_boundary, "public support")
+
+  blocked_mu_slope <- c(
+    "qseries_phylo_q1_mu_one_slope",
+    "qseries_spatial_q1_mu_one_slope",
+    "qseries_animal_q1_mu_one_slope",
+    "qseries_relmat_q1_mu_one_slope"
+  )
+  expect_equal(intersect(blocked_mu_slope, selection$cell_id), character(0))
+
+  smoke_ids <- c(
+    "qseries_animal_q1_mu_intercept"
+  )
+  smoke <- selection[
+    selection$row_selection_class == "first_smoke_candidate_location_intercept",
+  ]
+  expect_equal(smoke$cell_id, smoke_ids)
+  expect_equal(
+    smoke$row_selection_class,
+    rep("first_smoke_candidate_location_intercept", nrow(smoke))
+  )
+  expect_equal(
+    smoke$selection_status,
+    rep("animal_mu_boundary_profile_hard_seed_blocked", nrow(smoke))
+  )
+  expect_equal(
+    smoke$run_mode,
+    rep(
+      "boundary_profile_blocker_no_topup",
+      nrow(smoke)
+    )
+  )
+  expect_equal(smoke$first_smoke_n_rep, rep(5L, nrow(smoke)))
+  expect_equal(
+    smoke$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-animal-boundary-profile.tsv",
+      nrow(smoke)
+    )
+  )
+  for (phrase in c(
+    "structured-re-gaussian-lowq-mu-intercept-animal-boundary-profile.tsv",
+    "SR475 retained-denominator",
+    "812407",
+    "812444",
+    "wald_at_boundary",
+    "endpoint profile",
+    "upper misses",
+    "tmbprofile",
+    "0/2",
+    "Do not top up",
+    "point_fit/planned/planned",
+    "new animal q1 mu interval route",
+    "boundary/profile",
+    "Fisher/Gauss/Rose",
+    "Totoro",
+    "Nibi",
+    "Rorqual",
+    "Trillium",
+    "DRAC"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        smoke$allowed_hosts,
+        smoke$blocked_hosts,
+        smoke$required_preconditions,
+        smoke$claim_boundary,
+        smoke$next_gate
+      ),
+      phrase
+    )
+  }
+
+  mu_sigma_intercept_smoke <- selection[
+    grepl("_q1_mu_sigma_intercept$", selection$cell_id),
+  ]
+  expect_equal(nrow(mu_sigma_intercept_smoke), 4L)
+  mu_sigma_intercept_smoke <- mu_sigma_intercept_smoke[
+    match(
+      c(
+        "qseries_animal_q1_mu_sigma_intercept",
+        "qseries_phylo_q1_mu_sigma_intercept",
+        "qseries_relmat_q1_mu_sigma_intercept",
+        "qseries_spatial_q1_mu_sigma_intercept"
+      ),
+      mu_sigma_intercept_smoke$cell_id
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    mu_sigma_intercept_smoke$selection_status,
+    c(
+      "mu_sigma_n5_correlation_boundary_blocked",
+      "mu_sigma_smoke_diagnostic_blocked",
+      "mu_sigma_n5_correlation_boundary_blocked",
+      "mu_sigma_n5_correlation_boundary_blocked"
+    )
+  )
+  expect_equal(
+    mu_sigma_intercept_smoke$run_mode,
+    c(
+      "boundary_correlation_blocker_no_topup",
+      "fisher_noether_rose_boundary_correlation_review",
+      "boundary_correlation_blocker_no_topup",
+      "boundary_correlation_blocker_no_topup"
+    )
+  )
+  expect_equal(mu_sigma_intercept_smoke$first_smoke_n_rep, c(5L, 1L, 5L, 5L))
+  expect_equal(
+    mu_sigma_intercept_smoke$evidence_url,
+    c(
+      "docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-sigma-intercept-n5-local/structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv",
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv",
+      "docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-sigma-intercept-n5-local/structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv",
+      "docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-sigma-intercept-n5-local/structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv"
+    )
+  )
+  for (phrase in c(
+    "structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv",
+    "local n=1 target smoke completed",
+    "n=5 local",
+    "direct sd_mu",
+    "direct sd_sigma",
+    "mu-sigma correlation",
+    "phylo nonusable boundary/correlation",
+    "spatial/animal/relmat n=5",
+    "correlation target is boundary/nonfinite",
+    "support cells stay point_fit/planned/planned",
+    "matched mu+sigma does not inherit q1 mu",
+    "q1 sigma",
+    "not coverage",
+    "Fisher/Noether/Rose",
+    "replacement correlation interval route",
+    "Totoro/FIIA",
+    "Nibi/Rorqual",
+    "no status promotion"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        mu_sigma_intercept_smoke$allowed_hosts,
+        mu_sigma_intercept_smoke$blocked_hosts,
+        mu_sigma_intercept_smoke$required_preconditions,
+        mu_sigma_intercept_smoke$next_gate
+      ),
+      phrase
+    )
+  }
+  mu_sigma_fixture_hold <- mu_sigma_intercept_smoke[
+    mu_sigma_intercept_smoke$structure_provider %in%
+      c("spatial", "animal", "relmat"),
+  ]
+  expect_equal(nrow(mu_sigma_fixture_hold), 3L)
+  structured_re_expect_all_match(
+    paste(
+      mu_sigma_fixture_hold$required_preconditions,
+      mu_sigma_fixture_hold$next_gate
+    ),
+    "correlation usable"
+  )
+
+  mu_sigma_slope_diagnostic <- selection[
+    grepl("_q1_mu_sigma_one_slope$", selection$cell_id),
+  ]
+  expect_equal(nrow(mu_sigma_slope_diagnostic), 4L)
+  mu_sigma_slope_diagnostic <- mu_sigma_slope_diagnostic[
+    match(
+      c(
+        "qseries_animal_q1_mu_sigma_one_slope",
+        "qseries_phylo_q1_mu_sigma_one_slope",
+        "qseries_relmat_q1_mu_sigma_one_slope",
+        "qseries_spatial_q1_mu_sigma_one_slope"
+      ),
+      mu_sigma_slope_diagnostic$cell_id
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    mu_sigma_slope_diagnostic$selection_status,
+    c(
+      "mu_sigma_slope_bootstrap_boundary_blocked",
+      "mu_sigma_slope_mixed_interval_review_pending",
+      "mu_sigma_slope_profile_failure_review_pending",
+      "mu_sigma_slope_spatial_boundary_blocked"
+    )
+  )
+  expect_equal(
+    mu_sigma_slope_diagnostic$run_mode,
+    c(
+      "fisher_noether_rose_bootstrap_boundary_review",
+      "fisher_noether_rose_mixed_target_review",
+      "fisher_noether_rose_profile_failure_review",
+      "fisher_gauss_rose_spatial_boundary_review"
+    )
+  )
+  expect_equal(mu_sigma_slope_diagnostic$first_smoke_n_rep, rep(0L, 4L))
+  expect_equal(
+    mu_sigma_slope_diagnostic$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv",
+      4L
+    )
+  )
+  for (phrase in c(
+    "structured-re-mu-sigma-slope-readiness.tsv",
+    "structured-re-mu-sigma-slope-interval-diagnostic-status.tsv",
+    "structured-re-mu-sigma-slope-interval-stability-probe.tsv",
+    "diagnostic-only evidence",
+    "finite/nonfinite interval shapes",
+    "phylo is mixed finite/bootstrap-boundary",
+    "strong-probe spatial boundary/nonfinite blocker",
+    "animal is all diagnostic",
+    "bootstrap-boundary",
+    "relmat has a profile-failure review target",
+    "support cells stay point_fit/planned/planned",
+    "matched mu+sigma one-slope does not inherit q1 mu",
+    "q1 sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public-support",
+    "direct sd_mu",
+    "direct sd_sigma",
+    "mu-sigma correlation",
+    "Totoro/FIIA",
+    "Nibi/Rorqual/DRAC",
+    "TSV promotion",
+    "inference_ready",
+    "supported"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        mu_sigma_slope_diagnostic$allowed_hosts,
+        mu_sigma_slope_diagnostic$blocked_hosts,
+        mu_sigma_slope_diagnostic$required_preconditions,
+        mu_sigma_slope_diagnostic$next_gate
+      ),
+      phrase
+    )
+  }
+
+  hold <- selection[selection$selection_status == "hold_until_row_contract", ]
+  expect_equal(nrow(hold), 0L)
+  expect_equal(hold$run_mode, rep("no_compute_until_contract", nrow(hold)))
+  expect_equal(hold$first_smoke_n_rep, rep(0L, nrow(hold)))
+  structured_re_expect_all_match(
+    hold$blocked_hosts,
+    "Totoro/FIIA/Nibi/Rorqual/DRAC"
+  )
+  structured_re_expect_all_match(hold$blocked_hosts, "row-specific contract")
+
+  special_target_contracts <- selection[
+    selection$cell_id %in%
+      c(
+        "qseries_phylo_direct_sd_univariate",
+        "qseries_phylo_interaction_q1_mu"
+      ),
+  ]
+  expect_equal(nrow(special_target_contracts), 2L)
+  expect_equal(
+    special_target_contracts$evidence_url,
+    c(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv",
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-special-target-contract.tsv"
+    )
+  )
+
+  direct_sd_contract <- special_target_contracts[
+    special_target_contracts$cell_id == "qseries_phylo_direct_sd_univariate",
+  ]
+  expect_equal(
+    direct_sd_contract$selection_status,
+    "direct_sd_local_smoke_target_split_review_pending"
+  )
+  expect_equal(
+    direct_sd_contract$run_mode,
+    "fisher_noether_rose_direct_sd_target_split_review"
+  )
+  expect_equal(direct_sd_contract$first_smoke_n_rep, 1L)
+  for (phrase in c(
+    "structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv",
+    "structured-re-gaussian-lowq-special-target-contract.tsv",
+    "phylo-profile-loglik-status.tsv",
+    "direct SD",
+    "interval_feasible",
+    "mu-axis",
+    "sigma-axis",
+    "boundary/profile-budget",
+    "derived correlation",
+    "coverage remains planned",
+    "support cell stays point_fit/interval_feasible/planned",
+    "Fisher/Noether/Rose",
+    "Totoro/FIIA/Nibi/Rorqual/DRAC",
+    "retained denominator",
+    "no status promotion",
+    "TSV promotion",
+    "inference_ready",
+    "supported"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        direct_sd_contract$allowed_hosts,
+        direct_sd_contract$blocked_hosts,
+        direct_sd_contract$required_preconditions,
+        direct_sd_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  phylo_interaction_contract <- special_target_contracts[
+    special_target_contracts$cell_id == "qseries_phylo_interaction_q1_mu",
+  ]
+  expect_equal(
+    phylo_interaction_contract$selection_status,
+    "phylo_interaction_provider_boundary_no_interval_route"
+  )
+  expect_equal(
+    phylo_interaction_contract$run_mode,
+    "no_compute_provider_boundary_hold"
+  )
+  expect_equal(phylo_interaction_contract$first_smoke_n_rep, 0L)
+  for (phrase in c(
+    "structured-re-gaussian-lowq-special-target-contract.tsv",
+    "tests/testthat/test-structured-effects.R",
+    "phylo_interaction is a q1",
+    "pair-level field",
+    "not ordinary q1",
+    "not phylo(1 | species)",
+    "two clades",
+    "no single structured group count",
+    "q2 or q4 endpoint covariance",
+    "bridge unsupported",
+    "no shared phylo or row-specific interval route",
+    "coverage remains planned",
+    "support cell stays point_fit/planned/planned",
+    "Boole/Fisher/Rose",
+    "Totoro/FIIA/Nibi/Rorqual/DRAC",
+    "target",
+    "denominator",
+    "one-sided misses",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support",
+    "TSV promotion",
+    "inference_ready",
+    "supported"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        phylo_interaction_contract$allowed_hosts,
+        phylo_interaction_contract$blocked_hosts,
+        phylo_interaction_contract$required_preconditions,
+        phylo_interaction_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  sigma_intercept_contract <- selection[
+    match(
+      c(
+        "qseries_animal_q1_sigma_intercept",
+        "qseries_phylo_q1_sigma_intercept",
+        "qseries_relmat_q1_sigma_intercept",
+        "qseries_spatial_q1_sigma_intercept"
+      ),
+      selection$cell_id
+    ),
+  ]
+  expect_equal(nrow(sigma_intercept_contract), 4L)
+  expect_equal(
+    sigma_intercept_contract$selection_status,
+    c(
+      "sigma_profile_channel_upper_tail_blocked",
+      "sigma_smoke_diagnostic_blocked",
+      "sigma_profile_channel_upper_tail_blocked",
+      "sigma_smoke_diagnostic_blocked"
+    )
+  )
+  expect_equal(
+    sigma_intercept_contract$run_mode,
+    c(
+      "profile_channel_blocker_no_topup",
+      "fisher_gauss_rose_boundary_profile_review",
+      "profile_channel_blocker_no_topup",
+      "fisher_gauss_rose_boundary_profile_review"
+    )
+  )
+  expect_equal(sigma_intercept_contract$first_smoke_n_rep, rep(5L, 4L))
+  expect_equal(
+    sigma_intercept_contract$evidence_url,
+    c(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-profile-route-review.tsv",
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv",
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-profile-route-review.tsv",
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv"
+    )
+  )
+  for (phrase in c(
+    "Fisher/Gauss/Rose",
+    "host"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        sigma_intercept_contract$allowed_hosts,
+        sigma_intercept_contract$blocked_hosts,
+        sigma_intercept_contract$required_preconditions,
+        sigma_intercept_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  sigma_diagnostic_contract <- sigma_intercept_contract[
+    sigma_intercept_contract$selection_status ==
+      "sigma_smoke_diagnostic_blocked",
+  ]
+  for (phrase in c(
+    "structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv",
+    "structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv",
+    "endpoint profile",
+    "local n=5 direct sigma-SD smoke completed",
+    "boundary rows",
+    "profile failures",
+    "one-sided misses",
+    "warnings",
+    "wald_at_boundary",
+    "phylo/spatial remain",
+    "diagnostic-blocked",
+    "animal/relmat have a separate SR150 route blocker",
+    "retained denominator plan",
+    "host-escalation rule",
+    "Totoro/FIIA",
+    "no-promotion evidence"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        sigma_diagnostic_contract$allowed_hosts,
+        sigma_diagnostic_contract$blocked_hosts,
+        sigma_diagnostic_contract$required_preconditions,
+        sigma_diagnostic_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  sigma_profile_contract <- sigma_intercept_contract[
+    sigma_intercept_contract$selection_status ==
+      "sigma_profile_channel_upper_tail_blocked",
+  ]
+  for (phrase in c(
+    "structured-re-gaussian-lowq-sigma-profile-route-review.tsv",
+    "endpoint budget 48",
+    "endpoint zero-boundary",
+    "SR1000",
+    "upper-tail miss imbalance",
+    "tmbprofile",
+    "0/5 finite",
+    "Fisher/Gauss/Rose",
+    "Totoro/DRAC",
+    "Do not top up",
+    "new q1 sigma interval route"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        sigma_profile_contract$allowed_hosts,
+        sigma_profile_contract$blocked_hosts,
+        sigma_profile_contract$required_preconditions,
+        sigma_profile_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  q2_repair <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-contract.tsv"
+  )
+  q2_repair_status <- stats::setNames(
+    q2_repair$repair_status,
+    q2_repair$cell_id
+  )
+  q2_repair_review <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-smoke-review.tsv"
+  )
+  q2_repair_review_status <- stats::setNames(
+    q2_repair_review$review_status,
+    q2_repair_review$cell_id
+  )
+  q2_repair_review_evidence <- (
+    "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv"
+  )
+  q2_direct_sd_endpoint_evidence <- (
+    "docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv"
+  )
+
+  q2_plus_contract <- selection[
+    selection$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+  ]
+  expect_equal(nrow(q2_plus_contract), 1L)
+  expect_equal(
+    q2_plus_contract$selection_status,
+    q2_repair_review_status[["qseries_phylo_q2_plus_q2_intercept"]]
+  )
+  expect_equal(
+    q2_plus_contract$run_mode,
+    "q2_named_interval_repair_design_first"
+  )
+  expect_equal(q2_plus_contract$first_smoke_n_rep, 16L)
+  expect_equal(q2_plus_contract$evidence_url, q2_repair_review_evidence)
+  expect_equal(
+    q2_plus_contract$artifact_dir,
+    "docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local"
+  )
+  structured_re_expect_all_match(
+    paste(q2_plus_contract$required_preconditions, q2_plus_contract$next_gate),
+    "structured-re-q2-retained-denominator-repair-contract.tsv"
+  )
+  structured_re_expect_all_match(
+    paste(
+      q2_plus_contract$allowed_hosts,
+      q2_plus_contract$blocked_hosts,
+      q2_plus_contract$required_preconditions,
+      q2_plus_contract$next_gate
+    ),
+    "retained-denominator"
+  )
+  for (phrase in c(
+    "Totoro",
+    "50 workers",
+    "<=100 workers",
+    "cleanup",
+    "mixed-host denominator",
+    "pdHess=149/150",
+    "sigma1/sigma2 correlation",
+    "small repair smoke",
+    "SR475/SR1000 top-up",
+    "no-promotion boundary"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        q2_plus_contract$allowed_hosts,
+        q2_plus_contract$blocked_hosts,
+        q2_plus_contract$required_preconditions,
+        q2_plus_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  q2_intercept_contract <- selection[
+    selection$cell_id %in%
+      c(
+        "qseries_animal_q2_mu1_mu2_intercept",
+        "qseries_phylo_q2_mu1_mu2_intercept",
+        "qseries_relmat_q2_mu1_mu2_intercept",
+        "qseries_spatial_q2_mu1_mu2_intercept"
+      ),
+  ]
+  expect_equal(nrow(q2_intercept_contract), 4L)
+  expected_q2_intercept_status <- unname(
+    q2_repair_review_status[q2_intercept_contract$cell_id]
+  )
+  expected_q2_intercept_status[
+    q2_intercept_contract$cell_id == "qseries_phylo_q2_mu1_mu2_intercept"
+  ] <- "q2_direct_sd_endpoint_route_smoke_blocked_no_topup"
+  expect_equal(
+    q2_intercept_contract$selection_status,
+    expected_q2_intercept_status
+  )
+  expected_q2_intercept_run_mode <- rep(
+    "q2_named_interval_repair_design_first",
+    4L
+  )
+  expected_q2_intercept_run_mode[
+    q2_intercept_contract$cell_id == "qseries_phylo_q2_mu1_mu2_intercept"
+  ] <- "q2_direct_sd_endpoint_route_failed_design_next"
+  expect_equal(
+    q2_intercept_contract$run_mode,
+    expected_q2_intercept_run_mode
+  )
+  expect_equal(q2_intercept_contract$first_smoke_n_rep, rep(32L, 4L))
+  expected_q2_intercept_evidence <- rep(q2_repair_review_evidence, 4L)
+  expected_q2_intercept_evidence[
+    q2_intercept_contract$cell_id == "qseries_phylo_q2_mu1_mu2_intercept"
+  ] <- q2_direct_sd_endpoint_evidence
+  expect_equal(
+    q2_intercept_contract$evidence_url,
+    expected_q2_intercept_evidence
+  )
+  structured_re_expect_all_match(
+    paste(
+      q2_intercept_contract$required_preconditions,
+      q2_intercept_contract$next_gate
+    ),
+    "structured-re-q2-retained-denominator-repair-contract.tsv"
+  )
+  for (phrase in c(
+    "Totoro",
+    "50 workers",
+    "<=100 workers",
+    "cleanup",
+    "mixed-host denominator",
+    "retained-denominator",
+    "repair contract",
+    "point_fit/planned/planned",
+    "no-promotion boundary"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        q2_intercept_contract$allowed_hosts,
+        q2_intercept_contract$blocked_hosts,
+        q2_intercept_contract$required_preconditions,
+        q2_intercept_contract$claim_boundary,
+        q2_intercept_contract$next_gate
+      ),
+      phrase
+    )
+  }
+
+  q_rows <- qseries[match(selection$cell_id, qseries$cell_id), ]
+  expect_equal(selection$linked_fit_status, q_rows$fit_status)
+  expect_equal(selection$linked_interval_status, q_rows$interval_status)
+  expect_equal(selection$linked_coverage_status, q_rows$coverage_status)
+  expect_equal(selection$dimension_pattern, q_rows$dimension_pattern)
+  expect_equal(selection$endpoint_set, q_rows$endpoint_set)
+  expect_equal(selection$slope_class, q_rows$slope_class)
+
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-row-selection-local",
+      "structured-re-gaussian-lowq-row-selection.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  review_overlay_cells <- c(
+    smoke_ids,
+    "qseries_phylo_q2_plus_q2_intercept",
+    q2_intercept_contract$cell_id
+  )
+  review_overlay_fields <- c(
+    "selection_status",
+    "run_mode",
+    "allowed_hosts",
+    "blocked_hosts",
+    "required_preconditions",
+    "first_smoke_n_rep",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  review_overlay_rows <- artifact$cell_id %in% review_overlay_cells
+  artifact[review_overlay_rows, review_overlay_fields] <-
+    selection[review_overlay_rows, review_overlay_fields]
+  expect_equal(artifact, selection)
+})
+
+test_that("Gaussian low-q direct-SD univariate smoke keeps targets split", {
+  smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-special-target-contract.tsv"
+  )
+
+  expect_equal(nrow(smoke), 2L)
+  expect_equal(smoke$target_axis, c("mu", "sigma"))
+  expect_equal(smoke$cell_id, rep("qseries_phylo_direct_sd_univariate", 2L))
+  expect_equal(
+    smoke$target_kind,
+    c("direct_sd_mu_intercept", "direct_sd_sigma_intercept")
+  )
+  expect_equal(
+    smoke$direct_sd_target,
+    c("sd:mu:phylo(1 | species)", "sd:sigma:phylo(1 | species)")
+  )
+  expect_equal(smoke$n_rep, rep(1L, 2L))
+  expect_equal(smoke$n_fit_ok, rep(1L, 2L))
+  expect_equal(smoke$n_converged, rep(1L, 2L))
+  expect_equal(smoke$n_pdhess, rep(1L, 2L))
+  expect_equal(smoke$n_sdreport_cov_available, rep(1L, 2L))
+  expect_equal(smoke$n_confint_ok, rep(1L, 2L))
+  expect_equal(smoke$n_usable_wald_intervals, c(1L, 0L))
+  expect_equal(smoke$finite_wald_interval_rate, c(1, 0))
+  expect_equal(smoke$n_profile_ok, c(1L, 0L))
+  expect_equal(smoke$n_profile_finite, c(1L, 0L))
+  expect_equal(smoke$n_profile_failed, c(0L, 1L))
+  expect_equal(smoke$n_boundary_rows, c(0L, 1L))
+  expect_equal(smoke$n_warning_replicates, c(0L, 1L))
+  expect_equal(
+    smoke$smoke_status,
+    c(
+      "local_direct_sd_mu_axis_smoke_passed",
+      "local_direct_sd_sigma_axis_diagnostic_blocked"
+    )
+  )
+  expect_equal(
+    smoke$blocker_signal,
+    c(
+      "none",
+      "nonusable_wald_interval;profile_nonfinite_or_failed;warnings_recorded"
+    )
+  )
+  expect_equal(
+    smoke$review_decision,
+    rep("fisher_noether_rose_target_split_review_required", 2L)
+  )
+  expect_equal(smoke$promotion_decision, rep("do_not_promote", 2L))
+  expect_equal(
+    smoke$source_contract,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-special-target-contract.tsv",
+      2L
+    )
+  )
+  expect_equal(
+    smoke$source_row_selection,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv",
+      2L
+    )
+  )
+  expect_equal(
+    smoke$artifact_dir,
+    rep(
+      "docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-direct-sd-univariate-smoke-local",
+      2L
+    )
+  )
+  expect_equal(smoke$evidence_url, smoke$artifact_dir)
+  structured_re_expect_all_match(
+    smoke$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  structured_re_expect_all_match(smoke$claim_boundary, "n=1 is not coverage")
+  structured_re_expect_all_match(smoke$claim_boundary, "derived correlations")
+  structured_re_expect_all_match(smoke$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(smoke$claim_boundary, "supported")
+  structured_re_expect_all_match(smoke$claim_boundary, "REML")
+  structured_re_expect_all_match(smoke$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(smoke$next_gate, "mu-axis direct SD passed")
+  structured_re_expect_all_match(smoke$next_gate, "sigma-axis direct SD")
+  structured_re_expect_all_match(smoke$next_gate, "boundary/profile-budget")
+  structured_re_expect_all_match(
+    smoke$next_gate,
+    "point_fit/interval_feasible/planned"
+  )
+
+  q_row <- qseries[
+    qseries$cell_id == "qseries_phylo_direct_sd_univariate",
+  ]
+  expect_equal(q_row$fit_status, "point_fit")
+  expect_equal(q_row$interval_status, "interval_feasible")
+  expect_equal(q_row$coverage_status, "planned")
+  expect_equal(
+    q_row$evidence_url,
+    "docs/dev-log/dashboard/structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv"
+  )
+  structured_re_expect_all_match(q_row$claim_boundary, "sigma-axis")
+  structured_re_expect_all_match(
+    q_row$claim_boundary,
+    "boundary/profile-budget"
+  )
+  structured_re_expect_all_match(q_row$next_gate, "Fisher/Noether/Rose")
+
+  direct_contract <- contract[
+    contract$cell_id == "qseries_phylo_direct_sd_univariate",
+  ]
+  expect_equal(
+    direct_contract$contract_status,
+    "direct_sd_local_smoke_target_split_review_pending"
+  )
+  expect_equal(direct_contract$evidence_url, q_row$evidence_url)
+
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-direct-sd-univariate-smoke-local",
+      "structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(artifact, smoke)
+
+  replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-direct-sd-univariate-smoke-local",
+      "structured-re-gaussian-lowq-direct-sd-univariate-smoke-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  seeds <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-direct-sd-univariate-smoke-local",
+      "structured-re-gaussian-lowq-direct-sd-univariate-smoke-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(replicates), 2L)
+  expect_equal(nrow(seeds), 2L)
+  expect_equal(seeds$target_axis, c("mu", "sigma"))
+  expect_equal(seeds$seed, c(2026062902L, 2026062903L))
+  expect_equal(
+    seeds$seed_role,
+    rep("gaussian_lowq_direct_sd_univariate_smoke", 2L)
+  )
+  expect_equal(replicates$target_axis, c("mu", "sigma"))
+  expect_equal(replicates$conf_status, c("wald", "wald_at_boundary"))
+  expect_equal(replicates$usable_interval, c(TRUE, FALSE))
+  expect_equal(replicates$profile_status, c("profile", "profile_failed"))
+  expect_equal(replicates$profile_finite, c(TRUE, FALSE))
+  expect_match(
+    replicates$warnings[[2L]],
+    "variance-component or correlation boundary"
+  )
+  expect_match(
+    replicates$profile_message[[2L]],
+    "Endpoint profile evaluation budget"
+  )
+})
+
+test_that("Gaussian low-q q1 sigma intercept route contract is no-promotion", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "cell_id",
+      "provider",
+      "formula_cell",
+      "direct_sd_target",
+      "profile_target",
+      "interval_channel",
+      "profile_channel",
+      "denominator_policy",
+      "allowed_hosts",
+      "blocked_hosts",
+      "fisher_review",
+      "gauss_review",
+      "rose_audit",
+      "compute_status",
+      "first_smoke_n_rep",
+      "required_artifacts",
+      "stop_rule",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(contract), 4L)
+  expect_equal(
+    contract$contract_id,
+    paste0("gaussian_lowq_sigma_intercept_route_", contract$provider)
+  )
+  expected_targets <- c(
+    animal = "sd:sigma:animal(1 | id)",
+    phylo = "sd:sigma:phylo(1 | species)",
+    relmat = "sd:sigma:relmat(1 | id)",
+    spatial = "sd:sigma:spatial(1 | site)"
+  )
+  expect_equal(
+    stats::setNames(contract$direct_sd_target, contract$provider),
+    expected_targets[contract$provider]
+  )
+  expect_equal(contract$profile_target, contract$direct_sd_target)
+  expect_equal(
+    contract$interval_channel,
+    rep("raw_log_sd_wald_z;small_sample_df_none;bias_correct_none", 4L)
+  )
+  expect_equal(
+    contract$profile_channel,
+    rep("endpoint_profile_diagnostic_only", 4L)
+  )
+  expect_equal(contract$first_smoke_n_rep, rep(5L, 4L))
+  expect_equal(contract$compute_status, rep("not_executed", 4L))
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 4L))
+  structured_re_expect_all_match(contract$denominator_policy, "all_attempted")
+  structured_re_expect_all_match(contract$denominator_policy, "finite_subset")
+  structured_re_expect_all_match(
+    contract$allowed_hosts,
+    "local n=5 route smoke"
+  )
+  structured_re_expect_all_match(contract$blocked_hosts, "Nibi/Rorqual/DRAC")
+  structured_re_expect_all_match(
+    contract$stop_rule,
+    "small_sample_df or bias_correct is not none"
+  )
+  structured_re_expect_all_match(
+    contract$stop_rule,
+    "support-cell status changes"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary,
+    "location-axis bias+t correction"
+  )
+  structured_re_expect_all_match(contract$claim_boundary, "matched mu+sigma")
+  structured_re_expect_all_match(contract$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(contract$claim_boundary, "supported")
+  structured_re_expect_all_match(contract$claim_boundary, "REML")
+  structured_re_expect_all_match(contract$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(contract$next_gate, "small_sample_df=none")
+  structured_re_expect_all_match(contract$next_gate, "bias_correct=none")
+  structured_re_expect_all_match(contract$next_gate, "Fisher/Gauss/Rose review")
+
+  q_rows <- qseries[match(contract$cell_id, qseries$cell_id), ]
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, rep("planned", 4L))
+  expect_equal(q_rows$coverage_status, rep("planned", 4L))
+})
+
+test_that("Gaussian low-q q1 sigma intercept local smoke is no-promotion", {
+  smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
+  )
+
+  expect_named(
+    smoke,
+    c(
+      "smoke_id",
+      "cell_id",
+      "provider",
+      "source_contract_id",
+      "source_contract",
+      "source_row_selection",
+      "artifact_dir",
+      "n_rep",
+      "n_targets",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_sdreport_cov_available",
+      "n_confint_ok",
+      "n_usable_wald_intervals",
+      "finite_wald_interval_rate",
+      "n_covered",
+      "coverage",
+      "coverage_mcse",
+      "lower_miss",
+      "upper_miss",
+      "n_profile_ok",
+      "n_profile_finite",
+      "n_profile_failed",
+      "n_boundary_rows",
+      "n_warning_replicates",
+      "smoke_status",
+      "blocker_signal",
+      "review_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate",
+      "host_class",
+      "host_name"
+    )
+  )
+  expect_equal(nrow(smoke), 4L)
+  providers <- c("phylo", "spatial", "animal", "relmat")
+  expect_equal(smoke$provider, providers)
+  expect_equal(
+    smoke$smoke_id,
+    paste0("gaussian_lowq_sigma_intercept_smoke_", providers)
+  )
+  expect_equal(
+    smoke$cell_id,
+    paste0("qseries_", providers, "_q1_sigma_intercept")
+  )
+  expect_equal(
+    smoke$source_contract_id,
+    paste0("gaussian_lowq_sigma_intercept_route_", providers)
+  )
+  expect_equal(
+    smoke$source_contract,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    smoke$source_row_selection,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    smoke$artifact_dir,
+    rep(
+      "docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-sigma-intercept-smoke-local",
+      4L
+    )
+  )
+  expect_equal(smoke$evidence_url, smoke$artifact_dir)
+  expect_equal(smoke$n_rep, rep(5L, 4L))
+  expect_equal(smoke$n_targets, rep(5L, 4L))
+  expect_equal(smoke$n_fit_ok, rep(5L, 4L))
+  expect_equal(smoke$n_converged, rep(5L, 4L))
+  expect_equal(smoke$n_pdhess, rep(5L, 4L))
+  expect_equal(smoke$n_sdreport_cov_available, rep(5L, 4L))
+  expect_equal(smoke$n_confint_ok, rep(5L, 4L))
+  expect_equal(smoke$n_usable_wald_intervals, c(4L, 2L, 5L, 5L))
+  expect_equal(smoke$finite_wald_interval_rate, c(0.8, 0.4, 1, 1))
+  expect_equal(smoke$n_covered, smoke$n_usable_wald_intervals)
+  expect_equal(smoke$coverage, rep(1, 4L))
+  expect_equal(smoke$coverage_mcse, rep(0, 4L))
+  expect_equal(smoke$lower_miss, rep(0L, 4L))
+  expect_equal(smoke$upper_miss, rep(0L, 4L))
+  expect_equal(smoke$n_profile_ok, c(4L, 2L, 5L, 5L))
+  expect_equal(smoke$n_profile_finite, smoke$n_profile_ok)
+  expect_equal(smoke$n_profile_failed, c(1L, 3L, 0L, 0L))
+  expect_equal(smoke$n_boundary_rows, c(1L, 3L, 0L, 0L))
+  expect_equal(smoke$n_warning_replicates, c(3L, 5L, 5L, 5L))
+  expect_equal(
+    smoke$smoke_status,
+    c(
+      "local_smoke_diagnostic_blocked",
+      "local_smoke_diagnostic_blocked",
+      "local_smoke_passed_route_only",
+      "local_smoke_passed_route_only"
+    )
+  )
+  expect_equal(
+    smoke$blocker_signal,
+    c(
+      "nonusable_wald_interval;profile_nonfinite_or_failed;warnings_recorded",
+      "nonusable_wald_interval;profile_nonfinite_or_failed;warnings_recorded",
+      "warnings_recorded",
+      "warnings_recorded"
+    )
+  )
+  expect_equal(
+    smoke$review_decision,
+    rep("fisher_gauss_rose_review_required", 4L)
+  )
+  expect_equal(smoke$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(smoke$host_class, rep("local_rehearsal", 4L))
+  expect_false(any(is.na(smoke$host_name) | smoke$host_name == ""))
+  structured_re_expect_all_match(
+    smoke$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  structured_re_expect_all_match(smoke$claim_boundary, "n=5 is not coverage")
+  structured_re_expect_all_match(smoke$claim_boundary, "small_sample_df=none")
+  structured_re_expect_all_match(smoke$claim_boundary, "bias_correct=none")
+  structured_re_expect_all_match(smoke$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(smoke$claim_boundary, "supported")
+  structured_re_expect_all_match(smoke$claim_boundary, "REML")
+  structured_re_expect_all_match(smoke$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(smoke$next_gate, "Fisher/Gauss/Rose")
+  structured_re_expect_all_match(smoke$next_gate, "point_fit/planned/planned")
+
+  q_rows <- qseries[match(smoke$cell_id, qseries$cell_id), ]
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, rep("planned", 4L))
+  expect_equal(q_rows$coverage_status, rep("planned", 4L))
+  expect_equal(
+    q_rows$evidence_url,
+    c(
+      rep(
+        "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv",
+        2L
+      ),
+      rep(
+        "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-profile-route-review.tsv",
+        2L
+      )
+    )
+  )
+
+  audit_rows <- lowq[match(smoke$cell_id, lowq$cell_id), ]
+  expect_equal(audit_rows$linked_fit_status, rep("point_fit", 4L))
+  expect_equal(audit_rows$linked_interval_status, rep("planned", 4L))
+  expect_equal(audit_rows$linked_coverage_status, rep("planned", 4L))
+  expect_equal(audit_rows$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(audit_rows$evidence_url, q_rows$evidence_url)
+  local_sigma_text <- paste(
+    q_rows$claim_boundary[1:2],
+    q_rows$next_gate[1:2],
+    audit_rows$evidence_basis[1:2],
+    audit_rows$stability_signal[1:2],
+    audit_rows$inference_signal[1:2],
+    audit_rows$claim_boundary[1:2],
+    audit_rows$next_gate[1:2]
+  )
+  for (phrase in c(
+    "local q1 sigma smoke",
+    "Fisher/Gauss/Rose",
+    "boundary/profile/warning",
+    "one-sided misses",
+    "profile policy",
+    "Totoro/FIIA",
+    "Nibi/Rorqual/DRAC",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(local_sigma_text, phrase)
+  }
+  route_review_sigma_text <- paste(
+    q_rows$claim_boundary[3:4],
+    q_rows$next_gate[3:4],
+    audit_rows$evidence_basis[3:4],
+    audit_rows$stability_signal[3:4],
+    audit_rows$inference_signal[3:4],
+    audit_rows$claim_boundary[3:4],
+    audit_rows$next_gate[3:4]
+  )
+  for (phrase in c(
+    "profile-route",
+    "SR150",
+    "115/150",
+    "118/150",
+    "endpoint budget 48",
+    "2/3",
+    "914011",
+    "0/5",
+    "tmbprofile",
+    "root",
+    "Fisher/Gauss/Rose",
+    "Totoro/Nibi/Rorqual/Trillium/DRAC",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(route_review_sigma_text, phrase)
+  }
+
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-sigma-intercept-smoke-local",
+      "structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(artifact, smoke)
+
+  replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-sigma-intercept-smoke-local",
+      "structured-re-gaussian-lowq-sigma-intercept-local-smoke-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  seeds <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-sigma-intercept-smoke-local",
+      "structured-re-gaussian-lowq-sigma-intercept-local-smoke-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(replicates), 20L)
+  expect_equal(nrow(seeds), 20L)
+  expect_equal(seeds$seed_role, rep("gaussian_lowq_sigma_intercept_smoke", 20L))
+  expect_equal(seeds$execution_status, rep("executed", 20L))
+  expect_equal(seeds$host_class, rep("local_rehearsal", 20L))
+  expect_true(all(seeds$replicate_index %in% 1:5))
+  expect_true(all(seeds$seed == 914000L + seeds$replicate_index))
+
+  expected_targets <- c(
+    animal = "sd:sigma:animal(1 | id)",
+    phylo = "sd:sigma:phylo(1 | species)",
+    relmat = "sd:sigma:relmat(1 | id)",
+    spatial = "sd:sigma:spatial(1 | site)"
+  )
+  expected_truth <- c(
+    animal = 0.2,
+    phylo = 0.2,
+    relmat = 0.2,
+    spatial = 0.18
+  )
+  expect_equal(replicates$target_kind, rep("direct_sd_sigma_intercept", 20L))
+  expect_equal(replicates$endpoint_member, rep("sigma:(Intercept)", 20L))
+  expect_equal(
+    replicates$interval_channel,
+    rep("raw_log_sd_wald_z;small_sample_df_none;bias_correct_none", 20L)
+  )
+  expect_equal(
+    replicates$profile_channel,
+    rep("endpoint_profile_diagnostic_only", 20L)
+  )
+  expect_equal(replicates$small_sample_df, rep("none", 20L))
+  expect_equal(replicates$bias_correct, rep("none", 20L))
+  expect_equal(replicates$fit_ok, rep(TRUE, 20L))
+  expect_equal(replicates$converged, rep(TRUE, 20L))
+  expect_equal(replicates$pdHess, rep(TRUE, 20L))
+  expect_equal(replicates$sdreport_cov_available, rep(TRUE, 20L))
+  expect_equal(replicates$confint_ok, rep(TRUE, 20L))
+  expect_equal(replicates$profile_engine, rep("endpoint", 20L))
+  expect_equal(replicates$profile_endpoint_max_eval, rep(12L, 20L))
+  for (provider in providers) {
+    rows <- replicates[replicates$provider == provider, , drop = FALSE]
+    expect_equal(nrow(rows), 5L)
+    expect_equal(
+      rows$contract_direct_sd_target,
+      rep(expected_targets[[provider]], 5L)
+    )
+    expect_equal(rows$wald_parameter, rep(expected_targets[[provider]], 5L))
+    expect_equal(rows$profile_parameter, rep(expected_targets[[provider]], 5L))
+    expect_equal(rows$truth_value, rep(expected_truth[[provider]], 5L))
+    expect_equal(
+      rows$truth_sd_sigma_intercept,
+      rep(expected_truth[[provider]], 5L)
+    )
+    expect_true(all(rows$replicate_index %in% 1:5))
+    expect_equal(rows$seed, 914000L + rows$replicate_index)
+  }
+  expect_true(all(replicates$conf_status %in% c("wald", "wald_at_boundary")))
+  expect_true(all(
+    replicates$profile_status %in% c("profile", "profile_failed")
+  ))
+  expect_equal(
+    replicates$usable_interval[replicates$conf_status == "wald"],
+    rep(TRUE, sum(replicates$conf_status == "wald"))
+  )
+  expect_equal(
+    replicates$usable_interval[replicates$conf_status == "wald_at_boundary"],
+    rep(FALSE, sum(replicates$conf_status == "wald_at_boundary"))
+  )
+  expect_equal(
+    replicates$profile_finite[replicates$profile_status == "profile"],
+    rep(TRUE, sum(replicates$profile_status == "profile"))
+  )
+  expect_equal(
+    replicates$profile_finite[replicates$profile_status == "profile_failed"],
+    rep(FALSE, sum(replicates$profile_status == "profile_failed"))
+  )
+})
+
+test_that("Gaussian low-q q1 sigma intercept denominator contract is pregrid-ready without promotion", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv"
+  )
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-pregrid-dispatch.tsv"
+  )
+  results <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-pregrid-results.tsv"
+  )
+  route <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv"
+  )
+  smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv"
+  )
+  selection <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-row-selection.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "cell_id",
+      "provider",
+      "source_route_contract_id",
+      "source_route_contract",
+      "source_smoke_id",
+      "source_smoke",
+      "source_row_selection",
+      "formula_cell",
+      "direct_sd_target",
+      "interval_channel",
+      "profile_channel",
+      "denominator_policy",
+      "pregrid_n_rep",
+      "mcse_threshold",
+      "one_sided_miss_policy",
+      "allowed_hosts",
+      "blocked_hosts",
+      "required_artifacts",
+      "stop_rule",
+      "contract_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(contract), 2L)
+  expect_equal(contract$provider, c("animal", "relmat"))
+  expect_equal(
+    contract$contract_id,
+    paste0("gaussian_lowq_sigma_intercept_denominator_", contract$provider)
+  )
+  expect_equal(
+    contract$cell_id,
+    paste0("qseries_", contract$provider, "_q1_sigma_intercept")
+  )
+  expect_equal(
+    contract$direct_sd_target,
+    c("sd:sigma:animal(1 | id)", "sd:sigma:relmat(1 | id)")
+  )
+  expect_equal(
+    contract$interval_channel,
+    rep("raw_log_sd_wald_z;small_sample_df_none;bias_correct_none", 2L)
+  )
+  expect_equal(
+    contract$profile_channel,
+    rep("endpoint_profile_diagnostic_only", 2L)
+  )
+  expect_equal(contract$pregrid_n_rep, rep(150L, 2L))
+  expect_equal(contract$mcse_threshold, rep(0.01, 2L))
+  expect_equal(
+    contract$contract_status,
+    rep("fisher_gauss_rose_reviewed_sr150_pregrid_ready", 2L)
+  )
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 2L))
+
+  route_rows <- route[match(contract$cell_id, route$cell_id), ]
+  smoke_rows <- smoke[match(contract$cell_id, smoke$cell_id), ]
+  selection_rows <- selection[match(contract$cell_id, selection$cell_id), ]
+  q_rows <- qseries[match(contract$cell_id, qseries$cell_id), ]
+
+  expect_equal(contract$source_route_contract_id, route_rows$contract_id)
+  expect_equal(contract$source_smoke_id, smoke_rows$smoke_id)
+  expect_equal(
+    smoke_rows$smoke_status,
+    rep("local_smoke_passed_route_only", 2L)
+  )
+  expect_equal(smoke_rows$n_usable_wald_intervals, rep(5L, 2L))
+  expect_equal(smoke_rows$n_boundary_rows, rep(0L, 2L))
+  expect_equal(smoke_rows$n_profile_failed, rep(0L, 2L))
+  expect_equal(smoke_rows$n_warning_replicates, rep(5L, 2L))
+  expect_equal(
+    selection_rows$selection_status,
+    rep("sigma_profile_channel_upper_tail_blocked", 2L)
+  )
+  expect_equal(
+    selection_rows$run_mode,
+    rep("profile_channel_blocker_no_topup", 2L)
+  )
+  expect_equal(q_rows$fit_status, rep("point_fit", 2L))
+  expect_equal(q_rows$interval_status, rep("planned", 2L))
+  expect_equal(q_rows$coverage_status, rep("planned", 2L))
+
+  for (phrase in c(
+    "all_attempted_replicates_retained",
+    "finite_wald_subset_reported_not_deleted",
+    "profile_diagnostic_not_primary",
+    "warnings_retained_for_review"
+  )) {
+    structured_re_expect_all_match(contract$denominator_policy, phrase)
+  }
+  for (phrase in c(
+    "Nibi primary after Fisher/Gauss/Rose review",
+    "Rorqual confirmation",
+    "Totoro/FIIA optional smoke",
+    "Nibi/Rorqual/DRAC outside Fisher/Gauss/Rose accepted SR150 pregrid"
+  )) {
+    structured_re_expect_all_match(
+      paste(contract$allowed_hosts, contract$blocked_hosts),
+      phrase
+    )
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "retained-denominator contract only",
+    "does not change fit_status",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "location-axis bias+t correction",
+    "q1 mu",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "completed DRAC denominator evidence",
+    "public support"
+  )) {
+    structured_re_expect_all_match(contract$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Gauss/Rose reviewed",
+    "SR150 Nibi pregrid",
+    "exactly animal and relmat",
+    "raw Wald sigma-SD intervals",
+    "endpoint-profile diagnostics",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(contract$next_gate, phrase)
+  }
+
+  expect_named(
+    dispatch,
+    c(
+      "dispatch_id",
+      "cell_id",
+      "provider",
+      "source_contract_id",
+      "contract_status",
+      "slurm_job_id",
+      "host",
+      "run_root",
+      "artifact_dir",
+      "submit_status",
+      "submitted_at",
+      "n_rep",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(dispatch), 2L)
+  expect_equal(dispatch$provider, c("animal", "relmat"))
+  expect_equal(
+    dispatch$dispatch_id,
+    paste0("gaussian_lowq_sigma_intercept_pregrid_dispatch_", dispatch$provider)
+  )
+  expect_equal(dispatch$source_contract_id, contract$contract_id)
+  expect_equal(
+    dispatch$contract_status,
+    rep("fisher_gauss_rose_reviewed_sr150_pregrid_ready", 2L)
+  )
+  expect_equal(dispatch$slurm_job_id, rep(16982458L, 2L))
+  expect_equal(dispatch$host, rep("Nibi", 2L))
+  expect_equal(
+    dispatch$submit_status,
+    rep("completed_imported_reviewed_blocked_no_topup", 2L)
+  )
+  expect_equal(dispatch$n_rep, rep(150L, 2L))
+  expect_equal(dispatch$promotion_decision, rep("do_not_promote", 2L))
+  structured_re_expect_all_match(
+    dispatch$run_root,
+    "20260630-q1-sigma-sr150-77b634ed-r169"
+  )
+  structured_re_expect_all_match(
+    dispatch$artifact_dir,
+    "q1-sigma-intercept-sr150-pregrid"
+  )
+  structured_re_expect_all_match(
+    dispatch$evidence_url,
+    paste0(
+      "docs/dev-log/after-task/",
+      "2026-06-30-q-series-q1-sigma-pregrid-nibi-dispatch.md"
+    )
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "retry job 16982458",
+    "completed 0:0",
+    "artifacts were imported",
+    "failed job 16982141",
+    "diagnostic-blocked evidence",
+    "finite raw Wald interval rate 0.7667",
+    "warning replicates 118/150",
+    "not reviewed coverage evidence",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "location-axis bias+t correction",
+    "q1 mu",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(dispatch$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Previous Nibi job 16982141 failed before simulation",
+    "runner required devtools",
+    "retry job 16982458",
+    "completed 0:0",
+    "installed-package fallback",
+    "imported artifacts",
+    "Fisher/Gauss/Rose",
+    "finite denominator",
+    "115/150 usable intervals",
+    "warnings 118/150",
+    "warnings",
+    "lower/upper misses",
+    "MCSE 0.012190",
+    "profile failures",
+    "boundary rows",
+    "failure taxonomy",
+    "sigma interval route",
+    "before any SR475/SR1000 top-up or status edit"
+  )) {
+    structured_re_expect_all_match(dispatch$next_gate, phrase)
+  }
+
+  expect_named(
+    results,
+    c(
+      "pregrid_id",
+      "cell_id",
+      "provider",
+      "source_row_selection",
+      "artifact_dir",
+      "n_rep",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_confint_ok",
+      "n_usable_intervals",
+      "finite_interval_rate",
+      "n_covered",
+      "coverage",
+      "coverage_mcse",
+      "lower_miss",
+      "upper_miss",
+      "lower_miss_rate",
+      "upper_miss_rate",
+      "upper_lower_miss_ratio",
+      "pregrid_status",
+      "review_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate",
+      "source_contract_id",
+      "source_contract",
+      "host_class",
+      "host_name",
+      "n_warning_replicates",
+      "n_retained_denominator",
+      "slurm_job_id",
+      "run_root",
+      "source_dispatch_id",
+      "artifact_status"
+    )
+  )
+  expect_equal(nrow(results), 2L)
+  expect_equal(results$provider, c("animal", "relmat"))
+  expect_equal(
+    results$pregrid_id,
+    paste0("gaussian_lowq_sigma_intercept_pregrid_", results$provider)
+  )
+  expect_equal(results$cell_id, dispatch$cell_id)
+  expect_equal(results$source_contract_id, contract$contract_id)
+  expect_equal(results$source_dispatch_id, dispatch$dispatch_id)
+  expect_equal(results$n_rep, rep(150L, 2L))
+  expect_equal(results$n_fit_ok, rep(150L, 2L))
+  expect_equal(results$n_converged, rep(150L, 2L))
+  expect_equal(results$n_pdhess, rep(150L, 2L))
+  expect_equal(results$n_confint_ok, rep(150L, 2L))
+  expect_equal(results$n_usable_intervals, rep(115L, 2L))
+  expect_equal(results$finite_interval_rate, rep(0.7667, 2L))
+  expect_equal(results$n_covered, rep(113L, 2L))
+  expect_equal(results$coverage, rep(0.9826, 2L))
+  expect_equal(results$coverage_mcse, rep(0.012190, 2L))
+  expect_equal(results$lower_miss, rep(2L, 2L))
+  expect_equal(results$upper_miss, rep(0L, 2L))
+  expect_equal(
+    results$pregrid_status,
+    rep("sr150_pregrid_completed_diagnostic_blocked_no_topup", 2L)
+  )
+  expect_equal(
+    results$review_decision,
+    rep("fisher_gauss_rose_route_hardening_required_no_topup", 2L)
+  )
+  expect_equal(results$n_warning_replicates, rep(118L, 2L))
+  expect_equal(results$n_retained_denominator, rep(150L, 2L))
+  expect_equal(results$slurm_job_id, rep(16982458L, 2L))
+  expect_equal(
+    results$artifact_status,
+    rep("completed_imported_reviewed_blocked_no_topup", 2L)
+  )
+  structured_re_expect_all_match(
+    results$artifact_dir,
+    "2026-06-30-gaussian-lowq-sigma-intercept-pregrid-nibi"
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "Nibi SR150 q1 sigma animal/relmat artifacts",
+    "small_sample_df=none",
+    "bias_correct=none",
+    "finite raw Wald interval rate is 0.7667",
+    "warning replicates are 118/150",
+    "diagnostic-blocked",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "REML",
+    "AI-REML"
+  )) {
+    structured_re_expect_all_match(results$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "finite intervals 115/150",
+    "warnings 118/150",
+    "MCSE 0.012190",
+    "harden or replace the sigma interval route",
+    "before any SR475/SR1000 top-up",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(results$next_gate, phrase)
+  }
+})
+
+test_that("Gaussian low-q q1 sigma profile-route review blocks top-up", {
+  review <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-sigma-profile-route-review.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
+  )
+  selection <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-row-selection.tsv"
+  )
+
+  expect_named(
+    review,
+    c(
+      "review_id",
+      "cell_id",
+      "provider",
+      "source_pregrid",
+      "source_pregrid_replicates",
+      "source_adaptive_endpoint_smoke",
+      "source_boundary_endpoint_patch_smoke",
+      "source_boundary_endpoint_patch_sr150",
+      "source_boundary_endpoint_patch_sr1000_shards",
+      "source_tmbprofile_smoke",
+      "replay_seed_range",
+      "replay_n_rep",
+      "original_endpoint_budget",
+      "adaptive_endpoint_budget",
+      "original_sr150_wald_usable",
+      "original_sr150_profile_finite",
+      "replay_original_profile_finite",
+      "adaptive_profile_finite",
+      "adaptive_profile_rescued",
+      "adaptive_remaining_failure_seed",
+      "adaptive_remaining_failure_message",
+      "boundary_patch_replay_profile_finite",
+      "boundary_patch_replay_profile_rescued",
+      "boundary_patch_replay_profile_coverage",
+      "boundary_patch_sr150_profile_finite",
+      "boundary_patch_sr150_profile_coverage",
+      "boundary_patch_sr150_profile_mcse",
+      "boundary_patch_sr150_profile_misses",
+      "boundary_patch_sr150_near_boundary",
+      "boundary_patch_sr1000_profile_finite",
+      "boundary_patch_sr1000_profile_coverage",
+      "boundary_patch_sr1000_profile_mcse",
+      "boundary_patch_sr1000_profile_misses",
+      "boundary_patch_sr1000_near_boundary",
+      "tmbprofile_profile_finite",
+      "tmbprofile_decision",
+      "route_status",
+      "review_decision",
+      "promotion_decision",
+      "linked_fit_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(review), 2L)
+  expect_equal(review$provider, c("animal", "relmat"))
+  expect_equal(
+    review$cell_id,
+    c(
+      "qseries_animal_q1_sigma_intercept",
+      "qseries_relmat_q1_sigma_intercept"
+    )
+  )
+  expect_equal(
+    review$review_id,
+    paste0("gaussian_lowq_sigma_profile_route_review_", review$provider)
+  )
+  expect_equal(review$replay_seed_range, rep("914008-914012", 2L))
+  expect_equal(review$replay_n_rep, rep(5L, 2L))
+  expect_equal(review$original_endpoint_budget, rep(12L, 2L))
+  expect_equal(review$adaptive_endpoint_budget, rep(48L, 2L))
+  expect_equal(review$original_sr150_wald_usable, rep("115/150", 2L))
+  expect_equal(review$original_sr150_profile_finite, rep("109/150", 2L))
+  expect_equal(review$replay_original_profile_finite, rep("2/5", 2L))
+  expect_equal(review$adaptive_profile_finite, rep("4/5", 2L))
+  expect_equal(review$adaptive_profile_rescued, rep("2/3", 2L))
+  expect_equal(review$adaptive_remaining_failure_seed, rep(914011L, 2L))
+  expect_equal(review$boundary_patch_replay_profile_finite, rep("5/5", 2L))
+  expect_equal(review$boundary_patch_replay_profile_rescued, rep("3/3", 2L))
+  expect_equal(review$boundary_patch_replay_profile_coverage, rep(1, 2L))
+  expect_equal(review$boundary_patch_sr150_profile_finite, rep("150/150", 2L))
+  expect_equal(review$boundary_patch_sr150_profile_coverage, rep(0.9533, 2L))
+  expect_equal(review$boundary_patch_sr150_profile_mcse, rep(0.017222, 2L))
+  expect_equal(
+    review$boundary_patch_sr150_profile_misses,
+    rep("lower=2;upper=5", 2L)
+  )
+  expect_equal(review$boundary_patch_sr150_near_boundary, rep("118/150", 2L))
+  expect_equal(
+    review$boundary_patch_sr1000_profile_finite,
+    rep("1000/1000", 2L)
+  )
+  expect_equal(review$boundary_patch_sr1000_profile_coverage, rep(0.9430, 2L))
+  expect_equal(review$boundary_patch_sr1000_profile_mcse, rep(0.007332, 2L))
+  expect_equal(
+    review$boundary_patch_sr1000_profile_misses,
+    rep("lower=12;upper=45", 2L)
+  )
+  expect_equal(review$boundary_patch_sr1000_near_boundary, rep("757/1000", 2L))
+  expect_equal(review$tmbprofile_profile_finite, rep("0/5", 2L))
+  expect_equal(
+    review$tmbprofile_decision,
+    rep("negative_fallback_not_smoke_ready", 2L)
+  )
+  expect_equal(
+    review$route_status,
+    rep("endpoint_zero_boundary_patch_sr1000_upper_tail_blocked", 2L)
+  )
+  expect_equal(
+    review$review_decision,
+    rep("fisher_gauss_rose_profile_channel_blocked_no_promotion", 2L)
+  )
+  expect_equal(review$promotion_decision, rep("do_not_promote", 2L))
+  expect_equal(review$linked_fit_status, rep("point_fit", 2L))
+  expect_equal(review$linked_interval_status, rep("planned", 2L))
+  expect_equal(review$linked_coverage_status, rep("planned", 2L))
+  structured_re_expect_all_match(
+    review$source_adaptive_endpoint_smoke,
+    "2026-06-30-gaussian-lowq-sigma-adaptive-profile-smoke-local"
+  )
+  structured_re_expect_all_match(
+    review$source_boundary_endpoint_patch_smoke,
+    "2026-06-30-gaussian-lowq-sigma-boundary-patch-replay-local"
+  )
+  structured_re_expect_all_match(
+    review$source_boundary_endpoint_patch_sr150,
+    "2026-06-30-gaussian-lowq-sigma-boundary-patch-sr150-local"
+  )
+  structured_re_expect_all_match(
+    review$source_boundary_endpoint_patch_sr1000_shards,
+    "2026-06-30-gaussian-lowq-sigma-boundary-patch-sr1000-local-shard951-1000"
+  )
+  structured_re_expect_all_match(
+    review$source_tmbprofile_smoke,
+    "2026-06-30-gaussian-lowq-sigma-tmbprofile-smoke-local"
+  )
+  for (phrase in c(
+    "Endpoint profile root",
+    "Absolute root error: 0.6296",
+    "profile_engine = \"tmbprofile\""
+  )) {
+    structured_re_expect_all_match(
+      review$adaptive_remaining_failure_message,
+      phrase
+    )
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "route-diagnostic blocker evidence only",
+    "endpoint budget 48",
+    "endpoint zero-boundary patch",
+    "SR1000 profile coverage=0.9430",
+    "MCSE=0.007332",
+    "12 lower/45 upper",
+    "upper-tail interval-shape blocker",
+    "tmbprofile remains a 0/5",
+    "point_fit/planned/planned",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(review$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "endpoint zero-boundary profile",
+    "Do not top up",
+    "upper-tail miss imbalance",
+    "new q1 sigma interval route",
+    "Totoro",
+    "Trillium",
+    "Fisher/Gauss/Rose"
+  )) {
+    structured_re_expect_all_match(review$next_gate, phrase)
+  }
+
+  linked_qseries <- qseries[match(review$cell_id, qseries$cell_id), ]
+  linked_lowq <- lowq[match(review$cell_id, lowq$cell_id), ]
+  linked_selection <- selection[match(review$cell_id, selection$cell_id), ]
+  expect_equal(linked_qseries$fit_status, review$linked_fit_status)
+  expect_equal(linked_qseries$interval_status, review$linked_interval_status)
+  expect_equal(linked_qseries$coverage_status, review$linked_coverage_status)
+  expect_equal(
+    linked_qseries$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-profile-route-review.tsv",
+      2L
+    )
+  )
+  expect_equal(
+    linked_qseries$denominator_policy,
+    rep("endpoint_zero_boundary_profile_sr1000_upper_tail_blocked", 2L)
+  )
+  expect_equal(linked_lowq$evidence_url, linked_qseries$evidence_url)
+  expect_equal(linked_selection$evidence_url, linked_qseries$evidence_url)
+  expect_equal(
+    linked_selection$selection_status,
+    rep("sigma_profile_channel_upper_tail_blocked", 2L)
+  )
+})
+
+test_that("Gaussian low-q q1 sigma pregrid launcher is guarded", {
+  wrapper <- readLines(
+    structured_re_artifact_path(
+      "tools",
+      "run-structured-re-gaussian-lowq-sigma-intercept-pregrid.R"
+    ),
+    warn = FALSE
+  )
+  slurm <- readLines(
+    structured_re_artifact_path(
+      "tools",
+      "slurm",
+      "q1-sigma-intercept-pregrid-nibi.sbatch"
+    ),
+    warn = FALSE
+  )
+
+  wrapper_text <- paste(wrapper, collapse = "\n")
+  slurm_text <- paste(slurm, collapse = "\n")
+
+  for (phrase in c(
+    "run-structured-re-gaussian-lowq-sigma-intercept-smoke.R",
+    "--providers=animal,relmat",
+    "--n-rep=150",
+    "--write-dashboard=false",
+    "structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv",
+    "fisher_gauss_rose_reviewed_sr150_pregrid_ready",
+    "animal",
+    "relmat",
+    "nibi",
+    "rorqual"
+  )) {
+    expect_match(wrapper_text, phrase, fixed = TRUE)
+  }
+
+  for (phrase in c(
+    "q1SigPre",
+    "module load StdEnv/2023 gcc/12.3 r/4.4.0",
+    "R_PROFILE_USER=/dev/null",
+    "NOT_CRAN=true",
+    "OMP_NUM_THREADS=1",
+    "OPENBLAS_NUM_THREADS=1",
+    "MKL_NUM_THREADS=1",
+    "TMB_NTHREADS=1",
+    "DRMTMB_REPO",
+    "DRMTMB_RUN_ROOT",
+    "source-sha256-manifest.txt",
+    "exact-command.txt",
+    "module-list.txt",
+    "sessionInfo.txt",
+    "--providers=animal,relmat",
+    "--host-class=nibi_retained_denominator_pregrid",
+    "--write-dashboard=false",
+    "q1 sigma-intercept SR150 retained-denominator pregrid"
+  )) {
+    expect_match(slurm_text, phrase, fixed = TRUE)
+  }
+})
+
+test_that("Gaussian low-q q1 mu intercept dry-run stays local-only", {
+  dry_run <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-dry-run.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    dry_run,
+    c(
+      "dry_run_id",
+      "cell_id",
+      "provider",
+      "source_row_selection",
+      "artifact_dir",
+      "n_rep",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_confint_ok",
+      "n_usable_intervals",
+      "finite_interval_rate",
+      "n_covered",
+      "coverage",
+      "coverage_mcse",
+      "lower_miss",
+      "upper_miss",
+      "dry_run_status",
+      "smoke_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(dry_run), 4L)
+  providers <- c("phylo", "spatial", "animal", "relmat")
+  cell_ids <- c(
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_spatial_q1_mu_intercept",
+    "qseries_animal_q1_mu_intercept",
+    "qseries_relmat_q1_mu_intercept"
+  )
+  expect_equal(dry_run$provider, providers)
+  expect_equal(dry_run$cell_id, cell_ids)
+  expect_equal(
+    dry_run$dry_run_id,
+    paste0("gaussian_lowq_mu_intercept_dry_run_", providers)
+  )
+  expect_equal(dry_run$n_rep, rep(2L, 4L))
+  expect_equal(dry_run$n_fit_ok, rep(2L, 4L))
+  expect_equal(dry_run$n_converged, rep(2L, 4L))
+  expect_equal(dry_run$n_pdhess, rep(2L, 4L))
+  expect_equal(dry_run$n_confint_ok, rep(2L, 4L))
+  expect_equal(dry_run$n_usable_intervals, rep(2L, 4L))
+  expect_equal(dry_run$finite_interval_rate, rep(1, 4L))
+  expect_equal(dry_run$coverage, rep(1, 4L))
+  expect_equal(dry_run$lower_miss, rep(0L, 4L))
+  expect_equal(dry_run$upper_miss, rep(0L, 4L))
+  expect_equal(
+    dry_run$dry_run_status,
+    rep("local_dry_run_passed_screen_only", 4L)
+  )
+  expect_equal(
+    dry_run$smoke_decision,
+    rep("totoro_fiia_smoke_accepted_fisher_rose", 4L)
+  )
+  expect_equal(dry_run$promotion_decision, rep("do_not_promote", 4L))
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "n=2 is not coverage evidence",
+    "no interval_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "DRAC",
+    "public support"
+  )) {
+    structured_re_expect_all_match(dry_run$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Rose accepted",
+    "Totoro/FIIA n=5 smoke",
+    "smoke-substitution contract",
+    "Nibi",
+    "Rorqual",
+    "substitute-host artifact"
+  )) {
+    structured_re_expect_all_match(dry_run$next_gate, phrase)
+  }
+
+  q_rows <- qseries[match(dry_run$cell_id, qseries$cell_id), ]
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, .expected_interval(q_rows$cell_id))
+  expect_equal(q_rows$coverage_status, .expected_coverage(q_rows$cell_id))
+  expect_equal(q_rows$structure_provider, dry_run$provider)
+
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-mu-intercept-dry-run-local",
+      "structured-re-gaussian-lowq-mu-intercept-dry-run.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(artifact, dry_run)
+
+  replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-mu-intercept-dry-run-local",
+      "structured-re-gaussian-lowq-mu-intercept-dry-run-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(replicates), 8L)
+  expect_true(all(table(replicates$provider) == 2L))
+  expect_true(all(replicates$fit_ok))
+  expect_true(all(replicates$converged))
+  expect_true(all(replicates$pdHess))
+  expect_true(all(replicates$confint_ok))
+  expect_true(all(replicates$conf_status == "wald"))
+  expect_true(all(replicates$usable_interval))
+  expect_true(all(replicates$covered))
+  expect_true(all(is.finite(replicates$estimate)))
+  expect_true(all(is.finite(replicates$conf.low)))
+  expect_true(all(is.finite(replicates$conf.high)))
+  expect_true(all(replicates$warning_count == 0L))
+
+  seed_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-mu-intercept-dry-run-local",
+      "structured-re-gaussian-lowq-mu-intercept-dry-run-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(seed_manifest), 8L)
+  expect_equal(
+    unique(seed_manifest$seed_role),
+    "gaussian_lowq_mu_intercept_dry_run"
+  )
+  expect_equal(unique(seed_manifest$execution_status), "executed")
+})
+
+test_that("Gaussian low-q q1 mu intercept smoke contract is review-gated", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv"
+  )
+  dry_run <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-dry-run.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "cell_id",
+      "provider",
+      "source_dry_run_id",
+      "contract_status",
+      "smoke_n_rep",
+      "interval_channel",
+      "denominator_policy",
+      "allowed_hosts",
+      "blocked_hosts",
+      "fisher_signoff",
+      "rose_signoff",
+      "compute_status",
+      "connectivity_status",
+      "required_artifacts",
+      "stop_rule",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  providers <- c("phylo", "spatial", "animal", "relmat")
+  cell_ids <- c(
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_spatial_q1_mu_intercept",
+    "qseries_animal_q1_mu_intercept",
+    "qseries_relmat_q1_mu_intercept"
+  )
+  expect_equal(nrow(contract), 4L)
+  expect_equal(contract$provider, providers)
+  expect_equal(contract$cell_id, cell_ids)
+  expect_equal(
+    contract$contract_id,
+    paste0("gaussian_lowq_mu_intercept_smoke_contract_", providers)
+  )
+  expect_equal(
+    contract$source_dry_run_id,
+    paste0("gaussian_lowq_mu_intercept_dry_run_", providers)
+  )
+  expect_equal(contract$smoke_n_rep, rep(5L, 4L))
+  expect_equal(
+    contract$contract_status,
+    rep("nibi_substitute_smoke_reviewed_design_required", 4L)
+  )
+  expect_equal(
+    contract$interval_channel,
+    rep("default_confint_wald_direct_sd_mu", 4L)
+  )
+  expect_equal(
+    contract$denominator_policy,
+    rep("all_attempted_replicates_retained;fixture_not_coverage", 4L)
+  )
+  expect_equal(
+    contract$allowed_hosts,
+    rep(
+      paste(
+        "local artifact replay and denominator design only;Totoro/FIIA",
+        "optional confirmation smoke if access is restored;Nibi/Rorqual/DRAC",
+        "denominator only after reviewed row-specific retained-denominator contract"
+      ),
+      4L
+    )
+  )
+  expect_equal(
+    contract$blocked_hosts,
+    rep(
+      paste(
+        "Nibi/Rorqual/DRAC denominator before reviewed row-specific",
+        "retained-denominator contract;q1 sigma, matched mu+sigma, q2,",
+        "q4/q8, non-Gaussian, REML, AI-REML outside this contract"
+      ),
+      4L
+    )
+  )
+  expect_equal(
+    contract$fisher_signoff,
+    rep("accepted_tiny_smoke_only", 4L)
+  )
+  expect_equal(
+    contract$rose_signoff,
+    rep("accepted_tiny_smoke_only", 4L)
+  )
+  expect_equal(
+    contract$compute_status,
+    rep("nibi_substitute_smoke_imported_reviewed", 4L)
+  )
+  expect_equal(
+    contract$connectivity_status,
+    rep(
+      paste0(
+        "totoro_denied_batchmode;fiia_alias_unresolved;",
+        "nibi_rorqual_reachable_qseries_roots;fir_no_qseries_root"
+      ),
+      4L
+    )
+  )
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 4L))
+
+  dry_rows <- dry_run[match(contract$cell_id, dry_run$cell_id), ]
+  expect_equal(dry_rows$dry_run_id, contract$source_dry_run_id)
+  q_rows <- qseries[match(contract$cell_id, qseries$cell_id), ]
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, .expected_interval(q_rows$cell_id))
+  expect_equal(q_rows$coverage_status, .expected_coverage(q_rows$cell_id))
+  expect_equal(q_rows$structure_provider, contract$provider)
+
+  for (phrase in c(
+    "summary_tsv",
+    "replicate_tsv",
+    "seed_manifest",
+    "sessionInfo.txt",
+    "git-sha.txt",
+    "check_log",
+    "after_task",
+    "mission_control"
+  )) {
+    structured_re_expect_all_match(contract$required_artifacts, phrase)
+  }
+  for (phrase in c(
+    "candidate set changes",
+    "point_fit/planned/planned",
+    "do_not_promote",
+    "fit fails",
+    "convergence fails",
+    "pdHess is false",
+    "confint fails",
+    "non-finite",
+    "warning/error",
+    "artifact mirror",
+    "dashboard/artifact"
+  )) {
+    structured_re_expect_all_match(contract$stop_rule, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Rose-reviewed Nibi n=5 substitute smoke",
+    "promotes exactly no Q-Series row",
+    "n=5 is smoke, not coverage evidence",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "direct-SD",
+    "phylo_interaction",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "Nibi/Rorqual/DRAC",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(contract$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Reviewed Nibi substitute-host n=5 smoke passed",
+    "row-specific retained-denominator design",
+    "interval channel",
+    "MCSE target",
+    "one-sided misses",
+    "blocked neighbours",
+    "Totoro/FIIA",
+    "optional confirmation smoke",
+    "Nibi/Rorqual/DRAC denominator work remains blocked"
+  )) {
+    structured_re_expect_all_match(contract$next_gate, phrase)
+  }
+})
+
+test_that("Gaussian low-q q1 mu intercept local smoke result stays artifact-only", {
+  result <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv"
+  )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    result,
+    c(
+      "smoke_id",
+      "cell_id",
+      "provider",
+      "source_row_selection",
+      "artifact_dir",
+      "n_rep",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_confint_ok",
+      "n_usable_intervals",
+      "finite_interval_rate",
+      "n_covered",
+      "coverage",
+      "coverage_mcse",
+      "lower_miss",
+      "upper_miss",
+      "smoke_status",
+      "review_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate",
+      "source_contract_id",
+      "source_contract",
+      "host_class",
+      "host_name",
+      "n_warning_replicates"
+    )
+  )
+
+  providers <- c("phylo", "spatial", "animal", "relmat")
+  cell_ids <- c(
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_spatial_q1_mu_intercept",
+    "qseries_animal_q1_mu_intercept",
+    "qseries_relmat_q1_mu_intercept"
+  )
+  expect_equal(nrow(result), 4L)
+  expect_equal(result$provider, providers)
+  expect_equal(result$cell_id, cell_ids)
+  expect_equal(
+    result$smoke_id,
+    paste0("gaussian_lowq_mu_intercept_smoke_", providers)
+  )
+  expect_equal(
+    result$source_contract_id,
+    paste0("gaussian_lowq_mu_intercept_smoke_contract_", providers)
+  )
+  expect_equal(result$source_contract_id, contract$contract_id)
+  expect_equal(result$n_rep, rep(5L, 4L))
+  expect_equal(result$n_fit_ok, rep(5L, 4L))
+  expect_equal(result$n_converged, rep(5L, 4L))
+  expect_equal(result$n_pdhess, rep(5L, 4L))
+  expect_equal(result$n_confint_ok, rep(5L, 4L))
+  expect_equal(result$n_usable_intervals, rep(5L, 4L))
+  expect_equal(result$finite_interval_rate, rep(1, 4L))
+  expect_equal(result$n_covered, rep(5L, 4L))
+  expect_equal(result$coverage, rep(1, 4L))
+  expect_equal(result$coverage_mcse, rep(0, 4L))
+  expect_equal(result$lower_miss, rep(0L, 4L))
+  expect_equal(result$upper_miss, rep(0L, 4L))
+  expect_equal(result$n_warning_replicates, rep(0L, 4L))
+  expect_equal(result$smoke_status, rep("smoke_passed_fixture_only", 4L))
+  expect_equal(
+    result$review_decision,
+    rep("fisher_rose_review_pending_no_promotion", 4L)
+  )
+  expect_equal(result$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(result$host_class, rep("local_rehearsal", 4L))
+  structured_re_expect_all_match(
+    result$artifact_dir,
+    "2026-06-29-gaussian-lowq-mu-intercept-smoke-local"
+  )
+  structured_re_expect_all_match(
+    result$evidence_url,
+    "2026-06-29-gaussian-lowq-mu-intercept-smoke-local"
+  )
+
+  for (phrase in c(
+    "n=5 fixture smoke artifact only",
+    "promotes exactly no Q-Series row",
+    "n=5 is smoke, not coverage evidence",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "direct-SD",
+    "phylo_interaction",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "Nibi/Rorqual/DRAC",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(result$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Rose must review the n=5 smoke artifacts",
+    "Nibi/Rorqual/DRAC denominator work",
+    "linked support cells remain point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(result$next_gate, phrase)
+  }
+
+  q_rows <- qseries[match(result$cell_id, qseries$cell_id), ]
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, .expected_interval(q_rows$cell_id))
+  expect_equal(q_rows$coverage_status, .expected_coverage(q_rows$cell_id))
+  expect_equal(q_rows$structure_provider, result$provider)
+
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-mu-intercept-smoke-local",
+      "structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(artifact, result)
+
+  replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-mu-intercept-smoke-local",
+      "structured-re-gaussian-lowq-mu-intercept-smoke-results-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(replicates), 20L)
+  expect_true(all(table(replicates$provider) == 5L))
+  expect_true(all(replicates$fit_ok))
+  expect_true(all(replicates$converged))
+  expect_true(all(replicates$pdHess))
+  expect_true(all(replicates$confint_ok))
+  expect_true(all(replicates$conf_status == "wald"))
+  expect_true(all(replicates$usable_interval))
+  expect_true(all(replicates$covered))
+  expect_true(all(is.finite(replicates$estimate)))
+  expect_true(all(is.finite(replicates$conf.low)))
+  expect_true(all(is.finite(replicates$conf.high)))
+  expect_true(all(replicates$warning_count == 0L))
+  expect_equal(unique(replicates$host_class), "local_rehearsal")
+
+  seed_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-gaussian-lowq-mu-intercept-smoke-local",
+      "structured-re-gaussian-lowq-mu-intercept-smoke-results-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(seed_manifest), 20L)
+  expect_equal(
+    unique(seed_manifest$seed_role),
+    "gaussian_lowq_mu_intercept_smoke"
+  )
+  expect_equal(unique(seed_manifest$execution_status), "executed")
+  expect_equal(unique(seed_manifest$host_class), "local_rehearsal")
+})
+
+test_that("Gaussian low-q q1 mu intercept Nibi n5 smoke is substitute-host evidence only", {
+  result <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "dashboard",
+      "structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_equal(nrow(result), 4L)
+  expect_equal(unique(result$host_class), "nibi_rorqual_contract_smoke")
+  expect_equal(unique(result$host_name), "l5.nibi.sharcnet")
+  expect_equal(unique(result$n_rep), 5L)
+  expect_true(all(result$n_fit_ok == 5L))
+  expect_true(all(result$n_converged == 5L))
+  expect_true(all(result$n_pdhess == 5L))
+  expect_true(all(result$n_confint_ok == 5L))
+  expect_true(all(result$n_usable_intervals == 5L))
+  expect_true(all(result$n_warning_replicates == 0L))
+  expect_equal(unique(result$smoke_status), "smoke_passed_fixture_only")
+  expect_equal(unique(result$promotion_decision), "do_not_promote")
+  for (phrase in c(
+    "structured-re-q-series-smoke-substitution-contract.tsv",
+    "n=5 is smoke, not coverage evidence",
+    "inference_ready",
+    "supported",
+    "Nibi/Rorqual/DRAC denominator"
+  )) {
+    structured_re_expect_all_match(
+      paste(result$claim_boundary, result$next_gate),
+      phrase
+    )
+  }
+
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi",
+      "structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  local_artifact_dir <- paste(
+    "docs/dev-log/simulation-artifacts",
+    "2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi",
+    sep = "/"
+  )
+  artifact$artifact_dir <- local_artifact_dir
+  artifact$evidence_url <- local_artifact_dir
+  artifact$review_decision <- result$review_decision
+  artifact$next_gate <- result$next_gate
+  expect_equal(artifact, result)
+
+  replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi",
+      "structured-re-gaussian-lowq-mu-intercept-smoke-results-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(replicates), 20L)
+  expect_true(all(table(replicates$provider) == 5L))
+  expect_true(all(replicates$fit_ok))
+  expect_true(all(replicates$converged))
+  expect_true(all(replicates$pdHess))
+  expect_true(all(replicates$confint_ok))
+  expect_true(all(replicates$usable_interval))
+  expect_true(all(replicates$covered))
+  expect_true(all(replicates$warning_count == 0L))
+  expect_equal(unique(replicates$host_class), "nibi_rorqual_contract_smoke")
+  expect_equal(unique(replicates$host_name), "l5.nibi.sharcnet")
+
+  seed_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi",
+      "structured-re-gaussian-lowq-mu-intercept-smoke-results-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(seed_manifest), 20L)
+  expect_equal(
+    unique(seed_manifest$seed_role),
+    "gaussian_lowq_mu_intercept_smoke"
+  )
+  expect_equal(unique(seed_manifest$execution_status), "executed")
+  expect_equal(unique(seed_manifest$host_class), "nibi_rorqual_contract_smoke")
+  expect_equal(unique(seed_manifest$host_name), "l5.nibi.sharcnet")
+  expect_equal(
+    unique(seed_manifest$source_substitution_contract),
+    "docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv"
+  )
+  expect_equal(
+    unique(seed_manifest$source_substitution_contract_id),
+    "qseries_smoke_substitution_q1_mu_intercept"
+  )
+})
+
+test_that("Gaussian low-q q1 mu retained-denominator contract is review-only", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv"
+  )
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-pregrid-dispatch.tsv"
+  )
+  pregrid <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv"
+  )
+  topup_dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv"
+  )
+  sr475 <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv"
+  )
+  row_selection <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-row-selection.tsv"
+  )
+  smoke_contract <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv"
+  )
+  nibi_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "cell_id",
+      "provider",
+      "source_row_selection_id",
+      "source_smoke_contract_id",
+      "source_nibi_smoke_id",
+      "formula_cell",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "interval_channel",
+      "denominator_policy",
+      "pregrid_n_rep",
+      "mcse_threshold",
+      "one_sided_miss_policy",
+      "allowed_hosts",
+      "blocked_hosts",
+      "required_artifacts",
+      "stop_rule",
+      "contract_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  providers <- c("phylo", "spatial", "animal", "relmat")
+  cell_ids <- c(
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_spatial_q1_mu_intercept",
+    "qseries_animal_q1_mu_intercept",
+    "qseries_relmat_q1_mu_intercept"
+  )
+  expect_equal(nrow(contract), 4L)
+  expect_equal(contract$provider, providers)
+  expect_equal(contract$cell_id, cell_ids)
+  expect_equal(
+    contract$contract_id,
+    paste0("gaussian_lowq_mu_intercept_retained_denominator_", providers)
+  )
+  expected_row_selection_id <- row_selection$selection_id[
+    match(contract$cell_id, row_selection$cell_id)
+  ]
+  promoted <- contract$cell_id %in%
+    c(
+      "qseries_phylo_q1_mu_intercept",
+      "qseries_spatial_q1_mu_intercept",
+      "qseries_relmat_q1_mu_intercept"
+    )
+  expected_row_selection_id[promoted] <- paste0(
+    "gaussian_lowq_row_selection_",
+    contract$cell_id[promoted]
+  )
+  expect_equal(contract$source_row_selection_id, expected_row_selection_id)
+  expect_false(any(row_selection$cell_id %in% contract$cell_id[promoted]))
+  expect_equal(
+    contract$source_smoke_contract_id,
+    smoke_contract$contract_id[match(contract$cell_id, smoke_contract$cell_id)]
+  )
+  expect_equal(
+    contract$source_nibi_smoke_id,
+    nibi_smoke$smoke_id[match(contract$cell_id, nibi_smoke$cell_id)]
+  )
+
+  q_rows <- qseries[match(contract$cell_id, qseries$cell_id), ]
+  expect_equal(contract$formula_cell, q_rows$formula_cell)
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, .expected_interval(q_rows$cell_id))
+  expect_equal(q_rows$coverage_status, .expected_coverage(q_rows$cell_id))
+  expect_equal(q_rows$structure_provider, contract$provider)
+
+  expect_equal(contract$target_kind, rep("direct_sd", 4L))
+  expect_equal(contract$endpoint_member, rep("mu:(Intercept)", 4L))
+  expect_equal(contract$estimand, rep("sd_mu_intercept", 4L))
+  expect_equal(
+    contract$profile_target,
+    c(
+      "sd:mu:phylo(1 | species)",
+      "sd:mu:spatial(1 | site)",
+      "sd:mu:animal(1 | id)",
+      "sd:mu:relmat(1 | id)"
+    )
+  )
+  expect_equal(contract$pregrid_n_rep, rep(150L, 4L))
+  expect_equal(contract$mcse_threshold, rep(0.01, 4L))
+  expect_equal(
+    contract$contract_status,
+    rep("fisher_rose_grace_reviewed_sr150_pregrid_ready", 4L)
+  )
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(
+    contract$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-30-q-series-q1-mu-retained-denominator-contract.md"
+      ),
+      4L
+    )
+  )
+
+  for (phrase in c(
+    "default_confint_wald_direct_sd_mu_bias_t",
+    "endpoint_profile_diagnostic",
+    "bootstrap_not_primary"
+  )) {
+    structured_re_expect_all_match(contract$interval_channel, phrase)
+  }
+  for (phrase in c(
+    "all_attempted_replicates_retained",
+    "failed_fit_convergence_pdHess_nonfinite_interval_warning_rows_retained",
+    "finite_denominator_reported",
+    "fixture_not_coverage"
+  )) {
+    structured_re_expect_all_match(contract$denominator_policy, phrase)
+  }
+  for (phrase in c(
+    "lower and upper misses",
+    "upper:lower ratio",
+    "no inference_ready",
+    "miss imbalance"
+  )) {
+    structured_re_expect_all_match(contract$one_sided_miss_policy, phrase)
+  }
+  for (phrase in c(
+    "Nibi primary",
+    "Rorqual confirmation",
+    "Fisher/Rose/Grace acceptance",
+    "local artifact replay",
+    "Totoro/FIIA optional confirmation smoke"
+  )) {
+    structured_re_expect_all_match(contract$allowed_hosts, phrase)
+  }
+  for (phrase in c(
+    "omits the 2026-06-30 Fisher/Rose/Grace review record",
+    "mixing hosts",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support",
+    "supported claims"
+  )) {
+    structured_re_expect_all_match(contract$blocked_hosts, phrase)
+  }
+  for (phrase in c(
+    "raw_replicate_tsv",
+    "summary_tsv",
+    "seed_manifest",
+    "run_log",
+    "sessionInfo.txt",
+    "git-sha.txt",
+    "module-list.txt",
+    "scheduler_stdout_stderr",
+    "exact_command_lines",
+    "check_log",
+    "after_task",
+    "mission_control"
+  )) {
+    structured_re_expect_all_match(contract$required_artifacts, phrase)
+  }
+  for (phrase in c(
+    "candidate set changes",
+    "point_fit/planned/planned",
+    "bias+t default",
+    "dropped from the denominator",
+    "fit/convergence/pdHess/nonfinite interval/warning rows",
+    "MCSE remains above 0.01",
+    "one-sided misses",
+    "inference_ready/supported/public-support"
+  )) {
+    structured_re_expect_all_match(contract$stop_rule, phrase)
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "retained-denominator pregrid contract",
+    "q1 mu-intercept direct-SD location-axis target only",
+    "reviewed Nibi n=5 smoke is fixture evidence",
+    "not coverage",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(contract$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Rose/Grace accepted this contract",
+    "SR150 retained-denominator pregrid",
+    "one primary DRAC host",
+    "pinned threads",
+    "raw artifacts",
+    "one-sided misses",
+    "finite denominator",
+    "no status promotion",
+    "MCSE <= 0.01 is a top-up target",
+    "not an SR150 pass claim",
+    "top up to SR475 or SR1000",
+    "MCSE and miss balance"
+  )) {
+    structured_re_expect_all_match(contract$next_gate, phrase)
+  }
+
+  expect_named(
+    dispatch,
+    c(
+      "dispatch_id",
+      "cell_id",
+      "provider",
+      "source_contract_id",
+      "contract_status",
+      "slurm_job_id",
+      "host",
+      "run_root",
+      "artifact_dir",
+      "submit_status",
+      "submitted_at",
+      "n_rep",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(dispatch), 4L)
+  expect_equal(dispatch$provider, providers)
+  expect_equal(dispatch$cell_id, cell_ids)
+  expect_equal(
+    dispatch$dispatch_id,
+    paste0("gaussian_lowq_mu_intercept_pregrid_dispatch_", providers)
+  )
+  expect_equal(dispatch$source_contract_id, contract$contract_id)
+  expect_equal(
+    dispatch$contract_status,
+    rep("fisher_rose_grace_reviewed_sr150_pregrid_ready", 4L)
+  )
+  expect_equal(dispatch$slurm_job_id, rep(16977254L, 4L))
+  expect_equal(dispatch$host, rep("Nibi", 4L))
+  expect_equal(
+    dispatch$submit_status,
+    rep("completed_imported_review_pending", 4L)
+  )
+  expect_equal(dispatch$n_rep, rep(150L, 4L))
+  expect_equal(dispatch$promotion_decision, rep("do_not_promote", 4L))
+  structured_re_expect_all_match(
+    dispatch$run_root,
+    "20260630-q1-mu-sr150-77b634ed-r162"
+  )
+  structured_re_expect_all_match(
+    dispatch$artifact_dir,
+    "q1-mu-intercept-sr150-pregrid"
+  )
+  structured_re_expect_all_match(
+    dispatch$evidence_url,
+    paste0(
+      "docs/dev-log/after-task/",
+      "2026-06-30-q-series-q1-mu-pregrid-nibi-dispatch.md"
+    )
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "artifact-only SR150 retained-denominator pregrid dispatch",
+    "not reviewed coverage evidence",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(dispatch$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Previous job 16976756 failed before simulation",
+    "job 16977254 completed",
+    "artifacts were imported",
+    "docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-pregrid-nibi",
+    "Fisher/Rose/Grace",
+    "finite denominator",
+    "one-sided misses",
+    "MCSE",
+    "failure taxonomy",
+    "before any status edit"
+  )) {
+    structured_re_expect_all_match(dispatch$next_gate, phrase)
+  }
+
+  expect_named(
+    topup_dispatch,
+    c(
+      "dispatch_id",
+      "cell_id",
+      "provider",
+      "source_contract_id",
+      "contract_status",
+      "slurm_job_id",
+      "array_task",
+      "host",
+      "run_root",
+      "artifact_dir",
+      "submit_status",
+      "submitted_at",
+      "n_rep",
+      "seed_start",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(topup_dispatch), 4L)
+  expect_equal(topup_dispatch$provider, providers)
+  expect_equal(topup_dispatch$cell_id, cell_ids)
+  expect_equal(
+    topup_dispatch$dispatch_id,
+    paste0("gaussian_lowq_mu_intercept_topup_dispatch_", providers)
+  )
+  expect_equal(topup_dispatch$source_contract_id, contract$contract_id)
+  expect_equal(
+    topup_dispatch$contract_status,
+    rep("fisher_rose_grace_reviewed_sr150_pregrid_ready", 4L)
+  )
+  expect_equal(
+    topup_dispatch$slurm_job_id,
+    c(16978889L, 16978889L, 16978889L, 16979505L)
+  )
+  expect_equal(topup_dispatch$array_task, 1:4)
+  expect_equal(topup_dispatch$host, rep("Nibi", 4L))
+  expect_equal(
+    topup_dispatch$submit_status,
+    c(
+      rep("completed_imported_review_pending", 3L),
+      "retry_completed_imported_review_pending"
+    )
+  )
+  expect_equal(topup_dispatch$n_rep, rep(325L, 4L))
+  expect_equal(topup_dispatch$seed_start, rep(151L, 4L))
+  expect_equal(topup_dispatch$promotion_decision, rep("do_not_promote", 4L))
+  structured_re_expect_all_match(
+    topup_dispatch$run_root,
+    "20260630-q1-mu-sr475-topup-77b634ed-r163"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$artifact_dir,
+    "q1-mu-intercept-topup-sr475"
+  )
+  expected_shard_tokens <- paste0(
+    "shard_",
+    seq_along(providers),
+    "_",
+    providers
+  )
+  expect_true(all(mapply(
+    grepl,
+    expected_shard_tokens,
+    topup_dispatch$artifact_dir,
+    MoreArgs = list(fixed = TRUE)
+  )))
+  structured_re_expect_all_match(
+    topup_dispatch$evidence_url,
+    paste0(
+      "docs/dev-log/after-task/",
+      "2026-06-30-q-series-q1-mu-topup-parallel-route.md"
+    )
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "artifact-only SR475 top-up dispatch",
+    "not reviewed coverage evidence",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(topup_dispatch$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "dirty source snapshot",
+    "structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv",
+    "Fisher/Rose/Grace",
+    "retained denominator",
+    "one-sided misses",
+    "coverage MCSE",
+    "failure taxonomy",
+    "before any status edit"
+  )) {
+    structured_re_expect_all_match(topup_dispatch$next_gate, phrase)
+  }
+  structured_re_expect_all_match(
+    topup_dispatch$next_gate[topup_dispatch$provider != "relmat"],
+    "Array job 16978889"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$next_gate[topup_dispatch$provider == "relmat"],
+    "Original relmat task 16978889_4 failed before the R runner"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$next_gate[topup_dispatch$provider == "relmat"],
+    "CVMFS R INSTALL input/output error"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$next_gate[topup_dispatch$provider == "relmat"],
+    "retry job 16979505"
+  )
+
+  expect_named(
+    sr475,
+    c(
+      "sr475_id",
+      "cell_id",
+      "provider",
+      "source_pregrid",
+      "source_topup_dispatch",
+      "artifact_dir",
+      "replicate_artifact",
+      "n_rep",
+      "n_pregrid",
+      "n_topup",
+      "seed_min",
+      "seed_max",
+      "n_fit_ok",
+      "fit_ok_rate",
+      "n_converged",
+      "convergence_rate",
+      "n_pdhess",
+      "pdhess_rate",
+      "n_confint_ok",
+      "confint_ok_rate",
+      "n_usable_intervals",
+      "finite_interval_rate",
+      "n_covered",
+      "coverage",
+      "coverage_mcse",
+      "lower_miss",
+      "upper_miss",
+      "lower_miss_rate",
+      "upper_miss_rate",
+      "upper_lower_miss_ratio",
+      "one_sided_miss_signal",
+      "n_warning_replicates",
+      "n_retained_denominator",
+      "slurm_job_ids",
+      "review_signal",
+      "review_decision",
+      "promotion_decision",
+      "linked_fit_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(sr475), 4L)
+  expect_equal(sr475$provider, providers)
+  expect_equal(sr475$cell_id, cell_ids)
+  expect_equal(
+    sr475$sr475_id,
+    paste0("gaussian_lowq_mu_intercept_sr475_", providers)
+  )
+  expect_equal(
+    sr475$source_pregrid,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    sr475$source_topup_dispatch,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    sr475$artifact_dir,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-30-gaussian-lowq-mu-intercept-topup-nibi"
+      ),
+      4L
+    )
+  )
+  expect_equal(sr475$n_rep, rep(475L, 4L))
+  expect_equal(sr475$n_pregrid, rep(150L, 4L))
+  expect_equal(sr475$n_topup, rep(325L, 4L))
+  expect_equal(sr475$seed_min, rep(812001L, 4L))
+  expect_equal(sr475$seed_max, rep(812475L, 4L))
+  expect_equal(sr475$n_fit_ok, rep(475L, 4L))
+  expect_equal(sr475$fit_ok_rate, rep(1, 4L))
+  expect_equal(sr475$n_converged, rep(475L, 4L))
+  expect_equal(sr475$convergence_rate, rep(1, 4L))
+  expect_equal(sr475$n_pdhess, rep(475L, 4L))
+  expect_equal(sr475$pdhess_rate, rep(1, 4L))
+  expect_equal(sr475$n_confint_ok, rep(475L, 4L))
+  expect_equal(sr475$confint_ok_rate, rep(1, 4L))
+  expect_equal(sr475$n_usable_intervals, c(475L, 475L, 473L, 475L))
+  expect_equal(sr475$finite_interval_rate, c(1, 1, 0.9958, 1))
+  expect_equal(sr475$n_covered, c(467L, 461L, 463L, 465L))
+  expect_equal(sr475$coverage, c(0.9832, 0.9705, 0.9747, 0.9789))
+  expect_equal(sr475$coverage_mcse, c(0.005904, 0.00776, 0.0072, 0.006587))
+  expect_true(all(sr475$coverage_mcse <= 0.01))
+  expect_equal(sr475$lower_miss, c(4L, 4L, 6L, 3L))
+  expect_equal(sr475$upper_miss, c(4L, 10L, 4L, 7L))
+  expect_equal(sr475$lower_miss_rate, c(0.0084, 0.0084, 0.0126, 0.0063))
+  expect_equal(sr475$upper_miss_rate, c(0.0084, 0.0211, 0.0084, 0.0147))
+  expect_equal(sr475$upper_lower_miss_ratio, c(1, 2.5, 0.6667, 2.3333))
+  expect_equal(sr475$n_warning_replicates, c(0L, 0L, 2L, 0L))
+  expect_equal(sr475$n_retained_denominator, rep(475L, 4L))
+  expect_equal(
+    sr475$slurm_job_ids,
+    c(
+      "16977254,16978889",
+      "16977254,16978889",
+      "16977254,16978889",
+      "16977254,16979505"
+    )
+  )
+  expect_equal(
+    sr475$review_signal,
+    c(
+      "sr475_mcse_met_review_pending",
+      "sr475_mcse_met_review_pending",
+      "sr475_review_required_possible_topup_or_blocker",
+      "sr475_mcse_met_review_pending"
+    )
+  )
+  expect_equal(
+    sr475$review_decision,
+    rep("fisher_rose_grace_sr475_review_required_no_promotion", 4L)
+  )
+  expect_equal(sr475$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(sr475$linked_fit_status, rep("point_fit", 4L))
+  expect_equal(sr475$linked_interval_status, rep("planned", 4L))
+  expect_equal(sr475$linked_coverage_status, rep("planned", 4L))
+  expect_equal(
+    sr475$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-30-q-series-q1-mu-sr475-aggregate.md"
+      ),
+      4L
+    )
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "SR475 retained-denominator aggregate only",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(sr475$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Rose/Grace",
+    "retained denominator",
+    "convergence",
+    "pdHess",
+    "finite intervals",
+    "warning ledger",
+    "lower/upper misses",
+    "coverage MCSE",
+    "failure taxonomy",
+    "blocked neighbours",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(sr475$next_gate, phrase)
+  }
+  expect_match(
+    sr475$review_signal[sr475$provider == "animal"],
+    "possible_topup_or_blocker"
+  )
+
+  expect_named(
+    pregrid,
+    c(
+      "pregrid_id",
+      "cell_id",
+      "provider",
+      "source_row_selection",
+      "artifact_dir",
+      "n_rep",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_confint_ok",
+      "n_usable_intervals",
+      "finite_interval_rate",
+      "n_covered",
+      "coverage",
+      "coverage_mcse",
+      "lower_miss",
+      "upper_miss",
+      "lower_miss_rate",
+      "upper_miss_rate",
+      "upper_lower_miss_ratio",
+      "pregrid_status",
+      "review_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate",
+      "source_contract_id",
+      "source_contract",
+      "host_class",
+      "host_name",
+      "n_warning_replicates",
+      "n_retained_denominator",
+      "slurm_job_id",
+      "run_root",
+      "source_dispatch_id",
+      "artifact_status"
+    )
+  )
+  expect_equal(nrow(pregrid), 4L)
+  expect_equal(pregrid$provider, providers)
+  expect_equal(pregrid$cell_id, cell_ids)
+  expect_equal(
+    pregrid$pregrid_id,
+    paste0("gaussian_lowq_mu_intercept_pregrid_", providers)
+  )
+  expect_equal(pregrid$source_contract_id, contract$contract_id)
+  expect_equal(pregrid$source_dispatch_id, dispatch$dispatch_id)
+  expect_equal(
+    pregrid$source_row_selection,
+    rep(
+      "docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv",
+      4L
+    )
+  )
+  expect_equal(
+    pregrid$artifact_dir,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-30-gaussian-lowq-mu-intercept-pregrid-nibi"
+      ),
+      4L
+    )
+  )
+  expect_equal(pregrid$evidence_url, pregrid$artifact_dir)
+  expect_equal(pregrid$n_rep, rep(150L, 4L))
+  expect_equal(pregrid$n_fit_ok, rep(150L, 4L))
+  expect_equal(pregrid$n_converged, rep(150L, 4L))
+  expect_equal(pregrid$n_pdhess, rep(150L, 4L))
+  expect_equal(pregrid$n_confint_ok, rep(150L, 4L))
+  expect_equal(pregrid$n_usable_intervals, rep(150L, 4L))
+  expect_equal(pregrid$n_retained_denominator, rep(150L, 4L))
+  expect_equal(pregrid$finite_interval_rate, rep(1, 4L))
+  expect_equal(pregrid$n_warning_replicates, rep(0L, 4L))
+  expect_equal(pregrid$n_covered, c(147L, 146L, 147L, 147L))
+  expect_equal(pregrid$coverage, c(0.98, 0.9733, 0.98, 0.98))
+  expect_equal(pregrid$coverage_mcse, c(0.011431, 0.013154, 0.011431, 0.011431))
+  expect_true(all(pregrid$coverage_mcse > 0.01))
+  expect_equal(pregrid$lower_miss, c(2L, 2L, 2L, 1L))
+  expect_equal(pregrid$upper_miss, c(1L, 2L, 1L, 2L))
+  expect_equal(pregrid$lower_miss_rate, c(0.0133, 0.0133, 0.0133, 0.0067))
+  expect_equal(pregrid$upper_miss_rate, c(0.0067, 0.0133, 0.0067, 0.0133))
+  expect_equal(pregrid$upper_lower_miss_ratio, c(0.5, 1, 0.5, 2))
+  expect_equal(
+    pregrid$pregrid_status,
+    rep("sr150_pregrid_completed_review_pending", 4L)
+  )
+  expect_equal(
+    pregrid$review_decision,
+    rep("fisher_rose_grace_evidence_review_required_no_promotion", 4L)
+  )
+  expect_equal(pregrid$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(pregrid$host_class, rep("nibi_retained_denominator_pregrid", 4L))
+  expect_equal(pregrid$host_name, rep("c321", 4L))
+  expect_equal(pregrid$slurm_job_id, rep(16977254L, 4L))
+  expect_equal(
+    pregrid$artifact_status,
+    rep("completed_imported_review_pending", 4L)
+  )
+  structured_re_expect_all_match(
+    pregrid$run_root,
+    "20260630-q1-mu-sr150-77b634ed-r162"
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "imported for Fisher/Rose/Grace review only",
+    "MCSE <= 0.01 is a top-up target",
+    "not an SR150 pass claim",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(pregrid$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Fisher/Rose/Grace",
+    "retained denominator",
+    "convergence",
+    "pdHess",
+    "finite intervals",
+    "warnings",
+    "lower/upper misses",
+    "coverage MCSE",
+    "failure taxonomy",
+    "SR475/SR1000 top-up",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(pregrid$next_gate, phrase)
+  }
+
+  artifact_dir <- structured_re_artifact_path(
+    "docs",
+    "dev-log",
+    "simulation-artifacts",
+    "2026-06-30-gaussian-lowq-mu-intercept-pregrid-nibi"
+  )
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv"
+  )))
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "structured-re-gaussian-lowq-mu-intercept-pregrid-results-replicates.tsv"
+  )))
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "structured-re-gaussian-lowq-mu-intercept-pregrid-results-seed-manifest.tsv"
+  )))
+  expect_true(file.exists(file.path(artifact_dir, "sessionInfo.txt")))
+  expect_true(file.exists(file.path(artifact_dir, "git-sha.txt")))
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "metadata",
+    "module-list.txt"
+  )))
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "metadata",
+    "exact-command.txt"
+  )))
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "metadata",
+    "run-status.txt"
+  )))
+  expect_true(file.exists(file.path(
+    artifact_dir,
+    "metadata",
+    "q1-mu-intercept-pregrid-run-log.txt"
+  )))
+
+  replicate_rows <- utils::read.delim(
+    file.path(
+      artifact_dir,
+      "structured-re-gaussian-lowq-mu-intercept-pregrid-results-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  seed_manifest <- utils::read.delim(
+    file.path(
+      artifact_dir,
+      "structured-re-gaussian-lowq-mu-intercept-pregrid-results-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(replicate_rows), 600L)
+  expect_equal(nrow(seed_manifest), 600L)
+  expect_equal(sort(unique(replicate_rows$provider)), sort(providers))
+  expect_true(all(replicate_rows$fit_ok))
+  expect_true(all(replicate_rows$converged))
+  expect_true(all(replicate_rows$pdHess))
+  expect_true(all(replicate_rows$confint_ok))
+  expect_true(all(replicate_rows$usable_interval))
+  expect_true(all(replicate_rows$warning_count == 0L))
+  expect_equal(unique(seed_manifest$execution_status), "executed")
+  expect_equal(
+    unique(seed_manifest$host_class),
+    "nibi_retained_denominator_pregrid"
+  )
+
+  topup_artifact_dir <- structured_re_artifact_path(
+    "docs",
+    "dev-log",
+    "simulation-artifacts",
+    "2026-06-30-gaussian-lowq-mu-intercept-topup-nibi"
+  )
+  topup_source_label <- "77b634ed-dirty-q1-mu-topup-r163"
+  topup_hosts <- c("c470", "c472", "c472", "c423")
+  topup_job_ids <- c("16978889", "16978889", "16978889", "16979505")
+  for (i in seq_along(providers)) {
+    provider <- providers[[i]]
+    shard <- paste0("shard_", i, "_", provider)
+    metadata_dir <- file.path(topup_artifact_dir, "metadata", shard)
+    result_dir <- file.path(topup_artifact_dir, "results", shard)
+    log_dir <- file.path(topup_artifact_dir, "logs", shard)
+    expected_files <- c(
+      file.path(metadata_dir, "exact-command.txt"),
+      file.path(metadata_dir, "git-sha.txt"),
+      file.path(metadata_dir, "host.txt"),
+      file.path(metadata_dir, "module-list.txt"),
+      file.path(metadata_dir, "q1-mu-intercept-topup-run-log.txt"),
+      file.path(metadata_dir, "run-status.txt"),
+      file.path(metadata_dir, "sessionInfo.txt"),
+      file.path(metadata_dir, "source-provenance.txt"),
+      file.path(metadata_dir, "source-sha256-manifest.txt"),
+      file.path(result_dir, "git-sha.txt"),
+      file.path(result_dir, "sessionInfo.txt"),
+      file.path(
+        result_dir,
+        "structured-re-gaussian-lowq-mu-intercept-topup-results.tsv"
+      ),
+      file.path(
+        result_dir,
+        "structured-re-gaussian-lowq-mu-intercept-topup-results-replicates.tsv"
+      ),
+      file.path(
+        result_dir,
+        "structured-re-gaussian-lowq-mu-intercept-topup-results-seed-manifest.tsv"
+      ),
+      file.path(log_dir, "install-rlang.stderr"),
+      file.path(log_dir, "install-rlang.stdout"),
+      file.path(log_dir, "q1-mu-intercept-topup.stderr"),
+      file.path(log_dir, "q1-mu-intercept-topup.stdout"),
+      file.path(log_dir, "r-cmd-install.stderr"),
+      file.path(log_dir, "r-cmd-install.stdout")
+    )
+    expect_true(all(file.exists(expected_files)))
+    expect_equal(
+      readLines(file.path(metadata_dir, "git-sha.txt"), warn = FALSE),
+      topup_source_label
+    )
+    expect_equal(
+      readLines(file.path(result_dir, "git-sha.txt"), warn = FALSE),
+      topup_source_label
+    )
+    expect_equal(
+      readLines(file.path(metadata_dir, "host.txt"), warn = FALSE),
+      topup_hosts[[i]]
+    )
+    expect_equal(
+      readLines(file.path(metadata_dir, "source-provenance.txt"), warn = FALSE),
+      "slurm_source_snapshot"
+    )
+    run_log <- readLines(
+      file.path(metadata_dir, "q1-mu-intercept-topup-run-log.txt"),
+      warn = FALSE
+    )
+    for (phrase in c(
+      paste0("array_task=", i),
+      paste0("provider=", provider),
+      "slurm_cluster_name=nibi",
+      paste0("git_sha=", topup_source_label),
+      "n_rep=325",
+      "seed_start=151",
+      "promotion_decision=do_not_promote",
+      "runner_exit_code=0"
+    )) {
+      expect_true(any(grepl(phrase, run_log, fixed = TRUE)))
+    }
+    if (provider == "relmat") {
+      expect_true(any(grepl("job=16979505", run_log, fixed = TRUE)))
+    } else {
+      expect_true(any(grepl(
+        paste0("array_job=", topup_job_ids[[i]]),
+        run_log,
+        fixed = TRUE
+      )))
+    }
+    command <- readLines(
+      file.path(metadata_dir, "exact-command.txt"),
+      warn = FALSE
+    )
+    for (phrase in c(
+      "R_PROFILE_USER=/dev/null",
+      "NOT_CRAN=true",
+      "Rscript --no-init-file",
+      "--n-rep=325",
+      "--seed-start=151",
+      paste0("--providers=", provider),
+      "nibi_retained_denominator_topup",
+      "--write-dashboard=false"
+    )) {
+      expect_true(any(grepl(phrase, command, fixed = TRUE)))
+    }
+    module_list <- readLines(
+      file.path(metadata_dir, "module-list.txt"),
+      warn = FALSE
+    )
+    for (phrase in c("StdEnv/2023", "gcc/12.3", "r/4.4.0")) {
+      expect_true(any(grepl(phrase, module_list, fixed = TRUE)))
+    }
+    run_status <- readLines(
+      file.path(metadata_dir, "run-status.txt"),
+      warn = FALSE
+    )
+    expect_true(any(grepl(
+      paste0("completed for ", provider),
+      run_status,
+      fixed = TRUE
+    )))
+    source_manifest <- readLines(
+      file.path(metadata_dir, "source-sha256-manifest.txt"),
+      warn = FALSE
+    )
+    expect_gt(length(source_manifest), 100L)
+    expect_true(any(grepl(
+      "tools/run-structured-re-gaussian-lowq-mu-intercept-topup.R",
+      source_manifest,
+      fixed = TRUE
+    )))
+  }
+  sr475_replicate_path <- file.path(
+    topup_artifact_dir,
+    "structured-re-gaussian-lowq-mu-intercept-sr475-results-replicates.tsv"
+  )
+  expect_true(file.exists(sr475_replicate_path))
+  sr475_replicates <- utils::read.delim(
+    sr475_replicate_path,
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(sr475_replicates), 1900L)
+  expect_equal(
+    as.integer(table(sr475_replicates$provider)[providers]),
+    rep(475L, 4L)
+  )
+  expect_equal(
+    as.integer(tapply(
+      sr475_replicates$usable_interval,
+      sr475_replicates$provider,
+      sum
+    )[providers]),
+    c(475L, 475L, 473L, 475L)
+  )
+})
+
+test_that("Gaussian low-q q1 mu intercept smoke and pregrid runners are contract-bound", {
+  dry_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-gaussian-lowq-mu-intercept-dry-run.R"
+  )
+  smoke_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-gaussian-lowq-mu-intercept-smoke.R"
+  )
+  pregrid_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-gaussian-lowq-mu-intercept-pregrid.R"
+  )
+  topup_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-gaussian-lowq-mu-intercept-topup.R"
+  )
+  pregrid_slurm <- structured_re_artifact_path(
+    "tools",
+    "slurm",
+    "q1-mu-intercept-pregrid-nibi.sbatch"
+  )
+  topup_slurm <- structured_re_artifact_path(
+    "tools",
+    "slurm",
+    "q1-mu-intercept-topup-nibi.sbatch"
+  )
+
+  expect_no_error(parse(file = dry_runner))
+  expect_no_error(parse(file = smoke_runner))
+  expect_no_error(parse(file = pregrid_runner))
+  expect_no_error(parse(file = topup_runner))
+
+  dry_runner_lines <- readLines(dry_runner, warn = FALSE)
+  smoke_runner_lines <- readLines(smoke_runner, warn = FALSE)
+  pregrid_runner_lines <- readLines(pregrid_runner, warn = FALSE)
+  topup_runner_lines <- readLines(topup_runner, warn = FALSE)
+  pregrid_slurm_lines <- readLines(pregrid_slurm, warn = FALSE)
+  topup_slurm_lines <- readLines(topup_slurm, warn = FALSE)
+  for (phrase in c(
+    "--run-kind=smoke",
+    "--write-dashboard=false"
+  )) {
+    expect_true(any(grepl(phrase, smoke_runner_lines, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "--run-kind=pregrid",
+    "--n-rep=150",
+    "--write-dashboard=false"
+  )) {
+    expect_true(any(grepl(phrase, pregrid_runner_lines, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "--run-kind=topup",
+    "--n-rep=325",
+    "--seed-start=151",
+    "--write-dashboard=false"
+  )) {
+    expect_true(any(grepl(phrase, topup_runner_lines, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "first_smoke_candidate_location_intercept",
+    "local_smoke_completed_review_pending",
+    "nibi_rorqual_substitution_smoke_reviewed",
+    "Smoke mode is artifact-only",
+    "smoke_id",
+    "smoke-results",
+    "source_contract_id",
+    "structured-re-q-series-smoke-substitution-contract.tsv",
+    "qseries_smoke_substitution_q1_mu_intercept",
+    "Nibi/Rorqual substitute smoke must run the exact four q1 mu intercept targets",
+    "contract_bounded_n5_smoke_only",
+    "n=5 is smoke, not coverage evidence",
+    "fisher_rose_review_pending_no_promotion",
+    "point_fit/planned/planned"
+  )) {
+    expect_true(any(grepl(phrase, dry_runner_lines, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "run-kind` must be `dry_run`, `smoke`, `pregrid`, or `topup`",
+    "Pregrid mode is the reviewed SR150 retained-denominator design",
+    "Pregrid mode is artifact-only",
+    "Top-up mode is artifact-only",
+    "topup_id",
+    "topup-results",
+    "sr_topup_shard_completed_review_pending",
+    "fisher_rose_grace_aggregate_review_required_no_promotion",
+    "structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv",
+    "SR150 pregrid mode must run the exact four q1 mu intercept targets",
+    "fisher_rose_grace_reviewed_sr150_pregrid_ready",
+    "SR150 pregrid/top-up mode is allowed only on Nibi/Rorqual",
+    "all_attempted_replicates_retained",
+    "MCSE <= 0.01 is a top-up target",
+    "not an SR150 pass claim",
+    "sr150_pregrid_completed_review_pending",
+    "fisher_rose_grace_evidence_review_required_no_promotion",
+    "aggregate with the reviewed SR150",
+    "not a shard-level pass claim",
+    "lower_miss_rate",
+    "upper_lower_miss_ratio"
+  )) {
+    expect_true(any(grepl(phrase, dry_runner_lines, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "#SBATCH --account=def-snakagaw_cpu",
+    "q1-mu-intercept-sr150-pregrid",
+    "nibi_retained_denominator_pregrid",
+    "R_PROFILE_USER=/dev/null",
+    "Rscript --no-init-file",
+    "module-list.txt",
+    "sessionInfo.txt",
+    "git-sha.txt",
+    "exact-command.txt",
+    "source-sha256-manifest.txt",
+    "seff.txt",
+    "do_not_promote",
+    "MCSE <= 0.01 is a top-up target, not an SR150 pass claim"
+  )) {
+    expect_true(any(grepl(phrase, pregrid_slurm_lines, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "#SBATCH --array=1-4",
+    "q1-mu-intercept-topup-sr475",
+    "nibi_retained_denominator_topup",
+    "DRMTMB_TOPUP_N_REP",
+    "DRMTMB_TOPUP_SEED_START",
+    "R_PROFILE_USER=/dev/null",
+    "Rscript --no-init-file",
+    "module-list.txt",
+    "sessionInfo.txt",
+    "git-sha.txt",
+    "exact-command.txt",
+    "source-sha256-manifest.txt",
+    "seff.txt",
+    "promotion_decision=do_not_promote",
+    "MCSE <= 0.01 is a top-up target, not a shard-level pass claim",
+    "--write-dashboard=false"
+  )) {
+    expect_true(any(grepl(phrase, topup_slurm_lines, fixed = TRUE)))
+  }
+})
+
+test_that("q2 intercept smoke runner is contract-bound and artifact-only", {
+  runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-q2-intercept-smoke.R"
+  )
+
+  expect_no_error(parse(file = runner))
+
+  runner_lines <- readLines(runner, warn = FALSE)
+  for (phrase in c(
+    "structured-re-q2-intercept-interval-contract.tsv",
+    "--write-dashboard=false",
+    "bootstrap_off",
+    "Q2 intercept local smoke only",
+    "do_not_promote",
+    "Nibi/Rorqual/DRAC remain blocked"
+  )) {
+    expect_true(any(grepl(phrase, runner_lines, fixed = TRUE)))
+  }
+})
+
+test_that("Gaussian q1 mu blocker evidence propagates to support cells and low-q audit", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
+  )
+
+  blocked_ids <- c(
+    "qseries_phylo_q1_mu_one_slope",
+    "qseries_spatial_q1_mu_one_slope",
+    "qseries_animal_q1_mu_one_slope",
+    "qseries_relmat_q1_mu_one_slope"
+  )
+  q_rows <- qseries[match(blocked_ids, qseries$cell_id), ]
+  audit_rows <- lowq[match(blocked_ids, lowq$cell_id), ]
+  expect_equal(q_rows$cell_id, blocked_ids)
+  expect_equal(audit_rows$cell_id, blocked_ids)
+  expect_equal(q_rows$interval_status, rep("planned", 4L))
+  expect_equal(q_rows$coverage_status, rep("planned", 4L))
+  expect_equal(audit_rows$linked_interval_status, rep("planned", 4L))
+  expect_equal(audit_rows$linked_coverage_status, rep("planned", 4L))
+  expect_equal(audit_rows$promotion_decision, rep("do_not_promote", 4L))
+
+  shape_evidence <- "docs/dev-log/dashboard/structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv"
+  animal_evidence <- "docs/dev-log/dashboard/structured-re-gaussian-mu-slope-hybrid-boundary-audit.tsv"
+  expect_equal(
+    q_rows$evidence_url,
+    c(shape_evidence, shape_evidence, animal_evidence, shape_evidence)
+  )
+  expect_equal(q_rows$evidence_url, audit_rows$evidence_url)
+  combined <- paste(
+    q_rows$claim_boundary,
+    q_rows$next_gate,
+    audit_rows$evidence_basis,
+    audit_rows$inference_signal,
+    audit_rows$claim_boundary,
+    audit_rows$next_gate
+  )
+  structured_re_expect_all_match(combined, "Fisher/Rose")
+  structured_re_expect_all_match(combined, "DRAC")
+  structured_re_expect_all_match(combined, "TSV promotion")
+  expect_equal(
+    grepl("upper-tail", combined) | grepl("hard-blocked", combined),
+    rep(TRUE, length(combined))
+  )
+  structured_re_expect_all_match(combined, "inference_ready")
+  structured_re_expect_all_match(combined, "supported")
+})
+
+test_that("Gaussian q1 mu intercept SR475 evidence promotes exact rows and blocks animal", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
+  )
+  evidence_summary <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-inference-evidence-summary.tsv"
+  )
+  animal_boundary <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-mu-intercept-animal-boundary-profile.tsv"
+  )
+
+  cell_ids <- c(
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_spatial_q1_mu_intercept",
+    "qseries_animal_q1_mu_intercept",
+    "qseries_relmat_q1_mu_intercept"
+  )
+  promoted <- c(
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_spatial_q1_mu_intercept",
+    "qseries_relmat_q1_mu_intercept"
+  )
+  evidence <- "docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv"
+  animal_boundary_evidence <- "docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-animal-boundary-profile.tsv"
+  q_rows <- qseries[match(cell_ids, qseries$cell_id), ]
+  promoted_rows <- qseries[match(promoted, qseries$cell_id), ]
+  animal_row <- qseries[qseries$cell_id == "qseries_animal_q1_mu_intercept", ]
+  animal_audit <- lowq[lowq$cell_id == "qseries_animal_q1_mu_intercept", ]
+  promoted_summary <- evidence_summary[
+    match(promoted, evidence_summary$cell_id),
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(q_rows$cell_id, cell_ids)
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(promoted_rows$interval_status, rep("inference_ready", 3L))
+  expect_equal(promoted_rows$coverage_status, rep("inference_ready", 3L))
+  expect_equal(animal_row$interval_status, "planned")
+  expect_equal(animal_row$coverage_status, "planned")
+  expect_equal(
+    q_rows$evidence_url,
+    c(evidence, evidence, animal_boundary_evidence, evidence)
+  )
+  expect_false(any(lowq$cell_id %in% promoted))
+  expect_equal(animal_audit$cell_id, "qseries_animal_q1_mu_intercept")
+  expect_equal(animal_audit$linked_fit_status, "point_fit")
+  expect_equal(animal_audit$linked_interval_status, "planned")
+  expect_equal(animal_audit$linked_coverage_status, "planned")
+  expect_equal(animal_audit$promotion_decision, "do_not_promote")
+  expect_equal(animal_audit$evidence_url, animal_boundary_evidence)
+  expect_equal(nrow(animal_boundary), 1L)
+  expect_equal(animal_boundary$cell_id, "qseries_animal_q1_mu_intercept")
+  expect_equal(animal_boundary$sr475_usable_intervals, "473/475")
+  expect_equal(animal_boundary$wald_boundary_seeds, "812407;812444")
+  expect_equal(
+    animal_boundary$wald_statuses,
+    "wald_at_boundary;wald_at_boundary"
+  )
+  expect_equal(animal_boundary$endpoint_profile_finite, "2/2")
+  expect_equal(
+    sprintf("%.4f", animal_boundary$endpoint_profile_coverage),
+    "0.0000"
+  )
+  expect_equal(animal_boundary$endpoint_profile_misses, "lower=0;upper=2")
+  expect_equal(animal_boundary$tmbprofile_profile_finite, "0/2")
+  expect_equal(
+    animal_boundary$tmbprofile_decision,
+    "negative_fallback_nonfinite_interval"
+  )
+  expect_equal(
+    animal_boundary$route_status,
+    "animal_mu_boundary_profile_hard_seed_blocked"
+  )
+  expect_equal(
+    animal_boundary$review_decision,
+    "fisher_gauss_rose_boundary_profile_blocked_no_topup"
+  )
+  expect_equal(animal_boundary$promotion_decision, "do_not_promote")
+  expect_equal(promoted_summary$cell_id, promoted)
+  expect_equal(
+    promoted_summary$interval_channel,
+    rep("raw_default_wald_direct_sd", 3L)
+  )
+  expect_equal(
+    promoted_summary$promotion_status,
+    rep("inference_ready_with_caveats", 3L)
+  )
+  expect_equal(promoted_summary$evidence_url, rep(evidence, 3L))
+
+  promoted_text <- paste(
+    promoted_rows$claim_boundary,
+    promoted_rows$denominator_policy,
+    promoted_rows$next_gate,
+    promoted_summary$denominator_summary,
+    promoted_summary$finite_interval_summary,
+    promoted_summary$coverage_summary,
+    promoted_summary$miss_balance_summary,
+    promoted_summary$claim_boundary
+  )
+  for (phrase in c(
+    "Inference-ready with caveats",
+    "raw/default Wald direct-SD",
+    "Nibi SR475",
+    "475/475",
+    "fit, convergence, pdHess, confint",
+    "interval_status",
+    "coverage_status",
+    "not supported",
+    "not q1 sigma",
+    "not matched mu+sigma",
+    "not q2",
+    "not q4/q8",
+    "not non-Gaussian",
+    "not REML",
+    "not AI-REML",
+    "not broad bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(promoted_text, phrase)
+  }
+  structured_re_expect_all_match(promoted_text, "inference_ready")
+  expect_match(promoted_text[1L], "0.9832", fixed = TRUE)
+  expect_match(promoted_text[1L], "4/4", fixed = TRUE)
+  expect_match(promoted_text[2L], "0.9705", fixed = TRUE)
+  expect_match(promoted_text[2L], "4/10", fixed = TRUE)
+  expect_match(promoted_text[2L], "fixed-covariance spatial", fixed = TRUE)
+  expect_match(promoted_text[3L], "0.9789", fixed = TRUE)
+  expect_match(promoted_text[3L], "3/7", fixed = TRUE)
+  expect_match(promoted_text[3L], "K-matrix relmat", fixed = TRUE)
+
+  animal_text <- paste(
+    animal_row$claim_boundary,
+    animal_row$denominator_policy,
+    animal_row$next_gate,
+    animal_audit$evidence_basis,
+    animal_audit$stability_signal,
+    animal_audit$inference_signal,
+    animal_audit$claim_boundary,
+    animal_audit$next_gate,
+    animal_boundary$sr475_misses,
+    animal_boundary$claim_boundary,
+    animal_boundary$next_gate
+  )
+  for (phrase in c(
+    "Nibi SR475",
+    "retained-denominator",
+    "MCSE",
+    "point_fit/planned/planned",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q1 sigma",
+    "matched mu+sigma",
+    "q2",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support",
+    "blocked",
+    "473/475",
+    "812407",
+    "812444",
+    "wald_at_boundary",
+    "endpoint profile",
+    "upper misses",
+    "tmbprofile",
+    "0/2",
+    "Do not top up",
+    "new animal q1 mu interval route"
+  )) {
+    expect_match(animal_text, phrase, fixed = TRUE)
+  }
+})
+
+test_that("Gaussian q2 intercept smoke evidence propagates to support cells and low-q audit", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  lowq <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-status-audit.tsv"
+  )
+  selection <- structured_re_read_dashboard_tsv(
+    "structured-re-gaussian-lowq-row-selection.tsv"
+  )
+  q2_repair <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-contract.tsv"
+  )
+  q2_repair_status <- stats::setNames(
+    q2_repair$repair_status,
+    q2_repair$cell_id
+  )
+
+  q2_ids <- c(
+    "qseries_phylo_q2_mu1_mu2_intercept",
+    "qseries_spatial_q2_mu1_mu2_intercept",
+    "qseries_animal_q2_mu1_mu2_intercept",
+    "qseries_relmat_q2_mu1_mu2_intercept"
+  )
+  q_rows <- qseries[match(q2_ids, qseries$cell_id), ]
+  audit_rows <- lowq[match(q2_ids, lowq$cell_id), ]
+  selection_rows <- selection[match(q2_ids, selection$cell_id), ]
+  expect_equal(q_rows$cell_id, q2_ids)
+  expect_equal(audit_rows$cell_id, q2_ids)
+  expect_equal(selection_rows$cell_id, q2_ids)
+
+  review_evidence <- "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv"
+  direct_sd_evidence <- "docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv"
+  expected_evidence <- rep(review_evidence, 4L)
+  expected_evidence[q2_ids == "qseries_phylo_q2_mu1_mu2_intercept"] <-
+    direct_sd_evidence
+  expect_equal(q_rows$evidence_url, expected_evidence)
+  expect_equal(audit_rows$evidence_url, expected_evidence)
+  q2_repair_review <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-smoke-review.tsv"
+  )
+  q2_repair_review_status <- stats::setNames(
+    q2_repair_review$review_status,
+    q2_repair_review$cell_id
+  )
+  expected_selection_status <- unname(q2_repair_review_status[q2_ids])
+  expected_selection_status[q2_ids == "qseries_phylo_q2_mu1_mu2_intercept"] <-
+    "q2_direct_sd_endpoint_route_smoke_blocked_no_topup"
+  expect_equal(
+    selection_rows$selection_status,
+    expected_selection_status
+  )
+  expected_run_mode <- rep("q2_named_interval_repair_design_first", 4L)
+  expected_run_mode[q2_ids == "qseries_phylo_q2_mu1_mu2_intercept"] <-
+    "q2_direct_sd_endpoint_route_failed_design_next"
+  expect_equal(
+    selection_rows$run_mode,
+    expected_run_mode
+  )
+  expect_equal(selection_rows$evidence_url, expected_evidence)
+  expect_equal(q_rows$fit_status, rep("point_fit", 4L))
+  expect_equal(q_rows$interval_status, rep("planned", 4L))
+  expect_equal(q_rows$coverage_status, rep("planned", 4L))
+  expect_equal(audit_rows$linked_fit_status, rep("point_fit", 4L))
+  expect_equal(audit_rows$linked_interval_status, rep("planned", 4L))
+  expect_equal(audit_rows$linked_coverage_status, rep("planned", 4L))
+  expect_equal(audit_rows$promotion_decision, rep("do_not_promote", 4L))
+
+  combined <- paste(
+    q_rows$claim_boundary,
+    q_rows$next_gate,
+    audit_rows$evidence_basis,
+    audit_rows$stability_signal,
+    audit_rows$inference_signal,
+    audit_rows$claim_boundary,
+    audit_rows$next_gate
+  )
+  for (phrase in c(
+    "Fisher/Rose/Grace",
+    "repair contract",
+    "SR475/SR1000 top-up",
+    "retained-denominator",
+    "promotes exactly no Q-Series row",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported"
+  )) {
+    structured_re_expect_all_match(combined, phrase)
+  }
+  selection_gate <- paste(
+    selection_rows$allowed_hosts,
+    selection_rows$blocked_hosts,
+    selection_rows$required_preconditions,
+    selection_rows$claim_boundary,
+    selection_rows$next_gate
+  )
+  for (phrase in c(
+    "Totoro",
+    "50 workers",
+    "<=100 workers",
+    "cleanup",
+    "Nibi",
+    "Rorqual",
+    "Trillium",
+    "DRAC",
+    "repair contract",
+    "point_fit/planned/planned"
+  )) {
+    structured_re_expect_all_match(selection_gate, phrase)
+  }
+})
+
+test_that("sigma slope inference evidence stays row-scoped", {
+  evidence <- structured_re_read_dashboard_tsv(
+    "structured-re-sigma-slope-inference-evidence.tsv"
+  )
+
+  expect_equal(nrow(evidence), 6L)
+  expect_setequal(
+    evidence$linked_cell_id,
+    c(
+      "qseries_phylo_q1_sigma_one_slope",
+      "qseries_animal_q1_sigma_one_slope",
+      "qseries_relmat_q1_sigma_one_slope"
+    )
+  )
+  expect_equal(
+    evidence$promotion_status,
+    rep("inference_ready_with_caveats", 6L)
+  )
+  expect_true(all(grepl(
+    "wald_primary",
+    evidence$primary_channel_status,
+    fixed = TRUE
+  )))
+  expect_true(all(grepl(
+    "diagnostic",
+    evidence$profile_channel_status,
+    fixed = TRUE
+  )))
+  expect_true(all(as.numeric(evidence$wald_mcse) <= 0.01))
+  expect_true(all(as.numeric(evidence$wald_finite_rate_of_fit) >= 0.95))
+
+  intercept <- evidence[
+    evidence$endpoint_member == "sigma:(Intercept)",
+    ,
+    drop = FALSE
+  ]
+  slope <- evidence[evidence$endpoint_member == "sigma:x", , drop = FALSE]
+  expect_equal(nrow(intercept), 3L)
+  expect_equal(nrow(slope), 3L)
+  phylo_relmat_intercept <- intercept[
+    intercept$provider %in% c("phylo", "relmat"),
+    ,
+    drop = FALSE
+  ]
+  animal_intercept <- intercept[intercept$provider == "animal", , drop = FALSE]
+  expect_true(all(
+    as.numeric(phylo_relmat_intercept$wald_upper_lower_miss_ratio) >= 10
+  ))
+  expect_equal(as.integer(animal_intercept$wald_lower_miss), 26L)
+  expect_equal(as.integer(animal_intercept$wald_upper_miss), 10L)
+  expect_true(all(as.numeric(slope$wald_coverage) >= 0.989))
+  expect_true(all(as.numeric(slope$profile_finite_rate_of_fit) < 0.85))
+  structured_re_expect_all_match(
+    evidence$claim_boundary,
+    "not supported",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(evidence$claim_boundary, "Wald", fixed = TRUE)
+})
+
+test_that("spatial sigma boundary diagnostic stays blocker-only", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  diagnostic <- structured_re_read_dashboard_tsv(
+    "structured-re-spatial-sigma-boundary-diagnostic.tsv"
+  )
+
+  expect_named(
+    diagnostic,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "provider",
+      "endpoint_member",
+      "target_parm",
+      "source_run",
+      "cluster_host",
+      "cluster_job",
+      "package_git_sha",
+      "seed_start",
+      "seed_end",
+      "planned_reps",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_wald_finite",
+      "wald_finite_rate",
+      "n_wald_boundary_estimate",
+      "max_nonfinite_estimate_sd",
+      "n_wald_covered",
+      "wald_coverage",
+      "wald_mcse",
+      "wald_retained_coverage",
+      "wald_retained_mcse",
+      "wald_lower_miss",
+      "wald_upper_miss",
+      "n_profile_finite",
+      "profile_finite_rate",
+      "n_profile_covered",
+      "profile_coverage",
+      "profile_mcse",
+      "profile_retained_coverage",
+      "profile_retained_mcse",
+      "profile_lower_miss",
+      "profile_upper_miss",
+      "profile_failure_signature",
+      "wald_failure_signature",
+      "diagnostic_verdict",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(diagnostic), 1L)
+  row <- diagnostic[1, , drop = FALSE]
+  expect_equal(row$diagnostic_id, "spatial_sigma_boundary_nibi_current_source")
+  expect_equal(row$cell_id, "qseries_spatial_q1_sigma_one_slope")
+  expect_equal(row$cluster_host, "nibi")
+  expect_equal(as.character(row$cluster_job), "16920961")
+  expect_equal(
+    row$package_git_sha,
+    "77b634eda91b0173926557ce5c4a3d20853fb215"
+  )
+  expect_equal(as.integer(row$planned_reps), 475L)
+  expect_equal(as.integer(row$n_fit_ok), 475L)
+  expect_equal(as.integer(row$n_converged), 475L)
+  expect_equal(as.integer(row$n_pdhess), 475L)
+  expect_equal(as.integer(row$n_wald_finite), 443L)
+  expect_equal(as.numeric(row$wald_finite_rate), 0.9326)
+  expect_equal(as.integer(row$n_wald_boundary_estimate), 32L)
+  expect_equal(as.integer(row$n_wald_covered), 438L)
+  expect_equal(as.numeric(row$wald_coverage), 0.9887)
+  expect_equal(as.numeric(row$wald_retained_coverage), 0.9221)
+  expect_equal(as.integer(row$n_profile_finite), 475L)
+  expect_equal(as.numeric(row$profile_coverage), 0.8905)
+  expect_equal(as.integer(row$profile_upper_miss), 47L)
+  expect_equal(
+    row$diagnostic_verdict,
+    "boundary_estimate_blocker_reproduced"
+  )
+  expect_equal(row$promotion_decision, "do_not_promote")
+  evidence_parts <- strsplit(
+    as.character(row$evidence_url),
+    "/",
+    fixed = TRUE
+  )[[1]]
+  evidence_path <- do.call(structured_re_artifact_path, as.list(evidence_parts))
+  expect_no_error(
+    utils::read.delim(evidence_path, nrows = 1L, check.names = FALSE)
+  )
+  structured_re_expect_all_match(row$claim_boundary, "does NOT promote")
+  structured_re_expect_all_match(row$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(row$claim_boundary, "supported")
+  structured_re_expect_all_match(row$claim_boundary, "REML")
+  structured_re_expect_all_match(row$next_gate, "boundary-estimate blocker")
+
+  linked <- qseries[qseries$cell_id == row$cell_id, , drop = FALSE]
+  expect_equal(nrow(linked), 1L)
+  expect_equal(linked$interval_status, "planned")
+  expect_equal(linked$coverage_status, "planned")
+  expect_equal(linked$authority_status == "supported", FALSE)
+})
+
 test_that("phylo_interaction count q1 support cells stay family-specific", {
   qseries <- structured_re_read_dashboard_tsv(
     "structured-re-q-series-support-cells.tsv"
@@ -489,7 +5880,10 @@ test_that("phylo_interaction count q1 support cells stay family-specific", {
   expect_equal(count_rows$denominator_policy, rep("not_coverage_evidence", 2L))
   expect_equal(
     count_rows$evidence_url,
-    rep("tests/testthat/test-phylo-interaction.R", 2L)
+    c(
+      "tests/testthat/test-phylo-interaction.R",
+      "docs/dev-log/simulation-artifacts/2026-06-29-phylo-interaction-nb2-topup-rorqual"
+    )
   )
 
   structured_re_expect_all_match(count_rows$claim_boundary, "bridge")
@@ -513,6 +5907,687 @@ test_that("phylo_interaction count q1 support cells stay family-specific", {
   nb2_row <- count_rows[count_rows$family == "nbinom2()", , drop = FALSE]
   expect_equal(nrow(nb2_row), 1L)
   expect_match(nb2_row$claim_boundary, "structured sigma", fixed = TRUE)
+})
+
+test_that("non-Gaussian audit mirrors count intercept recovery results", {
+  audit <- structured_re_read_dashboard_tsv(
+    "structured-re-nongaussian-status-audit.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  rollup <- structured_re_read_dashboard_tsv(
+    "structured-re-nongaussian-recovery-rollup.tsv"
+  )
+  topup <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv"
+  )
+  slope_recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-results.tsv"
+  )
+  slope_cluster_recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-cluster-recovery-results.tsv"
+  )
+  slope_topup_recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv"
+  )
+  recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-recovery-results.tsv"
+  )
+  cluster_recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-cluster-recovery-results.tsv"
+  )
+  topup_recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-topup-recovery-results.tsv"
+  )
+  phylo_interaction_nb2_topup <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv"
+  )
+  topup_dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-topup-cluster-dispatch.tsv"
+  )
+  caveat_diagnostic <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-caveat-diagnostic.tsv"
+  )
+  denominator_diagnostic <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-denominator-diagnostic.tsv"
+  )
+  count_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-recovery-smoke-status.tsv"
+  )
+  phylo_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-phylo-count-intercept-recovery-smoke-status.tsv"
+  )
+  interaction_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-phylo-interaction-count-recovery-smoke-status.tsv"
+  )
+
+  smoke_cells <- c(
+    count_smoke$cell_id,
+    phylo_smoke$cell_id,
+    interaction_smoke$cell_id
+  )
+  recovery_audit <- audit[
+    match(recovery$cell_id, audit$cell_id),
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(length(smoke_cells), 10L)
+  expect_setequal(recovery$cell_id, smoke_cells)
+  expect_setequal(cluster_recovery$cell_id, recovery$cell_id)
+  expect_equal(nrow(recovery), 10L)
+  expect_equal(nrow(cluster_recovery), 10L)
+  expect_false(anyNA(recovery_audit$audit_id))
+  expected_audit_state <- recovery$widget_state
+  cluster_match <- match(recovery$cell_id, cluster_recovery$cell_id)
+  cluster_rows <- !is.na(cluster_match)
+  expected_audit_state[cluster_rows] <-
+    cluster_recovery$widget_state[cluster_match[cluster_rows]]
+  expected_audit_state[
+    recovery$cell_id %in% topup_recovery$cell_id
+  ] <- "non_gaussian_recovery_only"
+  expected_audit_state[
+    recovery$cell_id %in% phylo_interaction_nb2_topup$cell_id
+  ] <- "non_gaussian_recovery_only"
+  expect_equal(
+    recovery_audit$widget_state,
+    expected_audit_state
+  )
+  expect_equal(
+    recovery_audit$linked_interval_status,
+    rep("unsupported", length(recovery$cell_id))
+  )
+  expect_equal(
+    recovery_audit$linked_coverage_status,
+    rep("planned", length(recovery$cell_id))
+  )
+  expect_equal(
+    recovery_audit$promotion_decision,
+    rep("do_not_promote", length(recovery$cell_id))
+  )
+  expect_equal(
+    grepl(
+      "80-rep local count-intercept recovery grid|80-rep stronger-denominator count-intercept top-up|Rorqual SLURM job 14918220 80-rep count-intercept recovery grid|Rorqual SLURM job 14936834 80-rep phylo_interaction NB2",
+      recovery_audit$evidence_basis
+    ),
+    rep(TRUE, length(recovery$cell_id))
+  )
+  structured_re_expect_all_match(
+    recovery_audit$claim_boundary,
+    "RECOVERY evidence only"
+  )
+  structured_re_expect_all_match(
+    recovery_audit$claim_boundary,
+    "near-zero-estimate"
+  )
+  structured_re_expect_all_match(
+    recovery_audit$next_gate,
+    "intervals and coverage remain unsupported"
+  )
+  expect_named(
+    rollup,
+    c(
+      "rollup_id",
+      "cell_id",
+      "family",
+      "structure_provider",
+      "endpoint_set",
+      "slope_class",
+      "recovery_grade",
+      "evidence_basis",
+      "fit_signal",
+      "hessian_signal",
+      "finite_signal",
+      "near_zero_signal",
+      "bias_signal",
+      "rmse_signal",
+      "mcse_signal",
+      "linked_fit_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(rollup), 18L)
+  expect_setequal(
+    rollup$cell_id,
+    unique(c(
+      slope_cluster_recovery$cell_id,
+      slope_topup_recovery$cell_id,
+      cluster_recovery$cell_id,
+      topup_recovery$cell_id,
+      phylo_interaction_nb2_topup$cell_id
+    ))
+  )
+  expect_equal(
+    as.integer(table(factor(
+      rollup$recovery_grade,
+      levels = c("cluster_confirmed_recovery_only", "cluster_recovery_caveat")
+    ))),
+    c(18L, 0L)
+  )
+  expect_equal(rollup$linked_fit_status, rep("point_fit", nrow(rollup)))
+  expect_equal(rollup$linked_interval_status, rep("unsupported", nrow(rollup)))
+  expect_equal(rollup$linked_coverage_status, rep("planned", nrow(rollup)))
+  structured_re_expect_all_match(rollup$claim_boundary, "RECOVERY-ONLY")
+  structured_re_expect_all_match(rollup$claim_boundary, "does NOT promote")
+  structured_re_expect_all_match(rollup$claim_boundary, "interval_status")
+  structured_re_expect_all_match(rollup$claim_boundary, "coverage_status")
+  rollup_support <- qseries[
+    match(rollup$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(rollup_support$cell_id))
+  structured_re_expect_all_match(
+    paste(rollup_support$claim_boundary, rollup_support$next_gate),
+    "recovery"
+  )
+  structured_re_expect_all_match(
+    paste(rollup_support$claim_boundary, rollup_support$next_gate),
+    "interval"
+  )
+  structured_re_expect_all_match(
+    paste(rollup_support$claim_boundary, rollup_support$next_gate),
+    "coverage"
+  )
+  stale_recovery_gates <- c(
+    "add count fixture",
+    "add fixed-covariance count fixture evidence",
+    "add A-matrix count fixture evidence",
+    "add K-matrix count fixture evidence",
+    "add recovery evidence"
+  )
+  expect_false(any(vapply(
+    stale_recovery_gates,
+    function(gate) any(grepl(gate, rollup_support$next_gate, fixed = TRUE)),
+    logical(1)
+  )))
+  hessian_cell <- "qseries_spatial_nbinom2_q1_mu_one_slope"
+  expect_equal(
+    rollup$recovery_grade[match(hessian_cell, rollup$cell_id)],
+    "cluster_confirmed_recovery_only"
+  )
+  hessian_support <- qseries[
+    qseries$cell_id == hessian_cell,
+    ,
+    drop = FALSE
+  ]
+  hessian_audit <- audit[
+    audit$cell_id == hessian_cell,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(hessian_support), 1L)
+  expect_equal(nrow(hessian_audit), 1L)
+  expect_match(
+    paste(hessian_support$claim_boundary, hessian_support$next_gate),
+    "2/160 pdHess false",
+    fixed = TRUE
+  )
+  expect_match(
+    paste(
+      hessian_audit$evidence_basis,
+      hessian_audit$stability_signal,
+      hessian_audit$claim_boundary,
+      hessian_audit$next_gate
+    ),
+    "2/160 pdHess false",
+    fixed = TRUE
+  )
+  expect_match(
+    paste(
+      rollup$evidence_basis[match(hessian_cell, rollup$cell_id)],
+      rollup$hessian_signal[match(hessian_cell, rollup$cell_id)]
+    ),
+    "Rorqual SLURM job 14936279",
+    fixed = TRUE
+  )
+  expect_equal(slope_topup_recovery$cell_id, hessian_cell)
+  expect_equal(slope_topup_recovery$pdhess_false, 0L)
+  expect_equal(
+    slope_topup_recovery$recovery_grade,
+    "cluster_confirmed_recovery_only"
+  )
+  caveat_cells <- c(
+    "qseries_phylo_nbinom2_q1_mu_intercept",
+    "qseries_phylo_poisson_q1_mu_intercept",
+    "qseries_spatial_nbinom2_q1_mu_intercept"
+  )
+  expect_setequal(
+    recovery$cell_id[recovery$widget_state == "non_gaussian_recovery_caveat"],
+    caveat_cells
+  )
+  expect_setequal(
+    topup_recovery$cell_id,
+    caveat_cells
+  )
+  expect_setequal(
+    rollup$cell_id[rollup$recovery_grade == "cluster_confirmed_recovery_only"],
+    c(
+      caveat_cells,
+      phylo_interaction_nb2_topup$cell_id,
+      cluster_recovery$cell_id[
+        cluster_recovery$recovery_grade == "cluster_confirmed_recovery_only"
+      ],
+      slope_topup_recovery$cell_id,
+      slope_cluster_recovery$cell_id[
+        slope_cluster_recovery$recovery_grade ==
+          "cluster_confirmed_recovery_only"
+      ]
+    )
+  )
+  structured_re_expect_all_match(
+    rollup$evidence_basis[
+      rollup$cell_id %in% caveat_cells
+    ],
+    "Rorqual SLURM job 14897050"
+  )
+  structured_re_expect_all_match(
+    rollup$evidence_basis[
+      rollup$cell_id %in%
+        setdiff(
+          cluster_recovery$cell_id,
+          c(topup_recovery$cell_id, phylo_interaction_nb2_topup$cell_id)
+        )
+    ],
+    "Rorqual SLURM job 14918220"
+  )
+  structured_re_expect_all_match(
+    rollup$evidence_basis[
+      rollup$cell_id %in% phylo_interaction_nb2_topup$cell_id
+    ],
+    "top-up job 14936834"
+  )
+  structured_re_expect_all_match(
+    rollup$evidence_basis[
+      rollup$cell_id %in% slope_cluster_recovery$cell_id
+    ],
+    "Rorqual SLURM array 14916938"
+  )
+  structured_re_expect_all_match(
+    rollup$evidence_basis[
+      rollup$cell_id %in% slope_topup_recovery$cell_id
+    ],
+    "Rorqual SLURM job 14936279"
+  )
+  qseries_caveat <- qseries[
+    match(caveat_cells, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    qseries_caveat$interval_status,
+    rep("unsupported", length(caveat_cells))
+  )
+  expect_equal(
+    qseries_caveat$coverage_status,
+    rep("planned", length(caveat_cells))
+  )
+  structured_re_expect_all_match(
+    qseries_caveat$evidence_url,
+    "2026-06-29-count-intercept-topup-recovery-rorqual"
+  )
+  structured_re_expect_all_match(
+    qseries_caveat$claim_boundary,
+    "Cluster-confirmed recovery-only evidence"
+  )
+  structured_re_expect_all_match(
+    qseries_caveat$claim_boundary,
+    "does not promote interval_status"
+  )
+  expect_equal(
+    unique(topup_recovery$widget_state),
+    "non_gaussian_recovery_only"
+  )
+  expect_equal(
+    unique(topup_recovery$recovery_verdict),
+    "topup_recovery_only_passed"
+  )
+  expect_equal(
+    unique(as.integer(topup_recovery$n_rep)),
+    320L
+  )
+  expect_equal(
+    unique(as.integer(topup_recovery$n_seed_replicates)),
+    80L
+  )
+  expect_equal(
+    unique(as.integer(topup_recovery$n_internal_conditions)),
+    4L
+  )
+  expect_equal(
+    unique(as.integer(topup_recovery$fit_ok)),
+    320L
+  )
+  expect_equal(
+    unique(as.integer(topup_recovery$pdhess_false)),
+    0L
+  )
+  expect_equal(
+    unique(as.integer(topup_recovery$near_zero_estimate_rows)),
+    0L
+  )
+  structured_re_expect_all_match(
+    topup_recovery$claim_boundary,
+    "RECOVERY TOP-UP evidence only"
+  )
+  structured_re_expect_all_match(
+    topup_recovery$claim_boundary,
+    "Rorqual SLURM job 14897050"
+  )
+  structured_re_expect_all_match(
+    topup_recovery$claim_boundary,
+    "does NOT promote"
+  )
+  structured_re_expect_all_match(
+    topup_recovery$claim_boundary,
+    "original weak-denominator caveat"
+  )
+  structured_re_expect_all_match(
+    topup_recovery$next_gate,
+    "cluster-confirmed recovery-only board evidence"
+  )
+  expect_equal(nrow(phylo_interaction_nb2_topup), 1L)
+  expect_named(
+    phylo_interaction_nb2_topup,
+    c(
+      "recovery_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "cluster_design",
+      "n_rep",
+      "n_seed_replicates",
+      "n_internal_conditions",
+      "fit_ok",
+      "nonconverged",
+      "pdhess_false",
+      "finite_estimate_rows",
+      "near_zero_threshold",
+      "near_zero_estimate_rows",
+      "near_zero_estimate_rate",
+      "boundary_warning_rows",
+      "true_sd",
+      "mean_sd",
+      "bias_sd",
+      "rmse_sd",
+      "bias_mcse",
+      "rmse_mcse",
+      "recovery_verdict",
+      "recovery_grade",
+      "widget_state",
+      "linked_cell_id",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(
+    phylo_interaction_nb2_topup$cell_id,
+    "qseries_phylo_interaction_nbinom2_q1_mu"
+  )
+  expect_equal(
+    phylo_interaction_nb2_topup$cell_id,
+    phylo_interaction_nb2_topup$linked_cell_id
+  )
+  expect_equal(
+    phylo_interaction_nb2_topup$recovery_grade,
+    "cluster_confirmed_recovery_only"
+  )
+  expect_equal(
+    phylo_interaction_nb2_topup$widget_state,
+    "non_gaussian_recovery_only"
+  )
+  expect_equal(as.integer(phylo_interaction_nb2_topup$n_rep), 160L)
+  expect_equal(as.integer(phylo_interaction_nb2_topup$n_seed_replicates), 160L)
+  expect_equal(
+    as.integer(phylo_interaction_nb2_topup$n_internal_conditions),
+    1L
+  )
+  expect_equal(as.integer(phylo_interaction_nb2_topup$fit_ok), 160L)
+  expect_equal(as.integer(phylo_interaction_nb2_topup$nonconverged), 0L)
+  expect_equal(as.integer(phylo_interaction_nb2_topup$pdhess_false), 0L)
+  expect_equal(
+    as.integer(phylo_interaction_nb2_topup$finite_estimate_rows),
+    160L
+  )
+  expect_equal(
+    as.integer(phylo_interaction_nb2_topup$near_zero_estimate_rows),
+    6L
+  )
+  expect_equal(
+    as.integer(phylo_interaction_nb2_topup$boundary_warning_rows),
+    6L
+  )
+  expect_equal(
+    phylo_interaction_nb2_topup$recovery_verdict,
+    "combined_recovery_only_passed"
+  )
+  structured_re_expect_all_match(
+    phylo_interaction_nb2_topup$claim_boundary,
+    "Rorqual SLURM job 14936834"
+  )
+  structured_re_expect_all_match(
+    phylo_interaction_nb2_topup$claim_boundary,
+    "Rorqual SLURM job 14918220"
+  )
+  structured_re_expect_all_match(
+    phylo_interaction_nb2_topup$claim_boundary,
+    "does NOT promote"
+  )
+  structured_re_expect_all_match(
+    phylo_interaction_nb2_topup$next_gate,
+    "interval, coverage, inference_ready, supported, or public support"
+  )
+  expect_equal(nrow(topup_dispatch), 1L)
+  expect_equal(
+    topup_dispatch$dispatch_id,
+    "count_intercept_topup_rorqual_20260629"
+  )
+  expect_equal(topup_dispatch$host, "rorqual")
+  expect_equal(topup_dispatch$scheduler, "slurm")
+  expect_equal(as.character(topup_dispatch$job_id), "14897050")
+  expect_equal(topup_dispatch$job_state, "completed_passed")
+  expect_equal(as.integer(topup_dispatch$n_rep), 80L)
+  expect_equal(as.integer(topup_dispatch$n_internal_conditions), 4L)
+  expect_setequal(
+    strsplit(topup_dispatch$target_cells, ";", fixed = TRUE)[[1]],
+    caveat_cells
+  )
+  expect_match(
+    topup_dispatch$run_root,
+    "/project/def-snakagaw/snakagaw/drmtmb-qseries/",
+    fixed = TRUE
+  )
+  expect_match(
+    topup_dispatch$expected_result_path,
+    "structured-re-count-intercept-topup-recovery-results.tsv",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$claim_boundary,
+    "Cluster confirmation evidence only"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$claim_boundary,
+    "runner_exit_code=0"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$claim_boundary,
+    "summary_exit_code=0"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$claim_boundary,
+    "does not promote"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$next_gate,
+    "Fetched result TSV and metadata"
+  )
+  structured_re_expect_all_match(
+    topup_dispatch$next_gate,
+    "separate interval route"
+  )
+  expect_equal(
+    recovery_audit$widget_state[match(caveat_cells, recovery_audit$cell_id)],
+    rep("non_gaussian_recovery_only", length(caveat_cells))
+  )
+  expect_equal(
+    recovery_audit$widget_state[
+      match(phylo_interaction_nb2_topup$cell_id, recovery_audit$cell_id)
+    ],
+    "non_gaussian_recovery_only"
+  )
+  structured_re_expect_all_match(
+    recovery_audit$evidence_basis[match(caveat_cells, recovery_audit$cell_id)],
+    "top-up recovery-only sidecar evidence"
+  )
+  structured_re_expect_all_match(
+    recovery_audit$evidence_basis[
+      match(phylo_interaction_nb2_topup$cell_id, recovery_audit$cell_id)
+    ],
+    "top-up sidecar evidence"
+  )
+  expect_equal(
+    recovery$recovery_verdict[
+      match(
+        c(
+          "qseries_phylo_nbinom2_q1_mu_intercept",
+          "qseries_phylo_poisson_q1_mu_intercept",
+          "qseries_spatial_nbinom2_q1_mu_intercept"
+        ),
+        recovery$cell_id
+      )
+    ],
+    c(
+      "recovery_caveat_pdhess_rate",
+      "recovery_caveat_near_zero_rate",
+      "recovery_caveat_near_zero_rate"
+    )
+  )
+  expect_equal(
+    as.integer(recovery$pdhess_false[
+      recovery$cell_id == "qseries_phylo_nbinom2_q1_mu_intercept"
+    ]),
+    13L
+  )
+  expect_equal(
+    as.integer(recovery$near_zero_estimate_rows[
+      match(caveat_cells, recovery$cell_id)
+    ]),
+    c(136L, 121L, 100L)
+  )
+  expect_equal(nrow(caveat_diagnostic), 12L)
+  expect_setequal(caveat_diagnostic$cell_id, caveat_cells)
+  expect_equal(
+    as.integer(table(caveat_diagnostic$cell_id)[caveat_cells]),
+    c(4L, 4L, 4L)
+  )
+  expect_equal(
+    unique(as.numeric(caveat_diagnostic$near_zero_threshold)),
+    1e-4
+  )
+  expect_equal(
+    unique(as.integer(caveat_diagnostic$n_rep)),
+    80L
+  )
+  expect_equal(
+    unique(caveat_diagnostic$diagnostic_verdict[
+      caveat_diagnostic$cell_id == "qseries_phylo_poisson_q1_mu_intercept"
+    ]),
+    "condition_near_zero_caveat"
+  )
+  expect_equal(
+    unique(caveat_diagnostic$diagnostic_verdict[
+      caveat_diagnostic$cell_id == "qseries_phylo_nbinom2_q1_mu_intercept"
+    ]),
+    "condition_pdhess_caveat"
+  )
+  expect_setequal(
+    caveat_diagnostic$diagnostic_verdict[
+      caveat_diagnostic$cell_id == "qseries_spatial_nbinom2_q1_mu_intercept"
+    ],
+    c("condition_near_zero_caveat", "condition_recovery_ok")
+  )
+  expect_equal(
+    max(as.numeric(caveat_diagnostic$near_zero_estimate_rate[
+      caveat_diagnostic$cell_id == "qseries_spatial_nbinom2_q1_mu_intercept"
+    ])),
+    0.6
+  )
+  structured_re_expect_all_match(
+    caveat_diagnostic$claim_boundary,
+    "Condition-level diagnostic only"
+  )
+  structured_re_expect_all_match(
+    caveat_diagnostic$claim_boundary,
+    "does NOT promote"
+  )
+  structured_re_expect_all_match(
+    caveat_diagnostic$next_gate,
+    "intervals and coverage remain unsupported"
+  )
+  expect_equal(nrow(denominator_diagnostic), 12L)
+  expect_setequal(denominator_diagnostic$cell_id, caveat_cells)
+  expect_equal(
+    as.integer(table(denominator_diagnostic$cell_id)[caveat_cells]),
+    c(4L, 4L, 4L)
+  )
+  expect_equal(
+    unique(as.integer(denominator_diagnostic$n_rep)),
+    30L
+  )
+  expect_equal(
+    unique(as.integer(denominator_diagnostic$fit_ok)),
+    30L
+  )
+  expect_equal(
+    unique(as.integer(denominator_diagnostic$pdhess_false)),
+    0L
+  )
+  expect_equal(
+    unique(as.integer(denominator_diagnostic$near_zero_estimate_rows)),
+    0L
+  )
+  expect_equal(
+    unique(denominator_diagnostic$denominator_verdict),
+    "denominator_cleared_locally"
+  )
+  structured_re_expect_all_match(
+    denominator_diagnostic$condition_label,
+    "mean_count"
+  )
+  structured_re_expect_all_match(
+    denominator_diagnostic$claim_boundary,
+    "Targeted stronger-denominator diagnostic only"
+  )
+  structured_re_expect_all_match(
+    denominator_diagnostic$claim_boundary,
+    "does NOT promote"
+  )
+  structured_re_expect_all_match(
+    denominator_diagnostic$next_gate,
+    "intervals and coverage remain unsupported"
+  )
+  audit_state_counts <- table(factor(
+    audit$widget_state,
+    levels = c(
+      "non_gaussian_recovery_only",
+      "non_gaussian_recovery_caveat",
+      "non_gaussian_rejected",
+      "non_gaussian_planned"
+    )
+  ))
+  expect_equal(as.integer(audit_state_counts), c(18L, 0L, 18L, 1L))
+  expect_equal(
+    sum(audit$widget_state == "non_gaussian_recovery_caveat"),
+    0L
+  )
 })
 
 test_that("count structured mu one-slope fixture recovery contract stays conservative", {
@@ -3084,24 +9159,33 @@ test_that("count structured relmat NB2 local micro-shard stays diagnostic", {
   )
   expect_equal(
     micro$replicate_results,
-    do.call(file.path, c(
-      as.list(artifact_parts),
-      "structured-re-count-slope-relmat-nbinom2-local-micro-shard-replicates.tsv"
-    ))
+    do.call(
+      file.path,
+      c(
+        as.list(artifact_parts),
+        "structured-re-count-slope-relmat-nbinom2-local-micro-shard-replicates.tsv"
+      )
+    )
   )
   expect_equal(
     micro$summary_results,
-    do.call(file.path, c(
-      as.list(artifact_parts),
-      "structured-re-count-slope-relmat-nbinom2-local-micro-shard-summary.tsv"
-    ))
+    do.call(
+      file.path,
+      c(
+        as.list(artifact_parts),
+        "structured-re-count-slope-relmat-nbinom2-local-micro-shard-summary.tsv"
+      )
+    )
   )
   expect_equal(
     micro$run_log,
-    do.call(file.path, c(
-      as.list(artifact_parts),
-      "structured-re-count-slope-relmat-nbinom2-local-micro-shard-run-log.tsv"
-    ))
+    do.call(
+      file.path,
+      c(
+        as.list(artifact_parts),
+        "structured-re-count-slope-relmat-nbinom2-local-micro-shard-run-log.tsv"
+      )
+    )
   )
   expect_equal(
     micro$runner_script,
@@ -3265,6 +9349,392 @@ test_that("count structured relmat NB2 local micro-shard stays diagnostic", {
   expect_match(run_log$claim_boundary, "no coverage evidence", fixed = TRUE)
   expect_match(run_log$claim_boundary, "no REML", fixed = TRUE)
   expect_match(run_log$claim_boundary, "no AI-REML", fixed = TRUE)
+})
+
+test_that("count slope recovery results keep pdHess caveats row-specific", {
+  recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-results.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    recovery,
+    c(
+      "recovery_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "n_rep",
+      "fit_ok",
+      "nonconverged",
+      "pdhess_false",
+      "finite_estimate_rows",
+      "true_sd_mu_x",
+      "mean_sd_mu_x",
+      "bias_sd_mu_x",
+      "rmse_sd_mu_x",
+      "true_sd_mu_intercept",
+      "mean_sd_mu_intercept",
+      "bias_sd_mu_intercept",
+      "recovery_verdict",
+      "linked_cell_id",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary"
+    )
+  )
+  expect_equal(nrow(recovery), 8L)
+  expect_equal(recovery$n_rep, rep(80L, 8L))
+  expect_equal(recovery$fit_ok, rep(80L, 8L))
+  expect_equal(recovery$nonconverged, rep(0L, 8L))
+  expect_equal(recovery$finite_estimate_rows, rep(80L, 8L))
+  expect_equal(recovery$linked_coverage_status, rep("planned", 8L))
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "RECOVERY evidence only"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "does NOT promote supported"
+  )
+  structured_re_expect_all_match(recovery$claim_boundary, "REML")
+  structured_re_expect_all_match(recovery$claim_boundary, "AI-REML")
+
+  hessian_caveat <- recovery[recovery$pdhess_false > 0L, , drop = FALSE]
+  expect_equal(nrow(hessian_caveat), 1L)
+  expect_equal(
+    hessian_caveat$recovery_id,
+    "recov_spatial_nbinom2_q1_mu_one_slope"
+  )
+  expect_equal(hessian_caveat$pdhess_false, 2L)
+  expect_match(hessian_caveat$claim_boundary, "pdHess false", fixed = TRUE)
+  expect_match(hessian_caveat$claim_boundary, "Hessian caveat", fixed = TRUE)
+  expect_false(grepl(
+    "pdHess clean",
+    hessian_caveat$claim_boundary,
+    fixed = TRUE
+  ))
+
+  clean <- recovery[recovery$pdhess_false == 0L, , drop = FALSE]
+  expect_equal(nrow(clean), 7L)
+  structured_re_expect_all_match(clean$claim_boundary, "pdHess clean")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% recovery$linked_cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 8L)
+  expect_equal(qseries_status$interval_status, rep("unsupported", 8L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 8L))
+})
+
+test_that("count slope cluster recovery results stay recovery-only", {
+  recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-cluster-recovery-results.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  audit <- structured_re_read_dashboard_tsv(
+    "structured-re-nongaussian-status-audit.tsv"
+  )
+  rollup <- structured_re_read_dashboard_tsv(
+    "structured-re-nongaussian-recovery-rollup.tsv"
+  )
+  topup <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv"
+  )
+
+  expect_named(
+    recovery,
+    c(
+      "recovery_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "cluster_design",
+      "n_rep",
+      "fit_ok",
+      "fit_error",
+      "nonconverged",
+      "pdhess_false",
+      "finite_estimate_rows",
+      "true_sd_mu_x",
+      "mean_sd_mu_x",
+      "bias_sd_mu_x",
+      "rmse_sd_mu_x",
+      "bias_mcse_sd_mu_x",
+      "rmse_mcse_sd_mu_x",
+      "true_sd_mu_intercept",
+      "mean_sd_mu_intercept",
+      "bias_sd_mu_intercept",
+      "rmse_sd_mu_intercept",
+      "bias_mcse_sd_mu_intercept",
+      "rmse_mcse_sd_mu_intercept",
+      "recovery_verdict",
+      "recovery_grade",
+      "widget_state",
+      "linked_cell_id",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(recovery), 8L)
+  expect_equal(
+    recovery$cluster_design,
+    rep(
+      "rorqual_80_seed_provider_family_micro_shard",
+      8L
+    )
+  )
+  expect_equal(recovery$n_rep, rep(80L, 8L))
+  expect_equal(recovery$fit_ok, rep(80L, 8L))
+  expect_equal(recovery$fit_error, rep(0L, 8L))
+  expect_equal(recovery$nonconverged, rep(0L, 8L))
+  expect_equal(recovery$finite_estimate_rows, rep(80L, 8L))
+  expect_equal(recovery$cell_id, recovery$linked_cell_id)
+  expect_equal(recovery$linked_coverage_status, rep("planned", 8L))
+  structured_re_expect_all_match(
+    recovery$evidence_url,
+    "2026-06-29-count-slope-recovery-rorqual"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "CLUSTER RECOVERY evidence only"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "Rorqual SLURM array 14916938"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "does NOT promote"
+  )
+  structured_re_expect_all_match(recovery$claim_boundary, "interval_status")
+  structured_re_expect_all_match(recovery$claim_boundary, "coverage_status")
+  structured_re_expect_all_match(recovery$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(recovery$claim_boundary, "supported")
+  structured_re_expect_all_match(recovery$claim_boundary, "REML")
+  structured_re_expect_all_match(recovery$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(recovery$claim_boundary, "public support")
+
+  caveat <- recovery[
+    recovery$cell_id == "qseries_spatial_nbinom2_q1_mu_one_slope",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(caveat), 1L)
+  expect_equal(caveat$pdhess_false, 2L)
+  expect_equal(caveat$recovery_verdict, "cluster_recovery_caveat_pdhess_rate")
+  expect_equal(caveat$recovery_grade, "cluster_recovery_caveat")
+  expect_equal(caveat$widget_state, "non_gaussian_recovery_caveat")
+
+  clean <- recovery[recovery$cell_id != caveat$cell_id, , drop = FALSE]
+  expect_equal(nrow(clean), 7L)
+  expect_equal(clean$pdhess_false, rep(0L, 7L))
+  expect_equal(
+    clean$recovery_verdict,
+    rep("cluster_confirmed_recovery_only_passed", 7L)
+  )
+  expect_equal(
+    clean$recovery_grade,
+    rep("cluster_confirmed_recovery_only", 7L)
+  )
+  expect_equal(
+    clean$widget_state,
+    rep("non_gaussian_recovery_only", 7L)
+  )
+
+  qseries_rows <- qseries[
+    match(recovery$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  audit_rows <- audit[
+    match(recovery$cell_id, audit$cell_id),
+    ,
+    drop = FALSE
+  ]
+  rollup_rows <- rollup[
+    match(recovery$cell_id, rollup$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(qseries_rows$cell_id))
+  expect_false(anyNA(audit_rows$cell_id))
+  expect_false(anyNA(rollup_rows$cell_id))
+  expect_equal(qseries_rows$interval_status, rep("unsupported", 8L))
+  expect_equal(qseries_rows$coverage_status, rep("planned", 8L))
+  structured_re_expect_all_match(
+    paste(qseries_rows$claim_boundary, qseries_rows$next_gate),
+    "Rorqual SLURM array 14916938"
+  )
+  expected_widget_state <- recovery$widget_state
+  expected_recovery_grade <- recovery$recovery_grade
+  topup_match <- match(recovery$cell_id, topup$cell_id)
+  topup_rows <- !is.na(topup_match)
+  expected_widget_state[topup_rows] <-
+    topup$widget_state[topup_match[topup_rows]]
+  expected_recovery_grade[topup_rows] <-
+    topup$recovery_grade[topup_match[topup_rows]]
+  expect_equal(audit_rows$widget_state, expected_widget_state)
+  expect_equal(rollup_rows$recovery_grade, expected_recovery_grade)
+})
+
+test_that("count intercept cluster recovery results stay recovery-only", {
+  recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-cluster-recovery-results.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  audit <- structured_re_read_dashboard_tsv(
+    "structured-re-nongaussian-status-audit.tsv"
+  )
+  rollup <- structured_re_read_dashboard_tsv(
+    "structured-re-nongaussian-recovery-rollup.tsv"
+  )
+  topup_recovery <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-topup-recovery-results.tsv"
+  )
+  phylo_interaction_nb2_topup <- structured_re_read_dashboard_tsv(
+    "structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv"
+  )
+
+  expect_named(
+    recovery,
+    c(
+      "recovery_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "cluster_design",
+      "n_rep",
+      "n_seed_replicates",
+      "n_internal_conditions",
+      "fit_ok",
+      "nonconverged",
+      "pdhess_false",
+      "finite_estimate_rows",
+      "near_zero_threshold",
+      "near_zero_estimate_rows",
+      "near_zero_estimate_rate",
+      "boundary_warning_rows",
+      "true_sd",
+      "mean_sd",
+      "bias_sd",
+      "rmse_sd",
+      "bias_mcse",
+      "rmse_mcse",
+      "recovery_verdict",
+      "recovery_grade",
+      "widget_state",
+      "linked_cell_id",
+      "linked_coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(recovery), 10L)
+  expect_equal(
+    recovery$cluster_design,
+    rep("rorqual_80_seed_count_intercept_recovery_grid", 10L)
+  )
+  expect_equal(
+    recovery$n_rep,
+    recovery$n_seed_replicates * recovery$n_internal_conditions
+  )
+  expect_equal(recovery$n_seed_replicates, rep(80L, 10L))
+  expect_setequal(recovery$n_internal_conditions, c(1L, 4L))
+  expect_true(all(recovery$fit_ok >= 0.98 * recovery$n_rep))
+  expect_equal(recovery$finite_estimate_rows, recovery$n_rep)
+  expect_equal(recovery$cell_id, recovery$linked_cell_id)
+  expect_equal(recovery$linked_coverage_status, rep("planned", 10L))
+  structured_re_expect_all_match(
+    recovery$evidence_url,
+    "2026-06-29-count-intercept-recovery-rorqual"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "CLUSTER RECOVERY evidence only"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "Rorqual SLURM job 14918220"
+  )
+  structured_re_expect_all_match(
+    recovery$claim_boundary,
+    "does NOT promote"
+  )
+  structured_re_expect_all_match(recovery$claim_boundary, "interval_status")
+  structured_re_expect_all_match(recovery$claim_boundary, "coverage_status")
+  structured_re_expect_all_match(recovery$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(recovery$claim_boundary, "supported")
+  structured_re_expect_all_match(recovery$claim_boundary, "REML")
+  structured_re_expect_all_match(recovery$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(recovery$claim_boundary, "public support")
+
+  clean <- recovery[
+    recovery$recovery_grade == "cluster_confirmed_recovery_only",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    clean$widget_state,
+    rep("non_gaussian_recovery_only", nrow(clean))
+  )
+  expect_equal(clean$recovery_verdict, rep("recovery_only_passed", nrow(clean)))
+  expect_equal(clean$nonconverged, rep(0L, nrow(clean)))
+  expect_true(all(clean$pdhess_false <= pmax(1L, floor(0.02 * clean$n_rep))))
+
+  qseries_rows <- qseries[
+    match(recovery$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  audit_rows <- audit[
+    match(recovery$cell_id, audit$cell_id),
+    ,
+    drop = FALSE
+  ]
+  rollup_rows <- rollup[
+    match(recovery$cell_id, rollup$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(qseries_rows$cell_id))
+  expect_false(anyNA(audit_rows$cell_id))
+  expect_false(anyNA(rollup_rows$cell_id))
+  expect_equal(qseries_rows$interval_status, rep("unsupported", 10L))
+  expect_equal(qseries_rows$coverage_status, rep("planned", 10L))
+  structured_re_expect_all_match(
+    paste(qseries_rows$claim_boundary, qseries_rows$next_gate),
+    "recovery"
+  )
+  structured_re_expect_all_match(
+    paste(qseries_rows$claim_boundary, qseries_rows$next_gate),
+    "interval"
+  )
+  structured_re_expect_all_match(
+    paste(qseries_rows$claim_boundary, qseries_rows$next_gate),
+    "coverage"
+  )
+
+  topup_cells <- c(topup_recovery$cell_id, phylo_interaction_nb2_topup$cell_id)
+  expected_audit_state <- recovery$widget_state
+  expected_audit_state[recovery$cell_id %in% topup_cells] <-
+    "non_gaussian_recovery_only"
+  expect_equal(audit_rows$widget_state, expected_audit_state)
+  expect_equal(
+    rollup_rows$recovery_grade[!(recovery$cell_id %in% topup_cells)],
+    recovery$recovery_grade[!(recovery$cell_id %in% topup_cells)]
+  )
 })
 
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
@@ -3957,7 +10427,10 @@ test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
     qseries_rows$interval_status,
     .expected_interval(qseries_rows$cell_id)
   )
-  expect_equal(qseries_rows$coverage_status, .expected_coverage(qseries_rows$cell_id))
+  expect_equal(
+    qseries_rows$coverage_status,
+    .expected_coverage(qseries_rows$cell_id)
+  )
 
   expect_equal(
     gate$native_q_status,
@@ -4134,7 +10607,10 @@ test_that("relmat Q payload contract review is exact-cell scoped", {
     qseries_rows$interval_status,
     .expected_interval(qseries_rows$cell_id)
   )
-  expect_equal(qseries_rows$coverage_status, .expected_coverage(qseries_rows$cell_id))
+  expect_equal(
+    qseries_rows$coverage_status,
+    .expected_coverage(qseries_rows$cell_id)
+  )
 
   expected_order <- c(
     relmat_q_bridge_q1_mu_one_slope = "mu:(Intercept);mu:x",
@@ -4567,9 +11043,10 @@ test_that("q2 slope-only parity fixture dashboard is provider-specific", {
   expect_equal(qseries_ready$bridge_status, rep("fixture_parity", 4L))
   expect_equal(
     qseries_ready$evidence_url,
-    rep(
-      "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv",
-      4L
+    ifelse(
+      qseries_ready$structure_provider %in% c("spatial", "animal"),
+      "docs/dev-log/dashboard/structured-re-q2-slope-bias-t-topup-results.tsv",
+      "docs/design/219-structured-re-small-sample-bias-correction.md"
     )
   )
   expect_equal(
@@ -4698,7 +11175,10 @@ test_that("q2 slope-only interval plan remains target-level", {
     qseries_plan$interval_status,
     .expected_interval(qseries_plan$cell_id)
   )
-  expect_equal(qseries_plan$coverage_status, .expected_coverage(qseries_plan$cell_id))
+  expect_equal(
+    qseries_plan$coverage_status,
+    .expected_coverage(qseries_plan$cell_id)
+  )
   expect_equal(
     qseries_plan$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -4838,7 +11318,10 @@ test_that("q2 slope-only interval status remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -4963,7 +11446,10 @@ test_that("q2 slope-only interval stability probe remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -5156,7 +11642,10 @@ test_that("q2 slope-only denominator admission remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -5339,11 +11828,1077 @@ test_that("q2 slope-only denominator extension remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
   )
+})
+
+test_that("q2 spatial/animal bias+t evidence blocks row promotion", {
+  evidence <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-bias-t-coverage-evidence.tsv"
+  )
+  topup <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-bias-t-topup-runner-contract.tsv"
+  )
+  topup_results <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-bias-t-topup-results.tsv"
+  )
+  admission <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-spatial-animal-admission-audit.tsv"
+  )
+  row_gate <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-row-gate-synthesis.tsv"
+  )
+  g32_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-slope-g32-profile-wald-smoke.tsv"
+  )
+  animal_cor_holdout <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-animal-correlation-holdout-diagnostic.tsv"
+  )
+  animal_cor_pregrid <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-animal-correlation-pregrid-results.tsv"
+  )
+  animal_cor_miss <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-animal-correlation-miss-diagnostic.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    evidence,
+    c(
+      "evidence_id",
+      "linked_cell_id",
+      "provider",
+      "endpoint_member",
+      "source_run",
+      "source_artifact",
+      "seed_start",
+      "seed_end",
+      "planned_reps",
+      "n_fit_ok",
+      "n_bc_finite",
+      "n_bc_covered",
+      "bc_coverage",
+      "bc_mcse",
+      "bc_lower_miss",
+      "bc_upper_miss",
+      "n_wald_eval",
+      "n_wald_covered",
+      "wald_coverage",
+      "wald_mcse",
+      "endpoint_status",
+      "promotion_status",
+      "claim_boundary"
+    )
+  )
+  expect_equal(nrow(evidence), 4L)
+  expect_equal(
+    evidence$source_run,
+    rep("local_sr475_spatial_animal_bias_t_revalidation", 4L)
+  )
+  expect_equal(evidence$seed_start, rep(730001L, 4L))
+  expect_equal(evidence$seed_end, rep(730475L, 4L))
+  expect_equal(evidence$planned_reps, rep(475L, 4L))
+  expect_equal(evidence$n_fit_ok, rep(475L, 4L))
+  expect_equal(evidence$n_bc_finite, rep(475L, 4L))
+  expect_equal(evidence$n_wald_eval, rep(475L, 4L))
+  expect_equal(evidence$promotion_status, rep("block_row_promotion", 4L))
+
+  key <- paste(evidence$provider, evidence$endpoint_member)
+  expect_equal(
+    evidence$n_bc_covered[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(459L, 447L, 459L, 450L)
+  )
+  expect_equal(
+    evidence$bc_coverage[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(0.9663, 0.9411, 0.9663, 0.9474)
+  )
+  expect_equal(
+    evidence$bc_mcse[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(0.0083, 0.0108, 0.0083, 0.0102)
+  )
+  expect_equal(
+    evidence$bc_upper_miss[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(11L, 24L, 10L, 19L)
+  )
+  expect_equal(
+    evidence$wald_coverage[match(
+      c("spatial mu1:x", "spatial mu2:x", "animal mu1:x", "animal mu2:x"),
+      key
+    )],
+    c(0.8968, 0.8779, 0.9053, 0.8800)
+  )
+  structured_re_expect_all_match(evidence$claim_boundary, "SD-endpoint-only")
+  structured_re_expect_all_match(evidence$claim_boundary, "not inference_ready")
+  structured_re_expect_all_match(evidence$claim_boundary, "not supported")
+  structured_re_expect_all_match(evidence$claim_boundary, "q4/q8")
+  structured_re_expect_all_match(evidence$claim_boundary, "REML")
+  structured_re_expect_all_match(evidence$claim_boundary, "AI-REML")
+
+  spatial <- evidence[evidence$provider == "spatial", , drop = FALSE]
+  animal <- evidence[evidence$provider == "animal", , drop = FALSE]
+  structured_re_expect_all_match(
+    spatial$claim_boundary,
+    "range-estimating spatial"
+  )
+  structured_re_expect_all_match(animal$claim_boundary, "pedigree/Ainv")
+
+  qseries_status <- qseries[
+    qseries$cell_id %in% evidence$linked_cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_status), 2L)
+  expect_equal(qseries_status$interval_status, rep("planned", 2L))
+  expect_equal(qseries_status$coverage_status, rep("planned", 2L))
+
+  admission_status <- admission[
+    admission$cell_id %in% evidence$linked_cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(admission_status), 2L)
+  expect_equal(
+    admission_status$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-slope-bias-t-topup-results.tsv",
+      2L
+    )
+  )
+  structured_re_expect_all_match(
+    admission_status$claim_boundary,
+    "not inference_ready"
+  )
+  structured_re_expect_all_match(
+    admission_status$next_gate,
+    "structured-re-q2-slope-bias-t-topup-results.tsv"
+  )
+
+  expect_named(
+    topup,
+    c(
+      "contract_id",
+      "linked_cell_id",
+      "provider",
+      "endpoint_member",
+      "shard",
+      "source_runner",
+      "smoke_artifact",
+      "planned_topup_reps",
+      "seed_start",
+      "seed_end",
+      "interval_channel",
+      "smoke_fit_ok",
+      "smoke_pdhess",
+      "smoke_bias_t_finite",
+      "execution_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(topup), 4L)
+  expect_equal(anyDuplicated(topup$contract_id), 0L)
+  expect_equal(
+    topup$contract_id,
+    c(
+      "q2_bias_t_topup_spatial_mu1_x",
+      "q2_bias_t_topup_spatial_mu2_x",
+      "q2_bias_t_topup_animal_mu1_x",
+      "q2_bias_t_topup_animal_mu2_x"
+    )
+  )
+  expect_equal(
+    topup$linked_cell_id,
+    c(
+      "qseries_spatial_q2_mu1_mu2_one_slope",
+      "qseries_spatial_q2_mu1_mu2_one_slope",
+      "qseries_animal_q2_mu1_mu2_one_slope",
+      "qseries_animal_q2_mu1_mu2_one_slope"
+    )
+  )
+  expect_equal(topup$provider, c("spatial", "spatial", "animal", "animal"))
+  expect_equal(topup$endpoint_member, c("mu1:x", "mu2:x", "mu1:x", "mu2:x"))
+  expect_equal(topup$shard, 1:4)
+  expect_equal(
+    topup$source_runner,
+    rep("tools/run-structured-re-q2-bias-t-coverage-topup.R", 4L)
+  )
+  expect_true(file.exists(
+    structured_re_artifact_path(strsplit(topup$source_runner[[1L]], "/")[[1L]])
+  ))
+  expect_equal(topup$planned_topup_reps, rep(525L, 4L))
+  expect_equal(topup$seed_start, rep(730476L, 4L))
+  expect_equal(topup$seed_end, rep(731000L, 4L))
+  expect_equal(
+    topup$interval_channel,
+    rep("default_bias_t_location_wald", 4L)
+  )
+  expect_equal(topup$smoke_fit_ok, rep("1/1", 4L))
+  expect_equal(topup$smoke_pdhess, rep("1/1", 4L))
+  expect_equal(topup$smoke_bias_t_finite, rep("1/1", 4L))
+  expect_equal(
+    topup$execution_status,
+    rep("smoke_passed_ready_for_cluster_topup", 4L)
+  )
+  expect_equal(topup$linked_interval_status, rep("planned", 4L))
+  expect_equal(topup$linked_coverage_status, rep("planned", 4L))
+  expect_equal(topup$promotion_decision, rep("do_not_promote", 4L))
+
+  linked_status <- qseries[
+    match(unique(topup$linked_cell_id), qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(linked_status$cell_id))
+  expect_equal(linked_status$interval_status, rep("planned", 2L))
+  expect_equal(linked_status$coverage_status, rep("planned", 2L))
+  expect_false(any(linked_status$authority_status == "supported"))
+
+  for (phrase in c(
+    "top-up runner contract only",
+    "devtools_load_all",
+    "does not promote interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "correlation targets",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(topup$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    topup$claim_boundary[topup$provider == "spatial"],
+    "range-estimating spatial"
+  )
+  structured_re_expect_all_match(
+    topup$claim_boundary[topup$provider == "animal"],
+    "pedigree/Ainv"
+  )
+  structured_re_expect_all_match(topup$next_gate, "seeds 730476-731000")
+
+  for (i in seq_len(nrow(topup))) {
+    smoke <- utils::read.delim(
+      structured_re_artifact_path(strsplit(topup$smoke_artifact[[i]], "/")[[
+        1L
+      ]]),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    expect_equal(nrow(smoke), 1L)
+    expect_equal(smoke$linked_cell_id, topup$linked_cell_id[[i]])
+    expect_equal(smoke$provider, topup$provider[[i]])
+    expect_equal(smoke$target, topup$endpoint_member[[i]])
+    expect_equal(smoke$planned_reps, 1L)
+    expect_equal(smoke$n_fit_ok, 1L)
+    expect_equal(smoke$n_converged, 1L)
+    expect_equal(smoke$n_pdhess, 1L)
+    expect_equal(smoke$n_bias_t_finite, 1L)
+    expect_equal(smoke$summary_status, "topup_endpoint_only_no_promotion")
+    expect_match(
+      smoke$claim_boundary,
+      "does not promote interval_status",
+      fixed = TRUE
+    )
+  }
+
+  expect_named(
+    topup_results,
+    c(
+      "result_id",
+      "linked_cell_id",
+      "provider",
+      "endpoint_member",
+      "source_previous",
+      "source_topup",
+      "topup_job_id",
+      "failed_attempt_archive",
+      "sr475_reps",
+      "topup_reps",
+      "total_reps",
+      "total_fit_ok",
+      "total_converged",
+      "total_pdhess",
+      "total_bias_t_finite",
+      "total_bias_t_covered",
+      "bias_t_coverage",
+      "bias_t_mcse",
+      "bias_t_lower_miss",
+      "bias_t_upper_miss",
+      "total_wald_finite",
+      "total_wald_covered",
+      "wald_coverage",
+      "wald_mcse",
+      "endpoint_status",
+      "row_promotion_decision",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(topup_results), 4L)
+  expect_equal(
+    topup_results$result_id,
+    c(
+      "q2_bias_t_topup_result_spatial_mu1_x",
+      "q2_bias_t_topup_result_spatial_mu2_x",
+      "q2_bias_t_topup_result_animal_mu1_x",
+      "q2_bias_t_topup_result_animal_mu2_x"
+    )
+  )
+  expect_equal(topup_results$sr475_reps, rep(475L, 4L))
+  expect_equal(topup_results$topup_reps, rep(525L, 4L))
+  expect_equal(topup_results$total_reps, rep(1000L, 4L))
+  expect_equal(topup_results$total_fit_ok, rep(1000L, 4L))
+  expect_equal(topup_results$total_converged, rep(1000L, 4L))
+  expect_equal(topup_results$total_pdhess, rep(1000L, 4L))
+  expect_equal(topup_results$total_bias_t_finite, rep(1000L, 4L))
+  expect_equal(topup_results$total_bias_t_covered, c(959L, 948L, 960L, 954L))
+  expect_equal(topup_results$bias_t_coverage, c(0.959, 0.948, 0.96, 0.954))
+  expect_equal(
+    topup_results$bias_t_mcse,
+    c(0.006270, 0.007021, 0.006197, 0.006624)
+  )
+  expect_equal(topup_results$bias_t_lower_miss, c(14L, 5L, 17L, 10L))
+  expect_equal(topup_results$bias_t_upper_miss, c(27L, 47L, 23L, 36L))
+  expect_equal(topup_results$total_wald_finite, rep(1000L, 4L))
+  expect_equal(topup_results$total_wald_covered, c(926L, 918L, 931L, 922L))
+  expect_equal(topup_results$wald_coverage, c(0.926, 0.918, 0.931, 0.922))
+  expect_equal(
+    topup_results$wald_mcse,
+    c(0.008278, 0.008676, 0.008015, 0.008480)
+  )
+  expect_equal(
+    topup_results$endpoint_status,
+    c(
+      "endpoint_mcse_pass_row_blocked",
+      "endpoint_mcse_pass_tail_imbalanced_row_blocked",
+      "endpoint_mcse_pass_row_blocked",
+      "endpoint_mcse_pass_tail_imbalanced_row_blocked"
+    )
+  )
+  expect_equal(topup_results$row_promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(
+    topup_results$topup_job_id,
+    c("14901064_1", "14901210_2", "14901064_3", "14901126_4")
+  )
+  expect_equal(
+    topup_results$failed_attempt_archive,
+    c(
+      "none",
+      "docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-rorqual/results/shard_2_failed_14901064_2",
+      "none",
+      "docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-rorqual/results/shard_4_failed_14901064_4"
+    )
+  )
+  for (path in topup_results$source_topup) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/")[[1L]])
+    ))
+  }
+  for (archive in topup_results$failed_attempt_archive) {
+    if (archive != "none") {
+      expect_true(file.exists(
+        structured_re_artifact_path(strsplit(archive, "/")[[1L]])
+      ))
+    }
+  }
+  for (phrase in c(
+    "SR1000",
+    "MCSE <= 0.01",
+    "does not promote interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "correlation targets",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(topup_results$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    topup_results$claim_boundary[topup_results$provider == "spatial"],
+    "range-estimating spatial"
+  )
+  structured_re_expect_all_match(
+    topup_results$claim_boundary[topup_results$provider == "animal"],
+    "pedigree/Ainv"
+  )
+  structured_re_expect_all_match(topup_results$next_gate, "Fisher/Rose")
+
+  expect_named(
+    row_gate,
+    c(
+      "gate_id",
+      "cell_id",
+      "provider",
+      "endpoint_scope",
+      "fit_fixture_state",
+      "sd_endpoint_evidence",
+      "tail_balance_status",
+      "correlation_target_status",
+      "g32_profile_wald_status",
+      "row_gate_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(row_gate), 2L)
+  expect_equal(
+    row_gate$gate_id,
+    c(
+      "q2_row_gate_spatial_mu1_mu2_one_slope",
+      "q2_row_gate_animal_mu1_mu2_one_slope"
+    )
+  )
+  expect_equal(
+    row_gate$cell_id,
+    c(
+      "qseries_spatial_q2_mu1_mu2_one_slope",
+      "qseries_animal_q2_mu1_mu2_one_slope"
+    )
+  )
+  expect_equal(row_gate$provider, c("spatial", "animal"))
+  expect_equal(
+    row_gate$endpoint_scope,
+    rep("mu1:x;mu2:x;mu1:x+mu2:x", 2L)
+  )
+  expect_equal(
+    row_gate$fit_fixture_state,
+    rep("point_fit_extractor_ready_fixture_parity", 2L)
+  )
+  expect_equal(
+    row_gate$tail_balance_status,
+    c(
+      "blocked_mu2_x_upper_tail_47_vs_5",
+      "blocked_mu2_x_upper_tail_36_vs_10"
+    )
+  )
+  expect_equal(
+    row_gate$correlation_target_status,
+    c(
+      "blocked_endpoint_only_sidecar_does_not_promote_correlation_raw_SR475_cor_wald_0.8905_mcse_0.0143",
+      "blocked_fixed8_correlation_SR150_profile_0.8867_upper_tail_13_vs_4_miss_diagnostic_banked_boundary_seed_733197"
+    )
+  )
+  expect_equal(
+    row_gate$g32_profile_wald_status,
+    c(
+      "g32_smoke_spatial_all_three_targets_wald_profile_finite_n1_not_coverage",
+      "animal_g32_not_applicable_fixed_8_pedigree_previous_sd_smoke_invalidated_correlation_holdout_fixed8_finite_n5_not_coverage"
+    )
+  )
+  expect_equal(row_gate$row_gate_status, rep("row_blocked", 2L))
+  expect_equal(row_gate$linked_interval_status, rep("planned", 2L))
+  expect_equal(row_gate$linked_coverage_status, rep("planned", 2L))
+  expect_equal(row_gate$promotion_decision, rep("do_not_promote", 2L))
+  expect_equal(
+    row_gate$evidence_url,
+    c(
+      "docs/dev-log/dashboard/structured-re-q2-slope-bias-t-topup-results.tsv",
+      "docs/dev-log/dashboard/structured-re-q2-animal-correlation-miss-diagnostic.tsv"
+    )
+  )
+  structured_re_expect_all_match(row_gate$sd_endpoint_evidence, "SR1000")
+  expect_match(row_gate$sd_endpoint_evidence[[1L]], "mu2:x 0.9480")
+  expect_match(row_gate$sd_endpoint_evidence[[2L]], "mu2:x 0.9540")
+  for (phrase in c(
+    "promotes exactly no q-series row",
+    "tail imbalance",
+    "correlation",
+    "g=32 profile/Wald",
+    "does not claim inference_ready",
+    "supported",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(row_gate$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    row_gate$claim_boundary[row_gate$provider == "spatial"],
+    "range-estimating spatial support"
+  )
+  structured_re_expect_all_match(
+    row_gate$claim_boundary[row_gate$provider == "animal"],
+    "pedigree/Ainv bridge marshalling"
+  )
+  structured_re_expect_all_match(row_gate$next_gate, "Fisher/Rose")
+  structured_re_expect_all_match(row_gate$next_gate, "g=32 profile/Wald")
+  structured_re_expect_all_match(
+    row_gate$next_gate[row_gate$provider == "animal"],
+    "skew-aware correlation interval"
+  )
+  structured_re_expect_all_match(
+    row_gate$next_gate[row_gate$provider == "animal"],
+    "animal-specific calibration"
+  )
+
+  gate_linked_status <- qseries[
+    match(row_gate$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(gate_linked_status$cell_id))
+  expect_equal(gate_linked_status$fit_status, rep("point_fit", 2L))
+  expect_equal(gate_linked_status$extractor_status, rep("extractor_ready", 2L))
+  expect_equal(gate_linked_status$bridge_status, rep("fixture_parity", 2L))
+  expect_equal(gate_linked_status$interval_status, rep("planned", 2L))
+  expect_equal(gate_linked_status$coverage_status, rep("planned", 2L))
+  expect_equal(
+    gate_linked_status$denominator_policy,
+    rep("fixture_not_coverage", 2L)
+  )
+  expect_false(any(gate_linked_status$authority_status == "supported"))
+
+  expect_named(
+    g32_smoke,
+    c(
+      "smoke_id",
+      "cell_id",
+      "provider",
+      "target_kind",
+      "endpoint_member",
+      "g_groups",
+      "n_each",
+      "n_rep",
+      "source_summary",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_boundary",
+      "n_wald_finite",
+      "n_profile_finite",
+      "wald_coverage",
+      "profile_coverage",
+      "smoke_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(g32_smoke), 6L)
+  expect_equal(
+    g32_smoke$smoke_id,
+    c(
+      "q2_g32_smoke_spatial_mu1_x",
+      "q2_g32_smoke_spatial_mu2_x",
+      "q2_g32_smoke_spatial_cor_mu1_mu2_x",
+      "q2_g32_smoke_animal_mu1_x",
+      "q2_g32_smoke_animal_mu2_x",
+      "q2_g32_smoke_animal_cor_mu1_mu2_x"
+    )
+  )
+  expect_equal(
+    g32_smoke$cell_id,
+    c(
+      rep("qseries_spatial_q2_mu1_mu2_one_slope", 3L),
+      rep("qseries_animal_q2_mu1_mu2_one_slope", 3L)
+    )
+  )
+  expect_equal(
+    g32_smoke$provider,
+    c("spatial", "spatial", "spatial", "animal", "animal", "animal")
+  )
+  expect_equal(
+    g32_smoke$target_kind,
+    c(
+      "direct_sd",
+      "direct_sd",
+      "direct_correlation",
+      "direct_sd",
+      "direct_sd",
+      "direct_correlation"
+    )
+  )
+  expect_equal(
+    g32_smoke$endpoint_member,
+    c("mu1:x", "mu2:x", "mu1:x+mu2:x", "mu1:x", "mu2:x", "mu1:x+mu2:x")
+  )
+  expect_equal(
+    g32_smoke$g_groups,
+    c(
+      rep("32", 3L),
+      rep("8_fixed_pedigree", 3L)
+    )
+  )
+  expect_equal(g32_smoke$n_each, c(rep(8L, 5L), 20L))
+  executed <- g32_smoke$smoke_status == "wald_profile_finite_smoke"
+  expect_equal(sum(executed), 3L)
+  expect_equal(g32_smoke$n_rep[executed], rep(1L, 3L))
+  expect_equal(g32_smoke$n_fit_ok[executed], rep(1L, 3L))
+  expect_equal(g32_smoke$n_converged[executed], rep(1L, 3L))
+  expect_equal(g32_smoke$n_pdhess[executed], rep(1L, 3L))
+  expect_equal(g32_smoke$n_boundary[executed], rep(0L, 3L))
+  expect_equal(g32_smoke$n_wald_finite[executed], rep(1L, 3L))
+  expect_equal(g32_smoke$n_profile_finite[executed], rep(1L, 3L))
+  expect_equal(g32_smoke$wald_coverage[executed], rep(1, 3L))
+  expect_equal(g32_smoke$profile_coverage[executed], rep(1, 3L))
+  holdout <- !executed
+  expect_equal(
+    g32_smoke$smoke_status[holdout],
+    c(
+      "invalidated_not_g32_fixed_pedigree_recycle_guarded",
+      "invalidated_not_g32_fixed_pedigree_recycle_guarded",
+      "g32_not_applicable_fixed8_holdout_diagnosed_separately"
+    )
+  )
+  expect_equal(g32_smoke$n_rep[holdout], rep(0L, 3L))
+  expect_equal(g32_smoke$n_fit_ok[holdout], rep(0L, 3L))
+  expect_equal(g32_smoke$n_wald_finite[holdout], rep(0L, 3L))
+  expect_equal(g32_smoke$n_profile_finite[holdout], rep(0L, 3L))
+  expect_equal(
+    g32_smoke$source_summary[holdout],
+    c(
+      "invalidated_fixed_8_pedigree_gsweep_32_recycling_guarded",
+      "invalidated_fixed_8_pedigree_gsweep_32_recycling_guarded",
+      "see_structured_re_q2_animal_correlation_holdout_diagnostic"
+    )
+  )
+  expect_equal(g32_smoke$linked_interval_status, rep("planned", 6L))
+  expect_equal(g32_smoke$linked_coverage_status, rep("planned", 6L))
+  expect_equal(g32_smoke$promotion_decision, rep("do_not_promote", 6L))
+  expect_equal(
+    g32_smoke$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-slope-g32-profile-wald-smoke.tsv",
+      6L
+    )
+  )
+  for (path in g32_smoke$source_summary[executed]) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/")[[1L]])
+    ))
+  }
+  for (phrase in c(
+    "g=32",
+    "not coverage evidence",
+    "not MCSE-qualified",
+    "does not promote interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(g32_smoke$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    g32_smoke$claim_boundary[g32_smoke$provider == "spatial"],
+    "range-estimating spatial support"
+  )
+  structured_re_expect_all_match(
+    g32_smoke$claim_boundary[g32_smoke$provider == "animal"],
+    "pedigree/Ainv bridge marshalling"
+  )
+
+  expect_named(
+    animal_cor_holdout,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "provider",
+      "target_kind",
+      "endpoint_member",
+      "g_groups",
+      "n_each",
+      "n_rep",
+      "seed_start",
+      "source_summary",
+      "replicate_tsv",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_boundary",
+      "n_wald_finite",
+      "n_profile_finite",
+      "wald_coverage",
+      "profile_coverage",
+      "diagnostic_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(animal_cor_holdout), 1L)
+  expect_equal(
+    animal_cor_holdout$diagnostic_id,
+    "q2_animal_cor_fixed8_holdout_diagnostic"
+  )
+  expect_equal(
+    animal_cor_holdout$cell_id,
+    "qseries_animal_q2_mu1_mu2_one_slope"
+  )
+  expect_equal(animal_cor_holdout$provider, "animal")
+  expect_equal(animal_cor_holdout$target_kind, "direct_correlation")
+  expect_equal(animal_cor_holdout$endpoint_member, "mu1:x+mu2:x")
+  expect_equal(animal_cor_holdout$g_groups, "8_fixed_pedigree")
+  expect_equal(animal_cor_holdout$n_each, 20L)
+  expect_equal(animal_cor_holdout$n_rep, 5L)
+  expect_equal(animal_cor_holdout$seed_start, 733001L)
+  expect_equal(animal_cor_holdout$n_fit_ok, 5L)
+  expect_equal(animal_cor_holdout$n_converged, 5L)
+  expect_equal(animal_cor_holdout$n_pdhess, 5L)
+  expect_equal(animal_cor_holdout$n_boundary, 0L)
+  expect_equal(animal_cor_holdout$n_wald_finite, 5L)
+  expect_equal(animal_cor_holdout$n_profile_finite, 5L)
+  expect_equal(animal_cor_holdout$wald_coverage, 1)
+  expect_equal(animal_cor_holdout$profile_coverage, 1)
+  expect_equal(
+    animal_cor_holdout$diagnostic_status,
+    "fixed8_holdout_profile_wald_finite_n5_not_coverage"
+  )
+  expect_equal(animal_cor_holdout$linked_interval_status, "planned")
+  expect_equal(animal_cor_holdout$linked_coverage_status, "planned")
+  expect_equal(animal_cor_holdout$promotion_decision, "do_not_promote")
+  for (path in c(
+    animal_cor_holdout$source_summary,
+    animal_cor_holdout$replicate_tsv
+  )) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/")[[1L]])
+    ))
+  }
+  for (phrase in c(
+    "promotes exactly no q-series row",
+    "fixed-8 holdout smoke",
+    "not g=32 evidence",
+    "not coverage evidence",
+    "not MCSE-qualified",
+    "does not promote interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "pedigree/Ainv bridge marshalling",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(animal_cor_holdout$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    animal_cor_holdout$next_gate,
+    "Fisher/Rose"
+  )
+  structured_re_expect_all_match(
+    animal_cor_holdout$next_gate,
+    "SR150 pregrid blocker"
+  )
+
+  expect_named(
+    animal_cor_pregrid,
+    c(
+      "pregrid_id",
+      "cell_id",
+      "provider",
+      "target_kind",
+      "endpoint_member",
+      "g_groups",
+      "n_each",
+      "n_rep",
+      "seed_start",
+      "source_summary",
+      "replicate_tsv",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_boundary",
+      "boundary_seeds",
+      "n_wald_finite",
+      "n_wald_covered",
+      "wald_coverage",
+      "wald_mcse",
+      "wald_lower_miss",
+      "wald_upper_miss",
+      "n_profile_finite",
+      "n_profile_covered",
+      "profile_coverage",
+      "profile_mcse",
+      "profile_lower_miss",
+      "profile_upper_miss",
+      "pregrid_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(animal_cor_pregrid), 1L)
+  expect_equal(
+    animal_cor_pregrid$pregrid_id,
+    "q2_animal_cor_fixed8_sr150_pregrid"
+  )
+  expect_equal(
+    animal_cor_pregrid$cell_id,
+    "qseries_animal_q2_mu1_mu2_one_slope"
+  )
+  expect_equal(animal_cor_pregrid$provider, "animal")
+  expect_equal(animal_cor_pregrid$target_kind, "direct_correlation")
+  expect_equal(animal_cor_pregrid$endpoint_member, "mu1:x+mu2:x")
+  expect_equal(animal_cor_pregrid$g_groups, "8_fixed_pedigree")
+  expect_equal(animal_cor_pregrid$n_each, 20L)
+  expect_equal(animal_cor_pregrid$n_rep, 150L)
+  expect_equal(animal_cor_pregrid$seed_start, 733101L)
+  expect_equal(animal_cor_pregrid$n_fit_ok, 150L)
+  expect_equal(animal_cor_pregrid$n_converged, 149L)
+  expect_equal(animal_cor_pregrid$n_pdhess, 150L)
+  expect_equal(animal_cor_pregrid$n_boundary, 1L)
+  expect_equal(animal_cor_pregrid$boundary_seeds, 733197L)
+  expect_equal(animal_cor_pregrid$n_wald_finite, 150L)
+  expect_equal(animal_cor_pregrid$n_wald_covered, 132L)
+  expect_equal(animal_cor_pregrid$wald_coverage, 0.88)
+  expect_equal(animal_cor_pregrid$wald_mcse, 0.0265)
+  expect_equal(animal_cor_pregrid$wald_lower_miss, 4L)
+  expect_equal(animal_cor_pregrid$wald_upper_miss, 14L)
+  expect_equal(animal_cor_pregrid$n_profile_finite, 150L)
+  expect_equal(animal_cor_pregrid$n_profile_covered, 133L)
+  expect_equal(animal_cor_pregrid$profile_coverage, 0.8867)
+  expect_equal(animal_cor_pregrid$profile_mcse, 0.0259)
+  expect_equal(animal_cor_pregrid$profile_lower_miss, 4L)
+  expect_equal(animal_cor_pregrid$profile_upper_miss, 13L)
+  expect_equal(
+    animal_cor_pregrid$pregrid_status,
+    "SR150_fixed8_profile_wald_finite_undercoverage_upper_tail_blocked"
+  )
+  expect_equal(animal_cor_pregrid$linked_interval_status, "planned")
+  expect_equal(animal_cor_pregrid$linked_coverage_status, "planned")
+  expect_equal(animal_cor_pregrid$promotion_decision, "do_not_promote")
+  for (path in c(
+    animal_cor_pregrid$source_summary,
+    animal_cor_pregrid$replicate_tsv
+  )) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/")[[1L]])
+    ))
+  }
+  for (phrase in c(
+    "promotes exactly no q-series row",
+    "SR150 fixed-8 retained-denominator pregrid evidence",
+    "150/150 finite Wald/profile intervals",
+    "Wald coverage 0.8800",
+    "profile coverage 0.8867",
+    "MCSE is > 0.01",
+    "one boundary/convergence flag is retained",
+    "upper-tail misses exceed lower-tail misses",
+    "does not promote interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "pedigree/Ainv bridge marshalling",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(animal_cor_pregrid$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "planned/planned",
+    "structured-re-q2-animal-correlation-miss-diagnostic.tsv",
+    "skew-aware correlation interval",
+    "animal-specific calibration",
+    "Fisher/Rose"
+  )) {
+    structured_re_expect_all_match(animal_cor_pregrid$next_gate, phrase)
+  }
+
+  expect_named(
+    animal_cor_miss,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "provider",
+      "target_kind",
+      "endpoint_member",
+      "source_pregrid",
+      "source_summary",
+      "replicate_tsv",
+      "miss_rows_tsv",
+      "n_rep",
+      "truth_value",
+      "n_fit_ok",
+      "n_converged",
+      "n_pdhess",
+      "n_boundary",
+      "boundary_seeds",
+      "n_wald_finite",
+      "n_wald_covered",
+      "wald_coverage",
+      "wald_mcse",
+      "wald_lower_miss",
+      "wald_upper_miss",
+      "n_profile_finite",
+      "n_profile_covered",
+      "profile_coverage",
+      "profile_mcse",
+      "profile_lower_miss",
+      "profile_upper_miss",
+      "both_channel_lower_miss",
+      "both_channel_upper_miss",
+      "wald_only_upper_miss",
+      "profile_only_upper_miss",
+      "miss_or_boundary_rows",
+      "estimate_range_miss_or_boundary",
+      "diagnostic_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(animal_cor_miss), 1L)
+  expect_equal(
+    animal_cor_miss$diagnostic_id,
+    "q2_animal_cor_fixed8_sr150_miss_diagnostic"
+  )
+  expect_equal(
+    animal_cor_miss$cell_id,
+    "qseries_animal_q2_mu1_mu2_one_slope"
+  )
+  expect_equal(animal_cor_miss$provider, "animal")
+  expect_equal(animal_cor_miss$target_kind, "direct_correlation")
+  expect_equal(animal_cor_miss$endpoint_member, "mu1:x+mu2:x")
+  expect_equal(
+    animal_cor_miss$source_pregrid,
+    "docs/dev-log/dashboard/structured-re-q2-animal-correlation-pregrid-results.tsv"
+  )
+  expect_equal(animal_cor_miss$n_rep, 150L)
+  expect_equal(animal_cor_miss$truth_value, 0.2)
+  expect_equal(animal_cor_miss$n_fit_ok, 150L)
+  expect_equal(animal_cor_miss$n_converged, 149L)
+  expect_equal(animal_cor_miss$n_pdhess, 150L)
+  expect_equal(animal_cor_miss$n_boundary, 1L)
+  expect_equal(animal_cor_miss$boundary_seeds, 733197L)
+  expect_equal(animal_cor_miss$n_wald_finite, 150L)
+  expect_equal(animal_cor_miss$n_wald_covered, 132L)
+  expect_equal(animal_cor_miss$wald_coverage, 0.88)
+  expect_equal(animal_cor_miss$wald_mcse, 0.0265)
+  expect_equal(animal_cor_miss$wald_lower_miss, 4L)
+  expect_equal(animal_cor_miss$wald_upper_miss, 14L)
+  expect_equal(animal_cor_miss$n_profile_finite, 150L)
+  expect_equal(animal_cor_miss$n_profile_covered, 133L)
+  expect_equal(animal_cor_miss$profile_coverage, 0.8867)
+  expect_equal(animal_cor_miss$profile_mcse, 0.0259)
+  expect_equal(animal_cor_miss$profile_lower_miss, 4L)
+  expect_equal(animal_cor_miss$profile_upper_miss, 13L)
+  expect_equal(animal_cor_miss$both_channel_lower_miss, 4L)
+  expect_equal(animal_cor_miss$both_channel_upper_miss, 13L)
+  expect_equal(animal_cor_miss$wald_only_upper_miss, 1L)
+  expect_equal(animal_cor_miss$profile_only_upper_miss, 0L)
+  expect_equal(animal_cor_miss$miss_or_boundary_rows, 19L)
+  expect_equal(
+    animal_cor_miss$estimate_range_miss_or_boundary,
+    "-0.8134..0.8623"
+  )
+  expect_equal(
+    animal_cor_miss$diagnostic_status,
+    "finite_interval_undercoverage_shape_blocker"
+  )
+  expect_equal(animal_cor_miss$linked_interval_status, "planned")
+  expect_equal(animal_cor_miss$linked_coverage_status, "planned")
+  expect_equal(animal_cor_miss$promotion_decision, "do_not_promote")
+  for (path in c(
+    animal_cor_miss$source_pregrid,
+    animal_cor_miss$source_summary,
+    animal_cor_miss$replicate_tsv,
+    animal_cor_miss$miss_rows_tsv
+  )) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/")[[1L]])
+    ))
+  }
+  miss_rows <- utils::read.delim(
+    structured_re_artifact_path(strsplit(animal_cor_miss$miss_rows_tsv, "/")[[
+      1L
+    ]]),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(miss_rows), 19L)
+  expect_equal(sum(miss_rows$miss_overlap == "upper_miss/upper_miss"), 13L)
+  expect_equal(sum(miss_rows$miss_overlap == "lower_miss/lower_miss"), 4L)
+  expect_equal(sum(miss_rows$miss_overlap == "upper_miss/covered"), 1L)
+  expect_equal(miss_rows$seed[miss_rows$is_boundary], 733197L)
+  for (phrase in c(
+    "promotes exactly no q-series row",
+    "animal q2 correlation SR150 fixed-8 miss diagnostics",
+    "150/150 finite Wald/profile intervals",
+    "profile coverage 0.8867",
+    "MCSE 0.0259",
+    "13 profile upper-tail misses versus 4 lower-tail misses",
+    "13 shared upper-tail misses",
+    "1 Wald-only upper miss",
+    "retained boundary/convergence seed 733197",
+    "blocker evidence only",
+    "does not promote interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "pedigree/Ainv bridge marshalling",
+    "q4/q8",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(animal_cor_miss$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "planned/planned",
+    "Fisher/Rose",
+    "skew-aware correlation interval",
+    "animal-specific calibration",
+    "top-up or status edit"
+  )) {
+    structured_re_expect_all_match(animal_cor_miss$next_gate, phrase)
+  }
 })
 
 test_that("q2 slope-only replicated denominator rule keeps coverage blocked", {
@@ -5541,7 +13096,10 @@ test_that("q2 slope-only replicated denominator rule keeps coverage blocked", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -5758,7 +13316,10 @@ test_that("q2 slope-only coverage pregrid dry-run does not execute coverage", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -5977,7 +13538,10 @@ test_that("sigma-slope interval plan remains sigma-only and target-level", {
     qseries_plan$interval_status,
     .expected_interval(qseries_plan$cell_id)
   )
-  expect_equal(qseries_plan$coverage_status, .expected_coverage(qseries_plan$cell_id))
+  expect_equal(
+    qseries_plan$coverage_status,
+    .expected_coverage(qseries_plan$cell_id)
+  )
   expect_equal(
     qseries_plan$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -6119,7 +13683,10 @@ test_that("sigma-slope interval status remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -6287,7 +13854,10 @@ test_that("sigma-slope interval stability probe remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -6418,7 +13988,10 @@ test_that("sigma-slope denominator admission remains diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -6587,7 +14160,10 @@ test_that("sigma-slope replicated denominator rule keeps coverage blocked", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -6782,7 +14358,10 @@ test_that("sigma-slope coverage pregrid dry-run remains not executed", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -6991,7 +14570,10 @@ test_that("sigma-slope coverage dispatch review remains not submitted", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -7663,7 +15245,10 @@ test_that("matched mu+sigma one-slope readiness records native point fits only",
     qseries_ready$interval_status,
     .expected_interval(qseries_ready$cell_id)
   )
-  expect_equal(qseries_ready$coverage_status, .expected_coverage(qseries_ready$cell_id))
+  expect_equal(
+    qseries_ready$coverage_status,
+    .expected_coverage(qseries_ready$cell_id)
+  )
   expect_equal(
     qseries_ready$evidence_url,
     rep(
@@ -7860,7 +15445,10 @@ test_that("q4 all-four one-slope identity ledger records exact runtime promotion
     qseries_planned$interval_status,
     .expected_interval(qseries_planned$cell_id)
   )
-  expect_equal(qseries_planned$coverage_status, .expected_coverage(qseries_planned$cell_id))
+  expect_equal(
+    qseries_planned$coverage_status,
+    .expected_coverage(qseries_planned$cell_id)
+  )
   expect_equal(
     qseries_planned$evidence_url,
     rep(
@@ -8072,7 +15660,10 @@ test_that("q4 location one-slope parity fixture records exact bridge fixture onl
     qseries_ready$interval_status,
     .expected_interval(qseries_ready$cell_id)
   )
-  expect_equal(qseries_ready$coverage_status, .expected_coverage(qseries_ready$cell_id))
+  expect_equal(
+    qseries_ready$coverage_status,
+    .expected_coverage(qseries_ready$cell_id)
+  )
   expect_equal(
     qseries_ready$evidence_url,
     rep(
@@ -8296,7 +15887,10 @@ test_that("q4 location one-slope interval plan remains target-level", {
     qseries_plan$interval_status,
     .expected_interval(qseries_plan$cell_id)
   )
-  expect_equal(qseries_plan$coverage_status, .expected_coverage(qseries_plan$cell_id))
+  expect_equal(
+    qseries_plan$coverage_status,
+    .expected_coverage(qseries_plan$cell_id)
+  )
   expect_equal(
     qseries_plan$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -8498,7 +16092,10 @@ test_that("q4 location one-slope interval smoke records bounded direct-SD status
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -8713,7 +16310,10 @@ test_that("q4 location one-slope bootstrap budget probe stays diagnostic-only", 
     qseries_probe$interval_status,
     .expected_interval(qseries_probe$cell_id)
   )
-  expect_equal(qseries_probe$coverage_status, .expected_coverage(qseries_probe$cell_id))
+  expect_equal(
+    qseries_probe$coverage_status,
+    .expected_coverage(qseries_probe$cell_id)
+  )
   expect_equal(
     qseries_probe$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -8908,7 +16508,10 @@ test_that("q4 location one-slope bootstrap dispatch plan stays not submitted", {
     qseries_dispatch$interval_status,
     .expected_interval(qseries_dispatch$cell_id)
   )
-  expect_equal(qseries_dispatch$coverage_status, .expected_coverage(qseries_dispatch$cell_id))
+  expect_equal(
+    qseries_dispatch$coverage_status,
+    .expected_coverage(qseries_dispatch$cell_id)
+  )
   expect_equal(
     qseries_dispatch$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -9329,7 +16932,10 @@ test_that("q4 all-four one-slope parity fixture records exact bridge fixture onl
     qseries_ready$interval_status,
     .expected_interval(qseries_ready$cell_id)
   )
-  expect_equal(qseries_ready$coverage_status, .expected_coverage(qseries_ready$cell_id))
+  expect_equal(
+    qseries_ready$coverage_status,
+    .expected_coverage(qseries_ready$cell_id)
+  )
   expect_equal(
     qseries_ready$evidence_url,
     rep(
@@ -9498,7 +17104,10 @@ test_that("q4 all-four intercept parity fixture records provider bridge fixture"
   expect_equal(provider_rows$fit_status, rep("point_fit", 3L))
   expect_equal(provider_rows$extractor_status, rep("extractor_ready", 3L))
   expect_equal(provider_rows$bridge_status, rep("fixture_parity", 3L))
-  expect_equal(provider_rows$interval_status, rep("planned", 3L))
+  expect_equal(
+    provider_rows$interval_status,
+    .expected_interval(provider_rows$cell_id)
+  )
   expect_equal(provider_rows$coverage_status, rep("planned", 3L))
   expect_equal(
     provider_rows$evidence_url,
@@ -9705,7 +17314,10 @@ test_that("q4 all-four one-slope interval plan remains target-level", {
     qseries_plan$interval_status,
     .expected_interval(qseries_plan$cell_id)
   )
-  expect_equal(qseries_plan$coverage_status, .expected_coverage(qseries_plan$cell_id))
+  expect_equal(
+    qseries_plan$coverage_status,
+    .expected_coverage(qseries_plan$cell_id)
+  )
   expect_equal(
     qseries_plan$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -9868,7 +17480,10 @@ test_that("q4 all-four intercept interval plan remains target-level", {
     qseries_plan$interval_status,
     .expected_interval(qseries_plan$cell_id)
   )
-  expect_equal(qseries_plan$coverage_status, .expected_coverage(qseries_plan$cell_id))
+  expect_equal(
+    qseries_plan$coverage_status,
+    .expected_coverage(qseries_plan$cell_id)
+  )
 })
 
 test_that("q4 all-four intercept interval status stays diagnostic-only", {
@@ -10060,7 +17675,10 @@ test_that("q4 all-four intercept interval status stays diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
 })
 
 test_that("q4 all-four intercept denominator precheck blocks admission", {
@@ -10227,7 +17845,10 @@ test_that("q4 all-four intercept denominator precheck blocks admission", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -10459,7 +18080,10 @@ test_that("q4 all-four intercept Hessian/bootstrap diagnostic stays blocked", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -10625,14 +18249,17 @@ test_that("q4 all-four one-slope interval status stays Hessian-blocked", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
   )
 })
 
-test_that("q4 all-four one-slope interval stability probe stays Hessian-blocked", {
+test_that("q4 all-four one-slope interval stability probe stays diagnostic-only", {
   stability <- structured_re_read_dashboard_tsv(
     "structured-re-q4-slope-interval-stability-probe.tsv"
   )
@@ -10726,11 +18353,37 @@ test_that("q4 all-four one-slope interval stability probe stays Hessian-blocked"
   expect_equal(stability$target_kind, rep("direct_sd", 64L))
   expect_equal(stability$observed_target_rows, rep(1L, 64L))
   expect_equal(stability$n_fit_ok, rep(1L, 64L))
-  expect_equal(stability$n_pdhess, rep(0L, 64L))
-  expect_equal(stability$wald_status, rep("not_run_pdhess_false", 64L))
-  expect_equal(stability$profile_status, rep("not_run_pdhess_false", 64L))
-  expect_equal(stability$stability_status, rep("pdhess_blocked", 64L))
-  expect_equal(stability$failure_class, rep("fit_pdhess_false", 64L))
+  non_animal <- stability[
+    stability$structured_type != "animal",
+    ,
+    drop = FALSE
+  ]
+  animal <- stability[stability$structured_type == "animal", , drop = FALSE]
+  expect_equal(nrow(non_animal), 48L)
+  expect_equal(nrow(animal), 16L)
+  expect_equal(non_animal$n_pdhess, rep(0L, 48L))
+  expect_equal(non_animal$wald_status, rep("not_run_pdhess_false", 48L))
+  expect_equal(non_animal$profile_status, rep("not_run_pdhess_false", 48L))
+  expect_equal(non_animal$stability_status, rep("pdhess_blocked", 48L))
+  expect_equal(non_animal$failure_class, rep("fit_pdhess_false", 48L))
+  expect_equal(animal$n_pdhess, rep(1L, 16L))
+  expect_equal(animal$wald_status, rep("finite", 16L))
+  expect_equal(
+    as.integer(table(animal$profile_status)[c("finite", "nonfinite")]),
+    c(9L, 7L)
+  )
+  expect_equal(
+    as.integer(table(animal$stability_status)[
+      c("wald_profile_finite", "wald_finite_profile_nonfinite")
+    ]),
+    c(9L, 7L)
+  )
+  expect_equal(
+    as.integer(table(animal$failure_class)[
+      c("none", "profile_failed_or_nonfinite")
+    ]),
+    c(9L, 7L)
+  )
   expect_equal(stability$interval_claim_status, rep("diagnostic_only", 64L))
   expect_equal(stability$status, rep("covered", 64L))
 
@@ -10786,13 +18439,41 @@ test_that("q4 all-four one-slope interval stability probe stays Hessian-blocked"
   )
   expect_equal(anyDuplicated(artifact_key), 0L)
   expect_setequal(artifact$interval_method, c("wald", "profile"))
-  expect_equal(artifact$method_status, rep("not_run_pdhess_false", 128L))
+  non_animal_artifact <- artifact[
+    artifact$provider != "animal",
+    ,
+    drop = FALSE
+  ]
+  animal_artifact <- artifact[artifact$provider == "animal", , drop = FALSE]
+  expect_equal(nrow(non_animal_artifact), 96L)
+  expect_equal(nrow(animal_artifact), 32L)
   expect_equal(
-    tolower(as.character(artifact$interval_finite)),
-    rep("false", 128L)
+    non_animal_artifact$method_status,
+    rep("not_run_pdhess_false", 96L)
+  )
+  expect_equal(
+    tolower(as.character(non_animal_artifact$interval_finite)),
+    rep("false", 96L)
+  )
+  expect_equal(
+    animal_artifact$method_status[animal_artifact$interval_method == "wald"],
+    rep("finite", 16L)
+  )
+  expect_equal(
+    as.integer(table(animal_artifact$method_status)[
+      c("finite", "nonfinite")
+    ]),
+    c(25L, 7L)
+  )
+  expect_equal(
+    as.integer(table(tolower(as.character(animal_artifact$interval_finite)))[
+      c("true", "false")
+    ]),
+    c(25L, 7L)
   )
   expect_equal(tolower(as.character(artifact$profile_ready)), rep("true", 128L))
-  expect_equal(artifact$pdHess, rep(FALSE, 128L))
+  expect_equal(non_animal_artifact$pdHess, rep(FALSE, 96L))
+  expect_equal(animal_artifact$pdHess, rep(TRUE, 32L))
 
   structured_re_expect_all_match(
     stability$claim_boundary,
@@ -10813,9 +18494,26 @@ test_that("q4 all-four one-slope interval stability probe stays Hessian-blocked"
     stability$claim_boundary,
     "broad bridge support"
   )
-  structured_re_expect_all_match(stability$next_gate, "Hessian failures")
+  structured_re_expect_all_match(non_animal$next_gate, "Hessian failures")
+  structured_re_expect_all_match(
+    animal$next_gate[
+      animal$stability_status == "wald_finite_profile_nonfinite"
+    ],
+    "nonfinite or failed interval methods"
+  )
+  structured_re_expect_all_match(
+    animal$next_gate[animal$stability_status == "wald_profile_finite"],
+    "replicated deterministic fixtures"
+  )
   structured_re_expect_all_match(stability$next_gate, "denominator accounting")
-  structured_re_expect_all_match(stability$next_gate, "coverage-grid design")
+  structured_re_expect_all_match(
+    stability$next_gate[stability$stability_status != "wald_profile_finite"],
+    "coverage-grid design"
+  )
+  structured_re_expect_all_match(
+    stability$next_gate[stability$stability_status == "wald_profile_finite"],
+    "calibrated coverage wording"
+  )
 
   qseries_status <- qseries[
     qseries$cell_id %in% stability$cell_id,
@@ -10831,11 +18529,2383 @@ test_that("q4 all-four one-slope interval stability probe stays Hessian-blocked"
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
   )
+})
+
+test_that("q4 animal all-four admission probe keeps coverage not evaluable", {
+  admission <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-all-four-admission-probe.tsv"
+  )
+  geometry <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-hessian-geometry-diagnostic.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-all-four-admission-probe-nibi",
+      "structured-re-q4-animal-all-four-admission-probe-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    admission,
+    c(
+      "probe_id",
+      "cell_id",
+      "widget_state",
+      "variant",
+      "structured_type",
+      "dimension_pattern",
+      "target_scope",
+      "n_rep",
+      "n_direct_targets",
+      "n_target_rep_rows",
+      "n_fit_ok",
+      "n_pdhess",
+      "pdhess_rate",
+      "n_wald_finite",
+      "wald_finite_rate",
+      "n_profile_attempted",
+      "n_profile_finite",
+      "profile_finite_rate",
+      "n_profile_nonfinite",
+      "admission_status",
+      "interval_claim_status",
+      "coverage_status",
+      "status",
+      "source_artifact",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(admission), 1L)
+  expect_equal(
+    admission$probe_id,
+    "q4_animal_all_four_admission_more_levels"
+  )
+  expect_equal(
+    admission$cell_id,
+    "qseries_animal_q4_all_four_one_slope_planned"
+  )
+  expect_equal(admission$widget_state, "high_q_diagnostic")
+  expect_equal(admission$variant, "more_levels")
+  expect_equal(admission$structured_type, "animal")
+  expect_equal(admission$dimension_pattern, "q4")
+  expect_equal(admission$target_scope, "all_four_direct_sd")
+  expect_equal(admission$n_rep, 16L)
+  expect_equal(admission$n_direct_targets, 8L)
+  expect_equal(admission$n_target_rep_rows, 128L)
+  expect_equal(admission$n_fit_ok, 16L)
+  expect_equal(admission$n_pdhess, 2L)
+  expect_equal(admission$pdhess_rate, 0.125)
+  expect_equal(admission$n_wald_finite, 16L)
+  expect_equal(admission$wald_finite_rate, 0.125)
+  expect_equal(admission$n_profile_attempted, 128L)
+  expect_equal(admission$n_profile_finite, 14L)
+  expect_equal(admission$profile_finite_rate, 0.109)
+  expect_equal(admission$n_profile_nonfinite, 2L)
+  expect_equal(
+    admission$admission_status,
+    "pdhess_admission_blocked"
+  )
+  expect_equal(admission$interval_claim_status, "diagnostic_only")
+  expect_equal(admission$coverage_status, "not_evaluable")
+  expect_equal(admission$status, "covered")
+
+  expect_equal(nrow(artifact), 256L)
+  pdhess_by_rep <- unique(artifact[c("replicate_index", "pdHess")])
+  pdhess_by_rep <- pdhess_by_rep[order(pdhess_by_rep$replicate_index), ]
+  expect_equal(
+    pdhess_by_rep$replicate_index,
+    seq.int(910101L, 910116L)
+  )
+  expect_equal(
+    as.character(pdhess_by_rep$pdHess),
+    ifelse(
+      pdhess_by_rep$replicate_index %in% c(910107L, 910110L),
+      "TRUE",
+      "FALSE"
+    )
+  )
+  method_status <- table(artifact$interval_method, artifact$method_status)
+  expect_equal(method_status["wald", "finite"], 16L)
+  expect_equal(method_status["profile", "finite"], 14L)
+  expect_equal(method_status["profile", "nonfinite"], 2L)
+  expect_equal(method_status["wald", "not_run_pdhess_false"], 112L)
+  expect_equal(method_status["profile", "not_run_pdhess_false"], 112L)
+
+  expect_named(
+    geometry,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "endpoint_member",
+      "estimand",
+      "n_rep",
+      "n_fit_ok",
+      "n_pdhess_true",
+      "n_pdhess_false",
+      "pdhess_rate",
+      "estimate_min",
+      "estimate_median",
+      "estimate_max",
+      "n_estimate_lt_0_10",
+      "n_estimate_lt_0_20",
+      "profile_finite_when_pdhess_true",
+      "profile_nonfinite_when_pdhess_true",
+      "profile_not_run_pdhess_false",
+      "geometry_signal",
+      "admission_status",
+      "interval_claim_status",
+      "coverage_status",
+      "source_artifact",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expected_geometry_estimands <- c(
+    "mu1:(Intercept)" = "sd_mu1_intercept",
+    "mu1:x" = "sd_mu1_x",
+    "mu2:(Intercept)" = "sd_mu2_intercept",
+    "mu2:x" = "sd_mu2_x",
+    "sigma1:(Intercept)" = "sd_sigma1_intercept",
+    "sigma1:x" = "sd_sigma1_x",
+    "sigma2:(Intercept)" = "sd_sigma2_intercept",
+    "sigma2:x" = "sd_sigma2_x"
+  )
+  expect_equal(nrow(geometry), length(expected_geometry_estimands))
+  expect_setequal(geometry$endpoint_member, names(expected_geometry_estimands))
+  expect_equal(
+    geometry$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", nrow(geometry))
+  )
+  expect_equal(geometry$n_rep, rep(16L, nrow(geometry)))
+  expect_equal(geometry$n_fit_ok, rep(16L, nrow(geometry)))
+  expect_equal(geometry$n_pdhess_true, rep(2L, nrow(geometry)))
+  expect_equal(geometry$n_pdhess_false, rep(14L, nrow(geometry)))
+  expect_equal(geometry$pdhess_rate, rep(0.125, nrow(geometry)))
+  expect_equal(geometry$n_estimate_lt_0_10, rep(0L, nrow(geometry)))
+  expect_equal(
+    geometry$profile_not_run_pdhess_false,
+    rep(14L, nrow(geometry))
+  )
+  expect_equal(
+    geometry$geometry_signal,
+    rep("hessian_geometry_not_simple_boundary", nrow(geometry))
+  )
+  expect_equal(
+    geometry$admission_status,
+    rep("pdhess_admission_blocked", nrow(geometry))
+  )
+  expect_equal(
+    geometry$interval_claim_status,
+    rep("diagnostic_only", nrow(geometry))
+  )
+  expect_equal(
+    geometry$coverage_status,
+    rep("not_evaluable", nrow(geometry))
+  )
+  for (endpoint_member in names(expected_geometry_estimands)) {
+    row <- geometry[geometry$endpoint_member == endpoint_member, , drop = FALSE]
+    wald_rows <- artifact[
+      artifact$endpoint_member == endpoint_member &
+        artifact$interval_method == "wald",
+      ,
+      drop = FALSE
+    ]
+    profile_rows <- artifact[
+      artifact$endpoint_member == endpoint_member &
+        artifact$interval_method == "profile",
+      ,
+      drop = FALSE
+    ]
+    expect_equal(nrow(row), 1L)
+    expect_equal(row$estimand, expected_geometry_estimands[[endpoint_member]])
+    expect_equal(nrow(wald_rows), 16L)
+    expect_equal(nrow(profile_rows), 16L)
+    estimates <- wald_rows$estimate
+    expect_equal(as.numeric(row$estimate_min), min(estimates), tolerance = 1e-5)
+    expect_equal(
+      as.numeric(row$estimate_median),
+      median(estimates),
+      tolerance = 1e-5
+    )
+    expect_equal(as.numeric(row$estimate_max), max(estimates), tolerance = 1e-5)
+    expect_equal(row$n_estimate_lt_0_20, sum(estimates < 0.20))
+    expect_equal(
+      row$profile_finite_when_pdhess_true,
+      sum(
+        as.character(profile_rows$pdHess) == "TRUE" &
+          as.character(profile_rows$interval_finite) == "TRUE"
+      )
+    )
+    expect_equal(
+      row$profile_nonfinite_when_pdhess_true,
+      sum(
+        as.character(profile_rows$pdHess) == "TRUE" &
+          profile_rows$method_status == "nonfinite"
+      )
+    )
+    expect_equal(
+      row$profile_not_run_pdhess_false,
+      sum(
+        as.character(profile_rows$pdHess) == "FALSE" &
+          profile_rows$method_status == "not_run_pdhess_false"
+      )
+    )
+  }
+  for (phrase in c(
+    "retained Nibi direct-SD estimates are not near zero",
+    "pdHess is 2/16",
+    "profile finiteness is incomplete",
+    "no coverage",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, geometry$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "Gauss/Noether",
+    "q8-shaped Hessian/correlation geometry",
+    "parameter transform",
+    "q4 coverage-grid design",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, geometry$next_gate, fixed = TRUE)))
+  }
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope admission probe only",
+    "direct-SD fit",
+    "pdHess",
+    "no coverage evidence",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "derived-correlation intervals remain blocked"
+  )) {
+    expect_match(admission$claim_boundary, phrase, fixed = TRUE)
+  }
+  for (phrase in c(
+    "Diagnose retained fit",
+    "pdHess",
+    "profile-finiteness blockers",
+    "q4 coverage-grid design",
+    "Gauss/Noether",
+    "Fisher/Rose"
+  )) {
+    expect_match(admission$next_gate, phrase, fixed = TRUE)
+  }
+
+  qseries_row <- qseries[
+    qseries$cell_id == admission$cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_row), 1L)
+  expect_equal(qseries_row$route, "native_direct_bridge_fixture")
+  expect_equal(qseries_row$fit_status, "point_fit")
+  expect_equal(qseries_row$extractor_status, "extractor_ready")
+  expect_equal(qseries_row$bridge_status, "fixture_parity")
+  expect_equal(qseries_row$interval_status, "diagnostic_only")
+  expect_equal(qseries_row$coverage_status, "planned")
+  expect_equal(qseries_row$denominator_policy, "fixture_not_coverage")
+})
+
+test_that("q4 animal numerical geometry stays diagnostic-only", {
+  diagnostic <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-numerical-geometry-diagnostic.tsv"
+  )
+  attempts <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-numerical-geometry-attempts.tsv"
+  )
+  diagnostic_artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-numerical-geometry-local",
+      "structured-re-q4-animal-numerical-geometry-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  attempts_artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-numerical-geometry-local",
+      "structured-re-q4-animal-numerical-geometry-attempts.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    diagnostic,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "variant",
+      "replicate_index",
+      "seed",
+      "n_levels",
+      "n_each",
+      "q_phylo",
+      "phylo_mu_n_blocks",
+      "fit_ok",
+      "convergence",
+      "pdHess",
+      "logLik",
+      "objective",
+      "optimizer_selected",
+      "optimizer_selected_preset",
+      "selected_attempt",
+      "optimizer_attempt_count",
+      "fallback_selected",
+      "best_attempt_objective",
+      "selected_objective_delta_from_best",
+      "selected_worse_than_best",
+      "optimizer_attempt_statuses",
+      "optimizer_attempt_convergences",
+      "warning_count",
+      "warning_messages",
+      "max_abs_gradient_fixed",
+      "max_gradient_parameter",
+      "max_gradient_index",
+      "sdreport_status",
+      "sdreport_message",
+      "log_sd_min",
+      "log_sd_median",
+      "log_sd_max",
+      "sd_min",
+      "sd_median",
+      "sd_max",
+      "theta_abs_median",
+      "theta_abs_q90",
+      "theta_abs_q95",
+      "cov_fixed_status",
+      "cov_fixed_dim",
+      "cov_fixed_finite_count",
+      "cov_fixed_total",
+      "min_cov_fixed_eigenvalue",
+      "max_cov_fixed_eigenvalue",
+      "n_cov_fixed_nonpositive_eigenvalues",
+      "cov_fixed_condition_abs",
+      "theta_count",
+      "theta_max_abs",
+      "n_theta_abs_gt_10",
+      "n_theta_abs_gt_50",
+      "n_theta_abs_gt_100",
+      "theta_abs_gt_3",
+      "theta_abs_gt_5",
+      "log_sd_count",
+      "min_direct_sd_estimate",
+      "max_direct_sd_estimate",
+      "n_direct_sd_lt_0_10",
+      "n_direct_sd_lt_0_20",
+      "cor_count",
+      "max_abs_derived_correlation",
+      "corr_abs_offdiag_max",
+      "corr_abs_offdiag_q95",
+      "n_abs_corr_gt_0_9",
+      "n_abs_derived_correlation_gt_0_95",
+      "n_abs_derived_correlation_gt_0_99",
+      "corr_eig_min",
+      "corr_eig_max",
+      "corr_log10_condition",
+      "cov_eig_min",
+      "cov_eig_max",
+      "cov_log10_condition",
+      "sdr_cov_fixed_eig_min",
+      "sdr_cov_fixed_eig_max",
+      "sdr_cov_fixed_n_negative",
+      "sdr_cov_fixed_n_near_zero",
+      "diag_cov_random_min",
+      "diag_cov_random_max",
+      "diag_cov_random_n_nonpositive",
+      "quadratic_phylo",
+      "geometry_status",
+      "interval_claim_status",
+      "coverage_status",
+      "source_artifact",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_named(
+    attempts,
+    c(
+      "seed",
+      "replicate_index",
+      "attempt",
+      "optimizer",
+      "optimizer_preset",
+      "status",
+      "convergence",
+      "message",
+      "objective",
+      "elapsed_sec",
+      "selected",
+      "control",
+      "objective_delta_from_best"
+    )
+  )
+  expect_equal(nrow(diagnostic), 4L)
+  expect_equal(nrow(diagnostic_artifact), 4L)
+  expect_equal(nrow(attempts), 7L)
+  expect_equal(nrow(attempts_artifact), 7L)
+
+  reps <- c(910101L, 910102L, 910107L, 910110L)
+  diagnostic <- diagnostic[match(reps, diagnostic$replicate_index), ]
+  expect_equal(diagnostic$replicate_index, reps)
+  expect_equal(diagnostic$seed, c(1920101L, 1920102L, 1920107L, 1920110L))
+  expect_equal(
+    diagnostic$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 4L)
+  )
+  expect_equal(diagnostic$variant, rep("more_levels", 4L))
+  expect_equal(diagnostic$n_levels, rep(16L, 4L))
+  expect_equal(diagnostic$n_each, rep(12L, 4L))
+  expect_equal(diagnostic$q_phylo, rep(8L, 4L))
+  expect_equal(diagnostic$phylo_mu_n_blocks, rep(1L, 4L))
+  expect_equal(as.character(diagnostic$fit_ok), rep("TRUE", 4L))
+  expect_equal(diagnostic$convergence, rep(0L, 4L))
+  expect_equal(
+    as.character(diagnostic$pdHess),
+    c("FALSE", "FALSE", "TRUE", "TRUE")
+  )
+  expect_equal(
+    diagnostic$optimizer_selected_preset,
+    c("fallback:BFGS", "fallback:BFGS", "default", "fallback:BFGS")
+  )
+  expect_equal(
+    as.character(diagnostic$selected_worse_than_best),
+    c("TRUE", "TRUE", "FALSE", "TRUE")
+  )
+  expect_equal(
+    diagnostic$geometry_status,
+    c(
+      "gradient_covfixed_eigen_blocked",
+      "gradient_covfixed_eigen_blocked",
+      "pdhess_pass_smoke",
+      "pdhess_pass_smoke"
+    )
+  )
+  expect_equal(
+    diagnostic$selected_objective_delta_from_best,
+    c(7.399254764, 31.13350607, 0, 45.34823111),
+    tolerance = 1e-6
+  )
+  expect_true(all(diagnostic$max_abs_gradient_fixed[1:2] > 1e-3))
+  expect_true(all(diagnostic$max_abs_gradient_fixed[3:4] < 1e-3))
+  expect_true(all(diagnostic$n_cov_fixed_nonpositive_eigenvalues[1:2] > 0))
+  expect_equal(diagnostic$n_cov_fixed_nonpositive_eigenvalues[3:4], c(0L, 0L))
+  expect_true(all(diagnostic$sdr_cov_fixed_n_negative[1:2] > 0))
+  expect_equal(diagnostic$sdr_cov_fixed_n_negative[3:4], c(0L, 0L))
+  expect_true(all(diagnostic$theta_max_abs[1:2] > 100))
+  expect_true(all(diagnostic$theta_max_abs[3:4] < 50))
+  expect_true(all(is.finite(diagnostic$corr_log10_condition)))
+  expect_true(all(is.finite(diagnostic$cov_log10_condition)))
+  expect_equal(
+    diagnostic$interval_claim_status,
+    rep("diagnostic_only", 4L)
+  )
+  expect_equal(diagnostic$coverage_status, rep("not_evaluable", 4L))
+  expect_equal(
+    diagnostic$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-numerical-geometry-local/",
+        "structured-re-q4-animal-numerical-geometry-diagnostic.tsv"
+      ),
+      4L
+    )
+  )
+  for (phrase in c(
+    "numerical-geometry diagnostic only",
+    "pdHess false and pdHess true",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, diagnostic$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "q8-shaped Hessian/correlation geometry",
+    "parameter-transform or optimizer-start experiment",
+    "q4 coverage-grid design",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, diagnostic$next_gate, fixed = TRUE)))
+  }
+
+  attempts <- attempts[order(attempts$replicate_index, attempts$attempt), ]
+  expect_equal(
+    as.integer(table(attempts$replicate_index)[as.character(reps)]),
+    c(2L, 2L, 1L, 2L)
+  )
+  selected <- attempts[as.character(attempts$selected) == "TRUE", ]
+  selected <- selected[match(reps, selected$replicate_index), ]
+  expect_equal(selected$replicate_index, reps)
+  expect_equal(
+    selected$optimizer_preset,
+    c("fallback:BFGS", "fallback:BFGS", "default", "fallback:BFGS")
+  )
+  expect_equal(selected$convergence, rep(0L, 4L))
+  expect_equal(
+    selected$objective_delta_from_best,
+    c(7.399254764, 31.13350607, 0, 45.34823111),
+    tolerance = 1e-6
+  )
+})
+
+test_that("q4 animal optimizer-route diagnostic stays diagnostic-only", {
+  route <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-optimizer-route-diagnostic.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-optimizer-route-local",
+      "structured-re-q4-animal-optimizer-route-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expected_names <- c(
+    "diagnostic_id",
+    "cell_id",
+    "variant",
+    "replicate_index",
+    "seed",
+    "route",
+    "route_description",
+    "n_levels",
+    "n_each",
+    "fit_error",
+    "convergence",
+    "pdHess",
+    "objective",
+    "optimizer_selected_preset",
+    "selected_attempt",
+    "optimizer_attempt_count",
+    "optimizer_attempt_summary",
+    "selected_objective_delta_from_best",
+    "selected_worse_than_best",
+    "warning_count",
+    "warning_messages",
+    "max_abs_gradient_fixed",
+    "sdr_cov_fixed_eig_min",
+    "sdr_cov_fixed_n_negative",
+    "theta_max_abs",
+    "corr_log10_condition",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "route_status",
+    "rescue_status",
+    "interval_claim_status",
+    "coverage_status",
+    "source_artifact",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  expect_named(route, expected_names)
+  expect_named(artifact, expected_names)
+  expect_equal(nrow(route), 20L)
+  expect_equal(nrow(artifact), 20L)
+
+  expected <- data.frame(
+    replicate_index = c(
+      rep(910101L, 5L),
+      rep(910102L, 5L),
+      rep(910107L, 5L),
+      rep(910110L, 5L)
+    ),
+    route = rep(
+      c(
+        "custom1600_fallback",
+        "ladder_no_fallback",
+        "robust_no_fallback",
+        "multistart2_no_fallback",
+        "multistart2_fallback"
+      ),
+      4L
+    ),
+    pdHess = c(
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "TRUE"
+    ),
+    route_status = c(
+      "selected_worse_objective_blocked",
+      "hessian_blocked",
+      "gradient_hessian_blocked",
+      "hessian_blocked",
+      "selected_worse_objective_blocked",
+      "selected_worse_objective_blocked",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "selected_worse_objective_blocked",
+      rep("pdhess_pass_smoke", 5L),
+      "pdhess_pass_smoke",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "pdhess_pass_smoke"
+    ),
+    rescue_status = c(
+      rep("no_route_rescue", 10L),
+      rep("baseline_already_passed", 10L)
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  route_key <- paste(route$replicate_index, route$route)
+  expected_key <- paste(expected$replicate_index, expected$route)
+  expect_equal(sort(route_key), sort(expected_key))
+  route <- route[match(expected_key, route_key), , drop = FALSE]
+  expect_equal(route$replicate_index, expected$replicate_index)
+  expect_equal(route$route, expected$route)
+  expect_equal(as.character(route$pdHess), expected$pdHess)
+  expect_equal(route$route_status, expected$route_status)
+  expect_equal(route$rescue_status, expected$rescue_status)
+
+  expect_equal(
+    route$diagnostic_id,
+    paste0(
+      "q4_animal_optimizer_route_",
+      route$replicate_index,
+      "_",
+      route$route
+    )
+  )
+  expect_equal(
+    route$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 20L)
+  )
+  expect_equal(route$variant, rep("more_levels", 20L))
+  expect_equal(
+    route$seed,
+    rep(c(1920101L, 1920102L, 1920107L, 1920110L), each = 5L)
+  )
+  expect_equal(route$n_levels, rep(16L, 20L))
+  expect_equal(route$n_each, rep(12L, 20L))
+  expect_equal(as.character(route$fit_error), rep("FALSE", 20L))
+  expect_equal(route$interval_claim_status, rep("diagnostic_only", 20L))
+  expect_equal(route$coverage_status, rep("not_evaluable", 20L))
+  expect_equal(
+    route$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-optimizer-route-local/",
+        "structured-re-q4-animal-optimizer-route-diagnostic.tsv"
+      ),
+      20L
+    )
+  )
+  expect_equal(
+    route$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-optimizer-route-diagnostic.md"
+      ),
+      20L
+    )
+  )
+
+  pass_rows <- route[route$route_status == "pdhess_pass_smoke", ]
+  expect_equal(nrow(pass_rows), 7L)
+  expect_equal(pass_rows$convergence, rep(0L, 7L))
+  expect_true(all(pass_rows$max_abs_gradient_fixed < 1e-3))
+  expect_equal(
+    sort(unique(route$replicate_index[
+      route$rescue_status == "no_route_rescue"
+    ])),
+    c(910101L, 910102L)
+  )
+  expect_equal(
+    sort(unique(
+      route$replicate_index[route$rescue_status == "baseline_already_passed"]
+    )),
+    c(910107L, 910110L)
+  )
+  expect_equal(
+    as.integer(table(route$route_status)[
+      c(
+        "gradient_hessian_blocked",
+        "hessian_blocked",
+        "pdhess_pass_smoke",
+        "selected_worse_objective_blocked"
+      )
+    ]),
+    c(7L, 2L, 7L, 4L)
+  )
+  expect_true(all(
+    route$pdHess[route$rescue_status == "no_route_rescue"] == FALSE
+  ))
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope optimizer-route diagnostic only",
+    "routes compare default ladder, robust, multistart, and BFGS fallback",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, route$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "parameter-transform or staged-start-map experiment",
+    "q4 coverage-grid design",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, route$next_gate, fixed = TRUE)))
+  }
+
+  artifact <- artifact[
+    match(
+      expected_key,
+      paste(
+        artifact$replicate_index,
+        artifact$route
+      )
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(artifact, route, ignore_attr = TRUE)
+})
+
+test_that("q4 animal start-map diagnostic stays diagnostic-only", {
+  start_map <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-start-map-diagnostic.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-start-map-local",
+      "structured-re-q4-animal-start-map-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expected_names <- c(
+    "diagnostic_id",
+    "cell_id",
+    "variant",
+    "replicate_index",
+    "seed",
+    "strategy",
+    "strategy_description",
+    "n_levels",
+    "n_each",
+    "map_theta_phylo",
+    "map_log_sd_phylo",
+    "start_log_sd_source",
+    "start_theta_source",
+    "staged_from_strategy",
+    "fit_error",
+    "sdreport_error",
+    "convergence",
+    "pdHess",
+    "objective",
+    "optimizer_selected_preset",
+    "optimizer_attempt_count",
+    "warning_count",
+    "warning_messages",
+    "error_message",
+    "max_abs_gradient_fixed",
+    "sdr_cov_fixed_eig_min",
+    "sdr_cov_fixed_n_negative",
+    "theta_max_abs",
+    "corr_log10_condition",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "strategy_status",
+    "blocker_component",
+    "interval_claim_status",
+    "coverage_status",
+    "source_artifact",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  expect_named(start_map, expected_names)
+  expect_named(artifact, expected_names)
+  expect_equal(nrow(start_map), 28L)
+  expect_equal(nrow(artifact), 28L)
+
+  strategies <- c(
+    "all_free_default_start",
+    "all_free_small_corr_start",
+    "all_free_truth_sd_start",
+    "corr_zero_map_default_sd",
+    "corr_zero_map_truth_sd",
+    "corr_zero_truth_sd_fixed",
+    "diag_seed_all_free"
+  )
+  expected <- data.frame(
+    replicate_index = rep(c(910101L, 910102L, 910107L, 910110L), each = 7L),
+    strategy = rep(strategies, 4L),
+    pdHess = c(
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "FALSE",
+      "FALSE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "TRUE",
+      "FALSE"
+    ),
+    strategy_status = c(
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "pdhess_pass_smoke",
+      "pdhess_pass_smoke",
+      "pdhess_pass_smoke",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "hessian_blocked",
+      "pdhess_pass_smoke",
+      "pdhess_pass_smoke",
+      "start_map_watch",
+      "gradient_hessian_blocked",
+      rep("pdhess_pass_smoke", 7L),
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "gradient_hessian_blocked",
+      "pdhess_pass_smoke",
+      "pdhess_pass_smoke",
+      "pdhess_pass_smoke",
+      "gradient_hessian_blocked"
+    ),
+    blocker_component = c(
+      rep("free_q4_correlation_block_active", 3L),
+      rep("free_q4_correlation_block_removed", 3L),
+      "free_q4_correlation_block_active",
+      rep("free_q4_correlation_block_active", 3L),
+      rep("free_q4_correlation_block_removed", 2L),
+      "fixed_sd_and_zero_correlation_watch",
+      "free_q4_correlation_block_active",
+      rep("no_blocker_in_smoke", 3L),
+      rep("free_q4_correlation_block_removed", 3L),
+      "no_blocker_in_smoke",
+      rep("free_q4_correlation_block_active", 3L),
+      rep("free_q4_correlation_block_removed", 3L),
+      "free_q4_correlation_block_active"
+    ),
+    stringsAsFactors = FALSE
+  )
+  start_key <- paste(start_map$replicate_index, start_map$strategy)
+  expected_key <- paste(expected$replicate_index, expected$strategy)
+  expect_equal(sort(start_key), sort(expected_key))
+  start_map <- start_map[match(expected_key, start_key), , drop = FALSE]
+  expect_equal(start_map$replicate_index, expected$replicate_index)
+  expect_equal(start_map$strategy, expected$strategy)
+  expect_equal(as.character(start_map$pdHess), expected$pdHess)
+  expect_equal(start_map$strategy_status, expected$strategy_status)
+  expect_equal(start_map$blocker_component, expected$blocker_component)
+
+  expect_equal(
+    start_map$diagnostic_id,
+    paste0(
+      "q4_animal_start_map_",
+      start_map$replicate_index,
+      "_",
+      start_map$strategy
+    )
+  )
+  expect_equal(
+    start_map$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 28L)
+  )
+  expect_equal(start_map$variant, rep("more_levels", 28L))
+  expect_equal(
+    start_map$seed,
+    rep(c(1920101L, 1920102L, 1920107L, 1920110L), each = 7L)
+  )
+  expect_equal(start_map$n_levels, rep(16L, 28L))
+  expect_equal(start_map$n_each, rep(12L, 28L))
+  expect_equal(as.character(start_map$fit_error), rep("FALSE", 28L))
+  expect_equal(as.character(start_map$sdreport_error), rep("FALSE", 28L))
+  expect_equal(start_map$interval_claim_status, rep("diagnostic_only", 28L))
+  expect_equal(start_map$coverage_status, rep("not_evaluable", 28L))
+  expect_equal(
+    start_map$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-start-map-local/",
+        "structured-re-q4-animal-start-map-diagnostic.tsv"
+      ),
+      28L
+    )
+  )
+  expect_equal(
+    start_map$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-start-map-diagnostic.md"
+      ),
+      28L
+    )
+  )
+
+  pass_rows <- start_map[start_map$strategy_status == "pdhess_pass_smoke", ]
+  expect_equal(nrow(pass_rows), 15L)
+  expect_equal(pass_rows$convergence, rep(0L, 15L))
+  expect_lt(max(pass_rows$max_abs_gradient_fixed), 1e-3)
+  zero_corr <- start_map[start_map$map_theta_phylo == "fixed_zero", ]
+  expect_equal(nrow(zero_corr), 12L)
+  expect_equal(as.character(zero_corr$pdHess), rep("TRUE", 12L))
+  expect_equal(zero_corr$sdr_cov_fixed_n_negative, rep(0L, 12L))
+  expect_equal(zero_corr$theta_max_abs, rep(0, 12L))
+  expect_equal(
+    nrow(zero_corr[zero_corr$strategy_status == "pdhess_pass_smoke", ]),
+    11L
+  )
+  all_free_blocked <- start_map[
+    start_map$blocker_component == "free_q4_correlation_block_active" &
+      start_map$strategy_status != "pdhess_pass_smoke",
+  ]
+  expect_equal(
+    sort(unique(all_free_blocked$replicate_index)),
+    c(910101L, 910102L, 910110L)
+  )
+  diag_seed <- start_map[start_map$strategy == "diag_seed_all_free", ]
+  expect_equal(
+    diag_seed$staged_from_strategy,
+    rep("corr_zero_map_default_sd", 4L)
+  )
+  expect_equal(
+    sort(unique(diag_seed$replicate_index[
+      diag_seed$strategy_status != "pdhess_pass_smoke"
+    ])),
+    c(910101L, 910102L, 910110L)
+  )
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope start/map diagnostic only",
+    "zero-correlation maps",
+    "diagonal staged starts",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, start_map$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "q4 correlation-parameter transform",
+    "constrained correlation admission experiment",
+    "q4 coverage-grid design",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, start_map$next_gate, fixed = TRUE)))
+  }
+
+  artifact <- artifact[
+    match(
+      expected_key,
+      paste(
+        artifact$replicate_index,
+        artifact$strategy
+      )
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(artifact, start_map, ignore_attr = TRUE)
+})
+
+test_that("q4 animal bounded-correlation diagnostic stays diagnostic-only", {
+  bounded <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-bounded-correlation-diagnostic.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-bounded-correlation-local",
+      "structured-re-q4-animal-bounded-correlation-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expected_names <- c(
+    "diagnostic_id",
+    "cell_id",
+    "variant",
+    "replicate_index",
+    "seed",
+    "strategy",
+    "strategy_description",
+    "n_levels",
+    "n_each",
+    "map_theta_phylo",
+    "map_log_sd_phylo",
+    "theta_parameterization",
+    "theta_cap",
+    "start_log_sd_source",
+    "start_theta_source",
+    "staged_from_strategy",
+    "fit_error",
+    "sdreport_error",
+    "convergence",
+    "pdHess",
+    "objective",
+    "optimizer_selected_preset",
+    "optimizer_attempt_count",
+    "warning_count",
+    "warning_messages",
+    "error_message",
+    "max_abs_gradient_fixed",
+    "max_abs_gradient_outer",
+    "sdr_cov_fixed_eig_min",
+    "sdr_cov_fixed_n_negative",
+    "theta_max_abs",
+    "theta_eta_max_abs",
+    "cap_saturation",
+    "corr_log10_condition",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "strategy_status",
+    "blocker_component",
+    "interval_claim_status",
+    "coverage_status",
+    "source_artifact",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  expect_named(bounded, expected_names)
+  expect_named(artifact, expected_names)
+  expect_equal(nrow(bounded), 15L)
+  expect_equal(nrow(artifact), 15L)
+
+  strategies <- c(
+    "corr_zero_map_default_sd",
+    "current_unbounded_diag_stage",
+    "bounded_theta_0.50",
+    "bounded_theta_0.80",
+    "bounded_theta_0.95"
+  )
+  expected <- data.frame(
+    replicate_index = rep(c(910101L, 910102L, 910110L), each = 5L),
+    strategy = rep(strategies, 3L),
+    pdHess = rep(c("TRUE", "FALSE", "TRUE", "TRUE", "TRUE"), 3L),
+    convergence = rep(c(0L, 1L, 0L, 0L, 0L), 3L),
+    strategy_status = rep(
+      c(
+        "zero_correlation_control_pass",
+        "gradient_hessian_blocked",
+        "bounded_cap_saturated",
+        "bounded_cap_saturated",
+        "bounded_cap_saturated"
+      ),
+      3L
+    ),
+    blocker_component = rep(
+      c(
+        "free_q4_correlation_block_removed",
+        "free_q4_correlation_block_active",
+        "bounded_theta_cap_saturated",
+        "bounded_theta_cap_saturated",
+        "bounded_theta_cap_saturated"
+      ),
+      3L
+    ),
+    cap_saturation = rep(
+      c("not_applicable", "not_applicable", "TRUE", "TRUE", "TRUE"),
+      3L
+    ),
+    stringsAsFactors = FALSE
+  )
+  bounded_key <- paste(bounded$replicate_index, bounded$strategy)
+  expected_key <- paste(expected$replicate_index, expected$strategy)
+  expect_equal(sort(bounded_key), sort(expected_key))
+  bounded <- bounded[match(expected_key, bounded_key), , drop = FALSE]
+  expect_equal(bounded$replicate_index, expected$replicate_index)
+  expect_equal(bounded$strategy, expected$strategy)
+  expect_equal(as.character(bounded$pdHess), expected$pdHess)
+  expect_equal(bounded$convergence, expected$convergence)
+  expect_equal(bounded$strategy_status, expected$strategy_status)
+  expect_equal(bounded$blocker_component, expected$blocker_component)
+  expect_equal(bounded$cap_saturation, expected$cap_saturation)
+
+  expect_equal(
+    bounded$diagnostic_id,
+    paste0(
+      "q4_animal_bounded_correlation_",
+      bounded$replicate_index,
+      "_",
+      bounded$strategy
+    )
+  )
+  expect_equal(
+    bounded$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 15L)
+  )
+  expect_equal(bounded$variant, rep("more_levels", 15L))
+  expect_equal(
+    bounded$seed,
+    rep(c(1920101L, 1920102L, 1920110L), each = 5L)
+  )
+  expect_equal(bounded$n_levels, rep(16L, 15L))
+  expect_equal(bounded$n_each, rep(12L, 15L))
+  expect_equal(as.character(bounded$fit_error), rep("FALSE", 15L))
+  expect_equal(as.character(bounded$sdreport_error), rep("FALSE", 15L))
+  expect_equal(bounded$interval_claim_status, rep("diagnostic_only", 15L))
+  expect_equal(bounded$coverage_status, rep("not_evaluable", 15L))
+  expect_equal(
+    bounded$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-bounded-correlation-local/",
+        "structured-re-q4-animal-bounded-correlation-diagnostic.tsv"
+      ),
+      15L
+    )
+  )
+  expect_equal(
+    bounded$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-bounded-correlation-diagnostic.md"
+      ),
+      15L
+    )
+  )
+
+  zero_corr <- bounded[bounded$strategy == "corr_zero_map_default_sd", ]
+  expect_equal(nrow(zero_corr), 3L)
+  expect_equal(
+    zero_corr$strategy_status,
+    rep("zero_correlation_control_pass", 3L)
+  )
+  expect_lt(max(zero_corr$max_abs_gradient_fixed), 1e-3)
+  unbounded <- bounded[bounded$strategy == "current_unbounded_diag_stage", ]
+  expect_equal(unbounded$strategy_status, rep("gradient_hessian_blocked", 3L))
+  expect_gt(min(unbounded$theta_max_abs), 100)
+  capped <- bounded[grepl("^bounded_theta_", bounded$strategy), ]
+  expect_equal(nrow(capped), 9L)
+  expect_equal(capped$strategy_status, rep("bounded_cap_saturated", 9L))
+  expect_true(all(capped$pdHess))
+  expect_true(all(capped$max_abs_gradient_outer < 1e-3))
+  expect_true(all(capped$theta_max_abs >= 0.95 * capped$theta_cap))
+  expect_true(all(capped$max_abs_gradient_fixed > 0.5))
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope bounded-correlation diagnostic only",
+    "theta = cap * tanh(eta)",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no production parameterization change",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, bounded$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "without cap saturation",
+    "DRAC coverage-grid design",
+    "bounded/penalized",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, bounded$next_gate, fixed = TRUE)))
+  }
+
+  artifact <- artifact[
+    match(
+      expected_key,
+      paste(
+        artifact$replicate_index,
+        artifact$strategy
+      )
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(artifact, bounded, ignore_attr = TRUE)
+})
+
+test_that("q4 animal one-theta release diagnostic stays diagnostic-only", {
+  one_theta <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-one-theta-release-diagnostic.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-one-theta-release-local",
+      "structured-re-q4-animal-one-theta-release-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expected_names <- c(
+    "diagnostic_id",
+    "cell_id",
+    "variant",
+    "replicate_index",
+    "seed",
+    "theta_index",
+    "assumed_lower_tri_row",
+    "assumed_lower_tri_col",
+    "endpoint_i",
+    "endpoint_j",
+    "endpoint_token_i",
+    "endpoint_token_j",
+    "n_levels",
+    "n_each",
+    "theta_release_map",
+    "theta_parameterization",
+    "start_log_sd_source",
+    "start_theta_source",
+    "zero_control_status",
+    "zero_control_convergence",
+    "zero_control_pdHess",
+    "zero_control_objective",
+    "zero_control_max_abs_gradient_fixed",
+    "zero_control_sdr_cov_fixed_eig_min",
+    "zero_control_sdr_cov_fixed_n_negative",
+    "fit_error",
+    "sdreport_error",
+    "convergence",
+    "pdHess",
+    "objective",
+    "objective_gain_vs_zero",
+    "optimizer_selected_preset",
+    "optimizer_attempt_count",
+    "warning_count",
+    "warning_messages",
+    "error_message",
+    "max_abs_gradient_fixed",
+    "sdr_cov_fixed_eig_min",
+    "sdr_cov_fixed_n_negative",
+    "theta_value",
+    "theta_abs",
+    "theta_max_abs",
+    "corr_log10_condition",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "max_abs_direct_sd_shift_vs_zero",
+    "direct_sd_estimates",
+    "direct_sd_shift_vs_zero",
+    "release_status",
+    "blocker_component",
+    "interval_claim_status",
+    "coverage_status",
+    "source_artifact",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  expect_named(one_theta, expected_names)
+  expect_named(artifact, expected_names)
+  expect_equal(nrow(one_theta), 84L)
+  expect_equal(nrow(artifact), 84L)
+
+  expected_keys <- do.call(
+    rbind,
+    lapply(c(910101L, 910102L, 910110L), function(replicate_index) {
+      data.frame(
+        replicate_index = replicate_index,
+        theta_index = seq_len(28L)
+      )
+    })
+  )
+  one_theta_key <- paste(one_theta$replicate_index, one_theta$theta_index)
+  expected_key <- paste(
+    expected_keys$replicate_index,
+    expected_keys$theta_index
+  )
+  expect_equal(sort(one_theta_key), sort(expected_key))
+  one_theta <- one_theta[match(expected_key, one_theta_key), , drop = FALSE]
+
+  expect_equal(
+    one_theta$diagnostic_id,
+    paste0(
+      "q4_animal_one_theta_release_",
+      one_theta$replicate_index,
+      "_theta_",
+      one_theta$theta_index
+    )
+  )
+  expect_equal(
+    one_theta$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 84L)
+  )
+  expect_equal(one_theta$variant, rep("more_levels", 84L))
+  expect_equal(
+    one_theta$seed,
+    rep(c(1920101L, 1920102L, 1920110L), each = 28L)
+  )
+  expect_equal(one_theta$n_levels, rep(16L, 84L))
+  expect_equal(one_theta$n_each, rep(12L, 84L))
+  expect_equal(
+    one_theta$theta_release_map,
+    rep("one_free_other_27_fixed_zero", 84L)
+  )
+  expect_equal(
+    one_theta$theta_parameterization,
+    rep("current_tmb_theta", 84L)
+  )
+  expect_equal(
+    one_theta$zero_control_status,
+    rep("zero_correlation_control_pass", 84L)
+  )
+  expect_equal(as.character(one_theta$zero_control_pdHess), rep("TRUE", 84L))
+  expect_equal(one_theta$zero_control_sdr_cov_fixed_n_negative, rep(0L, 84L))
+  expect_equal(as.character(one_theta$fit_error), rep("FALSE", 84L))
+  expect_equal(as.character(one_theta$sdreport_error), rep("FALSE", 84L))
+  expect_equal(one_theta$interval_claim_status, rep("diagnostic_only", 84L))
+  expect_equal(one_theta$coverage_status, rep("not_evaluable", 84L))
+  expect_equal(
+    one_theta$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-one-theta-release-local/",
+        "structured-re-q4-animal-one-theta-release-diagnostic.tsv"
+      ),
+      84L
+    )
+  )
+  expect_equal(
+    one_theta$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-one-theta-release-diagnostic.md"
+      ),
+      84L
+    )
+  )
+
+  status_counts <- as.data.frame.matrix(
+    table(one_theta$replicate_index, one_theta$release_status)
+  )
+  status_counts[is.na(status_counts)] <- 0L
+  expect_equal(status_counts["910101", "one_theta_release_pass_smoke"], 23L)
+  expect_equal(status_counts["910101", "release_watch"], 4L)
+  expect_equal(status_counts["910101", "hessian_blocked"], 1L)
+  expect_equal(status_counts["910102", "one_theta_release_pass_smoke"], 27L)
+  expect_equal(status_counts["910102", "release_watch"], 1L)
+  expect_equal(status_counts["910110", "one_theta_release_pass_smoke"], 23L)
+  expect_equal(status_counts["910110", "release_watch"], 4L)
+  expect_equal(status_counts["910110", "hessian_blocked"], 1L)
+
+  hessian <- one_theta[one_theta$release_status == "hessian_blocked", ]
+  expect_equal(nrow(hessian), 2L)
+  expect_equal(
+    paste(hessian$replicate_index, hessian$theta_index),
+    c("910101 26", "910110 13")
+  )
+  expect_false(any(hessian$pdHess))
+  expect_equal(
+    hessian$blocker_component,
+    rep("one_theta_hessian_blocked", 2L)
+  )
+  expect_equal(hessian$warning_count, rep(1L, 2L))
+  expect_true(all(grepl(
+    "NaNs produced",
+    hessian$warning_messages,
+    fixed = TRUE
+  )))
+  expect_gt(min(hessian$theta_abs), 100)
+  expect_lt(max(hessian$sdr_cov_fixed_eig_min), 0)
+
+  release_watch <- one_theta[one_theta$release_status == "release_watch", ]
+  expect_equal(nrow(release_watch), 9L)
+  expect_equal(
+    paste(release_watch$replicate_index, release_watch$theta_index),
+    c(
+      "910101 3",
+      "910101 15",
+      "910101 20",
+      "910101 21",
+      "910102 14",
+      "910110 1",
+      "910110 12",
+      "910110 15",
+      "910110 27"
+    )
+  )
+  expect_equal(release_watch$blocker_component, rep("release_watch", 9L))
+  expect_equal(release_watch$warning_count, rep(0L, 9L))
+
+  passing <- one_theta[
+    one_theta$release_status == "one_theta_release_pass_smoke",
+  ]
+  expect_equal(nrow(passing), 73L)
+  expect_true(all(passing$pdHess))
+  expect_equal(
+    passing$blocker_component,
+    rep("single_theta_candidate", 73L)
+  )
+  expect_equal(passing$warning_count, rep(0L, 73L))
+  expect_gt(min(passing$objective_gain_vs_zero), 0)
+  expect_lt(max(passing$max_abs_gradient_fixed), 1e-3)
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope one-theta release diagnostic only",
+    "releases exactly one theta_phylo coordinate",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no production parameterization change",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, one_theta$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "single",
+    "multiple-coordinate MAP/penalty sensitivity",
+    "production transform",
+    "DRAC coverage",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, one_theta$next_gate, fixed = TRUE)))
+  }
+
+  artifact <- artifact[
+    match(
+      expected_key,
+      paste(
+        artifact$replicate_index,
+        artifact$theta_index
+      )
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(artifact, one_theta, ignore_attr = TRUE)
+})
+
+test_that("q4 animal MAP/penalty sensitivity diagnostic stays diagnostic-only", {
+  map_penalty <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-map-penalty-sensitivity.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-map-penalty-local",
+      "structured-re-q4-animal-map-penalty-sensitivity.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(map_penalty, names(artifact))
+  expect_equal(nrow(map_penalty), 30L)
+  expect_equal(nrow(artifact), 30L)
+
+  strategies <- c(
+    "seed_nonpass_unpenalized",
+    "seed_nonpass_ridge_0_01",
+    "seed_nonpass_ridge_0_10",
+    "seed_nonpass_ridge_1_00",
+    "seed_top5_unpenalized",
+    "seed_top5_ridge_0_10",
+    "global_nonpass_ridge_0_10",
+    "all28_unpenalized",
+    "all28_ridge_0_10",
+    "all28_ridge_1_00"
+  )
+  expected <- expand.grid(
+    strategy = strategies,
+    replicate_index = c(910101L, 910102L, 910110L),
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expected <- expected[order(expected$replicate_index), ]
+  expected$key <- paste(expected$replicate_index, expected$strategy)
+  expected$sensitivity_status <- "penalty_stabilized_local_mode"
+  expected$blocker_component <- "penalty_trades_gradient_for_stability"
+  expected$pdHess <- "TRUE"
+  expected$convergence <- 0L
+
+  runaway_keys <- c(
+    "910101 seed_nonpass_unpenalized",
+    "910101 seed_top5_unpenalized",
+    "910101 all28_unpenalized",
+    "910102 seed_top5_unpenalized",
+    "910102 all28_unpenalized",
+    "910110 seed_top5_unpenalized",
+    "910110 all28_unpenalized"
+  )
+  watch_keys <- c(
+    "910102 seed_nonpass_unpenalized",
+    "910110 seed_nonpass_unpenalized"
+  )
+  expected$sensitivity_status[expected$key %in% runaway_keys] <-
+    "runaway_theta_hessian_blocked"
+  expected$blocker_component[expected$key %in% runaway_keys] <-
+    "multi_theta_hessian_blocked"
+  expected$pdHess[expected$key %in% runaway_keys] <- "FALSE"
+  expected$convergence[expected$key %in% runaway_keys] <- 1L
+  expected$sensitivity_status[expected$key %in% watch_keys] <-
+    "convergence_watch"
+  expected$blocker_component[expected$key %in% watch_keys] <-
+    "multi_theta_watch"
+  expected$convergence[expected$key %in% watch_keys] <- 1L
+
+  map_penalty$key <- paste(map_penalty$replicate_index, map_penalty$strategy)
+  expect_equal(sort(map_penalty$key), sort(expected$key))
+  map_penalty <- map_penalty[
+    match(expected$key, map_penalty$key),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(map_penalty$replicate_index, expected$replicate_index)
+  expect_equal(map_penalty$strategy, expected$strategy)
+  expect_equal(as.character(map_penalty$pdHess), expected$pdHess)
+  expect_equal(map_penalty$convergence, expected$convergence)
+  expect_equal(map_penalty$sensitivity_status, expected$sensitivity_status)
+  expect_equal(map_penalty$blocker_component, expected$blocker_component)
+
+  expect_equal(
+    map_penalty$diagnostic_id,
+    paste0(
+      "q4_animal_map_penalty_",
+      map_penalty$replicate_index,
+      "_",
+      map_penalty$strategy
+    )
+  )
+  expect_equal(
+    map_penalty$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 30L)
+  )
+  expect_equal(map_penalty$variant, rep("more_levels", 30L))
+  expect_equal(
+    map_penalty$seed,
+    rep(c(1920101L, 1920102L, 1920110L), each = 10L)
+  )
+  expect_equal(map_penalty$n_levels, rep(16L, 30L))
+  expect_equal(map_penalty$n_each, rep(12L, 30L))
+  expect_equal(as.character(map_penalty$zero_control_pdHess), rep("TRUE", 30L))
+  expect_equal(map_penalty$zero_control_sdr_cov_fixed_n_negative, rep(0L, 30L))
+  expect_equal(as.character(map_penalty$fit_error), rep("FALSE", 30L))
+  expect_equal(as.character(map_penalty$sdreport_error), rep("FALSE", 30L))
+  expect_equal(map_penalty$interval_claim_status, rep("diagnostic_only", 30L))
+  expect_equal(map_penalty$coverage_status, rep("not_evaluable", 30L))
+  expect_equal(
+    map_penalty$source_one_theta_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-one-theta-release-diagnostic.tsv",
+      30L
+    )
+  )
+  expect_equal(
+    map_penalty$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-map-penalty-local/",
+        "structured-re-q4-animal-map-penalty-sensitivity.tsv"
+      ),
+      30L
+    )
+  )
+  expect_equal(
+    map_penalty$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-map-penalty-sensitivity.md"
+      ),
+      30L
+    )
+  )
+
+  stabilized <- map_penalty[
+    map_penalty$sensitivity_status == "penalty_stabilized_local_mode",
+  ]
+  runaway <- map_penalty[
+    map_penalty$sensitivity_status == "runaway_theta_hessian_blocked",
+  ]
+  watch <- map_penalty[map_penalty$sensitivity_status == "convergence_watch", ]
+  expect_equal(nrow(stabilized), 21L)
+  expect_equal(nrow(runaway), 7L)
+  expect_equal(nrow(watch), 2L)
+  expect_true(all(stabilized$pdHess))
+  expect_true(all(stabilized$penalty_lambda > 0))
+  expect_lt(max(stabilized$released_theta_max_abs), 5)
+  expect_false(any(runaway$pdHess))
+  expect_equal(runaway$penalty_lambda, rep(0, 7L))
+  expect_gt(min(runaway$released_theta_max_abs), 100)
+  expect_true(all(
+    grepl("NaNs produced", runaway$warning_messages, fixed = TRUE) |
+      grepl(
+        "NA/NaN function evaluation",
+        runaway$warning_messages,
+        fixed = TRUE
+      )
+  ))
+  expect_true(all(watch$pdHess))
+  expect_equal(watch$penalty_lambda, rep(0, 2L))
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope MAP/penalty sensitivity diagnostic only",
+    "multi-coordinate theta_phylo sets",
+    "ridge penalties are optimizer-layer sensitivity probes",
+    "not production priors",
+    "sdreport uses the unpenalized TMB curvature",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no production parameterization change",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, map_penalty$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "MAP/penalty sensitivity diagnostic",
+    "multi-coordinate penalized route",
+    "production transform design",
+    "do not submit DRAC coverage",
+    "Fisher/Rose",
+    "denominator policy"
+  )) {
+    expect_true(all(grepl(phrase, map_penalty$next_gate, fixed = TRUE)))
+  }
+
+  artifact$key <- paste(artifact$replicate_index, artifact$strategy)
+  artifact <- artifact[match(expected$key, artifact$key), , drop = FALSE]
+  expect_equal(artifact[names(map_penalty)], map_penalty, ignore_attr = TRUE)
+})
+
+test_that("q4 animal ridge-continuation diagnostic stays diagnostic-only", {
+  ridge <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-ridge-continuation-diagnostic.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-ridge-continuation-local",
+      "structured-re-q4-animal-ridge-continuation-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(ridge, names(artifact))
+  expect_equal(nrow(ridge), 36L)
+  expect_equal(nrow(artifact), 36L)
+
+  expected_grid <- expand.grid(
+    replicate_index = c(910101L, 910102L, 910110L),
+    strategy = c("seed_nonpass", "global_nonpass", "all28"),
+    stage_index = 1:4,
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expected_grid$key <- paste(
+    expected_grid$replicate_index,
+    expected_grid$strategy,
+    expected_grid$stage_index
+  )
+  ridge$key <- paste(ridge$replicate_index, ridge$strategy, ridge$stage_index)
+  expect_equal(sort(ridge$key), sort(expected_grid$key))
+  ridge <- ridge[match(expected_grid$key, ridge$key), , drop = FALSE]
+
+  expect_equal(
+    ridge$diagnostic_id,
+    paste0(
+      "q4_animal_ridge_continuation_",
+      ridge$replicate_index,
+      "_",
+      ridge$strategy,
+      "_stage",
+      ridge$stage_index
+    )
+  )
+  expect_equal(
+    ridge$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 36L)
+  )
+  expect_equal(ridge$variant, rep("more_levels", 36L))
+  expect_equal(ridge$seed, ridge$replicate_index + 1010000L)
+  expect_equal(ridge$n_levels, rep(16L, 36L))
+  expect_equal(ridge$n_each, rep(12L, 36L))
+  expect_equal(ridge$schedule, rep("1,0.1,0.01,0", 36L))
+  expect_equal(ridge$schedule_label, rep("1.000_0.1000_0.01000_0", 36L))
+  expect_equal(ridge$stage_count, rep(4L, 36L))
+  expect_equal(as.character(ridge$zero_control_pdHess), rep("TRUE", 36L))
+  expect_equal(ridge$zero_control_sdr_cov_fixed_n_negative, rep(0L, 36L))
+  expect_equal(as.character(ridge$fit_error), rep("FALSE", 36L))
+  expect_equal(as.character(ridge$sdreport_error), rep("FALSE", 36L))
+  expect_equal(ridge$interval_claim_status, rep("diagnostic_only", 36L))
+  expect_equal(ridge$coverage_status, rep("not_evaluable", 36L))
+
+  expect_equal(
+    as.integer(table(ridge$continuation_status)[
+      c(
+        "continuation_penalty_stabilized_local_mode",
+        "continuation_runaway_theta_hessian_blocked",
+        "continuation_convergence_watch",
+        "continuation_hessian_blocked",
+        "continuation_unpenalized_large_theta_watch"
+      )
+    ]),
+    c(25L, 6L, 2L, 2L, 1L)
+  )
+
+  final <- ridge[ridge$stage_index == ridge$stage_count, , drop = FALSE]
+  final$key <- paste(final$replicate_index, final$strategy)
+  expected_final <- data.frame(
+    key = c(
+      "910101 seed_nonpass",
+      "910101 global_nonpass",
+      "910101 all28",
+      "910102 seed_nonpass",
+      "910102 global_nonpass",
+      "910102 all28",
+      "910110 seed_nonpass",
+      "910110 global_nonpass",
+      "910110 all28"
+    ),
+    continuation_status = c(
+      "continuation_unpenalized_large_theta_watch",
+      "continuation_runaway_theta_hessian_blocked",
+      "continuation_runaway_theta_hessian_blocked",
+      "continuation_convergence_watch",
+      "continuation_runaway_theta_hessian_blocked",
+      "continuation_runaway_theta_hessian_blocked",
+      "continuation_convergence_watch",
+      "continuation_runaway_theta_hessian_blocked",
+      "continuation_runaway_theta_hessian_blocked"
+    ),
+    blocker_component = c(
+      "annealed_large_theta_watch",
+      "annealed_hessian_blocked",
+      "annealed_hessian_blocked",
+      "annealed_convergence_watch",
+      "annealed_hessian_blocked",
+      "annealed_hessian_blocked",
+      "annealed_convergence_watch",
+      "annealed_hessian_blocked",
+      "annealed_hessian_blocked"
+    ),
+    stringsAsFactors = FALSE
+  )
+  final <- final[match(expected_final$key, final$key), , drop = FALSE]
+  expect_equal(final$continuation_status, expected_final$continuation_status)
+  expect_equal(final$blocker_component, expected_final$blocker_component)
+  expect_false(any(
+    final$continuation_status == "continuation_unpenalized_admission_smoke_pass"
+  ))
+  expect_equal(final$penalty_lambda, rep(0, 9L))
+  expect_gt(min(final$theta_max_abs), 100)
+
+  expect_equal(
+    ridge$source_one_theta_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-one-theta-release-diagnostic.tsv",
+      36L
+    )
+  )
+  expect_equal(
+    ridge$source_map_penalty_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-map-penalty-sensitivity.tsv",
+      36L
+    )
+  )
+  expect_equal(
+    ridge$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-ridge-continuation-local/",
+        "structured-re-q4-animal-ridge-continuation-diagnostic.tsv"
+      ),
+      36L
+    )
+  )
+  expect_equal(
+    ridge$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-ridge-continuation-diagnostic.md"
+      ),
+      36L
+    )
+  )
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope ridge-continuation diagnostic only",
+    "annealed through a ridge-penalty schedule to lambda=0",
+    "ridge penalties are optimizer-layer sensitivity probes",
+    "not production priors",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no production parameterization change",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, ridge$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "ridge-continuation diagnostic",
+    "hard seeds",
+    "optimizer-layer ridge",
+    "do not submit DRAC coverage",
+    "Fisher/Rose",
+    "production-transform admission design"
+  )) {
+    expect_true(all(grepl(phrase, ridge$next_gate, fixed = TRUE)))
+  }
+
+  artifact$key <- paste(
+    artifact$replicate_index,
+    artifact$strategy,
+    artifact$stage_index
+  )
+  artifact <- artifact[match(expected_grid$key, artifact$key), , drop = FALSE]
+  expect_equal(artifact[names(ridge)], ridge, ignore_attr = TRUE)
+})
+
+test_that("q4 animal partial-Cholesky transform diagnostic stays diagnostic-only", {
+  partial <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv"
+  )
+  artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q4-animal-partial-cholesky-transform-local",
+      "structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(partial, names(artifact))
+  expect_equal(nrow(partial), 9L)
+  expect_equal(nrow(artifact), 9L)
+
+  expected <- expand.grid(
+    replicate_index = c(910101L, 910102L, 910110L),
+    strategy = c(
+      "corr_zero_map_default_sd",
+      "current_unbounded_diag_stage",
+      "partial_cholesky_all_free"
+    ),
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expected$key <- paste(expected$replicate_index, expected$strategy)
+  partial$key <- paste(partial$replicate_index, partial$strategy)
+  expect_equal(sort(partial$key), sort(expected$key))
+  partial <- partial[match(expected$key, partial$key), , drop = FALSE]
+
+  expect_equal(
+    partial$diagnostic_id,
+    paste0(
+      "q4_animal_partial_cholesky_",
+      partial$replicate_index,
+      "_",
+      partial$strategy
+    )
+  )
+  expect_equal(
+    partial$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 9L)
+  )
+  expect_equal(partial$variant, rep("more_levels", 9L))
+  expect_equal(partial$seed, partial$replicate_index + 1010000L)
+  expect_equal(partial$q_phylo, rep(8L, 9L))
+  expect_equal(partial$theta_count, rep(28L, 9L))
+  expect_equal(partial$n_levels, rep(16L, 9L))
+  expect_equal(partial$n_each, rep(12L, 9L))
+  expect_equal(as.character(partial$fit_error), rep("FALSE", 9L))
+  expect_equal(as.character(partial$sdreport_error), rep("FALSE", 9L))
+  expect_equal(as.character(partial$boundary_flag), rep("FALSE", 9L))
+  expect_equal(as.character(partial$uses_fixed_cap), rep("FALSE", 9L))
+  expect_equal(partial$cap_saturation, rep("not_applicable", 9L))
+  expect_equal(as.character(partial$uses_optimizer_penalty), rep("FALSE", 9L))
+  expect_equal(partial$n_direct_sd_interval_rows, rep(8L, 9L))
+  expect_equal(
+    partial$direct_sd_interval_method,
+    rep("sdreport_wald_inner_tmb_curvature", 9L)
+  )
+  expect_equal(partial$interval_claim_status, rep("diagnostic_only", 9L))
+  expect_equal(partial$coverage_status, rep("not_evaluable", 9L))
+
+  expected_routes <- data.frame(
+    key = expected$key,
+    route = rep(
+      c(
+        "zero_correlation_control",
+        "current_unbounded_all_free",
+        "partial_cholesky_all_free"
+      ),
+      each = 3L
+    ),
+    transform_family = rep(
+      c(
+        "fixed_zero_correlation_control",
+        "current_tmb_unstructured_corr",
+        "partial_correlation_cholesky"
+      ),
+      each = 3L
+    ),
+    stringsAsFactors = FALSE
+  )
+  expected_routes <- expected_routes[match(partial$key, expected_routes$key), ]
+  expect_equal(partial$route, expected_routes$route)
+  expect_equal(partial$transform_family, expected_routes$transform_family)
+
+  expect_equal(
+    as.integer(table(partial$route_status)[
+      c(
+        "zero_correlation_control_pass",
+        "gradient_hessian_blocked",
+        "partial_cholesky_large_eta_blocked"
+      )
+    ]),
+    c(3L, 4L, 2L)
+  )
+  expect_equal(
+    as.integer(table(partial$admission_status)[
+      c(
+        "reference_not_admission",
+        "hard_seed_route_blocked_local_admission_smoke"
+      )
+    ]),
+    c(6L, 3L)
+  )
+
+  all_free <- partial[
+    partial$route == "partial_cholesky_all_free",
+    ,
+    drop = FALSE
+  ]
+  all_free <- all_free[
+    match(c(910101L, 910102L, 910110L), all_free$replicate_index),
+  ]
+  expect_equal(as.character(all_free$pdHess), rep("FALSE", 3L))
+  expect_equal(all_free$convergence, rep(1L, 3L))
+  expect_equal(
+    all_free$route_status,
+    c(
+      "partial_cholesky_large_eta_blocked",
+      "gradient_hessian_blocked",
+      "partial_cholesky_large_eta_blocked"
+    )
+  )
+  expect_equal(
+    all_free$blocker_component,
+    c(
+      "partial_cholesky_large_eta",
+      "free_q4_correlation_block_active",
+      "partial_cholesky_large_eta"
+    )
+  )
+  expect_equal(
+    as.character(all_free$large_eta_flag),
+    c("TRUE", "FALSE", "TRUE")
+  )
+  expect_equal(all_free$n_direct_sd_interval_finite, c(7L, 0L, 2L))
+  expect_true(all(all_free$max_abs_gradient_fixed > 1e-3))
+  expect_true(all(all_free$max_abs_gradient_outer > 1e-3))
+  expect_true(all(all_free$theta_max_abs > 1000))
+  expect_false(any(
+    all_free$admission_status == "hard_seed_route_passed_local_admission_smoke"
+  ))
+
+  expect_equal(
+    partial$source_artifact,
+    rep(
+      paste0(
+        "docs/dev-log/simulation-artifacts/",
+        "2026-06-29-q4-animal-partial-cholesky-transform-local/",
+        "structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv"
+      ),
+      9L
+    )
+  )
+  expect_equal(
+    partial$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-29-q-series-q4-animal-partial-cholesky-transform-diagnostic.md"
+      ),
+      9L
+    )
+  )
+
+  for (phrase in c(
+    "Animal q4 all-four one-slope partial-Cholesky transform diagnostic only",
+    "hard seeds compare a zero-correlation control",
+    "no coverage",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no broad q4 bridge support",
+    "no shipped production parameterization change",
+    "no optimizer-layer ridge penalty",
+    "no derived-correlation interval claim"
+  )) {
+    expect_true(all(grepl(phrase, partial$claim_boundary, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "partial-Cholesky route",
+    "hard seeds",
+    "do not submit Nibi/Rorqual admission",
+    "DRAC coverage"
+  )) {
+    expect_true(all(grepl(phrase, partial$next_gate, fixed = TRUE)))
+  }
+
+  artifact$key <- paste(artifact$replicate_index, artifact$strategy)
+  artifact <- artifact[match(expected$key, artifact$key), , drop = FALSE]
+  expect_equal(artifact[names(partial)], partial, ignore_attr = TRUE)
+})
+
+test_that("q4 animal transform-admission contract keeps cluster work gated", {
+  transform <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-transform-admission-contract.tsv"
+  )
+
+  expect_named(
+    transform,
+    c(
+      "contract_id",
+      "cell_id",
+      "contract_stage",
+      "candidate_route",
+      "route_kind",
+      "source_evidence",
+      "observed_signal",
+      "admission_status",
+      "admission_decision",
+      "hard_seed_scope",
+      "required_pass_condition",
+      "observed_blocker",
+      "cluster_policy",
+      "interval_claim_status",
+      "coverage_status",
+      "evidence_url",
+      "source_bounded_artifact",
+      "source_one_theta_artifact",
+      "source_map_penalty_artifact",
+      "source_ridge_continuation_artifact",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(transform), 7L)
+  expect_equal(
+    transform$cell_id,
+    rep("qseries_animal_q4_all_four_one_slope_planned", 7L)
+  )
+  expect_equal(transform$contract_stage, rep("admission_contract", 7L))
+  expect_equal(transform$hard_seed_scope, rep("910101;910102;910110", 7L))
+  expect_equal(transform$interval_claim_status, rep("diagnostic_only", 7L))
+  expect_equal(transform$coverage_status, rep("not_evaluable", 7L))
+
+  expected_routes <- c(
+    "zero_correlation_map",
+    "current_untransformed_all_free",
+    "fixed_softcap_tanh",
+    "sparse_one_theta_release",
+    "ridge_map_penalty",
+    "ridge_continuation_anneal",
+    "production_transform_admission"
+  )
+  expect_setequal(transform$candidate_route, expected_routes)
+  expect_equal(anyDuplicated(transform$candidate_route), 0L)
+  expected_status_counts <- c(
+    design_required = 1L,
+    localizer_not_admission = 1L,
+    reference_pass_not_admission = 1L,
+    rejected_for_admission = 3L,
+    rejected_for_production_claim = 1L
+  )
+  observed_status_counts <- table(transform$admission_status)
+  expect_equal(
+    as.integer(observed_status_counts[names(expected_status_counts)]),
+    unname(expected_status_counts)
+  )
+
+  expect_equal(
+    transform$source_bounded_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-bounded-correlation-diagnostic.tsv",
+      7L
+    )
+  )
+  expect_equal(
+    transform$source_one_theta_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-one-theta-release-diagnostic.tsv",
+      7L
+    )
+  )
+  expect_equal(
+    transform$source_map_penalty_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-map-penalty-sensitivity.tsv",
+      7L
+    )
+  )
+  expect_equal(
+    transform$source_ridge_continuation_artifact,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-animal-ridge-continuation-diagnostic.tsv",
+      7L
+    )
+  )
+
+  design_row <- transform[
+    transform$candidate_route == "production_transform_admission",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    design_row$admission_decision,
+    "cluster_hold_until_executable_contract"
+  )
+  for (phrase in c(
+    "local first",
+    "Totoro/FIIA",
+    "Nibi/Rorqual",
+    "DRAC coverage"
+  )) {
+    expect_match(design_row$cluster_policy, phrase, fixed = TRUE)
+  }
+  expect_match(
+    design_row$source_evidence,
+    "partial-Cholesky transform diagnostic",
+    fixed = TRUE
+  )
+  expect_match(design_row$observed_signal, "0/3 admission passes", fixed = TRUE)
+  expect_match(design_row$observed_signal, "pdHess=FALSE", fixed = TRUE)
+  expect_match(
+    design_row$observed_blocker,
+    "lower-level TMB parameterization design",
+    fixed = TRUE
+  )
+  expect_equal(
+    design_row$evidence_url,
+    paste0(
+      "docs/dev-log/after-task/",
+      "2026-06-29-q-series-q4-animal-partial-cholesky-transform-diagnostic.md"
+    )
+  )
+
+  for (phrase in c(
+    "Animal q4 all-four transform-admission contract only",
+    "synthesizes existing hard-seed diagnostics",
+    "no new fit",
+    "no coverage",
+    "no interval",
+    "no inference_ready",
+    "no supported",
+    "no q8 inference",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no production parameterization change",
+    "no derived-correlation interval claim",
+    "no DRAC coverage grid"
+  )) {
+    expect_true(all(grepl(phrase, transform$claim_boundary, fixed = TRUE)))
+  }
+  old_gate_rows <- transform[
+    transform$candidate_route != "production_transform_admission",
+    ,
+    drop = FALSE
+  ]
+  for (phrase in c(
+    "lower-level TMB parameterization design",
+    "production transform/admission experiment",
+    "hard seeds 910101, 910102, and 910110",
+    "pdHess pass",
+    "finite covariance",
+    "no cap saturation",
+    "no optimizer-layer ridge penalties",
+    "no large-theta rows",
+    "no convergence-watch rows",
+    "no Hessian-blocked multi-coordinate rows",
+    "Fisher/Rose",
+    "Nibi/Rorqual admission",
+    "DRAC coverage"
+  )) {
+    expect_true(all(grepl(phrase, old_gate_rows$next_gate, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "Do not escalate to Totoro/FIIA",
+    "Nibi/Rorqual",
+    "DRAC coverage",
+    "partial-Cholesky route",
+    "lower-level TMB/C++ parameterization design",
+    "objective/report equivalence tests",
+    "before another hard-seed admission runner",
+    "cluster run",
+    "status edit"
+  )) {
+    expect_true(all(grepl(phrase, design_row$next_gate, fixed = TRUE)))
+  }
 })
 
 test_that("q4 all-four one-slope Hessian geometry stays diagnostic-only", {
@@ -11097,7 +21167,10 @@ test_that("q4 all-four one-slope Hessian geometry stays diagnostic-only", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -11379,7 +21452,10 @@ test_that("q4 sigma-axis differential records partial-axis guard blockers", {
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -11621,7 +21697,10 @@ test_that("matched mu+sigma one-slope interval plan remains target-level", {
     qseries_plan$interval_status,
     .expected_interval(qseries_plan$cell_id)
   )
-  expect_equal(qseries_plan$coverage_status, .expected_coverage(qseries_plan$cell_id))
+  expect_equal(
+    qseries_plan$coverage_status,
+    .expected_coverage(qseries_plan$cell_id)
+  )
   expect_equal(
     qseries_plan$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -11793,7 +21872,10 @@ test_that("matched mu+sigma one-slope interval status remains diagnostic-only", 
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -11950,7 +22032,10 @@ test_that("matched mu+sigma one-slope interval stability probe stays diagnostic-
     qseries_status$interval_status,
     .expected_interval(qseries_status$cell_id)
   )
-  expect_equal(qseries_status$coverage_status, .expected_coverage(qseries_status$cell_id))
+  expect_equal(
+    qseries_status$coverage_status,
+    .expected_coverage(qseries_status$cell_id)
+  )
   expect_equal(
     qseries_status$denominator_policy,
     rep("fixture_not_coverage", 4L)
@@ -13383,11 +23468,26 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
   acceptance <- structured_re_read_dashboard_tsv(
     "structured-re-q2-acceptance-gate.tsv"
   )
+  q2_intercept_interval <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-intercept-interval-contract.tsv"
+  )
+  q2_plus_q2_intercept_contract <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-plus-q2-intercept-contract.tsv"
+  )
+  q2_intercept_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-intercept-local-smoke.tsv"
+  )
+  q2_plus_q2_intercept_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-plus-q2-intercept-local-smoke.tsv"
+  )
   order_map <- structured_re_read_dashboard_tsv(
     "structured-re-q2-coefficient-order-map.tsv"
   )
   direct_q2 <- structured_re_read_dashboard_tsv(
     "structured-re-q2-direct-drmjl-export.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
   )
 
   q2_ml <- targets[
@@ -13412,6 +23512,2903 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
   expect_equal(reml$profile_status, "unsupported")
   expect_equal(reml$bridge_status, "unsupported")
   expect_match(reml$claim_boundary, "not HSquared AI-REML", fixed = TRUE)
+
+  expect_named(
+    q2_intercept_interval,
+    c(
+      "contract_id",
+      "cell_id",
+      "provider",
+      "formula_cell",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "interval_channel",
+      "denominator_policy",
+      "required_fit_evidence",
+      "required_interval_evidence",
+      "pregrid_min_replicates",
+      "seed_policy",
+      "allowed_hosts",
+      "blocked_hosts",
+      "contract_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_intercept_interval), 12L)
+  expect_equal(
+    stats::setNames(
+      as.integer(table(q2_intercept_interval$provider)),
+      names(table(q2_intercept_interval$provider))
+    ),
+    c(animal = 3L, phylo = 3L, relmat = 3L, spatial = 3L)
+  )
+  expect_equal(
+    stats::setNames(
+      as.integer(table(q2_intercept_interval$target_kind)),
+      names(table(q2_intercept_interval$target_kind))
+    ),
+    c(direct_correlation = 4L, direct_sd = 8L)
+  )
+  expect_setequal(
+    unique(q2_intercept_interval$cell_id),
+    c(
+      "qseries_animal_q2_mu1_mu2_intercept",
+      "qseries_phylo_q2_mu1_mu2_intercept",
+      "qseries_relmat_q2_mu1_mu2_intercept",
+      "qseries_spatial_q2_mu1_mu2_intercept"
+    )
+  )
+  expect_false(
+    any(grepl(
+      "q2_plus_q2",
+      q2_intercept_interval$cell_id,
+      fixed = TRUE
+    ))
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$required_fit_evidence,
+    "q2_acceptance_gate"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$required_interval_evidence,
+    "coverage_mcse<=0.01",
+    fixed = TRUE
+  )
+  expect_equal(
+    q2_intercept_interval$pregrid_min_replicates,
+    rep(150L, nrow(q2_intercept_interval))
+  )
+  expect_equal(
+    q2_intercept_interval$promotion_decision,
+    rep("do_not_promote", nrow(q2_intercept_interval))
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$allowed_hosts,
+    "denominator design"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$blocked_hosts,
+    "Nibi/Rorqual/DRAC denominator before"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$blocked_hosts,
+    "reviewed target-specific retained-denominator contract"
+  )
+  expect_equal(
+    q2_intercept_interval$contract_status,
+    rep(
+      "nibi_substitute_smoke_reviewed_design_required",
+      nrow(q2_intercept_interval)
+    )
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$next_gate,
+    "local deterministic q2 intercept smoke"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$next_gate,
+    "Nibi/Rorqual/DRAC remain blocked for denominator work"
+  )
+  for (phrase in c(
+    "Nibi q2 intercept n=5 substitute smoke reviewed",
+    "host/fixture evidence only",
+    "target-specific retained-denominator or calibration design",
+    "one-sided misses"
+  )) {
+    structured_re_expect_all_match(q2_intercept_interval$next_gate, phrase)
+  }
+  structured_re_expect_all_match(
+    q2_intercept_interval$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$claim_boundary,
+    "does not change interval_status"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$claim_boundary,
+    "q2-plus-q2"
+  )
+  structured_re_expect_all_match(q2_intercept_interval$claim_boundary, "q4/q8")
+  structured_re_expect_all_match(
+    q2_intercept_interval$claim_boundary,
+    "non-Gaussian"
+  )
+  structured_re_expect_all_match(q2_intercept_interval$claim_boundary, "REML")
+  structured_re_expect_all_match(
+    q2_intercept_interval$claim_boundary,
+    "AI-REML"
+  )
+  structured_re_expect_all_match(
+    q2_intercept_interval$claim_boundary,
+    "public support"
+  )
+  correlation_contract <- q2_intercept_interval[
+    q2_intercept_interval$target_kind == "direct_correlation",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    correlation_contract$denominator_policy,
+    "endpoint_sd_target_not_inherited"
+  )
+  structured_re_expect_all_match(
+    correlation_contract$next_gate,
+    "endpoint-SD pass"
+  )
+  structured_re_expect_all_match(
+    correlation_contract$next_gate,
+    "one-sided miss table"
+  )
+  q2_support <- qseries[
+    match(unique(q2_intercept_interval$cell_id), qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(q2_support$fit_status, rep("point_fit", nrow(q2_support)))
+  expect_equal(q2_support$interval_status, rep("planned", nrow(q2_support)))
+  expect_equal(q2_support$coverage_status, rep("planned", nrow(q2_support)))
+
+  expect_named(q2_plus_q2_intercept_contract, names(q2_intercept_interval))
+  expect_equal(nrow(q2_plus_q2_intercept_contract), 10L)
+  expect_equal(
+    unique(q2_plus_q2_intercept_contract$cell_id),
+    "qseries_phylo_q2_plus_q2_intercept"
+  )
+  expect_equal(
+    unique(q2_plus_q2_intercept_contract$provider),
+    "phylo"
+  )
+  expect_equal(
+    unique(q2_plus_q2_intercept_contract$formula_cell),
+    paste(
+      "phylo(1 | pl | species, tree = tree) in mu1 and mu2 plus",
+      "phylo(1 | ps | species, tree = tree) in sigma1 and sigma2"
+    )
+  )
+  expect_equal(
+    stats::setNames(
+      as.integer(table(q2_plus_q2_intercept_contract$target_kind)),
+      names(table(q2_plus_q2_intercept_contract$target_kind))
+    ),
+    c(
+      blocked_cross_block_correlation = 4L,
+      direct_correlation = 2L,
+      direct_sd = 4L
+    )
+  )
+  direct_q2_plus_q2 <- q2_plus_q2_intercept_contract[
+    q2_plus_q2_intercept_contract$target_kind !=
+      "blocked_cross_block_correlation",
+    ,
+    drop = FALSE
+  ]
+  blocked_q2_plus_q2 <- q2_plus_q2_intercept_contract[
+    q2_plus_q2_intercept_contract$target_kind ==
+      "blocked_cross_block_correlation",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    direct_q2_plus_q2$pregrid_min_replicates,
+    rep(150L, nrow(direct_q2_plus_q2))
+  )
+  expect_equal(
+    blocked_q2_plus_q2$pregrid_min_replicates,
+    rep(0L, nrow(blocked_q2_plus_q2))
+  )
+  expect_equal(
+    direct_q2_plus_q2$contract_status,
+    rep("nibi_substitute_smoke_reviewed_profile_hold", nrow(direct_q2_plus_q2))
+  )
+  expect_equal(
+    blocked_q2_plus_q2$contract_status,
+    rep("blocked_not_interval_target", nrow(blocked_q2_plus_q2))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_contract$promotion_decision,
+    rep("do_not_promote", nrow(q2_plus_q2_intercept_contract))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_contract$evidence_url,
+    c(
+      rep(
+        "docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-nibi-smoke.tsv",
+        nrow(direct_q2_plus_q2)
+      ),
+      rep(
+        "docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-same-target-fixture-parity.md",
+        nrow(blocked_q2_plus_q2)
+      )
+    )
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$required_fit_evidence,
+    "same_target_fixture_parity"
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$required_fit_evidence,
+    "q2_plus_q2_boundary_contract"
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$required_interval_evidence,
+    "coverage_mcse<=0.01"
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$allowed_hosts,
+    "Totoro/FIIA"
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$blocked_hosts,
+    "sigma1/sigma2 profile failure"
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$blocked_hosts,
+    "DRAC cluster denominator work blocked"
+  )
+  structured_re_expect_all_match(
+    direct_q2_plus_q2$next_gate,
+    "Nibi q2-plus-q2 n=5 substitute smoke reviewed"
+  )
+  structured_re_expect_all_match(
+    blocked_q2_plus_q2$profile_target,
+    "not_a_target:block_diagonal_q2_plus_q2"
+  )
+  structured_re_expect_all_match(
+    blocked_q2_plus_q2$interval_channel,
+    "unsupported_cross_block_correlation"
+  )
+  structured_re_expect_all_match(
+    blocked_q2_plus_q2$denominator_policy,
+    "cross_block_correlation_not_in_model"
+  )
+  structured_re_expect_all_match(
+    blocked_q2_plus_q2$next_gate,
+    "true q4 route"
+  )
+  sigma_q2_plus_q2 <- q2_plus_q2_intercept_contract[
+    grepl("sigma", q2_plus_q2_intercept_contract$estimand, fixed = TRUE) &
+      q2_plus_q2_intercept_contract$target_kind == "direct_sd",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    sigma_q2_plus_q2$interval_channel,
+    "no_location_axis_bias_t_default"
+  )
+  correlation_q2_plus_q2 <- q2_plus_q2_intercept_contract[
+    q2_plus_q2_intercept_contract$target_kind == "direct_correlation",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    correlation_q2_plus_q2$denominator_policy,
+    "endpoint_sd_target_not_inherited"
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "does not change interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(
+      q2_plus_q2_intercept_contract$claim_boundary,
+      phrase
+    )
+  }
+  q2_plus_q2_support <- qseries[
+    qseries$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_plus_q2_support), 1L)
+  expect_equal(q2_plus_q2_support$fit_status, "point_fit")
+  expect_equal(q2_plus_q2_support$interval_status, "planned")
+  expect_equal(q2_plus_q2_support$coverage_status, "planned")
+
+  expect_named(
+    q2_intercept_smoke,
+    c(
+      "smoke_id",
+      "contract_id",
+      "cell_id",
+      "provider",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "target_parm",
+      "artifact_dir",
+      "n_rep",
+      "n_fit_ok",
+      "n_fit_error",
+      "n_sim_error",
+      "n_converged",
+      "n_pdhess",
+      "n_wald_finite",
+      "n_profile_finite",
+      "n_bootstrap_attempted",
+      "n_bootstrap_finite",
+      "wald_coverage_smoke",
+      "wald_mcse_smoke",
+      "profile_coverage_smoke",
+      "profile_mcse_smoke",
+      "lower_miss",
+      "upper_miss",
+      "wald_lower_miss",
+      "wald_upper_miss",
+      "profile_lower_miss",
+      "profile_upper_miss",
+      "smoke_status",
+      "promotion_decision",
+      "source_contract",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_intercept_smoke), 12L)
+  expect_setequal(
+    q2_intercept_smoke$contract_id,
+    q2_intercept_interval$contract_id
+  )
+  expect_equal(
+    q2_intercept_smoke$smoke_id,
+    paste0("q2_intercept_local_smoke_", q2_intercept_smoke$contract_id)
+  )
+  smoke_contract <- q2_intercept_interval[
+    match(q2_intercept_smoke$contract_id, q2_intercept_interval$contract_id),
+    ,
+    drop = FALSE
+  ]
+  for (field in c(
+    "cell_id",
+    "provider",
+    "target_kind",
+    "endpoint_member",
+    "estimand"
+  )) {
+    expect_equal(q2_intercept_smoke[[field]], smoke_contract[[field]])
+  }
+  expect_equal(q2_intercept_smoke$target_parm, smoke_contract$profile_target)
+  expect_equal(q2_intercept_smoke$n_rep, rep(1L, nrow(q2_intercept_smoke)))
+  expect_equal(q2_intercept_smoke$n_fit_ok, rep(1L, nrow(q2_intercept_smoke)))
+  expect_equal(
+    q2_intercept_smoke$n_fit_error,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$n_sim_error,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$n_converged,
+    rep(1L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(q2_intercept_smoke$n_pdhess, rep(1L, nrow(q2_intercept_smoke)))
+  expect_equal(
+    q2_intercept_smoke$n_wald_finite,
+    rep(1L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$n_profile_finite,
+    rep(1L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$n_bootstrap_attempted,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$n_bootstrap_finite,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(q2_intercept_smoke$lower_miss, rep(0L, nrow(q2_intercept_smoke)))
+  expect_equal(q2_intercept_smoke$upper_miss, rep(0L, nrow(q2_intercept_smoke)))
+  expect_equal(
+    q2_intercept_smoke$wald_lower_miss,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$wald_upper_miss,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$profile_lower_miss,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$profile_upper_miss,
+    rep(0L, nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$smoke_status,
+    rep("local_smoke_passed", nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$promotion_decision,
+    rep("do_not_promote", nrow(q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_intercept_smoke$source_contract,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-intercept-interval-contract.tsv",
+      nrow(q2_intercept_smoke)
+    )
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "smoke not coverage evidence",
+    "does not change interval_status",
+    "inference_ready",
+    "supported",
+    "q2-plus-q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(q2_intercept_smoke$claim_boundary, phrase)
+  }
+  for (phrase in c("Fisher/Rose", "Totoro/FIIA", "Nibi/Rorqual/DRAC")) {
+    structured_re_expect_all_match(q2_intercept_smoke$next_gate, phrase)
+  }
+  smoke_support <- qseries[
+    match(unique(q2_intercept_smoke$cell_id), qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(smoke_support$fit_status, rep("point_fit", nrow(smoke_support)))
+  expect_equal(
+    smoke_support$interval_status,
+    rep("planned", nrow(smoke_support))
+  )
+  expect_equal(
+    smoke_support$coverage_status,
+    rep("planned", nrow(smoke_support))
+  )
+
+  smoke_summary_artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q2-intercept-local-smoke",
+      "structured-re-q2-intercept-local-smoke.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(q2_intercept_smoke, smoke_summary_artifact)
+
+  smoke_replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q2-intercept-local-smoke",
+      "structured-re-q2-intercept-local-smoke-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(smoke_replicates), 12L)
+  expect_setequal(
+    smoke_replicates$contract_id,
+    q2_intercept_interval$contract_id
+  )
+  expect_equal(smoke_replicates$attempt_status, rep("fit_ok", 12L))
+  expect_equal(smoke_replicates$convergence, rep(0L, 12L))
+  expect_equal(smoke_replicates$pdHess, rep(TRUE, 12L))
+  expect_equal(smoke_replicates$wald_status, rep("finite", 12L))
+  expect_equal(smoke_replicates$wald_contains, rep(TRUE, 12L))
+  expect_equal(smoke_replicates$profile_status, rep("finite", 12L))
+  expect_equal(smoke_replicates$profile_conf_status, rep("profile", 12L))
+  expect_equal(smoke_replicates$profile_contains, rep(TRUE, 12L))
+  expect_equal(smoke_replicates$bootstrap_status, rep("skipped", 12L))
+  expect_equal(smoke_replicates$bootstrap_message, rep("bootstrap_off", 12L))
+  for (field in c(
+    "truth_value",
+    "estimate",
+    "wald_lower",
+    "wald_upper",
+    "profile_lower",
+    "profile_upper",
+    "elapsed_sec"
+  )) {
+    expect_true(all(is.finite(smoke_replicates[[field]])))
+  }
+
+  smoke_seeds <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q2-intercept-local-smoke",
+      "structured-re-q2-intercept-local-smoke-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(smoke_seeds), 4L)
+  expect_setequal(
+    smoke_seeds$provider,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(smoke_seeds$replicate_index, rep(1L, 4L))
+  expect_equal(smoke_seeds$seed, rep(823001L, 4L))
+  expect_equal(
+    smoke_seeds$seed_role,
+    rep("q2_intercept_local_smoke", 4L)
+  )
+  expect_equal(smoke_seeds$execution_status, rep("executed", 4L))
+
+  q2_intercept_nibi_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-intercept-nibi-smoke.tsv"
+  )
+  expect_equal(nrow(q2_intercept_nibi_smoke), 12L)
+  expect_setequal(
+    q2_intercept_nibi_smoke$contract_id,
+    q2_intercept_interval$contract_id
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$smoke_id,
+    paste0(
+      "q2_intercept_substitute_smoke_",
+      q2_intercept_nibi_smoke$contract_id
+    )
+  )
+  expect_equal(
+    as.integer(table(q2_intercept_nibi_smoke$provider)),
+    rep(3L, 4L)
+  )
+  expect_setequal(
+    names(table(q2_intercept_nibi_smoke$provider)),
+    c("animal", "phylo", "relmat", "spatial")
+  )
+  expect_equal(
+    as.integer(table(q2_intercept_nibi_smoke$target_kind)),
+    c(4L, 8L)
+  )
+  expect_setequal(
+    names(table(q2_intercept_nibi_smoke$target_kind)),
+    c("direct_correlation", "direct_sd")
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$artifact_dir,
+    rep(
+      "docs/dev-log/simulation-artifacts/2026-06-30-q2-intercept-smoke-nibi-r44",
+      12L
+    )
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$evidence_url,
+    q2_intercept_nibi_smoke$artifact_dir
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$metadata_dir,
+    file.path(q2_intercept_nibi_smoke$artifact_dir, "metadata")
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$log_dir,
+    file.path(q2_intercept_nibi_smoke$artifact_dir, "logs")
+  )
+  expect_equal(q2_intercept_nibi_smoke$n_rep, rep(5L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_fit_ok, rep(5L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_converged, rep(5L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_pdhess, rep(5L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_wald_finite, rep(5L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_profile_finite, rep(5L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_bootstrap_attempted, rep(0L, 12L))
+  expect_equal(q2_intercept_nibi_smoke$n_bootstrap_finite, rep(0L, 12L))
+  expect_equal(
+    q2_intercept_nibi_smoke$smoke_status,
+    rep("nibi_rorqual_substitute_smoke_passed", 12L)
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$promotion_decision,
+    rep("do_not_promote", 12L)
+  )
+  expect_equal(
+    q2_intercept_nibi_smoke$host_class,
+    rep("nibi_rorqual_contract_smoke", 12L)
+  )
+  expect_equal(q2_intercept_nibi_smoke$host_name, rep("c332", 12L))
+  expect_equal(
+    q2_intercept_nibi_smoke$runtime_host_name,
+    rep("c332.nibi.sharcnet", 12L)
+  )
+  expect_equal(q2_intercept_nibi_smoke$slurm_cluster_name, rep("nibi", 12L))
+  expect_equal(q2_intercept_nibi_smoke$slurm_job_id, rep(16974191L, 12L))
+  expect_equal(
+    q2_intercept_nibi_smoke$source_substitution_contract_id,
+    rep("qseries_smoke_substitution_q2_intercept", 12L)
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "n=5 is smoke not coverage evidence",
+    "inference_ready",
+    "supported",
+    "q2 slope",
+    "q2-plus-q2",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "DRAC denominator evidence",
+    "public support"
+  )) {
+    structured_re_expect_all_match(
+      q2_intercept_nibi_smoke$claim_boundary,
+      phrase
+    )
+  }
+
+  q2_intercept_nibi_support <- qseries[
+    qseries$cell_id %in% unique(q2_intercept_nibi_smoke$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(q2_intercept_nibi_support$fit_status, rep("point_fit", 4L))
+  expect_equal(q2_intercept_nibi_support$interval_status, rep("planned", 4L))
+  expect_equal(q2_intercept_nibi_support$coverage_status, rep("planned", 4L))
+
+  q2_intercept_nibi_artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-q2-intercept-smoke-nibi-r44",
+      "structured-re-q2-intercept-substitute-smoke.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  q2_intercept_nibi_artifact$artifact_dir <-
+    "docs/dev-log/simulation-artifacts/2026-06-30-q2-intercept-smoke-nibi-r44"
+  q2_intercept_nibi_artifact$evidence_url <-
+    q2_intercept_nibi_artifact$artifact_dir
+  q2_intercept_nibi_artifact$metadata_dir <-
+    file.path(q2_intercept_nibi_artifact$artifact_dir, "metadata")
+  q2_intercept_nibi_artifact$log_dir <-
+    file.path(q2_intercept_nibi_artifact$artifact_dir, "logs")
+  q2_intercept_nibi_artifact$next_gate <- q2_intercept_nibi_smoke$next_gate
+  expect_equal(q2_intercept_nibi_smoke, q2_intercept_nibi_artifact)
+
+  q2_intercept_nibi_replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-q2-intercept-smoke-nibi-r44",
+      "structured-re-q2-intercept-substitute-smoke-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(q2_intercept_nibi_replicates), 60L)
+  expect_equal(
+    as.integer(table(q2_intercept_nibi_replicates$contract_id)),
+    rep(5L, 12L)
+  )
+  expect_equal(q2_intercept_nibi_replicates$attempt_status, rep("fit_ok", 60L))
+  expect_equal(q2_intercept_nibi_replicates$convergence, rep(0L, 60L))
+  expect_equal(q2_intercept_nibi_replicates$pdHess, rep(TRUE, 60L))
+  expect_equal(q2_intercept_nibi_replicates$wald_status, rep("finite", 60L))
+  expect_equal(q2_intercept_nibi_replicates$profile_status, rep("finite", 60L))
+  expect_equal(
+    q2_intercept_nibi_replicates$profile_conf_status,
+    rep("profile", 60L)
+  )
+  expect_equal(
+    q2_intercept_nibi_replicates$host_class,
+    rep("nibi_rorqual_contract_smoke", 60L)
+  )
+  expect_equal(
+    q2_intercept_nibi_replicates$slurm_cluster_name,
+    rep("nibi", 60L)
+  )
+  expect_equal(q2_intercept_nibi_replicates$slurm_job_id, rep(16974191L, 60L))
+
+  q2_intercept_nibi_seeds <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-q2-intercept-smoke-nibi-r44",
+      "structured-re-q2-intercept-substitute-smoke-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(q2_intercept_nibi_seeds), 20L)
+  expect_equal(
+    as.integer(table(q2_intercept_nibi_seeds$provider)),
+    rep(5L, 4L)
+  )
+  expect_setequal(q2_intercept_nibi_seeds$seed, 823001:823005)
+  expect_equal(
+    q2_intercept_nibi_seeds$seed_role,
+    rep("q2_intercept_substitute_smoke", 20L)
+  )
+  expect_equal(
+    q2_intercept_nibi_seeds$host_class,
+    rep("nibi_rorqual_contract_smoke", 20L)
+  )
+
+  expect_named(q2_plus_q2_intercept_smoke, names(q2_intercept_smoke))
+  expect_equal(nrow(q2_plus_q2_intercept_smoke), 6L)
+  expect_setequal(
+    q2_plus_q2_intercept_smoke$contract_id,
+    direct_q2_plus_q2$contract_id
+  )
+  expect_false(
+    any(
+      q2_plus_q2_intercept_smoke$contract_id %in%
+        blocked_q2_plus_q2$contract_id
+    )
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$smoke_id,
+    paste0(
+      "q2_plus_q2_intercept_local_smoke_",
+      q2_plus_q2_intercept_smoke$contract_id
+    )
+  )
+  q2_plus_smoke_contract <- direct_q2_plus_q2[
+    match(
+      q2_plus_q2_intercept_smoke$contract_id,
+      direct_q2_plus_q2$contract_id
+    ),
+    ,
+    drop = FALSE
+  ]
+  for (field in c(
+    "cell_id",
+    "provider",
+    "target_kind",
+    "endpoint_member",
+    "estimand"
+  )) {
+    expect_equal(
+      q2_plus_q2_intercept_smoke[[field]],
+      q2_plus_smoke_contract[[field]]
+    )
+  }
+  expect_equal(
+    q2_plus_q2_intercept_smoke$target_parm,
+    q2_plus_smoke_contract$profile_target
+  )
+  expect_setequal(
+    q2_plus_q2_intercept_smoke$target_parm,
+    c(
+      "sd:mu:mu1:phylo(1 | pl | species)",
+      "sd:mu:mu2:phylo(1 | pl | species)",
+      "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | pl | species)",
+      "sd:mu:sigma1:phylo(1 | pl | species)",
+      "sd:mu:sigma2:phylo(1 | pl | species)",
+      "cor:phylo:cor(sigma1:(Intercept),sigma2:(Intercept) | ps | species)"
+    )
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$artifact_dir,
+    rep(
+      "docs/dev-log/simulation-artifacts/2026-06-29-q2-plus-q2-intercept-local-smoke",
+      nrow(q2_plus_q2_intercept_smoke)
+    )
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$source_contract,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv",
+      nrow(q2_plus_q2_intercept_smoke)
+    )
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_rep,
+    rep(1L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_fit_ok,
+    rep(1L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_fit_error,
+    rep(0L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_sim_error,
+    rep(0L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_converged,
+    rep(1L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_pdhess,
+    rep(1L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_wald_finite,
+    rep(1L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_profile_finite,
+    rep(1L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_bootstrap_attempted,
+    rep(0L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$n_bootstrap_finite,
+    rep(0L, nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$smoke_status,
+    rep("local_smoke_passed", nrow(q2_plus_q2_intercept_smoke))
+  )
+  expect_equal(
+    q2_plus_q2_intercept_smoke$promotion_decision,
+    rep("do_not_promote", nrow(q2_plus_q2_intercept_smoke))
+  )
+  for (field in c(
+    "wald_coverage_smoke",
+    "wald_mcse_smoke",
+    "profile_coverage_smoke",
+    "profile_mcse_smoke"
+  )) {
+    expect_true(all(is.finite(as.numeric(q2_plus_q2_intercept_smoke[[field]]))))
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "smoke not coverage evidence",
+    "does not change interval_status",
+    "inference_ready",
+    "supported",
+    "q2-only location support",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support",
+    "cross-block correlations remain blocked"
+  )) {
+    structured_re_expect_all_match(
+      q2_plus_q2_intercept_smoke$claim_boundary,
+      phrase
+    )
+  }
+  for (phrase in c("Fisher/Rose", "Totoro/FIIA", "Nibi/Rorqual/DRAC")) {
+    structured_re_expect_all_match(q2_plus_q2_intercept_smoke$next_gate, phrase)
+  }
+
+  q2_plus_smoke_support <- qseries[
+    qseries$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(q2_plus_smoke_support$fit_status, "point_fit")
+  expect_equal(q2_plus_smoke_support$interval_status, "planned")
+  expect_equal(q2_plus_smoke_support$coverage_status, "planned")
+
+  q2_plus_smoke_summary_artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q2-plus-q2-intercept-local-smoke",
+      "structured-re-q2-plus-q2-intercept-local-smoke.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(q2_plus_q2_intercept_smoke, q2_plus_smoke_summary_artifact)
+
+  q2_plus_smoke_replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q2-plus-q2-intercept-local-smoke",
+      "structured-re-q2-plus-q2-intercept-local-smoke-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(q2_plus_smoke_replicates), 6L)
+  expect_setequal(
+    q2_plus_smoke_replicates$contract_id,
+    direct_q2_plus_q2$contract_id
+  )
+  expect_false(
+    any(
+      q2_plus_smoke_replicates$contract_id %in%
+        blocked_q2_plus_q2$contract_id
+    )
+  )
+  expect_equal(q2_plus_smoke_replicates$attempt_status, rep("fit_ok", 6L))
+  expect_equal(q2_plus_smoke_replicates$convergence, rep(0L, 6L))
+  expect_equal(q2_plus_smoke_replicates$pdHess, rep(TRUE, 6L))
+  expect_equal(q2_plus_smoke_replicates$wald_status, rep("finite", 6L))
+  expect_true(all(!is.na(q2_plus_smoke_replicates$wald_contains)))
+  expect_equal(q2_plus_smoke_replicates$profile_status, rep("finite", 6L))
+  expect_equal(
+    q2_plus_smoke_replicates$profile_conf_status,
+    rep("profile", 6L)
+  )
+  expect_true(all(!is.na(q2_plus_smoke_replicates$profile_contains)))
+  expect_equal(q2_plus_smoke_replicates$bootstrap_status, rep("skipped", 6L))
+  expect_equal(
+    q2_plus_smoke_replicates$bootstrap_message,
+    rep("bootstrap_off", 6L)
+  )
+  for (field in c(
+    "truth_value",
+    "estimate",
+    "wald_lower",
+    "wald_upper",
+    "profile_lower",
+    "profile_upper",
+    "elapsed_sec"
+  )) {
+    expect_true(all(is.finite(q2_plus_smoke_replicates[[field]])))
+  }
+
+  q2_plus_smoke_seeds <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-29-q2-plus-q2-intercept-local-smoke",
+      "structured-re-q2-plus-q2-intercept-local-smoke-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(q2_plus_smoke_seeds), 1L)
+  expect_equal(q2_plus_smoke_seeds$provider, "phylo")
+  expect_equal(q2_plus_smoke_seeds$replicate_index, 1L)
+  expect_equal(q2_plus_smoke_seeds$seed, 823001L)
+  expect_equal(
+    q2_plus_smoke_seeds$seed_role,
+    "q2_plus_q2_intercept_local_smoke"
+  )
+  expect_equal(q2_plus_smoke_seeds$execution_status, "executed")
+
+  q2_plus_q2_nibi_smoke <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-plus-q2-intercept-nibi-smoke.tsv"
+  )
+  expect_equal(nrow(q2_plus_q2_nibi_smoke), 6L)
+  expect_setequal(
+    q2_plus_q2_nibi_smoke$contract_id,
+    direct_q2_plus_q2$contract_id
+  )
+  expect_equal(
+    q2_plus_q2_nibi_smoke$cell_id,
+    rep("qseries_phylo_q2_plus_q2_intercept", 6L)
+  )
+  expect_equal(q2_plus_q2_nibi_smoke$provider, rep("phylo", 6L))
+  expect_equal(
+    q2_plus_q2_nibi_smoke$artifact_dir,
+    rep(
+      "docs/dev-log/simulation-artifacts/2026-06-30-q2-plus-q2-intercept-smoke-nibi",
+      6L
+    )
+  )
+  expect_equal(
+    q2_plus_q2_nibi_smoke$evidence_url,
+    q2_plus_q2_nibi_smoke$artifact_dir
+  )
+  expect_equal(q2_plus_q2_nibi_smoke$n_rep, rep(5L, 6L))
+  expect_equal(q2_plus_q2_nibi_smoke$n_fit_ok, rep(5L, 6L))
+  expect_equal(q2_plus_q2_nibi_smoke$n_converged, rep(5L, 6L))
+  expect_equal(q2_plus_q2_nibi_smoke$n_pdhess, rep(5L, 6L))
+  expect_equal(q2_plus_q2_nibi_smoke$n_wald_finite, rep(5L, 6L))
+  expect_equal(q2_plus_q2_nibi_smoke$n_bootstrap_attempted, rep(0L, 6L))
+  expect_equal(q2_plus_q2_nibi_smoke$n_bootstrap_finite, rep(0L, 6L))
+  expect_equal(
+    q2_plus_q2_nibi_smoke$host_class,
+    rep("nibi_rorqual_contract_smoke", 6L)
+  )
+  expect_equal(q2_plus_q2_nibi_smoke$host_name, rep("l5.nibi.sharcnet", 6L))
+  expect_equal(
+    q2_plus_q2_nibi_smoke$source_substitution_contract_id,
+    rep("qseries_smoke_substitution_q2_plus_q2_intercept", 6L)
+  )
+  expect_equal(
+    q2_plus_q2_nibi_smoke$promotion_decision,
+    rep("do_not_promote", 6L)
+  )
+  expect_equal(
+    as.integer(table(q2_plus_q2_nibi_smoke$smoke_status)),
+    c(1L, 5L)
+  )
+  expect_setequal(
+    names(table(q2_plus_q2_nibi_smoke$smoke_status)),
+    c(
+      "nibi_rorqual_substitute_smoke_failed",
+      "nibi_rorqual_substitute_smoke_passed"
+    )
+  )
+  q2_plus_q2_nibi_failed <- q2_plus_q2_nibi_smoke[
+    q2_plus_q2_nibi_smoke$smoke_status ==
+      "nibi_rorqual_substitute_smoke_failed",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_plus_q2_nibi_failed), 1L)
+  expect_equal(
+    q2_plus_q2_nibi_failed$contract_id,
+    "q2_plus_q2_intercept_phylo_cor_sigma1_sigma2"
+  )
+  expect_equal(q2_plus_q2_nibi_failed$n_profile_finite, 4L)
+  expect_match(q2_plus_q2_nibi_failed$next_gate, "Repair or explain")
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "n=5 is smoke not coverage evidence",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "cross-block correlations remain blocked"
+  )) {
+    structured_re_expect_all_match(q2_plus_q2_nibi_smoke$claim_boundary, phrase)
+  }
+
+  q2_plus_q2_nibi_artifact <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-q2-plus-q2-intercept-smoke-nibi",
+      "structured-re-q2-plus-q2-intercept-local-smoke.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  q2_plus_q2_nibi_artifact$artifact_dir <-
+    "docs/dev-log/simulation-artifacts/2026-06-30-q2-plus-q2-intercept-smoke-nibi"
+  q2_plus_q2_nibi_artifact$evidence_url <- q2_plus_q2_nibi_artifact$artifact_dir
+  q2_plus_q2_nibi_artifact$next_gate <- q2_plus_q2_nibi_smoke$next_gate
+  expect_equal(q2_plus_q2_nibi_smoke, q2_plus_q2_nibi_artifact)
+
+  q2_plus_q2_nibi_replicates <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-q2-plus-q2-intercept-smoke-nibi",
+      "structured-re-q2-plus-q2-intercept-local-smoke-replicates.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(q2_plus_q2_nibi_replicates), 30L)
+  expect_equal(
+    as.integer(table(q2_plus_q2_nibi_replicates$contract_id)),
+    rep(5L, 6L)
+  )
+  expect_equal(q2_plus_q2_nibi_replicates$attempt_status, rep("fit_ok", 30L))
+  expect_equal(q2_plus_q2_nibi_replicates$convergence, rep(0L, 30L))
+  expect_equal(q2_plus_q2_nibi_replicates$pdHess, rep(TRUE, 30L))
+  expect_equal(q2_plus_q2_nibi_replicates$wald_status, rep("finite", 30L))
+  expect_equal(
+    q2_plus_q2_nibi_replicates$host_class,
+    rep("nibi_rorqual_contract_smoke", 30L)
+  )
+  q2_plus_q2_nibi_nonfinite <- q2_plus_q2_nibi_replicates[
+    q2_plus_q2_nibi_replicates$profile_status == "nonfinite",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_plus_q2_nibi_nonfinite), 1L)
+  expect_equal(
+    q2_plus_q2_nibi_nonfinite$contract_id,
+    "q2_plus_q2_intercept_phylo_cor_sigma1_sigma2"
+  )
+  expect_equal(q2_plus_q2_nibi_nonfinite$seed, 823003L)
+  expect_equal(q2_plus_q2_nibi_nonfinite$profile_conf_status, "profile_failed")
+  expect_match(
+    q2_plus_q2_nibi_nonfinite$profile_message,
+    "Endpoint profile root"
+  )
+  q2_plus_q2_nibi_finite <- q2_plus_q2_nibi_replicates[
+    q2_plus_q2_nibi_replicates$profile_status == "finite",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_plus_q2_nibi_finite), 29L)
+  expect_equal(q2_plus_q2_nibi_finite$profile_conf_status, rep("profile", 29L))
+
+  q2_plus_q2_nibi_seeds <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-30-q2-plus-q2-intercept-smoke-nibi",
+      "structured-re-q2-plus-q2-intercept-local-smoke-seed-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(q2_plus_q2_nibi_seeds), 5L)
+  expect_equal(q2_plus_q2_nibi_seeds$provider, rep("phylo", 5L))
+  expect_equal(q2_plus_q2_nibi_seeds$seed, 823001:823005)
+  expect_equal(
+    q2_plus_q2_nibi_seeds$seed_role,
+    rep("q2_plus_q2_intercept_substitute_smoke", 5L)
+  )
+  expect_equal(
+    q2_plus_q2_nibi_seeds$host_class,
+    rep("nibi_rorqual_contract_smoke", 5L)
+  )
+
+  q2_retained_design <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-design.tsv"
+  )
+  expect_named(
+    q2_retained_design,
+    c(
+      "design_id",
+      "cell_id",
+      "provider",
+      "design_family",
+      "source_row_selection_id",
+      "source_interval_contract_id",
+      "source_nibi_smoke_id",
+      "formula_cell",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "interval_channel",
+      "denominator_policy",
+      "pregrid_n_rep",
+      "mcse_threshold",
+      "one_sided_miss_policy",
+      "target_decision",
+      "allowed_hosts",
+      "blocked_hosts",
+      "required_artifacts",
+      "stop_rule",
+      "design_status",
+      "linked_support_status",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_retained_design), 18L)
+  expect_equal(
+    stats::setNames(
+      as.integer(table(q2_retained_design$design_family)),
+      names(table(q2_retained_design$design_family))
+    ),
+    c(q2_intercept = 12L, q2_plus_q2_intercept = 6L)
+  )
+  expect_equal(
+    stats::setNames(
+      as.integer(table(q2_retained_design$target_decision)),
+      names(table(q2_retained_design$target_decision))
+    ),
+    c(
+      profile_repair_required_no_pregrid = 1L,
+      sr150_pregrid_ready_no_promotion = 17L
+    )
+  )
+  expect_equal(
+    q2_retained_design$promotion_decision,
+    rep("do_not_promote", nrow(q2_retained_design))
+  )
+  expect_equal(
+    q2_retained_design$evidence_url,
+    rep(
+      paste0(
+        "docs/dev-log/after-task/",
+        "2026-06-30-q-series-q2-retained-denominator-design.md"
+      ),
+      nrow(q2_retained_design)
+    )
+  )
+  expect_setequal(
+    q2_retained_design$source_interval_contract_id,
+    c(q2_intercept_interval$contract_id, direct_q2_plus_q2$contract_id)
+  )
+  q2_design_contract <- rbind(q2_intercept_interval, direct_q2_plus_q2)
+  q2_design_contract <- q2_design_contract[
+    match(
+      q2_retained_design$source_interval_contract_id,
+      q2_design_contract$contract_id
+    ),
+    ,
+    drop = FALSE
+  ]
+  for (field in c(
+    "cell_id",
+    "provider",
+    "formula_cell",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target"
+  )) {
+    expect_equal(q2_retained_design[[field]], q2_design_contract[[field]])
+  }
+  smoke_common <- intersect(
+    names(q2_intercept_nibi_smoke),
+    names(q2_plus_q2_nibi_smoke)
+  )
+  q2_design_smoke <- rbind(
+    q2_intercept_nibi_smoke[, smoke_common, drop = FALSE],
+    q2_plus_q2_nibi_smoke[, smoke_common, drop = FALSE]
+  )
+  q2_design_smoke <- q2_design_smoke[
+    match(q2_retained_design$source_nibi_smoke_id, q2_design_smoke$smoke_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(q2_design_smoke$smoke_id))
+  for (field in c(
+    "cell_id",
+    "provider",
+    "target_kind",
+    "endpoint_member",
+    "estimand"
+  )) {
+    expect_equal(q2_retained_design[[field]], q2_design_smoke[[field]])
+  }
+  q2_design_support <- qseries[
+    match(q2_retained_design$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    q2_retained_design$linked_support_status,
+    paste(
+      q2_design_support$fit_status,
+      q2_design_support$interval_status,
+      q2_design_support$coverage_status,
+      sep = "/"
+    )
+  )
+  expect_equal(
+    unique(q2_retained_design$linked_support_status),
+    "point_fit/planned/planned"
+  )
+  ready_design <- q2_retained_design[
+    q2_retained_design$target_decision == "sr150_pregrid_ready_no_promotion",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(ready_design), 17L)
+  expect_equal(ready_design$pregrid_n_rep, rep(150L, 17L))
+  expect_equal(
+    ready_design$design_status,
+    rep(
+      "fisher_rose_grace_sr150_pregrid_design_ready_no_promotion",
+      17L
+    )
+  )
+  structured_re_expect_all_match(ready_design$next_gate, "MCSE <= 0.01")
+  structured_re_expect_all_match(ready_design$next_gate, "Fisher/Rose/Grace")
+  repair_design <- q2_retained_design[
+    q2_retained_design$target_decision == "profile_repair_required_no_pregrid",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(repair_design), 1L)
+  expect_equal(
+    repair_design$source_interval_contract_id,
+    "q2_plus_q2_intercept_phylo_cor_sigma1_sigma2"
+  )
+  expect_equal(repair_design$pregrid_n_rep, 0L)
+  expect_equal(
+    repair_design$design_status,
+    "fisher_rose_profile_failure_repair_required_no_pregrid"
+  )
+  structured_re_expect_all_match(repair_design$next_gate, "Repair or explain")
+  structured_re_expect_all_match(repair_design$blocked_hosts, "sigma1/sigma2")
+  structured_re_expect_all_match(
+    q2_retained_design$denominator_policy,
+    "all_attempted_replicates_retained"
+  )
+  structured_re_expect_all_match(
+    q2_retained_design$denominator_policy,
+    "finite_denominator_reported"
+  )
+  location_sd_design <- q2_retained_design[
+    q2_retained_design$target_kind == "direct_sd" &
+      grepl("^sd_mu", q2_retained_design$estimand),
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    location_sd_design$interval_channel,
+    "default_bias_t_location_axis"
+  )
+  sigma_sd_design <- q2_retained_design[
+    q2_retained_design$target_kind == "direct_sd" &
+      grepl("^sd_sigma", q2_retained_design$estimand),
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    sigma_sd_design$interval_channel,
+    "raw_sigma_side_no_location_bias_t"
+  )
+  correlation_design <- q2_retained_design[
+    q2_retained_design$target_kind == "direct_correlation",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    correlation_design$interval_channel,
+    "direct_correlation_not_inherited_from_endpoint_sd"
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "Nibi n=5 smoke is fixture evidence, not coverage",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "bridge support",
+    "public support"
+  )) {
+    structured_re_expect_all_match(q2_retained_design$claim_boundary, phrase)
+  }
+
+  q2_retained_pregrid_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-q2-retained-denominator-pregrid.R"
+  )
+  q2_retained_repair_smoke_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-q2-retained-denominator-repair-smoke.R"
+  )
+  q2_retained_repair_smoke_summarizer <- structured_re_artifact_path(
+    "tools",
+    "summarize-structured-re-q2-retained-denominator-repair-smoke.R"
+  )
+  q2_plus_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-q2-plus-q2-intercept-smoke.R"
+  )
+  q2_intercept_runner <- structured_re_artifact_path(
+    "tools",
+    "run-structured-re-q2-intercept-smoke.R"
+  )
+  q2_retained_pregrid_slurm <- structured_re_artifact_path(
+    "tools",
+    "slurm",
+    "q2-retained-denominator-pregrid-nibi.sbatch"
+  )
+  q2_retained_pregrid_summarizer <- structured_re_artifact_path(
+    "tools",
+    "summarize-structured-re-q2-retained-denominator-pregrid.R"
+  )
+  q2_retained_pregrid_runner_text <- readLines(
+    q2_retained_pregrid_runner,
+    warn = FALSE
+  )
+  q2_retained_repair_smoke_runner_text <- readLines(
+    q2_retained_repair_smoke_runner,
+    warn = FALSE
+  )
+  q2_retained_repair_smoke_summarizer_text <- readLines(
+    q2_retained_repair_smoke_summarizer,
+    warn = FALSE
+  )
+  q2_intercept_runner_text <- readLines(q2_intercept_runner, warn = FALSE)
+  q2_plus_runner_text <- readLines(q2_plus_runner, warn = FALSE)
+  q2_retained_pregrid_slurm_text <- readLines(
+    q2_retained_pregrid_slurm,
+    warn = FALSE
+  )
+  q2_retained_pregrid_summarizer_text <- readLines(
+    q2_retained_pregrid_summarizer,
+    warn = FALSE
+  )
+  for (phrase in c(
+    "structured-re-q2-retained-denominator-design.tsv",
+    "q2_intercept",
+    "q2_plus_q2_intercept",
+    "sr150_pregrid_ready_no_promotion",
+    "profile_repair_required_no_pregrid",
+    "source_interval_contract_id",
+    "retained_denominator_pregrid_runtime",
+    "promotes exactly no"
+  )) {
+    expect_true(any(grepl(
+      phrase,
+      q2_retained_pregrid_runner_text,
+      fixed = TRUE
+    )))
+  }
+  for (phrase in c(
+    "nibi_substitute_smoke_reviewed_design_required",
+    "q2-intercept substitute smoke",
+    "supported or inference_ready claims"
+  )) {
+    expect_true(any(grepl(phrase, q2_intercept_runner_text, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "--contract-ids",
+    "nibi_substitute_smoke_reviewed_profile_hold",
+    "target subsets are reserved"
+  )) {
+    expect_true(any(grepl(phrase, q2_plus_runner_text, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "#SBATCH --array=1-5",
+    "q2_intercept",
+    "q2_plus_q2_intercept",
+    "q2-intercept-phylo",
+    "q2-intercept-spatial",
+    "q2-intercept-animal",
+    "q2-intercept-relmat",
+    "q2-plus-q2-phylo-ready-targets",
+    "structured-re-q2-retained-denominator-design.tsv",
+    "do_not_promote",
+    "DRMTMB_PACKAGE_CACHE",
+    "install-run-deps",
+    "RcppEigen",
+    "shard_${SLURM_ARRAY_TASK_ID}"
+  )) {
+    expect_true(any(grepl(
+      phrase,
+      q2_retained_pregrid_slurm_text,
+      fixed = TRUE
+    )))
+  }
+  for (phrase in c(
+    "structured-re-q2-retained-denominator-design.tsv",
+    "structured-re-q2-retained-denominator-pregrid-results.tsv",
+    "sr150_pregrid_ready_no_promotion",
+    "profile_repair_required_no_pregrid",
+    "do_not_promote",
+    "Raw replicate TSVs must retain exactly 150",
+    "Seed manifests must contain 750 rows",
+    "This promotes exactly no Q-Series row",
+    "fisher_rose_grace_review_required_no_promotion"
+  )) {
+    expect_true(any(grepl(
+      phrase,
+      q2_retained_pregrid_summarizer_text,
+      fixed = TRUE
+    )))
+  }
+  for (phrase in c(
+    "structured-re-q2-retained-denominator-repair-contract.tsv",
+    "small repair smoke",
+    "source/root checks",
+    "smoke_seed_range",
+    "q2_plus_q2_intercept_phylo_sigma2_intercept",
+    "cor_sigma1_sigma2_intercept",
+    "Totoro execution requires",
+    "Trillium requires --allow-trillium=true plus synced source/run-root",
+    "FIIA remains blocked",
+    "--interval-repair-channel",
+    "bounded_tmbprofile_direct_correlation_sidecar",
+    "--write-dashboard=false",
+    "--dry-run=true",
+    "do_not_promote",
+    "promotes exactly no Q-Series row",
+    "structured-re-q2-retained-denominator-repair-smoke-command.tsv"
+  )) {
+    expect_true(any(grepl(
+      phrase,
+      q2_retained_repair_smoke_runner_text,
+      fixed = TRUE
+    )))
+  }
+  for (phrase in c(
+    "structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv",
+    "structured-re-q2-retained-denominator-repair-smoke-command.tsv",
+    "repair_smoke_manifest_only_no_promotion",
+    "require-artifacts",
+    "interval_repair_channel",
+    "repair-sidecar metrics",
+    "promotes exactly no Q-Series row",
+    "Fisher/Rose/Grace",
+    "support-cell status edit",
+    "do_not_promote"
+  )) {
+    expect_true(any(grepl(
+      phrase,
+      q2_retained_repair_smoke_summarizer_text,
+      fixed = TRUE
+    )))
+  }
+
+  q2_retained_pregrid_results <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-pregrid-results.tsv"
+  )
+  expect_named(
+    q2_retained_pregrid_results,
+    c(
+      "pregrid_id",
+      "design_id",
+      "cell_id",
+      "provider",
+      "design_family",
+      "source_interval_contract_id",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "target_parm",
+      "interval_channel",
+      "denominator_policy",
+      "source_artifact_dir",
+      "source_summary",
+      "source_replicates",
+      "source_seed_manifest",
+      "n_rep",
+      "n_fit_ok",
+      "n_fit_error",
+      "n_sim_error",
+      "n_converged",
+      "n_pdhess",
+      "n_wald_finite",
+      "n_profile_finite",
+      "n_bootstrap_attempted",
+      "n_bootstrap_finite",
+      "wald_finite_rate",
+      "profile_finite_rate",
+      "wald_coverage",
+      "wald_coverage_mcse",
+      "profile_coverage",
+      "profile_coverage_mcse",
+      "wald_lower_miss",
+      "wald_upper_miss",
+      "wald_lower_miss_rate",
+      "wald_upper_miss_rate",
+      "wald_upper_lower_miss_ratio",
+      "profile_lower_miss",
+      "profile_upper_miss",
+      "profile_lower_miss_rate",
+      "profile_upper_miss_rate",
+      "profile_upper_lower_miss_ratio",
+      "pregrid_status",
+      "review_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate",
+      "source_design",
+      "source_shard_id",
+      "host_class",
+      "host_name",
+      "runtime_host_name",
+      "slurm_cluster_name",
+      "slurm_job_id",
+      "run_root",
+      "metadata_dir",
+      "log_dir"
+    )
+  )
+  expect_equal(nrow(q2_retained_pregrid_results), 17L)
+  expect_equal(
+    stats::setNames(
+      as.integer(table(q2_retained_pregrid_results$pregrid_status)),
+      names(table(q2_retained_pregrid_results$pregrid_status))
+    ),
+    c(
+      sr150_completed_topup_candidate_mcse_gt_0.01_no_promotion = 10L,
+      sr150_convergence_or_pdhess_review_required_no_promotion = 5L,
+      sr150_correlation_profile_finiteness_review_required_no_promotion = 1L,
+      sr150_wald_finiteness_review_required_no_promotion = 1L
+    )
+  )
+  expect_equal(
+    q2_retained_pregrid_results$promotion_decision,
+    rep("do_not_promote", 17L)
+  )
+  expect_equal(
+    q2_retained_pregrid_results$review_decision,
+    rep("fisher_rose_grace_review_required_no_promotion", 17L)
+  )
+  expect_equal(q2_retained_pregrid_results$n_rep, rep(150L, 17L))
+  expect_setequal(
+    q2_retained_pregrid_results$source_interval_contract_id,
+    ready_design$source_interval_contract_id
+  )
+  q2_pregrid_design <- ready_design[
+    match(q2_retained_pregrid_results$design_id, ready_design$design_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(q2_pregrid_design$design_id))
+  for (field in c(
+    "cell_id",
+    "provider",
+    "design_family",
+    "source_interval_contract_id",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "interval_channel",
+    "denominator_policy"
+  )) {
+    expect_equal(
+      q2_retained_pregrid_results[[field]],
+      q2_pregrid_design[[field]]
+    )
+  }
+  expect_equal(
+    q2_retained_pregrid_results$target_parm,
+    q2_pregrid_design$profile_target
+  )
+  q2_pregrid_support <- qseries[
+    match(q2_retained_pregrid_results$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    paste(
+      q2_pregrid_support$fit_status,
+      q2_pregrid_support$interval_status,
+      q2_pregrid_support$coverage_status,
+      sep = "/"
+    ),
+    rep("point_fit/planned/planned", 17L)
+  )
+  expect_equal(
+    q2_retained_pregrid_results$pregrid_id,
+    paste0(
+      "q2_retained_denominator_sr150_",
+      q2_retained_pregrid_results$design_id
+    )
+  )
+  expect_equal(
+    q2_retained_pregrid_results$source_design,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-design.tsv",
+      17L
+    )
+  )
+  expect_equal(
+    q2_retained_pregrid_results$slurm_cluster_name,
+    rep("rorqual", 17L)
+  )
+  structured_re_expect_all_match(
+    q2_retained_pregrid_results$host_class,
+    "retained_denominator_pregrid"
+  )
+  structured_re_expect_all_match(
+    q2_retained_pregrid_results$source_artifact_dir,
+    "2026-06-30-q2-retained-denominator-sr150-pregrid-rorqual"
+  )
+  structured_re_expect_all_match(
+    q2_retained_pregrid_results$run_root,
+    "20260630-q2-retained-pregrid"
+  )
+  for (path in unique(c(
+    q2_retained_pregrid_results$source_artifact_dir,
+    q2_retained_pregrid_results$source_summary,
+    q2_retained_pregrid_results$source_replicates,
+    q2_retained_pregrid_results$source_seed_manifest,
+    q2_retained_pregrid_results$evidence_url,
+    q2_retained_pregrid_results$source_design
+  ))) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/", fixed = TRUE)[[1L]])
+    ))
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "Rorqual SR150",
+    "Fisher/Rose/Grace",
+    "MCSE <= 0.01 is a top-up target",
+    "no interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q2 slope inheritance",
+    "q4/q8",
+    "non-Gaussian interval",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(
+      q2_retained_pregrid_results$claim_boundary,
+      phrase
+    )
+  }
+  q2_plus_q2_pregrid <- q2_retained_pregrid_results[
+    q2_retained_pregrid_results$design_family == "q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_plus_q2_pregrid), 5L)
+  expect_equal(
+    q2_plus_q2_pregrid$pregrid_status,
+    rep("sr150_convergence_or_pdhess_review_required_no_promotion", 5L)
+  )
+  expect_equal(q2_plus_q2_pregrid$n_pdhess, rep(149L, 5L))
+  spatial_cor_pregrid <- q2_retained_pregrid_results[
+    q2_retained_pregrid_results$provider == "spatial" &
+      q2_retained_pregrid_results$target_kind == "direct_correlation" &
+      q2_retained_pregrid_results$estimand == "cor_mu1_mu2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(spatial_cor_pregrid), 1L)
+  expect_equal(
+    spatial_cor_pregrid$pregrid_status,
+    "sr150_correlation_profile_finiteness_review_required_no_promotion"
+  )
+  expect_equal(spatial_cor_pregrid$n_profile_finite, 149L)
+  animal_cor_pregrid <- q2_retained_pregrid_results[
+    q2_retained_pregrid_results$provider == "animal" &
+      q2_retained_pregrid_results$target_kind == "direct_correlation" &
+      q2_retained_pregrid_results$estimand == "cor_mu1_mu2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(animal_cor_pregrid), 1L)
+  expect_equal(
+    animal_cor_pregrid$pregrid_status,
+    "sr150_wald_finiteness_review_required_no_promotion"
+  )
+  expect_equal(animal_cor_pregrid$n_wald_finite, 149L)
+
+  q2_retained_review <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-review-synthesis.tsv"
+  )
+  expect_named(
+    q2_retained_review,
+    c(
+      "synthesis_id",
+      "cell_id",
+      "design_family",
+      "provider",
+      "n_targets",
+      "target_status_summary",
+      "denominator_summary",
+      "finite_interval_summary",
+      "coverage_summary",
+      "miss_balance_summary",
+      "review_state",
+      "promotion_decision",
+      "source_pregrid_results",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_retained_review), 5L)
+  expected_q2_review_states <- c(
+    qseries_phylo_q2_mu1_mu2_intercept = "sr150_topup_or_shape_review_required_no_promotion",
+    qseries_spatial_q2_mu1_mu2_intercept = "sr150_profile_finiteness_review_required_no_promotion",
+    qseries_animal_q2_mu1_mu2_intercept = "sr150_wald_finiteness_review_required_no_promotion",
+    qseries_relmat_q2_mu1_mu2_intercept = "sr150_topup_or_shape_review_required_no_promotion",
+    qseries_phylo_q2_plus_q2_intercept = "sr150_pdhess_review_required_no_promotion"
+  )
+  expect_equal(
+    stats::setNames(
+      q2_retained_review$review_state,
+      q2_retained_review$cell_id
+    )[
+      names(expected_q2_review_states)
+    ],
+    expected_q2_review_states
+  )
+  expect_equal(
+    q2_retained_review$synthesis_id,
+    paste0("q2_retained_denominator_review_", q2_retained_review$cell_id)
+  )
+  expect_equal(
+    q2_retained_review$promotion_decision,
+    rep("do_not_promote", nrow(q2_retained_review))
+  )
+  expect_equal(
+    q2_retained_review$source_pregrid_results,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-pregrid-results.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_retained_review$evidence_url,
+    q2_retained_review$source_pregrid_results
+  )
+  q2_review_target_counts <- stats::setNames(
+    as.integer(q2_retained_review$n_targets),
+    q2_retained_review$cell_id
+  )
+  q2_pregrid_target_counts <- table(q2_retained_pregrid_results$cell_id)
+  expect_equal(
+    unname(q2_review_target_counts[names(expected_q2_review_states)]),
+    unname(as.integer(q2_pregrid_target_counts[names(
+      expected_q2_review_states
+    )]))
+  )
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "SR150 Rorqual",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(q2_retained_review$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    q2_retained_review$next_gate,
+    "Fisher/Rose/Grace review"
+  )
+  structured_re_expect_all_match(
+    q2_retained_review$next_gate,
+    "support-cell status edit"
+  )
+  structured_re_expect_all_match(
+    q2_retained_review$next_gate,
+    "no-promotion boundary"
+  )
+  q2_plus_review <- q2_retained_review[
+    q2_retained_review$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_plus_review), 1L)
+  structured_re_expect_all_match(
+    paste(q2_plus_review$claim_boundary, q2_plus_review$next_gate),
+    "sigma1/sigma2 correlation"
+  )
+  structured_re_expect_all_match(
+    paste(q2_plus_review$claim_boundary, q2_plus_review$next_gate),
+    "cross-block"
+  )
+
+  q2_retained_decision <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-review-decision.tsv"
+  )
+  expect_named(
+    q2_retained_decision,
+    c(
+      "decision_id",
+      "cell_id",
+      "review_state",
+      "decision_status",
+      "fisher_decision",
+      "rose_decision",
+      "grace_decision",
+      "topup_decision",
+      "status_edit_decision",
+      "min_coverage",
+      "max_coverage_mcse",
+      "denominator_signal",
+      "finite_signal",
+      "miss_balance_signal",
+      "blocker_targets",
+      "evidence_url",
+      "source_review_synthesis",
+      "source_pregrid_results",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_retained_decision), 5L)
+  expected_q2_decision_status <- c(
+    qseries_phylo_q2_mu1_mu2_intercept = "fisher_rose_grace_shape_blocked_no_topup",
+    qseries_spatial_q2_mu1_mu2_intercept = "fisher_rose_grace_profile_finiteness_shape_blocked_no_topup",
+    qseries_animal_q2_mu1_mu2_intercept = "fisher_rose_grace_wald_finiteness_shape_blocked_no_topup",
+    qseries_relmat_q2_mu1_mu2_intercept = "fisher_rose_grace_shape_blocked_no_topup",
+    qseries_phylo_q2_plus_q2_intercept = "fisher_rose_grace_pdhess_shape_blocked_no_topup"
+  )
+  expect_equal(
+    stats::setNames(
+      q2_retained_decision$decision_status,
+      q2_retained_decision$cell_id
+    )[names(expected_q2_decision_status)],
+    expected_q2_decision_status
+  )
+  expect_equal(
+    q2_retained_decision$review_state,
+    q2_retained_review$review_state[
+      match(q2_retained_decision$cell_id, q2_retained_review$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_retained_decision$decision_id,
+    paste0("q2_retained_denominator_decision_", q2_retained_decision$cell_id)
+  )
+  expect_equal(
+    q2_retained_decision$status_edit_decision,
+    rep("do_not_promote_keep_point_fit_planned_planned", 5L)
+  )
+  expect_equal(
+    q2_retained_decision$source_review_synthesis,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-review-synthesis.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_retained_decision$evidence_url,
+    q2_retained_decision$source_review_synthesis
+  )
+  expect_equal(
+    q2_retained_decision$source_pregrid_results,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-pregrid-results.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    unname(sprintf(
+      "%.4f",
+      stats::setNames(
+        q2_retained_decision$min_coverage,
+        q2_retained_decision$cell_id
+      )[
+        names(expected_q2_decision_status)
+      ]
+    )),
+    c(
+      "0.8600",
+      "0.8467",
+      "0.8926",
+      "0.8800",
+      "0.8867"
+    )
+  )
+  expect_equal(
+    unname(sprintf(
+      "%.6f",
+      stats::setNames(
+        q2_retained_decision$max_coverage_mcse,
+        q2_retained_decision$cell_id
+      )[names(expected_q2_decision_status)]
+    )),
+    c(
+      "0.028331",
+      "0.029419",
+      "0.025363",
+      "0.026533",
+      "0.025883"
+    )
+  )
+  support_by_cell <- qseries[
+    match(q2_retained_decision$cell_id, qseries$cell_id),
+  ]
+  expect_equal(
+    paste(
+      support_by_cell$fit_status,
+      support_by_cell$interval_status,
+      support_by_cell$coverage_status,
+      sep = "/"
+    ),
+    rep("point_fit/planned/planned", 5L)
+  )
+  for (phrase in c(
+    "block_topup_for_inference",
+    "keep_status_unpromoted",
+    "block_cluster_compute_until_repair_contract",
+    "blocked_no_topup",
+    "promotes exactly no Q-Series row",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        q2_retained_decision$fisher_decision,
+        q2_retained_decision$rose_decision,
+        q2_retained_decision$grace_decision,
+        q2_retained_decision$topup_decision,
+        q2_retained_decision$claim_boundary
+      ),
+      phrase
+    )
+  }
+  for (phrase in c("Totoro", "Nibi", "Rorqual", "Trillium", "DRAC", "repair")) {
+    structured_re_expect_all_match(q2_retained_decision$next_gate, phrase)
+  }
+  q2_plus_decision <- q2_retained_decision[
+    q2_retained_decision$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    q2_plus_decision$blocker_targets,
+    "pdHess=149/150"
+  )
+  structured_re_expect_all_match(
+    q2_plus_decision$blocker_targets,
+    "sd_sigma1_intercept"
+  )
+  structured_re_expect_all_match(
+    q2_plus_decision$blocker_targets,
+    "sd_sigma2_intercept"
+  )
+
+  q2_retained_repair <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-contract.tsv"
+  )
+  expect_named(
+    q2_retained_repair,
+    c(
+      "repair_id",
+      "cell_id",
+      "provider",
+      "repair_status",
+      "source_decision",
+      "source_review_synthesis",
+      "source_pregrid_results",
+      "source_decision_status",
+      "source_topup_decision",
+      "repair_focus",
+      "repair_targets",
+      "primary_blocker_targets",
+      "held_or_blocked_targets",
+      "interval_repair_plan",
+      "denominator_policy",
+      "finite_interval_policy",
+      "one_sided_miss_policy",
+      "smoke_n_rep",
+      "smoke_seed_range",
+      "topup_policy",
+      "allowed_hosts",
+      "blocked_hosts",
+      "artifact_requirements",
+      "status_edit_policy",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_retained_repair), 5L)
+  expect_equal(
+    q2_retained_repair$repair_id,
+    paste0(
+      "q2_retained_denominator_repair_contract_",
+      q2_retained_repair$cell_id
+    )
+  )
+  expect_equal(
+    q2_retained_repair$repair_status,
+    rep("fisher_rose_grace_repair_contract_ready_no_promotion", 5L)
+  )
+  expect_equal(
+    q2_retained_repair$source_decision,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-review-decision.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_retained_repair$source_review_synthesis,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-review-synthesis.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_retained_repair$source_pregrid_results,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-pregrid-results.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_retained_repair$status_edit_policy,
+    rep("do_not_promote_keep_point_fit_planned_planned", 5L)
+  )
+  expected_repair_smoke_n <- c(
+    qseries_phylo_q2_mu1_mu2_intercept = 32L,
+    qseries_spatial_q2_mu1_mu2_intercept = 32L,
+    qseries_animal_q2_mu1_mu2_intercept = 32L,
+    qseries_relmat_q2_mu1_mu2_intercept = 32L,
+    qseries_phylo_q2_plus_q2_intercept = 16L
+  )
+  expected_repair_seeds <- c(
+    qseries_phylo_q2_mu1_mu2_intercept = "920001-920032",
+    qseries_spatial_q2_mu1_mu2_intercept = "921001-921032",
+    qseries_animal_q2_mu1_mu2_intercept = "922001-922032",
+    qseries_relmat_q2_mu1_mu2_intercept = "923001-923032",
+    qseries_phylo_q2_plus_q2_intercept = "924001-924016"
+  )
+  expect_equal(
+    stats::setNames(q2_retained_repair$smoke_n_rep, q2_retained_repair$cell_id)[
+      names(expected_repair_smoke_n)
+    ],
+    expected_repair_smoke_n
+  )
+  expect_equal(
+    stats::setNames(
+      q2_retained_repair$smoke_seed_range,
+      q2_retained_repair$cell_id
+    )[
+      names(expected_repair_seeds)
+    ],
+    expected_repair_seeds
+  )
+  support_by_repair <- qseries[
+    match(q2_retained_repair$cell_id, qseries$cell_id),
+  ]
+  expect_equal(
+    paste(
+      support_by_repair$fit_status,
+      support_by_repair$interval_status,
+      support_by_repair$coverage_status,
+      sep = "/"
+    ),
+    rep("point_fit/planned/planned", 5L)
+  )
+  expect_equal(
+    support_by_repair$evidence_url,
+    {
+      out <- rep(
+        "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv",
+        5L
+      )
+      out[q2_retained_repair$cell_id == "qseries_phylo_q2_mu1_mu2_intercept"] <-
+        "docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv"
+      out
+    }
+  )
+  for (phrase in c(
+    "Totoro",
+    "50 workers",
+    "<=100 workers",
+    "cleanup",
+    "Nibi",
+    "Rorqual",
+    "Trillium only with",
+    "source/run-root"
+  )) {
+    structured_re_expect_all_match(q2_retained_repair$allowed_hosts, phrase)
+  }
+  for (phrase in c(
+    "Trillium without",
+    "source/run-root",
+    "provenance review",
+    "FIIA",
+    "mixed-host denominator",
+    "SR475/SR1000 top-up",
+    "support-cell status edit",
+    "Fisher/Rose/Grace"
+  )) {
+    structured_re_expect_all_match(q2_retained_repair$blocked_hosts, phrase)
+  }
+  for (phrase in c(
+    "raw_replicate_tsv",
+    "per_target_summary",
+    "seed_manifest",
+    "run_log",
+    "sessionInfo.txt",
+    "git-sha.txt",
+    "module-list.txt",
+    "scheduler_stdout_stderr_when_slurm",
+    "exact_command_lines",
+    "seff.txt_when_available",
+    "cleanup_note_for_totoro_workers"
+  )) {
+    structured_re_expect_all_match(
+      q2_retained_repair$artifact_requirements,
+      phrase
+    )
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "does not claim",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q2 slope inheritance",
+    "q2-plus inheritance",
+    "q4/q8",
+    "non-Gaussian intervals",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(q2_retained_repair$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "small repair smoke",
+    "source/run-root checks",
+    "SR475/SR1000 top-up",
+    "support-cell edit"
+  )) {
+    structured_re_expect_all_match(q2_retained_repair$next_gate, phrase)
+  }
+  q2_plus_repair <- q2_retained_repair[
+    q2_retained_repair$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(q2_plus_repair$repair_focus, "pdHess")
+  structured_re_expect_all_match(
+    q2_plus_repair$held_or_blocked_targets,
+    "held_cor_sigma1_sigma2_intercept"
+  )
+  structured_re_expect_all_match(
+    q2_plus_repair$held_or_blocked_targets,
+    "cross_block_correlations_not_targets"
+  )
+  spatial_repair <- q2_retained_repair[
+    q2_retained_repair$cell_id == "qseries_spatial_q2_mu1_mu2_intercept",
+    ,
+    drop = FALSE
+  ]
+  animal_repair <- q2_retained_repair[
+    q2_retained_repair$cell_id == "qseries_animal_q2_mu1_mu2_intercept",
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    spatial_repair$repair_focus,
+    "profile_finiteness"
+  )
+  structured_re_expect_all_match(
+    animal_repair$repair_focus,
+    "wald_profile_finiteness"
+  )
+
+  q2_repair_dry_run <- function(cell_ids) {
+    output_root <- file.path(
+      tempdir(),
+      paste0("drmtmb-q2-retained-repair-", length(cell_ids))
+    )
+    unlink(output_root, recursive = TRUE)
+    output <- system2(
+      file.path(R.home("bin"), "Rscript"),
+      shQuote(c(
+        "--no-init-file",
+        q2_retained_repair_smoke_runner,
+        paste0("--cell-ids=", paste(cell_ids, collapse = ",")),
+        "--host-class=totoro_repair_smoke",
+        "--host-name=totoro",
+        paste0("--output-root=", output_root),
+        "--overwrite=true",
+        "--write-dashboard=false",
+        "--dry-run=true"
+      )),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+    exit_code <- attr(output, "status")
+    if (is.null(exit_code)) {
+      exit_code <- 0L
+    }
+    expect_equal(exit_code, 0L, info = paste(output, collapse = "\n"))
+    manifest_path <- file.path(
+      output_root,
+      "structured-re-q2-retained-denominator-repair-smoke-command.tsv"
+    )
+    expect_true(file.exists(manifest_path))
+    manifest <- utils::read.delim(
+      manifest_path,
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    attr(manifest, "manifest_path") <- manifest_path
+    manifest
+  }
+  q2_repair_manifest <- q2_repair_dry_run(names(expected_repair_smoke_n))
+  expect_equal(nrow(q2_repair_manifest), 5L)
+  expect_equal(q2_repair_manifest$cell_id, names(expected_repair_smoke_n))
+  expect_equal(q2_repair_manifest$n_rep, unname(expected_repair_smoke_n))
+  expect_equal(
+    q2_repair_manifest$smoke_seed_range,
+    unname(expected_repair_seeds)
+  )
+  expect_equal(q2_repair_manifest$seed_start, rep(1L, 5L))
+  expect_equal(
+    q2_repair_manifest$seed_base,
+    c(920000L, 921000L, 922000L, 923000L, 924000L)
+  )
+  expect_equal(q2_repair_manifest$promotion_decision, rep("do_not_promote", 5L))
+  expect_equal(q2_repair_manifest$interval_repair_channel, rep("none", 5L))
+  expect_equal(q2_repair_manifest$host_class, rep("totoro_repair_smoke", 5L))
+  structured_re_expect_all_match(
+    q2_repair_manifest$command,
+    "--write-dashboard=false"
+  )
+  structured_re_expect_all_match(
+    q2_repair_manifest$claim_boundary,
+    "promotes exactly no Q-Series row"
+  )
+  q2_plus_repair_manifest <- q2_repair_manifest[
+    q2_repair_manifest$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_match(
+    q2_plus_repair_manifest$selected_contract_ids,
+    "q2_plus_q2_intercept_phylo_sigma2_intercept",
+    fixed = TRUE
+  )
+  expect_false(grepl(
+    "q2_plus_q2_intercept_phylo_cor_sigma1_sigma2",
+    q2_plus_repair_manifest$selected_contract_ids,
+    fixed = TRUE
+  ))
+  expect_match(
+    q2_plus_repair_manifest$command,
+    "--contract-ids=",
+    fixed = TRUE
+  )
+
+  q2_repair_dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv"
+  )
+  expect_named(
+    q2_repair_dispatch,
+    c(
+      "dispatch_id",
+      "command_id",
+      "repair_id",
+      "cell_id",
+      "provider",
+      "repair_status",
+      "repair_targets",
+      "n_rep",
+      "smoke_seed_range",
+      "seed_base",
+      "seed_end",
+      "profile_max_eval",
+      "interval_repair_channel",
+      "host_class",
+      "host_name",
+      "slurm_cluster_name",
+      "slurm_job_id",
+      "artifact_status",
+      "observed_target_rows",
+      "expected_target_rows",
+      "n_fit_ok_min",
+      "n_converged_min",
+      "n_pdhess_min",
+      "n_wald_finite_min",
+      "n_profile_finite_min",
+      "n_repair_attempted_min",
+      "n_repair_finite_min",
+      "min_wald_coverage",
+      "max_wald_mcse",
+      "min_profile_coverage",
+      "max_profile_mcse",
+      "min_repair_coverage",
+      "max_repair_mcse",
+      "wald_lower_miss",
+      "wald_upper_miss",
+      "wald_upper_miss_rate",
+      "profile_lower_miss",
+      "profile_upper_miss",
+      "profile_upper_miss_rate",
+      "repair_lower_miss",
+      "repair_upper_miss",
+      "repair_upper_miss_rate",
+      "observed_contract_ids",
+      "selected_contract_ids",
+      "source_manifest",
+      "source_repair_contract",
+      "source_summary",
+      "source_replicates",
+      "source_seed_manifest",
+      "evidence_url",
+      "promotion_decision",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_repair_dispatch), 5L)
+  expect_equal(q2_repair_dispatch$cell_id, names(expected_repair_smoke_n))
+  allowed_repair_smoke_status <- c(
+    "repair_smoke_manifest_only_no_promotion",
+    "repair_smoke_fit_or_sim_failure_review_required_no_promotion",
+    "repair_smoke_convergence_or_pdhess_review_required_no_promotion",
+    "repair_smoke_finiteness_review_required_no_promotion",
+    "repair_smoke_mcse_gt_0.01_review_required_no_promotion",
+    "repair_smoke_completed_review_required_no_promotion"
+  )
+  expect_true(all(
+    q2_repair_dispatch$artifact_status %in% allowed_repair_smoke_status
+  ))
+  expect_equal(q2_repair_dispatch$n_rep, unname(expected_repair_smoke_n))
+  expect_equal(
+    q2_repair_dispatch$smoke_seed_range,
+    unname(expected_repair_seeds)
+  )
+  expect_equal(q2_repair_dispatch$expected_target_rows, c(3L, 3L, 3L, 3L, 5L))
+  expect_equal(
+    q2_repair_dispatch$observed_target_rows,
+    ifelse(
+      q2_repair_dispatch$artifact_status ==
+        "repair_smoke_manifest_only_no_promotion",
+      0L,
+      q2_repair_dispatch$expected_target_rows
+    )
+  )
+  expect_equal(q2_repair_dispatch$promotion_decision, rep("do_not_promote", 5L))
+  expect_equal(q2_repair_dispatch$interval_repair_channel, rep("none", 5L))
+  expect_equal(
+    q2_repair_dispatch$source_repair_contract,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-contract.tsv",
+      5L
+    )
+  )
+  structured_re_expect_all_match(
+    q2_repair_dispatch$source_manifest,
+    "structured-re-q2-retained-denominator-repair-smoke-command"
+  )
+  manifest_only <- q2_repair_dispatch$artifact_status ==
+    "repair_smoke_manifest_only_no_promotion"
+  expect_equal(
+    q2_repair_dispatch$evidence_url[manifest_only],
+    q2_repair_dispatch$source_manifest[manifest_only]
+  )
+  expect_equal(
+    q2_repair_dispatch$evidence_url[!manifest_only],
+    q2_repair_dispatch$source_summary[!manifest_only]
+  )
+  artifact_paths <- unique(c(
+    q2_repair_dispatch$source_manifest,
+    q2_repair_dispatch$evidence_url,
+    q2_repair_dispatch$source_summary[!manifest_only],
+    q2_repair_dispatch$source_replicates[!manifest_only],
+    q2_repair_dispatch$source_seed_manifest[!manifest_only]
+  ))
+  artifact_paths <- artifact_paths[
+    !is.na(artifact_paths) & artifact_paths != "NA"
+  ]
+  for (path in artifact_paths) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/", fixed = TRUE)[[1L]])
+    ))
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "REML",
+    "AI-REML"
+  )) {
+    structured_re_expect_all_match(q2_repair_dispatch$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    q2_repair_dispatch$next_gate,
+    "Fisher/Rose/Grace"
+  )
+  structured_re_expect_all_match(
+    q2_repair_dispatch$next_gate,
+    "support-cell status edit"
+  )
+
+  q2_repair_dispatch_output <- file.path(
+    tempdir(),
+    "q2-repair-smoke-dispatch.tsv"
+  )
+  unlink(q2_repair_dispatch_output)
+  summarizer_output <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    shQuote(c(
+      "--no-init-file",
+      q2_retained_repair_smoke_summarizer,
+      paste0("--manifest=", attr(q2_repair_manifest, "manifest_path")),
+      paste0("--output=", q2_repair_dispatch_output),
+      "--overwrite=true"
+    )),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  summarizer_exit_code <- attr(summarizer_output, "status")
+  if (is.null(summarizer_exit_code)) {
+    summarizer_exit_code <- 0L
+  }
+  expect_equal(
+    summarizer_exit_code,
+    0L,
+    info = paste(summarizer_output, collapse = "\n")
+  )
+  q2_repair_dispatch_temp <- utils::read.delim(
+    q2_repair_dispatch_output,
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_equal(q2_repair_dispatch_temp$cell_id, q2_repair_manifest$cell_id)
+  expect_equal(
+    q2_repair_dispatch_temp$artifact_status,
+    rep("repair_smoke_manifest_only_no_promotion", 5L)
+  )
+
+  q2_repair_review <- structured_re_read_dashboard_tsv(
+    "structured-re-q2-retained-denominator-repair-smoke-review.tsv"
+  )
+  expect_named(
+    q2_repair_review,
+    c(
+      "review_id",
+      "cell_id",
+      "provider",
+      "smoke_artifact_status",
+      "review_status",
+      "repair_route_evaluated",
+      "smoke_host",
+      "smoke_n_rep",
+      "observed_target_rows",
+      "expected_target_rows",
+      "finite_signal",
+      "coverage_signal",
+      "miss_balance_signal",
+      "interval_repair_channel",
+      "repair_sidecar_signal",
+      "prior_decision_status",
+      "prior_topup_decision",
+      "repair_focus",
+      "repair_targets",
+      "fisher_decision",
+      "rose_decision",
+      "grace_decision",
+      "topup_decision",
+      "status_edit_decision",
+      "promotion_decision",
+      "evidence_url",
+      "source_dispatch",
+      "source_prior_decision",
+      "source_repair_contract",
+      "source_summary",
+      "source_replicates",
+      "source_seed_manifest",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(q2_repair_review), 5L)
+  expect_equal(q2_repair_review$cell_id, names(expected_repair_smoke_n))
+  expect_equal(
+    q2_repair_review$review_id,
+    paste0(
+      "q2_retained_denominator_repair_smoke_review_",
+      q2_repair_review$cell_id
+    )
+  )
+  expect_equal(
+    q2_repair_review$smoke_artifact_status,
+    q2_repair_dispatch$artifact_status[
+      match(q2_repair_review$cell_id, q2_repair_dispatch$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_repair_review$repair_route_evaluated,
+    rep("existing_interval_route_only_no_new_repair", 5L)
+  )
+  expect_equal(q2_repair_review$interval_repair_channel, rep("none", 5L))
+  structured_re_expect_all_match(
+    q2_repair_review$repair_sidecar_signal,
+    "interval_repair_channel=none"
+  )
+  expect_equal(q2_repair_review$promotion_decision, rep("do_not_promote", 5L))
+  expect_equal(
+    q2_repair_review$status_edit_decision,
+    rep("do_not_promote_keep_point_fit_planned_planned", 5L)
+  )
+  expect_equal(
+    q2_repair_review$source_dispatch,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-dispatch.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_repair_review$source_prior_decision,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-review-decision.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_repair_review$source_repair_contract,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-contract.tsv",
+      5L
+    )
+  )
+  expect_equal(
+    q2_repair_review$evidence_url,
+    q2_repair_review$source_summary
+  )
+  expect_equal(
+    q2_repair_review$observed_target_rows,
+    q2_repair_dispatch$observed_target_rows[
+      match(q2_repair_review$cell_id, q2_repair_dispatch$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_repair_review$expected_target_rows,
+    q2_repair_dispatch$expected_target_rows[
+      match(q2_repair_review$cell_id, q2_repair_dispatch$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_repair_review$prior_decision_status,
+    q2_retained_decision$decision_status[
+      match(q2_repair_review$cell_id, q2_retained_decision$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_repair_review$prior_topup_decision,
+    q2_retained_decision$topup_decision[
+      match(q2_repair_review$cell_id, q2_retained_decision$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_repair_review$repair_focus,
+    q2_retained_repair$repair_focus[
+      match(q2_repair_review$cell_id, q2_retained_repair$cell_id)
+    ]
+  )
+  expect_equal(
+    q2_repair_review$repair_targets,
+    q2_retained_repair$repair_targets[
+      match(q2_repair_review$cell_id, q2_retained_repair$cell_id)
+    ]
+  )
+  for (phrase in c(
+    "block_topup_for_inference",
+    "Totoro smoke",
+    "existing interval route",
+    "SR150"
+  )) {
+    structured_re_expect_all_match(q2_repair_review$fisher_decision, phrase)
+  }
+  for (phrase in c(
+    "keep_status_unpromoted",
+    "diagnostic-only",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(q2_repair_review$rose_decision, phrase)
+  }
+  for (phrase in c(
+    "block_cluster_topup",
+    "Totoro",
+    "Nibi",
+    "Rorqual",
+    "Trillium",
+    "DRAC",
+    "named interval repair route"
+  )) {
+    structured_re_expect_all_match(q2_repair_review$grace_decision, phrase)
+  }
+  for (phrase in c(
+    "promotes exactly no Q-Series row",
+    "diagnostic-only",
+    "does not change",
+    "interval_status",
+    "coverage_status",
+    "inference_ready",
+    "supported",
+    "q4/q8",
+    "non-Gaussian intervals",
+    "REML",
+    "AI-REML",
+    "public support"
+  )) {
+    structured_re_expect_all_match(q2_repair_review$claim_boundary, phrase)
+  }
+  for (phrase in c(
+    "Do not submit",
+    "Totoro",
+    "Nibi",
+    "Rorqual",
+    "Trillium",
+    "DRAC",
+    "named interval-repair route",
+    "Fisher/Rose/Grace",
+    "SR475/SR1000 top-up",
+    "support-cell status edit"
+  )) {
+    structured_re_expect_all_match(q2_repair_review$next_gate, phrase)
+  }
+  q2_plus_repair_review <- q2_repair_review[
+    q2_repair_review$cell_id == "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    q2_plus_repair_review$review_status,
+    "repair_smoke_finiteness_blocked_no_topup"
+  )
+  structured_re_expect_all_match(
+    q2_plus_repair_review$finite_signal,
+    "profile_finite_min=14"
+  )
+  structured_re_expect_all_match(
+    q2_plus_repair_review$topup_decision,
+    "profile_finiteness_interval_shape"
+  )
+  q2_intercept_repair_review <- q2_repair_review[
+    q2_repair_review$cell_id != "qseries_phylo_q2_plus_q2_intercept",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    q2_intercept_repair_review$review_status,
+    rep("repair_smoke_existing_route_not_enough_no_topup", 4L)
+  )
+  structured_re_expect_all_match(
+    q2_intercept_repair_review$topup_decision,
+    "named_interval_repair_route"
+  )
+  for (path in unique(c(
+    q2_repair_review$evidence_url,
+    q2_repair_review$source_dispatch,
+    q2_repair_review$source_prior_decision,
+    q2_repair_review$source_repair_contract,
+    q2_repair_review$source_summary,
+    q2_repair_review$source_replicates,
+    q2_repair_review$source_seed_manifest
+  ))) {
+    expect_true(file.exists(
+      structured_re_artifact_path(strsplit(path, "/", fixed = TRUE)[[1L]])
+    ))
+  }
+
+  q2_pregrid_dry_run <- function(pregrid_family, extra_args = character()) {
+    output_dir <- file.path(
+      tempdir(),
+      paste0("drmtmb-q2-retained-pregrid-", pregrid_family)
+    )
+    unlink(output_dir, recursive = TRUE)
+    output <- system2(
+      file.path(R.home("bin"), "Rscript"),
+      shQuote(c(
+        "--no-init-file",
+        q2_retained_pregrid_runner,
+        paste0("--pregrid-family=", pregrid_family),
+        "--n-rep=150",
+        "--host-class=nibi_retained_denominator_pregrid",
+        "--host-name=l5.nibi.sharcnet",
+        paste0("--output-dir=", output_dir),
+        "--overwrite=true",
+        "--write-dashboard=false",
+        "--dry-run=true",
+        extra_args
+      )),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+    exit_code <- attr(output, "status")
+    if (is.null(exit_code)) {
+      exit_code <- 0L
+    }
+    expect_equal(exit_code, 0L, info = paste(output, collapse = "\n"))
+    manifest_path <- file.path(
+      output_dir,
+      "structured-re-q2-retained-denominator-pregrid-command.tsv"
+    )
+    expect_true(file.exists(manifest_path))
+    utils::read.delim(
+      manifest_path,
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+  }
+  q2_intercept_dry_run <- q2_pregrid_dry_run(
+    "q2_intercept",
+    c("--providers=phylo", "--profile-max-eval=60")
+  )
+  expect_equal(q2_intercept_dry_run$selected_target_count, 3L)
+  expect_equal(q2_intercept_dry_run$selected_providers, "phylo")
+  expect_match(q2_intercept_dry_run$command, "--providers=phylo", fixed = TRUE)
+  expect_match(
+    q2_intercept_dry_run$command,
+    "--host-name=retained_denominator_pregrid_runtime",
+    fixed = TRUE
+  )
+  expect_equal(q2_intercept_dry_run$promotion_decision, "do_not_promote")
+
+  q2_plus_dry_run <- q2_pregrid_dry_run(
+    "q2_plus_q2_intercept",
+    "--profile-max-eval=80"
+  )
+  expect_equal(q2_plus_dry_run$selected_target_count, 5L)
+  expect_equal(q2_plus_dry_run$selected_providers, "phylo")
+  expect_match(q2_plus_dry_run$command, "--contract-ids=", fixed = TRUE)
+  expect_match(
+    q2_plus_dry_run$command,
+    "q2_plus_q2_intercept_phylo_sigma2_intercept",
+    fixed = TRUE
+  )
+  expect_false(grepl(
+    "q2_plus_q2_intercept_phylo_cor_sigma1_sigma2",
+    q2_plus_dry_run$command,
+    fixed = TRUE
+  ))
+  expect_equal(q2_plus_dry_run$promotion_decision, "do_not_promote")
 
   expect_equal(
     native$inference_status[native$estimator == "ML"],

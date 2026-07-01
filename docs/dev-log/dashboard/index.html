@@ -172,6 +172,38 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .blocked { background: var(--rose-bg); color: var(--rose); }
 .planned, .experimental, .partial { background: var(--blue-bg); color: var(--blue); }
 .unsupported, .deferred { background: var(--gray-bg); color: var(--muted); }
+.supported, .inference-ready { background: var(--green-bg); color: var(--green); }
+.fit-supported-baseline, .fit-stable, .stable-fit-baseline,
+.gaussian-baseline-comparator,
+.tried-not-inference-ready, .interval-feasible, .point-fit,
+.extractor-ready, .fixture-parity,
+.non-gaussian-recovery-only, .non-gaussian-point-only,
+.non-gaussian-intercept-recovery-smoke,
+.gaussian-mu-slope-smoke-passed,
+.local-recovery-only, .cluster-confirmed-recovery-only,
+.local-dry-run-passed-screen-only { background: var(--blue-bg); color: var(--blue); }
+.tried-diagnostic, .diagnostic-only, .topup-required,
+.calibration-required, .high-q-gate-required,
+.high-q-diagnostic, .gaussian-lowq-gate-required,
+.gaussian-lowq-diagnostic, .non-gaussian-recovery-caveat,
+.mu-slope-pregrid-planned, .local-recovery-hessian-caveat,
+.totoro-fiia-smoke-pending-fisher-rose { background: var(--gold-bg); color: var(--gold); }
+.unsupported-or-blocked, .inference-blocked, .admission-blocked,
+.q8-stability-blocked, .non-gaussian-rejected,
+.gaussian-lowq-rejected, .non-gaussian-recovery-blocked,
+.mu-slope-pregrid-blocked, .mcse-met-upper-tail-blocked,
+.finite-interval-undercoverage-shape-blocker,
+.evidence-blocked-open, .calibration-required-open,
+.stability-blocked-open { background: var(--rose-bg); color: var(--rose); }
+.evidence-complete-inference-ready,
+.baseline-comparator-complete,
+.recovery-evidence-complete-for-now,
+.intentional-rejection-complete { background: var(--green-bg); color: var(--green); }
+.point-fixture-gate-open, .diagnostic-only-open,
+.high-q-gate-open, .planned-design-open { background: var(--gold-bg); color: var(--gold); }
+.high-q-planned, .non-gaussian-planned,
+.not-recovery-target, .recovery-unavailable,
+.recovery-planned { background: var(--gray-bg); color: var(--muted); }
 .slices { padding: 0 14px 12px 110px; }
 .slice {
   display: grid;
@@ -264,6 +296,54 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
   padding: 10px;
   font-size: 12px;
 }
+.qseries-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.qseries-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.qseries-row {
+  display: grid;
+  grid-template-columns:
+    minmax(140px, .7fr)
+    minmax(230px, 1.2fr)
+    minmax(120px, .55fr)
+    minmax(140px, .65fr)
+    minmax(140px, .65fr)
+    minmax(140px, .65fr)
+    minmax(130px, .6fr)
+    minmax(92px, .45fr)
+    minmax(110px, .5fr)
+    minmax(110px, .5fr)
+    minmax(110px, .5fr)
+    minmax(290px, 1.35fr);
+  gap: 8px;
+  align-items: start;
+  min-width: 1760px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  font-size: 12px;
+}
+.qseries-row .cell:last-child {
+  max-height: 96px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.qseries-head {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  padding-top: 0;
+}
 .gate-head {
   background: transparent;
   border: 0;
@@ -287,7 +367,9 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   .slices { padding-left: 14px; }
   .matrix-row { grid-template-columns: 1fr; }
   .gate-row { grid-template-columns: 1fr; min-width: 0; }
-  .matrix-head, .gate-head { display: none; }
+  .qseries-row { grid-template-columns: 1fr; min-width: 0; }
+  .qseries-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .matrix-head, .gate-head, .qseries-head { display: none; }
 }
 @media (max-width: 560px) {
   .wrap { padding-left: 12px; padding-right: 12px; }
@@ -295,6 +377,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   .team { grid-template-columns: 1fr; }
   .ledger-summary { grid-template-columns: 1fr; }
   .status-grid { grid-template-columns: 1fr; }
+  .qseries-summary { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -310,6 +393,9 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 
   <section class="grid" id="metrics"></section>
   <section id="progress"></section>
+
+  <h2>Q-Series Support Cells</h2>
+  <section class="panel" id="q-series-board"></section>
 
   <h2>Finish Board</h2>
   <section class="finish-board" id="finish-board"></section>
@@ -371,7 +457,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r63";
+const BUILD = "r190";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -393,12 +479,13 @@ const FINISH_FIELDS = [
   ["simulation", "Sim"],
   ["release_gate", "Release"]
 ];
-const statusClass = (x) => String(x || "queued").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+const statusClass = (x) => String(x || "queued").toLowerCase().replace(/_/g, "-").replace(/[^a-z0-9-]/g, "-");
 const text = (x) => String(x == null ? "" : x);
 const esc = (x) => text(x).replace(/[&<>"']/g, (m) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 })[m]);
-const pill = (x) => `<span class="pill ${statusClass(x)}">${esc(x)}</span>`;
+const statusLabel = (x) => text(x).replace(/_/g, " ");
+const pill = (x) => `<span class="pill ${statusClass(x)}">${esc(statusLabel(x))}</span>`;
 const link = (x, label) => x ? `<a href="${esc(x)}">${esc(label || x)}</a>` : "";
 const values = (x) => Array.isArray(x) ? x : (x ? [x] : []);
 const splitList = (x) => text(x).split(";").map((part) => part.trim()).filter(Boolean);
@@ -618,6 +705,1402 @@ function renderStructuredLedgers(sidecars) {
     <div class="note">Sidecar counts are validator-owned dashboard state; fit, inference, bridge, REML, and coverage claims remain row-specific.</div>`;
 }
 
+function qSeriesSupportState(row, recoveryByCell = {}, admissionAuditByCell = {}, recoveryRollupByCell = {}) {
+  if (row.interval_status === "inference_ready" && row.coverage_status === "inference_ready") {
+    return "inference_ready";
+  }
+  if (recoveryRollupByCell[row.cell_id]) {
+    const recoveryGrade = recoveryRollupByCell[row.cell_id].recovery_grade || "";
+    if (recoveryGrade.includes("caveat")) return "non_gaussian_recovery_caveat";
+    if (recoveryGrade.includes("blocked")) return "non_gaussian_recovery_blocked";
+    if (recoveryGrade) return "non_gaussian_recovery_only";
+  }
+  if (recoveryByCell[row.cell_id] && recoveryByCell[row.cell_id].widget_state) {
+    return recoveryByCell[row.cell_id].widget_state;
+  }
+  if (admissionAuditByCell[row.cell_id]) {
+    return admissionAuditByCell[row.cell_id].widget_state || "tried_not_inference_ready";
+  }
+  if (row.fit_status === "supported") return "fit_supported_baseline";
+  if (
+    recoveryByCell[row.cell_id] &&
+    row.fit_status === "point_fit" &&
+    row.extractor_status === "extractor_ready" &&
+    row.interval_status === "unsupported" &&
+    row.coverage_status === "planned"
+  ) {
+    return "recovery_only";
+  }
+  if (["fit_status", "interval_status", "coverage_status"].some((field) =>
+    row[field] === "unsupported" || row[field] === "blocked"
+  )) {
+    return "unsupported_or_blocked";
+  }
+  if (["fit_status", "interval_status", "coverage_status"].some((field) =>
+    row[field] === "diagnostic_only"
+  )) {
+    return "tried_diagnostic";
+  }
+  if (
+    row.fit_status === "point_fit" ||
+    row.extractor_status === "extractor_ready" ||
+    row.bridge_status === "fixture_parity" ||
+    row.interval_status === "interval_feasible"
+  ) {
+    return "tried_not_inference_ready";
+  }
+  return "planned";
+}
+
+function qSeriesStability(row) {
+  if (row.fit_status === "unsupported" || row.fit_status === "blocked") {
+    return "unsupported_or_blocked";
+  }
+  if (row.fit_status === "diagnostic_only") return "diagnostic_only";
+  if (row.fit_status === "supported") return "stable_fit_baseline";
+  if (row.fit_status === "point_fit" && row.extractor_status === "extractor_ready") {
+    return "fit_stable";
+  }
+  return row.fit_status || "planned";
+}
+
+function qSeriesInference(row) {
+  if (row.interval_status === "inference_ready" && row.coverage_status === "inference_ready") {
+    return "inference_ready";
+  }
+  if (row.interval_status === "unsupported" || row.coverage_status === "unsupported") {
+    return "inference_blocked";
+  }
+  if (row.interval_status === "diagnostic_only" || row.coverage_status === "diagnostic_only") {
+    return "diagnostic_only";
+  }
+  if (row.interval_status === "interval_feasible") return "interval_feasible";
+  return "planned";
+}
+
+function qSeriesRecovery(row, recoveryRollupByCell = {}, recoveryByCell = {}) {
+  const rollup = recoveryRollupByCell[row.cell_id];
+  if (rollup) return rollup.recovery_grade || "recovery_only";
+  const recovery = recoveryByCell[row.cell_id];
+  if (recovery) return recovery.widget_state || "recovery_only";
+  if (row.family_class !== "non_gaussian") return "not_recovery_target";
+  if (row.fit_status === "unsupported") return "recovery_unavailable";
+  if (row.fit_status === "planned") return "recovery_planned";
+  return "point_only";
+}
+
+function qSeriesEvidenceSummary(
+  row,
+  evidenceByCell,
+  recoveryByCell,
+  recoveryRollupByCell,
+  caveatDiagnosticByCell,
+  denominatorDiagnosticByCell,
+  admissionAuditByCell,
+  rowGateByCell,
+  animalCorHoldoutByCell,
+  animalCorPregridByCell,
+  animalCorMissDiagnosticByCell,
+  boundaryProfileByCell,
+  spatialSigmaBoundaryByCell,
+  q4AnimalAdmissionByCell,
+  q4AnimalNumericalGeometryByCell,
+  q4AnimalOptimizerRouteByCell,
+  q4AnimalStartMapByCell,
+  q4AnimalBoundedByCell,
+  q4AnimalOneThetaByCell,
+  q4AnimalMapPenaltyByCell,
+  q4AnimalRidgeContinuationByCell,
+  q4AnimalPartialCholeskyByCell,
+  q4AnimalTransformByCell,
+  lowQMuInterceptDryRunByCell,
+  q2InterceptNibiSmokeByCell,
+  q2PlusQ2NibiSmokeByCell
+) {
+  const evidence = evidenceByCell[row.cell_id];
+  if (evidence) {
+    return `<div class="note"><strong>${esc(evidence.interval_channel)}</strong></div>
+      <div class="note">${esc(evidence.denominator_summary)}</div>
+      <div class="note">${esc(evidence.coverage_summary)}</div>
+      <div class="note">${esc(evidence.miss_balance_summary)}</div>`;
+  }
+  const recovery = recoveryByCell[row.cell_id];
+  if (recovery) {
+    const rollup = recoveryRollupByCell[row.cell_id];
+    const bias = recovery.bias_sd || recovery.bias_sd_mu_x || recovery.bias_sd_mu_intercept || "";
+    const rmse = recovery.rmse_sd || recovery.rmse_sd_mu_x || "";
+    const verdict = recovery.recovery_verdict ? `<div class="note">${esc(recovery.recovery_verdict)}</div>` : "";
+    const rollupNote = rollup
+      ? `<div class="note"><strong>${esc(rollup.recovery_grade)}</strong></div>
+        <div class="note">${esc(rollup.fit_signal)}; ${esc(rollup.hessian_signal)}</div>
+        <div class="note">${esc(rollup.finite_signal)}; ${esc(rollup.near_zero_signal)}</div>`
+      : "";
+    const diagnostics = caveatDiagnosticByCell[row.cell_id] || [];
+    const denominatorDiagnostics = denominatorDiagnosticByCell[row.cell_id] || [];
+    const diagnosticNote = diagnostics.length
+      ? (() => {
+        const worst = diagnostics.reduce((best, item) =>
+          Number(item.near_zero_estimate_rate || 0) > Number(best.near_zero_estimate_rate || 0)
+            ? item
+            : best
+        , diagnostics[0]);
+        const verdicts = [...new Set(diagnostics.map((item) => item.diagnostic_verdict).filter(Boolean))].join(", ");
+        return `<div class="note">${esc(diagnostics.length)} caveat diagnostic condition(s); worst near-zero rate ${esc(worst.near_zero_estimate_rate)} (${esc(worst.condition_label)})</div>
+          <div class="note">${esc(verdicts)}</div>`;
+      })()
+      : "";
+    const denominatorNote = denominatorDiagnostics.length
+      ? (() => {
+        const verdicts = [...new Set(denominatorDiagnostics.map((item) => item.denominator_verdict).filter(Boolean))].join(", ");
+        const worst = denominatorDiagnostics.reduce((best, item) =>
+          Number(item.near_zero_estimate_rate || 0) > Number(best.near_zero_estimate_rate || 0)
+            ? item
+            : best
+        , denominatorDiagnostics[0]);
+        return `<div class="note">${esc(denominatorDiagnostics.length)} stronger-denominator condition(s); worst near-zero rate ${esc(worst.near_zero_estimate_rate)} (${esc(worst.condition_label)})</div>
+          <div class="note">${esc(verdicts)}</div>`;
+      })()
+      : "";
+    const nearZero = recovery.near_zero_estimate_rows
+      ? `<div class="note">${esc(recovery.near_zero_estimate_rows)}/${esc(recovery.n_rep)} near-zero SD estimates below ${esc(recovery.near_zero_threshold)}</div>`
+      : "";
+    const conditionNote = recovery.n_internal_conditions
+      ? `<div class="note">${esc(recovery.n_seed_replicates)} seeds x ${esc(recovery.n_internal_conditions)} condition(s)</div>`
+      : "";
+    return `<div class="note"><strong>recovery_only</strong></div>
+      ${rollupNote}
+      <div class="note">${esc(recovery.fit_ok)}/${esc(recovery.n_rep)} fit_ok; ${esc(recovery.pdhess_false)} pdHess false</div>
+      ${conditionNote}
+      ${nearZero}
+      ${diagnosticNote}
+      ${denominatorNote}
+      <div class="note">structured SD bias ${esc(bias)}, RMSE ${esc(rmse)}</div>
+      ${verdict}
+      <div class="note">${esc(recovery.claim_boundary)}</div>`;
+  }
+  const lowQDryRun = (lowQMuInterceptDryRunByCell || {})[row.cell_id];
+  if (lowQDryRun) {
+    return `<div class="note"><strong>${esc(lowQDryRun.dry_run_status)}</strong></div>
+      <div class="note">${esc(lowQDryRun.n_fit_ok)}/${esc(lowQDryRun.n_rep)} fit_ok; ${esc(lowQDryRun.n_pdhess)}/${esc(lowQDryRun.n_rep)} pdHess; ${esc(lowQDryRun.n_usable_intervals)}/${esc(lowQDryRun.n_rep)} usable Wald intervals</div>
+      <div class="note">local n=${esc(lowQDryRun.n_rep)} screen only; ${esc(lowQDryRun.smoke_decision)}</div>
+      <div class="note">${esc(lowQDryRun.claim_boundary)}</div>`;
+  }
+  const q2InterceptNibiSmokeSource =
+    q2InterceptNibiSmokeByCell || globalThis.__qSeriesQ2InterceptNibiSmokeByCell || {};
+  const q2InterceptNibiSmoke = q2InterceptNibiSmokeSource[row.cell_id] || [];
+  if (q2InterceptNibiSmoke.length) {
+    const passed = q2InterceptNibiSmoke.filter((item) => item.smoke_status === "nibi_rorqual_substitute_smoke_passed").length;
+    const fitOk = q2InterceptNibiSmoke.reduce((sum, item) => sum + Number(item.n_fit_ok || 0), 0);
+    const nRep = q2InterceptNibiSmoke.reduce((sum, item) => sum + Number(item.n_rep || 0), 0);
+    const profileFinite = q2InterceptNibiSmoke.reduce((sum, item) => sum + Number(item.n_profile_finite || 0), 0);
+    return `<div class="note"><strong>q2 intercept Nibi n=5 substitute smoke</strong></div>
+      <div class="note">${esc(passed)}/${esc(q2InterceptNibiSmoke.length)} targets passed; 0 profile blocker(s)</div>
+      <div class="note">${esc(fitOk)}/${esc(nRep)} fits ok; ${esc(profileFinite)}/${esc(nRep)} profile intervals finite</div>
+      <div class="note">${esc(q2InterceptNibiSmoke[0].claim_boundary)}</div>`;
+  }
+  const q2PlusQ2NibiSmokeSource =
+    q2PlusQ2NibiSmokeByCell || globalThis.__qSeriesQ2PlusQ2NibiSmokeByCell || {};
+  const q2PlusQ2NibiSmoke = q2PlusQ2NibiSmokeSource[row.cell_id] || [];
+  if (q2PlusQ2NibiSmoke.length) {
+    const passed = q2PlusQ2NibiSmoke.filter((item) => item.smoke_status === "nibi_rorqual_substitute_smoke_passed").length;
+    const failed = q2PlusQ2NibiSmoke.length - passed;
+    const fitOk = q2PlusQ2NibiSmoke.reduce((sum, item) => sum + Number(item.n_fit_ok || 0), 0);
+    const nRep = q2PlusQ2NibiSmoke.reduce((sum, item) => sum + Number(item.n_rep || 0), 0);
+    const profileFinite = q2PlusQ2NibiSmoke.reduce((sum, item) => sum + Number(item.n_profile_finite || 0), 0);
+    const failedTargets = q2PlusQ2NibiSmoke
+      .filter((item) => item.smoke_status !== "nibi_rorqual_substitute_smoke_passed")
+      .map((item) => item.estimand)
+      .join(", ");
+    return `<div class="note"><strong>q2+q2 Nibi n=5 substitute smoke</strong></div>
+      <div class="note">${esc(passed)}/${esc(q2PlusQ2NibiSmoke.length)} targets passed; ${esc(failed)} boundary/profile blocker(s)</div>
+      <div class="note">${esc(fitOk)}/${esc(nRep)} fits ok; ${esc(profileFinite)}/${esc(nRep)} profile intervals finite</div>
+      ${failedTargets ? `<div class="note">blocked target: ${esc(failedTargets)}</div>` : ""}
+      <div class="note">${esc(q2PlusQ2NibiSmoke[0].claim_boundary)}</div>`;
+  }
+  const admission = admissionAuditByCell[row.cell_id];
+  if (admission) {
+    const rowGate = rowGateByCell[row.cell_id];
+    const animalHoldout = animalCorHoldoutByCell[row.cell_id];
+    const animalPregrid = animalCorPregridByCell[row.cell_id];
+    const animalMiss = animalCorMissDiagnosticByCell[row.cell_id];
+    const spatialSigmaBoundary = spatialSigmaBoundaryByCell[row.cell_id];
+    const q4AnimalAdmission = q4AnimalAdmissionByCell[row.cell_id];
+    const q4AnimalNumericalGeometry = q4AnimalNumericalGeometryByCell[row.cell_id] || [];
+    const q4AnimalOptimizerRoute = q4AnimalOptimizerRouteByCell[row.cell_id] || [];
+    const q4AnimalStartMap = q4AnimalStartMapByCell[row.cell_id] || [];
+    const q4AnimalBounded = q4AnimalBoundedByCell[row.cell_id] || [];
+    const q4AnimalOneTheta = q4AnimalOneThetaByCell[row.cell_id] || [];
+    const q4AnimalMapPenalty = q4AnimalMapPenaltyByCell[row.cell_id] || [];
+    const q4AnimalRidgeContinuation = q4AnimalRidgeContinuationByCell[row.cell_id] || [];
+    const q4AnimalPartialCholesky = q4AnimalPartialCholeskyByCell[row.cell_id] || [];
+    const q4AnimalTransform = q4AnimalTransformByCell[row.cell_id] || [];
+    const rowGateNote = rowGate
+      ? `<div class="note"><strong>${esc(rowGate.row_gate_status)}</strong> ${esc(rowGate.promotion_decision)}</div>
+        <div class="note">${esc(rowGate.tail_balance_status)}; ${esc(rowGate.correlation_target_status)}</div>
+        <div class="note">${esc(rowGate.g32_profile_wald_status)}</div>`
+      : "";
+    const animalHoldoutNote = animalHoldout
+      ? `<div class="note"><strong>${esc(animalHoldout.diagnostic_status)}</strong></div>
+        <div class="note">${esc(animalHoldout.n_profile_finite)}/${esc(animalHoldout.n_rep)} animal correlation profile intervals finite; ${esc(animalHoldout.g_groups)}</div>`
+      : "";
+    const animalPregridNote = animalPregrid
+      ? `<div class="note"><strong>${esc(animalPregrid.pregrid_status)}</strong></div>
+        <div class="note">profile coverage ${esc(animalPregrid.profile_coverage)}; misses ${esc(animalPregrid.profile_lower_miss)}/${esc(animalPregrid.profile_upper_miss)}; boundary ${esc(animalPregrid.n_boundary)}</div>`
+      : "";
+    const animalMissNote = animalMiss
+      ? `<div class="note"><strong>${esc(animalMiss.diagnostic_status)}</strong></div>
+        <div class="note">profile misses ${esc(animalMiss.profile_lower_miss)}/${esc(animalMiss.profile_upper_miss)}; shared upper-tail ${esc(animalMiss.both_channel_upper_miss)}; boundary seeds ${esc(animalMiss.boundary_seeds)}</div>`
+      : "";
+    const status = admission.admission_status || admission.widget_state || "status_audit";
+    const summary = admission.wald_finite_summary || admission.raw_coverage_summary || admission.evidence_basis || "";
+    const denominator = admission.denominator_status || admission.inference_signal || "";
+    const stability = admission.stability_signal || "";
+    const boundaryProfile = boundaryProfileByCell[row.cell_id];
+    const boundaryNote = boundaryProfile
+      ? `<div class="note"><strong>boundary profile diagnostic</strong></div>
+        <div class="note">${esc(boundaryProfile.n_profile_finite_interval)}/${esc(boundaryProfile.n_boundary_rows)} finite endpoint-profile intervals; ${esc(boundaryProfile.profile_status_counts)}</div>
+        <div class="note">${esc(boundaryProfile.diagnostic_verdict)}</div>`
+      : "";
+    const spatialSigmaBoundaryNote = spatialSigmaBoundary
+      ? `<div class="note"><strong>${esc(spatialSigmaBoundary.diagnostic_verdict)}</strong></div>
+        <div class="note">Nibi ${esc(spatialSigmaBoundary.n_wald_finite)}/${esc(spatialSigmaBoundary.planned_reps)} finite Wald intervals; ${esc(spatialSigmaBoundary.n_wald_boundary_estimate)} boundary-small estimates</div>
+        <div class="note">finite-Wald coverage ${esc(spatialSigmaBoundary.wald_coverage)}; retained coverage ${esc(spatialSigmaBoundary.wald_retained_coverage)}</div>`
+      : "";
+    const q4AnimalAdmissionNote = q4AnimalAdmission
+      ? `<div class="note"><strong>${esc(q4AnimalAdmission.admission_status)}</strong></div>
+        <div class="note">animal q4 direct-SD admission: pdHess ${esc(q4AnimalAdmission.n_pdhess)}/${esc(q4AnimalAdmission.n_rep)}; profile finite ${esc(q4AnimalAdmission.n_profile_finite)}/${esc(q4AnimalAdmission.n_target_rep_rows)}</div>
+        <div class="note">${esc(q4AnimalAdmission.claim_boundary)}</div>`
+      : "";
+    const q4AnimalNumericalGeometryNote = q4AnimalNumericalGeometry.length
+      ? (() => {
+        const blocked = q4AnimalNumericalGeometry.filter((item) =>
+          (item.geometry_status || "").includes("blocked")
+        ).length;
+        const passed = q4AnimalNumericalGeometry.filter((item) =>
+          item.geometry_status === "pdhess_pass_smoke"
+        ).length;
+        const worseSelected = q4AnimalNumericalGeometry.filter((item) =>
+          item.selected_worse_than_best === "TRUE"
+        ).length;
+        const maxGradient = Math.max(
+          ...q4AnimalNumericalGeometry.map((item) => Number(item.max_abs_gradient_fixed || 0))
+        );
+        return `<div class="note"><strong>numerical geometry diagnostic</strong></div>
+          <div class="note">${esc(blocked)}/${esc(q4AnimalNumericalGeometry.length)} gradient/eigen blocked; ${esc(passed)} pdHess-pass smoke rows</div>
+          <div class="note">${esc(worseSelected)} selected fallback rows have worse objective than the best attempt; max gradient ${esc(maxGradient.toPrecision(3))}</div>`;
+      })()
+      : "";
+    const q4AnimalOptimizerRouteNote = q4AnimalOptimizerRoute.length
+      ? (() => {
+        const noRescueReps = new Set(q4AnimalOptimizerRoute
+          .filter((item) => item.rescue_status === "no_route_rescue")
+          .map((item) => item.replicate_index)).size;
+        const passRows = q4AnimalOptimizerRoute.filter((item) =>
+          item.route_status === "pdhess_pass_smoke"
+        ).length;
+        const worseRows = q4AnimalOptimizerRoute.filter((item) =>
+          item.selected_worse_than_best === "TRUE"
+        ).length;
+        return `<div class="note"><strong>optimizer-route diagnostic</strong></div>
+          <div class="note">${esc(noRescueReps)} failed-Hessian seed(s) not rescued; ${esc(passRows)}/${esc(q4AnimalOptimizerRoute.length)} route rows pass smoke</div>
+          <div class="note">${esc(worseRows)} route rows selected a worse objective than the best attempt</div>`;
+      })()
+      : "";
+    const q4AnimalStartMapNote = q4AnimalStartMap.length
+      ? (() => {
+        const passRows = q4AnimalStartMap.filter((item) =>
+          item.strategy_status === "pdhess_pass_smoke"
+        ).length;
+        const zeroCorrPass = q4AnimalStartMap.filter((item) =>
+          item.map_theta_phylo === "fixed_zero" &&
+          item.strategy_status === "pdhess_pass_smoke"
+        ).length;
+        const freeBlockedReps = new Set(q4AnimalStartMap
+          .filter((item) =>
+            item.blocker_component === "free_q4_correlation_block_active" &&
+            item.strategy_status !== "pdhess_pass_smoke"
+          )
+          .map((item) => item.replicate_index)).size;
+        return `<div class="note"><strong>start/map diagnostic</strong></div>
+          <div class="note">${esc(zeroCorrPass)} zero-correlation map rows pass smoke; ${esc(passRows)}/${esc(q4AnimalStartMap.length)} strategy rows pass smoke</div>
+          <div class="note">${esc(freeBlockedReps)} seed(s) keep all-free correlation blockers after start changes</div>`;
+      })()
+      : "";
+    const q4AnimalBoundedNote = q4AnimalBounded.length
+      ? (() => {
+        const zeroPass = q4AnimalBounded.filter((item) =>
+          item.strategy_status === "zero_correlation_control_pass"
+        ).length;
+        const unboundedBlocked = q4AnimalBounded.filter((item) =>
+          item.strategy_status === "gradient_hessian_blocked"
+        ).length;
+        const saturated = q4AnimalBounded.filter((item) =>
+          item.strategy_status === "bounded_cap_saturated"
+        ).length;
+        return `<div class="note"><strong>bounded-correlation diagnostic</strong></div>
+          <div class="note">${esc(zeroPass)} zero-correlation controls pass; ${esc(unboundedBlocked)} current staged rows remain blocked</div>
+          <div class="note">${esc(saturated)}/${esc(q4AnimalBounded.length)} bounded rows saturate their caps</div>`;
+      })()
+      : "";
+    const q4AnimalOneThetaNote = q4AnimalOneTheta.length
+      ? (() => {
+        const passRows = q4AnimalOneTheta.filter((item) =>
+          item.release_status === "one_theta_release_pass_smoke"
+        ).length;
+        const watchRows = q4AnimalOneTheta.filter((item) =>
+          item.release_status === "release_watch"
+        ).length;
+        const hessianRows = q4AnimalOneTheta.filter((item) =>
+          item.release_status === "hessian_blocked"
+        ).length;
+        const maxTheta = Math.max(
+          ...q4AnimalOneTheta.map((item) => Number(item.theta_abs || 0))
+        );
+        return `<div class="note"><strong>one-theta release diagnostic</strong></div>
+          <div class="note">${esc(passRows)}/${esc(q4AnimalOneTheta.length)} single-coordinate releases pass smoke; ${esc(watchRows)} watch, ${esc(hessianRows)} Hessian blocked</div>
+          <div class="note">max |theta| ${esc(maxTheta.toPrecision(4))}; diagnostic-only q4 correlation geometry</div>`;
+      })()
+      : "";
+    const q4AnimalMapPenaltyNote = q4AnimalMapPenalty.length
+      ? (() => {
+        const stabilized = q4AnimalMapPenalty.filter((item) =>
+          item.sensitivity_status === "penalty_stabilized_local_mode"
+        ).length;
+        const runaway = q4AnimalMapPenalty.filter((item) =>
+          item.sensitivity_status === "runaway_theta_hessian_blocked"
+        ).length;
+        const watch = q4AnimalMapPenalty.filter((item) =>
+          item.sensitivity_status === "convergence_watch"
+        ).length;
+        const maxTheta = Math.max(
+          ...q4AnimalMapPenalty.map((item) => Number(item.released_theta_max_abs || 0))
+        );
+        return `<div class="note"><strong>MAP/penalty sensitivity diagnostic</strong></div>
+          <div class="note">${esc(stabilized)}/${esc(q4AnimalMapPenalty.length)} ridge rows stabilize a local mode; ${esc(runaway)} runaway/Hessian blocked, ${esc(watch)} convergence watch</div>
+          <div class="note">max released |theta| ${esc(maxTheta.toPrecision(4))}; diagnostic-only, not a production prior</div>`;
+      })()
+      : "";
+    const q4AnimalRidgeContinuationNote = q4AnimalRidgeContinuation.length
+      ? (() => {
+        const finalRows = q4AnimalRidgeContinuation.filter((item) =>
+          Number(item.stage_index || 0) === Number(item.stage_count || 0)
+        );
+        const finalPass = finalRows.filter((item) =>
+          item.continuation_status === "continuation_unpenalized_admission_smoke_pass"
+        ).length;
+        const finalHessian = finalRows.filter((item) =>
+          (item.continuation_status || "").includes("hessian_blocked")
+        ).length;
+        const finalWatch = finalRows.filter((item) =>
+          (item.continuation_status || "").includes("convergence_watch")
+        ).length;
+        const finalLargeTheta = finalRows.filter((item) =>
+          (item.continuation_status || "").includes("large_theta_watch")
+        ).length;
+        const stabilized = q4AnimalRidgeContinuation.filter((item) =>
+          item.continuation_status === "continuation_penalty_stabilized_local_mode"
+        ).length;
+        return `<div class="note"><strong>ridge-continuation diagnostic</strong></div>
+          <div class="note">${esc(stabilized)}/${esc(q4AnimalRidgeContinuation.length)} penalized stages stabilize local modes; final lambda=0 clean admission passes ${esc(finalPass)}/${esc(finalRows.length)}</div>
+          <div class="note">final-stage blockers: ${esc(finalHessian)} Hessian/runaway, ${esc(finalWatch)} convergence watch, ${esc(finalLargeTheta)} large-theta watch; diagnostic-only annealing evidence</div>`;
+      })()
+      : "";
+    const q4AnimalPartialCholeskyNote = q4AnimalPartialCholesky.length
+      ? (() => {
+        const partialRows = q4AnimalPartialCholesky.filter((item) =>
+          item.route === "partial_cholesky_all_free"
+        );
+        const passRows = partialRows.filter((item) =>
+          item.admission_status === "hard_seed_route_passed_local_admission_smoke"
+        ).length;
+        const hessianBlocked = partialRows.filter((item) =>
+          item.pdHess !== "TRUE"
+        ).length;
+        const largeEta = partialRows.filter((item) =>
+          item.large_eta_flag === "TRUE"
+        ).length;
+        return `<div class="note"><strong>partial-Cholesky diagnostic</strong></div>
+          <div class="note">all-free admission passes ${esc(passRows)}/${esc(partialRows.length)}; ${esc(hessianBlocked)} Hessian blocked, ${esc(largeEta)} large-eta rows</div>`;
+      })()
+      : "";
+    const q4AnimalTransformNote = q4AnimalTransform.length
+      ? (() => {
+        const rejected = q4AnimalTransform.filter((item) =>
+          (item.admission_status || "").includes("rejected")
+        ).length;
+        const designRequired = q4AnimalTransform.filter((item) =>
+          item.admission_status === "design_required"
+        ).length;
+        const clusterHold = q4AnimalTransform.filter((item) =>
+          (item.admission_decision || "").includes("cluster_hold")
+        ).length;
+        const routes = q4AnimalTransform.map((item) => item.candidate_route).join(", ");
+        return `<div class="note"><strong>transform admission contract</strong></div>
+          <div class="note">${esc(rejected)}/${esc(q4AnimalTransform.length)} route(s) rejected for admission; ${esc(designRequired)} production-transform design row</div>
+          <div class="note">${esc(clusterHold)} cluster-hold row(s); routes: ${esc(routes)}</div>`;
+      })()
+      : "";
+    return `<div class="note"><strong>${esc(status)}</strong></div>
+      <div class="note">${esc(summary)}</div>
+      <div class="note">${esc(denominator)}</div>
+      ${stability ? `<div class="note">${esc(stability)}</div>` : ""}
+      ${rowGateNote}
+      ${animalHoldoutNote}
+      ${animalPregridNote}
+      ${animalMissNote}
+      ${boundaryNote}
+      ${spatialSigmaBoundaryNote}
+      ${q4AnimalAdmissionNote}
+      ${q4AnimalNumericalGeometryNote}
+      ${q4AnimalOptimizerRouteNote}
+      ${q4AnimalStartMapNote}
+      ${q4AnimalBoundedNote}
+      ${q4AnimalOneThetaNote}
+      ${q4AnimalMapPenaltyNote}
+      ${q4AnimalRidgeContinuationNote}
+      ${q4AnimalPartialCholeskyNote}
+      ${q4AnimalTransformNote}
+      <div class="note">${esc(admission.claim_boundary)}</div>`;
+  }
+  const rowGate = rowGateByCell[row.cell_id];
+  if (rowGate) {
+    const animalHoldout = animalCorHoldoutByCell[row.cell_id];
+    const animalPregrid = animalCorPregridByCell[row.cell_id];
+    const animalMiss = animalCorMissDiagnosticByCell[row.cell_id];
+    const animalHoldoutNote = animalHoldout
+      ? `<div class="note"><strong>${esc(animalHoldout.diagnostic_status)}</strong></div>
+        <div class="note">${esc(animalHoldout.n_profile_finite)}/${esc(animalHoldout.n_rep)} animal correlation profile intervals finite; ${esc(animalHoldout.g_groups)}</div>`
+      : "";
+    const animalPregridNote = animalPregrid
+      ? `<div class="note"><strong>${esc(animalPregrid.pregrid_status)}</strong></div>
+        <div class="note">profile coverage ${esc(animalPregrid.profile_coverage)}; misses ${esc(animalPregrid.profile_lower_miss)}/${esc(animalPregrid.profile_upper_miss)}; boundary ${esc(animalPregrid.n_boundary)}</div>`
+      : "";
+    const animalMissNote = animalMiss
+      ? `<div class="note"><strong>${esc(animalMiss.diagnostic_status)}</strong></div>
+        <div class="note">profile misses ${esc(animalMiss.profile_lower_miss)}/${esc(animalMiss.profile_upper_miss)}; shared upper-tail ${esc(animalMiss.both_channel_upper_miss)}; boundary seeds ${esc(animalMiss.boundary_seeds)}</div>`
+      : "";
+    return `<div class="note"><strong>${esc(rowGate.row_gate_status)}</strong> ${esc(rowGate.promotion_decision)}</div>
+      <div class="note">${esc(rowGate.sd_endpoint_evidence)}</div>
+      <div class="note">${esc(rowGate.tail_balance_status)}; ${esc(rowGate.correlation_target_status)}</div>
+      <div class="note">${esc(rowGate.g32_profile_wald_status)}</div>
+      ${animalHoldoutNote}
+      ${animalPregridNote}
+      ${animalMissNote}
+      <div class="note">${esc(rowGate.claim_boundary)}</div>`;
+  }
+  return `<div class="note">${esc(row.denominator_policy)}</div>`;
+}
+
+function renderQSeriesBoard(
+  rows,
+  inferenceEvidence,
+  countRecovery,
+  recoveryRollup,
+  countTopupRecovery,
+  countTopupClusterDispatch,
+  countCaveatDiagnostics,
+  countDenominatorDiagnostics,
+  closureTriage,
+  nextCampaignQueue,
+  qSeriesHostAccessRecheck,
+  qSeriesSmokeSubstitutionContract,
+  q2InterceptNibiSmoke,
+  q2PlusQ2InterceptNibiSmoke,
+  gaussianLowQRowSelection,
+  gaussianLowQSpecialTargetContract,
+  gaussianLowQDirectSdUnivariateSmoke,
+  gaussianLowQMuInterceptDryRun,
+  gaussianLowQMuInterceptSmokeContract,
+  gaussianLowQMuInterceptSmokeResults,
+  gaussianLowQMuInterceptNibiSmokeResults,
+  gaussianLowQMuInterceptDenominatorContract,
+  gaussianLowQMuInterceptPregridDispatch,
+  gaussianLowQMuInterceptPregridResults,
+  gaussianLowQMuInterceptTopupDispatch,
+  gaussianLowQMuInterceptSr475Results,
+  gaussianLowQMuSigmaInterceptSmoke,
+  gaussianLowQSigmaInterceptRouteContract,
+  gaussianLowQSigmaInterceptSmoke,
+  gaussianLowQSigmaInterceptDenominatorContract,
+  gaussianLowQSigmaInterceptPregridDispatch,
+  gaussianLowQSigmaInterceptPregridResults,
+  gaussianLowQSigmaProfileRouteReview,
+  admissionAudit,
+  rowGateSynthesis,
+  g32ProfileWaldSmoke,
+  animalCorHoldoutDiagnostic,
+  animalCorPregridResults,
+  animalCorMissDiagnostic,
+  boundaryProfileDiagnostic,
+  intervalShapeDiagnostic,
+  muSlopeRuleScreen,
+  muSlopeSplitCalibration,
+  muSlopeReviewDecision,
+  spatialSigmaBoundaryDiagnostic,
+  q4AnimalAdmissionProbe,
+  q4AnimalGeometryDiagnostic,
+  q4AnimalNumericalGeometryDiagnostic,
+  q4AnimalNumericalGeometryAttempts,
+  q4AnimalOptimizerRouteDiagnostic,
+  q4AnimalStartMapDiagnostic,
+  q4AnimalBoundedCorrelationDiagnostic,
+  q4AnimalOneThetaReleaseDiagnostic,
+  q4AnimalMapPenaltySensitivity,
+  q4AnimalRidgeContinuationDiagnostic,
+  q4AnimalPartialCholeskyDiagnostic,
+  q4AnimalTransformAdmissionContract
+) {
+  const evidenceByCell = Object.fromEntries((inferenceEvidence || []).map((row) => [row.cell_id, row]));
+  const recoveryByCell = Object.fromEntries((countRecovery || []).map((row) => [row.linked_cell_id || row.cell_id, row]));
+  const recoveryRollupByCell = Object.fromEntries((recoveryRollup || []).map((row) => [row.cell_id, row]));
+  const recoveryGradeCounts = (recoveryRollup || []).reduce((acc, row) => {
+    acc[row.recovery_grade] = (acc[row.recovery_grade] || 0) + 1;
+    return acc;
+  }, {});
+  const caveatDiagnosticByCell = (countCaveatDiagnostics || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const denominatorDiagnosticByCell = (countDenominatorDiagnostics || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const admissionAuditByCell = Object.fromEntries((admissionAudit || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptDryRunByCell = Object.fromEntries((gaussianLowQMuInterceptDryRun || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptSmokeContractByCell = Object.fromEntries((gaussianLowQMuInterceptSmokeContract || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptSmokeResultByCell = Object.fromEntries((gaussianLowQMuInterceptSmokeResults || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptNibiSmokeResultByCell = Object.fromEntries((gaussianLowQMuInterceptNibiSmokeResults || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptDenominatorContractByCell = Object.fromEntries((gaussianLowQMuInterceptDenominatorContract || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptPregridDispatchByCell = Object.fromEntries((gaussianLowQMuInterceptPregridDispatch || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptPregridResultByCell = Object.fromEntries((gaussianLowQMuInterceptPregridResults || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptTopupDispatchByCell = Object.fromEntries((gaussianLowQMuInterceptTopupDispatch || []).map((row) => [row.cell_id, row]));
+  const lowQMuInterceptSr475ByCell = Object.fromEntries((gaussianLowQMuInterceptSr475Results || []).map((row) => [row.cell_id, row]));
+  const q2InterceptNibiSmokeByCell = (q2InterceptNibiSmoke || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q2PlusQ2NibiSmokeByCell = (q2PlusQ2InterceptNibiSmoke || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  globalThis.__qSeriesQ2InterceptNibiSmokeByCell = q2InterceptNibiSmokeByCell;
+  globalThis.__qSeriesQ2PlusQ2NibiSmokeByCell = q2PlusQ2NibiSmokeByCell;
+  const lowQMuSigmaInterceptSmokeByCell = Object.fromEntries((gaussianLowQMuSigmaInterceptSmoke || []).map((row) => [row.cell_id, row]));
+  const lowQDirectSdUnivariateSmokeByCell = Object.fromEntries((gaussianLowQDirectSdUnivariateSmoke || []).map((row) => [row.cell_id, row]));
+  const lowQSigmaInterceptRouteByCell = Object.fromEntries((gaussianLowQSigmaInterceptRouteContract || []).map((row) => [row.cell_id, row]));
+  const lowQSigmaInterceptSmokeByCell = Object.fromEntries((gaussianLowQSigmaInterceptSmoke || []).map((row) => [row.cell_id, row]));
+  const lowQSigmaInterceptDenominatorByCell = Object.fromEntries((gaussianLowQSigmaInterceptDenominatorContract || []).map((row) => [row.cell_id, row]));
+  const lowQSigmaInterceptPregridDispatchByCell = Object.fromEntries((gaussianLowQSigmaInterceptPregridDispatch || []).map((row) => [row.cell_id, row]));
+  const lowQSigmaInterceptPregridResultByCell = Object.fromEntries((gaussianLowQSigmaInterceptPregridResults || []).map((row) => [row.cell_id, row]));
+  const lowQSigmaProfileRouteReviewByCell = Object.fromEntries((gaussianLowQSigmaProfileRouteReview || []).map((row) => [row.cell_id, row]));
+  const rowGateByCell = Object.fromEntries((rowGateSynthesis || []).map((row) => [row.cell_id, row]));
+  const animalCorHoldoutByCell = Object.fromEntries((animalCorHoldoutDiagnostic || []).map((row) => [row.cell_id, row]));
+  const animalCorPregridByCell = Object.fromEntries((animalCorPregridResults || []).map((row) => [row.cell_id, row]));
+  const animalCorMissDiagnosticByCell = Object.fromEntries((animalCorMissDiagnostic || []).map((row) => [row.cell_id, row]));
+  const boundaryProfileByCell = Object.fromEntries((boundaryProfileDiagnostic || []).map((row) => [row.cell_id, row]));
+  const intervalShapeByCell = (intervalShapeDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const spatialSigmaBoundaryByCell = Object.fromEntries((spatialSigmaBoundaryDiagnostic || []).map((row) => [row.cell_id, row]));
+  const q4AnimalAdmissionByCell = Object.fromEntries((q4AnimalAdmissionProbe || []).map((row) => [row.cell_id, row]));
+  const q4AnimalGeometryByCell = (q4AnimalGeometryDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalNumericalGeometryByCell = (q4AnimalNumericalGeometryDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalOptimizerRouteByCell = (q4AnimalOptimizerRouteDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalStartMapByCell = (q4AnimalStartMapDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalBoundedByCell = (q4AnimalBoundedCorrelationDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalOneThetaByCell = (q4AnimalOneThetaReleaseDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalMapPenaltyByCell = (q4AnimalMapPenaltySensitivity || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalRidgeContinuationByCell = (q4AnimalRidgeContinuationDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalPartialCholeskyByCell = (q4AnimalPartialCholeskyDiagnostic || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const q4AnimalTransformByCell = (q4AnimalTransformAdmissionContract || []).reduce((acc, row) => {
+    const cell = row.cell_id;
+    if (!acc[cell]) acc[cell] = [];
+    acc[cell].push(row);
+    return acc;
+  }, {});
+  const orderedStates = [
+    "inference_ready",
+    "gaussian_baseline_comparator",
+    "fit_supported_baseline",
+    "non_gaussian_recovery_only",
+    "non_gaussian_recovery_caveat",
+    "non_gaussian_recovery_blocked",
+    "recovery_only",
+    "non_gaussian_point_only",
+    "non_gaussian_intercept_recovery_smoke",
+    "gaussian_mu_slope_smoke_passed",
+    "mu_slope_pregrid_planned",
+    "gaussian_lowq_gate_required",
+    "mu_slope_pregrid_blocked",
+    "topup_required",
+    "mcse_met_upper_tail_blocked",
+    "calibration_required",
+    "admission_blocked",
+    "high_q_gate_required",
+    "q8_stability_blocked",
+    "high_q_diagnostic",
+    "gaussian_lowq_diagnostic",
+    "tried_not_inference_ready",
+    "tried_diagnostic",
+    "high_q_planned",
+    "non_gaussian_planned",
+    "planned",
+    "non_gaussian_rejected",
+    "gaussian_lowq_rejected",
+    "unsupported_or_blocked"
+  ];
+  const stateCounts = rows.reduce((acc, row) => {
+    const state = qSeriesSupportState(row, recoveryByCell, admissionAuditByCell, recoveryRollupByCell);
+    acc[state] = (acc[state] || 0) + 1;
+    return acc;
+  }, {});
+  const q8Rows = rows.filter((row) => row.dimension_pattern === "q8").length;
+  const highQRows = rows.filter((row) =>
+    ["q4", "q6", "q8"].includes(row.dimension_pattern)
+  ).length;
+  const nonGaussianRows = rows.filter((row) => row.family_class === "non_gaussian").length;
+  const summary = [
+    ["Total rows", rows.length, "Source TSV rows"],
+    ["Inference-ready", stateCounts.inference_ready || 0, "Interval + coverage ready"],
+    ["Campaign queue", (nextCampaignQueue || []).length, "Compute/hold lanes"],
+    ["Host recheck", (qSeriesHostAccessRecheck || []).length, "Access gates, not claims"],
+    ["Smoke contract", (qSeriesSmokeSubstitutionContract || []).length, "Nibi/Rorqual n=5 only"],
+    ["Q2 intercept Nibi n5", (q2InterceptNibiSmoke || []).length, "Substitute-host boundary smoke"],
+    ["Q2+Q2 Nibi n5", (q2PlusQ2InterceptNibiSmoke || []).length, "Substitute-host boundary smoke"],
+    ["Low-q row select", (gaussianLowQRowSelection || []).length, "Exact row host gates"],
+    ["Low-q special", (gaussianLowQSpecialTargetContract || []).length, "Special target contracts"],
+    ["Low-q direct SD", (gaussianLowQDirectSdUnivariateSmoke || []).length, "mu pass, sigma blocked"],
+    ["Low-q mu dry", (gaussianLowQMuInterceptDryRun || []).length, "Local n=2 screen only"],
+    ["Low-q mu smoke", (gaussianLowQMuInterceptSmokeContract || []).length, "Totoro/FIIA n=5 contract"],
+    ["Low-q mu local n5", (gaussianLowQMuInterceptSmokeResults || []).length, "Local rehearsal, no promotion"],
+    ["Low-q mu Nibi n5", (gaussianLowQMuInterceptNibiSmokeResults || []).length, "Substitute-host smoke only"],
+    ["Low-q mu denom contract", (gaussianLowQMuInterceptDenominatorContract || []).length, "Reviewed SR150 pregrid contract"],
+    ["Low-q mu SR150 job", (gaussianLowQMuInterceptPregridDispatch || []).length, "Completed/imported, no promotion"],
+    ["Low-q mu SR150 result", (gaussianLowQMuInterceptPregridResults || []).length, "Review/top-up pending"],
+    ["Low-q mu top-up job", (gaussianLowQMuInterceptTopupDispatch || []).length, "Completed/imported, no promotion"],
+    ["Low-q mu SR475 review", (gaussianLowQMuInterceptSr475Results || []).length, "Aggregate evidence, no promotion"],
+    ["Low-q mu+sigma", (gaussianLowQMuSigmaInterceptSmoke || []).length, "Local n=1 target smoke"],
+    ["Low-q sigma route", (gaussianLowQSigmaInterceptRouteContract || []).length, "Route contract, no promotion"],
+    ["Low-q sigma smoke", (gaussianLowQSigmaInterceptSmoke || []).length, "Local n=5, no promotion"],
+    ["Low-q sigma denom", (gaussianLowQSigmaInterceptDenominatorContract || []).length, "Animal/relmat review contract"],
+    ["Low-q sigma SR150 job", (gaussianLowQSigmaInterceptPregridDispatch || []).length, "Completed/imported, no promotion"],
+    ["Low-q sigma SR150 result", (gaussianLowQSigmaInterceptPregridResults || []).length, "Diagnostic blocked, no promotion"],
+    ["Low-q sigma route review", (gaussianLowQSigmaProfileRouteReview || []).length, "SR1000 profile blocked/no top-up"],
+    ["Gaussian baselines", stateCounts.gaussian_baseline_comparator || 0, "Ordinary comparators"],
+    ["Fit baseline", stateCounts.fit_supported_baseline || 0, "Supported fit comparators only"],
+    ["NG recovery", stateCounts.non_gaussian_recovery_only || 0, "Count recovery only"],
+    ["Recovery graded", (recoveryRollup || []).length, "Separate recovery-grade rows"],
+    ["Cluster recovery", recoveryGradeCounts.cluster_confirmed_recovery_only || 0, "Rorqual-confirmed"],
+    ["Local recovery", recoveryGradeCounts.local_recovery_only || 0, "Local recovery grid"],
+    ["Recovery caveat", (recoveryGradeCounts.local_recovery_hessian_caveat || 0) + (recoveryGradeCounts.cluster_recovery_caveat || 0), "Hessian caveat retained"],
+    ["NG caveat", stateCounts.non_gaussian_recovery_caveat || 0, "Recovery with caveat"],
+    ["NG top-up", (countTopupRecovery || []).length, "Stronger-denominator recovery"],
+    ["NG cluster dispatch", (countTopupClusterDispatch || []).length, "Primary-cluster confirmation"],
+    ["NG caveat conditions", (countCaveatDiagnostics || []).length, "Condition-level blocker diagnostics"],
+    ["NG denominator conditions", (countDenominatorDiagnostics || []).length, "Stronger-denominator diagnostics"],
+    ["NG blocked", stateCounts.non_gaussian_recovery_blocked || 0, "Recovery attempted, blocked"],
+    ["Recovery-only", stateCounts.recovery_only || 0, "Point recovery, no intervals"],
+    ["NG point", stateCounts.non_gaussian_point_only || 0, "Point/extractor only"],
+    ["NG intercept smoke", stateCounts.non_gaussian_intercept_recovery_smoke || 0, "Count intercept local smoke"],
+    ["Mu-slope smoke", stateCounts.gaussian_mu_slope_smoke_passed || 0, "Gaussian q1 local smoke"],
+    ["Mu pregrid", stateCounts.mu_slope_pregrid_planned || 0, "Gaussian q1 interval probe"],
+    ["Mu SR150 blocked", stateCounts.mu_slope_pregrid_blocked || 0, "Retained pregrid blockers"],
+    ["Mu boundary profiles", (boundaryProfileDiagnostic || []).reduce((sum, row) => sum + Number(row.n_boundary_rows || 0), 0), "Endpoint-profile attempts"],
+    ["Low-q gate", stateCounts.gaussian_lowq_gate_required || 0, "Gaussian point/fixture only"],
+    ["Top-up needed", stateCounts.topup_required || 0, "Coverage measured, not enough"],
+    ["Mu SR475 blocked", stateCounts.mcse_met_upper_tail_blocked || 0, "MCSE met, miss-balance blocked"],
+    ["Mu shape targets", (intervalShapeDiagnostic || []).length, "SR475 target-level blockers"],
+    ["Mu rule screen", (muSlopeRuleScreen || []).length, "Candidate local replays"],
+    ["Mu split cal", (muSlopeSplitCalibration || []).length, "SR150/SR325 replay"],
+    ["Mu review hold", (muSlopeReviewDecision || []).length, "No host top-up before rule"],
+    ["Q2 row gates", (rowGateSynthesis || []).length, "Spatial/animal q2 blockers"],
+    ["Q2 g32 smoke", (g32ProfileWaldSmoke || []).length, "Profile/Wald diagnostic"],
+    ["Animal q2 holdout", (animalCorHoldoutDiagnostic || []).length, "Fixed-8 correlation smoke"],
+    ["Animal q2 pregrid", (animalCorPregridResults || []).length, "SR150 correlation blocker"],
+    ["Animal q2 miss diag", (animalCorMissDiagnostic || []).length, "SR150 miss taxonomy"],
+    ["Spatial sigma diag", (spatialSigmaBoundaryDiagnostic || []).length, "Nibi boundary diagnostic"],
+    ["Animal q4 admission", (q4AnimalAdmissionProbe || []).length, "Direct-SD admission probe"],
+    ["Animal q4 geometry", (q4AnimalGeometryDiagnostic || []).length, "Endpoint Hessian diagnostic"],
+    ["Animal q4 numeric", (q4AnimalNumericalGeometryDiagnostic || []).length, "Gradient/eigen smoke"],
+    ["Animal q4 attempts", (q4AnimalNumericalGeometryAttempts || []).length, "Optimizer attempt ledger"],
+    ["Animal q4 routes", (q4AnimalOptimizerRouteDiagnostic || []).length, "Route rescue diagnostic"],
+    ["Animal q4 start/map", (q4AnimalStartMapDiagnostic || []).length, "Correlation-map diagnostic"],
+    ["Animal q4 bounded", (q4AnimalBoundedCorrelationDiagnostic || []).length, "Cap-saturation diagnostic"],
+    ["Animal q4 one-theta", (q4AnimalOneThetaReleaseDiagnostic || []).length, "Single-coordinate release"],
+    ["Animal q4 MAP", (q4AnimalMapPenaltySensitivity || []).length, "Penalty sensitivity"],
+    ["Animal q4 anneal", (q4AnimalRidgeContinuationDiagnostic || []).length, "Ridge-continuation diagnostic"],
+    ["Animal q4 partial", (q4AnimalPartialCholeskyDiagnostic || []).length, "Partial-Cholesky diagnostic"],
+    ["Animal q4 transform", (q4AnimalTransformAdmissionContract || []).length, "Admission contract"],
+    ["Calibration needed", stateCounts.calibration_required || 0, "Correction not row-signed"],
+    ["Admission blocked", stateCounts.admission_blocked || 0, "Denominator gap first"],
+    ["High-q gate", stateCounts.high_q_gate_required || 0, "q4 fixture, no inference"],
+    ["q8 stability", stateCounts.q8_stability_blocked || 0, "Hessian/geometry first"],
+    ["High-q diagnostic", stateCounts.high_q_diagnostic || 0, "Tried, diagnostic-only"],
+    ["Low-q diagnostic", stateCounts.gaussian_lowq_diagnostic || 0, "Gaussian diagnostic-only"],
+    ["Tried", stateCounts.tried_not_inference_ready || 0, "Fit/fixture/interval work"],
+    ["Diagnostic", stateCounts.tried_diagnostic || 0, "Tried but diagnostic-only"],
+    ["Blocked/unsupported", stateCounts.unsupported_or_blocked || 0, "No promotion from these rows"],
+    ["High-q planned", stateCounts.high_q_planned || 0, "q6/q8 future design rows"],
+    ["NG planned", stateCounts.non_gaussian_planned || 0, "Future family design"],
+    ["NG rejected", stateCounts.non_gaussian_rejected || 0, "Unsupported contracts"],
+    ["Low-q rejected", stateCounts.gaussian_lowq_rejected || 0, "Gaussian unsupported contracts"],
+    ["Planned", stateCounts.planned || 0, "Not yet tried at evidence tier"],
+    ["Non-Gaussian", nonGaussianRows, "q1 family rows"],
+    ["High-q", highQRows, "q4/q6/q8 rows"],
+    ["q8", q8Rows, "Stability first, not coverage"]
+  ];
+  const closureHead = ["Closure bucket", "Rows", "Grain", "Examples", "Meaning", "Next"];
+  const closureTable = (closureTriage || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell">${pill(row.closure_bucket)}<div class="note">${pill(row.widget_state)}</div></div>
+      <div class="cell"><strong>${esc(row.row_count)}</strong><div class="note">${esc(row.gaussian_rows)} Gaussian; ${esc(row.non_gaussian_rows)} non-Gaussian</div></div>
+      <div class="cell">q1 ${esc(row.q1_rows)}; q2 ${esc(row.q2_rows)}; high-q ${esc(row.high_q_rows)}</div>
+      <div class="cell">${esc(row.example_cells)}</div>
+      <div class="cell">${esc(row.status_meaning)}<div class="note">${esc(row.promotion_boundary)}</div></div>
+      <div class="cell">${esc(row.next_action)}</div>
+    </article>`
+  ).join("");
+  const campaignHead = ["Scope", "Rows", "Run mode", "Hosts", "Preconditions", "Stop rule"];
+  const campaignTable = (nextCampaignQueue || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.row_scope)}</strong><div class="note">${esc(row.closure_buckets)}</div></div>
+      <div class="cell">${esc(row.row_count)}<div class="note">${esc(row.owner_review)}</div></div>
+      <div class="cell">${pill(row.run_mode)}<div class="note">${esc(row.readiness_state)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">blocked: ${esc(row.blocked_hosts)}</div></div>
+      <div class="cell">${esc(row.required_preconditions)}<div class="note">${link(row.primary_evidence, "evidence")}</div></div>
+      <div class="cell">${esc(row.stop_rule)}<div class="note">${esc(row.no_claims)}</div></div>
+    </article>`
+  ).join("");
+  const hostHead = ["Host", "Role", "Status", "Project", "Gate", "Next"];
+  const hostTable = (qSeriesHostAccessRecheck || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.host_id)}</strong><div class="note">${esc(row.hostname)}</div></div>
+      <div class="cell">${pill(row.host_role)}<div class="note">${esc(row.checked_at)}</div></div>
+      <div class="cell">${pill(row.command_status)}</div>
+      <div class="cell">${esc(row.project_root_status)}<div class="note">${esc(row.qseries_root_status)} / ${esc(row.source_root_status)}</div></div>
+      <div class="cell">${pill(row.gate_decision)}<div class="note">${esc(row.claim_boundary)}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const smokeSubstitutionHead = ["Scope", "Targets", "Hosts", "Run mode", "Blocked", "Next"];
+  const smokeSubstitutionTable = (qSeriesSmokeSubstitutionContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.row_scope)}</strong><div class="note">${esc(row.contract_date)} ${esc(row.required_reviewers)}</div></div>
+      <div class="cell">${esc(row.target_count)}<div class="note">${esc(row.target_cells)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">substitutes for: ${esc(row.substitutes_for)}</div></div>
+      <div class="cell">${pill(row.allowed_run_mode)}<div class="note">${esc(row.denominator_policy)}</div></div>
+      <div class="cell">${esc(row.blocked_uses)}<div class="note">${pill(row.promotion_decision)} ${esc(row.claim_boundary)}</div></div>
+      <div class="cell">${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const q2PlusQ2NibiSmokeHead = ["Target", "Host", "Fits", "Intervals", "Smoke result", "Next"];
+  const q2InterceptNibiSmokeHead = ["Target", "Host", "Fits", "Intervals", "Smoke result", "Next"];
+  const q2InterceptNibiSmokeTable = (q2InterceptNibiSmoke || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)} ${esc(row.estimand)}</strong><div class="note">${esc(row.target_kind)}; ${esc(row.endpoint_member)}</div></div>
+      <div class="cell">${pill(row.host_class)}<div class="note">${esc(row.host_name)} / ${esc(row.runtime_host_name)}; job ${esc(row.slurm_job_id)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_rep)} converged; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess</div></div>
+      <div class="cell">Wald ${esc(row.n_wald_finite)}/${esc(row.n_rep)} finite<div class="note">profile ${esc(row.n_profile_finite)}/${esc(row.n_rep)} finite</div></div>
+      <div class="cell">${pill(row.smoke_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const q2PlusQ2NibiSmokeTable = (q2PlusQ2InterceptNibiSmoke || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.estimand)}</strong><div class="note">${esc(row.target_kind)}; ${esc(row.endpoint_member)}</div></div>
+      <div class="cell">${pill(row.host_class)}<div class="note">${esc(row.host_name)}; ${esc(row.source_substitution_contract_id)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_rep)} converged; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess</div></div>
+      <div class="cell">Wald ${esc(row.n_wald_finite)}/${esc(row.n_rep)} finite<div class="note">profile ${esc(row.n_profile_finite)}/${esc(row.n_rep)} finite</div></div>
+      <div class="cell">${pill(row.smoke_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQSelectionHead = ["Cell", "Class", "Host gate", "Preconditions", "Status", "Next"];
+  const lowQSelectionTable = (gaussianLowQRowSelection || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.structure_provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.row_selection_class)}<div class="note">${esc(row.endpoint_set)}; ${esc(row.slope_class)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">blocked: ${esc(row.blocked_hosts)}</div></div>
+      <div class="cell">${esc(row.required_preconditions)}<div class="note">first smoke n=${esc(row.first_smoke_n_rep)}</div></div>
+      <div class="cell">${pill(row.selection_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQSpecialHead = ["Special target", "Statuses", "Review", "Boundary", "Next"];
+  const lowQSpecialTable = (gaussianLowQSpecialTargetContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.special_target)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.contract_status)}<div class="note">${esc(row.fit_status)}/${esc(row.interval_status)}/${esc(row.coverage_status)}</div></div>
+      <div class="cell">${esc(row.review_team)}<div class="note">${link(row.evidence_url, "source evidence")}</div></div>
+      <div class="cell">${esc(row.claim_boundary)}</div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQDirectSdHead = ["Target", "Fits", "Wald/profile", "Smoke result", "Boundary", "Next"];
+  const lowQDirectSdTable = (gaussianLowQDirectSdUnivariateSmoke || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.target_axis)}</strong><div class="note">${esc(row.direct_sd_target)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_rep)} converged; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess</div></div>
+      <div class="cell">Wald ${esc(row.n_usable_wald_intervals)}/${esc(row.n_rep)} usable<div class="note">profile ${esc(row.n_profile_finite)}/${esc(row.n_rep)} finite</div></div>
+      <div class="cell">${pill(row.smoke_status)}<div class="note">${esc(row.blocker_signal)}; ${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${esc(row.n_boundary_rows)} boundary<div class="note">warnings ${esc(row.n_warning_replicates)}; ${pill(row.review_decision)}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQDryRunHead = ["Provider/cell", "Fits", "Intervals", "n=2 screen only", "Decision", "Next"];
+  const lowQDryRunTable = (gaussianLowQMuInterceptDryRun || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_rep)} converged; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess</div></div>
+      <div class="cell">${esc(row.n_usable_intervals)}/${esc(row.n_rep)} usable<div class="note">finite rate ${esc(row.finite_interval_rate)}</div></div>
+      <div class="cell">${esc(row.coverage)}<div class="note">not coverage evidence; MCSE ${esc(row.coverage_mcse)}; misses ${esc(row.lower_miss)}/${esc(row.upper_miss)}</div></div>
+      <div class="cell">${pill(row.dry_run_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}</div></div>
+      <div class="cell">${pill(row.smoke_decision)}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const lowQSmokeContractHead = ["Provider/cell", "Smoke", "Hosts", "Sign-off", "Stop rule", "Next"];
+  const lowQSmokeContractTable = (gaussianLowQMuInterceptSmokeContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">n=${esc(row.smoke_n_rep)} ${pill(row.contract_status)}<div class="note">${esc(row.interval_channel)}; ${esc(row.denominator_policy)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">blocked: ${esc(row.blocked_hosts)}; ${esc(row.connectivity_status)}</div></div>
+      <div class="cell">Fisher ${pill(row.fisher_signoff)}<div class="note">Rose ${pill(row.rose_signoff)}; ${pill(row.compute_status)}</div></div>
+      <div class="cell">${esc(row.stop_rule)}</div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const lowQSmokeResultHead = ["Provider/cell", "Host", "Fits", "Intervals", "Smoke result", "Next"];
+  const lowQSmokeResultTable = (gaussianLowQMuInterceptSmokeResults || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.host_class)}<div class="note">${esc(row.host_name)}; ${esc(row.source_contract_id)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_rep)} converged; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess</div></div>
+      <div class="cell">${esc(row.n_usable_intervals)}/${esc(row.n_rep)} usable<div class="note">finite rate ${esc(row.finite_interval_rate)}; warnings ${esc(row.n_warning_replicates)}</div></div>
+      <div class="cell">${pill(row.smoke_status)}<div class="note">${pill(row.review_decision)} ${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQNibiSmokeResultTable = (gaussianLowQMuInterceptNibiSmokeResults || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.host_class)}<div class="note">${esc(row.host_name)}; ${esc(row.source_contract_id)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_rep)} converged; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess</div></div>
+      <div class="cell">${esc(row.n_usable_intervals)}/${esc(row.n_rep)} usable<div class="note">finite rate ${esc(row.finite_interval_rate)}; warnings ${esc(row.n_warning_replicates)}</div></div>
+      <div class="cell">${pill(row.smoke_status)}<div class="note">${pill(row.review_decision)} ${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQDenominatorContractHead = ["Provider/cell", "Target", "Denominator", "Hosts", "Stop rule", "Next"];
+  const lowQDenominatorContractTable = (gaussianLowQMuInterceptDenominatorContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell"><code>${esc(row.profile_target)}</code><div class="note">${esc(row.interval_channel)}</div></div>
+      <div class="cell">SR${esc(row.pregrid_n_rep)}; MCSE ${esc(row.mcse_threshold)}<div class="note">${esc(row.denominator_policy)}; ${esc(row.one_sided_miss_policy)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">blocked: ${esc(row.blocked_hosts)}</div></div>
+      <div class="cell">${esc(row.stop_rule)}</div>
+      <div class="cell">${pill(row.contract_status)} ${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const lowQPregridDispatchHead = ["Provider/cell", "Job", "Run root", "Artifact", "Boundary", "Next"];
+  const lowQPregridDispatchTable = (gaussianLowQMuInterceptPregridDispatch || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.submit_status)}<div class="note">job ${esc(row.slurm_job_id)} on ${esc(row.host)}; n=${esc(row.n_rep)}</div></div>
+      <div class="cell"><code>${esc(row.run_root)}</code><div class="note">${esc(row.submitted_at)}</div></div>
+      <div class="cell"><code>${esc(row.artifact_dir)}</code><div class="note">${esc(row.source_contract_id)}</div></div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "dispatch")}<div class="note">${esc(row.claim_boundary)}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQPregridResultHead = ["Provider/cell", "Denominator", "Coverage", "Misses", "Review", "Next"];
+  const lowQPregridResultTable = (gaussianLowQMuInterceptPregridResults || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.n_retained_denominator)}/${esc(row.n_rep)} retained<div class="note">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess; finite ${esc(row.finite_interval_rate)}</div></div>
+      <div class="cell">${esc(row.coverage)}<div class="note">MCSE ${esc(row.coverage_mcse)}; covered ${esc(row.n_covered)}/${esc(row.n_rep)}</div></div>
+      <div class="cell">lower ${esc(row.lower_miss)} / upper ${esc(row.upper_miss)}<div class="note">upper:lower ${esc(row.upper_lower_miss_ratio)}</div></div>
+      <div class="cell">${pill(row.pregrid_status)} ${pill(row.artifact_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQTopupDispatchHead = ["Provider/cell", "Array job", "Run root", "Artifact", "Boundary", "Next"];
+  const lowQTopupDispatchTable = (gaussianLowQMuInterceptTopupDispatch || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.submit_status)}<div class="note">job ${esc(row.slurm_job_id)} task ${esc(row.array_task)} on ${esc(row.host)}; n=${esc(row.n_rep)} from seed ${esc(row.seed_start)}</div></div>
+      <div class="cell"><code>${esc(row.run_root)}</code><div class="note">${esc(row.submitted_at)}</div></div>
+      <div class="cell"><code>${esc(row.artifact_dir)}</code><div class="note">${esc(row.source_contract_id)}</div></div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "dispatch")}<div class="note">${esc(row.claim_boundary)}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQSr475Head = ["Provider/cell", "Retained", "Coverage", "Misses", "Review", "Next"];
+  const lowQSr475Table = (gaussianLowQMuInterceptSr475Results || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.n_retained_denominator)}/${esc(row.n_rep)} retained<div class="note">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit; ${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess; finite ${esc(row.finite_interval_rate)}</div></div>
+      <div class="cell">${esc(row.coverage)}<div class="note">MCSE ${esc(row.coverage_mcse)}; covered ${esc(row.n_covered)}/${esc(row.n_rep)}</div></div>
+      <div class="cell">lower ${esc(row.lower_miss)} / upper ${esc(row.upper_miss)}<div class="note">${esc(row.one_sided_miss_signal)}</div></div>
+      <div class="cell">${pill(row.review_signal)}<div class="note">${pill(row.review_decision)} ${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQMuSigmaSmokeHead = ["Provider/cell", "Targets", "Fit state", "Intervals", "Smoke result", "Next"];
+  const lowQMuSigmaSmokeTable = (gaussianLowQMuSigmaInterceptSmoke || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.n_targets)} targets<div class="note">sd_mu, sd_sigma, mu-sigma correlation</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_targets)} fit_ok<div class="note">${esc(row.n_converged)}/${esc(row.n_targets)} converged; ${esc(row.n_pdhess)}/${esc(row.n_targets)} pdHess</div></div>
+      <div class="cell">${esc(row.n_usable_intervals)}/${esc(row.n_targets)} usable<div class="note">finite rate ${esc(row.finite_interval_rate)}; warnings ${esc(row.n_warning_targets)}</div></div>
+      <div class="cell">${pill(row.smoke_status)}<div class="note">${esc(row.blocker_signal)}; ${pill(row.promotion_decision)} ${link(row.evidence_url, "artifact")}</div></div>
+      <div class="cell">${pill(row.review_decision)}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const lowQSigmaRouteHead = ["Provider/cell", "Target", "Channels", "Hosts", "Review", "Next"];
+  const lowQSigmaRouteTable = (gaussianLowQSigmaInterceptRouteContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell"><code>${esc(row.direct_sd_target)}</code><div class="note">${esc(row.formula_cell)}</div></div>
+      <div class="cell">${esc(row.interval_channel)}<div class="note">${esc(row.profile_channel)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">blocked: ${esc(row.blocked_hosts)}</div></div>
+      <div class="cell">Fisher ${pill(row.fisher_review)}<div class="note">Gauss ${pill(row.gauss_review)}; Rose ${pill(row.rose_audit)}</div></div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const lowQSigmaDenominatorHead = ["Provider/cell", "Target", "Denominator", "Hosts", "Decision", "Next"];
+  const lowQSigmaDenominatorTable = (gaussianLowQSigmaInterceptDenominatorContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell"><code>${esc(row.direct_sd_target)}</code><div class="note">${esc(row.formula_cell)}</div></div>
+      <div class="cell">SR${esc(row.pregrid_n_rep)}; MCSE ${esc(row.mcse_threshold)}<div class="note">${esc(row.denominator_policy)}</div></div>
+      <div class="cell">${esc(row.allowed_hosts)}<div class="note">blocked: ${esc(row.blocked_hosts)}</div></div>
+      <div class="cell">${pill(row.contract_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQSigmaPregridDispatchHead = ["Provider/cell", "Job", "Run root", "Artifact", "Boundary", "Next"];
+  const lowQSigmaPregridDispatchTable = (gaussianLowQSigmaInterceptPregridDispatch || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.submit_status)}<div class="note">job ${esc(row.slurm_job_id)} on ${esc(row.host)}; n=${esc(row.n_rep)}</div></div>
+      <div class="cell"><code>${esc(row.run_root)}</code><div class="note">${esc(row.submitted_at)}</div></div>
+      <div class="cell"><code>${esc(row.artifact_dir)}</code><div class="note">${esc(row.source_contract_id)}</div></div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "dispatch")}<div class="note">${esc(row.claim_boundary)}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQSigmaPregridResultHead = ["Provider/cell", "Finite intervals", "Coverage", "Warnings", "Review", "Next"];
+  const lowQSigmaPregridResultTable = (gaussianLowQSigmaInterceptPregridResults || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.n_usable_intervals)}/${esc(row.n_rep)} usable<div class="note">finite ${esc(row.finite_interval_rate)}; retained ${esc(row.n_retained_denominator)}</div></div>
+      <div class="cell">${esc(row.coverage)}<div class="note">MCSE ${esc(row.coverage_mcse)}; lower ${esc(row.lower_miss)} / upper ${esc(row.upper_miss)}</div></div>
+      <div class="cell">${esc(row.n_warning_replicates)}/${esc(row.n_rep)} warning reps<div class="note">${esc(row.pregrid_status)}</div></div>
+      <div class="cell">${pill(row.review_decision)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "artifacts")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const lowQSigmaProfileReviewHead = ["Provider/cell", "Replay patch", "SR1000 profile", "Decision", "Next"];
+  const lowQSigmaProfileReviewTable = (gaussianLowQSigmaProfileRouteReview || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.replay_original_profile_finite)} to ${esc(row.boundary_patch_replay_profile_finite)} finite<div class="note">budget ${esc(row.original_endpoint_budget)} to ${esc(row.adaptive_endpoint_budget)}; patch rescued ${esc(row.boundary_patch_replay_profile_rescued)}; tmbprofile ${esc(row.tmbprofile_profile_finite)}</div></div>
+      <div class="cell">${esc(row.boundary_patch_sr1000_profile_coverage)}<div class="note">MCSE ${esc(row.boundary_patch_sr1000_profile_mcse)}; ${esc(row.boundary_patch_sr1000_profile_misses)}; boundary ${esc(row.boundary_patch_sr1000_near_boundary)}</div></div>
+      <div class="cell">${pill(row.route_status)}<div class="note">${pill(row.promotion_decision)} ${link(row.evidence_url, "review")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const orderIndex = Object.fromEntries(orderedStates.map((state, i) => [state, i]));
+  const gateHead = ["Provider/cell", "SD endpoints", "Tail", "Correlation", "g32/profile", "Decision"];
+  const gateTable = (rowGateSynthesis || []).map((gate) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(gate.provider)}</strong><div class="note">${esc(gate.cell_id)}</div></div>
+      <div class="cell">${esc(gate.sd_endpoint_evidence)}</div>
+      <div class="cell">${pill(gate.tail_balance_status)}</div>
+      <div class="cell">${pill(gate.correlation_target_status)}</div>
+      <div class="cell">${pill(gate.g32_profile_wald_status)}</div>
+      <div class="cell">${pill(gate.promotion_decision)} ${link(gate.evidence_url, "evidence")}<div class="note">${esc(gate.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const intervalShapeHead = ["Provider/target", "Denominator", "Coverage", "Misses", "Boundary/profile", "Decision"];
+  const intervalShapeTable = (intervalShapeDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.endpoint_member)}; ${esc(row.direct_sd_target)}</div></div>
+      <div class="cell">${esc(row.n_usable_hybrid_intervals)}/${esc(row.n_replicates)} usable<div class="note">finite rate ${esc(row.finite_interval_rate)}</div></div>
+      <div class="cell">${esc(row.hybrid_coverage_all)}<div class="note">MCSE ${esc(row.hybrid_coverage_mcse)}</div></div>
+      <div class="cell">lower ${esc(row.n_lower_miss)} / upper ${esc(row.n_upper_miss)}<div class="note">upper:lower ${esc(row.upper_lower_miss_ratio)}</div></div>
+      <div class="cell">${esc(row.n_profile_boundary_rows)} boundary rows<div class="note">${esc(row.n_profile_upper_miss)} profile upper misses; failed ${esc(row.n_profile_failed)}</div></div>
+      <div class="cell">${pill(row.diagnostic_verdict)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const ruleScreenHead = ["Candidate rule", "Coverage range", "Miss totals", "Target blockers", "Decision", "Next"];
+  const ruleScreenTable = (muSlopeRuleScreen || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.candidate_label)}</strong><div class="note">${esc(row.screen_id)}</div></div>
+      <div class="cell">${esc(row.min_target_coverage)}-${esc(row.max_target_coverage)}<div class="note">max MCSE ${esc(row.max_target_mcse)}</div></div>
+      <div class="cell">lower ${esc(row.total_lower_miss)} / upper ${esc(row.total_upper_miss)}<div class="note">max upper:lower ${esc(row.max_target_upper_lower_ratio)}</div></div>
+      <div class="cell">${esc(row.n_targets_upper_gt_lower)} upper-heavy targets<div class="note">${esc(row.n_targets_coverage_ge_0_95)}/${esc(row.n_target_rows)} coverage >= 0.95</div></div>
+      <div class="cell">${pill(row.screen_status)}<div class="note">${pill(row.smoke_decision)} ${link(row.evidence_url, "evidence")}</div></div>
+      <div class="cell">${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+  const splitCalibrationHead = ["Provider/target", "Learned delta", "Holdout coverage", "Misses", "Gate", "Next"];
+  const splitCalibrationTable = (muSlopeSplitCalibration || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.endpoint_member)}; ${esc(row.direct_sd_target)}</div></div>
+      <div class="cell">${esc(row.calibration_delta_log_upper)}<div class="note">upper x${esc(row.calibration_upper_multiplier)}; n=${esc(row.calibration_n_usable)}</div></div>
+      <div class="cell">${esc(row.validation_coverage)}<div class="note">MCSE ${esc(row.validation_mcse)}; finite ${esc(row.validation_finite_rate)}</div></div>
+      <div class="cell">lower ${esc(row.validation_lower_miss)} / upper ${esc(row.validation_upper_miss)}<div class="note">rates ${esc(row.validation_lower_miss_rate)} / ${esc(row.validation_upper_miss_rate)}</div></div>
+      <div class="cell">${pill(row.holdout_gate_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.gate_failures)}</div></div>
+      <div class="cell">${pill(row.smoke_decision)}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const muSlopeReviewHead = ["Cell", "Bucket", "Evidence signal", "Rule/calibration", "Host decision", "Next"];
+  const muSlopeReviewTable = (muSlopeReviewDecision || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${pill(row.row_bucket)}<div class="note">${pill(row.promotion_decision)}</div></div>
+      <div class="cell">${esc(row.denominator_summary)}<div class="note">${esc(row.miss_signal)}</div></div>
+      <div class="cell">${esc(row.rule_screen_signal)}<div class="note">${esc(row.calibration_signal)}</div></div>
+      <div class="cell">${pill(row.review_decision)}<div class="note">${esc(row.blocked_hosts)}</div></div>
+      <div class="cell">${link(row.evidence_url, "decision")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const g32Head = ["Provider/cell", "Target", "g/n", "Wald/profile", "Status", "Decision"];
+  const g32Table = (g32ProfileWaldSmoke || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.endpoint_member)}<div class="note">${esc(row.target_kind)}</div></div>
+      <div class="cell">g=${esc(row.g_groups)}, n_each=${esc(row.n_each)}<div class="note">${esc(row.n_rep)} rep(s)</div></div>
+      <div class="cell">${esc(row.n_wald_finite)} Wald finite / ${esc(row.n_profile_finite)} profile finite</div>
+      <div class="cell">${pill(row.smoke_status)}</div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const holdoutHead = ["Provider/cell", "Target", "g/n", "Wald/profile", "Status", "Decision"];
+  const holdoutTable = (animalCorHoldoutDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.endpoint_member)}<div class="note">${esc(row.target_kind)}</div></div>
+      <div class="cell">g=${esc(row.g_groups)}, n_each=${esc(row.n_each)}<div class="note">${esc(row.n_rep)} rep(s), seed ${esc(row.seed_start)}</div></div>
+      <div class="cell">${esc(row.n_wald_finite)} Wald finite / ${esc(row.n_profile_finite)} profile finite</div>
+      <div class="cell">${pill(row.diagnostic_status)}</div>
+      <div class="cell">${pill(row.promotion_decision)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const pregridHead = ["Provider/cell", "Target", "Denominator", "Coverage", "Misses", "Decision"];
+  const pregridTable = (animalCorPregridResults || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.endpoint_member)}<div class="note">${esc(row.target_kind)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_profile_finite)} profile finite; boundary ${esc(row.n_boundary)}</div></div>
+      <div class="cell">Wald ${esc(row.wald_coverage)} / profile ${esc(row.profile_coverage)}<div class="note">MCSE ${esc(row.profile_mcse)}</div></div>
+      <div class="cell">Wald ${esc(row.wald_lower_miss)}/${esc(row.wald_upper_miss)}<div class="note">Profile ${esc(row.profile_lower_miss)}/${esc(row.profile_upper_miss)}</div></div>
+      <div class="cell">${pill(row.pregrid_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const animalMissHead = ["Provider/cell", "Coverage", "Miss overlap", "Boundary", "Decision"];
+  const animalMissTable = (animalCorMissDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">Wald ${esc(row.wald_coverage)} / profile ${esc(row.profile_coverage)}<div class="note">profile MCSE ${esc(row.profile_mcse)}</div></div>
+      <div class="cell">shared upper ${esc(row.both_channel_upper_miss)}; shared lower ${esc(row.both_channel_lower_miss)}<div class="note">Wald-only upper ${esc(row.wald_only_upper_miss)}; miss/boundary rows ${esc(row.miss_or_boundary_rows)}</div></div>
+      <div class="cell">${esc(row.n_boundary)} boundary<div class="note">seeds ${esc(row.boundary_seeds)}</div></div>
+      <div class="cell">${pill(row.diagnostic_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const spatialSigmaHead = ["Provider/cell", "Target", "Finite", "Coverage", "Boundary", "Decision"];
+  const spatialSigmaTable = (spatialSigmaBoundaryDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.provider)}</strong><div class="note">${esc(row.cell_id)}</div></div>
+      <div class="cell">${esc(row.endpoint_member)}<div class="note">${esc(row.cluster_host)} job ${esc(row.cluster_job)}</div></div>
+      <div class="cell">${esc(row.n_wald_finite)}/${esc(row.planned_reps)} Wald finite<div class="note">profile ${esc(row.n_profile_finite)}/${esc(row.planned_reps)}</div></div>
+      <div class="cell">Wald ${esc(row.wald_coverage)} finite / ${esc(row.wald_retained_coverage)} retained<div class="note">profile ${esc(row.profile_coverage)}, MCSE ${esc(row.profile_mcse)}</div></div>
+      <div class="cell">${esc(row.n_wald_boundary_estimate)} boundary-small<div class="note">max ${esc(row.max_nonfinite_estimate_sd)}</div></div>
+      <div class="cell">${pill(row.diagnostic_verdict)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalHead = ["Cell/variant", "Denominator", "Wald/profile", "pdHess", "Decision"];
+  const q4AnimalTable = (q4AnimalAdmissionProbe || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.structured_type)}</strong><div class="note">${esc(row.cell_id)}; ${esc(row.variant)}</div></div>
+      <div class="cell">${esc(row.n_fit_ok)}/${esc(row.n_rep)} fit_ok<div class="note">${esc(row.n_target_rep_rows)} direct-SD target-replicate rows</div></div>
+      <div class="cell">Wald ${esc(row.n_wald_finite)}/${esc(row.n_target_rep_rows)}<div class="note">profile ${esc(row.n_profile_finite)}/${esc(row.n_target_rep_rows)}</div></div>
+      <div class="cell">${esc(row.n_pdhess)}/${esc(row.n_rep)} pdHess<div class="note">rate ${esc(row.pdhess_rate)}</div></div>
+      <div class="cell">${pill(row.admission_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalGeometryHead = ["Endpoint", "Estimates", "Near boundary", "Profile", "Signal"];
+  const q4AnimalGeometryTable = (q4AnimalGeometryDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.endpoint_member)}</strong><div class="note">${esc(row.estimand)}</div></div>
+      <div class="cell">${esc(row.estimate_min)} - ${esc(row.estimate_max)}<div class="note">median ${esc(row.estimate_median)}</div></div>
+      <div class="cell">&lt;0.10: ${esc(row.n_estimate_lt_0_10)}<div class="note">&lt;0.20: ${esc(row.n_estimate_lt_0_20)}</div></div>
+      <div class="cell">${esc(row.profile_finite_when_pdhess_true)} finite / ${esc(row.profile_nonfinite_when_pdhess_true)} nonfinite<div class="note">${esc(row.profile_not_run_pdhess_false)} skipped for !pdHess</div></div>
+      <div class="cell">${pill(row.geometry_signal)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalNumericalHead = ["Rep/seed", "Optimizer", "Gradient", "cov.fixed", "q4 geometry", "Decision"];
+  const q4AnimalNumericalTable = (q4AnimalNumericalGeometryDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.optimizer_selected_preset)}<div class="note">attempt ${esc(row.selected_attempt)}/${esc(row.optimizer_attempt_count)}; worse-best ${esc(row.selected_worse_than_best)}</div></div>
+      <div class="cell">max |grad| ${esc(row.max_abs_gradient_fixed)}<div class="note">${esc(row.max_gradient_parameter)}</div></div>
+      <div class="cell">${esc(row.n_cov_fixed_nonpositive_eigenvalues)} nonpositive eigens<div class="note">min ${esc(row.sdr_cov_fixed_eig_min)}</div></div>
+      <div class="cell">theta max ${esc(row.theta_max_abs)}<div class="note">corr log10 cond ${esc(row.corr_log10_condition)}; cov ${esc(row.cov_log10_condition)}</div></div>
+      <div class="cell">${pill(row.geometry_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalAttemptHead = ["Rep/seed", "Attempt", "Optimizer", "Convergence", "Objective", "Selected"];
+  const q4AnimalAttemptTable = (q4AnimalNumericalGeometryAttempts || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}</div></div>
+      <div class="cell">${esc(row.attempt)}</div>
+      <div class="cell">${esc(row.optimizer_preset)}</div>
+      <div class="cell">${esc(row.convergence)}<div class="note">${esc(row.status)}</div></div>
+      <div class="cell">${esc(row.objective)}<div class="note">delta ${esc(row.objective_delta_from_best)}</div></div>
+      <div class="cell">${pill(row.selected === "TRUE" ? "selected" : "not_selected")}</div>
+    </article>`
+  ).join("");
+  const q4AnimalRouteHead = ["Rep/seed", "Route", "Optimizer", "Gradient", "Geometry", "Decision"];
+  const q4AnimalRouteTable = (q4AnimalOptimizerRouteDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.route)}<div class="note">${esc(row.rescue_status)}</div></div>
+      <div class="cell">${esc(row.optimizer_selected_preset)}<div class="note">attempts ${esc(row.optimizer_attempt_count)}; worse-best ${esc(row.selected_worse_than_best)}</div></div>
+      <div class="cell">max |grad| ${esc(row.max_abs_gradient_fixed)}<div class="note">negative cov eigens ${esc(row.sdr_cov_fixed_n_negative)}</div></div>
+      <div class="cell">theta max ${esc(row.theta_max_abs)}<div class="note">corr log10 cond ${esc(row.corr_log10_condition)}</div></div>
+      <div class="cell">${pill(row.route_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalStartMapHead = ["Rep/seed", "Strategy", "Map/start", "Gradient", "Geometry", "Decision"];
+  const q4AnimalStartMapTable = (q4AnimalStartMapDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.strategy)}<div class="note">${esc(row.staged_from_strategy)}</div></div>
+      <div class="cell">theta ${esc(row.map_theta_phylo)}<div class="note">sd ${esc(row.map_log_sd_phylo)}; starts ${esc(row.start_log_sd_source)} / ${esc(row.start_theta_source)}</div></div>
+      <div class="cell">max |grad| ${esc(row.max_abs_gradient_fixed)}<div class="note">negative cov eigens ${esc(row.sdr_cov_fixed_n_negative)}</div></div>
+      <div class="cell">theta max ${esc(row.theta_max_abs)}<div class="note">corr log10 cond ${esc(row.corr_log10_condition)}</div></div>
+      <div class="cell">${pill(row.strategy_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.blocker_component)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalBoundedHead = ["Rep/seed", "Strategy", "Cap", "Gradients", "Geometry", "Decision"];
+  const q4AnimalBoundedTable = (q4AnimalBoundedCorrelationDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.strategy)}<div class="note">${esc(row.theta_parameterization)}</div></div>
+      <div class="cell">cap ${esc(row.theta_cap)}<div class="note">saturated ${esc(row.cap_saturation)}</div></div>
+      <div class="cell">fixed ${esc(row.max_abs_gradient_fixed)}<div class="note">outer ${esc(row.max_abs_gradient_outer)}</div></div>
+      <div class="cell">theta max ${esc(row.theta_max_abs)}<div class="note">eta max ${esc(row.theta_eta_max_abs)}; corr log10 cond ${esc(row.corr_log10_condition)}</div></div>
+      <div class="cell">${pill(row.strategy_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.blocker_component)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalOneThetaHead = ["Rep/theta", "Endpoint pair", "Gain", "Gradient/cov", "Theta/SD", "Decision"];
+  const q4AnimalOneThetaTable = (q4AnimalOneThetaReleaseDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)} / theta ${esc(row.theta_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.endpoint_i)}<div class="note">with ${esc(row.endpoint_j)}</div></div>
+      <div class="cell">${esc(row.objective_gain_vs_zero)}<div class="note">zero ${esc(row.zero_control_objective)}</div></div>
+      <div class="cell">max |grad| ${esc(row.max_abs_gradient_fixed)}<div class="note">min eig ${esc(row.sdr_cov_fixed_eig_min)}; neg ${esc(row.sdr_cov_fixed_n_negative)}</div></div>
+      <div class="cell">|theta| ${esc(row.theta_abs)}<div class="note">max SD shift ${esc(row.max_abs_direct_sd_shift_vs_zero)}</div></div>
+      <div class="cell">${pill(row.release_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.blocker_component)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalMapPenaltyHead = ["Rep/seed", "Strategy", "Penalty", "Objective", "Theta/SD", "Decision"];
+  const q4AnimalMapPenaltyTable = (q4AnimalMapPenaltySensitivity || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.strategy)}<div class="note">${esc(row.theta_set_label)}: ${esc(row.theta_indices)}</div></div>
+      <div class="cell">lambda ${esc(row.penalty_lambda)}<div class="note">penalty ${esc(row.penalty_value)}</div></div>
+      <div class="cell">gain ${esc(row.objective_gain_vs_zero)}<div class="note">unpen ${esc(row.unpenalized_objective)} / penal ${esc(row.penalized_objective)}</div></div>
+      <div class="cell">released |theta| ${esc(row.released_theta_max_abs)}<div class="note">max SD shift ${esc(row.max_abs_direct_sd_shift_vs_zero)}</div></div>
+      <div class="cell">${pill(row.sensitivity_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.blocker_component)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalRidgeContinuationHead = ["Rep/seed", "Strategy", "Stage", "Objective", "Theta/SD", "Decision"];
+  const q4AnimalRidgeContinuationTable = (q4AnimalRidgeContinuationDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.strategy)}<div class="note">${esc(row.theta_set_label)}: ${esc(row.theta_indices)}</div></div>
+      <div class="cell">stage ${esc(row.stage_index)}/${esc(row.stage_count)}<div class="note">lambda ${esc(row.penalty_lambda)} after ${esc(row.previous_penalty_lambda)}</div></div>
+      <div class="cell">gain ${esc(row.objective_gain_vs_zero)}<div class="note">unpen ${esc(row.unpenalized_objective)} / penal ${esc(row.penalized_objective)}</div></div>
+      <div class="cell">released |theta| ${esc(row.released_theta_max_abs)}<div class="note">max SD shift ${esc(row.max_abs_direct_sd_shift_vs_zero)}</div></div>
+      <div class="cell">${pill(row.continuation_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.blocker_component)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalPartialCholeskyHead = ["Rep/seed", "Route", "Gradients", "Correlation", "Intervals", "Decision"];
+  const q4AnimalPartialCholeskyTable = (q4AnimalPartialCholeskyDiagnostic || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.replicate_index)}</strong><div class="note">seed ${esc(row.seed)}; pdHess ${esc(row.pdHess)}</div></div>
+      <div class="cell">${esc(row.route)}<div class="note">${esc(row.transform_family)}</div></div>
+      <div class="cell">fixed ${esc(row.max_abs_gradient_fixed)}<div class="note">outer ${esc(row.max_abs_gradient_outer)}; eta ${esc(row.max_abs_eta_partial)}</div></div>
+      <div class="cell">max |corr| ${esc(row.max_abs_corr)}<div class="note">margin ${esc(row.corr_boundary_margin_min)}</div></div>
+      <div class="cell">${esc(row.n_direct_sd_interval_finite)}/${esc(row.n_direct_sd_interval_rows)} finite<div class="note">${esc(row.direct_sd_interval_method)}</div></div>
+      <div class="cell">${pill(row.admission_status)} ${link(row.evidence_url, "evidence")}<div class="note">${esc(row.blocker_component)}</div></div>
+    </article>`
+  ).join("");
+  const q4AnimalTransformHead = ["Route", "Kind", "Signal", "Admission", "Cluster", "Next gate"];
+  const q4AnimalTransformTable = (q4AnimalTransformAdmissionContract || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.candidate_route)}</strong><div class="note">${esc(row.hard_seed_scope)}</div></div>
+      <div class="cell">${esc(row.route_kind)}<div class="note">${esc(row.source_evidence)}</div></div>
+      <div class="cell">${esc(row.observed_signal)}<div class="note">${esc(row.observed_blocker)}</div></div>
+      <div class="cell">${pill(row.admission_status)}<div class="note">${esc(row.admission_decision)}</div></div>
+      <div class="cell">${esc(row.cluster_policy)}<div class="note">${esc(row.interval_claim_status)} / ${esc(row.coverage_status)}</div></div>
+      <div class="cell">${link(row.evidence_url, "evidence")}<div class="note">${esc(row.next_gate)}</div></div>
+    </article>`
+  ).join("");
+  const sortedRows = [...rows].sort((a, b) => {
+    const stateDelta = (orderIndex[qSeriesSupportState(a, recoveryByCell, admissionAuditByCell, recoveryRollupByCell)] ?? 99) -
+      (orderIndex[qSeriesSupportState(b, recoveryByCell, admissionAuditByCell, recoveryRollupByCell)] ?? 99);
+    if (stateDelta) return stateDelta;
+    return ["family_class", "dimension_pattern", "structure_provider", "endpoint_set", "cell_id"]
+      .map((field) => (a[field] || "").localeCompare(b[field] || ""))
+      .find((delta) => delta) || 0;
+  });
+  const head = [
+    "Row state",
+    "Cell",
+    "Family",
+    "Provider/q",
+    "Endpoint/slope",
+    "Stability",
+    "Recovery",
+    "Inference",
+    "Fit",
+    "Interval",
+    "Coverage",
+    "Evidence and next gate"
+  ];
+  const table = sortedRows.map((row) =>
+    `<article class="qseries-row">
+      <div class="cell">${pill(qSeriesSupportState(row, recoveryByCell, admissionAuditByCell, recoveryRollupByCell))}</div>
+      <div class="cell"><strong>${esc(row.cell_id)}</strong><div class="note"><code>${esc(row.formula_cell)}</code></div></div>
+      <div class="cell">${esc(row.family)}<div class="note">${esc(row.family_class)}</div></div>
+      <div class="cell">${esc(row.structure_provider)}<div class="note">${esc(row.dimension_pattern)} ${esc(row.covariance_layout)}</div></div>
+      <div class="cell">${esc(row.endpoint_set)}<div class="note">${esc(row.slope_class)}</div></div>
+      <div class="cell">${pill(qSeriesStability(row))}<div class="note">${esc(row.extractor_status)} / ${esc(row.bridge_status)}</div></div>
+      <div class="cell">${pill(qSeriesRecovery(row, recoveryRollupByCell, recoveryByCell))}</div>
+      <div class="cell">${pill(qSeriesInference(row))}</div>
+      <div class="cell">${pill(row.fit_status)}</div>
+      <div class="cell">${pill(row.interval_status)}</div>
+      <div class="cell">${pill(row.coverage_status)}</div>
+      <div class="cell">${link(row.evidence_url, "evidence")}${evidenceByCell[row.cell_id] ? ` ${link(evidenceByCell[row.cell_id].evidence_url, "summary")}` : ""}${lowQMuInterceptDryRunByCell[row.cell_id] ? ` ${link(lowQMuInterceptDryRunByCell[row.cell_id].evidence_url, "dry-run")}` : ""}${lowQMuInterceptSmokeContractByCell[row.cell_id] ? ` ${link(lowQMuInterceptSmokeContractByCell[row.cell_id].evidence_url, "smoke contract")}` : ""}${lowQMuInterceptSmokeResultByCell[row.cell_id] ? ` ${link(lowQMuInterceptSmokeResultByCell[row.cell_id].evidence_url, "local n5")}` : ""}${lowQMuInterceptNibiSmokeResultByCell[row.cell_id] ? ` ${link(lowQMuInterceptNibiSmokeResultByCell[row.cell_id].evidence_url, "Nibi n5")}` : ""}${lowQMuInterceptDenominatorContractByCell[row.cell_id] ? ` ${link(lowQMuInterceptDenominatorContractByCell[row.cell_id].evidence_url, "mu denom contract")}` : ""}${lowQMuInterceptPregridDispatchByCell[row.cell_id] ? ` ${link(lowQMuInterceptPregridDispatchByCell[row.cell_id].evidence_url, "SR150 job")}` : ""}${lowQMuInterceptSr475ByCell[row.cell_id] ? ` ${link(lowQMuInterceptSr475ByCell[row.cell_id].evidence_url, "SR475 review")}` : ""}${q2InterceptNibiSmokeByCell[row.cell_id] ? ` ${link(q2InterceptNibiSmokeByCell[row.cell_id][0].evidence_url, "q2 Nibi n5")}` : ""}${q2PlusQ2NibiSmokeByCell[row.cell_id] ? ` ${link(q2PlusQ2NibiSmokeByCell[row.cell_id][0].evidence_url, "q2+q2 Nibi n5")}` : ""}${lowQMuSigmaInterceptSmokeByCell[row.cell_id] ? ` ${link(lowQMuSigmaInterceptSmokeByCell[row.cell_id].evidence_url, "mu+sigma smoke")}` : ""}${lowQDirectSdUnivariateSmokeByCell[row.cell_id] ? ` ${link(lowQDirectSdUnivariateSmokeByCell[row.cell_id].evidence_url, "direct-SD smoke")}` : ""}${lowQSigmaInterceptRouteByCell[row.cell_id] ? ` ${link(lowQSigmaInterceptRouteByCell[row.cell_id].evidence_url, "sigma route")}` : ""}${lowQSigmaInterceptSmokeByCell[row.cell_id] ? ` ${link(lowQSigmaInterceptSmokeByCell[row.cell_id].evidence_url, "sigma smoke")}` : ""}${lowQSigmaInterceptDenominatorByCell[row.cell_id] ? ` ${link(lowQSigmaInterceptDenominatorByCell[row.cell_id].evidence_url, "sigma denom contract")}` : ""}${lowQSigmaProfileRouteReviewByCell[row.cell_id] ? ` ${link(lowQSigmaProfileRouteReviewByCell[row.cell_id].evidence_url, "sigma route review")}` : ""}${recoveryByCell[row.cell_id] ? ` ${link(recoveryByCell[row.cell_id].evidence_url, "recovery")}` : ""}${recoveryRollupByCell[row.cell_id] ? ` ${link(recoveryRollupByCell[row.cell_id].evidence_url, "rollup")}` : ""}${caveatDiagnosticByCell[row.cell_id] ? ` ${link(caveatDiagnosticByCell[row.cell_id][0].evidence_url, "caveat diagnostic")}` : ""}${denominatorDiagnosticByCell[row.cell_id] ? ` ${link(denominatorDiagnosticByCell[row.cell_id][0].evidence_url, "denominator diagnostic")}` : ""}${admissionAuditByCell[row.cell_id] ? ` ${link(admissionAuditByCell[row.cell_id].evidence_url, "admission")}` : ""}${rowGateByCell[row.cell_id] ? ` ${link(rowGateByCell[row.cell_id].evidence_url, "row gate")}` : ""}${animalCorHoldoutByCell[row.cell_id] ? ` ${link(animalCorHoldoutByCell[row.cell_id].evidence_url, "animal holdout")}` : ""}${animalCorPregridByCell[row.cell_id] ? ` ${link(animalCorPregridByCell[row.cell_id].evidence_url, "animal pregrid")}` : ""}${animalCorMissDiagnosticByCell[row.cell_id] ? ` ${link(animalCorMissDiagnosticByCell[row.cell_id].evidence_url, "animal miss")}` : ""}${boundaryProfileByCell[row.cell_id] ? ` ${link(boundaryProfileByCell[row.cell_id].evidence_url, "boundary profile")}` : ""}${intervalShapeByCell[row.cell_id] ? ` ${link(intervalShapeByCell[row.cell_id][0].evidence_url, "interval shape")}` : ""}${spatialSigmaBoundaryByCell[row.cell_id] ? ` ${link(spatialSigmaBoundaryByCell[row.cell_id].evidence_url, "spatial sigma diag")}` : ""}${q4AnimalAdmissionByCell[row.cell_id] ? ` ${link(q4AnimalAdmissionByCell[row.cell_id].evidence_url, "q4 animal admission")}` : ""}${q4AnimalGeometryByCell[row.cell_id] ? ` ${link(q4AnimalGeometryByCell[row.cell_id][0].evidence_url, "q4 animal geometry")}` : ""}${q4AnimalNumericalGeometryByCell[row.cell_id] ? ` ${link(q4AnimalNumericalGeometryByCell[row.cell_id][0].evidence_url, "q4 numeric geometry")}` : ""}${q4AnimalOptimizerRouteByCell[row.cell_id] ? ` ${link(q4AnimalOptimizerRouteByCell[row.cell_id][0].evidence_url, "q4 optimizer routes")}` : ""}${q4AnimalStartMapByCell[row.cell_id] ? ` ${link(q4AnimalStartMapByCell[row.cell_id][0].evidence_url, "q4 start/map")}` : ""}${q4AnimalBoundedByCell[row.cell_id] ? ` ${link(q4AnimalBoundedByCell[row.cell_id][0].evidence_url, "q4 bounded")}` : ""}${q4AnimalOneThetaByCell[row.cell_id] ? ` ${link(q4AnimalOneThetaByCell[row.cell_id][0].evidence_url, "q4 one-theta")}` : ""}${q4AnimalMapPenaltyByCell[row.cell_id] ? ` ${link(q4AnimalMapPenaltyByCell[row.cell_id][0].evidence_url, "q4 MAP/penalty")}` : ""}${q4AnimalRidgeContinuationByCell[row.cell_id] ? ` ${link(q4AnimalRidgeContinuationByCell[row.cell_id][0].evidence_url, "q4 ridge continuation")}` : ""}${q4AnimalPartialCholeskyByCell[row.cell_id] ? ` ${link(q4AnimalPartialCholeskyByCell[row.cell_id][0].evidence_url, "q4 partial")}` : ""}${q4AnimalTransformByCell[row.cell_id] ? ` ${link(q4AnimalTransformByCell[row.cell_id][0].evidence_url, "q4 transform")}` : ""}<div class="note">${esc(row.next_gate)}</div>${qSeriesEvidenceSummary(row, evidenceByCell, recoveryByCell, recoveryRollupByCell, caveatDiagnosticByCell, denominatorDiagnosticByCell, admissionAuditByCell, rowGateByCell, animalCorHoldoutByCell, animalCorPregridByCell, animalCorMissDiagnosticByCell, boundaryProfileByCell, spatialSigmaBoundaryByCell, q4AnimalAdmissionByCell, q4AnimalNumericalGeometryByCell, q4AnimalOptimizerRouteByCell, q4AnimalStartMapByCell, q4AnimalBoundedByCell, q4AnimalOneThetaByCell, q4AnimalMapPenaltyByCell, q4AnimalRidgeContinuationByCell, q4AnimalPartialCholeskyByCell, q4AnimalTransformByCell, lowQMuInterceptDryRunByCell, q2InterceptNibiSmokeByCell, q2PlusQ2NibiSmokeByCell)}</div>
+    </article>`
+  ).join("");
+  document.getElementById("q-series-board").innerHTML =
+    `<div class="qseries-summary">${summary.map(([label, value, note]) =>
+      `<article class="status-cell"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
+    ).join("")}</div>
+      ${closureTable ? `<div class="gate-table"><article class="gate-row gate-head">${closureHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${closureTable}</div>` : ""}
+      ${campaignTable ? `<div class="gate-table"><article class="gate-row gate-head">${campaignHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${campaignTable}</div>` : ""}
+      ${hostTable ? `<div class="gate-table"><article class="gate-row gate-head">${hostHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${hostTable}</div>` : ""}
+      ${smokeSubstitutionTable ? `<div class="gate-table"><article class="gate-row gate-head">${smokeSubstitutionHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${smokeSubstitutionTable}</div>` : ""}
+      ${q2InterceptNibiSmokeTable ? `<div class="gate-table"><article class="gate-row gate-head">${q2InterceptNibiSmokeHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q2InterceptNibiSmokeTable}</div>` : ""}
+      ${q2PlusQ2NibiSmokeTable ? `<div class="gate-table"><article class="gate-row gate-head">${q2PlusQ2NibiSmokeHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q2PlusQ2NibiSmokeTable}</div>` : ""}
+      ${lowQSelectionTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSelectionHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSelectionTable}</div>` : ""}
+      ${lowQSpecialTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSpecialHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSpecialTable}</div>` : ""}
+      ${lowQDirectSdTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQDirectSdHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQDirectSdTable}</div>` : ""}
+      ${lowQDryRunTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQDryRunHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQDryRunTable}</div>` : ""}
+      ${lowQSmokeContractTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSmokeContractHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSmokeContractTable}</div>` : ""}
+      ${lowQSmokeResultTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSmokeResultHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSmokeResultTable}</div>` : ""}
+      ${lowQNibiSmokeResultTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSmokeResultHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQNibiSmokeResultTable}</div>` : ""}
+      ${lowQDenominatorContractTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQDenominatorContractHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQDenominatorContractTable}</div>` : ""}
+      ${lowQPregridDispatchTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQPregridDispatchHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQPregridDispatchTable}</div>` : ""}
+      ${lowQPregridResultTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQPregridResultHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQPregridResultTable}</div>` : ""}
+      ${lowQTopupDispatchTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQTopupDispatchHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQTopupDispatchTable}</div>` : ""}
+      ${lowQSr475Table ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSr475Head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSr475Table}</div>` : ""}
+      ${lowQMuSigmaSmokeTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQMuSigmaSmokeHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQMuSigmaSmokeTable}</div>` : ""}
+      ${lowQSigmaRouteTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSigmaRouteHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSigmaRouteTable}</div>` : ""}
+      ${lowQSigmaDenominatorTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSigmaDenominatorHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSigmaDenominatorTable}</div>` : ""}
+      ${lowQSigmaPregridDispatchTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSigmaPregridDispatchHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSigmaPregridDispatchTable}</div>` : ""}
+      ${lowQSigmaPregridResultTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSigmaPregridResultHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSigmaPregridResultTable}</div>` : ""}
+      ${lowQSigmaProfileReviewTable ? `<div class="gate-table"><article class="gate-row gate-head">${lowQSigmaProfileReviewHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${lowQSigmaProfileReviewTable}</div>` : ""}
+      ${muSlopeReviewTable ? `<div class="gate-table"><article class="gate-row gate-head">${muSlopeReviewHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${muSlopeReviewTable}</div>` : ""}
+      ${intervalShapeTable ? `<div class="gate-table"><article class="gate-row gate-head">${intervalShapeHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${intervalShapeTable}</div>` : ""}
+      ${ruleScreenTable ? `<div class="gate-table"><article class="gate-row gate-head">${ruleScreenHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${ruleScreenTable}</div>` : ""}
+      ${splitCalibrationTable ? `<div class="gate-table"><article class="gate-row gate-head">${splitCalibrationHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${splitCalibrationTable}</div>` : ""}
+      ${gateTable ? `<div class="gate-table"><article class="gate-row gate-head">${gateHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${gateTable}</div>` : ""}
+      ${g32Table ? `<div class="gate-table"><article class="gate-row gate-head">${g32Head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${g32Table}</div>` : ""}
+      ${holdoutTable ? `<div class="gate-table"><article class="gate-row gate-head">${holdoutHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${holdoutTable}</div>` : ""}
+      ${pregridTable ? `<div class="gate-table"><article class="gate-row gate-head">${pregridHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${pregridTable}</div>` : ""}
+      ${animalMissTable ? `<div class="gate-table"><article class="gate-row gate-head">${animalMissHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${animalMissTable}</div>` : ""}
+      ${spatialSigmaTable ? `<div class="gate-table"><article class="gate-row gate-head">${spatialSigmaHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${spatialSigmaTable}</div>` : ""}
+      ${q4AnimalTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalTable}</div>` : ""}
+      ${q4AnimalGeometryTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalGeometryHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalGeometryTable}</div>` : ""}
+      ${q4AnimalNumericalTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalNumericalHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalNumericalTable}</div>` : ""}
+      ${q4AnimalAttemptTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalAttemptHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalAttemptTable}</div>` : ""}
+      ${q4AnimalRouteTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalRouteHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalRouteTable}</div>` : ""}
+      ${q4AnimalStartMapTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalStartMapHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalStartMapTable}</div>` : ""}
+      ${q4AnimalBoundedTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalBoundedHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalBoundedTable}</div>` : ""}
+      ${q4AnimalOneThetaTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalOneThetaHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalOneThetaTable}</div>` : ""}
+      ${q4AnimalMapPenaltyTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalMapPenaltyHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalMapPenaltyTable}</div>` : ""}
+      ${q4AnimalRidgeContinuationTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalRidgeContinuationHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalRidgeContinuationTable}</div>` : ""}
+      ${q4AnimalPartialCholeskyTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalPartialCholeskyHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalPartialCholeskyTable}</div>` : ""}
+      ${q4AnimalTransformTable ? `<div class="gate-table"><article class="gate-row gate-head">${q4AnimalTransformHead.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${q4AnimalTransformTable}</div>` : ""}
+      <div class="note">Rows are sorted by evidence state. Fit stability, recovery grade, host access, local smoke evidence, substitute-host smoke evidence, admission state, row-gate synthesis, g=32 smoke, fixed-8 holdout diagnostics, fixed-8 pregrid blockers, fixed-8 miss diagnostics, spatial sigma boundary diagnostics, animal q4 admission, Hessian-geometry, numerical-geometry, optimizer-route, start/map, bounded-correlation, one-theta release, MAP/penalty sensitivity diagnostics, ridge-continuation diagnostics, partial-Cholesky transform diagnostics, and transform-admission contract, inference readiness, interval status, and coverage status are separate signals; a tried, fit-stable, recovery-only, recovery-caveated, non-Gaussian point-only, count-intercept-smoke, local-smoke-passed, host-reachable, substitute-host-smoke-passed, mu-slope-pregrid-planned, mu-slope-pregrid-blocked, low-q-gated, top-up-required, SR475-review-pending, MCSE-met-upper-tail-blocked, calibration-required, admission-blocked, row-blocked, or high-q-gated row is not inference-ready unless both interval and coverage are <code>inference_ready</code>. Promoted rows show their interval channel, denominator, coverage, and miss-balance summary from <code>structured-re-q-series-inference-evidence-summary.tsv</code>; the current compute/hold queue is tracked in <code>structured-re-q-series-next-campaign-queue.tsv</code>; host access is tracked in <code>structured-re-q-series-host-access-recheck.tsv</code>; the exact Gaussian low-q row host gate is tracked in <code>structured-re-gaussian-lowq-row-selection.tsv</code>, the q1 direct-SD univariate target split is tracked in <code>structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv</code>, the q1 mu-intercept local n=5 smoke is tracked in <code>structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv</code>, the q1 mu-intercept Nibi n=5 substitute smoke is tracked in <code>structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv</code>, the q1 mu-intercept retained-denominator contract is tracked in <code>structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv</code>, the completed SR150 pregrid dispatch is tracked in <code>structured-re-gaussian-lowq-mu-intercept-pregrid-dispatch.tsv</code>, the imported SR150 review/top-up result is tracked in <code>structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv</code>, the completed/imported SR475 top-up array is tracked in <code>structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv</code>, the SR475 aggregate review is tracked in <code>structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv</code>, the q1 mu+sigma local n=1 target smoke is tracked in <code>structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv</code>, and the q1 sigma-intercept route contract is tracked in <code>structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv</code>, its local n=5 smoke is tracked in <code>structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv</code>, and the current q1 sigma route blocker is tracked in <code>structured-re-gaussian-lowq-sigma-profile-route-review.tsv</code>; count recovery rows show recovery metrics from <code>structured-re-count-slope-recovery-results.tsv</code>, <code>structured-re-count-slope-cluster-recovery-results.tsv</code>, <code>structured-re-count-intercept-recovery-results.tsv</code>, <code>structured-re-count-intercept-cluster-recovery-results.tsv</code>, <code>structured-re-count-intercept-topup-recovery-results.tsv</code>, <code>structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv</code>, and the separate grade rollup <code>structured-re-nongaussian-recovery-rollup.tsv</code>; primary-cluster dispatch for the count-intercept top-up is tracked in <code>structured-re-count-intercept-topup-cluster-dispatch.tsv</code> and the fetched count-slope/count-intercept result TSVs are validated as recovery-only evidence; historical recovery-caveated count rows also show condition-level blocker diagnostics from <code>structured-re-count-intercept-caveat-diagnostic.tsv</code> and stronger-denominator diagnostics from <code>structured-re-count-intercept-denominator-diagnostic.tsv</code>; Gaussian mu-slope SR150 boundary profile failures are tracked separately in <code>structured-re-gaussian-mu-slope-boundary-profile-diagnostic.tsv</code>, the SR150 Wald-plus-boundary-profile routing audit is in <code>structured-re-gaussian-mu-slope-hybrid-boundary-audit.tsv</code>, the SR475 top-up audit is in <code>structured-re-gaussian-mu-slope-hybrid-sr475-audit.tsv</code>, the target-level interval-shape blocker is in <code>structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv</code>, the retained-artifact rule screen is in <code>structured-re-gaussian-mu-slope-rule-screen.tsv</code>, and the split-sample calibration holdout is in <code>structured-re-gaussian-mu-slope-split-calibration.tsv</code>; spatial/animal q2 row-gate synthesis is tracked in <code>structured-re-q2-slope-row-gate-synthesis.tsv</code>, g=32 profile/Wald smoke is tracked in <code>structured-re-q2-slope-g32-profile-wald-smoke.tsv</code>, animal fixed-8 correlation holdout smoke is tracked in <code>structured-re-q2-animal-correlation-holdout-diagnostic.tsv</code>, animal fixed-8 correlation pregrid blockers are tracked in <code>structured-re-q2-animal-correlation-pregrid-results.tsv</code>, animal fixed-8 miss diagnostics are tracked in <code>structured-re-q2-animal-correlation-miss-diagnostic.tsv</code>, spatial sigma boundary diagnostics are tracked in <code>structured-re-spatial-sigma-boundary-diagnostic.tsv</code>, animal q4 all-four admission diagnostics are tracked in <code>structured-re-q4-animal-all-four-admission-probe.tsv</code>, animal q4 Hessian geometry is tracked in <code>structured-re-q4-animal-hessian-geometry-diagnostic.tsv</code>, animal q4 numerical geometry plus optimizer attempts are tracked in <code>structured-re-q4-animal-numerical-geometry-diagnostic.tsv</code> and <code>structured-re-q4-animal-numerical-geometry-attempts.tsv</code>, animal q4 optimizer-route comparisons are tracked in <code>structured-re-q4-animal-optimizer-route-diagnostic.tsv</code>, animal q4 start/map comparisons are tracked in <code>structured-re-q4-animal-start-map-diagnostic.tsv</code>, animal q4 bounded-correlation comparisons are tracked in <code>structured-re-q4-animal-bounded-correlation-diagnostic.tsv</code>, animal q4 one-theta release rows are tracked in <code>structured-re-q4-animal-one-theta-release-diagnostic.tsv</code>, animal q4 MAP/penalty sensitivity rows are tracked in <code>structured-re-q4-animal-map-penalty-sensitivity.tsv</code>, animal q4 ridge-continuation rows are tracked in <code>structured-re-q4-animal-ridge-continuation-diagnostic.tsv</code>, animal q4 partial-Cholesky transform rows are tracked in <code>structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv</code>, and animal q4 transform-admission contract rows are tracked in <code>structured-re-q4-animal-transform-admission-contract.tsv</code>; count intercept smoke, spatial/animal sigma, q2, high-q, non-Gaussian, Gaussian mu-slope smoke/admission/pregrid, and Gaussian low-q status rows show blocker audits from their sidecars; other rows show the support-cell denominator policy.</div>
+    <div class="qseries-table">
+      <article class="qseries-row qseries-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>
+      ${table}
+    </div>`;
+}
+
 function renderStructuredContracts(sidecars) {
   const groups = [
     ["Vocabulary", sidecars.statusVocabulary || [], ["term", "allowed_scope", "not_claimed", "status"]],
@@ -785,6 +2268,88 @@ function render(data, gates, capabilities, sidecars) {
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
   renderMetrics(data, sidecars);
+  const admissionAudits = [
+    ...(sidecars.sigmaSlopeSpatialAnimalAdmissionAudit || []),
+    ...(sidecars.q2SlopeSpatialAnimalAdmissionAudit || []),
+    ...(sidecars.highQStatusAudit || []),
+    ...(sidecars.nongaussianStatusAudit || []),
+    ...(sidecars.countInterceptRecoverySmokeStatus || []),
+    ...(sidecars.phyloCountInterceptRecoverySmokeStatus || []),
+    ...(sidecars.phyloInteractionCountRecoverySmokeStatus || []),
+    ...(sidecars.gaussianLowQStatusAudit || []),
+    ...(sidecars.gaussianMuSlopeSmokeStatus || []),
+    ...(sidecars.gaussianMuSlopeAdmissionAudit || []),
+    ...(sidecars.gaussianMuSlopePregridResults || []),
+    ...(sidecars.gaussianMuSlopeHybridBoundaryAudit || []),
+    ...(sidecars.gaussianMuSlopeHybridSR475Audit || [])
+  ];
+  const countRecoveryResults = [
+    ...(sidecars.countSlopeRecoveryResults || []),
+    ...(sidecars.countSlopeClusterRecoveryResults || []),
+    ...(sidecars.countInterceptRecoveryResults || []),
+    ...(sidecars.countInterceptClusterRecoveryResults || []),
+    ...(sidecars.countInterceptTopupRecoveryResults || []),
+    ...(sidecars.countInterceptPhyloInteractionNb2TopupRecoveryResults || [])
+  ];
+  renderQSeriesBoard(
+    sidecars.qSeriesCells || [],
+    sidecars.qSeriesInferenceEvidence || [],
+    countRecoveryResults,
+    sidecars.nongaussianRecoveryRollup || [],
+    sidecars.countInterceptTopupRecoveryResults || [],
+    sidecars.countInterceptTopupClusterDispatch || [],
+    sidecars.countInterceptCaveatDiagnostics || [],
+    sidecars.countInterceptDenominatorDiagnostics || [],
+    sidecars.qSeriesClosureTriage || [],
+    sidecars.qSeriesNextCampaignQueue || [],
+    sidecars.qSeriesHostAccessRecheck || [],
+    sidecars.qSeriesSmokeSubstitutionContract || [],
+    sidecars.q2InterceptNibiSmoke || [],
+    sidecars.q2PlusQ2InterceptNibiSmoke || [],
+    sidecars.gaussianLowQRowSelection || [],
+    sidecars.gaussianLowQSpecialTargetContract || [],
+    sidecars.gaussianLowQDirectSdUnivariateSmoke || [],
+    sidecars.gaussianLowQMuInterceptDryRun || [],
+    sidecars.gaussianLowQMuInterceptSmokeContract || [],
+    sidecars.gaussianLowQMuInterceptSmokeResults || [],
+    sidecars.gaussianLowQMuInterceptNibiSmokeResults || [],
+    sidecars.gaussianLowQMuInterceptDenominatorContract || [],
+    sidecars.gaussianLowQMuInterceptPregridDispatch || [],
+    sidecars.gaussianLowQMuInterceptPregridResults || [],
+    sidecars.gaussianLowQMuInterceptTopupDispatch || [],
+    sidecars.gaussianLowQMuInterceptSr475Results || [],
+    sidecars.gaussianLowQMuSigmaInterceptSmoke || [],
+    sidecars.gaussianLowQSigmaInterceptRouteContract || [],
+    sidecars.gaussianLowQSigmaInterceptSmoke || [],
+    sidecars.gaussianLowQSigmaInterceptDenominatorContract || [],
+    sidecars.gaussianLowQSigmaInterceptPregridDispatch || [],
+    sidecars.gaussianLowQSigmaInterceptPregridResults || [],
+    sidecars.gaussianLowQSigmaProfileRouteReview || [],
+    admissionAudits,
+    sidecars.q2SlopeRowGateSynthesis || [],
+    sidecars.q2SlopeG32ProfileWaldSmoke || [],
+    sidecars.q2AnimalCorrelationHoldoutDiagnostic || [],
+    sidecars.q2AnimalCorrelationPregridResults || [],
+    sidecars.q2AnimalCorrelationMissDiagnostic || [],
+    sidecars.gaussianMuSlopeBoundaryProfileDiagnostic || [],
+    sidecars.gaussianMuSlopeIntervalShapeDiagnostic || [],
+    sidecars.gaussianMuSlopeRuleScreen || [],
+    sidecars.gaussianMuSlopeSplitCalibration || [],
+    sidecars.gaussianMuSlopeReviewDecision || [],
+    sidecars.spatialSigmaBoundaryDiagnostic || [],
+    sidecars.q4AnimalAdmissionProbe || [],
+    sidecars.q4AnimalGeometryDiagnostic || [],
+    sidecars.q4AnimalNumericalGeometryDiagnostic || [],
+    sidecars.q4AnimalNumericalGeometryAttempts || [],
+    sidecars.q4AnimalOptimizerRouteDiagnostic || [],
+    sidecars.q4AnimalStartMapDiagnostic || [],
+    sidecars.q4AnimalBoundedCorrelationDiagnostic || [],
+    sidecars.q4AnimalOneThetaReleaseDiagnostic || [],
+    sidecars.q4AnimalMapPenaltySensitivity || [],
+    sidecars.q4AnimalRidgeContinuationDiagnostic || [],
+    sidecars.q4AnimalPartialCholeskyDiagnostic || [],
+    sidecars.q4AnimalTransformAdmissionContract || []
+  );
   renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
@@ -818,6 +2383,80 @@ async function tick() {
       roster: parseTsv(await readText("member-roster.tsv")),
       discussions: parseTsv(await readText("member-discussions.tsv")),
       assignments: parseTsv(await readText("member-wave-assignments.tsv")),
+      qSeriesCells: parseTsv(await readText("structured-re-q-series-support-cells.tsv")),
+      qSeriesInferenceEvidence: parseTsv(await readText("structured-re-q-series-inference-evidence-summary.tsv")),
+      qSeriesClosureTriage: parseTsv(await readText("structured-re-q-series-closure-triage.tsv")),
+      qSeriesNextCampaignQueue: parseTsv(await readText("structured-re-q-series-next-campaign-queue.tsv")),
+      qSeriesHostAccessRecheck: parseTsv(await readText("structured-re-q-series-host-access-recheck.tsv")),
+      qSeriesSmokeSubstitutionContract: parseTsv(await readText("structured-re-q-series-smoke-substitution-contract.tsv")),
+      q2InterceptNibiSmoke: parseTsv(await readText("structured-re-q2-intercept-nibi-smoke.tsv")),
+      q2PlusQ2InterceptNibiSmoke: parseTsv(await readText("structured-re-q2-plus-q2-intercept-nibi-smoke.tsv")),
+      gaussianLowQRowSelection: parseTsv(await readText("structured-re-gaussian-lowq-row-selection.tsv")),
+      gaussianLowQSpecialTargetContract: parseTsv(await readText("structured-re-gaussian-lowq-special-target-contract.tsv")),
+      gaussianLowQDirectSdUnivariateSmoke: parseTsv(await readText("structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv")),
+      gaussianLowQMuInterceptDryRun: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-dry-run.tsv")),
+      gaussianLowQMuInterceptSmokeContract: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv")),
+      gaussianLowQMuInterceptSmokeResults: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv")),
+      gaussianLowQMuInterceptNibiSmokeResults: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv")),
+      gaussianLowQMuInterceptDenominatorContract: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv")),
+      gaussianLowQMuInterceptPregridDispatch: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-pregrid-dispatch.tsv")),
+      gaussianLowQMuInterceptPregridResults: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv")),
+      gaussianLowQMuInterceptTopupDispatch: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv")),
+      gaussianLowQMuInterceptSr475Results: parseTsv(await readText("structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv")),
+      gaussianLowQMuSigmaInterceptSmoke: parseTsv(await readText("structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv")),
+      gaussianLowQSigmaInterceptRouteContract: parseTsv(await readText("structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv")),
+      gaussianLowQSigmaInterceptSmoke: parseTsv(await readText("structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv")),
+      gaussianLowQSigmaInterceptDenominatorContract: parseTsv(await readText("structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv")),
+      gaussianLowQSigmaInterceptPregridDispatch: parseTsv(await readText("structured-re-gaussian-lowq-sigma-intercept-pregrid-dispatch.tsv")),
+      gaussianLowQSigmaInterceptPregridResults: parseTsv(await readText("structured-re-gaussian-lowq-sigma-intercept-pregrid-results.tsv")),
+      gaussianLowQSigmaProfileRouteReview: parseTsv(await readText("structured-re-gaussian-lowq-sigma-profile-route-review.tsv")),
+      nongaussianRecoveryRollup: parseTsv(await readText("structured-re-nongaussian-recovery-rollup.tsv")),
+      countSlopeRecoveryResults: parseTsv(await readText("structured-re-count-slope-recovery-results.tsv")),
+      countSlopeClusterRecoveryResults: parseTsv(await readText("structured-re-count-slope-cluster-recovery-results.tsv")),
+      countInterceptRecoveryResults: parseTsv(await readText("structured-re-count-intercept-recovery-results.tsv")),
+      countInterceptClusterRecoveryResults: parseTsv(await readText("structured-re-count-intercept-cluster-recovery-results.tsv")),
+      countInterceptTopupRecoveryResults: parseTsv(await readText("structured-re-count-intercept-topup-recovery-results.tsv")),
+      countInterceptPhyloInteractionNb2TopupRecoveryResults: parseTsv(await readText("structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv")),
+      countInterceptTopupClusterDispatch: parseTsv(await readText("structured-re-count-intercept-topup-cluster-dispatch.tsv")),
+      countInterceptCaveatDiagnostics: parseTsv(await readText("structured-re-count-intercept-caveat-diagnostic.tsv")),
+      countInterceptDenominatorDiagnostics: parseTsv(await readText("structured-re-count-intercept-denominator-diagnostic.tsv")),
+      sigmaSlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-sigma-slope-spatial-animal-admission-audit.tsv")),
+      q2SlopeSpatialAnimalAdmissionAudit: parseTsv(await readText("structured-re-q2-slope-spatial-animal-admission-audit.tsv")),
+      q2SlopeRowGateSynthesis: parseTsv(await readText("structured-re-q2-slope-row-gate-synthesis.tsv")),
+      q2SlopeG32ProfileWaldSmoke: parseTsv(await readText("structured-re-q2-slope-g32-profile-wald-smoke.tsv")),
+      q2AnimalCorrelationHoldoutDiagnostic: parseTsv(await readText("structured-re-q2-animal-correlation-holdout-diagnostic.tsv")),
+      q2AnimalCorrelationPregridResults: parseTsv(await readText("structured-re-q2-animal-correlation-pregrid-results.tsv")),
+      q2AnimalCorrelationMissDiagnostic: parseTsv(await readText("structured-re-q2-animal-correlation-miss-diagnostic.tsv")),
+      spatialSigmaBoundaryDiagnostic: parseTsv(await readText("structured-re-spatial-sigma-boundary-diagnostic.tsv")),
+      q4AnimalAdmissionProbe: parseTsv(await readText("structured-re-q4-animal-all-four-admission-probe.tsv")),
+      q4AnimalGeometryDiagnostic: parseTsv(await readText("structured-re-q4-animal-hessian-geometry-diagnostic.tsv")),
+      q4AnimalNumericalGeometryDiagnostic: parseTsv(await readText("structured-re-q4-animal-numerical-geometry-diagnostic.tsv")),
+      q4AnimalNumericalGeometryAttempts: parseTsv(await readText("structured-re-q4-animal-numerical-geometry-attempts.tsv")),
+      q4AnimalOptimizerRouteDiagnostic: parseTsv(await readText("structured-re-q4-animal-optimizer-route-diagnostic.tsv")),
+      q4AnimalStartMapDiagnostic: parseTsv(await readText("structured-re-q4-animal-start-map-diagnostic.tsv")),
+      q4AnimalBoundedCorrelationDiagnostic: parseTsv(await readText("structured-re-q4-animal-bounded-correlation-diagnostic.tsv")),
+      q4AnimalOneThetaReleaseDiagnostic: parseTsv(await readText("structured-re-q4-animal-one-theta-release-diagnostic.tsv")),
+      q4AnimalMapPenaltySensitivity: parseTsv(await readText("structured-re-q4-animal-map-penalty-sensitivity.tsv")),
+      q4AnimalRidgeContinuationDiagnostic: parseTsv(await readText("structured-re-q4-animal-ridge-continuation-diagnostic.tsv")),
+      q4AnimalPartialCholeskyDiagnostic: parseTsv(await readText("structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv")),
+      q4AnimalTransformAdmissionContract: parseTsv(await readText("structured-re-q4-animal-transform-admission-contract.tsv")),
+      highQStatusAudit: parseTsv(await readText("structured-re-high-q-status-audit.tsv")),
+      nongaussianStatusAudit: parseTsv(await readText("structured-re-nongaussian-status-audit.tsv")),
+      countInterceptRecoverySmokeStatus: parseTsv(await readText("structured-re-count-intercept-recovery-smoke-status.tsv")),
+      phyloCountInterceptRecoverySmokeStatus: parseTsv(await readText("structured-re-phylo-count-intercept-recovery-smoke-status.tsv")),
+      phyloInteractionCountRecoverySmokeStatus: parseTsv(await readText("structured-re-phylo-interaction-count-recovery-smoke-status.tsv")),
+      gaussianLowQStatusAudit: parseTsv(await readText("structured-re-gaussian-lowq-status-audit.tsv")),
+      gaussianMuSlopeSmokeStatus: parseTsv(await readText("structured-re-gaussian-mu-slope-smoke-status.tsv")),
+      gaussianMuSlopeAdmissionAudit: parseTsv(await readText("structured-re-gaussian-mu-slope-admission-audit.tsv")),
+      gaussianMuSlopePregridDryRun: parseTsv(await readText("structured-re-gaussian-mu-slope-coverage-pregrid-dry-run.tsv")),
+      gaussianMuSlopePregridResults: parseTsv(await readText("structured-re-gaussian-mu-slope-coverage-pregrid-results.tsv")),
+      gaussianMuSlopeBoundaryProfileDiagnostic: parseTsv(await readText("structured-re-gaussian-mu-slope-boundary-profile-diagnostic.tsv")),
+      gaussianMuSlopeHybridBoundaryAudit: parseTsv(await readText("structured-re-gaussian-mu-slope-hybrid-boundary-audit.tsv")),
+      gaussianMuSlopeHybridSR475Audit: parseTsv(await readText("structured-re-gaussian-mu-slope-hybrid-sr475-audit.tsv")),
+      gaussianMuSlopeIntervalShapeDiagnostic: parseTsv(await readText("structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv")),
+      gaussianMuSlopeRuleScreen: parseTsv(await readText("structured-re-gaussian-mu-slope-rule-screen.tsv")),
+      gaussianMuSlopeSplitCalibration: parseTsv(await readText("structured-re-gaussian-mu-slope-split-calibration.tsv")),
+      gaussianMuSlopeReviewDecision: parseTsv(await readText("structured-re-gaussian-mu-slope-review-decision.tsv")),
       balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
       finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
       conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),

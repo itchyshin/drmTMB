@@ -1,0 +1,28 @@
+R version 4.5.0 (2025-04-11)
+Platform: x86_64-pc-linux-gnu
+Running under: AlmaLinux 9.8 (Olive Jaguar)
+
+Matrix products: default
+BLAS/LAPACK: FlexiBLAS AOCL;  LAPACK version 3.11.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C
+
+time zone: EST5EDT
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base
+
+other attached packages:
+[1] drmTMB_0.1.4
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-20   multcomp_1.4-29    Matrix_1.7-4       lattice_0.22-7
+ [5] coda_0.19-4.1      TH.data_1.1-4      splines_4.5.0      estimability_1.5.1
+ [9] emmeans_1.11.2-8   zoo_1.8-14         mvtnorm_1.3-3      TMB_1.9.18
+[13] cli_3.6.5          xtable_1.8-4       grid_4.5.0         sandwich_3.1-1
+[17] compiler_4.5.0     survival_3.8-3     MASS_7.3-65

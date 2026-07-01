@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
-# Engine bias-corrected+t coverage at g=8 for the spatial + animal q2 mu-slope SD
-# cells (the providers NOT in the phylo/relmat engine run), so a supported
-# promotion can extend to all four providers if the evidence holds. SR475.
+# Engine bias-corrected+t coverage at g=8 for the spatial + animal q2 mu-slope
+# SD endpoints. This is row-specific revalidation evidence only: it does not
+# promote all four providers, the q2 correlation target, or supported status.
+# SR475.
 root <- "/Users/z3437171/Dropbox/Github Local/drmTMB"; setwd(root); Sys.setenv(GSWEEP_N_GROUPS="8")
 runner <- file.path(root, "tools/run-structured-re-q2-slope-coverage-grid.R")
 src <- readLines(runner); ml <- grep("^args\\s*<-\\s*parse_args", src)[1L]

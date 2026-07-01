@@ -1,0 +1,9 @@
+"family","cell_id","replicate","seed","status","skipped","warning_count","error","elapsed"
+"poisson()","qseries_phylo_interaction_poisson_q1_mu",1,2026062801,"ok",FALSE,0,NA,NA
+"poisson()","qseries_phylo_interaction_poisson_q1_mu",2,2026062802,"ok",FALSE,0,NA,NA
+"poisson()","qseries_phylo_interaction_poisson_q1_mu",3,2026062803,"ok",FALSE,0,NA,NA
+"poisson()","qseries_phylo_interaction_poisson_q1_mu",4,2026062804,"ok",FALSE,0,NA,NA
+"nbinom2()","qseries_phylo_interaction_nbinom2_q1_mu",1,2026062801,"ok",FALSE,0,NA,NA
+"nbinom2()","qseries_phylo_interaction_nbinom2_q1_mu",2,2026062802,"ok",FALSE,0,NA,NA
+"nbinom2()","qseries_phylo_interaction_nbinom2_q1_mu",3,2026062803,"ok",FALSE,0,NA,NA
+"nbinom2()","qseries_phylo_interaction_nbinom2_q1_mu",4,2026062804,"ok",FALSE,0,NA,NA

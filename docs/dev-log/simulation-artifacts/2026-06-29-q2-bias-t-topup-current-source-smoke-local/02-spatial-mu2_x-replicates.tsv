@@ -1,0 +1,2 @@
+replicate_id	seed	linked_cell_id	provider	target	target_parm	truth_value	attempt_status	message	convergence	pdHess	estimate	wald_lower	wald_upper	wald_status	wald_message	wald_warnings	wald_contains	bias_t_lower	bias_t_upper	bias_t_status	bias_t_message	bias_t_warnings	bias_t_contains	elapsed_sec
+1	760101	qseries_spatial_q2_mu1_mu2_one_slope	spatial	mu2:x	sd:mu:mu2:spatial(0 + x | p | site)	0.9	fit_ok		0	TRUE	0.477656040729732	0.290877273414436	1.02448275474936	finite	NA		TRUE	0.290877273414436	1.02448275474936	finite	NA		TRUE	0.338

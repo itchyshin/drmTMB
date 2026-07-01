@@ -1,0 +1,9 @@
+cell_id	provider	source_task	endpoint_member	direct_sd_target	n_probe_replicates	finite_interval	covered	lower_miss	upper_miss	converged	pdHess	n_wald_boundary	interval_probe_status	current_denominator_action
+qseries_animal_q1_mu_one_slope	animal	animal_mu_slope	mu:(Intercept)	sd_mu_intercept	2	1	1	0	0	2	2	1	boundary_or_nonfinite_interval_caveat	visible_holdout_until_boundary_reconciled
+qseries_phylo_q1_mu_one_slope	phylo	phylo_mu_slope	mu:(Intercept)	sd_mu_intercept	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention
+qseries_relmat_q1_mu_one_slope	relmat	relmat_mu_slope	mu:(Intercept)	sd_mu_intercept	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention
+qseries_spatial_q1_mu_one_slope	spatial	spatial_mu_slope	mu:(Intercept)	sd_mu_intercept	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention
+qseries_animal_q1_mu_one_slope	animal	animal_mu_slope	mu:x	sd_mu_x	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention
+qseries_phylo_q1_mu_one_slope	phylo	phylo_mu_slope	mu:x	sd_mu_x	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention
+qseries_relmat_q1_mu_one_slope	relmat	relmat_mu_slope	mu:x	sd_mu_x	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention
+qseries_spatial_q1_mu_one_slope	spatial	spatial_mu_slope	mu:x	sd_mu_x	2	2	2	0	0	2	2	0	finite_interval_probe_passed	eligible_for_pregrid_with_retention

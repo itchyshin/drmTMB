@@ -3,15 +3,37 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-06-28, → Codex).** Small-sample interval arc.
+> **▶ Latest handover — start here (2026-06-29, → Codex).** Q-Series evidence board continuation.
+> The active branch is `codex/qseries-sigma-inference-ready` at local
+> `HEAD=77b634ed` with a large dirty working tree. The 104-row support-cell widget is present
+> and separates fit, interval, coverage, stability, recovery, diagnostic, blocked, and planned
+> states. `tools/validate-mission-control.py` is green after the q2-plus-q2 local-smoke
+> contract cleanup; Fisher/Rose signed off the next q2-plus-q2 smoke as a tiny
+> Totoro/FIIA `n=5` run for only the six within-block targets, and also signed off
+> the q2 intercept local-smoke gate for only the 12 q2 intercept targets. The
+> q1 `mu` intercept rows also have Fisher/Rose-reviewed Totoro/FIIA `n=5` smoke
+> contracts, but those rows remain `point_fit/planned/planned`. Do **not**
+> claim the Q-Series is finished: only 5 rows are
+> interval+coverage `inference_ready`; Gaussian q4/q6/q8, all q8, and all non-Gaussian
+> interval/coverage claims remain unfinished. Nibi/Rorqual are reachable; the latest
+> non-interactive host check found Totoro auth denied, no `fiia` alias, and reachable `fir`
+> without a `drmTMB` checkout, so resolve host access/checkout before running either smoke.
+> START HERE:
+> [`docs/dev-log/handover/2026-06-29-codex-handover.md`](docs/dev-log/handover/2026-06-29-codex-handover.md).
+>
+> **▶ Prior handover (2026-06-28, → Codex).** Small-sample interval arc.
 > The bias correction is now the **DEFAULT** for location-axis structured-RE SD targets:
 > `confint(fit)` applies a t(g−1) width + a `+log(g/(g−1))` centre shift (simulation-calibrated,
 > ~2× the leading-order REML SD term — *not* "REML in closed form"). Engine-validated nominal
 > coverage at the deployment default **g=8 (0.954, all four providers)**; **q2 mu-slope (phylo,
 > relmat) promoted to `inference_ready`** (interval + coverage). `supported` is **withheld** —
 > measured 6:1 right-tail miss asymmetry + g-dependence → a REML-unblock or skew-aware-interval
-> arc. **⚠ The whole arc (15 commits, `9ae75bf1`) is UNPUSHED on
-> `claude/local-coverage-grids-sigma-q2` — push it or it is lost.** Run R with
+> arc. **Supersession note:** the old "15 commits at `9ae75bf1` are unpushed"
+> warning is no longer current. The consolidation branch
+> `claude/local-coverage-grids-sigma-q2` has been pushed, and the active Q-Series
+> widget/status continuation is PR #685 from `codex/qseries-sigma-inference-ready`.
+> Verify the current branch/head with `git status --short --branch` before editing.
+> Run R with
 > `R_PROFILE_USER=/dev/null Rscript --no-init-file` (the `.Rprofile` R-4.5 lib segfaults R 4.6).
 > START HERE:
 > [`docs/dev-log/handover/2026-06-28-codex-handover.md`](docs/dev-log/handover/2026-06-28-codex-handover.md).

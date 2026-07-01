@@ -942,7 +942,84 @@ test_that("q2 fixture contract separates q2 from q2-plus-q2 and q4", {
 
   q2_plus <- contract[contract$fixture_id == "q2_plus_q2_not_q4", ]
   expect_equal(q2_plus$dimension, "q2_plus_q2")
+  expect_equal(q2_plus$native_status, "fixture_available")
+  expect_equal(q2_plus$direct_drmjl_status, "fixture_available")
+  expect_equal(q2_plus$r_via_julia_status, "fixture_available")
+  expect_equal(q2_plus$bridge_status, "fixture_parity")
   expect_match(q2_plus$claim_boundary, "not full q4", fixed = TRUE)
+  expect_match(q2_plus$claim_boundary, "interval reliability", fixed = TRUE)
+  expect_match(q2_plus$claim_boundary, "coverage", fixed = TRUE)
+
+  native_q2_plus <- phase18_structured_re_reconstruct_fixture(
+    phase18_structured_re_q2_plus_q2_intercept_payload_fixture(
+      route = "native_tmb"
+    )
+  )
+  direct_q2_plus <- phase18_structured_re_reconstruct_fixture(
+    phase18_structured_re_q2_plus_q2_intercept_payload_fixture(
+      route = "direct_drmjl"
+    )
+  )
+  bridge_q2_plus <- phase18_structured_re_reconstruct_fixture(
+    phase18_structured_re_q2_plus_q2_intercept_payload_fixture(
+      route = "r_via_julia"
+    )
+  )
+  q2_plus_status <- phase18_structured_re_parity_status(
+    native_q2_plus,
+    direct_q2_plus,
+    bridge_q2_plus
+  )
+
+  expect_equal(native_q2_plus$summary$dimension, "q2_plus_q2")
+  expect_equal(native_q2_plus$summary$endpoint, "mu1+mu2;sigma1+sigma2")
+  expect_equal(
+    native_q2_plus$coef$term,
+    c(
+      "mu1:(Intercept)",
+      "mu2:(Intercept)",
+      "sigma1:(Intercept)",
+      "sigma2:(Intercept)",
+      "sd_mu1:structured(Intercept)",
+      "sd_mu2:structured(Intercept)",
+      "cor_mu1_mu2:structured(Intercept)",
+      "sd_sigma1:structured(Intercept)",
+      "sd_sigma2:structured(Intercept)",
+      "cor_sigma1_sigma2:structured(Intercept)"
+    )
+  )
+  expect_false(
+    any(grepl(
+      "mu.*sigma|sigma.*mu",
+      native_q2_plus$coef$term
+    ))
+  )
+  expect_equal(
+    native_q2_plus$unavailable$extractor,
+    c(
+      "profile",
+      "bootstrap",
+      "coverage",
+      "cross_block_correlations",
+      "REML",
+      "AI_REML"
+    )
+  )
+  expect_equal(
+    native_q2_plus$unavailable$status,
+    c(
+      "not_evaluated",
+      "not_evaluated",
+      "not_evaluated",
+      "unsupported",
+      "unsupported",
+      "unsupported"
+    )
+  )
+  expect_equal(q2_plus_status$r_via_julia_status, "available")
+  expect_equal(q2_plus_status$parity_status, "passed")
+  expect_equal(q2_plus_status$max_abs_coef_delta, 0)
+  expect_equal(q2_plus_status$abs_loglik_delta, 0)
 
   reml <- contract[contract$estimator == "REML", ]
   expect_equal(reml$bridge_status, "unsupported")

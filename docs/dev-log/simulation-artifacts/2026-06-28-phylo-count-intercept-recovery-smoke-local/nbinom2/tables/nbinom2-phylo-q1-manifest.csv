@@ -1,0 +1,5 @@
+"cell_id","replicate","seed","status","skipped","warning_count","error","elapsed"
+"nbinom2_phylo_q1_001",1,167002768,"ok",FALSE,0,NA,0.294
+"nbinom2_phylo_q1_002",1,661269507,"ok",FALSE,0,NA,0.218
+"nbinom2_phylo_q1_003",1,1655610148,"ok",FALSE,0,NA,0.157
+"nbinom2_phylo_q1_004",1,303369596,"ok",FALSE,0,NA,0.162

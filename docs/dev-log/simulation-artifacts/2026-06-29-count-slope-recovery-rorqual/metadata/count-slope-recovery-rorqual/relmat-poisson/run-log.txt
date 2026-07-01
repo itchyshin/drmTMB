@@ -1,0 +1,17 @@
+date=2026-06-29T14:25:05-04:00
+job=14917290
+array_job=14916938
+array_task=7
+node=rc32004
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1
+source_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/source
+work_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/work/source-relmat-poisson
+git_sha=77b634eda91b-dirty-qseries-count-slope-rorqual-srcfix1
+shard=relmat-poisson
+cell_id=qseries_relmat_poisson_q1_mu_one_slope
+script=run-structured-re-count-slope-relmat-poisson-local-micro-shard.R
+n_rep=80
+seed_start=760001
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/rlib/relmat-poisson
+runner_exit_code=0
+done=2026-06-29T14:26:54-04:00

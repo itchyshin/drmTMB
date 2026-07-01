@@ -1,5 +1,26 @@
 #!/usr/bin/env Rscript
 
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (any(cli_args %in% c("--help", "-h"))) {
+  cat(
+    paste(
+      "Usage: Rscript tools/run-structured-re-q4-slope-interval-stability-probe.R",
+      "",
+      "Runs the fixed q4 all-four one-slope direct-SD interval stability probe",
+      "for phylo, spatial, animal, and relmat, then writes:",
+      "  docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-stability-probe/structured-re-q4-slope-interval-stability-probe-results.tsv",
+      "  docs/dev-log/dashboard/structured-re-q4-slope-interval-stability-probe.tsv",
+      "",
+      "No command-line options are currently supported other than --help.",
+      "This is diagnostic-only evidence; it does not promote q4/q8 interval",
+      "coverage, REML, AI-REML, bridge support, supported, or public support.",
+      sep = "\n"
+    ),
+    "\n"
+  )
+  quit(status = 0L)
+}
+
 devtools::load_all(quiet = TRUE)
 
 `%||%` <- function(x, y) {

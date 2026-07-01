@@ -1,0 +1,9 @@
+"surface","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"poisson_phylo_q1","poisson_phylo_q1_001","mu:(Intercept)",1,1,1,1,0,1.00728554163647,NA
+"poisson_phylo_q1","poisson_phylo_q1_001","mu:x",1,1,1,1,0,0.448206074112036,NA
+"poisson_phylo_q1","poisson_phylo_q1_002","mu:(Intercept)",1,1,0,0,0,0.33333135483508,NA
+"poisson_phylo_q1","poisson_phylo_q1_002","mu:x",1,1,1,1,0,0.436409772306714,NA
+"poisson_phylo_q1","poisson_phylo_q1_003","mu:(Intercept)",1,1,0,0,0,0.460263538159705,NA
+"poisson_phylo_q1","poisson_phylo_q1_003","mu:x",1,1,1,1,0,0.409596038555044,NA
+"poisson_phylo_q1","poisson_phylo_q1_004","mu:(Intercept)",1,1,1,1,0,0.666479063214291,NA
+"poisson_phylo_q1","poisson_phylo_q1_004","mu:x",1,1,1,1,0,0.46983087691353,NA

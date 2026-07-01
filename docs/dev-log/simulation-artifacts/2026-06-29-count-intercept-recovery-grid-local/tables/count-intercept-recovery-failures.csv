@@ -1,0 +1,23 @@
+"cell_id","replicate","seed","status","severity","message","skipped","lane"
+"count_structured_q1_002",52,15153190,"ok","warning","NaNs produced",FALSE,"ordinary_structured"
+"nbinom2_phylo_q1_001",8,429223431,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_001",9,763939723,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_001",26,552556412,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_001",40,1021590631,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_001",48,1027673401,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_002",21,2139588171,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_002",40,2004234307,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_002",43,894464263,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_002",69,1425688870,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_002",72,461578733,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_003",8,201230097,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_003",16,781548328,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_003",21,1197777582,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_003",43,656614019,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_003",66,599150218,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_004",17,456264353,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_004",73,647376040,"ok","warning","NaNs produced",FALSE,"phylo_formal"
+"nbinom2_phylo_q1_004",73,647376040,"ok","warning","`drmTMB()` escalated `stats::nlminb()` to the ""careful"" optimizer preset to
+reach convergence.
+ℹ An earlier preset errored or did not converge; inspect
+  `fit$optimizer_attempts`.",FALSE,"phylo_formal"

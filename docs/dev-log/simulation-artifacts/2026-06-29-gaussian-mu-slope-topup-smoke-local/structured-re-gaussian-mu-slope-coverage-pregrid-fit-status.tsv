@@ -1,0 +1,4 @@
+provider	replicate_index	seed	fit_ok	converged	convergence	pdHess	confint_ok	nobs	elapsed	warning_count	warnings	fit_error	confint_error
+phylo	151	791151	TRUE	TRUE	0	TRUE	TRUE	56	0.283	0		NA	NA
+relmat	151	791151	TRUE	TRUE	0	TRUE	TRUE	56	1.462	0		NA	NA
+spatial	151	791151	TRUE	TRUE	0	TRUE	TRUE	96	0.0830000000000002	0		NA	NA

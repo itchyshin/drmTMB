@@ -128,7 +128,8 @@ phylo_prior_tmb_data <- function(precision) {
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),
       use_logsigma_clamp = 1L,
-      logsigma_clamp = c(-12, 12, 3)
+      logsigma_clamp = c(-12, 12, 3),
+      qgt2_corr_parameterization = 0L
     ),
     drmTMB:::empty_labelled_covariance_block_tmb_data()
   )
@@ -210,6 +211,55 @@ tmb_unstructured_corr_matrix <- function(theta) {
   L[lower] <- theta
   stats::cov2cor(L %*% t(L))
 }
+
+corr_to_tmb_unstructured_theta <- function(corr) {
+  lower <- t(chol(corr))
+  lower <- diag(1 / diag(lower), nrow = nrow(lower)) %*% lower
+  index <- which(lower.tri(lower), arr.ind = TRUE)
+  index <- index[order(index[, "row"], index[, "col"]), , drop = FALSE]
+  lower[index]
+}
+
+partial_correlation_cholesky_corr_matrix <- function(eta) {
+  q <- (1 + sqrt(1 + 8 * length(eta))) / 2
+  stopifnot(q == as.integer(q))
+  q <- as.integer(q)
+  partial <- tanh(eta)
+  lower <- matrix(0, nrow = q, ncol = q)
+  lower[1L, 1L] <- 1
+  pos <- 1L
+  for (row in seq.int(2L, q)) {
+    remaining <- 1
+    for (col in seq_len(row - 1L)) {
+      value <- partial[[pos]]
+      lower[row, col] <- value * sqrt(remaining)
+      remaining <- remaining * (1 - value^2)
+      pos <- pos + 1L
+    }
+    lower[row, row] <- sqrt(remaining)
+  }
+  corr <- lower %*% t(lower)
+  diag(corr) <- 1
+  corr
+}
+
+test_that("q>2 correlation parameterization override stays hidden and validated", {
+  old <- options(drmTMB.internal.qgt2_corr_parameterization = NULL)
+  on.exit(options(old), add = TRUE)
+
+  expect_equal(drmTMB:::drm_qgt2_corr_parameterization(), 0L)
+  options(drmTMB.internal.qgt2_corr_parameterization = "unstructured")
+  expect_equal(drmTMB:::drm_qgt2_corr_parameterization(), 0L)
+  options(drmTMB.internal.qgt2_corr_parameterization = "partial_cholesky")
+  expect_equal(drmTMB:::drm_qgt2_corr_parameterization(), 1L)
+  options(drmTMB.internal.qgt2_corr_parameterization = 1L)
+  expect_equal(drmTMB:::drm_qgt2_corr_parameterization(), 1L)
+  options(drmTMB.internal.qgt2_corr_parameterization = "public")
+  expect_error(
+    drmTMB:::drm_qgt2_corr_parameterization(),
+    "Invalid internal q>2 correlation parameterization"
+  )
+})
 
 dense_zero_mvn_nll <- function(values, covariance) {
   chol_covariance <- chol(covariance)
@@ -705,6 +755,323 @@ test_that("TMB phylogenetic q4 parameter scaffold matches q=4 R algebra", {
     unname(crossprod(effect, as.matrix(precision$precision %*% effect))),
     tolerance = 1e-10
   )
+})
+
+test_that("TMB phylogenetic q4 parameter scaffold matches q=8 R algebra", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.30,
+      0.15,
+      0.10,
+      -0.20,
+      0.08,
+      -0.04,
+      0.12,
+      0.02,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02,
+      0.18,
+      -0.09,
+      0.07,
+      0.03,
+      -0.14,
+      0.06,
+      0.09,
+      -0.05,
+      0.04,
+      -0.11,
+      0.13,
+      -0.06,
+      0.15,
+      -0.03,
+      0.05,
+      -0.08
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      paste0("state", seq_len(8L))
+    )
+  )
+  log_sd <- log(c(0.80, 0.65, 0.55, 0.45, 0.38, 0.32, 0.28, 0.24))
+  n_theta <- choose(ncol(effect), 2L)
+  finite_mild <- c(
+    0.08,
+    -0.05,
+    0.06,
+    0.04,
+    -0.03,
+    0.05,
+    -0.07,
+    0.02,
+    -0.04,
+    0.03,
+    0.06,
+    -0.02,
+    0.05,
+    -0.03,
+    0.04,
+    -0.05,
+    0.04,
+    -0.02,
+    0.03,
+    -0.01,
+    0.02,
+    0.05,
+    -0.04,
+    0.03,
+    -0.02,
+    0.02,
+    -0.01,
+    0.04
+  )
+  stopifnot(length(finite_mild) == n_theta)
+  theta_cases <- list(
+    zero = rep(0, n_theta),
+    finite_mild = finite_mild,
+    finite_alternating = rep(
+      c(-0.06, 0.035, 0.075, -0.025, 0.015, -0.045, 0.055),
+      length.out = n_theta
+    ),
+    finite_ramp = seq(-0.09, 0.08, length.out = n_theta)
+  )
+
+  for (theta in theta_cases) {
+    corr <- tmb_unstructured_corr_matrix(theta)
+    covariance <- diag(exp(log_sd)) %*% corr %*% diag(exp(log_sd))
+    quadratic_matrix <- unname(
+      crossprod(effect, as.matrix(precision$precision %*% effect))
+    )
+    covariance_inverse <- chol2inv(chol(covariance))
+    quadratic <- sum(covariance_inverse * quadratic_matrix)
+    log_det_covariance <- as.numeric(
+      determinant(covariance, logarithm = TRUE)$modulus
+    )
+    n_node <- nrow(effect)
+    q <- ncol(effect)
+    manual_nll <- 0.5 *
+      (n_node *
+        q *
+        log(2 * pi) +
+        n_node * log_det_covariance -
+        q * precision$log_det_precision +
+        quadratic)
+
+    data <- phylo_prior_tmb_data(precision)
+    data$model_type <- 93L
+    obj <- TMB::MakeADFun(
+      data = data,
+      parameters = phylo_q4_parameterized_prior_tmb_parameters(
+        effect,
+        log_sd,
+        theta
+      ),
+      DLL = "drmTMB",
+      silent = TRUE
+    )
+    report <- obj$report()
+
+    expect_equal(obj$fn(obj$par), manual_nll, tolerance = 1e-10)
+    expect_equal(
+      obj$fn(obj$par),
+      drmTMB:::drm_phylo_correlated_precision_nll(
+        effect,
+        precision,
+        covariance
+      ),
+      tolerance = 1e-10
+    )
+    expect_false(any(!is.finite(obj$gr(obj$par))))
+    expect_equal(report$sd_phylo, exp(log_sd), tolerance = 1e-12)
+    expect_equal(report$theta_phylo, theta, tolerance = 1e-12)
+    expect_equal(report$phylo_q4_corr, corr, tolerance = 1e-12)
+    expect_equal(report$phylo_q4_covariance, covariance, tolerance = 1e-12)
+    expect_equal(
+      report$log_det_covariance,
+      log_det_covariance,
+      tolerance = 1e-10
+    )
+    expect_equal(report$quadratic, quadratic, tolerance = 1e-10)
+    expect_equal(report$quadratic_matrix, quadratic_matrix, tolerance = 1e-10)
+  }
+})
+
+test_that("TMB q>2 partial-correlation parameterization matches q=8 R algebra", {
+  tree <- tiny_ultrametric_tree()
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  effect <- matrix(
+    c(
+      0.20,
+      -0.10,
+      0.35,
+      0.05,
+      -0.30,
+      0.15,
+      0.10,
+      -0.20,
+      0.08,
+      -0.04,
+      0.12,
+      0.02,
+      0.11,
+      -0.07,
+      0.16,
+      -0.02,
+      0.18,
+      -0.09,
+      0.07,
+      0.03,
+      -0.14,
+      0.06,
+      0.09,
+      -0.05,
+      0.04,
+      -0.11,
+      0.13,
+      -0.06,
+      0.15,
+      -0.03,
+      0.05,
+      -0.08
+    ),
+    nrow = nrow(precision$precision),
+    dimnames = list(
+      rownames(precision$precision),
+      paste0("state", seq_len(8L))
+    )
+  )
+  log_sd <- log(c(0.80, 0.65, 0.55, 0.45, 0.38, 0.32, 0.28, 0.24))
+  n_theta <- choose(ncol(effect), 2L)
+  eta_cases <- list(
+    zero = rep(0, n_theta),
+    finite_mild = rep(
+      c(0.08, -0.05, 0.06, 0.04, -0.03, 0.05, -0.07),
+      length.out = n_theta
+    ),
+    finite_ramp = seq(-0.09, 0.08, length.out = n_theta)
+  )
+
+  for (eta in eta_cases) {
+    corr <- partial_correlation_cholesky_corr_matrix(eta)
+    covariance <- diag(exp(log_sd)) %*% corr %*% diag(exp(log_sd))
+    quadratic_matrix <- unname(
+      crossprod(effect, as.matrix(precision$precision %*% effect))
+    )
+    covariance_inverse <- chol2inv(chol(covariance))
+    quadratic <- sum(covariance_inverse * quadratic_matrix)
+    log_det_covariance <- as.numeric(
+      determinant(covariance, logarithm = TRUE)$modulus
+    )
+    n_node <- nrow(effect)
+    q <- ncol(effect)
+    manual_nll <- 0.5 *
+      (n_node *
+        q *
+        log(2 * pi) +
+        n_node * log_det_covariance -
+        q * precision$log_det_precision +
+        quadratic)
+
+    data <- phylo_prior_tmb_data(precision)
+    data$model_type <- 93L
+    data$qgt2_corr_parameterization <- 1L
+    partial_obj <- TMB::MakeADFun(
+      data = data,
+      parameters = phylo_q4_parameterized_prior_tmb_parameters(
+        effect,
+        log_sd,
+        eta
+      ),
+      DLL = "drmTMB",
+      silent = TRUE
+    )
+    partial_report <- partial_obj$report()
+
+    expect_equal(partial_obj$fn(partial_obj$par), manual_nll, tolerance = 1e-10)
+    expect_equal(
+      partial_obj$fn(partial_obj$par),
+      drmTMB:::drm_phylo_correlated_precision_nll(
+        effect,
+        precision,
+        covariance
+      ),
+      tolerance = 1e-10
+    )
+    expect_false(any(!is.finite(partial_obj$gr(partial_obj$par))))
+    expect_equal(partial_report$sd_phylo, exp(log_sd), tolerance = 1e-12)
+    expect_equal(partial_report$theta_phylo, eta, tolerance = 1e-12)
+    expect_equal(partial_report$phylo_q4_corr, corr, tolerance = 1e-12)
+    expect_equal(
+      partial_report$phylo_q4_covariance,
+      covariance,
+      tolerance = 1e-12
+    )
+    expect_equal(
+      partial_report$log_det_covariance,
+      log_det_covariance,
+      tolerance = 1e-10
+    )
+    expect_equal(partial_report$quadratic, quadratic, tolerance = 1e-10)
+    expect_equal(
+      partial_report$quadratic_matrix,
+      quadratic_matrix,
+      tolerance = 1e-10
+    )
+
+    unstructured_theta <- corr_to_tmb_unstructured_theta(corr)
+    unstructured_data <- phylo_prior_tmb_data(precision)
+    unstructured_data$model_type <- 93L
+    unstructured_obj <- TMB::MakeADFun(
+      data = unstructured_data,
+      parameters = phylo_q4_parameterized_prior_tmb_parameters(
+        effect,
+        log_sd,
+        unstructured_theta
+      ),
+      DLL = "drmTMB",
+      silent = TRUE
+    )
+    unstructured_report <- unstructured_obj$report()
+
+    expect_equal(
+      tmb_unstructured_corr_matrix(unstructured_theta),
+      corr,
+      tolerance = 1e-12
+    )
+    expect_equal(
+      unstructured_obj$fn(unstructured_obj$par),
+      partial_obj$fn(partial_obj$par),
+      tolerance = 1e-10
+    )
+    expect_equal(
+      unstructured_report$phylo_q4_corr,
+      partial_report$phylo_q4_corr,
+      tolerance = 1e-12
+    )
+    expect_equal(
+      unstructured_report$phylo_q4_covariance,
+      partial_report$phylo_q4_covariance,
+      tolerance = 1e-12
+    )
+    expect_equal(
+      unstructured_report$log_det_covariance,
+      partial_report$log_det_covariance,
+      tolerance = 1e-10
+    )
+    expect_equal(
+      unstructured_report$quadratic,
+      partial_report$quadratic,
+      tolerance = 1e-10
+    )
+  }
 })
 
 test_that("planned phylogenetic corpair loading contract is positive definite", {

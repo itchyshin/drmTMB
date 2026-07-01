@@ -1,0 +1,8 @@
+structured RE count-intercept denominator diagnostic
+output_dir: docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-local
+dashboard_output: /tmp/drmtmb-count-intercept-topup-condition-diagnostic.tsv
+n_rep: 80
+seed_start: 2026062921
+cores: 2
+backend: multicore
+near_zero_threshold: 1e-04

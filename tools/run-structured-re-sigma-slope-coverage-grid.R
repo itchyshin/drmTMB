@@ -188,12 +188,20 @@ installed_drmTMB_r_version_matches <- function() {
 
 try_load_drmTMB <- function(attempt_temp_install) {
   version_ok <- installed_drmTMB_r_version_matches()
-  if (version_ok && requireNamespace("drmTMB", quietly = TRUE)) {
+  if (requireNamespace("drmTMB", quietly = TRUE)) {
     suppressPackageStartupMessages(library(drmTMB))
     return(list(
       ok = TRUE,
-      status = "installed_namespace_loaded",
-      detail = "loaded"
+      status = if (version_ok) {
+        "installed_namespace_loaded"
+      } else {
+        "installed_namespace_loaded_version_unchecked"
+      },
+      detail = if (version_ok) {
+        "loaded"
+      } else {
+        "loaded; installed package Built field did not match running R major.minor"
+      }
     ))
   }
   if (!attempt_temp_install) {

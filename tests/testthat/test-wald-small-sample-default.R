@@ -86,6 +86,80 @@ test_that("location-axis structured SD is corrected by the wald DEFAULT", {
   expect_false(isTRUE(all.equal(default$lower, raw$lower)))
 })
 
+test_that("location-axis structured slope SD components resolve group count", {
+  set.seed(20260629)
+  g <- 10L
+  n_each <- 10L
+  site_levels <- paste0("site", seq_len(g))
+  theta <- seq(0, 1.6 * pi, length.out = g)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(g) / (4 * g),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+  site <- rep(site_levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  site_intercept <- seq(-0.5, 0.5, length.out = g)
+  site_slope <- seq(-1, 1, length.out = g)
+  names(site_intercept) <- site_levels
+  names(site_slope) <- site_levels
+  y <- 0.5 +
+    0.3 * x +
+    site_intercept[site] +
+    site_slope[site] * x +
+    stats::rnorm(length(site), 0, 0.4)
+  dat <- data.frame(y = y, x = x, site = site)
+  fit <- drmTMB(
+    bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(keep_tmb_object = TRUE)
+  )
+  level <- 0.95
+  p <- (1 + level) / 2
+  shift <- log(g / (g - 1))
+  tq <- stats::qt(p, g - 1)
+  parms <- c(
+    "sd:mu:spatial(1 | site)",
+    "sd:mu:spatial(0 + x | site)"
+  )
+
+  targets <- drmTMB:::drm_profile_targets(fit)
+  target_rows <- targets[targets$parm %in% parms, , drop = FALSE]
+  expect_equal(
+    drmTMB:::wald_target_df(fit, target_rows, location_only = TRUE),
+    rep(g - 1, length(parms))
+  )
+  expect_equal(
+    drmTMB:::wald_target_log_bias(fit, target_rows, location_only = TRUE),
+    rep(shift, length(parms))
+  )
+
+  raw <- drmTMB:::drm_wald_confint(
+    fit,
+    parm = parms,
+    level = level,
+    small_sample_df = "none",
+    bias_correct = "none"
+  )
+  default <- drmTMB:::drm_wald_confint(fit, parm = parms, level = level)
+
+  for (parm in parms) {
+    es <- wald_small_sample_eta_se(raw[raw$parm == parm, ], level)
+    row <- default[default$parm == parm, ]
+    expect_equal(
+      row$lower,
+      exp((es[["eta"]] + shift) - tq * es[["se"]]),
+      tolerance = 1e-9
+    )
+    expect_equal(
+      row$upper,
+      exp((es[["eta"]] + shift) + tq * es[["se"]]),
+      tolerance = 1e-9
+    )
+  }
+})
+
 test_that("dispersion-axis structured SD keeps the raw z-interval by default", {
   sim <- wald_small_sample_spatial_data()
   coords <- sim$coords

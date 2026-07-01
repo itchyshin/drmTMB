@@ -1,0 +1,6 @@
+phylo_interaction count q1 local smoke
+output_dir: /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-28-phylo-interaction-count-recovery-smoke-local
+families: poisson,nbinom2
+seeds: 2026062801,2026062802,2026062803,2026062804
+rows: 8
+failures: 0

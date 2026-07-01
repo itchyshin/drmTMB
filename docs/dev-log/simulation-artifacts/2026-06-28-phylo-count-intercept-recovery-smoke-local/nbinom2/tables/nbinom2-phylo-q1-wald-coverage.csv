@@ -1,0 +1,17 @@
+"surface","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"nbinom2_phylo_q1","nbinom2_phylo_q1_001","mu:(Intercept)",1,1,1,1,0,0.55628807859937,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_001","mu:x",1,1,1,1,0,0.420833142418742,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_001","sigma:(Intercept)",1,1,1,1,0,2.42669915744967,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_001","sigma:z",1,1,1,1,0,3.41473050942982,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_002","mu:(Intercept)",1,1,1,1,0,0.831192659707634,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_002","mu:x",1,1,1,1,0,0.409311599161684,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_002","sigma:(Intercept)",1,1,1,1,0,25620.6201022947,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_002","sigma:z",1,1,1,1,0,32025.7917853328,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_003","mu:(Intercept)",1,1,1,1,0,0.678566928731935,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_003","mu:x",1,1,1,1,0,0.50405225726071,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_003","sigma:(Intercept)",1,1,1,1,0,1.67964735221937,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_003","sigma:z",1,1,1,1,0,2.6891401854367,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_004","mu:(Intercept)",1,1,1,1,0,0.721530270658221,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_004","mu:x",1,1,1,1,0,0.517292690481518,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_004","sigma:(Intercept)",1,1,1,1,0,3.82681222679555,NA
+"nbinom2_phylo_q1","nbinom2_phylo_q1_004","sigma:z",1,1,1,1,0,5.12733418010335,NA

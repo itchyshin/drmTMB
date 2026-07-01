@@ -1,0 +1,23 @@
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+Phase 18 Actions task=poisson_phylo_q1_formal
+output_dir=/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260629-count-intercept-recovery-rorqual-77b634ed-dirty1/results/count-intercept-recovery-rorqual/artifacts/phylo-poisson
+n_rep=80
+master_seed=2026162931
+backend=multicore
+cores=4
+render=FALSE
+require_complete=FALSE
+profile_parameters=
+profile_level=0.7
+condition_shard=7
+condition_shards=54
+condition_set=all
+bootstrap_nsim=0
+bootstrap_backend=none
+bootstrap_cores=1

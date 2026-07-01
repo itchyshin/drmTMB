@@ -1,0 +1,9 @@
+"surface","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"poisson_phylo_q1","poisson_phylo_q1_001","mu:(Intercept)",80,80,74,0.925,0.0294480474734744,0.94403425399394,0.016643097328985
+"poisson_phylo_q1","poisson_phylo_q1_001","mu:x",80,80,77,0.9625,0.021240806834958,0.159074887293988,0.00244081755608436
+"poisson_phylo_q1","poisson_phylo_q1_002","mu:(Intercept)",80,80,74,0.925,0.0294480474734744,0.969901420840864,0.0159455249838349
+"poisson_phylo_q1","poisson_phylo_q1_002","mu:x",80,80,71,0.8875,0.0353277069026565,0.158525899089273,0.00239881458560021
+"poisson_phylo_q1","poisson_phylo_q1_003","mu:(Intercept)",80,80,77,0.9625,0.021240806834958,0.942113857969861,0.014797805846273
+"poisson_phylo_q1","poisson_phylo_q1_003","mu:x",80,80,74,0.925,0.0294480474734744,0.108293110245936,0.00144696522767658
+"poisson_phylo_q1","poisson_phylo_q1_004","mu:(Intercept)",80,80,72,0.9,0.0335410196624968,1.42097489792688,0.020870065021099
+"poisson_phylo_q1","poisson_phylo_q1_004","mu:x",80,80,77,0.9625,0.021240806834958,0.148369353009773,0.00347217750784697

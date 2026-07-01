@@ -1,0 +1,2 @@
+timestamp	shard	provider	target	linked_cell_id	n_rep	seed_start	n_each	load_status	load_detail	rep_path	summary_path
+2026-06-29T05:25:27-0400	4	animal	mu2:x	qseries_animal_q2_mu1_mu2_one_slope	525	730476	20	temp_install_loaded	temporary_library_current_source	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/results/shard_4/04-animal-mu2_x-replicates.tsv	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/results/shard_4/04-animal-mu2_x-summary.tsv

@@ -1,0 +1,7 @@
+cell_id	provider	endpoint_member	direct_sd_target	n_eligible_target_replicates	n_usable_hybrid_intervals	finite_interval_rate	n_covered	hybrid_coverage_all	hybrid_coverage_mcse	n_lower_miss	n_upper_miss	n_unusable_interval	target_signal
+qseries_phylo_q1_mu_one_slope	phylo	mu:(Intercept)	sd_mu_intercept	475	475	1.0000	460	0.9684	0.008024	4	11	0	mcse_met
+qseries_phylo_q1_mu_one_slope	phylo	mu:x	sd_mu_x	475	474	0.9979	453	0.9537	0.009643	1	20	1	mcse_met
+qseries_relmat_q1_mu_one_slope	relmat	mu:(Intercept)	sd_mu_intercept	475	475	1.0000	457	0.9621	0.008761	2	16	0	mcse_met
+qseries_relmat_q1_mu_one_slope	relmat	mu:x	sd_mu_x	475	474	0.9979	469	0.9874	0.005124	1	4	1	mcse_met
+qseries_spatial_q1_mu_one_slope	spatial	mu:(Intercept)	sd_mu_intercept	475	475	1.0000	456	0.9600	0.008991	8	11	0	mcse_met
+qseries_spatial_q1_mu_one_slope	spatial	mu:x	sd_mu_x	475	474	0.9979	456	0.9600	0.008991	7	11	1	mcse_met

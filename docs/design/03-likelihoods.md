@@ -106,6 +106,25 @@ against the R algebra helpers. The C++ modularization source map in
 `docs/design/36-cpp-modularization-source-map.md` records how to keep those
 hidden probes separate during future file-splitting work.
 
+For the Q-Series animal all-four one-slope row, the public bivariate Gaussian
+route is q8-shaped: `mu1`, `mu2`, `sigma1`, and `sigma2` each contribute an
+intercept and slope, so the full q>2 correlation block has 28 `theta_phylo`
+coordinates. The current production likelihood uses
+`density::UNSTRUCTURED_CORR_t(theta_phylo)`. A bounded, ridge-penalized, or
+pairwise `tanh()` diagnostic is not a production transform unless it is shown
+to be an equivalent reparameterization of the same positive-definite
+correlation manifold. Design note
+`docs/design/220-structured-q4-animal-production-transform-gate.md` is the
+gate before any new q4 animal admission runner, Nibi/Rorqual admission job, or
+DRAC coverage grid.
+
+The non-public data flag `qgt2_corr_parameterization` is currently fixed to
+`0` by the R-side production data builder. Hidden `model_type = 93` tests may
+set it to `1` to exercise a lower-level partial-correlation Cholesky
+parameterization. That switch is an internal equivalence harness only: it is
+not reachable from user syntax, not a default change, and not a q4/q8
+inference, coverage, or support claim.
+
 ## Implemented Bernoulli/Binomial Response Branch
 
 `drmTMB#569` adds the first primary Bernoulli/binomial response route. The

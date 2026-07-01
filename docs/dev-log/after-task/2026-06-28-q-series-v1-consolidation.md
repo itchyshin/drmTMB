@@ -3,6 +3,12 @@
 Meta: 2026-06-28 · Codex · branch `claude/local-coverage-grids-sigma-q2`;
 incoming arc head `922defda`, consolidation head `45b4e9d8`.
 
+Supersession note: later on 2026-06-28, branch
+`codex/qseries-sigma-inference-ready` promoted exactly the phylo and relmat q1
+sigma one-slope rows to `inference_ready` under raw uncorrected log-SD Wald-z
+evidence. This v1 report remains the historical closure point for the default
+small-sample q2 arc.
+
 ## 1. Goal
 
 Close Q-Series v1 as a durable, row-level evidence and status arc. The target was

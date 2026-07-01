@@ -1,0 +1,11 @@
+"surface","cell_id","parameter","n_replicate","artifact_grain","mean_truth","mean_estimate","bias","rmse","mean_abs_error","empirical_se","convergence_rate","pdHess_rate","warning_rate","mean_elapsed","bias_mcse","rmse_mcse"
+"phylo_mu_slope","phylo_mu_slope_001","mu:(Intercept)",1,"aggregate",0.4,0.0889092334054017,-0.311090766594598,0.311090766594598,0.311090766594598,NA,1,1,0,0.156,NA,NA
+"phylo_mu_slope","phylo_mu_slope_001","mu:x",1,"aggregate",-0.25,0.15613612923495,0.40613612923495,0.40613612923495,0.40613612923495,NA,1,1,0,0.156,NA,NA
+"phylo_mu_slope","phylo_mu_slope_001","sd:mu:phylo(0 + x | species)",1,"aggregate",0.32,0.206711240504561,-0.113288759495439,0.113288759495439,0.113288759495439,NA,1,1,0,0.156,NA,NA
+"phylo_mu_slope","phylo_mu_slope_001","sd:mu:phylo(1 | species)",1,"aggregate",0.55,0.435706045744206,-0.114293954255794,0.114293954255794,0.114293954255794,NA,1,1,0,0.156,NA,NA
+"phylo_mu_slope","phylo_mu_slope_001","sigma",1,"aggregate",0.22,0.249989803800314,0.0299898038003137,0.0299898038003137,0.0299898038003137,NA,1,1,0,0.156,NA,NA
+"phylo_mu_slope","phylo_mu_slope_002","mu:(Intercept)",1,"aggregate",0.4,0.516509017421468,0.116509017421468,0.116509017421468,0.116509017421468,NA,1,1,0,0.06,NA,NA
+"phylo_mu_slope","phylo_mu_slope_002","mu:x",1,"aggregate",-0.25,-0.408810430249997,-0.158810430249997,0.158810430249997,0.158810430249997,NA,1,1,0,0.06,NA,NA
+"phylo_mu_slope","phylo_mu_slope_002","sd:mu:phylo(0 + x | species)",1,"aggregate",0.32,0.325766007740349,0.00576600774034852,0.00576600774034852,0.00576600774034852,NA,1,1,0,0.06,NA,NA
+"phylo_mu_slope","phylo_mu_slope_002","sd:mu:phylo(1 | species)",1,"aggregate",0.55,0.343506933897572,-0.206493066102428,0.206493066102428,0.206493066102428,NA,1,1,0,0.06,NA,NA
+"phylo_mu_slope","phylo_mu_slope_002","sigma",1,"aggregate",0.22,0.231066355798428,0.0110663557984281,0.0110663557984281,0.0110663557984281,NA,1,1,0,0.06,NA,NA

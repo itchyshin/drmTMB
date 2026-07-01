@@ -1,0 +1,72 @@
+[grid] Shard map:
+  shard 1: provider=phylo     target=sigma:(Intercept)
+  shard 2: provider=phylo     target=sigma:x
+  shard 3: provider=spatial   target=sigma:(Intercept)
+  shard 4: provider=spatial   target=sigma:x
+  shard 5: provider=animal    target=sigma:(Intercept)
+  shard 6: provider=relmat    target=sigma:(Intercept)
+  shard 7: provider=relmat    target=sigma:x
+[grid] animal sigma:x is an EXCLUDED holdout (profile failure) -- not in this map.
+[grid] shard=4  provider=spatial  target=sigma:x  truth_sd=0.38
+[grid] n_rep=525  seed_start=740476  bootstrap=0
+[grid] Seeds to run: 525 (of 525 total).
+[grid] drmTMB loaded (installed_namespace_loaded).
+[grid] rep 10/525 (seed 740485): status=fit_ok  wald=finite  profile=finite  7.5s  (1.34 rep/s)
+[grid] rep 20/525 (seed 740495): status=fit_ok  wald=finite  profile=finite  14.4s  (1.39 rep/s)
+[grid] rep 30/525 (seed 740505): status=fit_ok  wald=finite  profile=finite  21.4s  (1.40 rep/s)
+[grid] rep 40/525 (seed 740515): status=fit_ok  wald=finite  profile=nonfinite  27.7s  (1.44 rep/s)
+[grid] rep 50/525 (seed 740525): status=fit_ok  wald=finite  profile=finite  34.5s  (1.45 rep/s)
+[grid] rep 60/525 (seed 740535): status=fit_ok  wald=finite  profile=finite  42.2s  (1.42 rep/s)
+[grid] rep 70/525 (seed 740545): status=fit_ok  wald=finite  profile=finite  49.4s  (1.42 rep/s)
+[grid] rep 80/525 (seed 740555): status=fit_ok  wald=finite  profile=finite  56.5s  (1.42 rep/s)
+[grid] rep 90/525 (seed 740565): status=fit_ok  wald=finite  profile=finite  63.2s  (1.42 rep/s)
+[grid] rep 100/525 (seed 740575): status=fit_ok  wald=finite  profile=finite  71.2s  (1.40 rep/s)
+[grid] rep 110/525 (seed 740585): status=fit_ok  wald=finite  profile=nonfinite  77.3s  (1.42 rep/s)
+[grid] rep 120/525 (seed 740595): status=fit_ok  wald=finite  profile=finite  82.9s  (1.45 rep/s)
+[grid] rep 130/525 (seed 740605): status=fit_ok  wald=finite  profile=finite  88.9s  (1.46 rep/s)
+[grid] rep 140/525 (seed 740615): status=fit_ok  wald=finite  profile=finite  94.9s  (1.48 rep/s)
+[grid] rep 150/525 (seed 740625): status=fit_ok  wald=finite  profile=nonfinite  101.1s  (1.48 rep/s)
+[grid] rep 160/525 (seed 740635): status=fit_ok  wald=finite  profile=nonfinite  107.1s  (1.49 rep/s)
+[grid] rep 170/525 (seed 740645): status=fit_ok  wald=finite  profile=nonfinite  112.9s  (1.51 rep/s)
+[grid] rep 180/525 (seed 740655): status=fit_ok  wald=finite  profile=finite  119.6s  (1.50 rep/s)
+[grid] rep 190/525 (seed 740665): status=fit_ok  wald=finite  profile=nonfinite  126.8s  (1.50 rep/s)
+[grid] rep 200/525 (seed 740675): status=fit_ok  wald=finite  profile=finite  133.3s  (1.50 rep/s)
+[grid] rep 210/525 (seed 740685): status=fit_ok  wald=finite  profile=nonfinite  140.2s  (1.50 rep/s)
+[grid] rep 220/525 (seed 740695): status=fit_ok  wald=nonfinite  profile=nonfinite  146.4s  (1.50 rep/s)
+[grid] rep 230/525 (seed 740705): status=fit_ok  wald=finite  profile=finite  153.1s  (1.50 rep/s)
+[grid] rep 240/525 (seed 740715): status=fit_ok  wald=finite  profile=finite  158.6s  (1.51 rep/s)
+[grid] rep 250/525 (seed 740725): status=fit_ok  wald=finite  profile=nonfinite  165.8s  (1.51 rep/s)
+[grid] rep 260/525 (seed 740735): status=fit_ok  wald=finite  profile=nonfinite  172.5s  (1.51 rep/s)
+[grid] rep 270/525 (seed 740745): status=fit_ok  wald=finite  profile=finite  179.0s  (1.51 rep/s)
+[grid] rep 280/525 (seed 740755): status=fit_ok  wald=finite  profile=finite  186.2s  (1.50 rep/s)
+[grid] rep 290/525 (seed 740765): status=fit_ok  wald=finite  profile=finite  193.3s  (1.50 rep/s)
+[grid] rep 300/525 (seed 740775): status=fit_ok  wald=finite  profile=finite  200.4s  (1.50 rep/s)
+[grid] rep 310/525 (seed 740785): status=fit_ok  wald=finite  profile=nonfinite  207.6s  (1.49 rep/s)
+[grid] rep 320/525 (seed 740795): status=fit_ok  wald=finite  profile=finite  213.9s  (1.50 rep/s)
+[grid] rep 330/525 (seed 740805): status=fit_ok  wald=finite  profile=finite  222.2s  (1.48 rep/s)
+[grid] rep 340/525 (seed 740815): status=fit_ok  wald=finite  profile=finite  227.6s  (1.49 rep/s)
+[grid] rep 350/525 (seed 740825): status=fit_ok  wald=finite  profile=finite  235.4s  (1.49 rep/s)
+[grid] rep 360/525 (seed 740835): status=fit_ok  wald=finite  profile=finite  241.4s  (1.49 rep/s)
+[grid] rep 370/525 (seed 740845): status=fit_ok  wald=finite  profile=nonfinite  247.2s  (1.50 rep/s)
+[grid] rep 380/525 (seed 740855): status=fit_ok  wald=finite  profile=nonfinite  254.3s  (1.49 rep/s)
+[grid] rep 390/525 (seed 740865): status=fit_ok  wald=finite  profile=nonfinite  261.0s  (1.49 rep/s)
+[grid] rep 400/525 (seed 740875): status=fit_ok  wald=finite  profile=nonfinite  266.4s  (1.50 rep/s)
+[grid] rep 410/525 (seed 740885): status=fit_ok  wald=finite  profile=nonfinite  270.9s  (1.51 rep/s)
+[grid] rep 420/525 (seed 740895): status=fit_ok  wald=nonfinite  profile=nonfinite  276.9s  (1.52 rep/s)
+[grid] rep 430/525 (seed 740905): status=fit_ok  wald=nonfinite  profile=nonfinite  283.5s  (1.52 rep/s)
+[grid] rep 440/525 (seed 740915): status=fit_ok  wald=finite  profile=finite  289.7s  (1.52 rep/s)
+[grid] rep 450/525 (seed 740925): status=fit_ok  wald=finite  profile=finite  295.8s  (1.52 rep/s)
+[grid] rep 460/525 (seed 740935): status=fit_ok  wald=finite  profile=finite  303.6s  (1.51 rep/s)
+[grid] rep 470/525 (seed 740945): status=fit_ok  wald=finite  profile=nonfinite  310.4s  (1.51 rep/s)
+[grid] rep 480/525 (seed 740955): status=fit_ok  wald=finite  profile=finite  316.5s  (1.52 rep/s)
+[grid] rep 490/525 (seed 740965): status=fit_ok  wald=finite  profile=finite  323.7s  (1.51 rep/s)
+[grid] rep 500/525 (seed 740975): status=fit_ok  wald=finite  profile=nonfinite  331.3s  (1.51 rep/s)
+[grid] rep 510/525 (seed 740985): status=fit_ok  wald=finite  profile=nonfinite  337.9s  (1.51 rep/s)
+[grid] rep 520/525 (seed 740995): status=fit_ok  wald=finite  profile=nonfinite  344.5s  (1.51 rep/s)
+[grid] rep 525/525 (seed 741000): status=fit_ok  wald=finite  profile=finite  348.1s  (1.51 rep/s)
+[grid] wrote docs/dev-log/simulation-artifacts/2026-06-28-spatial-sigma-slope-coverage-topup-local/results/shard_4/04-spatial-sigma_x-replicates.tsv
+[grid] wrote docs/dev-log/simulation-artifacts/2026-06-28-spatial-sigma-slope-coverage-topup-local/results/shard_4/04-spatial-sigma_x-summary.tsv
+[grid] DONE: shard=4  provider=spatial  target=sigma:x
+[grid] n_fit_ok=525  n_boundary=0  n_wald_fin=500  wald_cov=0.978  wald_mcse=0.0066
+[grid] n_profile_fin=373  prof_cov=0.973  prof_mcse=0.0084
+[grid] total elapsed 348.1 s  (0.66 s/rep)

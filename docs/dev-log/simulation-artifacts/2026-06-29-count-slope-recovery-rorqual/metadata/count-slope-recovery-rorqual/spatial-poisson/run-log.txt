@@ -1,0 +1,17 @@
+date=2026-06-29T14:18:55-04:00
+job=14917104
+array_job=14916938
+array_task=3
+node=rc32320
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1
+source_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/source
+work_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/work/source-spatial-poisson
+git_sha=77b634eda91b-dirty-qseries-count-slope-rorqual-srcfix1
+shard=spatial-poisson
+cell_id=qseries_spatial_poisson_q1_mu_one_slope
+script=run-structured-re-count-slope-spatial-poisson-local-micro-shard.R
+n_rep=80
+seed_start=760001
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-recovery-rorqual-77b634eda91b-srcfix1/rlib/spatial-poisson
+runner_exit_code=0
+done=2026-06-29T14:20:46-04:00

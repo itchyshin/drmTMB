@@ -1,0 +1,23 @@
+ R/profile.R                                        |  101 +-
+ .../218-structured-q-series-completion-map.md      |   13 +-
+ docs/dev-log/check-log.md                          | 1566 +++++++
+ docs/dev-log/dashboard/README.md                   |  321 +-
+ docs/dev-log/dashboard/index.html                  |  407 +-
+ .../structured-re-high-q-status-audit.tsv          |   24 +-
+ .../structured-re-nongaussian-status-audit.tsv     |   22 +-
+ .../structured-re-q-series-support-cells.tsv       |   50 +-
+ ...-re-q2-slope-spatial-animal-admission-audit.tsv |    4 +-
+ ...ctured-re-q4-slope-interval-stability-probe.tsv |  128 +-
+ docs/dev-log/dashboard/version.txt                 |    2 +-
+ ...re-q4-location-slope-interval-smoke-results.tsv |   96 +-
+ ...e-q4-slope-interval-stability-probe-results.tsv |  256 +-
+ tests/testthat/test-phase18-animal-mu-slope.R      |   36 +
+ tests/testthat/test-profile-targets.R              |   49 +
+ .../test-structured-re-conversion-contracts.R      | 2556 ++++++++++--
+ tests/testthat/test-wald-small-sample-default.R    |   74 +
+ tools/run-structured-re-q2-slope-coverage-grid.R   |  712 ++--
+ .../run-structured-re-q4-location-coverage-grid.R  | 1072 +++--
+ ...tructured-re-q4-location-slope-interval-smoke.R |   21 +
+ ...ructured-re-q4-slope-interval-stability-probe.R |   21 +
+ tools/validate-mission-control.py                  | 4378 +++++++++++++++++++-
+ 22 files changed, 10536 insertions(+), 1373 deletions(-)

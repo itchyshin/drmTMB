@@ -1,0 +1,11 @@
+"surface","cell_id","parameter","n_replicate","artifact_grain","mean_truth","mean_estimate","bias","rmse","mean_abs_error","empirical_se","convergence_rate","pdHess_rate","warning_rate","mean_elapsed","bias_mcse","rmse_mcse"
+"animal_mu_slope","animal_mu_slope_001","mu:(Intercept)",1,"aggregate",0.25,0.0296373906966615,-0.220362609303339,0.220362609303339,0.220362609303339,NA,1,1,0,0.155,NA,NA
+"animal_mu_slope","animal_mu_slope_001","mu:x",1,"aggregate",0.45,0.752860795773961,0.302860795773961,0.302860795773961,0.302860795773961,NA,1,1,0,0.155,NA,NA
+"animal_mu_slope","animal_mu_slope_001","sd:mu:animal(0 + x | id)",1,"aggregate",0.32,0.429150372485439,0.109150372485439,0.109150372485439,0.109150372485439,NA,1,1,0,0.155,NA,NA
+"animal_mu_slope","animal_mu_slope_001","sd:mu:animal(1 | id)",1,"aggregate",0.55,0.43474724293583,-0.11525275706417,0.11525275706417,0.11525275706417,NA,1,1,0,0.155,NA,NA
+"animal_mu_slope","animal_mu_slope_001","sigma",1,"aggregate",0.22,0.243109136912002,0.0231091369120016,0.0231091369120016,0.0231091369120016,NA,1,1,0,0.155,NA,NA
+"animal_mu_slope","animal_mu_slope_002","mu:(Intercept)",1,"aggregate",0.25,0.94338868906642,0.69338868906642,0.69338868906642,0.69338868906642,NA,1,1,0,0.073,NA,NA
+"animal_mu_slope","animal_mu_slope_002","mu:x",1,"aggregate",0.45,0.482720323357771,0.0327203233577707,0.0327203233577707,0.0327203233577707,NA,1,1,0,0.073,NA,NA
+"animal_mu_slope","animal_mu_slope_002","sd:mu:animal(0 + x | id)",1,"aggregate",0.32,1.87772730386321e-06,-0.319998122272696,0.319998122272696,0.319998122272696,NA,1,1,0,0.073,NA,NA
+"animal_mu_slope","animal_mu_slope_002","sd:mu:animal(1 | id)",1,"aggregate",0.55,0.250667549050651,-0.299332450949349,0.299332450949349,0.299332450949349,NA,1,1,0,0.073,NA,NA
+"animal_mu_slope","animal_mu_slope_002","sigma",1,"aggregate",0.22,0.236493341550449,0.0164933415504491,0.0164933415504491,0.0164933415504491,NA,1,1,0,0.073,NA,NA

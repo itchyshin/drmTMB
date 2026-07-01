@@ -1,0 +1,17 @@
+date=2026-06-29T18:37:40-04:00
+job=14936279
+array_job=14936279
+array_task=4
+node=rc32411
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-spatial-nb2-topup-77b634eda91b
+source_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-spatial-nb2-topup-77b634eda91b/source
+work_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-spatial-nb2-topup-77b634eda91b/work/source-spatial-nbinom2
+git_sha=77b634eda91b0173926557ce5c4a3d20853fb215
+shard=spatial-nbinom2
+cell_id=qseries_spatial_nbinom2_q1_mu_one_slope
+script=run-structured-re-count-slope-spatial-nbinom2-local-micro-shard.R
+n_rep=80
+seed_start=760081
+R_LIBS=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-count-slope-spatial-nb2-topup-77b634eda91b/rlib/spatial-nbinom2
+runner_exit_code=0
+done=2026-06-29T18:39:40-04:00

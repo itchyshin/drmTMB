@@ -1,0 +1,5 @@
+Warning message:
+In system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE) :
+  running command ''git' rev-parse HEAD 2>&1' had status 128
+Wrote 1 q2 intercept local-smoke summary rows to /home/snakagaw/codex-runs/2026-06-30-q2-direct-sd-phylo-77b634ed-163356/artifacts/totoro-n32/shard-06/structured-re-q2-intercept-local-smoke.tsv
+Wrote 1 q2 intercept local-smoke replicate rows to /home/snakagaw/codex-runs/2026-06-30-q2-direct-sd-phylo-77b634ed-163356/artifacts/totoro-n32/shard-06/structured-re-q2-intercept-local-smoke-replicates.tsv

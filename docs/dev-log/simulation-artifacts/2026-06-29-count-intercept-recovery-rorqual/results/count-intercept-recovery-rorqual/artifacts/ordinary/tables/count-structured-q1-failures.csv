@@ -1,0 +1,4 @@
+"cell_id","replicate","seed","status","severity","message","skipped"
+"count_structured_q1_002",7,512750180,"ok","warning","NaNs produced",FALSE
+"count_structured_q1_002",31,103070585,"ok","warning","NaNs produced",FALSE
+"count_structured_q1_002",64,894646389,"ok","warning","NaNs produced",FALSE

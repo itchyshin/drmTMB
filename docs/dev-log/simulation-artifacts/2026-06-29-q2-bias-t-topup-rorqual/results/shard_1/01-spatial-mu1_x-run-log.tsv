@@ -1,0 +1,2 @@
+timestamp	shard	provider	target	linked_cell_id	n_rep	seed_start	n_each	load_status	load_detail	rep_path	summary_path
+2026-06-29T05:18:52-0400	1	spatial	mu1:x	qseries_spatial_q2_mu1_mu2_one_slope	525	730476	20	temp_install_loaded	temporary_library_current_source	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/results/shard_1/01-spatial-mu1_x-replicates.tsv	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260629-q2-bias-t-topup-77b634ed-codex1/results/shard_1/01-spatial-mu1_x-summary.tsv

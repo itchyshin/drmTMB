@@ -1,0 +1,5 @@
+artifact	path	rows
+source_replicates	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-sr475-local/structured-re-gaussian-mu-slope-coverage-pregrid-replicates.tsv	1950
+detail	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-boundary-profile-local/structured-re-gaussian-mu-slope-boundary-profile-diagnostic-detail.tsv	27
+summary	docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-boundary-profile-local/structured-re-gaussian-mu-slope-boundary-profile-diagnostic-summary.tsv	3
+dashboard_summary	not_written	0

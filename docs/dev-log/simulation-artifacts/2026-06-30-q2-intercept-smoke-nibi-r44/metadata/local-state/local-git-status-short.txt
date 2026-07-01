@@ -1,0 +1,259 @@
+ M AGENTS.md
+ M R/drmTMB.R
+ M R/profile.R
+ M docs/design/03-likelihoods.md
+ M docs/design/218-structured-q-series-completion-map.md
+ M docs/dev-log/check-log.md
+ M docs/dev-log/dashboard/README.md
+ M docs/dev-log/dashboard/index.html
+ M docs/dev-log/dashboard/structured-re-gaussian-lowq-status-audit.tsv
+ M docs/dev-log/dashboard/structured-re-high-q-status-audit.tsv
+ M docs/dev-log/dashboard/structured-re-nongaussian-status-audit.tsv
+ M docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv
+ M docs/dev-log/dashboard/structured-re-q2-slope-spatial-animal-admission-audit.tsv
+ M docs/dev-log/dashboard/structured-re-q4-slope-interval-stability-probe.tsv
+ M docs/dev-log/dashboard/version.txt
+ M docs/dev-log/simulation-artifacts/2026-06-24-q4-location-slope-interval-smoke/structured-re-q4-location-slope-interval-smoke-results.tsv
+ M docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-stability-probe/structured-re-q4-slope-interval-stability-probe-results.tsv
+ M inst/sim/R/sim_structured_re_bridge_fixtures.R
+ M src/drmTMB.cpp
+ M tests/testthat/test-phase18-animal-mu-slope.R
+ M tests/testthat/test-phylo-utils.R
+ M tests/testthat/test-profile-targets.R
+ M tests/testthat/test-structured-re-bridge-fixtures.R
+ M tests/testthat/test-structured-re-conversion-contracts.R
+ M tests/testthat/test-wald-small-sample-default.R
+ M tools/run-structured-re-q2-slope-coverage-grid.R
+ M tools/run-structured-re-q4-location-coverage-grid.R
+ M tools/run-structured-re-q4-location-slope-interval-smoke.R
+ M tools/run-structured-re-q4-slope-interval-stability-probe.R
+ M tools/start-mission-control.sh
+ M tools/validate-mission-control.py
+?? docs/design/220-structured-q4-animal-production-transform-gate.md
+?? docs/dev-log/after-task/2026-06-29-q-series-campaign-queue-and-mu-blocker-hygiene.md
+?? docs/dev-log/after-task/2026-06-29-q-series-closure-triage-ledger.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-intercept-caveat-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-intercept-cluster-recovery.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-intercept-denominator-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-intercept-recovery-grid.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-intercept-topup-recovery.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-recovery-hygiene-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-slope-cluster-recovery.md
+?? docs/dev-log/after-task/2026-06-29-q-series-count-slope-spatial-nb2-topup-recovery.md
+?? docs/dev-log/after-task/2026-06-29-q-series-direct-sd-univariate-target-split-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-evidence-link-hygiene.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-mu-intercept-dry-run.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-mu-intercept-smoke-contract.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-mu-intercept-smoke-runner.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-row-selection.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-boundary-profile-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-coverage-pregrid.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-hybrid-boundary-audit.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-interval-probe.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-interval-shape-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-rule-screen.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-split-calibration.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-sr475-topup.md
+?? docs/dev-log/after-task/2026-06-29-q-series-gaussian-mu-slope-topup-runner.md
+?? docs/dev-log/after-task/2026-06-29-q-series-high-q-diagnostic-status-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-lowq-smoke-ledger-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-lowq-special-target-contracts.md
+?? docs/dev-log/after-task/2026-06-29-q-series-mu-slope-small-sample-correction-fix.md
+?? docs/dev-log/after-task/2026-06-29-q-series-nongaussian-recovery-rollup.md
+?? docs/dev-log/after-task/2026-06-29-q-series-phylo-interaction-nb2-topup-recovery.md
+?? docs/dev-log/after-task/2026-06-29-q-series-profile-endpoint-lower-boundary-fix.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-intercept-local-smoke-import.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-intercept-row-selection-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-intercept-ledger-split.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-intercept-local-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-one-slope-ledger-split.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-slope-diagnostic-review-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-sigma-smoke-status-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-mu-smoke-status-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-intercept-local-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-intercept-route-contract.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-smoke-ledger-split.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q1-sigma-smoke-status-sync.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-animal-correlation-miss-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-animal-correlation-pregrid.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-animal-g32-correction-holdout.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-bias-t-topup-runner-contract.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-g32-profile-wald-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-fisher-rose-signoff.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-interval-contract.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-intercept-local-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-fisher-rose-signoff.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-intercept-contract.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-local-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-plus-q2-same-target-fixture-parity.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q2-row-gate-synthesis.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-all-four-admission-probe.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-bounded-correlation-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-correlation-next-gate-synthesis.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-map-penalty-sensitivity.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-numerical-geometry-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-one-theta-release-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-optimizer-route-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-partial-cholesky-transform-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-partial-correlation-hard-seed-smoke.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-production-transform-design-gate.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-ridge-continuation-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-start-map-diagnostic.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-animal-transform-admission-contract.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q4-runner-help-and-stability-refresh.md
+?? docs/dev-log/after-task/2026-06-29-q-series-q8-objective-equivalence-harness.md
+?? docs/dev-log/after-task/2026-06-29-q-series-qgt2-partial-correlation-equivalence-harness.md
+?? docs/dev-log/after-task/2026-06-29-q-series-spatial-sigma-boundary-diagnostic.md
+?? docs/dev-log/after-task/2026-06-30-q-series-host-access-gate-sync.md
+?? docs/dev-log/after-task/2026-06-30-q-series-mu-sigma-intercept-fixture-hold.md
+?? docs/dev-log/after-task/2026-06-30-q-series-phylo-interaction-provider-boundary-contract.md
+?? docs/dev-log/after-task/2026-06-30-q-series-q1-mu-nibi-substitute-smoke.md
+?? docs/dev-log/after-task/2026-06-30-q-series-q2-plus-q2-nibi-substitute-smoke.md
+?? docs/dev-log/after-task/2026-06-30-q-series-sigma-intercept-route-pass-hold.md
+?? docs/dev-log/after-task/2026-06-30-q-series-smoke-substitution-contract-sync.md
+?? docs/dev-log/dashboard/structured-re-count-intercept-caveat-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-count-intercept-cluster-recovery-results.tsv
+?? docs/dev-log/dashboard/structured-re-count-intercept-denominator-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-count-intercept-phylo-interaction-nb2-topup-recovery-results.tsv
+?? docs/dev-log/dashboard/structured-re-count-intercept-recovery-results.tsv
+?? docs/dev-log/dashboard/structured-re-count-intercept-topup-cluster-dispatch.tsv
+?? docs/dev-log/dashboard/structured-re-count-intercept-topup-recovery-results.tsv
+?? docs/dev-log/dashboard/structured-re-count-slope-cluster-recovery-results.tsv
+?? docs/dev-log/dashboard/structured-re-count-slope-spatial-nb2-topup-recovery-results.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-dry-run.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-sigma-intercept-local-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-lowq-special-target-contract.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-admission-audit.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-boundary-profile-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-coverage-pregrid-dry-run.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-coverage-pregrid-results.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-hybrid-boundary-audit.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-hybrid-sr475-audit.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-rule-screen.tsv
+?? docs/dev-log/dashboard/structured-re-gaussian-mu-slope-split-calibration.tsv
+?? docs/dev-log/dashboard/structured-re-nongaussian-recovery-rollup.tsv
+?? docs/dev-log/dashboard/structured-re-q-series-closure-triage.tsv
+?? docs/dev-log/dashboard/structured-re-q-series-host-access-recheck.tsv
+?? docs/dev-log/dashboard/structured-re-q-series-next-campaign-queue.tsv
+?? docs/dev-log/dashboard/structured-re-q-series-smoke-substitution-contract.tsv
+?? docs/dev-log/dashboard/structured-re-q2-animal-correlation-holdout-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q2-animal-correlation-miss-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q2-animal-correlation-pregrid-results.tsv
+?? docs/dev-log/dashboard/structured-re-q2-intercept-interval-contract.tsv
+?? docs/dev-log/dashboard/structured-re-q2-intercept-local-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv
+?? docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-local-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-nibi-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-q2-slope-bias-t-topup-results.tsv
+?? docs/dev-log/dashboard/structured-re-q2-slope-bias-t-topup-runner-contract.tsv
+?? docs/dev-log/dashboard/structured-re-q2-slope-g32-profile-wald-smoke.tsv
+?? docs/dev-log/dashboard/structured-re-q2-slope-row-gate-synthesis.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-all-four-admission-probe.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-bounded-correlation-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-hessian-geometry-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-map-penalty-sensitivity.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-numerical-geometry-attempts.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-numerical-geometry-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-one-theta-release-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-optimizer-route-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-ridge-continuation-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-start-map-diagnostic.tsv
+?? docs/dev-log/dashboard/structured-re-q4-animal-transform-admission-contract.tsv
+?? docs/dev-log/dashboard/structured-re-spatial-sigma-boundary-diagnostic.tsv
+?? docs/dev-log/handover/2026-06-29-codex-handover.md
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-denominator-diagnostic-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-grid-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-recovery-rorqual/
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-topup-recovery-rorqual/
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-slope-recovery-rorqual/
+?? docs/dev-log/simulation-artifacts/2026-06-29-count-slope-spatial-nb2-topup-rorqual/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-direct-sd-univariate-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-dry-run-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-intercept-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-mu-sigma-intercept-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-row-selection-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-lowq-sigma-intercept-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-boundary-profile-diagnostic-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-coverage-pregrid-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-probe-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-interval-shape-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-rule-screen-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-split-calibration-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-boundary-profile-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-gaussian-mu-slope-topup-sr475-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-phylo-interaction-nb2-recovery-topup-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-phylo-interaction-nb2-topup-rorqual/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-animal-correlation-holdout-diagnostic-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-animal-correlation-miss-diagnostic-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-animal-correlation-pregrid-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-current-source-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-rorqual/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-intercept-local-smoke/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-plus-q2-intercept-local-smoke/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q2-slope-g32-profile-wald-smoke-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-all-four-admission-probe-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-all-four-admission-probe-nibi/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-bounded-correlation-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-map-penalty-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-numerical-geometry-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-one-theta-release-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-optimizer-route-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-cholesky-transform-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-partial-correlation-admission-probe-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-ridge-continuation-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-q4-animal-start-map-local/
+?? docs/dev-log/simulation-artifacts/2026-06-29-spatial-sigma-boundary-nibi/
+?? docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-intercept-smoke-nibi/
+?? docs/dev-log/simulation-artifacts/2026-06-30-q2-plus-q2-intercept-smoke-nibi/
+?? tools/__pycache__/
+?? tools/run-structured-re-count-intercept-denominator-diagnostic.R
+?? tools/run-structured-re-count-intercept-recovery-grid.R
+?? tools/run-structured-re-gaussian-lowq-direct-sd-univariate-smoke.R
+?? tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R
+?? tools/run-structured-re-gaussian-lowq-mu-intercept-smoke.R
+?? tools/run-structured-re-gaussian-lowq-mu-sigma-intercept-smoke.R
+?? tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R
+?? tools/run-structured-re-gaussian-mu-slope-boundary-profile-diagnostic.R
+?? tools/run-structured-re-gaussian-mu-slope-coverage-pregrid.R
+?? tools/run-structured-re-gaussian-mu-slope-interval-probe.R
+?? tools/run-structured-re-q2-bias-t-coverage-topup.R
+?? tools/run-structured-re-q2-intercept-smoke.R
+?? tools/run-structured-re-q2-plus-q2-intercept-smoke.R
+?? tools/run-structured-re-q4-animal-all-four-admission-probe.R
+?? tools/run-structured-re-q4-animal-bounded-correlation-diagnostic.R
+?? tools/run-structured-re-q4-animal-map-penalty-sensitivity.R
+?? tools/run-structured-re-q4-animal-numerical-geometry-diagnostic.R
+?? tools/run-structured-re-q4-animal-one-theta-release-diagnostic.R
+?? tools/run-structured-re-q4-animal-optimizer-route-diagnostic.R
+?? tools/run-structured-re-q4-animal-partial-cholesky-transform-diagnostic.R
+?? tools/run-structured-re-q4-animal-ridge-continuation-diagnostic.R
+?? tools/run-structured-re-q4-animal-start-map-diagnostic.R
+?? tools/slurm/count-intercept-recovery-rorqual.sbatch
+?? tools/slurm/count-intercept-topup-rorqual.sbatch
+?? tools/slurm/count-slope-recovery-rorqual.sbatch
+?? tools/slurm/q2-bias-t-topup-rorqual.sbatch
+?? tools/slurm/q2-intercept-nibi-smoke.sbatch
+?? tools/slurm/q4-animal-admission-nibi.sbatch
+?? tools/slurm/spatial-sigma-boundary-nibi.sbatch
+?? tools/summarize-structured-re-count-intercept-caveat-diagnostic.R
+?? tools/summarize-structured-re-count-intercept-cluster-recovery.R
+?? tools/summarize-structured-re-count-intercept-topup-recovery.R
+?? tools/summarize-structured-re-count-slope-cluster-recovery.R
+?? tools/summarize-structured-re-gaussian-lowq-row-selection.R
+?? tools/summarize-structured-re-gaussian-mu-slope-hybrid-boundary.R
+?? tools/summarize-structured-re-gaussian-mu-slope-hybrid-sr475.R
+?? tools/summarize-structured-re-gaussian-mu-slope-interval-shape.R
+?? tools/summarize-structured-re-gaussian-mu-slope-rule-screen.R
+?? tools/summarize-structured-re-gaussian-mu-slope-split-calibration.R
+?? tools/summarize-structured-re-spatial-sigma-boundary-diagnostic.R

@@ -1,0 +1,2 @@
+cell_id	provider	estimand	n	fit_ok	converged	pdHess	wald_finite	profile_finite	wald_coverage	wald_mcse	wald_lower_miss	wald_upper_miss	profile_coverage	profile_mcse	profile_lower_miss	profile_upper_miss	profile_channel	promotion_decision
+qseries_phylo_q2_mu1_mu2_intercept	phylo	sd_mu2_intercept	32	32	32	32	32	32	0.9375	0.0427908248050911	0	2	0.875	0.0584633966683428	0	4	endpoint_zero_boundary_profile_channel	do_not_promote

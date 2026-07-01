@@ -1,0 +1,8 @@
+structured RE count-intercept denominator diagnostic
+output_dir: docs/dev-log/simulation-artifacts/2026-06-29-count-intercept-denominator-diagnostic-local
+dashboard_output: docs/dev-log/dashboard/structured-re-count-intercept-denominator-diagnostic.tsv
+n_rep: 30
+seed_start: 2026062911
+cores: 2
+backend: multicore
+near_zero_threshold: 1e-04

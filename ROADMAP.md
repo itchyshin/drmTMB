@@ -472,13 +472,18 @@ Phase 5 closure boundary:
 Q-Series v1 closes as a row-level evidence arc, not broad structured-RE support.
 The authority table is
 `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` with 104 rows:
-exactly `qseries_phylo_q2_mu1_mu2_one_slope` and
-`qseries_relmat_q2_mu1_mu2_one_slope` are `inference_ready` for interval and
-coverage status. No structured row is `supported`. The default `confint()`
-small-sample correction is accepted only for location-axis structured SD
-targets; right-tail miss asymmetry and g-dependence keep q2 `supported`
-blocked. Sigma, fixed-covariance spatial q2, animal q2, q4/q8, count, and
-non-Gaussian structured rows remain separate future arcs.
+five rows are `inference_ready` for interval and coverage status:
+`qseries_phylo_q2_mu1_mu2_one_slope`,
+`qseries_relmat_q2_mu1_mu2_one_slope`,
+`qseries_phylo_q1_sigma_one_slope`,
+`qseries_animal_q1_sigma_one_slope`, and
+`qseries_relmat_q1_sigma_one_slope`. No structured row is `supported`. The
+default `confint()` small-sample correction is accepted only for location-axis
+structured SD targets and covers the q2 rows, not sigma. The sigma rows use raw
+uncorrected log-SD Wald-z evidence, with one-sided miss asymmetry and
+conservative `sigma:x` coverage. Fixed-covariance spatial q2, animal q2,
+spatial sigma, q4/q8, count, and non-Gaussian structured rows remain
+separate future arcs.
 
 Spatial parity now has its own ladder. The smallest missing phylogenetic
 sibling has landed for the constant q=2 location layer:

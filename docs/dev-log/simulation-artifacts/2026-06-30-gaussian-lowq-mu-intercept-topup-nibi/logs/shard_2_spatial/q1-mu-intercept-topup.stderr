@@ -1,0 +1,5 @@
+Warning message:
+In system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE) :
+  running command ''git' rev-parse HEAD 2>&1' had status 128
+Wrote 1 Gaussian low-q mu-intercept topup-results summary rows to /project/6098264/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163/results/q1-mu-intercept-topup-sr475/shard_2_spatial/structured-re-gaussian-lowq-mu-intercept-topup-results.tsv
+Wrote 325 replicate rows to /project/6098264/snakagaw/drmtmb-qseries/20260630-q1-mu-sr475-topup-77b634ed-r163/results/q1-mu-intercept-topup-sr475/shard_2_spatial/structured-re-gaussian-lowq-mu-intercept-topup-results-replicates.tsv

@@ -1,0 +1,2 @@
+timestamp	shard	provider	target	linked_cell_id	n_rep	seed_start	n_each	load_status	load_detail	rep_path	summary_path
+2026-06-29T02:54:35-0600	4	animal	mu2:x	qseries_animal_q2_mu1_mu2_one_slope	1	760101	20	devtools_load_all	loaded current source with devtools::load_all	docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-current-source-smoke-local/04-animal-mu2_x-replicates.tsv	docs/dev-log/simulation-artifacts/2026-06-29-q2-bias-t-topup-current-source-smoke-local/04-animal-mu2_x-summary.tsv
