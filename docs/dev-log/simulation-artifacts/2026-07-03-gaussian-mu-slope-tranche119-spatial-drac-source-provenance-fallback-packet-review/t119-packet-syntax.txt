@@ -1,0 +1,4 @@
+command	bash -n docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche119-spatial-drac-source-provenance-fallback-packet-review/q1-mu-slope-spatial-t119-candidate-t120-package-install-load-proof.sbatch
+exit_code	0
+stdout
+stderr

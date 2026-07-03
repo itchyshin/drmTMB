@@ -1,0 +1,18 @@
+tranche=94
+scope=q1_mu_one_slope_spatial_drac_dependency_load_route_review
+cell_id=qseries_spatial_q1_mu_one_slope
+provider=spatial
+source_tranche=93
+source_job_id=15087685
+source_terminal_status=FAILED_1_0_elapsed_00_00_13_node_rc32114
+source_failure_stage=devtools_load_all_dependency_blocker_before_fit
+runner_route=tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R requires devtools::load_all(source_root, quiet=TRUE)
+wrapper_route=tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh calls Rscript only in approved execute mode
+sessioninfo=R 4.4.0 on AlmaLinux 9.8; attached base packages only; loaded namespace compiler_4.4.0; devtools not loaded
+manifest_status=10 manifest rows only; no fit rows
+denominator_status=no_new_denominator
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+t94_compute_boundary=no ssh; no sbatch; no module load; no R command; no Rscript; no package load; no devtools load_all; no model fit
+next_gate=Tranche 95 no-compute dependency-staging/load-route contract before any repeat Rorqual sbatch or model command

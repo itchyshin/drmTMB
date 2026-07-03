@@ -1,0 +1,4 @@
+order	libpath
+1	/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche115
+2	/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche98
+3	/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.4.0/lib64/R/library

@@ -1,0 +1,15 @@
+proof_id	tranche96_spatial_mu_slope_dependency_proof
+observed_at	2026-07-02T23:30:31-04:00
+remote_host	rorqual2
+remote_user	snakagaw
+remote_pwd	/home/snakagaw
+source_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+run_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+proof_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche96-spatial-drac-dependency-proof
+lib_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche96
+tmp_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/tmp-tranche96
+sbatch_status	not_run
+model_command_status	not_run
+coverage_decision	coverage_not_authorized
+promotion_decision	do_not_promote
+support_cell_decision	unchanged_point_fit_planned_planned

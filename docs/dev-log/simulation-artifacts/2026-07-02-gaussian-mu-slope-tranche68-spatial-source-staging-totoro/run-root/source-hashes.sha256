@@ -1,0 +1,4 @@
+f2af6d65460c570755b59e31ddcc2b6d7363ebb86cefbf3e78388994464c6eb7  SOURCE-MANIFEST.sha256
+7bcfe8899df688744612de921eb0065f1952d9e84b2576a847ae42ca9ecc16e2  SOURCE-PROVENANCE.tsv
+397e590dc55c3f9e7016368be17e0f31de084786157751d36f1358b26d9fb0df  tools/run-gaussian-mu-slope-tranche62-spatial-host-smoke.R
+aee4530d0a5bd25601b2f7ae49461faae47ac3088cbd20d016cb0124f123548d  tools/validate-mission-control.py

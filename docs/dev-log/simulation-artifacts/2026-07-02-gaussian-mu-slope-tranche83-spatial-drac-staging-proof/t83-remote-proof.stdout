@@ -1,0 +1,6 @@
+remote_host=rorqual2
+remote_user=snakagaw
+observed_at_utc=2026-07-02T22:20:20Z
+source_file_count=16986
+source_size_bytes=929929396
+proof_status=remote_provenance_artifacts_created_no_model

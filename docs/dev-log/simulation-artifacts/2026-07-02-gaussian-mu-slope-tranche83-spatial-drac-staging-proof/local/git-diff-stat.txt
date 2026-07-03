@@ -1,0 +1,15 @@
+ AGENTS.md                                          |     3 +
+ CLAUDE.md                                          |     3 +
+ .../218-structured-q-series-completion-map.md      |  1308 +
+ docs/dev-log/check-log.md                          |  5579 ++
+ docs/dev-log/dashboard/README.md                   |  1071 +
+ docs/dev-log/dashboard/index.html                  |   756 +-
+ docs/dev-log/dashboard/member-discussions.tsv      |   495 +
+ .../structured-re-q-series-next-campaign-queue.tsv |     4 +-
+ docs/dev-log/dashboard/version.txt                 |     2 +-
+ .../test-structured-re-conversion-contracts.R      | 61911 ++++++++++------
+ ...uctured-re-gaussian-lowq-mu-intercept-dry-run.R |   401 +-
+ ...ctured-re-gaussian-lowq-sigma-intercept-smoke.R |   481 +-
+ ...run-structured-re-q4-location-admission-smoke.R |    61 +
+ tools/validate-mission-control.py                  | 73656 +++++++++++++------
+ 14 files changed, 100691 insertions(+), 45040 deletions(-)

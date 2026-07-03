@@ -1,0 +1,11 @@
+timestamp	2026-07-01T20:18:19-0600
+target_lib	/home/snakagaw/R/lib
+repo	https://cloud.r-project.org
+packages	RcppEigen,TMB
+r_version	R version 4.5.3 (2026-03-11)
+libPaths	/home/snakagaw/R/lib;/usr/local/lib/R/site-library;/usr/lib/R/site-library;/usr/lib/R/library
+MAKEFLAGS	-j1
+OMP_NUM_THREADS	1
+OPENBLAS_NUM_THREADS	1
+MKL_NUM_THREADS	1
+TMB_NTHREADS	1

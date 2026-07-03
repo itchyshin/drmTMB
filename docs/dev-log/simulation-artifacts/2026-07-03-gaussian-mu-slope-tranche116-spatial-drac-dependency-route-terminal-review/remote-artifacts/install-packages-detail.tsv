@@ -1,0 +1,5 @@
+package	attempted	status	message
+cli	TRUE	installed	available_after_install
+Matrix	FALSE	already_available	available_before_install
+RcppEigen	TRUE	installed	available_after_install
+TMB	TRUE	installed	available_after_install

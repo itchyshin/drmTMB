@@ -12,10 +12,13 @@ if (any(args %in% c("--help", "-h"))) {
       "",
       "Options:",
       "  --n-rep=N                 Number of replicate seeds per provider (default: 2).",
-      "  --run-kind=dry_run|smoke|pregrid|topup",
-      "                            Evidence mode. Top-up mode shards additional retained-denominator replicates after the reviewed SR150 pregrid (default: dry_run).",
+      "  --run-kind=dry_run|smoke|pregrid|topup|bootstrap_smoke",
+      "                            Evidence mode. Bootstrap-smoke mode is the Tranche 52 animal hard-seed contract and is artifact-only (default: dry_run).",
       "  --seed-start=N            First replicate index (default: 1).",
       "  --seed-base=N             Seed base; seed = seed_base + replicate_index (default: 812000).",
+      "  --seed-list=A,B           Exact seeds; required by bootstrap_smoke.",
+      "  --bootstrap=N             Bootstrap refits per retained hard seed (default: 0).",
+      "  --bootstrap-seed=N        Seed passed to bootstrap confint, offset by replicate index (default: 520052).",
       "  --providers=a,b,c         Providers to run (default: phylo,spatial,animal,relmat).",
       "  --host-class=CLASS        Host class label for smoke artifacts (default: local_rehearsal).",
       "  --host-name=NAME          Host name label for smoke artifacts (default: Sys.info()[['nodename']]).",
@@ -68,11 +71,52 @@ seed_base <- as.integer(arg_value("seed-base", "812000"))
 if (!is.finite(seed_base) || seed_base < 1L) {
   stop("`--seed-base` must be a positive integer.", call. = FALSE)
 }
+seed_list_arg <- arg_value("seed-list", NULL)
+seed_values <- NULL
+if (!is.null(seed_list_arg)) {
+  seed_values <- as.integer(trimws(strsplit(seed_list_arg, ",", fixed = TRUE)[[1L]]))
+  if (
+    length(seed_values) == 0L ||
+      any(!is.finite(seed_values)) ||
+      any(seed_values < 1L) ||
+      anyDuplicated(seed_values)
+  ) {
+    stop(
+      "`--seed-list` must be a comma-separated list of unique positive integers.",
+      call. = FALSE
+    )
+  }
+  if (length(seed_values) != n_rep) {
+    stop(
+      "`--n-rep` must equal the number of seeds in `--seed-list`.",
+      call. = FALSE
+    )
+  }
+}
+replicate_indices <- if (is.null(seed_values)) {
+  seq(from = seed_start, length.out = n_rep)
+} else {
+  seq_along(seed_values)
+}
+if (is.null(seed_values)) {
+  seed_values <- seed_base + replicate_indices
+}
+bootstrap_R <- as.integer(arg_value("bootstrap", "0"))
+if (!is.finite(bootstrap_R) || bootstrap_R < 0L) {
+  stop("`--bootstrap` must be a non-negative integer.", call. = FALSE)
+}
+bootstrap_seed <- as.integer(arg_value("bootstrap-seed", "520052"))
+if (!is.finite(bootstrap_seed) || bootstrap_seed < 1L) {
+  stop("`--bootstrap-seed` must be a positive integer.", call. = FALSE)
+}
 overwrite <- arg_flag("overwrite", FALSE)
 write_dashboard <- arg_flag("write-dashboard", TRUE)
 run_kind <- gsub("-", "_", arg_value("run-kind", "dry_run"), fixed = TRUE)
-if (!run_kind %in% c("dry_run", "smoke", "pregrid", "topup")) {
-  stop("`--run-kind` must be `dry_run`, `smoke`, `pregrid`, or `topup`.", call. = FALSE)
+if (!run_kind %in% c("dry_run", "smoke", "pregrid", "topup", "bootstrap_smoke")) {
+  stop(
+    "`--run-kind` must be `dry_run`, `smoke`, `pregrid`, `topup`, or `bootstrap_smoke`.",
+    call. = FALSE
+  )
 }
 if (identical(run_kind, "smoke") && n_rep != 5L) {
   stop(
@@ -85,6 +129,45 @@ if (identical(run_kind, "pregrid") && n_rep != 150L) {
     "Pregrid mode is the reviewed SR150 retained-denominator design. Use --n-rep=150.",
     call. = FALSE
   )
+}
+if (identical(run_kind, "bootstrap_smoke")) {
+  if (is.null(seed_list_arg)) {
+    stop(
+      "Bootstrap-smoke mode requires the exact hard seeds via --seed-list.",
+      call. = FALSE
+    )
+  }
+  if (n_rep != 2L || !identical(as.integer(seed_values), c(812407L, 812444L))) {
+    stop(
+      "Bootstrap-smoke mode is limited to hard seeds 812407 and 812444.",
+      call. = FALSE
+    )
+  }
+  if (bootstrap_R <= 0L) {
+    stop(
+      "Bootstrap-smoke mode requires --bootstrap to be a positive integer.",
+      call. = FALSE
+    )
+  }
+  if (write_dashboard) {
+    stop(
+      "Bootstrap-smoke mode is artifact-only. Use --write-dashboard=false, ",
+      "then import reviewed artifacts through a validator-owned sidecar.",
+      call. = FALSE
+    )
+  }
+  if (
+    !identical(
+      Sys.getenv("DRMTMB_Q1_MU_TRANCHE52_EXECUTION_APPROVED", unset = ""),
+      "rose_fisher_gauss_noether_grace"
+    )
+  ) {
+    stop(
+      "Refusing to run Tranche 52 bootstrap smoke without ",
+      "DRMTMB_Q1_MU_TRANCHE52_EXECUTION_APPROVED=rose_fisher_gauss_noether_grace.",
+      call. = FALSE
+    )
+  }
 }
 if (identical(run_kind, "smoke") && write_dashboard) {
   stop(
@@ -114,6 +197,7 @@ run_label <- switch(
   smoke = "smoke-results",
   pregrid = "pregrid-results",
   topup = "topup-results",
+  bootstrap_smoke = "bootstrap-smoke",
   dry_run = "dry-run"
 )
 run_id_prefix <- switch(
@@ -121,6 +205,7 @@ run_id_prefix <- switch(
   smoke = "gaussian_lowq_mu_intercept_smoke",
   pregrid = "gaussian_lowq_mu_intercept_pregrid",
   topup = "gaussian_lowq_mu_intercept_topup",
+  bootstrap_smoke = "gaussian_lowq_mu_intercept_tranche52_bootstrap_smoke",
   dry_run = "gaussian_lowq_mu_intercept_dry_run"
 )
 run_id_field <- switch(
@@ -128,6 +213,7 @@ run_id_field <- switch(
   smoke = "smoke_id",
   pregrid = "pregrid_id",
   topup = "topup_id",
+  bootstrap_smoke = "bootstrap_smoke_id",
   dry_run = "dry_run_id"
 )
 
@@ -170,6 +256,10 @@ smoke_substitution_contract_path <- file.path(
 denominator_contract_path <- file.path(
   dashboard_dir,
   "structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv"
+)
+bootstrap_contract_path <- file.path(
+  dashboard_dir,
+  "structured-re-gaussian-lowq-tranche52-animal-q1-mu-bootstrap-smoke-contract.tsv"
 )
 dashboard_summary_path <- file.path(
   dashboard_dir,
@@ -337,6 +427,7 @@ if (anyNA(smoke_rows$cell_id)) {
 smoke_contract_by_provider <- NULL
 denominator_contract_by_provider <- NULL
 substitution_contract_row <- NULL
+bootstrap_contract_row <- NULL
 if (identical(run_kind, "smoke")) {
   smoke_contract <- read_tsv(smoke_contract_path)
   required_contract_fields <- c(
@@ -541,6 +632,124 @@ if (identical(run_kind, "smoke")) {
     }
   }
   smoke_contract_by_provider <- split(smoke_contract, smoke_contract$provider)
+}
+
+if (identical(run_kind, "bootstrap_smoke")) {
+  if (!identical(selected_providers, "animal")) {
+    stop(
+      "Bootstrap-smoke mode is limited to `--providers=animal`.",
+      call. = FALSE
+    )
+  }
+  bootstrap_contract <- read_tsv(bootstrap_contract_path)
+  required_bootstrap_fields <- c(
+    "contract_id",
+    "contract_scope",
+    "cell_id",
+    "provider",
+    "source_tranche51_design",
+    "source_tranche50_blocker",
+    "source_runner",
+    "source_helper",
+    "selected_route",
+    "target_component",
+    "target_estimand",
+    "bootstrap_R",
+    "n_rep",
+    "selected_seeds",
+    "seed_list_arg",
+    "host_plan",
+    "command_status",
+    "execution_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "support_cell_decision",
+    "blocking_reviewers",
+    "advisory_reviewers",
+    "fisher_review",
+    "rose_audit",
+    "gauss_review",
+    "noether_review",
+    "grace_review",
+    "curie_review",
+    "exact_command",
+    "artifact_root",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  missing_bootstrap_fields <- setdiff(
+    required_bootstrap_fields,
+    names(bootstrap_contract)
+  )
+  if (length(missing_bootstrap_fields) > 0L) {
+    stop(
+      "Tranche 52 bootstrap contract sidecar is missing fields: ",
+      paste(missing_bootstrap_fields, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  bootstrap_contract_row <- bootstrap_contract[
+    bootstrap_contract$contract_id ==
+      "tranche52_animal_q1_mu_bootstrap_smoke_command",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(bootstrap_contract_row) != 1L) {
+    stop(
+      "Tranche 52 bootstrap contract must expose exactly one command row.",
+      call. = FALSE
+    )
+  }
+  if (!identical(bootstrap_contract_row$cell_id, "qseries_animal_q1_mu_intercept")) {
+    stop("Tranche 52 bootstrap command must target animal q1 mu only.", call. = FALSE)
+  }
+  if (!identical(bootstrap_contract_row$provider, "animal")) {
+    stop("Tranche 52 bootstrap command must keep provider = animal.", call. = FALSE)
+  }
+  if (!identical(bootstrap_contract_row$selected_route, "parametric_bootstrap_direct_sd_hardseed_micro_smoke")) {
+    stop(
+      "Tranche 52 bootstrap command must keep the selected Tranche 51 route.",
+      call. = FALSE
+    )
+  }
+  contract_bootstrap_R <- as.integer(bootstrap_contract_row$bootstrap_R[[1L]])
+  contract_n_rep <- as.integer(bootstrap_contract_row$n_rep[[1L]])
+  contract_seed_values <- as.integer(strsplit(
+    bootstrap_contract_row$seed_list_arg[[1L]],
+    ",",
+    fixed = TRUE
+  )[[1L]])
+  if (
+    !identical(contract_bootstrap_R, bootstrap_R) ||
+      !identical(contract_n_rep, n_rep) ||
+      !identical(contract_seed_values, as.integer(seed_values))
+  ) {
+    stop(
+      "Tranche 52 bootstrap command arguments must match the reviewed contract.",
+      call. = FALSE
+    )
+  }
+  for (phrase in c(
+    "contract_banked_not_executed",
+    "do_not_execute_until_rose_fisher_gauss_noether_grace_explicit_approval",
+    "coverage_not_authorized",
+    "do_not_promote"
+  )) {
+    fields <- paste(
+      bootstrap_contract_row$command_status,
+      bootstrap_contract_row$execution_decision,
+      bootstrap_contract_row$coverage_decision,
+      bootstrap_contract_row$promotion_decision
+    )
+    if (!grepl(phrase, fields, fixed = TRUE)) {
+      stop(
+        "Tranche 52 bootstrap contract must keep boundary phrase: ",
+        phrase,
+        call. = FALSE
+      )
+    }
+  }
 }
 
 if (run_kind %in% c("pregrid", "topup")) {
@@ -939,6 +1148,76 @@ find_interval_row <- function(ci, term) {
   ci[which(hit)[[1L]], , drop = FALSE]
 }
 
+run_bootstrap <- function(fit, parm, replicate_index) {
+  if (bootstrap_R <= 0L) {
+    return(list(
+      attempted = FALSE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = "skipped",
+      message = "bootstrap_off",
+      warnings = NA_character_,
+      seed = NA_integer_
+    ))
+  }
+  boot_seed <- bootstrap_seed + replicate_index
+  warnings <- character()
+  result <- withCallingHandlers(
+    tryCatch(
+      stats::confint(
+        fit,
+        parm = parm,
+        method = "bootstrap",
+        level = 0.95,
+        R = bootstrap_R,
+        seed = boot_seed
+      ),
+      error = function(e) e
+    ),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  if (inherits(result, "error")) {
+    return(list(
+      attempted = TRUE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = "error",
+      message = clean_text(conditionMessage(result)),
+      warnings = clean_text(paste(warnings, collapse = " | ")),
+      seed = boot_seed
+    ))
+  }
+  if (!is.data.frame(result) || nrow(result) == 0L) {
+    return(list(
+      attempted = TRUE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = "parm_not_found",
+      message = paste0("bootstrap: parm not found: ", parm),
+      warnings = clean_text(paste(warnings, collapse = " | ")),
+      seed = boot_seed
+    ))
+  }
+  lower <- result$lower[[1L]]
+  upper <- result$upper[[1L]]
+  list(
+    attempted = TRUE,
+    lower = lower,
+    upper = upper,
+    status = if (is.finite(lower) && is.finite(upper)) {
+      "finite"
+    } else {
+      "nonfinite"
+    },
+    message = NA_character_,
+    warnings = clean_text(paste(warnings, collapse = " | ")),
+    seed = boot_seed
+  )
+}
+
 run_one <- function(selection_row, replicate_index, seed) {
   provider <- selection_row$structure_provider[[1L]]
   spec <- provider_defaults[[provider]]
@@ -1043,10 +1322,33 @@ run_one <- function(selection_row, replicate_index, seed) {
   } else {
     NA_real_
   }
+  target_parameter <- paste0("sd:mu:", spec$term)
   usable_interval <- identical(conf_status, "wald") &&
     is.finite(lower) &&
     is.finite(upper)
   covered <- usable_interval && lower <= truth_value && truth_value <= upper
+  bi <- if (!is.null(fit)) {
+    run_bootstrap(fit, target_parameter, replicate_index)
+  } else {
+    list(
+      attempted = FALSE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = if (is.na(fit_error)) "skipped" else "fit_failed",
+      message = fit_error,
+      warnings = NA_character_,
+      seed = NA_integer_
+    )
+  }
+  bootstrap_covered <- if (
+    is.finite(bi$lower) &&
+      is.finite(bi$upper) &&
+      is.finite(truth_value)
+  ) {
+    bi$lower <= truth_value && truth_value <= bi$upper
+  } else {
+    NA
+  }
 
   out <- data.frame(
     run_id = paste0(
@@ -1066,7 +1368,7 @@ run_one <- function(selection_row, replicate_index, seed) {
     beta_mu_intercept = spec$beta_mu_intercept,
     sigma = spec$sigma,
     truth_sd_mu_intercept = truth_value,
-    target_parameter = paste0("sd:mu:", spec$term),
+    target_parameter = target_parameter,
     fit_ok = fit_ok,
     converged = converged,
     pdHess = pdhess,
@@ -1079,6 +1381,26 @@ run_one <- function(selection_row, replicate_index, seed) {
     covered = covered,
     lower_miss = usable_interval && truth_value < lower,
     upper_miss = usable_interval && truth_value > upper,
+    bootstrap_R = bootstrap_R,
+    bootstrap_refit_attempts_requested = bootstrap_R,
+    bootstrap_seed = bi$seed,
+    bootstrap_attempted = bi$attempted,
+    bootstrap_status = bi$status,
+    bootstrap_conf.low = bi$lower,
+    bootstrap_conf.high = bi$upper,
+    bootstrap_covered = bootstrap_covered,
+    bootstrap_lower_miss = isTRUE(
+      is.finite(bi$lower) &&
+        is.finite(truth_value) &&
+        truth_value < bi$lower
+    ),
+    bootstrap_upper_miss = isTRUE(
+      is.finite(bi$upper) &&
+        is.finite(truth_value) &&
+        truth_value > bi$upper
+    ),
+    bootstrap_message = bi$message,
+    bootstrap_warnings = bi$warnings,
     nobs = if (fit_ok) stats::nobs(fit) else NA_integer_,
     elapsed = elapsed,
     warning_count = length(unique(warnings)),
@@ -1106,11 +1428,12 @@ run_one <- function(selection_row, replicate_index, seed) {
 
 seed_manifest <- expand.grid(
   provider = selected_providers,
-  replicate_index = seq(from = seed_start, length.out = n_rep),
+  seed_position = seq_along(seed_values),
   KEEP.OUT.ATTRS = FALSE,
   stringsAsFactors = FALSE
 )
-seed_manifest$seed <- seed_base + seed_manifest$replicate_index
+seed_manifest$replicate_index <- replicate_indices[seed_manifest$seed_position]
+seed_manifest$seed <- seed_values[seed_manifest$seed_position]
 seed_manifest$seed_role <- run_id_prefix
 seed_manifest$execution_status <- "executed"
 if (identical(run_kind, "smoke")) {
@@ -1130,6 +1453,16 @@ if (identical(run_kind, "smoke")) {
   seed_manifest$host_class <- host_class
   seed_manifest$host_name <- host_name
 }
+if (identical(run_kind, "bootstrap_smoke")) {
+  seed_manifest$source_contract <- rel_path(bootstrap_contract_path)
+  seed_manifest$source_contract_id <- bootstrap_contract_row$contract_id[[1L]]
+  seed_manifest$contract_status <- "tranche52_bootstrap_smoke_contract_ready"
+  seed_manifest$host_class <- host_class
+  seed_manifest$host_name <- host_name
+  seed_manifest$bootstrap_R <- bootstrap_R
+  seed_manifest$bootstrap_seed_base <- bootstrap_seed
+  seed_manifest$bootstrap_seed <- bootstrap_seed + seed_manifest$replicate_index
+}
 write_tsv(seed_manifest, seed_manifest_path)
 
 replicate_rows <- list()
@@ -1140,8 +1473,9 @@ for (provider in selected_providers) {
     ,
     drop = FALSE
   ]
-  for (replicate_index in seq(from = seed_start, length.out = n_rep)) {
-    seed <- seed_base + replicate_index
+  for (seed_position in seq_along(seed_values)) {
+    replicate_index <- replicate_indices[[seed_position]]
+    seed <- seed_values[[seed_position]]
     replicate_rows[[row_i]] <- run_one(selection_row, replicate_index, seed)
     row_i <- row_i + 1L
   }
@@ -1160,15 +1494,24 @@ summaries <- lapply(selected_providers, function(provider) {
     all(x$converged) &&
     all(x$pdHess) &&
     all(x$usable_interval) &&
+    (!identical(run_kind, "bootstrap_smoke") ||
+      all(x$bootstrap_status == "finite")) &&
     (!identical(run_kind, "smoke") ||
       all(x$warning_count == 0L))
   coverage <- mean(x$covered)
+  bootstrap_coverage <- mean(x$bootstrap_covered, na.rm = TRUE)
   status_value <- if (identical(run_kind, "smoke")) {
     if (all_gate_passed) "smoke_passed_fixture_only" else "smoke_failed"
   } else if (identical(run_kind, "pregrid")) {
     "sr150_pregrid_completed_review_pending"
   } else if (identical(run_kind, "topup")) {
     "sr_topup_shard_completed_review_pending"
+  } else if (identical(run_kind, "bootstrap_smoke")) {
+    if (all_gate_passed) {
+      "bootstrap_smoke_completed_review_pending"
+    } else {
+      "bootstrap_smoke_failed_review_required"
+    }
   } else if (all_gate_passed) {
     "local_dry_run_passed_screen_only"
   } else {
@@ -1184,6 +1527,8 @@ summaries <- lapply(selected_providers, function(provider) {
     "fisher_rose_grace_evidence_review_required_no_promotion"
   } else if (identical(run_kind, "topup")) {
     "fisher_rose_grace_aggregate_review_required_no_promotion"
+  } else if (identical(run_kind, "bootstrap_smoke")) {
+    "rose_fisher_gauss_noether_grace_review_required_no_promotion"
   } else if (all_gate_passed) {
     "totoro_fiia_smoke_accepted_fisher_rose"
   } else {
@@ -1192,6 +1537,8 @@ summaries <- lapply(selected_providers, function(provider) {
   evidence_url <- if (identical(run_kind, "smoke")) {
     rel_path(artifact_dir)
   } else if (run_kind %in% c("pregrid", "topup")) {
+    rel_path(artifact_dir)
+  } else if (identical(run_kind, "bootstrap_smoke")) {
     rel_path(artifact_dir)
   } else {
     "docs/dev-log/after-task/2026-06-29-q-series-gaussian-lowq-mu-intercept-dry-run.md"
@@ -1221,6 +1568,15 @@ summaries <- lapply(selected_providers, function(provider) {
       "not a shard-level pass claim; no interval_status, coverage_status,",
       "inference_ready, supported, q1 sigma, matched mu+sigma, q2, q4/q8,",
       "non-Gaussian, REML, AI-REML, bridge support, or public support claim."
+    )
+  } else if (identical(run_kind, "bootstrap_smoke")) {
+    paste(
+      "Tranche 52 animal q1 mu bootstrap micro-smoke artifact only;",
+      "this records hard-seed bootstrap plumbing and promotes exactly no",
+      "Q-Series row; two hard seeds are not coverage evidence; no bootstrap",
+      "reliability claim; no interval_status, coverage_status, inference_ready,",
+      "supported, q1 sigma, matched mu+sigma, q2, q4/q8, non-Gaussian, REML,",
+      "AI-REML, bridge support, or public support claim."
     )
   } else {
     paste(
@@ -1267,6 +1623,13 @@ summaries <- lapply(selected_providers, function(provider) {
       "upper:lower ratio, coverage MCSE, and failure taxonomy; linked support",
       "cells remain point_fit/planned/planned until an explicit reviewed import."
     )
+  } else if (identical(run_kind, "bootstrap_smoke")) {
+    paste(
+      "Rose/Fisher/Gauss/Noether/Grace must review the retained hard-seed",
+      "bootstrap artifact before any route expansion, top-up, or status-table",
+      "edit; linked support cell remains point_fit/extractor_ready/",
+      "fixture_parity/planned/planned/source."
+    )
   } else if (all_gate_passed) {
     paste(
       "Fisher/Rose accepted the dry-run contract for a Totoro/FIIA n=5 smoke,",
@@ -1296,6 +1659,13 @@ summaries <- lapply(selected_providers, function(provider) {
     n_confint_ok = sum(x$confint_ok),
     n_usable_intervals = sum(x$usable_interval),
     finite_interval_rate = fmt4(mean(x$usable_interval)),
+    n_bootstrap_request_rows = sum(x$bootstrap_R > 0L),
+    n_bootstrap_attempted = sum(x$bootstrap_attempted),
+    n_bootstrap_finite = sum(x$bootstrap_status == "finite", na.rm = TRUE),
+    bootstrap_coverage = fmt4(bootstrap_coverage),
+    bootstrap_mcse_smoke = fmt6(mcse_proportion(x$bootstrap_covered)),
+    bootstrap_lower_miss = sum(x$bootstrap_lower_miss),
+    bootstrap_upper_miss = sum(x$bootstrap_upper_miss),
     n_covered = sum(x$covered),
     coverage = fmt4(coverage),
     coverage_mcse = fmt6(mcse_proportion(x$covered)),
@@ -1321,11 +1691,13 @@ summaries <- lapply(selected_providers, function(provider) {
     "pregrid_status"
   } else if (identical(run_kind, "topup")) {
     "topup_status"
+  } else if (identical(run_kind, "bootstrap_smoke")) {
+    "bootstrap_smoke_status"
   } else {
     "dry_run_status"
   }
   names(row)[names(row) == "next_decision"] <- if (
-    run_kind %in% c("smoke", "pregrid", "topup")
+    run_kind %in% c("smoke", "pregrid", "topup", "bootstrap_smoke")
   ) {
     "review_decision"
   } else {
@@ -1346,6 +1718,15 @@ summaries <- lapply(selected_providers, function(provider) {
     row$host_name <- host_name
     row$n_warning_replicates <- sum(x$warning_count > 0L)
     row$n_retained_denominator <- nrow(x)
+  } else if (identical(run_kind, "bootstrap_smoke")) {
+    row$source_contract_id <- bootstrap_contract_row$contract_id[[1L]]
+    row$source_contract <- rel_path(bootstrap_contract_path)
+    row$host_class <- host_class
+    row$host_name <- host_name
+    row$n_warning_replicates <- sum(x$warning_count > 0L)
+    row$n_retained_denominator <- nrow(x)
+    row$selected_seeds <- paste(seed_values, collapse = ";")
+    row$bootstrap_R <- bootstrap_R
   }
   row
 })

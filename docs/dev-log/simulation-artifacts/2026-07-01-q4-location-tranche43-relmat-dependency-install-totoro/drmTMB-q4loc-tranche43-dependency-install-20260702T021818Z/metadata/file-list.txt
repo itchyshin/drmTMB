@@ -1,0 +1,14 @@
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/install-tmb-rcppeigen.R
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/logs/install.log
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/logs/rscript-exit-status.txt
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/logs/sha256sum.stderr
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/available-packages.tsv
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/downloaded-packages.tsv
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/file-list.txt
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/host.txt
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/install-command.tsv
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/pre-install-installed-packages.tsv
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/sessionInfo-before.txt
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/metadata/source-tarballs.sha256
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/source-tarballs/RcppEigen_0.3.4.0.2.tar.gz
+/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021818Z/source-tarballs/TMB_1.9.21.tar.gz

@@ -1,0 +1,9 @@
+timestamp_utc=20260702T123451Z
+source_sha_full=56add7f04fab7bec57a42e56eaeb090dff491863
+source_sha_short=56add7f0
+source_dirty_state=dirty
+source_dirty_count=181
+snapshot_path=/home/snakagaw/codex/drmTMB-q1mu-slope-tranche73-clean-source-56add7f0-20260702T123451Z
+run_root=/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche73-clean-source-20260702T123451Z
+host_label=totoro_q1mu_slope_spatial_t73_clean_source_restaging
+rsync_excludes=.git/;src/*.o;src/*.so;src/*.dll;src/*.dylib;._*;*/._*;.DS_Store

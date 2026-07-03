@@ -1,0 +1,3 @@
+6a4fa7e8c77d20172929368ce17852073439c69400ea8221255f08b51dd3411e  tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R
+b18885eaca8501e996d56ea8a2e7082c53b862b350ed7aacca6778973e4017ad  tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh
+bc8709d528248caa91af5b281c09c61d6f05d3a53052b39427c1c40bee3dd1a8  tools/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch

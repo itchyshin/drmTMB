@@ -1,0 +1,7 @@
+check_id	status	detail
+t125_failure_import	accepted	T124 job 15112750 failed before runner/model after library(drmTMB) passed and devtools_available FALSE stopped execution
+t125_route_selection	accepted	select installed-package library(drmTMB) route via --load-source=false before broad devtools prestaging
+t125_runner_patch	accepted	runner exposes --load-source=true|false and keeps default load_all route; sha256 84a335abddbd04f74c30daeb448af37e8d713471f71b2656c2ab41c4e85558b9
+t125_wrapper_patch	accepted	wrapper forwards --load-source and validates true/false; sha256 ea63c6fe0a4423296f48f2a11ec75232ce2e3ff37eb0b52bc3f48db5287bc5a2
+t125_no_compute	accepted	no ssh, no remote copy, no sbatch, no allocation, no module load, no model, no retained denominator
+t125_next_gate	accepted	T126 must be a no-compute patched-runner packet checkpoint before any repeat execution

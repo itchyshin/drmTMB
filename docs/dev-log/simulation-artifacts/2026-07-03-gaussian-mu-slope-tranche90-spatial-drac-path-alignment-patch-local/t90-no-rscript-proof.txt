@@ -1,0 +1,10 @@
+manifest_mode_exits_before_rscript
+4:MODE="manifest"
+78:the seed-target manifest without Rscript. execute mode is reserved for a later
+81:      exit 0
+90:if [[ "${MODE}" != "manifest" && "${MODE}" != "execute" ]]; then
+125:if [[ "${MODE}" == "manifest" ]]; then
+159:  exit 0
+175:Rscript --no-init-file "${RUNNER_ROOT}/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R" \
+manifest_exitcode=0
+manifest_output_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5

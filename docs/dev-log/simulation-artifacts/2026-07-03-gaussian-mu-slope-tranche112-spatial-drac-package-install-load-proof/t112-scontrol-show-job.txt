@@ -1,0 +1,28 @@
+JobId=15105466 JobName=drmtmb-t112-load
+   UserId=snakagaw(3143783) GroupId=snakagaw(3143783) MCS_label=N/A
+   Priority=1546018 Nice=0 Account=def-snakagaw_cpu QOS=normal
+   JobState=FAILED Reason=NonZeroExitCode Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=1:0
+   RunTime=00:03:04 TimeLimit=00:45:00 TimeMin=N/A
+   SubmitTime=2026-07-03T05:45:35 EligibleTime=2026-07-03T05:45:35
+   AccrueTime=2026-07-03T05:45:35
+   StartTime=2026-07-03T05:45:48 EndTime=2026-07-03T05:48:52 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-07-03T05:45:48 Scheduler=Backfill
+   Partition=cpubase_bycore_b1 AllocNode:Sid=rorqual2:585083
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=rc32301
+   BatchHost=rc32301
+   NumNodes=1 NumCPUs=4 NumTasks=1 CPUs/Task=4 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=4,mem=16G,node=1,billing=4000
+   AllocTRES=cpu=4,mem=16G,node=1,billing=4000
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=4 MinMemoryNode=16G MinTmpDiskNode=0
+   Features=[genoa|sapphirerapids] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t112-package-install-load-proof.sbatch
+   SubmitLine=sbatch /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t112-package-install-load-proof.sbatch
+   WorkDir=/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche112-spatial-drac-package-install-load-proof
+   StdErr=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche112-spatial-drac-package-install-load-proof/slurm-15105466.err
+   StdIn=/dev/null
+   StdOut=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche112-spatial-drac-package-install-load-proof/slurm-15105466.out
+   TresPerTask=cpu=4

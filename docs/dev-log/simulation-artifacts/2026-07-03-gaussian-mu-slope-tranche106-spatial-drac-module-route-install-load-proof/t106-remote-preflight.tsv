@@ -1,0 +1,5 @@
+field	value
+remote_host	rorqual2
+remote_user	snakagaw
+remote_dir_status	exists
+source_root_status	exists

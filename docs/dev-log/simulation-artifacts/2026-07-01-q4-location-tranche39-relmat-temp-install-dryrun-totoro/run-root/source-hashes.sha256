@@ -1,0 +1,5 @@
+9de8310fc7e5f2a09a8af4de4af7c47db39ffdf2e2392fe251d82540ff2ae255  SOURCE-MANIFEST.sha256
+ba8618fbb2c282cddf2c10e37e71a5df88cbde679f5a9382b838723e7915ad5c  SOURCE-PROVENANCE.tsv
+9133474766f6968f4344871e48c8b8a92cfdedc2bfff15e94a6fcc4b3afa9b8c  tools/run-q4-location-relmat-pregrid-totoro.sh
+25d9a1ba29cc51b138c672178470116ae25083390a852197d75a04ff04042b6a  tools/run-structured-re-q4-location-coverage-grid.R
+c0a20e17e25090747eef08cf567e9ec513b2df5f72757a5b902cc3a6d503a4ec  tools/slurm/q4-location-relmat-pregrid.sbatch

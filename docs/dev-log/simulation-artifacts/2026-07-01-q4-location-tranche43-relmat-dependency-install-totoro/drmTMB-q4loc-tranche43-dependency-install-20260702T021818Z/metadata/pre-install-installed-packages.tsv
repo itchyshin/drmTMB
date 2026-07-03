@@ -1,0 +1,3 @@
+	Package	LibPath	Version	Priority	Depends	Imports	LinkingTo	Suggests	Enhances	License	License_is_FOSS	License_restricts_use	OS_type	MD5sum	NeedsCompilation	Built
+Rcpp	Rcpp	/home/snakagaw/R/lib	1.1.1	NA	R (>= 3.5.0)	methods, utils	NA	tinytest, inline, rbenchmark, pkgKitten (>= 0.1.2)	NA	GPL (>= 2)	NA	NA	NA	NA	yes	4.5.2
+Matrix	Matrix	/usr/lib/R/site-library	1.7-5	recommended	R (>= 4.4), methods	grDevices, graphics, grid, lattice, stats, utils	NA	MASS, datasets, sfsmisc, tools	SparseM, graph	GPL (>= 2) | file LICENCE	NA	NA	NA	NA	yes	4.5.3

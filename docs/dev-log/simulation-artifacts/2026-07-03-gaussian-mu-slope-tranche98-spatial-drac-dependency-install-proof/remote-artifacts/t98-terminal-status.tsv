@@ -1,0 +1,17 @@
+field	value
+ssh_status	connected_batchmode
+module_status	loaded_StdEnv_2023_gcc_12_3_r_4_4_0
+rscript_version	Rscript_(R)_version_4.4.0_(2024-04-24)
+dependency_probe_status	complete
+missing_dependency_status	missing_cli_TMB_RcppEigen
+install_status	not_attempted_login_node_compile_policy
+load_status	not_attempted
+r_cmd_install_status	not_attempted_login_node_compile_policy
+sbatch_status	not_run
+model_command_status	not_run
+denominator_status	no_new_denominator
+source_root_status	exists
+run_root_status	exists
+description_status	exists
+source_sha_status	git_head_unavailable_t83_source_sha_56add7f04fab7bec57a42e56eaeb090dff491863
+compute_boundary	no install; no package load; no R CMD INSTALL; no sbatch; no smoke runner; no simulation; no model formula; no model fit; no retained denominator; no coverage; no support-cell status edit

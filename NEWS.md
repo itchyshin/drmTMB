@@ -5,6 +5,14 @@ registry in `docs/design/168-r-julia-finish-capability-matrix.md`; fitted,
 planned, unsupported, and release-gate language should not be read more broadly
 than that matrix.
 
+* The Q-Series v1.0 release status is now generated from the 104-row support-cell
+  board and recorded in `docs/dev-log/release-audits/q-series-v1-release-status.md`.
+  It separates implemented/basic-working Gaussian structured-effect rows and
+  basic-distribution recovery rows from post-v1.0 `inference_ready` and
+  `supported` validation. This is release-planning evidence only; it does not
+  authorize coverage, q4/q8 promotion, broad bridge support, REML, AI-REML, or
+  public-support wording.
+
 * `confint()` now applies the small-sample t(g - 1) width plus the simulation-calibrated `log(g/(g - 1))` centre shift by default for location-axis structured random-effect SD targets. This moves only the phylo and relmat bivariate q2 `mu1:x`/`mu2:x` slope SD cells to `inference_ready` for interval and coverage status; `supported` remains withheld because the engine grids still measure right-tail miss asymmetry and g-dependence. Spatial q2, animal q2, q4/q8, count, and non-Gaussian structured rows remain separate future arcs.
 
 * The exact Gaussian q1 sigma one-slope `phylo()`, `animal()`, and `relmat()` rows are now `inference_ready` under the raw uncorrected log-SD Wald-z interval channel. The Nibi top-up, banked SR475 slope grid, and local animal SR1000 reconciliation show 100% fit/pdHess pass rates, Wald finite rates at or above 0.953, and Wald MCSE at or below 0.01; the caveat is that one-sided misses are asymmetric and sigma slope SDs over-cover, so this is not `supported`. Profile intervals remain diagnostic-only at deployment g=8 for low-finite sigma targets, and the location-axis bias+t correction does not apply to sigma.

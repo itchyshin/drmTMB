@@ -1,0 +1,2 @@
+host_label	hostname	observed_at	rscript_version	source_path	run_root	thread_caps
+totoro_q1mu_slope_spatial_t68_source_runroot_staging	totoro	2026-07-02T04:38:38-06:00	Rscript (R) version 4.5.3 (2026-03-11)	/home/snakagaw/codex/drmTMB-q1mu-slope-tranche68-source-56add7f0-20260702T103739Z	/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z	JULIA_NUM_THREADS=1;OPENBLAS_NUM_THREADS=1;OMP_NUM_THREADS=1;MKL_NUM_THREADS=1;TMB_NTHREADS=1

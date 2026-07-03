@@ -11,6 +11,16 @@ boundary itself is maintained in
 registry is `docs/design/168-r-julia-finish-capability-matrix.md`; when these
 ledgers disagree, the stricter row wins until the evidence is reconciled.
 
+## Version 1.0 Preparation
+
+- Q-Series v1.0 status is tracked in
+  `docs/dev-log/release-audits/q-series-v1-release-status.md`. That generated
+  release ledger keeps the practical v1.0 scope on implemented/basic-working
+  Gaussian structured-effect rows and basic-distribution recovery rows, while
+  full `inference_ready` and `supported` validation remains post-v1.0 row work.
+- The Q-Series release-status ledger does not authorize coverage, q4/q8
+  promotion, broad bridge support, REML, AI-REML, or public-support wording.
+
 ## Version 0.1.3 Preview Release
 
 - Current preview version: `0.1.3`.

@@ -11,9 +11,13 @@ if (any(args %in% c("--help", "-h"))) {
       "Usage: Rscript tools/run-structured-re-gaussian-lowq-sigma-intercept-smoke.R [options]",
       "",
       "Options:",
+      "  --run-kind=smoke|pregrid|bootstrap_smoke  Run contract kind (default: smoke).",
       "  --n-rep=N                         Replicates per provider (default: 5).",
       "  --seed-start=N                    First replicate index (default: 1).",
       "  --seed-base=N                     Seed base; seed = seed_base + replicate_index (default: 914000).",
+      "  --seed-list=A,B                   Exact seeds; required by bootstrap_smoke.",
+      "  --bootstrap=N                     Bootstrap refits per retained seed (default: 0).",
+      "  --bootstrap-seed=N                Bootstrap seed base (default: 540054).",
       "  --providers=a,b,c                 Providers to run (default: phylo,spatial,animal,relmat).",
       "  --host-class=CLASS                Host class label (default: local_rehearsal).",
       "  --host-name=NAME                  Host name label (default: Sys.info()[['nodename']]).",
@@ -146,6 +150,50 @@ seed_base <- as.integer(arg_value("seed-base", "914000"))
 if (!is.finite(seed_base) || seed_base < 1L) {
   stop("`--seed-base` must be a positive integer.", call. = FALSE)
 }
+seed_list_arg <- arg_value("seed-list", NULL)
+seed_values <- NULL
+if (!is.null(seed_list_arg)) {
+  seed_values <- as.integer(trimws(strsplit(seed_list_arg, ",", fixed = TRUE)[[1L]]))
+  if (
+    length(seed_values) == 0L ||
+      any(!is.finite(seed_values)) ||
+      any(seed_values < 1L) ||
+      anyDuplicated(seed_values)
+  ) {
+    stop(
+      "`--seed-list` must be a comma-separated list of unique positive integers.",
+      call. = FALSE
+    )
+  }
+  if (length(seed_values) != n_rep) {
+    stop(
+      "`--n-rep` must equal the number of seeds in `--seed-list`.",
+      call. = FALSE
+    )
+  }
+}
+replicate_indices <- if (is.null(seed_values)) {
+  seq(from = seed_start, length.out = n_rep)
+} else {
+  seed_values - seed_base
+}
+if (any(!is.finite(replicate_indices)) || any(replicate_indices < 1L)) {
+  stop(
+    "`--seed-list` seeds must be larger than `--seed-base` so retained replicate indices are positive.",
+    call. = FALSE
+  )
+}
+if (is.null(seed_values)) {
+  seed_values <- seed_base + replicate_indices
+}
+bootstrap_R <- as.integer(arg_value("bootstrap", "0"))
+if (!is.finite(bootstrap_R) || bootstrap_R < 0L) {
+  stop("`--bootstrap` must be a non-negative integer.", call. = FALSE)
+}
+bootstrap_seed <- as.integer(arg_value("bootstrap-seed", "540054"))
+if (!is.finite(bootstrap_seed) || bootstrap_seed < 1L) {
+  stop("`--bootstrap-seed` must be a positive integer.", call. = FALSE)
+}
 profile_enabled <- arg_flag("profile", TRUE)
 profile_engine <- arg_value("profile-engine", "endpoint")
 if (!profile_engine %in% c("endpoint", "tmbprofile")) {
@@ -169,6 +217,25 @@ if (
 }
 overwrite <- arg_flag("overwrite", FALSE)
 write_dashboard <- arg_flag("write-dashboard", TRUE)
+run_kind <- gsub("-", "_", arg_value("run-kind", "smoke"), fixed = TRUE)
+if (!run_kind %in% c("smoke", "pregrid", "bootstrap_smoke")) {
+  stop(
+    "`--run-kind` must be `smoke`, `pregrid`, or `bootstrap_smoke`.",
+    call. = FALSE
+  )
+}
+if (identical(run_kind, "smoke") && n_rep != 5L) {
+  stop(
+    "Smoke mode is the reviewed n=5 fixture smoke. Use --n-rep=5.",
+    call. = FALSE
+  )
+}
+if (identical(run_kind, "pregrid") && n_rep != 150L) {
+  stop(
+    "Pregrid mode is the reviewed SR150 retained-denominator design. Use --n-rep=150.",
+    call. = FALSE
+  )
+}
 host_class <- arg_value("host-class", "local_rehearsal")
 host_name <- arg_value("host-name", unname(Sys.info()[["nodename"]]))
 
@@ -176,6 +243,10 @@ dashboard_dir <- file.path(repo_root, "docs", "dev-log", "dashboard")
 route_contract_path <- file.path(
   dashboard_dir,
   "structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv"
+)
+bootstrap_contract_path <- file.path(
+  dashboard_dir,
+  "structured-re-gaussian-lowq-tranche54-q1-sigma-bootstrap-smoke-contract.tsv"
 )
 row_selection_path <- file.path(
   dashboard_dir,
@@ -247,6 +318,58 @@ if (length(selected_providers) == 0L || length(unknown_providers) > 0L) {
     call. = FALSE
   )
 }
+if (identical(run_kind, "bootstrap_smoke")) {
+  if (
+    length(selected_providers) != 2L ||
+      !setequal(selected_providers, c("animal", "relmat"))
+  ) {
+    stop(
+      "Bootstrap-smoke mode is limited to `--providers=animal,relmat`.",
+      call. = FALSE
+    )
+  }
+  if (
+    n_rep != 2L ||
+      !identical(as.integer(seed_values), c(914008L, 914011L)) ||
+      !identical(as.integer(replicate_indices), c(8L, 11L))
+  ) {
+    stop(
+      "Bootstrap-smoke mode is limited to retained seeds 914008 and 914011.",
+      call. = FALSE
+    )
+  }
+  if (bootstrap_R <= 0L) {
+    stop(
+      "Bootstrap-smoke mode requires --bootstrap to be a positive integer.",
+      call. = FALSE
+    )
+  }
+  if (profile_enabled) {
+    stop(
+      "Bootstrap-smoke mode keeps the blocked profile route off. Use --profile=false.",
+      call. = FALSE
+    )
+  }
+  if (write_dashboard) {
+    stop(
+      "Bootstrap-smoke mode is artifact-only. Use --write-dashboard=false, ",
+      "then import reviewed artifacts through a validator-owned sidecar.",
+      call. = FALSE
+    )
+  }
+  if (
+    !identical(
+      Sys.getenv("DRMTMB_Q1_SIGMA_TRANCHE54_EXECUTION_APPROVED", unset = ""),
+      "rose_fisher_gauss_noether_grace"
+    )
+  ) {
+    stop(
+      "Refusing to run Tranche 54 bootstrap smoke without ",
+      "DRMTMB_Q1_SIGMA_TRANCHE54_EXECUTION_APPROVED=rose_fisher_gauss_noether_grace.",
+      call. = FALSE
+    )
+  }
+}
 
 contract_rows <- route_contract[
   route_contract$cell_id %in% unname(expected_cells[selected_providers]),
@@ -303,6 +426,126 @@ if (!all(selection_rows$endpoint_set == "sigma")) {
 }
 if (!all(selection_rows$slope_class == "intercept_only")) {
   stop("Selected rows must be intercept-only rows.", call. = FALSE)
+}
+if (identical(run_kind, "bootstrap_smoke")) {
+  bootstrap_contract <- read_tsv(bootstrap_contract_path)
+  required_bootstrap_fields <- c(
+    "contract_id",
+    "contract_scope",
+    "cell_ids",
+    "providers",
+    "source_tranche53_design",
+    "source_tranche49_blocker",
+    "source_profile_route_review",
+    "source_pregrid_replicates",
+    "source_runner",
+    "source_helper",
+    "selected_route",
+    "target_component",
+    "target_estimand",
+    "bootstrap_R",
+    "n_rep_per_provider",
+    "selected_seeds",
+    "seed_list_arg",
+    "retained_replicate_indices",
+    "host_plan",
+    "command_status",
+    "execution_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "support_cell_decision",
+    "blocking_reviewers",
+    "advisory_reviewers",
+    "fisher_review",
+    "rose_audit",
+    "gauss_review",
+    "noether_review",
+    "grace_review",
+    "curie_review",
+    "exact_command",
+    "artifact_root",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate"
+  )
+  missing_bootstrap_fields <- setdiff(
+    required_bootstrap_fields,
+    names(bootstrap_contract)
+  )
+  if (length(missing_bootstrap_fields) > 0L) {
+    stop(
+      "Tranche 54 bootstrap contract sidecar is missing fields: ",
+      paste(missing_bootstrap_fields, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  bootstrap_contract_row <- bootstrap_contract[
+    bootstrap_contract$contract_id ==
+      "tranche54_q1_sigma_bootstrap_smoke_command",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(bootstrap_contract_row) != 1L) {
+    stop(
+      "Tranche 54 bootstrap contract must expose exactly one command row.",
+      call. = FALSE
+    )
+  }
+  if (!identical(
+    bootstrap_contract_row$cell_ids,
+    "qseries_animal_q1_sigma_intercept;qseries_relmat_q1_sigma_intercept"
+  )) {
+    stop("Tranche 54 bootstrap command must target animal/relmat q1 sigma only.", call. = FALSE)
+  }
+  if (!identical(bootstrap_contract_row$providers, "animal;relmat")) {
+    stop("Tranche 54 bootstrap command must keep providers = animal;relmat.", call. = FALSE)
+  }
+  if (!identical(
+    bootstrap_contract_row$selected_route,
+    "parametric_bootstrap_direct_sigma_sd_boundary_seed_micro_smoke"
+  )) {
+    stop(
+      "Tranche 54 bootstrap command must keep the selected Tranche 53 route.",
+      call. = FALSE
+    )
+  }
+  contract_bootstrap_R <- as.integer(bootstrap_contract_row$bootstrap_R[[1L]])
+  contract_n_rep <- as.integer(bootstrap_contract_row$n_rep_per_provider[[1L]])
+  contract_seed_values <- as.integer(strsplit(
+    bootstrap_contract_row$seed_list_arg[[1L]],
+    ",",
+    fixed = TRUE
+  )[[1L]])
+  if (
+    !identical(contract_bootstrap_R, bootstrap_R) ||
+      !identical(contract_n_rep, n_rep) ||
+      !identical(contract_seed_values, as.integer(seed_values))
+  ) {
+    stop(
+      "Tranche 54 bootstrap command arguments must match the reviewed contract.",
+      call. = FALSE
+    )
+  }
+  for (phrase in c(
+    "contract_banked_not_executed",
+    "do_not_execute_until_rose_fisher_gauss_noether_grace_explicit_approval",
+    "coverage_not_authorized",
+    "do_not_promote"
+  )) {
+    fields <- paste(
+      bootstrap_contract_row$command_status,
+      bootstrap_contract_row$execution_decision,
+      bootstrap_contract_row$coverage_decision,
+      bootstrap_contract_row$promotion_decision
+    )
+    if (!grepl(phrase, fields, fixed = TRUE)) {
+      stop(
+        "Tranche 54 bootstrap contract must keep boundary phrase: ",
+        phrase,
+        call. = FALSE
+      )
+    }
+  }
 }
 
 provider_defaults <- list(
@@ -493,6 +736,77 @@ find_interval_row <- function(ci, target) {
   ci[which(hit)[[1L]], , drop = FALSE]
 }
 
+run_bootstrap <- function(fit, parm, replicate_index) {
+  if (bootstrap_R <= 0L) {
+    return(list(
+      attempted = FALSE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = "skipped",
+      message = "bootstrap_off",
+      warnings = NA_character_,
+      seed = NA_integer_
+    ))
+  }
+  boot_seed <- bootstrap_seed + replicate_index
+  warnings <- character()
+  result <- withCallingHandlers(
+    tryCatch(
+      stats::confint(
+        fit,
+        parm = parm,
+        method = "bootstrap",
+        level = 0.95,
+        R = bootstrap_R,
+        seed = boot_seed
+      ),
+      error = function(e) e
+    ),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  if (inherits(result, "error")) {
+    return(list(
+      attempted = TRUE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = "error",
+      message = clean_text(conditionMessage(result)),
+      warnings = clean_text(paste(warnings, collapse = " | ")),
+      seed = boot_seed
+    ))
+  }
+  interval_row <- find_interval_row(result, parm)
+  if (is.null(interval_row)) {
+    return(list(
+      attempted = TRUE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = "parm_not_found",
+      message = paste0("bootstrap: parm not found: ", parm),
+      warnings = clean_text(paste(warnings, collapse = " | ")),
+      seed = boot_seed
+    ))
+  }
+  lower <- interval_row$lower[[1L]]
+  upper <- interval_row$upper[[1L]]
+  list(
+    attempted = TRUE,
+    lower = lower,
+    upper = upper,
+    status = if (is.finite(lower) && is.finite(upper)) {
+      "finite"
+    } else {
+      "nonfinite"
+    },
+    message = NA_character_,
+    warnings = clean_text(paste(warnings, collapse = " | ")),
+    seed = boot_seed
+  )
+}
+
 estimate_for_sigma <- function(fit, spec) {
   if (is.null(fit) || is.null(fit$sdpars$sigma)) {
     return(NA_real_)
@@ -653,6 +967,28 @@ run_one <- function(selection_row, contract_row, replicate_index, seed) {
   }
   lower_miss <- if (usable_interval) truth_value < lower else NA
   upper_miss <- if (usable_interval) truth_value > upper else NA
+  bi <- if (!is.null(fit)) {
+    run_bootstrap(fit, target, replicate_index)
+  } else {
+    list(
+      attempted = FALSE,
+      lower = NA_real_,
+      upper = NA_real_,
+      status = if (is.na(fit_error)) "skipped" else "fit_failed",
+      message = fit_error,
+      warnings = NA_character_,
+      seed = NA_integer_
+    )
+  }
+  bootstrap_covered <- if (
+    is.finite(bi$lower) &&
+      is.finite(bi$upper) &&
+      is.finite(truth_value)
+  ) {
+    bi$lower <= truth_value && truth_value <= bi$upper
+  } else {
+    NA
+  }
 
   profile_status <- if (!profile_enabled) {
     "profile_not_requested"
@@ -743,6 +1079,26 @@ run_one <- function(selection_row, contract_row, replicate_index, seed) {
     covered = covered,
     lower_miss = lower_miss,
     upper_miss = upper_miss,
+    bootstrap_R = bootstrap_R,
+    bootstrap_refit_attempts_requested = bootstrap_R,
+    bootstrap_seed = bi$seed,
+    bootstrap_attempted = bi$attempted,
+    bootstrap_status = bi$status,
+    bootstrap_conf.low = bi$lower,
+    bootstrap_conf.high = bi$upper,
+    bootstrap_covered = bootstrap_covered,
+    bootstrap_lower_miss = isTRUE(
+      is.finite(bi$lower) &&
+        is.finite(truth_value) &&
+        truth_value < bi$lower
+    ),
+    bootstrap_upper_miss = isTRUE(
+      is.finite(bi$upper) &&
+        is.finite(truth_value) &&
+        truth_value > bi$upper
+    ),
+    bootstrap_message = bi$message,
+    bootstrap_warnings = bi$warnings,
     profile_ok = profile_ok,
     profile_status = profile_status,
     profile_engine = if (profile_enabled) profile_engine else "not_requested",
@@ -775,16 +1131,26 @@ run_one <- function(selection_row, contract_row, replicate_index, seed) {
 
 seed_manifest <- expand.grid(
   provider = selected_providers,
-  replicate_index = seq(from = seed_start, length.out = n_rep),
+  seed_position = seq_along(seed_values),
   KEEP.OUT.ATTRS = FALSE,
   stringsAsFactors = FALSE
 )
-seed_manifest$seed <- seed_base + seed_manifest$replicate_index
+seed_manifest$replicate_index <- replicate_indices[seed_manifest$seed_position]
+seed_manifest$seed <- seed_values[seed_manifest$seed_position]
+seed_manifest$seed_position <- NULL
 seed_manifest$seed_role <- "gaussian_lowq_sigma_intercept_smoke"
 seed_manifest$execution_status <- "executed"
 seed_manifest$source_contract <- rel_path(route_contract_path)
 seed_manifest$host_class <- host_class
 seed_manifest$host_name <- host_name
+if (identical(run_kind, "bootstrap_smoke")) {
+  seed_manifest$source_contract <- rel_path(bootstrap_contract_path)
+  seed_manifest$source_contract_id <- bootstrap_contract_row$contract_id[[1L]]
+  seed_manifest$contract_status <- "tranche54_bootstrap_smoke_contract_ready"
+  seed_manifest$bootstrap_R <- bootstrap_R
+  seed_manifest$bootstrap_seed_base <- bootstrap_seed
+  seed_manifest$bootstrap_seed <- bootstrap_seed + seed_manifest$replicate_index
+}
 write_tsv(seed_manifest, seed_manifest_path)
 
 replicate_rows <- list()
@@ -800,8 +1166,9 @@ for (provider in selected_providers) {
     ,
     drop = FALSE
   ]
-  for (replicate_index in seq(from = seed_start, length.out = n_rep)) {
-    seed <- seed_base + replicate_index
+  for (seed_position in seq_along(seed_values)) {
+    replicate_index <- replicate_indices[[seed_position]]
+    seed <- seed_values[[seed_position]]
     replicate_rows[[row_i]] <- run_one(
       selection_row,
       contract_row,
@@ -830,17 +1197,33 @@ summaries <- lapply(selected_providers, function(provider) {
     all(x$converged) &&
     all(x$pdHess) &&
     all(x$sdreport_cov_available) &&
-    all(x$usable_interval)
+    all(x$usable_interval) &&
+    (!identical(run_kind, "bootstrap_smoke") ||
+      all(x$bootstrap_status == "finite"))
   n_usable <- sum(x$usable_interval)
   covered <- x$covered[x$usable_interval]
   coverage <- if (length(covered) == 0L) NA_real_ else mean(covered)
+  bootstrap_covered <- x$bootstrap_covered[
+    !is.na(x$bootstrap_covered)
+  ]
+  bootstrap_coverage <- if (length(bootstrap_covered) == 0L) {
+    NA_real_
+  } else {
+    mean(bootstrap_covered)
+  }
   profile_covered <- x$profile_covered[x$profile_ok]
   profile_coverage <- if (length(profile_covered) == 0L) {
     NA_real_
   } else {
     mean(profile_covered)
   }
-  status <- if (support_clear) {
+  status <- if (identical(run_kind, "bootstrap_smoke")) {
+    if (support_clear) {
+      "bootstrap_smoke_completed_review_pending"
+    } else {
+      "bootstrap_smoke_failed_review_required"
+    }
+  } else if (support_clear) {
     "local_smoke_passed_route_only"
   } else {
     "local_smoke_diagnostic_blocked"
@@ -851,7 +1234,11 @@ summaries <- lapply(selected_providers, function(provider) {
     if (any(!x$pdHess)) "pdhess_false",
     if (any(!x$sdreport_cov_available)) "sdreport_cov_unavailable",
     if (any(!x$usable_interval)) "nonusable_wald_interval",
-    if (any(!x$profile_finite)) "profile_nonfinite_or_failed",
+    if (profile_enabled && any(!x$profile_finite)) "profile_nonfinite_or_failed",
+    if (
+      identical(run_kind, "bootstrap_smoke") &&
+        any(x$bootstrap_status != "finite")
+    ) "bootstrap_nonfinite_or_failed",
     if (any(x$warning_count > 0L)) "warnings_recorded"
   ))
   if (length(blockers) == 0L) {
@@ -880,6 +1267,13 @@ summaries <- lapply(selected_providers, function(provider) {
     coverage_mcse = fmt6(mcse_proportion(covered)),
     lower_miss = sum(x$lower_miss, na.rm = TRUE),
     upper_miss = sum(x$upper_miss, na.rm = TRUE),
+    n_bootstrap_request_rows = sum(x$bootstrap_R > 0L),
+    n_bootstrap_attempted = sum(x$bootstrap_attempted),
+    n_bootstrap_finite = sum(x$bootstrap_status == "finite", na.rm = TRUE),
+    bootstrap_coverage_smoke = fmt4(bootstrap_coverage),
+    bootstrap_coverage_mcse = fmt6(mcse_proportion(bootstrap_covered)),
+    bootstrap_lower_miss = sum(x$bootstrap_lower_miss),
+    bootstrap_upper_miss = sum(x$bootstrap_upper_miss),
     n_profile_ok = sum(x$profile_ok),
     n_profile_finite = sum(x$profile_finite),
     n_profile_failed = sum(!x$profile_ok),
@@ -896,32 +1290,57 @@ summaries <- lapply(selected_providers, function(provider) {
     n_warning_replicates = sum(x$warning_count > 0L),
     smoke_status = status,
     blocker_signal = paste(blockers, collapse = ";"),
-    review_decision = "fisher_gauss_rose_review_required",
+    review_decision = if (identical(run_kind, "bootstrap_smoke")) {
+      "rose_fisher_gauss_noether_grace_review_required_no_promotion"
+    } else {
+      "fisher_gauss_rose_review_required"
+    },
     promotion_decision = "do_not_promote",
     evidence_url = rel_path(artifact_dir),
-    claim_boundary = paste(
-      "Gaussian low-q q1 sigma-intercept local smoke only;",
-      "this promotes exactly no Q-Series row;",
-      paste0(
-        "n=",
-        length(unique(x$replicate_index)),
-        " is not coverage evidence;"
-      ),
-      "raw Wald uses small_sample_df=none and bias_correct=none;",
-      paste0(profile_engines, " profile rows are diagnostic only;"),
-      "boundary, warning, failed-profile, and finite-subset rows are retained;",
-      "no fit_status, interval_status, coverage_status, inference_ready,",
-      "supported, location-axis bias+t correction, q1 mu, matched mu+sigma, q2,",
-      "q4/q8, non-Gaussian, REML, AI-REML, bridge support, public support,",
-      "Totoro/FIIA, Nibi/Rorqual, or DRAC denominator claim."
-    ),
-    next_gate = paste(
-      "Fisher/Gauss/Rose must review the retained n=5 rows before any host",
-      "escalation; if accepted, Totoro/FIIA may repeat this exact smoke;",
-      "Nibi/Rorqual denominator work remains blocked until the retained",
-      "denominator design, one-sided miss rules, profile diagnostic policy,",
-      "and stop rules are signed off; keep support cells point_fit/planned/planned."
-    ),
+    claim_boundary = if (identical(run_kind, "bootstrap_smoke")) {
+      paste(
+        "Tranche 54 animal/relmat q1 sigma bootstrap micro-smoke artifact only;",
+        "this records boundary-seed bootstrap plumbing and promotes exactly no",
+        "Q-Series row; two retained seeds per provider are not coverage evidence;",
+        "no bootstrap reliability claim; no interval_status, coverage_status,",
+        "inference_ready, supported, q1 mu, matched mu+sigma, q2, q4/q8,",
+        "non-Gaussian, REML, AI-REML, bridge support, public support, or",
+        "pooled host denominator claim."
+      )
+    } else {
+      paste(
+        "Gaussian low-q q1 sigma-intercept local smoke only;",
+        "this promotes exactly no Q-Series row;",
+        paste0(
+          "n=",
+          length(unique(x$replicate_index)),
+          " is not coverage evidence;"
+        ),
+        "raw Wald uses small_sample_df=none and bias_correct=none;",
+        paste0(profile_engines, " profile rows are diagnostic only;"),
+        "boundary, warning, failed-profile, and finite-subset rows are retained;",
+        "no fit_status, interval_status, coverage_status, inference_ready,",
+        "supported, location-axis bias+t correction, q1 mu, matched mu+sigma, q2,",
+        "q4/q8, non-Gaussian, REML, AI-REML, bridge support, public support,",
+        "Totoro/FIIA, Nibi/Rorqual, or DRAC denominator claim."
+      )
+    },
+    next_gate = if (identical(run_kind, "bootstrap_smoke")) {
+      paste(
+        "Rose/Fisher/Gauss/Noether/Grace must review the retained boundary-seed",
+        "bootstrap artifact before any route expansion, top-up, or status-table",
+        "edit; linked support cells remain point_fit/extractor_ready/",
+        "fixture_parity/planned/planned/source."
+      )
+    } else {
+      paste(
+        "Fisher/Gauss/Rose must review the retained n=5 rows before any host",
+        "escalation; if accepted, Totoro/FIIA may repeat this exact smoke;",
+        "Nibi/Rorqual denominator work remains blocked until the retained",
+        "denominator design, one-sided miss rules, profile diagnostic policy,",
+        "and stop rules are signed off; keep support cells point_fit/planned/planned."
+      )
+    },
     host_class = host_class,
     host_name = host_name,
     stringsAsFactors = FALSE

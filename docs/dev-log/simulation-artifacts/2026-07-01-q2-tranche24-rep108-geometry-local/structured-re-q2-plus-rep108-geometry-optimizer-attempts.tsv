@@ -1,0 +1,2 @@
+result_id	replicate_index	seed	attempt	optimizer	optimizer_preset	status	convergence	message	objective	elapsed_sec	selected	host_class	host_name
+tranche24_q2_plus_rep108_optimizer_attempt_1	108	823108	1	nlminb	default	ok	0	relative convergence (4)	466.559852804	0.98200000	TRUE	local_codex_geometry_reconstruction	local_codex

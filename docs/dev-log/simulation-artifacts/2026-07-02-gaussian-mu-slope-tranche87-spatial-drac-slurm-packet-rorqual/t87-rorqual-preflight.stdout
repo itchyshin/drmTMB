@@ -1,0 +1,10 @@
+host=rorqual2
+user=snakagaw
+pwd=/home/snakagaw
+source_path_status=present
+run_root_status=present
+remote_t85_runner_status=missing
+remote_t85_wrapper_status=missing_or_not_executable
+/opt/software/slurm/bin/sbatch
+slurm_cluster_probe=login_no_slurm_job
+login_node_guard=not_in_slurm_job

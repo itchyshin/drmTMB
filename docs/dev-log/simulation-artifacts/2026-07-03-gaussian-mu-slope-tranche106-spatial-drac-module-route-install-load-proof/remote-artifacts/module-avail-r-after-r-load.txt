@@ -1,0 +1,303 @@
+
+-------------------------- Cluster specific modules ---------------------------
+   httpproxy/1.0
+
+------------------------ MPI-dependent avx512 modules -------------------------
+   amber/22.5-23.5              (chem)
+   ambertools/23.5              (chem)
+   ambertools/25.0              (chem,D)
+   arpack-ng/3.9.1              (math,D)
+   casacore/3.6.1
+   ceres-solver/2.2.0
+   ferret/7.6.0                 (vis)
+   generax/2.1.3
+   globalarrays/5.8.2
+   gromacs-plumed/2020.7        (chem)
+   gromacs-plumed/2023.5        (chem,D)
+   gromacs-ramd/2024.1-RAMD-2.1 (chem)
+   gromacs-swaxs/2021.7-0.5.1   (chem)
+   gromacs/2016.6               (chem)
+   gromacs/2023.3               (chem)
+   gromacs/2023.5               (chem)
+   gromacs/2024.1               (chem)
+   gromacs/2024.4               (chem)
+   gromacs/2024.6               (chem)
+   gromacs/2025.4               (chem)
+   gromacs/2026.1               (chem,D)
+   iq-tree-mpi/3.1.2
+   librmn/20.0.9
+   mrbayes/3.2.7                (bio)
+   mumps-parmetis/5.4.1         (t)
+   mumps-parmetis/5.7.3         (t,D)
+   nektar++/5.7.0               (math)
+   netcdf-fortran-mpi/4.6.1     (io)
+   orca/6.0.0                   (chem)
+   orca/6.0.1                   (chem)
+   orca/6.1.0                   (chem)
+   orca/6.1.1                   (chem,D)
+   osu-micro-benchmarks/7.1-1   (t)
+   parallelio/2.6.3
+   paraview/5.11.2              (vis)
+   paraview/5.13.1              (vis)
+   paraview/6.0.0               (vis,D)
+   parmetis/4.0.3               (math)
+   pflotran/5.0.0
+   pflotran/6.0.0               (D)
+   quantumespresso/7.3.1        (chem)
+   quantumespresso/7.5          (chem,D)
+   raxml-ng/1.2.0
+   raxml/8.2.13                 (bio)
+   relion/5.1.0                 (chem)
+   superlu/7.0.1                (math)
+   telemac-mascaret/8p5r0
+   trilinos/15.1.1              (t)
+   triqs/3.3.1
+   triqs/3.3.2                  (D)
+   valgrind-mpi/3.21.0          (t)
+   wannier90/3.1.0              (chem)
+   wrf/4.6.1                    (geo)
+   wrf/4.7.1                    (geo,D)
+   xbraid/3.1.0
+
+---------------------- Compiler-dependent avx512 modules ----------------------
+   adtree/1.1.2                          ltr_retriever/3.0.4
+   alevin-fry/0.8.2                      m4ri/20251207
+   amrfinderplus/3.12.8                  m4rie/20250128
+   amrfinderplus/4.2.7       (D)         maeparser/1.2.4            (chem)
+   antlr/2.7.7                           mariadb-connector-c/3.3.7
+   aragorn/1.2.41                        mariadb/11.5.0             (t)
+   arcs/1.2.7                (bio)       mesa-astrophysics/r24.03.1 (phys)
+   armadillo/12.6.4          (math)      mothur/1.48.3              (bio)
+   arpack-ng/3.9.1           (math)      mrtrix/3.0.4               (bio)
+   arrow/14.0.0              (t)         mrtrix/3.0.8               (bio,D)
+   arrow/14.0.1              (t)         mstore/0.2.0
+   arrow/15.0.1              (t)         mstore/0.3.0               (D)
+   arrow/16.1.0              (t)         multicharge/0.2.0
+   arrow/17.0.0              (t)         multicharge/0.3.0          (D)
+   arrow/18.1.0              (t)         mummer/4.0.0rc1            (bio)
+   arrow/19.0.1              (t)         muparser/2.3.4             (math)
+   arrow/21.0.0              (t)         muparserx/4.0.12
+   arrow/22.0.0              (t)         namd-multicore/3.0.1       (chem)
+   arrow/23.0.1              (t)         namd-multicore/3.0.2       (chem,D)
+   arrow/24.0.0              (t,D)       netcdf-fortran/4.6.1       (io)
+   bioperl/1.7.8             (bio)       opencolorio/2.3.0          (vis)
+   bismark/0.24.1                        ospray/2.12.0
+   bismark/0.25.1            (D)         parasail/2.6.2
+   bracken/3.0                           pari-gp/2.15.5
+   breseq/0.38.2                         percolator/3.8             (bio)
+   brunsli/0.1                           perl/5.36.1                (t,D)
+   bufr/12.0.1                           pilercr/1.06
+   capnproto/1.0.2                       postgresql/16.0            (t)
+   casacore/3.7.1            (D)         pov-ray/3.7.0.10
+   centrifuge/1.0.4.2        (bio)       primme/3.2
+   chapel-multicore/2.3.0                prinseq/0.20.4             (bio)
+   chapel-multicore/2.4.0    (D)         prodigal/2.6.3             (bio)
+   charm-gems/1.3.3                      proj/9.2.0                 (geo)
+   chrom3d/1.0.2                         proj/9.4.1                 (geo,D)
+   circos/0.69-9             (vis)       protobuf/24.4              (t)
+   connectomeworkbench/2.0.1             prrte/3.0.5
+   coordgenlibs/1.4.2        (chem)      prrte/3.0.11               (D)
+   crest/3.0.1               (chem)      qrupdate/1.1.2             (math)
+   crest/3.0.2               (chem,D)    r-bundle-bioconductor/3.18 (bio)
+   edirect/20.9.20231210                 r-bundle-bioconductor/3.20 (bio)
+   embree/4.3.0                          r-bundle-bioconductor/3.21 (bio,D)
+   everybeam/0.7.4                       r/4.3.1                    (t)
+   everybeam/0.8.0           (D)         r/4.4.0                    (L,t)
+   exonerate/2.4.0           (bio)       r/4.5.0                    (t,D)
+   fastspar/1.0.0                        racon/1.5.0                (bio)
+   fasttree-double/2.2.0                 rapidjson/1.1.0
+   fasttree/2.2              (bio)       raqm/0.10.1
+   fermi-lite/20190320                   raspa3/3.0.3
+   filevercmp/20191210                   raven/1.8.3
+   flatbuffers/23.3.3                    rdkit/2023.09.3            (chem)
+   flatbuffers/24.12.23      (D)         rdkit/2023.09.5            (chem)
+   fmlrc2/0.1.8                          rdkit/2024.03.4            (chem)
+   freebayes/1.3.7           (bio)       rdkit/2024.03.5            (chem)
+   freexl/2.0.0              (t)         rdkit/2024.09.6            (chem)
+   gdrcopy/2.3.1                         rdkit/2025.09.1            (chem)
+   gdrcopy/2.4.1                         rdkit/2025.09.4            (chem,D)
+   gdrcopy/2.5               (D)         recon/1.08                 (bio)
+   gffcompare/0.12.6                     regtools/1.0.0
+   goldrush/1.2.2                        repeatmasker/4.2.1         (bio)
+   googlebenchmark/1.8.3                 repeatmodeler/2.0.7        (bio)
+   graph-tool/2.98                       repeatscout/1.0.7          (bio)
+   graphaligner/1.0.20                   rkcommon/1.11.0
+   grenedalf/0.6.3                       rmats/4.3.0
+   gromacs-ls/2016.3                     rmblast/2.14.1             (bio)
+   harminv/1.4.1             (math)      rocm-smi/7.6.0
+   harminv/1.4.2             (math,D)    rocprofiler-register/0.4.0
+   hmmer-alphafold3/3.4                  root/6.28.06               (t)
+   hmmer/3.4                 (bio)       rsem/1.3.3                 (bio)
+   igraph/0.10.7             (math)      rstudio-server/4.3         (t)
+   igraph/0.10.13            (math)      rstudio-server/4.4         (t,D)
+   igraph/0.10.16            (math)      rstudio-server/4.5         (t)
+   igraph/1.0.1              (math,D)    ruby/3.2.2                 (t)
+   ijulia-kernel/1.10                    rust/1.70.0                (t)
+   infernal/1.1.5            (bio)       rust/1.73.0                (t)
+   intervaltree/0.1                      rust/1.76.0                (t)
+   ipykernel/2023b                       rust/1.85.0                (t)
+   ipykernel/2024a                       rust/1.91.0                (t)
+   ipykernel/2024b                       rust/1.95.0                (t,D)
+   ipykernel/2025a                       samblaster/0.1.26          (bio)
+   ipykernel/2026a           (D)         shrinkwrap/1.2.0
+   ipython-kernel/3.10                   smithwaterman/20160702
+   ipython-kernel/3.11       (D)         sparsehash/2.0.4
+   ipython-kernel/3.12                   spectra/1.0.1
+   ipython-kernel/3.13                   sra-toolkit/3.0.9          (bio)
+   ipython-kernel/3.14                   star/2.7.11a               (bio)
+   iq-tree/2.3.6             (bio)       star/2.7.11b               (bio,D)
+   iq-tree/3.1.2             (bio,D)     stringtie/2.2.3            (bio)
+   ir-kernel/4.4                         stringtie/3.0.1            (bio,D)
+   ivar/1.4.2                            subread/2.0.6              (bio)
+   jasper/4.0.0              (vis)       suitesparse-32idx/7.6.0
+   jasper/4.2.4              (vis,D)     suitesparse/5.13.0         (math)
+   json-fortran/8.3.0                    suitesparse/7.6.0          (math,D)
+   kraken2/2.1.3             (bio)       tensorboard/2.20.0
+   kraken2/2.1.6             (bio,D)     thrift/0.19.0
+   krakenuniq/1.0.4                      thrift/0.19.0
+   kronatools/2.8.1                      thrift/0.22.0              (D)
+   lerc/4.0.0                            travis-analyzer/220729
+   libcerf/2.4               (math)      trf/4.09.1                 (bio)
+   libdivsufsort/2.0.1                   trimal/1.5.1               (bio)
+   libfabric/1.18.0          (L)         trnascan-se/2.0.12         (bio)
+   libfabric/1.21.0                      verkko/2.3
+   libfabric/2.1.0           (D)         voro++/0.4.6               (math)
+   libraw/0.21.2                         vsearch/2.29.4             (bio)
+   librttopo/1.1.0                       xdrfile/1.1.4              (t)
+   libvori/220621
+
+-------------------------------- Core Modules ---------------------------------
+   admixture/1.3.0                (bio)
+   admixture/1.4.0                (bio,D)
+   ansys/2022R2                   (phys)
+   ansys/2023R2                   (phys)
+   ansys/2024R1                   (phys)
+   ansys/2024R1.03                (phys)
+   ansys/2024R2                   (phys)
+   ansys/2024R2.04                (phys)
+   ansys/2025R1                   (phys)
+   ansys/2025R1.02                (phys)
+   ansys/2025R2                   (phys)
+   ansys/2025R2.04                (phys)
+   ansys/2026R1                   (phys)
+   ansys/2026R1.01                (phys,D)
+   ansysedt/2023R2
+   ansysedt/2024R2.1              (D)
+   apptainer/1.2.4                (1:1-1.2.4)
+   apptainer/1.3.4
+   apptainer/1.3.5                (D)
+   apptainer/1.4.5
+   bcl-convert/4.2.4
+   bcl-convert/4.2.7              (D)
+   blender/4.0.2                  (vis)
+   blender/4.2.8                  (vis,D)
+   calibre/8.6.0
+   cereal/1.3.2
+   code-server/4.92.2
+   code-server/4.101.2            (D)
+   deepvariant-gpu/1.8.0
+   deepvariant/1.8.0
+   dorado/0.4.1
+   dorado/0.4.3
+   dorado/0.5.3
+   dorado/0.6.1
+   dorado/0.7.0
+   dorado/0.7.2
+   dorado/0.8.0
+   dorado/0.8.3
+   dorado/0.9.5
+   dorado/1.0.2
+   dorado/1.3.0
+   dorado/1.4.0
+   dorado/2.0.0                   (D)
+   dotnet-core/6.0.0
+   dotnet-core/8.0.407
+   dotnet-core/9.0.202            (D)
+   energyplus/23.2.0
+   fmriprep/25.1.1
+   freesurfer/7.4.1               (bio)
+   freesurfer/8.0.0-1             (bio,D)
+   gurobi/10.0.3                  (math)
+   gurobi/11.0.0                  (math)
+   gurobi/11.0.1                  (math)
+   gurobi/11.0.3                  (math)
+   gurobi/12.0.0                  (math)
+   gurobi/12.0.3                  (math)
+   gurobi/13.0.0                  (math,D)
+   ijulia-kernel/1.12             (D)
+   interproscan/5.73-104.0        (bio)
+   interproscan_data/5.73-104.0
+   libreqda/1.0.1
+   libreqda/1.1.0                 (D)
+   mcr/R2024a                     (t)
+   mcr/R2024b                     (t)
+   mcr/R2025a                     (t)
+   mcr/R2025b                     (t,D)
+   meta-farm/1.0.2
+   meta-farm/1.0.3                (D)
+   mixcr/4.7.0                    (bio)
+   openrefine/3.9.3
+   orad/2.6.1
+   perl/5.36.1                    (t)
+   picard/3.1.0                   (bio)
+   pplacer/1.1.alpha22            (bio)
+   rarray/2.8.0
+   rocm-compilers/19.0.0          (t)
+   siegfried/1.11.2
+   slurm-completion/23.02.7
+   smrtlink-sequel2/13.1.0.221970
+   smrtlink/25.3.0.273777
+   spark/3.5.6                    (t)
+   starccm-mixed/18.04.008        (phys)
+   starccm-mixed/18.04.009        (phys)
+   starccm-mixed/18.06.006        (phys)
+   starccm-mixed/18.06.007        (phys)
+   starccm-mixed/19.04.007        (phys)
+   starccm-mixed/19.04.009        (phys)
+   starccm-mixed/19.06.009        (phys)
+   starccm-mixed/20.02.008        (phys)
+   starccm-mixed/20.04.007        (phys)
+   starccm-mixed/20.04.008        (phys)
+   starccm-mixed/20.06.010        (phys)
+   starccm-mixed/21.02.008        (phys,D)
+   starccm/18.04.008-R8           (phys)
+   starccm/18.04.009-R8           (phys)
+   starccm/18.06.006-R8           (phys)
+   starccm/18.06.007-R8           (phys)
+   starccm/19.04.007-R8           (phys)
+   starccm/19.04.009-R8           (phys)
+   starccm/19.06.009-R8           (phys)
+   starccm/20.02.008-R8           (phys)
+   starccm/20.04.007-R8           (phys)
+   starccm/20.04.008-R8           (phys)
+   starccm/20.06.010-R8           (phys)
+   starccm/21.02.008-R8           (phys,D)
+   trimmomatic/0.39               (bio)
+   varscan/2.4.6
+   xtensor/0.25.0
+
+------------------------------- Custom modules --------------------------------
+   apptainer-suid/1.1    arch/avx2      arch/sse3           (D)
+   arch/avx              arch/avx512    jupyterlab-apps/1.0
+
+  Where:
+   Aliases:  Aliases exist: foo/1.2.3 (1.2) means that "module load foo/1.2" will load foo/1.2.3
+   D:        Default Module
+   L:        Module is loaded
+   bio:      Bioinformatic libraries/apps / Logiciels de bioinformatique
+   chem:     Chemistry libraries/apps / Logiciels de chimie
+   geo:      Geography libraries/apps / Logiciels de géographie
+   io:       Input/output software / Logiciel d'écriture/lecture
+   math:     Mathematical libraries / Bibliothèques mathématiques
+   phys:     Physics libraries/apps / Logiciels de physique
+   t:        Tools for development / Outils de développement
+   vis:      Visualisation software / Logiciels de visualisation
+
+If the avail list is too long consider trying:
+
+"module --default avail" or "ml -d av" to just list the default modules.
+"module overview" or "ml ov" to display the number of modules for each name.
+
+Use "module spider" to find all possible modules and extensions.
+Use "module keyword key1 key2 ..." to search for all possible modules matching
+any of the "keys".

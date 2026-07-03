@@ -1,0 +1,7 @@
+stage	status	exit_code	note
+module_load	passed	0	StdEnv_2023_gcc_12_3_r_4_4_0_loaded
+install_packages	passed	0	requested_dependencies_available
+r_cmd_install_drmTMB	passed	0	source_install_completed
+library_drmTMB	passed	0	library_load_completed_no_model
+model_execution	not_run	NA	no_smoke_runner_no_formula_no_fit
+denominator	not_created	NA	no_retained_denominator_no_coverage_no_status_move

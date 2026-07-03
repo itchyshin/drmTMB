@@ -1,0 +1,5 @@
+package	installed	version	libpath
+cli	TRUE	3.6.6	/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche115/cli
+Matrix	TRUE	1.7.0	/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.4.0/lib64/R/library/Matrix
+RcppEigen	TRUE	0.3.4.0.2	/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche115/RcppEigen
+TMB	TRUE	1.9.21	/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche115/TMB

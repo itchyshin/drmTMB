@@ -1,0 +1,8 @@
+install_status	install_failed_1
+load_status	load_not_attempted_after_install_failure
+sbatch_status	not_run
+model_command_status	not_run
+denominator_status	no_new_denominator
+coverage_decision	coverage_not_authorized
+promotion_decision	do_not_promote
+support_cell_decision	unchanged_point_fit_planned_planned

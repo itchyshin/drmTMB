@@ -1,0 +1,10 @@
+contract_key	contract_value
+source_sha_required	56add7f04fab7bec57a42e56eaeb090dff491863
+source_checkout_path	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+run_root_path	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+t116_dependency_route	cli_Matrix_RcppEigen_TMB_available_from_file_repo
+future_drmTMB_library	Rlib-tranche117-drmTMB
+dependency_library_order	Rlib-tranche117-drmTMB;Rlib-tranche115;Rlib-tranche98;site_libraries
+future_install_command_boundary	R CMD INSTALL allowed only in future T118 proof after checkpoint and blocking review
+future_load_command_boundary	library(drmTMB) allowed only in future T118 proof after R CMD INSTALL succeeds
+stop_before_model	no_smoke_runner_no_formula_no_fit_no_denominator_no_coverage

@@ -1,0 +1,9 @@
+source_root_status	exists
+run_root_status	exists
+description_status	exists
+git_head	unavailable
+git_status_short_count	0
+unavailable
+rscript_path	missing
+r_path	missing
+module_command_status	available

@@ -1,0 +1,25 @@
+# Tranche 122 model-smoke packet contract
+
+proof_type=no-compute fail-closed model-smoke packet/contract
+cell_id=qseries_spatial_q1_mu_one_slope
+provider=spatial
+endpoint_member=mu:(Intercept);mu:x
+direct_sd_target=sd_mu_intercept;sd_mu_x
+source_sidecar=docs/dev-log/dashboard/structured-re-gaussian-mu-slope-tranche121-spatial-drac-model-smoke-readiness-review.tsv
+source_sha_full=56add7f04fab7bec57a42e56eaeb090dff491863
+accepted_source_checkout_path=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+accepted_run_root_path=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+T120_job=15109947
+T120_allocation_host=rc32218
+T120_submission_host=rorqual2
+T120_packet_sha256=54bebceb21547a964d6815dd067115ef73630a4f323d738834b3f2358c980e6e
+T120_SOURCE_PROVENANCE_sha256=f805565beb238cb1a0711f1c564b37cbfdcafce4f7af0b4ea56dedf53a2e4fdd
+T120_terminal_status_sha256=b4db9813e6c8380ebfd87da067dafb3e20174dffe870cca9063d65a329d60d8b
+
+claim_boundary=T122 is a local no-compute packet/contract only. It creates no retained denominator, no admission pass, no coverage, no top-up, no support-cell status edit, no inference_ready, no supported, no public support, no REML, no AI-REML, and no denominator pooling.
+
+forbidden_in_T122=no ssh; no rsync; no sbatch; no salloc; no module load; no R; no Rscript; no package install; no R CMD INSTALL; no library(drmTMB); no smoke runner; no model formula; no model fit; no pdHess; no Hessian; no Wald interval; no profile interval; no retained denominator; no admission pass; no coverage; no top-up; no support-cell status edit; no inference_ready; no supported; no public support; no REML; no AI-REML; no denominator pooling
+
+future_T123_gate=T123 must be a no-compute execution-approval/checkpoint review before any model command. T123 may review this packet, source SHA, target identity, host provenance, denominator policy, and stop rules. T123 must not submit sbatch, start a host command, run a smoke runner, evaluate a model formula, fit a model, create a retained denominator, authorize coverage, or move support-cell status.
+
+later_execution_stop_rules=If a later execution tranche is approved, stop immediately on missing target, fit error, pdHess FALSE, nonfinite Wald interval, nonfinite profile interval, unclear host provenance, validator drift, source SHA drift from 56add7f04fab7bec57a42e56eaeb090dff491863, or denominator drift. Do not pool local, Totoro, DRAC, Nibi, Rorqual, Trillium, Fir, or other-host denominators unless a later reviewed design explicitly permits it.

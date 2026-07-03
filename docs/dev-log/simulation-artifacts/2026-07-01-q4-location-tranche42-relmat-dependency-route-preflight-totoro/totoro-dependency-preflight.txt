@@ -1,0 +1,58 @@
+## host
+totoro
+2026-07-01T20:03:34-06:00
+Rscript (R) version 4.5.3 (2026-03-11)
+## R dependency preflight
+libPaths
+[1] "/home/snakagaw/R/lib"          "/usr/local/lib/R/site-library"
+[3] "/usr/lib/R/site-library"       "/usr/lib/R/library"
+writable_libs
+         /home/snakagaw/R/lib /usr/local/lib/R/site-library
+                         TRUE                         FALSE
+      /usr/lib/R/site-library            /usr/lib/R/library
+                        FALSE                         FALSE
+installed_want
+       Package  Version LibPath                   Built
+Rcpp   "Rcpp"   "1.1.1" "/home/snakagaw/R/lib"    "4.5.2"
+Matrix "Matrix" "1.7-5" "/usr/lib/R/site-library" "4.5.3"
+requireNamespace
+      TMB RcppEigen      Rcpp    Matrix
+    FALSE     FALSE      TRUE      TRUE
+user_lib_env
+                                                                                                   R_LIBS
+                                                                                                       ""
+                                                                                              R_LIBS_USER
+                                                                                                "~/R/lib"
+                                                                                              R_LIBS_SITE
+"/usr/local/lib/R/site-library/:/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library"
+capabilities
+ libcurl http/ftp
+    TRUE     TRUE
+repos
+                         CRAN
+"https://cloud.r-project.org"
+## toolchain
+gcc -std=gnu2x
+g++ -std=gnu++17
+g++
+-std=gnu++17
+## system package query
+## source snapshot dependency fields
+1:Package: drmTMB
+22:URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
+23:BugReports: https://github.com/itchyshin/drmTMB/issues
+29:Imports:
+34:    TMB,
+36:LinkingTo:
+37:    RcppEigen,
+38:    TMB
+43:    glmmTMB,
+          Package     Version     Depends
+TMB       "TMB"       "1.9.21"    "R (>= 3.0.0)"
+RcppEigen "RcppEigen" "0.3.4.0.2" "R (>= 3.6.0)"
+          Imports
+TMB       "graphics, methods, stats, utils, Matrix (>= 1.0-12)"
+RcppEigen "Rcpp (>= 0.11.0), stats, utils"
+          LinkingTo           NeedsCompilation
+TMB       "Matrix, RcppEigen" "yes"
+RcppEigen "Rcpp"              "yes"

@@ -1,0 +1,20 @@
+observed_at_utc=2026-07-03T00:46:00Z
+meta_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata
+out_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5
+-- meta files --
+exact-command.txt	736
+host-provenance.txt	73
+q1mut87-15084376.out	157
+sessionInfo.txt	698
+slurm-run-log.txt	1479
+wrapper.stderr	82
+wrapper.stdout	0
+-- out files --
+-- slurm output preview --
+[tranche87] starting q1 mu one-slope spatial n=5 smoke 2026-07-02T20:44:52-04:00
+[tranche87] wrapper exit code: 1
+[tranche87] done 2026-07-02T20:44:52-04:00
+-- wrapper stderr preview --
+Error: `--output-dir` must be under the exact T83 DRAC run root.
+Execution halted
+-- wrapper stdout preview --

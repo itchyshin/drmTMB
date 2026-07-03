@@ -1,0 +1,28 @@
+JobId=15109947 JobName=drmtmb-t120-pkg-load
+   UserId=snakagaw(3143783) GroupId=snakagaw(3143783) MCS_label=N/A
+   Priority=1554087 Nice=0 Account=def-snakagaw_cpu QOS=normal
+   JobState=COMPLETED Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:09:17 TimeLimit=00:20:00 TimeMin=N/A
+   SubmitTime=2026-07-03T08:41:23 EligibleTime=2026-07-03T08:41:23
+   AccrueTime=2026-07-03T08:41:23
+   StartTime=2026-07-03T08:41:57 EndTime=2026-07-03T08:51:14 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-07-03T08:41:57 Scheduler=Backfill
+   Partition=cpubase_bycore_b1 AllocNode:Sid=rorqual2:3827451
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=rc32218
+   BatchHost=rc32218
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=1,mem=4G,node=1,billing=1000
+   AllocTRES=cpu=1,mem=4G,node=1,billing=1000
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=4G MinTmpDiskNode=0
+   Features=[genoa|sapphirerapids] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t120-package-install-load-proof.sbatch
+   SubmitLine=sbatch --export=ALL,DRMTMB_QSERIES_T120_APPROVED=rose_fisher_gauss_noether_grace /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t120-package-install-load-proof.sbatch
+   WorkDir=/home/snakagaw
+   StdErr=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/logs/t120-package-install-load-15109947.err
+   StdIn=/dev/null
+   StdOut=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/logs/t120-package-install-load-15109947.out
+   TresPerTask=cpu=1

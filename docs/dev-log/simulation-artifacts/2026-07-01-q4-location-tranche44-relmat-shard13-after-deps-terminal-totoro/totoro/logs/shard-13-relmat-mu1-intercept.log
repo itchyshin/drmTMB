@@ -1,0 +1,43 @@
+[grid] Shard map:
+  shard  1: provider=phylo     target=mu1:(Intercept)
+  shard  2: provider=phylo     target=mu1:x
+  shard  3: provider=phylo     target=mu2:(Intercept)
+  shard  4: provider=phylo     target=mu2:x
+  shard  5: provider=spatial   target=mu1:(Intercept)
+  shard  6: provider=spatial   target=mu1:x
+  shard  7: provider=spatial   target=mu2:(Intercept)
+  shard  8: provider=spatial   target=mu2:x
+  shard  9: provider=animal    target=mu1:(Intercept)
+  shard 10: provider=animal    target=mu1:x
+  shard 11: provider=animal    target=mu2:(Intercept)
+  shard 12: provider=animal    target=mu2:x
+  shard 13: provider=relmat    target=mu1:(Intercept)
+  shard 14: provider=relmat    target=mu1:x
+  shard 15: provider=relmat    target=mu2:(Intercept)
+  shard 16: provider=relmat    target=mu2:x
+[grid] 16 direct-SD shards; derived correlations (24 targets) NOT in this grid.
+[grid] shard=13  provider=relmat  target=mu1:(Intercept)  truth_sd=0.46
+[grid] n_rep=150  seed_start=980000  bootstrap=0
+[grid] Seeds to run: 150 (of 150 total).
+[grid] drmTMB loaded (temp_install_loaded).
+[grid] rep 10/150 (seed 980009): status=fit_ok  wald=finite  profile=finite  15.4s  (0.65 rep/s)
+[grid] rep 20/150 (seed 980019): status=fit_ok  wald=finite  profile=finite  29.2s  (0.69 rep/s)
+[grid] rep 30/150 (seed 980029): status=fit_ok  wald=finite  profile=finite  42.8s  (0.70 rep/s)
+[grid] rep 40/150 (seed 980039): status=fit_ok  wald=nonfinite  profile=finite  57.7s  (0.69 rep/s)
+[grid] rep 50/150 (seed 980049): status=fit_ok  wald=finite  profile=finite  72.7s  (0.69 rep/s)
+[grid] rep 60/150 (seed 980059): status=fit_ok  wald=finite  profile=finite  89.1s  (0.67 rep/s)
+[grid] rep 70/150 (seed 980069): status=fit_ok  wald=finite  profile=finite  105.8s  (0.66 rep/s)
+[grid] rep 80/150 (seed 980079): status=fit_ok  wald=finite  profile=finite  121.3s  (0.66 rep/s)
+[grid] rep 90/150 (seed 980089): status=fit_ok  wald=finite  profile=finite  136.8s  (0.66 rep/s)
+[grid] rep 100/150 (seed 980099): status=fit_ok  wald=finite  profile=finite  152.8s  (0.65 rep/s)
+[grid] rep 110/150 (seed 980109): status=fit_ok  wald=finite  profile=finite  166.7s  (0.66 rep/s)
+[grid] rep 120/150 (seed 980119): status=fit_ok  wald=finite  profile=finite  182.2s  (0.66 rep/s)
+[grid] rep 130/150 (seed 980129): status=fit_ok  wald=finite  profile=finite  198.6s  (0.65 rep/s)
+[grid] rep 140/150 (seed 980139): status=fit_ok  wald=finite  profile=finite  213.6s  (0.66 rep/s)
+[grid] rep 150/150 (seed 980149): status=fit_ok  wald=nonfinite  profile=finite  227.9s  (0.66 rep/s)
+[grid] wrote /home/snakagaw/drmtmb-qseries/20260702-tranche44-q4-relmat-shard13-after-deps-retry-56add7f0/totoro/shard-13-relmat-mu1-intercept/13-relmat-mu1_intercept-replicates.tsv
+[grid] wrote /home/snakagaw/drmtmb-qseries/20260702-tranche44-q4-relmat-shard13-after-deps-retry-56add7f0/totoro/shard-13-relmat-mu1-intercept/13-relmat-mu1_intercept-summary.tsv
+[grid] DONE: shard=13  provider=relmat  target=mu1:(Intercept)
+[grid] n_fit_ok=150  n_boundary=38  n_wald_fin=112  wald_cov=0.938  wald_mcse=0.0229
+[grid] n_profile_fin=149  prof_cov=0.919  prof_mcse=0.0223
+[grid] total elapsed 228.0 s  (1.52 s/rep)

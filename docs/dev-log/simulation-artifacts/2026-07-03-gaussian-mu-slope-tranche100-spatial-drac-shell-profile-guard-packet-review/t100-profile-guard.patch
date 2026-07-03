@@ -1,0 +1,116 @@
+--- docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche99-spatial-drac-allocation-install-load-proof/remote-artifacts/q1-mu-slope-spatial-t99-dependency-install-load-proof.sbatch	2026-07-02 22:43:27
++++ docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche100-spatial-drac-shell-profile-guard-packet-review/q1-mu-slope-spatial-t101-dependency-install-load-proof.sbatch	2026-07-02 23:08:34
+@@ -1,19 +1,26 @@
+ #!/bin/bash
+-#SBATCH --job-name=drmtmb-t99-deps
++#SBATCH --job-name=drmtmb-t101-deps
+ #SBATCH --account=def-snakagaw
+ #SBATCH --time=01:00:00
+ #SBATCH --cpus-per-task=4
+ #SBATCH --mem=16G
+-#SBATCH --output=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche99-spatial-drac-allocation-install-load-proof/slurm-%j.out
+-#SBATCH --error=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche99-spatial-drac-allocation-install-load-proof/slurm-%j.err
++#SBATCH --output=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche101-spatial-drac-allocation-install-load-proof/slurm-%j.out
++#SBATCH --error=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche101-spatial-drac-allocation-install-load-proof/slurm-%j.err
+
++set -o pipefail
++if [ -f /cvmfs/soft.computecanada.ca/config/profile/bash.sh ]; then
++  : "${SKIP_CC_CVMFS:=0}"
++  . /cvmfs/soft.computecanada.ca/config/profile/bash.sh
++fi
+ set -u
++
+ RUN_ROOT="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0"
+-SOURCE_ROOT="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source"
+-ART="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche99-spatial-drac-allocation-install-load-proof"
+-LIB="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche98"
+-TMP="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/tmp-tranche99"
++SOURCE_ROOT="$RUN_ROOT/source"
++ART="$RUN_ROOT/results/tranche101-spatial-drac-allocation-install-load-proof"
++LIB="$RUN_ROOT/Rlib-tranche98"
++TMP="$RUN_ROOT/tmp-tranche101"
+ REQUESTED_PACKAGES="cli,RcppEigen,TMB"
++
+ export OMP_NUM_THREADS=1
+ export OPENBLAS_NUM_THREADS=1
+ export MKL_NUM_THREADS=1
+@@ -21,12 +28,14 @@
+ export MAKEFLAGS="-j${SLURM_CPUS_PER_TASK:-1}"
+ export R_LIBS_USER="$LIB"
+ export TMPDIR="$TMP"
++
+ mkdir -p "$ART" "$LIB" "$TMP"
+-STATUS="$ART/t99-terminal-status.tsv"
++STATUS="$ART/t101-terminal-status.tsv"
+ printf 'stage\tstatus\texit_code\tnote\n' > "$STATUS"
+ append_status() {
+   printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$STATUS"
+ }
++
+ {
+   printf 'field\tvalue\n'
+   printf 'observed_at_utc\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+@@ -44,10 +53,9 @@
+   printf 'lib_dir\t%s\n' "$LIB"
+   printf 'tmp_dir\t%s\n' "$TMP"
+   printf 'requested_top_level_packages\t%s\n' "$REQUESTED_PACKAGES"
++  printf 'profile_guard\t%s\n' "SKIP_CC_CVMFS_defined_before_profile_source;set_u_after_profile_source"
+ } > "$ART/host-provenance.tsv"
+-if [ -f /cvmfs/soft.computecanada.ca/config/profile/bash.sh ]; then
+-  . /cvmfs/soft.computecanada.ca/config/profile/bash.sh
+-fi
++
+ (module --force purge && module load StdEnv/2023 gcc/12.3 r/4.4.0) > "$ART/module-load.stdout" 2> "$ART/module-load.stderr"
+ module_exit=$?
+ if [ "$module_exit" -ne 0 ]; then
+@@ -55,14 +63,16 @@
+   exit "$module_exit"
+ fi
+ append_status module_load passed 0 StdEnv_2023_gcc_12_3_r_4_4_0_loaded
++
+ {
+   module list 2>&1
+   R --version
+ } > "$ART/module-and-r-version.txt" 2>&1
+-cat > "$ART/t99-install-packages.R" <<'RSCRIPT'
++
++cat > "$ART/t101-install-packages.R" <<'RSCRIPT'
+ lib <- Sys.getenv("R_LIBS_USER")
+ tmp <- Sys.getenv("TMPDIR")
+-art <- Sys.getenv("DRMTMB_T99_ART")
++art <- Sys.getenv("DRMTMB_T101_ART")
+ requested <- c("cli", "RcppEigen", "TMB")
+ dir.create(lib, recursive = TRUE, showWarnings = FALSE)
+ dir.create(tmp, recursive = TRUE, showWarnings = FALSE)
+@@ -123,8 +133,9 @@
+   quit(status = 10, save = "no")
+ }
+ RSCRIPT
+-export DRMTMB_T99_ART="$ART"
+-Rscript --vanilla "$ART/t99-install-packages.R" > "$ART/install-packages.stdout" 2> "$ART/install-packages.stderr"
++
++export DRMTMB_T101_ART="$ART"
++Rscript --vanilla "$ART/t101-install-packages.R" > "$ART/install-packages.stdout" 2> "$ART/install-packages.stderr"
+ install_exit=$?
+ if [ "$install_exit" -ne 0 ]; then
+   append_status install_packages failed "$install_exit" requested_dependency_install_failed_or_missing
+@@ -133,6 +144,7 @@
+   exit "$install_exit"
+ fi
+ append_status install_packages passed 0 requested_dependencies_available
++
+ R CMD INSTALL --library="$LIB" "$SOURCE_ROOT" > "$ART/r-cmd-install-drmTMB.stdout" 2> "$ART/r-cmd-install-drmTMB.stderr"
+ rcmd_exit=$?
+ printf 'stage\tstatus\texit_code\tnote\n' > "$ART/r-cmd-install-status.tsv"
+@@ -143,9 +155,10 @@
+   exit "$rcmd_exit"
+ fi
+ append_status r_cmd_install_drmTMB passed 0 source_install_completed
++
+ Rscript --vanilla - <<'RLOAD' > "$ART/library-drmTMB.stdout" 2> "$ART/library-drmTMB.stderr"
+ lib <- Sys.getenv("R_LIBS_USER")
+-art <- Sys.getenv("DRMTMB_T99_ART")
++art <- Sys.getenv("DRMTMB_T101_ART")
+ .libPaths(c(lib, .libPaths()))
+ write.table(data.frame(order = seq_along(.libPaths()), libpath = .libPaths()), file.path(art, "r-libpaths-before-library-load.tsv"), sep = "\t", quote = FALSE, row.names = FALSE)
+ library(drmTMB)

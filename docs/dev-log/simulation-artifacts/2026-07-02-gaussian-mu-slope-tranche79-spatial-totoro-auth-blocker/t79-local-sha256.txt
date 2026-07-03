@@ -1,0 +1,5 @@
+ac479eedd13dcf9318b2dead007bd8f5cd0ad61335dc704ce7b7fe7b43fb1016  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker/t79-totoro-probe-command.txt
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker/t79-totoro-probe.stdout
+740309c90fb59e621a2592c9fdc7ed24ae3912e09c2a6db0d3f7c7d5d43885d0  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker/t79-totoro-probe.stderr
+ce8bafb38615aeb5d44ebbabe78ec14ac35a5de87bdc5ad5ea82a72656024ce4  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker/t79-totoro-probe.exitcode
+0ba5be3220130706798105549c79645c97d11fa481fe1d6aec749a85b8be50e1  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker/t79-local-capture-note.txt

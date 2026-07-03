@@ -1,0 +1,6 @@
+package	available	version
+cli	TRUE	3.6.6
+Matrix	TRUE	1.7.0
+Rcpp	TRUE	1.1.1.1.1
+RcppEigen	TRUE	0.3.4.0.2
+TMB	TRUE	1.9.21

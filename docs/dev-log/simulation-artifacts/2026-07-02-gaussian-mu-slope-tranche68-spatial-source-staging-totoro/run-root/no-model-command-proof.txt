@@ -1,0 +1,4 @@
+Tranche 68 staging proof only.
+No model command was run.
+No fit, smoke, top-up, coverage grid, or denominator was created.
+Future n=5 command remains disabled until Rose/Fisher/Noether/Grace review and a new checkpoint.

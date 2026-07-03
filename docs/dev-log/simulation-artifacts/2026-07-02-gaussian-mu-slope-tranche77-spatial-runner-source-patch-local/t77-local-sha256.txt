@@ -1,0 +1,5 @@
+87cc66f5a7a40954bec9aa6c8706c05adaf70dad51efd8dbae90b093b101ad4d  tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.R
+5c386602ba062df9b7bcaea661e399ce6288b016141e769b171ddd9faf656250  tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.sh
+b54852dde1f04f76fd3aad96449d3170ec9cb9b6a195cf5215418f7c61368423  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche77-spatial-runner-source-patch-local/t77-dry-run-manifest.tsv
+059d4baf83ca15a5ac68461b6656902ce65daac2a3c177f347e833b2168e6e85  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche77-spatial-runner-source-patch-local/t77-execute-refusal.stderr
+9638e02e4800578714a1ca983f1a86d68a11be8241767b4b3b322e05610ca519  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche77-spatial-runner-source-patch-local/t77-wrapper-refusal.stderr

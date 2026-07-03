@@ -1,0 +1,20 @@
+Transfer starting: 16 files
+./
+host-provenance.tsv
+install-packages.stderr
+install-packages.stdout
+module-and-r-version.txt
+module-avail-r-after-r-load.txt
+module-list-after-r-load.txt
+module-load.stderr
+module-load.stdout
+r-executable-probe.tsv
+r-libpaths-before-install.tsv
+requested-top-level-packages.tsv
+slurm-15105466.err
+slurm-15105466.out
+t112-install-packages.R
+t112-terminal-status.tsv
+
+sent 352 bytes  received 24271 bytes  246230000 bytes/sec
+total size is 23021  speedup is 0.93

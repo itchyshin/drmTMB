@@ -1,0 +1,15 @@
+field	value
+remote_host	rorqual2
+remote_user	snakagaw
+run_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+run_root_status	exists
+source_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+source_root_status	exists
+description_status	exists
+art_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche110-spatial-drac-module-list-executable-proof
+art_dir_status	missing
+slurm_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm
+slurm_dir_status	exists
+tmp_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/tmp-tranche110
+tmp_dir_status	missing
+source_head	no_git_head

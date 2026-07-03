@@ -1,0 +1,6 @@
+V1	V2
+cli	docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche115-spatial-drac-dependency-route-proof/local-dependency-repo/src/contrib/cli_3.6.6.tar.gz
+Matrix	docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche115-spatial-drac-dependency-route-proof/local-dependency-repo/src/contrib/Matrix_1.7-5.tar.gz
+Rcpp	docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche115-spatial-drac-dependency-route-proof/local-dependency-repo/src/contrib/Rcpp_1.1.1-1.1.tar.gz
+RcppEigen	docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche115-spatial-drac-dependency-route-proof/local-dependency-repo/src/contrib/RcppEigen_0.3.4.0.2.tar.gz
+TMB	docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche115-spatial-drac-dependency-route-proof/local-dependency-repo/src/contrib/TMB_1.9.21.tar.gz

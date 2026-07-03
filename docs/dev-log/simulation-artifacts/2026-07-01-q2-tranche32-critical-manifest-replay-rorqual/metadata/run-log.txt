@@ -1,0 +1,22 @@
+date=2026-07-01T19:26:13-04:00
+job=15029153
+array_task=108
+node=rc32504
+cluster=rorqual
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual
+source_repo=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/source
+runner=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/source/tools/run-structured-re-q2-plus-q2-intercept-smoke.R
+rlib=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/rlib/shard_5
+package_cache=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/package-cache
+source_manifest=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/metadata/shard_5/source-sha256-manifest.txt
+artifact_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260630-q2-retained-pregrid-77b634eda91b-codex-rorqual/results/q2-tranche30-critical-manifest-replay/rep108/artifacts
+replicate_index=108
+seed=823108
+n_rep=1
+contract_ids=q2_plus_q2_intercept_phylo_mu1_intercept,q2_plus_q2_intercept_phylo_mu2_intercept,q2_plus_q2_intercept_phylo_cor_mu1_mu2,q2_plus_q2_intercept_phylo_sigma1_intercept,q2_plus_q2_intercept_phylo_sigma2_intercept
+manifest_verification=critical_manifest_entries_only
+excluded_full_manifest_failure=./tools/run-structured-re-q2-intercept-smoke.R
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+[tranche30] R exit code: 0
+[tranche30] done 2026-07-01T19:26:35-04:00

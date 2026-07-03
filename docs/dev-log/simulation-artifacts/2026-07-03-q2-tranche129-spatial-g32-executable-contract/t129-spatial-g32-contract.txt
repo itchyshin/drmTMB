@@ -1,0 +1,53 @@
+Tranche 129 q2 spatial g32 executable contract
+
+Purpose
+
+Package the next smallest honest q2 spatial decision test after Tranche 128:
+one spatial-only g=32 retained-denominator comparison smoke over the three
+direct targets:
+
+- shard 4, spatial mu1:x, direct SD, seeds 932001-932020
+- shard 5, spatial mu2:x, direct SD, seeds 932021-932040
+- shard 6, spatial mu1:x+mu2:x, direct correlation, seeds 932041-932060
+
+Exact command, only after checkpoint and Rose/Fisher/Gauss/Noether/Grace approval
+
+DRMTMB_Q2_TRANCHE129_EXECUTION_APPROVED=rose_fisher_gauss_noether_grace \
+DRMTMB_Q2_TRANCHE129_HOST_LABEL=<true_host_label> \
+R_PROFILE_USER=/dev/null NOT_CRAN=true \
+sh tools/run-q2-slope-tranche129-spatial-g32-comparison.sh
+
+Optional output-root override
+
+DRMTMB_Q2_TRANCHE129_OUT_ROOT=<host_separated_artifact_root>
+
+Default artifact root
+
+docs/dev-log/simulation-artifacts/2026-07-03-q2-tranche129-spatial-g32-executable-contract/approved-run
+
+Runner contract
+
+- GSWEEP_N_GROUPS=32
+- n_rep=20 per target
+- n_each=20 per group
+- bootstrap=0
+- endpoint profile engine
+- profile_endpoint_max_eval=90 in the runner
+- OMP/OpenBLAS/MKL/TMB threads pinned to 1 unless explicitly overridden
+
+Claim boundary
+
+This packet is not execution evidence. It is not fit evidence, retained
+denominator evidence, admission evidence, coverage evidence, inference_ready,
+supported, range-estimating spatial support, q4/q8 evidence, REML, AI-REML,
+bridge support, or public support. It does not authorize animal, phylo, relmat,
+q4, q8, SR475/SR1000 top-up, coverage grids, denominator pooling, support-cell
+status edits, or public wording.
+
+Fail-closed stop rules
+
+Stop immediately on missing target, fit error, simulation error, pdHess FALSE,
+nonfinite Wald interval, nonfinite profile interval, source SHA drift, host
+label ambiguity, artifact-root ambiguity, validator drift, or denominator
+pooling. Import artifacts through a separate terminal-review sidecar before any
+row decision, top-up, coverage, or status movement.

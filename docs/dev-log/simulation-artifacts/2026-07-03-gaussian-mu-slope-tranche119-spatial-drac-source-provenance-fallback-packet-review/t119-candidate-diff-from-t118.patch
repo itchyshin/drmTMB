@@ -1,0 +1,131 @@
+--- docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche118-spatial-drac-package-install-load-proof/q1-mu-slope-spatial-t118-package-install-load-proof.sbatch
++++ docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche119-spatial-drac-source-provenance-fallback-packet-review/q1-mu-slope-spatial-t119-candidate-t120-package-install-load-proof.sbatch
+@@ -1,18 +1,18 @@
+ #!/usr/bin/env bash
+-#SBATCH --job-name=drmtmb-t118-pkg-load
++#SBATCH --job-name=drmtmb-t120-pkg-load
+ #SBATCH --account=def-snakagaw
+ #SBATCH --time=00:20:00
+ #SBATCH --cpus-per-task=1
+ #SBATCH --mem=4G
+-#SBATCH --output=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/logs/t118-package-install-load-%j.out
+-#SBATCH --error=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/logs/t118-package-install-load-%j.err
++#SBATCH --output=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/logs/t120-package-install-load-%j.out
++#SBATCH --error=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/logs/t120-package-install-load-%j.err
+
+-# Tranche 117 candidate packet only. Do not submit until Tranche 118 is opened
++# Tranche 119 candidate packet only. Do not submit until Tranche 120 is opened
+ # after checkpoint plus Rose/Fisher/Gauss/Noether/Grace approval.
+ set -euo pipefail
+
+-if [[ "${DRMTMB_QSERIES_T118_APPROVED:-}" != "rose_fisher_gauss_noether_grace" ]]; then
+-  echo "Refusing T118 package-install/load proof without blocking-review approval." >&2
++if [[ "${DRMTMB_QSERIES_T120_APPROVED:-}" != "rose_fisher_gauss_noether_grace" ]]; then
++  echo "Refusing T120 package-install/load proof without blocking-review approval." >&2
+   exit 2
+ fi
+
+@@ -23,27 +23,93 @@
+
+ SOURCE_DIR="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source"
+ RUN_ROOT="/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0"
+-PROOF_DIR="$RUN_ROOT/results/tranche118-spatial-drac-package-install-load-proof"
+-INSTALL_LIB="$RUN_ROOT/Rlib-tranche117-drmTMB"
++PROOF_DIR="$RUN_ROOT/results/tranche120-spatial-drac-package-install-load-proof"
++INSTALL_LIB="$RUN_ROOT/Rlib-tranche120-drmTMB"
+ DEPENDENCY_LIB_A="$RUN_ROOT/Rlib-tranche115"
+ DEPENDENCY_LIB_B="$RUN_ROOT/Rlib-tranche98"
+ EXPECTED_SHA="56add7f04fab7bec57a42e56eaeb090dff491863"
++STATUS_FILE="$PROOF_DIR/t120-terminal-status.tsv"
+
+ mkdir -p "$PROOF_DIR" "$INSTALL_LIB" "$RUN_ROOT/logs"
+-module --force purge
+-module load StdEnv/2023
+-module load r/4.4.0
++printf 'stage	status	exit_code	note
++' > "$STATUS_FILE"
++record_status() {
++  printf '%s	%s	%s	%s
++' "$1" "$2" "$3" "$4" >> "$STATUS_FILE"
++}
++record_status packet_start passed 0 "candidate_from_tranche119_source_provenance_fallback_packet_review"
+
+-ACTUAL_SHA="$(git -C "$SOURCE_DIR" rev-parse HEAD)"
++if module --force purge; then
++  record_status module_purge passed 0 "module_purge_completed"
++else
++  rc=$?
++  record_status module_purge failed "$rc" "module_purge_failed"
++  exit "$rc"
++fi
++if module load StdEnv/2023 && module load r/4.4.0; then
++  record_status module_load passed 0 "StdEnv_2023_and_r_4_4_0_loaded"
++else
++  rc=$?
++  record_status module_load failed "$rc" "StdEnv_2023_or_r_4_4_0_load_failed"
++  exit "$rc"
++fi
++
++ACTUAL_SHA=""
++SOURCE_SHA_METHOD="unobserved"
++if git -C "$SOURCE_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
++  ACTUAL_SHA="$(git -C "$SOURCE_DIR" rev-parse HEAD)"
++  SOURCE_SHA_METHOD="git_rev_parse"
++elif [[ -f "$SOURCE_DIR/SOURCE-PROVENANCE.tsv" ]]; then
++  ACTUAL_SHA="$(awk -F '	' '$1 == "source_sha_full" { print $2; exit }' "$SOURCE_DIR/SOURCE-PROVENANCE.tsv")"
++  SOURCE_SHA_METHOD="SOURCE-PROVENANCE.tsv"
++else
++  record_status source_sha_guard failed 3 "missing_git_metadata_and_SOURCE_PROVENANCE_tsv"
++  echo "Missing git metadata and SOURCE-PROVENANCE.tsv; refusing install/load proof." >&2
++  exit 3
++fi
+ printf 'source_sha	%s
+ expected_source_sha	%s
+-' "$ACTUAL_SHA" "$EXPECTED_SHA" > "$PROOF_DIR/source-sha-probe.tsv"
++source_sha_method	%s
++' "$ACTUAL_SHA" "$EXPECTED_SHA" "$SOURCE_SHA_METHOD" > "$PROOF_DIR/source-sha-probe.tsv"
++if [[ -z "$ACTUAL_SHA" ]]; then
++  record_status source_sha_guard failed 3 "empty_source_sha_from_$SOURCE_SHA_METHOD"
++  echo "Source SHA probe returned empty value; refusing install/load proof." >&2
++  exit 3
++fi
+ if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
++  record_status source_sha_guard failed 3 "source_sha_mismatch_from_$SOURCE_SHA_METHOD"
+   echo "Source SHA mismatch; refusing install/load proof." >&2
+   exit 3
+ fi
++record_status source_sha_guard passed 0 "source_sha_matched_expected_from_$SOURCE_SHA_METHOD"
+
+ export R_LIBS_USER="$INSTALL_LIB:$DEPENDENCY_LIB_A:$DEPENDENCY_LIB_B:${R_LIBS_USER:-}"
+-R CMD INSTALL --library="$INSTALL_LIB" "$SOURCE_DIR" > "$PROOF_DIR/r-cmd-install.log" 2>&1
+-Rscript --vanilla -e 'library(drmTMB); cat("drmTMB_load_ok\t", as.character(packageVersion("drmTMB")), "\n", sep = "")' > "$PROOF_DIR/library-drmTMB.tsv"
+-printf 'model_boundary\tno_smoke_runner_no_formula_no_fit_no_denominator_no_coverage\n' > "$PROOF_DIR/model-boundary.tsv"
++record_status r_libs_user configured NA "install_lib_then_T116_T98_dependency_libs"
++if Rscript --vanilla -e 'pkgs <- c("cli", "Matrix", "Rcpp", "RcppEigen", "TMB"); cat("package	available	version
++"); for (p in pkgs) { ok <- requireNamespace(p, quietly = TRUE); ver <- if (ok) as.character(utils::packageVersion(p)) else NA_character_; cat(p, ok, ver, sep = "	"); cat("
++") }' > "$PROOF_DIR/dependency-availability-before-install.tsv"; then
++  record_status dependency_probe passed 0 "dependency_availability_probe_completed"
++else
++  rc=$?
++  record_status dependency_probe failed "$rc" "dependency_availability_probe_failed"
++  exit "$rc"
++fi
++if R CMD INSTALL --library="$INSTALL_LIB" "$SOURCE_DIR" > "$PROOF_DIR/r-cmd-install.log" 2>&1; then
++  record_status r_cmd_install_drmTMB passed 0 "R_CMD_INSTALL_completed"
++else
++  rc=$?
++  record_status r_cmd_install_drmTMB failed "$rc" "R_CMD_INSTALL_failed"
++  exit "$rc"
++fi
++if Rscript --vanilla -e 'library(drmTMB); cat("drmTMB_load_ok	", as.character(packageVersion("drmTMB")), "
++", sep = "")' > "$PROOF_DIR/library-drmTMB.tsv"; then
++  record_status library_drmTMB passed 0 "library_drmTMB_completed"
++else
++  rc=$?
++  record_status library_drmTMB failed "$rc" "library_drmTMB_failed"
++  exit "$rc"
++fi
++printf 'model_boundary	no_smoke_runner_no_formula_no_fit_no_denominator_no_coverage
++' > "$PROOF_DIR/model-boundary.tsv"
++record_status model_execution not_run NA "no_smoke_runner_no_formula_no_fit"
++record_status denominator not_created NA "no_retained_denominator_no_coverage_no_status_move"

@@ -1,0 +1,5 @@
+name	value
+R_LIBS_USER	/home/snakagaw/R/x86_64-pc-linux-gnu-library/4.4
+R_LIBS_SITE	/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.4.0/lib64/R/site-library
+R_LIBS
+TMPDIR	/tmp

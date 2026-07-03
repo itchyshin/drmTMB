@@ -1,0 +1,30 @@
+proof_type=allocation-safe no-model module-list/executable terminal proof
+source_tranche=T109 module-list packet contract
+job_id=15104831
+submission_host=rorqual2
+allocation_host=rc32601
+slurm_state=COMPLETED
+slurm_exit_code=0:0
+elapsed=00:00:02
+requested_cpus=1
+requested_mem=1G
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+proof_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche110-spatial-drac-module-list-executable-proof
+source_sha_status=remote_source_no_git_head; accepted source snapshot remains inherited from T83/T109 source path 56add7f04fab7bec57a42e56eaeb090dff491863
+local_packet_hash=59f5d4734f6347db86015c0c00090e833ef8cac7cc7f04cafe0ad6397912095d
+remote_packet_hash=59f5d4734f6347db86015c0c00090e833ef8cac7cc7f04cafe0ad6397912095d
+module_load_status=passed
+loaded_module_guard=passed; raw plain module list contains r/4.4.0
+r_executable_guard=passed; R=/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.4.0/bin/R
+rscript_executable_guard=passed; Rscript=/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.4.0/bin/Rscript
+install_status=not_attempted
+r_cmd_install_status=not_attempted
+load_status=not_attempted
+model_command_status=not_run
+denominator_status=no_new_denominator
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+claim_boundary=T110 is one allocation-safe no-model Rorqual module-list/executable proof from T109 only. It proves the corrected plain module list route sees r/4.4.0 and that command -v R plus command -v Rscript resolve after the guard. It is not package-install success, not R CMD INSTALL success, not library(drmTMB) success, not fit evidence, not pdHess evidence, not Wald interval evidence, not profile interval evidence, not retained-denominator evidence, not admission evidence, not coverage evidence, not top-up evidence, not support-cell status evidence, not inference_ready, not supported, not public support, not REML, not AI-REML, and not denominator pooling permission.
+next_gate=Tranche 111 requires checkpoint first and must be a no-compute terminal decision review from existing T110 artifacts only: decide whether a future allocation may proceed to the package-install/load proof. No second T110 job, no sbatch, no salloc, no package install, no R CMD INSTALL, no library(drmTMB), no smoke runner, no model formula, no model fit, no retained denominator, no coverage, no top-up, no support-cell status edit, no inference_ready, no supported, no public support, no REML, no AI-REML, and no denominator pooling are authorized by T110 itself.

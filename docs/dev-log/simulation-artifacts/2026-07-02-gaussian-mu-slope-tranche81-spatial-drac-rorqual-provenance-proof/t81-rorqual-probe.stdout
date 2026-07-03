@@ -1,0 +1,10 @@
+remote_host=rorqual2
+remote_user=snakagaw
+remote_pwd=/home/snakagaw
+source_checkout_status=source_checkout_missing
+run_root_status=run_root_missing
+output_dir_status=output_dir_missing
+runner_status=runner_missing
+wrapper_status=wrapper_missing
+module_probe_status=not_run_no_model_no_environment_load
+model_command_status=not_run

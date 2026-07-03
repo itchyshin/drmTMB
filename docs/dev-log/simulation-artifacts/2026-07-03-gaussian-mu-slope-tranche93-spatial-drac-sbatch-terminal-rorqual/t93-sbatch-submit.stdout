@@ -1,0 +1,6 @@
+submit_date=2026-07-02T22:23:41-04:00
+hostname=rorqual2
+whoami=snakagaw
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+sbatch_path=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch
+Submitted batch job 15087685

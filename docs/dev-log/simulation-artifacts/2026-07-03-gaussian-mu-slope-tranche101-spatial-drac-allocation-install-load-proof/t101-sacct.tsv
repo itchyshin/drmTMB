@@ -1,0 +1,4 @@
+JobID|JobName|State|ExitCode|Elapsed|AllocCPUS|ReqMem|NodeList
+15097440|drmtmb-t101-deps|COMPLETED|0:0|00:00:02|4|16G|rc32607
+15097440.batch|batch|COMPLETED|0:0|00:00:02|4||rc32607
+15097440.extern|extern|COMPLETED|0:0|00:00:02|4||rc32607

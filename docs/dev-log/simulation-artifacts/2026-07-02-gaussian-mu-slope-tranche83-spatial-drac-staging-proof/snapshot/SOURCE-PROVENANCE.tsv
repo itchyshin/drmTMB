@@ -1,0 +1,11 @@
+field	value
+observed_at_utc	2026-07-02T22:20:20Z
+source_sha_full	56add7f04fab7bec57a42e56eaeb090dff491863
+source_sha_short	56add7f0
+local_source_dirty_policy	record_dirty_state_manifest_before_copy
+source_checkout_path	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+source_copy_status	rsync_exit_0
+source_copy_excludes	.git/.Rproj.user/.DS_Store/._*/compiled_objects/__pycache__
+required_runner_file	tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.R
+required_wrapper_file	tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.sh
+claim_boundary	Source snapshot only; no module load, R, Rscript, devtools::load_all, model fit, pdHess, Wald interval, profile interval, retained denominator, coverage, promotion, or support claim.

@@ -1,0 +1,27 @@
+Warning message:
+In system2(cmd, c("CMD", "INSTALL", "--no-init-file", "--preclean",  :
+  running command ''/usr/lib/R/bin/R' CMD INSTALL --no-init-file --preclean '--library=/tmp/Rtmpl2LeHP/drmTMB-local-lib-1a490f2a50825c' '/home/snakagaw/codex/drmTMB-q4loc-tranche39-source-56add7f0-20260702T012433Z' 2>&1' had status 1
+[grid] Shard map:
+  shard  1: provider=phylo     target=mu1:(Intercept)
+  shard  2: provider=phylo     target=mu1:x
+  shard  3: provider=phylo     target=mu2:(Intercept)
+  shard  4: provider=phylo     target=mu2:x
+  shard  5: provider=spatial   target=mu1:(Intercept)
+  shard  6: provider=spatial   target=mu1:x
+  shard  7: provider=spatial   target=mu2:(Intercept)
+  shard  8: provider=spatial   target=mu2:x
+  shard  9: provider=animal    target=mu1:(Intercept)
+  shard 10: provider=animal    target=mu1:x
+  shard 11: provider=animal    target=mu2:(Intercept)
+  shard 12: provider=animal    target=mu2:x
+  shard 13: provider=relmat    target=mu1:(Intercept)
+  shard 14: provider=relmat    target=mu1:x
+  shard 15: provider=relmat    target=mu2:(Intercept)
+  shard 16: provider=relmat    target=mu2:x
+[grid] 16 direct-SD shards; derived correlations (24 targets) NOT in this grid.
+[grid] shard=13  provider=relmat  target=mu1:(Intercept)  truth_sd=0.46
+[grid] n_rep=150  seed_start=980000  bootstrap=0
+[grid] Seeds to run: 150 (of 150 total).
+[grid] drmTMB load failed: Warning: unknown option --no-init-file ERROR: dependencies TMB, RcppEigen are not available for package drmTMB Perhaps try a variation of: install.packages(c('TMB', 'RcppEigen')) * removing /tmp/Rtmpl2LeHP/drmTMB-local-lib-1a490f2a50825c/drmTMB
+[grid] wrote /home/snakagaw/drmtmb-qseries/20260702-tranche40-q4-relmat-shard13-temp-install-retry-56add7f0/totoro/shard-13-relmat-mu1-intercept/13-relmat-mu1_intercept-replicates.tsv
+[grid] wrote /home/snakagaw/drmtmb-qseries/20260702-tranche40-q4-relmat-shard13-temp-install-retry-56add7f0/totoro/shard-13-relmat-mu1-intercept/13-relmat-mu1_intercept-summary.tsv

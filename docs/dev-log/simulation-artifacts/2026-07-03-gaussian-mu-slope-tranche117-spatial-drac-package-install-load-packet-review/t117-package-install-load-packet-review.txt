@@ -1,0 +1,26 @@
+# Tranche 117 package-install/load packet review
+
+proof_type=no-compute package-install/load packet review only
+source_decision_id=tranche116_spatial_mu_slope_t117_gate
+source_sidecar=docs/dev-log/dashboard/structured-re-gaussian-mu-slope-tranche116-spatial-drac-dependency-route-terminal-review.tsv
+source_sha_required=56add7f04fab7bec57a42e56eaeb090dff491863
+remote_source_checkout=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+remote_run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+remote_proof_dir_future=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche118-spatial-drac-package-install-load-proof
+future_job_id=not_submitted_no_host_command
+planned_host=rorqual
+observed_host=none_no_host_command_in_tranche117
+module_load_status=not_run_no_host_command
+rscript_version=not_run_no_host_command
+dependency_route_import=T116 proved cli, Matrix, RcppEigen, and TMB available through the staged file dependency route
+library_path_contract=Rlib-tranche117-drmTMB first, then Rlib-tranche115 and Rlib-tranche98 as dependency evidence, then site libraries
+install_status=not_attempted_no_compute_packet_review
+r_cmd_install_status=future_T118_contract_only_not_attempted
+library_drmTMB_status=future_T118_contract_only_not_attempted
+model_boundary=no_smoke_runner_no_formula_no_fit_no_pdHess_no_wald_no_profile_no_denominator_no_coverage
+support_cell_status=unchanged_point_fit_planned_planned
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+denominator_policy=no_new_denominator_in_tranche117_packet_review;future_T118_must_not_count_t117_as_denominator
+next_gate=Tranche 118 may be at most one allocation-safe no-model Rorqual package-install/load proof after checkpoint and Rose/Fisher/Gauss/Noether/Grace approval; stop before smoke runner, model formula, model fit, retained denominator, coverage, top-up, support-cell status edit, inference_ready, supported, public support, REML, AI-REML, and denominator pooling.
+claim_boundary=T117 is a local no-compute packet review only. It imports the T116 dependency-route success for cli, Matrix, RcppEigen, and TMB and drafts the future T118 R CMD INSTALL/library(drmTMB) boundary; it deliberately performs no host command, no ssh, no remote copy, no sbatch, no salloc, no module load, no Rscript, no package install, no R CMD INSTALL drmTMB, no library(drmTMB), no smoke runner, no model formula, no model fit, no pdHess, no Wald interval, no profile interval, no retained denominator, no admission pass, no coverage, no top-up, no support-cell status edit, no inference_ready, no supported, no public support, no REML, no AI-REML, and no denominator pooling.

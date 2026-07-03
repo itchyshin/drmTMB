@@ -1,0 +1,1 @@
+Captured Tranche 83 DRAC Rorqual source/run-root staging proof artifacts. This tranche may run mkdir and source-copy only. It does not run module load, Rscript, devtools::load_all(), smoke, model fit, interval, retained-denominator accounting, coverage, or support-cell status edits.

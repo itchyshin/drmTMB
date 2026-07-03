@@ -1,0 +1,24 @@
+Transfer starting: 20 files
+./
+dependency-availability.tsv
+host-provenance.tsv
+install-packages-detail.tsv
+install-packages-status.tsv
+install-packages.stderr
+install-packages.stdout
+installed-package-closure.tsv
+module-avail-r-after-r-load.txt
+module-list-after-r-load.txt
+module-load.stderr
+module-load.stdout
+r-executable-probe.tsv
+r-libpaths-after-install.tsv
+r-libpaths-before-install.tsv
+requested-top-level-packages.tsv
+sessionInfo-after-dependency-install.txt
+source-sha-probe.tsv
+t115-install-packages.R
+t115-terminal-status.tsv
+
+sent 440 bytes  received 2087486 bytes  20879260000 bytes/sec
+total size is 2085395  speedup is 1.00

@@ -1,0 +1,19 @@
+host	totoro
+time	2026-07-01T20:35:18-06:00
+loadavg	84.21 91.11 92.22 62/7577 1739818
+source_dir	/home/snakagaw/codex/drmTMB-q4loc-tranche39-source-56add7f0-20260702T012433Z
+snapshot_exists	yes
+wrapper_executable	yes
+source_manifest_sha256	9de8310fc7e5f2a09a8af4de4af7c47db39ffdf2e2392fe251d82540ff2ae255
+source_provenance_sha256	ba8618fbb2c282cddf2c10e37e71a5df88cbde679f5a9382b838723e7915ad5c
+wrapper_sha256	9133474766f6968f4344871e48c8b8a92cfdedc2bfff15e94a6fcc4b3afa9b8c
+coverage_runner_sha256	25d9a1ba29cc51b138c672178470116ae25083390a852197d75a04ff04042b6a
+drac_sbatch_sha256	c0a20e17e25090747eef08cf567e9ec513b2df5f72757a5b902cc3a6d503a4ec
+r_version	R version 4.5.3 (2026-03-11)
+libPaths	/home/snakagaw/R/lib;/usr/local/lib/R/site-library;/usr/lib/R/site-library;/usr/lib/R/library
+namespace	TMB TRUE;RcppEigen TRUE
+Package	Version	LibPath
+TMB	1.9.21	/home/snakagaw/R/lib
+RcppEigen	0.3.4.0.2	/home/snakagaw/R/lib
+Rcpp	1.1.1	/home/snakagaw/R/lib
+Matrix	1.7-5	/usr/lib/R/site-library

@@ -1,0 +1,5 @@
+observed_at_utc=2026-07-03 00:47:36 UTC
+run_root_norm=/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+output_dir_norm=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5
+prefix=/lustre09/project/6098264/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/
+starts_with_prefix=FALSE

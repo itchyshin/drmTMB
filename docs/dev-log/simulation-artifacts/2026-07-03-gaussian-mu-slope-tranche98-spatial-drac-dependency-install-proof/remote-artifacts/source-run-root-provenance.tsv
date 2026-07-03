@@ -1,0 +1,9 @@
+field	value
+source_root_status	exists
+run_root_status	exists
+description_status	exists
+source_sha_status	git_head_unavailable_t83_source_sha_56add7f04fab7bec57a42e56eaeb090dff491863
+run_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+planned_lib_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche98
+planned_tmp_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/tmp-tranche98
