@@ -2461,6 +2461,51 @@ change interval status, coverage status, `inference_ready`, `supported`, q8
 inference, q4 REML, REML, AI-REML, derived-correlation intervals, production
 parameterization, or broad bridge support.
 
+`structured-re-q4-admission-denominator-contract.tsv` records the Tranche 3 q4
+admission-denominator contract before any coverage launch. It covers the
+ordinary q4 location comparator, structured q4 location and all-four-intercept
+cells for `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and
+K-matrix `relmat()`, the q8-shaped all-four one-slope hold rows, and the
+phylo bivariate direct-SD diagnostic row. The contract freezes the retained
+denominator, convergence, `pdHess`, gradient, profile-warning, boundary, finite
+direct-SD interval, and derived-correlation gates. Every row is
+`do_not_promote`: it does not change fit status, interval status, coverage
+status, `inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval support, broad bridge support, or public support.
+
+`structured-re-q4-admission-review-synthesis.tsv` records the Tranche 3 q4
+admission review against current evidence. It keeps the same 14-row scope as
+the denominator contract, but replaces the pre-compute gate with the current
+review decision. The q4 location rows fail admission because existing SR475
+retained-denominator evidence has `pdHess`/Wald-finite rates below 95%. The
+all-four intercept rows fail on denominator precheck evidence: phylo, spatial,
+and relmat are `pdHess`/finite-interval blocked, while animal is
+bootstrap-nonfinite. The q8-shaped all-four one-slope rows remain
+design-first Hessian/geometry holds, and the bivariate direct-SD row remains
+diagnostic visibility only. Every row is `do_not_promote`, with coverage
+`coverage_not_authorized`; this is a no-admission/no-coverage Tranche 3
+decision artifact, not an interval or support promotion.
+
+`structured-re-q4-location-target-admission-map.tsv` records the exact
+target-level q4 location admission map required before any q4 coverage design.
+It links the 16 direct-SD provider/endpoint members to their dispatch-plan
+`profile_targets()` names and to the SR475 retained-denominator source rows.
+Every row remains `not_admitted_cell_pdhess_below_threshold`,
+`coverage_not_authorized`, and `do_not_promote`; it is a no-claim map, not
+interval reliability, coverage, `inference_ready`, `supported`, q4 REML, REML,
+AI-REML, q8 inference, derived-correlation interval support, broad bridge
+support, or public support.
+
+`structured-re-q4-admission-tranche3-closure-audit.tsv` records the Tranche 3
+q4 admission closure audit. It ties the clean checkpoint recheck, high-q
+orientation, denominator contract, admission review, target map, compute policy,
+and no-promotion status audit into a seven-row source-linked decision ledger.
+Every row remains `coverage_not_authorized` and `do_not_promote`; this closes
+the current q4 admission-before-coverage tranche without launching a q4 coverage
+grid and without claiming interval reliability, `inference_ready`, `supported`,
+q4 REML, REML, AI-REML, q8 inference, derived-correlation intervals, broad
+bridge support, or public support.
+
 `structured-re-q4-slope-hessian-geometry.tsv` records the follow-up
 Hessian-geometry audit for those same provider-variant fits. It links to
 `docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-hessian-geometry/structured-re-q4-slope-hessian-geometry-results.tsv`

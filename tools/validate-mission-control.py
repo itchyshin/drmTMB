@@ -683,6 +683,18 @@ STRUCTURED_RE_Q4_ANIMAL_PARTIAL_CHOLESKY_TRANSFORM_DIAGNOSTIC = (
 STRUCTURED_RE_Q4_ANIMAL_TRANSFORM_ADMISSION_CONTRACT = (
     DASHBOARD / "structured-re-q4-animal-transform-admission-contract.tsv"
 )
+STRUCTURED_RE_Q4_ADMISSION_DENOMINATOR_CONTRACT = (
+    DASHBOARD / "structured-re-q4-admission-denominator-contract.tsv"
+)
+STRUCTURED_RE_Q4_ADMISSION_REVIEW_SYNTHESIS = (
+    DASHBOARD / "structured-re-q4-admission-review-synthesis.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP = (
+    DASHBOARD / "structured-re-q4-location-target-admission-map.tsv"
+)
+STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT = (
+    DASHBOARD / "structured-re-q4-admission-tranche3-closure-audit.tsv"
+)
 STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY = (
     DASHBOARD / "structured-re-q4-slope-hessian-geometry.tsv"
 )
@@ -6027,6 +6039,101 @@ STRUCTURED_RE_Q4_ANIMAL_TRANSFORM_ADMISSION_CONTRACT_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_Q4_ADMISSION_DENOMINATOR_CONTRACT_FIELDS = (
+    "contract_id",
+    "cell_id",
+    "dimension_pattern",
+    "structure_provider",
+    "q4_scope",
+    "linked_fit_status",
+    "linked_interval_status",
+    "linked_coverage_status",
+    "direct_sd_target_scope",
+    "derived_correlation_policy",
+    "denominator_policy",
+    "fit_failure_gate",
+    "convergence_gate",
+    "pdhess_gate",
+    "gradient_gate",
+    "profile_warning_gate",
+    "boundary_gate",
+    "finite_direct_sd_interval_gate",
+    "derived_correlation_interval_gate",
+    "minimum_admission_threshold",
+    "current_decision",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_ADMISSION_REVIEW_SYNTHESIS_FIELDS = (
+    "review_id",
+    "contract_id",
+    "cell_id",
+    "q4_scope",
+    "evidence_class",
+    "evidence_denominator",
+    "pdhess_pass",
+    "pdhess_attempted",
+    "pdhess_rate",
+    "finite_wald_direct_sd_min",
+    "finite_profile_direct_sd_min",
+    "finite_direct_sd_attempted",
+    "derived_correlation_interval_status",
+    "threshold_status",
+    "admission_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP_FIELDS = (
+    "status_id",
+    "cell_id",
+    "structured_type",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_dispatch_id",
+    "source_interval_status",
+    "source_sr475_coverage_id",
+    "sr475_n_rep",
+    "sr475_n_boundary_diagnostic",
+    "sr475_n_wald_finite",
+    "sr475_wald_finite_rate",
+    "sr475_n_profile_finite",
+    "sr475_profile_finite_rate",
+    "admission_gate",
+    "retained_denominator_status",
+    "derived_correlation_interval_status",
+    "admission_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "rose_audit",
+    "fisher_review",
+    "gauss_review",
+    "noether_review",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT_FIELDS = (
+    "closure_id",
+    "handover_step",
+    "requirement",
+    "evidence_url",
+    "evidence_status",
+    "observed_result",
+    "rose_audit",
+    "fisher_review",
+    "gauss_review",
+    "noether_review",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+    "next_gate",
+)
 STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY_FIELDS = (
     "geometry_id",
     "cell_id",
@@ -9630,6 +9737,18 @@ def main() -> int:
     structured_re_q4_animal_transform_admission_contract_rows = read_tsv(
         STRUCTURED_RE_Q4_ANIMAL_TRANSFORM_ADMISSION_CONTRACT
     )
+    structured_re_q4_admission_denominator_contract_rows = read_tsv(
+        STRUCTURED_RE_Q4_ADMISSION_DENOMINATOR_CONTRACT
+    )
+    structured_re_q4_admission_review_synthesis_rows = read_tsv(
+        STRUCTURED_RE_Q4_ADMISSION_REVIEW_SYNTHESIS
+    )
+    structured_re_q4_location_target_admission_map_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP
+    )
+    structured_re_q4_admission_tranche3_closure_audit_rows = read_tsv(
+        STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT
+    )
     structured_re_q4_slope_hessian_geometry_rows = read_tsv(
         STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY
     )
@@ -9912,6 +10031,99 @@ def main() -> int:
         errors.append("index.html has no BUILD constant")
     elif build.group(1) != version:
         errors.append(f"version.txt is {version!r}, but index.html BUILD is {build.group(1)!r}")
+    q4_admission_render_columns = (
+        '["Q4 admission denominator", sidecars.q4AdmissionDenominatorContracts || [], '
+        '["contract_id", "cell_id", "current_decision", "promotion_decision", '
+        '"claim_boundary", "q4_scope", "minimum_admission_threshold"]]'
+    )
+    if q4_admission_render_columns not in index:
+        errors.append(
+            "index.html must render q4 admission denominator promotion_decision "
+            "and claim_boundary columns"
+        )
+    q4_admission_render_signature = (
+        "q4AdmissionDenominatorContracts,\n"
+        "  q4AdmissionReviewSynthesis,\n"
+        "  q4LocationTargetAdmissionMap,\n"
+        "  q4AdmissionTranche3ClosureAudit\n"
+        ") {"
+    )
+    if q4_admission_render_signature not in index:
+        errors.append("renderQSeriesBoard must accept q4AdmissionDenominatorContracts")
+    q4_admission_render_argument = (
+        "sidecars.q4AdmissionDenominatorContracts || [],\n"
+        "    sidecars.q4AdmissionReviewSynthesis || [],\n"
+        "    sidecars.q4LocationTargetAdmissionMap || [],\n"
+        "    sidecars.q4AdmissionTranche3ClosureAudit || []\n"
+        "  );"
+    )
+    if q4_admission_render_argument not in index:
+        errors.append("renderQSeriesBoard must receive q4AdmissionDenominatorContracts")
+    q4_admission_review_render_columns = (
+        '["Q4 admission review", sidecars.q4AdmissionReviewSynthesis || [], '
+        '["review_id", "cell_id", "admission_decision", "coverage_decision", '
+        '"claim_boundary", "threshold_status", "next_gate"]]'
+    )
+    if q4_admission_review_render_columns not in index:
+        errors.append(
+            "index.html must render q4 admission review admission_decision, "
+            "coverage_decision, and claim_boundary columns"
+        )
+    q4_admission_review_render_signature = (
+        "q4AdmissionDenominatorContracts,\n"
+        "  q4AdmissionReviewSynthesis,\n"
+        "  q4LocationTargetAdmissionMap,\n"
+        "  q4AdmissionTranche3ClosureAudit\n"
+        ") {"
+    )
+    if q4_admission_review_render_signature not in index:
+        errors.append("renderQSeriesBoard must accept q4AdmissionReviewSynthesis")
+    q4_admission_review_render_argument = (
+        "sidecars.q4AdmissionDenominatorContracts || [],\n"
+        "    sidecars.q4AdmissionReviewSynthesis || [],\n"
+        "    sidecars.q4LocationTargetAdmissionMap || [],\n"
+        "    sidecars.q4AdmissionTranche3ClosureAudit || []\n"
+        "  );"
+    )
+    if q4_admission_review_render_argument not in index:
+        errors.append("renderQSeriesBoard must receive q4AdmissionReviewSynthesis")
+    if (
+        'q4AdmissionReviewSynthesis: parseTsv(await readText("structured-re-q4-admission-review-synthesis.tsv"))'
+        not in index
+    ):
+        errors.append("tick() must load structured-re-q4-admission-review-synthesis.tsv")
+    q4_location_target_render_columns = (
+        '["Q4 location target admission", sidecars.q4LocationTargetAdmissionMap || [], '
+        '["status_id", "structured_type", "endpoint_member", "profile_target", '
+        '"admission_decision", "coverage_decision", "promotion_decision"]]'
+    )
+    if q4_location_target_render_columns not in index:
+        errors.append(
+            "index.html must render q4 location target admission profile_target, "
+            "admission_decision, coverage_decision, and promotion_decision columns"
+        )
+    q4_tranche3_closure_render_columns = (
+        '["Q4 Tranche 3 closure", sidecars.q4AdmissionTranche3ClosureAudit || [], '
+        '["closure_id", "handover_step", "observed_result", "coverage_decision", '
+        '"promotion_decision", "next_gate"]]'
+    )
+    if q4_tranche3_closure_render_columns not in index:
+        errors.append(
+            "index.html must render q4 Tranche 3 closure observed_result, "
+            "coverage_decision, promotion_decision, and next_gate columns"
+        )
+    if (
+        'q4AdmissionTranche3ClosureAudit: parseTsv(await readText("structured-re-q4-admission-tranche3-closure-audit.tsv"))'
+        not in index
+    ):
+        errors.append(
+            "tick() must load structured-re-q4-admission-tranche3-closure-audit.tsv"
+        )
+    if (
+        'q4LocationTargetAdmissionMap: parseTsv(await readText("structured-re-q4-location-target-admission-map.tsv"))'
+        not in index
+    ):
+        errors.append("tick() must load structured-re-q4-location-target-admission-map.tsv")
 
     start_script = START_MISSION_CONTROL.read_text(encoding="utf-8")
     dashboard_tsvs = sorted(path.name for path in DASHBOARD.glob("*.tsv"))
@@ -41907,6 +42119,1006 @@ def main() -> int:
             f"counts changed: {transform_status_counts!r}"
         )
 
+    q4_location_direct_targets = "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x"
+    q4_intercept_direct_targets = (
+        "mu1:(Intercept);mu2:(Intercept);sigma1:(Intercept);sigma2:(Intercept)"
+    )
+    q4_all_four_slope_direct_targets = (
+        "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x;"
+        "sigma1:(Intercept);sigma1:x;sigma2:(Intercept);sigma2:x"
+    )
+    expected_q4_admission_contracts = {
+        "qseries_ordinary_q4_location_one_slope": (
+            "q4_admission_ordinary_location_comparator",
+            "q4",
+            "ordinary",
+            "ordinary_comparator",
+            q4_location_direct_targets,
+            "comparator_only_no_structured_promotion",
+        ),
+        "qseries_phylo_q4_mu1_mu2_one_slope": (
+            "q4_admission_phylo_location_one_slope",
+            "q4",
+            "phylo",
+            "structured_location_q4",
+            q4_location_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_phylo_q4_all_four_intercept": (
+            "q4_admission_phylo_all_four_intercept",
+            "q4",
+            "phylo",
+            "structured_all_four_intercept_q4",
+            q4_intercept_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_phylo_q4_all_four_one_slope_planned": (
+            "q4_admission_phylo_all_four_one_slope_q8_shape",
+            "q8",
+            "phylo",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            q4_all_four_slope_direct_targets,
+            "design_first_hold_no_compute",
+        ),
+        "qseries_spatial_q4_mu1_mu2_one_slope": (
+            "q4_admission_spatial_location_one_slope",
+            "q4",
+            "spatial",
+            "structured_location_q4",
+            q4_location_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_spatial_q4_all_four_intercept": (
+            "q4_admission_spatial_all_four_intercept",
+            "q4",
+            "spatial",
+            "structured_all_four_intercept_q4",
+            q4_intercept_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_spatial_q4_all_four_one_slope_planned": (
+            "q4_admission_spatial_all_four_one_slope_q8_shape",
+            "q8",
+            "spatial",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            q4_all_four_slope_direct_targets,
+            "design_first_hold_no_compute",
+        ),
+        "qseries_animal_q4_mu1_mu2_one_slope": (
+            "q4_admission_animal_location_one_slope",
+            "q4",
+            "animal",
+            "structured_location_q4",
+            q4_location_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_animal_q4_all_four_intercept": (
+            "q4_admission_animal_all_four_intercept",
+            "q4",
+            "animal",
+            "structured_all_four_intercept_q4",
+            q4_intercept_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_animal_q4_all_four_one_slope_planned": (
+            "q4_admission_animal_all_four_one_slope_q8_shape",
+            "q8",
+            "animal",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            q4_all_four_slope_direct_targets,
+            "design_first_hold_no_compute",
+        ),
+        "qseries_relmat_q4_mu1_mu2_one_slope": (
+            "q4_admission_relmat_location_one_slope",
+            "q4",
+            "relmat",
+            "structured_location_q4",
+            q4_location_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_relmat_q4_all_four_intercept": (
+            "q4_admission_relmat_all_four_intercept",
+            "q4",
+            "relmat",
+            "structured_all_four_intercept_q4",
+            q4_intercept_direct_targets,
+            "contract_only_no_compute",
+        ),
+        "qseries_relmat_q4_all_four_one_slope_planned": (
+            "q4_admission_relmat_all_four_one_slope_q8_shape",
+            "q8",
+            "relmat",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            q4_all_four_slope_direct_targets,
+            "design_first_hold_no_compute",
+        ),
+        "qseries_phylo_direct_sd_bivariate": (
+            "q4_admission_phylo_direct_sd_bivariate",
+            "q4",
+            "phylo",
+            "bivariate_direct_sd_diagnostic",
+            "direct_sd_visibility_only",
+            "diagnostic_only_no_coverage_acceptance",
+        ),
+    }
+    seen_q4_admission_cells: set[str] = set()
+    if (
+        len(structured_re_q4_admission_denominator_contract_rows)
+        != len(expected_q4_admission_contracts)
+    ):
+        errors.append(
+            "structured-re-q4-admission-denominator-contract.tsv has "
+            f"{len(structured_re_q4_admission_denominator_contract_rows)} rows; "
+            f"expected {len(expected_q4_admission_contracts)}"
+        )
+    for row in structured_re_q4_admission_denominator_contract_rows:
+        row_id = row.get("contract_id", "<q4 admission denominator contract>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_ADMISSION_DENOMINATOR_CONTRACT_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-admission-denominator-contract.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q4_ADMISSION_DENOMINATOR_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        cell_id = row.get("cell_id", "")
+        expected = expected_q4_admission_contracts.get(cell_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected q4 admission cell_id {cell_id!r}")
+            continue
+        if cell_id in seen_q4_admission_cells:
+            errors.append(f"{row_id}: duplicate q4 admission cell_id {cell_id}")
+        seen_q4_admission_cells.add(cell_id)
+        (
+            expected_contract_id,
+            expected_dimension,
+            expected_provider,
+            expected_scope,
+            expected_direct_targets,
+            expected_decision,
+        ) = expected
+        expected_values = {
+            "contract_id": expected_contract_id,
+            "dimension_pattern": expected_dimension,
+            "structure_provider": expected_provider,
+            "q4_scope": expected_scope,
+            "direct_sd_target_scope": expected_direct_targets,
+            "minimum_admission_threshold": (
+                "pdHess>=95pct;finite_direct_sd_intervals>=95pct;"
+                "retained_failures_in_denominator"
+            ),
+            "current_decision": expected_decision,
+            "promotion_decision": "do_not_promote",
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        q_series_row = q_series_cell_map.get(cell_id)
+        if q_series_row is None:
+            errors.append(f"{row_id}: cell_id does not resolve in support cells")
+        else:
+            linked_status_fields = {
+                "linked_fit_status": "fit_status",
+                "linked_interval_status": "interval_status",
+                "linked_coverage_status": "coverage_status",
+            }
+            for contract_field, support_field in linked_status_fields.items():
+                if row.get(contract_field) != q_series_row.get(support_field):
+                    errors.append(
+                        f"{row_id}: {contract_field} must match support-cell "
+                        f"{support_field}"
+                    )
+        for required in (
+            "retain_fit_errors",
+            "retain_nonconvergence",
+            "retain_pdHess_false",
+            "retain_gradient_warnings",
+            "retain_profile_warnings",
+            "retain_boundary_estimates",
+            "count_finite_direct_sd_intervals",
+            "record_derived_correlation_unavailable",
+        ):
+            if required not in row.get("denominator_policy", ""):
+                errors.append(f"{row_id}: denominator_policy must include {required}")
+        gate_requirements = {
+            "fit_failure_gate": "retain_failed_fit",
+            "convergence_gate": "require_convergence_code_zero",
+            "pdhess_gate": "require_pdHess_true",
+            "gradient_gate": "require_max_abs_gradient_fixed_le_1e-3",
+            "profile_warning_gate": "blocks_admission",
+            "boundary_gate": "blocks_coverage_denominator",
+            "finite_direct_sd_interval_gate": "ge_95pct",
+            "derived_correlation_interval_gate": "Fisher_Noether",
+        }
+        for field, phrase in gate_requirements.items():
+            if phrase not in row.get(field, ""):
+                errors.append(f"{row_id}: {field} must mention {phrase}")
+        for phrase in (
+            "Q4 admission denominator contract only",
+            "no coverage grid",
+            "no interval reliability",
+            "no inference_ready",
+            "no supported",
+            "no q4 REML",
+            "no REML",
+            "no AI-REML",
+            "no q8 inference",
+            "no derived-correlation interval claim",
+            "no broad bridge support",
+            "no public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        if "coverage" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must mention coverage boundary")
+    if seen_q4_admission_cells != set(expected_q4_admission_contracts):
+        missing = sorted(set(expected_q4_admission_contracts) - seen_q4_admission_cells)
+        extra = sorted(seen_q4_admission_cells - set(expected_q4_admission_contracts))
+        errors.append(
+            "structured-re-q4-admission-denominator-contract.tsv cells changed: "
+            f"missing={missing}, extra={extra}"
+        )
+
+    q4_admission_contracts_by_cell = {
+        row.get("cell_id", ""): row
+        for row in structured_re_q4_admission_denominator_contract_rows
+    }
+    expected_q4_admission_review = {
+        "qseries_ordinary_q4_location_one_slope": (
+            "q4_admission_review_ordinary_location_comparator",
+            "ordinary_comparator",
+            "comparator_row",
+            "not_structured_admission",
+            "NA",
+            "NA",
+            "NA",
+            "NA",
+            "NA",
+            "NA",
+            "not_structured_admission_target",
+            "not_applicable_comparator",
+            "not_admitted_comparator",
+            "docs/dev-log/dashboard/structured-re-high-q-status-audit.tsv",
+        ),
+        "qseries_phylo_q4_mu1_mu2_one_slope": (
+            "q4_admission_review_phylo_location",
+            "structured_location_q4",
+            "sr475_q4_location_retained_denominator",
+            "sr475_replicates",
+            "244",
+            "475",
+            "0.514",
+            "244",
+            "258",
+            "475",
+            "derived_correlation_unavailable",
+            "failed_pdhess_ge_95pct",
+            "not_admitted_pdhess_below_threshold",
+            "docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv",
+        ),
+        "qseries_phylo_q4_all_four_intercept": (
+            "q4_admission_review_phylo_all_four_intercept",
+            "structured_all_four_intercept_q4",
+            "intercept_denominator_precheck",
+            "target_smoke_4",
+            "0",
+            "4",
+            "0.000",
+            "0",
+            "0",
+            "4",
+            "derived_correlation_unavailable",
+            "failed_pdhess_and_finite_intervals",
+            "not_admitted_no_finite_intervals",
+            "docs/dev-log/dashboard/structured-re-q4-intercept-denominator-precheck.tsv",
+        ),
+        "qseries_phylo_q4_all_four_one_slope_planned": (
+            "q4_admission_review_phylo_q8_shape",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            "q8_hessian_geometry",
+            "geometry_variants_2",
+            "0",
+            "2",
+            "0.000",
+            "0",
+            "0",
+            "2",
+            "derived_correlation_unavailable",
+            "failed_hessian_geometry_or_design_gate",
+            "not_admitted_q8_design_first",
+            "docs/dev-log/dashboard/structured-re-q4-slope-hessian-geometry.tsv",
+        ),
+        "qseries_spatial_q4_mu1_mu2_one_slope": (
+            "q4_admission_review_spatial_location",
+            "structured_location_q4",
+            "sr475_q4_location_retained_denominator",
+            "sr475_replicates",
+            "279",
+            "475",
+            "0.587",
+            "279",
+            "200",
+            "475",
+            "derived_correlation_unavailable",
+            "failed_pdhess_ge_95pct",
+            "not_admitted_pdhess_below_threshold",
+            "docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv",
+        ),
+        "qseries_spatial_q4_all_four_intercept": (
+            "q4_admission_review_spatial_all_four_intercept",
+            "structured_all_four_intercept_q4",
+            "intercept_denominator_precheck",
+            "target_smoke_4",
+            "0",
+            "4",
+            "0.000",
+            "0",
+            "0",
+            "4",
+            "derived_correlation_unavailable",
+            "failed_pdhess_and_finite_intervals",
+            "not_admitted_no_finite_intervals",
+            "docs/dev-log/dashboard/structured-re-q4-intercept-denominator-precheck.tsv",
+        ),
+        "qseries_spatial_q4_all_four_one_slope_planned": (
+            "q4_admission_review_spatial_q8_shape",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            "q8_hessian_geometry",
+            "geometry_variants_2",
+            "0",
+            "2",
+            "0.000",
+            "0",
+            "0",
+            "2",
+            "derived_correlation_unavailable",
+            "failed_hessian_geometry_or_design_gate",
+            "not_admitted_q8_design_first",
+            "docs/dev-log/dashboard/structured-re-q4-slope-hessian-geometry.tsv",
+        ),
+        "qseries_animal_q4_mu1_mu2_one_slope": (
+            "q4_admission_review_animal_location",
+            "structured_location_q4",
+            "sr475_q4_location_retained_denominator",
+            "sr475_replicates",
+            "368",
+            "475",
+            "0.775",
+            "368",
+            "308",
+            "475",
+            "derived_correlation_unavailable",
+            "failed_pdhess_ge_95pct",
+            "not_admitted_pdhess_below_threshold",
+            "docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv",
+        ),
+        "qseries_animal_q4_all_four_intercept": (
+            "q4_admission_review_animal_all_four_intercept",
+            "structured_all_four_intercept_q4",
+            "intercept_denominator_precheck",
+            "target_smoke_4",
+            "4",
+            "4",
+            "1.000",
+            "4",
+            "4",
+            "4",
+            "derived_correlation_unavailable",
+            "failed_bootstrap_and_replicated_denominator_missing",
+            "not_admitted_bootstrap_nonfinite",
+            "docs/dev-log/dashboard/structured-re-q4-intercept-denominator-precheck.tsv",
+        ),
+        "qseries_animal_q4_all_four_one_slope_planned": (
+            "q4_admission_review_animal_q8_shape",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            "q8_hessian_geometry_and_transform_gate",
+            "nibi_admission_probe_16",
+            "2",
+            "16",
+            "0.125",
+            "16",
+            "14",
+            "128",
+            "derived_correlation_unavailable",
+            "failed_hessian_geometry_or_design_gate",
+            "not_admitted_q8_design_first",
+            "docs/dev-log/dashboard/structured-re-q4-animal-all-four-admission-probe.tsv",
+        ),
+        "qseries_relmat_q4_mu1_mu2_one_slope": (
+            "q4_admission_review_relmat_location",
+            "structured_location_q4",
+            "sr475_q4_location_retained_denominator",
+            "sr475_replicates",
+            "366",
+            "475",
+            "0.771",
+            "366",
+            "302",
+            "475",
+            "derived_correlation_unavailable",
+            "failed_pdhess_ge_95pct",
+            "not_admitted_pdhess_below_threshold",
+            "docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv",
+        ),
+        "qseries_relmat_q4_all_four_intercept": (
+            "q4_admission_review_relmat_all_four_intercept",
+            "structured_all_four_intercept_q4",
+            "intercept_denominator_precheck",
+            "target_smoke_4",
+            "0",
+            "4",
+            "0.000",
+            "0",
+            "0",
+            "4",
+            "derived_correlation_unavailable",
+            "failed_pdhess_and_finite_intervals",
+            "not_admitted_no_finite_intervals",
+            "docs/dev-log/dashboard/structured-re-q4-intercept-denominator-precheck.tsv",
+        ),
+        "qseries_relmat_q4_all_four_one_slope_planned": (
+            "q4_admission_review_relmat_q8_shape",
+            "q8_shaped_q4_all_four_one_slope_hold",
+            "q8_hessian_geometry",
+            "geometry_variants_2",
+            "0",
+            "2",
+            "0.000",
+            "0",
+            "0",
+            "2",
+            "derived_correlation_unavailable",
+            "failed_hessian_geometry_or_design_gate",
+            "not_admitted_q8_design_first",
+            "docs/dev-log/dashboard/structured-re-q4-slope-hessian-geometry.tsv",
+        ),
+        "qseries_phylo_direct_sd_bivariate": (
+            "q4_admission_review_phylo_direct_sd_bivariate",
+            "bivariate_direct_sd_diagnostic",
+            "direct_sd_visibility_diagnostic",
+            "diagnostic_visibility_only",
+            "NA",
+            "NA",
+            "NA",
+            "NA",
+            "NA",
+            "NA",
+            "derived_correlation_unavailable",
+            "not_admission_target",
+            "not_admitted_diagnostic_only",
+            "docs/dev-log/dashboard/structured-re-high-q-status-audit.tsv",
+        ),
+    }
+    seen_q4_review_cells: set[str] = set()
+    if (
+        len(structured_re_q4_admission_review_synthesis_rows)
+        != len(expected_q4_admission_review)
+    ):
+        errors.append(
+            "structured-re-q4-admission-review-synthesis.tsv has "
+            f"{len(structured_re_q4_admission_review_synthesis_rows)} rows; "
+            f"expected {len(expected_q4_admission_review)}"
+        )
+    for row in structured_re_q4_admission_review_synthesis_rows:
+        row_id = row.get("review_id", "<q4 admission review synthesis>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_ADMISSION_REVIEW_SYNTHESIS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-admission-review-synthesis.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q4_ADMISSION_REVIEW_SYNTHESIS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        cell_id = row.get("cell_id", "")
+        expected = expected_q4_admission_review.get(cell_id)
+        if expected is None:
+            errors.append(f"{row_id}: unexpected q4 admission review cell_id {cell_id!r}")
+            continue
+        if cell_id in seen_q4_review_cells:
+            errors.append(f"{row_id}: duplicate q4 admission review cell_id {cell_id}")
+        seen_q4_review_cells.add(cell_id)
+        contract_row = q4_admission_contracts_by_cell.get(cell_id)
+        if contract_row is None:
+            errors.append(f"{row_id}: cell_id missing from q4 admission denominator contract")
+        elif row.get("contract_id") != contract_row.get("contract_id"):
+            errors.append(f"{row_id}: contract_id must match q4 admission contract")
+        q_series_row = q_series_cell_map.get(cell_id)
+        if q_series_row is None:
+            errors.append(f"{row_id}: cell_id does not resolve in support cells")
+        else:
+            ready = (
+                q_series_row.get("interval_status") == "inference_ready"
+                or q_series_row.get("coverage_status") == "inference_ready"
+            )
+            if ready:
+                errors.append(f"{row_id}: q4 admission review row cannot be inference_ready")
+        (
+            expected_review_id,
+            expected_scope,
+            expected_evidence_class,
+            expected_denominator,
+            expected_pdhess_pass,
+            expected_pdhess_attempted,
+            expected_pdhess_rate,
+            expected_wald_min,
+            expected_profile_min,
+            expected_finite_attempted,
+            expected_derived_status,
+            expected_threshold_status,
+            expected_admission_decision,
+            expected_evidence_url,
+        ) = expected
+        expected_values = {
+            "review_id": expected_review_id,
+            "q4_scope": expected_scope,
+            "evidence_class": expected_evidence_class,
+            "evidence_denominator": expected_denominator,
+            "pdhess_pass": expected_pdhess_pass,
+            "pdhess_attempted": expected_pdhess_attempted,
+            "pdhess_rate": expected_pdhess_rate,
+            "finite_wald_direct_sd_min": expected_wald_min,
+            "finite_profile_direct_sd_min": expected_profile_min,
+            "finite_direct_sd_attempted": expected_finite_attempted,
+            "derived_correlation_interval_status": expected_derived_status,
+            "threshold_status": expected_threshold_status,
+            "admission_decision": expected_admission_decision,
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+            "evidence_url": expected_evidence_url,
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for phrase in (
+            "Tranche 3 q4 admission review only",
+            "no coverage grid",
+            "no interval reliability",
+            "no inference_ready",
+            "no supported",
+            "no q4 REML",
+            "no REML",
+            "no AI-REML",
+            "no q8 inference",
+            "no derived-correlation interval claim",
+            "no broad bridge support",
+            "no public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        if (
+            cell_id != "qseries_ordinary_q4_location_one_slope"
+            and "profile_targets()" not in row.get("next_gate", "")
+        ):
+            errors.append(f"{row_id}: next_gate must require exact profile_targets() names")
+        if expected_evidence_class == "sr475_q4_location_retained_denominator":
+            source_rows = [
+                source_row
+                for source_row in structured_re_slope_coverage_results_rows
+                if source_row.get("linked_cell_id") == cell_id
+                and source_row.get("lane") == "q4_location"
+            ]
+            if len(source_rows) != 4:
+                errors.append(f"{row_id}: expected four q4 location source target rows")
+            else:
+                min_wald = min(int(source_row["n_wald_finite"]) for source_row in source_rows)
+                min_profile = min(
+                    int(source_row["n_profile_finite"]) for source_row in source_rows
+                )
+                n_rep = {source_row.get("n_rep") for source_row in source_rows}
+                if n_rep != {"475"}:
+                    errors.append(f"{row_id}: q4 location source n_rep must be 475")
+                if str(min_wald) != row.get("finite_wald_direct_sd_min"):
+                    errors.append(f"{row_id}: finite_wald_direct_sd_min must match SR475 source")
+                if str(min_profile) != row.get("finite_profile_direct_sd_min"):
+                    errors.append(f"{row_id}: finite_profile_direct_sd_min must match SR475 source")
+                if row.get("pdhess_pass") != row.get("finite_wald_direct_sd_min"):
+                    errors.append(f"{row_id}: pdhess_pass must equal finite Wald survivor count")
+                if float(row.get("pdhess_rate", "nan")) >= 0.95:
+                    errors.append(f"{row_id}: q4 location pdhess_rate must remain below admission")
+        if expected_evidence_class == "intercept_denominator_precheck":
+            source_rows = [
+                source_row
+                for source_row in structured_re_q4_intercept_denominator_precheck_rows
+                if source_row.get("cell_id") == cell_id
+            ]
+            if len(source_rows) != 4:
+                errors.append(f"{row_id}: expected four q4 intercept precheck source rows")
+            else:
+                pdhess_total = sum(int(source_row["smoke_n_pdhess"]) for source_row in source_rows)
+                if str(pdhess_total) != row.get("pdhess_pass"):
+                    errors.append(f"{row_id}: pdhess_pass must match q4 intercept precheck")
+        if expected_evidence_class == "q8_hessian_geometry":
+            source_rows = [
+                source_row
+                for source_row in structured_re_q4_slope_hessian_geometry_rows
+                if source_row.get("cell_id") == cell_id
+            ]
+            if len(source_rows) != 2:
+                errors.append(f"{row_id}: expected two q8-shaped Hessian-geometry source rows")
+            elif any(source_row.get("n_pdhess") != "0" for source_row in source_rows):
+                errors.append(f"{row_id}: q8-shaped geometry rows must remain pdHess=0")
+        if expected_evidence_class == "q8_hessian_geometry_and_transform_gate":
+            source_rows = [
+                source_row
+                for source_row in structured_re_q4_animal_all_four_admission_probe_rows
+                if source_row.get("cell_id") == cell_id
+            ]
+            if len(source_rows) != 1:
+                errors.append(f"{row_id}: expected one animal all-four admission source row")
+            elif (
+                source_rows[0].get("n_pdhess") != row.get("pdhess_pass")
+                or source_rows[0].get("n_rep") != row.get("pdhess_attempted")
+                or source_rows[0].get("n_profile_finite")
+                != row.get("finite_profile_direct_sd_min")
+            ):
+                errors.append(f"{row_id}: animal all-four admission counts must match source")
+    if seen_q4_review_cells != set(expected_q4_admission_review):
+        missing = sorted(set(expected_q4_admission_review) - seen_q4_review_cells)
+        extra = sorted(seen_q4_review_cells - set(expected_q4_admission_review))
+        errors.append(
+            "structured-re-q4-admission-review-synthesis.tsv cells changed: "
+            f"missing={missing}, extra={extra}"
+        )
+
+    expected_q4_location_target_admission_targets = set(
+        expected_q4_location_slope_bootstrap_dispatch_targets
+    )
+    dispatch_by_target = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_location_slope_bootstrap_dispatch_plan_rows
+    }
+    interval_status_by_target = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_location_slope_interval_diagnostic_status_rows
+    }
+    q4_location_coverage_by_target = {
+        (row.get("provider", ""), row.get("target", "")): row
+        for row in structured_re_slope_coverage_results_rows
+        if row.get("lane") == "q4_location"
+    }
+    seen_q4_location_target_admission_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_location_target_admission_map_rows)
+        != len(expected_q4_location_target_admission_targets)
+    ):
+        errors.append(
+            "structured-re-q4-location-target-admission-map.tsv has "
+            f"{len(structured_re_q4_location_target_admission_map_rows)} rows; "
+            f"expected {len(expected_q4_location_target_admission_targets)}"
+        )
+    for row in structured_re_q4_location_target_admission_map_rows:
+        row_id = row.get("status_id", "<q4 location target admission map>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-target-admission-map.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_TARGET_ADMISSION_MAP_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type", "")
+        endpoint_member = row.get("endpoint_member", "")
+        target_key = (provider, endpoint_member)
+        if target_key not in expected_q4_location_target_admission_targets:
+            errors.append(f"{row_id}: unexpected q4 location target {target_key}")
+            continue
+        if target_key in seen_q4_location_target_admission_targets:
+            errors.append(f"{row_id}: duplicate q4 location target {target_key}")
+        seen_q4_location_target_admission_targets.add(target_key)
+        expected_status_id = (
+            "q4_location_admission_target_"
+            f"{provider}_{q4_location_slope_dispatch_token(endpoint_member)}"
+        )
+        if row_id != expected_status_id:
+            errors.append(f"{row_id}: status_id must be {expected_status_id}")
+        expected_cell = f"qseries_{provider}_q4_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must be {expected_cell}")
+        expected_estimand, expected_profile_target = (
+            expected_q4_location_slope_interval_direct_targets[target_key]
+        )
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile_target:
+            errors.append(f"{row_id}: profile_target must be {expected_profile_target}")
+
+        dispatch_row = dispatch_by_target.get(target_key)
+        if dispatch_row is None:
+            errors.append(f"{row_id}: missing source dispatch-plan row")
+        else:
+            if row.get("source_dispatch_id") != dispatch_row.get("dispatch_id"):
+                errors.append(f"{row_id}: source_dispatch_id must match dispatch plan")
+            if row.get("profile_target") != dispatch_row.get("profile_target"):
+                errors.append(f"{row_id}: profile_target must match dispatch plan")
+        interval_row = interval_status_by_target.get(target_key)
+        if interval_row is None:
+            errors.append(f"{row_id}: missing interval diagnostic-status row")
+        else:
+            if row.get("source_interval_status") != interval_row.get("diagnostic_id"):
+                errors.append(f"{row_id}: source_interval_status must match interval status")
+            if row.get("profile_target") != interval_row.get("profile_target"):
+                errors.append(f"{row_id}: profile_target must match interval status")
+        coverage_row = q4_location_coverage_by_target.get(target_key)
+        if coverage_row is None:
+            errors.append(f"{row_id}: missing SR475 q4 location coverage-source row")
+        else:
+            expected_rate = f"{int(coverage_row['n_wald_finite']) / int(coverage_row['n_rep']):.3f}"
+            expected_profile_rate = (
+                f"{int(coverage_row['n_profile_finite']) / int(coverage_row['n_rep']):.3f}"
+            )
+            source_values = {
+                "source_sr475_coverage_id": coverage_row.get("coverage_id"),
+                "sr475_n_rep": coverage_row.get("n_rep"),
+                "sr475_n_boundary_diagnostic": coverage_row.get("n_boundary"),
+                "sr475_n_wald_finite": coverage_row.get("n_wald_finite"),
+                "sr475_wald_finite_rate": expected_rate,
+                "sr475_n_profile_finite": coverage_row.get("n_profile_finite"),
+                "sr475_profile_finite_rate": expected_profile_rate,
+            }
+            for field, expected_value in source_values.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if float(row.get("sr475_wald_finite_rate", "nan")) >= 0.95:
+                errors.append(f"{row_id}: Wald/pdHess survivor rate must remain below 0.95")
+            if row.get("evidence_url") != "docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv":
+                errors.append(f"{row_id}: evidence_url must point to the SR475 source TSV")
+
+        fixed_values = {
+            "admission_gate": "failed_pdhess_proxy_ge_95pct",
+            "retained_denominator_status": "retained_denominator_not_admitted",
+            "derived_correlation_interval_status": "derived_correlation_unavailable",
+            "admission_decision": "not_admitted_cell_pdhess_below_threshold",
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+            "rose_audit": "rose_no_status_claim",
+            "fisher_review": "fisher_no_coverage_before_admission",
+            "gauss_review": "gauss_no_cluster_run_from_pdhess_blocker",
+            "noether_review": "noether_exact_profile_target_recorded",
+        }
+        for field, expected_value in fixed_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for phrase in (
+            "Tranche 3 q4 location target admission map only",
+            "exact profile_targets() names recorded",
+            "no coverage grid",
+            "no interval reliability",
+            "no inference_ready",
+            "no supported",
+            "no q4 REML",
+            "no REML",
+            "no AI-REML",
+            "no q8 inference",
+            "no derived-correlation interval claim",
+            "no broad bridge support",
+            "no public support",
+        ):
+            if phrase not in row.get("claim_boundary", ""):
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "retained-denominator q4 location admission runner",
+            "profile_targets()",
+            row.get("profile_target", ""),
+            "before any coverage design",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+    if seen_q4_location_target_admission_targets != expected_q4_location_target_admission_targets:
+        missing = sorted(
+            expected_q4_location_target_admission_targets
+            - seen_q4_location_target_admission_targets
+        )
+        extra = sorted(
+            seen_q4_location_target_admission_targets
+            - expected_q4_location_target_admission_targets
+        )
+        errors.append(
+            "structured-re-q4-location-target-admission-map.tsv targets changed: "
+            f"missing={missing}, extra={extra}"
+        )
+
+    q4_tranche3_closure_claim_boundary = (
+        "Tranche 3 q4 admission closure audit only; no coverage grid; "
+        "no interval reliability; no inference_ready; no supported; no q4 REML; "
+        "no REML; no AI-REML; no q8 inference; no derived-correlation interval claim; "
+        "no broad bridge support; no public support."
+    )
+    expected_q4_tranche3_closure = [
+        (
+            "tranche3_clean_checkpoint_reverified",
+            "1-2",
+            "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv",
+            "104_rows;8_inference_ready;0_structured_supported;0_highq_inference_ready;0_nongaussian_inference_ready",
+        ),
+        (
+            "tranche3_high_q_orientation_completed",
+            "3",
+            "docs/dev-log/dashboard/structured-re-high-q-status-audit.tsv",
+            "24_high_q_rows;all_do_not_promote;q4_and_q8_routes_diagnostic_or_planned",
+        ),
+        (
+            "tranche3_denominator_contract_frozen",
+            "4",
+            "docs/dev-log/dashboard/structured-re-q4-admission-denominator-contract.tsv",
+            "14_rows;fit_convergence_pdhess_gradient_profile_boundary_finite_interval_gates_frozen;all_do_not_promote",
+        ),
+        (
+            "tranche3_admission_review_completed",
+            "4-5",
+            "docs/dev-log/dashboard/structured-re-q4-admission-review-synthesis.tsv",
+            "14_rows;0_rows_admitted;all_coverage_not_authorized;all_do_not_promote",
+        ),
+        (
+            "tranche3_location_targets_mapped",
+            "3-5",
+            "docs/dev-log/dashboard/structured-re-q4-location-target-admission-map.tsv",
+            "16_direct_sd_targets;exact_profile_targets_recorded;all_not_admitted_cell_pdhess_below_threshold",
+        ),
+        (
+            "tranche3_compute_policy_closed",
+            "5",
+            "docs/dev-log/check-log.md",
+            "Totoro_and_DRAC_available;0_q4_coverage_jobs_launched_in_Tranche3;coverage_runner_and_slurm_script_not_authorized_by_current_evidence",
+        ),
+        (
+            "tranche3_status_no_promotion_closed",
+            "5",
+            "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv",
+            "no_support_cell_status_changed;0_highq_inference_ready;0_structured_supported;0_q4_coverage_authorized",
+        ),
+    ]
+    if (
+        len(structured_re_q4_admission_tranche3_closure_audit_rows)
+        != len(expected_q4_tranche3_closure)
+    ):
+        errors.append(
+            "structured-re-q4-admission-tranche3-closure-audit.tsv has "
+            f"{len(structured_re_q4_admission_tranche3_closure_audit_rows)} rows; "
+            f"expected {len(expected_q4_tranche3_closure)}"
+        )
+    seen_q4_tranche3_closure_ids: set[str] = set()
+    for i, row in enumerate(structured_re_q4_admission_tranche3_closure_audit_rows):
+        row_id = row.get("closure_id", "<q4 Tranche 3 closure audit>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-admission-tranche3-closure-audit.tsv "
+                "fields do not match the closure audit contract"
+            )
+        for field in STRUCTURED_RE_Q4_ADMISSION_TRANCHE3_CLOSURE_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_q4_tranche3_closure_ids:
+            errors.append(f"{row_id}: duplicate q4 Tranche 3 closure_id")
+        seen_q4_tranche3_closure_ids.add(row_id)
+        if i >= len(expected_q4_tranche3_closure):
+            continue
+        (
+            expected_closure_id,
+            expected_handover_step,
+            expected_evidence_url,
+            expected_observed_result,
+        ) = expected_q4_tranche3_closure[i]
+        expected_values = {
+            "closure_id": expected_closure_id,
+            "handover_step": expected_handover_step,
+            "evidence_url": expected_evidence_url,
+            "evidence_status": "verified_current_worktree",
+            "observed_result": expected_observed_result,
+            "rose_audit": "rose_closure_no_status_claim",
+            "fisher_review": "fisher_no_coverage_without_admission",
+            "gauss_review": "gauss_no_cluster_run_without_pdhess_gate",
+            "noether_review": "noether_exact_targets_or_not_applicable_recorded",
+            "coverage_decision": "coverage_not_authorized",
+            "promotion_decision": "do_not_promote",
+            "claim_boundary": q4_tranche3_closure_claim_boundary,
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve locally")
+        if "If q4 work resumes" not in row.get("next_gate", "") and row_id not in {
+            "tranche3_location_targets_mapped",
+            "tranche3_compute_policy_closed",
+        }:
+            errors.append(f"{row_id}: next_gate must describe q4 resumption")
+        if row_id == "tranche3_location_targets_mapped" and "profile_targets()" not in row.get(
+            "next_gate",
+            "",
+        ):
+            errors.append(f"{row_id}: next_gate must mention profile_targets()")
+        if row_id == "tranche3_compute_policy_closed" and "host provenance" not in row.get(
+            "next_gate",
+            "",
+        ):
+            errors.append(f"{row_id}: next_gate must mention host provenance")
+    expected_closure_ids = [item[0] for item in expected_q4_tranche3_closure]
+    if seen_q4_tranche3_closure_ids != set(expected_closure_ids):
+        errors.append(
+            "structured-re-q4-admission-tranche3-closure-audit.tsv closure_ids "
+            f"must be {expected_closure_ids}"
+        )
+
+    q_series_inference_ready_rows = [
+        row
+        for row in structured_re_q_series_support_cell_rows
+        if row.get("interval_status") == "inference_ready"
+        and row.get("coverage_status") == "inference_ready"
+    ]
+    q_series_high_q_ready_rows = [
+        row
+        for row in structured_re_q_series_support_cell_rows
+        if row.get("dimension_pattern") in {"q4", "q6", "q8"}
+        and (
+            row.get("interval_status") == "inference_ready"
+            or row.get("coverage_status") == "inference_ready"
+        )
+    ]
+    q_series_non_gaussian_ready_rows = [
+        row
+        for row in structured_re_q_series_support_cell_rows
+        if row.get("family_class") != "gaussian"
+        and row.get("interval_status") == "inference_ready"
+        and row.get("coverage_status") == "inference_ready"
+    ]
+    if len(structured_re_q_series_support_cell_rows) != 104:
+        errors.append("q4 Tranche 3 closure audit requires 104 support-cell rows")
+    if len(q_series_inference_ready_rows) != 8:
+        errors.append(
+            "q4 Tranche 3 closure audit requires 8 interval/coverage inference_ready rows"
+        )
+    if any(
+        row.get("authority_status") == "supported"
+        for row in structured_re_q_series_support_cell_rows
+    ):
+        errors.append("q4 Tranche 3 closure audit requires 0 structured supported rows")
+    if q_series_high_q_ready_rows:
+        errors.append("q4 Tranche 3 closure audit requires 0 high-q inference_ready rows")
+    if q_series_non_gaussian_ready_rows:
+        errors.append(
+            "q4 Tranche 3 closure audit requires 0 non-Gaussian inference_ready rows"
+        )
+    if len(structured_re_high_q_status_audit_rows) != 24 or any(
+        row.get("promotion_decision") != "do_not_promote"
+        for row in structured_re_high_q_status_audit_rows
+    ):
+        errors.append("q4 Tranche 3 closure audit requires 24 high-q do_not_promote rows")
+    if len(structured_re_q4_admission_denominator_contract_rows) != 14 or any(
+        row.get("promotion_decision") != "do_not_promote"
+        for row in structured_re_q4_admission_denominator_contract_rows
+    ):
+        errors.append(
+            "q4 Tranche 3 closure audit requires 14 q4 denominator do_not_promote rows"
+        )
+    if len(structured_re_q4_admission_review_synthesis_rows) != 14 or any(
+        row.get("coverage_decision") != "coverage_not_authorized"
+        or row.get("promotion_decision") != "do_not_promote"
+        or not row.get("admission_decision", "").startswith("not_admitted")
+        for row in structured_re_q4_admission_review_synthesis_rows
+    ):
+        errors.append(
+            "q4 Tranche 3 closure audit requires 14 q4 review not-admitted "
+            "coverage_not_authorized do_not_promote rows"
+        )
+    if len(structured_re_q4_location_target_admission_map_rows) != 16 or any(
+        row.get("admission_decision") != "not_admitted_cell_pdhess_below_threshold"
+        or row.get("coverage_decision") != "coverage_not_authorized"
+        or row.get("promotion_decision") != "do_not_promote"
+        for row in structured_re_q4_location_target_admission_map_rows
+    ):
+        errors.append(
+            "q4 Tranche 3 closure audit requires 16 q4 target-map no-admission rows"
+        )
+
     expected_q4_slope_geometry_count = len(q4_slope_stability_variants) * len(
         q4_slope_provider_groups
     )
@@ -53625,6 +54837,10 @@ def main() -> int:
         f", {len(structured_re_q4_animal_ridge_continuation_diagnostic_rows)} structured RE q4 animal ridge-continuation diagnostic rows"
         f", {len(structured_re_q4_animal_partial_cholesky_transform_diagnostic_rows)} structured RE q4 animal partial-Cholesky transform diagnostic rows"
         f", {len(structured_re_q4_animal_transform_admission_contract_rows)} structured RE q4 animal transform-admission contract rows"
+        f", {len(structured_re_q4_admission_denominator_contract_rows)} structured RE q4 admission-denominator contract rows"
+        f", {len(structured_re_q4_admission_review_synthesis_rows)} structured RE q4 admission-review synthesis rows"
+        f", {len(structured_re_q4_location_target_admission_map_rows)} structured RE q4 location target-admission map rows"
+        f", {len(structured_re_q4_admission_tranche3_closure_audit_rows)} structured RE q4 admission Tranche 3 closure-audit rows"
         f", {len(structured_re_q4_slope_hessian_geometry_rows)} structured RE q4 slope Hessian-geometry rows"
         f", {len(structured_re_q4_slope_sigma_axis_differential_rows)} structured RE q4 slope sigma-axis differential rows"
         f", {len(structured_re_balance_slice_rows)} structured RE balance-slice rows"

@@ -2037,12 +2037,8 @@ test_that("Gaussian low-q row selection gates exact smoke candidates", {
     q2_repair_review$review_status,
     q2_repair_review$cell_id
   )
-  q2_repair_review_evidence <- (
-    "docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv"
-  )
-  q2_direct_sd_endpoint_evidence <- (
-    "docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv"
-  )
+  q2_repair_review_evidence <- ("docs/dev-log/dashboard/structured-re-q2-retained-denominator-repair-smoke-review.tsv")
+  q2_direct_sd_endpoint_evidence <- ("docs/dev-log/dashboard/structured-re-q2-direct-sd-endpoint-route-smoke.tsv")
 
   q2_plus_contract <- selection[
     selection$cell_id == "qseries_phylo_q2_plus_q2_intercept",
@@ -20906,6 +20902,1009 @@ test_that("q4 animal transform-admission contract keeps cluster work gated", {
   )) {
     expect_true(all(grepl(phrase, design_row$next_gate, fixed = TRUE)))
   }
+})
+
+test_that("q4 admission denominator contract freezes gates before coverage", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-admission-denominator-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "cell_id",
+      "dimension_pattern",
+      "structure_provider",
+      "q4_scope",
+      "linked_fit_status",
+      "linked_interval_status",
+      "linked_coverage_status",
+      "direct_sd_target_scope",
+      "derived_correlation_policy",
+      "denominator_policy",
+      "fit_failure_gate",
+      "convergence_gate",
+      "pdhess_gate",
+      "gradient_gate",
+      "profile_warning_gate",
+      "boundary_gate",
+      "finite_direct_sd_interval_gate",
+      "derived_correlation_interval_gate",
+      "minimum_admission_threshold",
+      "current_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(contract), 14L)
+  expect_equal(anyDuplicated(contract$cell_id), 0L)
+
+  q4_location_direct_targets <- "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x"
+  q4_intercept_direct_targets <- paste(
+    "mu1:(Intercept);mu2:(Intercept);sigma1:(Intercept);sigma2:(Intercept)"
+  )
+  q4_all_four_slope_direct_targets <- paste0(
+    "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x;",
+    "sigma1:(Intercept);sigma1:x;sigma2:(Intercept);sigma2:x"
+  )
+  expected <- data.frame(
+    cell_id = c(
+      "qseries_ordinary_q4_location_one_slope",
+      "qseries_phylo_q4_mu1_mu2_one_slope",
+      "qseries_phylo_q4_all_four_intercept",
+      "qseries_phylo_q4_all_four_one_slope_planned",
+      "qseries_spatial_q4_mu1_mu2_one_slope",
+      "qseries_spatial_q4_all_four_intercept",
+      "qseries_spatial_q4_all_four_one_slope_planned",
+      "qseries_animal_q4_mu1_mu2_one_slope",
+      "qseries_animal_q4_all_four_intercept",
+      "qseries_animal_q4_all_four_one_slope_planned",
+      "qseries_relmat_q4_mu1_mu2_one_slope",
+      "qseries_relmat_q4_all_four_intercept",
+      "qseries_relmat_q4_all_four_one_slope_planned",
+      "qseries_phylo_direct_sd_bivariate"
+    ),
+    contract_id = c(
+      "q4_admission_ordinary_location_comparator",
+      "q4_admission_phylo_location_one_slope",
+      "q4_admission_phylo_all_four_intercept",
+      "q4_admission_phylo_all_four_one_slope_q8_shape",
+      "q4_admission_spatial_location_one_slope",
+      "q4_admission_spatial_all_four_intercept",
+      "q4_admission_spatial_all_four_one_slope_q8_shape",
+      "q4_admission_animal_location_one_slope",
+      "q4_admission_animal_all_four_intercept",
+      "q4_admission_animal_all_four_one_slope_q8_shape",
+      "q4_admission_relmat_location_one_slope",
+      "q4_admission_relmat_all_four_intercept",
+      "q4_admission_relmat_all_four_one_slope_q8_shape",
+      "q4_admission_phylo_direct_sd_bivariate"
+    ),
+    dimension_pattern = c(
+      "q4",
+      "q4",
+      "q4",
+      "q8",
+      "q4",
+      "q4",
+      "q8",
+      "q4",
+      "q4",
+      "q8",
+      "q4",
+      "q4",
+      "q8",
+      "q4"
+    ),
+    structure_provider = c(
+      "ordinary",
+      "phylo",
+      "phylo",
+      "phylo",
+      "spatial",
+      "spatial",
+      "spatial",
+      "animal",
+      "animal",
+      "animal",
+      "relmat",
+      "relmat",
+      "relmat",
+      "phylo"
+    ),
+    direct_sd_target_scope = c(
+      q4_location_direct_targets,
+      q4_location_direct_targets,
+      q4_intercept_direct_targets,
+      q4_all_four_slope_direct_targets,
+      q4_location_direct_targets,
+      q4_intercept_direct_targets,
+      q4_all_four_slope_direct_targets,
+      q4_location_direct_targets,
+      q4_intercept_direct_targets,
+      q4_all_four_slope_direct_targets,
+      q4_location_direct_targets,
+      q4_intercept_direct_targets,
+      q4_all_four_slope_direct_targets,
+      "direct_sd_visibility_only"
+    ),
+    stringsAsFactors = FALSE
+  )
+  contract <- contract[
+    match(expected$cell_id, contract$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(contract$cell_id, expected$cell_id)
+  expect_equal(contract$contract_id, expected$contract_id)
+  expect_equal(contract$dimension_pattern, expected$dimension_pattern)
+  expect_equal(contract$structure_provider, expected$structure_provider)
+  expect_equal(contract$direct_sd_target_scope, expected$direct_sd_target_scope)
+
+  qseries <- qseries[match(contract$cell_id, qseries$cell_id), , drop = FALSE]
+  expect_equal(contract$linked_fit_status, qseries$fit_status)
+  expect_equal(contract$linked_interval_status, qseries$interval_status)
+  expect_equal(contract$linked_coverage_status, qseries$coverage_status)
+
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 14L))
+  expected_decision_counts <- c(
+    comparator_only_no_structured_promotion = 1L,
+    contract_only_no_compute = 8L,
+    design_first_hold_no_compute = 4L,
+    diagnostic_only_no_coverage_acceptance = 1L
+  )
+  current_decision_counts <- table(contract$current_decision)
+  expect_equal(
+    as.integer(current_decision_counts[names(expected_decision_counts)]),
+    unname(expected_decision_counts)
+  )
+  expect_equal(
+    contract$minimum_admission_threshold,
+    rep(
+      paste0(
+        "pdHess>=95pct;finite_direct_sd_intervals>=95pct;",
+        "retained_failures_in_denominator"
+      ),
+      14L
+    )
+  )
+
+  for (phrase in c(
+    "retain_fit_errors",
+    "retain_nonconvergence",
+    "retain_pdHess_false",
+    "retain_gradient_warnings",
+    "retain_profile_warnings",
+    "retain_boundary_estimates",
+    "count_finite_direct_sd_intervals",
+    "record_derived_correlation_unavailable"
+  )) {
+    expect_true(all(grepl(phrase, contract$denominator_policy, fixed = TRUE)))
+  }
+  for (phrase in c(
+    "Q4 admission denominator contract only",
+    "no coverage grid",
+    "no interval reliability",
+    "no inference_ready",
+    "no supported",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no q8 inference",
+    "no derived-correlation interval claim",
+    "no broad bridge support",
+    "no public support"
+  )) {
+    expect_true(all(grepl(phrase, contract$claim_boundary, fixed = TRUE)))
+  }
+  for (field in c(
+    "fit_failure_gate",
+    "convergence_gate",
+    "pdhess_gate",
+    "gradient_gate",
+    "profile_warning_gate",
+    "boundary_gate",
+    "finite_direct_sd_interval_gate",
+    "derived_correlation_interval_gate"
+  )) {
+    expect_false(any(is.na(contract[[field]]) | contract[[field]] == ""))
+  }
+  known_evidence_prefix <- grepl(
+    "^docs/dev-log/dashboard/",
+    contract$evidence_url
+  ) |
+    grepl("^docs/dev-log/after-task/", contract$evidence_url)
+  expect_true(all(known_evidence_prefix))
+  dashboard_evidence <- unique(contract$evidence_url[grepl(
+    "^docs/dev-log/dashboard/",
+    contract$evidence_url
+  )])
+  dashboard_evidence_paths <- vapply(
+    basename(dashboard_evidence),
+    structured_re_dashboard_path,
+    character(1)
+  )
+  expect_true(all(file.exists(dashboard_evidence_paths)))
+  after_task_evidence <- unique(contract$evidence_url[grepl(
+    "^docs/dev-log/after-task/",
+    contract$evidence_url
+  )])
+  after_task_evidence_paths <- vapply(
+    basename(after_task_evidence),
+    function(file) {
+      structured_re_artifact_path("docs", "dev-log", "after-task", file)
+    },
+    character(1)
+  )
+  expect_true(all(file.exists(after_task_evidence_paths)))
+  expect_true(all(grepl("coverage", contract$next_gate, fixed = TRUE)))
+})
+
+test_that("q4 admission review synthesis blocks coverage before promotion", {
+  review <- utils::read.delim(
+    structured_re_dashboard_path(
+      "structured-re-q4-admission-review-synthesis.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = character()
+  )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-admission-denominator-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  coverage <- structured_re_read_dashboard_tsv(
+    "structured-re-slope-coverage-results.tsv"
+  )
+  intercept <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-denominator-precheck.tsv"
+  )
+  geometry <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-slope-hessian-geometry.tsv"
+  )
+  animal_probe <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-animal-all-four-admission-probe.tsv"
+  )
+
+  expect_named(
+    review,
+    c(
+      "review_id",
+      "contract_id",
+      "cell_id",
+      "q4_scope",
+      "evidence_class",
+      "evidence_denominator",
+      "pdhess_pass",
+      "pdhess_attempted",
+      "pdhess_rate",
+      "finite_wald_direct_sd_min",
+      "finite_profile_direct_sd_min",
+      "finite_direct_sd_attempted",
+      "derived_correlation_interval_status",
+      "threshold_status",
+      "admission_decision",
+      "coverage_decision",
+      "promotion_decision",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(review), 14L)
+  expect_equal(anyDuplicated(review$cell_id), 0L)
+
+  expected <- data.frame(
+    cell_id = c(
+      "qseries_ordinary_q4_location_one_slope",
+      "qseries_phylo_q4_mu1_mu2_one_slope",
+      "qseries_phylo_q4_all_four_intercept",
+      "qseries_phylo_q4_all_four_one_slope_planned",
+      "qseries_spatial_q4_mu1_mu2_one_slope",
+      "qseries_spatial_q4_all_four_intercept",
+      "qseries_spatial_q4_all_four_one_slope_planned",
+      "qseries_animal_q4_mu1_mu2_one_slope",
+      "qseries_animal_q4_all_four_intercept",
+      "qseries_animal_q4_all_four_one_slope_planned",
+      "qseries_relmat_q4_mu1_mu2_one_slope",
+      "qseries_relmat_q4_all_four_intercept",
+      "qseries_relmat_q4_all_four_one_slope_planned",
+      "qseries_phylo_direct_sd_bivariate"
+    ),
+    review_id = c(
+      "q4_admission_review_ordinary_location_comparator",
+      "q4_admission_review_phylo_location",
+      "q4_admission_review_phylo_all_four_intercept",
+      "q4_admission_review_phylo_q8_shape",
+      "q4_admission_review_spatial_location",
+      "q4_admission_review_spatial_all_four_intercept",
+      "q4_admission_review_spatial_q8_shape",
+      "q4_admission_review_animal_location",
+      "q4_admission_review_animal_all_four_intercept",
+      "q4_admission_review_animal_q8_shape",
+      "q4_admission_review_relmat_location",
+      "q4_admission_review_relmat_all_four_intercept",
+      "q4_admission_review_relmat_q8_shape",
+      "q4_admission_review_phylo_direct_sd_bivariate"
+    ),
+    evidence_class = c(
+      "comparator_row",
+      "sr475_q4_location_retained_denominator",
+      "intercept_denominator_precheck",
+      "q8_hessian_geometry",
+      "sr475_q4_location_retained_denominator",
+      "intercept_denominator_precheck",
+      "q8_hessian_geometry",
+      "sr475_q4_location_retained_denominator",
+      "intercept_denominator_precheck",
+      "q8_hessian_geometry_and_transform_gate",
+      "sr475_q4_location_retained_denominator",
+      "intercept_denominator_precheck",
+      "q8_hessian_geometry",
+      "direct_sd_visibility_diagnostic"
+    ),
+    pdhess_pass = c(
+      "NA",
+      "244",
+      "0",
+      "0",
+      "279",
+      "0",
+      "0",
+      "368",
+      "4",
+      "2",
+      "366",
+      "0",
+      "0",
+      "NA"
+    ),
+    pdhess_attempted = c(
+      "NA",
+      "475",
+      "4",
+      "2",
+      "475",
+      "4",
+      "2",
+      "475",
+      "4",
+      "16",
+      "475",
+      "4",
+      "2",
+      "NA"
+    ),
+    pdhess_rate = c(
+      "NA",
+      "0.514",
+      "0.000",
+      "0.000",
+      "0.587",
+      "0.000",
+      "0.000",
+      "0.775",
+      "1.000",
+      "0.125",
+      "0.771",
+      "0.000",
+      "0.000",
+      "NA"
+    ),
+    finite_wald_direct_sd_min = c(
+      "NA",
+      "244",
+      "0",
+      "0",
+      "279",
+      "0",
+      "0",
+      "368",
+      "4",
+      "16",
+      "366",
+      "0",
+      "0",
+      "NA"
+    ),
+    finite_profile_direct_sd_min = c(
+      "NA",
+      "258",
+      "0",
+      "0",
+      "200",
+      "0",
+      "0",
+      "308",
+      "4",
+      "14",
+      "302",
+      "0",
+      "0",
+      "NA"
+    ),
+    threshold_status = c(
+      "not_applicable_comparator",
+      "failed_pdhess_ge_95pct",
+      "failed_pdhess_and_finite_intervals",
+      "failed_hessian_geometry_or_design_gate",
+      "failed_pdhess_ge_95pct",
+      "failed_pdhess_and_finite_intervals",
+      "failed_hessian_geometry_or_design_gate",
+      "failed_pdhess_ge_95pct",
+      "failed_bootstrap_and_replicated_denominator_missing",
+      "failed_hessian_geometry_or_design_gate",
+      "failed_pdhess_ge_95pct",
+      "failed_pdhess_and_finite_intervals",
+      "failed_hessian_geometry_or_design_gate",
+      "not_admission_target"
+    ),
+    admission_decision = c(
+      "not_admitted_comparator",
+      "not_admitted_pdhess_below_threshold",
+      "not_admitted_no_finite_intervals",
+      "not_admitted_q8_design_first",
+      "not_admitted_pdhess_below_threshold",
+      "not_admitted_no_finite_intervals",
+      "not_admitted_q8_design_first",
+      "not_admitted_pdhess_below_threshold",
+      "not_admitted_bootstrap_nonfinite",
+      "not_admitted_q8_design_first",
+      "not_admitted_pdhess_below_threshold",
+      "not_admitted_no_finite_intervals",
+      "not_admitted_q8_design_first",
+      "not_admitted_diagnostic_only"
+    ),
+    stringsAsFactors = FALSE
+  )
+  review <- review[match(expected$cell_id, review$cell_id), , drop = FALSE]
+  expect_equal(review$cell_id, expected$cell_id)
+  expect_equal(review$review_id, expected$review_id)
+  expect_equal(review$evidence_class, expected$evidence_class)
+  expect_equal(review$pdhess_pass, expected$pdhess_pass)
+  expect_equal(review$pdhess_attempted, expected$pdhess_attempted)
+  expect_equal(review$pdhess_rate, expected$pdhess_rate)
+  expect_equal(
+    review$finite_wald_direct_sd_min,
+    expected$finite_wald_direct_sd_min
+  )
+  expect_equal(
+    review$finite_profile_direct_sd_min,
+    expected$finite_profile_direct_sd_min
+  )
+  expect_equal(review$threshold_status, expected$threshold_status)
+  expect_equal(review$admission_decision, expected$admission_decision)
+  expect_equal(review$coverage_decision, rep("coverage_not_authorized", 14L))
+  expect_equal(review$promotion_decision, rep("do_not_promote", 14L))
+  expect_equal(
+    review$derived_correlation_interval_status,
+    c(
+      "not_structured_admission_target",
+      rep("derived_correlation_unavailable", 12L),
+      "derived_correlation_unavailable"
+    )
+  )
+
+  contract <- contract[match(review$cell_id, contract$cell_id), , drop = FALSE]
+  qseries <- qseries[match(review$cell_id, qseries$cell_id), , drop = FALSE]
+  expect_equal(review$contract_id, contract$contract_id)
+  expect_false(any(qseries$interval_status == "inference_ready"))
+  expect_false(any(qseries$coverage_status == "inference_ready"))
+
+  for (phrase in c(
+    "Tranche 3 q4 admission review only",
+    "no coverage grid",
+    "no interval reliability",
+    "no inference_ready",
+    "no supported",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no q8 inference",
+    "no derived-correlation interval claim",
+    "no broad bridge support",
+    "no public support"
+  )) {
+    expect_true(all(grepl(phrase, review$claim_boundary, fixed = TRUE)))
+  }
+  non_comparator <- review$cell_id != "qseries_ordinary_q4_location_one_slope"
+  expect_true(all(grepl(
+    "profile_targets()",
+    review$next_gate[non_comparator],
+    fixed = TRUE
+  )))
+
+  location_rows <- review[
+    review$evidence_class == "sr475_q4_location_retained_denominator",
+    ,
+    drop = FALSE
+  ]
+  for (i in seq_len(nrow(location_rows))) {
+    row <- location_rows[i, , drop = FALSE]
+    source <- coverage[
+      coverage$linked_cell_id == row$cell_id & coverage$lane == "q4_location",
+      ,
+      drop = FALSE
+    ]
+    expect_equal(nrow(source), 4L)
+    expect_equal(
+      row$finite_wald_direct_sd_min,
+      as.character(min(source$n_wald_finite))
+    )
+    expect_equal(
+      row$finite_profile_direct_sd_min,
+      as.character(min(source$n_profile_finite))
+    )
+    expect_equal(row$pdhess_pass, row$finite_wald_direct_sd_min)
+    expect_lt(as.numeric(row$pdhess_rate), 0.95)
+  }
+  intercept_rows <- review[
+    review$evidence_class == "intercept_denominator_precheck",
+    ,
+    drop = FALSE
+  ]
+  for (i in seq_len(nrow(intercept_rows))) {
+    row <- intercept_rows[i, , drop = FALSE]
+    source <- intercept[intercept$cell_id == row$cell_id, , drop = FALSE]
+    expect_equal(nrow(source), 4L)
+    expect_equal(row$pdhess_pass, as.character(sum(source$smoke_n_pdhess)))
+  }
+  q8_rows <- review[
+    review$evidence_class == "q8_hessian_geometry",
+    ,
+    drop = FALSE
+  ]
+  for (i in seq_len(nrow(q8_rows))) {
+    row <- q8_rows[i, , drop = FALSE]
+    source <- geometry[geometry$cell_id == row$cell_id, , drop = FALSE]
+    expect_equal(nrow(source), 2L)
+    expect_equal(source$n_pdhess, rep(0L, 2L))
+  }
+  animal_q8 <- review[
+    review$evidence_class == "q8_hessian_geometry_and_transform_gate",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(animal_q8), 1L)
+  source_animal_q8 <- animal_probe[
+    animal_probe$cell_id == animal_q8$cell_id,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(source_animal_q8), 1L)
+  expect_equal(animal_q8$pdhess_pass, as.character(source_animal_q8$n_pdhess))
+  expect_equal(
+    animal_q8$finite_profile_direct_sd_min,
+    as.character(source_animal_q8$n_profile_finite)
+  )
+
+  known_evidence_prefix <- grepl(
+    "^docs/dev-log/dashboard/",
+    review$evidence_url
+  )
+  expect_true(all(known_evidence_prefix))
+  dashboard_evidence_paths <- vapply(
+    basename(unique(review$evidence_url)),
+    structured_re_dashboard_path,
+    character(1)
+  )
+  expect_true(all(file.exists(dashboard_evidence_paths)))
+})
+
+test_that("q4 location target admission map freezes exact targets before coverage", {
+  target_map <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-target-admission-map.tsv"
+  )
+  coverage <- structured_re_read_dashboard_tsv(
+    "structured-re-slope-coverage-results.tsv"
+  )
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv"
+  )
+  interval <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-slope-interval-diagnostic-status.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    target_map,
+    c(
+      "status_id",
+      "cell_id",
+      "structured_type",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "source_dispatch_id",
+      "source_interval_status",
+      "source_sr475_coverage_id",
+      "sr475_n_rep",
+      "sr475_n_boundary_diagnostic",
+      "sr475_n_wald_finite",
+      "sr475_wald_finite_rate",
+      "sr475_n_profile_finite",
+      "sr475_profile_finite_rate",
+      "admission_gate",
+      "retained_denominator_status",
+      "derived_correlation_interval_status",
+      "admission_decision",
+      "coverage_decision",
+      "promotion_decision",
+      "rose_audit",
+      "fisher_review",
+      "gauss_review",
+      "noether_review",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(target_map), 16L)
+  target_keys <- paste(target_map$structured_type, target_map$endpoint_member)
+  expect_equal(anyDuplicated(target_keys), 0L)
+  expect_setequal(
+    target_map$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_setequal(
+    target_map$endpoint_member,
+    c("mu1:(Intercept)", "mu1:x", "mu2:(Intercept)", "mu2:x")
+  )
+
+  expected_token <- function(member) {
+    gsub(
+      "_$",
+      "",
+      gsub("[^A-Za-z0-9]+", "_", tolower(member))
+    )
+  }
+  for (i in seq_len(nrow(target_map))) {
+    row <- target_map[i, , drop = FALSE]
+    provider <- row$structured_type
+    member <- row$endpoint_member
+    expected_status_id <- paste0(
+      "q4_location_admission_target_",
+      provider,
+      "_",
+      expected_token(member)
+    )
+    expect_equal(row$status_id, expected_status_id)
+    expect_equal(
+      row$cell_id,
+      paste0("qseries_", provider, "_q4_mu1_mu2_one_slope")
+    )
+
+    dispatch_row <- dispatch[
+      dispatch$structured_type == provider &
+        dispatch$endpoint_member == member,
+      ,
+      drop = FALSE
+    ]
+    interval_row <- interval[
+      interval$structured_type == provider &
+        interval$endpoint_member == member,
+      ,
+      drop = FALSE
+    ]
+    coverage_row <- coverage[
+      coverage$lane == "q4_location" &
+        coverage$provider == provider &
+        coverage$target == member,
+      ,
+      drop = FALSE
+    ]
+    expect_equal(nrow(dispatch_row), 1L)
+    expect_equal(nrow(interval_row), 1L)
+    expect_equal(nrow(coverage_row), 1L)
+
+    expect_equal(row$profile_target, dispatch_row$profile_target)
+    expect_equal(row$profile_target, interval_row$profile_target)
+    expect_equal(row$source_dispatch_id, dispatch_row$dispatch_id)
+    expect_equal(row$source_interval_status, interval_row$diagnostic_id)
+    expect_equal(row$source_sr475_coverage_id, coverage_row$coverage_id)
+    expect_equal(
+      as.character(row$sr475_n_rep),
+      as.character(coverage_row$n_rep)
+    )
+    expect_equal(
+      as.character(row$sr475_n_boundary_diagnostic),
+      as.character(coverage_row$n_boundary)
+    )
+    expect_equal(
+      as.character(row$sr475_n_wald_finite),
+      as.character(coverage_row$n_wald_finite)
+    )
+    expect_equal(
+      as.character(row$sr475_n_profile_finite),
+      as.character(coverage_row$n_profile_finite)
+    )
+    expect_equal(
+      sprintf("%.3f", as.numeric(row$sr475_wald_finite_rate)),
+      sprintf(
+        "%.3f",
+        as.numeric(coverage_row$n_wald_finite) /
+          as.numeric(coverage_row$n_rep)
+      )
+    )
+    expect_equal(
+      sprintf("%.3f", as.numeric(row$sr475_profile_finite_rate)),
+      sprintf(
+        "%.3f",
+        as.numeric(coverage_row$n_profile_finite) /
+          as.numeric(coverage_row$n_rep)
+      )
+    )
+    expect_lt(as.numeric(row$sr475_wald_finite_rate), 0.95)
+    expect_true(grepl("profile_targets()", row$next_gate, fixed = TRUE))
+    expect_true(grepl(row$profile_target, row$next_gate, fixed = TRUE))
+  }
+
+  qseries <- qseries[
+    match(unique(target_map$cell_id), qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(any(qseries$interval_status == "inference_ready"))
+  expect_false(any(qseries$coverage_status == "inference_ready"))
+  expect_equal(
+    target_map$admission_gate,
+    rep("failed_pdhess_proxy_ge_95pct", 16L)
+  )
+  expect_equal(
+    target_map$retained_denominator_status,
+    rep("retained_denominator_not_admitted", 16L)
+  )
+  expect_equal(
+    target_map$admission_decision,
+    rep("not_admitted_cell_pdhess_below_threshold", 16L)
+  )
+  expect_equal(
+    target_map$coverage_decision,
+    rep("coverage_not_authorized", 16L)
+  )
+  expect_equal(target_map$promotion_decision, rep("do_not_promote", 16L))
+  expect_equal(target_map$rose_audit, rep("rose_no_status_claim", 16L))
+  expect_equal(
+    target_map$fisher_review,
+    rep("fisher_no_coverage_before_admission", 16L)
+  )
+  expect_equal(
+    target_map$gauss_review,
+    rep("gauss_no_cluster_run_from_pdhess_blocker", 16L)
+  )
+  expect_equal(
+    target_map$noether_review,
+    rep("noether_exact_profile_target_recorded", 16L)
+  )
+  for (phrase in c(
+    "Tranche 3 q4 location target admission map only",
+    "exact profile_targets() names recorded",
+    "no coverage grid",
+    "no interval reliability",
+    "no inference_ready",
+    "no supported",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no q8 inference",
+    "no derived-correlation interval claim",
+    "no broad bridge support",
+    "no public support"
+  )) {
+    expect_true(all(grepl(phrase, target_map$claim_boundary, fixed = TRUE)))
+  }
+  expect_equal(
+    unique(target_map$evidence_url),
+    "docs/dev-log/dashboard/structured-re-slope-coverage-results.tsv"
+  )
+  expect_true(file.exists(structured_re_dashboard_path(
+    "structured-re-slope-coverage-results.tsv"
+  )))
+})
+
+test_that("Tranche 3 q4 admission closure audit keeps no-promotion boundaries", {
+  closure <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-admission-tranche3-closure-audit.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  highq <- structured_re_read_dashboard_tsv(
+    "structured-re-high-q-status-audit.tsv"
+  )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-admission-denominator-contract.tsv"
+  )
+  review <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-admission-review-synthesis.tsv"
+  )
+  target_map <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-target-admission-map.tsv"
+  )
+
+  expect_named(
+    closure,
+    c(
+      "closure_id",
+      "handover_step",
+      "requirement",
+      "evidence_url",
+      "evidence_status",
+      "observed_result",
+      "rose_audit",
+      "fisher_review",
+      "gauss_review",
+      "noether_review",
+      "coverage_decision",
+      "promotion_decision",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expected <- data.frame(
+    closure_id = c(
+      "tranche3_clean_checkpoint_reverified",
+      "tranche3_high_q_orientation_completed",
+      "tranche3_denominator_contract_frozen",
+      "tranche3_admission_review_completed",
+      "tranche3_location_targets_mapped",
+      "tranche3_compute_policy_closed",
+      "tranche3_status_no_promotion_closed"
+    ),
+    handover_step = c("1-2", "3", "4", "4-5", "3-5", "5", "5"),
+    evidence_url = c(
+      "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv",
+      "docs/dev-log/dashboard/structured-re-high-q-status-audit.tsv",
+      "docs/dev-log/dashboard/structured-re-q4-admission-denominator-contract.tsv",
+      "docs/dev-log/dashboard/structured-re-q4-admission-review-synthesis.tsv",
+      "docs/dev-log/dashboard/structured-re-q4-location-target-admission-map.tsv",
+      "docs/dev-log/check-log.md",
+      "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv"
+    ),
+    observed_result = c(
+      paste0(
+        "104_rows;8_inference_ready;0_structured_supported;",
+        "0_highq_inference_ready;0_nongaussian_inference_ready"
+      ),
+      paste0(
+        "24_high_q_rows;all_do_not_promote;",
+        "q4_and_q8_routes_diagnostic_or_planned"
+      ),
+      paste0(
+        "14_rows;fit_convergence_pdhess_gradient_profile_boundary_",
+        "finite_interval_gates_frozen;all_do_not_promote"
+      ),
+      "14_rows;0_rows_admitted;all_coverage_not_authorized;all_do_not_promote",
+      paste0(
+        "16_direct_sd_targets;exact_profile_targets_recorded;",
+        "all_not_admitted_cell_pdhess_below_threshold"
+      ),
+      paste0(
+        "Totoro_and_DRAC_available;0_q4_coverage_jobs_launched_in_Tranche3;",
+        "coverage_runner_and_slurm_script_not_authorized_by_current_evidence"
+      ),
+      paste0(
+        "no_support_cell_status_changed;0_highq_inference_ready;",
+        "0_structured_supported;0_q4_coverage_authorized"
+      )
+    ),
+    stringsAsFactors = FALSE
+  )
+  expect_equal(nrow(closure), 7L)
+  expect_equal(closure$closure_id, expected$closure_id)
+  expect_equal(closure$handover_step, expected$handover_step)
+  expect_equal(closure$evidence_url, expected$evidence_url)
+  expect_equal(closure$observed_result, expected$observed_result)
+  expect_equal(closure$evidence_status, rep("verified_current_worktree", 7L))
+  expect_equal(closure$rose_audit, rep("rose_closure_no_status_claim", 7L))
+  expect_equal(
+    closure$fisher_review,
+    rep("fisher_no_coverage_without_admission", 7L)
+  )
+  expect_equal(
+    closure$gauss_review,
+    rep("gauss_no_cluster_run_without_pdhess_gate", 7L)
+  )
+  expect_equal(
+    closure$noether_review,
+    rep("noether_exact_targets_or_not_applicable_recorded", 7L)
+  )
+  expect_equal(
+    closure$coverage_decision,
+    rep("coverage_not_authorized", 7L)
+  )
+  expect_equal(closure$promotion_decision, rep("do_not_promote", 7L))
+
+  for (phrase in c(
+    "Tranche 3 q4 admission closure audit only",
+    "no coverage grid",
+    "no interval reliability",
+    "no inference_ready",
+    "no supported",
+    "no q4 REML",
+    "no REML",
+    "no AI-REML",
+    "no q8 inference",
+    "no derived-correlation interval claim",
+    "no broad bridge support",
+    "no public support"
+  )) {
+    expect_true(all(grepl(phrase, closure$claim_boundary, fixed = TRUE)))
+  }
+
+  ready <- qseries[
+    qseries$interval_status == "inference_ready" &
+      qseries$coverage_status == "inference_ready",
+    ,
+    drop = FALSE
+  ]
+  highq_ready <- qseries[
+    qseries$dimension_pattern %in%
+      c("q4", "q6", "q8") &
+      (qseries$interval_status == "inference_ready" |
+        qseries$coverage_status == "inference_ready"),
+    ,
+    drop = FALSE
+  ]
+  nongaussian_ready <- qseries[
+    qseries$family_class != "gaussian" &
+      qseries$interval_status == "inference_ready" &
+      qseries$coverage_status == "inference_ready",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries), 104L)
+  expect_equal(nrow(ready), 8L)
+  expect_false(any(qseries$authority_status == "supported"))
+  expect_equal(nrow(highq_ready), 0L)
+  expect_equal(nrow(nongaussian_ready), 0L)
+
+  expect_equal(nrow(highq), 24L)
+  expect_equal(highq$promotion_decision, rep("do_not_promote", 24L))
+  expect_equal(nrow(contract), 14L)
+  expect_equal(contract$promotion_decision, rep("do_not_promote", 14L))
+  expect_equal(nrow(review), 14L)
+  expect_true(all(grepl("^not_admitted", review$admission_decision)))
+  expect_equal(review$coverage_decision, rep("coverage_not_authorized", 14L))
+  expect_equal(review$promotion_decision, rep("do_not_promote", 14L))
+  expect_equal(nrow(target_map), 16L)
+  expect_equal(
+    target_map$admission_decision,
+    rep("not_admitted_cell_pdhess_below_threshold", 16L)
+  )
+  expect_equal(
+    target_map$coverage_decision,
+    rep("coverage_not_authorized", 16L)
+  )
+  expect_equal(target_map$promotion_decision, rep("do_not_promote", 16L))
+
+  dashboard_evidence <- unique(closure$evidence_url[grepl(
+    "^docs/dev-log/dashboard/",
+    closure$evidence_url
+  )])
+  dashboard_evidence_paths <- vapply(
+    basename(dashboard_evidence),
+    structured_re_dashboard_path,
+    character(1)
+  )
+  expect_true(all(file.exists(dashboard_evidence_paths)))
+  expect_true(file.exists(structured_re_artifact_path(
+    "docs",
+    "dev-log",
+    "check-log.md"
+  )))
 })
 
 test_that("q4 all-four one-slope Hessian geometry stays diagnostic-only", {
