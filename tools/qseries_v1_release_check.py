@@ -1,0 +1,992 @@
+#!/usr/bin/env python3
+"""Run the Q-Series v1.0 release-prep checks as one command."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import math
+import os
+import pathlib
+import re
+import subprocess
+import sys
+
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+STATUS_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-release-status.md"
+SUPPORT_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv"
+LEDGER_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-v1-release-ledger.tsv"
+REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-nongaussian-structured-family-rejection-contract.tsv"
+DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-report.md"
+DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
+DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
+DEFAULT_FIRST_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-beta-mu-animal-design-contract.tsv"
+DEFAULT_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-beta-mu-animal-debug-fixture-contract.tsv"
+DEFAULT_FIRST_FOUR_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv"
+DEFAULT_FIRST_FOUR_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv"
+CANDIDATE_FIELDS = (
+    "review_rank",
+    "target_band",
+    "cell_id",
+    "v1_track",
+    "family_class",
+    "family",
+    "structure_provider",
+    "dimension_pattern",
+    "endpoint_set",
+    "slope_class",
+    "fit_status",
+    "review_reason",
+    "required_before_movement",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+)
+REVIEW_PACKET_FIELDS = (
+    "contract_id",
+    "review_rank",
+    "cell_id",
+    "family",
+    "structure_provider",
+    "model_scope",
+    "minimum_design_question",
+    "minimum_recovery_evidence",
+    "validator_gate",
+    "blocking_reviewers",
+    "compute_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+    "next_action",
+)
+FIRST_CONTRACT_FIELDS = (
+    "contract_id",
+    "source_packet_id",
+    "cell_id",
+    "formula_cell",
+    "family",
+    "structure_provider",
+    "current_v1_track",
+    "current_fit_status",
+    "current_interval_status",
+    "current_coverage_status",
+    "existing_evidence_url",
+    "model_contract",
+    "dgp_requirements",
+    "implementation_requirements",
+    "recovery_requirements",
+    "failure_requirements",
+    "validator_requirements",
+    "blocking_reviewers",
+    "compute_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+    "next_action",
+)
+DEBUG_FIXTURE_FIELDS = (
+    "debug_contract_id",
+    "source_contract_id",
+    "source_rejection_id",
+    "cell_id",
+    "formula_cell",
+    "expected_current_failure",
+    "failure_stage",
+    "debug_scope",
+    "fixture_dgp",
+    "allowed_action",
+    "stop_if",
+    "required_outputs",
+    "validator_requirements",
+    "blocking_reviewers",
+    "compute_decision",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
+    "next_action",
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Run Q-Series v1.0 ledger, claim, and Mission Control checks."
+    )
+    parser.add_argument(
+        "--root",
+        type=pathlib.Path,
+        default=ROOT,
+        help="Repository root. Defaults to the parent of this script.",
+    )
+    parser.add_argument(
+        "--skip-mission-control",
+        action="store_true",
+        help="Skip tools/validate-mission-control.py. Useful inside validator tests.",
+    )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print a concise success summary.",
+    )
+    parser.add_argument(
+        "--report-output",
+        type=pathlib.Path,
+        default=DEFAULT_REPORT_PATH,
+        help="Generated Markdown preflight report path.",
+    )
+    parser.add_argument(
+        "--write-report",
+        action="store_true",
+        help="Write the generated Markdown preflight report.",
+    )
+    parser.add_argument(
+        "--check-report",
+        action="store_true",
+        help="Fail if the generated Markdown preflight report differs.",
+    )
+    parser.add_argument(
+        "--candidate-output",
+        type=pathlib.Path,
+        default=DEFAULT_CANDIDATE_PATH,
+        help="Generated TSV next-candidate review path.",
+    )
+    parser.add_argument(
+        "--review-packet-output",
+        type=pathlib.Path,
+        default=DEFAULT_REVIEW_PACKET_PATH,
+        help="Generated TSV 75 percent review packet path.",
+    )
+    parser.add_argument(
+        "--first-contract-output",
+        type=pathlib.Path,
+        default=DEFAULT_FIRST_CONTRACT_PATH,
+        help="Generated TSV first-candidate design contract path.",
+    )
+    parser.add_argument(
+        "--debug-fixture-output",
+        type=pathlib.Path,
+        default=DEFAULT_DEBUG_FIXTURE_PATH,
+        help="Generated TSV first-candidate local-debug fixture contract path.",
+    )
+    parser.add_argument(
+        "--first-four-contract-output",
+        type=pathlib.Path,
+        default=DEFAULT_FIRST_FOUR_CONTRACT_PATH,
+        help="Generated TSV first-four design contracts path.",
+    )
+    parser.add_argument(
+        "--first-four-debug-output",
+        type=pathlib.Path,
+        default=DEFAULT_FIRST_FOUR_DEBUG_FIXTURE_PATH,
+        help="Generated TSV first-four local-debug fixture contracts path.",
+    )
+    parser.add_argument(
+        "--write-candidates",
+        action="store_true",
+        help="Write generated next-candidate review artifacts.",
+    )
+    parser.add_argument(
+        "--check-candidates",
+        action="store_true",
+        help="Fail if generated next-candidate review artifacts differ.",
+    )
+    return parser.parse_args()
+
+
+def run_step(
+    label: str,
+    command: list[str],
+    root: pathlib.Path,
+    env: dict[str, str],
+) -> tuple[bool, str]:
+    result = subprocess.run(
+        command,
+        cwd=root,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    combined = "\n".join(part for part in (result.stdout, result.stderr) if part)
+    if result.returncode != 0:
+        print(f"{label}: failed with exit {result.returncode}", file=sys.stderr)
+        if combined:
+            print(combined.rstrip(), file=sys.stderr)
+        return False, combined
+    return True, combined
+
+
+def parse_status_progress(path: pathlib.Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    progress: dict[str, str] = {}
+    pattern = re.compile(r"^\| (?P<measure>[^|]+) \| (?P<rows>[^|]+) \| (?P<pct>[^|]+) \|")
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(line)
+        if not match:
+            continue
+        measure = match.group("measure").strip()
+        if measure in {"Measure", "---"}:
+            continue
+        progress[measure] = f"{match.group('rows').strip()} ({match.group('pct').strip()})"
+    return progress
+
+
+def read_tsv(path: pathlib.Path) -> list[dict[str, str]]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t", quoting=csv.QUOTE_NONE))
+
+
+def parse_progress_fraction(value: str) -> tuple[int, int] | None:
+    match = re.match(r"^(?P<current>[0-9]+)/(?P<total>[0-9]+)\b", value)
+    if not match:
+        return None
+    return int(match.group("current")), int(match.group("total"))
+
+
+def row_target_gaps(progress: dict[str, str]) -> list[dict[str, str | int]]:
+    parsed = parse_progress_fraction(progress.get("Practical v1.0 row surface", ""))
+    if parsed is None:
+        return []
+    current, total = parsed
+    gaps: list[dict[str, str | int]] = []
+    for target_percent in (75, 80, 90, 100):
+        required = math.ceil(total * target_percent / 100)
+        gaps.append(
+            {
+                "target": f"{target_percent}%",
+                "required": f"{required}/{total}",
+                "needed": max(required - current, 0),
+            }
+        )
+    return gaps
+
+
+def candidate_review_reason(row: dict[str, str]) -> str:
+    if row["v1_track"] == "basic_distribution_post_v1_design":
+        if (
+            row["dimension_pattern"] == "q1"
+            and row["endpoint_set"] == "mu"
+            and row["slope_class"] == "intercept_only"
+        ):
+            return "low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement"
+        if row["endpoint_set"] == "mu":
+            return "count-location design gap; prove recovery scope before any movement"
+        return "non-location family-parameter design gap; keep intervals and coverage deferred"
+    if row["dimension_pattern"] == "q2_plus_q2":
+        return "Gaussian scale-side route gap; design a supported route before any movement"
+    return "Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands"
+
+
+def candidate_complexity(row: dict[str, str]) -> int:
+    if row["cell_id"] == "qseries_nongaussian_structured_slope_neighbors_planned":
+        return 2
+    specialized_markers = (
+        "noncanonical",
+        "labelled_q2",
+        "structured_plus",
+        "zeroinflated",
+        "simultaneous",
+    )
+    if any(marker in row["cell_id"] for marker in specialized_markers):
+        return 1
+    return 0
+
+
+def candidate_sort_key(row: dict[str, str]) -> tuple[int, int, int, int, int, int, str]:
+    track_order = {
+        "basic_distribution_post_v1_design": 0,
+        "gaussian_post_v1_validation": 1,
+    }
+    dimension_order = {
+        "q1": 0,
+        "q2_plus_q2": 1,
+        "q6": 2,
+        "q8": 3,
+    }
+    endpoint_order = {
+        "mu": 0,
+        "sigma": 1,
+        "sigma1+sigma2": 1,
+        "nu": 2,
+        "zi": 3,
+        "hu": 4,
+        "mu1+mu2": 5,
+        "mu1+mu2+sigma1+sigma2": 6,
+    }
+    slope_order = {
+        "intercept_only": 0,
+        "independent_one_slope": 1,
+        "multiple_slope": 2,
+        "labelled_slope_covariance": 3,
+    }
+    fit_order = {"planned": 0, "unsupported": 1}
+    return (
+        track_order.get(row["v1_track"], 99),
+        dimension_order.get(row["dimension_pattern"], 99),
+        endpoint_order.get(row["endpoint_set"], 99),
+        slope_order.get(row["slope_class"], 99),
+        candidate_complexity(row),
+        fit_order.get(row["fit_status"], 99),
+        row["cell_id"],
+    )
+
+
+def build_candidate_rows(ledger_rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    post_v1_rows = [
+        row
+        for row in ledger_rows
+        if row["v1_track"]
+        in {"basic_distribution_post_v1_design", "gaussian_post_v1_validation"}
+    ]
+    candidates: list[dict[str, str]] = []
+    for rank, row in enumerate(sorted(post_v1_rows, key=candidate_sort_key), start=1):
+        if rank <= 4:
+            target_band = "first_four_to_review_for_75_percent"
+        elif rank <= 10:
+            target_band = "additional_six_to_review_for_80_percent"
+        else:
+            target_band = "later_post_v1_review_queue"
+        candidates.append(
+            {
+                "review_rank": str(rank),
+                "target_band": target_band,
+                "cell_id": row["cell_id"],
+                "v1_track": row["v1_track"],
+                "family_class": row["family_class"],
+                "family": row["family"],
+                "structure_provider": row["structure_provider"],
+                "dimension_pattern": row["dimension_pattern"],
+                "endpoint_set": row["endpoint_set"],
+                "slope_class": row["slope_class"],
+                "fit_status": row["fit_status"],
+                "review_reason": candidate_review_reason(row),
+                "required_before_movement": "row-specific implementation or recovery evidence plus Rose/Fisher/Grace review before movement",
+                "coverage_decision": "coverage_not_authorized",
+                "promotion_decision": "do_not_promote",
+                "claim_boundary": "candidate review is not a support-cell edit, inference_ready, supported, coverage, q4/q8, REML, AI-REML, bridge, or public-support claim",
+            }
+        )
+    return candidates
+
+
+def build_review_packet_rows(candidate_rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    packet_rows: list[dict[str, str]] = []
+    for row in candidate_rows:
+        if row["target_band"] != "first_four_to_review_for_75_percent":
+            continue
+        packet_rows.append(
+            {
+                "contract_id": f"qseries_v1_75pct_review_{int(row['review_rank']):02d}",
+                "review_rank": row["review_rank"],
+                "cell_id": row["cell_id"],
+                "family": row["family"],
+                "structure_provider": row["structure_provider"],
+                "model_scope": f"{row['family']} q1 mu intercept-only {row['structure_provider']} route",
+                "minimum_design_question": "Can this row be represented as basic recovery for v1.0 without changing formula grammar or interval claims?",
+                "minimum_recovery_evidence": "document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement",
+                "validator_gate": "candidate TSV, preflight report, focused conversion-contract test, and Mission Control must remain green",
+                "blocking_reviewers": "Rose/Fisher/Grace",
+                "compute_decision": "no_compute_authorized",
+                "coverage_decision": "coverage_not_authorized",
+                "promotion_decision": "do_not_promote",
+                "claim_boundary": "review packet is not implementation evidence, recovery evidence, inference_ready, supported, coverage, q4/q8, REML, AI-REML, bridge, or public-support authority",
+                "next_action": "write a row-specific design/recovery contract before any code, compute, or status edit",
+            }
+        )
+    return packet_rows
+
+
+FIRST_FOUR_CONTRACT_DETAIL = {
+    "qseries_beta_mu_animal_rejected": {
+        "contract_id": "qseries_v1_beta_mu_animal_design_contract",
+        "model_contract": "y_i ~ beta(mu_i, phi); logit(mu_i) = X_i beta + u_id[i]; u ~ N(0, sigma_animal^2 A); phi = 1 / sigma^2",
+        "dgp_requirements": "strict response support 0 < y < 1; named animal levels matching A/pedigree/Ainv; fixed sigma/precision route; no exact zero-one mass",
+        "implementation_requirements": "reuse beta() mu likelihood and animal() known-covariance parser shape; do not change formula grammar, public API, sigma random effects, zoi/coi, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, animal SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any beta animal code, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_gamma_mu_relmat_rejected": {
+        "contract_id": "qseries_v1_gamma_mu_relmat_design_contract",
+        "model_contract": "y_i ~ Gamma(mu_i, dispersion); log(mu_i) = X_i beta + u_id[i]; u ~ N(0, sigma_relmat^2 K); family dispersion fixed during first debug fixture",
+        "dgp_requirements": "strict positive response support y > 0; named relmat levels matching K/Q input; fixed dispersion route; no zero, negative, or missing matrix levels",
+        "implementation_requirements": "reuse Gamma() mu likelihood and relmat() known-covariance parser shape; do not change formula grammar, public API, sigma random effects, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, relmat SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any Gamma relmat code, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_ordinal_mu_phylo_rejected": {
+        "contract_id": "qseries_v1_ordinal_mu_phylo_design_contract",
+        "model_contract": "y_i ~ cumulative_logit(mu_i, cutpoints); latent location shift eta_i = X_i beta + u_tip[i]; u ~ N(0, sigma_phylo^2 A_phylo); cutpoints fixed during first debug fixture",
+        "dgp_requirements": "ordered response with at least three observed levels; named phylo tips matching data levels; fixed cutpoint route; no empty level or missing-tip mismatch",
+        "implementation_requirements": "reuse cumulative_logit() location shape and phylo() known-covariance parser shape; do not change formula grammar, public API, threshold parameterization, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, phylo SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any ordinal phylo code, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_student_mu_spatial_rejected": {
+        "contract_id": "qseries_v1_student_mu_spatial_design_contract",
+        "model_contract": "y_i ~ student(mu_i, sigma, nu); mu_i = X_i beta + u_site[i]; u ~ N(0, sigma_spatial^2 C(distance)); sigma and nu fixed during first debug fixture",
+        "dgp_requirements": "real-valued response; named spatial levels with valid coordinates and distance structure; fixed sigma and nu route; no duplicate or missing coordinate levels",
+        "implementation_requirements": "reuse student() mu likelihood and spatial() covariance parser shape; do not change formula grammar, public API, sigma random effects, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, spatial SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any Student spatial code, local debug fit, host compute, or support-cell edit",
+    },
+}
+
+
+def build_first_four_contract_rows(
+    *,
+    support_rows: list[dict[str, str]],
+    ledger_rows: list[dict[str, str]],
+    review_packet_rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for packet_row in review_packet_rows:
+        detail = FIRST_FOUR_CONTRACT_DETAIL[packet_row["cell_id"]]
+        cell_id = packet_row["cell_id"]
+        support_row = next(row for row in support_rows if row["cell_id"] == cell_id)
+        ledger_row = next(row for row in ledger_rows if row["cell_id"] == cell_id)
+        rows.append(
+            {
+                "contract_id": detail["contract_id"],
+                "source_packet_id": packet_row["contract_id"],
+                "cell_id": cell_id,
+                "formula_cell": support_row["formula_cell"],
+                "family": support_row["family"],
+                "structure_provider": support_row["structure_provider"],
+                "current_v1_track": ledger_row["v1_track"],
+                "current_fit_status": support_row["fit_status"],
+                "current_interval_status": support_row["interval_status"],
+                "current_coverage_status": support_row["coverage_status"],
+                "existing_evidence_url": support_row["evidence_url"],
+                "model_contract": detail["model_contract"],
+                "dgp_requirements": detail["dgp_requirements"],
+                "implementation_requirements": detail["implementation_requirements"],
+                "recovery_requirements": detail["recovery_requirements"],
+                "failure_requirements": "if the current pre-optimization rejection remains, keep unsupported status and record the failure class before any code or compute proposal",
+                "validator_requirements": "preflight report, candidate TSV, 75pct packet, focused conversion-contract test, claim guard, and Mission Control must remain green",
+                "blocking_reviewers": "Rose/Fisher/Grace",
+                "compute_decision": "no_compute_authorized",
+                "coverage_decision": "coverage_not_authorized",
+                "promotion_decision": "do_not_promote",
+                "claim_boundary": "this design contract is not implementation evidence, recovery evidence, inference_ready, supported, coverage, q4/q8, REML, AI-REML, bridge, or public-support authority",
+                "next_action": detail["next_action"],
+            }
+        )
+    return rows
+
+
+def build_first_contract_rows(
+    *,
+    support_rows: list[dict[str, str]],
+    ledger_rows: list[dict[str, str]],
+    review_packet_rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    return build_first_four_contract_rows(
+        support_rows=support_rows,
+        ledger_rows=ledger_rows,
+        review_packet_rows=review_packet_rows,
+    )[:1]
+
+
+def build_debug_fixture_rows(
+    *,
+    first_contract_rows: list[dict[str, str]],
+    rejection_rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for contract_row in first_contract_rows:
+        cell_id = contract_row["cell_id"]
+        rejection_row = next(row for row in rejection_rows if row["cell_id"] == cell_id)
+        rows.append(
+            {
+                "debug_contract_id": contract_row["contract_id"].replace(
+                    "_design_contract",
+                    "_local_debug_contract",
+                ),
+                "source_contract_id": contract_row["contract_id"],
+                "source_rejection_id": rejection_row["rejection_id"],
+                "cell_id": cell_id,
+                "formula_cell": contract_row["formula_cell"],
+                "expected_current_failure": rejection_row["expected_error_pattern"],
+                "failure_stage": rejection_row["rejection_stage"],
+                "debug_scope": "local_debug_only_no_denominator",
+                "fixture_dgp": contract_row["dgp_requirements"],
+                "allowed_action": "future local debug fixture may either reproduce current pre-optimization rejection or, after implementation review, check finite fit and extractor visibility",
+                "stop_if": "current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence",
+                "required_outputs": "one log, one seed, session info, fixture summary, exact error or finite fit summary, no support-cell edit",
+                "validator_requirements": "preflight report, candidate TSV, 75pct packet, first-four design contracts, focused conversion-contract test, claim guard, and Mission Control must remain green",
+                "blocking_reviewers": "Rose/Fisher/Grace",
+                "compute_decision": "no_compute_authorized",
+                "coverage_decision": "coverage_not_authorized",
+                "promotion_decision": "do_not_promote",
+                "claim_boundary": "debug fixture contract is not implementation evidence, recovery evidence, inference_ready, supported, coverage, q4/q8, REML, AI-REML, bridge, or public-support authority",
+                "next_action": "write or review a fail-closed local debug fixture runner contract before executing any local fit",
+            }
+        )
+    return rows
+
+
+def render_tsv(rows: list[dict[str, str]], fields: tuple[str, ...]) -> str:
+    lines = ["\t".join(fields)]
+    for row in rows:
+        lines.append("\t".join(row[field] for field in fields))
+    return "\n".join(lines) + "\n"
+
+
+def render_candidate_report_rows(candidate_rows: list[dict[str, str]]) -> str:
+    selected = candidate_rows[:10]
+    return "\n".join(
+        (
+            f"| {row['review_rank']} | {row['target_band']} | "
+            f"`{row['cell_id']}` | {row['family']} | "
+            f"{row['structure_provider']} | {row['review_reason']} |"
+        )
+        for row in selected
+    )
+
+
+def render_review_packet_report_rows(packet_rows: list[dict[str, str]]) -> str:
+    return "\n".join(
+        (
+            f"| {row['review_rank']} | `{row['cell_id']}` | {row['model_scope']} | "
+            f"{row['minimum_recovery_evidence']} | {row['next_action']} |"
+        )
+        for row in packet_rows
+    )
+
+
+def render_first_contract_report_rows(contract_rows: list[dict[str, str]]) -> str:
+    return "\n".join(
+        (
+            f"| `{row['cell_id']}` | {row['formula_cell']} | "
+            f"{row['model_contract']} | {row['recovery_requirements']} | "
+            f"{row['promotion_decision']} |"
+        )
+        for row in contract_rows
+    )
+
+
+def render_debug_fixture_report_rows(debug_rows: list[dict[str, str]]) -> str:
+    return "\n".join(
+        (
+            f"| `{row['cell_id']}` | {row['debug_scope']} | "
+            f"{row['expected_current_failure']} | {row['stop_if']} | "
+            f"{row['promotion_decision']} |"
+        )
+        for row in debug_rows
+    )
+
+
+def last_nonempty_line(text: str) -> str:
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return lines[-1] if lines else ""
+
+
+def output_has_marker(output: str, marker: str) -> bool:
+    return any(marker in line for line in output.splitlines())
+
+
+def render_report(
+    *,
+    progress: dict[str, str],
+    candidate_rows: list[dict[str, str]],
+    review_packet_rows: list[dict[str, str]],
+    first_contract_rows: list[dict[str, str]],
+    debug_fixture_rows: list[dict[str, str]],
+    first_four_contract_rows: list[dict[str, str]],
+    first_four_debug_rows: list[dict[str, str]],
+    outputs: dict[str, str],
+    mission_status: str,
+    skip_mission_control: bool,
+) -> str:
+    ledger_status = "ok" if output_has_marker(outputs.get("qseries_v1_release_ledger", ""), "qseries_v1_release_ledger:") else "unknown"
+    claim_guard_status = "ok" if output_has_marker(outputs.get("qseries_v1_claim_guard", ""), "qseries_v1_claim_guard_ok:") else "unknown"
+    mission_boundary = (
+        "Mission Control was skipped for this generated report."
+        if skip_mission_control
+        else "Mission Control passed in this generated report."
+    )
+    target_rows = row_target_gaps(progress)
+    target_table = "\n".join(
+        f"| {row['target']} practical surface | {row['required']} | {row['needed']} |"
+        for row in target_rows
+    )
+    candidate_table = render_candidate_report_rows(candidate_rows)
+    review_packet_table = render_review_packet_report_rows(review_packet_rows)
+    first_contract_table = render_first_contract_report_rows(first_contract_rows)
+    debug_fixture_table = render_debug_fixture_report_rows(debug_fixture_rows)
+    first_four_contract_table = render_first_contract_report_rows(first_four_contract_rows)
+    first_four_debug_table = render_debug_fixture_report_rows(first_four_debug_rows)
+    return f"""# Q-Series v1.0 Preflight Report
+
+Generated by `tools/qseries_v1_release_check.py`.
+
+## Summary
+
+The Q-Series v1.0 release preflight status is:
+
+- Generated ledger/status: `{ledger_status}`
+- Public claim guard: `{claim_guard_status}`
+- Mission Control: `{mission_status}`
+
+{mission_boundary}
+
+## Row Accounting
+
+| Measure | Rows and percent |
+| --- | --- |
+| Practical v1.0 row surface | {progress.get('Practical v1.0 row surface', 'NA')} |
+| Gaussian v1.0 core | {progress.get('Gaussian v1.0 core', 'NA')} |
+| Basic-distribution recovery | {progress.get('Basic-distribution recovery', 'NA')} |
+| Exact `inference_ready` anchors | {progress.get('Exact `inference_ready` anchors', 'NA')} |
+| `supported` authority | {progress.get('`supported` authority', 'NA')} |
+| Post-v1.0 validation/design | {progress.get('Post-v1.0 validation/design', 'NA')} |
+
+## Distance To Row-Accounting Targets
+
+These counters are planning aids only. They do not authorize row movement,
+coverage jobs, public release claims, `inference_ready`, or `supported` status.
+
+| Target | Required practical-surface rows | Rows still needed |
+| --- | ---: | ---: |
+{target_table}
+
+## Next Candidate Review Queue
+
+This queue ranks post-v1.0 rows for review only. It is designed to make the
+next 75% or 80% practical-surface discussion faster, not to promote rows.
+Every generated candidate remains `coverage_not_authorized` and
+`do_not_promote` until row-specific evidence and review exist.
+
+| Rank | Target band | Cell | Family | Provider | Review reason |
+| ---: | --- | --- | --- | --- | --- |
+{candidate_table}
+
+## 75% First-Four Review Packet
+
+These four rows are the current generated review packet for a possible 75%
+practical-surface move. The packet is a design/recovery checklist only: it
+does not authorize code changes, compute, status edits, coverage, or promotion.
+
+| Rank | Cell | Model scope | Minimum recovery evidence | Next action |
+| ---: | --- | --- | --- | --- |
+{review_packet_table}
+
+## First Candidate Design Contract
+
+The first 75% packet row has a generated design/recovery contract. This is a
+pre-code review artifact: it specifies the model and minimum evidence needed
+before any local debug fit, host compute, or support-cell edit is proposed.
+
+| Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
+| --- | --- | --- | --- | --- |
+{first_contract_table}
+
+## First Candidate Local-Debug Fixture Contract
+
+The first design contract now has a generated local-debug fixture contract.
+This still authorizes no fit: it records the current failure signature, the
+allowed future local fixture shape, and the stop rules that prevent a debug run
+from becoming denominator, coverage, status, or public-support evidence.
+The debug fixture contract is not implementation evidence, recovery evidence,
+`inference_ready`, `supported`, coverage, q4/q8, REML, AI-REML, bridge, or
+public-support authority.
+
+| Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
+| --- | --- | --- | --- | --- |
+{debug_fixture_table}
+
+## 75% First-Four Design Contracts
+
+The complete first-four packet now has generated row-specific design contracts.
+These contracts are review artifacts only. They specify the minimum model,
+data-generating, recovery, and failure boundary before any local debug runner or
+status movement is proposed.
+
+| Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
+| --- | --- | --- | --- | --- |
+{first_four_contract_table}
+
+## 75% First-Four Local-Debug Fixture Contracts
+
+The complete first-four packet also has generated local-debug fixture
+contracts. They keep the current rejection signature, local-only fixture scope,
+and stop rules visible for every candidate row.
+
+| Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
+| --- | --- | --- | --- | --- |
+{first_four_debug_table}
+
+## Boundary
+
+This report is release-prep evidence only. It promotes no support-cell status,
+authorizes no compute, and makes no coverage, q4/q8, REML, AI-REML, broad
+bridge-support, `supported`, or public-support claim.
+
+## Routine Command
+
+```sh
+python3 tools/qseries_v1_release_check.py --summary --check-report --check-candidates
+```
+"""
+
+
+def main() -> int:
+    args = parse_args()
+    root = args.root.resolve()
+    python = sys.executable or "python3"
+    env = os.environ.copy()
+    env.update(
+        {
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "R_PROFILE_USER": "/dev/null",
+            "NOT_CRAN": "true",
+        }
+    )
+
+    steps = [
+        (
+            "qseries_v1_release_ledger",
+            [
+                python,
+                "tools/qseries_v1_release_ledger.py",
+                "--check",
+                "--check-status",
+                "--summary",
+            ],
+        ),
+        (
+            "qseries_v1_claim_guard",
+            [python, "tools/qseries_v1_claim_guard.py", "--root", str(root), "--summary"],
+        ),
+    ]
+    if not args.skip_mission_control:
+        steps.append(
+            (
+                "mission_control",
+                [python, "tools/validate-mission-control.py"],
+            )
+        )
+
+    outputs: dict[str, str] = {}
+    ok = True
+    for label, command in steps:
+        step_ok, output = run_step(label, command, root, env)
+        outputs[label] = output
+        ok = ok and step_ok
+    if not ok:
+        return 1
+
+    progress = parse_status_progress(root / STATUS_PATH.relative_to(ROOT))
+    mission_status = "skipped"
+    if not args.skip_mission_control:
+        mission_line = last_nonempty_line(outputs.get("mission_control", ""))
+        mission_status = "ok" if mission_line.startswith("mission_control_ok:") else "unknown"
+    support_rows = read_tsv(root / SUPPORT_PATH.relative_to(ROOT))
+    ledger_rows = read_tsv(root / LEDGER_PATH.relative_to(ROOT))
+    rejection_rows = read_tsv(root / REJECTION_PATH.relative_to(ROOT))
+    candidate_rows = build_candidate_rows(ledger_rows)
+    review_packet_rows = build_review_packet_rows(candidate_rows)
+    first_four_contract_rows = build_first_four_contract_rows(
+        support_rows=support_rows,
+        ledger_rows=ledger_rows,
+        review_packet_rows=review_packet_rows,
+    )
+    first_contract_rows = build_first_contract_rows(
+        support_rows=support_rows,
+        ledger_rows=ledger_rows,
+        review_packet_rows=review_packet_rows,
+    )
+    debug_fixture_rows = build_debug_fixture_rows(
+        first_contract_rows=first_contract_rows,
+        rejection_rows=rejection_rows,
+    )
+    first_four_debug_rows = build_debug_fixture_rows(
+        first_contract_rows=first_four_contract_rows,
+        rejection_rows=rejection_rows,
+    )
+    report = render_report(
+        progress=progress,
+        candidate_rows=candidate_rows,
+        review_packet_rows=review_packet_rows,
+        first_contract_rows=first_contract_rows,
+        debug_fixture_rows=debug_fixture_rows,
+        first_four_contract_rows=first_four_contract_rows,
+        first_four_debug_rows=first_four_debug_rows,
+        outputs=outputs,
+        mission_status=mission_status,
+        skip_mission_control=args.skip_mission_control,
+    )
+    candidates = render_tsv(candidate_rows, CANDIDATE_FIELDS)
+    review_packet = render_tsv(review_packet_rows, REVIEW_PACKET_FIELDS)
+    first_contract = render_tsv(first_contract_rows, FIRST_CONTRACT_FIELDS)
+    debug_fixture = render_tsv(debug_fixture_rows, DEBUG_FIXTURE_FIELDS)
+    first_four_contracts = render_tsv(first_four_contract_rows, FIRST_CONTRACT_FIELDS)
+    first_four_debug = render_tsv(first_four_debug_rows, DEBUG_FIXTURE_FIELDS)
+
+    report_path = args.report_output
+    if not report_path.is_absolute():
+        report_path = root / report_path
+    if args.check_report:
+        if not report_path.exists():
+            print(f"{report_path}: missing generated preflight report", file=sys.stderr)
+            return 1
+        current_report = report_path.read_text(encoding="utf-8")
+        if current_report != report:
+            print(f"{report_path}: differs from generated preflight report", file=sys.stderr)
+            return 1
+    if args.write_report:
+        report_path.write_text(report, encoding="utf-8")
+
+    candidate_path = args.candidate_output
+    if not candidate_path.is_absolute():
+        candidate_path = root / candidate_path
+    if args.check_candidates:
+        if not candidate_path.exists():
+            print(
+                f"{candidate_path}: missing generated next-candidate review",
+                file=sys.stderr,
+            )
+            return 1
+        current_candidates = candidate_path.read_text(encoding="utf-8")
+        if current_candidates != candidates:
+            print(
+                f"{candidate_path}: differs from generated next-candidate review",
+                file=sys.stderr,
+            )
+            return 1
+        review_packet_path = args.review_packet_output
+        if not review_packet_path.is_absolute():
+            review_packet_path = root / review_packet_path
+        if not review_packet_path.exists():
+            print(
+                f"{review_packet_path}: missing generated 75 percent review packet",
+                file=sys.stderr,
+            )
+            return 1
+        current_review_packet = review_packet_path.read_text(encoding="utf-8")
+        if current_review_packet != review_packet:
+            print(
+                f"{review_packet_path}: differs from generated 75 percent review packet",
+                file=sys.stderr,
+            )
+            return 1
+        first_contract_path = args.first_contract_output
+        if not first_contract_path.is_absolute():
+            first_contract_path = root / first_contract_path
+        if not first_contract_path.exists():
+            print(
+                f"{first_contract_path}: missing generated first-candidate design contract",
+                file=sys.stderr,
+            )
+            return 1
+        current_first_contract = first_contract_path.read_text(encoding="utf-8")
+        if current_first_contract != first_contract:
+            print(
+                f"{first_contract_path}: differs from generated first-candidate design contract",
+                file=sys.stderr,
+            )
+            return 1
+        debug_fixture_path = args.debug_fixture_output
+        if not debug_fixture_path.is_absolute():
+            debug_fixture_path = root / debug_fixture_path
+        if not debug_fixture_path.exists():
+            print(
+                f"{debug_fixture_path}: missing generated first-candidate debug fixture contract",
+                file=sys.stderr,
+            )
+            return 1
+        current_debug_fixture = debug_fixture_path.read_text(encoding="utf-8")
+        if current_debug_fixture != debug_fixture:
+            print(
+                f"{debug_fixture_path}: differs from generated first-candidate debug fixture contract",
+                file=sys.stderr,
+            )
+            return 1
+        first_four_contract_path = args.first_four_contract_output
+        if not first_four_contract_path.is_absolute():
+            first_four_contract_path = root / first_four_contract_path
+        if not first_four_contract_path.exists():
+            print(
+                f"{first_four_contract_path}: missing generated first-four design contracts",
+                file=sys.stderr,
+            )
+            return 1
+        current_first_four_contracts = first_four_contract_path.read_text(encoding="utf-8")
+        if current_first_four_contracts != first_four_contracts:
+            print(
+                f"{first_four_contract_path}: differs from generated first-four design contracts",
+                file=sys.stderr,
+            )
+            return 1
+        first_four_debug_path = args.first_four_debug_output
+        if not first_four_debug_path.is_absolute():
+            first_four_debug_path = root / first_four_debug_path
+        if not first_four_debug_path.exists():
+            print(
+                f"{first_four_debug_path}: missing generated first-four debug fixture contracts",
+                file=sys.stderr,
+            )
+            return 1
+        current_first_four_debug = first_four_debug_path.read_text(encoding="utf-8")
+        if current_first_four_debug != first_four_debug:
+            print(
+                f"{first_four_debug_path}: differs from generated first-four debug fixture contracts",
+                file=sys.stderr,
+            )
+            return 1
+    if args.write_candidates:
+        candidate_path.write_text(candidates, encoding="utf-8")
+        review_packet_path = args.review_packet_output
+        if not review_packet_path.is_absolute():
+            review_packet_path = root / review_packet_path
+        review_packet_path.write_text(review_packet, encoding="utf-8")
+        first_contract_path = args.first_contract_output
+        if not first_contract_path.is_absolute():
+            first_contract_path = root / first_contract_path
+        first_contract_path.write_text(first_contract, encoding="utf-8")
+        debug_fixture_path = args.debug_fixture_output
+        if not debug_fixture_path.is_absolute():
+            debug_fixture_path = root / debug_fixture_path
+        debug_fixture_path.write_text(debug_fixture, encoding="utf-8")
+        first_four_contract_path = args.first_four_contract_output
+        if not first_four_contract_path.is_absolute():
+            first_four_contract_path = root / first_four_contract_path
+        first_four_contract_path.write_text(first_four_contracts, encoding="utf-8")
+        first_four_debug_path = args.first_four_debug_output
+        if not first_four_debug_path.is_absolute():
+            first_four_debug_path = root / first_four_debug_path
+        first_four_debug_path.write_text(first_four_debug, encoding="utf-8")
+
+    if args.summary:
+        target_gaps = row_target_gaps(progress)
+        target_summary = "; ".join(
+            f"rows_to_{row['target'].rstrip('%')}={row['needed']}"
+            for row in target_gaps
+        )
+        print(
+            (
+                "qseries_v1_release_check_ok: "
+                f"ledger=ok; claim_guard=ok; mission_control={mission_status}; "
+                f"practical_v1_surface={progress.get('Practical v1.0 row surface', 'NA')}; "
+                f"gaussian_core={progress.get('Gaussian v1.0 core', 'NA')}; "
+                f"basic_distribution_recovery={progress.get('Basic-distribution recovery', 'NA')}; "
+                f"exact_inference_ready={progress.get('Exact `inference_ready` anchors', 'NA')}; "
+                f"supported_authority={progress.get('`supported` authority', 'NA')}; "
+                f"post_v1={progress.get('Post-v1.0 validation/design', 'NA')}; "
+                f"{target_summary}; "
+                f"candidate_review_rows={len(candidate_rows)}; "
+                f"first_four_review_packet_rows={len(review_packet_rows)}; "
+                f"first_candidate_contract_rows={len(first_contract_rows)}; "
+                f"debug_fixture_contract_rows={len(debug_fixture_rows)}; "
+                f"first_four_contract_rows={len(first_four_contract_rows)}; "
+                f"first_four_debug_fixture_rows={len(first_four_debug_rows)}"
+            ),
+            file=sys.stderr,
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

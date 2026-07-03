@@ -1,0 +1,51 @@
+Package: cli
+Version: 3.6.6
+Depends: R (>= 3.4)
+Imports: utils
+Suggests: callr, covr, crayon, digest, glue (>= 1.6.0), grDevices,
+        htmltools, htmlwidgets, knitr, methods, processx, ps (>=
+        1.3.4.9000), rlang (>= 1.0.2.9003), rmarkdown, rprojroot,
+        rstudioapi, testthat (>= 3.2.0), tibble, whoami, withr
+License: MIT + file LICENSE
+MD5sum: eedc08ba864ae6cd640b05eff1a607ee
+NeedsCompilation: yes
+
+Package: Matrix
+Version: 1.7-5
+Priority: recommended
+Depends: R (>= 4.4), methods
+Imports: grDevices, graphics, grid, lattice, stats, utils
+Suggests: MASS, datasets, sfsmisc, tools
+Enhances: SparseM, graph
+License: GPL (>= 2) | file LICENCE
+MD5sum: 55c548714a9760ea1cf925462cdd0cca
+NeedsCompilation: yes
+
+Package: Rcpp
+Version: 1.1.1-1.1
+Depends: R (>= 3.5.0)
+Imports: methods, utils
+Suggests: tinytest, inline, rbenchmark, pkgKitten (>= 0.1.2)
+License: GPL (>= 2)
+MD5sum: ad526121c2f2b9b3be8ce1f36aff7888
+NeedsCompilation: yes
+
+Package: RcppEigen
+Version: 0.3.4.0.2
+Depends: R (>= 3.6.0)
+Imports: Rcpp (>= 0.11.0), stats, utils
+LinkingTo: Rcpp
+Suggests: Matrix, inline, tinytest, pkgKitten, microbenchmark
+License: GPL (>= 2) | file LICENSE
+MD5sum: d636083ce19deae8f32883170314f2ea
+NeedsCompilation: yes
+
+Package: TMB
+Version: 1.9.21
+Depends: R (>= 3.0.0)
+Imports: graphics, methods, stats, utils, Matrix (>= 1.0-12)
+LinkingTo: Matrix, RcppEigen
+Suggests: numDeriv, parallel
+License: GPL-2
+MD5sum: fd9062bf4b7d786479e33c2d169a288d
+NeedsCompilation: yes

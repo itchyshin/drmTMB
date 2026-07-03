@@ -1,0 +1,14 @@
+host=rorqual2
+user=snakagaw
+pwd=/home/snakagaw
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+source_tools_status=present
+source_slurm_dir_status=present
+run_root_slurm_dir_status=present
+remote_evidence_dir_status=present
+sbatch_submission=not_attempted
+module_load=not_attempted
+r_command=not_attempted
+rscript_command=not_attempted
+model_command=not_attempted

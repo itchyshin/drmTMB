@@ -1,0 +1,2 @@
+bash: line 10: package: unbound variable
+sbatch: NOTE: Your memory request of 16384.0M was likely submitted as 16.0G. Please note that Slurm interprets memory requests denominated in G as multiples of 1024M, not 1000M.

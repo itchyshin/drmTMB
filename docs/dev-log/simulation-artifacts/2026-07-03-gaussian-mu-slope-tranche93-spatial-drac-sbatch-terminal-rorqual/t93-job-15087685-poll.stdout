@@ -1,0 +1,8 @@
+poll_start=2026-07-02T22:24:15-04:00
+--- poll_iter=1 date=2026-07-02T22:24:15-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown

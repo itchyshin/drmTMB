@@ -220,6 +220,62 @@ local/Totoro smoke candidates, or DRAC-held replacement-rule work. It is a
 cluster-use guard only: it prevents connected hosts from becoming broad
 unreviewed denominator campaigns and does not promote support status.
 
+`structured-re-q-series-v1-readiness-reset.tsv` records the current v1.0
+prioritization boundary. It keeps the 104 support cells, 67 Gaussian rows, 37
+non-Gaussian rows, eight exact `inference_ready` rows, and zero structured
+`supported` rows intact while separating implemented/basic-working v1.0 scope
+from post-v1.0 `inference_ready` and `supported` validation. The row set is a
+planning reset only: it authorizes no coverage job, support-cell promotion,
+REML, AI-REML, q4/q8 expansion, or public-support claim. Future no-compute
+tranche drafts can start from `tools/qseries-tranche-scaffold.py`, which prints
+member-board and wiring scaffolds to stdout without mutating evidence.
+
+`structured-re-q-series-v1-release-ledger.tsv` is the generated row-level view
+of that reset. `tools/qseries_v1_release_ledger.py` derives it from the
+104-row support-cell table, giving every cell a v1.0 role: Gaussian
+inference anchor, Gaussian basic-working row, basic-distribution recovery row,
+or post-v1.0 validation/design row. The ledger is release-planning evidence
+only. It does not authorize coverage, change support-cell status, create
+`inference_ready` or `supported` claims, or introduce REML, AI-REML, q4/q8, or
+public-support wording.
+The same generator writes
+`docs/dev-log/release-audits/q-series-v1-release-status.md`, the
+release-facing summary that `README.md`, `NEWS.md`, `ROADMAP.md`, and
+`docs/dev-log/known-limitations.md` should cite while v1.0 wording is being
+prepared. Its progress-accounting section reports row percentages for the
+practical v1.0 surface, Gaussian core, basic-distribution recovery, exact
+`inference_ready` anchors, `supported` authority, and post-v1.0 rows without
+turning those percentages into package-release completion claims.
+`tools/qseries_v1_claim_guard.py` checks the same generated status file and the
+public/status files for inflated Q-Series v1.0 wording before release notes or
+roadmap text are treated as synchronized.
+For the routine v1.0 Q-Series preflight, run
+`python3 tools/qseries_v1_release_check.py --summary --check-report
+--check-candidates`; it checks the generated ledger/status, the claim guard,
+Mission Control, the generated preflight report, and the generated
+next-candidate review TSV plus the 75% first-four review packet in one command
+while still reporting the row-accounting percentages. The generated report
+records how many additional practical surface rows would be needed to reach
+75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks the 30
+post-v1.0 rows into the first four rows to review for 75%, the next six to
+review for 80%, and the later post-v1.0 queue; and
+`docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
+first four rows into a design/recovery checklist. The same candidate bundle
+also writes
+`docs/dev-log/release-audits/q-series-v1-beta-mu-animal-design-contract.tsv`,
+the first row-specific contract for the beta `mu` animal route, and
+`docs/dev-log/release-audits/q-series-v1-beta-mu-animal-debug-fixture-contract.tsv`,
+the fail-closed local-debug fixture contract for that same first candidate.
+The bundle also writes
+`docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv` and
+`docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv`
+for the four rows needed in the next 75% practical-surface review:
+beta/animal, Gamma/relmat, ordinal/phylo, and Student/spatial. These artifacts
+are planning aids only and do not authorize row movement, code changes, local
+fits, host compute, denominator rows, coverage jobs, `inference_ready`,
+`supported`, or public-release claims. Regenerate the report with
+`--write-report --write-candidates` after intentional release-boundary changes.
+
 `structured-re-q2-retained-denominator-design.tsv` is now historical Tranche 2
 q2 design evidence, not a current run permission. The Rorqual SR150 pregrid was
 imported as review-only evidence in
@@ -233,6 +289,322 @@ passes the small retained-denominator smoke. The q2 intercept and q2-plus-q2
 cells remain `point_fit/planned/planned`; this evidence does not promote
 interval status, coverage, `inference_ready`, `supported`, q2 slope, q4/q8,
 non-Gaussian, REML, AI-REML, bridge, or public-support claims.
+
+`structured-re-q2-retained-denominator-tranche9-repair-route-review.tsv`
+records the next no-compute q2 repair-route review. It names the existing
+`bounded_tmbprofile_direct_correlation_sidecar` as a direct-correlation
+candidate, then blocks it as a whole-cell repair because the q2 intercept cells
+also retain endpoint direct-SD undercoverage or finiteness blockers. The phylo
+q2-plus-q2 row remains held because its `pdHess`, endpoint-SD, direct
+`mu1`/`mu2` correlation, and held `sigma1`/`sigma2` correlation blockers are not
+repaired by the q2 intercept sidecar. Tranche 9 therefore authorizes no small
+smoke, no host top-up, no coverage, no `inference_ready`, and no support-cell
+status edit. The next q2 move is a combined endpoint-SD plus direct-correlation
+route or a target-split decision reviewed by Fisher, Rose, Noether, and Grace.
+
+`structured-re-q2-retained-denominator-tranche10-target-split-design.tsv`
+banks that target-split decision without opening compute. The four q2 intercept
+rows separate the direct `cor_mu1_mu2_intercept` component from the endpoint
+direct-SD `sd_mu2_intercept` blocker; the component summary rows keep those
+estimands separate; and the phylo q2-plus-q2 row remains held outside the q2
+intercept split because its `pdHess`, endpoint-SD, direct `mu1`/`mu2`
+correlation, and held `sigma1`/`sigma2` correlation blockers need a separate
+route. Tranche 10 does not authorize a smoke, host submission, SR475/SR1000
+top-up, coverage, `inference_ready`, or support-cell status edit. The next q2
+move is a Tranche 11 executable small-smoke contract or route design with
+Fisher/Rose/Noether/Grace approval before any compute.
+
+`structured-re-q2-retained-denominator-tranche11-direct-correlation-smoke-contract.tsv`
+banks that next contract without executing it. The contract uses the existing
+q2 intercept smoke runner only for the direct `cor_mu1_mu2_intercept`
+component, passes
+`interval_repair_channel = bounded_tmbprofile_direct_correlation_sidecar`, and
+records one 32-replicate seed range per provider. The helper
+`tools/run-q2-retained-denominator-tranche11-direct-correlation-smoke.sh`
+refuses to run unless
+`DRMTMB_Q2_TRANCHE11_EXECUTION_APPROVED=rose_fisher_noether_grace` is set. The
+endpoint direct-SD component and the q2-plus-q2 cell remain held because they
+need separate routes. Tranche 11 therefore banks exact future commands only:
+no smoke was executed, no host job was submitted, no SR475/SR1000 top-up was
+authorized, and no interval, coverage, `inference_ready`, support, q2-plus, or
+public-support claim moved.
+
+`structured-re-q2-retained-denominator-tranche12-endpoint-sd-route-design.tsv`
+banks the matching endpoint-SD route review without opening compute. The four
+q2 intercept cells keep `sd_mu2_intercept` as an endpoint direct-SD blocker, and
+the existing `endpoint_zero_boundary_profile_channel` is recorded as a labelled
+problem class rather than an executable repair channel. The Tranche 11
+direct-correlation contract remains separate and cannot clear endpoint-SD
+blockers; the phylo q2-plus-q2 row remains outside this route because its
+`pdHess`, endpoint-SD, direct `mu1`/`mu2` correlation, and held
+`sigma1`/`sigma2` correlation blockers need a separate route. Tranche 12
+therefore authorizes no endpoint-SD smoke, host submission, SR475/SR1000
+top-up, coverage, `inference_ready`, support-cell status edit, or
+public-support claim.
+
+`structured-re-q2-retained-denominator-tranche13-endpoint-sd-blocker-decision.tsv`
+turns the existing endpoint-SD route evidence into a no-compute blocker
+decision. The phylo `sd_mu2_intercept` Totoro `n = 32` smoke under
+`endpoint_zero_boundary_profile_channel` had stable fits, `pdHess`, and finite
+profiles for all 32 attempts, but profile coverage was `0.8750` with four
+upper-tail misses. Fisher and Rose therefore block SR475/SR1000 top-up and
+provider repeats for that route: the blocker is interval shape, not fit
+stability. The DDF sidecar lead in
+`https://github.com/itchyshin/drmTMB/issues/687` is recorded as a possible
+future route only; it is not implementation authority and does not move any
+status. Direct-correlation Tranche 11 and q2-plus remain separate. Tranche 13
+authorizes no new endpoint-SD smoke, host submission, top-up, coverage,
+`inference_ready`, support-cell status edit, DDF implementation claim, or
+public-support claim.
+
+`structured-re-q2-retained-denominator-tranche14-endpoint-sd-replacement-route-screen.tsv`
+records the next no-compute endpoint-SD screen. It keeps five possible route
+families as source-link leads only: Satterthwaite-style variance-component DDF,
+Kenward-Roger-style DDF analogues, parametric bootstrap intervals,
+boundary-likelihood diagnostics, and Cox-Reid adjusted-profile or
+orthogonalization ideas. These links are not derivations, implementations, or
+status evidence. No candidate route is executable yet, and the ledger forbids
+turning DDF, bootstrap, or adjusted-profile names into implementation claims.
+Direct-correlation Tranche 11 and q2-plus remain separate. Tranche 14
+authorizes no endpoint-SD smoke, host submission, top-up, coverage,
+`inference_ready`, support-cell status edit, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche15-endpoint-sd-bootstrap-smoke-contract.tsv`
+banks the first executable-looking q2 endpoint-SD replacement route, but only
+as a micro-smoke contract. The selected candidate is parametric bootstrap for
+`sd_mu2_intercept`, chosen because the existing q2 intercept runner already
+supports `method = "bootstrap"` intervals for that exact direct-SD estimand.
+The contract uses `bootstrap_R = 2` and `n_rep = 8` per provider, so it can only
+probe finite bootstrap output and provenance; it cannot estimate coverage or
+interval reliability. The helper
+`tools/run-q2-retained-denominator-tranche15-endpoint-sd-bootstrap-smoke.sh`
+refuses to run unless
+`DRMTMB_Q2_TRANCHE15_EXECUTION_APPROVED=rose_fisher_noether_grace` is set. No
+bootstrap refit, endpoint-SD smoke result, host submission, top-up, coverage,
+`inference_ready`, support-cell status edit, bootstrap reliability claim, or
+public-support claim is authorized. Direct-correlation Tranche 11 and q2-plus
+remain separate.
+
+`structured-re-q2-retained-denominator-tranche16-q2-plus-route-decomposition.tsv`
+records the q2-plus follow-up without spending compute. It decomposes the phylo
+q2-plus-q2 blocker into five Rorqual SR150 within-block targets, the held
+`cor_sigma1_sigma2_intercept` target from the Nibi smoke, cross-block
+correlations that require a true q4 route, and the separated q2-intercept
+Tranche 11/15 contracts. The ledger keeps the SR150 signal as blocker evidence
+only: `pdHess = 745/750`, worst Wald/profile coverage is `0.8867`, and the
+held sigma1/sigma2 correlation had Nibi profile finiteness `4/5`. Tranche 16
+authorizes no q2-plus compute, host submission, top-up, coverage,
+`inference_ready`, support-cell status edit, q2-intercept inheritance, q4
+inheritance, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche17-q2-plus-repair-route-screen.tsv`
+records the next no-compute q2-plus screen. It lists four candidate repair
+leads, one true-q4 boundary row, one q2-intercept inheritance-rejection row,
+and one summary row. The candidate leads are not executable contracts: they
+require raw `pdHess`/profile failure taxonomy, sigma-correlation profile
+geometry review, bootstrap failed-refit policy, or sigma-side interval-shape
+review before any runner or host command can be written. Every row stays
+`no_compute_in_tranche17`, `coverage_not_authorized`, and `do_not_promote`.
+Tranche 17 authorizes no Totoro, Nibi, Rorqual, Trillium, or DRAC execution, no
+SR475/SR1000 top-up, no interval/coverage status change, no q2-intercept
+inheritance, no q4/q8 claim, and no public-support claim.
+
+`structured-re-q2-retained-denominator-tranche18-q2-plus-failure-taxonomy.tsv`
+selects the cheapest post-screen route: classify the existing failure evidence
+before writing any runner. It reviews the Rorqual SR150 q2-plus replicate TSV
+and the Nibi substitute-smoke replicate TSV. The taxonomy keeps the shared
+SR150 `pdHess` loss on replicate 108 separate from missing-`rlang` artifact
+failures on replicates 29 and 53, sigma-side upper-tail profile miss patterns,
+direct-correlation undercoverage, and the Nibi held sigma1/sigma2 profile-root
+error on replicate 3. This is triage evidence only. Tranche 18 authorizes no
+new replicate, smoke contract, host execution, top-up, coverage,
+`inference_ready`, support-cell promotion, q2-intercept inheritance, q4/q8
+claim, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche19-q2-plus-held-correlation-profile-contract.tsv`
+banks the next fail-closed contract from that taxonomy. It names exactly one
+held-correlation target, `cor_sigma1_sigma2_intercept`, exactly one failed
+replicate/seed pair, replicate 3 / seed 823003, and exactly one diagnostic
+route, the bounded `tmbprofile` direct-correlation sidecar. The accompanying
+helper refuses to run without the Fisher/Rose/Noether/Gauss/Grace approval
+environment variable and blocks DRAC, Nibi, Rorqual, and Trillium denominator
+execution for this micro-contract. Tranche 19 is a contract only: it runs no
+replicate, creates no denominator, authorizes no coverage or top-up, and moves
+no interval, coverage, `inference_ready`, `supported`, q2-plus, q4/q8, bridge,
+REML, AI-REML, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche20-held-correlation-profile-diagnostic.tsv`
+reviews the single diagnostic run allowed by the Tranche 19 contract. The run
+used local host provenance only (`host_class =
+tranche19_local_profile_contract`, `host_name = local_codex`), replayed only
+replicate 3 / seed 823003 for `cor_sigma1_sigma2_intercept`, and produced
+`fit_ok`, `pdHess = TRUE`, and a finite Wald interval at the boundary, but the
+profile interval remained nonfinite and the bounded `tmbprofile` repair sidecar
+also remained nonfinite. The runner summary is `local_smoke_failed`. Tranche 20
+therefore closes this route as diagnostic failure evidence only: no denominator,
+no host pooling, no top-up, no coverage, no status edit, no q2-plus promotion,
+and no q4/q8, REML, AI-REML, bridge, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche21-route-hold-decision.tsv`
+records the follow-up route-hold decision from that failed diagnostic. It
+closes the bounded `tmbprofile` held-correlation route, rejects another
+immediate profile rerun or top-up, and lists only no-compute candidate
+directions: a derived boundary-aware held-correlation route, artifact-dependency
+cleanup, sigma-side interval-shape review, or raw replicate-108 Hessian review.
+Every row remains `no_compute_in_tranche21`, `coverage_not_authorized`, and
+`do_not_promote`. The linked q2-plus support cell stays
+`point_fit/planned/planned`; Tranche 21 authorizes no denominator, coverage,
+q2-plus promotion, q4/q8 claim, REML, AI-REML, bridge, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche22-rep108-artifact-review.tsv`
+reviews the existing Rorqual SR150 replicate-108 artifact rows for the five
+q2-plus within-block targets. All five rows are `fit_ok` with convergence 0
+and `pdHess = FALSE`, the fit message is `NaNs produced`, and Wald intervals
+are nonfinite. Four targets have finite profiles that contain the truth, but
+that does not overcome the shared Hessian failure; the `sd_sigma2_intercept`
+profile is finite with a near-boundary warning and does not contain the truth.
+The TSV does not contain raw Hessian eigenstructure, gradients, or optimizer
+trace, so Tranche 22 is an artifact review only. It runs no replicate,
+authorizes no top-up or coverage, and moves no q2-plus, q4/q8, REML, AI-REML,
+bridge, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche23-rep108-geometry-contract.tsv`
+banks the next gate as a raw-geometry reconstruction contract, not as
+execution. The contract keeps Rorqual SR150 replicate 108 / seed 823108 as
+source evidence for the same five q2-plus within-block targets and requires a
+raw fit object or replay bundle, Hessian eigenstructure, gradient norms,
+optimizer trace, boundary flags, source SHA, host label, and output path before
+any geometry claim. Tranche 23 records no raw geometry output and runs no local,
+Totoro, Nibi, Rorqual, Trillium, or DRAC command. It authorizes no denominator,
+top-up, coverage, status movement, q2-plus promotion, q4/q8, REML, AI-REML,
+bridge, or public-support claim.
+
+`structured-re-q2-retained-denominator-tranche24-rep108-geometry-result.tsv`
+records the one approved host-separated diagnostic replay from that contract.
+The replay ran locally under `local_codex_geometry_reconstruction` for
+replicate 108 / seed 823108 and reproduced the five target estimates, including
+the near-boundary `sd_sigma2_intercept` estimate. The local fit had
+`pdHess = TRUE`, a positive `cov.fixed` spectrum, and a small maximum gradient,
+while the Rorqual SR150 source artifact had `pdHess = FALSE` and nonfinite Wald
+status. Tranche 24 therefore records source/host drift evidence, not admission
+or repair. It authorizes no denominator, top-up, coverage, status movement,
+q2-plus promotion, q4/q8, REML, AI-REML, bridge, or public-support claim; the
+next gate is a source-matched Rorqual/DRAC reconstruction or an explicit
+q2-plus park decision.
+
+`structured-re-q2-retained-denominator-tranche25-source-match-decision.tsv`
+banks that gate as a no-compute decision contract. It requires source snapshot
+proof before any Rorqual or DRAC replay can be interpreted: the dirty source
+state, R session, package library, runner inputs, exact command, host label,
+and output path must be manifest enough to explain why the source Rorqual
+artifact had `pdHess = FALSE` while the local replay had `pdHess = TRUE`.
+Local Codex, Totoro, unsynced DRAC, and other host repeats are explicitly
+excluded for this gate because they cannot answer the source-drift question.
+If source matching cannot be proven, q2-plus is parked rather than topped up.
+Tranche 25 authorizes no compute, denominator, top-up, coverage, status
+movement, q2-plus promotion, q4/q8, REML, AI-REML, bridge, or public-support
+claim.
+
+`structured-re-q2-retained-denominator-tranche26-source-snapshot-proof.tsv`
+banks the source-snapshot proof layer for that gate. A BatchMode Rorqual probe
+confirmed that the `/project` run root still has the copied source tree, shard-5
+R library, package cache, metadata, and result artifacts. The copied source is
+not a live Git repository, so the critical source manifest entries are recorded
+and the full manifest hash check is deferred to any replay job rather than run
+on a login node. Tranche 26 executes no replay and creates no denominator. It
+keeps the q2-plus support cell at `point_fit/planned/planned` and authorizes no
+top-up, coverage, status movement, q2-plus promotion, q4/q8, REML, AI-REML,
+bridge, or public-support claim. The next gate is a checkpointed one-replicate
+source-matched Rorqual replay with job-internal manifest verification, or
+q2-plus parking if that source-matched replay cannot be kept honest.
+
+`structured-re-q2-retained-denominator-tranche27-source-matched-replay-contract.tsv`
+and `tools/slurm/q2-plus-rep108-source-replay-rorqual.sbatch` bank that replay
+as a fail-closed job pack, not a submitted job. The pack targets only Rorqual
+SLURM array task 108, uses the preserved source runner
+`tools/run-structured-re-q2-plus-q2-intercept-smoke.R`, verifies the preserved
+source manifest inside the job before R starts, and passes exactly the five
+retained q2-plus target IDs from the imported Rorqual artifact. It requires
+`DRMTMB_Q2_TRANCHE27_SOURCE_REPLAY_APPROVED=fisher_rose_noether_gauss_grace_manifest_verified`
+before execution and refuses login-node, local Codex, Totoro, Nibi, Trillium,
+Fir, unsynced DRAC, or source-unverified runs. Tranche 27 creates no replay
+result, denominator, top-up, coverage, status movement, q2-plus promotion,
+q4/q8, REML, AI-REML, bridge, or public-support claim. The next gate is either
+submit exactly that one Rorqual job after checkpointed approval and review the
+artifacts, or park q2-plus if the manifest/source-runner gate fails.
+
+`structured-re-q2-retained-denominator-tranche28-source-replay-submission.tsv`
+records that the approved source-matched replay was submitted as Rorqual job
+15027970, array task 108, and was still `PENDING` for priority at the first
+scheduler probe. The remote sbatch and result-root paths stay under the
+preserved Rorqual `/project` run root, but no replay artifacts were imported and
+no result review has occurred. Tranche 28 therefore creates no denominator,
+top-up, coverage, status movement, q2-plus promotion, q4/q8, REML, AI-REML,
+bridge, or public-support claim. The next gate is to monitor job 15027970; when
+it reaches a terminal state, inspect the manifest-verified artifacts and open a
+result-review tranche, or park q2-plus if the job or manifest gate fails.
+
+`structured-re-q2-retained-denominator-tranche29-source-replay-terminal-review.tsv`
+records the terminal Rorqual review for job 15027970. `sacct` reported
+`FAILED` with exit `1:0` after 00:01:37 on node `rc32610`. The full sha256
+source-manifest check failed before R execution at
+`./tools/run-structured-re-q2-intercept-smoke.R`; the critical q2-plus manifest
+entries were recorded, but the q2-plus runner did not start and no smoke result
+TSVs, seed manifest, exact command, `sessionInfo`, or replay stdout/stderr were
+created. Tranche 29 is therefore a terminal-failure review, not a denominator or
+failure-rate replicate. It authorizes no resubmission, denominator, top-up,
+coverage, status movement, q2-plus promotion, q4/q8, REML, AI-REML, bridge, or
+public-support claim. The next gate is a checkpointed Tranche 30 choice between
+a narrower critical-manifest replay contract and parking q2-plus.
+
+`structured-re-q2-retained-denominator-tranche30-critical-manifest-replay-contract.tsv`
+and `tools/slurm/q2-plus-rep108-critical-manifest-replay-rorqual.sbatch` bank
+that narrower replay as a fail-closed, non-submitted job pack. The pack still
+targets only Rorqual SLURM array task 108, replicate 108 / seed 823108, and the
+five retained q2-plus target IDs. It verifies only the listed critical manifest
+entries before R, records the excluded full-manifest failure
+`./tools/run-structured-re-q2-intercept-smoke.R`, and refuses execution without
+`DRMTMB_Q2_TRANCHE30_CRITICAL_REPLAY_APPROVED=fisher_rose_noether_gauss_grace_critical_manifest_contract_verified`.
+Tranche 30 does not resubmit job 15027970 and creates no replay execution,
+denominator, top-up, coverage, status movement, q2-plus promotion, q4/q8, REML,
+AI-REML, bridge, or public-support claim. The next gate is a checkpointed
+submission of exactly this one Rorqual task, followed by a separate terminal
+artifact review, or q2-plus parking if the critical-manifest gate fails.
+
+`structured-re-q2-retained-denominator-tranche31-critical-manifest-replay-submission.tsv`
+records that checkpointed submission. Job 15029153 array task 108 was submitted
+to Rorqual with the Tranche 30 approval token and the reviewed sbatch staged
+under the preserved `/project` run root. The first probe found scheduler state
+`PENDING` for priority and no Tranche 30 result root or replay artifacts.
+Tranche 31 is therefore a submission ledger only: it creates no denominator,
+top-up, coverage, status movement, q2-plus promotion, q4/q8, REML, AI-REML,
+bridge, or public-support claim. The next gate is terminal-job monitoring and a
+new result-review tranche, or q2-plus parking if the job or critical-manifest
+gate fails.
+
+`structured-re-q2-retained-denominator-tranche32-critical-manifest-replay-terminal-review.tsv`
+records the terminal review of job 15029153. The job completed on Rorqual
+node `rc32504` with exit `0:0`, and the critical manifest entries all checked
+OK. The replay artifacts were imported under
+`docs/dev-log/simulation-artifacts/2026-07-01-q2-tranche32-critical-manifest-replay-rorqual/`.
+The result still fails the q2-plus admission gate: all five retained targets
+have `pdHess = FALSE`, all five Wald intervals are nonfinite, all five profiles
+are finite, and the sigma2 profile misses the truth near the SD boundary.
+Tranche 32 creates no admission denominator, top-up, coverage, status movement,
+q2-plus promotion, q4/q8, REML, AI-REML, bridge, or public-support claim. The
+next gate is q2-plus parking or a separately reviewed geometry-explanation
+design; no coverage or top-up is authorized from this result.
+
+`structured-re-q2-retained-denominator-tranche33-q2-plus-parking-decision.tsv`
+parks the q2-plus retained-denominator route after the failed Tranche 32 gate.
+The decision is deliberately non-computational: no top-up, coverage job,
+admission retry, interval-status edit, coverage-status edit, `inference_ready`,
+`supported`, q2-plus promotion, q4/q8, REML, AI-REML, bridge, or public-support
+claim moves. The q2-plus support cell remains `point_fit/planned/planned` with
+`denominator_policy = repair_contract_ready_not_coverage`. Reopening q2-plus
+now requires a new reviewed geometry-explanation design approved by
+Rose/Fisher/Gauss/Noether/Grace and checkpointed before compute. The campaign
+should otherwise return to the next non-parked Q-Series tranche.
 
 `tools/run-structured-re-q2-retained-denominator-pregrid.R` and
 `tools/slurm/q2-retained-denominator-pregrid-nibi.sbatch` remain reproducibility
@@ -264,6 +636,14 @@ it summarizes the SR1000 default bias+t SD endpoints, the retained tail
 imbalance, the unresolved correlation target, and the missing g=32
 profile/Wald comparison while keeping both linked q-series rows
 `interval_status = planned` and `coverage_status = planned`.
+`structured-re-q2-slope-tranche128-spatial-replacement-rule-design.tsv` records
+the no-compute Tranche 128 route-design decision for that q2 row-blocker lane:
+spatial is selected first for a future T129 g=32 retained-denominator
+profile/Wald/bias+t comparison contract, while animal fixed-8 remains held on
+a separate calibration route. T128 writes no command, runs no model, creates no
+retained denominator, authorizes no coverage, edits no support-cell status, and
+does not promote `inference_ready`, `supported`, REML, AI-REML, bridge support,
+or public support.
 `structured-re-q2-slope-g32-profile-wald-smoke.tsv` records the first local
 g=32 profile/Wald smoke for the same rows: spatial `mu1:x`, `mu2:x`, and
 `mu1:x+mu2:x` had one finite Wald/profile replicate. The animal rows in that
@@ -511,6 +891,417 @@ and records the host rule: local derivation and retained-artifact replay first,
 then one Totoro/FIIA smoke only after Fisher/Rose/Noether accept a named
 replacement interval rule. Totoro, Nibi, Rorqual, Trillium, and DRAC top-ups
 remain blocked until that smoke passes.
+
+`structured-re-gaussian-mu-slope-tranche55-interval-rule-hold-decision.tsv`
+records the Tranche 55 no-compute decision layer over the same q1 `mu`
+one-slope bucket. The sidecar rejects current hybrid, ad hoc widening, and
+split-calibration diagnostics as executable support routes, keeps every row at
+`coverage_not_authorized` and `do_not_promote`, and leaves all linked support
+cells at `point_fit/extractor_ready/fixture_parity/planned/planned/source`.
+The next gate is a symbolic skew-aware or boundary-aware direct-SD interval
+rule, local retained-artifact replay, Rose/Fisher/Noether/Grace review, and a
+checkpoint before any Totoro/FIIA smoke, host top-up, coverage, or status edit.
+
+`structured-re-gaussian-mu-slope-tranche56-symbolic-interval-rule-contract.tsv`
+records that symbolic/replay gate before any replay code exists. It separates
+the q1 `mu` intercept and slope direct-SD identities, names likelihood-shape
+and boundary-bootstrap families as candidate families only, rejects post hoc
+multiplier and split-calibration constants as executable rules, and defines the
+retained-replay schema for a later local builder. Every row remains
+`no_compute_in_tranche56`, `coverage_not_authorized`, and `do_not_promote`;
+the next allowed move is a Tranche 57 local retained-artifact replay builder
+with detail and summary outputs, still without support-cell status edits.
+
+`structured-re-gaussian-mu-slope-tranche57-retained-replay-summary.tsv`
+records that local retained-artifact replay layer. The paired artifact
+directory contains a source index, 3,303-row detail table, mirrored summary,
+and run log built from existing local q1 `mu` one-slope evidence only. Spatial
+intercept and slope pass diagnostic-only current-hybrid gates, while phylo,
+animal, relmat, and the tranche summary remain blocked by finite-interval,
+coverage, MCSE, tail-balance, or overcoverage failures. Every row remains
+`no_compute_in_tranche57`, `coverage_not_authorized`, and `do_not_promote`;
+the next allowed move is Rose/Fisher/Noether/Grace review before any
+candidate-rule equation, runner contract, host smoke, top-up, coverage, or
+support-cell status edit.
+
+`structured-re-gaussian-mu-slope-tranche58-retained-replay-review.tsv`
+records that Rose/Fisher/Noether/Grace review layer. It has eight
+provider-target rows plus a tranche summary and next-contract gate. Spatial
+intercept and slope may feed only a later spatial-only candidate-rule equation
+or runner contract with execution disabled by default; phylo, animal, and
+relmat remain in rule-design hold. Every row remains
+`no_compute_in_tranche58`, `coverage_not_authorized`, and `do_not_promote`.
+The companion member-board rows in `member-discussions.tsv` make
+Rose/Fisher/Noether/Grace blocking for any admission, compute, coverage, or
+status claim.
+
+`structured-re-gaussian-mu-slope-tranche59-spatial-candidate-contract.tsv`
+records the spatial-only candidate contract allowed by Tranche 58. It documents
+the q1 `mu` one-slope spatial direct-SD target identities, candidate
+current-hybrid endpoint equation, retained-replay input boundary, future
+host-runner contract requirements, admission gate, review gate, and unchanged
+status boundary. It is not execution permission: every row stays
+`disabled_by_default`, `no_compute_in_tranche59`,
+`coverage_not_authorized`, and `do_not_promote`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 60
+spatial-only host-smoke contract, still without host commands, top-ups,
+coverage, or support-cell status edits.
+
+`structured-re-gaussian-mu-slope-tranche60-spatial-host-smoke-contract.tsv`
+records that disabled spatial-only host-smoke contract. It documents the
+future q1 `mu` one-slope spatial `n = 5` smoke shape, seed manifest, retained-
+denominator rules, host-provenance artifacts, command gate, terminal-review
+import boundary, and unchanged status boundary. No runner is written in this
+tranche and no command is authorized: every row stays `disabled_by_default`,
+`no_compute_in_tranche60`, `coverage_not_authorized`, and `do_not_promote`.
+The next gate is Rose/Fisher/Noether/Grace review plus checkpoint before at
+most a Tranche 61 spatial-only runner or execution packet, still with execution
+disabled by default and without top-ups, coverage, or support-cell status edits.
+
+`structured-re-gaussian-mu-slope-tranche61-spatial-execution-packet.tsv`
+records that disabled spatial-only execution packet. It documents future
+command templates, host packet boundaries for Totoro/FIIA and DRAC, seed and
+artifact manifests, retained-denominator rules, approval-token requirements,
+and the unchanged status boundary. No runner file is written in this tranche
+and no command is authorized: every row stays `not_written_packet_only`,
+`disabled_by_default`, `packet_banked_not_executed`,
+`no_compute_in_tranche61`, `coverage_not_authorized`, and `do_not_promote`.
+The next gate is Rose/Fisher/Noether/Grace review plus checkpoint before at
+most a Tranche 62 spatial-only runner or dispatch gate, still with execution
+disabled by default and without top-ups, coverage, denominator claims, or
+support-cell status edits.
+
+`structured-re-gaussian-mu-slope-tranche62-spatial-runner-gate.tsv` records
+that dry-run-only spatial runner gate. It links back to the Tranche 61 packet,
+tracks the T62 runner file, validates the fixed `n = 5` seed and target
+manifest, and records the execute-path refusal. The runner prints a stdout TSV
+manifest only; it does not fit a model, write dashboard results, run a host
+command, submit Totoro/FIIA or DRAC work, or create denominator evidence. Every
+row stays `dry_run_only`, `disabled_by_default`,
+`dry_run_validated_not_executed`, `execute_path_refuses_in_tranche62`,
+`no_compute_in_tranche62`, `coverage_not_authorized`, and `do_not_promote`.
+The next gate is Rose/Fisher/Noether/Grace review plus checkpoint before at
+most a Tranche 63 host preflight or dispatch approval, still without host
+commands, top-ups, coverage, denominator claims, or support-cell status edits.
+
+`structured-re-gaussian-mu-slope-tranche63-spatial-host-preflight.tsv` records
+the spatial-only host-preflight gate after the T62 dry-run runner. It approves
+only the future packet boundary: source SHA, run root, host label, output path,
+sessionInfo, and host-separated denominator policy must be present before any
+later command packet. T63 itself runs no host command, submits no Totoro/FIIA or
+DRAC work, fits no model, creates no denominator, and moves no support-cell
+status. Every row stays `preflight_approved_no_host_command`,
+`run_root_required_not_created_in_tranche63`,
+`command_packet_approved_not_executed`, `no_compute_in_tranche63`,
+`coverage_not_authorized`, and `do_not_promote`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 64
+host command packet or host dry-run dispatch approval.
+
+`structured-re-gaussian-mu-slope-tranche64-spatial-command-packet.tsv` records
+the spatial-only command-packet gate after the T63 host preflight. It banks
+template text for a future dry-run dispatch, including source SHA, run root,
+host label, output path, sessionInfo, manifest/stdout/stderr paths, and
+host-separated denominator policy. T64 itself runs no host command, submits no
+Totoro/FIIA or DRAC work, fits no model, creates no denominator, and moves no
+support-cell status. Every row stays `host_command_packet`,
+`packet_banked_not_executed`, `no_compute_in_tranche64`,
+`coverage_not_authorized`, and `do_not_promote`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 65
+host dry-run dispatch or source/run-root reachability probe.
+
+`structured-re-gaussian-mu-slope-tranche65-spatial-host-dispatch-gate.tsv`
+records the spatial-only host-dispatch gate after the T64 command packet. It
+banks the dry-run dispatch and source/run-root reachability-probe requirements
+for source SHA, run root, host label, output path, sessionInfo, and
+host-separated denominator policy. T65 itself runs no host command, runs no
+reachability command, verifies no source checkout, creates no run root, submits
+no Totoro/FIIA or DRAC work, fits no model, creates no denominator, and moves
+no support-cell status. Every row stays `host_probe_status =
+not_executed_in_tranche65`, `dry_run_dispatch_planned_not_executed`,
+`fit_execution_refused`, `no_compute_in_tranche65`,
+`coverage_not_authorized`, and `do_not_promote`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 66
+host reachability/source-run-root dry-run probe.
+
+`structured-re-gaussian-mu-slope-tranche66-spatial-host-reachability-probe.tsv`
+records the spatial-only host reachability/source-run-root probe after the T65
+host-dispatch gate. It records the safe read-only probe results: plain Totoro
+SSH failed with auth exit 255, the existing Totoro ControlMaster socket reached
+`totoro.biology.ualberta.ca`, `/home/snakagaw/drmtmb-qseries` and candidate
+source paths were present, the candidate source paths did not provide current
+source-checkout proof because git resolved to `/home/snakagaw` with no usable
+HEAD, Rscript reported 4.5.3, the FIIA alias was unresolved, and DRAC was
+deferred. T66 runs no model command, runs no smoke, fits no model, creates no
+denominator, authorizes no top-up, records no coverage result, and moves no
+support-cell status. Every row stays
+`host_probe_only_no_model_compute_in_tranche66`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 67
+Totoro source-snapshot and qseries run-root staging contract.
+
+`structured-re-gaussian-mu-slope-tranche67-spatial-source-staging-contract.tsv`
+records the spatial-only Totoro source-snapshot and qseries run-root staging
+contract after the T66 reachability probe. It banks only contract text for a
+future staging proof: local source SHA
+`56add7f04fab7bec57a42e56eaeb090dff491863`, dirty-state manifest
+requirement, future Totoro source-snapshot path, future qseries run-root path,
+stdout/stderr/manifest/sessionInfo paths, single-thread caps, host-label
+policy, and host-separated denominator policy. T67 runs no host command,
+copies no source, creates no run root, runs no model command, runs no smoke,
+fits no model, creates no denominator, authorizes no top-up, records no
+coverage result, and moves no support-cell status. Every row stays
+`staging_contract_only_no_host_command_in_tranche67`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 68
+Totoro source-snapshot and qseries run-root staging dry-run proof.
+
+`structured-re-gaussian-mu-slope-tranche68-spatial-source-staging-proof.tsv`
+records the spatial-only Totoro source-snapshot and qseries run-root staging
+proof after the T67 contract. It stages source SHA
+`56add7f04fab7bec57a42e56eaeb090dff491863` with dirty source state to
+`/home/snakagaw/codex/drmTMB-q1mu-slope-tranche68-source-56add7f0-20260702T103739Z`,
+creates the qseries run root
+`/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z`,
+and imports `SOURCE-MANIFEST`, `SOURCE-PROVENANCE`, host provenance,
+`sessionInfo`, source hashes, staging proof, and no-model-command proof under
+`docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche68-spatial-source-staging-totoro/`.
+T68 runs host staging commands but no model command, no smoke, no fit, no
+top-up, no coverage grid, and no denominator-creating replicate. Every row
+stays `source_runroot_staging_proof_only_no_model_compute_in_tranche68`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is
+Rose/Fisher/Noether/Grace review plus checkpoint before at most a Tranche 69
+spatial-only n=5 host-smoke execution decision from the exact T68 snapshot and
+run root.
+
+`structured-re-gaussian-mu-slope-tranche69-spatial-host-smoke-execution-decision.tsv`
+records the spatial-only host-smoke execution-readiness decision after the T68
+staging proof. Rose/Fisher/Noether/Grace accept the exact T68 snapshot and run
+root as the only future provenance path, but the existing T62 runner is
+dry-run-only and refuses `--execution-approved=true`; the refusal proof is
+banked under
+`docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche69-spatial-execution-readiness-local/`.
+T69 runs no model command, no smoke, no fit, no top-up, no coverage grid, and
+no denominator-creating replicate. Every row keeps
+`do_not_execute_existing_t62_runner_write_t70_executable_runner_contract`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is a Tranche 70
+executable-runner contract or fail-closed runner patch from the exact T68
+snapshot and run root, with no Totoro command before Rose/Fisher/Noether/Grace
+and validator review.
+
+`structured-re-gaussian-mu-slope-tranche70-spatial-runner-contract.tsv`
+records the spatial-only fail-closed executable-runner contract after the T69
+execution-readiness decision. It banks
+`tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.R` plus the shell
+wrapper `tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.sh`, a
+10-row dry-run manifest, and local refusal probes under
+`docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche70-spatial-runner-contract-local/`.
+Execution remains disabled in T70: the runner and wrapper both require
+`DRMTMB_Q1MU_SLOPE_T70_EXECUTION_APPROVED=rose_fisher_noether_grace`, future
+execution must load source from the exact T68 Totoro snapshot and write
+artifacts under the exact T68 qseries run root, and `write-dashboard=false` is
+mandatory. Every row keeps `fail_closed_executable_runner_contract_banked_no_execution`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Rose/Fisher/Noether/Grace
+plus validator review and checkpoint before at most one T71 Totoro n5 command;
+no coverage, denominator pooling, inference-ready claim, supported claim, or
+support-cell status edit is allowed before that review.
+
+`structured-re-gaussian-mu-slope-tranche71-spatial-host-smoke-load-blocker.tsv`
+records the single permitted T71 Totoro command outcome after the T70 runner
+contract. The command used the T70 wrapper and exact T68 source/run-root paths,
+but `devtools::load_all()` failed before any fitted replicate with an invalid
+ELF header for `drmTMB.so`. The imported run log, planned-seed manifest,
+host-provenance TSV, command stderr/stdout/exitcode, and remote SHA-256 listing
+live under
+`docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche71-spatial-host-smoke-totoro/`.
+T71 records no pdHess, Wald, profile, coverage, retained denominator, top-up,
+or support-cell status evidence. Every row keeps `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is a
+Tranche 72 load-blocker review/fix contract before any rerun, with
+Rose/Fisher/Gauss/Noether/Grace plus validator review and checkpoint.
+
+`structured-re-gaussian-mu-slope-tranche72-spatial-load-route-review.tsv`
+records the load-route review after the T71 invalid-ELF blocker. Metadata-only
+Totoro probes show that the exact T68 source snapshot contains macOS arm64
+compiled objects at `src/drmTMB.so`, `src/drmTMB.o`, and `src/init.o` on a
+Linux x86_64 host. The T70 runner payload and shell wrapper are present with
+hashes, but AppleDouble `._*` transport noise is also present and must be
+prevented on the next transfer. T72 runs no R load, model command, fit attempt,
+retained replicate, denominator, coverage, or support-cell status edit. Every
+row keeps `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is a Tranche 73
+clean-source restaging contract/proof before any rerun: exclude or remove
+compiled artifacts, prevent AppleDouble/extended-header transport noise, keep
+Totoro provenance separate, and require Rose/Fisher/Gauss/Noether/Grace plus
+validator review and checkpoint.
+
+`structured-re-gaussian-mu-slope-tranche73-spatial-clean-source-restaging-proof.tsv`
+records the clean-source restaging proof after the T72 load-route review. It
+uses the remembered Totoro ControlMaster route and `rsync` exclusion policy to
+stage
+`/home/snakagaw/codex/drmTMB-q1mu-slope-tranche73-clean-source-56add7f0-20260702T123451Z`
+and
+`/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche73-clean-source-20260702T123451Z`
+with 16,889 manifest rows, SOURCE-MANIFEST hash
+`b4a9c159bca67ed748c4004d0aa6385eb701f28aa38c623d696feacaf75fe52c`,
+SOURCE-PROVENANCE hash
+`7350b797aeddfb31fe0b9c0e9216625be9d233805375a289b72c6c832a78bd21`,
+`compiled_artifact_count=0`, and `appledouble_count=0`. T73 runs no R package
+load, `devtools::load_all()`, model command, fit attempt, retained replicate,
+denominator, coverage, or support-cell status edit. Every row keeps
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 74: update or
+review the runner paths before any smoke, because the existing T70 wrapper
+still refuses source/run-root paths other than the exact T68 paths.
+
+`structured-re-gaussian-mu-slope-tranche74-spatial-runner-path-gate.tsv`
+records the T73-path fail-closed runner and wrapper gate after the T73
+clean-source proof. It banks
+`tools/run-gaussian-mu-slope-tranche74-spatial-host-smoke.R` and
+`tools/run-gaussian-mu-slope-tranche74-spatial-host-smoke.sh`, both pinned to
+the exact T73 source snapshot and qseries run root. The local dry-run manifest
+contains only the 10 planned seed-target rows for seeds 861001-861005; the
+direct execute probe exits 1 without the approval token, and the wrapper exits
+64 without the same token. T74 runs no R package load, `devtools::load_all()`,
+model command, fit attempt, retained replicate, denominator, coverage, or
+support-cell status edit. Every row keeps `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 75: at most one Totoro n=5 smoke through the T74 wrapper, only after
+Rose/Fisher/Gauss/Noether/Grace plus validator review and checkpoint.
+
+`structured-re-gaussian-mu-slope-tranche75-spatial-host-smoke-terminal-review.tsv`
+records that single Totoro n=5 smoke attempt through the T74 wrapper. The
+remote runner loaded the exact T73 source snapshot and wrote the results,
+summary, run-log, host-provenance, and hash artifacts, but all 10 target rows
+failed before fitting because `phase18_assert_one_row_data_frame` was not
+available to the sourced runner environment. The local exit-code capture also
+failed after the remote outputs were written because `status` is read-only in
+zsh; the run must not be repeated merely to repair that local artifact. T75
+records no successful fit, no `pdHess`, no finite interval, no admission pass,
+no retained denominator, no coverage result, and no support-cell status edit.
+Every row keeps `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 76:
+source-map/runner-source review of why `inst/sim/R/sim_runner.R` was not
+sourced before any rerun.
+
+`structured-re-gaussian-mu-slope-tranche76-spatial-runner-source-map-review.tsv`
+records that no-compute source-map review. It confirms that
+`phase18_assert_one_row_data_frame` exists in `inst/sim/R/sim_runner.R`, while
+the T74 runner source list loaded registry/utils/spatial DGP/summarise/run
+files without sourcing `inst/sim/R/sim_runner.R`. T76 records no model command,
+fit attempt, `pdHess`, interval evidence, retained denominator, coverage
+result, top-up authorization, or support-cell status edit. Every row keeps
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 77: write a
+reviewed fail-closed runner-source patch gate that sources
+`inst/sim/R/sim_runner.R` before dependent spatial DGP/run files, then stop for
+Rose/Fisher/Gauss/Noether/Grace plus validator review and checkpoint before any
+rerun.
+
+`structured-re-gaussian-mu-slope-tranche77-spatial-runner-source-patch-gate.tsv`
+records that reviewed fail-closed patch gate. It banks the T77 runner and
+wrapper for the exact T73 Totoro clean-source snapshot and qseries run root,
+adds `inst/sim/R/sim_runner.R` before dependent spatial DGP/run files, emits
+only a 10-row dry-run manifest, and records both direct-execute and shell-wrapper
+refusal probes behind
+`DRMTMB_Q1MU_SLOPE_T77_EXECUTION_APPROVED=rose_fisher_gauss_noether_grace`.
+T77 records no R package load, no `devtools::load_all()`, no model command, no
+fit attempt, no `pdHess`, no Wald/profile interval evidence, no retained
+denominator, no admission pass, no coverage result, no top-up authorization, and
+no support-cell status edit. Every row keeps `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 78: write a reviewed smoke-approval gate for at most one Totoro `n = 5`
+smoke through the T77 wrapper after Rose/Fisher/Gauss/Noether/Grace plus
+validator review and checkpoint.
+
+`structured-re-gaussian-mu-slope-tranche78-spatial-smoke-approval-gate.tsv`
+records that reviewed smoke-approval gate. It imports the T77 fail-closed
+runner-source patch gate, names the exact T73 source snapshot and qseries run
+root, preserves the T75 provenance boundary, fixes the T78 host label and seeds,
+and authorizes at most one future Totoro `n = 5` smoke through the T77 wrapper
+after this sidecar validates and a recovery checkpoint is written. T78 itself
+records no host command, R package load, `devtools::load_all()`, model command,
+fit attempt, `pdHess`, Wald/profile interval evidence, retained denominator,
+admission pass, coverage result, top-up authorization, or support-cell status
+edit. Every row keeps `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 79: dispatch
+exactly one Totoro `n = 5` smoke through the T77 wrapper, or write a separate
+DRAC source-checkout/run-root fallback gate before any DRAC command.
+
+`structured-re-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker.tsv`
+records the attempted T79 Totoro route as a reachability blocker, not as model
+evidence. The SSH probe returned exit 255 with
+`Permission denied (publickey,password)` before a remote shell was reached, so
+the T77 wrapper did not dispatch and no source checkout proof, run-root proof,
+R package load, `devtools::load_all()`, model command, fit attempt, `pdHess`,
+Wald/profile interval evidence, retained denominator, admission pass, coverage
+result, top-up authorization, or support-cell status edit exists. Every row
+keeps `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 80: write a
+separate DRAC source-checkout/run-root fallback gate before any DRAC command,
+or restore Totoro auth and write a fresh Totoro reachability gate before
+another Totoro smoke attempt.
+
+`structured-re-gaussian-mu-slope-tranche80-spatial-drac-fallback-gate.tsv`
+banks that DRAC fallback gate without running a DRAC command. It fixes Rorqual
+as the candidate DRAC route, names the required source checkout path, run root,
+output path, host label, module/R/TMB provenance, copied T77 runner/wrapper
+hashes, approval token, `write-dashboard=false`, and host-separated denominator
+policy. T80 records no source checkout proof, run-root proof, package load,
+`devtools::load_all()`, model command, fit attempt, `pdHess`, Wald/profile
+interval evidence, retained denominator, admission pass, coverage result,
+top-up authorization, or support-cell status edit. Every row keeps
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 81: only a
+no-model DRAC Rorqual reachability/source-checkout/run-root proof after T80
+validates and checkpoints; any DRAC smoke needs a later smoke-approval gate.
+
+`structured-re-gaussian-mu-slope-tranche81-spatial-drac-rorqual-provenance-proof.tsv`
+records that no-model DRAC proof. BatchMode SSH reached `rorqual2` as
+`snakagaw` with exit code 0, but the required source checkout path, run root,
+output directory, copied T77 runner, and copied T77 wrapper are missing. T81
+therefore records reachability and missing-staging evidence only: no module
+load, R package load, `devtools::load_all()`, model command, fit attempt,
+`pdHess`, Wald/profile interval evidence, retained denominator, admission pass,
+coverage result, top-up authorization, or support-cell status edit exists.
+Every row keeps `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 82: write a
+DRAC Rorqual source/run-root staging contract before any source copy, run-root
+creation, or smoke command.
+
+`structured-re-gaussian-mu-slope-tranche82-spatial-drac-staging-contract.tsv`
+banks that DRAC Rorqual source/run-root staging contract without running any
+source copy, `mkdir`, remote command, module load, R package load,
+`devtools::load_all()`, model command, fit attempt, `pdHess`, Wald/profile
+interval, retained-denominator action, coverage, top-up, or support-cell status
+edit. It fixes the source SHA
+`56add7f04fab7bec57a42e56eaeb090dff491863`, the required `/project`
+source/run-root/output paths, the T77 runner and wrapper hashes, the DRAC host
+label, `write-dashboard=false`, and the host-separated denominator policy. Every
+row keeps `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 83 only: a
+mkdir/source-copy staging proof that records host provenance, source manifest,
+source provenance, remote runner/wrapper hashes, and no-model-command proof,
+then stops before any smoke, module load, R command, fit, coverage, or status
+movement.
+
+`structured-re-gaussian-mu-slope-tranche83-spatial-drac-staging-proof.tsv`
+banks that DRAC Rorqual staging proof. BatchMode SSH reached `rorqual2` as
+`snakagaw`; `rsync` copied the source snapshot for SHA
+`56add7f04fab7bec57a42e56eaeb090dff491863` to the required `/project` source
+checkout, created or confirmed the run root and output directory, imported a
+16,986-entry `SOURCE-MANIFEST`, recorded source provenance, host provenance,
+remote T77 runner/wrapper hashes, and a no-model-command proof. T83 runs no
+module load, R command, `Rscript`, `devtools::load_all()`, smoke command, model
+fit, `pdHess`, Wald/profile interval, retained denominator, coverage, top-up,
+or support-cell status edit. Every row keeps `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 84 only: a post-staging smoke-approval gate; no DRAC smoke may run from
+T83 proof rows alone.
 
 `structured-re-gaussian-lowq-row-selection.tsv` records the exact host gate for
 the remaining Gaussian low-q point/fixture rows. It excludes the four q1 `mu`
@@ -843,6 +1634,96 @@ cells stay `point_fit/planned/planned`, and no `interval_status`,
 endpoint zero-boundary profile channel. The next q1 `sigma` move is a new
 interval route or an explicit blocker decision, not more Totoro/DRAC replicas
 on the current route.
+
+`structured-re-gaussian-lowq-tranche49-q1-sigma-intercept-blocker-decision.tsv`
+records that explicit blocker decision for the animal and relmat q1 `sigma`
+intercept rows. The eight-row sidecar links back to the Nibi SR150 raw-Wald
+pregrid and the local SR1000 endpoint zero-boundary profile replay. It blocks
+the current profile route because the SR1000 profile channel is finite
+1000/1000 but still has coverage 0.9430, MCSE 0.007332, 12 lower misses, 45
+upper misses, and 757/1000 profiles on the lower SD boundary; the
+`tmbprofile` fallback remains 0/5 finite. Every row keeps
+`no_compute_in_tranche49`, `coverage_not_authorized`, and `do_not_promote`.
+The linked support cells stay `point_fit`, `extractor_ready`,
+`fixture_parity`, `planned`, `planned`, and `source`. The route can reopen only
+through a new reviewed q1 `sigma` interval design; this sidecar authorizes no
+Totoro, Nibi, Rorqual, Trillium, or DRAC top-up, no coverage job, and no
+`inference_ready` or `supported` claim.
+
+`structured-re-gaussian-lowq-tranche50-animal-q1-mu-intercept-blocker-decision.tsv`
+records the corresponding no-compute blocker decision for the animal q1 `mu`
+intercept boundary/profile route. The six-row sidecar links the Nibi SR475
+aggregate to the local hard-seed replay: SR475 has 475/475 fits, convergence,
+`pdHess`, and `confint`, but only 473/475 usable Wald intervals because seeds
+812407 and 812444 are retained `wald_at_boundary` rows. The endpoint-profile
+replay is finite 2/2, yet both finite intervals upper-miss truth 0.55; the
+`tmbprofile` fallback is 0/2 finite with `nonfinite_interval`. This is
+interval-shape blocker evidence, not an MCSE or top-up problem. Every Tranche
+50 row keeps `no_compute_in_tranche50`, `coverage_not_authorized`, and
+`do_not_promote`; the animal q1 `mu` support cell remains `point_fit`,
+`extractor_ready`, `fixture_parity`, `planned`, `planned`, and `source`. The
+route can reopen only through a new reviewed animal q1 `mu` interval design.
+
+`structured-re-gaussian-lowq-tranche51-animal-q1-mu-interval-route-design.tsv`
+records that reviewed interval-route design. The eight-row sidecar keeps the
+current Wald route blocked by the SR475 retained `wald_at_boundary` rows,
+keeps the endpoint-profile and `tmbprofile` paths blocked by the Tranche 50
+replay, and parks split-calibration or adjusted-profile ideas until there is a
+principled derivation. It selects a parametric-bootstrap direct-SD hard-seed
+micro-smoke only as the next contract candidate. The q1 `mu` runner currently
+lacks a bootstrap flag and refit-attempt accounting, so Tranche 51 writes no
+runner patch, runs no bootstrap refits, sends no Totoro/FIIA/DRAC/Nibi/Rorqual
+command, and makes no coverage, interval, `inference_ready`, or `supported`
+claim. The animal q1 `mu` support cell remains `point_fit`, `extractor_ready`,
+`fixture_parity`, `planned`, `planned`, and `source`; the next gate is a
+Tranche 52 executable bootstrap micro-smoke contract, or an explicit rejection
+of bootstrap after reviewer audit.
+
+`structured-re-gaussian-lowq-tranche52-animal-q1-mu-bootstrap-smoke-contract.tsv`
+closes that runner-gap contract without executing it. The eight-row sidecar
+records the internal runner mode, approval-gated wrapper, exact animal hard
+seeds 812407 and 812444, `bootstrap_R = 2`, artifact root, source runner,
+source helper, reviewer stop rules, and SC396 member-board gate. The wrapper
+and runner both refuse execution unless
+`DRMTMB_Q1_MU_TRANCHE52_EXECUTION_APPROVED=rose_fisher_gauss_noether_grace` is
+set after Rose/Fisher/Gauss/Noether/Grace approval, and the run is
+artifact-only with `--write-dashboard=false`. Tranche 52 executes no bootstrap
+refits, sends no Totoro/FIIA/DRAC/Nibi/Rorqual/Trillium command, and makes no
+bootstrap-finiteness, coverage, `inference_ready`, or `supported` claim. The
+animal q1 `mu` support cell remains `point_fit`, `extractor_ready`,
+`fixture_parity`, `planned`, `planned`, and `source`.
+
+`structured-re-gaussian-lowq-tranche53-q1-sigma-interval-route-design.tsv`
+records the next animal/relmat q1 `sigma` interval-route design after the
+Tranche 49 endpoint-zero-boundary route blocker. The fourteen-row sidecar
+keeps the raw Wald, endpoint-profile, `tmbprofile`, and split-tail routes
+blocked or parked, then selects a parametric-bootstrap direct-`sigma`-SD
+boundary-seed micro-smoke only as the next contract candidate. The q1 `sigma`
+runner still lacks a bootstrap flag, exact seed-list mode, and refit
+accounting, so Tranche 53 writes no runner patch, runs no bootstrap refits,
+sends no Totoro/FIIA/DRAC/Nibi/Rorqual/Trillium command, and makes no
+coverage, interval, `inference_ready`, or `supported` claim. The animal and
+relmat q1 `sigma` support cells remain `point_fit`, `extractor_ready`,
+`fixture_parity`, `planned`, `planned`, and `source`; the next gate is a
+Tranche 54 executable bootstrap micro-smoke contract with an exact retained
+boundary/failure seed manifest, or an explicit rejection of bootstrap after
+reviewer audit.
+
+`structured-re-gaussian-lowq-tranche54-q1-sigma-bootstrap-smoke-contract.tsv`
+records the executable but approval-gated q1 `sigma` bootstrap micro-smoke
+contract for the animal and relmat retained boundary seeds 914008 and 914011.
+The q1 `sigma` runner now has `bootstrap_smoke` mode, exact `--seed-list`
+handling, bootstrap refit accounting, and a sidecar command-row check; the
+wrapper refuses without
+`DRMTMB_Q1_SIGMA_TRANCHE54_EXECUTION_APPROVED=rose_fisher_gauss_noether_grace`
+and pins `bootstrap_R = 2`, `--profile=false`, and `--write-dashboard=false`.
+Tranche 54 runs no bootstrap refits, sends no Totoro/FIIA/DRAC/Nibi/Rorqual/
+Trillium command, pools no host denominator, and makes no bootstrap
+finiteness, coverage, `inference_ready`, or `supported` claim. The animal and
+relmat q1 `sigma` support cells remain `point_fit`, `extractor_ready`,
+`fixture_parity`, `planned`, `planned`, and `source`; the next gate is an
+explicit reviewer-approved artifact-only smoke followed by a separate Tranche
+55 terminal review.
 
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
 the 37 non-Gaussian Q-Series cells. It assigns eighteen Poisson/NB2 count
@@ -2522,6 +3403,274 @@ retained-denominator evidence, not interval reliability, coverage,
 `inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
 derived-correlation interval support, broad bridge support, or public support.
 
+`structured-re-q4-location-admission-tranche5-review.tsv` records the Tranche
+5 q4 location admission decision gate. It uses the Tranche 4 local smoke as
+review input only: the 16 target rows keep `coverage_not_authorized` and
+`do_not_promote`; phylo and spatial stay on diagnostic hold, animal requires
+failure taxonomy before any top-up, and relmat is only a host-separated repeat
+candidate after Rose/Fisher/Gauss/Noether/Grace review. The sidecar also banks
+provider summaries, the overall zero-admission decision, Kim's
+least-compute-needed rule, and member-board rows for every standing reviewer.
+It authorizes no coverage grid and does not promote interval reliability,
+`inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval support, broad bridge support, or public support.
+
+`structured-re-q4-location-admission-tranche5-relmat-repeat.tsv` records the
+host-separated Totoro repeat that Tranche 5 allowed after blocking-reviewer
+approval. The repeat covers only the relmat q4 location direct-SD targets, links
+to the copied Totoro raw results and run log under
+`docs/dev-log/simulation-artifacts/2026-07-01-q4-location-tranche5-relmat-repeat-totoro/`,
+and keeps the source SHA, dirty flag, host label, and remote output path visible.
+All four relmat targets have 5/5 retained `pdHess`, Wald-finite, and
+profile-finite rows, with gradient/profile diagnostics retained. The repeat is
+still post-run review evidence only: it does not admit q4, pool denominators,
+authorize coverage, or promote interval reliability, `inference_ready`,
+`supported`, q4 REML, REML, AI-REML, q8 inference, derived-correlation
+intervals, broad bridge support, or public support.
+
+`structured-re-q4-location-admission-tranche6-relmat-review.tsv` records the
+post-repeat Rose/Fisher/Grace admission review for relmat q4 location direct-SD
+targets. It links each target row to both the Tranche 4 local smoke row and the
+Tranche 5 host-separated Totoro repeat row. Local and Totoro rates are kept in
+separate columns; both are 5/5 on retained `pdHess`, Wald-finite, and
+profile-finite direct-SD rows, while Totoro gradient/profile diagnostics remain
+visible. The review records that the relmat direct-SD admission gate is met only
+for coverage-design discussion. It still authorizes no coverage grid, does not
+pool denominators, does not move the support-cell status, and does not claim
+interval reliability, `inference_ready`, `supported`, q4 REML, REML, AI-REML,
+q8 inference, derived-correlation intervals, broad bridge support, or public
+support. The next gate is a separate relmat-only q4 location coverage pregrid
+design contract.
+
+`structured-re-q4-location-tranche7-relmat-coverage-pregrid-contract.tsv`
+records that separate Tranche 7 design contract. It names the four relmat q4
+location direct-SD coverage pregrid shards, `13` through `16`, with SR150 as a
+screen only, Totoro/control-master submission as the primary host route, and
+DRAC as fallback after submission-pack review. The contract requires external
+source SHA, dirty-state, host-label, seed-manifest, exact-command, run-log, and
+Mission Control provenance artifacts because the coverage-grid runner is not
+yet the provenance source of truth. Rose, Fisher, and Grace are the blocking
+reviewers before any execution. Every row remains `coverage_not_authorized` and
+`do_not_promote`; the contract is not a coverage result, interval reliability
+claim, `inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval, denominator pooling, broad bridge support, or
+public-support claim.
+
+`structured-re-q4-location-tranche8-relmat-host-submission-pack.tsv` records
+the next host submission pack for those same relmat q4 location direct-SD
+targets. It banks exact Totoro and DRAC fallback commands, source SHA and dirty
+state capture, host-label policy, expected output/log paths, and fail-closed
+helper scripts: `tools/run-q4-location-relmat-pregrid-totoro.sh` for the
+host-side Totoro path and `tools/slurm/q4-location-relmat-pregrid.sbatch` for
+the relmat-only DRAC fallback. Both helpers require explicit
+`DRMTMB_Q4LOC_EXECUTION_APPROVED=rose_fisher_grace` before execution. The pack
+is still not a run: every row stays `pack_banked_not_submitted`,
+`coverage_not_authorized`, and `do_not_promote`; no Totoro command was executed,
+no DRAC job was submitted, no result was imported, and no interval reliability,
+`inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval, denominator pooling, broad bridge support, or
+public-support claim is made.
+
+`structured-re-q4-location-tranche34-relmat-host-preflight.tsv` records the
+fresh host preflight requested by the Tranche 8 next gate. Totoro is reachable
+through the ControlMaster route and has `Rscript` 4.5.3, but the path
+`/home/snakagaw/codex/drmTMB` is not a normal source checkout for this run: git
+resolves the top level to `/home/snakagaw`, `HEAD` is unavailable, the Tranche 8
+Totoro wrapper is missing, and the relmat-only DRAC fallback script is missing
+there as well. Grace therefore blocks execution before any fit starts. Every
+row remains `no_compute_in_tranche34`, `coverage_not_authorized`, and
+`do_not_promote`; no Totoro command was executed, no DRAC job was submitted, no
+coverage-evaluable denominator was created, and no interval reliability,
+`inference_ready`, `supported`, q4 REML, REML, AI-REML, q8 inference,
+derived-correlation interval, denominator pooling, broad bridge support, or
+public-support claim is made. The next gate is source synchronization or a
+verified DRAC fallback checkout, then another host preflight and checkpoint
+before q4 relmat pregrid execution.
+
+`structured-re-q4-location-tranche35-relmat-source-snapshot-preflight.tsv`
+records the next provenance step. A new isolated Totoro source snapshot was
+staged at
+`/home/snakagaw/codex/drmTMB-q4loc-tranche35-source-56add7f0-20260702T002713Z`
+with `SOURCE-PROVENANCE.tsv` and a 3,057-file `SOURCE-MANIFEST.sha256`; the
+local q4 wrapper, q4 coverage runner, and DRAC fallback helper hashes match the
+remote manifest. The Totoro wrapper dry-ran all four relmat q4 location shards,
+and the execution path failed closed with exit 2 when the
+`DRMTMB_Q4LOC_EXECUTION_APPROVED=rose_fisher_grace` token was absent. This is
+still source-preflight evidence only: the snapshot is dirty, no fit was run, no
+DRAC job was submitted, no coverage-evaluable denominator was created, and no
+interval reliability, `inference_ready`, `supported`, q4 REML, REML, AI-REML,
+q8 inference, derived-correlation interval, denominator pooling, broad bridge
+support, or public-support claim is made. The next gate is Rose/Fisher/Grace
+review of dirty snapshot versus clean committed source, then a fresh checkpoint
+before at most shard 13 can run.
+
+`structured-re-q4-location-tranche36-relmat-shard13-execution-decision.tsv`
+records the Rose/Fisher/Grace decision from that gate. The exact dirty,
+manifested Totoro snapshot is accepted for one diagnostic SR150 pregrid shard
+only: shard 13, `mu1:(Intercept)`, with source manifest hash
+`ea168bf85286f7ac81d622105efd2b566f737384ab8f0d33c48c30994133ccf8`.
+The decision does not authorize a four-shard run, DRAC submission, coverage
+grid, result import, or status movement. Every row stays
+`coverage_not_authorized` and `do_not_promote`; no coverage-evaluable
+denominator exists until a terminal review imports retained attempts. The next
+gate is a fresh checkpoint, then exactly one Totoro shard with
+`DRMTMB_Q4LOC_EXECUTION_APPROVED=rose_fisher_grace`; if command provenance,
+host provenance, logs, output paths, or fail-closed guards drift, stop before
+importing any result.
+
+`structured-re-q4-location-tranche37-relmat-shard13-terminal-review.tsv`
+records the terminal review of that one approved shard. Totoro reached the q4
+runner, captured source and host provenance, and wrote 150 retained replicate
+rows, but every row is `not_attempted`: `drmTMB` was not loadable and
+`--attempt-temp-install` was not requested. The review therefore overrides the
+runner's generic pending-MCSE wording with
+`no_coverage_evaluable_denominator`. No retry is authorized. The next gate is a
+reviewed loadable-source route, such as wrapper support for
+`--attempt-temp-install` or a preinstalled matching `drmTMB` library, followed
+by a new source snapshot, dry-run, checkpoint, and Rose/Fisher/Grace approval
+before any retry.
+
+`structured-re-q4-location-tranche38-relmat-temp-install-route-contract.tsv`
+records the reviewed loadable-source route contract after the Tranche 37 load
+blocker. The Totoro wrapper now exposes both `--attempt-temp-install` and
+`DRMTMB_Q4LOC_ATTEMPT_TEMP_INSTALL=true`, and dry-run output shows the flag is
+forwarded to `tools/run-structured-re-q4-location-coverage-grid.R` for shard 13.
+The execute path still fails closed without
+`DRMTMB_Q4LOC_EXECUTION_APPROVED=rose_fisher_grace`. Tranche 38 runs no fit,
+retries no shard, creates no denominator, and supersedes the old Tranche 35-36
+helper hash for future execution planning. The next gate is a fresh Totoro
+source snapshot with the new wrapper hash, a Totoro dry-run for shard 13 with
+`--attempt-temp-install`, a checkpoint, and Rose/Fisher/Grace approval before
+any retry.
+
+`structured-re-q4-location-tranche39-relmat-source-snapshot-dryrun.tsv`
+records that fresh Totoro source snapshot and dry-run proof. The snapshot at
+`/home/snakagaw/codex/drmTMB-q4loc-tranche39-source-56add7f0-20260702T012433Z`
+has source provenance, a 3,770-line SHA-256 manifest, wrapper hash
+`9133474766f6968f4344871e48c8b8a92cfdedc2bfff15e94a6fcc4b3afa9b8c`, and a
+dry-run transcript from the snapshot showing shard 13 with
+`--attempt-temp-install`. No package temp install was executed, no fit ran, no
+retry happened, and no denominator was created. The next gate is a checkpoint
+and Rose/Fisher/Grace approval before exactly one shard-13 retry from this
+snapshot.
+
+`structured-re-q4-location-tranche40-relmat-shard13-execution-gate.tsv`
+records that approval gate. A remote Totoro probe confirmed that the Tranche
+39 snapshot still exists, the wrapper is executable, and the manifest,
+provenance, wrapper, coverage-runner, and DRAC sbatch hashes still match the
+banked source-snapshot proof. Rose/Fisher/Grace approve only one shard-13
+temp-install retry after a checkpoint, from that snapshot and the planned
+Tranche 40 run root, with
+`DRMTMB_Q4LOC_EXECUTION_APPROVED=rose_fisher_grace`. Tranche 40 itself executes
+no R runner, attempts no package temp install, runs no fit, creates no retained
+denominator, authorizes no coverage, and moves no support-cell status. The next
+gate is a Tranche 41 terminal review before any denominator or status
+discussion.
+
+`structured-re-q4-location-tranche41-relmat-shard13-terminal-review.tsv`
+records that one approved shard-13 retry did run and stopped before fitting.
+The runner requested `--attempt-temp-install`, but the temporary package install
+failed because `TMB` and `RcppEigen` were unavailable on Totoro. The imported
+artifact has 150 replicate rows, all `not_attempted`, with zero fits, zero
+`pdHess`, zero finite Wald intervals, and zero finite profile intervals. The
+terminal review overrides the runner's generic `pending_mcse_check` wording
+with `no_coverage_evaluable_denominator`; no retry, shards 14-16, DRAC
+submission, coverage, or status movement is authorized. The next gate is a
+dependency route for `TMB` and `RcppEigen` availability on Totoro or a
+source-and-dependency-provenanced DRAC fallback.
+
+`structured-re-q4-location-tranche42-relmat-dependency-route-preflight.tsv`
+records that dependency-route preflight. The Totoro probe found R 4.5.3, a
+writable user library at `/home/snakagaw/R/lib`, installed `Rcpp` and `Matrix`,
+reachable CRAN metadata for `TMB` 1.9.21 and `RcppEigen` 0.3.4.0.2, and a
+usable gcc/g++ toolchain. It also confirms that `TMB` and `RcppEigen` are not
+installed yet. This is a route contract only: no dependency install, q4 retry,
+shard execution, DRAC submission, package load proof, denominator, coverage, or
+status movement happened in Tranche 42. The next gate is a checkpointed
+Totoro-only install of `TMB` and `RcppEigen` into the user library, with install
+logs and dependency provenance banked before any retry or denominator
+discussion.
+
+`structured-re-q4-location-tranche43-relmat-dependency-install-terminal-review.tsv`
+records that Totoro-only dependency install. The first install script failed
+before installation because the `download.packages()` matrix was parsed as if
+it had column names; the second attempt installed `RcppEigen` 0.3.4.0.2 and
+`TMB` 1.9.21 into `/home/snakagaw/R/lib` from CRAN source tarballs, recorded
+SHA-256 hashes for both tarballs, and verified `requireNamespace()` for both
+packages. This is dependency-install evidence only: no `drmTMB` load, q4 fit,
+q4 retry, shard execution, denominator, coverage, or support-cell status
+movement happened in Tranche 43. The next gate is a checkpoint and
+Rose/Fisher/Grace approval before exactly one relmat q4 shard-13 temp-install
+retry from the Tranche 39 source snapshot, followed by a Tranche 44 terminal
+review before any denominator or status discussion.
+
+`structured-re-q4-location-tranche44-relmat-shard13-after-deps-terminal-review.tsv`
+records that single approved after-dependency-install retry. The Totoro shard
+ran from the Tranche 39 source snapshot with
+`DRMTMB_Q4LOC_EXECUTION_APPROVED=rose_fisher_grace` and
+`--attempt-temp-install`; `drmTMB` loaded, the run exited 0, and all 150
+replicates fit. Admission still failed because retained-denominator `pdHess`
+and Wald-finite rates were both 112/150 = 0.7467, below the 0.95 admission
+threshold, despite profile-finite rate 149/150 = 0.9933. This is terminal
+review evidence only: no denominator admission, no coverage authorization, no
+shards 14-16, no DRAC submission, no top-up, no q4 support-cell status
+movement, no interval-reliability claim, no `inference_ready`, and no
+`supported` status. The next gate is a checkpointed relmat q4 route-hold and
+failure-taxonomy decision reviewed by Rose/Fisher/Grace before any retry or
+coverage discussion.
+
+`structured-re-q4-location-tranche45-relmat-after-deps-route-hold-failure-taxonomy.tsv`
+records that route-hold and failure-taxonomy decision. It reviews the existing
+Tranche 44 Totoro shard-13 artifacts without running any new replicate. The
+seven rows classify the admission failure as boundary-coupled `pdHess` and
+Wald nonfiniteness: 150/150 fits succeeded, but `pdHess` and Wald-finite rates
+were only 112/150 = 0.7467, with 38 boundary rows; profile-finite rate was
+149/150 = 0.9933 and does not override the failed retained-denominator gate.
+All standing reviewers are on the member board, with Rose, Fisher, Gauss,
+Noether, and Grace blocking admission or compute decisions. This is taxonomy
+only: no compute, no denominator admission, no shards 14-16, no DRAC
+submission, no top-up, no coverage authorization, no support-cell movement, no
+`inference_ready`, and no `supported` status. The next gate is exactly one
+reviewed no-compute failure-class contract or an explicit parking decision.
+
+`structured-re-q4-location-tranche46-relmat-boundary-hessian-inspection-contract.tsv`
+records that selected failure-class contract. It does not run the inspection.
+The seven rows define an artifact-only boundary/Hessian review over the
+existing Tranche 44 and Tranche 45 files: boundary-row inventory,
+`pdHess`/Wald coupling, optimizer and `NaN` messages, the single profile
+exception, raw Hessian artifact availability, direct-SD scale patterns, and a
+contract summary. The contract explicitly stops before model refits, Totoro
+commands, DRAC submission, remote file fetches, optimizer changes, formula or
+profile-target changes, denominator admission, or coverage. The next gate is
+either an artifact-only inspection from existing files or an explicit relmat q4
+parking decision.
+
+`structured-re-q4-location-tranche47-relmat-boundary-hessian-inspection-result.tsv`
+records that artifact-only inspection result. It reads the existing Tranche 44
+Totoro shard-13 replicate TSV, summary TSV, log, and provenance files without
+running any model or host command. The eight rows show that the 38 boundary rows
+are exactly the 38 `pdHess = FALSE` rows and exactly the 38 Wald-nonfinite rows;
+replicate 119 / seed 980118 is the single profile failure; fallback optimizer
+and `NaN` messages are diagnostic only; and the imported artifact tree does not
+contain raw Hessian or eigenstructure files. The retained-denominator admission
+gate remains failed at 112/150 = 0.7467 for `pdHess` and Wald finiteness, so the
+result authorizes no denominator admission, coverage, top-up, replay, shards
+14-16, DRAC submission, Totoro command, support-cell movement,
+`inference_ready`, or `supported` status. The next gate is to park relmat q4 or
+write a separate design/instrumentation contract before any compute.
+
+`structured-re-q4-location-tranche48-relmat-parking-decision.tsv` records that
+parking decision. It parks the failed relmat q4 `mu1` direct-SD admission route
+after the Tranche 47 inspection: `pdHess` and Wald-finite rates remain
+112/150 = 0.7467, the 38 boundary rows are exactly the 38 `pdHess = FALSE` and
+Wald-nonfinite rows, and the imported artifact tree still lacks raw Hessian or
+eigenstructure evidence. This does not change the underlying support cell,
+which remains `point_fit`, `extractor_ready`, `fixture_parity`,
+`diagnostic_only`, `planned`, and `source`. Every row is
+`no_compute_in_tranche48`, `coverage_not_authorized`, and `do_not_promote`. The
+route can reopen only through a reviewed design or instrumentation contract
+approved by Rose/Fisher/Gauss/Noether/Grace and checkpointed before compute.
+
 `structured-re-q4-admission-tranche3-closure-audit.tsv` records the Tranche 3
 q4 admission closure audit. It ties the clean checkpoint recheck, high-q
 orientation, denominator contract, admission review, target map, compute policy,
@@ -2659,6 +3808,570 @@ The `drmTMB` Repo Truth row is refreshed in the served `/tmp` copy at launch
 time from `git branch`, `git rev-parse`, and `git status --porcelain`. The
 source JSON keeps a placeholder because a committed file cannot truthfully
 contain its own final commit hash.
+
+`structured-re-gaussian-mu-slope-tranche84-spatial-drac-smoke-approval-gate.tsv`
+records the q1 `mu` one-slope spatial-only DRAC post-staging smoke-approval
+review. It accepts the Tranche 83 Rorqual source/run-root staging proof as
+provenance evidence, but withholds smoke authorization because the current
+Tranche 77 runner and wrapper still require the exact Tranche 73 Totoro source
+and run-root paths and refuse the Tranche 83 DRAC paths. The next gate is
+Tranche 85 only: a fail-closed DRAC runner-path patch gate with dry-run/refusal
+proof. Tranche 84 adds no host command, model fit, retained denominator,
+coverage, support-cell status edit, `inference_ready`, or `supported` claim.
+
+`structured-re-gaussian-mu-slope-tranche85-spatial-drac-runner-path-gate.tsv`
+records the q1 `mu` one-slope spatial-only DRAC runner-path patch gate. It
+adds a T85 R runner and shell wrapper that accept the exact Tranche 83 DRAC
+source path and run root, preserve the Tranche 77 helper-source order, keep
+the DRAC Rorqual host label, keep `write-dashboard=false`, and keep the
+host-separated denominator policy. The local proof is shell-only: manifest
+mode writes 10 seed-target rows, execute mode refuses before `Rscript` without
+the preserved approval token, and hashes plus a no-Rscript proof are banked.
+Tranche 85 adds no SSH, module load, R command, `Rscript`, model fit,
+retained denominator, coverage, support-cell status edit, `inference_ready`,
+or `supported` claim. The next gate is Tranche 86 only: a post-patch DRAC
+smoke-approval review that either authorizes one future host-separated n5
+smoke through the T85 wrapper or keeps the route held.
+
+`structured-re-gaussian-mu-slope-tranche86-spatial-drac-smoke-approval-gate.tsv`
+records the q1 `mu` one-slope spatial-only DRAC post-patch smoke-approval
+gate. It reviews the T85 runner/wrapper hashes, shell manifest proof,
+execute-refusal proof, no-Rscript proof, exact T83 DRAC source and run-root
+paths, helper-source order, host label, fixed seeds, approval token,
+`write-dashboard=false`, and host-separated denominator policy. T86 authorizes
+at most one future DRAC Rorqual n5 smoke through the T85 wrapper after
+checkpoint, but T86 itself runs no SSH, DRAC command, module load, R command,
+`Rscript`, model fit, retained denominator, coverage, support-cell status
+edit, `inference_ready`, or `supported` claim. The next gate is Tranche 87
+only: a single-command DRAC Rorqual n5 smoke execution/terminal-review tranche.
+
+`structured-re-gaussian-mu-slope-tranche87-spatial-drac-slurm-packet.tsv`
+records the q1 `mu` one-slope spatial-only DRAC SLURM-packet blocker. T87
+corrects the execution route before compute: Rorqual is reachable through the
+remembered ControlMaster socket and the exact T83 source/run-root paths exist,
+but the remote T85 runner and wrapper are missing. The local sbatch packet is
+fail-closed: it refuses outside `SLURM_CLUSTER_NAME=rorqual` with
+`SLURM_JOB_ID` set, checks the exact T85 runner/wrapper hashes, and preserves
+the T77 wrapper approval token. T87 submits no `sbatch`, copies no remote file,
+loads no module, runs no R command or `Rscript`, fits no model, and creates no
+retained denominator, coverage result, support-cell status edit,
+`inference_ready`, or `supported` claim. The next gate is Tranche 88 only: a
+remote staging proof for the exact T85 runner, T85 wrapper, and T87 sbatch
+packet, with remote hashes and a manifest-only no-R proof before any later
+sbatch submission is considered.
+
+`structured-re-gaussian-mu-slope-tranche88-spatial-drac-remote-staging-proof.tsv`
+records the q1 `mu` one-slope spatial-only DRAC remote staging proof. T88 stages
+the exact T85 runner and wrapper plus the T87 sbatch packet on Rorqual under the
+exact T83 source/run-root paths, verifies remote SHA-256 hashes, chmods the
+wrapper and sbatch packets, runs shell syntax checks, and runs wrapper manifest
+mode only. T88 submits no `sbatch`, loads no module, runs no R command or
+`Rscript`, fits no model, and creates no retained denominator, coverage result,
+support-cell status edit, `inference_ready`, or `supported` claim. The next
+gate is Tranche 89 only: a separate Rose/Fisher/Gauss/Noether/Grace-reviewed
+Rorqual sbatch submission and terminal-review tranche after checkpoint.
+
+`structured-re-gaussian-mu-slope-tranche89-spatial-drac-sbatch-terminal-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC sbatch terminal review. T89
+submitted exactly one Rorqual job, `15084376`, through the staged run-root
+packet. The job reached node `rc31728` and failed after two seconds before model
+fitting because the wrapper path guard compared an existing run root normalized
+to `/lustre09/project/6098264/...` with a not-yet-created output directory that
+remained under `/project/def-snakagaw/...`. The absent result directory and
+imported wrapper stderr are failure-taxonomy evidence only: T89 creates zero
+retained denominators, no `pdHess`, no Wald/profile interval evidence, no
+coverage result, no support-cell status edit, no `inference_ready`, and no
+`supported` claim. The next gate is Tranche 90 only: a no-compute path-alignment
+patch/review before any repeat sbatch is considered.
+
+`structured-re-gaussian-mu-slope-tranche90-spatial-drac-path-alignment-patch-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC path-alignment patch review.
+T90 patches the local T85 R runner so missing output paths are normalized
+through their nearest existing parent before comparison with the exact T83 run
+root, and refreshes the local T87 sbatch packet's expected runner hash. The
+shell wrapper is unchanged and keeps its raw exact-run-root prefix guard. T90
+runs only local parse, shell syntax, manifest-only, and approval-refusal checks:
+no SSH, no remote copy, no `sbatch`, no module load, no R package load, no
+`devtools::load_all()`, no smoke command, no model fit, no retained
+denominator, and no support-cell status edit. The next gate is Tranche 91 only:
+a no-compute remote restaging proof for the patched runner and sbatch packet,
+with remote hashes and manifest-only no-R proof before any repeat sbatch is
+considered.
+
+`structured-re-gaussian-mu-slope-tranche91-spatial-drac-remote-restaging-proof.tsv`
+records the q1 `mu` one-slope spatial-only DRAC remote restaging proof. T91
+restages the T90-patched T85 runner, unchanged wrapper, and refreshed T87
+sbatch packet on Rorqual, then records remote SHA-256 hashes, executable bits,
+remote bash syntax checks, and wrapper manifest-only no-R proof. The manifest
+has 10 planned seed-target rows plus a header; every row remains
+`manifest_only_no_rscript_no_model_no_denominator`, `coverage_not_authorized`,
+and `do_not_promote`. T91 runs no `sbatch`, no module load, no R command, no
+`Rscript`, no package load, no smoke command, no model fit, no retained
+denominator, no coverage result, and no support-cell status edit. The next gate
+is Tranche 92 only: a separate Rose/Fisher/Gauss/Noether/Grace-reviewed sbatch
+authorization gate after checkpoint.
+
+`structured-re-gaussian-mu-slope-tranche92-spatial-drac-sbatch-authorization-gate.tsv`
+records the q1 `mu` one-slope spatial-only DRAC sbatch authorization gate. T92
+reviews the T91 remote restaging proof, exact runner/wrapper/sbatch hashes,
+manifest-only no-R proof, host label, seeds, direct-SD target identity, and
+host-separated denominator policy. It authorizes at most one future Rorqual
+sbatch through the T91-restaged packet after validation and checkpoint, but T92
+itself submits no job and runs no compute. Every row keeps
+`not_submitted_in_tranche92`, `no_new_denominator`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 93 only: a
+single Rorqual sbatch submission and terminal-review tranche that must stop
+before coverage, top-up, support-cell status edit, `inference_ready`,
+`supported`, public support, REML, AI-REML, or denominator pooling.
+
+`structured-re-gaussian-mu-slope-tranche93-spatial-drac-sbatch-terminal-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC sbatch terminal review. T93
+submitted exactly one Rorqual job, `15087685`, through the T91-restaged
+run-root sbatch packet. The job reached node `rc32114` and failed with Slurm
+state `FAILED`, exit code `1:0`, and elapsed time `00:00:13`. The failure
+occurred before package load and before model fit: `wrapper.stderr` reports
+that `drmTMB` could not be loaded from the exact T83 DRAC source path, and the
+run log records `devtools_load_all_failed` because the Tranche 85 runner
+requires `devtools` for `load_all()`. T93 imports 10 manifest rows only, not fit
+rows, so every row keeps zero retained denominator, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 94 only: a no-compute dependency/load-route review before any repeat
+sbatch.
+
+`structured-re-gaussian-mu-slope-tranche94-spatial-drac-dependency-load-route-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC dependency/load-route review.
+T94 imports the T93 job `15087685` terminal evidence, runner source route,
+wrapper stderr, remote-metadata tarball `sessionInfo.txt`, manifest rows, and
+run log. It records that the current route requires `devtools::load_all()` from
+the exact T83 DRAC source path and that the T93 R session had R 4.4.0 on
+AlmaLinux 9.8 with only base packages and `compiler` loaded. T94 runs no ssh,
+`sbatch`, module load, R command, `Rscript`, package load, `load_all()`, or
+model fit. Every row keeps `no_new_denominator`, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 95 only: a no-compute dependency-staging/load-route contract before any
+repeat Rorqual sbatch or model command.
+
+`structured-re-gaussian-mu-slope-tranche95-spatial-drac-dependency-staging-contract.tsv`
+records the q1 `mu` one-slope spatial-only DRAC dependency-staging contract.
+T95 converts the T94 load blocker into an economical route decision: broad
+`devtools` staging is rejected for this tranche, the base-R staged-library
+`R CMD INSTALL` plus `library(drmTMB)` route is selected for a future T96
+no-model proof, and `pkgload` plus manual-source fallbacks are held until that
+proof or explicit review needs them. T95 runs no ssh, `sbatch`, module load, R
+command, `Rscript`, package install, package load, `devtools::load_all()`,
+`pkgload::load_all()`, or model fit. Every row keeps `no_new_denominator`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 96 only: a
+no-model/no-sbatch dependency proof of the base-R staged-library route before
+any repeat Rorqual sbatch or model command.
+
+`structured-re-gaussian-mu-slope-tranche96-spatial-drac-dependency-proof.tsv`
+records the q1 `mu` one-slope spatial-only DRAC dependency proof. T96 reached
+Rorqual as `snakagaw`, loaded the `StdEnv/2023`, `gcc/12.3`, and `r/4.4.0`
+module route, confirmed the exact T83 source and run root exist, and attempted
+only `R CMD INSTALL` into a run-local library. The proof failed closed because
+`cli`, `TMB`, and `RcppEigen` were not available; `library(drmTMB)` was not
+attempted after that install failure. T96 runs no `sbatch`, smoke runner,
+simulation, model formula, or model fit. Every row keeps `no_new_denominator`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 97 only: a
+no-model/no-sbatch dependency-install/staging contract for `cli`, `TMB`, and
+`RcppEigen`, or an existing DRAC module/library route, before any repeat
+Rorqual sbatch or model command.
+
+`structured-re-gaussian-mu-slope-tranche97-spatial-drac-dependency-install-staging-contract.tsv`
+records the q1 `mu` one-slope spatial-only DRAC dependency-install staging
+contract. T97 imports the T96 missing-dependency blocker, limits the dependency
+scope to `cli`, `TMB`, and `RcppEigen`, and selects a T98-only proof route:
+probe default/project libraries first, then install exactly `cli`, `RcppEigen`,
+and `TMB` into `Rlib-tranche98` only if the host policy is login-node safe. T97
+runs no ssh, remote command, module load, R command, `Rscript`, package install,
+package load, `R CMD INSTALL`, `library(drmTMB)`, `sbatch`, smoke runner,
+simulation, model formula, or model fit. Every row keeps `no_new_denominator`,
+`coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 98 only: a
+no-model/no-sbatch dependency-install proof that either proves the run-local
+dependency route and package load or stops with an allocation contract.
+
+`structured-re-gaussian-mu-slope-tranche98-spatial-drac-dependency-install-proof.tsv`
+records the q1 `mu` one-slope spatial-only DRAC dependency-install proof. T98
+reached Rorqual as `snakagaw`, loaded `StdEnv/2023`, `gcc/12.3`, and `r/4.4.0`,
+probed `.libPaths()` and package availability, and confirmed the exact T83
+source and run root still exist. The proof found only the R 4.4.0 module
+library on the path and confirmed `cli`, `TMB`, and `RcppEigen` are absent. T98
+does not install packages or run `R CMD INSTALL` because compiling on a DRAC
+login node is not policy-safe; it also does not load `drmTMB`, submit `sbatch`,
+run a smoke runner, run a model formula, or create a retained denominator.
+Every row keeps `no_new_denominator`, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 99 only: an allocation-safe no-model dependency install/load proof via
+`sbatch` or `salloc`, still before any repeat model job or coverage work.
+
+`structured-re-gaussian-mu-slope-tranche99-spatial-drac-allocation-install-load-proof.tsv`
+records the q1 `mu` one-slope spatial-only DRAC allocation install/load proof.
+T99 submitted one Rorqual `sbatch` job (`15094722`) and fetched the terminal
+artifacts. The job allocated on `rc32431` but failed after one second before
+module load because the DRAC CVMFS profile referenced unset `SKIP_CC_CVMFS`
+under `set -u`. T99 therefore records no Rscript, package install,
+`R CMD INSTALL`, `library(drmTMB)`, smoke runner, model formula, model fit,
+retained denominator, coverage, or support-cell status edit. Every row keeps
+`no_new_denominator`, `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 100 only: a
+no-compute shell-profile guard/packet review before any repeat allocation.
+
+`structured-re-gaussian-mu-slope-tranche100-spatial-drac-shell-profile-guard-packet-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC shell-profile guard packet
+review. T100 runs locally only: it defines `SKIP_CC_CVMFS` before sourcing the
+DRAC CVMFS profile in the T101 candidate packet, moves `set -u` after that
+profile source, records the T99 failed-packet hash, records the T101 candidate
+packet hash, and passes `bash -n` with empty stderr. T100 performs no ssh,
+remote copy, `sbatch`, `salloc`, module load, Rscript, package install,
+`R CMD INSTALL`, `library(drmTMB)`, smoke runner, model formula, model fit,
+retained denominator, coverage, or support-cell status edit. Every row keeps
+`no_new_denominator`, `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 101 only:
+checkpoint first, then at most one allocation-safe no-model dependency
+install/load proof with the T100 candidate packet.
+
+`structured-re-gaussian-mu-slope-tranche101-spatial-drac-allocation-install-load-terminal-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC allocation/install-load
+terminal review. T101 submitted one allocation-safe no-model Rorqual `sbatch`
+job (`15097440`) with the T100 candidate packet. The job completed with
+`0:0` on allocation host `rc32607`, but `R` and `Rscript` were
+command-not-found after module load, and the packet status file drifted by
+recording install/load passes despite command-not-found stderr. T101 is
+therefore not dependency-install success evidence, not package-load success
+evidence, and not fit evidence. It records no smoke runner, model formula,
+model fit, retained denominator, coverage, top-up, or support-cell status
+edit. Every row keeps `no_new_denominator`, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 102 only: checkpoint first, then a no-compute packet/module-executable
+status guard review that checks `command -v R` and `command -v Rscript` after
+module load and fixes status writes before any repeat allocation.
+
+`structured-re-gaussian-mu-slope-tranche102-spatial-drac-packet-module-executable-status-guard-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC packet/module-executable status
+guard review. T102 is local and no-compute: no `ssh`, remote copy, `sbatch`,
+`salloc`, module load, R command, Rscript, package install, `R CMD INSTALL`,
+`library(drmTMB)`, smoke runner, simulation, model formula, or model fit ran.
+The T103 candidate packet records `command -v R` and `command -v Rscript`
+after module load, records module list/availability and executable paths, exits
+fail-closed if either executable is missing, and writes status rows from real
+command exit codes. T102 is not dependency-install success evidence, not
+package-load success evidence, not fit evidence, and not retained-denominator
+evidence. Every row keeps `no_new_denominator`, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 103 only: checkpoint first, then at most one allocation-safe no-model
+Rorqual `sbatch` dependency install/load proof with the T102 candidate packet.
+
+`structured-re-gaussian-mu-slope-tranche103-spatial-drac-allocation-install-load-terminal-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC allocation/install-load
+terminal review. T103 submitted exactly one allocation-safe no-model Rorqual
+`sbatch` job (`15102377`) with the T102 candidate packet. The job failed
+closed with `127:0` on allocation host `rc32422`: module load returned exit 0,
+but both `command -v R` and `command -v Rscript` exited 1. No package install,
+`R CMD INSTALL`, `library(drmTMB)`, smoke runner, model formula, model fit,
+retained denominator, coverage, top-up, or support-cell status edit occurred.
+T103 is not dependency-install success evidence, not package-load success
+evidence, not fit evidence, and not retained-denominator evidence. Every row
+keeps `no_new_denominator`, `coverage_not_authorized`, `do_not_promote`, and
+`unchanged_point_fit_planned_planned`. The next gate is Tranche 104 only:
+checkpoint first, then a no-compute module-route/executable resolution review
+from the T103 artifacts before any repeat allocation.
+
+`structured-re-gaussian-mu-slope-tranche104-spatial-drac-module-route-executable-resolution-review.tsv`
+records the q1 `mu` one-slope spatial-only DRAC module-route/executable
+resolution review. T104 is local and no-compute: no `ssh`, `sbatch`, `salloc`,
+module load, R command, Rscript, package install, `R CMD INSTALL`,
+`library(drmTMB)`, smoke runner, model formula, or model fit ran. It reviews
+the T103 artifacts and records the failure taxonomy as module-resolution
+ambiguity: T103 module load exited 0, the loaded module list did not contain
+`r/4.4.0`, `module avail r` listed `r/4.4.0`, and both executable probes
+remained `NA`. T104 is not dependency-install success evidence, not
+package-load success evidence, not fit evidence, and not retained-denominator
+evidence. Every row keeps `no_new_denominator`, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`. The next gate is
+Tranche 105 only: checkpoint first, then a no-compute module-route packet
+patch/contract before any repeat allocation.
+
+`structured-re-gaussian-mu-slope-tranche105-spatial-drac-module-route-packet-contract.tsv`
+records that packet contract without executing it. T105 encodes the reviewed
+T104 candidate route: load `StdEnv/2023` then `r/4.4.0`, record the module
+list, require the loaded module list to contain `r/4.4.0`, require `command -v
+R` and `command -v Rscript` before any package install, and fail closed before
+install/load/model if either executable guard fails. T105 runs no `ssh`,
+`sbatch`, `salloc`, module load, R command, Rscript, package install, `R CMD
+INSTALL`, `library(drmTMB)`, smoke runner, model formula, model fit, retained
+denominator, coverage, top-up, or support-cell status edit. It is not
+dependency-install success, package-load success, fit evidence, admission
+evidence, `inference_ready`, `supported`, public support, REML, AI-REML, or
+denominator-pooling permission. The next gate is Tranche 106 only: checkpoint
+first, then at most one allocation-safe no-model Rorqual module-route/install-
+load proof if Rose, Fisher, Gauss, Noether, and Grace approve.
+
+`structured-re-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-submission-pending.tsv`
+records the submitted-but-pending state for that proof. T106 used the T105
+packet and submitted exactly one allocation-safe no-model Rorqual `sbatch` job
+(`15103184`) after the checkpoint. Remote preflight passed, the packet hash
+matched, and `bash -n` passed remotely. While T106 was first banked the job was
+still `PENDING` for scheduler reason `Priority`, so it was not terminal proof,
+not module-load success, not R/Rscript success, not dependency-install success,
+not package-load success, not fit evidence, and not retained-denominator
+evidence. Every row keeps `no_new_denominator`, `coverage_not_authorized`,
+`do_not_promote`, and `unchanged_point_fit_planned_planned`.
+
+`structured-re-gaussian-mu-slope-tranche107-spatial-drac-module-route-install-load-terminal-review.tsv`
+records the terminal review for the same job. Rorqual job `15103184` allocated
+on `rc32522` and failed `127:0` after `00:00:02`. The module-load command
+exited 0, but the loaded-module guard failed: `module-list-after-r-load.txt`
+did not contain `r/4.4.0` and instead reported no loaded modules matching
+`-t`. Therefore no R/Rscript probe, package install, `R CMD INSTALL`,
+`library(drmTMB)`, smoke runner, model formula, model fit, retained
+denominator, coverage, top-up, or support-cell status edit occurred. T107 is
+terminal failure evidence only and authorizes no repeat allocation. The next
+gate is Tranche 108 only: a no-compute module-list syntax/route review from
+the T107 artifacts before any repeat `sbatch` or `salloc`.
+
+`structured-re-gaussian-mu-slope-tranche108-spatial-drac-module-list-syntax-route-review.tsv`
+records that no-compute route review. It runs no new host command, `sbatch`,
+`salloc`, module load, R command, Rscript, package install, `R CMD INSTALL`,
+`library(drmTMB)`, smoke runner, model formula, model fit, retained
+denominator, coverage, top-up, or support-cell status edit. The review keeps
+the T107 failure taxonomy narrow: `module list -t` was interpreted as matching
+`-t`, while existing Slurm packets use plain `module list` capture. The next
+gate is Tranche 109 only: a no-compute packet patch/contract that records the
+raw plain module list, requires `r/4.4.0` in that captured list, and then
+checks `command -v R` and `command -v Rscript` before any install/load/model
+step. T108 is not module-load success, R/Rscript proof, dependency-install
+success, package-load success, fit evidence, retained-denominator evidence,
+admission evidence, coverage evidence, `inference_ready`, `supported`, public
+support, REML, AI-REML, or denominator-pooling permission.
+
+`structured-re-gaussian-mu-slope-tranche109-spatial-drac-module-list-packet-contract.tsv`
+banks the corrected local packet contract without executing it. T109 replaces
+the failing `module list -t` capture with plain `module list`, requires the raw
+captured list to contain `r/4.4.0`, then probes `command -v R` and `command -v
+Rscript` and fails closed before package install, `R CMD INSTALL`,
+`library(drmTMB)`, smoke runner, model formula, model fit, retained denominator,
+coverage, top-up, or support-cell status edit. T109 is not module-load success,
+R/Rscript proof, dependency-install success, package-load success, fit evidence,
+admission evidence, coverage evidence, `inference_ready`, `supported`, public
+support, REML, AI-REML, or denominator-pooling permission. The next gate is
+Tranche 110 only: checkpoint first, then at most one allocation-safe no-model
+Rorqual module-list/executable proof from the T109 contract if Rose, Fisher,
+Gauss, Noether, and Grace approve.
+
+`structured-re-gaussian-mu-slope-tranche110-spatial-drac-module-list-executable-terminal-proof.tsv`
+banks the one allocation-safe no-model Rorqual proof from the T109 contract.
+T110 submitted exactly one Slurm job (`15104831`), allocated `rc32601`,
+completed with exit `0:0`, captured the raw plain `module list` with `r/4.4.0`,
+and proved `command -v R` plus `command -v Rscript` resolve to R 4.4.0 CVMFS
+paths. The job then stopped before package install, `R CMD INSTALL`,
+`library(drmTMB)`, smoke runner, model formula, model fit, retained denominator,
+coverage, top-up, or support-cell status edit. T110 is not dependency-install
+success, package-load success, fit evidence, admission evidence, coverage
+evidence, `inference_ready`, `supported`, public support, REML, AI-REML, or
+denominator-pooling permission. The next gate is Tranche 111 only: a no-compute
+terminal decision review from existing T110 artifacts before any package-load
+proof is considered.
+
+
+`structured-re-gaussian-mu-slope-tranche111-spatial-drac-package-load-decision-review.tsv`
+banks the no-compute terminal decision review from existing T110 artifacts. T111
+runs no host command and records that T110 proved only the Rorqual
+module/executable route: job `15104831` on `rc32601`, raw `module list` contains
+`r/4.4.0`, and `R`/`Rscript` resolve to R 4.4.0 CVMFS paths. T111 is not
+package-install success, not package-load success, not fit evidence, not
+admission evidence, not coverage evidence, not `inference_ready`, not
+`supported`, not public support, not REML/AI-REML, and not denominator-pooling
+permission. The next gate is Tranche 112 only: checkpoint first, then at most
+one allocation-safe no-model Rorqual package-install/load proof.
+
+`structured-re-gaussian-mu-slope-tranche112-spatial-drac-package-install-load-terminal-review.tsv`
+banks the terminal review of that single no-model Rorqual proof. T112 submitted
+one Slurm job, `15105466`, on `rc32301`; the `r/4.4.0` module guard and
+`R`/`Rscript` executable guard passed, then dependency installation failed
+before `R CMD INSTALL` because the allocation could not access the CRAN
+`PACKAGES` index and the installer error branch called `conditionMessage()` on
+a logical value. T112 is not package-install success, not package-load success,
+not fit evidence, not denominator evidence, not coverage evidence, not
+`inference_ready`, not `supported`, not public support, not REML/AI-REML, and
+not denominator-pooling permission. The next gate is Tranche 113 only: a
+no-compute dependency/provenance review before any repeat allocation.
+
+`structured-re-gaussian-mu-slope-tranche113-spatial-drac-dependency-provenance-review.tsv`
+banks that no-compute dependency/provenance review from existing T112 artifacts.
+T113 ran no host command and records four holds before any repeat allocation:
+CRAN `PACKAGES` was unreachable from the T112 allocation, the installer error
+branch called `conditionMessage()` on a logical value, `Rlib-tranche112` plus
+`Rlib-tranche98` did not make `cli` available, and T112 host provenance reported
+`source_sha` as `NA`. T113 is not package-install success, not package-load
+success, not fit evidence, not denominator evidence, not coverage evidence, not
+`inference_ready`, not `supported`, not public support, not REML/AI-REML, and
+not denominator-pooling permission. The next gate is Tranche 114 only: a
+no-compute dependency-route packet/contract before any repeat allocation.
+
+`structured-re-gaussian-mu-slope-tranche114-spatial-drac-dependency-route-packet-contract.tsv`
+banks that no-compute dependency-route packet/contract from the T113 review. T114
+runs no host command and writes only local contract artifacts: a patched
+installer-status script that avoids the T112 `conditionMessage()` logical-value
+bug, an offline/pre-staged dependency-source route, a source-SHA contract for
+`56add7f04fab7bec57a42e56eaeb090dff491863`, a terminal-status contract, and an
+unsubmitted candidate T115 sbatch packet. T114 is not package-install success,
+not package-load success, not fit evidence, not denominator evidence, not
+coverage evidence, not `inference_ready`, not `supported`, not public support,
+not REML/AI-REML, and not denominator-pooling permission. The next gate is
+Tranche 115 only: checkpoint first, then at most one allocation-safe no-model
+Rorqual dependency-route proof if Rose/Fisher/Gauss/Noether/Grace approve.
+
+Tranche 115 then staged the file-backed dependency repository, source-SHA
+provenance for `56add7f04fab7bec57a42e56eaeb090dff491863`, and exactly one
+Rorqual sbatch job (`15106737`) as a submission-pending snapshot. Tranche 116 is
+the terminal review of that same job: `sacct` reports `COMPLETED` with exit
+`0:0` on allocation host `rc32501`; the job loaded `r/4.4.0`, matched the source
+SHA, and made `cli`, `Matrix`, `RcppEigen`, and `TMB` available through the
+staged dependency route. This is dependency-package availability only. It is not
+`drmTMB` package-install success, not `R CMD INSTALL` success, not
+`library(drmTMB)` success, not fit evidence, not denominator evidence, not
+coverage evidence, not `inference_ready`, not `supported`, not public support,
+not REML/AI-REML, and not denominator-pooling permission. The next gate is
+Tranche 117 only: no-compute package-install/load route packet review before any
+further allocation.
+
+`structured-re-gaussian-mu-slope-tranche117-spatial-drac-package-install-load-packet-review.tsv`
+banks that no-compute package-install/load packet review. T117 runs no host
+command and writes only local packet artifacts: source-SHA and library-path
+contracts, a fail-closed R install/load script contract, an unsubmitted
+candidate T118 sbatch packet, a terminal-status contract, and a local hash
+manifest. It imports the T116 dependency-route success for `cli`, `Matrix`,
+`RcppEigen`, and `TMB`, but it does not attempt `R CMD INSTALL`,
+`library(drmTMB)`, a smoke runner, a model formula, a model fit, a retained
+denominator, coverage, top-up, or a support-cell status edit. The next gate is
+Tranche 118 only: checkpoint first, then at most one allocation-safe no-model
+Rorqual package-install/load proof if Rose/Fisher/Gauss/Noether/Grace approve.
+
+`structured-re-gaussian-mu-slope-tranche118-spatial-drac-package-install-load-terminal-review.tsv`
+banks the terminal review of that one allocation-safe no-model Rorqual proof.
+T118 submitted job `15108138` from `rorqual2`; it allocated on `rc32123` and
+failed after five seconds with exit `128:0` at the source-SHA guard, before
+`R CMD INSTALL`, `library(drmTMB)`, any smoke runner, model formula, model fit,
+retained denominator, coverage, top-up, or support-cell status edit. The packet
+used `git rev-parse` inside a staged source snapshot that is not a git checkout,
+so the next gate is Tranche 119 only: a no-compute source-provenance fallback
+packet review that reads `SOURCE-PROVENANCE.tsv` when git metadata are absent.
+T118 is not package-install success, not package-load success, not fit evidence,
+not denominator evidence, not admission evidence, not coverage evidence, not
+`inference_ready`, not `supported`, not public support, not REML/AI-REML, and
+not denominator-pooling permission.
+
+`structured-re-gaussian-mu-slope-tranche119-spatial-drac-source-provenance-fallback-packet-review.tsv`
+banks the no-compute source-provenance fallback packet review required after
+T118. T119 runs no host command and submits no job. It reviews a future T120
+candidate packet that first tries git provenance, then reads
+`SOURCE-PROVENANCE.tsv` field `source_sha_full` when git metadata are absent,
+and writes `t120-terminal-status.tsv` before source-SHA guard exits. The
+candidate packet hash is
+`54bebceb21547a964d6815dd067115ef73630a4f323d738834b3f2358c980e6e`; the
+reviewed source-provenance artifact hash is
+`f805565beb238cb1a0711f1c564b37cbfdcafce4f7af0b4ea56dedf53a2e4fdd`. T119 is
+not package-install success, not package-load success, not fit evidence, not
+retained-denominator evidence, not admission evidence, not coverage evidence,
+not `inference_ready`, not `supported`, not public support, not REML/AI-REML,
+and not denominator-pooling permission. The next gate is Tranche 120 only:
+checkpoint first, then at most one allocation-safe no-model Rorqual
+package-install/load proof if Rose/Fisher/Gauss/Noether/Grace approve.
+
+`structured-re-gaussian-mu-slope-tranche120-spatial-drac-package-install-load-terminal-review.tsv`
+banks that one Rorqual proof. Job `15109947` was submitted from `rorqual2`,
+allocated on `rc32218`, completed with exit `0:0` after `00:09:17`, matched the
+source SHA through `SOURCE-PROVENANCE.tsv`, passed the dependency probe, passed
+`R CMD INSTALL`, and loaded `drmTMB` 0.1.4. T120 is package-install/load
+readiness evidence only: it ran no smoke runner, model formula, model fit,
+`pdHess`, Wald/profile interval, retained denominator, admission pass, coverage,
+top-up, support-cell status edit, `inference_ready`, `supported`, public
+support, REML/AI-REML, or denominator pooling. The q1 `mu` one-slope spatial
+support cell remains `point_fit/planned/planned`. The next gate is Tranche 121:
+a no-compute model-smoke readiness and admission-boundary review before any
+model command.
+
+`structured-re-gaussian-mu-slope-tranche121-spatial-drac-model-smoke-readiness-review.tsv`
+banks that review. T121 runs no host command and submits no job; it reviews the
+fetched T120 install/load artifacts only and records that they are readiness
+evidence for writing a future fail-closed T122 packet/contract, not fit evidence
+or denominator evidence. It authorizes no smoke runner, model formula, model fit,
+`pdHess`, Wald/profile interval, retained denominator, admission pass, coverage,
+top-up, support-cell status edit, `inference_ready`, `supported`, public support,
+REML/AI-REML, or denominator pooling. The q1 `mu` one-slope spatial support cell
+remains `point_fit/planned/planned`. The next gate is Tranche 122 only: a
+no-compute fail-closed model-smoke packet/contract from the T120 artifacts before
+any execution tranche.
+
+`structured-re-gaussian-mu-slope-tranche122-spatial-drac-model-smoke-packet-contract.tsv`
+banks that packet/contract. T122 is local no-compute work only: it writes the
+fail-closed model-smoke contract from the T120 install/load artifacts and T121
+review, but runs no host command, submits no job, and evaluates no model
+formula. It records the T120 source SHA, job/allocation host, packet hash,
+SOURCE-PROVENANCE hash, terminal-status hash, direct-SD target identity, and
+future stop rules. T122 is not fit evidence, not `pdHess` evidence, not
+Wald/profile interval evidence, not retained-denominator evidence, not admission
+evidence, not coverage evidence, not `inference_ready`, not `supported`, not
+public support, not REML/AI-REML, and not denominator-pooling permission. The q1
+`mu` one-slope spatial support cell remains `point_fit/planned/planned`. The
+next gate is Tranche 123 only: a no-compute execution-approval/checkpoint review
+before any `sbatch`, host command, smoke runner, model formula, model fit,
+retained denominator, coverage, top-up, or support-cell status edit.
+
+`structured-re-gaussian-mu-slope-tranche123-spatial-drac-model-smoke-execution-approval-checkpoint.tsv`
+banks that approval checkpoint. T123 is still local no-compute work only: it
+reviews the T122 packet, T120 source SHA, T120 job/allocation host, packet hash,
+SOURCE-PROVENANCE hash, terminal-status hash, direct-SD target identity, and
+host-separated denominator policy, but runs no host command, submits no job, and
+evaluates no model formula. It authorizes at most one future host-separated DRAC
+Rorqual `n = 5` model-smoke execution in Tranche 124 after checkpoint. T123 is
+not fit evidence, not `pdHess` evidence, not Wald/profile interval evidence, not
+retained-denominator evidence, not admission evidence, not coverage evidence, not
+`inference_ready`, not `supported`, not public support, not REML/AI-REML, and not
+denominator-pooling permission. The q1 `mu` one-slope spatial support cell
+remains `point_fit/planned/planned`.
+
+`structured-re-gaussian-mu-slope-tranche124-spatial-drac-model-smoke-execution-terminal-review.tsv`
+banks the terminal review for the single authorized Rorqual execution. T124
+submitted job `15112750` on node `rc31704`; the source SHA and `library(drmTMB)`
+guards passed, but the job stopped before the runner because
+`devtools_available = FALSE`. It produced no model formula, model fit, `pdHess`,
+Wald interval, profile interval, output rows, retained denominator, admission
+pass, coverage result, top-up, support-cell status edit, `inference_ready`,
+`supported`, public support, REML/AI-REML, or denominator-pooling permission. The
+q1 `mu` one-slope spatial support cell remains `point_fit/planned/planned`. The
+next gate is Tranche 125 only: a no-compute dependency-route review before any
+repeat execution.
+
+`structured-re-gaussian-mu-slope-tranche125-spatial-drac-dependency-route-review.tsv`
+banks that no-compute dependency-route review. T125 imports the T124 failure
+taxonomy, rejects broad `devtools` prestaging as the first repeat route, and
+selects the narrower internal runner path `--load-source=false` so a future
+packet can use the installed `drmTMB` that T124 already loaded. T125 updates the
+runner and shell wrapper, records local parse/dry-run/manifest evidence, and
+runs no SSH command, remote copy, `sbatch`, allocation, module load, model
+formula, model fit, retained denominator, coverage, top-up, or support-cell
+status edit. The q1 `mu` one-slope spatial support cell remains
+`point_fit/planned/planned`. The next gate is Tranche 126 only: a no-compute
+patched-runner packet checkpoint before any repeat host-separated Rorqual
+execution.
+
+`structured-re-gaussian-mu-slope-tranche126-spatial-drac-patched-runner-packet-checkpoint.tsv`
+banks that no-compute patched-runner packet checkpoint. T126 freezes the runner
+hash, wrapper hash, source SHA `56add7f04fab7bec57a42e56eaeb090dff491863`,
+host label `drac_rorqual_q1mu_slope_spatial_t120_t122_packet_n5`,
+`--load-source=false`, the installed-package `library(drmTMB)` route, the local
+dry-run hash, and a future T127 sbatch packet hash. T126 runs no SSH command,
+remote copy, `sbatch`, allocation, module load, package install, smoke runner,
+model formula, model fit, retained denominator, coverage, top-up, or
+support-cell status edit. The q1 `mu` one-slope spatial support cell remains
+`point_fit/planned/planned`. The next gate is Tranche 127 only: at most one
+host-separated Rorqual model-smoke execution after checkpoint and
+Rose/Fisher/Gauss/Noether/Grace approval.
 
 Keep `version.txt` equal to the `BUILD` constant in `index.html`. Change both
 only when the HTML or JavaScript changes. JSON and TSV data updates do not need

@@ -1,0 +1,12 @@
+host=rorqual2
+user=snakagaw
+pwd=/home/snakagaw
+observed_at_utc=2026-07-03T01:39:09Z
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+remote_evidence_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche91-spatial-drac-restaging-proof-no-r
+sbatch_submission=not_attempted
+module_load=not_attempted
+r_command=not_attempted
+rscript_command=not_attempted
+model_command=not_attempted

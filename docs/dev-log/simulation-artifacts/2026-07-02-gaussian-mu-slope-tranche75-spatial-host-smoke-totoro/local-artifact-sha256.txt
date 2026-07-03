@@ -1,0 +1,9 @@
+3bf201afb551fe134dc1c0eb77f0744f1998128f48d72a59f4ef6e1f87ac9329  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/host-provenance.tsv
+ebb46999a48a3bd308da8732c1b7e43031da13215d577062d7e23d03cfce387e  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/remote-file-sha256.txt
+9e4462aac450c4c803e777f7a6f94ff0303e0c3f629429130dc390478369a830  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/structured-re-gaussian-mu-slope-tranche74-spatial-host-smoke-results.tsv
+0ed2cf293d48e4925583b2410a469d2ffb036c1d275821bbfee6ae7f9177d5ca  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/structured-re-gaussian-mu-slope-tranche74-spatial-host-smoke-run-log.tsv
+f3a1b42ba57bd0ab0e33e7bdbdc7ac1e93f87d28c17e434783274b6417289268  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/structured-re-gaussian-mu-slope-tranche74-spatial-host-smoke-summary.tsv
+4773ed24e958dc6f53bec2ad4c95c834b85446de846d3e8feed45ec62fd84995  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/t75-local-exit-capture-note.txt
+13dc6462ed3d56ba390b43b636fc8ab8f9f0401dadcdfcadfcf474af67357a41  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/t75-totoro-command.stderr
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/t75-totoro-command.stdout
+cbee00d1bc357a07960a86b0e0b63e32d8fd12e20b4457bdabd7df44b8ec5caf  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche75-spatial-host-smoke-totoro/t75-totoro-command.txt

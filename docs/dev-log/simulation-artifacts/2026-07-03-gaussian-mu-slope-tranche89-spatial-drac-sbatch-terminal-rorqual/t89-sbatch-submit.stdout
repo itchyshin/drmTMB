@@ -1,0 +1,6 @@
+host=rorqual2
+user=snakagaw
+submit_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata
+sbatch=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch
+observed_at_utc=2026-07-03T00:44:11Z
+15084376

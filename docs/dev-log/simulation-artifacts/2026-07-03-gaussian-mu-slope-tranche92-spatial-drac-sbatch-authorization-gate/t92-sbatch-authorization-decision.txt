@@ -1,0 +1,29 @@
+# Q-Series Tranche 92 q1 mu one-slope spatial DRAC sbatch authorization gate
+
+observed_at_utc=2026-07-03T02:00:00Z
+source_sidecar=docs/dev-log/dashboard/structured-re-gaussian-mu-slope-tranche91-spatial-drac-remote-restaging-proof.tsv
+source_remote_proof=docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche91-spatial-drac-remote-restaging-proof-rorqual/t91-remote-restaging-proof.txt
+source_remote_manifest=docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche91-spatial-drac-remote-restaging-proof-rorqual/t91-remote-manifest.tsv
+reviewed_runner=tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R
+reviewed_wrapper=tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh
+reviewed_sbatch=tools/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch
+runner_hash=6a4fa7e8c77d20172929368ce17852073439c69400ea8221255f08b51dd3411e
+wrapper_hash=b18885eaca8501e996d56ea8a2e7082c53b862b350ed7aacca6778973e4017ad
+sbatch_hash=bc8709d528248caa91af5b281c09c61d6f05d3a53052b39427c1c40bee3dd1a8
+remote_hash_status=matches_t91_remote_restaging_proof
+remote_manifest_lines=11
+host_label=drac_rorqual_q1mu_slope_spatial_t80_t77_runner_n5
+planned_n_rep=5
+planned_seed_set=861001;861002;861003;861004;861005
+authorization_decision=authorize_one_future_rorqual_sbatch_after_checkpoint
+submit_decision=not_submitted_in_tranche92
+sbatch_submission=not_attempted
+module_load=not_attempted
+r_command=not_attempted
+rscript_command=not_attempted
+model_command=not_attempted
+denominator_status=no_new_denominator
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+next_gate=Tranche 93 may submit exactly one Rorqual sbatch job using the T91-restaged packet after T92 validation and checkpoint.

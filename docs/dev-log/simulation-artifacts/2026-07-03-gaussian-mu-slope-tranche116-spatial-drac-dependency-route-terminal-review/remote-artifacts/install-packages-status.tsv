@@ -1,0 +1,3 @@
+stage	status	exit_code	note
+dependency_source_guard	passed	0	repo=file:///project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/dependency-repo/t115-local-cran
+install_packages	passed	0	requested_dependencies_available

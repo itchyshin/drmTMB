@@ -1,0 +1,6 @@
+dry_run_command=R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.R --mode=dry-run --provider=spatial --target=both --n-rep=5 --seeds=861001,861002,861003,861004,861005 --host-label=totoro_q1mu_slope_spatial_t70_n5 --write-dashboard=false
+dry_run_exit_code=0
+execute_refusal_command=R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.R --mode=execute --provider=spatial --target=both --n-rep=5 --seeds=861001,861002,861003,861004,861005 --host-label=totoro_q1mu_slope_spatial_t70_n5 --write-dashboard=false
+execute_refusal_exit_code=1
+wrapper_refusal_command=tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.sh
+wrapper_refusal_exit_code=64

@@ -1,0 +1,21 @@
+proof_type=no-compute patched-runner packet checkpoint
+source_sha=56add7f04fab7bec57a42e56eaeb090dff491863
+host_label=drac_rorqual_q1mu_slope_spatial_t120_t122_packet_n5
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+future_output_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche127-spatial-drac-model-smoke-execution-load-source-false
+future_metadata_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche127-spatial-drac-model-smoke-execution-load-source-false-slurm-metadata
+load_source=false
+load_route=library(drmTMB) installed-package route
+runner_sha256=84a335abddbd04f74c30daeb448af37e8d713471f71b2656c2ab41c4e85558b9
+wrapper_sha256=ea63c6fe0a4423296f48f2a11ec75232ce2e3ff37eb0b52bc3f48db5287bc5a2
+runner_dry_run_sha256=032c931bc291fb53c619d1e8699482fde54f4d72a6a28432b2e5df19c141b581
+future_sbatch_packet_sha256=d10bfade9c8bd4513aa48f85a7f8f0ef9e6f784f325f49306807a1d754f77234
+approval_token_future=DRMTMB_QSERIES_T127_APPROVED=rose_fisher_gauss_noether_grace
+compute_status=no_ssh_no_remote_copy_no_sbatch_no_allocation_no_module_load_no_model
+denominator_status=no_new_denominator
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+next_gate=T127 at most one host-separated Rorqual model-smoke execution after checkpoint and Rose/Fisher/Gauss/Noether/Grace approval
+stop_rule=stop on missing target, fit error, pdHess FALSE, nonfinite Wald interval, nonfinite profile interval, unclear host provenance, validator drift, source SHA drift, dependency drift, denominator drift, coverage request, support-cell status edit, inference_ready, supported, public support, REML, AI-REML, or denominator pooling

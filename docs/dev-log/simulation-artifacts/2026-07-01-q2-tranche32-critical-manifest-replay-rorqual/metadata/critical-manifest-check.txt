@@ -1,0 +1,7 @@
+./tools/run-structured-re-q2-plus-q2-intercept-smoke.R: OK
+./tools/run-structured-re-q2-retained-denominator-pregrid.R: OK
+./docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv: OK
+./docs/dev-log/dashboard/structured-re-q2-retained-denominator-design.tsv: OK
+./R/drmTMB.R: OK
+./R/profile.R: OK
+./src/drmTMB.cpp: OK

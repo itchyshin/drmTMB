@@ -1,0 +1,10 @@
+contract_id	contract_item	contract_value
+t122_contract_scope	scope	T122 is local no-compute packet/contract only; it runs no host command and submits no job.
+t122_future_gate	next_gate	T123 must be no-compute execution-approval/checkpoint review before any model command; later execution requires a separate tranche.
+t122_source_sha	source_sha_guard	Future model-smoke packet must require SOURCE-PROVENANCE.tsv source_sha_full=56add7f04fab7bec57a42e56eaeb090dff491863 or fail closed.
+t122_t120_provenance	host_provenance	T120 job 15109947 ran on allocation host rc32218 from rorqual2; packet SHA 54bebceb21547a964d6815dd067115ef73630a4f323d738834b3f2358c980e6e; SOURCE-PROVENANCE.tsv SHA f805565beb238cb1a0711f1c564b37cbfdcafce4f7af0b4ea56dedf53a2e4fdd; terminal-status SHA b4db9813e6c8380ebfd87da067dafb3e20174dffe870cca9063d65a329d60d8b.
+t122_target_identity	direct_sd_targets	Cell qseries_spatial_q1_mu_one_slope keeps endpoint members mu:(Intercept);mu:x and direct-SD targets sd_mu_intercept;sd_mu_x; no derived correlation and no profile_targets() identity expansion in T122.
+t122_dependency_load	dependency_boundary	T120 dependency probe, R CMD INSTALL, and library(drmTMB) success are readiness evidence only; future execution must verify library(drmTMB) before smoke and stop before coverage.
+t122_stop_rules	fail_closed_stops	Stop on missing target, fit error, pdHess FALSE, nonfinite Wald interval, nonfinite profile interval, unclear host provenance, validator drift, source SHA drift, or denominator drift.
+t122_denominator_policy	denominator_policy	T122 creates no retained denominator and must not be pooled with local, Totoro, DRAC, Nibi, Rorqual, Trillium, or Fir denominators.
+t122_status_policy	status_policy	coverage_decision=coverage_not_authorized, promotion_decision=do_not_promote, support cell remains point_fit/planned/planned.

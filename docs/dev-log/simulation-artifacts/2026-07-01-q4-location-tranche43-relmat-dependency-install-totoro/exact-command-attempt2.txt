@@ -1,0 +1,1 @@
+ssh -o ControlPath="/Users/z3437171/.ssh/cm/snakagaw@totoro.biology.ualberta.ca:22" -o ControlMaster=no -o BatchMode=yes -o ConnectTimeout=20 totoro REMOTE_ROOT="/home/snakagaw/codex/drmTMB-q4loc-tranche43-dependency-install-20260702T021915Z-attempt2" bash -s

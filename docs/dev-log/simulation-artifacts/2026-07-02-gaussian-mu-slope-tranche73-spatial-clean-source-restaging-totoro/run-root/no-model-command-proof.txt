@@ -1,0 +1,4 @@
+Tranche 73 clean-source restaging proof only.
+No R package load, model command, fit, smoke, top-up, coverage grid, or denominator was created.
+The source snapshot was restaged with rsync excludes for compiled artifacts and AppleDouble files.
+Future execution still requires a reviewed runner/path update or rerun gate, Rose/Fisher/Gauss/Noether/Grace approval, validator review, and a checkpoint.

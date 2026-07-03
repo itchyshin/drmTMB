@@ -1,0 +1,22 @@
+preflight_date=2026-07-02T22:23:05-04:00
+hostname=rorqual2
+whoami=snakagaw
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+sbatch=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch
+hashes
+6a4fa7e8c77d20172929368ce17852073439c69400ea8221255f08b51dd3411e  /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R
+b18885eaca8501e996d56ea8a2e7082c53b862b350ed7aacca6778973e4017ad  /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh
+bc8709d528248caa91af5b281c09c61d6f05d3a53052b39427c1c40bee3dd1a8  /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch
+bash_n
+existing_q1mut87_squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+existing_output_dir_listing
+output_dir_absent
+existing_metadata_dir_listing
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/exact-command.txt
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/host-provenance.txt
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/q1mut87-15084376.out
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/sessionInfo.txt
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/slurm-run-log.txt
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/wrapper.stderr
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/wrapper.stdout

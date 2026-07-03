@@ -1,0 +1,24 @@
+# Tranche 124 model-smoke execution terminal review
+proof_type=single-submission DRAC Rorqual terminal review
+cell_id=qseries_spatial_q1_mu_one_slope
+provider=spatial
+direct_sd_targets=sd_mu_intercept;sd_mu_x
+job_id=15112750
+slurm_state=FAILED
+exit_code=13:0
+allocation_node=rc31704
+submission_host_context=rorqual4
+host_label=drac_rorqual_q1mu_slope_spatial_t120_t122_packet_n5
+source_sha_status=passed:56add7f04fab7bec57a42e56eaeb090dff491863
+module_status=StdEnv/2023_and_r/4.4.0_loaded
+library_drmTMB_status=passed_before_model_smoke
+devtools_available=FALSE
+failure_taxonomy=dependency_drift_devtools_missing_or_unloadable
+model_command_status=not_started_devtools_dependency_stop_before_runner
+result_rows=none
+denominator_status=no_new_denominator
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+claim_boundary=T124 submitted exactly one host-separated DRAC Rorqual job 15112750; source SHA and library(drmTMB) passed; devtools_available FALSE stopped before runner/model formula/model fit/pdHess/Wald/profile/output rows/retained denominator/admission/coverage/top-up/status edit/inference_ready/supported/public support/REML/AI-REML/denominator pooling.
+next_gate=T125 no-compute dependency-route review before any repeat execution; decide prestaged devtools versus runner patch avoiding devtools::load_all; keep source SHA, host label, and denominators separated.

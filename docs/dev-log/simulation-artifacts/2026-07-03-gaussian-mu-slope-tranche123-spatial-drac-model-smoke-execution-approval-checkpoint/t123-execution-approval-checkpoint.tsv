@@ -1,0 +1,11 @@
+approval_id	approval_item	approval_value
+t123_approval_scope	scope	T123 is a local no-compute execution-approval/checkpoint review only; it runs no host command, submits no job, and creates no denominator.
+t123_future_execution	next_gate	T124 may be at most one host-separated DRAC Rorqual n5 model-smoke execution after checkpoint and must import terminal artifacts before any denominator or status discussion.
+t123_source_sha	source_sha_guard	Future execution must require SOURCE-PROVENANCE.tsv source_sha_full=56add7f04fab7bec57a42e56eaeb090dff491863 or fail closed.
+t123_t120_provenance	host_provenance	T120 job 15109947 ran on allocation host rc32218 from rorqual2; packet SHA 54bebceb21547a964d6815dd067115ef73630a4f323d738834b3f2358c980e6e; SOURCE-PROVENANCE.tsv SHA f805565beb238cb1a0711f1c564b37cbfdcafce4f7af0b4ea56dedf53a2e4fdd; terminal-status SHA b4db9813e6c8380ebfd87da067dafb3e20174dffe870cca9063d65a329d60d8b.
+t123_target_identity	direct_sd_targets	Cell qseries_spatial_q1_mu_one_slope keeps endpoint members mu:(Intercept);mu:x and direct-SD targets sd_mu_intercept;sd_mu_x; no derived correlation and no profile_targets() identity expansion in T123.
+t123_dependency_load	dependency_boundary	T120 dependency probe, R CMD INSTALL, and library(drmTMB) success remain readiness evidence only; future execution must verify library(drmTMB) before model smoke and stop before coverage.
+t123_authorization	approval_decision	Authorize at most one future host-separated DRAC Rorqual n5 model-smoke execution after this sidecar, validator, focused tests, after-task report, served-widget probe, and checkpoint pass; do not execute in T123.
+t123_stop_rules	fail_closed_stops	Stop on missing target, fit error, pdHess FALSE, nonfinite Wald interval, nonfinite profile interval, unclear host provenance, validator drift, source SHA drift, dependency drift, or denominator drift.
+t123_denominator_policy	denominator_policy	T123 creates no retained denominator and must not be pooled with local, Totoro, DRAC, Nibi, Rorqual, Trillium, Fir, or other-host denominators.
+t123_status_policy	status_policy	coverage_decision=coverage_not_authorized, promotion_decision=do_not_promote, support cell remains point_fit/planned/planned.

@@ -1,0 +1,3 @@
+Tranche 85 proof is local shell-only.
+Commands run: bash -n wrapper; wrapper --mode=manifest; wrapper --mode=execute without approval token; shasum.
+No ssh, no module load, no R command, no Rscript, no devtools::load_all(), no smoke command, no model fit, no pdHess, no interval, no retained denominator, no coverage, and no support-cell status edit were run.

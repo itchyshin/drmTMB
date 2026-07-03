@@ -1,0 +1,4 @@
+JobID|JobName|State|ExitCode|Elapsed|NodeList
+15105466|drmtmb-t112-load|FAILED|1:0|00:03:04|rc32301
+15105466.batch|batch|FAILED|1:0|00:03:04|rc32301
+15105466.extern|extern|COMPLETED|0:0|00:03:04|rc32301

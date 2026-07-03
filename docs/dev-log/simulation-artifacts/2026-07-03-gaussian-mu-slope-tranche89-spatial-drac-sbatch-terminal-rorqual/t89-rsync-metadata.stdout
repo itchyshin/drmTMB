@@ -1,0 +1,12 @@
+Transfer starting: 8 files
+./
+exact-command.txt
+host-provenance.txt
+q1mut87-15084376.out
+sessionInfo.txt
+slurm-run-log.txt
+wrapper.stderr
+wrapper.stdout
+
+sent 176 bytes  received 3805 bytes  39810000 bytes/sec
+total size is 3225  speedup is 0.81

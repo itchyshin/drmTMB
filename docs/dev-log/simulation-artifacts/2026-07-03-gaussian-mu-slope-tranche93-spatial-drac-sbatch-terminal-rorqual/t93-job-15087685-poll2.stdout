@@ -1,0 +1,53 @@
+poll_start=2026-07-02T22:24:44-04:00
+--- poll_iter=1 date=2026-07-02T22:24:44-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown
+--- poll_iter=2 date=2026-07-02T22:24:59-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown
+--- poll_iter=3 date=2026-07-02T22:25:14-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown
+--- poll_iter=4 date=2026-07-02T22:25:29-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown
+--- poll_iter=5 date=2026-07-02T22:25:44-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown
+--- poll_iter=6 date=2026-07-02T22:25:59-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+15087685|q1mut87|PENDING|0:00|(Priority)|2026-07-02T22:23:41
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1,cpubackfill|def-snakagaw_cpu|0|PENDING|0:0|00:00:00|None assigned|2026-07-02T22:23:41|Unknown|Unknown
+--- poll_iter=7 date=2026-07-02T22:26:15-04:00 ---
+squeue
+JOBID|NAME|STATE|TIME|NODELIST(REASON)|SUBMIT_TIME
+sacct
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1|def-snakagaw_cpu|1|FAILED|1:0|00:00:13|rc32114|2026-07-02T22:23:41|2026-07-02T22:26:01|2026-07-02T22:26:14
+15087685.batch|batch||def-snakagaw_cpu|1|FAILED|1:0|00:00:13|rc32114|2026-07-02T22:26:01|2026-07-02T22:26:01|2026-07-02T22:26:14
+15087685.extern|extern||def-snakagaw_cpu|1|COMPLETED|0:0|00:00:13|rc32114|2026-07-02T22:26:01|2026-07-02T22:26:01|2026-07-02T22:26:14
+terminal_state=FAILED
+poll_end=2026-07-02T22:26:15-04:00

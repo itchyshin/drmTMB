@@ -1,0 +1,3 @@
+Package	requireNamespace
+RcppEigen	TRUE
+TMB	TRUE

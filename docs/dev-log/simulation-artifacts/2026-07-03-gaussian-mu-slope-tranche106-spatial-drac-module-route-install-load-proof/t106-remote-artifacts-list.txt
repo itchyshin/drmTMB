@@ -1,0 +1,9 @@
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/host-provenance.tsv
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/module-avail-r-after-r-load.txt
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/module-list-after-r-load.txt
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/module-load.stderr
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/module-load.stdout
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/q1-mu-slope-spatial-t106-module-route-install-load-proof.sbatch
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/slurm-15103184.err
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/slurm-15103184.out
+docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-proof/remote-artifacts/t106-terminal-status.tsv

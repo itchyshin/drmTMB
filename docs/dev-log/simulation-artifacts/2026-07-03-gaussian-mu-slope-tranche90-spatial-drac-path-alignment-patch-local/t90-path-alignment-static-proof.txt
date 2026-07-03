@@ -1,0 +1,14 @@
+t90_path_alignment_static_proof
+119:normalize_path_allow_missing <- function(path) {
+141:is_descendant_path <- function(path, root) {
+325:output_dir_norm <- normalize_path_allow_missing(output_dir)
+326:if (!is_descendant_path(output_dir_norm, run_root)) {
+tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh:9:OUTPUT_DIR="${DRMTMB_Q1MU_SLOPE_T85_OUTPUT_DIR:-${RUN_ROOT}/results/tranche85-spatial-drac-path-gate}"
+tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh:120:if [[ "${OUTPUT_DIR}" != "${RUN_ROOT}/"* ]]; then
+tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh:121:  echo "Refusing Tranche 85 with an output directory outside the exact T83 DRAC run root." >&2
+tools/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch:39:OUTPUT_DIR="$RUN_ROOT/results/tranche87-spatial-drac-smoke-n5"
+tools/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch:46:EXPECTED_RUNNER_SHA="6a4fa7e8c77d20172929368ce17852073439c69400ea8221255f08b51dd3411e"
+tools/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch:73:if [[ "$ACTUAL_RUNNER_SHA" != "$EXPECTED_RUNNER_SHA" ]]; then
+tools/slurm/q1-mu-slope-spatial-t87-rorqual-smoke.sbatch:74:  echo "Runner SHA drift: expected $EXPECTED_RUNNER_SHA got $ACTUAL_RUNNER_SHA" >&2
+no_sbatch_command_executed_in_t90_artifact_generation
+no_ssh_command_executed_in_t90_artifact_generation

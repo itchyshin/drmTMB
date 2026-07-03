@@ -55,6 +55,13 @@ pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
 roadmap work rather than hidden features.
 
+For v1.0 preparation, the contributor-facing
+[Q-Series release status](docs/dev-log/release-audits/q-series-v1-release-status.md)
+separates implemented/basic-working Gaussian structured-effect rows and
+basic-distribution recovery rows from post-v1.0 `inference_ready` and
+`supported` validation. It is a release-planning ledger, not a broader support
+claim.
+
 ## Install
 
 `drmTMB` is not on CRAN yet. Install the tagged `0.1.3` preview from GitHub

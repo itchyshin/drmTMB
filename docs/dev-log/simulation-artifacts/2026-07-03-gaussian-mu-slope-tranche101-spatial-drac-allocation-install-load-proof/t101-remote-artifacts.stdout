@@ -1,0 +1,19 @@
+total 178
+drwxr-s---.  2 snakagaw def-snakagaw 25600 Jul  3 01:27 .
+drwxr-s---. 11 snakagaw def-snakagaw 25600 Jul  3 01:26 ..
+-rw-r-----.  1 snakagaw def-snakagaw  1050 Jul  3 01:27 host-provenance.tsv
+-rw-r-----.  1 snakagaw def-snakagaw    80 Jul  3 01:27 install-packages.stderr
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 install-packages.stdout
+-rw-r-----.  1 snakagaw def-snakagaw    80 Jul  3 01:27 library-drmTMB.stderr
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 library-drmTMB.stdout
+-rw-r-----.  1 snakagaw def-snakagaw   649 Jul  3 01:27 module-and-r-version.txt
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 module-load.stderr
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 module-load.stdout
+-rw-r-----.  1 snakagaw def-snakagaw    74 Jul  3 01:27 r-cmd-install-drmTMB.stderr
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 r-cmd-install-drmTMB.stdout
+-rw-r-----.  1 snakagaw def-snakagaw   183 Jul  3 01:27 r-cmd-install-status.tsv
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 slurm-15097440.err
+-rw-r-----.  1 snakagaw def-snakagaw     0 Jul  3 01:27 slurm-15097440.out
+-rw-r-----.  1 snakagaw def-snakagaw  3167 Jul  3 01:27 t101-install-packages.R
+-rw-r-----.  1 snakagaw def-snakagaw   394 Jul  3 01:27 t101-terminal-status.tsv
+-rw-r-----. 1 snakagaw snakagaw 2575 Jul  3 01:28 /tmp/t101-spatial-drac-allocation-install-load-proof.tgz

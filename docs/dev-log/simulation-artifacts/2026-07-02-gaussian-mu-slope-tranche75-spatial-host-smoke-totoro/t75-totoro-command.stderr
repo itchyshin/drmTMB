@@ -1,0 +1,9 @@
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.dropbox.attrs'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.dropbox.attrs'
+tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'
+[tranche74] wrote /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche73-clean-source-20260702T123451Z/tranche75-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche74-spatial-host-smoke-results.tsv
+[tranche74] wrote /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche73-clean-source-20260702T123451Z/tranche75-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche74-spatial-host-smoke-summary.tsv
+[tranche74] wrote /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche73-clean-source-20260702T123451Z/tranche75-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche74-spatial-host-smoke-run-log.tsv
+[tranche74] coverage_decision=coverage_not_authorized
+[tranche74] promotion_decision=do_not_promote

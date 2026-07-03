@@ -4,6 +4,12 @@ Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
 differs, the stricter fitted, planned, or unsupported row governs public claims.
 
+- The Q-Series v1.0 release boundary is generated in
+  `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates
+  implemented/basic-working Gaussian structured-effect rows and
+  basic-distribution recovery rows from post-v1.0 `inference_ready` and
+  `supported` validation. This boundary does not authorize coverage, q4/q8
+  promotion, broad bridge support, REML, AI-REML, or public-support wording.
 - Gaussian location-scale models are implemented with fixed effects and
   ordinary `mu` random effects: random intercepts, independent random slopes,
   one-slope correlated random intercept-slope blocks such as `(1 + x | id)` or

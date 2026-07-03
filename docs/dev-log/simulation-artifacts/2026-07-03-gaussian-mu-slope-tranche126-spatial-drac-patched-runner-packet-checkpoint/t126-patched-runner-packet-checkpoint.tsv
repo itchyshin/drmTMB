@@ -1,0 +1,8 @@
+check_id	status	detail
+t126_t125_import	accepted	T125 selected installed-package library(drmTMB) route via --load-source=false after T124 devtools_available FALSE
+t126_runner_hash	accepted	runner hash frozen 84a335abddbd04f74c30daeb448af37e8d713471f71b2656c2ab41c4e85558b9
+t126_wrapper_hash	accepted	wrapper hash frozen ea63c6fe0a4423296f48f2a11ec75232ce2e3ff37eb0b52bc3f48db5287bc5a2 for provenance even though future packet calls the runner directly
+t126_dry_run	accepted	runner dry-run with T120/T122 host label and --load-source=false hash 032c931bc291fb53c619d1e8699482fde54f4d72a6a28432b2e5df19c141b581
+t126_sbatch_packet	accepted	future T127 sbatch packet hash d10bfade9c8bd4513aa48f85a7f8f0ef9e6f784f325f49306807a1d754f77234; no sbatch submitted in T126
+t126_no_compute	accepted	no ssh, no remote copy, no sbatch, no allocation, no module load, no model, no retained denominator
+t126_next_gate	accepted	T127 may be at most one host-separated Rorqual model-smoke execution after checkpoint and blocking review

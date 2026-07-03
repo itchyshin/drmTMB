@@ -1,0 +1,5 @@
+	Package	LibPath	Version	Priority	Depends	Imports	LinkingTo	Suggests	Enhances	License	License_is_FOSS	License_restricts_use	OS_type	MD5sum	NeedsCompilation	Built
+Rcpp	Rcpp	/home/snakagaw/R/lib	1.1.1	NA	R (>= 3.5.0)	methods, utils	NA	tinytest, inline, rbenchmark, pkgKitten (>= 0.1.2)	NA	GPL (>= 2)	NA	NA	NA	NA	yes	4.5.2
+RcppEigen	RcppEigen	/home/snakagaw/R/lib	0.3.4.0.2	NA	R (>= 3.6.0)	Rcpp (>= 0.11.0), stats, utils	Rcpp	Matrix, inline, tinytest, pkgKitten, microbenchmark	NA	GPL (>= 2) | file LICENSE	NA	NA	NA	NA	yes	4.5.3
+TMB	TMB	/home/snakagaw/R/lib	1.9.21	NA	R (>= 3.0.0)	graphics, methods, stats, utils, Matrix (>= 1.0-12)	Matrix, RcppEigen	numDeriv, parallel	NA	GPL-2	NA	NA	NA	NA	yes	4.5.3
+Matrix	Matrix	/usr/lib/R/site-library	1.7-5	recommended	R (>= 4.4), methods	grDevices, graphics, grid, lattice, stats, utils	NA	MASS, datasets, sfsmisc, tools	SparseM, graph	GPL (>= 2) | file LICENCE	NA	NA	NA	NA	yes	4.5.3

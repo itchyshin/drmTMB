@@ -1,0 +1,12 @@
+ssh -o BatchMode=yes -o ConnectTimeout=10 rorqual <remote no-model provenance probe>
+set -eu
+printf 'remote_host='; hostname
+printf 'remote_user='; whoami
+printf 'remote_pwd='; pwd
+printf 'source_checkout_status='; if test -d '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source'; then echo source_checkout_exists; else echo source_checkout_missing; fi
+printf 'run_root_status='; if test -d '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0'; then echo run_root_exists; else echo run_root_missing; fi
+printf 'output_dir_status='; if test -d '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche81-spatial-drac-provenance-probe'; then echo output_dir_exists; else echo output_dir_missing; fi
+printf 'runner_status='; if test -f '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.R'; then sha256sum '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.R'; else echo runner_missing; fi
+printf 'wrapper_status='; if test -f '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.sh'; then sha256sum '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.sh'; else echo wrapper_missing; fi
+printf 'module_probe_status=not_run_no_model_no_environment_load\n'
+printf 'model_command_status=not_run\n'

@@ -1,0 +1,7 @@
+remote_host=rorqual2
+remote_user=snakagaw
+source_checkout_status=source_checkout_created_or_exists
+run_root_status=run_root_created_or_exists
+output_dir_status=output_dir_created_or_exists
+module_probe_status=not_run_no_environment_load
+model_command_status=not_run

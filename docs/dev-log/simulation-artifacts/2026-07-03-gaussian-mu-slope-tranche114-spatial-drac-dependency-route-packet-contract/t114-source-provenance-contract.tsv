@@ -1,0 +1,9 @@
+requirement	status	note
+source_sha_expected	required	56add7f04fab7bec57a42e56eaeb090dff491863 from the T83/T80 staged source snapshot
+source_sha_observed	required_future_host_value	must be recorded from the staged source before dependency install
+source_sha_mismatch	fail_closed_before_install	future packet must stop before install when observed SHA is missing, NA, or different
+source_provenance_file	required	SOURCE-PROVENANCE.tsv or equivalent must travel with the staged source
+run_root_path	required	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root_path	required	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+host_provenance	required	record host_label, job_id, allocation_host, source_sha, dependency_source, library paths, and tmp path
+denominator_policy	required	no denominator pooling across T93 through T114; future proof denominator remains no_new_denominator

@@ -1,0 +1,10 @@
+field	value
+observed_at_utc	2026-07-02T22:20:20Z
+source_checkout_status	created_or_exists_and_rsync_exit_0
+run_root_status	created_or_exists
+output_dir_status	created_or_exists
+source_manifest_status	created
+source_provenance_status	created
+runner_wrapper_hash_status	created
+no_model_command_status	created
+next_authorization	future_post_staging_smoke_approval_gate_only

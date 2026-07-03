@@ -1,0 +1,3 @@
+87cc66f5a7a40954bec9aa6c8706c05adaf70dad51efd8dbae90b093b101ad4d  tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.R
+5c386602ba062df9b7bcaea661e399ce6288b016141e769b171ddd9faf656250  tools/run-gaussian-mu-slope-tranche77-spatial-host-smoke.sh
+f5a8097e5455a50b6eee4c9c06727ce70de9c961528e78c003f3d17fc48743c9  tools/validate-mission-control.py

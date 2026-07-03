@@ -1,0 +1,17 @@
+field	value
+observed_at_utc	2026-07-03T05:27:31Z
+remote_host	rc32607
+remote_user	snakagaw
+pwd	/home/snakagaw
+slurm_job_id	15097440
+slurm_job_name	drmtmb-t101-deps
+slurm_submit_dir	/home/snakagaw
+slurm_cpus_per_task	4
+slurm_mem_per_node	16384
+run_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+proof_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche101-spatial-drac-allocation-install-load-proof
+lib_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche98
+tmp_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/tmp-tranche101
+requested_top_level_packages	cli,RcppEigen,TMB
+profile_guard	SKIP_CC_CVMFS_defined_before_profile_source;set_u_after_profile_source

@@ -1,0 +1,8 @@
+Tranche 83 stopped at DRAC Rorqual source/run-root/output staging proof.
+No module load was run.
+No R or Rscript command was run.
+No devtools::load_all() command was run.
+No smoke runner was executed.
+No model was fit.
+No pdHess, Wald interval, profile interval, retained denominator, coverage, promotion, inference_ready, supported, q4, q8, REML, AI-REML, or pooled denominator claim is created by this proof.
+Next allowed step is a separate post-staging smoke-approval gate.

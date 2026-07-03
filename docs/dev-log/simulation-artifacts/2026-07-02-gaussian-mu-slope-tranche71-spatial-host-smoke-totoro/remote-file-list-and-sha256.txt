@@ -1,0 +1,11 @@
+/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-runner-tools/tools/._run-gaussian-mu-slope-tranche70-spatial-host-smoke.R
+/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-runner-tools/tools/._run-gaussian-mu-slope-tranche70-spatial-host-smoke.sh
+/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-runner-tools/tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.R
+/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-runner-tools/tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.sh
+/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche70-spatial-host-smoke-results.tsv
+/home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche70-spatial-host-smoke-run-log.tsv
+----sha256----
+b1e5ef4dbd22f4342f2602e23aa775000bca6c8f92dd09a57fa546fcfb900961  /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-runner-tools/tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.R
+bdd4c5223ad8a0c1fcac62429e15977b0f8efd318068c6e3d91ba007b048e690  /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-runner-tools/tools/run-gaussian-mu-slope-tranche70-spatial-host-smoke.sh
+62b74160ba4e0962d02cee23b98863fe1fba8d3ff4237b709322ef59f3ee99fd  /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche70-spatial-host-smoke-results.tsv
+e0750efc5197065f1697096663d938741fb829ed2fefffa49aa380d6e3b290ab  /home/snakagaw/drmtmb-qseries/q1-mu-slope-spatial-tranche68-20260702T103739Z/tranche71-spatial-host-smoke-artifacts/structured-re-gaussian-mu-slope-tranche70-spatial-host-smoke-run-log.tsv

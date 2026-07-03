@@ -228,3 +228,6 @@ Keep `_pkgdown.yml` synchronized with exported functions and vignettes.
 
 Hermes is optional external lab orchestration. It is not a package dependency
 and should not be installed inside this repository or required for development.
+
+<!-- shinichi-hub -->
+> Read first — personal operating contract & second brain (house rules, memory, agents): /Users/z3437171/Dropbox/Github Local/Shinichi/AGENTS.md  (repo rules override the hub where they differ)

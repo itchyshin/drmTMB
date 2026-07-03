@@ -1,0 +1,19 @@
+date=2026-07-02T20:44:52-04:00
+job=15084376
+cluster=rorqual
+node=rc31728
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+wrapper=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh
+runner=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R
+output_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5
+metadata_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata
+host_label=drac_rorqual_q1mu_slope_spatial_t80_t77_runner_n5
+seeds=861001,861002,861003,861004,861005
+wrapper_sha=b18885eaca8501e996d56ea8a2e7082c53b862b350ed7aacca6778973e4017ad
+runner_sha=32298f42e79ef9eef4922fc8f489e5b8bf30952f7fbec3fa4d57740c3b1e1328
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+[tranche87] wrapper exit code: 1
+[tranche87] done 2026-07-02T20:44:52-04:00

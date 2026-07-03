@@ -1,0 +1,7 @@
+observed_at_utc=2026-07-03T00:44:32Z
+-- squeue --
+JOBID|STATE|TIME|NODES|NODELIST(REASON)|NAME
+15084376|PENDING|0:00|1|(Priority)|q1mut87
+-- sacct --
+JobIDRaw|JobName|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15084376|q1mut87|PENDING|0:0|00:00:00|None assigned|2026-07-02T20:44:11|Unknown|Unknown

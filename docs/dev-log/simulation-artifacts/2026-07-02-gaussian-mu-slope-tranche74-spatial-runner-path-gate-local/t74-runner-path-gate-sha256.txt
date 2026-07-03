@@ -1,0 +1,5 @@
+857745b634b7720fd33725c804ce3f44eca8ca459d1437086d6217bc59403032  tools/run-gaussian-mu-slope-tranche74-spatial-host-smoke.R
+4e73f387025823b31f44fa65b6737cac5691bbde62a74b5b36395881e3d8fd29  tools/run-gaussian-mu-slope-tranche74-spatial-host-smoke.sh
+edf47caf8a90806c040a0447b5930a6917066510d5514fa76a9e690b6d181ea4  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche74-spatial-runner-path-gate-local/t74-dry-run-manifest.tsv
+7c4cbf2643b191cfe21f4a168645c3db578adf6560a1827f302a4357ac11eca4  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche74-spatial-runner-path-gate-local/t74-execute-refusal.stderr
+4f7d34335446ac329dff35daf374aa5bb3035c87aa3aac10f7357edc21155b9e  docs/dev-log/simulation-artifacts/2026-07-02-gaussian-mu-slope-tranche74-spatial-runner-path-gate-local/t74-wrapper-refusal.stderr

@@ -1,0 +1,81 @@
+terminal_summary_date=2026-07-02T22:26:49-04:00
+hostname=rorqual2
+whoami=snakagaw
+job_id=15087685
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+slurm_out=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/q1mut87-15087685.out
+output_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5
+metadata_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata
+--- sacct ---
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|NodeList|Submit|Start|End
+15087685|q1mut87|cpubase_bycore_b1|def-snakagaw_cpu|1|FAILED|1:0|00:00:13|rc32114|2026-07-02T22:23:41|2026-07-02T22:26:01|2026-07-02T22:26:14
+15087685.batch|batch||def-snakagaw_cpu|1|FAILED|1:0|00:00:13|rc32114|2026-07-02T22:26:01|2026-07-02T22:26:01|2026-07-02T22:26:14
+15087685.extern|extern||def-snakagaw_cpu|1|COMPLETED|0:0|00:00:13|rc32114|2026-07-02T22:26:01|2026-07-02T22:26:01|2026-07-02T22:26:14
+--- run_root_job_outputs ---
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/q1mut87-15087685.out
+[tranche87] starting q1 mu one-slope spatial n=5 smoke 2026-07-02T22:26:14-04:00
+[tranche87] wrapper exit code: 1
+[tranche87] done 2026-07-02T22:26:14-04:00
+--- metadata_listing ---
+exact-command.txt
+host-provenance.txt
+q1mut87-15084376.out
+sessionInfo.txt
+slurm-run-log.txt
+wrapper.stderr
+wrapper.stdout
+--- output_listing ---
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5/structured-re-gaussian-mu-slope-tranche85-spatial-host-smoke-results.tsv
+/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5/structured-re-gaussian-mu-slope-tranche85-spatial-host-smoke-run-log.tsv
+--- file: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/slurm-run-log.txt ---
+date=2026-07-02T22:26:05-04:00
+job=15087685
+cluster=rorqual
+node=rc32114
+run_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+wrapper=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh
+runner=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R
+output_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5
+metadata_dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata
+host_label=drac_rorqual_q1mu_slope_spatial_t80_t77_runner_n5
+seeds=861001,861002,861003,861004,861005
+wrapper_sha=b18885eaca8501e996d56ea8a2e7082c53b862b350ed7aacca6778973e4017ad
+runner_sha=6a4fa7e8c77d20172929368ce17852073439c69400ea8221255f08b51dd3411e
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+[tranche87] wrapper exit code: 1
+[tranche87] done 2026-07-02T22:26:14-04:00
+--- file: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/host-provenance.txt ---
+rc32114
+2026-07-02T22:26:05-04:00
+Rscript (R) version 4.4.0 (2024-04-24)
+--- file: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/sessionInfo.txt ---
+R version 4.4.0 (2024-04-24)
+Platform: x86_64-pc-linux-gnu
+Running under: AlmaLinux 9.8 (Olive Jaguar)
+
+Matrix products: default
+BLAS/LAPACK: FlexiBLAS AOCL;  LAPACK version 3.11.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C
+
+time zone: EST5EDT
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base
+
+loaded via a namespace (and not attached):
+[1] compiler_4.4.0
+--- file: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/exact-command.txt ---
+bash /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.sh --mode=execute --source-root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source --run-root=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0 --output-dir=/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5 --host-label=drac_rorqual_q1mu_slope_spatial_t80_t77_runner_n5 --seeds=861001\,861002\,861003\,861004\,861005 --write-dashboard=false
+--- file: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/wrapper.stdout ---
+--- file: /project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche87-spatial-drac-smoke-n5-slurm-metadata/wrapper.stderr ---
+Error: drmTMB could not be loaded from the exact T83 DRAC source path.
+Execution halted

@@ -1,0 +1,3 @@
+remote_host	rorqual
+remote_packet	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/slurm/q1-mu-slope-spatial-t112-package-install-load-proof.sbatch
+remote_artifact_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche112-spatial-drac-package-install-load-proof

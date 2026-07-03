@@ -1,0 +1,21 @@
+proof_type=no-compute dependency-route review
+tranche=T125
+source_tranche=T124
+job_id=15112750
+failure_taxonomy=dependency_drift_devtools_missing_or_unloadable
+t124_library_status=library(drmTMB) passed before devtools stop
+selected_route=installed_package_library_drmTMB_via_load_source_false
+rejected_route=broad_prestage_install_devtools_first
+source_sha=56add7f04fab7bec57a42e56eaeb090dff491863
+host_label=drac_rorqual_q1mu_slope_spatial_t120_t122_packet_n5
+runner_sha256=84a335abddbd04f74c30daeb448af37e8d713471f71b2656c2ab41c4e85558b9
+wrapper_sha256=ea63c6fe0a4423296f48f2a11ec75232ce2e3ff37eb0b52bc3f48db5287bc5a2
+runner_dry_run_sha256=8447aebd641f7a1c387c838232bc0c7fb9b35b083cb837725687105f2346577d
+wrapper_manifest_sha256=e5a6bca66e8aa0395c81f6b51d9e533bc727d93707787b5ca8b4d2341334b2ce
+compute_status=no_ssh_no_remote_copy_no_sbatch_no_allocation_no_model
+denominator_status=no_new_denominator
+coverage_decision=coverage_not_authorized
+promotion_decision=do_not_promote
+support_cell_decision=unchanged_point_fit_planned_planned
+claim_boundary=T125 is no-compute dependency-route review only; it imports T124 job 15112750 as terminal dependency drift; T124 proved source SHA guard and library(drmTMB) before devtools_available FALSE stopped before runner/model; T125 rejects broad prestage/install devtools as the first repeat route and selects the narrower explicit --load-source=false installed-package route for a future packet; runner_hash_84a335abddbd04f74c30daeb448af37e8d713471f71b2656c2ab41c4e85558b9 and wrapper_hash_ea63c6fe0a4423296f48f2a11ec75232ce2e3ff37eb0b52bc3f48db5287bc5a2 are local patch evidence only; dry-run hash 8447aebd641f7a1c387c838232bc0c7fb9b35b083cb837725687105f2346577d and wrapper manifest hash e5a6bca66e8aa0395c81f6b51d9e533bc727d93707787b5ca8b4d2341334b2ce prove local route parsing only; no ssh, no remote copy, no sbatch, no allocation, no module load, no R CMD INSTALL, no package install, no host library load, no smoke runner execute, no model formula, no model fit, no pdHess, no Wald interval, no profile interval, no output rows, no retained denominator, no admission pass, no coverage, no top-up, no support-cell status edit, no inference_ready, no supported, no public support, no REML, no AI-REML, no denominator pooling, and not a tier claim; support cell stays point_fit/planned/planned.
+next_gate=T126 no-compute patched-runner packet checkpoint before any repeat execution; must carry source SHA 56add7f04fab7bec57a42e56eaeb090dff491863, host label drac_rorqual_q1mu_slope_spatial_t120_t122_packet_n5, --load-source=false, library(drmTMB) installed-package route, host-separated denominator policy, and Rose/Fisher/Gauss/Noether/Grace approval; do not submit Rorqual or any host command before T126 validates and checkpoints; stop on missing target, fit error, pdHess FALSE, nonfinite Wald interval, nonfinite profile interval, unclear host provenance, validator drift, source SHA drift, dependency drift, denominator drift, coverage request, support-cell status edit, inference_ready, supported, public support, REML, AI-REML, or denominator pooling.

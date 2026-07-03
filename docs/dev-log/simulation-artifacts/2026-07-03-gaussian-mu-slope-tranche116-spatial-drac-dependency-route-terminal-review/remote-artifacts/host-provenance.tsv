@@ -1,0 +1,13 @@
+field	value
+observed_at_utc	2026-07-03T10:50:51Z
+remote_host	rc32501
+remote_user	snakagaw
+slurm_job_id	15106737
+run_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+proof_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche115-spatial-drac-dependency-route-proof
+lib_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche115
+dependency_lib_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/Rlib-tranche98
+dependency_repo	file:///project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/dependency-repo/t115-local-cran
+expected_source_sha	56add7f04fab7bec57a42e56eaeb090dff491863
+model_boundary	no_smoke_runner_no_formula_no_fit_no_denominator_no_coverage

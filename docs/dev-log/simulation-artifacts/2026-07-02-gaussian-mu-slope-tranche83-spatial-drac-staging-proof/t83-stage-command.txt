@@ -1,0 +1,21 @@
+# Tranche 83 allowed commands only.
+# 1. mkdir source checkout path, run root, and output dir on DRAC Rorqual.
+# 2. rsync source snapshot to the source checkout path.
+# 3. write no-model provenance files under the output dir and import them locally.
+# Forbidden in T83: module load, Rscript, devtools::load_all(), smoke command, model fit, confint/profile, retained-denominator accounting, coverage, top-up, support-cell status edit.
+ssh -o BatchMode=yes -o ConnectTimeout=10 rorqual <T83 mkdir-only staging proof>
+set -eu
+mkdir -p '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source' '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche83-spatial-drac-staging-proof' '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche83-spatial-drac-staging-proof/snapshot' '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche83-spatial-drac-staging-proof/run-root'
+printf 'remote_host='; hostname
+printf 'remote_user='; whoami
+printf 'source_checkout_status='; if test -d '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source'; then echo source_checkout_created_or_exists; else echo source_checkout_missing_after_mkdir; fi
+printf 'run_root_status='; if test -d '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0'; then echo run_root_created_or_exists; else echo run_root_missing_after_mkdir; fi
+printf 'output_dir_status='; if test -d '/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche83-spatial-drac-staging-proof'; then echo output_dir_created_or_exists; else echo output_dir_missing_after_mkdir; fi
+printf 'module_probe_status=not_run_no_environment_load\n'
+printf 'model_command_status=not_run\n'
+
+rsync command:
+COPYFILE_DISABLE=1 rsync -az --delete --stats --exclude=.git/ --exclude=.Rproj.user/ --exclude=.DS_Store --exclude=._* --exclude=*.o --exclude=*.so --exclude=*.dll --exclude=*.dylib --exclude=**/__pycache__/ ./ rorqual:/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/
+
+remote proof command:
+ssh rorqual <mkdir/source-manifest/provenance/hash/no-model-proof script>; no module load, no R, no model command

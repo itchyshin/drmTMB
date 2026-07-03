@@ -1,0 +1,10 @@
+status_step	status	exit_code	boundary
+host_command	not_run_no_host_command	NA	T117 writes local artifacts only
+ssh	not_run_no_host_command	NA	no remote command in T117
+remote_copy	not_run_no_host_command	NA	no remote copy in T117
+sbatch	not_submitted_packet_review_only	NA	candidate packet only; future T118 approval required
+module_load	future_T118_contract_only_not_attempted	NA	module load belongs to future proof
+r_cmd_install_drmTMB	future_T118_contract_only_not_attempted	NA	R CMD INSTALL not attempted in T117
+library_drmTMB	future_T118_contract_only_not_attempted	NA	library(drmTMB) not attempted in T117
+model_execution	not_run	NA	no smoke runner, no formula, no fit
+denominator	not_created	NA	no retained denominator and no coverage

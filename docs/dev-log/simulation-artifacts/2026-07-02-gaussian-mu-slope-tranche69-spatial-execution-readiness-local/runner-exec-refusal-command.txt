@@ -1,0 +1,2 @@
+R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file tools/run-gaussian-mu-slope-tranche62-spatial-host-smoke.R --mode=dry-run --provider=spatial --target=both --n-rep=5 --seeds=861001,861002,861003,861004,861005 --host-label=totoro_q1mu_slope_spatial_t68_source_runroot_staging --write-dashboard=false --execution-approved=true
+exit_code=1

@@ -1,0 +1,9 @@
+field	value
+required_source_checkout_path	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+required_run_root_path	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+required_output_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche83-spatial-drac-staging-proof
+required_host_label	drac_rorqual_q1mu_slope_spatial_t80_t77_runner_n5
+required_write_dashboard	false
+coverage_decision	coverage_not_authorized
+promotion_decision	do_not_promote
+support_cell_decision	unchanged_point_fit_planned_planned

@@ -1,0 +1,1 @@
+Captured a no-model Rorqual BatchMode provenance probe for Tranche 81. This artifact records only reachability and path/hash status. It does not run R, load modules, call devtools, fit a model, create a denominator, authorize coverage, or move support-cell status.

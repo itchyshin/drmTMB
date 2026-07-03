@@ -1,0 +1,7 @@
+04e222629dcdb76cec7548b934d2d0e2187df8ec96e031aab7cbb4f7dcd72633  ./tools/run-structured-re-q2-plus-q2-intercept-smoke.R
+9c905271937847a9eb56910953224af40626f1ab57d5acb6ba33d20461de74fb  ./tools/run-structured-re-q2-retained-denominator-pregrid.R
+5c9c95aa592b866f0209ef60d97e9e98ee9044f76d2740e8c3439b1ec78b316b  ./docs/dev-log/dashboard/structured-re-q2-plus-q2-intercept-contract.tsv
+84c6c0974f34360082fc5ed46235afb9294c37f7339f0f65cacb1fde4dce9298  ./docs/dev-log/dashboard/structured-re-q2-retained-denominator-design.tsv
+cd6c402cb60b69f70af5ea49f61413dfc53b789075310b2047535749f73e81e8  ./R/drmTMB.R
+37263d7f99abc52ff1373f41be730e04584e06e11a1d68fa3cd80eaf2336f82c  ./R/profile.R
+d1fff733f7c1dd6617112fbe5fe570cd231281daa20fd654e4a2751f6dc5ef66  ./src/drmTMB.cpp

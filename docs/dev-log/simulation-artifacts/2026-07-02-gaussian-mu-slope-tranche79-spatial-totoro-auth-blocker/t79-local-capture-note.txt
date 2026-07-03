@@ -1,0 +1,1 @@
+first capture note: initial local zsh capture failed before writing exit code because variable name status is read-only; rerun used rc.

@@ -1,0 +1,17 @@
+Transfer starting: 13 files
+./
+downloaded-packages.tsv
+source-repo-sha256.txt
+src/
+src/contrib/
+src/contrib/Matrix_1.7-5.tar.gz
+src/contrib/PACKAGES
+src/contrib/PACKAGES.gz
+src/contrib/PACKAGES.rds
+src/contrib/RcppEigen_0.3.4.0.2.tar.gz
+src/contrib/Rcpp_1.1.1-1.1.tar.gz
+src/contrib/TMB_1.9.21.tar.gz
+src/contrib/cli_3.6.6.tar.gz
+
+sent 7594290 bytes  received 258 bytes  2464082 bytes/sec
+total size is 7592233  speedup is 1.00

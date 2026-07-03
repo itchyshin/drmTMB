@@ -92,6 +92,44 @@ clean_ascii <- function(x) {
   trimws(x)
 }
 
+git_scalar <- function(args, default = "unknown") {
+  out <- tryCatch(
+    system2(
+      "git",
+      c("-C", shQuote(repo_root), args),
+      stdout = TRUE,
+      stderr = FALSE
+    ),
+    error = function(e) character()
+  )
+  out <- out[nzchar(out)]
+  if (!length(out)) {
+    return(default)
+  }
+  clean_ascii(out[[1L]])
+}
+
+git_dirty_status <- function() {
+  out <- tryCatch(
+    system2(
+      "git",
+      c("-C", shQuote(repo_root), "status", "--porcelain"),
+      stdout = TRUE,
+      stderr = FALSE
+    ),
+    error = function(e) character()
+  )
+  if (length(out) > 0L) "dirty" else "clean"
+}
+
+env_or_default <- function(name, default_fun) {
+  value <- Sys.getenv(name, unset = "")
+  if (nzchar(value)) {
+    return(clean_ascii(value))
+  }
+  default_fun()
+}
+
 read_tsv <- function(path) {
   utils::read.delim(
     path,
@@ -597,6 +635,23 @@ raw_relpath <- substring(
   normalizePath(raw_path, winslash = "/", mustWork = FALSE),
   nchar(repo_root) + 2L
 )
+source_sha <- env_or_default(
+  "DRMTMB_SOURCE_SHA",
+  function() git_scalar(c("rev-parse", "--short", "HEAD"))
+)
+source_dirty <- env_or_default("DRMTMB_SOURCE_DIRTY", git_dirty_status)
+output_path <- normalizePath(artifact_dir, winslash = "/", mustWork = FALSE)
+raw_output_path <- normalizePath(raw_path, winslash = "/", mustWork = FALSE)
+run_log_output_path <- normalizePath(
+  run_log_path,
+  winslash = "/",
+  mustWork = FALSE
+)
+summary_output_path <- if (is.na(summary_path)) {
+  "NA"
+} else {
+  normalizePath(summary_path, winslash = "/", mustWork = FALSE)
+}
 run_id <- paste0(
   "q4_location_admission_smoke_",
   args$host_label,
@@ -637,6 +692,12 @@ run_log <- data.frame(
   n_rep = args$n_rep,
   seed_start = args$seed_start,
   n_each = args$n_each,
+  source_sha = source_sha,
+  source_dirty = source_dirty,
+  output_path = output_path,
+  raw_output_path = raw_output_path,
+  run_log_output_path = run_log_output_path,
+  summary_output_path = summary_output_path,
   load_status = load_result$status,
   load_detail = clean_ascii(load_result$detail),
   raw_artifact_url = raw_relpath,
