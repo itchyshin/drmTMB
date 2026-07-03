@@ -35,7 +35,7 @@ target.
 ## 4. Files Touched
 
 - `docs/dev-log/dashboard/structured-re-gaussian-mu-slope-tranche124-spatial-drac-model-smoke-execution-terminal-review.tsv`
-- `docs/dev-log/simulation-artifacts/2026-07-03-gaussian-mu-slope-tranche124-spatial-drac-model-smoke-execution-terminal-review/`
+- `docs/dev-log/simulation-artifacts/2026-07-03-t124-spatial-drac-terminal/`
 - `docs/dev-log/dashboard/member-discussions.tsv`
 - `docs/dev-log/dashboard/structured-re-q-series-next-campaign-queue.tsv`
 - `docs/dev-log/dashboard/index.html`

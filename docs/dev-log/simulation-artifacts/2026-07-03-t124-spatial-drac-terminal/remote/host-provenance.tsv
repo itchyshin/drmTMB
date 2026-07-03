@@ -1,0 +1,17 @@
+field	value
+date	2026-07-03T10:58:00-04:00
+job_id	15112750
+cluster	rorqual
+node	rc31704
+submission_host_context	rorqual4
+run_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0
+source_root	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source
+output_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche124-spatial-drac-model-smoke-execution
+metadata_dir	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche124-spatial-drac-model-smoke-execution-slurm-metadata
+host_label	drac_rorqual_q1mu_slope_spatial_t120_t122_packet_n5
+seeds	861001,861002,861003,861004,861005
+source_sha	56add7f04fab7bec57a42e56eaeb090dff491863
+runner	/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/source/tools/run-gaussian-mu-slope-tranche85-spatial-drac-host-smoke.R
+coverage_decision	coverage_not_authorized
+promotion_decision	do_not_promote
+support_cell_decision	unchanged_point_fit_planned_planned

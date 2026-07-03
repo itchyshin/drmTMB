@@ -1,4 +1,0 @@
-review_id	status	evidence	claim_boundary
-t124_terminal_state	FAILED_13_0	job_15112750_rc31704_sacct_and_terminal_status	terminal evidence only not model evidence
-t124_dependency_drift	devtools_available_FALSE	devtools-availability.tsv and missing-result-proof.tsv	dependency drift before runner
-t124_boundary	no_new_denominator	no output rows and model command not started	no admission coverage promotion or support movement

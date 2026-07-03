@@ -18162,21 +18162,21 @@ test_that("Tranche 124 records terminal dependency drift, not model-smoke eviden
 
   artifact_root <- paste0(
     "docs/dev-log/simulation-artifacts/",
-    "2026-07-03-gaussian-mu-slope-tranche124-spatial-drac-model-smoke-execution-terminal-review"
+    "2026-07-03-t124-spatial-drac-terminal"
   )
   terminal_status <- paste(readLines(structured_re_artifact_path(
     artifact_root,
-    "remote-artifacts/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche124-spatial-drac-model-smoke-execution-slurm-metadata/t124-terminal-status.tsv"
+    "remote/t124-terminal-status.tsv"
   ), warn = FALSE), collapse = "\n")
   expect_match(terminal_status, "devtools_available\tfailed\t13\tdependency_drift_devtools_missing_or_unloadable", fixed = TRUE)
   devtools_available <- paste(readLines(structured_re_artifact_path(
     artifact_root,
-    "remote-artifacts/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche124-spatial-drac-model-smoke-execution-slurm-metadata/devtools-availability.tsv"
+    "remote/devtools-availability.tsv"
   ), warn = FALSE), collapse = "\n")
   expect_match(devtools_available, "devtools_available\tFALSE", fixed = TRUE)
   missing_result <- paste(readLines(structured_re_artifact_path(
     artifact_root,
-    "remote-artifacts/project/def-snakagaw/snakagaw/drmtmb-qseries/20260702-q1-mu-slope-spatial-tranche80-drac-source-56add7f0/results/tranche124-spatial-drac-model-smoke-execution-slurm-metadata/missing-result-proof.tsv"
+    "remote/missing-result-proof.tsv"
   ), warn = FALSE), collapse = "\n")
   expect_match(missing_result, "dependency_drift_devtools_missing_or_unloadable", fixed = TRUE)
   sacct <- paste(readLines(structured_re_artifact_path(
