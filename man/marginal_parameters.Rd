@@ -53,6 +53,17 @@ population-level summaries, supply an explicit \code{newdata} grid; with
 \code{newdata = NULL}, the fitted-row prediction contract is the same as
 \code{\link[=predict.drmTMB]{predict.drmTMB()}}.
 
+Averaging uses a moment-appropriate scale so that dispersion and correlation
+summaries stay interpretable. On \code{type = "response"}, standard-deviation
+parameters (\code{sigma}, \code{sigma1}, \code{sigma2}, and random-effect \code{sd(...)} models)
+are averaged on the variance scale (the reported value is the root of the
+mean squared per-row SD), and correlation parameters (\code{rho12}) are averaged
+on the Fisher-z scale. Location and other parameters use the arithmetic
+mean. On \code{type = "link"}, all parameters are already on an unconstrained
+scale, so the arithmetic mean of the linear predictor is reported unchanged.
+These remain unweighted plug-in summaries, not exact marginal moments of the
+mixture over rows.
+
 The returned table carries the same interval provenance columns as
 \code{\link[=predict_parameters]{predict_parameters()}}. In this first contract, marginal summaries are point
 estimates with \code{conf.status = "not_requested"} and

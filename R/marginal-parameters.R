@@ -11,6 +11,17 @@
 #' `newdata = NULL`, the fitted-row prediction contract is the same as
 #' [predict.drmTMB()].
 #'
+#' Averaging uses a moment-appropriate scale so that dispersion and correlation
+#' summaries stay interpretable. On `type = "response"`, standard-deviation
+#' parameters (`sigma`, `sigma1`, `sigma2`, and random-effect `sd(...)` models)
+#' are averaged on the variance scale (the reported value is the root of the
+#' mean squared per-row SD), and correlation parameters (`rho12`) are averaged
+#' on the Fisher-z scale. Location and other parameters use the arithmetic
+#' mean. On `type = "link"`, all parameters are already on an unconstrained
+#' scale, so the arithmetic mean of the linear predictor is reported unchanged.
+#' These remain unweighted plug-in summaries, not exact marginal moments of the
+#' mixture over rows.
+#'
 #' The returned table carries the same interval provenance columns as
 #' [predict_parameters()]. In this first contract, marginal summaries are point
 #' estimates with `conf.status = "not_requested"` and
@@ -133,7 +144,11 @@ marginalise_parameter_predictions <- function(pred, by) {
     idx <- which(keys == key)
     first <- idx[[1L]]
     out <- pred[first, group_cols, drop = FALSE]
-    out$estimate <- mean(pred$estimate[idx])
+    out$estimate <- marginal_parameter_group_mean(
+      pred$estimate[idx],
+      component = pred$component[[first]],
+      type = pred$type[[first]]
+    )
     out$n <- length(idx)
     out$conf.status <- "not_requested"
     out$interval_source <- "not_available"
@@ -143,4 +158,30 @@ marginalise_parameter_predictions <- function(pred, by) {
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   out
+}
+
+# Average predicted distributional parameters on a moment-appropriate scale.
+#
+# A plain arithmetic mean of response-scale standard deviations is not the SD of
+# any marginal distribution, and an arithmetic mean of response-scale
+# correlations is not a valid pooled correlation. On the response scale we
+# therefore average dispersion parameters on the variance scale (RMS of the
+# per-row SDs) and correlation parameters on the Fisher-z scale. Location and
+# other parameters keep the arithmetic mean. On the link scale the predictors
+# are already unconstrained, so the arithmetic mean of the linear predictor is
+# reported unchanged.
+marginal_parameter_group_mean <- function(values, component, type) {
+  if (!identical(type, "response")) {
+    return(mean(values))
+  }
+  if (
+    component %in% c("distributional-scale", "random-effect-sd-model")
+  ) {
+    return(sqrt(mean(values^2)))
+  }
+  if (identical(component, "residual-correlation")) {
+    clamped <- pmax(pmin(values, 1 - 1e-12), -(1 - 1e-12))
+    return(tanh(mean(atanh(clamped))))
+  }
+  mean(values)
 }

@@ -65,12 +65,28 @@ meta_vcov_bivariate <- function(v1, v2, cov12 = NULL, cor12 = NULL) {
     cov12 <- validate_meta_pair_vector(cov12, "cov12", n)
   }
 
+  # Reject blocks that are indefinite or singular using a scale-relative,
+  # rank-aware determinant test rather than an absolute tolerance. A 2x2 block
+  # is positive definite iff v1 * v2 - cov12^2 > 0; comparing abs(cov12) against
+  # sqrt(v1 * v2) with a relative margin rejects both genuinely indefinite blocks
+  # (on any scale) and singular blocks with sampling correlation +/-1, which are
+  # degenerate covariance inputs for the dense bivariate meta likelihood.
   max_cov <- sqrt(v1 * v2)
   tolerance <- sqrt(.Machine$double.eps)
-  if (any(abs(cov12) - max_cov > tolerance)) {
+  # relative margin: within tolerance of the singular boundary counts as invalid
+  singular_bound <- max_cov * (1 - tolerance)
+  positive_scale <- max_cov > 0
+  if (any(positive_scale & abs(cov12) >= singular_bound)) {
+    cli::cli_abort(c(
+      "Each bivariate sampling covariance block must be positive definite.",
+      "x" = "{.arg cov12} must satisfy {.code abs(cov12) < sqrt(v1 * v2)} for every study.",
+      "i" = "A block with sampling correlation {.val -1} or {.val 1} is singular and cannot be used."
+    ))
+  }
+  if (any(!positive_scale & abs(cov12) > tolerance)) {
     cli::cli_abort(c(
       "Each bivariate sampling covariance block must be positive semidefinite.",
-      "x" = "{.arg cov12} must satisfy {.code abs(cov12) <= sqrt(v1 * v2)} for every study."
+      "x" = "A study with zero sampling variance must have {.code cov12 == 0}."
     ))
   }
 

@@ -482,7 +482,11 @@ drm_mask_missing_response_values <- function(object, value) {
   }
   observed_y <- as.logical(missing_data$observed_y)
   if (length(value) != length(observed_y)) {
-    return(value)
+    cli::cli_abort(c(
+      "Internal error: cannot mask missing responses because of a length mismatch.",
+      "x" = "Received {length(value)} value{?s} but the response mask has {length(observed_y)} entr{?y/ies}.",
+      "i" = "Masking is required so the internal missing-response sentinel is never reported as data."
+    ))
   }
   value[!observed_y] <- NA_real_
   value
@@ -496,10 +500,16 @@ drm_mask_biv_missing_response_values <- function(object, value) {
       is.null(missing_data$observed_y1) ||
       is.null(missing_data$observed_y2) ||
       !is.matrix(value) ||
-      nrow(value) != length(missing_data$observed_y1) ||
       ncol(value) < 2L
   ) {
     return(value)
+  }
+  if (nrow(value) != length(missing_data$observed_y1)) {
+    cli::cli_abort(c(
+      "Internal error: cannot mask missing bivariate responses because of a row mismatch.",
+      "x" = "Received {nrow(value)} row{?s} but the response mask has {length(missing_data$observed_y1)} entr{?y/ies}.",
+      "i" = "Masking is required so the internal missing-response sentinel is never reported as data."
+    ))
   }
   value[!as.logical(missing_data$observed_y1), 1L] <- NA_real_
   value[!as.logical(missing_data$observed_y2), 2L] <- NA_real_
@@ -2550,12 +2560,12 @@ drm_poisson_missing_predictor_response <- function(x, variable) {
   x
 }
 
-drm_poisson_mi_support <- function(lambda, observed, tail = 1e-10) {
+drm_poisson_mi_support <- function(lambda, observed_values, tail = 1e-10) {
   lambda <- lambda[is.finite(lambda) & lambda >= 0]
-  lambda_max <- max(c(lambda, observed, 1), na.rm = TRUE)
+  lambda_max <- max(c(lambda, observed_values, 1), na.rm = TRUE)
   upper <- max(
     50L,
-    as.integer(max(observed, na.rm = TRUE)) + 25L,
+    as.integer(max(observed_values, na.rm = TRUE)) + 25L,
     as.integer(stats::qpois(1 - tail, lambda = lambda_max))
   )
   if (!is.finite(upper) || upper < 0L) {
@@ -2897,14 +2907,14 @@ drm_positive_count_missing_predictor_response <- function(
   x
 }
 
-drm_nbinom2_mi_support <- function(mu, sigma, observed, tail = 1e-10) {
+drm_nbinom2_mi_support <- function(mu, sigma, observed_values, tail = 1e-10) {
   mu <- mu[is.finite(mu) & mu >= 0]
   sigma <- max(as.numeric(sigma[[1L]]), 1e-8)
   size <- 1 / sigma^2
   q <- stats::qnbinom(1 - tail, size = size, mu = pmax(mu, 1e-10))
   upper <- max(
     50L,
-    as.integer(max(observed, na.rm = TRUE)) + 25L,
+    as.integer(max(observed_values, na.rm = TRUE)) + 25L,
     as.integer(max(q, na.rm = TRUE))
   )
   if (!is.finite(upper) || upper < 0L) {
@@ -2925,10 +2935,10 @@ drm_nbinom2_mi_support <- function(mu, sigma, observed, tail = 1e-10) {
 drm_truncated_nbinom2_mi_support <- function(
   mu,
   sigma,
-  observed,
+  observed_values,
   tail = 1e-10
 ) {
-  support <- drm_nbinom2_mi_support(mu, sigma, observed, tail = tail)
+  support <- drm_nbinom2_mi_support(mu, sigma, observed_values, tail = tail)
   support[support > 0]
 }
 
@@ -4779,10 +4789,10 @@ drm_imputed_missing_predictor_se <- function(object, n_missing, se) {
     return(rep(NA_real_, n_missing))
   }
   random_names <- names(object$sdr$par.random)
-  positions <- which(
-    identical(random_names, "x_miss") | random_names == "x_miss"
-  )
+  positions <- which(random_names == "x_miss")
   if (length(positions) != n_missing) {
+    # Summed (finite-state) mi families legitimately have zero x_miss random
+    # parameters; fall back to NA in that case rather than mismatching.
     return(rep(NA_real_, n_missing))
   }
   variance <- as.numeric(object$sdr$diag.cov.random[positions])
