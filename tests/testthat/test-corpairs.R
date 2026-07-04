@@ -296,6 +296,86 @@ test_that("corpairs reports fitted bivariate phylogenetic mean correlation", {
   expect_equal(pairs_no_frame$to_response, "y2")
 })
 
+new_corpairs_heterogeneous_group_data <- function(
+  n_id = 40,
+  n_each = 6,
+  beta_cor = c(0, 3),
+  seed = 2026070301
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- stats::rnorm(n)
+  ecology_id <- stats::rnorm(n_id)
+  ecology <- ecology_id[id]
+  # Large slope so group correlations span strongly negative to strongly
+  # positive, with a near-zero arithmetic mean.
+  rho_group <- 0.999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
+  u1 <- stats::rnorm(n_id)
+  u2 <- rho_group * u1 + sqrt(1 - rho_group^2) * stats::rnorm(n_id)
+  e1 <- stats::rnorm(n)
+  e2 <- 0.05 * e1 + sqrt(1 - 0.05^2) * stats::rnorm(n)
+  dat <- data.frame(id = id, x = x, ecology = ecology)
+  dat$y1 <- 0.2 + 0.45 * x + 0.6 * u1[id] + 0.35 * e1
+  dat$y2 <- -0.15 - 0.35 * x + 0.7 * u2[id] + 0.42 * e2
+  list(data = dat, rho_group = rho_group)
+}
+
+test_that("modelled group mu correlation is reported per level, not a scalar mean (issue #698)", {
+  sim <- new_corpairs_heterogeneous_group_data()
+  dpar <- 'corpair(id, level = "group", block = "p", from = "mu1", to = "mu2")'
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~
+        ecology
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  cor_hat <- predict(fit, dpar = dpar)
+  n_levels <- nlevels(sim$data$id)
+
+  # corpars$mu now holds one correlation per group level, not a scalar mean.
+  expect_equal(length(fit$corpars$mu), n_levels)
+  expect_equal(unname(fit$corpars$mu), unname(cor_hat), tolerance = 1e-8)
+  # Labels are per level and length-matched (issue #711.2 defensive labelling).
+  expect_equal(length(names(fit$corpars$mu)), length(fit$corpars$mu))
+  expect_false(anyNA(names(fit$corpars$mu)))
+  expect_true(all(grepl("[", names(fit$corpars$mu), fixed = TRUE)))
+
+  # Heterogeneity and boundary proximity are visible to direct consumers such as
+  # the check.R weak-correlation diagnostic (which reads max|corpars$mu|). The old
+  # scalar-mean collapse hid opposite-sign group correlations pegged near +/-1.
+  expect_equal(
+    drmTMB:::max_abs_finite_or_na(fit$corpars$mu),
+    max(abs(cor_hat)),
+    tolerance = 1e-8
+  )
+  expect_gt(drmTMB:::max_abs_finite_or_na(fit$corpars$mu), 0.9)
+  expect_lt(abs(mean(cor_hat)), 0.6)
+
+  # corpairs() still summarises the modelled correlation as a single row.
+  group_pair <- corpairs(fit, level = "group")
+  expect_equal(nrow(group_pair), 1L)
+  expect_true(group_pair$modelled)
+  expect_equal(group_pair$n_values, n_levels)
+  expect_equal(group_pair$estimate, mean(cor_hat), tolerance = 1e-8)
+  expect_equal(group_pair$min, min(cor_hat), tolerance = 1e-8)
+  expect_equal(group_pair$max, max(cor_hat), tolerance = 1e-8)
+
+  # No spurious per-level cor:mu:* profile targets are generated.
+  targets <- profile_targets(fit)
+  expect_false(any(startsWith(targets$parm, "cor:mu:")))
+})
+
 test_that("corpairs returns an empty table when no correlations are fitted", {
   dat <- data.frame(y = c(-0.4, 0.1, 0.7, 1.0, 1.3), x = c(-1, 0, 1, 2, 3))
   fit <- drmTMB(bf(y ~ x), family = gaussian(), data = dat)

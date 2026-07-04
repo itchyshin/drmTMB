@@ -491,3 +491,52 @@ test_that("full meta_V rejects invalid covariance matrices", {
     "finite"
   )
 })
+
+test_that("known V PSD check is scale-relative (issue #710.1)", {
+  vkm <- drmTMB:::validate_known_v_matrix
+  set.seed(710)
+  Q <- qr.Q(qr(matrix(stats::rnorm(9), 3)))
+
+  # Small-scale, genuinely indefinite: min eigenvalue -1e-9 against a 1e-6 scale
+  # (relative negativity -0.1%). The old absolute threshold (-sqrt(eps) ~ -1.5e-8)
+  # admitted this; a scale-relative test must reject it before the MVNORM Cholesky.
+  V_small_indef <- Q %*% diag(c(1e-6, 5e-7, -1e-9)) %*% t(Q)
+  V_small_indef <- (V_small_indef + t(V_small_indef)) / 2
+  expect_error(vkm(V_small_indef), "positive semidefinite")
+
+  # Large-scale, genuinely PSD: entries ~1e8, min eigenvalue exactly >= 0 up to
+  # float rounding. A scale-relative tolerance must still accept it.
+  v <- stats::rnorm(3)
+  V_large_psd <- 1e8 * (v %*% t(v)) + 1e8 * diag(c(1, 1, 1))
+  V_large_psd <- (V_large_psd + t(V_large_psd)) / 2
+  expect_silent(vkm(V_large_psd))
+
+  # A well-conditioned small PSD matrix is unaffected.
+  expect_silent(vkm(diag(c(0.01, 0.02, 0.03))))
+})
+
+test_that("meta between-study variance start uses robust DL moment (issue #710.3)", {
+  dl <- drmTMB:::meta_dl_tau2_start
+  set.seed(7103)
+  k <- 60
+  tau2_true <- 0.05
+  V <- stats::rgamma(k, shape = 0.5, rate = 2) # right-skewed sampling variances
+  theta <- 0.3 + stats::rnorm(k, sd = sqrt(tau2_true)) + stats::rnorm(k, sd = sqrt(V))
+
+  fallback <- max(stats::var(theta) - stats::median(V), 1e-8)
+  dl_start <- dl(theta, V, fallback)
+
+  # The DL start is a non-negative finite between-study variance and, on skewed V,
+  # is not simply the median(V)-subtraction fallback.
+  expect_true(is.finite(dl_start))
+  expect_gte(dl_start, 0)
+  expect_false(isTRUE(all.equal(dl_start, fallback)))
+
+  # The DL start is closer to the truth than the median-subtraction fallback here.
+  expect_lt(abs(dl_start - tau2_true), abs(fallback - tau2_true))
+
+  # Falls back safely when V carries no positive sampling variance (non-meta fit).
+  expect_equal(dl(theta, rep(0, k), fallback), fallback)
+  # Falls back when fewer than two usable studies are available.
+  expect_equal(dl(theta[1], V[1], fallback), fallback)
+})
