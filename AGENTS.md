@@ -3,7 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-07-01, → Codex).** Q-Series Tranche 3 clean start.
+> **▶ Latest handover — start here (2026-07-03, → Claude).** Twin-package review backlog.
+> A deep multi-agent **static** code review of drmTMB **and** its twin **DRM.jl** filed **50 new
+> issues** (drmTMB #690–713, DRM.jl #301–326; labels `bug`/`documentation`, all title-tagged
+> `[review]`): 9 high + 30 medium as individual issues, 46 low findings batched into per-repo
+> thematic tracking issues. **No package code changed this session** (review only). The maintainer
+> wants the next session to **start solving the whole open-issue backlog across both packages
+> together** — the 50 review bugs first, then the pre-existing enhancement/roadmap issues (incl.
+> drmTMB #714 / DRM.jl #327). Claude drafts fixes + tests + docs; **Codex runs the live R/TMB +
+> Julia validation** (`R CMD check`, fits, sims). Twin-parity is the cross-cutting theme: decide
+> one convention per family and enforce it with a parity test. Consolidated report is in-repo at
+> `docs/dev-log/handover/2026-07-03-twin-review-report.md`.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-03-claude-handover.md`](docs/dev-log/handover/2026-07-03-claude-handover.md).
+>
+> **▶ Prior handover (2026-07-01, → Codex).** Q-Series Tranche 3 clean start.
 > Tranche 2 is done and merged: PR #684 and PR #685 landed on `main`, with local
 > `HEAD` and `origin/main` verified at `4d6d2339eb48`, no open drmTMB PRs, a clean
 > worktree, `mission_control_ok`, and final-base R-CMD-check success for #685 on
