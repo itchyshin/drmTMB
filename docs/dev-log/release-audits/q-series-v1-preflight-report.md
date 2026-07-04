@@ -16,12 +16,12 @@ Mission Control passed in this generated report.
 
 | Measure | Rows and percent |
 | --- | --- |
-| Practical v1.0 row surface | 74/104 (71.2%) |
+| Practical v1.0 row surface | 75/104 (72.1%) |
 | Gaussian v1.0 core | 56/67 (83.6%) |
-| Basic-distribution recovery | 18/37 (48.6%) |
+| Basic-distribution recovery | 19/37 (51.4%) |
 | Exact `inference_ready` anchors | 8/104 (7.7%) |
 | `supported` authority | 0/104 (0.0%) |
-| Post-v1.0 validation/design | 30/104 (28.8%) |
+| Post-v1.0 validation/design | 29/104 (27.9%) |
 
 ## Distance To Row-Accounting Targets
 
@@ -30,10 +30,10 @@ coverage jobs, public release claims, `inference_ready`, or `supported` status.
 
 | Target | Required practical-surface rows | Rows still needed |
 | --- | ---: | ---: |
-| 75% practical surface | 78/104 | 4 |
-| 80% practical surface | 84/104 | 10 |
-| 90% practical surface | 94/104 | 20 |
-| 100% practical surface | 104/104 | 30 |
+| 75% practical surface | 78/104 | 3 |
+| 80% practical surface | 84/104 | 9 |
+| 90% practical surface | 94/104 | 19 |
+| 100% practical surface | 104/104 | 29 |
 
 ## Next Candidate Review Queue
 
@@ -44,16 +44,16 @@ Every generated candidate remains `coverage_not_authorized` and
 
 | Rank | Target band | Cell | Family | Provider | Review reason |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_four_to_review_for_75_percent | `qseries_beta_mu_animal_rejected` | beta() | animal | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 2 | first_four_to_review_for_75_percent | `qseries_gamma_mu_relmat_rejected` | Gamma() | relmat | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 3 | first_four_to_review_for_75_percent | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() | phylo | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 4 | first_four_to_review_for_75_percent | `qseries_student_mu_spatial_rejected` | student() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 5 | additional_six_to_review_for_80_percent | `qseries_count_mu_labelled_q2_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 6 | additional_six_to_review_for_80_percent | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 7 | additional_six_to_review_for_80_percent | `qseries_count_mu_structured_plus_ordinary_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 8 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_nbinom2_structured_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 9 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_poisson_structured_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 10 | additional_six_to_review_for_80_percent | `qseries_count_mu_noncanonical_term_rejected` | poisson() | spatial | count-location design gap; prove recovery scope before any movement |
+| 1 | first_four_to_review_for_75_percent | `qseries_gamma_mu_relmat_rejected` | Gamma() | relmat | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 2 | first_four_to_review_for_75_percent | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() | phylo | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 3 | first_four_to_review_for_75_percent | `qseries_student_mu_spatial_rejected` | student() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 4 | first_four_to_review_for_75_percent | `qseries_beta_sigma_animal_rejected` | beta() | animal | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 5 | additional_six_to_review_for_80_percent | `qseries_animal_nbinom2_q1_sigma_one_slope_rejected` | nbinom2() | animal | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 6 | additional_six_to_review_for_80_percent | `qseries_phylo_nbinom2_q1_sigma_one_slope_rejected` | nbinom2() | phylo | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 7 | additional_six_to_review_for_80_percent | `qseries_relmat_nbinom2_q1_sigma_one_slope_rejected` | nbinom2() | relmat | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 8 | additional_six_to_review_for_80_percent | `qseries_spatial_nbinom2_q1_sigma_one_slope_rejected` | nbinom2() | spatial | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 9 | additional_six_to_review_for_80_percent | `qseries_student_nu_phylo_rejected` | student() | phylo | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 10 | additional_six_to_review_for_80_percent | `qseries_poisson_zi_spatial_rejected` | poisson() | spatial | non-location family-parameter design gap; keep intervals and coverage deferred |
 
 ## 75% First-Four Review Packet
 
@@ -63,10 +63,10 @@ does not authorize code changes, compute, status edits, coverage, or promotion.
 
 | Rank | Cell | Model scope | Minimum recovery evidence | Next action |
 | ---: | --- | --- | --- | --- |
-| 1 | `qseries_beta_mu_animal_rejected` | beta() q1 mu intercept-only animal route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 2 | `qseries_gamma_mu_relmat_rejected` | Gamma() q1 mu intercept-only relmat route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 3 | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() q1 mu intercept-only phylo route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 4 | `qseries_student_mu_spatial_rejected` | student() q1 mu intercept-only spatial route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 1 | `qseries_gamma_mu_relmat_rejected` | Gamma() q1 mu intercept-only relmat route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 2 | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() q1 mu intercept-only phylo route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 3 | `qseries_student_mu_spatial_rejected` | student() q1 mu intercept-only spatial route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 4 | `qseries_beta_sigma_animal_rejected` | beta() q1 sigma intercept-only animal route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
 
 ## First Candidate Design Contract
 
@@ -76,7 +76,7 @@ before any local debug fit, host compute, or support-cell edit is proposed.
 
 | Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_beta_mu_animal_rejected` | animal(1 | id, pedigree = ped) in mu | y_i ~ beta(mu_i, phi); logit(mu_i) = X_i beta + u_id[i]; u ~ N(0, sigma_animal^2 A); phi = 1 / sigma^2 | one local debug fixture may check finite fit, animal SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
+| `qseries_gamma_mu_relmat_rejected` | relmat(1 | id, K = K) in mu | y_i ~ Gamma(mu_i, dispersion); log(mu_i) = X_i beta + u_id[i]; u ~ N(0, sigma_relmat^2 K); family dispersion fixed during first debug fixture | one local debug fixture may check finite fit, relmat SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
 
 ## First Candidate Local-Debug Fixture Contract
 
@@ -90,7 +90,7 @@ public-support authority.
 
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_beta_mu_animal_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+| `qseries_gamma_mu_relmat_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 
 ## 75% First-Four Design Contracts
 
@@ -101,10 +101,10 @@ status movement is proposed.
 
 | Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_beta_mu_animal_rejected` | animal(1 | id, pedigree = ped) in mu | y_i ~ beta(mu_i, phi); logit(mu_i) = X_i beta + u_id[i]; u ~ N(0, sigma_animal^2 A); phi = 1 / sigma^2 | one local debug fixture may check finite fit, animal SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
 | `qseries_gamma_mu_relmat_rejected` | relmat(1 | id, K = K) in mu | y_i ~ Gamma(mu_i, dispersion); log(mu_i) = X_i beta + u_id[i]; u ~ N(0, sigma_relmat^2 K); family dispersion fixed during first debug fixture | one local debug fixture may check finite fit, relmat SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
 | `qseries_ordinal_mu_phylo_rejected` | phylo(1 | id, tree = tree) in mu | y_i ~ cumulative_logit(mu_i, cutpoints); latent location shift eta_i = X_i beta + u_tip[i]; u ~ N(0, sigma_phylo^2 A_phylo); cutpoints fixed during first debug fixture | one local debug fixture may check finite fit, phylo SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
 | `qseries_student_mu_spatial_rejected` | spatial(1 | id, coords = coords) in mu | y_i ~ student(mu_i, sigma, nu); mu_i = X_i beta + u_site[i]; u ~ N(0, sigma_spatial^2 C(distance)); sigma and nu fixed during first debug fixture | one local debug fixture may check finite fit, spatial SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
+| `qseries_beta_sigma_animal_rejected` | animal(1 | id, pedigree = ped) in sigma | y_i ~ beta(mu_i, phi_i); logit(mu_i) = X_i beta; log(sigma_i) = Z_i gamma + u_id[i]; u ~ N(0, sigma_animal^2 A); beta precision mapping must remain explicit before implementation | one local debug fixture may check finite fit, animal scale-side SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
 
 ## 75% First-Four Local-Debug Fixture Contracts
 
@@ -119,15 +119,15 @@ implementation attempt, run:
 R_PROFILE_USER=/dev/null /usr/local/bin/Rscript --no-init-file tools/qseries-v1-first-four-rejection-smoke.R
 ```
 
-That smoke is local rejection evidence only. It creates no fit denominator,
+That smoke is local gate evidence only. It creates no fit denominator,
 coverage evidence, status movement, or public support.
 
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_beta_mu_animal_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 | `qseries_gamma_mu_relmat_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 | `qseries_ordinal_mu_phylo_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 | `qseries_student_mu_spatial_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+| `qseries_beta_sigma_animal_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 
 ## Boundary
 

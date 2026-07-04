@@ -4159,6 +4159,9 @@ drm_build_beta_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
+  mu_entry$rhs <- mu_animal$rhs
+  validate_beta_animal_mu_structured_term(mu_animal$term)
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_mu_random_terms(mu_re$terms)
@@ -4176,7 +4179,8 @@ drm_build_beta_ls_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    structured_mu_vars(mu_animal$term)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -4231,6 +4235,7 @@ drm_build_beta_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in beta model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(mu_animal$term, data_model, env)
 
   spec <- list(
     model_type = "beta",
@@ -4251,14 +4256,17 @@ drm_build_beta_ls_spec <- function(
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
-    start = beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu),
-    map = beta_ls_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    start = beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu),
+    map = beta_ls_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -7092,6 +7100,35 @@ validate_beta_mu_random_terms <- function(terms) {
     ))
   }
   invisible(terms)
+}
+
+validate_beta_animal_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "animal")) {
+    cli::cli_abort(c(
+      "{.fn beta} structured {.code mu} effects currently admit only the first {.fn animal} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn relmat}, structured slopes, scale routes, and zero-one-inflated beta routes deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn animal} {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code animal(1 | id, pedigree = ped)}, {.code animal(1 | id, A = A)}, or {.code animal(1 | id, Ainv = Ainv)} for the v1.0 recovery gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn animal} {.code mu} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured beta slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
 }
 
 validate_beta_sigma_random_terms <- function(terms) {
@@ -13036,24 +13073,27 @@ lognormal_ls_start <- function(
 }
 
 lognormal_ls_map <- function(
-  re_mu = empty_random_mu_structure(1L)
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
-  out <- gaussian_ls_map(re_mu = re_mu)
+  out <- gaussian_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
   out$beta_nu <- factor(NA)
   out
 }
 
 gamma_ls_map <- function(
-  re_mu = empty_random_mu_structure(1L)
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
-  lognormal_ls_map(re_mu = re_mu)
+  lognormal_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
 }
 
 beta_ls_start <- function(
   y,
   X_mu,
   X_sigma,
-  re_mu = empty_random_mu_structure(length(y))
+  re_mu = empty_random_mu_structure(length(y)),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   beta_mu <- tryCatch(
     suppressWarnings(
@@ -13085,6 +13125,7 @@ beta_ls_start <- function(
     y_scale <- 1
   }
   mu_re_start <- beta_mu_re_start(link_y - eta_mu, re_mu, y_scale)
+  phylo_start <- gaussian_phylo_start(link_y - eta_mu, phylo_mu)
   c(
     list(
       beta_mu = beta_mu,
@@ -13107,8 +13148,8 @@ beta_ls_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
@@ -13148,9 +13189,10 @@ beta_mu_re_start <- function(resid, re_mu, y_scale) {
 }
 
 beta_ls_map <- function(
-  re_mu = empty_random_mu_structure(1L)
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
-  lognormal_ls_map(re_mu = re_mu)
+  lognormal_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
 }
 
 beta_binomial_start <- function(
@@ -15042,6 +15084,7 @@ make_tmb_data <- function(spec) {
   if (identical(spec$model_type, "beta")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 10L,
       y = spec$y,
@@ -15090,11 +15133,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "zero_one_beta")) {

@@ -36,6 +36,29 @@ qseries_v1_first_four_fixture <- function() {
     dam = NA_character_,
     sire = NA_character_
   )
+  set.seed(2026070401)
+  beta_levels <- paste0("a", seq_len(8L))
+  beta_id <- factor(rep(beta_levels, each = 10L), levels = beta_levels)
+  beta_x <- stats::rnorm(length(beta_id))
+  beta_field <- stats::rnorm(length(beta_levels), sd = 0.35)
+  names(beta_field) <- beta_levels
+  beta_eta <- -0.25 + 0.45 * beta_x + beta_field[as.character(beta_id)]
+  beta_mu <- stats::plogis(beta_eta)
+  beta_phi <- 35
+  dat_beta_animal <- data.frame(
+    y = stats::rbeta(
+      length(beta_id),
+      shape1 = beta_mu * beta_phi,
+      shape2 = (1 - beta_mu) * beta_phi
+    ),
+    x = beta_x,
+    id = beta_id
+  )
+  ped_beta <- data.frame(
+    id = beta_levels,
+    dam = NA_character_,
+    sire = NA_character_
+  )
   tree <- structure(
     list(
       edge = matrix(c(4, 1, 4, 2, 4, 3), ncol = 2, byrow = TRUE),
@@ -48,24 +71,27 @@ qseries_v1_first_four_fixture <- function() {
 
   list(
     list(
-      rejection_id = "nongaussian_struct_reject_beta_mu_animal",
+      gate_id = "nongaussian_struct_fit_beta_mu_animal",
       cell_id = "qseries_beta_mu_animal_rejected",
       formula_cell = "animal(1 | id, pedigree = ped) in mu",
       family = "beta()",
       provider = "animal",
+      expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
-        drmTMB::bf(y ~ x + animal(1 | id, pedigree = ped), sigma ~ 1),
+        drmTMB::bf(y ~ x + animal(1 | id, pedigree = ped_beta), sigma ~ 1),
         family = drmTMB::beta(),
-        data = dat_beta
+        data = dat_beta_animal,
+        control = drmTMB::drm_control(se = FALSE)
       )),
       env = environment()
     ),
     list(
-      rejection_id = "nongaussian_struct_reject_gamma_mu_relmat",
+      gate_id = "nongaussian_struct_reject_gamma_mu_relmat",
       cell_id = "qseries_gamma_mu_relmat_rejected",
       formula_cell = "relmat(1 | id, K = K) in mu",
       family = "Gamma()",
       provider = "relmat",
+      expected_status = "expected_rejection",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
         family = stats::Gamma(link = "log"),
@@ -74,11 +100,12 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
-      rejection_id = "nongaussian_struct_reject_ordinal_mu_phylo",
+      gate_id = "nongaussian_struct_reject_ordinal_mu_phylo",
       cell_id = "qseries_ordinal_mu_phylo_rejected",
       formula_cell = "phylo(1 | id, tree = tree) in mu",
       family = "cumulative_logit()",
       provider = "phylo",
+      expected_status = "expected_rejection",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(y ~ x + phylo(1 | id, tree = tree)),
         family = drmTMB::cumulative_logit(),
@@ -87,11 +114,12 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
-      rejection_id = "nongaussian_struct_reject_student_mu_spatial",
+      gate_id = "nongaussian_struct_reject_student_mu_spatial",
       cell_id = "qseries_student_mu_spatial_rejected",
       formula_cell = "spatial(1 | id, coords = coords) in mu",
       family = "student()",
       provider = "spatial",
+      expected_status = "expected_rejection",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(y ~ x + spatial(1 | id, coords = coords), sigma ~ 1),
         family = drmTMB::student(),
@@ -103,18 +131,33 @@ qseries_v1_first_four_fixture <- function() {
 }
 
 qseries_v1_run_rejection_case <- function(case) {
+  fit <- NULL
   err <- tryCatch(
     {
-      eval(case$expr, envir = case$env)
+      fit <- eval(case$expr, envir = case$env)
       NULL
     },
     error = identity
   )
   expected <- "Structured non-Gaussian paths"
-  status <- if (is.null(err)) {
+  expected_status <- case$expected_status
+  fit_ok <- !is.null(fit) &&
+    inherits(fit, "drmTMB") &&
+    is.finite(fit$opt$objective) &&
+    identical(as.integer(fit$opt$convergence), 0L) &&
+    "animal_mu" %in% names(fit$random_effects) &&
+    length(fit$sdpars$mu) > 0L &&
+    any(grepl("^animal\\(", names(fit$sdpars$mu)))
+  status <- if (is.null(err) && identical(expected_status, "expected_fit")) {
+    if (fit_ok) "expected_fit" else "unexpected_fit_shape"
+  } else if (is.null(err)) {
     "unexpected_success"
   } else if (grepl(expected, conditionMessage(err), fixed = TRUE)) {
-    "expected_rejection"
+    if (identical(expected_status, "expected_rejection")) {
+      "expected_rejection"
+    } else {
+      "unexpected_rejection"
+    }
   } else {
     "unexpected_error"
   }
@@ -124,17 +167,22 @@ qseries_v1_run_rejection_case <- function(case) {
     gsub("[\r\n\t]+", " ", conditionMessage(err))
   }
   data.frame(
-    rejection_id = case$rejection_id,
+    gate_id = case$gate_id,
     cell_id = case$cell_id,
     formula_cell = case$formula_cell,
     family = case$family,
     provider = case$provider,
-    expected_error_pattern = expected,
+    expected_error_pattern = if (identical(expected_status, "expected_rejection")) {
+      expected
+    } else {
+      ""
+    },
     status = status,
     observed_error = observed,
     claim_boundary = paste(
-      "local rejection smoke only; no fit, denominator, coverage,",
-      "inference_ready, supported, q4/q8, REML, AI-REML, bridge, or public-support claim"
+      "local debug smoke only; beta animal is fit-only recovery evidence;",
+      "no denominator, coverage, inference_ready, supported, q4/q8,",
+      "REML, AI-REML, bridge, or public-support claim"
     ),
     stringsAsFactors = FALSE
   )
@@ -190,7 +238,7 @@ main <- function(args = commandArgs(trailingOnly = TRUE)) {
   }
   results <- qseries_v1_first_four_rejection_smoke(root = root)
   write_qseries_v1_rejection_smoke(results, output = output)
-  if (!all(results$status == "expected_rejection")) {
+  if (!all(results$status %in% c("expected_fit", "expected_rejection"))) {
     quit(status = 1L, save = "no")
   }
   invisible(results)

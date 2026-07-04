@@ -21,8 +21,8 @@ REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-nongaussian-struct
 DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-report.md"
 DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
 DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
-DEFAULT_FIRST_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-beta-mu-animal-design-contract.tsv"
-DEFAULT_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-beta-mu-animal-debug-fixture-contract.tsv"
+DEFAULT_FIRST_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-design-contract.tsv"
+DEFAULT_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-debug-fixture-contract.tsv"
 DEFAULT_FIRST_FOUR_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv"
 DEFAULT_FIRST_FOUR_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv"
 CANDIDATE_FIELDS = (
@@ -367,9 +367,9 @@ def candidate_sort_key(row: dict[str, str]) -> tuple[int, int, int, int, int, in
     return (
         track_order.get(row["v1_track"], 99),
         dimension_order.get(row["dimension_pattern"], 99),
+        candidate_complexity(row),
         endpoint_order.get(row["endpoint_set"], 99),
         slope_order.get(row["slope_class"], 99),
-        candidate_complexity(row),
         fit_order.get(row["fit_status"], 99),
         row["cell_id"],
     )
@@ -425,7 +425,12 @@ def build_review_packet_rows(candidate_rows: list[dict[str, str]]) -> list[dict[
                 "cell_id": row["cell_id"],
                 "family": row["family"],
                 "structure_provider": row["structure_provider"],
-                "model_scope": f"{row['family']} q1 mu intercept-only {row['structure_provider']} route",
+                "model_scope": (
+                    f"{row['family']} {row['dimension_pattern']} "
+                    f"{row['endpoint_set']} "
+                    f"{row['slope_class'].replace('_', '-')} "
+                    f"{row['structure_provider']} route"
+                ),
                 "minimum_design_question": "Can this row be represented as basic recovery for v1.0 without changing formula grammar or interval claims?",
                 "minimum_recovery_evidence": "document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement",
                 "validator_gate": "candidate TSV, preflight report, focused conversion-contract test, and Mission Control must remain green",
@@ -472,6 +477,14 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "implementation_requirements": "reuse student() mu likelihood and spatial() covariance parser shape; do not change formula grammar, public API, sigma random effects, q2/q4, REML, or AI-REML",
         "recovery_requirements": "one local debug fixture may check finite fit, spatial SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
         "next_action": "review this contract before any Student spatial code, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_beta_sigma_animal_rejected": {
+        "contract_id": "qseries_v1_beta_sigma_animal_design_contract",
+        "model_contract": "y_i ~ beta(mu_i, phi_i); logit(mu_i) = X_i beta; log(sigma_i) = Z_i gamma + u_id[i]; u ~ N(0, sigma_animal^2 A); beta precision mapping must remain explicit before implementation",
+        "dgp_requirements": "strict response support 0 < y < 1; named animal levels matching A/pedigree/Ainv; fixed mu route; no exact zero-one mass; scale-link interpretation documented before fitting",
+        "implementation_requirements": "reuse beta() scale likelihood and animal() known-covariance parser shape only after the scale-side mapping is reviewed; do not change formula grammar, public API, zoi/coi, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, animal scale-side SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any beta sigma animal code, local debug fit, host compute, or support-cell edit",
     },
 }
 
@@ -763,7 +776,7 @@ implementation attempt, run:
 R_PROFILE_USER=/dev/null /usr/local/bin/Rscript --no-init-file tools/qseries-v1-first-four-rejection-smoke.R
 ```
 
-That smoke is local rejection evidence only. It creates no fit denominator,
+That smoke is local gate evidence only. It creates no fit denominator,
 coverage evidence, status movement, or public support.
 
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |

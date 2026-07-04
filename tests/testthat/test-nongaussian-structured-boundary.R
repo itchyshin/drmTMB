@@ -36,7 +36,7 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + animal(1 | id, pedigree = ped), sigma ~ 1),
+      bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
       family = beta(),
       data = dat_beta
     ),
@@ -168,7 +168,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
   expect_named(
     result,
     c(
-      "rejection_id",
+      "gate_id",
       "cell_id",
       "formula_cell",
       "family",
@@ -188,18 +188,21 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_student_mu_spatial_rejected"
     )
   )
-  expect_equal(result$status, rep("expected_rejection", 4L))
+  expect_equal(
+    result$status,
+    c("expected_fit", rep("expected_rejection", 3L))
+  )
   expect_equal(
     result$expected_error_pattern,
-    rep("Structured non-Gaussian paths", 4L)
+    c("", rep("Structured non-Gaussian paths", 3L))
   )
   expect_true(all(grepl(
     "Structured non-Gaussian paths",
-    result$observed_error,
+    result$observed_error[-1L],
     fixed = TRUE
   )))
   expect_true(all(grepl(
-    "no fit, denominator, coverage",
+    "no denominator, coverage",
     result$claim_boundary,
     fixed = TRUE
   )))
