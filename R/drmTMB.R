@@ -3776,6 +3776,9 @@ drm_build_gamma_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  validate_gamma_relmat_mu_structured_term(mu_relmat$term)
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn Gamma}")
@@ -3796,7 +3799,8 @@ drm_build_gamma_ls_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    structured_mu_vars(mu_relmat$term)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -3845,6 +3849,7 @@ drm_build_gamma_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in Gamma model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(mu_relmat$term, data_model, env)
 
   spec <- list(
     model_type = "gamma",
@@ -3865,14 +3870,23 @@ drm_build_gamma_ls_spec <- function(
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
-    start = gamma_ls_start(y, X_mu, X_sigma, re_mu = re_mu),
-    map = gamma_ls_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    start = gamma_ls_start(
+      y,
+      X_mu,
+      X_sigma,
+      re_mu = re_mu,
+      phylo_mu = phylo_mu
+    ),
+    map = gamma_ls_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -7100,6 +7114,35 @@ validate_beta_mu_random_terms <- function(terms) {
     ))
   }
   invisible(terms)
+}
+
+validate_gamma_relmat_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "relmat")) {
+    cli::cli_abort(c(
+      "{.fn Gamma} structured {.code mu} effects currently admit only the first {.fn relmat} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn animal}, structured slopes, scale routes, q2/q4, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code relmat(1 | id, K = K)} or {.code relmat(1 | id, Q = Q)} for the v1.0 recovery gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured Gamma slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
 }
 
 validate_beta_animal_mu_structured_term <- function(term) {
@@ -13678,7 +13721,8 @@ gamma_ls_start <- function(
   y,
   X_mu,
   X_sigma,
-  re_mu = empty_random_mu_structure(length(y))
+  re_mu = empty_random_mu_structure(length(y)),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   beta_mu <- tryCatch(
     stats::lm.fit(X_mu, log(y))$coefficients,
@@ -13696,6 +13740,7 @@ gamma_ls_start <- function(
     y_scale <- 1
   }
   mu_re_start <- gaussian_mu_re_start(log(y) - eta_mu, re_mu, y_scale)
+  phylo_start <- gaussian_phylo_start(log(y) - eta_mu, phylo_mu)
   beta_sigma <- rep(0, ncol(X_sigma))
   beta_sigma[[1L]] <- log(max(cv0, 1e-3))
   c(
@@ -13720,8 +13765,8 @@ gamma_ls_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
@@ -14968,6 +15013,7 @@ make_tmb_data <- function(spec) {
   if (identical(spec$model_type, "gamma")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 5L,
       y = spec$y,
@@ -15016,11 +15062,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "tweedie")) {

@@ -14,8 +14,36 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   )
   dat_pos <- transform(dat_count, y = y + 1)
   testthat::skip_if_not_installed("ape")
+  levels_id <- levels(dat_count$id)
+  K <- diag(length(levels_id))
+  dimnames(K) <- list(levels_id, levels_id)
+  Q <- K
+  coords <- data.frame(
+    x = c(0, 1, 0),
+    y = c(0, 0, 1),
+    row.names = levels_id
+  )
+  ped <- data.frame(
+    id = levels_id,
+    dam = NA_character_,
+    sire = NA_character_
+  )
+  set.seed(2026070402)
+  gamma_levels <- paste0("g", seq_len(8L))
+  gamma_id <- factor(rep(gamma_levels, each = 10L), levels = gamma_levels)
+  gamma_x <- stats::rnorm(length(gamma_id))
+  gamma_field <- stats::rnorm(length(gamma_levels), sd = 0.25)
+  names(gamma_field) <- gamma_levels
+  gamma_mu <- exp(0.4 + 0.25 * gamma_x + gamma_field[as.character(gamma_id)])
+  dat_gamma_relmat <- data.frame(
+    y = stats::rgamma(length(gamma_id), shape = 25, scale = gamma_mu / 25),
+    x = gamma_x,
+    id = gamma_id
+  )
+  K_gamma <- diag(length(gamma_levels))
+  dimnames(K_gamma) <- list(gamma_levels, gamma_levels)
   tree <- ape::stree(3L, type = "star")
-  tree$tip.label <- levels(dat_count$id)
+  tree$tip.label <- levels_id
   tree$edge.length <- rep(1, nrow(tree$edge))
 
   expect_error(
@@ -42,13 +70,17 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     ),
     "Structured non-Gaussian paths"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
-      family = stats::Gamma(link = "log"),
-      data = dat_pos
-    ),
-    "Structured non-Gaussian paths"
+  fit_gamma_relmat <- drmTMB(
+    bf(y ~ x + relmat(1 | id, K = K_gamma), sigma ~ 1),
+    family = stats::Gamma(link = "log"),
+    data = dat_gamma_relmat,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_gamma_relmat, "drmTMB")
+  expect_equal(as.integer(fit_gamma_relmat$opt$convergence), 0L)
+  expect_true("relmat_mu" %in% names(fit_gamma_relmat$random_effects))
+  expect_true(
+    any(grepl("^relmat\\(", names(fit_gamma_relmat$sdpars$mu)))
   )
   expect_error(
     drmTMB(
@@ -190,15 +222,15 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
   )
   expect_equal(
     result$status,
-    c("expected_fit", rep("expected_rejection", 3L))
+    c("expected_fit", "expected_fit", "expected_rejection", "expected_rejection")
   )
   expect_equal(
     result$expected_error_pattern,
-    c("", rep("Structured non-Gaussian paths", 3L))
+    c("", "", "Structured non-Gaussian paths", "Structured non-Gaussian paths")
   )
   expect_true(all(grepl(
     "Structured non-Gaussian paths",
-    result$observed_error[-1L],
+    result$observed_error[result$status == "expected_rejection"],
     fixed = TRUE
   )))
   expect_true(all(grepl(

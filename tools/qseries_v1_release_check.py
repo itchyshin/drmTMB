@@ -18,6 +18,7 @@ STATUS_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-release-status.md"
 SUPPORT_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv"
 LEDGER_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-v1-release-ledger.tsv"
 REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-nongaussian-structured-family-rejection-contract.tsv"
+COUNT_SIGMA_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-count-slope-sigma-one-slope-rejection-contract.tsv"
 DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-report.md"
 DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
 DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
@@ -486,6 +487,14 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may check finite fit, animal scale-side SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
         "next_action": "review this contract before any beta sigma animal code, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_animal_nbinom2_q1_sigma_one_slope_rejected": {
+        "contract_id": "qseries_v1_animal_nbinom2_sigma_one_slope_design_contract",
+        "model_contract": "y_i ~ NB2(mu_i, phi_i); log(mu_i) = X_i beta; log(sigma_i) = Z_i gamma + u0_id[i] + u1_id[i] x_i; [u0, u1] use an A-matrix animal covariance only after the count scale-side mapping is reviewed",
+        "dgp_requirements": "count response y >= 0; named animal levels matching Ainv/Q; finite positive dispersion; one ordinary predictor x with within-animal replication and no missing matrix levels",
+        "implementation_requirements": "reuse nbinom2() sigma likelihood and animal() known-covariance parser shape only after scale-side interpretation is reviewed; do not change formula grammar, public API, mu routes, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, animal sigma-side SD extraction for intercept and slope, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any count NB2 sigma animal code, local debug fit, host compute, or support-cell edit",
+    },
 }
 
 
@@ -878,6 +887,9 @@ def main() -> int:
     support_rows = read_tsv(root / SUPPORT_PATH.relative_to(ROOT))
     ledger_rows = read_tsv(root / LEDGER_PATH.relative_to(ROOT))
     rejection_rows = read_tsv(root / REJECTION_PATH.relative_to(ROOT))
+    rejection_rows.extend(
+        read_tsv(root / COUNT_SIGMA_REJECTION_PATH.relative_to(ROOT))
+    )
     candidate_rows = build_candidate_rows(ledger_rows)
     review_packet_rows = build_review_packet_rows(candidate_rows)
     first_four_contract_rows = build_first_four_contract_rows(
