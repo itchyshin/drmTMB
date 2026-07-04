@@ -42,6 +42,23 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   )
   K_gamma <- diag(length(gamma_levels))
   dimnames(K_gamma) <- list(gamma_levels, gamma_levels)
+  set.seed(2026070403)
+  student_levels <- paste0("s", seq_len(8L))
+  student_id <- factor(rep(student_levels, each = 16L), levels = student_levels)
+  student_x <- stats::rnorm(length(student_id))
+  student_field <- stats::rnorm(length(student_levels), sd = 0.2)
+  names(student_field) <- student_levels
+  student_mu <- 0.2 + 0.5 * student_x + student_field[as.character(student_id)]
+  dat_student_spatial <- data.frame(
+    y = student_mu + 0.25 * stats::rt(length(student_id), df = 12),
+    x = student_x,
+    id = student_id
+  )
+  coords_student <- data.frame(
+    x = rep(seq_len(4L), each = 2L),
+    y = rep(seq_len(2L), times = 4L),
+    row.names = student_levels
+  )
   tree <- ape::stree(3L, type = "star")
   tree$tip.label <- levels_id
   tree$edge.length <- rep(1, nrow(tree$edge))
@@ -54,13 +71,17 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     ),
     "intercept-only or one-slope"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + spatial(1 | id, coords = coords), sigma ~ 1),
-      family = student(),
-      data = dat_pos
-    ),
-    "Structured non-Gaussian paths"
+  fit_student_spatial <- drmTMB(
+    bf(y ~ x + spatial(1 | id, coords = coords_student), sigma ~ 1),
+    family = student(),
+    data = dat_student_spatial,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_student_spatial, "drmTMB")
+  expect_equal(as.integer(fit_student_spatial$opt$convergence), 0L)
+  expect_true("spatial_mu" %in% names(fit_student_spatial$random_effects))
+  expect_true(
+    any(grepl("^spatial\\(", names(fit_student_spatial$sdpars$mu)))
   )
   expect_error(
     drmTMB(
@@ -222,11 +243,11 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
   )
   expect_equal(
     result$status,
-    c("expected_fit", "expected_fit", "expected_rejection", "expected_rejection")
+    c("expected_fit", "expected_fit", "expected_rejection", "expected_fit")
   )
   expect_equal(
     result$expected_error_pattern,
-    c("", "", "Structured non-Gaussian paths", "Structured non-Gaussian paths")
+    c("", "", "Structured non-Gaussian paths", "")
   )
   expect_true(all(grepl(
     "Structured non-Gaussian paths",

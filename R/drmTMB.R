@@ -3227,6 +3227,9 @@ drm_build_student_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_spatial <- extract_gaussian_mu_known_term(mu_entry, "spatial")
+  mu_entry$rhs <- mu_spatial$rhs
+  validate_student_spatial_mu_structured_term(mu_spatial$term)
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_student_mu_random_terms(mu_re$terms)
@@ -3246,7 +3249,8 @@ drm_build_student_ls_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     all.vars(f_nu),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    structured_mu_vars(mu_spatial$term)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -3294,6 +3298,7 @@ drm_build_student_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in Student-t model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(mu_spatial$term, data_model, env)
 
   spec <- list(
     model_type = "student",
@@ -3315,14 +3320,24 @@ drm_build_student_ls_spec <- function(
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", "nu"),
-    start = student_ls_start(y, X_mu, X_sigma, X_nu, re_mu = re_mu),
-    map = student_ls_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    start = student_ls_start(
+      y,
+      X_mu,
+      X_sigma,
+      X_nu,
+      re_mu = re_mu,
+      phylo_mu = phylo_mu
+    ),
+    map = student_ls_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -7009,10 +7024,39 @@ validate_student_mu_random_terms <- function(terms) {
       "Only independent {.fn student} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)}.",
-      "i" = "Correlated Student-t slopes, labelled covariance blocks, structured effects, scale random effects, and shape random effects remain planned until separate recovery tests exist."
+      "i" = "The only structured Student-t gate is the row-specific {.code spatial(1 | id, coords = coords)} {.code mu} route; correlated Student-t slopes, labelled covariance blocks, other structured effects, scale random effects, and shape random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
+}
+
+validate_student_spatial_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "spatial")) {
+    cli::cli_abort(c(
+      "{.fn student} structured {.code mu} effects currently admit only the first {.fn spatial} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn phylo}, {.fn animal}, {.fn relmat}, structured slopes, scale routes, q2/q4, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn student} {.fn spatial} {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code spatial(1 | id, coords = coords)} for the v1.0 recovery gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn student} {.fn spatial} {.code mu} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured Student-t slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
 }
 
 validate_student_sigma_random_terms <- function(terms) {
@@ -12977,9 +13021,12 @@ student_ls_start <- function(
   X_mu,
   X_sigma,
   X_nu,
-  re_mu = empty_random_mu_structure(length(y))
+  re_mu = empty_random_mu_structure(length(y)),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma, re_mu = re_mu)
+  eta_mu <- as.vector(X_mu %*% gaussian_start$beta_mu)
+  phylo_start <- gaussian_phylo_start(y - eta_mu, phylo_mu)
   c(
     list(
       beta_mu = gaussian_start$beta_mu,
@@ -13002,8 +13049,8 @@ student_ls_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
@@ -14330,9 +14377,10 @@ gaussian_ls_map <- function(
 }
 
 student_ls_map <- function(
-  re_mu = empty_random_mu_structure(1L)
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
-  out <- gaussian_ls_map(re_mu = re_mu)
+  out <- gaussian_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
   out$beta_nu <- NULL
   out
 }
@@ -14839,6 +14887,7 @@ make_tmb_data <- function(spec) {
   if (identical(spec$model_type, "student")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 3L,
       y = spec$y,
@@ -14887,11 +14936,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "skew_normal")) {

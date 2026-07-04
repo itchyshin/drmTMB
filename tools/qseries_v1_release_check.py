@@ -495,6 +495,14 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may check finite fit, animal sigma-side SD extraction for intercept and slope, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
         "next_action": "review this contract before any count NB2 sigma animal code, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_phylo_nbinom2_q1_sigma_one_slope_rejected": {
+        "contract_id": "qseries_v1_phylo_nbinom2_sigma_one_slope_design_contract",
+        "model_contract": "y_i ~ NB2(mu_i, phi_i); log(mu_i) = X_i beta; log(sigma_i) = Z_i gamma + u0_tip[i] + u1_tip[i] x_i; [u0, u1] use a phylogenetic covariance only after the count scale-side mapping is reviewed",
+        "dgp_requirements": "count response y >= 0; named phylo tips matching the tree; finite positive dispersion; one ordinary predictor x with within-tip replication and no missing tips",
+        "implementation_requirements": "reuse nbinom2() sigma likelihood and phylo() covariance parser shape only after scale-side interpretation is reviewed; do not change formula grammar, public API, mu routes, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, phylo sigma-side SD extraction for intercept and slope, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any count NB2 sigma phylo code, local debug fit, host compute, or support-cell edit",
+    },
 }
 
 
