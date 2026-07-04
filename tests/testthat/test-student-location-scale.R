@@ -11,6 +11,9 @@ student_test_data <- function(n = 600) {
   sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
   nu <- 2 + exp(beta_nu)
   q <- stats::qt((seq_len(n) - 0.5) / n, df = nu)
+  # Convention (#700): `sigma` is the Student-t SCALE, not SD[y]. Data are drawn
+  # as y = mu + sigma * t_q, so recovering `beta_sigma` below pins sigma to the
+  # scale; the response SD is sigma * sqrt(nu / (nu - 2)) and is strictly larger.
   dat$y <- mu + sigma * sample(q)
   list(
     data = dat,

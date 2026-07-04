@@ -35,16 +35,25 @@ biv_gaussian <- function() {
 #' `student()` defines a one-response Student-t distribution with formulas for
 #' location `mu`, residual scale `sigma`, and degrees of freedom `nu`.
 #'
+#' Here `sigma` is the Student-t **scale**, not the response standard deviation.
+#' The density is the location-scale t evaluated at `z = (y - mu) / sigma`, so the
+#' standard deviation of `y` is `SD[y] = sigma * sqrt(nu / (nu - 2))` for `nu > 2`
+#' and is strictly larger than `sigma` (about 73% larger at `nu = 3`, shrinking to
+#' `sigma` as `nu -> Inf`). This is the one implemented family whose public
+#' `sigma` is a scale rather than `SD[y]`: the location-scale t has no closed-form
+#' standard-deviation parameterization, and both `drmTMB` and its `DRM.jl` twin
+#' fit `sigma` as the scale.
+#'
 #' The `nu` parameter uses a log link with a lower bound of 2:
 #' `nu = 2 + exp(eta_nu)`. This keeps the fitted distribution in the
-#' finite-variance region while still allowing heavy tails. The lower bound is a
-#' deliberate consequence of the `sigma = SD[y]` contract: the Student-t variance
-#' is finite only for `nu > 2`, so a public standard-deviation `sigma` is only
-#' defined there. The model therefore **cannot** represent the very heavy tails
-#' of `nu <= 2` (for example a Cauchy-like `nu = 1`); data that genuinely need
-#' `nu <= 2` would require a scale (not SD) parameterization, which is not
-#' implemented. `check_drm()` warns when the fitted `nu` approaches the boundary
-#' at 2, where the slant of the likelihood in `nu` is weakly identified.
+#' finite-variance region (`nu > 2`) while still allowing heavy tails. The lower
+#' bound is a deliberate design choice, not a standard-deviation requirement: it
+#' guarantees a finite variance and a well-defined `SD[y]`. The model therefore
+#' **cannot** represent the very heavy tails of `nu <= 2` (for example a
+#' Cauchy-like `nu = 1`); data that genuinely need `nu <= 2` would require lifting
+#' the floor, which is not implemented. `check_drm()` warns when the fitted `nu`
+#' approaches the boundary at 2, where the slant of the likelihood in `nu` is
+#' weakly identified.
 #' Ordinary `mu` random intercepts and independent numeric slopes such as
 #' `(1 | id)` and `(0 + x | id)` are supported in the first Student-t
 #' mixed-model slice; correlated slopes, `sigma` random effects, and `nu`
