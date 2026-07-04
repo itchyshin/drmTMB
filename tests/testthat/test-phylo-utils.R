@@ -1275,3 +1275,48 @@ test_that("drm_phylo_augmented_precision requires positive branch lengths", {
     "correlation"
   )
 })
+
+test_that("q>2 phylo separable covariance stays finite as covariance -> singular (#707)", {
+  # The q>2 phylo density used to invert the separable covariance and take
+  # log(determinant()) directly. As a pairwise correlation -> +/-1 the dense
+  # covariance becomes near-singular: the inverse amplifies and the AD gradient
+  # goes NaN. The Cholesky path must keep BOTH the value and the gradient finite,
+  # up to and including an exactly rank-deficient covariance (two collinear
+  # response dimensions). Exercised via the model_type 94 probe, which takes a
+  # precomputed covariance directly (isolating the covariance solve).
+  precision <- drmTMB:::drm_phylo_augmented_precision(tiny_ultrametric_tree())
+  n_node <- nrow(precision$precision)
+  set.seed(707)
+  effect <- matrix(
+    stats::rnorm(n_node * 3L, sd = 0.2),
+    nrow = n_node,
+    dimnames = list(rownames(precision$precision), paste0("s", 1:3))
+  )
+  sd <- c(0.6, 0.4, 0.3)
+
+  run94 <- function(cov) {
+    data <- phylo_correlated_prior_tmb_data(precision, cov)
+    params <- phylo_prior_tmb_parameters(rep(0, n_node), log_sd = 0)
+    params$u_re_cov_probe <- as.numeric(effect)
+    obj <- TMB::MakeADFun(
+      data = data, parameters = params, DLL = "drmTMB", silent = TRUE
+    )
+    list(fn = obj$fn(obj$par), gr = obj$gr(obj$par))
+  }
+
+  for (rho in c(0.9, 0.999, 1 - 1e-8)) {
+    R <- matrix(c(1, rho, 0.1, rho, 1, 0.1, 0.1, 0.1, 1), 3, 3)
+    res <- run94(diag(sd) %*% R %*% diag(sd))
+    expect_true(is.finite(res$fn))
+    expect_true(all(is.finite(res$gr)))
+  }
+
+  # Exactly rank-deficient covariance (identical first two response dimensions):
+  # value and gradient must remain finite (the tiny ridge keeps the Cholesky
+  # defined). The pre-fix inverse()/determinant() path returned a non-finite
+  # gradient here.
+  R_singular <- matrix(c(1, 1, 0.1, 1, 1, 0.1, 0.1, 0.1, 1), 3, 3)
+  res <- run94(diag(sd) %*% R_singular %*% diag(sd))
+  expect_true(is.finite(res$fn))
+  expect_true(all(is.finite(res$gr)))
+})

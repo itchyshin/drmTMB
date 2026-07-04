@@ -3524,3 +3524,47 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
     "cannot be combined"
   )
 })
+
+test_that("model_type 2 and 95 share one bivariate Gaussian NLL implementation (#713.8)", {
+  # The diagonal (non-V_known) bivariate Gaussian per-observation NLL used to be
+  # duplicated verbatim in model_type 2 and model_type 95; it is now factored
+  # into drm_bivariate_gaussian_diag_nll(). Guard the dedup: on identical inputs
+  # the two model types must return the same NLL. A model_type 2 fit has no
+  # covariance blocks (n_re_cov_blocks == 0) and a single probe latent mapped
+  # off, so flipping model_type to 95 adds ONLY that latent's standard-normal
+  # prior -dnorm(0, 0, 1, log) = 0.5 * log(2 * pi) and is otherwise identical.
+  set.seed(713)
+  n <- 40L
+  dat <- data.frame(x = stats::rnorm(n))
+  dat$y1 <- 0.3 + 0.5 * dat$x + stats::rnorm(n, sd = 0.7)
+  dat$y2 <- -0.1 - 0.2 * dat$x + stats::rnorm(n, sd = 0.5)
+
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~x),
+    family = biv_gaussian(),
+    data = dat
+  )
+  expect_equal(fit$model$tmb_data$model_type, 2L)
+  expect_equal(fit$model$tmb_data$n_re_cov_blocks, 0L)
+
+  n_probe <- length(fit$model$start$u_re_cov_probe)
+  probe_prior <- n_probe * (0.5 * log(2 * pi))
+
+  data95 <- fit$model$tmb_data
+  data95$model_type <- 95L
+  obj2 <- TMB::MakeADFun(
+    fit$model$tmb_data, fit$model$start, map = fit$model$map,
+    random = fit$model$random_names, DLL = "drmTMB", silent = TRUE
+  )
+  obj95 <- TMB::MakeADFun(
+    data95, fit$model$start, map = fit$model$map,
+    random = fit$model$random_names, DLL = "drmTMB", silent = TRUE
+  )
+
+  par <- fit$opt$par
+  expect_equal(
+    obj95$fn(par) - probe_prior,
+    obj2$fn(par),
+    tolerance = 1e-10
+  )
+})
