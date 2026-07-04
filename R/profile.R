@@ -1377,7 +1377,19 @@ drm_profile_targets <- function(object) {
       ) &&
       isTRUE(object$model$structured$phylo_mu$q > 2L) &&
       !phylo_mu_is_block_diagonal(object$model$structured$phylo_mu)
-    for (i in seq_along(values)) {
+    # A modelled group mu correlation stores one value per group level in
+    # corpars$mu (issue #698). Those levels are a single fitted correlation
+    # regression profiled through beta_cor_mu, so only the representative index
+    # participates here; per-level entries must not spawn cor:mu:* targets.
+    cor_indices <- if (
+      identical(dpar, "mu") &&
+        corpair_model_is_group(object$model$random$mu$cor_model)
+    ) {
+      unique(object$model$random$mu$cor_model$target_cor)
+    } else {
+      seq_along(values)
+    }
+    for (i in cor_indices) {
       if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
         next
       }

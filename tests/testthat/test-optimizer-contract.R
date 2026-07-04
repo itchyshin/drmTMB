@@ -697,6 +697,24 @@ test_that("unstructured correlation theta inverse reconstructs target matrices",
   )
 })
 
+test_that("Gaussian start list carries no duplicated parameter names (issue #713.1)", {
+  set.seed(713)
+  n <- 200
+  id <- factor(rep(seq_len(40), each = 5))
+  x <- stats::rnorm(n)
+  y <- 1 + 0.5 * x + stats::rnorm(n, sd = exp(0.2 * x))
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ x),
+    family = gaussian(),
+    data = data.frame(y = y, x = x, id = id),
+    control = drm_control(se = FALSE)
+  )
+  start_names <- names(fit$model$start)
+  expect_false(any(duplicated(start_names)))
+  expect_equal(sum(start_names == "eta_cor_sigma"), 1L)
+  expect_equal(sum(start_names == "eta_cor_mu_sigma"), 1L)
+})
+
 test_that("Gaussian fixed-effect starts use OLS mean and residual scale", {
   dat <- data.frame(
     x = seq(-1.5, 1.5, length.out = 10),

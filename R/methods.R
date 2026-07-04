@@ -1855,7 +1855,19 @@ random_effect_label_corpairs <- function(object, exclude = character()) {
       next
     }
     cor_values <- object$corpars[[dpar]]
-    for (i in seq_along(cor_values)) {
+    # A modelled group mu correlation stores one value per group level in
+    # corpars$mu (issue #698); those levels are a single fitted correlation
+    # regression, summarised by one corpair row via the registry path, so we
+    # iterate only the representative index here rather than one row per level.
+    indices <- if (
+      identical(dpar, "mu") &&
+        corpair_model_is_group(object$model$random$mu$cor_model)
+    ) {
+      unique(object$model$random$mu$cor_model$target_cor)
+    } else {
+      seq_along(cor_values)
+    }
+    for (i in indices) {
       if (paste(dpar, i, sep = ":") %in% exclude) {
         next
       }
