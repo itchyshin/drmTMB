@@ -153,6 +153,25 @@ test_that("bridge corpairs reconstructs among-axis phylo correlations from Sigma
 
   # The raw residual rho12 path is unchanged.
   expect_equal(drmTMB::rho12(fit), rep(tanh(0.2), 8))
+
+  # #692: the phylocov log-Cholesky entries must NOT leak into the fixed-effect
+  # coefficient table, coef vector, or Wald CIs. They live in a dedicated slot.
+  expect_false("phylocov" %in% names(stats::coef(fit)))
+  expect_false(any(grepl("Sigma_a", names(fit$coef_vector))))
+  expect_false(any(grepl("phylocov", names(fit$coef_vector))))
+  expect_false(any(grepl("phylocov", rownames(fit$vcov))))
+  expect_false(any(grepl("phylocov", colnames(fit$vcov))))
+  # but they remain reconstructible for Sigma_a (corpairs above proved this).
+  expect_true(is.numeric(fit$phylocov))
+  expect_true(any(grepl("Sigma_a:L", names(fit$phylocov))))
+
+  # The Wald / summary tables must not surface any Cholesky entry.
+  wald <- drmTMB:::drm_julia_wald_targets(fit)
+  expect_false(any(grepl("phylocov|Sigma_a", wald$parm)))
+  expect_false(any(wald$dpar == "phylocov"))
+  summ <- drmTMB:::drm_julia_summary_coefficients(fit)
+  expect_false(any(summ$dpar == "phylocov"))
+  expect_false(any(grepl("Sigma_a", summ$term)))
 })
 
 # --- Live q=4 phylo round-trip (guarded) ------------------------------------
