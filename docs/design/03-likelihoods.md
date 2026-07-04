@@ -174,10 +174,12 @@ filtering by the processed `mu` design row, processed `sigma` design row, and
 offset state. TMB receives one row per aggregation cell:
 
 ```text
-n_g, sum_y_g, sum_y2_g, X_mu_g, X_sigma_g
+n_g, mean_y_g, css_g, X_mu_g, X_sigma_g
 ```
 
-For cell `g`,
+where `mean_y_g` is the cell mean of `y` and `css_g` is the corrected
+(centered) sum of squares `sum_i (y_i - mean_y_g)^2`, accumulated directly
+from the raw residuals at aggregation time. For cell `g`,
 
 ```text
 mu_g = X_mu_g beta_mu
@@ -189,11 +191,15 @@ and the negative log-likelihood contribution is:
 ```text
 0.5 n_g log(2 pi)
   + n_g log(sigma_g)
-  + 0.5 (sum_y2_g - 2 mu_g sum_y_g + n_g mu_g^2) / sigma_g^2
+  + 0.5 (css_g + n_g (mean_y_g - mu_g)^2) / sigma_g^2
 ```
 
 This is algebraically identical to summing independent Gaussian row
-log-likelihoods within the cell. The first implementation rejects non-unit
+log-likelihoods within the cell. The centered quadratic replaces the expanded
+second-moment form `sum_y2_g - 2 mu_g sum_y_g + n_g mu_g^2`, which suffered
+catastrophic cancellation when the response mean was far from zero (issue
+#701). See `31-gaussian-aggregation-sufficient-statistics.md` for the numerical
+argument. The first implementation rejects non-unit
 likelihood weights, random effects, direct-SD formulas, structured effects,
 known sampling covariance, bivariate models, non-Gaussian families, and
 combined sparse fixed-effect matrices before TMB is called.

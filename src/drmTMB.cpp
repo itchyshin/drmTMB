@@ -153,8 +153,8 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(use_gaussian_aggregation);
   DATA_INTEGER(n_agg);
   DATA_VECTOR(agg_n);
-  DATA_VECTOR(agg_sum_y);
-  DATA_VECTOR(agg_sum_y2);
+  DATA_VECTOR(agg_mean_y);
+  DATA_VECTOR(agg_css);
   DATA_MATRIX(X_mu_agg);
   DATA_MATRIX(X_sigma_agg);
   DATA_VECTOR(offset_mu_agg);
@@ -576,10 +576,10 @@ Type objective_function<Type>::operator()()
       vector<Type> sigma = exp(log_sigma);
       for (int g = 0; g < n_agg; ++g) {
         Type variance = sigma(g) * sigma(g);
-        Type quadratic =
-          agg_sum_y2(g) -
-          Type(2.0) * mu(g) * agg_sum_y(g) +
-          agg_n(g) * mu(g) * mu(g);
+        // Centered quadratic css + n (mean_y - mu)^2 avoids the catastrophic
+        // cancellation of the expanded second-moment form (#701).
+        Type dev = agg_mean_y(g) - mu(g);
+        Type quadratic = agg_css(g) + agg_n(g) * dev * dev;
         nll += Type(0.5) * agg_n(g) * log(Type(2.0) * M_PI) +
           agg_n(g) * log_sigma(g) +
           Type(0.5) * quadratic / variance;
@@ -588,8 +588,8 @@ Type objective_function<Type>::operator()()
       REPORT(log_sigma);
       REPORT(sigma);
       REPORT(agg_n);
-      REPORT(agg_sum_y);
-      REPORT(agg_sum_y2);
+      REPORT(agg_mean_y);
+      REPORT(agg_css);
       ADREPORT(beta_mu);
       ADREPORT(beta_sigma);
     } else {
