@@ -70,12 +70,19 @@ The parser reads each formula's left-hand side (LHS) as follows:
 
 ### Parser invariants
 
-- **One formula per plain distributional parameter.** `drm_formula()` rejects a
-  repeated plain dpar (for example `bf(y ~ x, sigma ~ a, sigma ~ b)`) at parse
-  time, naming the repeated parameter, rather than deferring to each family
-  consumer. Keyed terms that are legitimately repeated -- `sd*()` random-effect
-  scale formulas (keyed by group) and `corpair()` correlation-pair formulas
-  (keyed by group and endpoints) -- are excluded from this check.
+- **One formula per plain non-location distributional parameter.**
+  `drm_formula()` rejects a repeated plain scale or auxiliary dpar (for example
+  `bf(y ~ x, sigma ~ a, sigma ~ b)`) at parse time, naming the repeated
+  parameter, rather than deferring to each family consumer. Three cases are
+  excluded from this check: `sd*()` random-effect scale formulas (keyed by
+  group) and `corpair()` correlation-pair formulas (keyed by group and
+  endpoints), which legitimately repeat; and the location parameter `mu`. A
+  mistyped or unsupported bare-symbol parameter (for example `phi ~ 1`) becomes
+  a second `mu` response, and each family already guards the location count and
+  emits a family-specific message (for example "requires exactly one location
+  formula", "only support `mu` and `sigma`", or the skew-normal "Latent
+  skewness syntax" note). Enforcing `mu` uniqueness at parse time would hide
+  those clearer messages, so `mu` multiplicity is left to the family consumers.
 - **`corpair()` endpoints are bivariate.** `from` and `to` must name two
   different bivariate endpoints from `mu1`, `mu2`, `sigma1`, `sigma2`; the
   univariate names `mu` and `sigma` are not accepted, because a latent

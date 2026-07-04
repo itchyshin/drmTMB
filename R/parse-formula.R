@@ -8,18 +8,30 @@ parse_drm_formula_entries <- function(calls, names) {
   entries
 }
 
-# Enforce one formula per plain distributional parameter. Keyed terms that are
-# legitimately given more than once are excluded: `corpair()` correlation-pair
-# formulas (keyed by group and endpoints) and `sd*()` random-effect scale
-# formulas (keyed by group). Everything else -- the plain dpar formulas such as
-# `mu`, `sigma`, `nu`, `zi` -- must appear at most once. Without this guard a
-# duplicate lets a downstream `entries[[which(dpars == "sigma")]]` do R
-# recursive indexing instead of reporting the repeat (see #702).
+# Enforce one formula per plain non-location distributional parameter. This is
+# the canonical guard that keeps a downstream `entries[[which(dpars == "sigma")]]`
+# from doing R recursive indexing when a scale/aux dpar such as `sigma`, `nu`,
+# or `zi` is duplicated (see #702). Excluded from the check:
+#
+#   * keyed terms that legitimately repeat -- `corpair()` correlation-pair
+#     formulas (keyed by group and endpoints) and `sd*()` random-effect scale
+#     formulas (keyed by group);
+#   * the location parameter `mu`. A bare-symbol LHS that is neither a keyed
+#     marker nor a known dpar becomes a `mu` response (see #696), so a mistyped
+#     or unsupported parameter (for example `phi ~ 1`) reaches this point as a
+#     second `mu`. Each family route already guards `sum(dpars == "mu") != 1`
+#     before indexing and emits a family-specific message (for example
+#     "requires exactly one location formula", "only support `mu` and `sigma`",
+#     or the skew-normal "Latent skewness syntax" note). Diagnosing the `mu`
+#     multiplicity here would hide those clearer, family-aware messages, so the
+#     location parameter is deliberately left to the family consumers.
 check_unique_plain_dpars <- function(entries) {
   is_plain <- vapply(
     entries,
     function(entry) {
-      is.null(entry$corpair) && !is_random_scale_lhs_entry(entry)
+      is.null(entry$corpair) &&
+        !is_random_scale_lhs_entry(entry) &&
+        !identical(entry$dpar, "mu")
     },
     logical(1)
   )

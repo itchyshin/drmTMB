@@ -59,11 +59,14 @@ test_that("a duplicated plain dpar is rejected at parse time, naming it", {
   )
 })
 
-test_that("two location responses are rejected as a duplicated mu", {
-  expect_error(
-    bf(y1 ~ x, y2 ~ z),
-    "mu"
-  )
+test_that("the location parameter is left to family consumers, not parse-time", {
+  # A bare-symbol LHS that is not a keyed marker or a known dpar becomes a `mu`
+  # response (see #696). The parse-time uniqueness check deliberately excludes
+  # `mu` so families can emit their own location-count / unsupported-parameter /
+  # latent-skewness messages instead of a generic duplicate-`mu` error. So two
+  # location responses, or a mistyped parameter, must parse cleanly here.
+  expect_no_error(bf(y1 ~ x, y2 ~ z))
+  expect_no_error(bf(y ~ x, phi ~ 1))
 })
 
 test_that("keyed sd() and corpair() formulas may repeat", {
