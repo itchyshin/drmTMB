@@ -377,6 +377,15 @@ drmTMB_julia_bridge <- function(
       )
     )
   }
+  # #694: when the missing control requests response = "drop" (the drmTMB
+  # default), drop NA rows on the R side BEFORE marshalling. DRM.jl's non-Gaussian
+  # phylo/count Laplace routes have no internal missing handling, so passing NA
+  # rows through returns NaN / non-convergence instead of the dropped-case fit
+  # native TMB gives. Dropping here also keeps the fit's stored data, nobs, and
+  # phylo row_order / species consistent on the complete-case data.
+  if (identical(missing_control$response, "drop")) {
+    data <- drm_julia_drop_missing_rows(data, formula)
+  }
   bridge_payload <- drm_julia_bridge_payload(
     formula = formula,
     family_type = family_type,
@@ -643,7 +652,11 @@ drm_julia_bridge_payload <- function(
   )
 }
 
-drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
+# Modelled columns the bridge needs from `data`: every response plus every
+# fixed-effect / structured predictor variable (phylo trees stripped first so a
+# tree object symbol is not looked for in `data`). Used both to column-subset the
+# marshalled data and to define the complete-case set for response = "drop".
+drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
   needed <- unique(unlist(
     lapply(formula$entries, function(entry) {
       c(
@@ -658,6 +671,29 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
   if (!is.null(phylo_payload)) {
     needed <- unique(c(needed, phylo_payload$group))
   }
+  needed
+}
+
+# Drop rows with any NA in a modelled column when the caller requested
+# response = "drop" (#694). Mirrors native TMB's complete.cases(data[, vars])
+# so the Julia bridge fits the same complete-case data native drm() would, rather
+# than passing NA rows into DRM.jl's non-Gaussian phylo Laplace (which has no
+# missing handling and returns NaN / non-convergence).
+drm_julia_drop_missing_rows <- function(data, formula, phylo_payload = NULL) {
+  needed <- drm_julia_needed_columns(formula, phylo_payload = phylo_payload)
+  present <- intersect(needed, names(data))
+  if (length(present) == 0L) {
+    return(data)
+  }
+  keep <- stats::complete.cases(data[, present, drop = FALSE])
+  if (all(keep)) {
+    return(data)
+  }
+  data[keep, , drop = FALSE]
+}
+
+drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
+  needed <- drm_julia_needed_columns(formula, phylo_payload = phylo_payload)
   missing <- setdiff(needed, names(data))
   if (length(missing) > 0L) {
     cli::cli_abort(
@@ -1444,10 +1480,31 @@ new_drmTMB_julia <- function(
     formula = formula,
     sd_scales = structured_sd_scales
   )
+  # Structured (non-fixed-effect) coefficients that must NOT appear in the
+  # fixed-effect coefficient table / Wald CIs: `resd_`/`recov_` SD & residual
+  # correlation working parameters, and the q2/q4 bivariate among-axis
+  # `phylocov_Sigma_a:Lij` log-Cholesky entries. The latter are unbounded
+  # Cholesky factors, not linear-predictor coefficients, so reporting z/p/Wald
+  # intervals for them is meaningless (#692). They are kept in a dedicated
+  # `phylocov` slot below so drm_julia_phylocov_matrix() can still reconstruct
+  # Sigma_a.
   structured_coef <- startsWith(names(coefficients), "resd_") |
-    startsWith(names(coefficients), "recov_")
+    startsWith(names(coefficients), "recov_") |
+    startsWith(names(coefficients), "phylocov_")
   fixed <- !structured_coef
   fixed_coefficients <- coefficients[fixed]
+  # Dedicated phylocov slot: the among-axis log-Cholesky entries with the
+  # `phylocov_` prefix stripped (so keys are "Sigma_a:L11", ...), read straight
+  # off the full coefficient vector. NULL when the fit has no phylocov block.
+  phylocov_coef <- coefficients[startsWith(names(coefficients), "phylocov_")]
+  phylocov_slot <- if (length(phylocov_coef) > 0L) {
+    stats::setNames(
+      as.numeric(phylocov_coef),
+      sub("^phylocov_", "", names(phylocov_coef))
+    )
+  } else {
+    NULL
+  }
   coefficient_blocks <- split(
     fixed_coefficients,
     sub("_.*$", "", names(fixed_coefficients))
@@ -1507,6 +1564,7 @@ new_drmTMB_julia <- function(
     bridge_payload = bridge_payload,
     coefficients = coefficient_blocks,
     coef_vector = fixed_coefficients,
+    phylocov = phylocov_slot,
     sdpars = structured_parameters$sdpars,
     structured_sd_scales = structured_sd_scales,
     corpars = structured_parameters$corpars,
@@ -1672,6 +1730,13 @@ drm_julia_profile_targets_biv <- function(object) {
   if (is.null(Sigma_a)) {
     return(empty_profile_targets())
   }
+  # Raw-Q-scale axis SDs from the log-Cholesky Sigma_a. DRM.jl builds the
+  # phylogenetic precision Q from raw branch lengths (no unit-height
+  # normalization), so these SDs are on the raw-Q scale where tip variance is
+  # proportional to root-to-tip depth. To match native drmTMB's unit-height SD
+  # convention -- and the univariate bridge, which multiplies its returned
+  # log-SD by sd_scale = sqrt(mean(depths)) -- multiply each axis SD by the
+  # shared tree's sd_scale (#693). All four axes share one tree, so one scale.
   axis_sd <- sqrt(diag(Sigma_a))
   if (
     length(axis_sd) != length(biv_dpars) ||
@@ -1692,6 +1757,18 @@ drm_julia_profile_targets_biv <- function(object) {
   if (is.null(scales)) {
     scales <- bp$structured_sd_scales
   }
+  # The shared per-axis sd_scale (sqrt(mean(depths))). structured_sd_scales
+  # carries one entry per axis label, all equal for a single tree; take the first
+  # finite positive value, defaulting to 1 (unit-height / absent scale).
+  sd_scale <- 1
+  if (!is.null(scales) && length(scales)) {
+    finite_scale <- unname(scales[is.finite(scales) & scales > 0])
+    if (length(finite_scale)) {
+      sd_scale <- finite_scale[[1L]]
+    }
+  }
+  # Report the axis SDs on the native (unit-height) scale.
+  axis_sd <- axis_sd * sd_scale
   scale_label <- if (
     !is.null(scales) && length(scales) && !is.null(names(scales))
   ) {
@@ -1728,7 +1805,11 @@ drm_julia_profile_targets_biv <- function(object) {
       tmb_parameter = paste0("resd_", dpar),
       index = i,
       estimate = unname(axis_sd[[dpar]]),
-      link_estimate = log(unname(axis_sd[[dpar]])),
+      # Mirror the univariate transform: link_estimate = log(estimate / scale)
+      # recovers the raw-Q-scale log-SD (see drm_julia_profile_targets_row,
+      # line ~1639). drm_julia_inference_confint_multi later re-derives the
+      # per-axis scale from estimate / exp(link_estimate).
+      link_estimate = log(unname(axis_sd[[dpar]]) / sd_scale),
       scale = "response",
       transformation = "exp",
       target_type = "direct",
@@ -2313,11 +2394,19 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
         i = "Julia returned params: {.val {julia_params}}."
       ))
     }
-    # DRM.jl returns the among-axis SD bounds ALREADY on the SD (response) scale —
-    # do NOT exp()/scale them (that is the univariate log-SD convention). `upper` may
-    # be Inf on a flat/collapsed axis; let it propagate (never coerce to NA).
-    lo <- julia_lower[[ji]]
-    hi <- julia_upper[[ji]]
+    # DRM.jl returns the among-axis SD bounds ALREADY on the SD scale (no exp() —
+    # that is the univariate log-SD convention), but on the RAW-Q scale (Q built
+    # from raw branch lengths). To keep the CI on the same native (unit-height)
+    # scale as the rescaled point estimate, multiply the bounds by the per-axis
+    # sd_scale, recovered as estimate / exp(link_estimate) exactly as the
+    # univariate drm_julia_inference_confint_row does (#693). `upper` may be Inf
+    # on a flat/collapsed axis; Inf * scale stays Inf (never coerced to NA).
+    axis_scale <- target$estimate[[1L]] / exp(target$link_estimate[[1L]])
+    if (!is.finite(axis_scale) || axis_scale <= 0) {
+      axis_scale <- 1
+    }
+    lo <- julia_lower[[ji]] * axis_scale
+    hi <- julia_upper[[ji]] * axis_scale
     is_bounded <- isTRUE(julia_bounded[[ji]])
     # status/message are SCALAR for the whole call (one profile/bootstrap run), so
     # recycle them across axes rather than indexing per-axis.
@@ -2833,7 +2922,13 @@ drm_julia_phylocov_matrix <- function(object) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
-  phylocov <- object$coefficients[["phylocov"]]
+  # Read from the dedicated `phylocov` slot (live fits, #692); fall back to the
+  # legacy `coefficients[["phylocov"]]` block for synthetic fixtures that still
+  # construct fits that way.
+  phylocov <- object$phylocov
+  if (is.null(phylocov)) {
+    phylocov <- object$coefficients[["phylocov"]]
+  }
   if (is.null(phylocov)) {
     return(NULL)
   }

@@ -82,13 +82,18 @@ test_that("drm_julia_profile_targets returns 4 rows for biv_gaussian", {
   expect_true(all(targets$profile_note == "ready"))
   expect_true(all(targets$transformation == "exp"))
   expect_true(all(targets$scale == "response"))
-  # Estimates are on the positive response scale.
+  # Estimates are on the positive response scale, rescaled to the native
+  # unit-height convention by the shared tree's sd_scale (#693): the raw-Q axis
+  # SD sqrt(diag(Sigma_a)) is multiplied by sd_scale = sqrt(mean(depths)).
+  sd_scale <- fit$structured_sd_scales[[1L]]
   expect_true(all(targets$estimate > 0))
   expect_equal(
     targets$estimate,
-    unname(fit$expected_axis_sd),
+    unname(fit$expected_axis_sd) * sd_scale,
     tolerance = 1e-10
   )
+  # link_estimate mirrors the univariate transform log(estimate / sd_scale) and
+  # so recovers the raw-Q-scale log-SD.
   expect_equal(
     targets$link_estimate,
     log(unname(fit$expected_axis_sd)),
@@ -129,9 +134,10 @@ drm_julia_biv_fake_result <- function(
   method = "profile"
 ) {
   # Mimics what DRM.jl returns as result$multi == TRUE.
-  # DRM.jl returns the among-axis SD bounds ALREADY on the SD (response) scale;
-  # drm_julia_inference_confint_multi uses them directly (no exp/scale). The bounds
-  # here are therefore on the SD scale, not the log scale.
+  # DRM.jl returns the among-axis SD bounds on the SD scale (no exp) but on the
+  # RAW-Q scale (Q built from raw branch lengths). drm_julia_inference_confint_multi
+  # multiplies them by the per-axis sd_scale to match the native unit-height
+  # convention (#693). The bounds here are therefore raw-Q SD-scale values.
   list(
     method = method,
     multi = TRUE,
@@ -185,6 +191,30 @@ test_that("drm_julia_inference_confint_multi returns a 4-row data frame (profile
   expect_false(any(is.na(ci$upper)))
   # profile.engine should be set.
   expect_true(all(ci$profile.engine == "julia_profile_result"))
+  # #693: the raw-Q bounds must be rescaled by the shared tree's sd_scale so the
+  # CI is on the same native (unit-height) scale as the point estimate.
+  sd_scale <- fit$structured_sd_scales[[1L]]
+  ci_ord <- ci[
+    match(
+      c(
+        "sd:mu1:phylo(1 | species)",
+        "sd:mu2:phylo(1 | species)",
+        "sd:sigma1:phylo(1 | species)",
+        "sd:sigma2:phylo(1 | species)"
+      ),
+      ci$parm
+    ),
+  ]
+  expect_equal(
+    ci_ord$lower,
+    result$lower * sd_scale,
+    tolerance = 1e-10
+  )
+  expect_equal(
+    ci_ord$upper,
+    result$upper * sd_scale,
+    tolerance = 1e-10
+  )
 })
 
 test_that("drm_julia_inference_confint_multi preserves Inf upper (flat axis)", {
