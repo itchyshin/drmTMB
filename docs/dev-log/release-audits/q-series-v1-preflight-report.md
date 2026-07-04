@@ -112,6 +112,16 @@ The complete first-four packet also has generated local-debug fixture
 contracts. They keep the current rejection signature, local-only fixture scope,
 and stop rules visible for every candidate row.
 
+To reproduce the current fail-closed rejection baseline before any
+implementation attempt, run:
+
+```sh
+R_PROFILE_USER=/dev/null /usr/local/bin/Rscript --no-init-file tools/qseries-v1-first-four-rejection-smoke.R
+```
+
+That smoke is local rejection evidence only. It creates no fit denominator,
+coverage evidence, status movement, or public support.
+
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
 | --- | --- | --- | --- | --- |
 | `qseries_beta_mu_animal_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |

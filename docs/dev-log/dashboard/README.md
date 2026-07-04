@@ -280,6 +280,11 @@ For a quick planning snapshot, run
 checked-in release status and ledger only, skips ledger regeneration, the claim
 guard, and Mission Control, and must not be used as evidence for status
 movement or public wording.
+For the current first-four candidate baseline, run
+`R_PROFILE_USER=/dev/null /usr/local/bin/Rscript --no-init-file
+tools/qseries-v1-first-four-rejection-smoke.R`; it reproduces the existing
+`Structured non-Gaussian paths` rejections only and creates no fit denominator,
+coverage evidence, status movement, or public support.
 
 `structured-re-q2-retained-denominator-design.tsv` is now historical Tranche 2
 q2 design evidence, not a current run permission. The Rorqual SR150 pregrid was

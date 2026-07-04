@@ -128,3 +128,79 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     "Structured non-Gaussian paths"
   )
 })
+
+test_that("q-series v1 first-four rejection smoke reproduces current gates", {
+  testthat::skip_on_cran()
+  rscript <- file.path(R.home("bin"), "Rscript")
+  testthat::skip_if(!file.exists(rscript), "Rscript is not available")
+  tool <- file.path(
+    "tools",
+    "qseries-v1-first-four-rejection-smoke.R"
+  )
+  if (!file.exists(tool)) {
+    tool <- file.path(
+      "..",
+      "..",
+      "tools",
+      "qseries-v1-first-four-rejection-smoke.R"
+    )
+  }
+  testthat::skip_if_not(file.exists(tool))
+  output <- tempfile(fileext = ".tsv")
+  smoke <- system2(
+    rscript,
+    c("--vanilla", tool, "--output", output),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  smoke_status <- attr(smoke, "status")
+  if (is.null(smoke_status)) {
+    smoke_status <- 0L
+  }
+  expect_equal(smoke_status, 0L, info = paste(smoke, collapse = "\n"))
+  result <- utils::read.delim(
+    output,
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_named(
+    result,
+    c(
+      "rejection_id",
+      "cell_id",
+      "formula_cell",
+      "family",
+      "provider",
+      "expected_error_pattern",
+      "status",
+      "observed_error",
+      "claim_boundary"
+    )
+  )
+  expect_equal(
+    result$cell_id,
+    c(
+      "qseries_beta_mu_animal_rejected",
+      "qseries_gamma_mu_relmat_rejected",
+      "qseries_ordinal_mu_phylo_rejected",
+      "qseries_student_mu_spatial_rejected"
+    )
+  )
+  expect_equal(result$status, rep("expected_rejection", 4L))
+  expect_equal(
+    result$expected_error_pattern,
+    rep("Structured non-Gaussian paths", 4L)
+  )
+  expect_true(all(grepl(
+    "Structured non-Gaussian paths",
+    result$observed_error,
+    fixed = TRUE
+  )))
+  expect_true(all(grepl(
+    "no fit, denominator, coverage",
+    result$claim_boundary,
+    fixed = TRUE
+  )))
+})
