@@ -39,6 +39,15 @@ recover_data.drmTMB <- function(object, dpar = "mu", data = NULL, ...) {
 }
 
 emm_basis.drmTMB <- function(object, trms, xlev, grid, dpar = "mu", ...) {
+  # trms and xlev are supplied by emmeans but intentionally not used here: the
+  # design matrix is rebuilt from the reference grid via drm_fixed_effect_basis,
+  # so the fitted-model contrasts and factor coding are the single source of
+  # truth. The guardrail is the colname/beta-name equality check inside
+  # drm_fixed_effect_basis (R/methods.R), which aborts with an explicit
+  # "Could not align the mu design matrix" error if the rebuilt columns do not
+  # match the fitted coefficients rather than silently mis-estimating. See
+  # #708.1 and the factor-with-contrasts round-trip test in
+  # test-emmeans-methods.R.
   target <- drm_emmeans_mu_basis(
     object,
     newdata = grid,
@@ -158,16 +167,21 @@ drm_validate_emmeans_mu_target <- function(object, dpar) {
       i = "Use {.fn prediction_grid} and {.fn predict_parameters} for other distributional parameters."
     ))
   }
+  # Only families whose fitted mu inverse link equals the fitted()/
+  # predict(type = "response") mean are admitted here, so emmeans' response
+  # scale never silently reports a different quantity than the package's own
+  # response-scale predictions. lognormal (identity mu link, but response mean
+  # exp(mu + 0.5 sigma^2)) and truncated_nbinom2 (log mu link, but response mean
+  # mu / (1 - p0)) are deliberately excluded and routed to prediction_grid() /
+  # predict_parameters() until a tested back-transform for those means exists.
   supported_model_types <- c(
     "gaussian",
     "student",
-    "lognormal",
     "gamma",
     "beta",
     "beta_binomial",
     "poisson",
-    "nbinom2",
-    "truncated_nbinom2"
+    "nbinom2"
   )
   if (!object$model$model_type %in% supported_model_types) {
     cli::cli_abort(c(

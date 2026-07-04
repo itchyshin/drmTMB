@@ -311,6 +311,66 @@ test_that("emmeans method preserves ordered-factor grids", {
   expect_equal(link$df, rep(Inf, nrow(link)))
 })
 
+test_that("emmeans round-trips factor grids through the rebuilt design", {
+  # #708.1: emm_basis.drmTMB ignores emmeans-supplied trms/xlev and rebuilds the
+  # design from the reference grid via drm_fixed_effect_basis. This confirms the
+  # rebuilt reference-grid design columns match the fitted beta names (the
+  # colname/beta-name guardrail) and that the EMMs round-trip against predict().
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260557)
+  dat <- emmeans_methods_data(n = 90L)
+  dat$habitat <- factor(dat$habitat, levels = c("reef", "kelp", "sand"))
+  dat$y <- 0.2 +
+    0.4 * dat$x +
+    0.3 * (dat$habitat == "kelp") -
+    0.1 * (dat$habitat == "sand") +
+    stats::rnorm(nrow(dat), sd = 0.1)
+  fit <- drmTMB(
+    bf(y ~ x + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+
+  emm <- emmeans::emmeans(fit, ~habitat, at = list(x = 0))
+  link <- summary(emm)
+  grid <- data.frame(
+    x = 0,
+    habitat = factor(link$habitat, levels = levels(dat$habitat))
+  )
+  basis <- drmTMB:::drm_emmeans_mu_basis(fit, newdata = grid, dpar = "mu")
+  # The rebuilt design columns align with the fitted coefficients rather than
+  # relying on emmeans-supplied trms/xlev.
+  expect_equal(colnames(basis$basis$X), names(coef(fit, "mu")))
+  expect_equal(
+    link$emmean,
+    unname(predict(fit, newdata = grid, dpar = "mu", type = "link")),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(link$SE)))
+})
+
+test_that("emm_basis aborts explicitly when the grid cannot align to beta", {
+  # #708.1: the rebuild-from-grid design must abort explicitly rather than
+  # mis-estimate when a reference grid does not round-trip. An unknown factor
+  # level is rejected up front by the design-matrix builder.
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260558)
+  dat <- emmeans_methods_data(n = 60L)
+  fit <- drmTMB(
+    bf(y ~ x + habitat, sigma ~ 1),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  bad_grid <- data.frame(
+    x = 0,
+    habitat = factor(c("reef", "unknown_level"))
+  )
+  expect_error(
+    drmTMB:::drm_emmeans_mu_basis(fit, newdata = bad_grid, dpar = "mu"),
+    "unknown factor level"
+  )
+})
+
 test_that("emmeans method handles mu interactions on an explicit grid", {
   testthat::skip_if_not_installed("emmeans")
   set.seed(20260554)
@@ -550,15 +610,6 @@ test_that("emmeans method covers remaining admitted univariate families", {
   )
   expect_emmeans_mu_prediction_parity(student_fit, dat)
 
-  dat$lognormal_y <- exp(eta + stats::rnorm(nrow(dat), sd = 0.15))
-  lognormal_fit <- drmTMB(
-    bf(lognormal_y ~ x + habitat, sigma ~ 1),
-    family = lognormal(),
-    data = dat,
-    control = emmeans_methods_control(se = TRUE)
-  )
-  expect_emmeans_mu_prediction_parity(lognormal_fit, dat)
-
   gamma_mu <- exp(eta)
   dat$gamma_y <- stats::rgamma(
     nrow(dat),
@@ -583,20 +634,6 @@ test_that("emmeans method covers remaining admitted univariate families", {
   )
   expect_emmeans_mu_prediction_parity(nbinom_fit, dat)
 
-  p0 <- stats::dnbinom(0, size = 4, mu = count_mu)
-  dat$positive_count <- stats::qnbinom(
-    p0 + stats::runif(nrow(dat)) * (1 - p0),
-    size = 4,
-    mu = count_mu
-  )
-  truncated_fit <- drmTMB(
-    bf(positive_count ~ x + habitat, sigma ~ 1),
-    family = truncated_nbinom2(),
-    data = dat,
-    control = emmeans_methods_control(se = TRUE)
-  )
-  expect_emmeans_mu_prediction_parity(truncated_fit, dat)
-
   prob <- stats::plogis(eta)
   trials <- rep(12:17, length.out = nrow(dat))
   phi <- 18
@@ -614,6 +651,63 @@ test_that("emmeans method covers remaining admitted univariate families", {
     control = emmeans_methods_control(se = TRUE)
   )
   expect_emmeans_mu_prediction_parity(beta_binomial_fit, dat)
+})
+
+test_that("emmeans routes out families whose mu link != fitted response mean", {
+  # Regression guard for #691 (truncated_nbinom2) and #699 (lognormal): for both
+  # families the mu inverse link differs from fitted()/predict(type="response"),
+  # so admitting them to the emmeans basis would silently return a different
+  # response-scale quantity than the package's own predictions. This test both
+  # documents the divergence and pins the route-out to prediction_grid().
+  testthat::skip_if_not_installed("emmeans")
+  set.seed(20260559)
+  dat <- emmeans_methods_data(n = 96L)
+  eta <- 0.2 + 0.4 * dat$x + 0.25 * (dat$habitat == "kelp")
+
+  dat$lognormal_y <- exp(eta + stats::rnorm(nrow(dat), sd = 0.15))
+  lognormal_fit <- drmTMB(
+    bf(lognormal_y ~ x + habitat, sigma ~ 1),
+    family = lognormal(),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  # fitted() reports the natural-scale mean; predict(type="response") on the
+  # identity mu link reports the log-scale mean. They differ, so emmeans (which
+  # would use the mu link) must not be admitted.
+  expect_false(isTRUE(all.equal(
+    unname(stats::fitted(lognormal_fit)),
+    unname(predict(lognormal_fit, dpar = "mu", type = "response"))
+  )))
+  lognormal_error <- expect_error(
+    emmeans::emmeans(lognormal_fit, ~habitat, at = list(x = 0)),
+    "lognormal"
+  )
+  expect_match(conditionMessage(lognormal_error), "prediction_grid\\(\\)")
+
+  count_mu <- exp(eta)
+  p0 <- stats::dnbinom(0, size = 4, mu = count_mu)
+  dat$positive_count <- stats::qnbinom(
+    p0 + stats::runif(nrow(dat)) * (1 - p0),
+    size = 4,
+    mu = count_mu
+  )
+  truncated_fit <- drmTMB(
+    bf(positive_count ~ x + habitat, sigma ~ 1),
+    family = truncated_nbinom2(),
+    data = dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  # fitted() reports the truncated positive-count mean mu/(1-p0);
+  # predict(type="response") on the log mu link reports the untruncated mu.
+  expect_false(isTRUE(all.equal(
+    unname(stats::fitted(truncated_fit)),
+    unname(predict(truncated_fit, dpar = "mu", type = "response"))
+  )))
+  truncated_error <- expect_error(
+    emmeans::emmeans(truncated_fit, ~habitat, at = list(x = 0)),
+    "truncated_nbinom2"
+  )
+  expect_match(conditionMessage(truncated_error), "prediction_grid\\(\\)")
 })
 
 test_that("emmeans method rejects unsupported drmTMB paths", {
@@ -785,6 +879,50 @@ test_that("emmeans method rejects unsupported drmTMB paths", {
     "biv_gaussian"
   )
   expect_match(conditionMessage(biv_error), "prediction_grid\\(\\)")
+
+  # lognormal: identity mu link would make emmeans report log-scale means,
+  # not the fitted natural-scale mean exp(mu + 0.5 sigma^2). Route out (#699).
+  lognormal_dat <- dat
+  lognormal_dat$positive_y <- exp(
+    0.2 + 0.3 * lognormal_dat$x + 0.2 * (lognormal_dat$habitat == "kelp") +
+      stats::rnorm(nrow(lognormal_dat), sd = 0.15)
+  )
+  lognormal_fit <- drmTMB(
+    bf(positive_y ~ x + habitat, sigma ~ 1),
+    family = lognormal(),
+    data = lognormal_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  lognormal_error <- expect_error(
+    emmeans::emmeans(lognormal_fit, ~habitat, at = list(x = 0)),
+    "lognormal"
+  )
+  expect_match(conditionMessage(lognormal_error), "prediction_grid\\(\\)")
+
+  # truncated_nbinom2: log mu link would make emmeans report the untruncated
+  # NB2 mean exp(eta), not the fitted positive-count mean mu / (1 - p0).
+  # Route out (#691).
+  truncated_dat <- dat
+  truncated_mu <- exp(
+    0.3 + 0.4 * truncated_dat$x + 0.25 * (truncated_dat$habitat == "kelp")
+  )
+  truncated_p0 <- stats::dnbinom(0, size = 4, mu = truncated_mu)
+  truncated_dat$positive_count <- stats::qnbinom(
+    truncated_p0 + stats::runif(nrow(truncated_dat)) * (1 - truncated_p0),
+    size = 4,
+    mu = truncated_mu
+  )
+  truncated_fit <- drmTMB(
+    bf(positive_count ~ x + habitat, sigma ~ 1),
+    family = truncated_nbinom2(),
+    data = truncated_dat,
+    control = emmeans_methods_control(se = TRUE)
+  )
+  truncated_error <- expect_error(
+    emmeans::emmeans(truncated_fit, ~habitat, at = list(x = 0)),
+    "truncated_nbinom2"
+  )
+  expect_match(conditionMessage(truncated_error), "prediction_grid\\(\\)")
 
   random_fit <- drmTMB(
     bf(y ~ x + habitat + (1 | id), sigma ~ 1),
