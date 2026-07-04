@@ -1,6 +1,6 @@
 # Session Handoff: Twin-package code-review backlog → solve all open issues
 
-**Meta:** 2026-07-03 · from Claude Code · to **Claude** (next session) · TARGET=claude, AUTHOR=claude
+**Meta:** 2026-07-03 · from Claude Code (review/orchestration lane) · to the **bug-fix lane** (a fresh, dedicated Claude session) · TARGET=claude, AUTHOR=claude
 **Companion report (durable, in-repo):** [`2026-07-03-twin-review-report.md`](2026-07-03-twin-review-report.md) — all 50 filed issues verbatim, rebuilt from the GitHub trackers.
 **Issue → finding map:** the review-report file is indexed by issue number; every finding also lives in its GitHub issue body.
 
@@ -19,10 +19,14 @@ backlog across both repos** — the 50 new review bugs first (they are concrete 
 in-hand), then the pre-existing enhancement/roadmap issues.
 
 Two hard constraints you must respect:
-1. **You (Claude) cannot run the live toolchain in-container** (no TMB compile / `R CMD check` /
-   Julia fits). You **draft** code + tests + docs; **Codex runs the live validation.** The standard
-   loop is: *Claude drafts a themed branch → Codex compiles/fits/checks → Claude reviews the diff.*
-   Do not claim a fix "works" without engine evidence — mark it "drafted, awaiting Codex validation".
+1. **You own each fix end-to-end and validate it LOCALLY. There is no Codex lane** — Codex is out of
+   commission for the foreseeable future, so do **not** defer any validation to it. For every fix:
+   draft the change, add/extend tests, and run the checks yourself on the Mac before claiming it
+   passes. R: `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::test()'` then
+   `devtools::check()` (local, per the "local checks over CI" rule); Julia (DRM.jl): run the package
+   tests in the project env (`Pkg.test()` / `] test`). Attach the check/test output as evidence in
+   the PR; never mark a fix "done" without it. (If a fix genuinely needs cluster-scale compute — a
+   large sim/fit — flag it for the maintainer; that is the only off-box case.)
 2. **Twin parity is the cross-cutting theme.** Several findings are drmTMB↔DRM.jl divergences
    (Student-t `sigma` semantics, NB2 dispersion convention, hard `eta` clamps, duplicated bivariate
    NLL). For any such issue, fix **both** packages in lockstep and add a **cross-package parity
@@ -95,9 +99,11 @@ knock out per batch issue.
   phylo loc-scale · #189 coevolution from kernel · #186 q4 PLSM epic · #166 beta-binomial phylo
   · #136 VA/ELBO marginal · #49 FIML/EM missing data · #13 natgrad EM wiring · #9/#8/#7/#5/#3 roadmap.
 
-**Suggested working model:** one themed branch + PR **per cluster per repo**; Claude drafts
-code+tests+docs, Codex validates, Claude reviews. For twin clusters, land drmTMB and DRM.jl changes
-together with a shared parity test. Keep PRs small (AGENTS.md rule).
+**Suggested working model:** one themed branch + PR **per cluster per repo**; the bug-fix lane drafts
+code + tests + docs **and validates locally** (R: `devtools::test()`/`check()`; Julia: `Pkg.test()`),
+then self-reviews with the standing lenses (Rose + Gauss/Noether/Fisher). For twin clusters, land
+drmTMB and DRM.jl changes together with a shared parity test. Keep PRs small (AGENTS.md rule); the
+maintainer merges.
 
 ---
 
@@ -105,7 +111,8 @@ together with a shared parity test. Keep PRs small (AGENTS.md rule).
 
 - **Working:** all 50 issues filed and verified on GitHub; consolidated report in-repo.
 - **In progress:** nothing coded yet — the backlog is defined, not started.
-- **Blocked:** every fix needs **Codex** for live validation; you can draft but not confirm.
+- **Not blocked:** the bug-fix lane runs its own local validation (Mac R + Julia). Codex is
+  unavailable and is **not** in the loop — do not wait on it.
 
 ## Key Decisions & Rationale
 
@@ -134,8 +141,9 @@ together with a shared parity test. Keep PRs small (AGENTS.md rule).
 - **Fix-ordering within Phase 1** — confirm with the maintainer which family convention is canonical
   (e.g. is Student-t `sigma` meant to be the scale, and docs corrected? or rescale to true SD?). The
   issue proposes both options; the choice is the maintainer's design call.
-- **Codex availability / host access** — prior handovers noted intermittent cluster/host auth issues;
-  local Codex validation is the near-term path.
+- **No Codex lane** — Codex is out of commission for a while, so this is a self-contained Claude
+  bug-fix lane that validates locally on the Mac. Only escalate to the maintainer if a fix needs
+  cluster-scale compute (a large sim/fit) that the Mac cannot run.
 
 ## Gotchas & Failed Approaches
 
@@ -161,18 +169,19 @@ together with a shared parity test. Keep PRs small (AGENTS.md rule).
    `gh issue list --repo itchyshin/DRM.jl --state open` (review issues tagged `[review]`).
 4. Before any public claim, spawn **Rose** (`systems_auditor`); add **Gauss/Noether/Fisher** for
    likelihood/math/inference-touching fixes.
-5. Start Phase 1 (twin-parity family conventions). Draft on a themed branch; hand live validation to
-   **Codex** (`R CMD check`, fits, sims); review the returned diff.
+5. Start Phase 1 (twin-parity family conventions). Draft on a themed branch, add tests, and
+   **validate locally yourself** (R: `devtools::test()`/`check()`; Julia: `Pkg.test()`); attach the
+   output to the PR. No Codex hop.
 
 **One-command resume** (paste in your own authenticated terminal, from the drmTMB repo root):
 
 - Interactive (you steer):
   ```
-  claude "Rehydrate from docs/dev-log/handover/2026-07-03-claude-handover.md + the AGENTS.md snapshot, then start solving the twin-package issue backlog beginning with Phase 1 (twin-parity family conventions). Draft fixes + tests; hand live R/TMB + Julia validation to Codex."
+  claude "Rehydrate from docs/dev-log/handover/2026-07-03-claude-handover.md + the AGENTS.md snapshot, then start solving the twin-package issue backlog beginning with Phase 1 (twin-parity family conventions). You own each fix end-to-end: draft the change, add tests, and validate locally (devtools::test/check for R, Pkg.test for Julia). There is no Codex lane."
   ```
 - Autonomous, clean context (hands-off):
   ```
-  claude -p "Rehydrate from docs/dev-log/handover/2026-07-03-claude-handover.md + the AGENTS.md snapshot, then execute Phase 1 of the Next Immediate Steps (twin-parity family conventions), drafting fixes + tests for Codex validation." --max-budget-usd 5
+  claude -p "Rehydrate from docs/dev-log/handover/2026-07-03-claude-handover.md + the AGENTS.md snapshot, then execute Phase 1 of the Next Immediate Steps (twin-parity family conventions): draft fixes + tests and validate locally (devtools::test/check for R, Pkg.test for Julia). No Codex lane." --max-budget-usd 5
   ```
 
 ---
@@ -184,5 +193,6 @@ together with a shared parity test. Keep PRs small (AGENTS.md rule).
 | **drmTMB** (R/TMB) | handover on `handover/2026-07-03-claude` off `main@14ffab10` | not run (docs-only) | 24 review issues #690–713 | P1 twin-parity (#700/#701) → P2 highs (#690–696) → P3 med (#697–707) → P4 low batches (#708–713) → P5 backlog |
 | **DRM.jl** (Julia) | issues only (no branch this session) | n/a | 26 review issues #301–326 | P1 NB2 convention (#315/#316) → P2 highs (#301,#302) → P3 med (#303–321) → P4 low batches (#322–326) → P5 backlog |
 
-**Cross-cutting:** decide one convention per family; add a drmTMB↔DRM.jl parity fixture. Claude drafts;
-**Codex runs the live toolchain**; Rose audits before claims.
+**Cross-cutting:** decide one convention per family; add a drmTMB↔DRM.jl parity fixture. The bug-fix
+lane drafts **and validates locally** (Mac R + Julia — **no Codex**); Rose audits before claims; the
+maintainer merges.

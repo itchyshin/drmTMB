@@ -10,9 +10,11 @@ regression using Template Model Builder.
 > thematic tracking issues. **No package code changed this session** (review only). The maintainer
 > wants the next session to **start solving the whole open-issue backlog across both packages
 > together** — the 50 review bugs first, then the pre-existing enhancement/roadmap issues (incl.
-> drmTMB #714 / DRM.jl #327). Claude drafts fixes + tests + docs; **Codex runs the live R/TMB +
-> Julia validation** (`R CMD check`, fits, sims). Twin-parity is the cross-cutting theme: decide
-> one convention per family and enforce it with a parity test. Consolidated report is in-repo at
+> drmTMB #714 / DRM.jl #327). This goes to a dedicated **bug-fix lane** (a fresh Claude session)
+> that owns each fix end-to-end — draft + tests + **local validation** (R `devtools::test/check`,
+> Julia `Pkg.test`). **There is no Codex lane** (Codex is out of commission for the foreseeable
+> future); do not defer validation to it. Twin-parity is the cross-cutting theme: decide one
+> convention per family and enforce it with a parity test. Consolidated report is in-repo at
 > `docs/dev-log/handover/2026-07-03-twin-review-report.md`.
 > START HERE:
 > [`docs/dev-log/handover/2026-07-03-claude-handover.md`](docs/dev-log/handover/2026-07-03-claude-handover.md).
