@@ -1072,6 +1072,87 @@ structured q2, q4/q8 covariance, random effects in residual `rho12`, direct
 Julia parity, Julia-via-R bridge parity, release readiness, CRAN readiness,
 missing-data recovery, or non-Gaussian REML/AI-REML.
 
+## q>2 Phylo Covariance Cholesky Hardening (#707, #710, #711, #713)
+
+This slice fixes a cluster of C++ numerical hazards and dead-code items found in
+the 2026-07-02 twin-package static review. It is a source-level correctness and
+robustness change, not a fit-level coverage grid.
+
+**#707 -- q>2 phylo separable covariance had no PD/near-singular guard.** The
+q>2 phylogenetic (single-block) density and the model_type 93/94 probe blocks in
+`src/drmTMB.cpp` inverted the separable covariance `S = diag(sd) R diag(sd)` and
+took `log(S.determinant())` with dense Eigen `.inverse()`/`.determinant()`. `R`
+is PD for finite theta, but as any pairwise (partial) correlation approaches
++/-1 the matrix becomes near-singular: the dense inverse amplifies and, crucially,
+the **AD gradient goes non-finite** even while the objective value stays finite
+(if astronomically large). Reproduction on origin/main (model_type 93 probe,
+partial-correlation Cholesky parameterization, q=3 and q=4, pushing one partial
+correlation toward +1 via a large unconstrained `eta`): the NLL grew to
+`~1.5e15` and `obj$gr` became non-finite at `eta >= 20`. A model_type 94 probe
+fed an exactly rank-deficient covariance likewise returned a non-finite gradient
+at the boundary.
+
+The fix replaces all three `.inverse()`/`log(.determinant())` sites with one
+Cholesky-based helper, `drm_separable_cov_logdet_quad()`. It forms the lower
+Cholesky factor `L` of `S` with an AD-safe manual recursion (`+`, `-`, `*`, `/`,
+`sqrt` only), computes `log-det(S) = 2 * sum(log(diag(L)))`, and evaluates the
+quadratic form `sum_{a,b} S^{-1}(a,b) QM(a,b) = trace(S^{-1} QM)` by two
+triangular solves (`L Y = QM`, `L^T W = Y`, then `sum_a W(a,a)`) rather than an
+explicit inverse. A tiny relative ridge (`1e-12 * mean(diag(S))`) is added to
+the diagonal so the Cholesky stays defined at exact singularity; it is a no-op
+for well-posed fits (existing q4/q8 phylo, animal, relmat, and spatial tests
+pass unchanged at their `1e-10`/`1e-12` tolerances). After the fix, the
+model_type 94 exactly-rank-deficient probe keeps both value and gradient finite.
+
+A residual, out-of-scope hazard remains on the model_type 93 **partial-Cholesky
+correlation builder** (`drm_partial_correlation_cholesky_corr`): at `|eta|`
+around 20, `tanh(eta)` rounds to exactly +/-1, `remaining` underflows to 0, and
+`d/dx sqrt(0)` makes the gradient non-finite upstream of the covariance solve.
+That parameterization is an internal diagnostic option
+(`drmTMB.internal.qgt2_corr_parameterization = "partial_cholesky"`), not a public
+control surface; the production default is the unstructured correlation, which
+stays PD for all finite theta and is fully hardened by the Cholesky path here.
+Bounding that builder's `tanh` (as `rho12` and the q2 phylo blocks already do
+with `0.999999 * tanh`) is a candidate follow-up but would change existing exact
+partial-Cholesky test expectations, so it is left for a scoped change.
+
+**#710.6 -- zero prior-normalizer in missing-data marginalization.** The
+missing-data prior-mean plug-in `mi_x_full(i) = prior_mean / prior_norm` (eight
+identical sites across the count/gamma/beta MI families) can divide `0 / 0` when
+every quadrature term underflows for extreme eta. Each site now floors the
+denominator with `CppAD::CondExpGt(prior_norm, 1e-300, prior_norm, 1e-300)`, a
+no-op whenever the normalizer is non-negligible.
+
+**#711.3 -- zero-one-inflated beta MI boundary test uses `asDouble`.** The
+`asDouble(x_i)`/`asDouble(x_q)` boundary branches are AD-safe because `mi_x` and
+`mi_quad_nodes` are DATA (no derivatives). The finding is behavioural: the
+boundary detection relies on observed zero/one values being passed EXACTLY as
+`0.0`/`1.0`. An on-grid-contract comment now documents this requirement at the
+branch site so a value such as `1e-300` is not silently mis-scored as interior.
+
+**#713.8 -- duplicated bivariate Gaussian NLL (model_type 2 vs 95).** The
+diagonal (non-`V_known`) per-observation bivariate Gaussian NLL was duplicated
+verbatim in model_type 2 and model_type 95. It is now factored into
+`drm_bivariate_gaussian_diag_nll()`, called by both. Parity is proven: on a
+fitted biv_gaussian model (model_type 2, zero covariance blocks, one mapped-off
+probe latent), flipping model_type to 95 changes the NLL by exactly
+`0.5 * log(2 * pi)` -- the single latent's standard-normal prior -- to `1e-13`
+(56.831659828206 vs 57.750598361411). A regression test guards the dedup.
+
+**#713.9 -- dead helper and redundant softplus branches.** `drm_log1p_pos` in
+`src/drm_numeric.h` was unused and is removed. `drm_log1p_exp_stable` carried a
+small-x Taylor series / direct-log / `eta > 35` selector that duplicated the dead
+helper's intent; it is reduced to `logspace_add(0, eta)`, which is the correct
+numerically stable softplus across the whole range. A double-precision cross-check
+showed the pure form is bit-identical to the old function except at 3 of 19 test
+points where they differ by `~1e-16` (last bit), and it is in fact MORE accurate
+(the removed series carried up to `1.3e-13` relative truncation error versus the
+`log1p`-based form's zero error against a stable reference).
+
+These are correctness/robustness fixes with parity and stability tests. They do
+not add or promote any inferential claim, interval calibration, or new model
+route.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
