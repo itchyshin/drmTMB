@@ -1236,3 +1236,112 @@ test_that("check_drm() validates scalar diagnostic thresholds", {
   expect_error(check_drm(fit, sd_boundary = 0), "sd_boundary")
   expect_error(check_drm(fit, unknown_option = TRUE), "reserved")
 })
+
+test_that("check_drm() warns on a rank-deficient known sampling covariance (#690)", {
+  set.seed(20260512)
+  n <- 24
+  dat <- data.frame(x = stats::rnorm(n))
+  V <- 0.015 * outer(seq_len(n), seq_len(n), function(i, j) 0.35^abs(i - j))
+  dat$yi <- stats::rnorm(n)
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = V)),
+    family = gaussian(),
+    data = dat
+  )
+
+  # Full-rank V remains a scalability note and keeps the fit ok.
+  good_chk <- check_drm(fit)
+  good_v <- good_chk[good_chk$check == "known_sampling_covariance", ]
+  expect_equal(good_v$status, "note")
+  expect_true(attr(good_chk, "ok"))
+
+  # A singular V (duplicated study row/column) drops the rank below n; its
+  # inverse is undefined, so it must warn and flip ok, not stay a note.
+  singular <- fit
+  V_singular <- V
+  V_singular[2L, ] <- V_singular[1L, ]
+  V_singular[, 2L] <- V_singular[, 1L]
+  singular$model$V_known <- V_singular
+  singular_chk <- check_drm(singular)
+  singular_v <- singular_chk[
+    singular_chk$check == "known_sampling_covariance",
+  ]
+
+  expect_equal(singular_v$status, "warning")
+  expect_match(singular_v$value, "rank=23")
+  expect_match(singular_v$message, "singular or severely ill-conditioned")
+  expect_false(attr(singular_chk, "ok"))
+})
+
+test_that("check_drm() notes an unavailable mu/sigma correlation (#697)", {
+  dat <- check_drm_mu_sigma_cov_data()
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 250, iter.max = 250)
+  )
+
+  # An unavailable (NA) correlation must be a distinct note, not a spurious
+  # boundary warning, and must not flip ok.
+  unavailable <- fit
+  unavailable$corpars$mu_sigma[] <- NA_real_
+  unavailable_chk <- check_drm(unavailable)
+  unavailable_cov <- unavailable_chk[
+    unavailable_chk$check == "mu_sigma_random_effect_covariance",
+  ]
+
+  expect_equal(unavailable_cov$status, "note")
+  expect_match(unavailable_cov$value, "rho_abs=\\s*NA")
+  expect_match(unavailable_cov$message, "could not be extracted")
+  expect_false(grepl("close to", unavailable_cov$message, fixed = TRUE))
+  expect_true(attr(unavailable_chk, "ok"))
+
+  # A genuine near-boundary correlation still warns and flips ok.
+  boundary <- fit
+  boundary$corpars$mu_sigma[] <- 0.995
+  boundary_chk <- check_drm(boundary, rho_boundary = 0.98)
+  boundary_cov <- boundary_chk[
+    boundary_chk$check == "mu_sigma_random_effect_covariance",
+  ]
+
+  expect_equal(boundary_cov$status, "warning")
+  expect_match(boundary_cov$message, "close to \\+/-1")
+  expect_false(attr(boundary_chk, "ok"))
+})
+
+test_that("random_effect_covariance_near_boundary() separates NA from boundary (#697)", {
+  expect_false(random_effect_covariance_near_boundary(NA_real_, 0.98))
+  expect_false(random_effect_covariance_near_boundary(0.5, 0.98))
+  expect_true(random_effect_covariance_near_boundary(0.99, 0.98))
+
+  expect_true(random_effect_covariance_rho_unavailable(NA_real_))
+  expect_false(random_effect_covariance_rho_unavailable(0.5))
+})
+
+test_that("check_drm() spatial weak_sd guards an unavailable residual scale (#711)", {
+  # When the residual scale cannot be derived, the spatial SD-ratio is
+  # unavailable. The spatial diagnostic must match the phylo twin and not
+  # report a spurious weak_sd note (has_scale_ratio guard).
+  sim <- check_drm_spatial_data()
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  stable <- fit
+  stable$sdpars$mu[["spatial(1 | site)"]] <- 0.35
+
+  no_scale <- stable
+  no_scale$coefficients$sigma[] <- NA_real_
+  no_scale_chk <- suppressWarnings(check_drm(no_scale))
+  spatial <- no_scale_chk[no_scale_chk$check == "spatial_mu_diagnostics", ]
+
+  expect_equal(spatial$status, "ok")
+  expect_match(spatial$value, "sd_ratio=\\s*NA")
+  expect_false(grepl("tiny", spatial$message, fixed = TRUE))
+})

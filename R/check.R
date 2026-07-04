@@ -965,8 +965,11 @@ check_known_v <- function(object) {
       max(positive_eig) / min(positive_eig)
     }
     storage <- known_v_dense_storage_summary(V)
+    ill_conditioned <- rank < length(eig) || condition > 1e8
     status <- if (!ok) {
       "error"
+    } else if (ill_conditioned) {
+      "warning"
     } else {
       "note"
     }
@@ -987,10 +990,13 @@ check_known_v <- function(object) {
       ),
       if (identical(status, "error")) {
         "Known sampling covariance has a non-finite or negative diagonal entry."
-      } else if (rank < length(eig) || condition > 1e8) {
+      } else if (ill_conditioned) {
         paste(
-          "Known sampling covariance is recorded as a dense matrix;",
-          "inspect rank or conditioning if estimates are unstable, and treat dense V as small-to-moderate until sparse or block-sparse storage is implemented."
+          "Known sampling covariance is singular or severely ill-conditioned",
+          "(rank-deficient or condition number above 1e8); its inverse is undefined",
+          "or numerically amplified, so the GLS likelihood and its standard errors",
+          "are not reliable. Drop duplicated or collinear rows, or supply a",
+          "positive-definite V."
         )
       } else if (storage$density <= 0.25) {
         paste(
@@ -1359,7 +1365,24 @@ registry_covariance_pair_rho_abs <- function(object, info) {
 }
 
 random_effect_covariance_near_boundary <- function(rho_abs, rho_boundary) {
-  !is.finite(rho_abs) || rho_abs > rho_boundary
+  is.finite(rho_abs) && rho_abs > rho_boundary
+}
+
+# TRUE when the group-level correlation could not be read (mapped/fixed
+# parameter, name mismatch, or sdreport skipped) and rho_abs is therefore
+# non-finite. This is distinct from "near the boundary": an unavailable
+# correlation is reported as a note, never a boundary warning. See #697.
+random_effect_covariance_rho_unavailable <- function(rho_abs) {
+  !is.finite(rho_abs)
+}
+
+# Shared note message for an unavailable group-level correlation.
+random_effect_covariance_unavailable_message <- function() {
+  paste(
+    "The group-level correlation could not be extracted (it may be fixed via",
+    "map, unmatched, or produced by a skipped sdreport). Inspect the sdreport",
+    "and parameter mapping before interpreting the covariance."
+  )
 }
 
 check_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
@@ -1421,12 +1444,13 @@ check_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
       rho_abs,
       rho_boundary
     )
+    rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
     return(check_row(
       "mu_sigma_random_effect_covariance",
       if (near_rho_boundary) {
         "warning"
-      } else if (weak_replication || weak_sd) {
+      } else if (rho_unavailable || weak_replication || weak_sd) {
         "note"
       } else {
         "ok"
@@ -1452,7 +1476,8 @@ check_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
       mu_sigma_re_diagnostic_message(
         near_rho_boundary,
         weak_replication,
-        weak_sd
+        weak_sd,
+        rho_unavailable
       )
     ))
   }
@@ -1515,12 +1540,13 @@ check_mu_sigma_random_effect_covariance_rows <- function(
       rho_abs,
       rho_boundary
     )
+    rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
     check_row(
       "mu_sigma_random_effect_covariance",
       if (near_rho_boundary) {
         "warning"
-      } else if (weak_replication || weak_sd) {
+      } else if (rho_unavailable || weak_replication || weak_sd) {
         "note"
       } else {
         "ok"
@@ -1546,7 +1572,8 @@ check_mu_sigma_random_effect_covariance_rows <- function(
       mu_sigma_re_diagnostic_message(
         near_rho_boundary,
         weak_replication,
-        weak_sd
+        weak_sd,
+        rho_unavailable
       )
     )
   })
@@ -1560,13 +1587,17 @@ check_mu_sigma_random_effect_covariance_rows <- function(
 mu_sigma_re_diagnostic_message <- function(
   near_rho_boundary,
   weak_replication,
-  weak_sd
+  weak_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary) {
     return(paste(
       "The fitted mu/sigma group-level correlation is close to +/-1;",
       "profile, simulate, or simplify before interpreting the covariance."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   if (weak_replication && weak_sd) {
     return(paste(
@@ -1643,12 +1674,13 @@ check_biv_mu_random_effect_covariance <- function(object, rho_boundary) {
       rho_abs,
       rho_boundary
     )
+    rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
     return(check_row(
       "biv_mu_random_effect_covariance",
       if (near_rho_boundary) {
         "warning"
-      } else if (weak_replication || weak_sd) {
+      } else if (rho_unavailable || weak_replication || weak_sd) {
         "note"
       } else {
         "ok"
@@ -1672,7 +1704,8 @@ check_biv_mu_random_effect_covariance <- function(object, rho_boundary) {
       bivariate_mu_re_diagnostic_message(
         near_rho_boundary,
         weak_replication,
-        weak_sd
+        weak_sd,
+        rho_unavailable
       )
     ))
   }
@@ -1703,12 +1736,13 @@ check_biv_mu_random_effect_covariance <- function(object, rho_boundary) {
     rho_abs,
     rho_boundary
   )
+  rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
   check_row(
     "biv_mu_random_effect_covariance",
     if (near_rho_boundary) {
       "warning"
-    } else if (weak_replication || weak_sd) {
+    } else if (rho_unavailable || weak_replication || weak_sd) {
       "note"
     } else {
       "ok"
@@ -1731,7 +1765,8 @@ check_biv_mu_random_effect_covariance <- function(object, rho_boundary) {
     bivariate_mu_re_diagnostic_message(
       near_rho_boundary,
       weak_replication,
-      weak_sd
+      weak_sd,
+      rho_unavailable
     )
   )
 }
@@ -1773,13 +1808,17 @@ bivariate_mu_re_sd_ratios <- function(object, re) {
 bivariate_mu_re_diagnostic_message <- function(
   near_rho_boundary,
   weak_replication,
-  weak_sd
+  weak_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary) {
     return(paste(
       "At least one bivariate group-level correlation is close to +/-1;",
       "profile, simulate, or simplify before interpreting the covariance."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   if (weak_replication && weak_sd) {
     return(paste(
@@ -1854,12 +1893,13 @@ check_biv_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
       rho_abs,
       rho_boundary
     )
+    rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
     return(check_row(
       "biv_mu_sigma_random_effect_covariance",
       if (near_rho_boundary) {
         "warning"
-      } else if (weak_replication || weak_sd) {
+      } else if (rho_unavailable || weak_replication || weak_sd) {
         "note"
       } else {
         "ok"
@@ -1885,7 +1925,8 @@ check_biv_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
       bivariate_mu_sigma_re_diagnostic_message(
         near_rho_boundary,
         weak_replication,
-        weak_sd
+        weak_sd,
+        rho_unavailable
       )
     ))
   }
@@ -1952,12 +1993,13 @@ check_biv_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
       rho_abs,
       rho_boundary
     )
+    rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
     check_row(
       "biv_mu_sigma_random_effect_covariance",
       if (near_rho_boundary) {
         "warning"
-      } else if (weak_replication || weak_sd) {
+      } else if (rho_unavailable || weak_replication || weak_sd) {
         "note"
       } else {
         "ok"
@@ -1983,7 +2025,8 @@ check_biv_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
       bivariate_mu_sigma_re_diagnostic_message(
         near_rho_boundary,
         weak_replication,
-        weak_sd
+        weak_sd,
+        rho_unavailable
       )
     )
   })
@@ -1997,13 +2040,17 @@ check_biv_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
 bivariate_mu_sigma_re_diagnostic_message <- function(
   near_rho_boundary,
   weak_replication,
-  weak_sd
+  weak_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary) {
     return(paste(
       "The fitted bivariate mu/sigma group-level correlation is close to +/-1;",
       "profile, simulate, or simplify before interpreting the covariance."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   if (weak_replication && weak_sd) {
     return(paste(
@@ -2073,12 +2120,13 @@ check_biv_sigma_random_effect_covariance <- function(object, rho_boundary) {
       rho_abs,
       rho_boundary
     )
+    rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
     return(check_row(
       "biv_sigma_random_effect_covariance",
       if (near_rho_boundary) {
         "warning"
-      } else if (weak_replication || weak_sd) {
+      } else if (rho_unavailable || weak_replication || weak_sd) {
         "note"
       } else {
         "ok"
@@ -2101,7 +2149,8 @@ check_biv_sigma_random_effect_covariance <- function(object, rho_boundary) {
       bivariate_sigma_re_diagnostic_message(
         near_rho_boundary,
         weak_replication,
-        weak_sd
+        weak_sd,
+        rho_unavailable
       )
     ))
   }
@@ -2133,12 +2182,13 @@ check_biv_sigma_random_effect_covariance <- function(object, rho_boundary) {
     rho_abs,
     rho_boundary
   )
+  rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
   check_row(
     "biv_sigma_random_effect_covariance",
     if (near_rho_boundary) {
       "warning"
-    } else if (weak_replication || weak_sd) {
+    } else if (rho_unavailable || weak_replication || weak_sd) {
       "note"
     } else {
       "ok"
@@ -2161,7 +2211,8 @@ check_biv_sigma_random_effect_covariance <- function(object, rho_boundary) {
     bivariate_sigma_re_diagnostic_message(
       near_rho_boundary,
       weak_replication,
-      weak_sd
+      weak_sd,
+      rho_unavailable
     )
   )
 }
@@ -2169,13 +2220,17 @@ check_biv_sigma_random_effect_covariance <- function(object, rho_boundary) {
 bivariate_sigma_re_diagnostic_message <- function(
   near_rho_boundary,
   weak_replication,
-  weak_sd
+  weak_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary) {
     return(paste(
       "At least one bivariate scale-scale group-level correlation is close to +/-1;",
       "profile, simulate, or simplify before interpreting the covariance."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   if (weak_replication && weak_sd) {
     return(paste(
@@ -2281,14 +2336,19 @@ check_biv_q4_random_effect_covariance <- function(object, rho_boundary) {
   weak_location_sd <- is.finite(min_location_sd_ratio) &&
     min_location_sd_ratio < 0.05
   weak_scale_sd <- is.finite(min_log_sigma_sd) && min_log_sigma_sd < 0.05
-  near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
+  near_rho_boundary <- random_effect_covariance_near_boundary(
+    max_abs_cor,
+    rho_boundary
+  )
+  rho_unavailable <- random_effect_covariance_rho_unavailable(max_abs_cor)
 
   check_row(
     "biv_q4_random_effect_covariance",
     if (near_rho_boundary) {
       "warning"
     } else if (
-      weak_group_count ||
+      rho_unavailable ||
+        weak_group_count ||
         weak_replication ||
         weak_location_sd ||
         weak_scale_sd
@@ -2320,7 +2380,8 @@ check_biv_q4_random_effect_covariance <- function(object, rho_boundary) {
       weak_group_count,
       weak_replication,
       weak_location_sd,
-      weak_scale_sd
+      weak_scale_sd,
+      rho_unavailable
     )
   )
 }
@@ -2401,13 +2462,17 @@ bivariate_q4_re_diagnostic_message <- function(
   weak_group_count,
   weak_replication,
   weak_location_sd,
-  weak_scale_sd
+  weak_scale_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary) {
     return(paste(
       "At least one latent q4 group-level correlation is close to +/-1;",
       "profile, simulate, or simplify before interpreting all six correlations."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   weak <- c(
     if (weak_group_count) "few groups for a four-member covariance block",
@@ -2645,14 +2710,15 @@ check_spatial_mu_diagnostics <- function(object) {
     NA_real_
   }
   finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  has_scale_ratio <- length(finite_sd_ratios) > 0L
   min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
-  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+  min_sd_ratio <- if (has_scale_ratio) {
     min(finite_sd_ratios)
   } else {
     NA_real_
   }
   weak_sd <- !finite_positive_sd ||
-    any(finite_sd_ratios < 0.05)
+    (has_scale_ratio && any(finite_sd_ratios < 0.05))
 
   coord_range <- spatial_mu$precision$range
   sd_text <- if (length(sd_label) == 1L) {
@@ -2999,7 +3065,11 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
   } else {
     NA_real_
   }
-  near_rho_boundary <- !rho_finite || rho_abs > rho_boundary
+  near_rho_boundary <- random_effect_covariance_near_boundary(
+    rho_abs,
+    rho_boundary
+  )
+  rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
   index <- phylo_mu$observation_node_index
   counts <- tabulate(match(index, unique(index)))
@@ -3027,7 +3097,9 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
     "biv_phylo_mu_covariance",
     if (near_rho_boundary) {
       "warning"
-    } else if (weak_replication || weak_sd || same_group_covariance) {
+    } else if (
+      rho_unavailable || weak_replication || weak_sd || same_group_covariance
+    ) {
       "note"
     } else {
       "ok"
@@ -3052,7 +3124,8 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
       near_rho_boundary,
       weak_replication,
       weak_sd,
-      same_group_covariance
+      same_group_covariance,
+      rho_unavailable
     )
   )
 }
@@ -3077,7 +3150,11 @@ check_biv_structured_q2_covariance <- function(object, rho_boundary) {
   cor_key <- structured_mu_correlation_key(structured_mu)
   correlations <- object$corpars[[cor_key]]
   rho_abs <- max_abs_finite_or_na(correlations)
-  near_rho_boundary <- !is.finite(rho_abs) || rho_abs > rho_boundary
+  near_rho_boundary <- random_effect_covariance_near_boundary(
+    rho_abs,
+    rho_boundary
+  )
+  rho_unavailable <- random_effect_covariance_rho_unavailable(rho_abs)
 
   index <- structured_mu$observation_node_index
   counts <- tabulate(match(index, unique(index)))
@@ -3104,7 +3181,7 @@ check_biv_structured_q2_covariance <- function(object, rho_boundary) {
     paste0("biv_", structured_type, "_q2_covariance"),
     if (near_rho_boundary) {
       "warning"
-    } else if (weak_replication || weak_sd) {
+    } else if (rho_unavailable || weak_replication || weak_sd) {
       "note"
     } else {
       "ok"
@@ -3127,7 +3204,8 @@ check_biv_structured_q2_covariance <- function(object, rho_boundary) {
       structured_q4_diagnostic_title(structured_type),
       near_rho_boundary,
       weak_replication,
-      weak_sd
+      weak_sd,
+      rho_unavailable
     )
   )
 }
@@ -3173,14 +3251,19 @@ check_biv_structured_q4_covariance <- function(object, rho_boundary) {
     sd_summaries$min_location_sd_ratio < 0.05
   weak_scale_sd <- is.finite(sd_summaries$min_log_sigma_sd) &&
     sd_summaries$min_log_sigma_sd < 0.05
-  near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
+  near_rho_boundary <- random_effect_covariance_near_boundary(
+    max_abs_cor,
+    rho_boundary
+  )
+  rho_unavailable <- random_effect_covariance_rho_unavailable(max_abs_cor)
 
   check_row(
     paste0("biv_", structured_type, "_q4_covariance"),
     if (near_rho_boundary) {
       "warning"
     } else if (
-      weak_level_count ||
+      rho_unavailable ||
+        weak_level_count ||
         weak_replication ||
         weak_location_sd ||
         weak_scale_sd
@@ -3220,7 +3303,8 @@ check_biv_structured_q4_covariance <- function(object, rho_boundary) {
       weak_level_count,
       weak_replication,
       weak_location_sd,
-      weak_scale_sd
+      weak_scale_sd,
+      rho_unavailable
     )
   )
 }
@@ -3248,7 +3332,8 @@ bivariate_structured_q2_diagnostic_message <- function(
   type_title,
   near_rho_boundary,
   weak_replication,
-  weak_sd
+  weak_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary && (weak_replication || weak_sd)) {
     return(paste(
@@ -3267,6 +3352,9 @@ bivariate_structured_q2_diagnostic_message <- function(
       "or compare against a model without the structured covariance before",
       "interpreting it."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   if (weak_replication && weak_sd) {
     return(paste(
@@ -3329,7 +3417,8 @@ bivariate_phylo_q4_diagnostic_message <- function(
   weak_level_count,
   weak_replication,
   weak_location_sd,
-  weak_scale_sd
+  weak_scale_sd,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary) {
     return(paste(
@@ -3338,6 +3427,9 @@ bivariate_phylo_q4_diagnostic_message <- function(
       "q4 correlation is close to +/-1;",
       "profile, simulate, or simplify before interpreting the structured correlations."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   weak <- c(
     if (weak_level_count) {
@@ -3435,7 +3527,8 @@ bivariate_phylo_mu_diagnostic_message <- function(
   near_rho_boundary,
   weak_replication,
   weak_sd,
-  same_group_covariance = FALSE
+  same_group_covariance = FALSE,
+  rho_unavailable = FALSE
 ) {
   if (near_rho_boundary && same_group_covariance) {
     return(paste(
@@ -3468,6 +3561,9 @@ bivariate_phylo_mu_diagnostic_message <- function(
       "phylogenetic and non-phylogenetic species correlations as cleanly",
       "separated."
     ))
+  }
+  if (rho_unavailable) {
+    return(random_effect_covariance_unavailable_message())
   }
   if (weak_replication && weak_sd) {
     return(paste(
