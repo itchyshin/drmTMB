@@ -130,3 +130,13 @@ bridge-support, `supported`, or public-support claim.
 ```sh
 python3 tools/qseries_v1_release_check.py --summary --check-report --check-candidates
 ```
+
+For a fast planning snapshot only, run:
+
+```sh
+python3 tools/qseries_v1_release_check.py --fast-status
+```
+
+The fast status mode reads checked-in release artifacts and intentionally skips
+ledger regeneration, the claim guard, and Mission Control. Use the routine
+preflight before banking evidence, status movement, or public wording.

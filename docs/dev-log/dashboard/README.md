@@ -275,6 +275,11 @@ are planning aids only and do not authorize row movement, code changes, local
 fits, host compute, denominator rows, coverage jobs, `inference_ready`,
 `supported`, or public-release claims. Regenerate the report with
 `--write-report --write-candidates` after intentional release-boundary changes.
+For a quick planning snapshot, run
+`python3 tools/qseries_v1_release_check.py --fast-status`; that mode reads the
+checked-in release status and ledger only, skips ledger regeneration, the claim
+guard, and Mission Control, and must not be used as evidence for status
+movement or public wording.
 
 `structured-re-q2-retained-denominator-design.tsv` is now historical Tranche 2
 q2 design evidence, not a current run permission. The Rorqual SR150 pregrid was

@@ -124,6 +124,14 @@ def parse_args() -> argparse.Namespace:
         help="Skip tools/validate-mission-control.py. Useful inside validator tests.",
     )
     parser.add_argument(
+        "--fast-status",
+        action="store_true",
+        help=(
+            "Print a ledger-only v1.0 progress snapshot and exit without "
+            "running validators. This is a planning shortcut, not evidence."
+        ),
+    )
+    parser.add_argument(
         "--summary",
         action="store_true",
         help="Print a concise success summary.",
@@ -261,6 +269,40 @@ def row_target_gaps(progress: dict[str, str]) -> list[dict[str, str | int]]:
             }
         )
     return gaps
+
+
+def target_gap_summary(progress: dict[str, str]) -> str:
+    return "; ".join(
+        f"rows_to_{row['target'].rstrip('%')}={row['needed']}"
+        for row in row_target_gaps(progress)
+    )
+
+
+def first_four_cell_summary(candidate_rows: list[dict[str, str]]) -> str:
+    return ",".join(row["cell_id"] for row in candidate_rows[:4])
+
+
+def render_fast_status(
+    *,
+    progress: dict[str, str],
+    candidate_rows: list[dict[str, str]],
+) -> str:
+    target_summary = target_gap_summary(progress)
+    return (
+        "qseries_v1_fast_status: "
+        "validation=skipped; ledger=not_run; claim_guard=not_run; "
+        "mission_control=not_run; source=checked_in_release_status_and_ledger; "
+        f"practical_v1_surface={progress.get('Practical v1.0 row surface', 'NA')}; "
+        f"gaussian_core={progress.get('Gaussian v1.0 core', 'NA')}; "
+        f"basic_distribution_recovery={progress.get('Basic-distribution recovery', 'NA')}; "
+        f"exact_inference_ready={progress.get('Exact `inference_ready` anchors', 'NA')}; "
+        f"supported_authority={progress.get('`supported` authority', 'NA')}; "
+        f"post_v1={progress.get('Post-v1.0 validation/design', 'NA')}; "
+        f"{target_summary}; "
+        f"candidate_review_rows={len(candidate_rows)}; "
+        f"first_four={first_four_cell_summary(candidate_rows)}; "
+        "boundary=ledger_only_no_validation_no_promotion"
+    )
 
 
 def candidate_review_reason(row: dict[str, str]) -> str:
@@ -729,6 +771,16 @@ bridge-support, `supported`, or public-support claim.
 ```sh
 python3 tools/qseries_v1_release_check.py --summary --check-report --check-candidates
 ```
+
+For a fast planning snapshot only, run:
+
+```sh
+python3 tools/qseries_v1_release_check.py --fast-status
+```
+
+The fast status mode reads checked-in release artifacts and intentionally skips
+ledger regeneration, the claim guard, and Mission Control. Use the routine
+preflight before banking evidence, status movement, or public wording.
 """
 
 
@@ -744,6 +796,23 @@ def main() -> int:
             "NOT_CRAN": "true",
         }
     )
+
+    if args.fast_status:
+        progress = parse_status_progress(root / STATUS_PATH.relative_to(ROOT))
+        if "Practical v1.0 row surface" not in progress:
+            print(
+                f"{root / STATUS_PATH.relative_to(ROOT)}: missing v1.0 progress table",
+                file=sys.stderr,
+            )
+            return 1
+        ledger_path = root / LEDGER_PATH.relative_to(ROOT)
+        if not ledger_path.exists():
+            print(f"{ledger_path}: missing generated v1.0 release ledger", file=sys.stderr)
+            return 1
+        ledger_rows = read_tsv(ledger_path)
+        candidate_rows = build_candidate_rows(ledger_rows)
+        print(render_fast_status(progress=progress, candidate_rows=candidate_rows))
+        return 0
 
     steps = [
         (
@@ -960,11 +1029,7 @@ def main() -> int:
         first_four_debug_path.write_text(first_four_debug, encoding="utf-8")
 
     if args.summary:
-        target_gaps = row_target_gaps(progress)
-        target_summary = "; ".join(
-            f"rows_to_{row['target'].rstrip('%')}={row['needed']}"
-            for row in target_gaps
-        )
+        target_summary = target_gap_summary(progress)
         print(
             (
                 "qseries_v1_release_check_ok: "

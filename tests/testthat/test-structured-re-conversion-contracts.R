@@ -30735,6 +30735,48 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   )) {
     expect_true(any(grepl(phrase, release_check_output, fixed = TRUE)))
   }
+  fast_status_output <- system2(
+    unname(python3),
+    shQuote(c(
+      release_check,
+      "--root",
+      repo_root,
+      "--fast-status"
+    )),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  fast_status_exit_code <- attr(fast_status_output, "status")
+  if (is.null(fast_status_exit_code)) {
+    fast_status_exit_code <- 0L
+  }
+  expect_equal(
+    fast_status_exit_code,
+    0L,
+    info = paste(fast_status_output, collapse = "\n")
+  )
+  expect_false(any(grepl(
+    "qseries_v1_release_check_ok",
+    fast_status_output,
+    fixed = TRUE
+  )))
+  for (phrase in c(
+    "qseries_v1_fast_status",
+    "validation=skipped",
+    "ledger=not_run",
+    "claim_guard=not_run",
+    "mission_control=not_run",
+    "source=checked_in_release_status_and_ledger",
+    "practical_v1_surface=74/104 (71.2%)",
+    "supported_authority=0/104 (0.0%)",
+    "rows_to_75=4",
+    "rows_to_80=10",
+    "candidate_review_rows=30",
+    "first_four=qseries_beta_mu_animal_rejected,qseries_gamma_mu_relmat_rejected,qseries_ordinal_mu_phylo_rejected,qseries_student_mu_spatial_rejected",
+    "boundary=ledger_only_no_validation_no_promotion"
+  )) {
+    expect_true(any(grepl(phrase, fast_status_output, fixed = TRUE)))
+  }
   candidate_review <- utils::read.delim(
     structured_re_artifact_path(
       "docs",
