@@ -2284,12 +2284,15 @@ Type objective_function<Type>::operator()()
       int n_phylo = Q_phylo.rows();
       int q_phylo = log_sd_phylo.size();
       for (int i = 0; i < y.size(); ++i) {
-        Type phylo_effect = Type(0.0);
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
-          phylo_effect += phylo_mu_value(i, k) * u_phylo(effect_index);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
         }
-        eta_mu(i) += phylo_effect;
       }
       Type quadratic = Type(0.0);
       for (int k = 0; k < q_phylo; ++k) {
@@ -2393,12 +2396,15 @@ Type objective_function<Type>::operator()()
       int n_phylo = Q_phylo.rows();
       int q_phylo = log_sd_phylo.size();
       for (int i = 0; i < y.size(); ++i) {
-        Type phylo_effect = Type(0.0);
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
-          phylo_effect += phylo_mu_value(i, k) * u_phylo(effect_index);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
         }
-        eta_mu(i) += phylo_effect;
       }
       Type quadratic = Type(0.0);
       for (int k = 0; k < q_phylo; ++k) {

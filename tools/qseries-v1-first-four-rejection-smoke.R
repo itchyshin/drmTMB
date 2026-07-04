@@ -89,6 +89,34 @@ qseries_v1_first_four_fixture <- function() {
     y = rep(seq_len(2L), times = 4L),
     row.names = student_levels
   )
+  set.seed(2026070404)
+  beta_sigma_levels <- paste0("bs", seq_len(8L))
+  beta_sigma_id <- factor(
+    rep(beta_sigma_levels, each = 16L),
+    levels = beta_sigma_levels
+  )
+  beta_sigma_x <- stats::rnorm(length(beta_sigma_id))
+  beta_sigma_field <- stats::rnorm(length(beta_sigma_levels), sd = 0.18)
+  names(beta_sigma_field) <- beta_sigma_levels
+  beta_sigma_mu <- stats::plogis(-0.2 + 0.45 * beta_sigma_x)
+  beta_sigma_sigma <- exp(
+    log(0.22) + beta_sigma_field[as.character(beta_sigma_id)]
+  )
+  beta_sigma_phi <- 1 / (beta_sigma_sigma^2)
+  dat_beta_sigma_animal <- data.frame(
+    y = stats::rbeta(
+      length(beta_sigma_id),
+      shape1 = beta_sigma_mu * beta_sigma_phi,
+      shape2 = (1 - beta_sigma_mu) * beta_sigma_phi
+    ),
+    x = beta_sigma_x,
+    id = beta_sigma_id
+  )
+  ped_beta_sigma <- data.frame(
+    id = beta_sigma_levels,
+    dam = NA_character_,
+    sire = NA_character_
+  )
   tree <- structure(
     list(
       edge = matrix(c(4, 1, 4, 2, 4, 3), ncol = 2, byrow = TRUE),
@@ -164,6 +192,27 @@ qseries_v1_first_four_fixture <- function() {
       expected_random_effect = "spatial_mu",
       expected_sd_pattern = "^spatial\\(",
       env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_beta_sigma_animal",
+      cell_id = "qseries_beta_sigma_animal_rejected",
+      formula_cell = "animal(1 | id, pedigree = ped) in sigma",
+      family = "beta()",
+      provider = "animal",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(
+          y ~ x,
+          sigma ~ animal(1 | id, pedigree = ped_beta_sigma)
+        ),
+        family = drmTMB::beta(),
+        data = dat_beta_sigma_animal,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "animal_sigma",
+      expected_sd_dpar = "sigma",
+      expected_sd_pattern = "^animal\\(",
+      env = environment()
     )
   )
 }
@@ -187,15 +236,24 @@ qseries_v1_run_rejection_case <- function(case) {
   if (is.null(expected_sd_pattern)) {
     expected_sd_pattern <- ""
   }
+  expected_sd_dpar <- case$expected_sd_dpar
+  if (is.null(expected_sd_dpar)) {
+    expected_sd_dpar <- "mu"
+  }
+  sdpars <- if (!is.null(fit) && expected_sd_dpar %in% names(fit$sdpars)) {
+    fit$sdpars[[expected_sd_dpar]]
+  } else {
+    numeric()
+  }
   fit_ok <- !is.null(fit) &&
     inherits(fit, "drmTMB") &&
     is.finite(fit$opt$objective) &&
     identical(as.integer(fit$opt$convergence), 0L) &&
     nzchar(expected_random_effect) &&
     expected_random_effect %in% names(fit$random_effects) &&
-    length(fit$sdpars$mu) > 0L &&
+    length(sdpars) > 0L &&
     nzchar(expected_sd_pattern) &&
-    any(grepl(expected_sd_pattern, names(fit$sdpars$mu)))
+    any(grepl(expected_sd_pattern, names(sdpars)))
   status <- if (is.null(err) && identical(expected_status, "expected_fit")) {
     if (fit_ok) "expected_fit" else "unexpected_fit_shape"
   } else if (is.null(err)) {
@@ -228,8 +286,8 @@ qseries_v1_run_rejection_case <- function(case) {
     status = status,
     observed_error = observed,
     claim_boundary = paste(
-      "local debug smoke only; beta/Gamma/Student structured mu rows are",
-      "fit-only recovery evidence;",
+      "local debug smoke only; beta/Gamma/Student structured mu rows and",
+      "the beta structured sigma row are fit-only recovery evidence;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",
       "REML, AI-REML, bridge, or public-support claim"
     ),

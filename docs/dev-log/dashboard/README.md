@@ -253,14 +253,14 @@ For the routine v1.0 Q-Series preflight, run
 `python3 tools/qseries_v1_release_check.py --summary --check-report
 --check-candidates`; it checks the generated ledger/status, the claim guard,
 Mission Control, the generated preflight report, and the generated
-next-candidate review TSV plus the 75% first-four review packet in one command
-while still reporting the row-accounting percentages. The generated report
-records how many additional practical surface rows would be needed to reach
-75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks the 29
-post-v1.0 rows into the first four rows to review for 75%, the next six to
-review for 80%, and the later post-v1.0 queue; and
+next-candidate review TSV plus the post-75% next-four review packet in one
+command while still reporting the row-accounting percentages. The generated
+report records how many additional practical surface rows would be needed to
+reach 75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks
+the 26 post-v1.0 rows into the next four rows after 75%, the next six to review
+for 80%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
-first four rows into a design/recovery checklist. The same candidate bundle
+next four rows into a design/recovery checklist. The same candidate bundle
 also writes
 `docs/dev-log/release-audits/q-series-v1-first-candidate-design-contract.tsv`,
 the first row-specific contract for the current first unresolved candidate, and
@@ -269,7 +269,7 @@ the fail-closed local-debug fixture contract for that same first candidate.
 The bundle also writes
 `docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv` and
 `docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv`
-for the four rows needed in the next 75% practical-surface review:
+for the next four post-75% practical-surface review rows:
 Gamma/relmat, ordinal/phylo, Student/spatial, and beta scale-side animal. These artifacts
 are planning aids only and do not authorize row movement, code changes, local
 fits, host compute, denominator rows, coverage jobs, `inference_ready`,

@@ -4191,6 +4191,28 @@ drm_build_beta_ls_spec <- function(
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
   validate_beta_animal_mu_structured_term(mu_animal$term)
+  sigma_animal <- extract_gaussian_mu_known_term(
+    sigma_entry,
+    "animal",
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_animal$rhs
+  if (!is.null(sigma_animal$term)) {
+    sigma_animal$term$dpars <- "sigma"
+  }
+  validate_beta_animal_sigma_structured_term(sigma_animal$term)
+  if (!is.null(mu_animal$term) && !is.null(sigma_animal$term)) {
+    cli::cli_abort(c(
+      "{.fn beta} structured animal effects currently support one endpoint at a time.",
+      "x" = "Both {.code mu} and {.code sigma} contain {.fn animal} terms.",
+      "i" = "Fit either {.code animal(1 | id, ...)} in {.code mu} or in {.code sigma}; q2/q4 beta location-scale blocks remain post-v1.0 design work."
+    ))
+  }
+  animal_term <- if (!is.null(mu_animal$term)) {
+    mu_animal$term
+  } else {
+    sigma_animal$term
+  }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_mu_random_terms(mu_re$terms)
@@ -4209,7 +4231,8 @@ drm_build_beta_ls_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
-    structured_mu_vars(mu_animal$term)
+    structured_mu_vars(mu_animal$term),
+    structured_mu_vars(sigma_animal$term)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -4264,7 +4287,7 @@ drm_build_beta_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in beta model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
-  phylo_mu <- build_structured_mu_structure(mu_animal$term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(animal_term, data_model, env)
 
   spec <- list(
     model_type = "beta",
@@ -7154,7 +7177,7 @@ validate_beta_mu_random_terms <- function(terms) {
       "Only independent {.fn beta} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
-      "i" = "Correlated beta slopes, labelled covariance blocks, structured effects, scale random effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
+      "i" = "The only structured beta gate is the row-specific unlabelled {.fn animal} intercept route in either {.code mu} or {.code sigma}; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -7198,7 +7221,7 @@ validate_beta_animal_mu_structured_term <- function(term) {
     cli::cli_abort(c(
       "{.fn beta} structured {.code mu} effects currently admit only the first {.fn animal} intercept gate.",
       "x" = "Requested structured effect type: {.val {marker}}.",
-      "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn relmat}, structured slopes, scale routes, and zero-one-inflated beta routes deferred until row-specific recovery evidence exists."
+      "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn relmat}, structured slopes, q2/q4, and zero-one-inflated beta routes deferred until row-specific recovery evidence exists."
     ))
   }
   if (!is.null(term$covariance_label)) {
@@ -7218,6 +7241,35 @@ validate_beta_animal_mu_structured_term <- function(term) {
   invisible(NULL)
 }
 
+validate_beta_animal_sigma_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "animal")) {
+    cli::cli_abort(c(
+      "{.fn beta} structured {.code sigma} effects currently admit only the first {.fn animal} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn relmat}, structured slopes, q2/q4, zero-one-inflated beta routes, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn animal} {.code sigma} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code sigma ~ animal(1 | id, pedigree = ped)}, {.code sigma ~ animal(1 | id, A = A)}, or {.code sigma ~ animal(1 | id, Ainv = Ainv)} for the v1.0 recovery gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn animal} {.code sigma} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured beta scale slopes, q2/q4 covariance, and multi-endpoint routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
+}
+
 validate_beta_sigma_random_terms <- function(terms) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -7226,7 +7278,7 @@ validate_beta_sigma_random_terms <- function(terms) {
   cli::cli_abort(c(
     "Non-Gaussian {.code sigma} random effects are not implemented for {.fn beta}.",
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-    "i" = "This slice adds only ordinary {.fn beta} {.code mu} random intercepts on the logit-mean predictor; scale random effects need their own likelihood and recovery tests."
+    "i" = "Use the row-specific known-covariance gate {.code sigma ~ animal(1 | id, ...)} for the beta scale recovery smoke; ordinary beta scale random effects and other scale routes need separate recovery tests."
   ))
 }
 
@@ -8147,13 +8199,23 @@ structured_mu_type <- function(phylo_mu) {
 }
 
 structured_mu_random_effect_key <- function(phylo_mu) {
+  endpoint_dpars <- if (isTRUE(phylo_mu$has)) {
+    unique(phylo_mu_endpoint_dpars(phylo_mu))
+  } else {
+    "mu"
+  }
+  suffix <- if (length(endpoint_dpars) == 1L && identical(endpoint_dpars, "sigma")) {
+    "sigma"
+  } else {
+    "mu"
+  }
   switch(
     structured_mu_type(phylo_mu),
-    spatial = "spatial_mu",
-    animal = "animal_mu",
-    relmat = "relmat_mu",
-    phylo_interaction = "phylo_interaction_mu",
-    "phylo_mu"
+    spatial = paste0("spatial_", suffix),
+    animal = paste0("animal_", suffix),
+    relmat = paste0("relmat_", suffix),
+    phylo_interaction = paste0("phylo_interaction_", suffix),
+    paste0("phylo_", suffix)
   )
 }
 
@@ -16342,11 +16404,14 @@ split_tmb_sdpars <- function(par, spec) {
         )
       }
     } else {
-      sd_phylo <- stats::setNames(
-        exp(unname(par$log_sd_phylo[seq_along(phylo_names)])),
-        phylo_names
-      )
-      out$mu <- c(out$mu, sd_phylo)
+      sd_phylo <- exp(unname(par$log_sd_phylo[seq_along(phylo_names)]))
+      for (dpar in unique(phylo_dpars)) {
+        endpoint <- which(phylo_dpars == dpar)
+        out[[dpar]] <- c(
+          out[[dpar]],
+          stats::setNames(sd_phylo[endpoint], phylo_names[endpoint])
+        )
+      }
     }
   }
   out

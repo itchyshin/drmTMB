@@ -59,6 +59,34 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     y = rep(seq_len(2L), times = 4L),
     row.names = student_levels
   )
+  set.seed(2026070404)
+  beta_sigma_levels <- paste0("bs", seq_len(8L))
+  beta_sigma_id <- factor(
+    rep(beta_sigma_levels, each = 16L),
+    levels = beta_sigma_levels
+  )
+  beta_sigma_x <- stats::rnorm(length(beta_sigma_id))
+  beta_sigma_field <- stats::rnorm(length(beta_sigma_levels), sd = 0.18)
+  names(beta_sigma_field) <- beta_sigma_levels
+  beta_sigma_mu <- stats::plogis(-0.2 + 0.45 * beta_sigma_x)
+  beta_sigma_sigma <- exp(
+    log(0.22) + beta_sigma_field[as.character(beta_sigma_id)]
+  )
+  beta_sigma_phi <- 1 / (beta_sigma_sigma^2)
+  dat_beta_sigma_animal <- data.frame(
+    y = stats::rbeta(
+      length(beta_sigma_id),
+      shape1 = beta_sigma_mu * beta_sigma_phi,
+      shape2 = (1 - beta_sigma_mu) * beta_sigma_phi
+    ),
+    x = beta_sigma_x,
+    id = beta_sigma_id
+  )
+  ped_beta_sigma <- data.frame(
+    id = beta_sigma_levels,
+    dam = NA_character_,
+    sire = NA_character_
+  )
   tree <- ape::stree(3L, type = "star")
   tree$tip.label <- levels_id
   tree$edge.length <- rep(1, nrow(tree$edge))
@@ -103,6 +131,18 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_true(
     any(grepl("^relmat\\(", names(fit_gamma_relmat$sdpars$mu)))
   )
+  fit_beta_sigma_animal <- drmTMB(
+    bf(y ~ x, sigma ~ animal(1 | id, pedigree = ped_beta_sigma)),
+    family = beta(),
+    data = dat_beta_sigma_animal,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_beta_sigma_animal, "drmTMB")
+  expect_equal(as.integer(fit_beta_sigma_animal$opt$convergence), 0L)
+  expect_true("animal_sigma" %in% names(fit_beta_sigma_animal$random_effects))
+  expect_true(
+    any(grepl("^animal\\(", names(fit_beta_sigma_animal$sdpars$sigma)))
+  )
   expect_error(
     drmTMB(
       bf(y ~ x + phylo(1 | id, tree = tree)),
@@ -113,11 +153,11 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma ~ animal(1 | id, pedigree = ped)),
+      bf(y ~ x, sigma ~ animal(1 + x | id, pedigree = ped)),
       family = beta(),
       data = dat_beta
     ),
-    "Structured non-Gaussian paths"
+    "intercept-only structured terms"
   )
   expect_error(
     drmTMB(
@@ -238,16 +278,23 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_beta_mu_animal_rejected",
       "qseries_gamma_mu_relmat_rejected",
       "qseries_ordinal_mu_phylo_rejected",
-      "qseries_student_mu_spatial_rejected"
+      "qseries_student_mu_spatial_rejected",
+      "qseries_beta_sigma_animal_rejected"
     )
   )
   expect_equal(
     result$status,
-    c("expected_fit", "expected_fit", "expected_rejection", "expected_fit")
+    c(
+      "expected_fit",
+      "expected_fit",
+      "expected_rejection",
+      "expected_fit",
+      "expected_fit"
+    )
   )
   expect_equal(
     result$expected_error_pattern,
-    c("", "", "Structured non-Gaussian paths", "")
+    c("", "", "Structured non-Gaussian paths", "", "")
   )
   expect_true(all(grepl(
     "Structured non-Gaussian paths",

@@ -26,6 +26,8 @@ DEFAULT_FIRST_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-fi
 DEFAULT_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-debug-fixture-contract.tsv"
 DEFAULT_FIRST_FOUR_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv"
 DEFAULT_FIRST_FOUR_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv"
+PRIMARY_REVIEW_BAND = "next_four_after_75_percent"
+PRIMARY_REVIEW_PACKET_PREFIX = "qseries_v1_post75_review"
 CANDIDATE_FIELDS = (
     "review_rank",
     "target_band",
@@ -386,7 +388,7 @@ def build_candidate_rows(ledger_rows: list[dict[str, str]]) -> list[dict[str, st
     candidates: list[dict[str, str]] = []
     for rank, row in enumerate(sorted(post_v1_rows, key=candidate_sort_key), start=1):
         if rank <= 4:
-            target_band = "first_four_to_review_for_75_percent"
+            target_band = PRIMARY_REVIEW_BAND
         elif rank <= 10:
             target_band = "additional_six_to_review_for_80_percent"
         else:
@@ -417,11 +419,11 @@ def build_candidate_rows(ledger_rows: list[dict[str, str]]) -> list[dict[str, st
 def build_review_packet_rows(candidate_rows: list[dict[str, str]]) -> list[dict[str, str]]:
     packet_rows: list[dict[str, str]] = []
     for row in candidate_rows:
-        if row["target_band"] != "first_four_to_review_for_75_percent":
+        if row["target_band"] != PRIMARY_REVIEW_BAND:
             continue
         packet_rows.append(
             {
-                "contract_id": f"qseries_v1_75pct_review_{int(row['review_rank']):02d}",
+                "contract_id": f"{PRIMARY_REVIEW_PACKET_PREFIX}_{int(row['review_rank']):02d}",
                 "review_rank": row["review_rank"],
                 "cell_id": row["cell_id"],
                 "family": row["family"],
@@ -503,6 +505,14 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may check finite fit, phylo sigma-side SD extraction for intercept and slope, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
         "next_action": "review this contract before any count NB2 sigma phylo code, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_relmat_nbinom2_q1_sigma_one_slope_rejected": {
+        "contract_id": "qseries_v1_relmat_nbinom2_sigma_one_slope_design_contract",
+        "model_contract": "y_i ~ NB2(mu_i, phi_i); log(mu_i) = X_i beta; log(sigma_i) = Z_i gamma + u0_id[i] + u1_id[i] x_i; [u0, u1] use a K/Q relmat covariance only after the count scale-side mapping is reviewed",
+        "dgp_requirements": "count response y >= 0; named relmat levels matching K/Q input; finite positive dispersion; one ordinary predictor x with within-level replication and no missing matrix levels",
+        "implementation_requirements": "reuse nbinom2() sigma likelihood and relmat() known-covariance parser shape only after scale-side interpretation is reviewed; do not change formula grammar, public API, mu routes, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, relmat sigma-side SD extraction for intercept and slope, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
+        "next_action": "review this contract before any count NB2 sigma relmat code, local debug fit, host compute, or support-cell edit",
+    },
 }
 
 
@@ -536,7 +546,7 @@ def build_first_four_contract_rows(
                 "implementation_requirements": detail["implementation_requirements"],
                 "recovery_requirements": detail["recovery_requirements"],
                 "failure_requirements": "if the current pre-optimization rejection remains, keep unsupported status and record the failure class before any code or compute proposal",
-                "validator_requirements": "preflight report, candidate TSV, 75pct packet, focused conversion-contract test, claim guard, and Mission Control must remain green",
+                "validator_requirements": "preflight report, candidate TSV, next-four packet, focused conversion-contract test, claim guard, and Mission Control must remain green",
                 "blocking_reviewers": "Rose/Fisher/Grace",
                 "compute_decision": "no_compute_authorized",
                 "coverage_decision": "coverage_not_authorized",
@@ -587,7 +597,7 @@ def build_debug_fixture_rows(
                 "allowed_action": "future local debug fixture may either reproduce current pre-optimization rejection or, after implementation review, check finite fit and extractor visibility",
                 "stop_if": "current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence",
                 "required_outputs": "one log, one seed, session info, fixture summary, exact error or finite fit summary, no support-cell edit",
-                "validator_requirements": "preflight report, candidate TSV, 75pct packet, first-four design contracts, focused conversion-contract test, claim guard, and Mission Control must remain green",
+                "validator_requirements": "preflight report, candidate TSV, next-four packet, first-four design contracts, focused conversion-contract test, claim guard, and Mission Control must remain green",
                 "blocking_reviewers": "Rose/Fisher/Grace",
                 "compute_decision": "no_compute_authorized",
                 "coverage_decision": "coverage_not_authorized",
@@ -727,7 +737,7 @@ coverage jobs, public release claims, `inference_ready`, or `supported` status.
 ## Next Candidate Review Queue
 
 This queue ranks post-v1.0 rows for review only. It is designed to make the
-next 75% or 80% practical-surface discussion faster, not to promote rows.
+next 80% practical-surface discussion faster, not to promote rows.
 Every generated candidate remains `coverage_not_authorized` and
 `do_not_promote` until row-specific evidence and review exist.
 
@@ -735,10 +745,10 @@ Every generated candidate remains `coverage_not_authorized` and
 | ---: | --- | --- | --- | --- | --- |
 {candidate_table}
 
-## 75% First-Four Review Packet
+## Next-Four After 75% Review Packet
 
-These four rows are the current generated review packet for a possible 75%
-practical-surface move. The packet is a design/recovery checklist only: it
+These four rows are the current generated review packet after reaching the 75%
+practical-surface threshold. The packet is a design/recovery checklist only: it
 does not authorize code changes, compute, status edits, coverage, or promotion.
 
 | Rank | Cell | Model scope | Minimum recovery evidence | Next action |
@@ -747,7 +757,7 @@ does not authorize code changes, compute, status edits, coverage, or promotion.
 
 ## First Candidate Design Contract
 
-The first 75% packet row has a generated design/recovery contract. This is a
+The first next-four packet row has a generated design/recovery contract. This is a
 pre-code review artifact: it specifies the model and minimum evidence needed
 before any local debug fit, host compute, or support-cell edit is proposed.
 
@@ -769,7 +779,7 @@ public-support authority.
 | --- | --- | --- | --- | --- |
 {debug_fixture_table}
 
-## 75% First-Four Design Contracts
+## Next-Four After 75% Design Contracts
 
 The complete first-four packet now has generated row-specific design contracts.
 These contracts are review artifacts only. They specify the minimum model,
@@ -780,7 +790,7 @@ status movement is proposed.
 | --- | --- | --- | --- | --- |
 {first_four_contract_table}
 
-## 75% First-Four Local-Debug Fixture Contracts
+## Next-Four After 75% Local-Debug Fixture Contracts
 
 The complete first-four packet also has generated local-debug fixture
 contracts. They keep the current rejection signature, local-only fixture scope,
