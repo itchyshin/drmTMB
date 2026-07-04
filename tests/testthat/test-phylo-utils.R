@@ -410,6 +410,67 @@ test_that("drm_phylo_augmented_precision matches the dense Brownian comparator",
   )
 })
 
+tiny_non_ultrametric_tree <- function() {
+  tree <- tiny_ultrametric_tree()
+  # Shorten the sp_a branch so root-to-tip depths differ (1.5, 2, 2).
+  tree$edge.length <- c(1, 0.5, 1, 2)
+  tree
+}
+
+test_that("drm_phylo_tip_covariance validates the correlation flag", {
+  tree <- tiny_ultrametric_tree()
+  expect_error(
+    drmTMB:::drm_phylo_tip_covariance(tree, correlation = c(TRUE, FALSE)),
+    "must be"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_tip_covariance(tree, correlation = NA),
+    "must be"
+  )
+})
+
+test_that("non-ultrametric Brownian trees succeed on the raw scale", {
+  tree <- tiny_non_ultrametric_tree()
+
+  # correlation = TRUE still requires ultrametricity (single height scaling).
+  expect_error(
+    drmTMB:::drm_phylo_tip_covariance(tree, correlation = TRUE),
+    "ultrametric"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_augmented_precision(tree, correlation = TRUE),
+    "ultrametric"
+  )
+
+  # correlation = FALSE is a valid Brownian prior for a non-ultrametric tree.
+  covariance <- drmTMB:::drm_phylo_tip_covariance(tree, correlation = FALSE)
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree, correlation = FALSE)
+
+  # The raw tip covariance equals shared root-to-tip path length: sp_a depth is
+  # 1.5, and sp_a/sp_b share ancestor node 4 at depth 1.
+  expected <- matrix(
+    c(
+      1.5, 1, 0,
+      1, 2, 0,
+      0, 0, 2
+    ),
+    nrow = 3,
+    byrow = TRUE,
+    dimnames = list(
+      c("sp_a", "sp_b", "sp_c"),
+      c("sp_a", "sp_b", "sp_c")
+    )
+  )
+  expect_equal(covariance, expected, tolerance = 1e-12)
+
+  inverted <- solve(as.matrix(precision$precision))
+  tip_covariance <- inverted[
+    precision$tip_node_index,
+    precision$tip_node_index
+  ]
+  expect_equal(tip_covariance, covariance, tolerance = 1e-10)
+})
+
 test_that("drm_phylo_augmented_precision maps observed species to augmented nodes", {
   tree <- tiny_ultrametric_tree()
   species <- c("sp_c", "sp_a", "sp_c", "sp_b")

@@ -45,11 +45,22 @@ test_that("marginal_parameters() averages mu and sigma over newdata groups", {
     newdata = grid,
     dpar = c("mu", "sigma")
   )
+  # mu (location) is averaged arithmetically; sigma (an SD) is averaged on the
+  # variance scale (RMS) so the summary is a moment-appropriate dispersion.
+  group_mean <- function(v, dpar) {
+    if (identical(dpar, "sigma")) sqrt(mean(v^2)) else mean(v)
+  }
   manual <- aggregate(
     estimate ~ dpar + component + type + habitat,
     data = pred,
     FUN = mean
   )
+  for (r in seq_len(nrow(manual))) {
+    sub <- pred$estimate[
+      pred$dpar == manual$dpar[r] & pred$habitat == manual$habitat[r]
+    ]
+    manual$estimate[r] <- group_mean(sub, manual$dpar[r])
+  }
   manual <- manual[order(manual$dpar, manual$habitat), ]
   out_sorted <- out[order(out$dpar, out$habitat), names(manual)]
   row.names(manual) <- NULL
@@ -131,9 +142,14 @@ test_that("marginal_parameters() averages bivariate rho12 on supplied groups", {
   expect_equal(unique(out$n), 2L)
   expect_equal(unique(out$conf.status), "not_requested")
   expect_equal(unique(out$interval_source), "not_available")
+  # rho12 is averaged on the Fisher-z scale, not arithmetically, so the pooled
+  # correlation stays a valid correlation.
+  fisher_z_mean <- function(v) {
+    tanh(mean(atanh(pmax(pmin(v, 1 - 1e-12), -(1 - 1e-12)))))
+  }
   expect_equal(
     out$estimate,
-    as.vector(tapply(rho12(fit, newdata = grid), grid$period, mean))
+    as.vector(tapply(rho12(fit, newdata = grid), grid$period, fisher_z_mean))
   )
 })
 
@@ -152,10 +168,11 @@ test_that("marginal_parameters() averages random-effect scale model rows", {
 
   out <- marginal_parameters(fit, newdata = grid, dpar = "sd(id)", by = "band")
   pred <- predict_parameters(fit, newdata = grid, dpar = "sd(id)")
+  # sd(id) is a random-effect SD model, averaged on the variance scale (RMS).
   manual <- aggregate(
     estimate ~ dpar + component + type + band,
     data = pred,
-    FUN = mean
+    FUN = function(v) sqrt(mean(v^2))
   )
   manual <- manual[order(manual$band), ]
   out_sorted <- out[order(out$band), names(manual)]

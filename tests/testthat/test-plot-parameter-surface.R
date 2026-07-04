@@ -237,3 +237,20 @@ test_that("plot_parameter_surface() reports missing ggplot2 clearly", {
 
   expect_error(plot_parameter_surface(pred, x = "x"), "ggplot2 unavailable")
 })
+
+test_that("plot_parameter_surface interval filter keeps bootstrap intervals", {
+  data <- data.frame(
+    conf.status = c("wald", "profile", "bootstrap", "not_requested"),
+    interval_source = c("wald", "profile", "bootstrap", "not_available"),
+    conf.low = c(0, 0, 0, NA),
+    conf.high = c(1, 1, 1, NA),
+    stringsAsFactors = FALSE
+  )
+
+  available <- drmTMB:::plot_parameter_surface_interval_available(data)
+  expect_equal(available, c(TRUE, TRUE, TRUE, FALSE))
+
+  kept <- drmTMB:::plot_parameter_surface_interval_data(data)
+  expect_equal(nrow(kept), 3L)
+  expect_true("bootstrap" %in% kept$interval_source)
+})

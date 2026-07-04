@@ -1,7 +1,8 @@
 validate_phylo_tree <- function(
   tree,
   species = NULL,
-  tolerance = sqrt(.Machine$double.eps)
+  tolerance = sqrt(.Machine$double.eps),
+  require_ultrametric = TRUE
 ) {
   if (!inherits(tree, "phylo")) {
     cli::cli_abort(c(
@@ -104,13 +105,18 @@ validate_phylo_tree <- function(
   tip_depths <- depths[seq_len(n_tip)]
   height <- tip_depths[[1L]]
   scale <- max(1, abs(height), abs(tip_depths))
-  if (max(abs(tip_depths - height)) > tolerance * scale) {
+  is_ultrametric <- max(abs(tip_depths - height)) <= tolerance * scale
+  # Ultrametricity is only required when a single scalar height normalization is
+  # applied (the correlation scale). The raw branch-length Brownian precision is
+  # well defined for non-ultrametric trees, so validation for that path only
+  # rejects genuinely invalid depths (non-positive root-to-tip paths).
+  if (require_ultrametric && !is_ultrametric) {
     cli::cli_abort(c(
       "{.arg tree} must be ultrametric.",
       "x" = "Root-to-tip distances differ by more than {.val {tolerance}}."
     ))
   }
-  if (height <= 0) {
+  if (any(tip_depths <= 0)) {
     cli::cli_abort("{.arg tree} must have positive root-to-tip height.")
   }
 
@@ -137,6 +143,7 @@ validate_phylo_tree <- function(
     root = root,
     tip_label = tip_label,
     height = height,
+    is_ultrametric = is_ultrametric,
     node_depth = depths,
     species_levels = species_levels,
     species_index = species_index,
@@ -196,7 +203,17 @@ drm_phylo_tip_covariance <- function(
   correlation = TRUE,
   tolerance = sqrt(.Machine$double.eps)
 ) {
-  info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
+  if (
+    !is.logical(correlation) || length(correlation) != 1L || is.na(correlation)
+  ) {
+    cli::cli_abort("{.arg correlation} must be {.code TRUE} or {.code FALSE}.")
+  }
+  info <- validate_phylo_tree(
+    tree,
+    species = species,
+    tolerance = tolerance,
+    require_ultrametric = correlation
+  )
   edge <- matrix(as.integer(tree$edge), ncol = 2L)
   parent <- integer(info$n_tip + info$n_node)
   parent[edge[, 2L]] <- edge[, 1L]
@@ -238,7 +255,12 @@ drm_phylo_augmented_precision <- function(
   ) {
     cli::cli_abort("{.arg correlation} must be {.code TRUE} or {.code FALSE}.")
   }
-  info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
+  info <- validate_phylo_tree(
+    tree,
+    species = species,
+    tolerance = tolerance,
+    require_ultrametric = correlation
+  )
   edge <- matrix(as.integer(tree$edge), ncol = 2L)
   edge_length <- tree$edge.length
   if (any(edge_length <= 0)) {
