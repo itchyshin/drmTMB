@@ -49,6 +49,45 @@ call name before matching implemented markers such as `phylo()`, `spatial()`,
 `corpair()`. This is a marker-specific rule; arbitrary namespaced R functions
 are not treated as fitted structured-effect syntax.
 
+### Left-hand-side interpretation
+
+The parser reads each formula's left-hand side (LHS) as follows:
+
+- A named formula (`sigma = ~ x`) always names the distributional parameter;
+  the LHS, if present, is the response for that parameter.
+- An unnamed formula whose LHS is a keyed marker call (`sd(id) ~ x`,
+  `corpair(...) ~ x`) is a random-effect scale or correlation-pair formula.
+- An unnamed formula whose LHS is a bare **non-location** distributional
+  parameter symbol (`sigma ~ x`, `nu ~ x`, `zi ~ x`, `shape ~ x`, ...) is a
+  parameterless dpar formula: it sets that parameter and has no response.
+- Every other unnamed formula with an LHS is a response formula for the
+  location parameter `mu`. **Location-parameter names (`mu`, `mu1`, `mu2`) are
+  never treated as bare dpar symbols**, because a location parameter always
+  carries a response. `bf(mu ~ x)` therefore parses as `mu ~ x` with response
+  `mu`, not as a parameterless location formula. If a response column happens to
+  be named after a non-location parameter (for example a column literally named
+  `nu`), name the location formula explicitly to disambiguate: `mu = nu ~ x`.
+
+### Parser invariants
+
+- **One formula per plain distributional parameter.** `drm_formula()` rejects a
+  repeated plain dpar (for example `bf(y ~ x, sigma ~ a, sigma ~ b)`) at parse
+  time, naming the repeated parameter, rather than deferring to each family
+  consumer. Keyed terms that are legitimately repeated -- `sd*()` random-effect
+  scale formulas (keyed by group) and `corpair()` correlation-pair formulas
+  (keyed by group and endpoints) -- are excluded from this check.
+- **`corpair()` endpoints are bivariate.** `from` and `to` must name two
+  different bivariate endpoints from `mu1`, `mu2`, `sigma1`, `sigma2`; the
+  univariate names `mu` and `sigma` are not accepted, because a latent
+  correlation requires two distinct parameters.
+- **Deprecated markers are flagged wherever they appear.** The
+  `meta_known_V()` deprecation notice fires whether the marker is on the LHS or
+  the RHS of a formula.
+- **Unknown structured markers fail loudly.** Only the registered structured
+  markers (`animal`, `phylo`, `phylo_interaction`, `relmat`, `spatial`) are
+  parsed; an unregistered marker aborts rather than being silently treated as a
+  spatial term.
+
 | Syntax | Current status | Notes |
 | --- | --- | --- |
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
