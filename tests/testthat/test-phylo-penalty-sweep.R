@@ -29,8 +29,14 @@ test_that("drm_phylo_penalty_sweep runs one MAP fit per cor_sd and returns a sum
   fx <- sweep_phylo_fixture()
   tree <- fx$tree
   cor_sd <- c(0.25, 0.5, 1)
+  # Use a coupled location-scale phylo model (phylo SD on mu and sigma) so the
+  # sweep actually estimates a phylogenetic correlation; a location-only model
+  # has a single phylogenetic SD and no correlation parameter to penalize.
   out <- drm_phylo_penalty_sweep(
-    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ phylo(1 | species, tree = tree)
+    ),
     data = fx$data,
     family = gaussian(),
     cor_sd = cor_sd
@@ -53,10 +59,58 @@ test_that("drm_phylo_penalty_sweep validates cor_sd", {
   tree <- fx$tree
   expect_error(
     drm_phylo_penalty_sweep(
-      bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+      bf(
+        y ~ x + phylo(1 | species, tree = tree),
+        sigma ~ phylo(1 | species, tree = tree)
+      ),
       data = fx$data,
       cor_sd = c(-1, 0.5)
     ),
     "cor_sd"
+  )
+})
+
+test_that("drm_phylo_penalty rejects cor_sd for a single-SD (location-only) phylo fit", {
+  # A location-only phylo model has one phylogenetic SD (q_phylo == 1) and no
+  # phylogenetic correlation parameter, so cor_sd would be a silent no-op in the
+  # C++ penalty. drmTMB() must refuse it rather than fit a mislabelled MAP model.
+  skip_on_cran()
+  skip_if_not_installed("ape")
+  fx <- sweep_phylo_fixture()
+  tree <- fx$tree
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | species, tree = tree)),
+      data = fx$data,
+      family = gaussian(),
+      penalty = drm_phylo_penalty(cor_sd = 0.5)
+    ),
+    class = "drm_phylo_cor_penalty_needs_two_sd"
+  )
+  # The same model with cor_sd = NULL is a valid location-only MAP fit.
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree)),
+    data = fx$data,
+    family = gaussian(),
+    penalty = drm_phylo_penalty(cor_sd = NULL)
+  )
+  expect_identical(fit$estimator, "MAP")
+})
+
+test_that("drm_phylo_penalty_sweep refuses an inert cor_sd sweep for a single-SD phylo model", {
+  # Before the guard the sweep returned a table of identical rows that looked like
+  # a prior-sensitivity check but was inert; it must now refuse up front.
+  skip_on_cran()
+  skip_if_not_installed("ape")
+  fx <- sweep_phylo_fixture()
+  tree <- fx$tree
+  expect_error(
+    drm_phylo_penalty_sweep(
+      bf(y ~ x + phylo(1 | species, tree = tree)),
+      data = fx$data,
+      family = gaussian(),
+      cor_sd = c(0.25, 0.5, 1)
+    ),
+    class = "drm_phylo_cor_penalty_needs_two_sd"
   )
 })
