@@ -3,8 +3,52 @@ parse_drm_formula_entries <- function(calls, names) {
   for (i in seq_along(calls)) {
     entries[[i]] <- parse_drm_formula_entry(calls[[i]], names[[i]], i)
   }
+  check_unique_plain_dpars(entries)
   class(entries) <- "drm_formula_entries"
   entries
+}
+
+# Enforce one formula per plain non-location distributional parameter. This is
+# the canonical guard that keeps a downstream `entries[[which(dpars == "sigma")]]`
+# from doing R recursive indexing when a scale/aux dpar such as `sigma`, `nu`,
+# or `zi` is duplicated (see #702). Excluded from the check:
+#
+#   * keyed terms that legitimately repeat -- `corpair()` correlation-pair
+#     formulas (keyed by group and endpoints) and `sd*()` random-effect scale
+#     formulas (keyed by group);
+#   * the location parameter `mu`. A bare-symbol LHS that is neither a keyed
+#     marker nor a known dpar becomes a `mu` response (see #696), so a mistyped
+#     or unsupported parameter (for example `phi ~ 1`) reaches this point as a
+#     second `mu`. Each family route already guards `sum(dpars == "mu") != 1`
+#     before indexing and emits a family-specific message (for example
+#     "requires exactly one location formula", "only support `mu` and `sigma`",
+#     or the skew-normal "Latent skewness syntax" note). Diagnosing the `mu`
+#     multiplicity here would hide those clearer, family-aware messages, so the
+#     location parameter is deliberately left to the family consumers.
+check_unique_plain_dpars <- function(entries) {
+  is_plain <- vapply(
+    entries,
+    function(entry) {
+      is.null(entry$corpair) &&
+        !is_random_scale_lhs_entry(entry) &&
+        !identical(entry$dpar, "mu")
+    },
+    logical(1)
+  )
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  plain_dpars <- dpars[is_plain]
+  dup <- unique(plain_dpars[duplicated(plain_dpars)])
+  if (length(dup) > 0L) {
+    cli::cli_abort(c(
+      "Each distributional parameter accepts at most one formula.",
+      "x" = "Parameter{?s} {.val {dup}} {?is/are} given more than once."
+    ))
+  }
+  invisible(entries)
+}
+
+is_random_scale_lhs_entry <- function(entry) {
+  !is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)
 }
 
 parse_drm_formula_entry <- function(expr, name, position) {
@@ -16,7 +60,7 @@ parse_drm_formula_entry <- function(expr, name, position) {
 
   lhs <- formula_lhs(expr)
   rhs <- formula_rhs(expr)
-  if (formula_contains_call(rhs, "meta_known_V")) {
+  if (formula_contains_call(expr, "meta_known_V")) {
     warn_meta_known_v_deprecated()
   }
   has_name <- nzchar(name)
@@ -45,7 +89,7 @@ parse_drm_formula_entry <- function(expr, name, position) {
     corpair_lhs <- parse_corpair_lhs(lhs)
     dpar <- corpair_lhs$dpar
     response <- NA_character_
-  } else if (has_lhs && is_dpar_lhs(lhs)) {
+  } else if (has_lhs && is_nonlocation_dpar_lhs(lhs)) {
     dpar <- deparse1(lhs)
     response <- NA_character_
   } else if (has_lhs) {
@@ -85,16 +129,25 @@ formula_rhs <- function(expr) {
   expr[[length(expr)]]
 }
 
-is_dpar_lhs <- function(lhs) {
+# An unnamed formula whose LHS is a bare distributional-parameter symbol is
+# treated as a parameterless dpar formula only for non-location parameters
+# (for example `sigma ~ x`). Location parameters (`mu`, `mu1`, `mu2`) always
+# carry a response, so a bare-symbol location LHS is a response, not a dpar:
+# `bf(mu ~ x)` parses as `dpar = "mu"`, `response = "mu"`. This prevents a
+# response column literally named `mu`/`mu1`/`mu2` from being silently
+# reinterpreted as a parameterless location formula (see #696).
+is_nonlocation_dpar_lhs <- function(lhs) {
   lhs_text <- deparse1(lhs)
-  lhs_text %in% drm_known_dpars() || is_random_scale_lhs(lhs)
+  lhs_text %in% drm_nonlocation_dpars() || is_random_scale_lhs(lhs)
+}
+
+drm_location_dpars <- function() {
+  c("mu", "mu1", "mu2")
 }
 
 drm_known_dpars <- function() {
   c(
-    "mu",
-    "mu1",
-    "mu2",
+    drm_location_dpars(),
     "sigma",
     "sigma1",
     "sigma2",
@@ -107,6 +160,10 @@ drm_known_dpars <- function() {
     "hu",
     "rho12"
   )
+}
+
+drm_nonlocation_dpars <- function() {
+  setdiff(drm_known_dpars(), drm_location_dpars())
 }
 
 is_random_scale_lhs <- function(lhs) {
@@ -214,7 +271,7 @@ parse_corpair_lhs <- function(lhs) {
       "x" = "Use endpoint-specific syntax for fitted correlation-regression targets."
     ))
   }
-  allowed_endpoints <- c("mu", "sigma", "mu1", "mu2", "sigma1", "sigma2")
+  allowed_endpoints <- c("mu1", "mu2", "sigma1", "sigma2")
   endpoints <- c(from, to)
   bad_endpoints <- endpoints[
     !is.na(endpoints) & !endpoints %in% allowed_endpoints
@@ -581,6 +638,12 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
         object = as.character(structure_arg)
       )
     ))
+  }
+
+  if (!identical(marker, "spatial")) {
+    cli::cli_abort(
+      "Internal error: unhandled structured marker {.val {marker}}."
+    )
   }
 
   bad <- setdiff(marker_arg_names, c("coords", "mesh"))
