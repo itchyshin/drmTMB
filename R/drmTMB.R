@@ -12895,15 +12895,8 @@ gaussian_sigma_fixed_start <- function(
 
   resid_observed <- resid[observed_y]
   X_observed <- as.matrix(X_sigma[observed_y, , drop = FALSE])
-  # Estimate only the scale-slope starts from a log|resid| regression; the
-  # baseline log-sigma intercept is kept from the caller's moment start
-  # log(sigma0), which is a stable, unbiased estimate of the residual scale.
-  # The regression slopes are invariant to any additive constant on the response,
-  # so no log-scale bias correction is needed here (issue #710.2): the earlier
-  # 0.5*log(pi/2) term corrected the mean scale, not the log scale, and only ever
-  # affected the discarded regression intercept, biasing the baseline log-sigma
-  # low; keeping log(sigma0) sidesteps that entirely.
-  eta_sigma <- log(pmax(abs(resid_observed), sigma_floor))
+  eta_sigma <- log(pmax(abs(resid_observed), sigma_floor)) +
+    0.5 * log(pi / 2)
   candidate <- tryCatch(
     stats::lm.fit(x = X_observed, y = eta_sigma)$coefficients,
     error = function(e) NULL
@@ -12912,14 +12905,18 @@ gaussian_sigma_fixed_start <- function(
     return(beta_sigma)
   }
   candidate[is.na(candidate)] <- 0
-  slopes <- candidate[-1L]
-  if (!all(is.finite(slopes))) {
+  if (!all(is.finite(candidate))) {
+    return(beta_sigma)
+  }
+  eta_candidate <- as.vector(X_observed %*% candidate)
+  if (!all(is.finite(eta_candidate))) {
     return(beta_sigma)
   }
   # Shrink an over-large scale-slope start toward zero rather than discarding all
   # slopes: a legitimately strong scale-heterogeneity model keeps a usable,
   # bounded slope start (direction preserved) instead of a flat intercept-only
   # point. Only the slopes are shrunk; the intercept (baseline log-sigma) is kept.
+  slopes <- candidate[-1L]
   eta_slopes <- as.vector(X_observed[, -1L, drop = FALSE] %*% slopes)
   spread <- if (length(eta_slopes) > 0L) diff(range(eta_slopes)) else 0
   max_slope <- if (length(slopes) > 0L) max(abs(slopes)) else 0
@@ -12930,12 +12927,12 @@ gaussian_sigma_fixed_start <- function(
   if (is.finite(max_slope) && max_slope > 5) {
     shrink <- min(shrink, 5 / max_slope)
   }
-  beta_sigma[-1L] <- slopes * shrink
-  if (!all(is.finite(beta_sigma))) {
-    beta_sigma[] <- 0
-    beta_sigma[[1L]] <- log(sigma0)
+  candidate[-1L] <- slopes * shrink
+  if (!all(is.finite(candidate))) {
+    return(beta_sigma)
   }
-  beta_sigma
+  names(candidate) <- colnames(X_sigma)
+  candidate
 }
 
 gaussian_ls_dummy_start <- function(
