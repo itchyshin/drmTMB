@@ -1,3 +1,11 @@
+# The per-family `links = c(...)` fields in the constructors below are family
+# constructor metadata. The canonical *runtime* link table is `drm_dpar_link()`
+# in R/methods.R, keyed by model_type; every runtime link query routes through
+# it (issue #713.2). When you add or change a family's links here, mirror the
+# change in that switch so the constructor metadata and the runtime table stay
+# consistent. See the header comment on `drm_dpar_link()` for why the two are
+# documented-not-refactored rather than unified into a single source.
+
 #' Bivariate Gaussian response family
 #'
 #' `biv_gaussian()` defines a two-response Gaussian distribution with formulas

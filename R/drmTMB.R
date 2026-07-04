@@ -16341,12 +16341,26 @@ split_tmb_corpars <- function(par, spec) {
           ]
         }
       }
+      names(rho_phylo) <- phylo_pairs$parameter
     } else if (has_modelled_phylo_correlation(spec)) {
-      rho_phylo <- mean(modelled_corpair_values(par, spec))
+      # Report one correlation per phylogenetic level, not a scalar mean.
+      # Averaging back-transformed correlations across levels is incoherent and
+      # hides sign/heterogeneity (issue #698, phylogenetic sibling of the group
+      # mu fix): the boundary diagnostic in check.R reads max|corpars$phylo| and
+      # would otherwise see a single collapsed value that masks per-level
+      # correlations pegged near +/-1. corpairs() still summarises this as one
+      # row via the registry path (label/profile loops iterate the
+      # representative index for a modelled phylogenetic correlation).
+      rho_phylo <- modelled_corpair_values(par, spec)
+      names(rho_phylo) <- modelled_phylo_correlation_labels(
+        spec,
+        phylo_pairs,
+        length(rho_phylo)
+      )
     } else {
       rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
+      names(rho_phylo) <- phylo_pairs$parameter
     }
-    names(rho_phylo) <- phylo_pairs$parameter
     out[[cor_key]] <- rho_phylo
   } else if (
     identical(spec$model_type, "gaussian") &&
@@ -16380,6 +16394,23 @@ modelled_mu_correlation_labels <- function(spec, n_values) {
   base <- spec$random$mu$cor_labels
   if (length(base) != 1L) {
     base <- if (length(base) == 0L) "cor:mu" else base[[1L]]
+  }
+  model <- spec$random$mu$cor_model
+  levels <- rownames(model$X)
+  if (is.null(levels) || length(levels) != n_values) {
+    levels <- as.character(seq_len(n_values))
+  }
+  paste0(base, "[", levels, "]")
+}
+
+# Per-level labels for a modelled phylogenetic correlation. Each fitted
+# correlation corresponds to one phylogenetic level (a row of the corpair
+# design), so names combine the pair parameter label with the level. The
+# n_values fallback keeps names aligned even if the design carries no row names.
+modelled_phylo_correlation_labels <- function(spec, phylo_pairs, n_values) {
+  base <- phylo_pairs$parameter
+  if (length(base) != 1L) {
+    base <- if (length(base) == 0L) "cor:phylo" else base[[1L]]
   }
   model <- spec$random$mu$cor_model
   levels <- rownames(model$X)

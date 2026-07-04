@@ -50,6 +50,24 @@ test_that("plot_corpairs() returns a ggplot for corpairs tables", {
   expect_length(out_no_interval$layers, 2L)
 })
 
+test_that("plot_corpairs interval filter keeps bootstrap intervals (#713.5)", {
+  data <- data.frame(
+    conf.low = c(0, 0, 0, NA),
+    conf.high = c(1, 1, 1, NA),
+    .drmTMB_conf_status = c("wald", "profile", "bootstrap", "not_requested"),
+    .drmTMB_interval_source = c("wald", "profile", "bootstrap", "not_available"),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  available <- drmTMB:::plot_corpairs_interval_available(data)
+  expect_equal(available, c(TRUE, TRUE, TRUE, FALSE))
+
+  kept <- drmTMB:::plot_corpairs_interval_data(data)
+  expect_equal(nrow(kept), 3L)
+  expect_true("bootstrap" %in% kept$.drmTMB_interval_source)
+})
+
 test_that("plot_corpairs() keeps conventional CI lines optional", {
   testthat::skip_if_not_installed("ggplot2")
   pairs <- new_plot_corpairs_table()
