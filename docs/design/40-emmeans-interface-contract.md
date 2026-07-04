@@ -140,8 +140,12 @@ confirm unsupported paths still fail before an `emmGrid` is returned.
 For `type = "link"`, the EMM is on the formula linear-predictor scale. For
 `type = "response"`, `emmeans` should apply the same inverse link tested in
 Slice 117. The method should not silently switch from distributional-parameter
-scale to `fitted()` response mean. For example, lognormal `mu` remains the mean
-of `log(y)`, not `E[y]`.
+scale to `fitted()` response mean. This is precisely why families whose fitted
+`mu` inverse link differs from the `fitted()`/`predict(type = "response")` mean
+are routed out rather than silently reinterpreted (see the routed-out boundary
+below): for example, a lognormal `mu` EMM would be the mean of `log(y)`, not
+`E[y]`, so lognormal is excluded rather than admitted with a misleading
+response-scale label.
 
 ## First Supported Targets
 
@@ -153,8 +157,11 @@ true:
 - `type` is `"link"` or `"response"`;
 - the fitted object retained the needed model frame or data;
 - `vcov(fit)` or an equivalent fixed-effect covariance submatrix is available;
-- the model type is one of Gaussian, Student-t, lognormal, Gamma, beta,
-  beta-binomial, Poisson, NB2, or zero-truncated NB2 after targeted tests exist;
+- the model type is one of Gaussian, Student-t, Gamma, beta, beta-binomial,
+  Poisson, or NB2 after targeted tests exist. Lognormal and zero-truncated NB2
+  were provisionally listed here but were later routed out (see the routed-out
+  boundary below), because their fitted `mu` inverse link does not equal the
+  `fitted()`/`predict(type = "response")` mean;
 - the result is documented as an EMM of the native distributional parameter, not
   necessarily the expected observed response.
 
@@ -205,10 +212,12 @@ separate from `sigma`, random-effect, bivariate, zero-inflated, hurdle,
 ordinal, and slope workflows.
 
 Slice 125 extends the direct method tests across the remaining model types
-admitted by the first gate: Student-t, lognormal, Gamma, beta-binomial, NB2, and
-zero-truncated NB2. Those tests compare link-scale and response-scale
-`emmeans()` summaries with `predict(dpar = "mu")` on the same reference grid;
-they do not add support for blocked model structures or new estimands.
+admitted by the first gate: Student-t, Gamma, beta-binomial, and NB2. Those
+tests compare link-scale and response-scale `emmeans()` summaries with
+`predict(dpar = "mu")` on the same reference grid; they do not add support for
+blocked model structures or new estimands. (Lognormal and zero-truncated NB2
+were later routed out rather than admitted here; see the routed-out boundary
+below.)
 
 Slice 126 adds a narrow downstream contrast check for the returned fixed-effect
 `mu` grid. `emmeans::emmeans(fit, pairwise ~ habitat, ...)` can compute generic
@@ -355,3 +364,19 @@ column after formula evaluation, for example `size = 0` in a model with
 `log(size)`. The fixed-effect basis path now rejects those rows with the
 affected model column named before `predict()` or `emmeans` basis construction
 can return non-finite linear predictions.
+
+Issue #719 routes lognormal and zero-truncated NB2 (`truncated_nbinom2`) out of
+the `emmeans` bridge. Both families have a fitted `mu` inverse link that does not
+equal the `fitted()`/`predict(type = "response")` mean (lognormal: identity `mu`
+link but response mean `exp(mu + 0.5 sigma^2)`; zero-truncated NB2: log `mu` link
+but response mean `mu / (1 - p0)`), so admitting them would let the `emmeans`
+response scale silently report a different quantity than the package's own
+response-scale predictions. The supported model-type gate
+(`drm_validate_emmeans_mu_target()`) now admits only Gaussian, Student-t, Gamma,
+beta, beta-binomial, Poisson, and NB2. Lognormal and zero-truncated NB2 fits
+error before returning an `emmGrid`, naming the unsupported model type and
+directing users to `prediction_grid()` plus `predict_parameters()` for explicit
+prediction tables. This remains a routed-out boundary, not lognormal or
+zero-truncated NB2 `emmeans` support; it supersedes the earlier provisional
+listing of these two families among the first supported targets and the Slice 125
+test set.

@@ -1213,7 +1213,17 @@ phylo_mu_corpairs <- function(object) {
   }
   level <- structured_mu_corpair_level(phylo_mu)
   pair_table <- phylo_mu_pair_table(phylo_mu)
-  lapply(seq_along(corpars), function(i) {
+  # A modelled phylogenetic correlation stores one value per level in
+  # corpars$phylo (issue #698 phylogenetic sibling); those levels are a single
+  # fitted correlation regression, summarised by one corpair row via the
+  # recomputed predict() path below, so iterate only the representative index
+  # here rather than one row per level.
+  indices <- if (has_modelled_phylo_correlation(object$model)) {
+    unique(object$model$random$mu$cor_model$target_cor)
+  } else {
+    seq_along(corpars)
+  }
+  lapply(indices, function(i) {
     estimate <- unname(corpars[[i]])
     parameter <- phylo_mu_correlation_parameter(object, i)
     pair <- pair_table[i, , drop = FALSE]
@@ -1895,7 +1905,15 @@ structured_mu_corpars_keys <- function(object) {
   if (is.null(cor_values) || length(cor_values) == 0L) {
     return(character())
   }
-  paste(cor_key, seq_along(cor_values), sep = ":")
+  # A modelled phylogenetic correlation stores one value per level (issue #698
+  # sibling); those levels are a single fitted correlation regression, so only
+  # the representative index is a structured corpar key.
+  indices <- if (has_modelled_phylo_correlation(object$model)) {
+    unique(object$model$random$mu$cor_model$target_cor)
+  } else {
+    seq_along(cor_values)
+  }
+  paste(cor_key, indices, sep = ":")
 }
 
 random_effect_corpair <- function(
@@ -4954,6 +4972,18 @@ drm_inverse_link <- function(object, dpar, eta) {
 }
 
 drm_dpar_link <- function(object, dpar) {
+  # Canonical runtime link table (issue #713.2). Every runtime link query
+  # (predict-parameters.R, profile.R, and elsewhere in methods.R) routes through
+  # this function, so this model_type -> per-dpar-link switch is the single
+  # source of truth for link resolution. It intentionally covers more model
+  # types than the per-family `links` fields in R/family.R (poisson, binomial,
+  # gamma, tweedie, the zero-inflated / hurdle counts, etc. reach a fitted spec
+  # without a matching R/family.R constructor) and adds the corpair() /
+  # atanh_re_guarded cases. When you add or change a family's links, update BOTH
+  # this switch and the corresponding `links = c(...)` field in R/family.R so the
+  # constructor metadata and the runtime table stay consistent. Documented, not
+  # refactored: unifying the two would require every model_type to carry a
+  # drm_family object and is deferred to avoid destabilizing link resolution.
   if (startsWith(dpar, "corpair(")) {
     return("atanh_re_guarded")
   }
