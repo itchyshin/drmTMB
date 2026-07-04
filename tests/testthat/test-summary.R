@@ -209,6 +209,88 @@ test_that("summary() reports derived repeatability and interval status", {
   expect_true(is.na(profiled$derived[parm, "conf.low"]))
 })
 
+test_that("derived ratios use total variance across multiple mu random effects", {
+  # Regression test for #695: with two mu random-effect blocks (phylo + an
+  # ordinary grouping factor) each derived ratio must be a proportion of the
+  # TOTAL variance (both random-effect variances + residual variance), not just
+  # that single term's variance + residual. The per-term-only denominator used
+  # previously overstated repeatability and phylogenetic signal.
+  set.seed(20260703)
+  n_tip <- 8L
+  tree <- new_summary_balanced_tree(n_tip = n_tip)
+  n_each <- 20L
+  species <- rep(tree$tip.label, each = n_each)
+  n <- length(species)
+  grp <- factor(rep(seq_len(n / 4L), each = 4L))
+
+  var_phylo <- 0.5
+  var_grp <- 0.5
+  var_resid <- 1.0
+  phylo_effect <- stats::rnorm(n_tip, sd = sqrt(var_phylo))
+  names(phylo_effect) <- tree$tip.label
+  grp_effect <- stats::rnorm(nlevels(grp), sd = sqrt(var_grp))
+  dat <- data.frame(
+    species = species,
+    grp = grp,
+    y = 0.2 + phylo_effect[species] + grp_effect[as.integer(grp)] +
+      stats::rnorm(n, sd = sqrt(var_resid))
+  )
+
+  fit <- drmTMB(
+    bf(y ~ phylo(1 | species, tree = tree) + (1 | grp), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  derived <- summary(fit)$derived
+
+  sd_vals <- vapply(
+    fit$sdpars$mu,
+    function(v) unname(v)[[1L]],
+    numeric(1)
+  )
+  sigma <- unique(stats::sigma(fit))
+  total_re_var <- sum(sd_vals^2)
+  denom <- total_re_var + sigma^2
+
+  parm_phylo <- "derived:phylogenetic_signal(species)"
+  parm_grp <- "derived:repeatability(grp)"
+  expect_true(all(c(parm_phylo, parm_grp) %in% rownames(derived)))
+
+  # Every row shares the same total-variance denominator.
+  expected_phylo <- unname(sd_vals[["phylo(1 | species)"]])^2 / denom
+  expected_grp <- unname(sd_vals[["(1 | grp)"]])^2 / denom
+  expect_equal(derived[parm_phylo, "estimate"], expected_phylo, tolerance = 1e-12)
+  expect_equal(derived[parm_grp, "estimate"], expected_grp, tolerance = 1e-12)
+
+  # The reported residual_variance column is the residual variance, and the
+  # ratios are strictly smaller than the buggy per-term-only denominator.
+  buggy_phylo <- unname(sd_vals[["phylo(1 | species)"]])^2 /
+    (unname(sd_vals[["phylo(1 | species)"]])^2 + sigma^2)
+  expect_lt(derived[parm_phylo, "estimate"], buggy_phylo)
+
+  # All variance proportions (both random effects + residual) sum to 1.
+  resid_prop <- sigma^2 / denom
+  expect_equal(
+    derived[parm_phylo, "estimate"] + derived[parm_grp, "estimate"] +
+      resid_prop,
+    1,
+    tolerance = 1e-12
+  )
+})
+
+test_that("sigma() errors clearly for an unhandled univariate model type", {
+  # Regression test for #709.1: a univariate family that is not registered in
+  # sigma.drmTMB() must fail with a clear internal error instead of silently
+  # falling through to the bivariate branch.
+  dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
+  fit$model$model_type <- "gpoisson_future_family"
+  expect_error(
+    sigma(fit),
+    "no .*sigma.* rule for model type"
+  )
+})
+
 test_that("summary() reports residual rho12 on the response scale", {
   set.seed(20260513)
   n <- 120

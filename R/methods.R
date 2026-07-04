@@ -3367,9 +3367,14 @@ sigma.drmTMB <- function(object, ...) {
   ) {
     return(rep(1, object$nobs))
   }
-  new_biv_sigma(
-    sigma1 = predict(object, dpar = "sigma1"),
-    sigma2 = predict(object, dpar = "sigma2")
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    return(new_biv_sigma(
+      sigma1 = predict(object, dpar = "sigma1"),
+      sigma2 = predict(object, dpar = "sigma2")
+    ))
+  }
+  cli::cli_abort(
+    "Internal error: no {.fn sigma} rule for model type {.val {object$model$model_type}}."
   )
 }
 
@@ -3744,6 +3749,16 @@ drm_derived_summary_rows <- function(object) {
     return(empty_derived_summary_parameters())
   }
 
+  # Repeatability/ICC and phylogenetic signal are defined against the TOTAL
+  # variance, so the denominator must include every mu random-effect variance
+  # plus the residual variance. Summing only the current term's variance
+  # overstates each ratio whenever multiple mu random effects are present
+  # (see issue #695).
+  numeric_sd <- vapply(sd_values, function(v) unname(v)[[1L]], numeric(1))
+  valid_sd <- is.finite(numeric_sd) & numeric_sd >= 0
+  residual_variance <- sigma^2
+  total_re_var <- sum(numeric_sd[valid_sd]^2)
+
   rows <- lapply(seq_along(sd_values), function(i) {
     term <- names(sd_values)[[i]]
     sd_value <- unname(sd_values[[i]])
@@ -3755,8 +3770,7 @@ drm_derived_summary_rows <- function(object) {
       return(NULL)
     }
     re_variance <- sd_value^2
-    residual_variance <- sigma^2
-    denominator <- re_variance + residual_variance
+    denominator <- total_re_var + residual_variance
     if (!is.finite(denominator) || denominator <= 0) {
       return(NULL)
     }
