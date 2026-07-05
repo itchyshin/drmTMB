@@ -1529,17 +1529,30 @@ phylo_mu_sd_summary <- function(object, endpoint_index, scalar_parameter) {
 
   phylo_mu <- object$model$structured$phylo_mu
   endpoint_dpar <- phylo_mu_endpoint_dpars(phylo_mu)[[endpoint_index]]
-  sd_dpar <- if (identical(object$model$model_type, "biv_gaussian")) {
-    "mu"
-  } else {
-    endpoint_dpar
-  }
+  sd_dpar <- phylo_mu_sd_dpar_for_parameter(
+    object,
+    endpoint_dpar = endpoint_dpar,
+    parameter = scalar_parameter
+  )
 
   list(
     parameter = scalar_parameter,
     target = paste0("sd:", sd_dpar, ":", scalar_parameter),
     value = phylo_mu_sd_value(object, scalar_parameter, dpar = sd_dpar)
   )
+}
+
+phylo_mu_sd_dpar_for_parameter <- function(object, endpoint_dpar, parameter) {
+  if (!is.null(object$sdpars[[endpoint_dpar]][[parameter]])) {
+    return(endpoint_dpar)
+  }
+  if (
+    identical(object$model$model_type, "biv_gaussian") &&
+      !is.null(object$sdpars$mu[[parameter]])
+  ) {
+    return("mu")
+  }
+  endpoint_dpar
 }
 
 phylo_mu_direct_sd_dpar <- function(object, endpoint_index) {

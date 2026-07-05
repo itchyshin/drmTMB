@@ -3344,14 +3344,14 @@ The efficient completion order is:
     `supported`, introduce REML or AI-REML wording, expand q4/q8, or create
     public-support claims.
 70. Banked in this slice: keep the generated 90% practical-surface review
-    packet current. `tools/qseries_v1_release_check.py --write-candidates`
-    now writes
-    `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv`, which
-    expands the current `rows_to_90=3` counter into the exact next three rows
-    requiring Rose/Fisher/Grace review before any design, code, compute, or
-    support-cell edit. The packet is no-compute release-prep evidence only; it
-    authorizes no coverage, `inference_ready`, `supported`, q4/q8, REML,
-    AI-REML, bridge, or public-support claim.
+    packet current. After the q2 scale-only native point-fit/extractor recovery,
+    `rows_to_90=0`, so
+    `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv` and the
+    matching economy plan are intentionally header-only. The next-candidate and
+    first-four packets now carry the remaining post-v1 design rows. These
+    packets are no-compute release-prep evidence only; they authorize no
+    coverage, `inference_ready`, `supported`, q4/q8, REML, AI-REML, bridge, or
+    public-support claim.
 71. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
     metadata wrappers, provider contracts, bridge parity, interval diagnostics,
     and coverage denominators are stable.

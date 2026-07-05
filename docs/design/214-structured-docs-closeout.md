@@ -31,7 +31,7 @@ For an applied reader, the route table is:
 | q1 Gaussian structured location or scale point fit | native ML with `phylo()`, `spatial()`, `animal()`, or `relmat()` where the matrix row says fitted | fitted point/status evidence |
 | q2 bivariate location covariance | native ML labelled `mu1`/`mu2` rows for the structured type | fitted point/extractor evidence |
 | q4 all-four location-scale covariance | native ML labelled all-four row | diagnostic point/extractor evidence |
-| scale-only q2 structured covariance | use q4 all-four when scientifically required | scale-only q2 remains rejected for spatial, animal, and `relmat()` |
+| scale-only q2 structured covariance | exact `sigma1`/`sigma2` intercept-only native ML point fit for fixed spatial, animal, and `relmat()` matrices | point-fit/extractor evidence only; interval, coverage, bridge, denominator, and support claims remain unpromoted |
 | exact-Gaussian native REML | mean-side `phylo()` q1 only | partial native REML |
 | interval coverage | replicated pilot needed | not evaluated |
 | R-via-Julia bridge | row-specific experimental or planned rows | not broad support |

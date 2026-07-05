@@ -698,27 +698,27 @@ FIRST_FOUR_CONTRACT_DETAIL = {
     },
     "qseries_animal_q2_plus_q2_sigma_rejected": {
         "contract_id": "qseries_v1_animal_q2_plus_q2_sigma_design_contract",
-        "model_contract": "biv_gaussian() with animal(1 | ps | id, A/Ainv = A) in sigma1 and sigma2 would require an explicit scale-side q2-plus-q2 covariance and extractor policy before parser admission",
-        "dgp_requirements": "two-response Gaussian data; named animal levels matching A/Ainv/pedigree input; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their block relationship",
-        "implementation_requirements": "derive the animal scale-side q2-plus-q2 route before changing the partial location-scale block gate; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
-        "recovery_requirements": "one local debug fixture may only reproduce the current animal q2-plus-q2 sigma rejection or, after review, check parser diagnostics; not a denominator or coverage run",
-        "next_action": "review the animal q2-plus-q2 sigma design before any parser edit, local debug fit, host compute, or support-cell edit",
+        "model_contract": "biv_gaussian() with animal(1 | ps | id, A/Ainv = A) in sigma1 and sigma2 has native point-fit/extractor evidence only; scale-scale profile geometry, retained denominator policy, and bridge payload policy remain unadmitted",
+        "dgp_requirements": "two-response Gaussian data; named animal levels matching A/Ainv/pedigree input; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their scale-scale relationship",
+        "implementation_requirements": "review the animal scale-side q2-plus-q2 interval/denominator route before any status promotion; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "local point-fit/extractor fixture is already banked; any next local debug may only inspect scale-scale profile geometry or denominator design, not claim coverage",
+        "next_action": "review the animal q2-plus-q2 sigma scale-scale profile and retained-denominator design before any host compute or support-cell edit",
     },
     "qseries_relmat_q2_plus_q2_sigma_rejected": {
         "contract_id": "qseries_v1_relmat_q2_plus_q2_sigma_design_contract",
-        "model_contract": "biv_gaussian() with relmat(1 | ps | id, K/Q = K/Q) in sigma1 and sigma2 would require an explicit scale-side q2-plus-q2 covariance and extractor policy before parser admission",
-        "dgp_requirements": "two-response Gaussian data; named relmat levels matching K/Q input; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their block relationship",
-        "implementation_requirements": "derive the relmat scale-side q2-plus-q2 route before changing the partial location-scale block gate; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
-        "recovery_requirements": "one local debug fixture may only reproduce the current relmat q2-plus-q2 sigma rejection or, after review, check parser diagnostics; not a denominator or coverage run",
-        "next_action": "review the relmat q2-plus-q2 sigma design before any parser edit, local debug fit, host compute, or support-cell edit",
+        "model_contract": "biv_gaussian() with relmat(1 | ps | id, K/Q = K/Q) in sigma1 and sigma2 has native point-fit/extractor evidence only; scale-scale profile geometry, retained denominator policy, and bridge payload policy remain unadmitted",
+        "dgp_requirements": "two-response Gaussian data; named relmat levels matching K/Q input; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their scale-scale relationship",
+        "implementation_requirements": "review the relmat scale-side q2-plus-q2 interval/denominator route before any status promotion; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "local point-fit/extractor fixture is already banked; any next local debug may only inspect scale-scale profile geometry or denominator design, not claim coverage",
+        "next_action": "review the relmat q2-plus-q2 sigma scale-scale profile and retained-denominator design before any host compute or support-cell edit",
     },
     "qseries_spatial_q2_plus_q2_sigma_rejected": {
         "contract_id": "qseries_v1_spatial_q2_plus_q2_sigma_design_contract",
-        "model_contract": "biv_gaussian() with spatial(1 | ps | site, coords = coords) in sigma1 and sigma2 would require an explicit scale-side q2-plus-q2 covariance and extractor policy before parser admission",
-        "dgp_requirements": "two-response Gaussian data; named spatial levels with valid coordinates; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their block relationship",
-        "implementation_requirements": "derive the spatial scale-side q2-plus-q2 route before changing the partial location-scale block gate; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
-        "recovery_requirements": "one local debug fixture may only reproduce the current spatial q2-plus-q2 sigma rejection or, after review, check parser diagnostics; not a denominator or coverage run",
-        "next_action": "review the spatial q2-plus-q2 sigma design before any parser edit, local debug fit, host compute, or support-cell edit",
+        "model_contract": "biv_gaussian() with spatial(1 | ps | site, coords = coords) in sigma1 and sigma2 has native point-fit/extractor evidence only; scale-scale profile geometry, retained denominator policy, and bridge payload policy remain unadmitted",
+        "dgp_requirements": "two-response Gaussian data; named spatial levels with valid coordinates; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their scale-scale relationship",
+        "implementation_requirements": "review the spatial scale-side q2-plus-q2 interval/denominator route before any status promotion; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "local point-fit/extractor fixture is already banked; any next local debug may only inspect scale-scale profile geometry or denominator design, not claim coverage",
+        "next_action": "review the spatial q2-plus-q2 sigma scale-scale profile and retained-denominator design before any host compute or support-cell edit",
     },
     "qseries_nongaussian_structured_slope_neighbors_planned": {
         "contract_id": "qseries_v1_nongaussian_structured_slope_neighbors_design_contract",
@@ -739,10 +739,41 @@ def build_first_four_contract_rows(
 ) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for packet_row in review_packet_rows:
-        detail = FIRST_FOUR_CONTRACT_DETAIL[packet_row["cell_id"]]
         cell_id = packet_row["cell_id"]
         support_row = next(row for row in support_rows if row["cell_id"] == cell_id)
         ledger_row = next(row for row in ledger_rows if row["cell_id"] == cell_id)
+        detail = FIRST_FOUR_CONTRACT_DETAIL.get(cell_id)
+        if detail is None:
+            contract_slug = cell_id.removeprefix("qseries_")
+            contract_slug = contract_slug.replace("_planned", "")
+            contract_slug = contract_slug.replace("_rejected", "")
+            detail = {
+                "contract_id": f"qseries_v1_{contract_slug}_design_contract",
+                "model_contract": (
+                    f"{support_row['formula_cell']} remains a planned "
+                    f"{support_row['family']} {support_row['dimension_pattern']} "
+                    f"{support_row['endpoint_set']} route until a row-specific "
+                    "runtime, extractor, and recovery contract is written"
+                ),
+                "dgp_requirements": (
+                    "row-specific data-generating process, named grouping levels, "
+                    "structured covariance input, and extractor target identities "
+                    "must be documented before implementation"
+                ),
+                "implementation_requirements": (
+                    "write the row-specific parser, TMB routing, extractor, and "
+                    "recovery test contract; do not change formula grammar, public "
+                    "API, q4/q8 scope, REML, AI-REML, interval, or coverage wording"
+                ),
+                "recovery_requirements": (
+                    "one local debug fixture may check finite fit and extractor "
+                    "visibility after design review; not a denominator or coverage run"
+                ),
+                "next_action": (
+                    "review the planned-row design contract before any code, local "
+                    "debug fit, host compute, or support-cell edit"
+                ),
+            }
         rows.append(
             {
                 "contract_id": detail["contract_id"],
@@ -794,7 +825,17 @@ def build_debug_fixture_rows(
     rows: list[dict[str, str]] = []
     for contract_row in first_contract_rows:
         cell_id = contract_row["cell_id"]
-        rejection_row = next(row for row in rejection_rows if row["cell_id"] == cell_id)
+        rejection_row = next(
+            (row for row in rejection_rows if row["cell_id"] == cell_id),
+            None,
+        )
+        if rejection_row is None:
+            rejection_slug = cell_id.removesuffix("_planned")
+            rejection_row = {
+                "rejection_id": f"{rejection_slug}_planned_boundary",
+                "expected_error_pattern": "not_run_planned_design",
+                "rejection_stage": "planned_design_boundary",
+            }
         rows.append(
             {
                 "debug_contract_id": contract_row["contract_id"].replace(

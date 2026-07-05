@@ -39,26 +39,35 @@ That route reports one mean-mean `corpairs()` row for block `pl` and one
 scale-scale row for block `ps`; it does not report mean-scale correlations.
 
 For coordinate `spatial()`, `animal()`, and `relmat()`, pure
-`sigma1`/`sigma2` structured q2 formulas are intentionally rejected as partial
-location-scale blocks. A direct smoke on 2026-06-22 produced these route
-decisions:
+`sigma1`/`sigma2` structured q2 formulas now have a native ML point-fit and
+extractor route for the exact scale-only, intercept-only block:
 
-```text
-spatial  error  Partial spatial location-scale blocks are not implemented.
-animal   error  Partial animal-model location-scale blocks are not implemented.
-relmat   error  Partial relmat location-scale blocks are not implemented.
+```r
+bf(
+  mu1 = y1 ~ x,
+  mu2 = y2 ~ x,
+  sigma1 = ~ z + spatial(1 | ps | site, coords = coords),
+  sigma2 = ~ z + spatial(1 | ps | site, coords = coords),
+  rho12 = ~ 1
+)
 ```
 
-For those structured types, scale endpoints currently enter the bivariate
-structured covariance surface through the all-four q4 route, not a standalone
-scale-only q2 route.
+The same scale-only pattern is tested for `animal(1 | ps | id, A = A)` and
+`relmat(1 | ps | id, K = K)`. The tests check that the fitted object routes the
+structured latent effects to `sigma1` and `sigma2`, reports endpoint-specific
+SD summaries, and exposes a scale-scale `corpairs()` row.
+
+This is a point-fit/extractor admission only. It supersedes the 2026-06-22
+pre-optimization rejection evidence for these exact scale-only q2 rows, but it
+does not promote interval status, coverage status, bridge parity, derived
+correlation intervals, q4/q8 rows, or public support.
 
 ## Inference Boundary
 
 The q2 rows are fit and extractor evidence. They are not interval-coverage
-evidence. Direct q2 location correlation profile targets are row-specific, and
-coverage remains unclaimed unless a coverage study is attached to the exact
-target row.
+evidence. Direct q2 location and scale-scale correlation profile targets are
+row-specific, and coverage remains unclaimed unless a coverage study is attached
+to the exact target row.
 
 This note does not promote native REML, AI-REML, bridge parity, public
 optimizer controls, q4 interval support, or non-Gaussian structured q2/q4

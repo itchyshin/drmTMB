@@ -8875,6 +8875,82 @@ detect_biv_structured_q4_terms <- function(
 
   marker_title <- structured_marker_title(marker)
   if (!all(has_marker)) {
+    scale_only <- all(has_marker[c("sigma1", "sigma2")]) &&
+      !any(has_marker[c("mu1", "mu2")])
+    if (scale_only) {
+      scale_terms <- terms[c("sigma1", "sigma2")]
+      labels <- vapply(scale_terms, phylo_term_block, character(1L))
+      explicit_labels <- vapply(
+        scale_terms,
+        function(term) !is.null(term$covariance_label),
+        logical(1L)
+      )
+      groups <- vapply(scale_terms, `[[`, character(1L), "group")
+      structures <- vapply(
+        scale_terms,
+        function(term) {
+          if (!is.null(term$structure)) term$structure else "tree"
+        },
+        character(1L)
+      )
+      objects <- vapply(
+        scale_terms,
+        function(term) {
+          if (!is.null(term$tree)) term$tree else term$object
+        },
+        character(1L)
+      )
+      intercept_only <- vapply(
+        scale_terms,
+        structured_term_is_intercept_only,
+        logical(1L)
+      )
+      if (!all(intercept_only)) {
+        bad <- names(intercept_only)[!intercept_only]
+        cli::cli_abort(c(
+          "{marker_title} scale-side q=2 blocks need matching intercept-only terms in this slice.",
+          "x" = "{.code {bad}} requested unsupported structured coefficient{?s}.",
+          "i" = "Use matching {.code {marker}(1 | ps | group, ...)} terms in {.code sigma1} and {.code sigma2}."
+        ))
+      }
+      if (!all(explicit_labels)) {
+        unlabeled <- names(explicit_labels)[!explicit_labels]
+        cli::cli_abort(c(
+          "{marker_title} scale-side q=2 blocks require an explicit covariance-block label.",
+          "x" = "{.code {unlabeled}} use{?s} unlabelled {.fn {marker}} syntax.",
+          "i" = "Use one shared label, for example {.code {marker}(1 | ps | group, ...)}, across {.code sigma1} and {.code sigma2}."
+        ))
+      }
+      same_source_and_group <- length(unique(groups)) == 1L &&
+        length(unique(structures)) == 1L &&
+        length(unique(objects)) == 1L
+      same_label <- length(unique(labels)) == 1L
+      if (!same_source_and_group || !same_label) {
+        cli::cli_abort(c(
+          "{marker_title} scale-side q=2 terms need a supported block layout.",
+          "x" = "Blocks: {.val {labels}}.",
+          "x" = "Groups: {.val {groups}}.",
+          "x" = "Inputs: {.val {objects}}.",
+          "i" = "Use one shared label, such as {.code {marker}(1 | ps | group, ...)}, in both scale endpoints."
+        ))
+      }
+
+      term <- scale_terms[[1L]]
+      term$dpars <- names(scale_terms)
+      term$q <- length(term$dpars)
+      term$covariance_mode <- "scalar"
+      term$block_ids <- rep(1L, term$q)
+      term$block_labels <- labels[[1L]]
+      term$endpoint_blocks <- rep(labels[[1L]], term$q)
+      term$endpoint_covariance_labels <- term$endpoint_blocks
+      term$label <- format_structured_label(
+        marker,
+        "1",
+        groups[[1L]],
+        labels[[1L]]
+      )
+      return(list(has = TRUE, term = term))
+    }
     present <- names(has_marker)[has_marker]
     missing <- names(has_marker)[!has_marker]
     cli::cli_abort(c(
@@ -14577,25 +14653,21 @@ biv_gaussian_phylo_start <- function(phylo_mu, y_scale) {
   }
   q <- phylo_mu$q
   y_scale[!is.finite(y_scale) | y_scale <= 0] <- 1
-  endpoint_scale <- if (q <= 2L) {
-    y_scale[seq_len(q)]
-  } else {
-    vapply(
-      phylo_mu_endpoint_dpars(phylo_mu),
-      function(dpar) {
-        family <- sub("[0-9]+$", "", dpar)
-        if (identical(family, "sigma")) {
-          return(0.2)
-        }
-        response <- suppressWarnings(as.integer(sub("^mu", "", dpar)))
-        if (is.na(response) || response < 1L || response > length(y_scale)) {
-          response <- 1L
-        }
-        y_scale[[response]]
-      },
-      numeric(1L)
-    )
-  }
+  endpoint_scale <- vapply(
+    phylo_mu_endpoint_dpars(phylo_mu),
+    function(dpar) {
+      family <- sub("[0-9]+$", "", dpar)
+      if (identical(family, "sigma")) {
+        return(0.2)
+      }
+      response <- suppressWarnings(as.integer(sub("^mu", "", dpar)))
+      if (is.na(response) || response < 1L || response > length(y_scale)) {
+        response <- 1L
+      }
+      y_scale[[response]]
+    },
+    numeric(1L)
+  )
   list(
     u_phylo = rep(0, q * phylo_mu$n_re),
     log_sd_phylo = log(pmax(0.25 * endpoint_scale, 1e-4)),

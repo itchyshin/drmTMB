@@ -771,13 +771,15 @@ status promotion.
 `structured-re-gaussian-lowq-status-audit.tsv` records the 32 remaining
 Gaussian low-q Q-Series cells after the exact `inference_ready`, sigma/q2
 admission, high-q, and non-Gaussian rows are accounted for. It assigns three
-ordinary comparator rows to `gaussian_baseline_comparator`, twenty-four
+ordinary comparator rows to `gaussian_baseline_comparator`, twenty-seven
 point/fixture rows to `gaussian_lowq_gate_required`, two ordinary diagnostic
-rows to `gaussian_lowq_diagnostic`, and three q2-plus-q2 sigma rejection rows
-to `gaussian_lowq_rejected`. Every linked row keeps its current fit, interval,
-and coverage statuses; this audit does not promote interval+coverage
-readiness, REML, AI-REML, structured covariance support, bridge support,
-`supported`, or public support.
+rows to `gaussian_lowq_diagnostic`, and zero rows to `gaussian_lowq_rejected`.
+The scale-only q2-plus-q2 sigma rows for fixed-covariance `spatial()`,
+A-matrix `animal()`, and K-matrix `relmat()` now have deterministic local
+point-fit/extractor evidence only. Every linked row keeps its current interval
+and coverage boundary; this audit does not promote interval+coverage readiness,
+REML, AI-REML, structured covariance support, bridge support, `supported`, or
+public support.
 
 `structured-re-gaussian-mu-slope-smoke-status.tsv` records the first local
 smoke rung for the four Gaussian q1 `mu` one-slope provider rows:
@@ -2108,13 +2110,15 @@ field. They do not promote bridge support, intervals, coverage, REML,
 AI-REML, q2/q4 endpoint covariance, slopes, additive partner-main effects,
 binary incidence, structured count scale routes, or public support.
 
-`structured-re-q2-plus-q2-sigma-rejection-contract.tsv` records the exact
-pre-optimization rejection evidence for the fixed-covariance `spatial()`,
-A-matrix `animal()`, and `relmat()` scale-only `sigma1+sigma2` q2-plus-q2
-sibling cells. It keeps those rows `unsupported` and prevents q2 location
-fixtures, q4 all-four rows, or K/Q parity from being read as scale-only
-parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML, public
-support, q4, or q8 evidence.
+`structured-re-q2-plus-q2-sigma-rejection-contract.tsv` is now a retired,
+header-only sidecar. The fixed-covariance `spatial()`, A-matrix `animal()`,
+and K-matrix `relmat()` scale-only `sigma1+sigma2` q2-plus-q2 sibling cells
+are tracked in `structured-re-q-series-support-cells.tsv` as native-TMB
+`point_fit` plus `extractor_ready` rows with `interval_status = planned` and
+`coverage_status = planned`. The retirement prevents old pre-optimization
+rejection wording from overriding the new point route, but it still does not
+create bridge, interval, coverage, REML, AI-REML, public-support, q4, or q8
+evidence.
 
 `structured-re-balance-100-slices.tsv` records the structured random-effect
 balance arc. SR001-SR060 bank the corrected scope, native ML q1/q2/q4, slope,

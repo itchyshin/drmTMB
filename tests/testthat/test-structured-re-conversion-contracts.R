@@ -705,8 +705,8 @@ test_that("q-series closure triage accounts for all support cells", {
       3L,
       18L,
       18L,
-      3L,
-      20L,
+      0L,
+      23L,
       2L,
       1L,
       3L,
@@ -743,6 +743,7 @@ test_that("q-series closure triage accounts for all support cells", {
     )
   )
   example_cells <- unlist(strsplit(triage$example_cells, ";", fixed = TRUE))
+  example_cells <- setdiff(example_cells, "none")
   expect_true(all(example_cells %in% qseries$cell_id))
   expect_true(all(grepl(
     "no|not",
@@ -18650,7 +18651,7 @@ test_that("Gaussian low-q row selection gates exact smoke candidates", {
       "next_gate"
     )
   )
-  expect_equal(nrow(selection), 20L)
+  expect_equal(nrow(selection), 23L)
   class_counts <- table(selection$row_selection_class)
   expect_equal(
     stats::setNames(as.integer(class_counts), names(class_counts)),
@@ -18658,6 +18659,7 @@ test_that("Gaussian low-q row selection gates exact smoke candidates", {
       first_smoke_candidate_location_intercept = 1L,
       matched_mu_sigma_design_hold = 8L,
       q2_intercept_contract_hold = 5L,
+      q2_scale_only_contract_hold = 3L,
       scale_interval_design_hold = 4L,
       special_target_contract_hold = 2L
     )
@@ -19237,6 +19239,128 @@ test_that("Gaussian low-q row selection gates exact smoke candidates", {
       phrase
     )
   }
+
+  q2_scale_only_contract <- selection[
+    selection$cell_id %in%
+      c(
+        "qseries_animal_q2_plus_q2_sigma_rejected",
+        "qseries_relmat_q2_plus_q2_sigma_rejected",
+        "qseries_spatial_q2_plus_q2_sigma_rejected"
+      ),
+  ]
+  q2_scale_only_contract <- q2_scale_only_contract[
+    match(
+      c(
+        "qseries_spatial_q2_plus_q2_sigma_rejected",
+        "qseries_animal_q2_plus_q2_sigma_rejected",
+        "qseries_relmat_q2_plus_q2_sigma_rejected"
+      ),
+      q2_scale_only_contract$cell_id
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(q2_scale_only_contract), 3L)
+  expect_equal(
+    q2_scale_only_contract$row_selection_class,
+    rep("q2_scale_only_contract_hold", 3L)
+  )
+  expect_equal(
+    q2_scale_only_contract$selection_status,
+    rep("scale_scale_profile_design_hold", 3L)
+  )
+  expect_equal(
+    q2_scale_only_contract$run_mode,
+    rep("q2_scale_only_profile_design_first", 3L)
+  )
+  expect_equal(q2_scale_only_contract$first_smoke_n_rep, rep(0L, 3L))
+  expect_equal(
+    q2_scale_only_contract$evidence_url,
+    rep("tests/testthat/test-structured-re-q2-rejections.R", 3L)
+  )
+  expect_equal(q2_scale_only_contract$linked_fit_status, rep("point_fit", 3L))
+  expect_equal(q2_scale_only_contract$linked_interval_status, rep("planned", 3L))
+  expect_equal(q2_scale_only_contract$linked_coverage_status, rep("planned", 3L))
+  structured_re_expect_all_match(
+    paste(
+      q2_scale_only_contract$allowed_hosts,
+      q2_scale_only_contract$blocked_hosts,
+      q2_scale_only_contract$required_preconditions,
+      q2_scale_only_contract$claim_boundary,
+      q2_scale_only_contract$next_gate
+    ),
+    "point-fit/extractor"
+  )
+  for (phrase in c(
+    "sigma1/sigma2",
+    "scale-scale",
+    "retained denominator",
+    "Fisher/Rose/Grace",
+    "Totoro/FIIA",
+    "Nibi",
+    "Rorqual",
+    "Trillium",
+    "DRAC",
+    "no-pooling",
+    "coverage",
+    "TSV promotion",
+    "inference_ready",
+    "supported",
+    "public-support"
+  )) {
+    structured_re_expect_all_match(
+      paste(
+        q2_scale_only_contract$allowed_hosts,
+        q2_scale_only_contract$blocked_hosts,
+        q2_scale_only_contract$required_preconditions,
+        q2_scale_only_contract$claim_boundary,
+        q2_scale_only_contract$next_gate
+      ),
+      phrase
+    )
+  }
+  expect_match(
+    paste(
+      q2_scale_only_contract$blocked_hosts[
+        q2_scale_only_contract$structure_provider == "spatial"
+      ],
+      q2_scale_only_contract$claim_boundary[
+        q2_scale_only_contract$structure_provider == "spatial"
+      ],
+      q2_scale_only_contract$next_gate[
+        q2_scale_only_contract$structure_provider == "spatial"
+      ]
+    ),
+    "fixed-covariance|range-estimating spatial support"
+  )
+  expect_match(
+    paste(
+      q2_scale_only_contract$blocked_hosts[
+        q2_scale_only_contract$structure_provider == "animal"
+      ],
+      q2_scale_only_contract$claim_boundary[
+        q2_scale_only_contract$structure_provider == "animal"
+      ],
+      q2_scale_only_contract$next_gate[
+        q2_scale_only_contract$structure_provider == "animal"
+      ]
+    ),
+    "A-matrix|pedigree/Ainv"
+  )
+  expect_match(
+    paste(
+      q2_scale_only_contract$blocked_hosts[
+        q2_scale_only_contract$structure_provider == "relmat"
+      ],
+      q2_scale_only_contract$claim_boundary[
+        q2_scale_only_contract$structure_provider == "relmat"
+      ],
+      q2_scale_only_contract$next_gate[
+        q2_scale_only_contract$structure_provider == "relmat"
+      ]
+    ),
+    "K-matrix|Q bridge marshalling"
+  )
 
   q2_intercept_contract <- selection[
     selection$cell_id %in%
@@ -26878,7 +27002,7 @@ test_that("count intercept cluster recovery results stay recovery-only", {
   )
 })
 
-test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
+test_that("q2-plus-q2 scale-side rejection contract is retired after fit recovery", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
   )
@@ -26908,93 +27032,50 @@ test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
       "next_gate"
     )
   )
-  expect_equal(nrow(rejection), 3L)
-  expect_setequal(rejection$structured_type, c("spatial", "animal", "relmat"))
-  expect_equal(rejection$dimension, rep("q2_plus_q2", 3L))
-  expect_equal(rejection$endpoint, rep("sigma1+sigma2", 3L))
-  expect_equal(rejection$slope_class, rep("intercept_only", 3L))
-  expect_equal(
-    rejection$rejection_stage,
-    rep("pre_optimization_formula_gate", 3L)
-  )
-  for (field in c(
-    "fit_status",
-    "extractor_status",
-    "bridge_status",
-    "interval_status",
-    "coverage_status"
-  )) {
-    expect_equal(rejection[[field]], rep("unsupported", 3L))
-  }
-  expect_equal(
-    rejection$expected_error_pattern,
-    c(
-      "Partial spatial location-scale blocks",
-      "Partial animal-model location-scale blocks",
-      "Partial relmat location-scale blocks"
-    )
-  )
-  expect_equal(
-    rejection$evidence_url,
-    rep("tests/testthat/test-structured-re-q2-rejections.R", 3L)
-  )
+  expect_equal(nrow(rejection), 0L)
 
+  recovered_cells <- c(
+    "qseries_spatial_q2_plus_q2_sigma_rejected",
+    "qseries_animal_q2_plus_q2_sigma_rejected",
+    "qseries_relmat_q2_plus_q2_sigma_rejected"
+  )
   qseries_rows <- qseries[
-    match(rejection$cell_id, qseries$cell_id),
+    match(recovered_cells, qseries$cell_id),
     ,
     drop = FALSE
   ]
   expect_false(anyNA(qseries_rows$cell_id))
-  expect_equal(qseries_rows$structure_provider, rejection$structured_type)
-  expect_equal(qseries_rows$dimension_pattern, rejection$dimension)
-  expect_equal(qseries_rows$endpoint_set, rejection$endpoint)
-  expect_equal(qseries_rows$slope_class, rejection$slope_class)
-  for (field in c(
-    "fit_status",
-    "extractor_status",
-    "bridge_status",
-    "interval_status",
-    "coverage_status"
-  )) {
-    expect_equal(qseries_rows[[field]], rep("unsupported", 3L))
-  }
+  expect_equal(qseries_rows$structure_provider, c("spatial", "animal", "relmat"))
+  expect_equal(qseries_rows$dimension_pattern, rep("q2_plus_q2", 3L))
+  expect_equal(qseries_rows$endpoint_set, rep("sigma1+sigma2", 3L))
+  expect_equal(qseries_rows$slope_class, rep("intercept_only", 3L))
+  expect_equal(qseries_rows$route, rep("native_tmb", 3L))
+  expect_equal(qseries_rows$fit_status, rep("point_fit", 3L))
+  expect_equal(qseries_rows$extractor_status, rep("extractor_ready", 3L))
+  expect_equal(qseries_rows$bridge_status, rep("unsupported", 3L))
+  expect_equal(qseries_rows$interval_status, rep("planned", 3L))
+  expect_equal(qseries_rows$coverage_status, rep("planned", 3L))
+  expect_equal(qseries_rows$denominator_policy, rep("fixture_not_coverage", 3L))
   expect_equal(
     qseries_rows$evidence_url,
-    rep(
-      "docs/dev-log/dashboard/structured-re-q2-plus-q2-sigma-rejection-contract.tsv",
-      3L
-    )
+    rep("tests/testthat/test-structured-re-q2-rejections.R", 3L)
   )
   structured_re_expect_all_match(
     qseries_rows$claim_boundary,
-    "pre-optimization rejection evidence"
+    "point-fit and extractor evidence"
   )
-  structured_re_expect_all_match(
-    rejection$claim_boundary,
-    "rejection evidence only"
-  )
-  structured_re_expect_all_match(
-    rejection$claim_boundary,
-    "parser-ready support"
-  )
-  structured_re_expect_all_match(
-    rejection$claim_boundary,
-    "point-fit support"
-  )
-  structured_re_expect_all_match(rejection$claim_boundary, "bridge support")
-  structured_re_expect_all_match(
-    rejection$claim_boundary,
-    "interval reliability"
-  )
-  structured_re_expect_all_match(rejection$claim_boundary, "coverage")
-  structured_re_expect_all_match(rejection$claim_boundary, "REML")
-  structured_re_expect_all_match(rejection$claim_boundary, "AI-REML")
-  structured_re_expect_all_match(rejection$claim_boundary, "public support")
-  structured_re_expect_all_match(rejection$claim_boundary, "q4/q8 support")
-  structured_re_expect_all_match(
-    rejection$next_gate,
-    "supported scale-side route"
-  )
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "bridge support")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "interval reliability")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "coverage")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "inference_ready")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "supported")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "REML")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "public support")
+  structured_re_expect_all_match(qseries_rows$claim_boundary, "q4/q8 support")
+  structured_re_expect_all_match(qseries_rows$next_gate, "Fisher/Rose/Grace")
+  structured_re_expect_all_match(qseries_rows$next_gate, "scale-scale correlation profile geometry")
+  structured_re_expect_all_match(qseries_rows$next_gate, "retained denominator design")
 })
 
 test_that("count sigma one-slope rejection contract is retired after fit recovery", {
@@ -30526,19 +30607,19 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   )
   expect_match(status_text, "104 support cells", fixed = TRUE)
   expect_match(status_text, "67 Gaussian rows and 37 non-Gaussian rows", fixed = TRUE)
-  expect_match(status_text, "91 row-level roles", fixed = TRUE)
+  expect_match(status_text, "94 row-level roles", fixed = TRUE)
   expect_match(status_text, "8 exact Gaussian `inference_ready` anchors", fixed = TRUE)
-  expect_match(status_text, "48 additional Gaussian basic-working rows", fixed = TRUE)
+  expect_match(status_text, "51 additional Gaussian basic-working rows", fixed = TRUE)
   expect_match(status_text, "35 basic-distribution recovery rows", fixed = TRUE)
-  expect_match(status_text, "13 rows stay in post-v1.0 validation or design", fixed = TRUE)
+  expect_match(status_text, "10 rows stay in post-v1.0 validation or design", fixed = TRUE)
   expect_match(status_text, "0 `supported` authority rows", fixed = TRUE)
   expect_match(status_text, "row-accounting summaries, not package-release completion claims", fixed = TRUE)
-  expect_match(status_text, "Practical v1.0 row surface | 91/104 | 87.5%", fixed = TRUE)
-  expect_match(status_text, "Gaussian v1.0 core | 56/67 | 83.6%", fixed = TRUE)
+  expect_match(status_text, "Practical v1.0 row surface | 94/104 | 90.4%", fixed = TRUE)
+  expect_match(status_text, "Gaussian v1.0 core | 59/67 | 88.1%", fixed = TRUE)
   expect_match(status_text, "Basic-distribution recovery | 35/37 | 94.6%", fixed = TRUE)
   expect_match(status_text, "Exact `inference_ready` anchors | 8/104 | 7.7%", fixed = TRUE)
   expect_match(status_text, "`supported` authority | 0/104 | 0.0%", fixed = TRUE)
-  expect_match(status_text, "Post-v1.0 validation/design | 13/104 | 12.5%", fixed = TRUE)
+  expect_match(status_text, "Post-v1.0 validation/design | 10/104 | 9.6%", fixed = TRUE)
   expect_match(status_text, "not a support promotion", fixed = TRUE)
   expect_match(status_text, "does not authorize coverage, q4 coverage", fixed = TRUE)
   expect_match(status_text, "REML, AI-REML", fixed = TRUE)
@@ -30615,15 +30696,15 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "ledger=ok",
     "claim_guard=ok",
     "mission_control=skipped",
-    "practical_v1_surface=91/104 (87.5%)",
+    "practical_v1_surface=94/104 (90.4%)",
     "supported_authority=0/104 (0.0%)",
     "rows_to_75=0",
     "rows_to_80=0",
-    "rows_to_90=3",
-    "rows_to_100=13",
-    "candidate_review_rows=13",
-    "ninety_review_packet_rows=3",
-    "ninety_economy_rows=3",
+    "rows_to_90=0",
+    "rows_to_100=10",
+    "candidate_review_rows=10",
+    "ninety_review_packet_rows=0",
+    "ninety_economy_rows=0",
     "first_four_review_packet_rows=4",
     "first_candidate_contract_rows=1",
     "debug_fixture_contract_rows=1",
@@ -30664,14 +30745,14 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "claim_guard=not_run",
     "mission_control=not_run",
     "source=checked_in_release_status_and_ledger",
-    "practical_v1_surface=91/104 (87.5%)",
+    "practical_v1_surface=94/104 (90.4%)",
     "supported_authority=0/104 (0.0%)",
     "rows_to_75=0",
     "rows_to_80=0",
-    "rows_to_90=3",
-    "rows_to_100=13",
-    "candidate_review_rows=13",
-    "first_four=qseries_count_mu_simultaneous_structured_types_rejected,qseries_nongaussian_structured_slope_neighbors_planned,qseries_animal_q2_plus_q2_sigma_rejected,qseries_relmat_q2_plus_q2_sigma_rejected",
+    "rows_to_90=0",
+    "rows_to_100=10",
+    "candidate_review_rows=10",
+    "first_four=qseries_count_mu_simultaneous_structured_types_rejected,qseries_nongaussian_structured_slope_neighbors_planned,qseries_animal_q6_planned,qseries_phylo_q6_planned",
     "boundary=ledger_only_no_validation_no_promotion"
   )) {
     expect_true(any(grepl(phrase, fast_status_output, fixed = TRUE)))
@@ -30709,7 +30790,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       "claim_boundary"
     )
   )
-  expect_equal(nrow(candidate_review), 13L)
+  expect_equal(nrow(candidate_review), 10L)
   expect_equal(candidate_review$review_rank, seq_len(nrow(candidate_review)))
   expect_equal(
     candidate_review$target_band[1:4],
@@ -30720,16 +30801,12 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     rep("additional_six_to_review_for_80_percent", 6L)
   )
   expect_equal(
-    candidate_review$target_band[11:13],
-    rep("later_post_v1_review_queue", 3L)
-  )
-  expect_equal(
     candidate_review$cell_id[1:4],
     c(
       "qseries_count_mu_simultaneous_structured_types_rejected",
       "qseries_nongaussian_structured_slope_neighbors_planned",
-      "qseries_animal_q2_plus_q2_sigma_rejected",
-      "qseries_relmat_q2_plus_q2_sigma_rejected"
+      "qseries_animal_q6_planned",
+      "qseries_phylo_q6_planned"
     )
   )
   expect_equal(
@@ -30780,61 +30857,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       "next_action"
     )
   )
-  expect_equal(nrow(ninety_packet), 3L)
-  expect_equal(ninety_packet$review_rank, 1:3)
-  expect_equal(
-    ninety_packet$contract_id,
-    sprintf("qseries_v1_to90_review_%02d", seq_len(3L))
-  )
-  expect_equal(ninety_packet$cell_id, candidate_review$cell_id[1:3])
-  expect_equal(
-    ninety_packet$cell_id,
-    c(
-      "qseries_count_mu_simultaneous_structured_types_rejected",
-      "qseries_nongaussian_structured_slope_neighbors_planned",
-      "qseries_animal_q2_plus_q2_sigma_rejected"
-    )
-  )
-  structured_re_expect_all_match(
-    ninety_packet$minimum_design_question,
-    "least row-specific evidence"
-  )
-  structured_re_expect_all_match(
-    ninety_packet$minimum_recovery_evidence,
-    "Rose/Fisher/Grace review"
-  )
-  structured_re_expect_all_match(
-    ninety_packet$validator_gate,
-    "90 percent packet"
-  )
-  expect_equal(
-    ninety_packet$blocking_reviewers,
-    rep("Rose/Fisher/Grace", 3L)
-  )
-  expect_equal(
-    ninety_packet$compute_decision,
-    rep("no_compute_authorized", 3L)
-  )
-  expect_equal(
-    ninety_packet$coverage_decision,
-    rep("coverage_not_authorized", 3L)
-  )
-  expect_equal(
-    ninety_packet$promotion_decision,
-    rep("do_not_promote", 3L)
-  )
-  structured_re_expect_all_match(
-    ninety_packet$claim_boundary,
-    "not implementation evidence"
-  )
-  structured_re_expect_all_match(
-    ninety_packet$claim_boundary,
-    "support-cell movement"
-  )
-  structured_re_expect_all_match(
-    ninety_packet$next_action,
-    "before any code, compute, or support-cell edit"
-  )
+  expect_equal(nrow(ninety_packet), 0L)
   ninety_economy <- utils::read.delim(
     structured_re_artifact_path(
       "docs",
@@ -30865,41 +30888,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       "claim_boundary"
     )
   )
-  expect_equal(nrow(ninety_economy), 3L)
-  expect_equal(ninety_economy$review_rank, 1:3)
-  expect_equal(
-    ninety_economy$contract_id,
-    sprintf("qseries_v1_to90_economy_%02d", seq_len(3L))
-  )
-  expect_equal(ninety_economy$cell_id, ninety_packet$cell_id)
-  expect_equal(
-    ninety_economy$implementation_cost,
-    c("high_engine_design", "medium_row_selection", "high_math_route")
-  )
-  structured_re_expect_all_match(
-    ninety_economy$least_compute_next_action,
-    "before"
-  )
-  structured_re_expect_all_match(
-    ninety_economy$why_not_parallel_compute,
-    "compute"
-  )
-  expect_equal(
-    ninety_economy$blocking_reviewers,
-    rep("Rose/Fisher/Grace", 3L)
-  )
-  expect_equal(
-    ninety_economy$coverage_decision,
-    rep("coverage_not_authorized", 3L)
-  )
-  expect_equal(
-    ninety_economy$promotion_decision,
-    rep("do_not_promote", 3L)
-  )
-  structured_re_expect_all_match(
-    ninety_economy$claim_boundary,
-    "planning-only"
-  )
+  expect_equal(nrow(ninety_economy), 0L)
   first_four_packet <- utils::read.delim(
     structured_re_artifact_path(
       "docs",
@@ -31045,20 +31034,23 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   )
   expect_equal(
     first_four_contracts$current_fit_status,
-    c("unsupported", "planned", "unsupported", "unsupported")
+    c("unsupported", "planned", "planned", "planned")
   )
-  expect_equal(first_four_contracts$current_interval_status, rep("unsupported", 4L))
+  expect_equal(
+    first_four_contracts$current_interval_status,
+    c("unsupported", "unsupported", "planned", "planned")
+  )
   expect_equal(
     first_four_contracts$current_coverage_status,
-    c("unsupported", "planned", "unsupported", "unsupported")
+    c("unsupported", "planned", "planned", "planned")
   )
   expect_equal(
     first_four_contracts$contract_id,
     c(
       "qseries_v1_count_mu_simultaneous_structured_types_design_contract",
       "qseries_v1_nongaussian_structured_slope_neighbors_design_contract",
-      "qseries_v1_animal_q2_plus_q2_sigma_design_contract",
-      "qseries_v1_relmat_q2_plus_q2_sigma_design_contract"
+      "qseries_v1_animal_q6_design_contract",
+      "qseries_v1_phylo_q6_design_contract"
     )
   )
   expect_equal(
@@ -31066,20 +31058,20 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     c(
       "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
       "non-count or labelled/multiple structured non-Gaussian slope variants",
-      "animal(1 | ps | id, A = A) in sigma1 and sigma2",
-      "relmat(1 | ps | id, K = K) in sigma1 and sigma2"
+      "animal(1 + x + z | p | id, A = A) in mu1 and mu2",
+      "phylo(1 + x + z | p | species, tree = tree) in mu1 and mu2"
     )
   )
   expect_match(first_four_contracts$model_contract[1], "simultaneous structured providers", fixed = TRUE)
   expect_match(first_four_contracts$model_contract[2], "one-slope neighbors", fixed = TRUE)
   expect_match(first_four_contracts$model_contract[3], "animal", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[3], "q2-plus-q2", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[4], "relmat", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[4], "q2-plus-q2", fixed = TRUE)
+  expect_match(first_four_contracts$model_contract[3], "planned", fixed = TRUE)
+  expect_match(first_four_contracts$model_contract[4], "phylo", fixed = TRUE)
+  expect_match(first_four_contracts$model_contract[4], "planned", fixed = TRUE)
   expect_match(first_four_contracts$dgp_requirements[1], "simultaneous-provider routing", fixed = TRUE)
   expect_match(first_four_contracts$dgp_requirements[2], "one named family", fixed = TRUE)
-  expect_match(first_four_contracts$dgp_requirements[3], "two-response Gaussian data", fixed = TRUE)
-  expect_match(first_four_contracts$dgp_requirements[4], "two-response Gaussian data", fixed = TRUE)
+  expect_match(first_four_contracts$dgp_requirements[3], "row-specific data-generating process", fixed = TRUE)
+  expect_match(first_four_contracts$dgp_requirements[4], "row-specific data-generating process", fixed = TRUE)
   structured_re_expect_all_match(
     first_four_contracts$implementation_requirements,
     "do not change formula grammar"
@@ -31214,8 +31206,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     c(
       "count_struct_mu_reject_simultaneous_types_nbinom2",
       "nongaussian_structured_slope_neighbors_planned_boundary",
-      "q2_plus_q2_sigma_reject_animal",
-      "q2_plus_q2_sigma_reject_relmat"
+      "qseries_animal_q6_planned_boundary",
+      "qseries_phylo_q6_planned_boundary"
     )
   )
   expect_equal(
@@ -31223,8 +31215,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     c(
       "Only one structured",
       "not_run_planned_design",
-      "Partial animal-model location-scale blocks",
-      "Partial relmat location-scale blocks"
+      "not_run_planned_design",
+      "not_run_planned_design"
     )
   )
   expect_equal(
@@ -31232,8 +31224,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     c(
       "pre_optimization_formula_gate",
       "planned_design_boundary",
-      "pre_optimization_formula_gate",
-      "pre_optimization_formula_gate"
+      "planned_design_boundary",
+      "planned_design_boundary"
     )
   )
   expect_equal(
@@ -31271,18 +31263,18 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "Generated ledger/status: `ok`",
     "Public claim guard: `ok`",
     "Mission Control: `ok`",
-    "Practical v1.0 row surface | 91/104 (87.5%)",
-    "Gaussian v1.0 core | 56/67 (83.6%)",
+    "Practical v1.0 row surface | 94/104 (90.4%)",
+    "Gaussian v1.0 core | 59/67 (88.1%)",
     "Basic-distribution recovery | 35/37 (94.6%)",
     "Exact `inference_ready` anchors | 8/104 (7.7%)",
     "`supported` authority | 0/104 (0.0%)",
-    "Post-v1.0 validation/design | 13/104 (12.5%)",
+    "Post-v1.0 validation/design | 10/104 (9.6%)",
     "Distance To Row-Accounting Targets",
     "planning aids only",
     "75% practical surface | 78/104 | 0",
     "80% practical surface | 84/104 | 0",
-    "90% practical surface | 94/104 | 3",
-    "100% practical surface | 104/104 | 13",
+    "90% practical surface | 94/104 | 0",
+    "100% practical surface | 104/104 | 10",
     "Next Candidate Review Queue",
     "next_four_after_75_percent",
     "`qseries_count_mu_simultaneous_structured_types_rejected`",
@@ -31291,11 +31283,11 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "Next Rows To 90% Review Packet",
     "current `rows_to_90` counter",
     "`qseries_nongaussian_structured_slope_neighbors_planned`",
-    "`qseries_animal_q2_plus_q2_sigma_rejected`",
-    "choose one row for a reviewed design/recovery contract",
+    "`qseries_animal_q6_planned`",
+    "`qseries_phylo_q6_planned`",
     "Next-Four After 75% Review Packet",
     "design/recovery checklist only",
-    "biv_gaussian() q2_plus_q2 sigma1+sigma2 intercept-only animal route",
+    "biv_gaussian() q6 mu1+mu2 multiple-slope animal route",
     "non-count or extended count families q1 mu independent-one-slope all_structured route",
     "First Candidate Design Contract",
     "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
@@ -31315,8 +31307,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "creates no fit denominator",
     "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
     "not_run_planned_design",
-    "Partial animal-model location-scale blocks",
-    "Partial relmat location-scale blocks",
+    "`qseries_animal_q6_planned`",
+    "`qseries_phylo_q6_planned`",
     "simultaneous structured providers",
     "one-slope neighbors",
     "promotes no support-cell status",
@@ -57719,7 +57711,7 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
 
   expect_setequal(
     boundary$bridge_status,
-    c("experimental", "intentional_error", "planned", "unsupported")
+    c("experimental", "planned", "unsupported")
   )
   expect_equal(nchar(boundary$negative_evidence) > 0, rep(TRUE, nrow(boundary)))
   structured_re_expect_all_match(boundary$claim_boundary, "bridge")
@@ -57729,13 +57721,15 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
     drop = FALSE
   ]
   expect_equal(nrow(scale_only), 1L)
-  expect_equal(scale_only$bridge_status, "intentional_error")
+  expect_equal(scale_only$bridge_status, "unsupported")
   expect_equal(
     scale_only$evidence_url,
     "docs/dev-log/after-task/2026-06-22-q2-scale-only-rejection-boundary.md"
   )
   expect_match(scale_only$negative_evidence, "sigma1/sigma2-only", fixed = TRUE)
   expect_match(scale_only$claim_boundary, "not q2 bridge support", fixed = TRUE)
+  expect_match(scale_only$claim_boundary, "interval evidence", fixed = TRUE)
+  expect_match(scale_only$claim_boundary, "denominator evidence", fixed = TRUE)
 
   expect_named(
     payload,

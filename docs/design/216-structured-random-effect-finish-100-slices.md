@@ -112,8 +112,10 @@ R-via-Julia q2 parity unavailable. SR122 banks coordinate-spatial q2 native ML
 point evidence while keeping bridge support planned. SR123 and SR124 bank animal
 and `relmat()` q2 native ML point evidence with the same bridge boundary. SR125
 banks q2-plus-q2 target separation as boundary evidence, not as full q4 or
-bridge support. SR126 banks scale-only q2 structured-block rejections for
-`spatial()`, `animal()`, and `relmat()` as negative evidence only. SR127 banks
+bridge support. SR126 now records that scale-only q2 `sigma1`/`sigma2` blocks
+for fixed `spatial()`, `animal()`, and `relmat()` matrices have native-TMB
+point-fit/extractor evidence only; bridge, interval, coverage, denominator, and
+support claims remain unpromoted. SR127 banks
 the q2 coefficient-ordering map as fixture-level contract evidence only. SR128
 banks the direct DRM.jl q2 export/status contract for `phylo()`, `spatial()`,
 `animal()`, and `relmat()` as narrow direct fixture evidence: phylo same-target

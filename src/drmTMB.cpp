@@ -3635,8 +3635,21 @@ Type objective_function<Type>::operator()()
           }
         }
         if (q_phylo == 2) {
-          mu1(i) += phylo_mu_value(i, 0) * phylo_effect1;
-          mu2(i) += phylo_mu_value(i, 1) * phylo_effect2;
+          for (int k = 0; k < q_phylo; ++k) {
+            Type effect = k == 0 ? phylo_effect1 : phylo_effect2;
+            Type contribution = phylo_mu_value(i, k) * effect;
+            int family = phylo_mu_dpar(k);
+            int response = phylo_mu_response(k);
+            if (family == 0 && response == 1) {
+              mu1(i) += contribution;
+            } else if (family == 0 && response == 2) {
+              mu2(i) += contribution;
+            } else if (family == 1 && response == 1) {
+              log_sigma1(i) += contribution;
+            } else if (family == 1 && response == 2) {
+              log_sigma2(i) += contribution;
+            }
+          }
         } else {
           for (int k = 0; k < q_phylo; ++k) {
             Type contribution = phylo_mu_value(i, k) *
