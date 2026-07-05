@@ -77,7 +77,14 @@ test_that("structured q2 scale-only blocks fit as scale-only point routes", {
     expect_equal(fit$model$structured$phylo_mu$covariance_mode, "scalar")
     expect_equal(fit$model$structured$phylo_mu$block_labels, "ps")
     expect_true("u_phylo" %in% fit$model$random_names)
-    expect_named(fit$sdpars, c("sigma1", "sigma2"))
+    expect_named(fit$sdpars, "mu")
+    expect_named(
+      fit$sdpars$mu,
+      c(
+        paste0("sigma1:", provider, "(1 | ps | ", group, ")"),
+        paste0("sigma2:", provider, "(1 | ps | ", group, ")")
+      )
+    )
     expect_true(all(is.finite(unlist(fit$sdpars, use.names = FALSE))))
     expect_true(is.numeric(fit$corpars[[provider]]))
     expect_equal(length(fit$corpars[[provider]]), 1L)
@@ -107,7 +114,7 @@ test_that("structured q2 scale-only blocks fit as scale-only point routes", {
     expect_equal(
       covariance$from_sd_target,
       paste0(
-        "sd:sigma1:sigma1:",
+        "sd:mu:sigma1:",
         provider,
         "(1 | ps | ",
         group,
@@ -117,7 +124,7 @@ test_that("structured q2 scale-only blocks fit as scale-only point routes", {
     expect_equal(
       covariance$to_sd_target,
       paste0(
-        "sd:sigma2:sigma2:",
+        "sd:mu:sigma2:",
         provider,
         "(1 | ps | ",
         group,

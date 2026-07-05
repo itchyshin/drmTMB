@@ -8588,13 +8588,21 @@ structured_mu_type <- function(phylo_mu) {
   "phylo"
 }
 
-structured_mu_random_effect_key <- function(phylo_mu) {
+structured_mu_random_effect_key <- function(phylo_mu, model_type = NULL) {
   endpoint_dpars <- if (isTRUE(phylo_mu$has)) {
     unique(phylo_mu_endpoint_dpars(phylo_mu))
   } else {
     "mu"
   }
-  suffix <- if (length(endpoint_dpars) == 1L) {
+  suffix <- if (
+    !is.null(model_type) && model_type %in% c("gaussian", "biv_gaussian")
+  ) {
+    # Gaussian location-scale keeps the generic `_mu` block regardless of which
+    # endpoint the structured term attaches to (the main-era contract). Only
+    # non-Gaussian families use endpoint-aware block names (e.g. `_sigma`,
+    # `_nu`, `_zi`, `_hu`).
+    "mu"
+  } else if (length(endpoint_dpars) == 1L) {
     endpoint_dpars
   } else {
     "mu"
@@ -17038,16 +17046,19 @@ split_tmb_sdpars <- function(par, spec) {
         )
         out$mu <- c(out$mu, sd_phylo)
       }
-    } else if (identical(spec$model_type, "gaussian")) {
-      sd_phylo <- exp(unname(par$log_sd_phylo[seq_along(phylo_names)]))
-      for (dpar in unique(phylo_dpars)) {
-        endpoint <- which(phylo_dpars == dpar)
-        out[[dpar]] <- c(
-          out[[dpar]],
-          stats::setNames(sd_phylo[endpoint], phylo_names[endpoint])
-        )
-      }
+    } else if (identical(spec$model_type, "biv_gaussian")) {
+      # Bivariate Gaussian keeps all structured location-scale SDs in the flat
+      # `mu` block (endpoint encoded in the names), matching the q4/q8 summary
+      # and profile-target contract.
+      sd_phylo <- stats::setNames(
+        exp(unname(par$log_sd_phylo[seq_along(phylo_names)])),
+        phylo_names
+      )
+      out$mu <- c(out$mu, sd_phylo)
     } else {
+      # Univariate Gaussian and non-Gaussian families use per-dpar blocks
+      # (`mu`/`sigma`/`nu`/`zi`/`hu`) so scale-side structured SDs are addressable
+      # by endpoint.
       sd_phylo <- exp(unname(par$log_sd_phylo[seq_along(phylo_names)]))
       for (dpar in unique(phylo_dpars)) {
         endpoint <- which(phylo_dpars == dpar)
@@ -17349,7 +17360,8 @@ split_tmb_random_effects <- function(par, spec) {
   if (isTRUE(spec$structured$phylo_mu$has)) {
     n_phylo <- spec$structured$phylo_mu$n_re
     random_effect_key <- structured_mu_random_effect_key(
-      spec$structured$phylo_mu
+      spec$structured$phylo_mu,
+      spec$model_type
     )
     if (identical(spec$model_type, "biv_gaussian")) {
       dpars <- phylo_mu_dpars(spec$structured$phylo_mu)

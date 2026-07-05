@@ -200,7 +200,11 @@ structured_effects.drmTMB <- function(object, ...) {
     return(empty_structured_effects_table())
   }
 
-  rows <- lapply(structured, structured_effects_table_row)
+  rows <- lapply(
+    structured,
+    structured_effects_table_row,
+    model_type = object$model$model_type
+  )
   rows <- rows[vapply(rows, nrow, integer(1L)) > 0L]
   if (length(rows) == 0L) {
     return(empty_structured_effects_table())
@@ -211,7 +215,7 @@ structured_effects.drmTMB <- function(object, ...) {
   out
 }
 
-structured_effects_table_row <- function(structured_mu) {
+structured_effects_table_row <- function(structured_mu, model_type = NULL) {
   if (!is.list(structured_mu) || !isTRUE(structured_mu$has)) {
     return(empty_structured_effects_table())
   }
@@ -264,7 +268,10 @@ structured_effects_table_row <- function(structured_mu) {
     observed_level_count = length(
       structured_effects_observed_levels(structured_mu, marker)
     ),
-    random_effect_block = structured_mu_random_effect_key(structured_mu),
+    random_effect_block = structured_mu_random_effect_key(
+      structured_mu,
+      model_type
+    ),
     correlation_level = structured_mu_corpair_level(structured_mu),
     dpars = I(list(phylo_mu_dpars(structured_mu))),
     coef_names = I(list(as.character(structured_mu$coef_names))),
@@ -5219,7 +5226,7 @@ mu_random_intercept_contribution <- mu_random_effect_contribution
 
 phylo_mu_contribution <- function(object, dpar = NULL) {
   phylo_mu <- object$model$structured$phylo_mu
-  key <- structured_mu_random_effect_key(phylo_mu)
+  key <- structured_mu_random_effect_key(phylo_mu, object$model$model_type)
   values <- object$random_effects[[key]]$values
   index <- phylo_mu$observation_node_index
   if (identical(object$model$model_type, "biv_gaussian")) {
