@@ -144,6 +144,43 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     site = factor(poisson_plus_site, levels = poisson_plus_sites),
     id = factor(poisson_plus_id, levels = poisson_plus_ids)
   )
+  set.seed(2026070502)
+  poisson_slope_levels <- paste0("ps", seq_len(8L))
+  poisson_slope_site <- factor(
+    rep(poisson_slope_levels, each = 25L),
+    levels = poisson_slope_levels
+  )
+  poisson_slope_x <- stats::rnorm(length(poisson_slope_site))
+  poisson_slope_theta <- seq(
+    0,
+    1.75 * pi,
+    length.out = length(poisson_slope_levels)
+  )
+  coords_poisson_slope <- data.frame(
+    x = cos(poisson_slope_theta) +
+      seq_along(poisson_slope_levels) / (4 * length(poisson_slope_levels)),
+    y = sin(poisson_slope_theta),
+    row.names = poisson_slope_levels
+  )
+  poisson_slope_precision <- drmTMB:::drm_spatial_coords_precision(
+    coords_poisson_slope,
+    site = poisson_slope_levels,
+    group = "site"
+  )
+  poisson_slope_cov <- solve(as.matrix(poisson_slope_precision$precision))
+  poisson_slope_field <- as.vector(
+    t(chol(poisson_slope_cov)) %*%
+      stats::rnorm(length(poisson_slope_levels), sd = 0.40)
+  )
+  names(poisson_slope_field) <- poisson_slope_levels
+  poisson_slope_eta <- 0.45 -
+    0.18 * poisson_slope_x +
+    poisson_slope_x * poisson_slope_field[as.character(poisson_slope_site)]
+  dat_poisson_slope_only <- data.frame(
+    y = stats::rpois(length(poisson_slope_site), lambda = exp(poisson_slope_eta)),
+    x = poisson_slope_x,
+    site = poisson_slope_site
+  )
   set.seed(2026070404)
   beta_sigma_levels <- paste0("bs", seq_len(8L))
   beta_sigma_id <- factor(
@@ -343,6 +380,16 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     names(fit_poisson_plus_ordinary$sdpars$mu),
     c("(1 | id)", "spatial(1 | site)")
   )
+  fit_poisson_slope_only <- drmTMB(
+    bf(y ~ x + spatial(0 + x | site, coords = coords_poisson_slope)),
+    family = stats::poisson(link = "log"),
+    data = dat_poisson_slope_only,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_poisson_slope_only, "drmTMB")
+  expect_equal(as.integer(fit_poisson_slope_only$opt$convergence), 0L)
+  expect_true("spatial_mu" %in% names(fit_poisson_slope_only$random_effects))
+  expect_named(fit_poisson_slope_only$sdpars$mu, "spatial(0 + x | site)")
   expect_error(
     drmTMB(
       bf(y ~ x, zi ~ spatial(1 + x | id, coords = coords_poisson_zi)),
@@ -472,6 +519,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_poisson_zi_spatial_rejected",
       "qseries_count_mu_zeroinflated_poisson_structured_rejected",
       "qseries_count_mu_structured_plus_ordinary_rejected",
+      "qseries_count_mu_noncanonical_term_rejected",
       "qseries_beta_sigma_animal_rejected",
       "qseries_phylo_nbinom2_q1_sigma_one_slope_rejected",
       "qseries_spatial_nbinom2_q1_sigma_one_slope_rejected",
@@ -497,6 +545,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_fit",
+      "expected_fit",
       "expected_fit"
     )
   )
@@ -509,6 +558,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "Structured non-Gaussian paths",
       "unlabelled q=1",
       "Only one structured",
+      "",
       "",
       "",
       "",

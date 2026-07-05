@@ -5100,6 +5100,8 @@ drm_build_poisson_spec <- function(
     structured_plus_ordinary_types = "spatial",
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
+    allow_slope_only_structured_mu = TRUE,
+    slope_only_structured_mu_types = "spatial",
     family_label = "Poisson",
     inflated_label = "Zero-inflated Poisson"
   )
@@ -6788,7 +6790,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
       "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
-      "i" = "Structured non-Gaussian paths beyond those count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, pure or multiple structured count slopes, and structured count scale routes outside the NB2 one-slope gate, remain deferred until family-specific recovery evidence is stable."
+      "i" = "Structured non-Gaussian paths beyond those count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, and structured count scale routes outside the NB2 one-slope gate, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }
@@ -6993,6 +6995,8 @@ validate_count_structured_mu_term <- function(
   structured_plus_ordinary_types = character(0),
   allow_zero_inflated_structured_mu = FALSE,
   zero_inflated_structured_mu_types = character(0),
+  allow_slope_only_structured_mu = FALSE,
+  slope_only_structured_mu_types = character(0),
   family_label,
   inflated_label
 ) {
@@ -7017,6 +7021,10 @@ validate_count_structured_mu_term <- function(
   structured_plus_ordinary_allowed <- isTRUE(
     allow_structured_plus_ordinary
   ) && marker %in% structured_plus_ordinary_types
+  slope_only_structured_mu_allowed <- isTRUE(
+    allow_slope_only_structured_mu
+  ) && marker %in% slope_only_structured_mu_types &&
+    structured_term_is_slope_only(term)
   if (isTRUE(has_zi) && !isTRUE(zero_inflated_structured_mu_allowed)) {
     cli::cli_abort(c(
       "{family_label} structured {.code mu} effects are implemented only for ordinary {family_label} models.",
@@ -7039,7 +7047,8 @@ validate_count_structured_mu_term <- function(
     ))
   }
   count_supported_term <- structured_term_is_intercept_only(term) ||
-    structured_term_is_intercept_one_slope(term)
+    structured_term_is_intercept_one_slope(term) ||
+    slope_only_structured_mu_allowed
   if (!isTRUE(count_supported_term)) {
     cli::cli_abort(c(
       "{family_label} structured {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
@@ -8246,6 +8255,12 @@ structured_term_is_intercept_one_slope <- function(term) {
     length(term$coef_names) == 2L &&
     identical(term$coef_names[[1L]], "(Intercept)") &&
     identical(term$coef_names[[2L]], term$variables[[1L]])
+}
+
+structured_term_is_slope_only <- function(term) {
+  is.character(term$coef_names) &&
+    length(term$coef_names) == 1L &&
+    identical(term$coef_names[[1L]], term$variables[[1L]])
 }
 
 structured_term_has_labelled_intercept_one_slope <- function(term) {

@@ -800,21 +800,22 @@ public-support, q4/q8, or broad structured non-Gaussian support.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
 pre-optimization rejection contract for structured count `mu` routes the engine
-still rejects beyond the banked one-slope cells: a non-canonical (slope-only)
-coefficient, a labelled `q=2` covariance, a zero-inflated NB2 structured `mu`
-route, and simultaneous structured effect types. The Poisson structured `mu`
-route with a fixed `zi ~ 1` formula and the Poisson spatial structured `mu`
-plus ordinary `mu` random-effect route now live in the support cells and local
-first-four smoke as local fit-only rows. Each remaining rejection cell is
-rejected at the formula gate with its own message (for example `Only one
+still rejects beyond the banked one-slope cells: a labelled `q=2` covariance, a
+zero-inflated NB2 structured `mu` route, and simultaneous structured effect
+types. The Poisson structured `mu` route with a fixed `zi ~ 1` formula, the
+Poisson spatial structured `mu` plus ordinary `mu` random-effect route, and the
+Poisson fixed-covariance spatial slope-only structured `mu` route now live in
+the support cells and local first-four smoke as local fit-only rows. Each
+remaining rejection cell is rejected at the formula gate with its own message
+(for example `Only one
 structured`), backed by `tests/testthat/test-count-structured-mu.R`, so each
 linked unsupported `qseries_count_mu_*_rejected` cell stays `unsupported`.
 These rows answer the count `mu` half-cell question: the banked count `mu`
-one-slope cells do not imply multiple, labelled, structured-zero-inflation,
-NB2 zero-inflation, or multi-type structured count `mu` support. The rows are
-rejection or local fit-only evidence only and do not promote parser-ready,
-broad point-fit, bridge, interval, coverage, REML, AI-REML, public support, or
-q4/q8 status. The
+one-slope and local slope-only cells do not imply labelled q2 covariance,
+structured-zero-inflation, NB2 zero-inflation, multiple slopes, or multi-type
+structured count `mu` support. The rows are rejection or local fit-only evidence
+only and do not promote parser-ready, broad point-fit, bridge, interval,
+coverage, REML, AI-REML, public support, or q4/q8 status. The
 contracts anchor on engine message substrings; see
 `docs/dev-log/2026-06-27-rejection-contract-anchor-robustness-memo.md` for the
 recommendation to re-anchor on a condition class.

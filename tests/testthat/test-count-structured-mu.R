@@ -219,6 +219,56 @@ new_count_structured_mu_slope_data <- function(
   )
 }
 
+new_count_structured_mu_slope_only_data <- function(
+  seed = 2026070502,
+  n_level = 8L,
+  n_each = 25L,
+  sd_slope = 0.40,
+  sigma_nb2 = 0.25
+) {
+  set.seed(seed)
+  levels <- paste0("id", seq_len(n_level))
+  site <- rep(levels, each = n_each)
+  x <- stats::rnorm(length(site))
+
+  theta <- seq(0, 1.75 * pi, length.out = n_level)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_level) / (4 * n_level),
+    y = sin(theta)
+  )
+  rownames(coords) <- levels
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = levels,
+    group = "site"
+  )
+  spatial_covariance <- solve(as.matrix(precision$precision))
+  slope <- as.vector(
+    t(chol(spatial_covariance)) %*% stats::rnorm(n_level, sd = sd_slope)
+  )
+  names(slope) <- levels
+
+  beta_mu <- c(`(Intercept)` = 0.45, x = -0.18)
+  eta <- beta_mu[[1L]] + beta_mu[[2L]] * x + x * slope[site]
+  data <- data.frame(
+    poisson_spatial = stats::rpois(length(site), lambda = exp(eta)),
+    nb2_spatial = stats::rnbinom(
+      length(site),
+      size = 1 / sigma_nb2^2,
+      mu = exp(eta)
+    ),
+    x = x,
+    site = site
+  )
+
+  list(
+    data = data,
+    coords = coords,
+    beta_mu = beta_mu,
+    sigma_nb2 = sigma_nb2
+  )
+}
+
 expect_count_structured_mu_fit <- function(fit, type, group) {
   label <- paste0(type, "(1 | ", group, ")")
   key <- paste0(type, "_mu")
@@ -325,6 +375,42 @@ expect_count_structured_mu_slope_fit <- function(fit, type, group) {
   expect_equal(sd_targets$tmb_parameter, rep("log_sd_phylo", 2L))
   expect_equal(sd_targets$target_type, rep("direct", 2L))
   expect_true(all(sd_targets$profile_ready))
+
+  fixed_link <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu", type = "link")),
+    fixed_link + drmTMB:::phylo_mu_contribution(fit),
+    tolerance = 1e-8
+  )
+  expect_true(all(predict(fit, dpar = "mu") > 0))
+
+  checks <- check_drm(fit)
+  structured_check <- checks[checks$check == paste0(type, "_mu_diagnostics"), ]
+  expect_equal(nrow(structured_check), 1L)
+  expect_equal(structured_check$status, "ok")
+  expect_true(attr(checks, "ok"))
+}
+
+expect_count_structured_mu_slope_only_fit <- function(fit, type, group) {
+  label <- paste0(type, "(0 + x | ", group, ")")
+  key <- paste0(type, "_mu")
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$structured$phylo_mu$type, type)
+  expect_equal(fit$model$structured$phylo_mu$q, 1L)
+  expect_equal(fit$model$structured$phylo_mu$coef_names, "x")
+  expect_named(fit$sdpars$mu, label)
+  expect_gt(unname(fit$sdpars$mu[[label]]), 0)
+  expect_equal(names(ranef(fit)), key)
+  expect_equal(ranef(fit, key), fit$random_effects[[key]])
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == paste0("sd:mu:", label), , drop = FALSE]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "log_sd_phylo")
+  expect_equal(sd_target$target_type, "direct")
+  expect_true(sd_target$profile_ready)
 
   fixed_link <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
   expect_equal(
@@ -482,11 +568,25 @@ test_that("count structured mu keeps planned neighboring routes closed", {
   coords <- sim$coords
   Q <- sim$Q
 
+  sim_slope_only <- new_count_structured_mu_slope_only_data()
+  dat_slope_only <- sim_slope_only$data
+  coords_slope_only <- sim_slope_only$coords
+  fit_slope_only <- drmTMB(
+    bf(poisson_spatial ~ x + spatial(0 + x | site, coords = coords_slope_only)),
+    family = stats::poisson(link = "log"),
+    data = dat_slope_only,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  expect_count_structured_mu_slope_only_fit(
+    fit_slope_only,
+    "spatial",
+    "site"
+  )
   expect_error(
     drmTMB(
-      bf(poisson_spatial ~ x + spatial(0 + x | site, coords = coords)),
-      family = stats::poisson(link = "log"),
-      data = dat
+      bf(nb2_spatial ~ x + spatial(0 + x | site, coords = coords_slope_only)),
+      family = nbinom2(),
+      data = dat_slope_only
     ),
     "intercept-only or one-slope"
   )

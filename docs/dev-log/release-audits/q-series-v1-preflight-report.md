@@ -16,12 +16,12 @@ Mission Control passed in this generated report.
 
 | Measure | Rows and percent |
 | --- | --- |
-| Practical v1.0 row surface | 86/104 (82.7%) |
+| Practical v1.0 row surface | 87/104 (83.7%) |
 | Gaussian v1.0 core | 56/67 (83.6%) |
-| Basic-distribution recovery | 30/37 (81.1%) |
+| Basic-distribution recovery | 31/37 (83.8%) |
 | Exact `inference_ready` anchors | 8/104 (7.7%) |
 | `supported` authority | 0/104 (0.0%) |
-| Post-v1.0 validation/design | 18/104 (17.3%) |
+| Post-v1.0 validation/design | 17/104 (16.3%) |
 
 ## Distance To Row-Accounting Targets
 
@@ -32,8 +32,8 @@ coverage jobs, public release claims, `inference_ready`, or `supported` status.
 | --- | ---: | ---: |
 | 75% practical surface | 78/104 | 0 |
 | 80% practical surface | 84/104 | 0 |
-| 90% practical surface | 94/104 | 8 |
-| 100% practical surface | 104/104 | 18 |
+| 90% practical surface | 94/104 | 7 |
+| 100% practical surface | 104/104 | 17 |
 
 ## Next Candidate Review Queue
 
@@ -49,11 +49,11 @@ Every generated candidate remains `coverage_not_authorized` and
 | 3 | next_four_after_75_percent | `qseries_count_mu_labelled_q2_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
 | 4 | next_four_after_75_percent | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
 | 5 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_nbinom2_structured_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 6 | additional_six_to_review_for_80_percent | `qseries_count_mu_noncanonical_term_rejected` | poisson() | spatial | count-location design gap; prove recovery scope before any movement |
-| 7 | additional_six_to_review_for_80_percent | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families | all_structured | count-location design gap; prove recovery scope before any movement |
-| 8 | additional_six_to_review_for_80_percent | `qseries_animal_q2_plus_q2_sigma_rejected` | biv_gaussian() | animal | Gaussian scale-side route gap; design a supported route before any movement |
-| 9 | additional_six_to_review_for_80_percent | `qseries_relmat_q2_plus_q2_sigma_rejected` | biv_gaussian() | relmat | Gaussian scale-side route gap; design a supported route before any movement |
-| 10 | additional_six_to_review_for_80_percent | `qseries_spatial_q2_plus_q2_sigma_rejected` | biv_gaussian() | spatial | Gaussian scale-side route gap; design a supported route before any movement |
+| 6 | additional_six_to_review_for_80_percent | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families | all_structured | count-location design gap; prove recovery scope before any movement |
+| 7 | additional_six_to_review_for_80_percent | `qseries_animal_q2_plus_q2_sigma_rejected` | biv_gaussian() | animal | Gaussian scale-side route gap; design a supported route before any movement |
+| 8 | additional_six_to_review_for_80_percent | `qseries_relmat_q2_plus_q2_sigma_rejected` | biv_gaussian() | relmat | Gaussian scale-side route gap; design a supported route before any movement |
+| 9 | additional_six_to_review_for_80_percent | `qseries_spatial_q2_plus_q2_sigma_rejected` | biv_gaussian() | spatial | Gaussian scale-side route gap; design a supported route before any movement |
+| 10 | additional_six_to_review_for_80_percent | `qseries_animal_q6_planned` | biv_gaussian() | animal | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
 
 ## Next-Four After 75% Review Packet
 

@@ -1741,9 +1741,10 @@ explicit reviewer-approved artifact-only smoke followed by a separate Tranche
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
 the 37 non-Gaussian Q-Series cells. It assigns eighteen Poisson/NB2 count
 rows to `non_gaussian_recovery_only`, zero rows to
-`non_gaussian_recovery_caveat`, eighteen intentional rejection rows to
+`non_gaussian_recovery_caveat`, five intentional rejection rows to
 `non_gaussian_rejected`, and one broader family-design row to
-`non_gaussian_planned`. The table preserves the current
+`non_gaussian_planned`; thirteen local-debug fit-only rows sit in
+`non_gaussian_point_only`. The table preserves the current
 family distribution: 14 Poisson rows, 15 NB2 rows, two Student rows, two beta
 rows, and one row each for Gamma, cumulative-logit, truncated-NB2, and the
 non-count/extended-count future-design bucket. All linked rows keep
@@ -1910,9 +1911,10 @@ and extractor evidence for the exact unlabelled intercept-plus-one-slope count
 cells, and the row text now also records the banked 80-rep local recovery grid.
 That recovery grid is convergence and SD bias/RMSE evidence only. Bridge
 support, intervals, coverage, REML, AI-REML, q2/q4 count covariance,
-zero-inflated structured effects, labelled count covariance, pure or multiple
+zero-inflated structured effects, labelled count covariance, slope-only count
+routes outside the admitted Poisson fixed-covariance spatial gate, multiple
 count slopes, and structured count scale routes remain planned or unsupported
-unless an exact future support-cell row says otherwise.
+unless an exact support-cell row says otherwise.
 
 `structured-re-count-slope-recovery-results.tsv` records the local 80-rep
 recovery grid for the eight Poisson/NB2 q1 `mu` one-slope count cells. It
@@ -2084,14 +2086,14 @@ Those moved rows still do not promote parser-ready broad support, bridge,
 interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
-pre-optimization rejection contract for four structured count `mu` routes the
-engine still rejects beyond the banked one-slope cells: non-canonical
-(slope-only) coefficient, labelled `q=2` covariance, zero-inflated NB2
-structured `mu`, and simultaneous structured effect types. The Poisson
-structured `mu` route with fixed `zi ~ 1` and the Poisson spatial structured
-`mu` plus ordinary `mu` random-effect route now live in the support cells and
-local first-four smoke as local fit-only evidence. Each remaining cell is
-rejected at the formula gate with its own message, backed by
+pre-optimization rejection contract for three structured count `mu` routes the
+engine still rejects beyond the banked one-slope cells: labelled `q=2`
+covariance, zero-inflated NB2 structured `mu`, and simultaneous structured
+effect types. The Poisson structured `mu` route with fixed `zi ~ 1`, the
+Poisson spatial structured `mu` plus ordinary `mu` random-effect route, and the
+Poisson fixed-covariance spatial slope-only structured `mu` route now live in
+the support cells and local first-four smoke as local fit-only evidence. Each
+remaining cell is rejected at the formula gate with its own message, backed by
 `tests/testthat/test-count-structured-mu.R`, and stays `unsupported`. It
 promotes no parser-ready, broad point-fit, bridge, interval, coverage, REML,
 AI-REML, public support, or q4/q8 status.

@@ -183,6 +183,43 @@ qseries_v1_first_four_fixture <- function() {
     site = factor(poisson_plus_site, levels = poisson_plus_sites),
     id = factor(poisson_plus_id, levels = poisson_plus_ids)
   )
+  set.seed(2026070502)
+  poisson_slope_levels <- paste0("ps", seq_len(8L))
+  poisson_slope_site <- factor(
+    rep(poisson_slope_levels, each = 25L),
+    levels = poisson_slope_levels
+  )
+  poisson_slope_x <- stats::rnorm(length(poisson_slope_site))
+  poisson_slope_theta <- seq(
+    0,
+    1.75 * pi,
+    length.out = length(poisson_slope_levels)
+  )
+  coords_poisson_slope <- data.frame(
+    x = cos(poisson_slope_theta) +
+      seq_along(poisson_slope_levels) / (4 * length(poisson_slope_levels)),
+    y = sin(poisson_slope_theta),
+    row.names = poisson_slope_levels
+  )
+  poisson_slope_precision <- drmTMB:::drm_spatial_coords_precision(
+    coords_poisson_slope,
+    site = poisson_slope_levels,
+    group = "site"
+  )
+  poisson_slope_cov <- solve(as.matrix(poisson_slope_precision$precision))
+  poisson_slope_field <- as.vector(
+    t(chol(poisson_slope_cov)) %*%
+      stats::rnorm(length(poisson_slope_levels), sd = 0.40)
+  )
+  names(poisson_slope_field) <- poisson_slope_levels
+  poisson_slope_eta <- 0.45 -
+    0.18 * poisson_slope_x +
+    poisson_slope_x * poisson_slope_field[as.character(poisson_slope_site)]
+  dat_poisson_slope_only <- data.frame(
+    y = stats::rpois(length(poisson_slope_site), lambda = exp(poisson_slope_eta)),
+    x = poisson_slope_x,
+    site = poisson_slope_site
+  )
   set.seed(2026070404)
   beta_sigma_levels <- paste0("bs", seq_len(8L))
   beta_sigma_id <- factor(
@@ -458,6 +495,25 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
+      gate_id = "count_struct_mu_fit_noncanonical_poisson_spatial",
+      cell_id = "qseries_count_mu_noncanonical_term_rejected",
+      formula_cell = "spatial(0 + x | site, coords = coords) in mu",
+      family = "poisson()",
+      provider = "spatial",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(
+          y ~ x + spatial(0 + x | site, coords = coords_poisson_slope)
+        ),
+        family = stats::poisson(link = "log"),
+        data = dat_poisson_slope_only,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "spatial_mu",
+      expected_sd_pattern = "^spatial\\(0 \\+ x",
+      env = environment()
+    ),
+    list(
       gate_id = "nongaussian_struct_fit_beta_sigma_animal",
       cell_id = "qseries_beta_sigma_animal_rejected",
       formula_cell = "animal(1 | id, pedigree = ped) in sigma",
@@ -631,7 +687,8 @@ qseries_v1_run_rejection_case <- function(case) {
       "local debug smoke only; beta/Gamma/Student structured mu rows,",
       "the Student structured nu row, the Poisson structured zi row,",
       "the Poisson structured mu plus fixed zi row, the Poisson",
-      "structured-plus-ordinary mu row,",
+      "structured-plus-ordinary mu row, the Poisson spatial slope-only",
+      "structured mu row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence; the current first-four candidate",
       "rejection rows are exact local debug boundary checks;",
