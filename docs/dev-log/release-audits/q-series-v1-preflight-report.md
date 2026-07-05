@@ -16,12 +16,12 @@ Mission Control passed in this generated report.
 
 | Measure | Rows and percent |
 | --- | --- |
-| Practical v1.0 row surface | 82/104 (78.8%) |
+| Practical v1.0 row surface | 84/104 (80.8%) |
 | Gaussian v1.0 core | 56/67 (83.6%) |
-| Basic-distribution recovery | 26/37 (70.3%) |
+| Basic-distribution recovery | 28/37 (75.7%) |
 | Exact `inference_ready` anchors | 8/104 (7.7%) |
 | `supported` authority | 0/104 (0.0%) |
-| Post-v1.0 validation/design | 22/104 (21.2%) |
+| Post-v1.0 validation/design | 20/104 (19.2%) |
 
 ## Distance To Row-Accounting Targets
 
@@ -31,9 +31,9 @@ coverage jobs, public release claims, `inference_ready`, or `supported` status.
 | Target | Required practical-surface rows | Rows still needed |
 | --- | ---: | ---: |
 | 75% practical surface | 78/104 | 0 |
-| 80% practical surface | 84/104 | 2 |
-| 90% practical surface | 94/104 | 12 |
-| 100% practical surface | 104/104 | 22 |
+| 80% practical surface | 84/104 | 0 |
+| 90% practical surface | 94/104 | 10 |
+| 100% practical surface | 104/104 | 20 |
 
 ## Next Candidate Review Queue
 
@@ -45,15 +45,15 @@ Every generated candidate remains `coverage_not_authorized` and
 | Rank | Target band | Cell | Family | Provider | Review reason |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | next_four_after_75_percent | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() | phylo | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 2 | next_four_after_75_percent | `qseries_student_nu_phylo_rejected` | student() | phylo | non-location family-parameter design gap; keep intervals and coverage deferred |
-| 3 | next_four_after_75_percent | `qseries_poisson_zi_spatial_rejected` | poisson() | spatial | non-location family-parameter design gap; keep intervals and coverage deferred |
-| 4 | next_four_after_75_percent | `qseries_truncnbinom2_hu_relmat_rejected` | truncated_nbinom2() | relmat | non-location family-parameter design gap; keep intervals and coverage deferred |
-| 5 | additional_six_to_review_for_80_percent | `qseries_count_mu_labelled_q2_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 6 | additional_six_to_review_for_80_percent | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 7 | additional_six_to_review_for_80_percent | `qseries_count_mu_structured_plus_ordinary_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 8 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_nbinom2_structured_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 9 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_poisson_structured_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
-| 10 | additional_six_to_review_for_80_percent | `qseries_count_mu_noncanonical_term_rejected` | poisson() | spatial | count-location design gap; prove recovery scope before any movement |
+| 2 | next_four_after_75_percent | `qseries_truncnbinom2_hu_relmat_rejected` | truncated_nbinom2() | relmat | non-location family-parameter design gap; keep intervals and coverage deferred |
+| 3 | next_four_after_75_percent | `qseries_count_mu_labelled_q2_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 4 | next_four_after_75_percent | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 5 | additional_six_to_review_for_80_percent | `qseries_count_mu_structured_plus_ordinary_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 6 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_nbinom2_structured_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 7 | additional_six_to_review_for_80_percent | `qseries_count_mu_zeroinflated_poisson_structured_rejected` | poisson() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
+| 8 | additional_six_to_review_for_80_percent | `qseries_count_mu_noncanonical_term_rejected` | poisson() | spatial | count-location design gap; prove recovery scope before any movement |
+| 9 | additional_six_to_review_for_80_percent | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families | all_structured | count-location design gap; prove recovery scope before any movement |
+| 10 | additional_six_to_review_for_80_percent | `qseries_animal_q2_plus_q2_sigma_rejected` | biv_gaussian() | animal | Gaussian scale-side route gap; design a supported route before any movement |
 
 ## Next-Four After 75% Review Packet
 
@@ -64,9 +64,9 @@ does not authorize code changes, compute, status edits, coverage, or promotion.
 | Rank | Cell | Model scope | Minimum recovery evidence | Next action |
 | ---: | --- | --- | --- | --- |
 | 1 | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() q1 mu intercept-only phylo route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 2 | `qseries_student_nu_phylo_rejected` | student() q1 nu intercept-only phylo route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 3 | `qseries_poisson_zi_spatial_rejected` | poisson() q1 zi intercept-only spatial route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 4 | `qseries_truncnbinom2_hu_relmat_rejected` | truncated_nbinom2() q1 hu intercept-only relmat route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 2 | `qseries_truncnbinom2_hu_relmat_rejected` | truncated_nbinom2() q1 hu intercept-only relmat route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 3 | `qseries_count_mu_labelled_q2_rejected` | poisson() q1 mu intercept-only spatial route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 4 | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() q1 mu intercept-only spatial route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
 
 ## First Candidate Design Contract
 
@@ -102,9 +102,9 @@ status movement is proposed.
 | Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
 | --- | --- | --- | --- | --- |
 | `qseries_ordinal_mu_phylo_rejected` | phylo(1 | id, tree = tree) in mu | y_i ~ cumulative_logit(mu_i, cutpoints); latent location shift eta_i = X_i beta + u_tip[i]; u ~ N(0, sigma_phylo^2 A_phylo); cutpoints fixed during first debug fixture | one local debug fixture may check finite fit, phylo SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run | do_not_promote |
-| `qseries_student_nu_phylo_rejected` | phylo(1 | id, tree = tree) in nu | y_i ~ student(mu_i, sigma, nu_i); mu_i = X_i beta; log(nu_i) or supported shape link receives u_tip[i] only after the Student shape parameterization is reviewed; u ~ N(0, sigma_phylo^2 A_phylo) | one local debug fixture may check finite fit, phylo shape-side SD extraction, extractor visibility, and deterministic seed provenance only after the shape-link contract is reviewed; not a denominator or coverage run | do_not_promote |
-| `qseries_poisson_zi_spatial_rejected` | spatial(1 | id, coords = coords) in zi | y_i ~ zero-inflated Poisson(mu_i, pi_i); log(mu_i) = X_i beta; logit(pi_i) = Z_i gamma + u_site[i]; u ~ N(0, sigma_spatial^2 C(distance)) | one local debug fixture may check finite fit, spatial zero-inflation SD extraction, extractor visibility, and deterministic seed provenance only after the zero-inflation route is reviewed; not a denominator or coverage run | do_not_promote |
 | `qseries_truncnbinom2_hu_relmat_rejected` | relmat(1 | id, Q = Q) in hu | y_i ~ hurdle NB2(mu_i, sigma_i, pi_i); log(mu_i) = X_i beta; logit(pi_i) = Z_i gamma + u_id[i]; u ~ N(0, sigma_relmat^2 K) | one local debug fixture may check finite fit, relmat hurdle-side SD extraction, extractor visibility, and deterministic seed provenance only after the hurdle route is reviewed; not a denominator or coverage run | do_not_promote |
+| `qseries_count_mu_labelled_q2_rejected` | spatial(1 | p | site, coords = coords) in mu | y_i ~ Poisson(mu_i); log(mu_i) = X_i beta + u_endpoint,site[i]; labelled q=2 structured count-mu covariance would require an explicit endpoint/block mapping before parser admission | one local debug fixture may only reproduce the current labelled q=2 rejection or, after review, check parser diagnostics; not a denominator or coverage run | do_not_promote |
+| `qseries_count_mu_simultaneous_structured_types_rejected` | spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu | y_i ~ NB2(mu_i, phi); log(mu_i) = X_i beta + u_spatial,site[i] + u_relmat,id[i]; simultaneous structured providers require an explicit additive covariance and extractor policy | one local debug fixture may only reproduce the current simultaneous-provider rejection or, after review, check parser diagnostics; not a denominator or coverage run | do_not_promote |
 
 ## Next-Four After 75% Local-Debug Fixture Contracts
 
@@ -125,9 +125,9 @@ coverage evidence, status movement, or public support.
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
 | --- | --- | --- | --- | --- |
 | `qseries_ordinal_mu_phylo_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
-| `qseries_student_nu_phylo_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
-| `qseries_poisson_zi_spatial_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 | `qseries_truncnbinom2_hu_relmat_rejected` | local_debug_only_no_denominator | Structured non-Gaussian paths | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+| `qseries_count_mu_labelled_q2_rejected` | local_debug_only_no_denominator | unlabelled q=1 | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+| `qseries_count_mu_simultaneous_structured_types_rejected` | local_debug_only_no_denominator | Only one structured | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 
 ## Boundary
 

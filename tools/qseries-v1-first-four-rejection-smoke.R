@@ -89,6 +89,63 @@ qseries_v1_first_four_fixture <- function() {
     y = rep(seq_len(2L), times = 4L),
     row.names = student_levels
   )
+  set.seed(2026070401)
+  student_nu_levels <- paste0("sn", seq_len(6L))
+  student_nu_id <- factor(
+    rep(student_nu_levels, each = 30L),
+    levels = student_nu_levels
+  )
+  student_nu_x <- stats::rnorm(length(student_nu_id))
+  student_nu_field <- stats::rnorm(length(student_nu_levels), sd = 0.02)
+  names(student_nu_field) <- student_nu_levels
+  student_nu <- 2 + exp(
+    log(5) + student_nu_field[as.character(student_nu_id)]
+  )
+  student_nu_mu <- 0.1 + 0.35 * student_nu_x
+  dat_student_nu_phylo <- data.frame(
+    y = student_nu_mu + 0.25 * stats::rt(length(student_nu_id), df = student_nu),
+    x = student_nu_x,
+    id = student_nu_id
+  )
+  tree_student_nu <- structure(
+    list(
+      edge = cbind(
+        length(student_nu_levels) + 1L,
+        seq_len(length(student_nu_levels))
+      ),
+      tip.label = student_nu_levels,
+      Nnode = 1L,
+      edge.length = rep(1, length(student_nu_levels))
+    ),
+    class = "phylo"
+  )
+  set.seed(2026070407)
+  poisson_zi_levels <- paste0("pz", seq_len(8L))
+  poisson_zi_id <- factor(
+    rep(poisson_zi_levels, each = 24L),
+    levels = poisson_zi_levels
+  )
+  poisson_zi_x <- stats::rnorm(length(poisson_zi_id))
+  poisson_zi_field <- stats::rnorm(length(poisson_zi_levels), sd = 0.75)
+  names(poisson_zi_field) <- poisson_zi_levels
+  poisson_zi_mu <- exp(0.7 + 0.25 * poisson_zi_x)
+  poisson_zi_prob <- stats::plogis(
+    -0.8 + poisson_zi_field[as.character(poisson_zi_id)]
+  )
+  dat_poisson_zi_spatial <- data.frame(
+    y = ifelse(
+      stats::rbinom(length(poisson_zi_id), size = 1L, prob = poisson_zi_prob) == 1L,
+      0L,
+      stats::rpois(length(poisson_zi_id), lambda = poisson_zi_mu)
+    ),
+    x = poisson_zi_x,
+    id = poisson_zi_id
+  )
+  coords_poisson_zi <- data.frame(
+    x = rep(seq_len(4L), each = 2L),
+    y = rep(seq_len(2L), times = 4L),
+    row.names = poisson_zi_levels
+  )
   set.seed(2026070404)
   beta_sigma_levels <- paste0("bs", seq_len(8L))
   beta_sigma_id <- factor(
@@ -236,6 +293,42 @@ qseries_v1_first_four_fixture <- function() {
         control = drmTMB::drm_control(se = FALSE)
       )),
       expected_random_effect = "spatial_mu",
+      expected_sd_pattern = "^spatial\\(",
+      env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_student_nu_phylo",
+      cell_id = "qseries_student_nu_phylo_rejected",
+      formula_cell = "phylo(1 | id, tree = tree) in nu",
+      family = "student()",
+      provider = "phylo",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ 1, nu ~ phylo(1 | id, tree = tree_student_nu)),
+        family = drmTMB::student(),
+        data = dat_student_nu_phylo,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "phylo_nu",
+      expected_sd_dpar = "nu",
+      expected_sd_pattern = "^phylo\\(",
+      env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_poisson_zi_spatial",
+      cell_id = "qseries_poisson_zi_spatial_rejected",
+      formula_cell = "spatial(1 | id, coords = coords) in zi",
+      family = "poisson()",
+      provider = "spatial",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, zi ~ spatial(1 | id, coords = coords_poisson_zi)),
+        family = stats::poisson(link = "log"),
+        data = dat_poisson_zi_spatial,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "spatial_zi",
+      expected_sd_dpar = "zi",
       expected_sd_pattern = "^spatial\\(",
       env = environment()
     ),
@@ -408,6 +501,7 @@ qseries_v1_run_rejection_case <- function(case) {
     observed_error = observed,
     claim_boundary = paste(
       "local debug smoke only; beta/Gamma/Student structured mu rows,",
+      "the Student structured nu row, the Poisson structured zi row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",

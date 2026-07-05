@@ -3230,6 +3230,19 @@ drm_build_student_ls_spec <- function(
   mu_spatial <- extract_gaussian_mu_known_term(mu_entry, "spatial")
   mu_entry$rhs <- mu_spatial$rhs
   validate_student_spatial_mu_structured_term(mu_spatial$term)
+  nu_phylo <- extract_gaussian_mu_phylo_term(nu_entry, dpar = "nu")
+  nu_entry$rhs <- nu_phylo$rhs
+  if (!is.null(nu_phylo$term)) {
+    nu_phylo$term$dpars <- "nu"
+  }
+  validate_student_phylo_nu_structured_term(nu_phylo$term)
+  if (!is.null(mu_spatial$term) && !is.null(nu_phylo$term)) {
+    cli::cli_abort(c(
+      "{.fn student} structured effects currently admit only one endpoint-specific route at a time.",
+      "x" = "The formula contains both {.code mu} spatial and {.code nu} phylo structured terms.",
+      "i" = "Fit the Student location or shape structured recovery slice separately until location-shape recovery evidence exists."
+    ))
+  }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_student_mu_random_terms(mu_re$terms)
@@ -3250,7 +3263,8 @@ drm_build_student_ls_spec <- function(
     all.vars(f_sigma),
     all.vars(f_nu),
     random_effect_vars(mu_re$terms),
-    structured_mu_vars(mu_spatial$term)
+    structured_mu_vars(mu_spatial$term),
+    structured_mu_vars(nu_phylo$term)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -3298,7 +3312,16 @@ drm_build_student_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in Student-t model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
-  phylo_mu <- build_structured_mu_structure(mu_spatial$term, data_model, env)
+  student_structured_term <- if (!is.null(nu_phylo$term)) {
+    nu_phylo$term
+  } else {
+    mu_spatial$term
+  }
+  phylo_mu <- build_structured_mu_structure(
+    student_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "student",
@@ -5048,6 +5071,14 @@ drm_build_poisson_spec <- function(
   mu_entry$rhs <- mu_animal$rhs
   mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
   mu_entry$rhs <- mu_relmat$rhs
+  zi_spatial <- list(rhs = NULL, term = NULL)
+  if (!is.null(zi_entry)) {
+    zi_spatial <- extract_gaussian_mu_spatial_term(zi_entry, dpar = "zi")
+    zi_entry$rhs <- zi_spatial$rhs
+    if (!is.null(zi_spatial$term)) {
+      zi_spatial$term$dpars <- "zi"
+    }
+  }
   mu_structured_term <- select_count_mu_structured_term(
     list(
       phylo = mu_phylo$term,
@@ -5067,6 +5098,11 @@ drm_build_poisson_spec <- function(
     has_zi = !is.null(zi_entry),
     family_label = "Poisson",
     inflated_label = "Zero-inflated Poisson"
+  )
+  validate_poisson_spatial_zi_structured_term(
+    zi_spatial$term,
+    mu_re$terms,
+    mu_structured_term
   )
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
@@ -5127,6 +5163,7 @@ drm_build_poisson_spec <- function(
     if (!is.null(f_zi)) all.vars(f_zi),
     impute_vars,
     structured_mu_vars(mu_structured_term),
+    structured_mu_vars(zi_spatial$term),
     random_effect_vars(mu_re$terms)
   ))
   if (length(vars) > 0L) {
@@ -5229,9 +5266,18 @@ drm_build_poisson_spec <- function(
   has_zi <- !is.null(X_zi)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
-  phylo_mu <- build_structured_mu_structure(mu_structured_term, data_model, env)
+  poisson_structured_term <- if (!is.null(zi_spatial$term)) {
+    zi_spatial$term
+  } else {
+    mu_structured_term
+  }
+  phylo_mu <- build_structured_mu_structure(
+    poisson_structured_term,
+    data_model,
+    env
+  )
   start <- if (has_zi) {
-    zi_poisson_start(y, X_mu, X_zi, offset_mu)
+    zi_poisson_start(y, X_mu, X_zi, offset_mu, phylo_mu = phylo_mu)
   } else {
     poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
   }
@@ -5291,7 +5337,7 @@ drm_build_poisson_spec <- function(
     keep = keep,
     dpars = if (has_zi) c("mu", "zi") else "mu",
     start = start,
-    map = if (has_zi) zi_poisson_map() else poisson_map(re_mu, phylo_mu),
+    map = if (has_zi) zi_poisson_map(phylo_mu) else poisson_map(re_mu, phylo_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
@@ -6990,6 +7036,46 @@ validate_count_structured_mu_term <- function(
   invisible(NULL)
 }
 
+validate_poisson_spatial_zi_structured_term <- function(
+  term,
+  mu_terms,
+  mu_structured_term
+) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "spatial")) {
+    cli::cli_abort(c(
+      "Zero-inflated Poisson structured {.code zi} effects currently admit only the first {.fn spatial} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn phylo}, {.fn animal}, {.fn relmat}, structured slopes, q2/q4, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (length(mu_terms) > 0L || !is.null(mu_structured_term)) {
+    cli::cli_abort(c(
+      "Zero-inflated Poisson structured {.code zi} effects cannot be combined with {.code mu} random effects in this first zero-inflation gate.",
+      "x" = "The formula contains a structured {.code zi} effect plus an ordinary or structured {.code mu} random effect.",
+      "i" = "Fit the structured zero-inflation route or the count-location route separately until joint recovery tests exist."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-inflated Poisson {.fn spatial} {.code zi} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code zi ~ spatial(1 | id, coords = coords)} for the v1.0 recovery gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "Zero-inflated Poisson {.fn spatial} {.code zi} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured zero-inflation slopes, q2/q4 covariance, and count location-inflation blocks remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
+}
+
 select_count_sigma_structured_term <- function(structured_terms, family_label) {
   active_structured <- names(structured_terms)[
     !vapply(structured_terms, is.null, logical(1L))
@@ -7206,6 +7292,35 @@ validate_student_spatial_mu_structured_term <- function(term) {
       "{.fn student} {.fn spatial} {.code mu} effects currently support only intercept-only structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Structured Student-t slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_student_phylo_nu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "phylo")) {
+    cli::cli_abort(c(
+      "{.fn student} structured {.code nu} effects currently admit only the first {.fn phylo} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn spatial}, {.fn animal}, {.fn relmat}, structured slopes, scale routes, q2/q4, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn student} {.fn phylo} {.code nu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)} for the v1.0 recovery gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn student} {.fn phylo} {.code nu} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured Student-t shape slopes, q2/q4 covariance, and location-shape blocks remain post-v1.0 design work."
     ))
   }
   invisible(NULL)
@@ -8333,8 +8448,8 @@ structured_mu_random_effect_key <- function(phylo_mu) {
   } else {
     "mu"
   }
-  suffix <- if (length(endpoint_dpars) == 1L && identical(endpoint_dpars, "sigma")) {
-    "sigma"
+  suffix <- if (length(endpoint_dpars) == 1L) {
+    endpoint_dpars
   } else {
     "mu"
   }
@@ -8399,7 +8514,7 @@ phylo_mu_dpar_codes <- function(phylo_mu) {
     return(0L)
   }
   family <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
-  codes <- match(family, c("mu", "sigma")) - 1L
+  codes <- match(family, c("mu", "sigma", "nu", "zi", "hu")) - 1L
   if (anyNA(codes)) {
     cli::cli_abort(
       "Internal error: structured-effect endpoint has unknown distributional parameter {.val {family[is.na(codes)][[1L]]}}."
@@ -13748,8 +13863,14 @@ poisson_map <- function(
   out
 }
 
-zi_poisson_start <- function(y, X_mu, X_zi, offset_mu = rep(0, length(y))) {
-  poisson <- poisson_start(y, X_mu, offset_mu)
+zi_poisson_start <- function(
+  y,
+  X_mu,
+  X_zi,
+  offset_mu = rep(0, length(y)),
+  phylo_mu = empty_phylo_mu_structure()
+) {
+  poisson <- poisson_start(y, X_mu, offset_mu, phylo_mu = phylo_mu)
   beta_mu <- poisson$beta_mu
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
   observed_zero <- mean(y == 0)
@@ -13786,15 +13907,15 @@ zi_poisson_start <- function(y, X_mu, X_zi, offset_mu = rep(0, length(y))) {
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = poisson$u_phylo,
+      log_sd_phylo = poisson$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
 }
 
-zi_poisson_map <- function() {
-  out <- poisson_map()
+zi_poisson_map <- function(phylo_mu = empty_phylo_mu_structure()) {
+  out <- poisson_map(phylo_mu = phylo_mu)
   out$beta_zi <- NULL
   out
 }
@@ -15758,6 +15879,7 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "zi_poisson")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 8L,
       y = spec$y,
@@ -15806,11 +15928,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "nbinom2")) {
@@ -16439,6 +16573,7 @@ split_tmb_sdpars <- function(par, spec) {
         "beta",
         "beta_binomial",
         "poisson",
+        "zi_poisson",
         "nbinom2",
         "truncated_nbinom2"
       )
@@ -16723,6 +16858,7 @@ split_tmb_random_effects <- function(par, spec) {
         "beta",
         "beta_binomial",
         "poisson",
+        "zi_poisson",
         "nbinom2",
         "truncated_nbinom2"
       )

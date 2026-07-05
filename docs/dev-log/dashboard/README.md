@@ -2071,17 +2071,14 @@ parameter. The contract does not promote parser-ready, point-fit, bridge,
 interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
 `structured-re-nongaussian-structured-family-rejection-contract.tsv` records
-the exact pre-optimization rejection contract for structured-effect routes the
-engine already rejects across non-Gaussian families and endpoints: `student()`,
-`beta()`, `Gamma()`, `cumulative_logit()`, `poisson()`, and
-`truncated_nbinom2()` on `mu`, `sigma`, `nu`, `zi`, or `hu` with `spatial()`,
-`animal()`, `relmat()`, or `phylo()`. Each intercept-only `q1` route is rejected
-at the formula gate (`Structured non-Gaussian paths`), so each linked
-`qseries_*_rejected` cell stays `unsupported`. This completes the exact-cell
-boundary coverage: structured support for one family, endpoint, or provider
-never implies it for another. The contract does not promote parser-ready,
-point-fit, bridge, interval, coverage, REML, AI-REML, public support, or q4/q8
-status.
+the active pre-optimization rejection contract for the remaining
+structured-family routes the engine still rejects at the formula gate:
+`cumulative_logit()` `mu` with `phylo()` and `truncated_nbinom2()` `hu` with
+`relmat()`. The previously banked beta, Gamma, Student `mu`, Student `nu`,
+Poisson `zi`, beta `sigma`, and NB2 `sigma` one-slope rows now live in the
+support cells and the local first-four smoke as local fit-only recovery rows.
+Those moved rows still do not promote parser-ready broad support, bridge,
+interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
 pre-optimization rejection contract for six structured count `mu` routes the

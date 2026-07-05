@@ -19,6 +19,7 @@ SUPPORT_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-support-cel
 LEDGER_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-v1-release-ledger.tsv"
 REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-nongaussian-structured-family-rejection-contract.tsv"
 COUNT_SIGMA_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-count-slope-sigma-one-slope-rejection-contract.tsv"
+COUNT_MU_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-count-structured-mu-rejection-contract.tsv"
 DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-report.md"
 DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
 DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
@@ -537,6 +538,22 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may check finite fit, relmat hurdle-side SD extraction, extractor visibility, and deterministic seed provenance only after the hurdle route is reviewed; not a denominator or coverage run",
         "next_action": "review the truncated NB2 hu relmat design contract before any hurdle code, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_count_mu_labelled_q2_rejected": {
+        "contract_id": "qseries_v1_count_mu_labelled_q2_design_contract",
+        "model_contract": "y_i ~ Poisson(mu_i); log(mu_i) = X_i beta + u_endpoint,site[i]; labelled q=2 structured count-mu covariance would require an explicit endpoint/block mapping before parser admission",
+        "dgp_requirements": "count response y >= 0; named spatial levels and valid coordinates; labelled endpoint/block syntax present; enough within-level replication to detect labelled covariance mistakes",
+        "implementation_requirements": "derive the labelled structured count-mu covariance contract before changing the formula gate; do not change formula grammar, public API, q4, REML, AI-REML, or interval/coverage wording",
+        "recovery_requirements": "one local debug fixture may only reproduce the current labelled q=2 rejection or, after review, check parser diagnostics; not a denominator or coverage run",
+        "next_action": "review the labelled q=2 structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_count_mu_simultaneous_structured_types_rejected": {
+        "contract_id": "qseries_v1_count_mu_simultaneous_structured_types_design_contract",
+        "model_contract": "y_i ~ NB2(mu_i, phi); log(mu_i) = X_i beta + u_spatial,site[i] + u_relmat,id[i]; simultaneous structured providers require an explicit additive covariance and extractor policy",
+        "dgp_requirements": "count response y >= 0; named spatial coordinates and relmat levels; no missing provider levels; fixture must isolate simultaneous-provider routing from ordinary slope support",
+        "implementation_requirements": "derive the simultaneous-provider structured count-mu contract before changing the one-structured-provider gate; do not change formula grammar broadly, public API, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may only reproduce the current simultaneous-provider rejection or, after review, check parser diagnostics; not a denominator or coverage run",
+        "next_action": "review the simultaneous-provider structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
+    },
 }
 
 
@@ -931,6 +948,9 @@ def main() -> int:
     rejection_rows = read_tsv(root / REJECTION_PATH.relative_to(ROOT))
     rejection_rows.extend(
         read_tsv(root / COUNT_SIGMA_REJECTION_PATH.relative_to(ROOT))
+    )
+    rejection_rows.extend(
+        read_tsv(root / COUNT_MU_REJECTION_PATH.relative_to(ROOT))
     )
     candidate_rows = build_candidate_rows(ledger_rows)
     review_packet_rows = build_review_packet_rows(candidate_rows)

@@ -59,6 +59,54 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     y = rep(seq_len(2L), times = 4L),
     row.names = student_levels
   )
+  set.seed(2026070401)
+  student_nu_levels <- paste0("sn", seq_len(6L))
+  student_nu_id <- factor(
+    rep(student_nu_levels, each = 30L),
+    levels = student_nu_levels
+  )
+  student_nu_x <- stats::rnorm(length(student_nu_id))
+  student_nu_field <- stats::rnorm(length(student_nu_levels), sd = 0.02)
+  names(student_nu_field) <- student_nu_levels
+  student_nu <- 2 + exp(
+    log(5) + student_nu_field[as.character(student_nu_id)]
+  )
+  student_nu_mu <- 0.1 + 0.35 * student_nu_x
+  dat_student_nu_phylo <- data.frame(
+    y = student_nu_mu + 0.25 * stats::rt(length(student_nu_id), df = student_nu),
+    x = student_nu_x,
+    id = student_nu_id
+  )
+  tree_student_nu <- ape::stree(length(student_nu_levels), type = "star")
+  tree_student_nu$tip.label <- student_nu_levels
+  tree_student_nu$edge.length <- rep(1, nrow(tree_student_nu$edge))
+  set.seed(2026070407)
+  poisson_zi_levels <- paste0("pz", seq_len(8L))
+  poisson_zi_id <- factor(
+    rep(poisson_zi_levels, each = 24L),
+    levels = poisson_zi_levels
+  )
+  poisson_zi_x <- stats::rnorm(length(poisson_zi_id))
+  poisson_zi_field <- stats::rnorm(length(poisson_zi_levels), sd = 0.75)
+  names(poisson_zi_field) <- poisson_zi_levels
+  poisson_zi_mu <- exp(0.7 + 0.25 * poisson_zi_x)
+  poisson_zi_prob <- stats::plogis(
+    -0.8 + poisson_zi_field[as.character(poisson_zi_id)]
+  )
+  dat_poisson_zi_spatial <- data.frame(
+    y = ifelse(
+      stats::rbinom(length(poisson_zi_id), size = 1L, prob = poisson_zi_prob) == 1L,
+      0L,
+      stats::rpois(length(poisson_zi_id), lambda = poisson_zi_mu)
+    ),
+    x = poisson_zi_x,
+    id = poisson_zi_id
+  )
+  coords_poisson_zi <- data.frame(
+    x = rep(seq_len(4L), each = 2L),
+    y = rep(seq_len(2L), times = 4L),
+    row.names = poisson_zi_levels
+  )
   set.seed(2026070404)
   beta_sigma_levels <- paste0("bs", seq_len(8L))
   beta_sigma_id <- factor(
@@ -196,21 +244,45 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     ),
     "intercept-only structured terms"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, nu ~ phylo(1 | id, tree = tree)),
-      family = student(),
-      data = dat_pos
-    ),
-    "Structured non-Gaussian paths"
+  fit_student_nu_phylo <- drmTMB(
+    bf(y ~ x, sigma ~ 1, nu ~ phylo(1 | id, tree = tree_student_nu)),
+    family = student(),
+    data = dat_student_nu_phylo,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_student_nu_phylo, "drmTMB")
+  expect_equal(as.integer(fit_student_nu_phylo$opt$convergence), 0L)
+  expect_true("phylo_nu" %in% names(fit_student_nu_phylo$random_effects))
+  expect_true(
+    any(grepl("^phylo\\(", names(fit_student_nu_phylo$sdpars$nu)))
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, zi ~ spatial(1 | id, coords = coords)),
-      family = stats::poisson(link = "log"),
-      data = dat_count
+      bf(y ~ x, sigma ~ 1, nu ~ phylo(1 + x | id, tree = tree_student_nu)),
+      family = student(),
+      data = dat_student_nu_phylo
     ),
-    "Structured non-Gaussian paths"
+    "intercept-only structured terms"
+  )
+  fit_poisson_zi_spatial <- drmTMB(
+    bf(y ~ x, zi ~ spatial(1 | id, coords = coords_poisson_zi)),
+    family = stats::poisson(link = "log"),
+    data = dat_poisson_zi_spatial,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_poisson_zi_spatial, "drmTMB")
+  expect_equal(as.integer(fit_poisson_zi_spatial$opt$convergence), 0L)
+  expect_true("spatial_zi" %in% names(fit_poisson_zi_spatial$random_effects))
+  expect_true(
+    any(grepl("^spatial\\(", names(fit_poisson_zi_spatial$sdpars$zi)))
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, zi ~ spatial(1 + x | id, coords = coords_poisson_zi)),
+      family = stats::poisson(link = "log"),
+      data = dat_poisson_zi_spatial
+    ),
+    "intercept-only structured terms"
   )
   expect_error(
     drmTMB(
@@ -326,6 +398,8 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_gamma_mu_relmat_rejected",
       "qseries_ordinal_mu_phylo_rejected",
       "qseries_student_mu_spatial_rejected",
+      "qseries_student_nu_phylo_rejected",
+      "qseries_poisson_zi_spatial_rejected",
       "qseries_beta_sigma_animal_rejected",
       "qseries_phylo_nbinom2_q1_sigma_one_slope_rejected",
       "qseries_spatial_nbinom2_q1_sigma_one_slope_rejected",
@@ -344,12 +418,14 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_fit",
+      "expected_fit",
+      "expected_fit",
       "expected_fit"
     )
   )
   expect_equal(
     result$expected_error_pattern,
-    c("", "", "Structured non-Gaussian paths", "", "", "", "", "", "")
+    c("", "", "Structured non-Gaussian paths", "", "", "", "", "", "", "", "")
   )
   expect_true(all(grepl(
     "Structured non-Gaussian paths",
