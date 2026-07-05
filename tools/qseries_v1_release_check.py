@@ -481,6 +481,14 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may check finite fit, spatial SD on the correct scale, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
         "next_action": "review this contract before any Student spatial code, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_student_nu_phylo_rejected": {
+        "contract_id": "qseries_v1_student_nu_phylo_design_contract",
+        "model_contract": "y_i ~ student(mu_i, sigma, nu_i); mu_i = X_i beta; log(nu_i) or supported shape link receives u_tip[i] only after the Student shape parameterization is reviewed; u ~ N(0, sigma_phylo^2 A_phylo)",
+        "dgp_requirements": "real-valued response with stable tail information; named phylo tips matching the tree; fixed mu and sigma route; explicit lower-bound or link policy for nu before any fit",
+        "implementation_requirements": "derive and document the Student shape-link mapping before reusing phylo() parser shape; do not change formula grammar, public API, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, phylo shape-side SD extraction, extractor visibility, and deterministic seed provenance only after the shape-link contract is reviewed; not a denominator or coverage run",
+        "next_action": "review the Student nu link/design contract before any Student shape code, local debug fit, host compute, or support-cell edit",
+    },
     "qseries_beta_sigma_animal_rejected": {
         "contract_id": "qseries_v1_beta_sigma_animal_design_contract",
         "model_contract": "y_i ~ beta(mu_i, phi_i); logit(mu_i) = X_i beta; log(sigma_i) = Z_i gamma + u_id[i]; u ~ N(0, sigma_animal^2 A); beta precision mapping must remain explicit before implementation",
@@ -512,6 +520,22 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "implementation_requirements": "reuse nbinom2() sigma likelihood and relmat() known-covariance parser shape only after scale-side interpretation is reviewed; do not change formula grammar, public API, mu routes, q2/q4, REML, or AI-REML",
         "recovery_requirements": "one local debug fixture may check finite fit, relmat sigma-side SD extraction for intercept and slope, extractor visibility, and deterministic seed provenance; not a denominator or coverage run",
         "next_action": "review this contract before any count NB2 sigma relmat code, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_poisson_zi_spatial_rejected": {
+        "contract_id": "qseries_v1_poisson_zi_spatial_design_contract",
+        "model_contract": "y_i ~ zero-inflated Poisson(mu_i, pi_i); log(mu_i) = X_i beta; logit(pi_i) = Z_i gamma + u_site[i]; u ~ N(0, sigma_spatial^2 C(distance))",
+        "dgp_requirements": "count response y >= 0; enough observed zeros to identify zero inflation; named spatial levels with valid coordinates; fixed mu route; no duplicate or missing coordinate levels",
+        "implementation_requirements": "review zero-inflation link and extractor naming before reusing spatial() parser shape; do not change formula grammar, public API, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, spatial zero-inflation SD extraction, extractor visibility, and deterministic seed provenance only after the zero-inflation route is reviewed; not a denominator or coverage run",
+        "next_action": "review the Poisson zi spatial design contract before any zero-inflation code, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_truncnbinom2_hu_relmat_rejected": {
+        "contract_id": "qseries_v1_truncnbinom2_hu_relmat_design_contract",
+        "model_contract": "y_i ~ hurdle NB2(mu_i, sigma_i, pi_i); log(mu_i) = X_i beta; logit(pi_i) = Z_i gamma + u_id[i]; u ~ N(0, sigma_relmat^2 K)",
+        "dgp_requirements": "non-negative count response with hurdle zeros and positive truncated counts; named relmat levels matching K/Q input; fixed mu and sigma route; no missing matrix levels",
+        "implementation_requirements": "review hurdle-link likelihood routing and extractor naming before reusing relmat() parser shape; do not change formula grammar, public API, q2/q4, REML, or AI-REML",
+        "recovery_requirements": "one local debug fixture may check finite fit, relmat hurdle-side SD extraction, extractor visibility, and deterministic seed provenance only after the hurdle route is reviewed; not a denominator or coverage run",
+        "next_action": "review the truncated NB2 hu relmat design contract before any hurdle code, local debug fit, host compute, or support-cell edit",
     },
 }
 

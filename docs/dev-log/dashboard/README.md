@@ -257,7 +257,7 @@ next-candidate review TSV plus the post-75% next-four review packet in one
 command while still reporting the row-accounting percentages. The generated
 report records how many additional practical surface rows would be needed to
 reach 75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks
-the 26 post-v1.0 rows into the next four rows after 75%, the next six to review
+the 22 post-v1.0 rows into the next four rows after 75%, the next six to review
 for 80%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
 next four rows into a design/recovery checklist. The same candidate bundle

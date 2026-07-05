@@ -117,6 +117,52 @@ qseries_v1_first_four_fixture <- function() {
     dam = NA_character_,
     sire = NA_character_
   )
+  set.seed(2026070405)
+  nb_sigma_levels <- paste0("nbs", seq_len(8L))
+  nb_sigma_id <- factor(
+    rep(nb_sigma_levels, each = 18L),
+    levels = nb_sigma_levels
+  )
+  nb_sigma_x <- stats::rnorm(length(nb_sigma_id))
+  nb_sigma_field0 <- stats::rnorm(length(nb_sigma_levels), sd = 0.20)
+  nb_sigma_field1 <- stats::rnorm(length(nb_sigma_levels), sd = 0.10)
+  names(nb_sigma_field0) <- nb_sigma_levels
+  names(nb_sigma_field1) <- nb_sigma_levels
+  nb_sigma_mu <- exp(1.0 + 0.35 * nb_sigma_x)
+  nb_sigma_sigma <- exp(
+    log(0.35) +
+      nb_sigma_field0[as.character(nb_sigma_id)] +
+      nb_sigma_field1[as.character(nb_sigma_id)] * nb_sigma_x
+  )
+  dat_nb_sigma <- data.frame(
+    y = stats::rnbinom(
+      length(nb_sigma_id),
+      mu = nb_sigma_mu,
+      size = 1 / (nb_sigma_sigma^2)
+    ),
+    x = nb_sigma_x,
+    id = nb_sigma_id
+  )
+  K_nb_sigma <- diag(length(nb_sigma_levels))
+  dimnames(K_nb_sigma) <- list(nb_sigma_levels, nb_sigma_levels)
+  Q_nb_sigma <- K_nb_sigma
+  coords_nb_sigma <- data.frame(
+    x = rep(seq_len(4L), each = 2L),
+    y = rep(seq_len(2L), times = 4L),
+    row.names = nb_sigma_levels
+  )
+  tree_nb_sigma <- structure(
+    list(
+      edge = cbind(
+        length(nb_sigma_levels) + 1L,
+        seq_len(length(nb_sigma_levels))
+      ),
+      tip.label = nb_sigma_levels,
+      Nnode = 1L,
+      edge.length = rep(1, length(nb_sigma_levels))
+    ),
+    class = "phylo"
+  )
   tree <- structure(
     list(
       edge = matrix(c(4, 1, 4, 2, 4, 3), ncol = 2, byrow = TRUE),
@@ -213,6 +259,81 @@ qseries_v1_first_four_fixture <- function() {
       expected_sd_dpar = "sigma",
       expected_sd_pattern = "^animal\\(",
       env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_nbinom2_sigma_phylo_one_slope",
+      cell_id = "qseries_phylo_nbinom2_q1_sigma_one_slope_rejected",
+      formula_cell = "phylo(1 + x | id, tree = tree) in sigma",
+      family = "nbinom2()",
+      provider = "phylo",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ phylo(1 + x | id, tree = tree_nb_sigma)),
+        family = drmTMB::nbinom2(),
+        data = dat_nb_sigma,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "phylo_sigma",
+      expected_sd_dpar = "sigma",
+      expected_sd_pattern = "^phylo\\(",
+      env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_nbinom2_sigma_spatial_one_slope",
+      cell_id = "qseries_spatial_nbinom2_q1_sigma_one_slope_rejected",
+      formula_cell = "spatial(1 + x | id, coords = coords) in sigma",
+      family = "nbinom2()",
+      provider = "spatial",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(
+          y ~ x,
+          sigma ~ spatial(1 + x | id, coords = coords_nb_sigma)
+        ),
+        family = drmTMB::nbinom2(),
+        data = dat_nb_sigma,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "spatial_sigma",
+      expected_sd_dpar = "sigma",
+      expected_sd_pattern = "^spatial\\(",
+      env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_nbinom2_sigma_animal_one_slope",
+      cell_id = "qseries_animal_nbinom2_q1_sigma_one_slope_rejected",
+      formula_cell = "animal(1 + x | id, Ainv = Q) in sigma",
+      family = "nbinom2()",
+      provider = "animal",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ animal(1 + x | id, Ainv = Q_nb_sigma)),
+        family = drmTMB::nbinom2(),
+        data = dat_nb_sigma,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "animal_sigma",
+      expected_sd_dpar = "sigma",
+      expected_sd_pattern = "^animal\\(",
+      env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_fit_nbinom2_sigma_relmat_one_slope",
+      cell_id = "qseries_relmat_nbinom2_q1_sigma_one_slope_rejected",
+      formula_cell = "relmat(1 + x | id, Q = Q) in sigma",
+      family = "nbinom2()",
+      provider = "relmat",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ relmat(1 + x | id, Q = Q_nb_sigma)),
+        family = drmTMB::nbinom2(),
+        data = dat_nb_sigma,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "relmat_sigma",
+      expected_sd_dpar = "sigma",
+      expected_sd_pattern = "^relmat\\(",
+      env = environment()
     )
   )
 }
@@ -286,8 +407,9 @@ qseries_v1_run_rejection_case <- function(case) {
     status = status,
     observed_error = observed,
     claim_boundary = paste(
-      "local debug smoke only; beta/Gamma/Student structured mu rows and",
-      "the beta structured sigma row are fit-only recovery evidence;",
+      "local debug smoke only; beta/Gamma/Student structured mu rows,",
+      "the beta structured sigma row, and NB2 structured sigma one-slope",
+      "rows are fit-only recovery evidence;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",
       "REML, AI-REML, bridge, or public-support claim"
     ),

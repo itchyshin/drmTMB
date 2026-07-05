@@ -5405,6 +5405,37 @@ drm_build_nbinom2_spec <- function(
     ),
     family_label = "NB2"
   )
+  sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_phylo$rhs
+  sigma_spatial <- extract_gaussian_mu_spatial_term(
+    sigma_entry,
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_spatial$rhs
+  sigma_animal <- extract_gaussian_mu_known_term(
+    sigma_entry,
+    "animal",
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_animal$rhs
+  sigma_relmat <- extract_gaussian_mu_known_term(
+    sigma_entry,
+    "relmat",
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_relmat$rhs
+  sigma_structured_term <- select_count_sigma_structured_term(
+    list(
+      phylo = sigma_phylo$term,
+      spatial = sigma_spatial$term,
+      animal = sigma_animal$term,
+      relmat = sigma_relmat$term
+    ),
+    family_label = "NB2"
+  )
+  if (!is.null(sigma_structured_term)) {
+    sigma_structured_term$dpars <- "sigma"
+  }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_poisson_mu_random_terms(
@@ -5422,6 +5453,15 @@ drm_build_nbinom2_spec <- function(
   )
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  validate_count_structured_sigma_term(
+    sigma_structured_term,
+    sigma_terms = sigma_re$terms,
+    mu_terms = mu_re$terms,
+    mu_structured_term = mu_structured_term,
+    has_zi = !is.null(zi_entry),
+    family_label = "NB2",
+    inflated_label = "Zero-inflated NB2"
+  )
   validate_nbinom2_sigma_random_terms(
     sigma_re$terms,
     mu_terms = mu_re$terms,
@@ -5452,6 +5492,7 @@ drm_build_nbinom2_spec <- function(
     all.vars(f_sigma),
     if (!is.null(f_zi)) all.vars(f_zi),
     structured_mu_vars(mu_structured_term),
+    structured_mu_vars(sigma_structured_term),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms)
   ))
@@ -5530,7 +5571,16 @@ drm_build_nbinom2_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
-  phylo_mu <- build_structured_mu_structure(mu_structured_term, data_model, env)
+  count_structured_term <- if (!is.null(sigma_structured_term)) {
+    sigma_structured_term
+  } else {
+    mu_structured_term
+  }
+  phylo_mu <- build_structured_mu_structure(
+    count_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = if (has_zi) "zi_nbinom2" else "nbinom2",
@@ -6687,8 +6737,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
-      "i" = "Structured non-Gaussian paths beyond those first count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, pure or multiple structured count slopes, and structured count scale routes, remain deferred until family-specific recovery evidence is stable."
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
+      "i" = "Structured non-Gaussian paths beyond those count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, pure or multiple structured count slopes, and structured count scale routes outside the NB2 one-slope gate, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }
@@ -6935,6 +6985,85 @@ validate_count_structured_mu_term <- function(
       "{family_label} structured {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Use {.code {example}} or the corresponding {.code 1 + x} one-slope form for this count structured-dependence gate; labelled count covariance, multiple slopes, and structured count scale routes remain planned."
+    ))
+  }
+  invisible(NULL)
+}
+
+select_count_sigma_structured_term <- function(structured_terms, family_label) {
+  active_structured <- names(structured_terms)[
+    !vapply(structured_terms, is.null, logical(1L))
+  ]
+  if (length(active_structured) > 1L) {
+    family_label <- as.character(family_label)[[1L]]
+    cli::cli_abort(c(
+      "Only one structured {.code sigma} effect type is implemented per {family_label} count model.",
+      "x" = "The model contains structured effect types: {.val {active_structured}}.",
+      "i" = "Fit one of {.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured scale-dependence recovery tests exist."
+    ))
+  }
+  if (length(active_structured) == 0L) {
+    return(NULL)
+  }
+  structured_terms[[active_structured]]
+}
+
+validate_count_structured_sigma_term <- function(
+  term,
+  sigma_terms,
+  mu_terms,
+  mu_structured_term = NULL,
+  has_zi = FALSE,
+  family_label,
+  inflated_label
+) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  family_label <- as.character(family_label)[[1L]]
+  inflated_label <- as.character(inflated_label)[[1L]]
+  marker <- structured_mu_type(term)
+  example <- switch(
+    marker,
+    phylo = "phylo(1 + x | species, tree = tree)",
+    spatial = "spatial(1 + x | site, coords = coords)",
+    animal = "animal(1 + x | id, Ainv = Ainv)",
+    relmat = "relmat(1 + x | id, Q = Q)",
+    paste0(marker, "(1 + x | id, ...)")
+  )
+  if (isTRUE(has_zi)) {
+    cli::cli_abort(c(
+      "{family_label} structured {.code sigma} effects are implemented only for ordinary {family_label} models.",
+      "x" = "{inflated_label} structured scale effects are planned but not implemented.",
+      "i" = "Fit {.code bf(count ~ x, sigma ~ {example})} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured-scale recovery tests exist."
+    ))
+  }
+  if (length(mu_terms) > 0L || !is.null(mu_structured_term)) {
+    cli::cli_abort(c(
+      "{family_label} structured {.code sigma} effects cannot be combined with {.code mu} random effects in this first scale gate.",
+      "x" = "The formula contains a structured {.code sigma} effect plus an ordinary or structured {.code mu} random effect.",
+      "i" = "Fit the {family_label} mean random-effect model or the structured scale model separately until joint recovery tests exist."
+    ))
+  }
+  if (length(sigma_terms) > 0L) {
+    cli::cli_abort(c(
+      "{family_label} structured {.code sigma} effects cannot be combined with ordinary {.code sigma} random effects in this first scale gate.",
+      "x" = "The formula contains both {.fn {marker}} and ordinary scale random-effect bar terms.",
+      "i" = "Use one structured scale term such as {.code sigma ~ {example}} until combined scale random-effect recovery tests exist."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{family_label} structured {.code sigma} effects currently support only unlabelled independent one-slope terms.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code {example}}; labelled scale covariance, q2/q4, and cross-parameter covariance routes remain planned."
+    ))
+  }
+  if (!structured_term_is_intercept_one_slope(term)) {
+    cli::cli_abort(c(
+      "{family_label} structured {.code sigma} effects currently support only unlabelled intercept-plus-one-slope structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code {example}} for this count structured-scale gate; intercept-only, multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
     ))
   }
   invisible(NULL)
