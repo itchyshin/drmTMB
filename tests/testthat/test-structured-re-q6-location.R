@@ -6,7 +6,8 @@
 # 104/104 arc. These tests fix the admission boundary: the labelled two-slope
 # location block builds a q=6 among-endpoint covariance (15 correlations) for
 # each provider, while the unlabelled univariate two-slope term, the labelled
-# univariate two-slope term, and the all-four two-slope block stay rejected.
+# univariate two-slope term stays rejected (the all-four two-slope block is the
+# separately-admitted M3 q12 cell).
 
 q6_location_test_tree <- function(n_tip = 8L, prefix = "sp") {
   stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
@@ -224,23 +225,25 @@ test_that("labelled univariate two-slope structured term stays rejected", {
   )
 })
 
-test_that("all-four two-slope structured block stays rejected", {
+# The all-four two-slope block is the M3 q12 cell (admitted); its full build and
+# boundary are covered by test-structured-re-q12-all-four.R. Here we only confirm
+# the location (q6) admission did not accidentally reject it as a side effect.
+test_that("all-four two-slope structured block now builds q=12 (M3)", {
   tree <- q6_location_test_tree(8L)
   A <- drmTMB:::drm_phylo_tip_covariance(tree)
   dat <- q6_biv_location_data(t(chol(A)), tree$tip.label, "species", n_each = 8L)
 
-  expect_error(
-    drmTMB(
-      bf(
-        mu1 = y1 ~ x + z + phylo(1 + x + z | p | species, tree = tree),
-        mu2 = y2 ~ x + z + phylo(1 + x + z | p | species, tree = tree),
-        sigma1 = ~ z + phylo(1 + x + z | p | species, tree = tree),
-        sigma2 = ~ z + phylo(1 + x + z | p | species, tree = tree),
-        rho12 = ~1
-      ),
-      family = biv_gaussian(),
-      data = dat
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ x + z + phylo(1 + x + z | p | species, tree = tree),
+      mu2 = y2 ~ x + z + phylo(1 + x + z | p | species, tree = tree),
+      sigma1 = ~ z + phylo(1 + x + z | p | species, tree = tree),
+      sigma2 = ~ z + phylo(1 + x + z | p | species, tree = tree),
+      rho12 = ~1
     ),
-    "intercept-plus-one-slope"
-  )
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE, optimizer = list(eval.max = 100, iter.max = 100))
+  ))
+  expect_equal(fit$model$structured$phylo_mu$q, 12L)
 })

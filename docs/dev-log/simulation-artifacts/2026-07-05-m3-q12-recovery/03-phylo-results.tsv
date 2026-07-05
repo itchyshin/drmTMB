@@ -1,0 +1,4 @@
+provider	n_group	n_each	n_obs	seed	conv	pdHess	se_finite	max_abs_rho_hat	cap_saturated	rmse	frobenius	elapsed_s	error 
+phylo	128	8	1024	20260705	1	FALSE	FALSE	0.9268	FALSE	0.216	2.4822	137.3	NA 
+phylo	256	8	2048	20260705	1	FALSE	FALSE	0.945	FALSE	0.1675	1.925	298.7	NA 
+phylo	512	8	4096	20260705	1	FALSE	FALSE	0.8275	FALSE	0.1364	1.5676	738.6	NA 

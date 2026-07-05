@@ -1,0 +1,5 @@
+start 2026-07-05 13:39:18 | provider=phylo n=256,512 n_each=6 seed=20260705
+[phylo] ng= 256 conv=1 pdHess=FALSE max|rho|=0.851 rmse=0.229 frob=1.716 (98.4s)
+[phylo] ng= 512 conv=1 pdHess=FALSE max|rho|=0.741 rmse=0.150 frob=1.123 (207.3s)
+done 2026-07-05 13:44:26 | provider=phylo
+start 2026-07-05 13:44:28 | provider=spatial n=256 n_each=6 seed=20260705

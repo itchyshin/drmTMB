@@ -8998,9 +8998,14 @@ detect_biv_structured_q4_terms <- function(
     structured_term_is_intercept_only,
     logical(1L)
   )
+  # Accept intercept + one OR MORE matching slopes across all four endpoints:
+  # the q8 all-four one-slope block (`1 + x`) and the q12 all-four two-slope
+  # block (`1 + x + z`). `all_one_slope` here means "all endpoints carry slopes"
+  # (not intercept-only) -- the finalize below expands coef_names generically to
+  # q = 4 * n_coef. Intercept-only stays the separate q4 path.
   intercept_one_slope <- vapply(
     terms,
-    structured_term_is_intercept_one_slope,
+    structured_term_is_intercept_plus_slopes,
     logical(1L)
   )
   all_intercept <- all(intercept_only)
@@ -9009,7 +9014,7 @@ detect_biv_structured_q4_terms <- function(
   if (!all_intercept && !all_one_slope) {
     bad <- names(intercept_only)[!intercept_only & !intercept_one_slope]
     cli::cli_abort(c(
-      "{marker_title} q=4 location-scale blocks need matching intercept-only or intercept-plus-one-slope terms in this slice.",
+      "{marker_title} q=4 location-scale blocks need matching intercept-only or intercept-plus-slope terms in this slice.",
       "x" = "{.code {bad}} requested unsupported structured coefficient{?s}.",
       "i" = "Use matching {.code {marker}(1 | p | group, ...)} terms in all four endpoints, or matching full-block {.code {marker}(1 + x | p | group, ...)} terms in all four endpoints."
     ))
@@ -9113,7 +9118,7 @@ detect_biv_structured_q4_terms <- function(
   term$label <- format_structured_label(
     marker,
     if (all_one_slope) {
-      paste0("1 + ", terms[[1L]]$variables[[1L]])
+      paste0("1 + ", paste(terms[[1L]]$variables, collapse = " + "))
     } else {
       "1"
     },

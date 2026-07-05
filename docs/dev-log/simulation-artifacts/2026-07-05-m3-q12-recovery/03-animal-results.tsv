@@ -1,0 +1,3 @@
+provider	n_group	n_each	n_obs	seed	conv	pdHess	se_finite	max_abs_rho_hat	cap_saturated	rmse	frobenius	elapsed_s	error 
+animal	64	8	512	20260705	1	FALSE	FALSE	0.8142	FALSE	0.2213	2.5431	298.2	NA 
+animal	128	8	1024	20260705	0	FALSE	FALSE	0.8997	FALSE	0.2052	2.3576	1598.6	NA 
