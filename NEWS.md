@@ -13,15 +13,24 @@ than that matrix.
   authorize coverage, q4/q8 promotion, broad bridge support, REML, AI-REML, or
   public-support wording.
 
-* The Q-Series v1.0 practical surface now includes four row-specific local
+* The Q-Series v1.0 practical surface now includes five row-specific local
   fit-only/extractor gates outside the ordinary `mu` lanes: Student-t
   `nu ~ phylo(1 | id, tree = tree)`, cumulative-logit ordinal
-  `mu ~ phylo(1 | id, tree = tree)`, zero-inflated Poisson
+  `mu ~ phylo(1 | id, tree = tree)`, truncated-NB2 hurdle
+  `hu ~ relmat(1 | id, Q = Q)`, zero-inflated Poisson
   `zi ~ spatial(1 | id, coords = coords)`, and zero-inflated NB2 fixed-`zi`
   `mu ~ spatial(1 | id, coords = coords)`. These rows are not interval,
   coverage, `inference_ready`, `supported`, bridge, REML, AI-REML, broad
   shape/inflation/ordinal/structured non-Gaussian support evidence, or
   neighbouring-row evidence.
+
+* `truncated_nbinom2()` hurdle models now fit the row-specific Q-Series v1.0
+  `hu ~ relmat(1 | id, Q = Q)` local gate. The fitted relatedness-field SD for
+  the hurdle probability is exposed through `sdpars$hu` and
+  `ranef("relmat_hu")`. This is local fit-only/extractor evidence; hurdle
+  slopes, labelled covariance, broader hurdle structured effects, intervals,
+  coverage, `inference_ready`, `supported`, REML, AI-REML, and bridge support
+  remain closed.
 
 * `cumulative_logit()` now fits the row-specific Q-Series v1.0 ordinal
   phylogenetic `mu` intercept gate, for formulas such as
@@ -511,7 +520,7 @@ than that matrix.
 * `ranef()` now returns fitted conditional random-effect blocks, including ordinary `mu`, residual-scale `sigma`, `phylo_mu`, and the first `spatial_mu` blocks when present.
 * `rho12()` now returns response-scale residual correlations from bivariate Gaussian location-coscale fits, with `type = "link"` available for Fisher-z-like linear predictors using the guarded transform `rho12 = 0.999999 * tanh(eta_rho12)`.
 * `student()` now fits fixed-effect univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu` formulas. The `nu` parameter is modelled as `nu = 2 + exp(eta_nu)` for a stable finite-variance robust continuous family.
-* `truncated_nbinom2()` now fits zero-truncated negative-binomial 2 models for positive counts, with ordinary `mu` random intercepts and independent numeric slopes allowed in non-hurdle models. `mu` and `sigma` describe the untruncated NB2 component, `fitted()` returns the conditional positive-count mean `mu / (1 - Pr_NB2(0))`, and `sigma(fit)` returns the NB2 overdispersion scale. Adding `hu ~ predictors` still fits the corresponding fixed-effect hurdle NB2 model; hurdle random effects, correlated zero-truncated random slopes, and `sigma` random effects remain planned.
+* `truncated_nbinom2()` now fits zero-truncated negative-binomial 2 models for positive counts, with ordinary `mu` random intercepts and independent numeric slopes allowed in non-hurdle models. `mu` and `sigma` describe the untruncated NB2 component, `fitted()` returns the conditional positive-count mean `mu / (1 - Pr_NB2(0))`, and `sigma(fit)` returns the NB2 overdispersion scale. Adding `hu ~ predictors` still fits the corresponding fixed-effect hurdle NB2 model; hurdle random effects outside the exact Q-Series `hu ~ relmat(1 | id, Q = Q)` local-fit gate, correlated zero-truncated random slopes, and `sigma` random effects remain planned.
 * `drmTMB()` now fits phylogenetic random intercepts and one numeric phylogenetic random slope in the univariate Gaussian location formula with `phylo(1 | species, tree = tree)` and `phylo(1 + x | species, tree = tree)`, using an ultrametric branch-length tree and the sparse augmented A-inverse path. It also fits coordinate-based spatial random intercepts and one numeric spatial `mu` slope in the univariate Gaussian location formula with `spatial(1 | site, coords = coords)` and `spatial(1 + x | site, coords = coords)`. The slope paths estimate independent intercept and slope fields with the same fixed structured precision and separate SDs, labelled with terms such as `phylo(1 | species)`, `phylo(0 + x | species)`, `spatial(1 | site)`, and `spatial(0 + x | site)`.
 * `animal()` and `relmat()` now fit one numeric univariate Gaussian `mu` slope beside their fitted random-intercept paths, for example `animal(1 + x | id, pedigree = ped)` and `relmat(1 + x | id, K = K)`, using independent intercept and slope fields with separate SDs. Planned structured-effect markers outside the first fitted one-slope paths, such as standalone or partial phylogenetic scale terms, spatial terms in `sigma`, `spatial(1 | site, mesh = mesh)`, multiple structured slopes, slope correlations, spatial q=4 blocks, and predictor-dependent spatial `corpair()` formulas, are parsed by `drm_formula()` and rejected by `drmTMB()` with planned-feature errors until their TMB likelihoods and recovery tests are implemented.
 * The "Which scale are you modelling?" tutorial now includes a copy-run scale audit with fitted output and interpretations for `sigma ~`, `weights =`, preferred `meta_V(V = V)`, `sd(group) ~`, and bivariate `rho12 ~` syntax.

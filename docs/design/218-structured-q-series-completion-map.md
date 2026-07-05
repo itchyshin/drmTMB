@@ -784,27 +784,22 @@ return must be a new geometry-explanation design, reviewed by
 Rose/Fisher/Gauss/Noether/Grace and checkpointed before compute. The campaign
 queue should move to the next non-parked Q-Series tranche.
 
-`structured-re-count-slope-sigma-one-slope-rejection-contract.tsv` records the
-exact pre-optimization rejection contract for count NB2 `sigma` one-slope
-structured-scale cells in `phylo()`, fixed-covariance `spatial()`, A-matrix
-`animal()`, and K/Q `relmat()`. The engine rejects structured count scale
-routes at the formula gate (`Structured non-Gaussian paths`), so each
-`qseries_*_nbinom2_q1_sigma_one_slope_rejected` cell stays `unsupported`. These
-rows answer the count half-cell question: the banked count `mu` one-slope cells
-do not imply count `sigma` one-slope support. Poisson has no `sigma` parameter,
-so it has no structured count scale cell. The rows do not promote parser-ready,
-point-fit, bridge, interval, coverage, REML, AI-REML, public-support, or
-q4/q8 status.
+`structured-re-count-slope-sigma-one-slope-rejection-contract.tsv` is now a
+header-only retired contract. The count NB2 `sigma` one-slope structured-scale
+cells in `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K/Q
+`relmat()` moved to local fit-only recovery rows after the first-four smoke
+banked finite point fits and extractor visibility. These rows answer the count
+half-cell question without promoting parser-ready broad support, bridge,
+interval, coverage, REML, AI-REML, public-support, or q4/q8 status.
 
-`structured-re-nongaussian-structured-family-rejection-contract.tsv` records
-the active pre-optimization rejection contract for the remaining
-structured-family routes the engine still rejects at the formula gate:
-`cumulative_logit()`/`phylo` on `mu` and
-`truncated_nbinom2()`/`relmat` on `hu`. Earlier beta, Gamma, Student `mu`,
-Student `nu`, Poisson `zi`, beta `sigma`, and NB2 `sigma` one-slope rows now
-live in the support cells and local first-four smoke as local fit-only recovery
-rows. The moved rows do not promote bridge, interval, coverage, REML, AI-REML,
-public-support, q4/q8, or broad structured non-Gaussian support.
+`structured-re-nongaussian-structured-family-rejection-contract.tsv` is now a
+header-only retired contract. The cumulative-logit phylo `mu` and
+truncated-NB2 relmat `hu` rows now live in the support cells and local
+first-four smoke as local fit-only recovery rows, alongside earlier beta,
+Gamma, Student `mu`, Student `nu`, Poisson `zi`, beta `sigma`, and NB2
+`sigma` one-slope rows. The moved rows do not promote bridge, interval,
+coverage, REML, AI-REML, public-support, q4/q8, or broad structured
+non-Gaussian support.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
 pre-optimization rejection contract for structured count `mu` routes the engine
@@ -2949,25 +2944,21 @@ The efficient completion order is:
     spatial, animal, Poisson, labelled slope, or multiple-slope status.
 38. Banked in this slice: record the count NB2 `sigma` one-slope
     structured-scale rejection contract for `phylo()`, fixed-covariance
-    `spatial()`, A-matrix `animal()`, and K/Q `relmat()`. The engine rejects
-    structured count scale routes at the pre-optimization formula gate
-    (`Structured non-Gaussian paths`), so the
-    `qseries_*_nbinom2_q1_sigma_one_slope_rejected` cells stay `unsupported`.
-    This answers the half-cell question directly: banked count `mu` one-slope
-    coverage does not imply count `sigma` one-slope support, and Poisson has no
-    `sigma` parameter, so it has no structured count scale cell. It does not
-    promote parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML,
-    public-support, structured count sigma, or q4/q8 status.
+    `spatial()`, A-matrix `animal()`, and K/Q `relmat()`. A later local
+    first-four smoke retired this contract by moving those rows to local
+    fit-only recovery evidence. This still answers the half-cell question
+    directly: banked count `mu` one-slope coverage does not imply count
+    `sigma` one-slope interval, coverage, bridge, REML, AI-REML,
+    public-support, broad structured count sigma, or q4/q8 status.
 39. Banked in this slice: record the non-Gaussian structured-family rejection
     contract that documented structured-effect routes the engine rejected
     across non-Gaussian families and endpoints. Later slices moved beta animal
     `mu`, Gamma relmat `mu`, Student spatial `mu`, beta animal `sigma`,
-    Student phylo `nu`, Poisson spatial `zi`, and NB2 `sigma` one-slope rows
-    into local fit-only recovery. The active rejection contract now contains
-    only cumulative-logit phylo `mu` and truncated-NB2 relmat `hu` rows; those
-    rows remain rejection evidence only and do not promote parser-ready,
-    point-fit, bridge, interval, coverage, REML, AI-REML, public-support, or
-    q4/q8 status.
+    Student phylo `nu`, Poisson spatial `zi`, NB2 `sigma` one-slope,
+    cumulative-logit phylo `mu`, and truncated-NB2 relmat `hu` rows into local
+    fit-only recovery. The rejection contract is now header-only retired; the
+    moved rows do not promote broad parser-ready support, bridge, interval,
+    coverage, REML, AI-REML, public-support, or q4/q8 status.
 40. Banked in this slice: record the q1 `mu` one-slope spatial-only DRAC
     Tranche 101 allocation/install-load terminal review. One Rorqual `sbatch`
     job (`15097440`) allocated on `rc32607` and completed with `0:0`, but

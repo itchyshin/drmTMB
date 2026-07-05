@@ -72,6 +72,33 @@ qseries_v1_first_four_fixture <- function() {
   )
   K_gamma <- diag(length(gamma_levels))
   dimnames(K_gamma) <- list(gamma_levels, gamma_levels)
+  set.seed(2026070503)
+  trunc_hu_levels <- paste0("th", seq_len(8L))
+  trunc_hu_id <- factor(rep(trunc_hu_levels, each = 25L), levels = trunc_hu_levels)
+  trunc_hu_x <- stats::rnorm(length(trunc_hu_id))
+  trunc_hu_field <- stats::rnorm(length(trunc_hu_levels), sd = 0.55)
+  names(trunc_hu_field) <- trunc_hu_levels
+  trunc_hu_prob <- stats::plogis(
+    -0.8 + trunc_hu_field[as.character(trunc_hu_id)]
+  )
+  trunc_hu_mu <- exp(0.5 + 0.2 * trunc_hu_x)
+  trunc_hu_positive <- stats::rnbinom(
+    length(trunc_hu_id),
+    mu = trunc_hu_mu,
+    size = 12
+  )
+  trunc_hu_positive[trunc_hu_positive == 0L] <- 1L
+  dat_trunc_hu_relmat <- data.frame(
+    y = ifelse(
+      stats::rbinom(length(trunc_hu_id), size = 1L, prob = trunc_hu_prob) == 1L,
+      0L,
+      trunc_hu_positive
+    ),
+    x = trunc_hu_x,
+    id = trunc_hu_id
+  )
+  Q_trunc_hu <- diag(length(trunc_hu_levels))
+  dimnames(Q_trunc_hu) <- list(trunc_hu_levels, trunc_hu_levels)
   set.seed(2026070403)
   student_levels <- paste0("s", seq_len(8L))
   student_id <- factor(rep(student_levels, each = 16L), levels = student_levels)
@@ -357,18 +384,21 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
-      gate_id = "nongaussian_struct_reject_truncnbinom2_hu_relmat",
+      gate_id = "nongaussian_struct_fit_truncnbinom2_hu_relmat",
       cell_id = "qseries_truncnbinom2_hu_relmat_rejected",
       formula_cell = "relmat(1 | id, Q = Q) in hu",
       family = "truncated_nbinom2()",
       provider = "relmat",
-      expected_status = "expected_rejection",
-      expected_error_pattern = "Structured non-Gaussian paths",
+      expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
-        drmTMB::bf(y ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q)),
+        drmTMB::bf(y ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q_trunc_hu)),
         family = drmTMB::truncated_nbinom2(),
-        data = dat_count
+        data = dat_trunc_hu_relmat,
+        control = drmTMB::drm_control(se = FALSE)
       )),
+      expected_random_effect = "relmat_hu",
+      expected_sd_pattern = "^relmat\\(",
+      expected_sd_dpar = "hu",
       env = environment()
     ),
     list(
@@ -709,14 +739,15 @@ qseries_v1_run_rejection_case <- function(case) {
     claim_boundary = paste(
       "local debug smoke only; beta/Gamma/Student structured mu rows,",
       "the Student structured nu row, the Poisson structured zi row,",
+      "the truncated-NB2 structured hu row,",
       "the Poisson and NB2 structured mu plus fixed zi rows, the",
       "Poisson structured-plus-ordinary mu row, the Poisson spatial",
       "slope-only structured mu row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence; the current first-four candidate",
-      "ordinal phylo mu row is fit-only local debug evidence; the",
-      "current first-four candidate rejection rows are exact local debug",
-      "boundary checks;",
+      "ordinal phylo mu and truncated-NB2 relmat hu rows are fit-only local",
+      "debug evidence; the current first-four candidate rejection rows are",
+      "exact local debug boundary checks;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",
       "REML, AI-REML, bridge, or public-support claim"
     ),

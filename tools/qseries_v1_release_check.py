@@ -20,6 +20,7 @@ LEDGER_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q-series-v1-release-l
 REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-nongaussian-structured-family-rejection-contract.tsv"
 COUNT_SIGMA_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-count-slope-sigma-one-slope-rejection-contract.tsv"
 COUNT_MU_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-count-structured-mu-rejection-contract.tsv"
+Q2_PLUS_Q2_SIGMA_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
 DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-report.md"
 DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
 DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
@@ -608,6 +609,30 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may only reproduce the current simultaneous-provider rejection or, after review, check parser diagnostics; not a denominator or coverage run",
         "next_action": "review the simultaneous-provider structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_animal_q2_plus_q2_sigma_rejected": {
+        "contract_id": "qseries_v1_animal_q2_plus_q2_sigma_design_contract",
+        "model_contract": "biv_gaussian() with animal(1 | ps | id, A/Ainv = A) in sigma1 and sigma2 would require an explicit scale-side q2-plus-q2 covariance and extractor policy before parser admission",
+        "dgp_requirements": "two-response Gaussian data; named animal levels matching A/Ainv/pedigree input; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their block relationship",
+        "implementation_requirements": "derive the animal scale-side q2-plus-q2 route before changing the partial location-scale block gate; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "one local debug fixture may only reproduce the current animal q2-plus-q2 sigma rejection or, after review, check parser diagnostics; not a denominator or coverage run",
+        "next_action": "review the animal q2-plus-q2 sigma design before any parser edit, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_relmat_q2_plus_q2_sigma_rejected": {
+        "contract_id": "qseries_v1_relmat_q2_plus_q2_sigma_design_contract",
+        "model_contract": "biv_gaussian() with relmat(1 | ps | id, K/Q = K/Q) in sigma1 and sigma2 would require an explicit scale-side q2-plus-q2 covariance and extractor policy before parser admission",
+        "dgp_requirements": "two-response Gaussian data; named relmat levels matching K/Q input; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their block relationship",
+        "implementation_requirements": "derive the relmat scale-side q2-plus-q2 route before changing the partial location-scale block gate; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "one local debug fixture may only reproduce the current relmat q2-plus-q2 sigma rejection or, after review, check parser diagnostics; not a denominator or coverage run",
+        "next_action": "review the relmat q2-plus-q2 sigma design before any parser edit, local debug fit, host compute, or support-cell edit",
+    },
+    "qseries_spatial_q2_plus_q2_sigma_rejected": {
+        "contract_id": "qseries_v1_spatial_q2_plus_q2_sigma_design_contract",
+        "model_contract": "biv_gaussian() with spatial(1 | ps | site, coords = coords) in sigma1 and sigma2 would require an explicit scale-side q2-plus-q2 covariance and extractor policy before parser admission",
+        "dgp_requirements": "two-response Gaussian data; named spatial levels with valid coordinates; separate labelled scale-side block; enough within-level replication to identify sigma1, sigma2, and their block relationship",
+        "implementation_requirements": "derive the spatial scale-side q2-plus-q2 route before changing the partial location-scale block gate; do not change formula grammar broadly, public API, q4/q8, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "one local debug fixture may only reproduce the current spatial q2-plus-q2 sigma rejection or, after review, check parser diagnostics; not a denominator or coverage run",
+        "next_action": "review the spatial q2-plus-q2 sigma design before any parser edit, local debug fit, host compute, or support-cell edit",
+    },
     "qseries_nongaussian_structured_slope_neighbors_planned": {
         "contract_id": "qseries_v1_nongaussian_structured_slope_neighbors_design_contract",
         "model_contract": "family-specific non-Gaussian structured one-slope neighbors must be split into explicit family/provider/endpoint routes before any runtime gate; no pooled all-family likelihood contract exists",
@@ -1026,6 +1051,9 @@ def main() -> int:
     )
     rejection_rows.extend(
         read_tsv(root / COUNT_MU_REJECTION_PATH.relative_to(ROOT))
+    )
+    rejection_rows.extend(
+        read_tsv(root / Q2_PLUS_Q2_SIGMA_REJECTION_PATH.relative_to(ROOT))
     )
     rejection_rows.append(
         {

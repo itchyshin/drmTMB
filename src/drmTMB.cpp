@@ -3081,6 +3081,47 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_hu = X_zi * beta_zi;
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          if (phylo_mu_dpar(k) == 4) {
+            eta_hu(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
     vector<Type> mu = exp(eta_mu);
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(

@@ -42,6 +42,33 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   )
   K_gamma <- diag(length(gamma_levels))
   dimnames(K_gamma) <- list(gamma_levels, gamma_levels)
+  set.seed(2026070503)
+  trunc_hu_levels <- paste0("th", seq_len(8L))
+  trunc_hu_id <- factor(rep(trunc_hu_levels, each = 25L), levels = trunc_hu_levels)
+  trunc_hu_x <- stats::rnorm(length(trunc_hu_id))
+  trunc_hu_field <- stats::rnorm(length(trunc_hu_levels), sd = 0.55)
+  names(trunc_hu_field) <- trunc_hu_levels
+  trunc_hu_prob <- stats::plogis(
+    -0.8 + trunc_hu_field[as.character(trunc_hu_id)]
+  )
+  trunc_hu_mu <- exp(0.5 + 0.2 * trunc_hu_x)
+  trunc_hu_positive <- stats::rnbinom(
+    length(trunc_hu_id),
+    mu = trunc_hu_mu,
+    size = 12
+  )
+  trunc_hu_positive[trunc_hu_positive == 0L] <- 1L
+  dat_trunc_hu_relmat <- data.frame(
+    y = ifelse(
+      stats::rbinom(length(trunc_hu_id), size = 1L, prob = trunc_hu_prob) == 1L,
+      0L,
+      trunc_hu_positive
+    ),
+    x = trunc_hu_x,
+    id = trunc_hu_id
+  )
+  Q_trunc_hu <- diag(length(trunc_hu_levels))
+  dimnames(Q_trunc_hu) <- list(trunc_hu_levels, trunc_hu_levels)
   set.seed(2026070403)
   student_levels <- paste0("s", seq_len(8L))
   student_id <- factor(rep(student_levels, each = 16L), levels = student_levels)
@@ -415,13 +442,34 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     ),
     "intercept-only structured terms"
   )
+  fit_trunc_hu_relmat <- drmTMB(
+    bf(y ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q_trunc_hu)),
+    family = truncated_nbinom2(),
+    data = dat_trunc_hu_relmat,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_trunc_hu_relmat, "drmTMB")
+  expect_equal(as.integer(fit_trunc_hu_relmat$opt$convergence), 0L)
+  expect_equal(fit_trunc_hu_relmat$model$model_type, "hurdle_nbinom2")
+  expect_true("relmat_hu" %in% names(fit_trunc_hu_relmat$random_effects))
+  expect_true(
+    any(grepl("^relmat\\(", names(fit_trunc_hu_relmat$sdpars$hu)))
+  )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q)),
+      bf(y ~ x, sigma ~ 1, hu ~ relmat(0 + x | id, Q = Q_trunc_hu)),
       family = truncated_nbinom2(),
-      data = dat_count
+      data = dat_trunc_hu_relmat
     ),
-    "Structured non-Gaussian paths"
+    "intercept-only structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, hu ~ relmat(1 | h | id, Q = Q_trunc_hu)),
+      family = truncated_nbinom2(),
+      data = dat_trunc_hu_relmat
+    ),
+    "unlabelled q=1"
   )
 
   # Count NB2 sigma one-slope structured-scale routes are local fit-only
@@ -551,7 +599,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_fit",
-      "expected_rejection",
+      "expected_fit",
       "expected_rejection",
       "expected_rejection",
       "expected_fit",
@@ -574,7 +622,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "",
       "",
       "",
-      "Structured non-Gaussian paths",
+      "",
       "unlabelled q=1",
       "Only one structured",
       "",

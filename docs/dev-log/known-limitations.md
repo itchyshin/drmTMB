@@ -328,16 +328,18 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   Ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
   slopes, the first ordinary NB2 log-`sigma` random intercept, and ordinary
   zero-truncated NB2 `mu` random intercepts and independent numeric slopes are
-  fitted. Apart from the exact Poisson spatial `zi` and NB2 fixed-`zi` spatial
-  `mu` local fit-only gates, random effects in `zi`, `hu`, or the count-side
-  `mu` path of zero-inflated or hurdle models are not implemented yet, and
-  cross-parameter covariance among count, dispersion, inflation, hurdle, or
-  shape random effects remains future work. Ordinary NB2 fits one q=1
+  fitted. Apart from the exact Poisson spatial `zi`, NB2 fixed-`zi` spatial
+  `mu`, and truncated-NB2 hurdle `hu ~ relmat(1 | id, Q = Q)` local
+  fit-only gates, random effects in `zi`, `hu`, or the count-side `mu` path of
+  zero-inflated or hurdle models are not implemented yet, and cross-parameter
+  covariance among count, dispersion, inflation, hurdle, or shape random
+  effects remains future work. Ordinary NB2 fits one q=1
   `phylo()`, `spatial()`, `animal()`, or `relmat()` structured `mu` intercept
   on the log-mean scale, but structured `sigma`, structured slopes, labelled
-  count covariance, zero-inflated structured effects beyond the exact Poisson
-  spatial `zi` and NB2 fixed-`zi` spatial `mu` local-fit gates, known sampling
-  covariance, correlated zero-truncated slopes, and bivariate or mixed
+  count covariance, zero-inflated or hurdle structured effects beyond the exact
+  Poisson spatial `zi`, NB2 fixed-`zi` spatial `mu`, and truncated-NB2
+  relmat `hu` local-fit gates, known sampling covariance, correlated
+  zero-truncated slopes, and bivariate or mixed
   negative-binomial models are not yet implemented.
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports

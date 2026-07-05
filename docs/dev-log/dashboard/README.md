@@ -257,10 +257,10 @@ next-candidate review TSV plus the generated 90% and post-75% review packets in 
 command while still reporting the row-accounting percentages. The generated
 report records how many additional practical surface rows would be needed to
 reach 75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks
-the 15 post-v1.0 rows into the next four rows after 75%, the current five rows
+the 14 post-v1.0 rows into the next four rows after 75%, the current four rows
 needed for 90%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv` expands the
-current five rows needed for 90% practical-surface accounting into a no-compute
+current four rows needed for 90% practical-surface accounting into a no-compute
 Rose/Fisher/Grace review checklist.
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
 next four rows into a design/recovery checklist. The same candidate bundle
@@ -273,8 +273,9 @@ The bundle also writes
 `docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv` and
 `docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv`
 for the next four post-75% practical-surface review rows: truncated-NB2 relmat
-`hu`, labelled spatial count `mu`, simultaneous-provider count `mu`, and the
-non-Gaussian structured one-slope neighbour design row. These artifacts are
+for the next four post-75% practical-surface review rows: labelled spatial
+count `mu`, simultaneous-provider count `mu`, the non-Gaussian structured
+one-slope neighbour design row, and the animal q2-plus sigma route. These artifacts are
 planning aids only and do not authorize row movement, code changes, local fits,
 host compute, denominator rows, coverage jobs, `inference_ready`, `supported`,
 or public-release claims. Regenerate the report with
@@ -1744,9 +1745,9 @@ explicit reviewer-approved artifact-only smoke followed by a separate Tranche
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
 the 37 non-Gaussian Q-Series cells. It assigns eighteen Poisson/NB2 count
 rows to `non_gaussian_recovery_only`, zero rows to
-`non_gaussian_recovery_caveat`, five intentional rejection rows to
+`non_gaussian_recovery_caveat`, two intentional rejection rows to
 `non_gaussian_rejected`, and one broader family-design row to
-`non_gaussian_planned`; thirteen local-debug fit-only rows sit in
+`non_gaussian_planned`; sixteen local-debug fit-only rows sit in
 `non_gaussian_point_only`. The table preserves the current
 family distribution: 14 Poisson rows, 15 NB2 rows, two Student rows, two beta
 rows, and one row each for Gamma, cumulative-logit, truncated-NB2, and the
@@ -2067,26 +2068,21 @@ support, intervals, coverage, REML, AI-REML, structured count `sigma`,
 labelled or multiple count slopes, zero-inflated structure, public support,
 and Totoro/DRAC execution closed.
 
-`structured-re-count-slope-sigma-one-slope-rejection-contract.tsv` records the
-exact pre-optimization rejection contract for count NB2 `sigma` one-slope
-structured-scale cells in `phylo()`, fixed-covariance `spatial()`, A-matrix
-`animal()`, and K/Q `relmat()`. The engine rejects structured count scale
-routes (`Structured non-Gaussian paths`), so each linked
-`qseries_*_nbinom2_q1_sigma_one_slope_rejected` cell stays `unsupported`. This
-answers the count half-cell question: the banked count `mu` one-slope cells do
-not imply count `sigma` one-slope support, and Poisson has no `sigma`
-parameter. The contract does not promote parser-ready, point-fit, bridge,
-interval, coverage, REML, AI-REML, public support, or q4/q8 status.
+`structured-re-count-slope-sigma-one-slope-rejection-contract.tsv` is now a
+header-only retired contract. The four NB2 `sigma` one-slope structured-scale
+cells in `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K/Q
+`relmat()` moved to local fit-only recovery rows after the first-four smoke
+banked finite point fits and extractor visibility. The moved rows still do not
+promote parser-ready broad support, bridge, interval, coverage, REML, AI-REML,
+public support, or q4/q8 status.
 
-`structured-re-nongaussian-structured-family-rejection-contract.tsv` records
-the active pre-optimization rejection contract for the remaining
-structured-family routes the engine still rejects at the formula gate:
-`truncated_nbinom2()` `hu` with `relmat()`. The previously banked beta, Gamma,
-Student `mu`, Student `nu`, ordinal `mu`, Poisson `zi`, beta `sigma`, and NB2
-`sigma` one-slope rows now live in the support cells and the local first-four
-smoke as local fit-only recovery rows. Those moved rows still do not promote
-parser-ready broad support, bridge,
-interval, coverage, REML, AI-REML, public support, or q4/q8 status.
+`structured-re-nongaussian-structured-family-rejection-contract.tsv` is now a
+header-only retired contract. The `truncated_nbinom2()` hurdle `hu` relmat row
+also lives in the support cells and local first-four smoke as local fit-only
+recovery evidence. The previously banked beta, Gamma, Student `mu`, Student
+`nu`, ordinal `mu`, Poisson `zi`, beta `sigma`, NB2 `sigma` one-slope, and
+truncated-NB2 hurdle rows still do not promote parser-ready broad support,
+bridge, interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
 pre-optimization rejection contract for three structured count `mu` routes the

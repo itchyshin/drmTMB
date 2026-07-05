@@ -5803,6 +5803,19 @@ drm_build_truncated_nbinom2_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+  hu_relmat <- list(rhs = NULL, term = NULL)
+  if (!is.null(hu_entry)) {
+    hu_relmat <- extract_gaussian_mu_known_term(
+      hu_entry,
+      "relmat",
+      dpar = "hu"
+    )
+    if (!is.null(hu_relmat$term)) {
+      hu_relmat$term$dpars <- "hu"
+    }
+    hu_entry$rhs <- hu_relmat$rhs
+    validate_truncated_nbinom2_relmat_hu_structured_term(hu_relmat$term)
+  }
 
   if (!is.null(hu_entry) && formula_contains_call(mu_entry$rhs, "|")) {
     cli::cli_abort(c(
@@ -5840,6 +5853,7 @@ drm_build_truncated_nbinom2_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     if (!is.null(f_hu)) all.vars(f_hu),
+    structured_mu_vars(hu_relmat$term),
     random_effect_vars(mu_re$terms)
   ))
   if (length(vars) > 0L) {
@@ -5927,6 +5941,7 @@ drm_build_truncated_nbinom2_spec <- function(
     ))
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(hu_relmat$term, data_model, env)
 
   spec <- list(
     model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2",
@@ -5962,23 +5977,29 @@ drm_build_truncated_nbinom2_spec <- function(
       mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    random_scale = list(
+      mu = empty_sd_mu_structure(re_mu$n_re),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = if (has_hu) c("mu", "sigma", "hu") else c("mu", "sigma"),
     start = if (has_hu) {
-      hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu)
+      hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu, phylo_mu = phylo_mu)
     } else {
       truncated_nbinom2_start(y, X_mu, X_sigma, re_mu = re_mu)
     },
     map = if (has_hu) {
-      hurdle_nbinom2_map()
+      hurdle_nbinom2_map(phylo_mu = phylo_mu)
     } else {
       truncated_nbinom2_map(re_mu)
     },
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -7528,6 +7549,35 @@ validate_gamma_relmat_mu_structured_term <- function(term) {
       "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only intercept-only structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Structured Gamma slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_truncated_nbinom2_relmat_hu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "relmat")) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} structured {.code hu} effects currently admit only the first {.fn relmat} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn phylo}, {.fn spatial}, {.fn animal}, structured slopes, q2/q4, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} {.fn relmat} {.code hu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code hu ~ relmat(1 | id, K = K)} or {.code hu ~ relmat(1 | id, Q = Q)} for the v1.0 local-fit gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} {.fn relmat} {.code hu} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Structured hurdle slopes, q2/q4 covariance, and cross-parameter routes remain post-v1.0 design work."
     ))
   }
   invisible(NULL)
@@ -14108,21 +14158,32 @@ truncated_nbinom2_map <- function(
   nbinom2_map(re_mu = re_mu)
 }
 
-hurdle_nbinom2_start <- function(y, X_mu, X_sigma, X_hu) {
+hurdle_nbinom2_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  X_hu,
+  phylo_mu = empty_phylo_mu_structure()
+) {
   nb <- truncated_nbinom2_start(
     y[y > 0],
     X_mu[y > 0, , drop = FALSE],
     X_sigma[y > 0, , drop = FALSE]
   )
+  phylo_start <- gaussian_phylo_start(as.numeric(y == 0), phylo_mu)
   hu0 <- min(max(mean(y == 0), 0.02), 0.8)
   beta_hu <- numeric(ncol(X_hu))
   beta_hu[[1L]] <- stats::qlogis(hu0)
   nb$beta_zi <- beta_hu
+  nb$u_phylo <- phylo_start$u_phylo
+  nb$log_sd_phylo <- phylo_start$log_sd_phylo
   nb
 }
 
-hurdle_nbinom2_map <- function() {
-  out <- nbinom2_map()
+hurdle_nbinom2_map <- function(
+  phylo_mu = empty_phylo_mu_structure()
+) {
+  out <- nbinom2_map(phylo_mu = phylo_mu)
   out$beta_zi <- NULL
   out
 }
@@ -16186,6 +16247,7 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "hurdle_nbinom2")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 12L,
       y = spec$y,
@@ -16234,11 +16296,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
@@ -16698,7 +16772,8 @@ split_tmb_sdpars <- function(par, spec) {
         "zi_poisson",
         "nbinom2",
         "zi_nbinom2",
-        "truncated_nbinom2"
+        "truncated_nbinom2",
+        "hurdle_nbinom2"
       )
   ) {
     return(list())
@@ -16985,7 +17060,8 @@ split_tmb_random_effects <- function(par, spec) {
         "zi_poisson",
         "nbinom2",
         "zi_nbinom2",
-        "truncated_nbinom2"
+        "truncated_nbinom2",
+        "hurdle_nbinom2"
       )
   ) {
     return(list())
