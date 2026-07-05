@@ -340,18 +340,20 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
-      gate_id = "nongaussian_struct_reject_ordinal_mu_phylo",
+      gate_id = "nongaussian_struct_fit_ordinal_mu_phylo",
       cell_id = "qseries_ordinal_mu_phylo_rejected",
       formula_cell = "phylo(1 | id, tree = tree) in mu",
       family = "cumulative_logit()",
       provider = "phylo",
-      expected_status = "expected_rejection",
-      expected_error_pattern = "Structured non-Gaussian paths",
+      expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(y ~ x + phylo(1 | id, tree = tree)),
         family = drmTMB::cumulative_logit(),
-        data = dat_ord
+        data = dat_ord,
+        control = drmTMB::drm_control(se = FALSE)
       )),
+      expected_random_effect = "phylo_mu",
+      expected_sd_pattern = "^phylo\\(",
       env = environment()
     ),
     list(
@@ -712,7 +714,9 @@ qseries_v1_run_rejection_case <- function(case) {
       "slope-only structured mu row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence; the current first-four candidate",
-      "rejection rows are exact local debug boundary checks;",
+      "ordinal phylo mu row is fit-only local debug evidence; the",
+      "current first-four candidate rejection rows are exact local debug",
+      "boundary checks;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",
       "REML, AI-REML, bridge, or public-support claim"
     ),

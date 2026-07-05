@@ -13,13 +13,24 @@ than that matrix.
   authorize coverage, q4/q8 promotion, broad bridge support, REML, AI-REML, or
   public-support wording.
 
-* The Q-Series v1.0 practical surface now includes three row-specific local
+* The Q-Series v1.0 practical surface now includes four row-specific local
   fit-only/extractor gates outside the ordinary `mu` lanes: Student-t
-  `nu ~ phylo(1 | id, tree = tree)` and zero-inflated Poisson
-  `zi ~ spatial(1 | id, coords = coords)`, plus zero-inflated NB2 fixed-`zi`
+  `nu ~ phylo(1 | id, tree = tree)`, cumulative-logit ordinal
+  `mu ~ phylo(1 | id, tree = tree)`, zero-inflated Poisson
+  `zi ~ spatial(1 | id, coords = coords)`, and zero-inflated NB2 fixed-`zi`
   `mu ~ spatial(1 | id, coords = coords)`. These rows are not interval,
-  coverage, `inference_ready`, `supported`, bridge, REML, AI-REML, or broad
-  shape/inflation/structured non-Gaussian support evidence.
+  coverage, `inference_ready`, `supported`, bridge, REML, AI-REML, broad
+  shape/inflation/ordinal/structured non-Gaussian support evidence, or
+  neighbouring-row evidence.
+
+* `cumulative_logit()` now fits the row-specific Q-Series v1.0 ordinal
+  phylogenetic `mu` intercept gate, for formulas such as
+  `bf(score ~ x + phylo(1 | species, tree = tree))`. The fitted phylogenetic
+  ordinal location SD is exposed through `sdpars$mu`, `ranef("phylo_mu")`, and
+  a direct `profile_targets()` row. This is local fit-only/extractor evidence;
+  ordinal slopes, scale/discrimination formulas, bivariate ordinal models,
+  intervals, coverage, `inference_ready`, and `supported` status remain
+  planned.
 
 * `nbinom2()` now fits the row-specific Q-Series v1.0 zero-inflated NB2
   fixed-`zi` spatial `mu` intercept gate, for formulas such as

@@ -257,10 +257,10 @@ next-candidate review TSV plus the generated 90% and post-75% review packets in 
 command while still reporting the row-accounting percentages. The generated
 report records how many additional practical surface rows would be needed to
 reach 75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks
-the 17 post-v1.0 rows into the next four rows after 75%, the next six to review
-for 80%, and the later post-v1.0 queue; and
+the 15 post-v1.0 rows into the next four rows after 75%, the current five rows
+needed for 90%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv` expands the
-current seven rows needed for 90% practical-surface accounting into a no-compute
+current five rows needed for 90% practical-surface accounting into a no-compute
 Rose/Fisher/Grace review checklist.
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
 next four rows into a design/recovery checklist. The same candidate bundle
@@ -272,12 +272,12 @@ the fail-closed local-debug fixture contract for that same first candidate.
 The bundle also writes
 `docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv` and
 `docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv`
-for the next four post-75% practical-surface review rows:
-ordinal/phylo `mu`, truncated-NB2 relmat `hu`, labelled spatial count `mu`,
-and simultaneous-provider count `mu`. These artifacts are planning aids only
-and do not authorize row movement, code changes, local fits, host compute,
-denominator rows, coverage jobs, `inference_ready`, `supported`, or
-public-release claims. Regenerate the report with
+for the next four post-75% practical-surface review rows: truncated-NB2 relmat
+`hu`, labelled spatial count `mu`, simultaneous-provider count `mu`, and the
+non-Gaussian structured one-slope neighbour design row. These artifacts are
+planning aids only and do not authorize row movement, code changes, local fits,
+host compute, denominator rows, coverage jobs, `inference_ready`, `supported`,
+or public-release claims. Regenerate the report with
 `--write-report --write-candidates` after intentional release-boundary changes.
 For a quick planning snapshot, run
 `python3 tools/qseries_v1_release_check.py --fast-status`; that mode reads the
@@ -286,11 +286,11 @@ guard, and Mission Control, and must not be used as evidence for status
 movement or public wording.
 For the current first-four candidate baseline, run
 `R_PROFILE_USER=/dev/null /usr/local/bin/Rscript --no-init-file
-tools/qseries-v1-first-four-rejection-smoke.R`; it now emits ten local
-fit-only rows and four exact current-candidate rejection rows. The four
-rejections check the structured non-Gaussian, unlabelled q=1, and
-single-provider count gates without creating fit denominators, coverage
-evidence, status movement, or public support.
+tools/qseries-v1-first-four-rejection-smoke.R`; it now emits the local
+fit-only rows plus the current candidate rejection/design-boundary rows. Those
+rows check the structured non-Gaussian, unlabelled q=1, single-provider count,
+and planned one-slope-neighbour gates without creating fit denominators,
+coverage evidence, status movement, or public support.
 
 `structured-re-q2-retained-denominator-design.tsv` is now historical Tranche 2
 q2 design evidence, not a current run permission. The Rorqual SR150 pregrid was
@@ -2081,11 +2081,11 @@ interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 `structured-re-nongaussian-structured-family-rejection-contract.tsv` records
 the active pre-optimization rejection contract for the remaining
 structured-family routes the engine still rejects at the formula gate:
-`cumulative_logit()` `mu` with `phylo()` and `truncated_nbinom2()` `hu` with
-`relmat()`. The previously banked beta, Gamma, Student `mu`, Student `nu`,
-Poisson `zi`, beta `sigma`, and NB2 `sigma` one-slope rows now live in the
-support cells and the local first-four smoke as local fit-only recovery rows.
-Those moved rows still do not promote parser-ready broad support, bridge,
+`truncated_nbinom2()` `hu` with `relmat()`. The previously banked beta, Gamma,
+Student `mu`, Student `nu`, ordinal `mu`, Poisson `zi`, beta `sigma`, and NB2
+`sigma` one-slope rows now live in the support cells and the local first-four
+smoke as local fit-only recovery rows. Those moved rows still do not promote
+parser-ready broad support, bridge,
 interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact

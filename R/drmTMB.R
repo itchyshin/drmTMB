@@ -4913,6 +4913,9 @@ drm_build_cumulative_logit_spec <- function(
     ))
   }
   mu_entry$rhs <- meta$rhs
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  validate_ordinal_phylo_mu_structured_term(mu_phylo$term)
   if (formula_contains_structured_marker(mu_entry$rhs)) {
     drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
   }
@@ -4957,6 +4960,7 @@ drm_build_cumulative_logit_spec <- function(
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
   X_mu <- ordinal_mu_model_matrix(terms_mu, mf_mu)
+  phylo_mu <- build_structured_mu_structure(mu_phylo$term, data_model, env)
 
   if (nrow(X_mu) != length(ordinal$y)) {
     cli::cli_abort("Internal model-frame mismatch in cumulative_logit model.")
@@ -4977,16 +4981,24 @@ drm_build_cumulative_logit_spec <- function(
       mu = empty_random_mu_structure(nrow(data_model)),
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    random_scale = list(
+      mu = empty_sd_mu_structure(1L),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = phylo_mu),
     ordinal = ordinal[c("levels", "n_categories", "response")],
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = "mu",
-    start = cumulative_logit_start(ordinal$y, X_mu, ordinal$n_categories),
-    map = cumulative_logit_map(),
-    random_names = NULL
+    start = cumulative_logit_start(
+      ordinal$y,
+      X_mu,
+      ordinal$n_categories,
+      phylo_mu = phylo_mu
+    ),
+    map = cumulative_logit_map(phylo_mu),
+    random_names = if (isTRUE(phylo_mu$has)) "u_phylo" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -7357,6 +7369,35 @@ validate_student_phylo_nu_structured_term <- function(term) {
       "{.fn student} {.fn phylo} {.code nu} effects currently support only intercept-only structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Structured Student-t shape slopes, q2/q4 covariance, and location-shape blocks remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_ordinal_phylo_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (!identical(marker, "phylo")) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} structured {.code mu} effects currently admit only the first {.fn phylo} intercept gate.",
+      "x" = "Requested structured effect type: {.val {marker}}.",
+      "i" = "Keep {.fn spatial}, {.fn animal}, {.fn relmat}, ordinal structured slopes, q2/q4, scale/discrimination formulas, REML, and AI-REML deferred until row-specific recovery evidence exists."
+    ))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} {.fn phylo} {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)} for the v1.0 local fit-only gate."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn cumulative_logit} {.fn phylo} {.code mu} effects currently support only intercept-only structured terms.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Ordinal structured slopes, q2/q4 covariance, scale-side routes, intervals, coverage, REML, and AI-REML remain post-v1.0 design work."
     ))
   }
   invisible(NULL)
@@ -14234,13 +14275,19 @@ tweedie_ls_map <- function() {
   out
 }
 
-cumulative_logit_start <- function(y, X_mu, n_categories) {
+cumulative_logit_start <- function(
+  y,
+  X_mu,
+  n_categories,
+  phylo_mu = empty_phylo_mu_structure()
+) {
   beta_mu <- rep(0, ncol(X_mu))
   names(beta_mu) <- colnames(X_mu)
 
   cumulative <- cumsum(tabulate(y, nbins = n_categories)) / length(y)
   cutpoints <- stats::qlogis(cumulative[-n_categories])
   theta_ord <- ordinal_raw_from_cutpoints(cutpoints)
+  phylo_start <- gaussian_phylo_start(as.numeric(y), phylo_mu)
 
   c(
     list(
@@ -14264,8 +14311,8 @@ cumulative_logit_start <- function(y, X_mu, n_categories) {
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
@@ -14302,8 +14349,8 @@ ordinal_cutpoints_from_raw <- function(theta_ord) {
   out
 }
 
-cumulative_logit_map <- function() {
-  list(
+cumulative_logit_map <- function(phylo_mu = empty_phylo_mu_structure()) {
+  out <- list(
     beta_sigma = factor(NA),
     beta_nu = factor(NA),
     beta_zi = factor(NA),
@@ -14320,10 +14367,15 @@ cumulative_logit_map <- function() {
     eta_cor_sigma = factor(NA),
     u_sigma = factor(NA),
     log_sd_sigma = factor(NA),
-    u_phylo = factor(NA),
-    log_sd_phylo = factor(NA),
     eta_cor_phylo = factor(NA)
   )
+  if (!isTRUE(phylo_mu$has)) {
+    out <- c(out, list(
+      u_phylo = factor(NA),
+      log_sd_phylo = factor(NA)
+    ))
+  }
+  out
 }
 
 gaussian_phylo_start <- function(y, phylo_mu) {
@@ -15797,6 +15849,7 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "cumulative_logit")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 13L,
       y = spec$y,
@@ -15845,11 +15898,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "poisson")) {
@@ -16628,6 +16693,7 @@ split_tmb_sdpars <- function(par, spec) {
         "tweedie",
         "beta",
         "beta_binomial",
+        "cumulative_logit",
         "poisson",
         "zi_poisson",
         "nbinom2",
@@ -16914,6 +16980,7 @@ split_tmb_random_effects <- function(par, spec) {
         "tweedie",
         "beta",
         "beta_binomial",
+        "cumulative_logit",
         "poisson",
         "zi_poisson",
         "nbinom2",

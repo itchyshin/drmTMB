@@ -302,13 +302,17 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_true(
     any(grepl("^animal\\(", names(fit_beta_sigma_animal$sdpars$sigma)))
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + phylo(1 | id, tree = tree)),
-      family = cumulative_logit(),
-      data = dat_ord
-    ),
-    "Structured non-Gaussian paths"
+  fit_ordinal_phylo <- drmTMB(
+    bf(y ~ x + phylo(1 | id, tree = tree)),
+    family = cumulative_logit(),
+    data = dat_ord,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_ordinal_phylo, "drmTMB")
+  expect_equal(as.integer(fit_ordinal_phylo$opt$convergence), 0L)
+  expect_true("phylo_mu" %in% names(fit_ordinal_phylo$random_effects))
+  expect_true(
+    any(grepl("^phylo\\(", names(fit_ordinal_phylo$sdpars$mu)))
   )
   expect_error(
     drmTMB(
@@ -546,7 +550,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
     c(
       "expected_fit",
       "expected_fit",
-      "expected_rejection",
+      "expected_fit",
       "expected_rejection",
       "expected_rejection",
       "expected_rejection",
@@ -569,7 +573,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
     c(
       "",
       "",
-      "Structured non-Gaussian paths",
+      "",
       "Structured non-Gaussian paths",
       "unlabelled q=1",
       "Only one structured",

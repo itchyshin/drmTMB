@@ -133,6 +133,14 @@ The current table records these broad facts without promoting beyond them:
   are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
   labelled non-Gaussian structured slopes, zero-inflated structure, structured
   count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
+- The Q-Series v1.0 basic-distribution surface also includes one row-specific
+  local fit-only ordinal gate: `cumulative_logit()` with
+  `mu ~ phylo(1 | id, tree = tree)`. That row exposes the fitted phylogenetic
+  ordinal-location SD and local extractor path only; it does not promote
+  ordinal slopes, ordinary ordinal grouped effects, ordinal
+  scale/discrimination formulas, intervals, coverage, `inference_ready`,
+  `supported`, q2/q4, REML, AI-REML, bridge, or broad structured ordinal
+  support.
 - The ordinary count one-slope rows now have an explicit fixture/recovery
   contract sidecar. It records existing native TMB ML/Laplace point-fit and
   extractor evidence, while native deterministic fixture status is

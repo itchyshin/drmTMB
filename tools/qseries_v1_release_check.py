@@ -608,6 +608,14 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may only reproduce the current simultaneous-provider rejection or, after review, check parser diagnostics; not a denominator or coverage run",
         "next_action": "review the simultaneous-provider structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
     },
+    "qseries_nongaussian_structured_slope_neighbors_planned": {
+        "contract_id": "qseries_v1_nongaussian_structured_slope_neighbors_design_contract",
+        "model_contract": "family-specific non-Gaussian structured one-slope neighbors must be split into explicit family/provider/endpoint routes before any runtime gate; no pooled all-family likelihood contract exists",
+        "dgp_requirements": "one named family per fixture; valid response support; one structured provider at a time; one ordinary predictor with within-level replication; no labelled covariance, multiple slopes, q2/q4, or endpoint pooling",
+        "implementation_requirements": "choose a single family/provider/endpoint slice and write the parser, extractor, and likelihood contract before code; do not change formula grammar broadly, public API, q2/q4, REML, AI-REML, interval, or coverage wording",
+        "recovery_requirements": "one local debug fixture may only document the planned design boundary or, after review, check a single-family finite fit and extractor visibility; not a denominator or coverage run",
+        "next_action": "split the slope-neighbor row into one family/provider/endpoint design before any code, local debug fit, host compute, or support-cell edit",
+    },
 }
 
 
@@ -1018,6 +1026,28 @@ def main() -> int:
     )
     rejection_rows.extend(
         read_tsv(root / COUNT_MU_REJECTION_PATH.relative_to(ROOT))
+    )
+    rejection_rows.append(
+        {
+            "rejection_id": "nongaussian_structured_slope_neighbors_planned_boundary",
+            "cell_id": "qseries_nongaussian_structured_slope_neighbors_planned",
+            "formula_cell": "non-count or labelled/multiple structured non-Gaussian slope variants",
+            "family": "non-count or extended count families",
+            "structured_type": "all_structured",
+            "dimension": "q1",
+            "endpoint": "mu",
+            "slope_class": "independent_one_slope",
+            "expected_error_pattern": "not_run_planned_design",
+            "rejection_stage": "planned_design_boundary",
+            "fit_status": "planned",
+            "extractor_status": "planned",
+            "bridge_status": "planned",
+            "interval_status": "unsupported",
+            "coverage_status": "planned",
+            "evidence_url": "docs/design/59-structural-slope-and-non-gaussian-map.md",
+            "claim_boundary": "planned design boundary only; no runtime rejection, fit, denominator, interval, coverage, inference_ready, supported, REML, AI-REML, bridge, q2/q4, or public-support claim",
+            "next_gate": "Split by family/DGP/extractor/recovery contract before runtime work.",
+        }
     )
     candidate_rows = build_candidate_rows(ledger_rows)
     review_packet_rows = build_review_packet_rows(candidate_rows)

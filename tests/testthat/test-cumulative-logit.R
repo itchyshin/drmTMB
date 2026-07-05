@@ -105,6 +105,71 @@ test_that("cumulative-logit likelihood matches independent category probabilitie
   expect_equal(as.numeric(logLik(fit_w)), ll_weighted, tolerance = 1e-6)
 })
 
+test_that("cumulative-logit admits the first phylogenetic mu intercept gate", {
+  testthat::skip_if_not_installed("ape")
+  set.seed(2026070504)
+  species_levels <- paste0("sp", seq_len(6L))
+  species <- factor(rep(species_levels, each = 18L), levels = species_levels)
+  x <- stats::rnorm(length(species))
+  u <- stats::rnorm(length(species_levels), sd = 0.35)
+  names(u) <- species_levels
+  eta <- 0.55 * x + u[as.character(species)]
+  cutpoints <- c(-0.65, 0.75)
+  p_low <- stats::plogis(cutpoints[[1L]] - eta)
+  p_medium <- stats::plogis(cutpoints[[2L]] - eta) - p_low
+  prob <- cbind(p_low, p_medium, 1 - stats::plogis(cutpoints[[2L]] - eta))
+  draw <- vapply(
+    seq_len(nrow(prob)),
+    function(i) sample.int(3L, size = 1L, prob = prob[i, ]),
+    integer(1L)
+  )
+  dat <- data.frame(
+    score = ordered(
+      c("low", "medium", "high")[draw],
+      levels = c("low", "medium", "high")
+    ),
+    x = x,
+    species = species
+  )
+  tree <- ape::stree(length(species_levels), type = "star")
+  tree$tip.label <- species_levels
+  tree$edge.length <- rep(1, nrow(tree$edge))
+
+  fit <- drmTMB(
+    bf(score ~ x + phylo(1 | species, tree = tree)),
+    family = cumulative_logit(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "cumulative_logit")
+  expect_equal(as.integer(fit$opt$convergence), 0L)
+  expect_true(isTRUE(fit$model$structured$phylo_mu$has))
+  expect_equal(drmTMB:::structured_mu_q(fit$model$structured$phylo_mu), 1L)
+  expect_true("phylo_mu" %in% names(fit$random_effects))
+  expect_true(any(grepl("^phylo\\(", names(fit$sdpars$mu))))
+  expect_true(all(diff(fit$ordinal$cutpoints) > 0))
+  expect_true(all(is.finite(predict(fit, dpar = "mu", type = "link"))))
+
+  expect_error(
+    drmTMB(
+      bf(score ~ x + phylo(1 + x | species, tree = tree)),
+      family = cumulative_logit(),
+      data = dat
+    ),
+    "intercept-only structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(score ~ x + phylo(1 | q | species, tree = tree)),
+      family = cumulative_logit(),
+      data = dat
+    ),
+    "unlabelled q=1 intercepts"
+  )
+})
+
 test_that("cumulative-logit methods return latent location and ordinal summaries", {
   sim <- new_ordinal_data(n = 220, seed = 20260511)
   fit <- drmTMB(
