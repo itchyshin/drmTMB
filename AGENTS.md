@@ -3,6 +3,22 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest handover — start here (2026-07-05, → Claude).** Q-Series v1
+> practical-surface checkpoint and multi-day takeover. The active branch is
+> `drmtmb/fix-family-conventions`, pushed at
+> `3262655f59c1da69eef1a1950a94ea1a6698eb33` after recovering exact Gaussian
+> q2 scale-only point-fit/extractor rows for `spatial`, `animal`, and `relmat`.
+> Current Q-Series v1 truth is 104 rows, practical v1 surface 94/104 (90.4%),
+> Gaussian core 59/67 (88.1%), basic distribution recovery 35/37 (94.6%),
+> exact `inference_ready` still 8/104, structured `supported` still 0/104, and
+> post-v1 rows 10/104. This is not a full Q-Series completion claim: no q4/q8
+> promotion, no new coverage authorization, no REML/AI-REML expansion, and no
+> public-support wording. Product decision recorded: finish `drmTMB` as the
+> primary R/TMB package first; keep `DRM.jl`/Julia optional and later, not
+> required for v1. `gh` was unavailable in the shell, so the branch is pushed
+> but draft PR creation may need the browser compare page. START HERE:
+> [`docs/dev-log/handover/2026-07-05-claude-handover.md`](docs/dev-log/handover/2026-07-05-claude-handover.md).
+>
 > **▶ Latest handover — start here (2026-07-01, → Codex).** Q-Series Tranche 3 clean start.
 > Tranche 2 is done and merged: PR #684 and PR #685 landed on `main`, with local
 > `HEAD` and `origin/main` verified at `4d6d2339eb48`, no open drmTMB PRs, a clean
