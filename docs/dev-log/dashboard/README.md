@@ -262,6 +262,10 @@ needed for 90%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv` expands the
 current three rows needed for 90% practical-surface accounting into a no-compute
 Rose/Fisher/Grace review checklist.
+`docs/dev-log/release-audits/q-series-v1-90pct-economy-plan.tsv` adds the
+matching economy view: implementation cost, least-compute next action, and why
+parallel local or host compute is not useful until the row-specific design gate
+is settled.
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
 next four rows into a design/recovery checklist. The same candidate bundle
 also writes

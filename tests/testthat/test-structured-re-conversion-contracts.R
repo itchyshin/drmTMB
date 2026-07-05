@@ -30623,6 +30623,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "rows_to_100=13",
     "candidate_review_rows=13",
     "ninety_review_packet_rows=3",
+    "ninety_economy_rows=3",
     "first_four_review_packet_rows=4",
     "first_candidate_contract_rows=1",
     "debug_fixture_contract_rows=1",
@@ -30833,6 +30834,71 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   structured_re_expect_all_match(
     ninety_packet$next_action,
     "before any code, compute, or support-cell edit"
+  )
+  ninety_economy <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "release-audits",
+      "q-series-v1-90pct-economy-plan.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_named(
+    ninety_economy,
+    c(
+      "contract_id",
+      "review_rank",
+      "cell_id",
+      "v1_track",
+      "current_fit_status",
+      "model_scope",
+      "implementation_cost",
+      "least_compute_next_action",
+      "why_not_parallel_compute",
+      "blocking_reviewers",
+      "coverage_decision",
+      "promotion_decision",
+      "claim_boundary"
+    )
+  )
+  expect_equal(nrow(ninety_economy), 3L)
+  expect_equal(ninety_economy$review_rank, 1:3)
+  expect_equal(
+    ninety_economy$contract_id,
+    sprintf("qseries_v1_to90_economy_%02d", seq_len(3L))
+  )
+  expect_equal(ninety_economy$cell_id, ninety_packet$cell_id)
+  expect_equal(
+    ninety_economy$implementation_cost,
+    c("high_engine_design", "medium_row_selection", "high_math_route")
+  )
+  structured_re_expect_all_match(
+    ninety_economy$least_compute_next_action,
+    "before"
+  )
+  structured_re_expect_all_match(
+    ninety_economy$why_not_parallel_compute,
+    "compute"
+  )
+  expect_equal(
+    ninety_economy$blocking_reviewers,
+    rep("Rose/Fisher/Grace", 3L)
+  )
+  expect_equal(
+    ninety_economy$coverage_decision,
+    rep("coverage_not_authorized", 3L)
+  )
+  expect_equal(
+    ninety_economy$promotion_decision,
+    rep("do_not_promote", 3L)
+  )
+  structured_re_expect_all_match(
+    ninety_economy$claim_boundary,
+    "planning-only"
   )
   first_four_packet <- utils::read.delim(
     structured_re_artifact_path(

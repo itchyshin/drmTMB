@@ -68,6 +68,20 @@ could reach 90%. It is a review queue only: every row remains
 | 2 | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families q1 mu independent-one-slope all_structured route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
 | 3 | `qseries_animal_q2_plus_q2_sigma_rejected` | biv_gaussian() q2_plus_q2 sigma1+sigma2 intercept-only animal route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
 
+## Next Rows To 90% Economy Plan
+
+This generated economy view records the least-compute next action for the same
+rows needed to reach 90% practical-surface accounting. It is planning-only:
+it does not authorize local fits, host jobs, support-cell movement, coverage,
+`inference_ready`, `supported`, REML, AI-REML, bridge, or public-support
+wording.
+
+| Rank | Cell | Implementation cost | Least-compute next action | Why parallel compute waits |
+| ---: | --- | --- | --- | --- |
+| 1 | `qseries_count_mu_simultaneous_structured_types_rejected` | high_engine_design | review an additive multi-provider count-mu design and extractor policy before any parser or TMB edit | the current count engine has one structured mu slot; parallel local or host compute would only reproduce the pre-optimization one-provider gate |
+| 2 | `qseries_nongaussian_structured_slope_neighbors_planned` | medium_row_selection | split the broad planned row into one family-provider DGP/extractor/recovery contract before runtime work | the row is a planned design bucket, not an executable family/provider compute fixture |
+| 3 | `qseries_animal_q2_plus_q2_sigma_rejected` | high_math_route | review the scale-side q2-plus-q2 covariance route and failure taxonomy before any parser edit or smoke | partial location-scale blocks are intentionally rejected; compute would not create a valid practical-surface row without a route contract |
+
 ## Next-Four After 75% Review Packet
 
 These four rows are the current generated review packet after reaching the 75%

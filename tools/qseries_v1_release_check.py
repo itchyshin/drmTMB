@@ -25,6 +25,7 @@ DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-
 DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
 DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
 DEFAULT_NINETY_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv"
+DEFAULT_NINETY_ECONOMY_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-90pct-economy-plan.tsv"
 DEFAULT_FIRST_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-design-contract.tsv"
 DEFAULT_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-debug-fixture-contract.tsv"
 DEFAULT_FIRST_FOUR_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv"
@@ -66,6 +67,21 @@ REVIEW_PACKET_FIELDS = (
     "promotion_decision",
     "claim_boundary",
     "next_action",
+)
+NINETY_ECONOMY_FIELDS = (
+    "contract_id",
+    "review_rank",
+    "cell_id",
+    "v1_track",
+    "current_fit_status",
+    "model_scope",
+    "implementation_cost",
+    "least_compute_next_action",
+    "why_not_parallel_compute",
+    "blocking_reviewers",
+    "coverage_decision",
+    "promotion_decision",
+    "claim_boundary",
 )
 FIRST_CONTRACT_FIELDS = (
     "contract_id",
@@ -176,6 +192,12 @@ def parse_args() -> argparse.Namespace:
         type=pathlib.Path,
         default=DEFAULT_NINETY_PACKET_PATH,
         help="Generated TSV next rows needed for the 90 percent review packet path.",
+    )
+    parser.add_argument(
+        "--ninety-economy-output",
+        type=pathlib.Path,
+        default=DEFAULT_NINETY_ECONOMY_PATH,
+        help="Generated TSV economical action plan for rows needed for the 90 percent target.",
     )
     parser.add_argument(
         "--first-contract-output",
@@ -504,6 +526,71 @@ def build_ninety_review_packet_rows(
     return packet_rows
 
 
+def ninety_economy_detail(row: dict[str, str]) -> dict[str, str]:
+    cell_id = row["cell_id"]
+    if cell_id == "qseries_count_mu_simultaneous_structured_types_rejected":
+        return {
+            "implementation_cost": "high_engine_design",
+            "least_compute_next_action": "review an additive multi-provider count-mu design and extractor policy before any parser or TMB edit",
+            "why_not_parallel_compute": "the current count engine has one structured mu slot; parallel local or host compute would only reproduce the pre-optimization one-provider gate",
+        }
+    if cell_id == "qseries_nongaussian_structured_slope_neighbors_planned":
+        return {
+            "implementation_cost": "medium_row_selection",
+            "least_compute_next_action": "split the broad planned row into one family-provider DGP/extractor/recovery contract before runtime work",
+            "why_not_parallel_compute": "the row is a planned design bucket, not an executable family/provider compute fixture",
+        }
+    if cell_id.endswith("_q2_plus_q2_sigma_rejected"):
+        return {
+            "implementation_cost": "high_math_route",
+            "least_compute_next_action": "review the scale-side q2-plus-q2 covariance route and failure taxonomy before any parser edit or smoke",
+            "why_not_parallel_compute": "partial location-scale blocks are intentionally rejected; compute would not create a valid practical-surface row without a route contract",
+        }
+    return {
+        "implementation_cost": "review_required",
+        "least_compute_next_action": "write a row-specific DGP/extractor/recovery contract before code or compute",
+        "why_not_parallel_compute": "candidate movement needs Rose/Fisher/Grace review before local or host work",
+    }
+
+
+def build_ninety_economy_rows(
+    candidate_rows: list[dict[str, str]],
+    progress: dict[str, str],
+) -> list[dict[str, str]]:
+    needed = rows_needed_for_target(progress, "90%")
+    if needed > len(candidate_rows):
+        raise ValueError(
+            "Q-Series v1.0 90 percent economy plan needs "
+            f"{needed} rows, but only {len(candidate_rows)} candidate rows exist"
+        )
+    economy_rows: list[dict[str, str]] = []
+    for row in candidate_rows[:needed]:
+        detail = ninety_economy_detail(row)
+        economy_rows.append(
+            {
+                "contract_id": f"qseries_v1_to90_economy_{int(row['review_rank']):02d}",
+                "review_rank": row["review_rank"],
+                "cell_id": row["cell_id"],
+                "v1_track": row["v1_track"],
+                "current_fit_status": row["fit_status"],
+                "model_scope": (
+                    f"{row['family']} {row['dimension_pattern']} "
+                    f"{row['endpoint_set']} "
+                    f"{row['slope_class'].replace('_', '-')} "
+                    f"{row['structure_provider']} route"
+                ),
+                "implementation_cost": detail["implementation_cost"],
+                "least_compute_next_action": detail["least_compute_next_action"],
+                "why_not_parallel_compute": detail["why_not_parallel_compute"],
+                "blocking_reviewers": "Rose/Fisher/Grace",
+                "coverage_decision": "coverage_not_authorized",
+                "promotion_decision": "do_not_promote",
+                "claim_boundary": "90 percent economy plan is planning-only; it is not implementation evidence, recovery evidence, support-cell movement, inference_ready, supported, coverage, q4/q8, REML, AI-REML, bridge, or public-support authority",
+            }
+        )
+    return economy_rows
+
+
 FIRST_FOUR_CONTRACT_DETAIL = {
     "qseries_beta_mu_animal_rejected": {
         "contract_id": "qseries_v1_beta_mu_animal_design_contract",
@@ -766,6 +853,17 @@ def render_review_packet_report_rows(packet_rows: list[dict[str, str]]) -> str:
     )
 
 
+def render_ninety_economy_report_rows(economy_rows: list[dict[str, str]]) -> str:
+    return "\n".join(
+        (
+            f"| {row['review_rank']} | `{row['cell_id']}` | "
+            f"{row['implementation_cost']} | {row['least_compute_next_action']} | "
+            f"{row['why_not_parallel_compute']} |"
+        )
+        for row in economy_rows
+    )
+
+
 def render_first_contract_report_rows(contract_rows: list[dict[str, str]]) -> str:
     return "\n".join(
         (
@@ -803,6 +901,7 @@ def render_report(
     candidate_rows: list[dict[str, str]],
     review_packet_rows: list[dict[str, str]],
     ninety_packet_rows: list[dict[str, str]],
+    ninety_economy_rows: list[dict[str, str]],
     first_contract_rows: list[dict[str, str]],
     debug_fixture_rows: list[dict[str, str]],
     first_four_contract_rows: list[dict[str, str]],
@@ -826,6 +925,7 @@ def render_report(
     candidate_table = render_candidate_report_rows(candidate_rows)
     review_packet_table = render_review_packet_report_rows(review_packet_rows)
     ninety_packet_table = render_review_packet_report_rows(ninety_packet_rows)
+    ninety_economy_table = render_ninety_economy_report_rows(ninety_economy_rows)
     first_contract_table = render_first_contract_report_rows(first_contract_rows)
     debug_fixture_table = render_debug_fixture_report_rows(debug_fixture_rows)
     first_four_contract_table = render_first_contract_report_rows(first_four_contract_rows)
@@ -885,6 +985,18 @@ could reach 90%. It is a review queue only: every row remains
 | Rank | Cell | Model scope | Minimum recovery evidence | Next action |
 | ---: | --- | --- | --- | --- |
 {ninety_packet_table}
+
+## Next Rows To 90% Economy Plan
+
+This generated economy view records the least-compute next action for the same
+rows needed to reach 90% practical-surface accounting. It is planning-only:
+it does not authorize local fits, host jobs, support-cell movement, coverage,
+`inference_ready`, `supported`, REML, AI-REML, bridge, or public-support
+wording.
+
+| Rank | Cell | Implementation cost | Least-compute next action | Why parallel compute waits |
+| ---: | --- | --- | --- | --- |
+{ninety_economy_table}
 
 ## Next-Four After 75% Review Packet
 
@@ -1080,6 +1192,7 @@ def main() -> int:
     candidate_rows = build_candidate_rows(ledger_rows)
     review_packet_rows = build_review_packet_rows(candidate_rows)
     ninety_packet_rows = build_ninety_review_packet_rows(candidate_rows, progress)
+    ninety_economy_rows = build_ninety_economy_rows(candidate_rows, progress)
     first_four_contract_rows = build_first_four_contract_rows(
         support_rows=support_rows,
         ledger_rows=ledger_rows,
@@ -1103,6 +1216,7 @@ def main() -> int:
         candidate_rows=candidate_rows,
         review_packet_rows=review_packet_rows,
         ninety_packet_rows=ninety_packet_rows,
+        ninety_economy_rows=ninety_economy_rows,
         first_contract_rows=first_contract_rows,
         debug_fixture_rows=debug_fixture_rows,
         first_four_contract_rows=first_four_contract_rows,
@@ -1114,6 +1228,7 @@ def main() -> int:
     candidates = render_tsv(candidate_rows, CANDIDATE_FIELDS)
     review_packet = render_tsv(review_packet_rows, REVIEW_PACKET_FIELDS)
     ninety_packet = render_tsv(ninety_packet_rows, REVIEW_PACKET_FIELDS)
+    ninety_economy = render_tsv(ninety_economy_rows, NINETY_ECONOMY_FIELDS)
     first_contract = render_tsv(first_contract_rows, FIRST_CONTRACT_FIELDS)
     debug_fixture = render_tsv(debug_fixture_rows, DEBUG_FIXTURE_FIELDS)
     first_four_contracts = render_tsv(first_four_contract_rows, FIRST_CONTRACT_FIELDS)
@@ -1179,6 +1294,22 @@ def main() -> int:
         if current_ninety_packet != ninety_packet:
             print(
                 f"{ninety_packet_path}: differs from generated 90 percent review packet",
+                file=sys.stderr,
+            )
+            return 1
+        ninety_economy_path = args.ninety_economy_output
+        if not ninety_economy_path.is_absolute():
+            ninety_economy_path = root / ninety_economy_path
+        if not ninety_economy_path.exists():
+            print(
+                f"{ninety_economy_path}: missing generated 90 percent economy plan",
+                file=sys.stderr,
+            )
+            return 1
+        current_ninety_economy = ninety_economy_path.read_text(encoding="utf-8")
+        if current_ninety_economy != ninety_economy:
+            print(
+                f"{ninety_economy_path}: differs from generated 90 percent economy plan",
                 file=sys.stderr,
             )
             return 1
@@ -1256,6 +1387,10 @@ def main() -> int:
         if not ninety_packet_path.is_absolute():
             ninety_packet_path = root / ninety_packet_path
         ninety_packet_path.write_text(ninety_packet, encoding="utf-8")
+        ninety_economy_path = args.ninety_economy_output
+        if not ninety_economy_path.is_absolute():
+            ninety_economy_path = root / ninety_economy_path
+        ninety_economy_path.write_text(ninety_economy, encoding="utf-8")
         first_contract_path = args.first_contract_output
         if not first_contract_path.is_absolute():
             first_contract_path = root / first_contract_path
@@ -1288,6 +1423,7 @@ def main() -> int:
                 f"{target_summary}; "
                 f"candidate_review_rows={len(candidate_rows)}; "
                 f"ninety_review_packet_rows={len(ninety_packet_rows)}; "
+                f"ninety_economy_rows={len(ninety_economy_rows)}; "
                 f"first_four_review_packet_rows={len(review_packet_rows)}; "
                 f"first_candidate_contract_rows={len(first_contract_rows)}; "
                 f"debug_fixture_contract_rows={len(debug_fixture_rows)}; "
