@@ -443,7 +443,7 @@ test_that("nbinom2 phylogenetic mu keeps planned neighboring routes closed", {
       family = nbinom2(),
       data = dat
     ),
-    "Structured non-Gaussian paths"
+    "intercept-plus-one-slope"
   )
 })
 
