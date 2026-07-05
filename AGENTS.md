@@ -3,7 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-07-05, → Claude).** Q-Series v1
+> **▶ Latest handover — start here (2026-07-05, → Claude, Day 1 takeover).**
+> Q-Series v1 practical-surface arc, Day 1-2 executed. Branch
+> `drmtmb/fix-family-conventions` @ `0ce8b919`; **draft PR #730** open into
+> `main` with a corrected 94/104 body. CI trimmed: routine `pull_request`/push
+> runs `ubuntu-latest` only, 3-OS matrix on release tags (`v*`) + `workflow_dispatch`.
+> Rose/Fisher/Ada/Grace release-candidate audit clean (no boundary violations;
+> `inference_ready` recounted = 8). Last-ten triage: **0 finish-now, 10 post-v1**
+> (all design/engine-blocked; q8 rows policy-barred). Truth unchanged: 104 rows,
+> practical 94/104, inference_ready 8/104, supported 0/104, post_v1 10/104. No
+> q4/q8 promotion, no new coverage, no REML/AI-REML expansion, no public-support
+> wording; Julia optional/later. Pre-ready-for-review debt (Codex lane): local
+> `--as-cran` + pkgdown + one 3-OS `workflow_dispatch` R-CMD-check. START HERE:
+> [`docs/dev-log/handover/2026-07-05-claude-takeover-day1-handover.md`](docs/dev-log/handover/2026-07-05-claude-takeover-day1-handover.md).
+>
+> **▶ Prior handover (2026-07-05, → Claude).** Q-Series v1
 > practical-surface checkpoint and multi-day takeover. The active branch is
 > `drmtmb/fix-family-conventions`, pushed at
 > `3262655f59c1da69eef1a1950a94ea1a6698eb33` after recovering exact Gaussian
