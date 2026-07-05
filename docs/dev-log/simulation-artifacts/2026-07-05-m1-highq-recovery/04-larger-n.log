@@ -1,0 +1,8 @@
+start 2026-07-05 10:40:17
+[q4 p0] n_tip= 512 conv=0 pdHess=TRUE max|rho|=0.473 rmse=0.053 frob=0.182 (42.3s)
+[q4 p0] n_tip=1024 conv=0 pdHess=TRUE max|rho|=0.578 rmse=0.055 frob=0.191 (65.8s)
+[q8 p0] n_tip= 512 conv=1 pdHess=FALSE max|rho|=0.733 rmse=0.146 frob=1.096 (174.1s)
+[q8 p1] n_tip= 512 conv=1 pdHess=FALSE max|rho|=0.692 rmse=0.220 frob=1.647 (169.7s)
+[q8 p0] n_tip=1024 conv=1 pdHess=FALSE max|rho|=0.789 rmse=0.116 frob=0.870 (306.2s)
+[q8 p1] n_tip=1024 conv=1 pdHess=FALSE max|rho|=0.729 rmse=0.210 frob=1.569 (240.3s)
+done 2026-07-05 10:57:20

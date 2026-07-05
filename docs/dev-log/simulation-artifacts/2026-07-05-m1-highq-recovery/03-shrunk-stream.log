@@ -1,0 +1,8 @@
+start 2026-07-05 10:35:23
+[q4] n_tip=  64 seed=20260801 conv=1 pdHess=FALSE max|rho|=0.994 rmse=0.331 frob=1.145 (7.0s)
+[q8] n_tip=  16 seed=20260901 conv=1 pdHess=FALSE max|rho|=0.974 rmse=0.475 frob=3.555 (7.7s)
+[q8] n_tip=  64 seed=20260901 conv=1 pdHess=FALSE max|rho|=0.866 rmse=0.329 frob=2.462 (24.8s)
+[q8] n_tip= 256 seed=20260901 conv=1 pdHess=FALSE max|rho|=0.863 rmse=0.178 frob=1.328 (77.3s)
+[q8] n_tip=  16 seed=20260902 conv=1 pdHess=FALSE max|rho|=0.974 rmse=0.475 frob=3.555 (6.4s)
+[q8] n_tip= 256 seed=20260902 conv=1 pdHess=FALSE max|rho|=0.863 rmse=0.178 frob=1.328 (76.9s)
+done 2026-07-05 10:38:44

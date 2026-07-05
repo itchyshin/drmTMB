@@ -3,7 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-05, → Claude, regression fix).** Draft PR
+> **▶ Latest — start here (2026-07-05, → Claude, 104/104 arc: M1 done, start M2).**
+> Started the Q-Series **94→104/104 completion arc** (ultra-plan:
+> [`docs/dev-log/2026-07-05-qseries-104-completion-ultra-plan.md`](docs/dev-log/2026-07-05-qseries-104-completion-ultra-plan.md)).
+> **M1 verdict: the covariance engine already works — no rewrite needed.** q4 all-four is
+> clean at Santi-scale (n≥512: conv=0, pdHess=TRUE, rmse ~0.05); q8 recovers (rmse→0.116 at
+> 1024 groups) but `pdHess=FALSE` persists (genuine weak-ID) → route q8 inference through
+> **parallel profile + bootstrap** (ELR excluded); q8→pdHess=TRUE is a deferred reduced-rank-FA
+> arc. The documented "q8 blocker" (doc 220) was a **data-size misdiagnosis** (36 params / 16
+> groups). ⇒ Phase 2/3 are **parser admission + recovery-gating + profile intervals, not engine
+> surgery.** Next: **M2 = q6 admitted (4 providers, recovery)**. Branch
+> `drmtmb/fix-family-conventions`; draft PR #730 (94/104 + regression fix) unchanged, ubuntu CI
+> green; Mission Control truth 94/104 / 8/104 / 0/104 / 10/104. START HERE:
+> [`docs/dev-log/handover/2026-07-05-claude-m1-to-m2-handover.md`](docs/dev-log/handover/2026-07-05-claude-m1-to-m2-handover.md).
+>
+> **▶ Prior — (2026-07-05, → Claude, regression fix).** Draft PR
 > #730's ubuntu CI revealed a **122-test regression** the branch carried (hidden
 > by focused-tests-only runs). Root cause: two model-type-blind structured-RE
 > naming changes from the q-series non-Gaussian admit work — `split_tmb_sdpars`
