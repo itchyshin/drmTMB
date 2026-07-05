@@ -418,13 +418,59 @@ test_that("count structured mu keeps planned neighboring routes closed", {
     ),
     "cannot be combined"
   )
+  sim_zi <- new_count_structured_mu_data(
+    seed = 2026070408,
+    n_level = 8L,
+    n_each = 20L
+  )
+  dat_zi <- sim_zi$data
+  coords_zi <- sim_zi$coords
+  set.seed(2026070409)
+  dat_zi$poisson_zi_spatial <- ifelse(
+    stats::rbinom(nrow(dat_zi), size = 1L, prob = 0.25) == 1L,
+    0L,
+    dat_zi$poisson_spatial
+  )
+  fit_zi_mu <- drmTMB(
+    bf(poisson_zi_spatial ~ x + spatial(1 | site, coords = coords_zi), zi ~ 1),
+    family = stats::poisson(link = "log"),
+    data = dat_zi,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  expect_s3_class(fit_zi_mu, "drmTMB")
+  expect_equal(fit_zi_mu$opt$convergence, 0)
+  expect_true(fit_zi_mu$sdr$pdHess)
+  expect_equal(fit_zi_mu$model$model_type, "zi_poisson")
+  expect_equal(fit_zi_mu$model$dpars, c("mu", "zi"))
+  expect_equal(fit_zi_mu$model$structured$phylo_mu$type, "spatial")
+  expect_equal(fit_zi_mu$model$structured$phylo_mu$q, 1L)
+  expect_named(fit_zi_mu$sdpars$mu, "spatial(1 | site)")
+  expect_gt(unname(fit_zi_mu$sdpars$mu[["spatial(1 | site)"]]), 0)
+  expect_equal(names(ranef(fit_zi_mu)), "spatial_mu")
+  expect_equal(ranef(fit_zi_mu, "spatial_mu"), fit_zi_mu$random_effects$spatial_mu)
+  sd_target <- profile_targets(fit_zi_mu)
+  sd_target <- sd_target[
+    sd_target$parm == "sd:mu:spatial(1 | site)",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "log_sd_phylo")
+  expect_equal(sd_target$target_type, "direct")
+  expect_true(sd_target$profile_ready)
+  expect_true(all(is.finite(predict(fit_zi_mu, dpar = "mu", type = "link"))))
+  expect_true(all(predict(fit_zi_mu, dpar = "mu") > 0))
+  expect_true(all(is.finite(predict(fit_zi_mu, dpar = "zi", type = "link"))))
   expect_error(
     drmTMB(
-      bf(poisson_spatial ~ x + spatial(1 | site, coords = coords), zi ~ 1),
+      bf(
+        poisson_zi_spatial ~ x + spatial(1 | site, coords = coords_zi),
+        zi ~ spatial(1 | site, coords = coords_zi)
+      ),
       family = stats::poisson(link = "log"),
-      data = dat
+      data = dat_zi
     ),
-    "Zero-inflated Poisson structured random effects"
+    "cannot be combined"
   )
   expect_error(
     drmTMB(
@@ -460,6 +506,6 @@ test_that("count structured mu keeps planned neighboring routes closed", {
       family = nbinom2(),
       data = dat
     ),
-    "Structured non-Gaussian paths"
+    "cannot be combined"
   )
 })

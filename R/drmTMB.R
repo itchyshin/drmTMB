@@ -5096,6 +5096,8 @@ drm_build_poisson_spec <- function(
     mu_structured_term,
     mu_re$terms,
     has_zi = !is.null(zi_entry),
+    allow_zero_inflated_structured_mu = TRUE,
+    zero_inflated_structured_mu_types = "spatial",
     family_label = "Poisson",
     inflated_label = "Zero-inflated Poisson"
   )
@@ -6985,6 +6987,8 @@ validate_count_structured_mu_term <- function(
   term,
   ordinary_terms,
   has_zi = FALSE,
+  allow_zero_inflated_structured_mu = FALSE,
+  zero_inflated_structured_mu_types = character(0),
   family_label,
   inflated_label
 ) {
@@ -7003,7 +7007,10 @@ validate_count_structured_mu_term <- function(
     relmat = "relmat(1 | id, Q = Q)",
     paste0(marker, "(1 | id, ...)")
   )
-  if (isTRUE(has_zi)) {
+  zero_inflated_structured_mu_allowed <- isTRUE(
+    allow_zero_inflated_structured_mu
+  ) && marker %in% zero_inflated_structured_mu_types
+  if (isTRUE(has_zi) && !isTRUE(zero_inflated_structured_mu_allowed)) {
     cli::cli_abort(c(
       "{family_label} structured {.code mu} effects are implemented only for ordinary {family_label} models.",
       "x" = "{inflated_label} structured random effects are planned but not implemented.",

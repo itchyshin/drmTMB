@@ -800,18 +800,21 @@ public-support, q4/q8, or broad structured non-Gaussian support.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
 pre-optimization rejection contract for structured count `mu` routes the engine
-rejects beyond the banked one-slope cells: a non-canonical (slope-only)
+still rejects beyond the banked one-slope cells: a non-canonical (slope-only)
 coefficient, a labelled `q=2` covariance, a structured term combined with an
-ordinary random effect, a zero-inflated structured term (Poisson and NB2), and
-two simultaneous structured effect types. Each cell is rejected at the formula
+ordinary random effect, a zero-inflated NB2 structured `mu` route, and two
+simultaneous structured effect types. The Poisson structured `mu` route with a
+fixed `zi ~ 1` formula now lives in the support cells and local first-four smoke
+as a local fit-only row. Each remaining rejection cell is rejected at the formula
 gate with its own message (for example `cannot be combined` or `Only one
 structured`), backed by `tests/testthat/test-count-structured-mu.R`, so each
 linked `qseries_count_mu_*_rejected` cell stays `unsupported`. These rows answer
 the count `mu` half-cell question: the banked count `mu` one-slope cells do not
-imply multiple, labelled, combined, zero-inflated, or multi-type structured count
-`mu` support. The rows are rejection evidence only and do not promote
-parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML, public
-support, or q4/q8 status. The contracts anchor on engine message substrings; see
+imply multiple, labelled, combined, structured-zero-inflation, NB2
+zero-inflation, or multi-type structured count `mu` support. The rows are
+rejection evidence only and do not promote parser-ready, point-fit, bridge,
+interval, coverage, REML, AI-REML, public support, or q4/q8 status. The
+contracts anchor on engine message substrings; see
 `docs/dev-log/2026-06-27-rejection-contract-anchor-robustness-memo.md` for the
 recommendation to re-anchor on a condition class.
 

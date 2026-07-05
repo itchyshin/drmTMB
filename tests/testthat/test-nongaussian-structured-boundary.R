@@ -276,6 +276,20 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_true(
     any(grepl("^spatial\\(", names(fit_poisson_zi_spatial$sdpars$zi)))
   )
+  fit_poisson_zi_mu_spatial <- drmTMB(
+    bf(y ~ x + spatial(1 | id, coords = coords_poisson_zi), zi ~ 1),
+    family = stats::poisson(link = "log"),
+    data = dat_poisson_zi_spatial,
+    control = drm_control(se = FALSE)
+  )
+  expect_s3_class(fit_poisson_zi_mu_spatial, "drmTMB")
+  expect_equal(as.integer(fit_poisson_zi_mu_spatial$opt$convergence), 0L)
+  expect_true(
+    "spatial_mu" %in% names(fit_poisson_zi_mu_spatial$random_effects)
+  )
+  expect_true(
+    any(grepl("^spatial\\(", names(fit_poisson_zi_mu_spatial$sdpars$mu)))
+  )
   expect_error(
     drmTMB(
       bf(y ~ x, zi ~ spatial(1 + x | id, coords = coords_poisson_zi)),
@@ -403,6 +417,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_student_mu_spatial_rejected",
       "qseries_student_nu_phylo_rejected",
       "qseries_poisson_zi_spatial_rejected",
+      "qseries_count_mu_zeroinflated_poisson_structured_rejected",
       "qseries_beta_sigma_animal_rejected",
       "qseries_phylo_nbinom2_q1_sigma_one_slope_rejected",
       "qseries_spatial_nbinom2_q1_sigma_one_slope_rejected",
@@ -426,6 +441,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_fit",
+      "expected_fit",
       "expected_fit"
     )
   )
@@ -438,6 +454,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "Structured non-Gaussian paths",
       "unlabelled q=1",
       "Only one structured",
+      "",
       "",
       "",
       "",
