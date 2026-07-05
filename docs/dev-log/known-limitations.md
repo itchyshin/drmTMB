@@ -268,10 +268,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric
-  slopes. Student-t `nu` is a fixed-effect tail-shape parameter; random effects
-  in `sigma` or `nu`, skew-t shape random effects, correlated Student-t slopes,
-  and latent ID-level skewness syntax such as `skew(id) ~ x` are not yet
-  implemented.
+  slopes. One row-specific Q-Series v1.0 local fit-only gate also fits
+  `nu ~ phylo(1 | id, tree = tree)` and exposes extractors, but it has no
+  interval, coverage, or broad shape-support claim. Student-t `nu` otherwise
+  remains a fixed-effect tail-shape parameter; random effects in `sigma` or
+  `nu`, skew-t shape random effects, correlated Student-t slopes, and latent
+  ID-level skewness syntax such as `skew(id) ~ x` are not yet implemented.
 - Univariate skew-normal location-scale-shape models are implemented as a
   fixed-effect first slice for residual asymmetry with `family = skew_normal()`.
   Public `mu` is the response mean, public `sigma` is the response standard
@@ -297,15 +299,19 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   for non-zero-inflated Poisson models and enter the log-mean predictor.
   Zero-inflated Poisson models are implemented by
   adding `zi ~ predictors`; here `mu` is the conditional count mean and `zi` is
-  the structural-zero probability, but `zi` random effects and `mu` random
-  effects in the zero-inflated route remain planned and now error with
-  zero-inflation-specific boundary messages. There is no modelled `sigma`
+  the structural-zero probability. One row-specific Q-Series v1.0 local
+  fit-only gate also fits `zi ~ spatial(1 | id, coords = coords)` and exposes
+  extractors, but it has no interval, coverage, or broad inflation-support
+  claim. Other `zi` random effects and `mu` random effects in the
+  zero-inflated route remain planned and now error with zero-inflation-specific
+  boundary messages. There is no modelled `sigma`
   parameter. The first structured count routes are fitted for one unlabelled
   q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` intercept in ordinary
   Poisson `mu`. Overdispersion, correlated Poisson slope blocks, labelled
   Poisson covariance blocks, known sampling covariance, structured count
-  slopes, zero-inflated structured effects, simultaneous structured types, and
-  bivariate or mixed Poisson models remain planned.
+  slopes, zero-inflated structured effects beyond the exact spatial `zi`
+  local-fit gate, simultaneous structured types, and bivariate or mixed Poisson
+  models remain planned.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in
@@ -322,15 +328,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   Ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
   slopes, the first ordinary NB2 log-`sigma` random intercept, and ordinary
   zero-truncated NB2 `mu` random intercepts and independent numeric slopes are
-  fitted. Random effects in `zi`, `hu`, or the count-side `mu` path of
+  fitted. Apart from the exact Poisson spatial `zi` local fit-only gate,
+  random effects in `zi`, `hu`, or the count-side `mu` path of
   zero-inflated or hurdle models are not implemented yet, and cross-parameter
   covariance among count, dispersion, inflation, hurdle, or shape random effects
   remains future work. Ordinary NB2 fits one q=1 `phylo()`, `spatial()`,
   `animal()`, or `relmat()` structured `mu` intercept on the log-mean scale,
   but structured `sigma`, structured slopes, labelled count covariance,
-  zero-inflated structured effects, known sampling covariance, correlated
-  zero-truncated slopes, and bivariate or mixed negative-binomial models are
-  not yet implemented.
+  zero-inflated structured effects beyond the exact Poisson spatial `zi`
+  local-fit gate, known sampling covariance, correlated zero-truncated slopes,
+  and bivariate or mixed negative-binomial models are not yet implemented.
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports
   only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
@@ -405,12 +412,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   correlations, spatial direct-SD surfaces, spatial `corpair()` regressions,
   count spatial slopes or labels, and zero-inflated spatial effects remain
   planned.
-- Except for the ordinary Poisson/NB2 q=1 `mu` intercept routes, non-Gaussian
-  structured random effects are not implemented. `phylo()`, `spatial()`,
-  `animal()`, and `relmat()` markers outside ordinary count `mu` now error in
-  non-Gaussian models with a structured non-Gaussian boundary. Count structured
-  slopes, labelled q=2/q=4 count blocks, simultaneous structured count types,
-  bounded, ordinal, shape, inflation,
+- Except for ordinary Poisson/NB2 q=1 `mu` routes, the row-specific Student-t
+  `nu ~ phylo(1 | id, tree = tree)` local-fit gate, and the row-specific
+  zero-inflated Poisson `zi ~ spatial(1 | id, coords = coords)` local-fit gate,
+  non-Gaussian structured random effects are not implemented. `phylo()`,
+  `spatial()`, `animal()`, and `relmat()` markers outside those exact routes
+  now error in non-Gaussian models with a structured non-Gaussian boundary.
+  Count structured slopes, labelled q=2/q=4 count blocks, simultaneous
+  structured count types, bounded, ordinal, shape, inflation,
   hurdle, and one-inflation structured effects need ordinary family-specific
   random-effect recovery and interval evidence before entering the fitted
   surface.
@@ -433,7 +442,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   blocks, response-specific `mu`/`sigma` random-intercept covariance blocks, and
   univariate Student-t models with fixed-effect `mu`,
   `sigma`, and `nu` plus ordinary unlabelled `mu` random intercepts and
-  independent numeric slopes.
+  independent numeric slopes, plus the row-specific local fit-only Student-t
+  `nu ~ phylo(1 | id, tree = tree)` gate.
   It also supports univariate lognormal models with `mu` and `sigma` on the
   log-response scale, univariate Gamma mean-CV models with positive response
   mean `mu` and coefficient of variation `sigma`, ordinary unlabelled
@@ -444,8 +454,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   univariate negative-binomial 2 mean-dispersion models, zero-inflated variants
   for Poisson and NB2 through `zi ~ predictors`, a zero-truncated NB2 path for
   positive counts, a hurdle NB2 path through `hu ~ predictors`, a
-  fixed-effect univariate cumulative-logit ordinal path, and a fixed-effect
-  univariate beta-binomial path.
+  row-specific local fit-only zero-inflated Poisson
+  `zi ~ spatial(1 | id, coords = coords)` gate, a fixed-effect univariate
+  cumulative-logit ordinal path, and a fixed-effect univariate beta-binomial
+  path.
 - Cross-formula labelled covariance sharing beyond the implemented univariate
   intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
@@ -455,16 +467,19 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   univariate correlated residual-scale random-slope blocks, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, correlated Student-t
-  random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance
-  models, Student-t phylogenetic models, bivariate Student-t models,
+  random slopes, Student-t `sigma` or `nu` random effects beyond the exact
+  row-specific phylo `nu` gate, Student-t known-covariance
+  models, broad Student-t phylogenetic models, bivariate Student-t models,
   correlated lognormal/Gamma/beta/beta-binomial random slopes,
   lognormal/Gamma/beta/beta-binomial `sigma` random effects,
   lognormal/Gamma/beta/beta-binomial structured-effect models,
   beta exact-boundary mass, ordinal scale or discrimination models,
   count covariance labels and correlated count slopes, count hurdle or
-  zero-inflation with random effects or structured effects, non-Gaussian
+  zero-inflation with random effects or structured effects beyond the exact
+  Poisson spatial `zi` local-fit gate, non-Gaussian
   structured routes beyond the ordinary Poisson/NB2 q=1 `mu` intercept slices
-  for `phylo()`, `spatial()`, `animal()`, and `relmat()`,
+  for `phylo()`, `spatial()`, `animal()`, and `relmat()` and beyond the exact
+  Student-t phylo `nu` and Poisson spatial `zi` local-fit gates,
   and additional non-Gaussian families beyond the first Student-t, skew-normal,
   lognormal, Gamma, beta, beta-binomial, Poisson, negative-binomial,
   zero-inflated, zero-truncated, and hurdle paths are planned but not yet
