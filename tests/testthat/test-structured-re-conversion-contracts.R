@@ -30693,6 +30693,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "rows_to_90=7",
     "rows_to_100=17",
     "candidate_review_rows=17",
+    "ninety_review_packet_rows=7",
     "first_four_review_packet_rows=4",
     "first_candidate_contract_rows=1",
     "debug_fixture_contract_rows=1",
@@ -30814,6 +30815,97 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   structured_re_expect_all_match(
     candidate_review$claim_boundary,
     "not a support-cell edit"
+  )
+  ninety_packet <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "release-audits",
+      "q-series-v1-90pct-review-packet.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  expect_named(
+    ninety_packet,
+    c(
+      "contract_id",
+      "review_rank",
+      "cell_id",
+      "family",
+      "structure_provider",
+      "model_scope",
+      "minimum_design_question",
+      "minimum_recovery_evidence",
+      "validator_gate",
+      "blocking_reviewers",
+      "compute_decision",
+      "coverage_decision",
+      "promotion_decision",
+      "claim_boundary",
+      "next_action"
+    )
+  )
+  expect_equal(nrow(ninety_packet), 7L)
+  expect_equal(ninety_packet$review_rank, 1:7)
+  expect_equal(
+    ninety_packet$contract_id,
+    sprintf("qseries_v1_to90_review_%02d", seq_len(7L))
+  )
+  expect_equal(ninety_packet$cell_id, candidate_review$cell_id[1:7])
+  expect_equal(
+    ninety_packet$cell_id,
+    c(
+      "qseries_ordinal_mu_phylo_rejected",
+      "qseries_truncnbinom2_hu_relmat_rejected",
+      "qseries_count_mu_labelled_q2_rejected",
+      "qseries_count_mu_simultaneous_structured_types_rejected",
+      "qseries_count_mu_zeroinflated_nbinom2_structured_rejected",
+      "qseries_nongaussian_structured_slope_neighbors_planned",
+      "qseries_animal_q2_plus_q2_sigma_rejected"
+    )
+  )
+  structured_re_expect_all_match(
+    ninety_packet$minimum_design_question,
+    "least row-specific evidence"
+  )
+  structured_re_expect_all_match(
+    ninety_packet$minimum_recovery_evidence,
+    "Rose/Fisher/Grace review"
+  )
+  structured_re_expect_all_match(
+    ninety_packet$validator_gate,
+    "90 percent packet"
+  )
+  expect_equal(
+    ninety_packet$blocking_reviewers,
+    rep("Rose/Fisher/Grace", 7L)
+  )
+  expect_equal(
+    ninety_packet$compute_decision,
+    rep("no_compute_authorized", 7L)
+  )
+  expect_equal(
+    ninety_packet$coverage_decision,
+    rep("coverage_not_authorized", 7L)
+  )
+  expect_equal(
+    ninety_packet$promotion_decision,
+    rep("do_not_promote", 7L)
+  )
+  structured_re_expect_all_match(
+    ninety_packet$claim_boundary,
+    "not implementation evidence"
+  )
+  structured_re_expect_all_match(
+    ninety_packet$claim_boundary,
+    "support-cell movement"
+  )
+  structured_re_expect_all_match(
+    ninety_packet$next_action,
+    "before any code, compute, or support-cell edit"
   )
   first_four_packet <- utils::read.delim(
     structured_re_artifact_path(
@@ -31189,6 +31281,12 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "`qseries_ordinal_mu_phylo_rejected`",
     "`coverage_not_authorized`",
     "`do_not_promote`",
+    "Next Rows To 90% Review Packet",
+    "current `rows_to_90` counter",
+    "`qseries_count_mu_zeroinflated_nbinom2_structured_rejected`",
+    "`qseries_nongaussian_structured_slope_neighbors_planned`",
+    "`qseries_animal_q2_plus_q2_sigma_rejected`",
+    "choose one row for a reviewed design/recovery contract",
     "Next-Four After 75% Review Packet",
     "design/recovery checklist only",
     "cumulative_logit() q1 mu intercept-only phylo route",

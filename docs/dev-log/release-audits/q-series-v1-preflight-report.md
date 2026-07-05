@@ -55,6 +55,23 @@ Every generated candidate remains `coverage_not_authorized` and
 | 9 | additional_six_to_review_for_80_percent | `qseries_spatial_q2_plus_q2_sigma_rejected` | biv_gaussian() | spatial | Gaussian scale-side route gap; design a supported route before any movement |
 | 10 | additional_six_to_review_for_80_percent | `qseries_animal_q6_planned` | biv_gaussian() | animal | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
 
+## Next Rows To 90% Review Packet
+
+This generated packet expands the current `rows_to_90` counter into the exact
+rows that would need row-specific evidence before the practical v1.0 surface
+could reach 90%. It is a review queue only: every row remains
+`coverage_not_authorized` and `do_not_promote`.
+
+| Rank | Cell | Model scope | Minimum recovery evidence | Next action |
+| ---: | --- | --- | --- | --- |
+| 1 | `qseries_ordinal_mu_phylo_rejected` | cumulative_logit() q1 mu intercept-only phylo route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+| 2 | `qseries_truncnbinom2_hu_relmat_rejected` | truncated_nbinom2() q1 hu intercept-only relmat route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+| 3 | `qseries_count_mu_labelled_q2_rejected` | poisson() q1 mu intercept-only spatial route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+| 4 | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() q1 mu intercept-only spatial route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+| 5 | `qseries_count_mu_zeroinflated_nbinom2_structured_rejected` | nbinom2() q1 mu intercept-only spatial route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+| 6 | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families q1 mu independent-one-slope all_structured route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+| 7 | `qseries_animal_q2_plus_q2_sigma_rejected` | biv_gaussian() q2_plus_q2 sigma1+sigma2 intercept-only animal route | row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement | choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit |
+
 ## Next-Four After 75% Review Packet
 
 These four rows are the current generated review packet after reaching the 75%

@@ -23,12 +23,14 @@ COUNT_MU_REJECTION_PATH = ROOT / "docs/dev-log/dashboard/structured-re-count-str
 DEFAULT_REPORT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-preflight-report.md"
 DEFAULT_CANDIDATE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-next-candidate-review.tsv"
 DEFAULT_REVIEW_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv"
+DEFAULT_NINETY_PACKET_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv"
 DEFAULT_FIRST_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-design-contract.tsv"
 DEFAULT_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-candidate-debug-fixture-contract.tsv"
 DEFAULT_FIRST_FOUR_CONTRACT_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv"
 DEFAULT_FIRST_FOUR_DEBUG_FIXTURE_PATH = ROOT / "docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv"
 PRIMARY_REVIEW_BAND = "next_four_after_75_percent"
 PRIMARY_REVIEW_PACKET_PREFIX = "qseries_v1_post75_review"
+NINETY_REVIEW_PACKET_PREFIX = "qseries_v1_to90_review"
 CANDIDATE_FIELDS = (
     "review_rank",
     "target_band",
@@ -167,6 +169,12 @@ def parse_args() -> argparse.Namespace:
         type=pathlib.Path,
         default=DEFAULT_REVIEW_PACKET_PATH,
         help="Generated TSV 75 percent review packet path.",
+    )
+    parser.add_argument(
+        "--ninety-packet-output",
+        type=pathlib.Path,
+        default=DEFAULT_NINETY_PACKET_PATH,
+        help="Generated TSV next rows needed for the 90 percent review packet path.",
     )
     parser.add_argument(
         "--first-contract-output",
@@ -449,6 +457,52 @@ def build_review_packet_rows(candidate_rows: list[dict[str, str]]) -> list[dict[
     return packet_rows
 
 
+def rows_needed_for_target(progress: dict[str, str], target: str) -> int:
+    for row in row_target_gaps(progress):
+        if row["target"] == target:
+            return int(row["needed"])
+    raise ValueError(f"Unknown Q-Series v1.0 target: {target}")
+
+
+def build_ninety_review_packet_rows(
+    candidate_rows: list[dict[str, str]],
+    progress: dict[str, str],
+) -> list[dict[str, str]]:
+    needed = rows_needed_for_target(progress, "90%")
+    if needed > len(candidate_rows):
+        raise ValueError(
+            "Q-Series v1.0 90 percent packet needs "
+            f"{needed} rows, but only {len(candidate_rows)} candidate rows exist"
+        )
+    packet_rows: list[dict[str, str]] = []
+    for row in candidate_rows[:needed]:
+        packet_rows.append(
+            {
+                "contract_id": f"{NINETY_REVIEW_PACKET_PREFIX}_{int(row['review_rank']):02d}",
+                "review_rank": row["review_rank"],
+                "cell_id": row["cell_id"],
+                "family": row["family"],
+                "structure_provider": row["structure_provider"],
+                "model_scope": (
+                    f"{row['family']} {row['dimension_pattern']} "
+                    f"{row['endpoint_set']} "
+                    f"{row['slope_class'].replace('_', '-')} "
+                    f"{row['structure_provider']} route"
+                ),
+                "minimum_design_question": "What is the least row-specific evidence that could move this row into the practical v1.0 surface without changing interval, coverage, or support status?",
+                "minimum_recovery_evidence": "row-specific design, DGP/extractor expectation, local debug or explicit rejection evidence, and Rose/Fisher/Grace review before any surface movement",
+                "validator_gate": "candidate TSV, 90 percent packet, preflight report, focused conversion-contract test, and Mission Control must remain green",
+                "blocking_reviewers": "Rose/Fisher/Grace",
+                "compute_decision": "no_compute_authorized",
+                "coverage_decision": "coverage_not_authorized",
+                "promotion_decision": "do_not_promote",
+                "claim_boundary": "90 percent review packet is not implementation evidence, recovery evidence, support-cell movement, inference_ready, supported, coverage, q4/q8, REML, AI-REML, bridge, or public-support authority",
+                "next_action": "choose one row for a reviewed design/recovery contract before any code, compute, or support-cell edit",
+            }
+        )
+    return packet_rows
+
+
 FIRST_FOUR_CONTRACT_DETAIL = {
     "qseries_beta_mu_animal_rejected": {
         "contract_id": "qseries_v1_beta_mu_animal_design_contract",
@@ -715,6 +769,7 @@ def render_report(
     progress: dict[str, str],
     candidate_rows: list[dict[str, str]],
     review_packet_rows: list[dict[str, str]],
+    ninety_packet_rows: list[dict[str, str]],
     first_contract_rows: list[dict[str, str]],
     debug_fixture_rows: list[dict[str, str]],
     first_four_contract_rows: list[dict[str, str]],
@@ -737,6 +792,7 @@ def render_report(
     )
     candidate_table = render_candidate_report_rows(candidate_rows)
     review_packet_table = render_review_packet_report_rows(review_packet_rows)
+    ninety_packet_table = render_review_packet_report_rows(ninety_packet_rows)
     first_contract_table = render_first_contract_report_rows(first_contract_rows)
     debug_fixture_table = render_debug_fixture_report_rows(debug_fixture_rows)
     first_four_contract_table = render_first_contract_report_rows(first_four_contract_rows)
@@ -785,6 +841,17 @@ Every generated candidate remains `coverage_not_authorized` and
 | Rank | Target band | Cell | Family | Provider | Review reason |
 | ---: | --- | --- | --- | --- | --- |
 {candidate_table}
+
+## Next Rows To 90% Review Packet
+
+This generated packet expands the current `rows_to_90` counter into the exact
+rows that would need row-specific evidence before the practical v1.0 surface
+could reach 90%. It is a review queue only: every row remains
+`coverage_not_authorized` and `do_not_promote`.
+
+| Rank | Cell | Model scope | Minimum recovery evidence | Next action |
+| ---: | --- | --- | --- | --- |
+{ninety_packet_table}
 
 ## Next-Four After 75% Review Packet
 
@@ -954,6 +1021,7 @@ def main() -> int:
     )
     candidate_rows = build_candidate_rows(ledger_rows)
     review_packet_rows = build_review_packet_rows(candidate_rows)
+    ninety_packet_rows = build_ninety_review_packet_rows(candidate_rows, progress)
     first_four_contract_rows = build_first_four_contract_rows(
         support_rows=support_rows,
         ledger_rows=ledger_rows,
@@ -976,6 +1044,7 @@ def main() -> int:
         progress=progress,
         candidate_rows=candidate_rows,
         review_packet_rows=review_packet_rows,
+        ninety_packet_rows=ninety_packet_rows,
         first_contract_rows=first_contract_rows,
         debug_fixture_rows=debug_fixture_rows,
         first_four_contract_rows=first_four_contract_rows,
@@ -986,6 +1055,7 @@ def main() -> int:
     )
     candidates = render_tsv(candidate_rows, CANDIDATE_FIELDS)
     review_packet = render_tsv(review_packet_rows, REVIEW_PACKET_FIELDS)
+    ninety_packet = render_tsv(ninety_packet_rows, REVIEW_PACKET_FIELDS)
     first_contract = render_tsv(first_contract_rows, FIRST_CONTRACT_FIELDS)
     debug_fixture = render_tsv(debug_fixture_rows, DEBUG_FIXTURE_FIELDS)
     first_four_contracts = render_tsv(first_four_contract_rows, FIRST_CONTRACT_FIELDS)
@@ -1035,6 +1105,22 @@ def main() -> int:
         if current_review_packet != review_packet:
             print(
                 f"{review_packet_path}: differs from generated 75 percent review packet",
+                file=sys.stderr,
+            )
+            return 1
+        ninety_packet_path = args.ninety_packet_output
+        if not ninety_packet_path.is_absolute():
+            ninety_packet_path = root / ninety_packet_path
+        if not ninety_packet_path.exists():
+            print(
+                f"{ninety_packet_path}: missing generated 90 percent review packet",
+                file=sys.stderr,
+            )
+            return 1
+        current_ninety_packet = ninety_packet_path.read_text(encoding="utf-8")
+        if current_ninety_packet != ninety_packet:
+            print(
+                f"{ninety_packet_path}: differs from generated 90 percent review packet",
                 file=sys.stderr,
             )
             return 1
@@ -1108,6 +1194,10 @@ def main() -> int:
         if not review_packet_path.is_absolute():
             review_packet_path = root / review_packet_path
         review_packet_path.write_text(review_packet, encoding="utf-8")
+        ninety_packet_path = args.ninety_packet_output
+        if not ninety_packet_path.is_absolute():
+            ninety_packet_path = root / ninety_packet_path
+        ninety_packet_path.write_text(ninety_packet, encoding="utf-8")
         first_contract_path = args.first_contract_output
         if not first_contract_path.is_absolute():
             first_contract_path = root / first_contract_path
@@ -1139,6 +1229,7 @@ def main() -> int:
                 f"post_v1={progress.get('Post-v1.0 validation/design', 'NA')}; "
                 f"{target_summary}; "
                 f"candidate_review_rows={len(candidate_rows)}; "
+                f"ninety_review_packet_rows={len(ninety_packet_rows)}; "
                 f"first_four_review_packet_rows={len(review_packet_rows)}; "
                 f"first_candidate_contract_rows={len(first_contract_rows)}; "
                 f"debug_fixture_contract_rows={len(debug_fixture_rows)}; "
