@@ -1,0 +1,59 @@
+start 2026-07-05 11:32:47 | provider=phylo n=64,256,512,1024 n_each=6 seed=20260705
+[phylo] ng=  64 conv=0 pdHess=TRUE max|rho|=0.781 rmse=0.239 frob=1.308 (2.8s)
+[phylo] ng= 256 conv=0 pdHess=TRUE max|rho|=0.532 rmse=0.147 frob=0.807 (11.2s)
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.501 rmse=0.094 frob=0.514 (18.4s)
+[phylo] ng=1024 conv=0 pdHess=TRUE max|rho|=0.512 rmse=0.055 frob=0.299 (38.0s)
+done 2026-07-05 11:34:06 | provider=phylo
+start 2026-07-05 11:34:08 | provider=spatial n=64,256,512,1024 n_each=6 seed=20260705
+[spatial] ng=  64 conv=1 pdHess=FALSE max|rho|=0.862 rmse=0.299 frob=1.635 (30.2s)
+start 2026-07-05 11:39:41 | provider=spatial n=256 n_each=6 seed=20260705
+[spatial] ng= 256 conv=0 pdHess=TRUE max|rho|=0.692 rmse=0.217 frob=1.190 (404.4s)
+done 2026-07-05 11:46:25 | provider=spatial
+start 2026-07-05 11:47:13 | provider=phylo n=512 n_each=6 seed=20260706
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.501 rmse=0.094 frob=0.514 (18.4s)
+done 2026-07-05 11:47:34 | provider=phylo
+start 2026-07-05 11:47:35 | provider=phylo n=512 n_each=6 seed=20260707
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.501 rmse=0.094 frob=0.514 (18.5s)
+done 2026-07-05 11:47:56 | provider=phylo
+start 2026-07-05 11:47:58 | provider=phylo n=512 n_each=6 seed=20260708
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.501 rmse=0.094 frob=0.514 (18.5s)
+done 2026-07-05 11:48:19 | provider=phylo
+start 2026-07-05 11:48:20 | provider=spatial n=256 n_each=6 seed=20260706
+start 2026-07-05 11:52:38 | provider=phylo n=64,128,256,512,1024 n_each=6 seed=20260705
+[phylo] ng=  64 conv=1 pdHess=TRUE max|rho|=0.836 rmse=0.159 frob=0.871 (3.8s)
+[phylo] ng= 128 conv=0 pdHess=TRUE max|rho|=0.750 rmse=0.158 frob=0.866 (6.4s)
+[phylo] ng= 256 conv=0 pdHess=TRUE max|rho|=0.689 rmse=0.106 frob=0.582 (9.6s)
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.641 rmse=0.058 frob=0.319 (21.3s)
+[phylo] ng=1024 conv=0 pdHess=TRUE max|rho|=0.643 rmse=0.061 frob=0.334 (47.4s)
+done 2026-07-05 11:54:15 | provider=phylo
+start 2026-07-05 11:54:55 | provider=phylo n=512 n_each=6 seed=20260706
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.652 rmse=0.065 frob=0.354 (19.0s)
+done 2026-07-05 11:55:16 | provider=phylo
+start 2026-07-05 11:55:18 | provider=phylo n=512 n_each=6 seed=20260707
+[phylo] ng= 512 conv=0 pdHess=TRUE max|rho|=0.676 rmse=0.090 frob=0.495 (22.3s)
+done 2026-07-05 11:55:43 | provider=phylo
+start 2026-07-05 11:55:45 | provider=spatial n=64 n_each=6 seed=20260705
+[spatial] ng=  64 conv=1 pdHess=FALSE max|rho|=0.860 rmse=0.270 frob=1.479 (44.7s)
+done 2026-07-05 11:56:29 | provider=spatial
+start 2026-07-05 11:56:32 | provider=spatial n=256 n_each=6 seed=20260705
+[spatial] ng= 256 conv=1 pdHess=TRUE max|rho|=0.838 rmse=0.188 frob=1.032 (590.0s)
+done 2026-07-05 12:06:22 | provider=spatial
+start 2026-07-05 12:06:24 | provider=spatial n=256 n_each=6 seed=20260706
+start 2026-07-05 12:08:47 | provider=animal n=64 n_each=6 seed=20260705
+[animal] ng=  64 conv=0 pdHess=TRUE max|rho|=0.799 rmse=0.183 frob=1.002 (14.5s)
+done 2026-07-05 12:09:02 | provider=animal
+start 2026-07-05 12:10:17 | provider=animal n=256 n_each=6 seed=20260705
+[animal] ng= 256 conv=0 pdHess=TRUE max|rho|=0.640 rmse=0.072 frob=0.393 (469.2s)
+done 2026-07-05 12:18:06 | provider=animal
+start 2026-07-05 12:18:08 | provider=animal n=256 n_each=6 seed=20260706
+[animal] ng= 256 conv=0 pdHess=TRUE max|rho|=0.690 rmse=0.055 frob=0.299 (512.2s)
+done 2026-07-05 12:26:40 | provider=animal
+start 2026-07-05 12:26:43 | provider=relmat n=64 n_each=6 seed=20260705
+[relmat] ng=  64 conv=0 pdHess=TRUE max|rho|=0.799 rmse=0.183 frob=1.002 (14.2s)
+done 2026-07-05 12:26:57 | provider=relmat
+start 2026-07-05 12:26:59 | provider=relmat n=256 n_each=6 seed=20260705
+[relmat] ng= 256 conv=0 pdHess=TRUE max|rho|=0.640 rmse=0.072 frob=0.393 (464.5s)
+done 2026-07-05 12:34:43 | provider=relmat
+start 2026-07-05 12:34:45 | provider=relmat n=256 n_each=6 seed=20260706
+[relmat] ng= 256 conv=0 pdHess=TRUE max|rho|=0.690 rmse=0.055 frob=0.299 (514.5s)
+done 2026-07-05 12:43:20 | provider=relmat

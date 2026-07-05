@@ -16,12 +16,12 @@ Mission Control passed in this generated report.
 
 | Measure | Rows and percent |
 | --- | --- |
-| Practical v1.0 row surface | 94/104 (90.4%) |
-| Gaussian v1.0 core | 59/67 (88.1%) |
+| Practical v1.0 row surface | 98/104 (94.2%) |
+| Gaussian v1.0 core | 63/67 (94.0%) |
 | Basic-distribution recovery | 35/37 (94.6%) |
 | Exact `inference_ready` anchors | 8/104 (7.7%) |
 | `supported` authority | 0/104 (0.0%) |
-| Post-v1.0 validation/design | 10/104 (9.6%) |
+| Post-v1.0 validation/design | 6/104 (5.8%) |
 
 ## Distance To Row-Accounting Targets
 
@@ -33,7 +33,7 @@ coverage jobs, public release claims, `inference_ready`, or `supported` status.
 | 75% practical surface | 78/104 | 0 |
 | 80% practical surface | 84/104 | 0 |
 | 90% practical surface | 94/104 | 0 |
-| 100% practical surface | 104/104 | 10 |
+| 100% practical surface | 104/104 | 6 |
 
 ## Next Candidate Review Queue
 
@@ -46,14 +46,10 @@ Every generated candidate remains `coverage_not_authorized` and
 | ---: | --- | --- | --- | --- | --- |
 | 1 | next_four_after_75_percent | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() | spatial | low-dimensional family-design gap; write a DGP/extractor/recovery contract before any movement |
 | 2 | next_four_after_75_percent | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families | all_structured | count-location design gap; prove recovery scope before any movement |
-| 3 | next_four_after_75_percent | `qseries_animal_q6_planned` | biv_gaussian() | animal | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 4 | next_four_after_75_percent | `qseries_phylo_q6_planned` | biv_gaussian() | phylo | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 5 | additional_six_to_review_for_80_percent | `qseries_relmat_q6_planned` | biv_gaussian() | relmat | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 6 | additional_six_to_review_for_80_percent | `qseries_spatial_q6_planned` | biv_gaussian() | spatial | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 7 | additional_six_to_review_for_80_percent | `qseries_animal_q8_planned` | biv_gaussian() | animal | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 8 | additional_six_to_review_for_80_percent | `qseries_phylo_q8_planned` | biv_gaussian() | phylo | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 9 | additional_six_to_review_for_80_percent | `qseries_relmat_q8_planned` | biv_gaussian() | relmat | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
-| 10 | additional_six_to_review_for_80_percent | `qseries_spatial_q8_planned` | biv_gaussian() | spatial | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
+| 3 | next_four_after_75_percent | `qseries_animal_q8_planned` | biv_gaussian() | animal | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
+| 4 | next_four_after_75_percent | `qseries_phylo_q8_planned` | biv_gaussian() | phylo | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
+| 5 | additional_six_to_review_for_80_percent | `qseries_relmat_q8_planned` | biv_gaussian() | relmat | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
+| 6 | additional_six_to_review_for_80_percent | `qseries_spatial_q8_planned` | biv_gaussian() | spatial | Gaussian high-q design gap; leave outside v1.0 unless a narrow implementation gate lands |
 
 ## Next Rows To 90% Review Packet
 
@@ -88,8 +84,8 @@ does not authorize code changes, compute, status edits, coverage, or promotion.
 | ---: | --- | --- | --- | --- |
 | 1 | `qseries_count_mu_simultaneous_structured_types_rejected` | nbinom2() q1 mu intercept-only spatial route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
 | 2 | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families q1 mu independent-one-slope all_structured route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 3 | `qseries_animal_q6_planned` | biv_gaussian() q6 mu1+mu2 multiple-slope animal route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
-| 4 | `qseries_phylo_q6_planned` | biv_gaussian() q6 mu1+mu2 multiple-slope phylo route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 3 | `qseries_animal_q8_planned` | biv_gaussian() q8 mu1+mu2+sigma1+sigma2 labelled-slope-covariance animal route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+| 4 | `qseries_phylo_q8_planned` | biv_gaussian() q8 mu1+mu2+sigma1+sigma2 labelled-slope-covariance phylo route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
 
 ## First Candidate Design Contract
 
@@ -126,8 +122,8 @@ status movement is proposed.
 | --- | --- | --- | --- | --- |
 | `qseries_count_mu_simultaneous_structured_types_rejected` | spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu | y_i ~ NB2(mu_i, phi); log(mu_i) = X_i beta + u_spatial,site[i] + u_relmat,id[i]; simultaneous structured providers require an explicit additive covariance and extractor policy | one local debug fixture may only reproduce the current simultaneous-provider rejection or, after review, check parser diagnostics; not a denominator or coverage run | do_not_promote |
 | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or labelled/multiple structured non-Gaussian slope variants | family-specific non-Gaussian structured one-slope neighbors must be split into explicit family/provider/endpoint routes before any runtime gate; no pooled all-family likelihood contract exists | one local debug fixture may only document the planned design boundary or, after review, check a single-family finite fit and extractor visibility; not a denominator or coverage run | do_not_promote |
-| `qseries_animal_q6_planned` | animal(1 + x + z | p | id, A = A) in mu1 and mu2 | animal(1 + x + z | p | id, A = A) in mu1 and mu2 remains a planned biv_gaussian() q6 mu1+mu2 route until a row-specific runtime, extractor, and recovery contract is written | one local debug fixture may check finite fit and extractor visibility after design review; not a denominator or coverage run | do_not_promote |
-| `qseries_phylo_q6_planned` | phylo(1 + x + z | p | species, tree = tree) in mu1 and mu2 | phylo(1 + x + z | p | species, tree = tree) in mu1 and mu2 remains a planned biv_gaussian() q6 mu1+mu2 route until a row-specific runtime, extractor, and recovery contract is written | one local debug fixture may check finite fit and extractor visibility after design review; not a denominator or coverage run | do_not_promote |
+| `qseries_animal_q8_planned` | broader animal q8 variants beyond the exact A-matrix shared-label all-four one-slope cell | broader animal q8 variants beyond the exact A-matrix shared-label all-four one-slope cell remains a planned biv_gaussian() q8 mu1+mu2+sigma1+sigma2 route until a row-specific runtime, extractor, and recovery contract is written | one local debug fixture may check finite fit and extractor visibility after design review; not a denominator or coverage run | do_not_promote |
+| `qseries_phylo_q8_planned` | broader phylo q8 variants beyond the exact shared-label all-four one-slope cell | broader phylo q8 variants beyond the exact shared-label all-four one-slope cell remains a planned biv_gaussian() q8 mu1+mu2+sigma1+sigma2 route until a row-specific runtime, extractor, and recovery contract is written | one local debug fixture may check finite fit and extractor visibility after design review; not a denominator or coverage run | do_not_promote |
 
 ## Next-Four After 75% Local-Debug Fixture Contracts
 
@@ -149,8 +145,8 @@ coverage evidence, status movement, or public support.
 | --- | --- | --- | --- | --- |
 | `qseries_count_mu_simultaneous_structured_types_rejected` | local_debug_only_no_denominator | Only one structured | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 | `qseries_nongaussian_structured_slope_neighbors_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
-| `qseries_animal_q6_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
-| `qseries_phylo_q6_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+| `qseries_animal_q8_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+| `qseries_phylo_q8_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
 
 ## Boundary
 

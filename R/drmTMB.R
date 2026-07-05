@@ -8071,13 +8071,9 @@ extract_gaussian_mu_phylo_term <- function(entry, dpar = entry$dpar) {
     )
   }
   phylo_term <- phylo_terms[[1L]]
-  phylo_coef_names <- phylo_term$coef_names
-  valid_phylo_coef <- identical(phylo_coef_names, "(Intercept)") ||
-    (length(phylo_coef_names) == 1L &&
-      identical(phylo_coef_names[[1L]], phylo_term$variables[[1L]])) ||
-    (length(phylo_coef_names) == 2L &&
-      identical(phylo_coef_names[[1L]], "(Intercept)") &&
-      identical(phylo_coef_names[[2L]], phylo_term$variables[[1L]]))
+  valid_phylo_coef <- structured_term_is_intercept_only(phylo_term) ||
+    structured_term_is_slope_only(phylo_term) ||
+    structured_term_is_intercept_plus_slopes(phylo_term)
   if (!valid_phylo_coef) {
     cli::cli_abort(c(
       "Only intercept-only or one-slope phylogenetic {.code {dpar}} effects are implemented.",
@@ -8117,13 +8113,9 @@ extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
     )
   }
   spatial_term <- spatial_terms[[1L]]
-  spatial_coef_names <- spatial_term$coef_names
-  valid_spatial_coef <- identical(spatial_coef_names, "(Intercept)") ||
-    (length(spatial_coef_names) == 1L &&
-      identical(spatial_coef_names[[1L]], spatial_term$variables[[1L]])) ||
-    (length(spatial_coef_names) == 2L &&
-      identical(spatial_coef_names[[1L]], "(Intercept)") &&
-      identical(spatial_coef_names[[2L]], spatial_term$variables[[1L]]))
+  valid_spatial_coef <- structured_term_is_intercept_only(spatial_term) ||
+    structured_term_is_slope_only(spatial_term) ||
+    structured_term_is_intercept_plus_slopes(spatial_term)
   if (!valid_spatial_coef) {
     cli::cli_abort(c(
       "Only intercept-only or one-slope spatial {.code {dpar}} effects are implemented.",
@@ -8170,13 +8162,9 @@ extract_gaussian_mu_known_term <- function(entry, marker, dpar = entry$dpar) {
     )
   }
   known_term <- known_terms[[1L]]
-  known_coef_names <- known_term$coef_names
-  valid_known_coef <- identical(known_coef_names, "(Intercept)") ||
-    (length(known_coef_names) == 1L &&
-      identical(known_coef_names[[1L]], known_term$variables[[1L]])) ||
-    (length(known_coef_names) == 2L &&
-      identical(known_coef_names[[1L]], "(Intercept)") &&
-      identical(known_coef_names[[2L]], known_term$variables[[1L]]))
+  valid_known_coef <- structured_term_is_intercept_only(known_term) ||
+    structured_term_is_slope_only(known_term) ||
+    structured_term_is_intercept_plus_slopes(known_term)
   if (!valid_known_coef) {
     cli::cli_abort(c(
       "Only intercept-only or one-slope {.fn {marker}} {.code {dpar}} effects are implemented.",
@@ -8242,8 +8230,8 @@ combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
     validate_univariate_sigma_structured_term(sigma_term, marker)
   }
   labelled_one_slope <- c(
-    mu = structured_term_has_labelled_intercept_one_slope(mu_term),
-    sigma = structured_term_has_labelled_intercept_one_slope(sigma_term)
+    mu = structured_term_has_labelled_intercept_plus_slopes(mu_term),
+    sigma = structured_term_has_labelled_intercept_plus_slopes(sigma_term)
   )
   if (any(labelled_one_slope)) {
     marker_title <- structured_marker_title(marker)
@@ -8374,6 +8362,16 @@ structured_term_is_intercept_one_slope <- function(term) {
     identical(term$coef_names[[2L]], term$variables[[1L]])
 }
 
+# Intercept plus one or more slopes (`1 + x`, `1 + x + z`, ...). The two-slope
+# form is the q6 bivariate location block; the one-slope form is the admitted
+# q4 location block.
+structured_term_is_intercept_plus_slopes <- function(term) {
+  is.character(term$coef_names) &&
+    length(term$coef_names) >= 2L &&
+    identical(term$coef_names[[1L]], "(Intercept)") &&
+    identical(term$coef_names[-1L], as.character(term$variables))
+}
+
 structured_term_is_slope_only <- function(term) {
   is.character(term$coef_names) &&
     length(term$coef_names) == 1L &&
@@ -8384,6 +8382,12 @@ structured_term_has_labelled_intercept_one_slope <- function(term) {
   !is.null(term) &&
     !is.null(term$covariance_label) &&
     structured_term_is_intercept_one_slope(term)
+}
+
+structured_term_has_labelled_intercept_plus_slopes <- function(term) {
+  !is.null(term) &&
+    !is.null(term$covariance_label) &&
+    structured_term_is_intercept_plus_slopes(term)
 }
 
 structured_terms_same_source <- function(term1, term2, marker) {
@@ -9172,14 +9176,15 @@ validate_matching_structured_biv_location_coef <- function(
   }
 
   marker_title <- structured_marker_title(marker)
-  both_one_slope <- structured_term_is_intercept_one_slope(term1) &&
-    structured_term_is_intercept_one_slope(term2)
-  if (!both_one_slope) {
+  both_intercept_plus_slopes <-
+    structured_term_is_intercept_plus_slopes(term1) &&
+    structured_term_is_intercept_plus_slopes(term2)
+  if (!both_intercept_plus_slopes) {
     cli::cli_abort(c(
-      "Bivariate {.fn {marker}} location covariance supports intercept-only, slope-only, or labelled intercept-plus-one-slope structured coefficients in this slice.",
+      "Bivariate {.fn {marker}} location covariance supports intercept-only, slope-only, or labelled intercept-plus-slope structured coefficients in this slice.",
       "x" = "{.code mu1} requested structured coefficients {.val {coef1}}.",
       "x" = "{.code mu2} requested structured coefficients {.val {coef2}}.",
-      "i" = "Use intercept-only syntax such as {.code {marker}(1 | p | group, ...)}, slope-only syntax such as {.code {marker}(0 + x | p | group, ...)}, or matching labelled one-slope syntax such as {.code {marker}(1 + x | p | group, ...)}."
+      "i" = "Use intercept-only syntax such as {.code {marker}(1 | p | group, ...)}, slope-only syntax such as {.code {marker}(0 + x | p | group, ...)}, or matching labelled intercept-plus-slope syntax such as {.code {marker}(1 + x | p | group, ...)} or {.code {marker}(1 + x + z | p | group, ...)}."
     ))
   }
   if (!identical(coef1, coef2)) {
@@ -9242,7 +9247,7 @@ finalize_biv_structured_mu_term <- function(term, marker) {
   term$endpoint_covariance_labels <- rep(term$covariance_label, term$q)
   term$label <- format_structured_label(
     marker,
-    paste0("1 + ", coef_names[[2L]]),
+    paste0("1 + ", paste(coef_names[-1L], collapse = " + ")),
     term$group,
     term$covariance_label
   )

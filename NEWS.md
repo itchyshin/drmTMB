@@ -5,6 +5,17 @@ registry in `docs/design/168-r-julia-finish-capability-matrix.md`; fitted,
 planned, unsupported, and release-gate language should not be read more broadly
 than that matrix.
 
+* Structured **q6** two-slope location covariance is now admitted at
+  point-fit/recovery for `phylo()`, `spatial()`, `animal()`, and `relmat()`:
+  `bf(mu1 = y1 ~ x + z + phylo(1 + x + z | p | id, tree = tree), mu2 = ...,
+  sigma1 = ~1, sigma2 = ~1, rho12 = ~1)` builds a six-endpoint (15-correlation)
+  among-trait covariance that recovers a known covariance with a positive-definite
+  Hessian at adequate sample size. This is recovery evidence only: the six SDs are
+  direct profile targets and the fifteen correlations are derived (no Wald
+  interval), so it does not authorize interval reliability, coverage, STAN
+  cross-check, REML, AI-REML, bridge parity, the structured q8 rows, or
+  `supported` wording.
+
 * The Q-Series v1.0 release status is now generated from the 104-row support-cell
   board and recorded in `docs/dev-log/release-audits/q-series-v1-release-status.md`.
   It separates implemented/basic-working Gaussian structured-effect rows and

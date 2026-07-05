@@ -128,7 +128,12 @@ The current table records these broad facts without promoting beyond them:
   `docs/design/220-structured-q4-animal-production-transform-gate.md`, followed
   by objective/report equivalence tests and a new local hard-seed admission
   runner before any Totoro, Nibi/Rorqual, or DRAC work.
-- Ordinary q6/q8 diagnostic routes do not imply structured q6/q8 support.
+- Ordinary q6/q8 diagnostic routes do not imply structured q6/q8 support. As of
+  2026-07-05 the four structured **q6** two-slope location rows are admitted at
+  `point_fit`/`extractor_ready` on Santi-scale recovery evidence (pdHess=TRUE;
+  recovery only, no intervals/coverage/supported); the structured **q8** rows
+  remain `planned` (their `pdHess=FALSE` weak-identification is a separate
+  reduced-rank estimation arc).
 - Poisson and NB2 q1 structured `mu` intercept and unlabelled one-slope rows
   are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
   labelled non-Gaussian structured slopes, zero-inflated structure, structured
@@ -328,6 +333,33 @@ conservative. Profile intervals stay diagnostic-only at g=8 because low-finite
 sigma targets remain visible, including animal `sigma:x` at 0.726. Spatial
 sigma, matched `mu+sigma`, q4/q8, count, non-Gaussian rows, REML, AI-REML,
 bridge support, and `supported` remain future gates.
+
+### Decision executed (2026-07-05): structured q6 two-slope location admitted (point-fit/recovery)
+
+M2 of the 104/104 arc admits the four structured **q6 two-slope location** rows —
+`(1 + x + z | p | id)` in `mu1` and `mu2` for `phylo()`, `spatial()`,
+`animal()`, `relmat()` (six endpoints: mu1/mu2 × {(Intercept), x, z} → 6 SDs +
+15 among-endpoint correlations) — from `planned` to `point_fit` /
+`extractor_ready`. The blocker was the parser/assembly reserving multi-slope
+terms, not the covariance engine (M1 proved it is q-generic); the admission is a
+label-gated grammar relaxation plus honest recovery evidence, no C++ change.
+Recovery of a known 6×6 Σ at Santi-scale reaches **pdHess=TRUE** for all four
+providers (phylo full multi-n curve, rmse 0.159→0.058; spatial/animal/relmat at
+n=256, rmse 0.19/0.055/0.072; no cap-saturation). Evidence:
+`docs/dev-log/simulation-artifacts/2026-07-05-m2-q6-recovery/` and the after-task
+`docs/dev-log/after-task/2026-07-05-m2-q6-location-admission.md`.
+
+This moves the practical v1.0 surface **94/104 → 98/104** and the Gaussian core
+**59/67 → 63/67**; post-v1.0 falls 10 → 6. It is **recovery evidence only**: the
+six SDs are direct profile targets and the fifteen correlations are derived
+(Wald-unavailable), so intervals route through profile/bootstrap (ELR excluded);
+`interval_status`/`coverage_status` stay `planned`, `authority` stays `source`,
+and no row is `supported`. It does **not** promote intervals, coverage, STAN
+cross-check, REML, AI-REML, bridge parity, or the q8 rows (which keep
+`pdHess=FALSE` and stay `planned`). The 4-lens gate signed off:
+Curie (recovery at adequate n), Noether (symbolic↔R↔TMB CONSISTENT), Fisher
+(inference HONEST, with the phylo-vs-dense-n asymmetry disclosed), Rose
+(claim accounting).
 
 ## Why the Older Work Drifted
 

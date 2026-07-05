@@ -766,6 +766,31 @@ parse_structured_bar_term <- function(expr, marker) {
     ))
   }
 
+  # Intercept-plus-multiple-slopes (e.g. `1 + x + z`) is admitted only inside a
+  # labelled covariance block. It feeds the bivariate location two-slope (q6)
+  # among-endpoint covariance; the unlabelled univariate path stays reserved.
+  if (
+    !is.null(covariance_label) &&
+      !any(zero) &&
+      sum(one) == 1L &&
+      sum(symbol) >= 2L &&
+      length(pieces) == sum(one) + sum(symbol)
+  ) {
+    variables <- vapply(pieces[symbol], as.character, character(1L))
+    return(list(
+      group = group_name,
+      variables = variables,
+      coef_names = c("(Intercept)", variables),
+      label = format_structured_label(
+        marker,
+        paste0("1 + ", paste(variables, collapse = " + ")),
+        group_name,
+        covariance_label
+      ),
+      covariance_label = covariance_label
+    ))
+  }
+
   cli::cli_abort(c(
     "{.fn {marker}} currently reserves only intercept and one-slope structured terms.",
     "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",

@@ -2,6 +2,10 @@
 .Rhistory
 .Rapp.history
 
+# Python bytecode cache (from the tools/*.py validators)
+__pycache__/
+*.pyc
+
 # Session Data files
 .RData
 .RDataTmp

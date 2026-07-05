@@ -9,10 +9,10 @@ and `docs/dev-log/dashboard/structured-re-q-series-v1-release-ledger.tsv` by
 This is a release-planning boundary, not a support promotion. The Q-Series board
 currently has 104 support cells: 67 Gaussian rows
 and 37 non-Gaussian rows. The pragmatic v1.0 surface has
-94 row-level roles: 8 exact Gaussian
-`inference_ready` anchors, 51 additional Gaussian
+98 row-level roles: 8 exact Gaussian
+`inference_ready` anchors, 55 additional Gaussian
 basic-working rows, and 35 basic-distribution recovery
-rows. The remaining 10 rows stay in post-v1.0 validation or design.
+rows. The remaining 6 rows stay in post-v1.0 validation or design.
 
 There are 0 `supported` authority rows. This summary
 does not authorize coverage, q4 coverage, support-cell promotion,
@@ -26,21 +26,21 @@ claims.
 
 | Measure | Rows | Percent | Meaning |
 | --- | ---: | ---: | --- |
-| Practical v1.0 row surface | 94/104 | 90.4% | Exact Gaussian anchors plus additional Gaussian basic-working rows and basic-distribution recovery rows. |
-| Gaussian v1.0 core | 59/67 | 88.1% | Gaussian rows inside the exact-anchor or basic-working v1.0 surface. |
+| Practical v1.0 row surface | 98/104 | 94.2% | Exact Gaussian anchors plus additional Gaussian basic-working rows and basic-distribution recovery rows. |
+| Gaussian v1.0 core | 63/67 | 94.0% | Gaussian rows inside the exact-anchor or basic-working v1.0 surface. |
 | Basic-distribution recovery | 35/37 | 94.6% | Non-Gaussian rows with point-fit recovery evidence only. |
 | Exact `inference_ready` anchors | 8/104 | 7.7% | Row-local exact Gaussian inference anchors; no neighbour rows inherit this status. |
 | `supported` authority | 0/104 | 0.0% | Structured rows with support authority; this remains zero. |
-| Post-v1.0 validation/design | 10/104 | 9.6% | Rows deliberately left outside the v1.0 practical surface. |
+| Post-v1.0 validation/design | 6/104 | 5.8% | Rows deliberately left outside the v1.0 practical surface. |
 
 ## Release Tracks
 
 | Track | Rows | v1.0 role | Boundary |
 | --- | ---: | --- | --- |
 | `gaussian_inference_anchor` | 8 | Exact row-local Gaussian inference anchors. | Keep row-local; no neighbour, q4/q8, `supported`, REML, AI-REML, new coverage, or public-support promotion. |
-| `gaussian_basic_working` | 51 | Implemented/basic-working Gaussian rows for the v1.0 surface. | Basic-working is not interval evidence, coverage evidence, `inference_ready`, `supported`, REML, AI-REML, or public support. |
+| `gaussian_basic_working` | 55 | Implemented/basic-working Gaussian rows for the v1.0 surface. | Basic-working is not interval evidence, coverage evidence, `inference_ready`, `supported`, REML, AI-REML, or public support. |
 | `basic_distribution_recovery` | 35 | Basic-distribution recovery rows for v1.0. | Recovery-only evidence is not interval evidence, coverage evidence, `inference_ready`, `supported`, REML, AI-REML, or broad structured-covariance support. |
-| `gaussian_post_v1_validation` | 8 | Gaussian rows outside the v1.0 basic-working surface. | Leave for post-v1.0 implementation, rejection, interval, or coverage review. |
+| `gaussian_post_v1_validation` | 4 | Gaussian rows outside the v1.0 basic-working surface. | Leave for post-v1.0 implementation, rejection, interval, or coverage review. |
 | `basic_distribution_post_v1_design` | 2 | Non-Gaussian rows outside the v1.0 basic-distribution surface. | Leave for post-v1.0 family-specific implementation, rejection, or limitation design. |
 
 ## Recommended v1.0 Wording
