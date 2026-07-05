@@ -361,6 +361,32 @@ Curie (recovery at adequate n), Noether (symbolic↔R↔TMB CONSISTENT), Fisher
 (inference HONEST, with the phylo-vs-dense-n asymmetry disclosed), Rose
 (claim accounting).
 
+### Decision executed (2026-07-05): structured q12 two-slope all-four admitted → 102/104 Gaussian-complete
+
+M3 of the arc fills the four "broader q8" placeholder rows
+(`qseries_<provider>_q8_planned`) with the concrete **q12 two-slope all-four**
+block — `(1 + x + z | p | id)` on `mu1`/`mu2`/`sigma1`/`sigma2`, 12 SD + 66
+among-endpoint correlations — admitted at `point_fit`/`extractor_ready` on
+Santi-scale recovery. The exact q8 all-four one-slope cell
+(`qseries_<provider>_q4_all_four_one_slope_planned`) was already admitted; M3
+adds the genuinely broader two-slope model the maintainer chose. Parser/assembly
+only (no C++): the all-four validation now accepts intercept-plus-multiple-slopes,
+routing through the q-generic finalize (`q = 4 × n_coef = 12`). Recovery
+(`docs/dev-log/simulation-artifacts/2026-07-05-m3-q12-recovery/`): all four
+providers recover the known 66-correlation Σ, no cap-saturation, with
+**`pdHess=FALSE`** — the genuine weak-ID of the 66-correlation block, which is
+**not failure** (Shinichi doctrine): the 12 SDs are direct profile targets and
+the 66 correlations route through profile/bootstrap (ELR excluded). Dense-provider
+recovery is compute-limited (n=64–128; phylo carries the curve to n=512).
+
+This moves the practical v1.0 surface **98/104 → 102/104** and the **Gaussian
+core to 67/67 = 100% (Gaussian-complete)**; post-v1.0 falls to the 2 non-Gaussian
+rows. **Recovery evidence only:** no intervals, coverage, STAN cross-check, REML,
+AI-REML, bridge parity, or `supported`. **cell_id debt:** the ids retain the
+`_q8_planned` suffix (stable keys) while `dimension_pattern = q12`; a rename is a
+tracked follow-on. The 4-lens gate signed off: Curie (recovery), Noether, Fisher
+(pdHess/profile honesty + the compute-limited-dense disclosure), Rose (accounting).
+
 ## Why the Older Work Drifted
 
 The first q-series waves were productive because they chose valuable cells

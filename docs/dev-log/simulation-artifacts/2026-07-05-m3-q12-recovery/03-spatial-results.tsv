@@ -1,0 +1,2 @@
+provider	n_group	n_each	n_obs	seed	conv	pdHess	se_finite	max_abs_rho_hat	cap_saturated	rmse	frobenius	elapsed_s	error 
+spatial	64	8	512	20260705	1	FALSE	FALSE	0.9682	FALSE	0.287	3.2978	789.6	NA 

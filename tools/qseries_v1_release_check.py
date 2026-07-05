@@ -381,6 +381,7 @@ def candidate_sort_key(row: dict[str, str]) -> tuple[int, int, int, int, int, in
         "q2_plus_q2": 1,
         "q6": 2,
         "q8": 3,
+        "q12": 4,
     }
     endpoint_order = {
         "mu": 0,

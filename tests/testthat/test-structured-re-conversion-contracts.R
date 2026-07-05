@@ -712,9 +712,9 @@ test_that("q-series closure triage accounts for all support cells", {
       3L,
       2L,
       1L,
-      12L,
+      16L,
       3L,
-      4L,
+      0L,
       5L,
       1L
     )
@@ -30554,7 +30554,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   expect_equal(sum(release$v1_track == "basic_distribution_post_v1_design"), sum(nongaussian_deferred))
   expect_setequal(
     release$v1_priority,
-    c("P1", "P2", "P3", "P4", "P5")
+    c("P1", "P2", "P3", "P5")
   )
 
   value <- function(id, field) reset[reset$readiness_id == id, field]
@@ -30607,19 +30607,19 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   )
   expect_match(status_text, "104 support cells", fixed = TRUE)
   expect_match(status_text, "67 Gaussian rows and 37 non-Gaussian rows", fixed = TRUE)
-  expect_match(status_text, "98 row-level roles", fixed = TRUE)
+  expect_match(status_text, "102 row-level roles", fixed = TRUE)
   expect_match(status_text, "8 exact Gaussian `inference_ready` anchors", fixed = TRUE)
-  expect_match(status_text, "55 additional Gaussian basic-working rows", fixed = TRUE)
+  expect_match(status_text, "59 additional Gaussian basic-working rows", fixed = TRUE)
   expect_match(status_text, "35 basic-distribution recovery rows", fixed = TRUE)
-  expect_match(status_text, "6 rows stay in post-v1.0 validation or design", fixed = TRUE)
+  expect_match(status_text, "2 rows stay in post-v1.0 validation or design", fixed = TRUE)
   expect_match(status_text, "0 `supported` authority rows", fixed = TRUE)
   expect_match(status_text, "row-accounting summaries, not package-release completion claims", fixed = TRUE)
-  expect_match(status_text, "Practical v1.0 row surface | 98/104 | 94.2%", fixed = TRUE)
-  expect_match(status_text, "Gaussian v1.0 core | 63/67 | 94.0%", fixed = TRUE)
+  expect_match(status_text, "Practical v1.0 row surface | 102/104 | 98.1%", fixed = TRUE)
+  expect_match(status_text, "Gaussian v1.0 core | 67/67 | 100.0%", fixed = TRUE)
   expect_match(status_text, "Basic-distribution recovery | 35/37 | 94.6%", fixed = TRUE)
   expect_match(status_text, "Exact `inference_ready` anchors | 8/104 | 7.7%", fixed = TRUE)
   expect_match(status_text, "`supported` authority | 0/104 | 0.0%", fixed = TRUE)
-  expect_match(status_text, "Post-v1.0 validation/design | 6/104 | 5.8%", fixed = TRUE)
+  expect_match(status_text, "Post-v1.0 validation/design | 2/104 | 1.9%", fixed = TRUE)
   expect_match(status_text, "not a support promotion", fixed = TRUE)
   expect_match(status_text, "does not authorize coverage, q4 coverage", fixed = TRUE)
   expect_match(status_text, "REML, AI-REML", fixed = TRUE)
@@ -30696,20 +30696,20 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "ledger=ok",
     "claim_guard=ok",
     "mission_control=skipped",
-    "practical_v1_surface=98/104 (94.2%)",
+    "practical_v1_surface=102/104 (98.1%)",
     "supported_authority=0/104 (0.0%)",
     "rows_to_75=0",
     "rows_to_80=0",
     "rows_to_90=0",
-    "rows_to_100=6",
-    "candidate_review_rows=6",
+    "rows_to_100=2",
+    "candidate_review_rows=2",
     "ninety_review_packet_rows=0",
     "ninety_economy_rows=0",
-    "first_four_review_packet_rows=4",
+    "first_four_review_packet_rows=2",
     "first_candidate_contract_rows=1",
     "debug_fixture_contract_rows=1",
-    "first_four_contract_rows=4",
-    "first_four_debug_fixture_rows=4"
+    "first_four_contract_rows=2",
+    "first_four_debug_fixture_rows=2"
   )) {
     expect_true(any(grepl(phrase, release_check_output, fixed = TRUE)))
   }
@@ -30745,14 +30745,14 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "claim_guard=not_run",
     "mission_control=not_run",
     "source=checked_in_release_status_and_ledger",
-    "practical_v1_surface=98/104 (94.2%)",
+    "practical_v1_surface=102/104 (98.1%)",
     "supported_authority=0/104 (0.0%)",
     "rows_to_75=0",
     "rows_to_80=0",
     "rows_to_90=0",
-    "rows_to_100=6",
-    "candidate_review_rows=6",
-    "first_four=qseries_count_mu_simultaneous_structured_types_rejected,qseries_nongaussian_structured_slope_neighbors_planned,qseries_animal_q8_planned,qseries_phylo_q8_planned",
+    "rows_to_100=2",
+    "candidate_review_rows=2",
+    "first_four=qseries_count_mu_simultaneous_structured_types_rejected,qseries_nongaussian_structured_slope_neighbors_planned",
     "boundary=ledger_only_no_validation_no_promotion"
   )) {
     expect_true(any(grepl(phrase, fast_status_output, fixed = TRUE)))
@@ -30790,23 +30790,17 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       "claim_boundary"
     )
   )
-  expect_equal(nrow(candidate_review), 6L)
+  expect_equal(nrow(candidate_review), 2L)
   expect_equal(candidate_review$review_rank, seq_len(nrow(candidate_review)))
   expect_equal(
-    candidate_review$target_band[1:4],
-    rep("next_four_after_75_percent", 4L)
+    candidate_review$target_band[1:2],
+    rep("next_four_after_75_percent", 2L)
   )
   expect_equal(
-    candidate_review$target_band[5:6],
-    rep("additional_six_to_review_for_80_percent", 2L)
-  )
-  expect_equal(
-    candidate_review$cell_id[1:4],
+    candidate_review$cell_id[1:2],
     c(
       "qseries_count_mu_simultaneous_structured_types_rejected",
-      "qseries_nongaussian_structured_slope_neighbors_planned",
-      "qseries_animal_q8_planned",
-      "qseries_phylo_q8_planned"
+      "qseries_nongaussian_structured_slope_neighbors_planned"
     )
   )
   expect_equal(
@@ -30921,20 +30915,20 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       "next_action"
     )
   )
-  expect_equal(nrow(first_four_packet), 4L)
-  expect_equal(first_four_packet$review_rank, 1:4)
-  expect_equal(first_four_packet$cell_id, candidate_review$cell_id[1:4])
+  expect_equal(nrow(first_four_packet), 2L)
+  expect_equal(first_four_packet$review_rank, 1:2)
+  expect_equal(first_four_packet$cell_id, candidate_review$cell_id[1:2])
   expect_equal(
     first_four_packet$compute_decision,
-    rep("no_compute_authorized", 4L)
+    rep("no_compute_authorized", 2L)
   )
   expect_equal(
     first_four_packet$coverage_decision,
-    rep("coverage_not_authorized", 4L)
+    rep("coverage_not_authorized", 2L)
   )
   expect_equal(
     first_four_packet$promotion_decision,
-    rep("do_not_promote", 4L)
+    rep("do_not_promote", 2L)
   )
   structured_re_expect_all_match(
     first_four_packet$blocking_reviewers,
@@ -31025,53 +31019,43 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     stringsAsFactors = FALSE
   )
   expect_named(first_four_contracts, names(first_contract))
-  expect_equal(nrow(first_four_contracts), 4L)
-  expect_equal(first_four_contracts$cell_id, candidate_review$cell_id[1:4])
+  expect_equal(nrow(first_four_contracts), 2L)
+  expect_equal(first_four_contracts$cell_id, candidate_review$cell_id[1:2])
   expect_equal(first_four_contracts$source_packet_id, first_four_packet$contract_id)
   expect_equal(
     first_four_contracts$current_v1_track,
-    c(rep("basic_distribution_post_v1_design", 2L), rep("gaussian_post_v1_validation", 2L))
+    rep("basic_distribution_post_v1_design", 2L)
   )
   expect_equal(
     first_four_contracts$current_fit_status,
-    c("unsupported", "planned", "planned", "planned")
+    c("unsupported", "planned")
   )
   expect_equal(
     first_four_contracts$current_interval_status,
-    c("unsupported", "unsupported", "planned", "planned")
+    c("unsupported", "unsupported")
   )
   expect_equal(
     first_four_contracts$current_coverage_status,
-    c("unsupported", "planned", "planned", "planned")
+    c("unsupported", "planned")
   )
   expect_equal(
     first_four_contracts$contract_id,
     c(
       "qseries_v1_count_mu_simultaneous_structured_types_design_contract",
-      "qseries_v1_nongaussian_structured_slope_neighbors_design_contract",
-      "qseries_v1_animal_q8_design_contract",
-      "qseries_v1_phylo_q8_design_contract"
+      "qseries_v1_nongaussian_structured_slope_neighbors_design_contract"
     )
   )
   expect_equal(
     first_four_contracts$formula_cell,
     c(
       "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
-      "non-count or labelled/multiple structured non-Gaussian slope variants",
-      "broader animal q8 variants beyond the exact A-matrix shared-label all-four one-slope cell",
-      "broader phylo q8 variants beyond the exact shared-label all-four one-slope cell"
+      "non-count or labelled/multiple structured non-Gaussian slope variants"
     )
   )
   expect_match(first_four_contracts$model_contract[1], "simultaneous structured providers", fixed = TRUE)
   expect_match(first_four_contracts$model_contract[2], "one-slope neighbors", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[3], "animal", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[3], "planned", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[4], "phylo", fixed = TRUE)
-  expect_match(first_four_contracts$model_contract[4], "planned", fixed = TRUE)
   expect_match(first_four_contracts$dgp_requirements[1], "simultaneous-provider routing", fixed = TRUE)
   expect_match(first_four_contracts$dgp_requirements[2], "one named family", fixed = TRUE)
-  expect_match(first_four_contracts$dgp_requirements[3], "row-specific data-generating process", fixed = TRUE)
-  expect_match(first_four_contracts$dgp_requirements[4], "row-specific data-generating process", fixed = TRUE)
   structured_re_expect_all_match(
     first_four_contracts$implementation_requirements,
     "do not change formula grammar"
@@ -31084,10 +31068,10 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     first_four_contracts$failure_requirements,
     "keep unsupported status"
   )
-  expect_equal(first_four_contracts$blocking_reviewers, rep("Rose/Fisher/Grace", 4L))
-  expect_equal(first_four_contracts$compute_decision, rep("no_compute_authorized", 4L))
-  expect_equal(first_four_contracts$coverage_decision, rep("coverage_not_authorized", 4L))
-  expect_equal(first_four_contracts$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(first_four_contracts$blocking_reviewers, rep("Rose/Fisher/Grace", 2L))
+  expect_equal(first_four_contracts$compute_decision, rep("no_compute_authorized", 2L))
+  expect_equal(first_four_contracts$coverage_decision, rep("coverage_not_authorized", 2L))
+  expect_equal(first_four_contracts$promotion_decision, rep("do_not_promote", 2L))
   structured_re_expect_all_match(
     first_four_contracts$claim_boundary,
     "not implementation evidence"
@@ -31195,7 +31179,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     stringsAsFactors = FALSE
   )
   expect_named(first_four_debug_contracts, names(debug_fixture_contract))
-  expect_equal(nrow(first_four_debug_contracts), 4L)
+  expect_equal(nrow(first_four_debug_contracts), 2L)
   expect_equal(first_four_debug_contracts$cell_id, first_four_contracts$cell_id)
   expect_equal(
     first_four_debug_contracts$source_contract_id,
@@ -31205,17 +31189,13 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     first_four_debug_contracts$source_rejection_id,
     c(
       "count_struct_mu_reject_simultaneous_types_nbinom2",
-      "nongaussian_structured_slope_neighbors_planned_boundary",
-      "qseries_animal_q8_planned_boundary",
-      "qseries_phylo_q8_planned_boundary"
+      "nongaussian_structured_slope_neighbors_planned_boundary"
     )
   )
   expect_equal(
     first_four_debug_contracts$expected_current_failure,
     c(
       "Only one structured",
-      "not_run_planned_design",
-      "not_run_planned_design",
       "not_run_planned_design"
     )
   )
@@ -31223,14 +31203,12 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     first_four_debug_contracts$failure_stage,
     c(
       "pre_optimization_formula_gate",
-      "planned_design_boundary",
-      "planned_design_boundary",
       "planned_design_boundary"
     )
   )
   expect_equal(
     first_four_debug_contracts$debug_scope,
-    rep("local_debug_only_no_denominator", 4L)
+    rep("local_debug_only_no_denominator", 2L)
   )
   structured_re_expect_all_match(
     first_four_debug_contracts$stop_if,
@@ -31241,9 +31219,9 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   structured_re_expect_all_match(first_four_debug_contracts$stop_if, "coverage or status evidence")
   structured_re_expect_all_match(first_four_debug_contracts$required_outputs, "no support-cell edit")
   structured_re_expect_all_match(first_four_debug_contracts$validator_requirements, "Mission Control")
-  expect_equal(first_four_debug_contracts$compute_decision, rep("no_compute_authorized", 4L))
-  expect_equal(first_four_debug_contracts$coverage_decision, rep("coverage_not_authorized", 4L))
-  expect_equal(first_four_debug_contracts$promotion_decision, rep("do_not_promote", 4L))
+  expect_equal(first_four_debug_contracts$compute_decision, rep("no_compute_authorized", 2L))
+  expect_equal(first_four_debug_contracts$coverage_decision, rep("coverage_not_authorized", 2L))
+  expect_equal(first_four_debug_contracts$promotion_decision, rep("do_not_promote", 2L))
   structured_re_expect_all_match(
     first_four_debug_contracts$claim_boundary,
     "not implementation evidence"
@@ -31263,18 +31241,18 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "Generated ledger/status: `ok`",
     "Public claim guard: `ok`",
     "Mission Control: `ok`",
-    "Practical v1.0 row surface | 98/104 (94.2%)",
-    "Gaussian v1.0 core | 63/67 (94.0%)",
+    "Practical v1.0 row surface | 102/104 (98.1%)",
+    "Gaussian v1.0 core | 67/67 (100.0%)",
     "Basic-distribution recovery | 35/37 (94.6%)",
     "Exact `inference_ready` anchors | 8/104 (7.7%)",
     "`supported` authority | 0/104 (0.0%)",
-    "Post-v1.0 validation/design | 6/104 (5.8%)",
+    "Post-v1.0 validation/design | 2/104 (1.9%)",
     "Distance To Row-Accounting Targets",
     "planning aids only",
     "75% practical surface | 78/104 | 0",
     "80% practical surface | 84/104 | 0",
     "90% practical surface | 94/104 | 0",
-    "100% practical surface | 104/104 | 6",
+    "100% practical surface | 104/104 | 2",
     "Next Candidate Review Queue",
     "next_four_after_75_percent",
     "`qseries_count_mu_simultaneous_structured_types_rejected`",
@@ -31283,11 +31261,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "Next Rows To 90% Review Packet",
     "current `rows_to_90` counter",
     "`qseries_nongaussian_structured_slope_neighbors_planned`",
-    "`qseries_animal_q8_planned`",
-    "`qseries_phylo_q8_planned`",
     "Next-Four After 75% Review Packet",
     "design/recovery checklist only",
-    "biv_gaussian() q8 mu1+mu2+sigma1+sigma2 labelled-slope-covariance animal route",
     "non-count or extended count families q1 mu independent-one-slope all_structured route",
     "First Candidate Design Contract",
     "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
@@ -31307,8 +31282,6 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "creates no fit denominator",
     "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
     "not_run_planned_design",
-    "`qseries_animal_q8_planned`",
-    "`qseries_phylo_q8_planned`",
     "simultaneous structured providers",
     "one-slope neighbors",
     "promotes no support-cell status",

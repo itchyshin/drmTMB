@@ -5,6 +5,19 @@ registry in `docs/design/168-r-julia-finish-capability-matrix.md`; fitted,
 planned, unsupported, and release-gate language should not be read more broadly
 than that matrix.
 
+* Structured **q12** two-slope all-four covariance is now admitted at
+  point-fit/recovery for `phylo()`, `spatial()`, `animal()`, and `relmat()`:
+  `(1 + x + z | p | id)` on `mu1`/`mu2`/`sigma1`/`sigma2` builds a twelve-endpoint
+  (66-correlation) among-trait covariance that recovers a known covariance at
+  adequate sample size. `pdHess=FALSE` is expected here (the 66-correlation block
+  is weakly identified) and is not failure: the twelve SDs are direct profile
+  targets and the 66 correlations route through profile/bootstrap (ELR excluded).
+  This is recovery evidence only — it does not authorize interval reliability,
+  coverage, STAN cross-check, REML, AI-REML, bridge parity, or `supported`. With
+  this admission every Gaussian structured-random-effect row now holds a v1.0
+  basic-working-or-better row-accounting role; the remaining rows outside that
+  practical surface are non-Gaussian.
+
 * Structured **q6** two-slope location covariance is now admitted at
   point-fit/recovery for `phylo()`, `spatial()`, `animal()`, and `relmat()`:
   `bf(mu1 = y1 ~ x + z + phylo(1 + x + z | p | id, tree = tree), mu2 = ...,

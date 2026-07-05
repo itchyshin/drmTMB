@@ -1,0 +1,21 @@
+start 2026-07-05 14:25:34 | provider=phylo n=128 seeds=20260705
+[phylo] ng= 128 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.927 rmse=0.216 (134s)
+done 2026-07-05 14:27:49 | provider=phylo
+start 2026-07-05 14:28:49 | provider=spatial n=256 seeds=20260705,20260706
+start 2026-07-05 14:28:49 | provider=animal n=256 seeds=20260705,20260706
+start 2026-07-05 14:28:50 | provider=phylo n=128,256,512 seeds=20260705
+start 2026-07-05 14:28:50 | provider=relmat n=256 seeds=20260705,20260706
+[phylo] ng= 128 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.927 rmse=0.216 (137s)
+[phylo] ng= 256 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.945 rmse=0.168 (299s)
+[phylo] ng= 512 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.828 rmse=0.136 (739s)
+done 2026-07-05 14:48:27 | provider=phylo
+start 2026-07-05 15:32:07 | provider=relmat n=64,128 seeds=20260705
+start 2026-07-05 15:32:07 | provider=spatial n=64,128 seeds=20260705
+start 2026-07-05 15:32:08 | provider=animal n=64,128 seeds=20260705
+[relmat] ng=  64 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.814 rmse=0.221 (287s)
+[animal] ng=  64 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.814 rmse=0.221 (298s)
+[spatial] ng=  64 seed=20260705 conv=1 pdHess=FALSE max|rho|=0.968 rmse=0.287 (790s)
+[relmat] ng= 128 seed=20260705 conv=0 pdHess=FALSE max|rho|=0.900 rmse=0.205 (1601s)
+done 2026-07-05 16:03:35 | provider=relmat
+[animal] ng= 128 seed=20260705 conv=0 pdHess=FALSE max|rho|=0.900 rmse=0.205 (1599s)
+done 2026-07-05 16:03:45 | provider=animal
