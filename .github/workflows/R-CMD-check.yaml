@@ -13,7 +13,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Routine runs (pull_request, push to main) check Linux only to keep CI cheap.
+  # The full ubuntu + macOS + windows matrix runs only for release tags (v*) and
+  # on demand via workflow_dispatch -- e.g. before a CRAN submission, or to
+  # exercise cross-OS portability of compiled TMB code on a specific branch.
+  os-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          FULL="${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}"
+          if [ "$FULL" = "true" ]; then
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}]}' >> "$GITHUB_OUTPUT"
+          else
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}]}' >> "$GITHUB_OUTPUT"
+          fi
+
   R-CMD-check:
+    needs: os-matrix
     runs-on: ${{ matrix.config.os }}
     timeout-minutes: 45
 
@@ -21,11 +40,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        config:
-          - {os: ubuntu-latest, r: release}
-          - {os: macos-latest, r: release}
-          - {os: windows-latest, r: release}
+      matrix: ${{ fromJSON(needs.os-matrix.outputs.matrix) }}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
