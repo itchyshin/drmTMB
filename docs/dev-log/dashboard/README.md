@@ -257,10 +257,10 @@ next-candidate review TSV plus the generated 90% and post-75% review packets in 
 command while still reporting the row-accounting percentages. The generated
 report records how many additional practical surface rows would be needed to
 reach 75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks
-the 14 post-v1.0 rows into the next four rows after 75%, the current four rows
+the 13 post-v1.0 rows into the next four rows after 75%, the current three rows
 needed for 90%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv` expands the
-current four rows needed for 90% practical-surface accounting into a no-compute
+current three rows needed for 90% practical-surface accounting into a no-compute
 Rose/Fisher/Grace review checklist.
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
 next four rows into a design/recovery checklist. The same candidate bundle
@@ -272,10 +272,9 @@ the fail-closed local-debug fixture contract for that same first candidate.
 The bundle also writes
 `docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv` and
 `docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv`
-for the next four post-75% practical-surface review rows: truncated-NB2 relmat
-for the next four post-75% practical-surface review rows: labelled spatial
-count `mu`, simultaneous-provider count `mu`, the non-Gaussian structured
-one-slope neighbour design row, and the animal q2-plus sigma route. These artifacts are
+for the next four post-75% practical-surface review rows: simultaneous-provider
+count `mu`, the non-Gaussian structured one-slope neighbour design row, the
+animal q2-plus sigma route, and the relmat q2-plus sigma route. These artifacts are
 planning aids only and do not authorize row movement, code changes, local fits,
 host compute, denominator rows, coverage jobs, `inference_ready`, `supported`,
 or public-release claims. Regenerate the report with
@@ -1745,9 +1744,9 @@ explicit reviewer-approved artifact-only smoke followed by a separate Tranche
 `structured-re-nongaussian-status-audit.tsv` records one audit row for each of
 the 37 non-Gaussian Q-Series cells. It assigns eighteen Poisson/NB2 count
 rows to `non_gaussian_recovery_only`, zero rows to
-`non_gaussian_recovery_caveat`, two intentional rejection rows to
+`non_gaussian_recovery_caveat`, one intentional rejection row to
 `non_gaussian_rejected`, and one broader family-design row to
-`non_gaussian_planned`; sixteen local-debug fit-only rows sit in
+`non_gaussian_planned`; seventeen local-debug fit-only rows sit in
 `non_gaussian_point_only`. The table preserves the current
 family distribution: 14 Poisson rows, 15 NB2 rows, two Student rows, two beta
 rows, and one row each for Gamma, cumulative-logit, truncated-NB2, and the

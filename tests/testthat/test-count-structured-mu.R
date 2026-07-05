@@ -590,9 +590,40 @@ test_that("count structured mu keeps planned neighboring routes closed", {
     ),
     "intercept-only or one-slope"
   )
+  fit_labelled_scalar <- drmTMB(
+    bf(poisson_spatial ~ x + spatial(1 | p | site, coords = coords)),
+    family = stats::poisson(link = "log"),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+  expect_s3_class(fit_labelled_scalar, "drmTMB")
+  expect_equal(fit_labelled_scalar$opt$convergence, 0)
+  expect_true(fit_labelled_scalar$sdr$pdHess)
+  expect_equal(fit_labelled_scalar$model$model_type, "poisson")
+  expect_equal(fit_labelled_scalar$model$structured$phylo_mu$type, "spatial")
+  expect_equal(fit_labelled_scalar$model$structured$phylo_mu$q, 1L)
+  expect_equal(fit_labelled_scalar$model$structured$phylo_mu$covariance_label, "p")
+  expect_equal(fit_labelled_scalar$model$structured$phylo_mu$covariance_mode, "scalar")
+  expect_named(fit_labelled_scalar$sdpars$mu, "spatial(1 | p | site)")
+  expect_gt(unname(fit_labelled_scalar$sdpars$mu[["spatial(1 | p | site)"]]), 0)
+  expect_equal(names(ranef(fit_labelled_scalar)), "spatial_mu")
+  expect_equal(
+    ranef(fit_labelled_scalar, "spatial_mu"),
+    fit_labelled_scalar$random_effects$spatial_mu
+  )
+  labelled_target <- profile_targets(fit_labelled_scalar)
+  labelled_target <- labelled_target[
+    labelled_target$parm == "sd:mu:spatial(1 | p | site)",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(labelled_target), 1L)
+  expect_equal(labelled_target$tmb_parameter, "log_sd_phylo")
+  expect_equal(labelled_target$target_type, "direct")
+  expect_true(labelled_target$profile_ready)
   expect_error(
     drmTMB(
-      bf(poisson_spatial ~ x + spatial(1 | p | site, coords = coords)),
+      bf(poisson_spatial ~ x + spatial(1 + x | p | site, coords = coords)),
       family = stats::poisson(link = "log"),
       data = dat
     ),

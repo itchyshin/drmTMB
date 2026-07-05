@@ -3343,10 +3343,11 @@ The efficient completion order is:
     support-cell status, authorize coverage, promote `inference_ready` or
     `supported`, introduce REML or AI-REML wording, expand q4/q8, or create
     public-support claims.
-70. Banked in this slice: add the generated 90% practical-surface review
-    packet. `tools/qseries_v1_release_check.py --write-candidates` now writes
+70. Banked in this slice: keep the generated 90% practical-surface review
+    packet current. `tools/qseries_v1_release_check.py --write-candidates`
+    now writes
     `docs/dev-log/release-audits/q-series-v1-90pct-review-packet.tsv`, which
-    expands the current `rows_to_90=7` counter into the exact next seven rows
+    expands the current `rows_to_90=3` counter into the exact next three rows
     requiring Rose/Fisher/Grace review before any design, code, compute, or
     support-cell edit. The packet is no-compute release-prep evidence only; it
     authorizes no coverage, `inference_ready`, `supported`, q4/q8, REML,

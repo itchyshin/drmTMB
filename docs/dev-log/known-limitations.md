@@ -424,8 +424,11 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   structured random effects are not implemented. `phylo()`,
   `spatial()`, `animal()`, and `relmat()` markers outside those exact routes
   now error in non-Gaussian models with a structured non-Gaussian boundary.
-  Count structured slopes, labelled q=2/q=4 count blocks, simultaneous
-  structured count types, bounded, ordinal, shape, inflation,
+  The exact Poisson labelled-scalar spatial count route
+  `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
+  not q2/q4 covariance support. Count structured slopes, labelled q=2/q=4
+  count covariance, simultaneous structured count types, bounded, ordinal,
+  shape, inflation,
   hurdle, and one-inflation structured effects need ordinary family-specific
   random-effect recovery and interval evidence before entering the fitted
   surface.

@@ -5110,6 +5110,8 @@ drm_build_poisson_spec <- function(
     has_zi = !is.null(zi_entry),
     allow_structured_plus_ordinary = TRUE,
     structured_plus_ordinary_types = "spatial",
+    allow_labelled_scalar_structured_mu = TRUE,
+    labelled_scalar_structured_mu_types = "spatial",
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
     allow_slope_only_structured_mu = TRUE,
@@ -7028,6 +7030,8 @@ validate_count_structured_mu_term <- function(
   has_zi = FALSE,
   allow_structured_plus_ordinary = FALSE,
   structured_plus_ordinary_types = character(0),
+  allow_labelled_scalar_structured_mu = FALSE,
+  labelled_scalar_structured_mu_types = character(0),
   allow_zero_inflated_structured_mu = FALSE,
   zero_inflated_structured_mu_types = character(0),
   allow_slope_only_structured_mu = FALSE,
@@ -7056,6 +7060,12 @@ validate_count_structured_mu_term <- function(
   structured_plus_ordinary_allowed <- isTRUE(
     allow_structured_plus_ordinary
   ) && marker %in% structured_plus_ordinary_types
+  labelled_scalar_structured_mu_allowed <- isTRUE(
+    allow_labelled_scalar_structured_mu
+  ) &&
+    marker %in% labelled_scalar_structured_mu_types &&
+    !isTRUE(has_zi) &&
+    structured_term_is_intercept_only(term)
   slope_only_structured_mu_allowed <- isTRUE(
     allow_slope_only_structured_mu
   ) && marker %in% slope_only_structured_mu_types &&
@@ -7085,7 +7095,10 @@ validate_count_structured_mu_term <- function(
       "i" = "Fit the structured count model or the ordinary grouped count model separately until combined-dependence recovery tests exist."
     ))
   }
-  if (!is.null(term$covariance_label)) {
+  if (
+    !is.null(term$covariance_label) &&
+      !isTRUE(labelled_scalar_structured_mu_allowed)
+  ) {
     cli::cli_abort(c(
       "{family_label} structured {.code mu} effects currently support only unlabelled q=1 intercepts.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",

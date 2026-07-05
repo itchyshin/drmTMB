@@ -12,7 +12,8 @@ qseries_v1_first_four_fixture <- function() {
   dat_count <- data.frame(
     y = c(0, 1, 2, 3, 4, 5),
     x = c(-1, -0.5, 0, 0.5, 1, 1.5),
-    id = factor(rep(1:3, each = 2))
+    id = factor(rep(1:3, each = 2)),
+    site = factor(rep(1:3, each = 2))
   )
   dat_beta <- transform(dat_count, y = c(0.1, 0.2, 0.35, 0.5, 0.7, 0.85))
   dat_ord <- transform(
@@ -402,18 +403,20 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
-      gate_id = "count_struct_mu_reject_labelled_q2_poisson_spatial",
+      gate_id = "count_struct_mu_fit_labelled_scalar_poisson_spatial",
       cell_id = "qseries_count_mu_labelled_q2_rejected",
-      formula_cell = "spatial(1 | p | id, coords = coords) in mu",
+      formula_cell = "spatial(1 | p | site, coords = coords) in mu",
       family = "poisson()",
       provider = "spatial",
-      expected_status = "expected_rejection",
-      expected_error_pattern = "unlabelled q=1",
+      expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
-        drmTMB::bf(y ~ x + spatial(1 | p | id, coords = coords)),
+        drmTMB::bf(y ~ x + spatial(1 | p | site, coords = coords)),
         family = stats::poisson(link = "log"),
-        data = dat_count
+        data = dat_count,
+        control = drmTMB::drm_control(se = FALSE)
       )),
+      expected_random_effect = "spatial_mu",
+      expected_sd_pattern = "^spatial\\(1 \\| p \\| site\\)",
       env = environment()
     ),
     list(
@@ -742,12 +745,10 @@ qseries_v1_run_rejection_case <- function(case) {
       "the truncated-NB2 structured hu row,",
       "the Poisson and NB2 structured mu plus fixed zi rows, the",
       "Poisson structured-plus-ordinary mu row, the Poisson spatial",
-      "slope-only structured mu row,",
+      "labelled-scalar mu row, the Poisson spatial slope-only structured mu row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence; the current first-four candidate",
-      "ordinal phylo mu and truncated-NB2 relmat hu rows are fit-only local",
-      "debug evidence; the current first-four candidate rejection rows are",
-      "exact local debug boundary checks;",
+      "rows are exact local debug or planned-design boundary checks;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",
       "REML, AI-REML, bridge, or public-support claim"
     ),
