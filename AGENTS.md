@@ -3,7 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest handover — start here (2026-07-05, → Claude, Day 1 takeover).**
+> **▶ Latest — start here (2026-07-05, → Claude, regression fix).** Draft PR
+> #730's ubuntu CI revealed a **122-test regression** the branch carried (hidden
+> by focused-tests-only runs). Root cause: two model-type-blind structured-RE
+> naming changes from the q-series non-Gaussian admit work — `split_tmb_sdpars`
+> switched the biv_gaussian branch to per-endpoint SD blocks (broke the flat-`$mu`
+> q4/summary/profile/dashboard contract), and `structured_mu_random_effect_key`
+> became endpoint-aware and renamed Gaussian `spatial_mu`->`spatial_sigma` (broke
+> `ranef()`). **Fixed** (commits `ce4b8b97`, `e87ce23c`): both gated on model type
+> — Gaussian/biv_gaussian keep flat `$mu`/generic `_mu`; non-Gaussian keep
+> per-endpoint. Plus one stale nbinom2 rejection-message test. Full local suite
+> green (122->0); ubuntu CI re-run on the pushed head — confirm green on #730.
+> Mission Control truth unchanged (94/104 / 8/104 / 0/104 / 10/104). See
+> [`docs/dev-log/after-task/2026-07-05-structured-re-gaussian-naming-regression-fix.md`](docs/dev-log/after-task/2026-07-05-structured-re-gaussian-naming-regression-fix.md).
+>
+> **▶ Prior — (2026-07-05, → Claude, Day 1 takeover).**
 > Q-Series v1 practical-surface arc, Day 1-2 executed. Branch
 > `drmtmb/fix-family-conventions` @ `0ce8b919`; **draft PR #730** open into
 > `main` with a corrected 94/104 body. CI trimmed: routine `pull_request`/push
