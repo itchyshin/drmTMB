@@ -146,6 +146,43 @@ qseries_v1_first_four_fixture <- function() {
     y = rep(seq_len(2L), times = 4L),
     row.names = poisson_zi_levels
   )
+  set.seed(2026070412)
+  poisson_plus_sites <- paste0("site", seq_len(8L))
+  poisson_plus_ids <- paste0("id", seq_len(16L))
+  poisson_plus_theta <- seq(0, 1.75 * pi, length.out = length(poisson_plus_sites))
+  coords_poisson_plus <- data.frame(
+    x = cos(poisson_plus_theta),
+    y = sin(poisson_plus_theta),
+    row.names = poisson_plus_sites
+  )
+  poisson_plus_precision <- drmTMB:::drm_spatial_coords_precision(
+    coords_poisson_plus,
+    site = poisson_plus_sites,
+    group = "site"
+  )
+  poisson_plus_cov <- solve(as.matrix(poisson_plus_precision$precision))
+  poisson_plus_spatial <- as.vector(
+    t(chol(poisson_plus_cov)) %*%
+      stats::rnorm(length(poisson_plus_sites), sd = 0.45)
+  )
+  names(poisson_plus_spatial) <- poisson_plus_sites
+  poisson_plus_id <- rep(poisson_plus_ids, each = 16L)
+  poisson_plus_site_for_id <- rep(poisson_plus_sites, length.out = length(poisson_plus_ids))
+  names(poisson_plus_site_for_id) <- poisson_plus_ids
+  poisson_plus_site <- unname(poisson_plus_site_for_id[poisson_plus_id])
+  poisson_plus_x <- stats::rnorm(length(poisson_plus_id))
+  poisson_plus_ordinary <- stats::rnorm(length(poisson_plus_ids), sd = 0.25)
+  names(poisson_plus_ordinary) <- poisson_plus_ids
+  poisson_plus_eta <- 0.55 -
+    0.20 * poisson_plus_x +
+    poisson_plus_spatial[poisson_plus_site] +
+    poisson_plus_ordinary[poisson_plus_id]
+  dat_poisson_plus_ordinary <- data.frame(
+    y = stats::rpois(length(poisson_plus_id), lambda = exp(poisson_plus_eta)),
+    x = poisson_plus_x,
+    site = factor(poisson_plus_site, levels = poisson_plus_sites),
+    id = factor(poisson_plus_id, levels = poisson_plus_ids)
+  )
   set.seed(2026070404)
   beta_sigma_levels <- paste0("bs", seq_len(8L))
   beta_sigma_id <- factor(
@@ -400,6 +437,27 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
+      gate_id = "count_struct_mu_fit_struct_plus_ordinary_poisson_spatial",
+      cell_id = "qseries_count_mu_structured_plus_ordinary_rejected",
+      formula_cell = "spatial(1 | site, coords = coords) + (1 | id) in mu",
+      family = "poisson()",
+      provider = "spatial",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(
+          y ~ x +
+            spatial(1 | site, coords = coords_poisson_plus) +
+            (1 | id)
+        ),
+        family = stats::poisson(link = "log"),
+        data = dat_poisson_plus_ordinary,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "spatial_mu",
+      expected_sd_pattern = "^spatial\\(",
+      env = environment()
+    ),
+    list(
       gate_id = "nongaussian_struct_fit_beta_sigma_animal",
       cell_id = "qseries_beta_sigma_animal_rejected",
       formula_cell = "animal(1 | id, pedigree = ped) in sigma",
@@ -572,7 +630,8 @@ qseries_v1_run_rejection_case <- function(case) {
     claim_boundary = paste(
       "local debug smoke only; beta/Gamma/Student structured mu rows,",
       "the Student structured nu row, the Poisson structured zi row,",
-      "the Poisson structured mu plus fixed zi row,",
+      "the Poisson structured mu plus fixed zi row, the Poisson",
+      "structured-plus-ordinary mu row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence; the current first-four candidate",
       "rejection rows are exact local debug boundary checks;",

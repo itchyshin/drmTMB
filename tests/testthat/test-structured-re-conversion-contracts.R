@@ -23724,7 +23724,7 @@ test_that("non-Gaussian audit mirrors count intercept recovery results", {
       "non_gaussian_point_only"
     )
   ))
-  expect_equal(as.integer(audit_state_counts), c(18L, 0L, 7L, 1L, 11L))
+  expect_equal(as.integer(audit_state_counts), c(18L, 0L, 6L, 1L, 12L))
   expect_equal(
     sum(audit$widget_state == "non_gaussian_recovery_caveat"),
     0L
@@ -30597,19 +30597,19 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   )
   expect_match(status_text, "104 support cells", fixed = TRUE)
   expect_match(status_text, "67 Gaussian rows and 37 non-Gaussian rows", fixed = TRUE)
-  expect_match(status_text, "85 row-level roles", fixed = TRUE)
+  expect_match(status_text, "86 row-level roles", fixed = TRUE)
   expect_match(status_text, "8 exact Gaussian `inference_ready` anchors", fixed = TRUE)
   expect_match(status_text, "48 additional Gaussian basic-working rows", fixed = TRUE)
-  expect_match(status_text, "29 basic-distribution recovery rows", fixed = TRUE)
-  expect_match(status_text, "19 rows stay in post-v1.0 validation or design", fixed = TRUE)
+  expect_match(status_text, "30 basic-distribution recovery rows", fixed = TRUE)
+  expect_match(status_text, "18 rows stay in post-v1.0 validation or design", fixed = TRUE)
   expect_match(status_text, "0 `supported` authority rows", fixed = TRUE)
   expect_match(status_text, "row-accounting summaries, not package-release completion claims", fixed = TRUE)
-  expect_match(status_text, "Practical v1.0 row surface | 85/104 | 81.7%", fixed = TRUE)
+  expect_match(status_text, "Practical v1.0 row surface | 86/104 | 82.7%", fixed = TRUE)
   expect_match(status_text, "Gaussian v1.0 core | 56/67 | 83.6%", fixed = TRUE)
-  expect_match(status_text, "Basic-distribution recovery | 29/37 | 78.4%", fixed = TRUE)
+  expect_match(status_text, "Basic-distribution recovery | 30/37 | 81.1%", fixed = TRUE)
   expect_match(status_text, "Exact `inference_ready` anchors | 8/104 | 7.7%", fixed = TRUE)
   expect_match(status_text, "`supported` authority | 0/104 | 0.0%", fixed = TRUE)
-  expect_match(status_text, "Post-v1.0 validation/design | 19/104 | 18.3%", fixed = TRUE)
+  expect_match(status_text, "Post-v1.0 validation/design | 18/104 | 17.3%", fixed = TRUE)
   expect_match(status_text, "not a support promotion", fixed = TRUE)
   expect_match(status_text, "does not authorize coverage, q4 coverage", fixed = TRUE)
   expect_match(status_text, "REML, AI-REML", fixed = TRUE)
@@ -30686,13 +30686,13 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "ledger=ok",
     "claim_guard=ok",
     "mission_control=skipped",
-    "practical_v1_surface=85/104 (81.7%)",
+    "practical_v1_surface=86/104 (82.7%)",
     "supported_authority=0/104 (0.0%)",
     "rows_to_75=0",
     "rows_to_80=0",
-    "rows_to_90=9",
-    "rows_to_100=19",
-    "candidate_review_rows=19",
+    "rows_to_90=8",
+    "rows_to_100=18",
+    "candidate_review_rows=18",
     "first_four_review_packet_rows=4",
     "first_candidate_contract_rows=1",
     "debug_fixture_contract_rows=1",
@@ -30733,11 +30733,11 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "claim_guard=not_run",
     "mission_control=not_run",
     "source=checked_in_release_status_and_ledger",
-    "practical_v1_surface=85/104 (81.7%)",
+    "practical_v1_surface=86/104 (82.7%)",
     "supported_authority=0/104 (0.0%)",
     "rows_to_75=0",
     "rows_to_80=0",
-    "candidate_review_rows=19",
+    "candidate_review_rows=18",
     "first_four=qseries_ordinal_mu_phylo_rejected,qseries_truncnbinom2_hu_relmat_rejected,qseries_count_mu_labelled_q2_rejected,qseries_count_mu_simultaneous_structured_types_rejected",
     "boundary=ledger_only_no_validation_no_promotion"
   )) {
@@ -30776,7 +30776,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       "claim_boundary"
     )
   )
-  expect_equal(nrow(candidate_review), 19L)
+  expect_equal(nrow(candidate_review), 18L)
   expect_equal(candidate_review$review_rank, seq_len(nrow(candidate_review)))
   expect_equal(
     candidate_review$target_band[1:4],
@@ -30787,8 +30787,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     rep("additional_six_to_review_for_80_percent", 6L)
   )
   expect_equal(
-    candidate_review$target_band[11:19],
-    rep("later_post_v1_review_queue", 9L)
+    candidate_review$target_band[11:18],
+    rep("later_post_v1_review_queue", 8L)
   )
   expect_equal(
     candidate_review$cell_id[1:4],
@@ -31172,18 +31172,18 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "Generated ledger/status: `ok`",
     "Public claim guard: `ok`",
     "Mission Control: `ok`",
-    "Practical v1.0 row surface | 85/104 (81.7%)",
+    "Practical v1.0 row surface | 86/104 (82.7%)",
     "Gaussian v1.0 core | 56/67 (83.6%)",
-    "Basic-distribution recovery | 29/37 (78.4%)",
+    "Basic-distribution recovery | 30/37 (81.1%)",
     "Exact `inference_ready` anchors | 8/104 (7.7%)",
     "`supported` authority | 0/104 (0.0%)",
-    "Post-v1.0 validation/design | 19/104 (18.3%)",
+    "Post-v1.0 validation/design | 18/104 (17.3%)",
     "Distance To Row-Accounting Targets",
     "planning aids only",
     "75% practical surface | 78/104 | 0",
     "80% practical surface | 84/104 | 0",
-    "90% practical surface | 94/104 | 9",
-    "100% practical surface | 104/104 | 19",
+    "90% practical surface | 94/104 | 8",
+    "100% practical surface | 104/104 | 18",
     "Next Candidate Review Queue",
     "next_four_after_75_percent",
     "`qseries_ordinal_mu_phylo_rejected`",

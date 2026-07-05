@@ -2084,16 +2084,17 @@ Those moved rows still do not promote parser-ready broad support, bridge,
 interval, coverage, REML, AI-REML, public support, or q4/q8 status.
 
 `structured-re-count-structured-mu-rejection-contract.tsv` records the exact
-pre-optimization rejection contract for five structured count `mu` routes the
+pre-optimization rejection contract for four structured count `mu` routes the
 engine still rejects beyond the banked one-slope cells: non-canonical
-(slope-only) coefficient, labelled `q=2` covariance, structured-plus-ordinary
-combination, zero-inflated NB2 structured `mu`, and simultaneous structured
-effect types. The Poisson structured `mu` route with fixed `zi ~ 1` now lives in
-the support cells and local first-four smoke as local fit-only evidence. Each
-remaining cell is rejected at the formula gate with its own message, backed by
+(slope-only) coefficient, labelled `q=2` covariance, zero-inflated NB2
+structured `mu`, and simultaneous structured effect types. The Poisson
+structured `mu` route with fixed `zi ~ 1` and the Poisson spatial structured
+`mu` plus ordinary `mu` random-effect route now live in the support cells and
+local first-four smoke as local fit-only evidence. Each remaining cell is
+rejected at the formula gate with its own message, backed by
 `tests/testthat/test-count-structured-mu.R`, and stays `unsupported`. It
-promotes no parser-ready, point-fit, bridge, interval, coverage, REML, AI-REML,
-public support, or q4/q8 status.
+promotes no parser-ready, broad point-fit, bridge, interval, coverage, REML,
+AI-REML, public support, or q4/q8 status.
 
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by

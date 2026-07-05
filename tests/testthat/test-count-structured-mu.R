@@ -66,6 +66,53 @@ new_count_structured_mu_data <- function(
   )
 }
 
+new_count_structured_mu_plus_ordinary_data <- function(
+  seed = 2026070412,
+  n_site = 8L,
+  n_id = 16L,
+  n_each = 16L
+) {
+  set.seed(seed)
+  sites <- paste0("site", seq_len(n_site))
+  ids <- paste0("id", seq_len(n_id))
+  theta <- seq(0, 1.75 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta),
+    y = sin(theta)
+  )
+  rownames(coords) <- sites
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = sites,
+    group = "site"
+  )
+  spatial_covariance <- solve(as.matrix(precision$precision))
+  spatial_effect <- as.vector(
+    t(chol(spatial_covariance)) %*% stats::rnorm(n_site, sd = 0.45)
+  )
+  names(spatial_effect) <- sites
+
+  id <- rep(ids, each = n_each)
+  site_for_id <- rep(sites, length.out = n_id)
+  names(site_for_id) <- ids
+  site <- unname(site_for_id[id])
+  x <- stats::rnorm(length(id))
+  ordinary_effect <- stats::rnorm(n_id, sd = 0.25)
+  names(ordinary_effect) <- ids
+  eta <- 0.55 - 0.20 * x + spatial_effect[site] + ordinary_effect[id]
+
+  list(
+    data = data.frame(
+      y = stats::rpois(length(id), lambda = exp(eta)),
+      x = x,
+      site = factor(site, levels = sites),
+      id = factor(id, levels = ids)
+    ),
+    coords = coords
+  )
+}
+
 new_count_structured_mu_slope_data <- function(
   seed = 2026062513,
   n_level = 8L,
@@ -202,6 +249,47 @@ expect_count_structured_mu_fit <- function(fit, type, group) {
 
   checks <- check_drm(fit)
   structured_check <- checks[checks$check == paste0(type, "_mu_diagnostics"), ]
+  expect_equal(nrow(structured_check), 1L)
+  expect_equal(structured_check$status, "ok")
+  expect_true(attr(checks, "ok"))
+}
+
+expect_count_structured_mu_plus_ordinary_fit <- function(fit) {
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$model_type, "poisson")
+  expect_equal(fit$model$structured$phylo_mu$type, "spatial")
+  expect_equal(fit$model$structured$phylo_mu$q, 1L)
+  expect_setequal(names(fit$random_effects), c("mu", "spatial_mu"))
+  expect_equal(ranef(fit, "mu"), fit$random_effects$mu)
+  expect_equal(ranef(fit, "spatial_mu"), fit$random_effects$spatial_mu)
+  expect_setequal(names(fit$sdpars$mu), c("(1 | id)", "spatial(1 | site)"))
+  expect_true(all(unname(fit$sdpars$mu) > 0))
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[
+    targets$parm == "sd:mu:spatial(1 | site)",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "log_sd_phylo")
+  expect_equal(sd_target$target_type, "direct")
+  expect_true(sd_target$profile_ready)
+
+  fixed_link <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu", type = "link")),
+    fixed_link +
+      drmTMB:::mu_random_effect_contribution(fit) +
+      drmTMB:::phylo_mu_contribution(fit),
+    tolerance = 1e-8
+  )
+  expect_true(all(predict(fit, dpar = "mu") > 0))
+
+  checks <- check_drm(fit)
+  structured_check <- checks[checks$check == "spatial_mu_diagnostics", ]
   expect_equal(nrow(structured_check), 1L)
   expect_equal(structured_check$status, "ok")
   expect_true(attr(checks, "ok"))
@@ -410,14 +498,15 @@ test_that("count structured mu keeps planned neighboring routes closed", {
     ),
     "unlabelled q=1"
   )
-  expect_error(
-    drmTMB(
-      bf(poisson_spatial ~ x + spatial(1 | site, coords = coords) + (1 | id)),
-      family = stats::poisson(link = "log"),
-      data = dat
-    ),
-    "cannot be combined"
+  sim_plus_ordinary <- new_count_structured_mu_plus_ordinary_data()
+  coords_plus_ordinary <- sim_plus_ordinary$coords
+  fit_plus_ordinary <- drmTMB(
+    bf(y ~ x + spatial(1 | site, coords = coords_plus_ordinary) + (1 | id)),
+    family = stats::poisson(link = "log"),
+    data = sim_plus_ordinary$data
   )
+  expect_count_structured_mu_plus_ordinary_fit(fit_plus_ordinary)
+
   sim_zi <- new_count_structured_mu_data(
     seed = 2026070408,
     n_level = 8L,

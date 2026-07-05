@@ -107,6 +107,43 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     y = rep(seq_len(2L), times = 4L),
     row.names = poisson_zi_levels
   )
+  set.seed(2026070412)
+  poisson_plus_sites <- paste0("site", seq_len(8L))
+  poisson_plus_ids <- paste0("id", seq_len(16L))
+  poisson_plus_theta <- seq(0, 1.75 * pi, length.out = length(poisson_plus_sites))
+  coords_poisson_plus <- data.frame(
+    x = cos(poisson_plus_theta),
+    y = sin(poisson_plus_theta),
+    row.names = poisson_plus_sites
+  )
+  poisson_plus_precision <- drmTMB:::drm_spatial_coords_precision(
+    coords_poisson_plus,
+    site = poisson_plus_sites,
+    group = "site"
+  )
+  poisson_plus_cov <- solve(as.matrix(poisson_plus_precision$precision))
+  poisson_plus_spatial <- as.vector(
+    t(chol(poisson_plus_cov)) %*%
+      stats::rnorm(length(poisson_plus_sites), sd = 0.45)
+  )
+  names(poisson_plus_spatial) <- poisson_plus_sites
+  poisson_plus_id <- rep(poisson_plus_ids, each = 16L)
+  poisson_plus_site_for_id <- rep(poisson_plus_sites, length.out = length(poisson_plus_ids))
+  names(poisson_plus_site_for_id) <- poisson_plus_ids
+  poisson_plus_site <- unname(poisson_plus_site_for_id[poisson_plus_id])
+  poisson_plus_x <- stats::rnorm(length(poisson_plus_id))
+  poisson_plus_ordinary <- stats::rnorm(length(poisson_plus_ids), sd = 0.25)
+  names(poisson_plus_ordinary) <- poisson_plus_ids
+  poisson_plus_eta <- 0.55 -
+    0.20 * poisson_plus_x +
+    poisson_plus_spatial[poisson_plus_site] +
+    poisson_plus_ordinary[poisson_plus_id]
+  dat_poisson_plus_ordinary <- data.frame(
+    y = stats::rpois(length(poisson_plus_id), lambda = exp(poisson_plus_eta)),
+    x = poisson_plus_x,
+    site = factor(poisson_plus_site, levels = poisson_plus_sites),
+    id = factor(poisson_plus_id, levels = poisson_plus_ids)
+  )
   set.seed(2026070404)
   beta_sigma_levels <- paste0("bs", seq_len(8L))
   beta_sigma_id <- factor(
@@ -290,6 +327,22 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_true(
     any(grepl("^spatial\\(", names(fit_poisson_zi_mu_spatial$sdpars$mu)))
   )
+  fit_poisson_plus_ordinary <- drmTMB(
+    bf(y ~ x + spatial(1 | site, coords = coords_poisson_plus) + (1 | id)),
+    family = stats::poisson(link = "log"),
+    data = dat_poisson_plus_ordinary
+  )
+  expect_s3_class(fit_poisson_plus_ordinary, "drmTMB")
+  expect_equal(as.integer(fit_poisson_plus_ordinary$opt$convergence), 0L)
+  expect_true(fit_poisson_plus_ordinary$sdr$pdHess)
+  expect_setequal(
+    names(fit_poisson_plus_ordinary$random_effects),
+    c("mu", "spatial_mu")
+  )
+  expect_setequal(
+    names(fit_poisson_plus_ordinary$sdpars$mu),
+    c("(1 | id)", "spatial(1 | site)")
+  )
   expect_error(
     drmTMB(
       bf(y ~ x, zi ~ spatial(1 + x | id, coords = coords_poisson_zi)),
@@ -418,6 +471,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_student_nu_phylo_rejected",
       "qseries_poisson_zi_spatial_rejected",
       "qseries_count_mu_zeroinflated_poisson_structured_rejected",
+      "qseries_count_mu_structured_plus_ordinary_rejected",
       "qseries_beta_sigma_animal_rejected",
       "qseries_phylo_nbinom2_q1_sigma_one_slope_rejected",
       "qseries_spatial_nbinom2_q1_sigma_one_slope_rejected",
@@ -442,6 +496,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_fit",
+      "expected_fit",
       "expected_fit"
     )
   )
@@ -454,6 +509,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "Structured non-Gaussian paths",
       "unlabelled q=1",
       "Only one structured",
+      "",
       "",
       "",
       "",
