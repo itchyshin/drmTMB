@@ -967,13 +967,20 @@ profile_controls_label <- function(args) {
   )
 }
 
+# Correlation back-transform guard. tanh(eta) can reach +/-1 in finite precision;
+# capping at this value keeps correlations strictly inside (-1, 1) so downstream
+# atanh round-trips stay finite. This must match the guard used by rho_response()
+# and guarded_correlation_link() (methods.R) so the forward link and its inverse
+# agree; the DRM.jl twin must mirror the same value (issue #713.6).
+DRM_CORR_GUARD <- 0.999999
+
 profile_transform_values <- function(values, target) {
   switch(
     target$transformation,
     linear_predictor = values,
     ordered_cutpoint = values,
     exp = exp(values),
-    tanh = 0.999999 * tanh(values),
+    tanh = DRM_CORR_GUARD * tanh(values),
     rho12_tanh = rho_response(values),
     values
   )
@@ -1377,7 +1384,27 @@ drm_profile_targets <- function(object) {
       ) &&
       isTRUE(object$model$structured$phylo_mu$q > 2L) &&
       !phylo_mu_is_block_diagonal(object$model$structured$phylo_mu)
-    for (i in seq_along(values)) {
+    # A modelled group or phylogenetic mu correlation stores one value per level
+    # in corpars$mu / corpars$phylo (issue #698 and its phylogenetic sibling).
+    # Those levels are a single fitted correlation regression profiled through
+    # beta_cor_mu, so only the representative index participates here; per-level
+    # entries must not spawn cor:mu:* / cor:phylo:* targets.
+    cor_indices <- if (
+      identical(dpar, "mu") &&
+        corpair_model_is_group(object$model$random$mu$cor_model)
+    ) {
+      unique(object$model$random$mu$cor_model$target_cor)
+    } else if (
+      has_modelled_phylo_correlation(object$model) &&
+        identical(dpar, structured_mu_correlation_key(
+          object$model$structured$phylo_mu
+        ))
+    ) {
+      unique(object$model$random$mu$cor_model$target_cor)
+    } else {
+      seq_along(values)
+    }
+    for (i in cor_indices) {
       if (paste(dpar, i, sep = ":") %in% registry_cor_keys) {
         next
       }
@@ -1424,7 +1451,7 @@ drm_profile_targets <- function(object) {
         } else {
           guarded_correlation_link(
             unname(values[[i]]),
-            guard = 0.999999
+            guard = DRM_CORR_GUARD
           )
         },
         scale = "response",
@@ -2628,27 +2655,19 @@ drm_profile_target_confint <- function(
     "random-effect-correlation",
     "residual-correlation"
   )
-  if (!isTRUE(target$profile_ready)) {
-    cli::cli_abort(c(
-      "Profile target {.val {target$parm}} is not ready for direct profiling.",
-      i = "Inventory note: {.val {target$profile_note}}."
-    ))
-  }
-  if (!target$target_class %in% implemented_classes) {
-    cli::cli_abort(c(
-      "Profile intervals are implemented for direct fixed-effect, constant distributional-scale, random-effect SD, random-effect correlation, and constant residual-correlation targets.",
-      i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
-    ))
-  }
 
+  # The endpoint engine must degrade to a per-row failure rather than aborting a
+  # mixed-target batch. Handle it before the shared readiness / class checks
+  # below (which cli_abort() and are the intended contract for the tmbprofile
+  # engine) so an unsupported or not-ready target under profile_engine =
+  # "endpoint" returns a failed row instead of taking down the whole confint().
   if (identical(profile_engine, "endpoint")) {
     if (!profile_endpoint_target_supported(target)) {
-      return(drm_profile_target_endpoint_confint(
-        object = object,
+      return(drm_profile_failed_confint_row(
         target = target,
         level = level,
-        endpoint_plan = endpoint_plan,
-        profile_endpoint_max_eval = profile_endpoint_max_eval
+        profile_engine = "endpoint",
+        message = "endpoint engine unsupported for this target class"
       ))
     }
     endpoint <- tryCatch(
@@ -2670,6 +2689,19 @@ drm_profile_target_confint <- function(
       ))
     }
     return(endpoint)
+  }
+
+  if (!isTRUE(target$profile_ready)) {
+    cli::cli_abort(c(
+      "Profile target {.val {target$parm}} is not ready for direct profiling.",
+      i = "Inventory note: {.val {target$profile_note}}."
+    ))
+  }
+  if (!target$target_class %in% implemented_classes) {
+    cli::cli_abort(c(
+      "Profile intervals are implemented for direct fixed-effect, constant distributional-scale, random-effect SD, random-effect correlation, and constant residual-correlation targets.",
+      i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
+    ))
   }
 
   if (
@@ -2886,6 +2918,7 @@ drm_profile_endpoint_result <- function(
   } else {
     list()
   }
+  control <- profile_endpoint_inner_control(control)
 
   endpoint_worker <- function(direction) {
     evaluator <- profile_endpoint_evaluator(
@@ -2972,6 +3005,52 @@ profile_endpoint_curvature_se <- function(object, position) {
   sqrt(variance)
 }
 
+# Gradient tolerance used when tolerating an nlminb code-1 ("false convergence")
+# constrained endpoint solve (see profile_endpoint_convergence_accepted). Code 1
+# is only accepted when the maximum absolute free-parameter gradient at the
+# returned point is below this value; a code-1 stop with a large gradient means
+# the inner solve halted short of the constrained minimum, which would inflate
+# the profiled nll and narrow the interval (issue #705).
+PROFILE_ENDPOINT_GRADIENT_TOL <- 1e-3
+
+# Constrained endpoint refits pin one parameter away from its optimum, so they
+# routinely need more iterations than the original free fit. Do not inherit the
+# caller's (possibly speed-tuned) iteration budget: keep any tolerances but use a
+# generous iteration/evaluation budget so profile-CI reliability does not depend
+# on the original fit's iter.max / eval.max choice (issue #710.5).
+profile_endpoint_inner_control <- function(control) {
+  if (!is.list(control)) {
+    control <- list()
+  }
+  iter_max <- control[["iter.max"]]
+  eval_max <- control[["eval.max"]]
+  control[["iter.max"]] <- max(1000L, if (is.null(iter_max)) 0L else iter_max)
+  control[["eval.max"]] <- max(1000L, if (is.null(eval_max)) 0L else eval_max)
+  control
+}
+
+# Acceptance predicate for a constrained endpoint nlminb solve. Extracted as a
+# pure function so it can be unit-tested directly (issue #705). Code 0 (relative
+# convergence) is always accepted; code 1 ("false convergence" / did-not-converge)
+# is accepted only when the returned gradient is small, i.e. the solve is at a
+# genuine constrained minimum despite the code-1 flag. Everything else is rejected.
+profile_endpoint_convergence_accepted <- function(
+  opt,
+  max_abs_gradient,
+  gradient_tol = PROFILE_ENDPOINT_GRADIENT_TOL
+) {
+  if (is.null(opt$convergence) || !is.finite(opt$objective)) {
+    return(FALSE)
+  }
+  if (identical(as.integer(opt$convergence), 0L)) {
+    return(TRUE)
+  }
+  if (identical(as.integer(opt$convergence), 1L)) {
+    return(is.finite(max_abs_gradient) && max_abs_gradient <= gradient_tol)
+  }
+  FALSE
+}
+
 profile_endpoint_evaluator <- function(object, target_position, control) {
   par0 <- object$opt$par
   free <- seq_along(par0) != target_position
@@ -2991,28 +3070,40 @@ profile_endpoint_evaluator <- function(object, target_position, control) {
       full[[target_position]] <- theta
       object$obj$gr(full)[free]
     }
-    opt <- stats::nlminb(start, fn_free, gr_free, control = control)
+    solve_from <- function(start_values) {
+      opt <- stats::nlminb(start_values, fn_free, gr_free, control = control)
+      opt_gradient <- tryCatch(
+        gr_free(opt$par),
+        error = function(err) rep(NA_real_, length(opt$par))
+      )
+      max_abs_gradient <- suppressWarnings(max(abs(opt_gradient), na.rm = TRUE))
+      if (!is.finite(max_abs_gradient)) {
+        max_abs_gradient <- NA_real_
+      }
+      list(
+        opt = opt,
+        max_abs_gradient = max_abs_gradient,
+        accepted = profile_endpoint_convergence_accepted(opt, max_abs_gradient)
+      )
+    }
+
+    result <- solve_from(start)
+    # A warm start from a distant bracket point can trigger a premature code-1
+    # stop; retry once from the free optimum before giving up (issue #705).
+    if (!result$accepted && !identical(start, start_free)) {
+      result <- solve_from(start_free)
+    }
+    opt <- result$opt
+    max_abs_gradient <- result$max_abs_gradient
     opt_message <- opt$message
     if (is.null(opt_message) || length(opt_message) == 0L) {
       opt_message <- "unknown"
     }
-    opt_gradient <- tryCatch(
-      gr_free(opt$par),
-      error = function(err) rep(NA_real_, length(opt$par))
-    )
-    max_abs_gradient <- suppressWarnings(max(abs(opt_gradient), na.rm = TRUE))
-    if (!is.finite(max_abs_gradient)) {
-      max_abs_gradient <- NA_real_
-    }
-    convergence_tolerated <- opt$convergence %in% c(0L, 1L)
-    if (
-      !is.finite(opt$objective) ||
-        is.null(opt$convergence) ||
-        !convergence_tolerated
-    ) {
+    if (!result$accepted) {
       cli::cli_abort(c(
         "Constrained endpoint optimization failed.",
         i = "Target internal value: {format(theta, digits = 6)}.",
+        i = "Optimizer convergence code: {format(opt$convergence)}.",
         i = "Maximum absolute gradient: {format(max_abs_gradient, digits = 4)}.",
         x = "Optimizer message: {opt_message[[1L]]}"
       ))
@@ -3297,7 +3388,7 @@ profile_transform_interval <- function(interval, target) {
     target$transformation,
     linear_predictor = interval,
     exp = exp(interval),
-    tanh = 0.999999 * tanh(interval),
+    tanh = DRM_CORR_GUARD * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
   )
@@ -3309,7 +3400,7 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     drm_dpar_link(object, dpar),
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
-    atanh_re_guarded = rho_response(eta_interval, guard = 0.999999),
+    atanh_re_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -3381,7 +3472,7 @@ profile_registry_cor_targets <- function(object) {
       link_estimate = if (is_unstructured_corr) {
         NA_real_
       } else {
-        guarded_correlation_link(estimate, guard = 0.999999)
+        guarded_correlation_link(estimate, guard = DRM_CORR_GUARD)
       },
       scale = "response",
       transformation = if (is_unstructured_corr) {

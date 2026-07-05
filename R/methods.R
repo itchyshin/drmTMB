@@ -1213,7 +1213,17 @@ phylo_mu_corpairs <- function(object) {
   }
   level <- structured_mu_corpair_level(phylo_mu)
   pair_table <- phylo_mu_pair_table(phylo_mu)
-  lapply(seq_along(corpars), function(i) {
+  # A modelled phylogenetic correlation stores one value per level in
+  # corpars$phylo (issue #698 phylogenetic sibling); those levels are a single
+  # fitted correlation regression, summarised by one corpair row via the
+  # recomputed predict() path below, so iterate only the representative index
+  # here rather than one row per level.
+  indices <- if (has_modelled_phylo_correlation(object$model)) {
+    unique(object$model$random$mu$cor_model$target_cor)
+  } else {
+    seq_along(corpars)
+  }
+  lapply(indices, function(i) {
     estimate <- unname(corpars[[i]])
     parameter <- phylo_mu_correlation_parameter(object, i)
     pair <- pair_table[i, , drop = FALSE]
@@ -1855,7 +1865,19 @@ random_effect_label_corpairs <- function(object, exclude = character()) {
       next
     }
     cor_values <- object$corpars[[dpar]]
-    for (i in seq_along(cor_values)) {
+    # A modelled group mu correlation stores one value per group level in
+    # corpars$mu (issue #698); those levels are a single fitted correlation
+    # regression, summarised by one corpair row via the registry path, so we
+    # iterate only the representative index here rather than one row per level.
+    indices <- if (
+      identical(dpar, "mu") &&
+        corpair_model_is_group(object$model$random$mu$cor_model)
+    ) {
+      unique(object$model$random$mu$cor_model$target_cor)
+    } else {
+      seq_along(cor_values)
+    }
+    for (i in indices) {
       if (paste(dpar, i, sep = ":") %in% exclude) {
         next
       }
@@ -1883,7 +1905,15 @@ structured_mu_corpars_keys <- function(object) {
   if (is.null(cor_values) || length(cor_values) == 0L) {
     return(character())
   }
-  paste(cor_key, seq_along(cor_values), sep = ":")
+  # A modelled phylogenetic correlation stores one value per level (issue #698
+  # sibling); those levels are a single fitted correlation regression, so only
+  # the representative index is a structured corpar key.
+  indices <- if (has_modelled_phylo_correlation(object$model)) {
+    unique(object$model$random$mu$cor_model$target_cor)
+  } else {
+    seq_along(cor_values)
+  }
+  paste(cor_key, indices, sep = ":")
 }
 
 random_effect_corpair <- function(
@@ -3367,9 +3397,14 @@ sigma.drmTMB <- function(object, ...) {
   ) {
     return(rep(1, object$nobs))
   }
-  new_biv_sigma(
-    sigma1 = predict(object, dpar = "sigma1"),
-    sigma2 = predict(object, dpar = "sigma2")
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    return(new_biv_sigma(
+      sigma1 = predict(object, dpar = "sigma1"),
+      sigma2 = predict(object, dpar = "sigma2")
+    ))
+  }
+  cli::cli_abort(
+    "Internal error: no {.fn sigma} rule for model type {.val {object$model$model_type}}."
   )
 }
 
@@ -3744,6 +3779,16 @@ drm_derived_summary_rows <- function(object) {
     return(empty_derived_summary_parameters())
   }
 
+  # Repeatability/ICC and phylogenetic signal are defined against the TOTAL
+  # variance, so the denominator must include every mu random-effect variance
+  # plus the residual variance. Summing only the current term's variance
+  # overstates each ratio whenever multiple mu random effects are present
+  # (see issue #695).
+  numeric_sd <- vapply(sd_values, function(v) unname(v)[[1L]], numeric(1))
+  valid_sd <- is.finite(numeric_sd) & numeric_sd >= 0
+  residual_variance <- sigma^2
+  total_re_var <- sum(numeric_sd[valid_sd]^2)
+
   rows <- lapply(seq_along(sd_values), function(i) {
     term <- names(sd_values)[[i]]
     sd_value <- unname(sd_values[[i]])
@@ -3755,8 +3800,7 @@ drm_derived_summary_rows <- function(object) {
       return(NULL)
     }
     re_variance <- sd_value^2
-    residual_variance <- sigma^2
-    denominator <- re_variance + residual_variance
+    denominator <- total_re_var + residual_variance
     if (!is.finite(denominator) || denominator <= 0) {
       return(NULL)
     }
@@ -4928,6 +4972,18 @@ drm_inverse_link <- function(object, dpar, eta) {
 }
 
 drm_dpar_link <- function(object, dpar) {
+  # Canonical runtime link table (issue #713.2). Every runtime link query
+  # (predict-parameters.R, profile.R, and elsewhere in methods.R) routes through
+  # this function, so this model_type -> per-dpar-link switch is the single
+  # source of truth for link resolution. It intentionally covers more model
+  # types than the per-family `links` fields in R/family.R (poisson, binomial,
+  # gamma, tweedie, the zero-inflated / hurdle counts, etc. reach a fitted spec
+  # without a matching R/family.R constructor) and adds the corpair() /
+  # atanh_re_guarded cases. When you add or change a family's links, update BOTH
+  # this switch and the corresponding `links = c(...)` field in R/family.R so the
+  # constructor metadata and the runtime table stay consistent. Documented, not
+  # refactored: unifying the two would require every model_type to carry a
+  # drm_family object and is deferred to avoid destabilizing link resolution.
   if (startsWith(dpar, "corpair(")) {
     return("atanh_re_guarded")
   }

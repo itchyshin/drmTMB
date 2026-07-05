@@ -26,7 +26,11 @@
 #'   be positive and `sd_alpha` must lie in `(0, 1)`.
 #' @param cor_sd Optional standard deviation of a mean-zero normal penalty on
 #'   the phylogenetic cross-parameter correlation parameter. `NULL` (the
-#'   default) applies no correlation penalty.
+#'   default) applies no correlation penalty. A non-`NULL` `cor_sd` requires a
+#'   coupled phylogenetic model with at least two phylogenetic SDs (for example
+#'   a coupled location-scale or bivariate fit); a location-only phylogenetic
+#'   model has a single phylogenetic SD and no correlation parameter to
+#'   penalize, so [drmTMB()] errors rather than silently ignoring `cor_sd`.
 #' @return An object of class `drm_phylo_penalty`.
 #' @references
 #' Simpson, D., Rue, H., Riebler, A., Martins, T. G., & Sorbye, S. H. (2017).
@@ -117,6 +121,16 @@ drm_apply_phylo_penalty_spec <- function(spec, penalty) {
       "{.arg penalty} found no phylogenetic SD parameters to penalize."
     )
   }
+  if (!is.null(penalty$cor_sd) && q_phylo < 2L) {
+    cli::cli_abort(
+      c(
+        "{.arg cor_sd} requires a coupled phylogenetic model with at least two phylogenetic SDs.",
+        "x" = "This model has a single phylogenetic SD ({.val {q_phylo}}), so there is no phylogenetic correlation parameter to penalize and {.arg cor_sd} would be silently ignored.",
+        "i" = "Set {.code cor_sd = NULL} for a location-only phylogenetic model, or add a second phylogenetic term (for example a coupled location-scale or bivariate fit) before penalizing the correlation."
+      ),
+      class = "drm_phylo_cor_penalty_needs_two_sd"
+    )
+  }
   spec$tmb_data$penalize_phylo <- 1L
   spec$tmb_data$phylo_sd_penalty_rate <- rep(penalty$rate, q_phylo)
   spec$tmb_data$phylo_cor_penalty_sd <-
@@ -163,6 +177,37 @@ drm_phylo_penalty_sweep <- function(
       any(cor_sd <= 0)
   ) {
     cli::cli_abort("{.arg cor_sd} must be a vector of positive numbers.")
+  }
+  # A cor_sd sweep is only meaningful when the model actually estimates a
+  # phylogenetic correlation (>= 2 phylogenetic SDs). For a single-SD phylo
+  # model the correlation penalty is inert, so every row would be identical and
+  # the sweep would look like a prior-sensitivity check while being a no-op.
+  # Probe the first cor_sd and refuse the whole sweep if the model has no
+  # correlation parameter to penalize.
+  probe <- tryCatch(
+    drmTMB(
+      formula,
+      data = data,
+      family = family,
+      penalty = drm_phylo_penalty(
+        sd_u = sd_u,
+        sd_alpha = sd_alpha,
+        cor_sd = cor_sd[[1L]]
+      ),
+      control = control,
+      ...
+    ),
+    drm_phylo_cor_penalty_needs_two_sd = function(e) e
+  )
+  if (inherits(probe, "drm_phylo_cor_penalty_needs_two_sd")) {
+    cli::cli_abort(
+      c(
+        "A {.arg cor_sd} sweep requires a coupled phylogenetic model with at least two phylogenetic SDs.",
+        "x" = "This model has a single phylogenetic SD, so the correlation penalty is inert and every row of the sweep would be identical.",
+        "i" = "Sweep a coupled location-scale or bivariate phylogenetic model, or drop the {.arg cor_sd} sweep for this location-only model."
+      ),
+      class = "drm_phylo_cor_penalty_needs_two_sd"
+    )
   }
   fits <- lapply(cor_sd, function(cs) {
     tryCatch(

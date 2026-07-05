@@ -74,6 +74,52 @@ Type drm_phylo_penalty_value(const vector<Type>& log_sd_phylo,
   return pen;
 }
 
+// Shared per-observation analytic negative log-likelihood accumulator for the
+// diagonal (non-Kronecker/no-V_known) bivariate Gaussian, factored out so the
+// primary bivariate Gaussian (model_type 2) and the covariance-block probe
+// (model_type 95) share ONE implementation. Behaviour is identical to the two
+// previously duplicated loop bodies: for a jointly observed pair it uses the
+// standardized bivariate density; for a singleton it uses the marginal. rho12
+// is assumed already bounded (0.999999 * tanh(eta)). See design doc 176.
+template<class Type>
+void drm_bivariate_gaussian_diag_nll(
+    Type& nll,
+    const vector<Type>& y1,
+    const vector<Type>& y2,
+    const vector<Type>& mu1,
+    const vector<Type>& mu2,
+    const vector<Type>& log_sigma1,
+    const vector<Type>& log_sigma2,
+    const vector<Type>& sigma1,
+    const vector<Type>& sigma2,
+    const vector<Type>& rho12,
+    const vector<Type>& weights,
+    const vector<int>& observed_y1,
+    const vector<int>& observed_y2) {
+  Type log2pi = log(Type(2.0) * M_PI);
+  for (int i = 0; i < y1.size(); ++i) {
+    if (observed_y1(i) == 1 && observed_y2(i) == 1) {
+      Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+      Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+      Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+      Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+      row_nll += Type(0.5) * log(one_minus_rho2);
+      row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+      nll += weights(i) * row_nll;
+    } else if (observed_y1(i) == 1) {
+      Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+      Type row_nll = Type(0.5) * log2pi + log_sigma1(i);
+      row_nll += Type(0.5) * z1 * z1;
+      nll += weights(i) * row_nll;
+    } else if (observed_y2(i) == 1) {
+      Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+      Type row_nll = Type(0.5) * log2pi + log_sigma2(i);
+      row_nll += Type(0.5) * z2 * z2;
+      nll += weights(i) * row_nll;
+    }
+  }
+}
+
 template<class Type>
 matrix<Type> drm_partial_correlation_cholesky_corr(const vector<Type>& eta,
                                                    int q) {
@@ -120,6 +166,85 @@ matrix<Type> drm_qgt2_corr_matrix(const vector<Type>& theta,
   return density.cov();
 }
 
+// Cholesky-based separable-covariance density kernel for a q x q symmetric
+// positive-definite covariance S and a symmetric quadratic matrix
+// QM = t(effect) %*% Q %*% effect. Computes log-det(S) = 2 * sum(log(diag(L)))
+// and the quadratic form sum_{a,b} S^{-1}(a,b) * QM(a,b) = trace(S^{-1} QM)
+// via triangular solves against the Cholesky factor L (S = L L^T), never
+// forming an explicit inverse or a determinant. This keeps both the value and
+// the AD gradient finite as a pairwise (partial) correlation approaches +/-1;
+// the direct S.inverse() / log(S.determinant()) path amplifies near-singular
+// entries and yields a non-finite gradient in that regime.
+// A tiny relative ridge guards exact singularity so the Cholesky stays defined
+// (it is negligible for well-posed fits). See design doc 176.
+template<class Type>
+void drm_separable_cov_logdet_quad(const matrix<Type>& covariance,
+                                   const matrix<Type>& quadratic_matrix,
+                                   int q,
+                                   Type& log_det,
+                                   Type& quadratic) {
+  matrix<Type> S = covariance;
+  Type trace_scale = Type(0.0);
+  for (int a = 0; a < q; ++a) {
+    trace_scale += S(a, a);
+  }
+  Type ridge = Type(1e-12) * (trace_scale / Type(q));
+  for (int a = 0; a < q; ++a) {
+    S(a, a) += ridge;
+  }
+
+  // Lower Cholesky factor L with S = L L^T (AD-safe: +, -, *, /, sqrt only).
+  matrix<Type> L(q, q);
+  L.setZero();
+  for (int a = 0; a < q; ++a) {
+    for (int b = 0; b <= a; ++b) {
+      Type sum = S(a, b);
+      for (int k = 0; k < b; ++k) {
+        sum -= L(a, k) * L(b, k);
+      }
+      if (a == b) {
+        L(a, a) = sqrt(sum);
+      } else {
+        L(a, b) = sum / L(b, b);
+      }
+    }
+  }
+
+  log_det = Type(0.0);
+  for (int a = 0; a < q; ++a) {
+    log_det += Type(2.0) * log(L(a, a));
+  }
+
+  // W = S^{-1} QM via two triangular solves: L Y = QM, then L^T W = Y.
+  // trace(S^{-1} QM) = sum_a W(a, a).
+  matrix<Type> Y(q, q);
+  Y.setZero();
+  for (int col = 0; col < q; ++col) {
+    for (int a = 0; a < q; ++a) {
+      Type sum = quadratic_matrix(a, col);
+      for (int k = 0; k < a; ++k) {
+        sum -= L(a, k) * Y(k, col);
+      }
+      Y(a, col) = sum / L(a, a);
+    }
+  }
+  matrix<Type> W(q, q);
+  W.setZero();
+  for (int col = 0; col < q; ++col) {
+    for (int a = q - 1; a >= 0; --a) {
+      Type sum = Y(a, col);
+      for (int k = a + 1; k < q; ++k) {
+        sum -= L(k, a) * W(k, col);
+      }
+      W(a, col) = sum / L(a, a);
+    }
+  }
+  quadratic = Type(0.0);
+  for (int a = 0; a < q; ++a) {
+    quadratic += W(a, a);
+  }
+}
+
 template<class Type>
 Type objective_function<Type>::operator()()
 {
@@ -153,8 +278,8 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(use_gaussian_aggregation);
   DATA_INTEGER(n_agg);
   DATA_VECTOR(agg_n);
-  DATA_VECTOR(agg_sum_y);
-  DATA_VECTOR(agg_sum_y2);
+  DATA_VECTOR(agg_mean_y);
+  DATA_VECTOR(agg_css);
   DATA_MATRIX(X_mu_agg);
   DATA_MATRIX(X_sigma_agg);
   DATA_VECTOR(offset_mu_agg);
@@ -321,8 +446,6 @@ Type objective_function<Type>::operator()()
           sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
       }
     }
-    matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
-    Type log_det_covariance = log(phylo_q4_covariance.determinant());
     matrix<Type> quadratic_matrix(q, q);
     quadratic_matrix.setZero();
     for (int b = 0; b < q; ++b) {
@@ -337,12 +460,10 @@ Type objective_function<Type>::operator()()
         }
       }
     }
+    Type log_det_covariance = Type(0.0);
     Type quadratic = Type(0.0);
-    for (int a = 0; a < q; ++a) {
-      for (int b = 0; b < q; ++b) {
-        quadratic += covariance_inverse(a, b) * quadratic_matrix(a, b);
-      }
-    }
+    drm_separable_cov_logdet_quad(
+      phylo_q4_covariance, quadratic_matrix, q, log_det_covariance, quadratic);
     nll += Type(0.5) * (
       Type(n_phylo * q) * log(Type(2.0) * M_PI) +
       Type(n_phylo) * log_det_covariance -
@@ -366,8 +487,6 @@ Type objective_function<Type>::operator()()
         effect(i, j) = u_re_cov_probe(pos);
       }
     }
-    matrix<Type> covariance_inverse = re_cov_probe_covariance.inverse();
-    Type log_det_covariance = log(re_cov_probe_covariance.determinant());
     matrix<Type> quadratic_matrix(q, q);
     quadratic_matrix.setZero();
     for (int b = 0; b < q; ++b) {
@@ -382,12 +501,10 @@ Type objective_function<Type>::operator()()
         }
       }
     }
+    Type log_det_covariance = Type(0.0);
     Type quadratic = Type(0.0);
-    for (int a = 0; a < q; ++a) {
-      for (int b = 0; b < q; ++b) {
-        quadratic += covariance_inverse(a, b) * quadratic_matrix(a, b);
-      }
-    }
+    drm_separable_cov_logdet_quad(
+      re_cov_probe_covariance, quadratic_matrix, q, log_det_covariance, quadratic);
     nll += Type(0.5) * (
       Type(n_phylo * q) * log(Type(2.0) * M_PI) +
       Type(n_phylo) * log_det_covariance -
@@ -468,28 +585,9 @@ Type objective_function<Type>::operator()()
       }
       vector<Type> sigma1 = exp(log_sigma1);
       vector<Type> sigma2 = exp(log_sigma2);
-      Type log2pi = log(Type(2.0) * M_PI);
-      for (int i = 0; i < y1.size(); ++i) {
-        if (observed_y1(i) == 1 && observed_y2(i) == 1) {
-          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-          Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
-          Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
-          row_nll += Type(0.5) * log(one_minus_rho2);
-          row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
-          nll += weights(i) * row_nll;
-        } else if (observed_y1(i) == 1) {
-          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-          Type row_nll = Type(0.5) * log2pi + log_sigma1(i);
-          row_nll += Type(0.5) * z1 * z1;
-          nll += weights(i) * row_nll;
-        } else if (observed_y2(i) == 1) {
-          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-          Type row_nll = Type(0.5) * log2pi + log_sigma2(i);
-          row_nll += Type(0.5) * z2 * z2;
-          nll += weights(i) * row_nll;
-        }
-      }
+      drm_bivariate_gaussian_diag_nll(
+        nll, y1, y2, mu1, mu2, log_sigma1, log_sigma2,
+        sigma1, sigma2, rho12, weights, observed_y1, observed_y2);
       REPORT(mu1);
       REPORT(mu2);
       REPORT(log_sigma1);
@@ -576,10 +674,10 @@ Type objective_function<Type>::operator()()
       vector<Type> sigma = exp(log_sigma);
       for (int g = 0; g < n_agg; ++g) {
         Type variance = sigma(g) * sigma(g);
-        Type quadratic =
-          agg_sum_y2(g) -
-          Type(2.0) * mu(g) * agg_sum_y(g) +
-          agg_n(g) * mu(g) * mu(g);
+        // Centered quadratic css + n (mean_y - mu)^2 avoids the catastrophic
+        // cancellation of the expanded second-moment form (#701).
+        Type dev = agg_mean_y(g) - mu(g);
+        Type quadratic = agg_css(g) + agg_n(g) * dev * dev;
         nll += Type(0.5) * agg_n(g) * log(Type(2.0) * M_PI) +
           agg_n(g) * log_sigma(g) +
           Type(0.5) * quadratic / variance;
@@ -588,8 +686,8 @@ Type objective_function<Type>::operator()()
       REPORT(log_sigma);
       REPORT(sigma);
       REPORT(agg_n);
-      REPORT(agg_sum_y);
-      REPORT(agg_sum_y2);
+      REPORT(agg_mean_y);
+      REPORT(agg_css);
       ADREPORT(beta_mu);
       ADREPORT(beta_sigma);
     } else {
@@ -1261,7 +1359,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1316,6 +1420,12 @@ Type objective_function<Type>::operator()()
         if (mi_observed(i) == 1) {
           Type x_i = mi_x(i);
           Type log_density;
+          // ON-GRID CONTRACT: mi_x is DATA (no AD derivative), so the asDouble()
+          // boundary test below is AD-safe. It relies on observed zero/one values
+          // being passed EXACTLY as 0.0 / 1.0 (and interior values strictly in
+          // (0, 1)); a boundary point represented as e.g. 1e-300 would take the
+          // interior branch and mis-score it. The R interface must supply on-grid
+          // MI values for the zero-one-inflated beta. See design doc 176.
           if (asDouble(x_i) <= 0.0) {
             log_density = log_zoi_mi + log_one_minus_coi_mi;
           } else if (asDouble(x_i) >= 1.0) {
@@ -1395,7 +1505,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1570,7 +1686,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1650,7 +1772,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1749,7 +1877,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1819,7 +1953,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1901,7 +2041,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -1989,7 +2135,13 @@ Type objective_function<Type>::operator()()
             prior_norm += term;
             prior_mean += x_q * term;
           }
-          mi_x_full(i) = prior_mean / prior_norm;
+          // Guard the prior-mean plug-in against a zero normalizer: for extreme
+          // eta every quadrature term can underflow, leaving prior_norm == 0 and
+          // 0 / 0 -> NaN. Floor the denominator (no-op when prior_norm is
+          // non-negligible, as in every well-posed fit). See design doc 176.
+          Type prior_norm_safe = CppAD::CondExpGt(
+            prior_norm, Type(1e-300), prior_norm, Type(1e-300));
+          mi_x_full(i) = prior_mean / prior_norm_safe;
           mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
         }
       }
@@ -3686,14 +3838,11 @@ Type objective_function<Type>::operator()()
                 sd_phylo(a) * phylo_q4_corr(a, b) * sd_phylo(b);
             }
           }
-          matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
-          Type log_det_covariance = log(phylo_q4_covariance.determinant());
+          Type log_det_covariance = Type(0.0);
           Type quadratic_phylo = Type(0.0);
-          for (int a = 0; a < q_phylo; ++a) {
-            for (int b = 0; b < q_phylo; ++b) {
-              quadratic_phylo += covariance_inverse(a, b) * quadratic_matrix(a, b);
-            }
-          }
+          drm_separable_cov_logdet_quad(
+            phylo_q4_covariance, quadratic_matrix, q_phylo,
+            log_det_covariance, quadratic_phylo);
           nll += Type(0.5) * (
             Type(n_phylo * q_phylo) * log(Type(2.0) * M_PI) +
             Type(n_phylo) * log_det_covariance -
@@ -3766,28 +3915,9 @@ Type objective_function<Type>::operator()()
       density::MVNORM_t<Type> neg_log_density(Omega);
       nll += neg_log_density(y_stack - mu_stack);
     } else {
-      Type log2pi = log(Type(2.0) * M_PI);
-      for (int i = 0; i < y1.size(); ++i) {
-        if (observed_y1(i) == 1 && observed_y2(i) == 1) {
-          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-          Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
-          Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
-          row_nll += Type(0.5) * log(one_minus_rho2);
-          row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
-          nll += weights(i) * row_nll;
-        } else if (observed_y1(i) == 1) {
-          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-          Type row_nll = Type(0.5) * log2pi + log_sigma1(i);
-          row_nll += Type(0.5) * z1 * z1;
-          nll += weights(i) * row_nll;
-        } else if (observed_y2(i) == 1) {
-          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-          Type row_nll = Type(0.5) * log2pi + log_sigma2(i);
-          row_nll += Type(0.5) * z2 * z2;
-          nll += weights(i) * row_nll;
-        }
-      }
+      drm_bivariate_gaussian_diag_nll(
+        nll, y1, y2, mu1, mu2, log_sigma1, log_sigma2,
+        sigma1, sigma2, rho12, weights, observed_y1, observed_y2);
     }
 
     REPORT(mu1);

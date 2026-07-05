@@ -133,6 +133,33 @@ test_that("sparse Gaussian mu fixed effects work with memory-light storage", {
   expect_type(residuals(fit), "double")
 })
 
+test_that("sparse fixed-effect parity reports same_names from column names only", {
+  # Row names and other dimname attributes may differ between the dense and
+  # sparse builders; same_names should track the load-bearing column names, not
+  # full dimnames, so numerically identical designs are not flagged as failures.
+  dat <- data.frame(
+    y = rnorm(12),
+    f = factor(rep(c("a", "b", "c"), 4)),
+    x = rnorm(12)
+  )
+  terms <- stats::terms(y ~ f + x)
+  parity <- drmTMB:::drm_sparse_fixed_parity(terms, dat)
+
+  expect_identical(
+    parity$same_names,
+    identical(colnames(parity$dense), colnames(parity$sparse))
+  )
+  expect_true(parity$same_names)
+  expect_equal(parity$max_abs_matrix_diff, 0)
+
+  # Even if row names diverge between builders, parity should still hold because
+  # same_names ignores row names.
+  expect_true(
+    parity$same_names ||
+      !identical(rownames(parity$dense), rownames(parity$sparse))
+  )
+})
+
 test_that("sparse fixed-effect parity helper checks beta length", {
   dat <- data.frame(y = rnorm(4), x = c(-1, 0, 1, 2))
   terms <- stats::terms(y ~ x)

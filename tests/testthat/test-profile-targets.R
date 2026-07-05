@@ -745,6 +745,127 @@ test_that("endpoint profile budget failures stay on endpoint status rows", {
   expect_match(ci$profile.message, "evaluation budget")
 })
 
+test_that("endpoint convergence predicate gates nlminb code 1 on gradient", {
+  accepted <- drmTMB:::profile_endpoint_convergence_accepted
+
+  # Code 0 (relative convergence) is accepted regardless of the gradient.
+  expect_true(accepted(list(convergence = 0L, objective = 1), 5))
+  # Code 1 ("false convergence") is only accepted with a small gradient (#705).
+  expect_true(accepted(list(convergence = 1L, objective = 1), 1e-5))
+  expect_false(accepted(list(convergence = 1L, objective = 1), 1.2))
+  expect_false(accepted(list(convergence = 1L, objective = 1), NA_real_))
+  # The gradient tolerance is configurable but defaults to a small value.
+  expect_false(accepted(list(convergence = 1L, objective = 1), 5e-4,
+    gradient_tol = 1e-4))
+  expect_true(accepted(list(convergence = 1L, objective = 1), 5e-4,
+    gradient_tol = 1e-3))
+  # Any other code, a non-finite objective, or a missing code is rejected.
+  expect_false(accepted(list(convergence = 2L, objective = 1), 1e-12))
+  expect_false(accepted(list(convergence = 0L, objective = Inf), 1e-12))
+  expect_false(accepted(list(convergence = NULL, objective = 1), 1e-12))
+})
+
+test_that("endpoint inner solves use a generous iteration budget", {
+  # Constrained refits must not inherit a speed-tuned iter.max/eval.max (#710.5).
+  tight <- drmTMB:::profile_endpoint_inner_control(
+    list(iter.max = 20L, eval.max = 25L, rel.tol = 1e-9)
+  )
+  expect_gte(tight$iter.max, 1000L)
+  expect_gte(tight$eval.max, 1000L)
+  # Tolerances the caller set are preserved.
+  expect_equal(tight$rel.tol, 1e-9)
+
+  # A caller who already asked for a huge budget keeps it.
+  huge <- drmTMB:::profile_endpoint_inner_control(
+    list(iter.max = 5000L, eval.max = 6000L)
+  )
+  expect_equal(huge$iter.max, 5000L)
+  expect_equal(huge$eval.max, 6000L)
+
+  # A missing / non-list control still yields the generous default.
+  empty <- drmTMB:::profile_endpoint_inner_control(NULL)
+  expect_gte(empty$iter.max, 1000L)
+  expect_gte(empty$eval.max, 1000L)
+})
+
+test_that("correlation guard is single-sourced and matches the link default", {
+  # The forward guard used by profile transforms must match the inverse link
+  # default so correlation endpoints round-trip through the point estimate (#713.6).
+  expect_equal(drmTMB:::DRM_CORR_GUARD, 0.999999)
+  expect_equal(
+    formals(drmTMB:::rho_response)$guard,
+    drmTMB:::DRM_CORR_GUARD
+  )
+})
+
+test_that("endpoint engine degrades mixed supported/unsupported targets by row", {
+  # A mixed batch (supported rho12 + a derived unstructured-correlation target)
+  # must return a partial table with a failed row, not abort the whole confint()
+  # call (#706).
+  set.seed(20260706)
+  n <- 120
+  x <- stats::rnorm(n)
+  w <- stats::rnorm(n)
+  eta_rho12 <- 0.2 + 0.3 * w
+  rho12 <- 0.999999 * tanh(eta_rho12)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+  dat <- data.frame(
+    y1 = 0.2 + 0.4 * x + 0.9 * e1,
+    y2 = -0.1 - 0.3 * x + 1.0 * e2,
+    x = x
+  )
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(),
+    data = dat
+  )
+
+  pair_label <- "cor(mu1:(Intercept),mu2:(Intercept) | p | id)"
+  fit$model$random$covariance_blocks <- list(
+    pairs = data.frame(
+      parameter = pair_label,
+      tmb_parameter = "theta_re_cov",
+      tmb_index = 1L,
+      stringsAsFactors = FALSE
+    )
+  )
+  fit$corpars <- c(
+    fit$corpars,
+    list(re_cov = stats::setNames(0.15, pair_label))
+  )
+  derived_parm <- paste0("cor:re_cov:", pair_label)
+
+  ci <- stats::confint(
+    fit,
+    parm = c("rho12", derived_parm),
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+
+  expect_equal(nrow(ci), 2L)
+  expect_equal(ci$parm, c("rho12", derived_parm))
+
+  supported <- ci[ci$parm == "rho12", ]
+  derived <- ci[ci$parm == derived_parm, ]
+
+  # The supported target succeeds instead of being lost to the batch abort.
+  expect_equal(supported$conf.status, "profile")
+  expect_false(is.na(supported$lower))
+  expect_false(is.na(supported$upper))
+
+  # The unsupported derived target degrades to a per-row failure.
+  expect_equal(derived$conf.status, "profile_failed")
+  expect_equal(derived$profile.engine, "endpoint")
+  expect_true(is.na(derived$lower))
+  expect_true(is.na(derived$upper))
+  expect_match(
+    derived$profile.message,
+    "endpoint engine unsupported",
+    fixed = TRUE
+  )
+})
+
 test_that("confint returns Wald intervals for direct random-effect targets", {
   dat <- new_profile_group_data(n_id = 14, n_each = 5, seed = 20260653)
   fit <- drmTMB(
@@ -2346,15 +2467,24 @@ test_that("endpoint engine keeps unsupported targets on current profile paths", 
   )
 
   expect_equal(fixed_ci$profile.engine, "tmbprofile")
-  expect_error(
-    stats::confint(
-      fit,
-      parm = "fixef:mu:x",
-      level = 0.80,
-      method = "profile",
-      profile_engine = "endpoint"
-    ),
-    "direct scalar scale, SD, and correlation"
+  # A fixed-effect target is unsupported by the endpoint engine; it degrades to a
+  # per-row failure instead of aborting the batch (#706).
+  endpoint_fixed <- stats::confint(
+    fit,
+    parm = "fixef:mu:x",
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  expect_equal(endpoint_fixed$parm, "fixef:mu:x")
+  expect_equal(endpoint_fixed$profile.engine, "endpoint")
+  expect_equal(endpoint_fixed$conf.status, "profile_failed")
+  expect_true(is.na(endpoint_fixed$lower))
+  expect_true(is.na(endpoint_fixed$upper))
+  expect_match(
+    endpoint_fixed$profile.message,
+    "endpoint engine unsupported",
+    fixed = TRUE
   )
   expect_error(
     stats::confint(
@@ -3432,14 +3562,22 @@ test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
     ),
     "not ready for direct profiling"
   )
-  expect_error(
-    stats::confint(
-      fit_q4,
-      parm = q4_parms[[1L]],
-      method = "profile",
-      profile_engine = "endpoint"
-    ),
-    "not ready for direct profiling"
+  q4_endpoint_row <- stats::confint(
+    fit_q4,
+    parm = q4_parms[[1L]],
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  expect_equal(nrow(q4_endpoint_row), 1L)
+  expect_equal(q4_endpoint_row$parm, q4_parms[[1L]])
+  expect_equal(q4_endpoint_row$conf.status, "profile_failed")
+  expect_equal(q4_endpoint_row$profile.engine, "endpoint")
+  expect_true(is.na(q4_endpoint_row$lower))
+  expect_true(is.na(q4_endpoint_row$upper))
+  expect_match(
+    q4_endpoint_row$profile.message,
+    "endpoint engine unsupported",
+    fixed = TRUE
   )
 
   fit_dormant <- fit

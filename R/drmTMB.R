@@ -13013,9 +13013,18 @@ validate_known_v_matrix <- function(value) {
   if (any(!is.finite(value) | is.na(value))) {
     cli::cli_abort("{.arg V} matrix must contain only finite values.")
   }
-  if (
-    !isTRUE(all.equal(value, t(value), tolerance = sqrt(.Machine$double.eps)))
-  ) {
+  # Scale-relative symmetry and PSD tolerances (issue #710.1): an absolute
+  # threshold either spuriously rejects a valid large-scale V or admits a
+  # genuinely indefinite small-scale V (e.g. standardized-effect variances near
+  # 1e-6 with a negative eigenvalue of magnitude just below sqrt(eps)). Comparing
+  # against the matrix magnitude gives a scale-invariant verdict before Omega
+  # reaches the dense MVNORM Cholesky.
+  tol <- sqrt(.Machine$double.eps)
+  value_scale <- max(abs(value))
+  # Scale the symmetry tolerance to the matrix magnitude, but never below the
+  # absolute floor so an all-zero (or tiny) matrix still admits exact symmetry.
+  sym_tol <- max(tol * value_scale, tol)
+  if (max(abs(value - t(value))) > sym_tol) {
     cli::cli_abort("{.arg V} matrix must be symmetric.")
   }
   validate_known_v_diag(diag(value))
@@ -13024,7 +13033,15 @@ validate_known_v_matrix <- function(value) {
     symmetric = TRUE,
     only.values = TRUE
   )$values
-  if (min(ev) < -sqrt(.Machine$double.eps)) {
+  ev_scale <- max(abs(ev))
+  # Reject a negative eigenvalue that is large relative to the spectral scale. A
+  # pure relative bound (tol * max|ev|) catches small-scale indefiniteness
+  # (variances near 1e-6 with a genuine negative eigenvalue) that an absolute
+  # -sqrt(eps) bound admits, while still absorbing float rounding of a true zero
+  # eigenvalue (rounding is O(max|ev| * eps) << tol * max|ev|). An all-zero matrix
+  # has ev_scale == 0, giving neg_tol == 0 and min(ev) == 0, which passes.
+  neg_tol <- tol * ev_scale
+  if (min(ev) < -neg_tol) {
     cli::cli_abort("{.arg V} matrix must be positive semidefinite.")
   }
   invisible(value)
@@ -13288,6 +13305,42 @@ ordinal_mu_model_matrix <- function(terms, data) {
   X
 }
 
+# DerSimonian-Laird moment start for the residual (between-study) variance in a
+# meta-analysis Gaussian fit (issue #710.3). Subtracting median(V) from an
+# unweighted residual variance under- or over-shoots badly when the known
+# sampling variances V_i are skewed. The variance-weighted DL estimator matches
+# the meta model the fit targets and is robust to heterogeneous V. Falls back to
+# the caller-supplied moment start when V carries no positive sampling variance
+# (i.e. this is an ordinary Gaussian fit, not a meta-analysis) or when the DL
+# formula is not well defined.
+meta_dl_tau2_start <- function(resid, V, fallback) {
+  V <- V[is.finite(V) & V > 0]
+  if (length(V) < 2L) {
+    return(fallback)
+  }
+  resid <- resid[is.finite(resid)]
+  k <- length(resid)
+  if (k < 2L || length(V) != k) {
+    return(fallback)
+  }
+  w <- 1 / V
+  sum_w <- sum(w)
+  if (!is.finite(sum_w) || sum_w <= 0) {
+    return(fallback)
+  }
+  mu_hat <- sum(w * resid) / sum_w
+  Q <- sum(w * (resid - mu_hat)^2)
+  denom <- sum_w - sum(w^2) / sum_w
+  if (!is.finite(denom) || denom <= 0) {
+    return(fallback)
+  }
+  tau2 <- (Q - (k - 1)) / denom
+  if (!is.finite(tau2) || tau2 < 0) {
+    return(fallback)
+  }
+  tau2
+}
+
 gaussian_ls_start <- function(
   y,
   X_mu,
@@ -13344,7 +13397,19 @@ gaussian_ls_start <- function(
     y_scale <- 1
   }
   sigma_floor <- max(1e-4, 0.05 * y_scale)
-  sigma0 <- sqrt(max(resid_var - known_v0, sigma_floor^2))
+  # For a pure meta-analysis (positive known V, no location random effects) use a
+  # variance-weighted DerSimonian-Laird moment start for the between-study
+  # variance (issue #710.3); otherwise keep the median(V) moment start.
+  tau2_fallback <- max(resid_var - known_v0, sigma_floor^2)
+  tau2_start <- if (re_mu$n_re == 0L && any(V_known_start > 0)) {
+    max(
+      meta_dl_tau2_start(resid_observed, V_known_start, tau2_fallback),
+      sigma_floor^2
+    )
+  } else {
+    tau2_fallback
+  }
+  sigma0 <- sqrt(tau2_start)
   if (!is.finite(sigma0) || sigma0 <= 0) {
     sigma0 <- stats::sd(y_start)
   }
@@ -13451,6 +13516,8 @@ gaussian_ls_dummy_start <- function(
   y = NULL
 ) {
   phylo_start <- gaussian_phylo_start(y, phylo_mu)
+  # eta_cor_mu_sigma / eta_cor_sigma are supplied by gaussian_ls_start(); do not
+  # re-declare them here or spec$start carries duplicated names (issue #713.1).
   list(
     beta_nu = 0,
     beta_zi = 0,
@@ -13460,8 +13527,6 @@ gaussian_ls_dummy_start <- function(
     beta_sigma1 = 0,
     beta_sigma2 = 0,
     beta_rho12 = 0,
-    eta_cor_mu_sigma = 0,
-    eta_cor_sigma = 0,
     u_phylo = phylo_start$u_phylo,
     log_sd_phylo = phylo_start$log_sd_phylo,
     eta_cor_phylo = 0
@@ -14666,16 +14731,48 @@ biv_gaussian_start <- function(
   V1 <- V_known_diag[seq.int(1L, by = 2L, length.out = length(y1))]
   V2 <- V_known_diag[seq.int(2L, by = 2L, length.out = length(y1))]
   sigma_floor <- 1e-4
-  sigma1 <- sqrt(max(
+  # Between-study variance start per endpoint: use variance-weighted DL when this
+  # is a meta-analysis (positive known V, no location random effects) and fall
+  # back to the median(V) moment start otherwise (issue #710.3).
+  no_location_re <- re_mu$n_re == 0L
+  tau2_1_fallback <- max(
     stats::var(resid1[observed_y1]) -
       stats::median(V1[observed_y1], na.rm = TRUE),
     sigma_floor^2
-  ))
-  sigma2 <- sqrt(max(
+  )
+  tau2_2_fallback <- max(
     stats::var(resid2[observed_y2]) -
       stats::median(V2[observed_y2], na.rm = TRUE),
     sigma_floor^2
-  ))
+  )
+  sigma1 <- sqrt(
+    if (no_location_re && any(V1[observed_y1] > 0)) {
+      max(
+        meta_dl_tau2_start(
+          resid1[observed_y1],
+          V1[observed_y1],
+          tau2_1_fallback
+        ),
+        sigma_floor^2
+      )
+    } else {
+      tau2_1_fallback
+    }
+  )
+  sigma2 <- sqrt(
+    if (no_location_re && any(V2[observed_y2] > 0)) {
+      max(
+        meta_dl_tau2_start(
+          resid2[observed_y2],
+          V2[observed_y2],
+          tau2_2_fallback
+        ),
+        sigma_floor^2
+      )
+    } else {
+      tau2_2_fallback
+    }
+  )
   if (!is.finite(sigma1) || sigma1 <= 0) {
     sigma1 <- stats::sd(y1[observed_y1])
   }
@@ -16899,13 +16996,19 @@ split_tmb_corpars <- function(par, spec) {
 
   out <- list()
   if (spec$random$mu$n_cors > 0L) {
-    rho_mu <- if (has_modelled_mu_correlation(spec)) {
-      mean(modelled_corpair_values(par, spec))
+    if (has_modelled_mu_correlation(spec)) {
+      # Report one correlation per group level, not a scalar mean. Averaging
+      # back-transformed correlations across groups is incoherent and hides
+      # sign/heterogeneity (see issue #698): consumers such as the boundary
+      # diagnostic in check.R read this vector and would otherwise see a single
+      # collapsed value that masks correlations pegged near +/-1.
+      rho_mu <- modelled_corpair_values(par, spec)
+      names(rho_mu) <- modelled_mu_correlation_labels(spec, length(rho_mu))
     } else {
-      0.999999 *
+      rho_mu <- 0.999999 *
         tanh(unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)]))
+      names(rho_mu) <- spec$random$mu$cor_labels
     }
-    names(rho_mu) <- spec$random$mu$cor_labels
     out$mu <- rho_mu
   }
 
@@ -16952,12 +17055,26 @@ split_tmb_corpars <- function(par, spec) {
           ]
         }
       }
+      names(rho_phylo) <- phylo_pairs$parameter
     } else if (has_modelled_phylo_correlation(spec)) {
-      rho_phylo <- mean(modelled_corpair_values(par, spec))
+      # Report one correlation per phylogenetic level, not a scalar mean.
+      # Averaging back-transformed correlations across levels is incoherent and
+      # hides sign/heterogeneity (issue #698, phylogenetic sibling of the group
+      # mu fix): the boundary diagnostic in check.R reads max|corpars$phylo| and
+      # would otherwise see a single collapsed value that masks per-level
+      # correlations pegged near +/-1. corpairs() still summarises this as one
+      # row via the registry path (label/profile loops iterate the
+      # representative index for a modelled phylogenetic correlation).
+      rho_phylo <- modelled_corpair_values(par, spec)
+      names(rho_phylo) <- modelled_phylo_correlation_labels(
+        spec,
+        phylo_pairs,
+        length(rho_phylo)
+      )
     } else {
       rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
+      names(rho_phylo) <- phylo_pairs$parameter
     }
-    names(rho_phylo) <- phylo_pairs$parameter
     out[[cor_key]] <- rho_phylo
   } else if (
     identical(spec$model_type, "gaussian") &&
@@ -16981,6 +17098,40 @@ modelled_corpair_values <- function(par, spec) {
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
   0.999999 * tanh(eta)
+}
+
+# Per-level labels for a modelled group mu correlation. Each fitted correlation
+# corresponds to one random-effect group level (a row of the corpair design), so
+# names combine the block-level correlation label with the group level. The
+# n_values fallback keeps names aligned even if the design carries no row names.
+modelled_mu_correlation_labels <- function(spec, n_values) {
+  base <- spec$random$mu$cor_labels
+  if (length(base) != 1L) {
+    base <- if (length(base) == 0L) "cor:mu" else base[[1L]]
+  }
+  model <- spec$random$mu$cor_model
+  levels <- rownames(model$X)
+  if (is.null(levels) || length(levels) != n_values) {
+    levels <- as.character(seq_len(n_values))
+  }
+  paste0(base, "[", levels, "]")
+}
+
+# Per-level labels for a modelled phylogenetic correlation. Each fitted
+# correlation corresponds to one phylogenetic level (a row of the corpair
+# design), so names combine the pair parameter label with the level. The
+# n_values fallback keeps names aligned even if the design carries no row names.
+modelled_phylo_correlation_labels <- function(spec, phylo_pairs, n_values) {
+  base <- phylo_pairs$parameter
+  if (length(base) != 1L) {
+    base <- if (length(base) == 0L) "cor:phylo" else base[[1L]]
+  }
+  model <- spec$random$mu$cor_model
+  levels <- rownames(model$X)
+  if (is.null(levels) || length(levels) != n_values) {
+    levels <- as.character(seq_len(n_values))
+  }
+  paste0(base, "[", levels, "]")
 }
 
 has_modelled_corpair_model <- function(spec) {

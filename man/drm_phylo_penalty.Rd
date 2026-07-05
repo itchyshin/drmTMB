@@ -13,7 +13,11 @@ be positive and \code{sd_alpha} must lie in \verb{(0, 1)}.}
 
 \item{cor_sd}{Optional standard deviation of a mean-zero normal penalty on
 the phylogenetic cross-parameter correlation parameter. \code{NULL} (the
-default) applies no correlation penalty.}
+default) applies no correlation penalty. A non-\code{NULL} \code{cor_sd} requires a
+coupled phylogenetic model with at least two phylogenetic SDs (for example
+a coupled location-scale or bivariate fit); a location-only phylogenetic
+model has a single phylogenetic SD and no correlation parameter to
+penalize, so \code{\link[=drmTMB]{drmTMB()}} errors rather than silently ignoring \code{cor_sd}.}
 }
 \value{
 An object of class \code{drm_phylo_penalty}.

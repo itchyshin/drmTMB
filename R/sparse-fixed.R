@@ -30,7 +30,11 @@ drm_sparse_fixed_parity <- function(terms, data, beta = NULL) {
   sparse <- drm_fixed_effect_matrix(terms, data, sparse = TRUE)
 
   same_shape <- identical(dim(dense), dim(sparse))
-  same_names <- identical(dimnames(dense), dimnames(sparse))
+  # Only the column names are load-bearing: they map beta coefficients. Row names
+  # and other dimname attributes routinely differ between stats::model.matrix and
+  # Matrix::sparse.model.matrix even when the two designs are numerically
+  # identical, so comparing full dimnames spuriously reports a parity failure.
+  same_names <- identical(colnames(dense), colnames(sparse))
   max_abs_matrix_diff <- max(abs(dense - as.matrix(sparse)), 0)
 
   if (is.null(beta)) {

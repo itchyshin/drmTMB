@@ -64,8 +64,8 @@ phylo_prior_tmb_data <- function(precision) {
       use_gaussian_aggregation = 0L,
       n_agg = 0L,
       agg_n = numeric(1),
-      agg_sum_y = numeric(1),
-      agg_sum_y2 = numeric(1),
+      agg_mean_y = numeric(1),
+      agg_css = numeric(1),
       X_mu_agg = dummy_matrix,
       X_sigma_agg = dummy_matrix,
       offset_mu_agg = numeric(1),
@@ -408,6 +408,67 @@ test_that("drm_phylo_augmented_precision matches the dense Brownian comparator",
     drmTMB:::drm_phylo_tip_covariance(tree, correlation = FALSE),
     tolerance = 1e-12
   )
+})
+
+tiny_non_ultrametric_tree <- function() {
+  tree <- tiny_ultrametric_tree()
+  # Shorten the sp_a branch so root-to-tip depths differ (1.5, 2, 2).
+  tree$edge.length <- c(1, 0.5, 1, 2)
+  tree
+}
+
+test_that("drm_phylo_tip_covariance validates the correlation flag", {
+  tree <- tiny_ultrametric_tree()
+  expect_error(
+    drmTMB:::drm_phylo_tip_covariance(tree, correlation = c(TRUE, FALSE)),
+    "must be"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_tip_covariance(tree, correlation = NA),
+    "must be"
+  )
+})
+
+test_that("non-ultrametric Brownian trees succeed on the raw scale", {
+  tree <- tiny_non_ultrametric_tree()
+
+  # correlation = TRUE still requires ultrametricity (single height scaling).
+  expect_error(
+    drmTMB:::drm_phylo_tip_covariance(tree, correlation = TRUE),
+    "ultrametric"
+  )
+  expect_error(
+    drmTMB:::drm_phylo_augmented_precision(tree, correlation = TRUE),
+    "ultrametric"
+  )
+
+  # correlation = FALSE is a valid Brownian prior for a non-ultrametric tree.
+  covariance <- drmTMB:::drm_phylo_tip_covariance(tree, correlation = FALSE)
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree, correlation = FALSE)
+
+  # The raw tip covariance equals shared root-to-tip path length: sp_a depth is
+  # 1.5, and sp_a/sp_b share ancestor node 4 at depth 1.
+  expected <- matrix(
+    c(
+      1.5, 1, 0,
+      1, 2, 0,
+      0, 0, 2
+    ),
+    nrow = 3,
+    byrow = TRUE,
+    dimnames = list(
+      c("sp_a", "sp_b", "sp_c"),
+      c("sp_a", "sp_b", "sp_c")
+    )
+  )
+  expect_equal(covariance, expected, tolerance = 1e-12)
+
+  inverted <- solve(as.matrix(precision$precision))
+  tip_covariance <- inverted[
+    precision$tip_node_index,
+    precision$tip_node_index
+  ]
+  expect_equal(tip_covariance, covariance, tolerance = 1e-10)
 })
 
 test_that("drm_phylo_augmented_precision maps observed species to augmented nodes", {
@@ -1274,4 +1335,49 @@ test_that("drm_phylo_augmented_precision requires positive branch lengths", {
     ),
     "correlation"
   )
+})
+
+test_that("q>2 phylo separable covariance stays finite as covariance -> singular (#707)", {
+  # The q>2 phylo density used to invert the separable covariance and take
+  # log(determinant()) directly. As a pairwise correlation -> +/-1 the dense
+  # covariance becomes near-singular: the inverse amplifies and the AD gradient
+  # goes NaN. The Cholesky path must keep BOTH the value and the gradient finite,
+  # up to and including an exactly rank-deficient covariance (two collinear
+  # response dimensions). Exercised via the model_type 94 probe, which takes a
+  # precomputed covariance directly (isolating the covariance solve).
+  precision <- drmTMB:::drm_phylo_augmented_precision(tiny_ultrametric_tree())
+  n_node <- nrow(precision$precision)
+  set.seed(707)
+  effect <- matrix(
+    stats::rnorm(n_node * 3L, sd = 0.2),
+    nrow = n_node,
+    dimnames = list(rownames(precision$precision), paste0("s", 1:3))
+  )
+  sd <- c(0.6, 0.4, 0.3)
+
+  run94 <- function(cov) {
+    data <- phylo_correlated_prior_tmb_data(precision, cov)
+    params <- phylo_prior_tmb_parameters(rep(0, n_node), log_sd = 0)
+    params$u_re_cov_probe <- as.numeric(effect)
+    obj <- TMB::MakeADFun(
+      data = data, parameters = params, DLL = "drmTMB", silent = TRUE
+    )
+    list(fn = obj$fn(obj$par), gr = obj$gr(obj$par))
+  }
+
+  for (rho in c(0.9, 0.999, 1 - 1e-8)) {
+    R <- matrix(c(1, rho, 0.1, rho, 1, 0.1, 0.1, 0.1, 1), 3, 3)
+    res <- run94(diag(sd) %*% R %*% diag(sd))
+    expect_true(is.finite(res$fn))
+    expect_true(all(is.finite(res$gr)))
+  }
+
+  # Exactly rank-deficient covariance (identical first two response dimensions):
+  # value and gradient must remain finite (the tiny ridge keeps the Cholesky
+  # defined). The pre-fix inverse()/determinant() path returned a non-finite
+  # gradient here.
+  R_singular <- matrix(c(1, 1, 0.1, 1, 1, 0.1, 0.1, 0.1, 1), 3, 3)
+  res <- run94(diag(sd) %*% R_singular %*% diag(sd))
+  expect_true(is.finite(res$fn))
+  expect_true(all(is.finite(res$gr)))
 })

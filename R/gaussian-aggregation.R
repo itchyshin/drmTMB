@@ -7,7 +7,8 @@ empty_gaussian_aggregation <- function() {
     cell_first_row = integer(),
     n = numeric(),
     sum_y = numeric(),
-    sum_y2 = numeric(),
+    mean_y = numeric(),
+    css = numeric(),
     X_mu = matrix(0, nrow = 0L, ncol = 0L),
     X_sigma = matrix(0, nrow = 0L, ncol = 0L),
     offset_mu = numeric(),
@@ -59,15 +60,25 @@ drm_gaussian_aggregation <- function(
     as.numeric(rowsum(value, row_to_cell, reorder = FALSE)[cell_rows, 1L])
   }
 
+  n <- agg_sum(rep(1, length(y)))
+  sum_y <- agg_sum(y)
+  mean_y <- sum_y / n
+  # Corrected (centered) sum of squares computed directly from the raw y
+  # values. Forming this as sum_y2 - sum_y^2 / n would reintroduce the
+  # catastrophic cancellation this path exists to avoid, so accumulate the
+  # centered residuals per cell instead.
+  css <- agg_sum((y - mean_y[row_to_cell])^2)
+
   list(
     enabled = TRUE,
     n_original = length(y),
     n_cells = length(cell_key),
     row_to_cell = as.integer(row_to_cell),
     cell_first_row = as.integer(cell_first_row),
-    n = agg_sum(rep(1, length(y))),
-    sum_y = agg_sum(y),
-    sum_y2 = agg_sum(y * y),
+    n = n,
+    sum_y = sum_y,
+    mean_y = mean_y,
+    css = css,
     X_mu = X_mu[cell_first_row, , drop = FALSE],
     X_sigma = X_sigma[cell_first_row, , drop = FALSE],
     offset_mu = offset_mu[cell_first_row],
@@ -192,8 +203,8 @@ drm_gaussian_aggregation_tmb_data <- function(spec) {
       use_gaussian_aggregation = 0L,
       n_agg = 0L,
       agg_n = numeric(1),
-      agg_sum_y = numeric(1),
-      agg_sum_y2 = numeric(1),
+      agg_mean_y = numeric(1),
+      agg_css = numeric(1),
       X_mu_agg = dummy_matrix,
       X_sigma_agg = dummy_matrix,
       offset_mu_agg = numeric(1),
@@ -204,8 +215,8 @@ drm_gaussian_aggregation_tmb_data <- function(spec) {
     use_gaussian_aggregation = 1L,
     n_agg = as.integer(aggregation$n_cells),
     agg_n = aggregation$n,
-    agg_sum_y = aggregation$sum_y,
-    agg_sum_y2 = aggregation$sum_y2,
+    agg_mean_y = aggregation$mean_y,
+    agg_css = aggregation$css,
     X_mu_agg = aggregation$X_mu,
     X_sigma_agg = aggregation$X_sigma,
     offset_mu_agg = aggregation$offset_mu,
@@ -251,16 +262,17 @@ drm_gaussian_aggregated_loglik <- function(
   log_sigma <- as.vector(aggregation$X_sigma %*% beta_sigma) +
     aggregation$offset_sigma
   sigma2 <- exp(2 * log_sigma)
+  # Centered quadratic: css + n (mean_y - mu)^2. Both terms are small when the
+  # cell is well fit, avoiding the cancellation of the expanded second-moment
+  # form (see #701).
+  quadratic <- aggregation$css +
+    aggregation$n * (aggregation$mean_y - mu)^2
   sum(
     -0.5 *
       aggregation$n *
       log(2 * pi) -
       aggregation$n * log_sigma -
-      0.5 *
-        (aggregation$sum_y2 -
-          2 * mu * aggregation$sum_y +
-          aggregation$n * mu * mu) /
-        sigma2
+      0.5 * quadratic / sigma2
   )
 }
 
@@ -276,6 +288,13 @@ drm_gaussian_aggregation_parity <- function(
   X_sigma <- as.matrix(X_sigma)
   if (is.null(beta_mu)) {
     beta_mu <- seq_len(ncol(X_mu)) / max(ncol(X_mu), 1L)
+    # Exercise the large-mean regime (#701): when the first mu column is an
+    # intercept, give it a large default coefficient. This pushes the fitted
+    # cell means far from zero, where the old expanded second-moment quadratic
+    # loses precision and the centered (css + n (mean_y - mu)^2) form must not.
+    if (ncol(X_mu) >= 1L && isTRUE(all(X_mu[, 1L] == 1))) {
+      beta_mu[1L] <- 1e6
+    }
   }
   if (is.null(beta_sigma)) {
     beta_sigma <- -seq_len(ncol(X_sigma)) / (2 * max(ncol(X_sigma), 1L))

@@ -33,6 +33,87 @@ test_that("Gaussian aggregation helper preserves fixed-coefficient log-likelihoo
   expect_equal(parity$difference, 0, tolerance = 1e-12)
 })
 
+test_that("Gaussian aggregation stays exact when the response mean is far from zero", {
+  # Regression test for #701: the expanded second-moment form
+  # sum_y2 - 2 mu sum_y + n mu^2 loses precision when y is centered
+  # far from zero. Center the sufficient statistics instead.
+  set.seed(701)
+  n_per_cell <- 2000L
+  offsets <- c(0, 5e5)
+  dat <- do.call(rbind, lapply(seq_along(offsets), function(k) {
+    data.frame(
+      cell = factor(k),
+      y = 1e6 + offsets[k] + stats::rnorm(n_per_cell, sd = 1)
+    )
+  }))
+  X_mu <- stats::model.matrix(~cell, dat)
+  X_sigma <- stats::model.matrix(~1, dat)
+  beta_mu <- c(1e6, 5e5)
+  beta_sigma <- 0
+
+  parity <- drmTMB:::drm_gaussian_aggregation_parity(
+    y = dat$y,
+    X_mu = X_mu,
+    X_sigma = X_sigma,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma
+  )
+
+  # The full-row dnorm path is accurate; the aggregated path must match it.
+  expect_equal(
+    parity$aggregated_loglik,
+    parity$full_loglik,
+    tolerance = 1e-6
+  )
+  expect_equal(parity$difference, 0, tolerance = 1e-4)
+})
+
+test_that("Gaussian aggregation TMB kernel agrees with the full-row fit at a large offset", {
+  # End-to-end TMB check on a mean far from zero but still in a
+  # well-conditioned optimization regime (residual spread ~1 relative to a
+  # mean of ~1e4). The old expanded second-moment quadratic disagreed with the
+  # full-row path here; the centered form must match it.
+  set.seed(7011)
+  n_per_cell <- 1500L
+  dat <- do.call(rbind, lapply(1:3, function(k) {
+    data.frame(
+      cell = factor(k),
+      y = 1e4 + (k - 1) * 6e3 + stats::rnorm(n_per_cell, sd = 1)
+    )
+  }))
+  form <- bf(y ~ cell, sigma ~ 1)
+
+  dense <- drmTMB(
+    form,
+    data = dat,
+    control = drm_control(optimizer = list(eval.max = 500, iter.max = 500))
+  )
+  aggregated <- drmTMB(
+    form,
+    data = dat,
+    control = drm_control(
+      aggregate_gaussian = TRUE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  expect_equal(dense$opt$convergence, 0L)
+  expect_equal(aggregated$opt$convergence, 0L)
+  expect_equal(coef(aggregated, "mu"), coef(dense, "mu"), tolerance = 1e-5)
+  # log_sigma sits near zero here, so compare on an absolute scale rather than
+  # the relative default (a tiny absolute gap is a large relative one).
+  expect_equal(
+    as.numeric(coef(aggregated, "sigma") - coef(dense, "sigma")),
+    0,
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(logLik(aggregated)),
+    as.numeric(logLik(dense)),
+    tolerance = 1e-6
+  )
+})
+
 test_that("Gaussian aggregation fitting matches full-row Gaussian fits", {
   dat <- gaussian_aggregation_data()
   form <- bf(y ~ habitat + season, sigma ~ effort)

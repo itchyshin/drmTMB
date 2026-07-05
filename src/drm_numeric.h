@@ -1,24 +1,15 @@
 #ifndef DRMTMB_NUMERIC_H
 #define DRMTMB_NUMERIC_H
 
-template<class Type>
-Type drm_log1p_pos(Type x)
-{
-  Type series = x - x * x / Type(2.0) + x * x * x / Type(3.0);
-  Type direct = log(Type(1.0) + x);
-  return CppAD::CondExpLt(x, Type(1e-6), series, direct);
-}
-
+// log(1 + exp(eta)), the softplus. logspace_add(0, eta) is the numerically
+// stable form across the entire range (TMB implements it via log1p), so the
+// former small-x Taylor series / direct-log / eta>35 branching was redundant --
+// and less accurate than log1p, differing from this form only at the last bit
+// (~1e-16) while carrying larger series-truncation error. See design doc 176.
 template<class Type>
 Type drm_log1p_exp_stable(Type eta)
 {
-  Type eta_for_direct = CppAD::CondExpGt(eta, Type(35.0), Type(0.0), eta);
-  Type x = exp(eta_for_direct);
-  Type series = x - x * x / Type(2.0) + x * x * x / Type(3.0);
-  Type direct = log(Type(1.0) + x);
-  Type small = CppAD::CondExpLt(x, Type(1e-6), series, direct);
-  Type stable = logspace_add(Type(0.0), eta);
-  return CppAD::CondExpGt(eta, Type(35.0), stable, small);
+  return logspace_add(Type(0.0), eta);
 }
 
 template<class Type>

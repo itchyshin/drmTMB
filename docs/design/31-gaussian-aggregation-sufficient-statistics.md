@@ -64,19 +64,42 @@ the log-likelihood contribution is:
 sum_i log p(y_i | mu_g, sigma_g)
   = -0.5 n_g log(2 pi)
     - n_g log(sigma_g)
-    - 0.5 (sum_y2_g - 2 mu_g sum_y_g + n_g mu_g^2) / sigma_g^2
+    - 0.5 (css_g + n_g (mean_y_g - mu_g)^2) / sigma_g^2
 ```
 
 where:
 
 ```text
 n_g      = number of rows in cell g
-sum_y_g  = sum_i y_i
-sum_y2_g = sum_i y_i^2
+mean_y_g = (1 / n_g) sum_i y_i
+css_g    = sum_i (y_i - mean_y_g)^2   (corrected sum of squares)
 ```
 
 The optimizer sees the same likelihood it would see from the full rows. Only
 the internal data representation changes.
+
+### Centered sufficient statistics (numerical stability)
+
+The quadratic must be accumulated in centered form. The algebraically
+equivalent expanded second-moment form,
+
+```text
+sum_y2_g - 2 mu_g sum_y_g + n_g mu_g^2,   sum_y2_g = sum_i y_i^2
+```
+
+subtracts large, nearly equal quantities when the response is centered far
+from zero (for example `y ~ Normal(1e6, 1)`). In double precision `sum_y2_g`
+and `2 mu_g sum_y_g` are both O(1e12 n_g) and cancel to a value of true order
+`n_g`, so the cell quadratic keeps only four or five significant digits (and
+can even go slightly negative). The aggregated log-likelihood then silently
+disagrees with the full-row `dnorm` path and biases `beta_mu` / `beta_sigma`
+(issue #701).
+
+The centered form `css_g + n_g (mean_y_g - mu_g)^2` adds only small
+quantities. `css_g` is computed directly from the raw residuals
+`(y_i - mean_y_g)` at aggregation time. It is **not** formed as
+`sum_y2_g - sum_y_g^2 / n_g`, because that identity reintroduces the same
+cancellation.
 
 If ordinary likelihood weights are supported in a later aggregation slice, the
 same algebra uses weighted sufficient statistics:
@@ -115,8 +138,8 @@ explicit:
 use_gaussian_aggregation
 n_agg
 agg_n
-agg_sum_y
-agg_sum_y2
+agg_mean_y
+agg_css
 X_mu_agg
 X_sigma_agg
 offset_mu_agg
