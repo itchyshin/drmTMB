@@ -272,10 +272,60 @@ qseries_v1_first_four_fixture <- function() {
       family = "cumulative_logit()",
       provider = "phylo",
       expected_status = "expected_rejection",
+      expected_error_pattern = "Structured non-Gaussian paths",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(y ~ x + phylo(1 | id, tree = tree)),
         family = drmTMB::cumulative_logit(),
         data = dat_ord
+      )),
+      env = environment()
+    ),
+    list(
+      gate_id = "nongaussian_struct_reject_truncnbinom2_hu_relmat",
+      cell_id = "qseries_truncnbinom2_hu_relmat_rejected",
+      formula_cell = "relmat(1 | id, Q = Q) in hu",
+      family = "truncated_nbinom2()",
+      provider = "relmat",
+      expected_status = "expected_rejection",
+      expected_error_pattern = "Structured non-Gaussian paths",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q)),
+        family = drmTMB::truncated_nbinom2(),
+        data = dat_count
+      )),
+      env = environment()
+    ),
+    list(
+      gate_id = "count_struct_mu_reject_labelled_q2_poisson_spatial",
+      cell_id = "qseries_count_mu_labelled_q2_rejected",
+      formula_cell = "spatial(1 | p | id, coords = coords) in mu",
+      family = "poisson()",
+      provider = "spatial",
+      expected_status = "expected_rejection",
+      expected_error_pattern = "unlabelled q=1",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(y ~ x + spatial(1 | p | id, coords = coords)),
+        family = stats::poisson(link = "log"),
+        data = dat_count
+      )),
+      env = environment()
+    ),
+    list(
+      gate_id = "count_struct_mu_reject_simultaneous_types_nbinom2",
+      cell_id = "qseries_count_mu_simultaneous_structured_types_rejected",
+      formula_cell = "spatial(1 | id, coords = coords) + relmat(1 | id, Q = Q) in mu",
+      family = "nbinom2()",
+      provider = "spatial",
+      expected_status = "expected_rejection",
+      expected_error_pattern = "Only one structured",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(
+          y ~ x +
+            spatial(1 | id, coords = coords) +
+            relmat(1 | id, Q = Q)
+        ),
+        family = drmTMB::nbinom2(),
+        data = dat_count
       )),
       env = environment()
     ),
@@ -440,8 +490,11 @@ qseries_v1_run_rejection_case <- function(case) {
     },
     error = identity
   )
-  expected <- "Structured non-Gaussian paths"
   expected_status <- case$expected_status
+  expected_error_pattern <- case$expected_error_pattern
+  if (is.null(expected_error_pattern)) {
+    expected_error_pattern <- "Structured non-Gaussian paths"
+  }
   expected_random_effect <- case$expected_random_effect
   if (is.null(expected_random_effect)) {
     expected_random_effect <- ""
@@ -472,7 +525,7 @@ qseries_v1_run_rejection_case <- function(case) {
     if (fit_ok) "expected_fit" else "unexpected_fit_shape"
   } else if (is.null(err)) {
     "unexpected_success"
-  } else if (grepl(expected, conditionMessage(err), fixed = TRUE)) {
+  } else if (grepl(expected_error_pattern, conditionMessage(err), fixed = TRUE)) {
     if (identical(expected_status, "expected_rejection")) {
       "expected_rejection"
     } else {
@@ -493,7 +546,7 @@ qseries_v1_run_rejection_case <- function(case) {
     family = case$family,
     provider = case$provider,
     expected_error_pattern = if (identical(expected_status, "expected_rejection")) {
-      expected
+      expected_error_pattern
     } else {
       ""
     },
@@ -503,7 +556,8 @@ qseries_v1_run_rejection_case <- function(case) {
       "local debug smoke only; beta/Gamma/Student structured mu rows,",
       "the Student structured nu row, the Poisson structured zi row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
-      "rows are fit-only recovery evidence;",
+      "rows are fit-only recovery evidence; the current first-four candidate",
+      "rejection rows are exact local debug boundary checks;",
       "no denominator, coverage, inference_ready, supported, q4/q8,",
       "REML, AI-REML, bridge, or public-support claim"
     ),

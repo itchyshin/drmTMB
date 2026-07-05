@@ -257,7 +257,7 @@ next-candidate review TSV plus the post-75% next-four review packet in one
 command while still reporting the row-accounting percentages. The generated
 report records how many additional practical surface rows would be needed to
 reach 75%, 80%, 90%, and 100% row-accounting targets; the candidate TSV ranks
-the 22 post-v1.0 rows into the next four rows after 75%, the next six to review
+the 20 post-v1.0 rows into the next four rows after 75%, the next six to review
 for 80%, and the later post-v1.0 queue; and
 `docs/dev-log/release-audits/q-series-v1-75pct-review-packet.tsv` expands the
 next four rows into a design/recovery checklist. The same candidate bundle
@@ -270,10 +270,11 @@ The bundle also writes
 `docs/dev-log/release-audits/q-series-v1-first-four-design-contracts.tsv` and
 `docs/dev-log/release-audits/q-series-v1-first-four-debug-fixture-contracts.tsv`
 for the next four post-75% practical-surface review rows:
-Gamma/relmat, ordinal/phylo, Student/spatial, and beta scale-side animal. These artifacts
-are planning aids only and do not authorize row movement, code changes, local
-fits, host compute, denominator rows, coverage jobs, `inference_ready`,
-`supported`, or public-release claims. Regenerate the report with
+ordinal/phylo `mu`, truncated-NB2 relmat `hu`, labelled spatial count `mu`,
+and simultaneous-provider count `mu`. These artifacts are planning aids only
+and do not authorize row movement, code changes, local fits, host compute,
+denominator rows, coverage jobs, `inference_ready`, `supported`, or
+public-release claims. Regenerate the report with
 `--write-report --write-candidates` after intentional release-boundary changes.
 For a quick planning snapshot, run
 `python3 tools/qseries_v1_release_check.py --fast-status`; that mode reads the
@@ -282,9 +283,11 @@ guard, and Mission Control, and must not be used as evidence for status
 movement or public wording.
 For the current first-four candidate baseline, run
 `R_PROFILE_USER=/dev/null /usr/local/bin/Rscript --no-init-file
-tools/qseries-v1-first-four-rejection-smoke.R`; it reproduces the existing
-`Structured non-Gaussian paths` rejections only and creates no fit denominator,
-coverage evidence, status movement, or public support.
+tools/qseries-v1-first-four-rejection-smoke.R`; it now emits ten local
+fit-only rows and four exact current-candidate rejection rows. The four
+rejections check the structured non-Gaussian, unlabelled q=1, and
+single-provider count gates without creating fit denominators, coverage
+evidence, status movement, or public support.
 
 `structured-re-q2-retained-denominator-design.tsv` is now historical Tranche 2
 q2 design evidence, not a current run permission. The Rorqual SR150 pregrid was

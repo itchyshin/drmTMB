@@ -397,6 +397,9 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_beta_mu_animal_rejected",
       "qseries_gamma_mu_relmat_rejected",
       "qseries_ordinal_mu_phylo_rejected",
+      "qseries_truncnbinom2_hu_relmat_rejected",
+      "qseries_count_mu_labelled_q2_rejected",
+      "qseries_count_mu_simultaneous_structured_types_rejected",
       "qseries_student_mu_spatial_rejected",
       "qseries_student_nu_phylo_rejected",
       "qseries_poisson_zi_spatial_rejected",
@@ -413,6 +416,9 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_rejection",
+      "expected_rejection",
+      "expected_rejection",
+      "expected_rejection",
       "expected_fit",
       "expected_fit",
       "expected_fit",
@@ -425,11 +431,28 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
   )
   expect_equal(
     result$expected_error_pattern,
-    c("", "", "Structured non-Gaussian paths", "", "", "", "", "", "", "", "")
+    c(
+      "",
+      "",
+      "Structured non-Gaussian paths",
+      "Structured non-Gaussian paths",
+      "unlabelled q=1",
+      "Only one structured",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    )
   )
-  expect_true(all(grepl(
-    "Structured non-Gaussian paths",
-    result$observed_error[result$status == "expected_rejection"],
+  rejection_rows <- result[result$status == "expected_rejection", , drop = FALSE]
+  expect_true(all(mapply(
+    grepl,
+    pattern = rejection_rows$expected_error_pattern,
+    x = rejection_rows$observed_error,
     fixed = TRUE
   )))
   expect_true(all(grepl(
