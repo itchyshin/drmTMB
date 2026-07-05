@@ -5500,6 +5500,8 @@ drm_build_nbinom2_spec <- function(
     mu_structured_term,
     mu_re$terms,
     has_zi = !is.null(zi_entry),
+    allow_zero_inflated_structured_mu = TRUE,
+    zero_inflated_structured_mu_types = "spatial",
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -5676,7 +5678,7 @@ drm_build_nbinom2_spec <- function(
     keep = keep,
     dpars = if (has_zi) c("mu", "sigma", "zi") else c("mu", "sigma"),
     start = if (has_zi) {
-      zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu)
+      zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu)
     } else {
       nbinom2_start(
         y,
@@ -5689,7 +5691,7 @@ drm_build_nbinom2_spec <- function(
       )
     },
     map = if (has_zi) {
-      zi_nbinom2_map()
+      zi_nbinom2_map(phylo_mu)
     } else {
       nbinom2_map(re_mu, phylo_mu, re_sigma)
     },
@@ -7030,6 +7032,17 @@ validate_count_structured_mu_term <- function(
       "{family_label} structured {.code mu} effects are implemented only for ordinary {family_label} models.",
       "x" = "{inflated_label} structured random effects are planned but not implemented.",
       "i" = "Fit {.code count ~ x + {example}} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured recovery tests exist."
+    ))
+  }
+  if (
+    isTRUE(has_zi) &&
+      isTRUE(zero_inflated_structured_mu_allowed) &&
+      !structured_term_is_intercept_only(term)
+  ) {
+    cli::cli_abort(c(
+      "{inflated_label} structured {.code mu} effects currently support only the first {.fn {marker}} intercept gate.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Keep structured zero-inflated slopes, labelled q=2/q=4 covariance, intervals, coverage, REML, and AI-REML deferred until row-specific recovery evidence exists."
     ))
   }
   if (length(ordinary_terms) > 0L && !isTRUE(structured_plus_ordinary_allowed)) {
@@ -14078,9 +14091,10 @@ zi_nbinom2_start <- function(
   X_mu,
   X_sigma,
   X_zi,
-  offset_mu = rep(0, length(y))
+  offset_mu = rep(0, length(y)),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
-  nb <- nbinom2_start(y, X_mu, X_sigma, offset_mu)
+  nb <- nbinom2_start(y, X_mu, X_sigma, offset_mu, phylo_mu = phylo_mu)
   beta_mu <- nb$beta_mu
   beta_sigma <- nb$beta_sigma
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
@@ -14099,8 +14113,8 @@ zi_nbinom2_start <- function(
   nb
 }
 
-zi_nbinom2_map <- function() {
-  out <- nbinom2_map()
+zi_nbinom2_map <- function(phylo_mu = empty_phylo_mu_structure()) {
+  out <- nbinom2_map(phylo_mu = phylo_mu)
   out$beta_zi <- NULL
   out
 }
@@ -16163,6 +16177,7 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 9L,
       y = spec$y,
@@ -16211,11 +16226,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "biv_gaussian")) {
@@ -16604,6 +16631,7 @@ split_tmb_sdpars <- function(par, spec) {
         "poisson",
         "zi_poisson",
         "nbinom2",
+        "zi_nbinom2",
         "truncated_nbinom2"
       )
   ) {
@@ -16889,6 +16917,7 @@ split_tmb_random_effects <- function(par, spec) {
         "poisson",
         "zi_poisson",
         "nbinom2",
+        "zi_nbinom2",
         "truncated_nbinom2"
       )
   ) {

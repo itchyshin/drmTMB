@@ -474,6 +474,27 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
+      gate_id = "count_struct_mu_fit_zi_nbinom2_spatial",
+      cell_id = "qseries_count_mu_zeroinflated_nbinom2_structured_rejected",
+      formula_cell = "spatial(1 | id, coords = coords) in mu with sigma ~ 1, zi ~ 1",
+      family = "nbinom2()",
+      provider = "spatial",
+      expected_status = "expected_fit",
+      expr = quote(drmTMB::drmTMB(
+        drmTMB::bf(
+          y ~ x + spatial(1 | id, coords = coords_poisson_zi),
+          sigma ~ 1,
+          zi ~ 1
+        ),
+        family = drmTMB::nbinom2(),
+        data = dat_poisson_zi_spatial,
+        control = drmTMB::drm_control(se = FALSE)
+      )),
+      expected_random_effect = "spatial_mu",
+      expected_sd_pattern = "^spatial\\(",
+      env = environment()
+    ),
+    list(
       gate_id = "count_struct_mu_fit_struct_plus_ordinary_poisson_spatial",
       cell_id = "qseries_count_mu_structured_plus_ordinary_rejected",
       formula_cell = "spatial(1 | site, coords = coords) + (1 | id) in mu",
@@ -686,9 +707,9 @@ qseries_v1_run_rejection_case <- function(case) {
     claim_boundary = paste(
       "local debug smoke only; beta/Gamma/Student structured mu rows,",
       "the Student structured nu row, the Poisson structured zi row,",
-      "the Poisson structured mu plus fixed zi row, the Poisson",
-      "structured-plus-ordinary mu row, the Poisson spatial slope-only",
-      "structured mu row,",
+      "the Poisson and NB2 structured mu plus fixed zi rows, the",
+      "Poisson structured-plus-ordinary mu row, the Poisson spatial",
+      "slope-only structured mu row,",
       "the beta structured sigma row, and NB2 structured sigma one-slope",
       "rows are fit-only recovery evidence; the current first-four candidate",
       "rejection rows are exact local debug boundary checks;",
