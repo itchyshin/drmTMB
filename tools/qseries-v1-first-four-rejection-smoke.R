@@ -426,7 +426,7 @@ qseries_v1_first_four_fixture <- function() {
       # identifiable recovery lives in test-count-multiprovider-structured-mu.R
       # on a crossed site x id design.
       gate_id = "count_struct_mu_fit_simultaneous_types_nbinom2",
-      cell_id = "qseries_count_mu_simultaneous_structured_types_rejected",
+      cell_id = "qseries_count_mu_simultaneous_structured_types_recovery",
       formula_cell = "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
       family = "nbinom2()",
       provider = "spatial",
