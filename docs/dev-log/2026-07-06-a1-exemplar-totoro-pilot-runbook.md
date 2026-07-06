@@ -1,7 +1,9 @@
 # P1.1 — Totoro pilot runbook: A1 exemplar (`qseries_spatial_q1_sigma_one_slope`)
 
-Meta: 2026-07-06 · owner Curie (driver) + Fisher (design) · **for a human/Codex to run** —
-Claude cannot ssh/scp to Totoro. Paste the two summary TSVs back into the session.
+Meta: 2026-07-06 · owner Curie (driver) + Fisher (design) · **executed by Claude directly over
+ssh** — Totoro is reachable from the Mac (12h ControlPersist socket); no scheduler, run directly
+(≤100 cores, `OPENBLAS_NUM_THREADS=1`). Results + interpretation recorded in the "Results"
+section below.
 
 ## Purpose (and claim boundary)
 
@@ -66,19 +68,25 @@ wait
 (Two shards run in parallel — 2 cores, well under the cap. Each is ~150 fast fits; expect a few
 minutes wall.)
 
-## What to paste back
+## Results — EXECUTED 2026-07-06 (Totoro, n=150, seed_start 750001)
 
-The two **summary** TSVs (small):
+Claude ran both shards on Totoro (`~/drmtmb_work/pilot-out/`). All fits healthy:
+150/150 fit, converged, `pdHess`, 0 boundary for both targets.
 
-```bash
-cat docs/dev-log/simulation-artifacts/2026-07-06-a1-exemplar-totoro-pilot/03-spatial-sigma_intercept-summary.tsv
-cat docs/dev-log/simulation-artifacts/2026-07-06-a1-exemplar-totoro-pilot/04-spatial-sigma_x-summary.tsv
-```
+| Target (truth SD) | Wald finite | **Profile finite** | **Profile coverage** (MCSE) | mean est (bias) |
+|---|---|---|---|---|
+| `sd:sigma:spatial(1 \| site)` — intercept (0.50) | 138/150 = 0.920 | **150/150 = 1.000** | **0.853** (0.029) ✗ | 0.395 (−0.105) |
+| `sd:sigma:spatial(0 + x \| site)` — slope (0.38) | 144/150 = 0.960 | **150/150 = 1.000** | **0.947** (0.018) ✓ | 0.339 (−0.041) |
 
-Key columns Fisher reads: `n_fit_ok`, `n_pdhess`, `n_boundary`, `n_wald_finite`,
-`n_profile_finite` (→ **finite-rate** = finite/`n_fit_ok`), `wald_coverage`, `profile_coverage`,
-`wald_mcse`, `profile_mcse`, `bias_mean_est`. If any rep rows are useful for miss-side
-diagnosis, the `*-replicates.tsv` files carry per-rep `*_contains` and interval endpoints.
+**Read:**
+1. **Profile fixes the finite-Wald blocker** — 1.000 finite for both vs Wald 0.920/0.960 (Wald
+   reproduces the documented ~0.936 on the intercept). The stated `planned` blocker is resolved.
+2. **Slope SD (the namesake target) ≈ nominal** — profile coverage 0.947 within 1 MCSE of 0.95;
+   a certify candidate (SR475 projects MCSE ~0.010).
+3. **Intercept SD under-covers (0.853, ~3.3 MCSE low) with −0.10 downward bias** — profile is
+   finite but too narrow/low; truth misses high. This is the **right-tail miss-asymmetry** on the
+   sigma axis, where the design-219 bias+t widening (location-axis only) does not reach. Matches
+   the ledger next_gate's "validate a sigma-specific interval channel."
 
 ## Decision rule (Fisher, on the pasted summaries)
 
@@ -92,8 +100,13 @@ diagnosis, the `*-replicates.tsv` files carry per-rep `*_contains` and interval 
    **SR475**; if marginal or the estimator shows right-tail skew, **SR1000**. This number feeds
    the P1.3 Nibi `--array` runbook.
 
-## Next
+## Next (revised by the result)
 
-On a clean pilot, Grace writes the **P1.3 Nibi certify runbook** (shards 3–4 at the sized rep
-count, `--seed_start=740001`, `/project/def-snakagaw`); on a pathological pilot, the exemplar
-route is revised (bootstrap fallback, or holdout) before any certify dispatch.
+Not a clean go-to-certify: the fits are healthy and profile fixes finiteness, but the two SD
+targets diverge on coverage. So the certify dispatch waits on a **method/scope decision**:
+- **Slope SD** — certify-ready; queue an SR475 grid (Totoro or Nibi) to confirm 0.947 at MCSE ≤ 0.01.
+- **Intercept SD** — under-covers; before any certify, probe the **bootstrap fallback** (does the
+  percentile bootstrap cover better than profile's 0.853?), and decide whether the cell's
+  inference target is the slope alone (→ certifiable) or requires both SDs (→ intercept blocks,
+  needs a sigma-axis small-sample channel — a method slice adjacent to the deferred `supported`
+  skew work). Fisher/Rose call.

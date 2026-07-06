@@ -13,7 +13,9 @@ recovered representative, but only 8 cells carry `inference_ready` intervals and
 `supported` authority is `0/104`. The next milestone is **depth** — honest intervals and
 coverage — plus admitting the structured-covariance families kept `planned`. Because the
 method decision makes this an *extension of existing profile + bootstrap infrastructure*
-(`R/profile.R`), not a new-method research project, the arc is tractable and mostly R-side.
+(`R/profile.R`; the profile-vs-Wald calibration design is `docs/design/12-profile-likelihood-cis.md`,
+structured-inference status in `docs/design/212-structured-inference-status.md`), not a new-method
+research project, the arc is tractable and mostly R-side.
 
 ## Goal (one sentence)
 
@@ -124,12 +126,14 @@ the pacing item is review/gating, not compute.
 Certify the spiked exemplar end-to-end; this fixes the reusable route for the bulk.
 - **P1.1 Totoro pilot** (n≈150) for both exemplar SD targets — profile + Wald finite-rate,
   pilot coverage, MCSE, miss-side. Owner: Curie (driver) + Fisher (design). Compute: **Totoro**
-  (self-contained runbook; human/Codex runs). *Reuses `tools/run-structured-re-sigma-slope-coverage-grid.R` (shards 3–4).*
+  — **Claude runs it directly over ssh** (no scheduler; ≤100 cores, `OPENBLAS_NUM_THREADS=1`).
+  *Reuses `tools/run-structured-re-sigma-slope-coverage-grid.R` (shards 3–4).*
 - **P1.2 Size the certify run.** Fisher rules SR475 vs SR1000 from pilot MCSE + skew. If the
   profile finite-rate < 0.95 for the intercept SD (the documented blocker), the fallback is the
   single bootstrap; if neither clears, the exemplar stays `planned` honestly (do not force).
-- **P1.3 Nibi certify** — SR475/SR1000, sharded (intercept + slope). Owner: Grace (runbook) →
-  human/Codex runs → paste back TSVs. Compute: **DRAC Nibi** (`--array`, `/project/def-snakagaw`).
+- **P1.3 Nibi certify** — SR475/SR1000, sharded (intercept + slope). Owner: Grace. **Claude
+  submits the `sbatch` array over ssh and collects the TSVs** (never compute on the login node).
+  Compute: **DRAC Nibi** (`--array`, `/project/def-snakagaw`).
 - **P1.4 Gate + promote.** MCSE ≤ 0.01, finite ≥ 0.95, miss-balance; ADEMP (design 217);
   4-lens + Fisher/Rose/Grace. Flip the one row (row-local, no propagation). Rose audit → full
   `devtools::test()` + CI green → PR → merge with Shinichi's OK. Owner: Ada + Rose.
@@ -143,7 +147,7 @@ Reuse the Phase-1 route across the bulk. Review, not compute, is the pacing item
   (≤96 cores, no queue). Classify: clean · boundary/pdHess-holdout (like the excluded
   `animal sigma:x`) · needs-SR1000. Sizes the certify run. Owner: Curie + Fisher. Compute: **Totoro**.
 - **P2.3 Nibi certify array** — one `--array=1-N` job over the cells that pass triage, rep
-  counts per P2.2. Owner: Grace (runbook) → human/Codex. Compute: **DRAC Nibi**.
+  counts per P2.2. Owner: Grace; **Claude submits over ssh**. Compute: **DRAC Nibi**.
 - **P2.4 Batched gate + promote.** Batch the 4-lens + Fisher/Rose/Grace; flip rows in batches;
   **run the FULL `devtools::test()` each batch** (board flips break hardcoded-count tests —
   the repeat lesson) and reconcile validators/ledger in lockstep. Owner: Rose + Grace + Ada.
@@ -167,6 +171,8 @@ cross-term (**M**) is the stretch if time allows.
 - **P4.1** Formula grammar + parser admission (Boole) → engine routing + math contract
   (Gauss/Noether, `inst/COPYRIGHTS` provenance if any gllvmTMB reuse) → recovery demonstration
   (Curie) → 4-lens → **recovery-only admission** (like row 87; interval/coverage a follow-on).
+  **Update `docs/design/01-formula-grammar.md` + `03-likelihoods.md`** per the invariant that
+  grammar/likelihood changes must update those design docs.
 
 ### Phase 5 — Consolidation & release ⏱ 3–4 days
 Design docs (217/218 updated; promote the 221 seed if BCa research matures); NEWS/README/
@@ -181,8 +187,10 @@ Rose + documentation_writer/pkgdown_editor.
 - **Parallel:** Track B (P3) and Track C (P4) run ∥ to P2 once their design/grammar lands;
   per-cell reviews within P2 batch ∥.
 - **The two-dispatch rule (the efficiency win):** the entire A1 bulk = **1 Totoro pilot** (triage
-  + size) + **1 Nibi array** (certify). Not 23 round-trips. Since Claude cannot ssh, minimizing
-  human dispatches is the real optimization.
+  + size) + **1 Nibi array** (certify), both **run by Claude over ssh**. Not 23 separate jobs.
+  The win is fewer scheduler jobs + clean provenance (Totoro calibrate vs Nibi certify are
+  distinct environments), not human round-trips. **Probe connectivity first each session** (a
+  socket can lapse — `tamia` was down 2026-07-06); if a host is down, use another.
 - **Golden rules:** Totoro ≤ 100 cores, `OPENBLAS_NUM_THREADS=1`; Nibi R library on `/project`
   never `/scratch`, set `--time`/`--account`, `seff` after one run to right-size.
 
@@ -209,7 +217,7 @@ Rose + documentation_writer/pkgdown_editor.
 | **Miss-asymmetry** (~6:1) tempts a `supported` claim. | Locked: `supported` stays 0; the skew fix is a separate banked sub-project. |
 | **Hardcoded-count test breakage** on board flips. | Always full `devtools::test()`; validator/ledger lockstep; batch flips to reduce churn. |
 | **Some cells need SR1000 not SR475.** | Pilot (P1.1/P2.2) sizes reps from MCSE + skew before the certify dispatch. |
-| **Compute is human/Codex-run.** | Self-contained runbooks; the two-dispatch campaign minimizes round-trips. |
+| **Live ssh sockets can lapse** (`tamia` was down 2026-07-06). | Probe connectivity first each session; if a host is down use another (Nibi certify; Rorqual/Trillium/Fir as CPU fallback). Never blocked while one host is up. |
 
 ## Timeline & milestones (rough; review-paced)
 
@@ -222,6 +230,6 @@ Rose + documentation_writer/pkgdown_editor.
 | P4 Track C | 1–2 weeks (∥) | one new structured-covariance capability admitted (recovery) |
 | P5 release | 3–4 days | docs/figures/audit; after-task + handover; tag |
 
-**Immediate next step:** write the P1.1 Totoro pilot runbook (Curie/Fisher) for the exemplar's
-two SD targets, for a human/Codex to run — the pilot's finite-rate + MCSE decides whether the
-exemplar certifies on SR475 or needs SR1000, and de-risks the whole bulk.
+**Immediate next step:** **Claude runs the P1.1 pilot directly on Totoro over ssh** (Curie/Fisher
+own the design) for the exemplar's two SD targets — the pilot's finite-rate + MCSE decides
+whether the exemplar certifies on SR475 or needs SR1000, and de-risks the whole bulk.
