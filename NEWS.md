@@ -5,6 +5,19 @@ registry in `docs/design/168-r-julia-finish-capability-matrix.md`; fitted,
 planned, unsupported, and release-gate language should not be read more broadly
 than that matrix.
 
+* Simultaneous **two-provider** structured count `mu` is now admitted at
+  point-fit/recovery for NB2: `nbinom2()` with
+  `spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)` on a crossed
+  `site x id` design now builds and surfaces both structured fields
+  (`ranef()` shows `spatial_mu` and `relmat_mu`; both SDs are direct
+  `log_sd_phylo`/`log_sd_phylo2` profile targets). On the crossed ladder both
+  fixed-covariance variance components recover with a positive-definite Hessian,
+  and a non-crossed control shows the separability requirement (site and id must
+  vary independently). This is recovery evidence only — it does not authorize
+  interval reliability, coverage, `inference_ready`, STAN cross-check, REML,
+  AI-REML, bridge parity, or `supported`. Joint identifiability rests on the
+  crossed design.
+
 * Structured **q12** two-slope all-four covariance is now admitted at
   point-fit/recovery for `phylo()`, `spatial()`, `animal()`, and `relmat()`:
   `(1 + x + z | p | id)` on `mu1`/`mu2`/`sigma1`/`sigma2` builds a twelve-endpoint
