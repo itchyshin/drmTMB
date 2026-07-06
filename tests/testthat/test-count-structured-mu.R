@@ -747,18 +747,49 @@ test_that("count structured mu keeps planned neighboring routes closed", {
     ),
     "cannot be combined"
   )
-  expect_error(
-    drmTMB(
-      bf(
-        nb2_spatial ~ x +
-          spatial(1 | site, coords = coords) +
-          relmat(1 | id, Q = Q),
-        sigma ~ 1
-      ),
-      family = nbinom2(),
-      data = dat
+  # Row 105 (M5): the intercept-only two-provider location combo is now admitted
+  # (spatial coordinate kernel + relatedness Q, each with its own group
+  # precision). It builds and disambiguates the two fields onto separate internal
+  # scales; jointly identifiable recovery lives in
+  # test-count-multiprovider-structured-mu.R on a crossed design.
+  fit_two_provider <- suppressWarnings(drmTMB(
+    bf(
+      nb2_spatial ~ x +
+        spatial(1 | site, coords = coords) +
+        relmat(1 | id, Q = Q),
+      sigma ~ 1
     ),
-    "Only one structured"
+    family = nbinom2(),
+    data = dat,
+    control = drm_control(
+      se = FALSE, optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  ))
+  expect_s3_class(fit_two_provider, "drmTMB")
+  expect_setequal(
+    names(fit_two_provider$sdpars$mu),
+    c("spatial(1 | site)", "relmat(1 | id)")
+  )
+  expect_true(all(
+    c("spatial_mu", "relmat_mu") %in% names(ranef(fit_two_provider))
+  ))
+  two_provider_targets <- profile_targets(fit_two_provider)
+  two_provider_targets <- two_provider_targets[
+    startsWith(two_provider_targets$parm, "sd:mu:"),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    two_provider_targets$tmb_parameter[
+      two_provider_targets$parm == "sd:mu:spatial(1 | site)"
+    ],
+    "log_sd_phylo"
+  )
+  expect_equal(
+    two_provider_targets$tmb_parameter[
+      two_provider_targets$parm == "sd:mu:relmat(1 | id)"
+    ],
+    "log_sd_phylo2"
   )
   expect_error(
     drmTMB(
