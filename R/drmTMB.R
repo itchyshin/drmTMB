@@ -5461,16 +5461,35 @@ drm_build_nbinom2_spec <- function(
   mu_entry$rhs <- mu_animal$rhs
   mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
   mu_entry$rhs <- mu_relmat$rhs
-  mu_structured_term <- select_count_mu_structured_term(
-    list(
-      phylo = mu_phylo$term,
-      phylo_interaction = mu_phylo_interaction$term,
-      spatial = mu_spatial$term,
-      animal = mu_animal$term,
-      relmat = mu_relmat$term
-    ),
-    family_label = "NB2"
+  # Scoped simultaneous two-provider location field (M5 row 105): a spatial
+  # coordinate kernel plus a relatedness `Q`, each intercept-only, only in the
+  # ordinary (non-zero-inflated) NB2 count model on `mu`.
+  mu_structured_candidates <- list(
+    phylo = mu_phylo$term,
+    phylo_interaction = mu_phylo_interaction$term,
+    spatial = mu_spatial$term,
+    animal = mu_animal$term,
+    relmat = mu_relmat$term
   )
+  mu_structured_pair_types <- if (is.null(zi_entry)) {
+    c("phylo", "spatial", "animal", "relmat")
+  } else {
+    character(0)
+  }
+  mu_structured_pair <- select_count_mu_structured_pair(
+    mu_structured_candidates,
+    allow_pair_types = mu_structured_pair_types
+  )
+  mu_structured_term <- select_count_mu_structured_term(
+    mu_structured_candidates,
+    family_label = "NB2",
+    allow_pair_types = mu_structured_pair_types
+  )
+  mu_structured_term2 <- if (!is.null(mu_structured_pair)) {
+    mu_structured_pair$secondary
+  } else {
+    NULL
+  }
   sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
   sigma_entry$rhs <- sigma_phylo$rhs
   sigma_spatial <- extract_gaussian_mu_spatial_term(
@@ -5519,6 +5538,18 @@ drm_build_nbinom2_spec <- function(
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
+  if (!is.null(mu_structured_term2)) {
+    # The secondary field is admitted only alongside the primary (both
+    # intercept-only, no zi); run it through the same guard so any residual
+    # ordinary-RE / covariance-label combination is still rejected.
+    validate_count_structured_mu_term(
+      mu_structured_term2,
+      mu_re$terms,
+      has_zi = !is.null(zi_entry),
+      family_label = "NB2",
+      inflated_label = "Zero-inflated NB2"
+    )
+  }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_count_structured_sigma_term(
@@ -5560,6 +5591,7 @@ drm_build_nbinom2_spec <- function(
     all.vars(f_sigma),
     if (!is.null(f_zi)) all.vars(f_zi),
     structured_mu_vars(mu_structured_term),
+    structured_mu_vars(mu_structured_term2),
     structured_mu_vars(sigma_structured_term),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms)
@@ -5649,6 +5681,14 @@ drm_build_nbinom2_spec <- function(
     data_model,
     env
   )
+  # Scoped second structured location field (its own group precision). It is only
+  # populated for the admitted intercept-only two-provider NB2 combo; every
+  # existing single-field path leaves it empty.
+  phylo_mu2 <- if (!is.null(mu_structured_term2)) {
+    build_structured_mu_structure(mu_structured_term2, data_model, env)
+  } else {
+    empty_phylo_mu_structure()
+  }
 
   spec <- list(
     model_type = if (has_zi) "zi_nbinom2" else "nbinom2",
@@ -5686,7 +5726,7 @@ drm_build_nbinom2_spec <- function(
       sigma = re_sigma
     ),
     random_scale = list(mu = sd_mu, phylo = empty_sd_phylo_structure()),
-    structured = list(phylo_mu = phylo_mu),
+    structured = list(phylo_mu = phylo_mu, phylo_mu2 = phylo_mu2),
     data = data_model,
     variables = vars,
     keep = keep,
@@ -5712,9 +5752,11 @@ drm_build_nbinom2_spec <- function(
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
-      if (isTRUE(phylo_mu$has)) "u_phylo"
+      if (isTRUE(phylo_mu$has)) "u_phylo",
+      if (isTRUE(phylo_mu2$has)) "u_phylo2"
     )
   )
+  spec <- add_structured_mu2_parameters(spec, phylo_mu2, y)
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
@@ -7006,10 +7048,28 @@ validate_poisson_mu_random_terms <- function(
   invisible(terms)
 }
 
-select_count_mu_structured_term <- function(structured_terms, family_label) {
+select_count_mu_structured_term <- function(
+  structured_terms,
+  family_label,
+  allow_pair_types = character(0)
+) {
   active_structured <- names(structured_terms)[
     !vapply(structured_terms, is.null, logical(1L))
   ]
+  if (
+    length(active_structured) == 2L &&
+      count_mu_structured_pair_is_admissible(
+        structured_terms[active_structured],
+        allow_pair_types
+      )
+  ) {
+    # Scoped two-provider location field (M5 row 105): exactly two intercept-only
+    # structured `mu` fields, each carrying its OWN group precision (e.g. a
+    # spatial coordinate kernel plus a relatedness `Q`). The canonical field
+    # order is fixed by the caller's provider list so downstream naming
+    # (`spatial_mu` vs `relmat_mu`, `log_sd_phylo` vs `log_sd_phylo2`) is stable.
+    return(structured_terms[[active_structured[[1L]]]])
+  }
   if (length(active_structured) > 1L) {
     family_label <- as.character(family_label)[[1L]]
     cli::cli_abort(c(
@@ -7022,6 +7082,49 @@ select_count_mu_structured_term <- function(structured_terms, family_label) {
     return(NULL)
   }
   structured_terms[[active_structured]]
+}
+
+# Exactly-two-provider structured `mu` admission for the scoped second field.
+# Both providers must be listed in `allow_pair_types`, be distinct types, and be
+# intercept-only (q = 1). Any other combination stays rejected by the caller.
+count_mu_structured_pair_is_admissible <- function(
+  active_terms,
+  allow_pair_types
+) {
+  if (length(active_terms) != 2L || length(allow_pair_types) < 2L) {
+    return(FALSE)
+  }
+  types <- names(active_terms)
+  if (!all(types %in% allow_pair_types) || length(unique(types)) != 2L) {
+    return(FALSE)
+  }
+  all(vapply(active_terms, structured_term_is_intercept_only, logical(1L)))
+}
+
+# Select the ordered (primary, secondary) pair when two providers are admitted,
+# else `NULL`. Field order follows the caller's provider list so that the first
+# provider becomes the primary `phylo_mu` field and the second becomes the
+# scoped `phylo_mu2` field.
+select_count_mu_structured_pair <- function(
+  structured_terms,
+  allow_pair_types = character(0)
+) {
+  active_structured <- names(structured_terms)[
+    !vapply(structured_terms, is.null, logical(1L))
+  ]
+  if (
+    length(active_structured) != 2L ||
+      !count_mu_structured_pair_is_admissible(
+        structured_terms[active_structured],
+        allow_pair_types
+      )
+  ) {
+    return(NULL)
+  }
+  list(
+    primary = structured_terms[[active_structured[[1L]]]],
+    secondary = structured_terms[[active_structured[[2L]]]]
+  )
 }
 
 validate_count_structured_mu_term <- function(
@@ -14309,6 +14412,19 @@ nbinom2_map <- function(
   out
 }
 
+# Populate start values for the scoped second structured location field. The map
+# is handled globally by `add_covariance_probe_parameter`; here we only supply
+# non-trivial starts (an intercept-only q = 1 GMRF field) when it is active.
+add_structured_mu2_parameters <- function(spec, phylo_mu2, y) {
+  if (!isTRUE(phylo_mu2$has)) {
+    return(spec)
+  }
+  phylo2_start <- gaussian_phylo_start(y, phylo_mu2)
+  spec$start$u_phylo2 <- phylo2_start$u_phylo
+  spec$start$log_sd_phylo2 <- phylo2_start$log_sd_phylo
+  spec
+}
+
 truncated_nbinom2_start <- function(
   y,
   X_mu,
@@ -15177,6 +15293,7 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
   c(
     tmb_data,
     structured_mu_tmb_data(spec),
+    structured_mu2_tmb_data(spec),
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
     drm_tmb_missing_predictor_data(spec),
@@ -15189,6 +15306,45 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
       logsigma_clamp = c(-12, 12, 3),
       qgt2_corr_parameterization = drm_qgt2_corr_parameterization()
     )
+  )
+}
+
+# TMB data for the scoped second structured location field. Supplied globally
+# (not per model branch) so the shared C++ signature always has the fields; when
+# `phylo_mu2` is empty the fields are inert placeholders. The field is always a
+# q = 1 intercept-only GMRF with its OWN group precision `Q_phylo2`.
+structured_mu2_tmb_data <- function(spec) {
+  phylo_mu2 <- if (is.list(spec$structured)) {
+    spec$structured$phylo_mu2
+  } else {
+    NULL
+  }
+  dummy_sparse <- Matrix::sparseMatrix(
+    i = integer(0),
+    j = integer(0),
+    x = numeric(0),
+    dims = c(1L, 1L)
+  )
+  if (
+    !is.list(phylo_mu2) ||
+      !isTRUE(phylo_mu2$has) ||
+      !is.matrix(phylo_mu2$value) ||
+      nrow(phylo_mu2$value) == 0L
+  ) {
+    return(list(
+      has_phylo_mu2 = 0L,
+      phylo_mu2_node_index = 0L,
+      phylo_mu2_value = matrix(0, nrow = 1L, ncol = 1L),
+      Q_phylo2 = dummy_sparse,
+      log_det_Q_phylo2 = 0
+    ))
+  }
+  list(
+    has_phylo_mu2 = 1L,
+    phylo_mu2_node_index = phylo_mu2$observation_node_index0,
+    phylo_mu2_value = phylo_mu2$value,
+    Q_phylo2 = phylo_mu2$precision$precision,
+    log_det_Q_phylo2 = phylo_mu2$precision$log_det_precision
   )
 }
 
@@ -15416,6 +15572,24 @@ add_covariance_probe_parameter <- function(spec) {
   }
   if (is.null(spec$map$log_sd_mi_struct) && !has_mi_struct) {
     spec$map$log_sd_mi_struct <- factor(NA)
+  }
+  # Scoped second structured location field. Every model declares its parameters
+  # so the shared C++ signature is satisfied; they are mapped off unless the
+  # admitted intercept-only two-provider combo populated `phylo_mu2`.
+  has_phylo_mu2 <- is.list(spec$structured) &&
+    is.list(spec$structured$phylo_mu2) &&
+    isTRUE(spec$structured$phylo_mu2$has)
+  if (is.null(spec$start$u_phylo2)) {
+    spec$start$u_phylo2 <- 0
+  }
+  if (is.null(spec$start$log_sd_phylo2)) {
+    spec$start$log_sd_phylo2 <- 0
+  }
+  if (is.null(spec$map$u_phylo2) && !has_phylo_mu2) {
+    spec$map$u_phylo2 <- factor(NA)
+  }
+  if (is.null(spec$map$log_sd_phylo2) && !has_phylo_mu2) {
+    spec$map$log_sd_phylo2 <- factor(NA)
   }
   spec
 }
@@ -17079,6 +17253,19 @@ split_tmb_sdpars <- function(par, spec) {
       }
     }
   }
+  if (isTRUE(spec$structured$phylo_mu2$has)) {
+    # Scoped second structured field: a single q = 1 location SD carried on its
+    # own internal `log_sd_phylo2` scale and summarised in the flat `mu` block.
+    phylo2_names <- phylo_mu_sd_labels(
+      spec$structured$phylo_mu2,
+      spec$model_type
+    )
+    sd_phylo2 <- stats::setNames(
+      exp(unname(par$log_sd_phylo2[seq_along(phylo2_names)])),
+      phylo2_names
+    )
+    out$mu <- c(out$mu, sd_phylo2)
+  }
   out
 }
 
@@ -17449,6 +17636,27 @@ split_tmb_random_effects <- function(par, spec) {
         terms = terms
       )
     }
+  }
+  if (isTRUE(spec$structured$phylo_mu2$has)) {
+    # Scoped second structured field: always q = 1 intercept-only on `mu` with
+    # its own group precision, so the block is the simple scalar-GMRF form.
+    phylo_mu2 <- spec$structured$phylo_mu2
+    n_phylo2 <- phylo_mu2$n_re
+    random_effect_key2 <- structured_mu_random_effect_key(
+      phylo_mu2,
+      spec$model_type
+    )
+    labels2 <- phylo_mu_sd_labels(phylo_mu2, spec$model_type)
+    latent2 <- unname(par$u_phylo2[seq_len(n_phylo2)])
+    names(latent2) <- phylo_mu2$node_labels
+    values2 <- latent2
+    terms2 <- list(values2)
+    names(terms2) <- labels2
+    out[[random_effect_key2]] <- list(
+      values = values2,
+      latent = latent2,
+      terms = terms2
+    )
   }
   out
 }
