@@ -357,7 +357,7 @@ def candidate_review_reason(row: dict[str, str]) -> str:
 
 
 def candidate_complexity(row: dict[str, str]) -> int:
-    if row["cell_id"] == "qseries_nongaussian_structured_slope_neighbors_planned":
+    if row["cell_id"] == "qseries_nongaussian_structured_slope_neighbors_recovery":
         return 2
     specialized_markers = (
         "noncanonical",
@@ -532,7 +532,7 @@ def ninety_economy_detail(row: dict[str, str]) -> dict[str, str]:
     # Row 105 (qseries_count_mu_simultaneous_structured_types_recovery) was
     # admitted recovery-only in M5, so it is no longer a post-v1 candidate and no
     # longer needs a "one-provider gate" economy note.
-    if cell_id == "qseries_nongaussian_structured_slope_neighbors_planned":
+    if cell_id == "qseries_nongaussian_structured_slope_neighbors_recovery":
         return {
             "implementation_cost": "medium_row_selection",
             "least_compute_next_action": "split the broad planned row into one family-provider DGP/extractor/recovery contract before runtime work",
@@ -715,7 +715,7 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "local point-fit/extractor fixture is already banked; any next local debug may only inspect scale-scale profile geometry or denominator design, not claim coverage",
         "next_action": "review the spatial q2-plus-q2 sigma scale-scale profile and retained-denominator design before any host compute or support-cell edit",
     },
-    "qseries_nongaussian_structured_slope_neighbors_planned": {
+    "qseries_nongaussian_structured_slope_neighbors_recovery": {
         "contract_id": "qseries_v1_nongaussian_structured_slope_neighbors_design_contract",
         "model_contract": "family-specific non-Gaussian structured one-slope neighbors must be split into explicit family/provider/endpoint routes before any runtime gate; no pooled all-family likelihood contract exists",
         "dgp_requirements": "one named family per fixture; valid response support; one structured provider at a time; one ordinary predictor with within-level replication; no labelled covariance, multiple slopes, q2/q4, or endpoint pooling",
@@ -1205,8 +1205,8 @@ def main() -> int:
     )
     rejection_rows.append(
         {
-            "rejection_id": "nongaussian_structured_slope_neighbors_planned_boundary",
-            "cell_id": "qseries_nongaussian_structured_slope_neighbors_planned",
+            "rejection_id": "nongaussian_structured_slope_neighbors_recovery_boundary",
+            "cell_id": "qseries_nongaussian_structured_slope_neighbors_recovery",
             "formula_cell": "non-count or labelled/multiple structured non-Gaussian slope variants",
             "family": "non-count or extended count families",
             "structured_type": "all_structured",

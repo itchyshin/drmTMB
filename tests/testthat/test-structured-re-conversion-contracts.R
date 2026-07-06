@@ -307,7 +307,7 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     "qseries_animal_nbinom2_q1_mu_one_slope",
     "qseries_relmat_poisson_q1_mu_one_slope",
     "qseries_relmat_nbinom2_q1_mu_one_slope",
-    "qseries_nongaussian_structured_slope_neighbors_planned",
+    "qseries_nongaussian_structured_slope_neighbors_recovery",
     "qseries_phylo_direct_sd_univariate",
     "qseries_phylo_direct_sd_bivariate"
   )
@@ -704,7 +704,7 @@ test_that("q-series closure triage accounts for all support cells", {
       8L,
       3L,
       18L,
-      18L,
+      19L,
       0L,
       23L,
       2L,
@@ -716,7 +716,7 @@ test_that("q-series closure triage accounts for all support cells", {
       3L,
       0L,
       5L,
-      1L
+      0L
     )
   )
   expect_equal(
