@@ -420,22 +420,29 @@ qseries_v1_first_four_fixture <- function() {
       env = environment()
     ),
     list(
-      gate_id = "count_struct_mu_reject_simultaneous_types_nbinom2",
+      # Row 105 (M5): the crossed spatial+relmat two-provider count-mu combo is
+      # now admitted (recovery-only). It BUILDS and surfaces both structured
+      # fields, so this is a build/surface check, not a rejection. Jointly
+      # identifiable recovery lives in test-count-multiprovider-structured-mu.R
+      # on a crossed site x id design.
+      gate_id = "count_struct_mu_fit_simultaneous_types_nbinom2",
       cell_id = "qseries_count_mu_simultaneous_structured_types_rejected",
-      formula_cell = "spatial(1 | id, coords = coords) + relmat(1 | id, Q = Q) in mu",
+      formula_cell = "spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q) in mu",
       family = "nbinom2()",
       provider = "spatial",
-      expected_status = "expected_rejection",
-      expected_error_pattern = "Only one structured",
+      expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(
           y ~ x +
-            spatial(1 | id, coords = coords) +
-            relmat(1 | id, Q = Q)
+            spatial(1 | site, coords = coords) +
+            relmat(1 | id, Q = K)
         ),
         family = drmTMB::nbinom2(),
-        data = dat_count
+        data = dat_count,
+        control = drmTMB::drm_control(se = FALSE)
       )),
+      expected_random_effect = "spatial_mu",
+      expected_sd_pattern = "^spatial\\(",
       env = environment()
     ),
     list(
