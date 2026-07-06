@@ -124,6 +124,11 @@ phylo_prior_tmb_data <- function(precision) {
       phylo_mu_n_blocks = 0L,
       Q_phylo = precision$precision,
       log_det_Q_phylo = precision$log_det_precision,
+      has_phylo_mu2 = 0L,
+      phylo_mu2_node_index = 0L,
+      phylo_mu2_value = dummy_matrix,
+      Q_phylo2 = precision$precision,
+      log_det_Q_phylo2 = precision$log_det_precision,
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),
@@ -178,6 +183,8 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     theta_re_cov = 0,
     u_re_cov_probe = 0,
     log_sd_phylo = log_sd,
+    u_phylo2 = 0,
+    log_sd_phylo2 = 0,
     theta_phylo = 0,
     eta_cor_phylo = 0
   )
