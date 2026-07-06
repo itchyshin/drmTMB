@@ -424,6 +424,37 @@ the q12 precedent). The 4-lens gate signed off: Curie (crossed recovery + the
 separability control), Noether (symbolic↔R↔TMB CONSISTENT), Fisher (recovery-only
 honesty; no interval/coverage claim), Rose (claim accounting).
 
+## Row 87 — the final cell → 104/104 (2026-07-06)
+
+The last `planned` non-Gaussian row,
+`qseries_nongaussian_structured_slope_neighbors_planned`, is admitted
+**recovery-only**, taking the practical v1.0 surface **103/104 → 104/104**
+(Gaussian core unchanged at 67/67; post-v1.0 non-Gaussian design rows fall to
+**0**). The catch-all is represented by three non-count family × provider
+structured `mu` one-slope cells — Gamma `relmat(1 + x | id, K)`, Student
+`spatial(1 + x | id, coords)`, and beta `animal(1 + x | id)` — each a validator
+relaxation only (no `src/*.cpp` change; the shared
+`build_structured_mu_structure()` carries the slope column). Recovery evidence is
+a crossed `n_lvl ∈ {10,20,30}` × 30-seed ladder, a null-slope separability
+control, and a non-identity AR(1) relatedness check
+(`docs/dev-log/simulation-artifacts/2026-07-06-m5-row87-recovery/`): gamma/beta
+90/90 converged with pdHess=TRUE, student 83/90 (use `n_levels ≥ 20`), and RMSE of
+both variance components falls with levels. `interval_status`/`coverage_status`
+stay `unsupported`, `authority` stays `source`, no row is `supported`. It does
+**not** promote intervals, coverage, `inference_ready`, REML, AI-REML,
+labelled/multiple/scale-side structured slopes, other families, bridge parity, or
+public support. The 4-lens gate signed off: Curie (CLEAN_WITH_CAVEAT), Noether
+(CONSISTENT_WITH_NOTE — the one-slope field is two same-`dpar` columns, so the
+independent-per-column-SD C++ branch applies with no cross term), Fisher (HONEST),
+Rose (SIGN_OFF_WITH_NOTE). **cell_id debt:** the id keeps its `_planned` suffix
+(stable key) though the cell is now admitted; a rename is a tracked follow-on, as
+with the row-105 `_rejected`→`_recovery` precedent. **Closure-triage lag:** the
+coarse closure-triage still lists row 87 under `non_gaussian_planned` (its counts
+are hardcoded in `validate-mission-control.py`, and its `rejected` bucket actually
+holds `point_only` cells); the 16-bucket total stays 104 and all validators are
+green, so this is a tracked follow-up, matching how row 105's admission left the
+closure subsystem untouched.
+
 ## Why the Older Work Drifted
 
 The first q-series waves were productive because they chose valuable cells

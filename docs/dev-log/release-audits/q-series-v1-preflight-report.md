@@ -16,12 +16,12 @@ Mission Control passed in this generated report.
 
 | Measure | Rows and percent |
 | --- | --- |
-| Practical v1.0 row surface | 103/104 (99.0%) |
+| Practical v1.0 row surface | 104/104 (100.0%) |
 | Gaussian v1.0 core | 67/67 (100.0%) |
-| Basic-distribution recovery | 36/37 (97.3%) |
+| Basic-distribution recovery | 37/37 (100.0%) |
 | Exact `inference_ready` anchors | 8/104 (7.7%) |
 | `supported` authority | 0/104 (0.0%) |
-| Post-v1.0 validation/design | 1/104 (1.0%) |
+| Post-v1.0 validation/design | 0/104 (0.0%) |
 
 ## Distance To Row-Accounting Targets
 
@@ -33,7 +33,7 @@ coverage jobs, public release claims, `inference_ready`, or `supported` status.
 | 75% practical surface | 78/104 | 0 |
 | 80% practical surface | 84/104 | 0 |
 | 90% practical surface | 94/104 | 0 |
-| 100% practical surface | 104/104 | 1 |
+| 100% practical surface | 104/104 | 0 |
 
 ## Next Candidate Review Queue
 
@@ -44,7 +44,7 @@ Every generated candidate remains `coverage_not_authorized` and
 
 | Rank | Target band | Cell | Family | Provider | Review reason |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | next_four_after_75_percent | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families | all_structured | count-location design gap; prove recovery scope before any movement |
+
 
 ## Next Rows To 90% Review Packet
 
@@ -77,7 +77,7 @@ does not authorize code changes, compute, status edits, coverage, or promotion.
 
 | Rank | Cell | Model scope | Minimum recovery evidence | Next action |
 | ---: | --- | --- | --- | --- |
-| 1 | `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or extended count families q1 mu independent-one-slope all_structured route | document DGP, extractor expectation, one local debug recovery path, and failure mode before any surface movement | write a row-specific design/recovery contract before any code, compute, or status edit |
+
 
 ## First Candidate Design Contract
 
@@ -87,7 +87,7 @@ before any local debug fit, host compute, or support-cell edit is proposed.
 
 | Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or labelled/multiple structured non-Gaussian slope variants | family-specific non-Gaussian structured one-slope neighbors must be split into explicit family/provider/endpoint routes before any runtime gate; no pooled all-family likelihood contract exists | one local debug fixture may only document the planned design boundary or, after review, check a single-family finite fit and extractor visibility; not a denominator or coverage run | do_not_promote |
+
 
 ## First Candidate Local-Debug Fixture Contract
 
@@ -101,7 +101,7 @@ public-support authority.
 
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_nongaussian_structured_slope_neighbors_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+
 
 ## Next-Four After 75% Design Contracts
 
@@ -112,7 +112,7 @@ status movement is proposed.
 
 | Cell | Formula cell | Model contract | Minimum recovery evidence | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_nongaussian_structured_slope_neighbors_planned` | non-count or labelled/multiple structured non-Gaussian slope variants | family-specific non-Gaussian structured one-slope neighbors must be split into explicit family/provider/endpoint routes before any runtime gate; no pooled all-family likelihood contract exists | one local debug fixture may only document the planned design boundary or, after review, check a single-family finite fit and extractor visibility; not a denominator or coverage run | do_not_promote |
+
 
 ## Next-Four After 75% Local-Debug Fixture Contracts
 
@@ -132,7 +132,7 @@ coverage evidence, status movement, or public support.
 
 | Cell | Debug scope | Expected current failure | Stop if | Promotion decision |
 | --- | --- | --- | --- | --- |
-| `qseries_nongaussian_structured_slope_neighbors_planned` | local_debug_only_no_denominator | not_run_planned_design | current rejection message changes without contract update; formula grammar changes; response has invalid support values; host path is used; denominator rows are created; fit result is interpreted as coverage or status evidence | do_not_promote |
+
 
 ## Boundary
 
