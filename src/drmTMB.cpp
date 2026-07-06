@@ -339,6 +339,14 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(phylo_mu_n_blocks);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  // Scoped second structured location field (M5 row 105): its own group
+  // precision (spatial coordinate kernel vs relatedness Q), always q = 1
+  // intercept-only, so no among-endpoint theta is needed.
+  DATA_INTEGER(has_phylo_mu2);
+  DATA_IVECTOR(phylo_mu2_node_index);
+  DATA_MATRIX(phylo_mu2_value);
+  DATA_SPARSE_MATRIX(Q_phylo2);
+  DATA_SCALAR(log_det_Q_phylo2);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -403,6 +411,8 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(log_sd_phylo);
   PARAMETER_VECTOR(theta_phylo);
   PARAMETER(eta_cor_phylo);
+  PARAMETER_VECTOR(u_phylo2);
+  PARAMETER_VECTOR(log_sd_phylo2);
 
   Type nll = 0;
   Type phylo_penalty = Type(0.0);
@@ -985,6 +995,31 @@ Type objective_function<Type>::operator()()
         nll += phylo_penalty;
         REPORT(phylo_penalty);
       }
+    }
+
+    if (has_phylo_mu2 == 1) {
+      int n_phylo2 = Q_phylo2.rows();
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += phylo_mu2_value(i, 0) * u_phylo2(phylo_mu2_node_index(i));
+      }
+      vector<Type> Q_u2 = Q_phylo2 * u_phylo2;
+      Type quadratic2 = Type(0.0);
+      for (int j = 0; j < n_phylo2; ++j) {
+        quadratic2 += u_phylo2(j) * Q_u2(j);
+      }
+      nll += Type(0.5) * (
+        Type(n_phylo2) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(n_phylo2) * log_sd_phylo2(0) -
+        log_det_Q_phylo2 +
+        exp(Type(-2.0) * log_sd_phylo2(0)) * quadratic2
+      );
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      REPORT(quadratic2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_phylo2 = exp(log_sd_phylo2);
+      REPORT(sd_phylo2);
+      ADREPORT(sd_phylo2);
     }
 
     if (has_mi == 1 && mi_family == 0) {
@@ -3148,6 +3183,30 @@ Type objective_function<Type>::operator()()
       vector<Type> sd_phylo = exp(log_sd_phylo);
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
+    }
+    if (has_phylo_mu2 == 1) {
+      int n_phylo2 = Q_phylo2.rows();
+      for (int i = 0; i < y.size(); ++i) {
+        eta_mu(i) += phylo_mu2_value(i, 0) * u_phylo2(phylo_mu2_node_index(i));
+      }
+      vector<Type> Q_u2 = Q_phylo2 * u_phylo2;
+      Type quadratic2 = Type(0.0);
+      for (int j = 0; j < n_phylo2; ++j) {
+        quadratic2 += u_phylo2(j) * Q_u2(j);
+      }
+      nll += Type(0.5) * (
+        Type(n_phylo2) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(n_phylo2) * log_sd_phylo2(0) -
+        log_det_Q_phylo2 +
+        exp(Type(-2.0) * log_sd_phylo2(0)) * quadratic2
+      );
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      REPORT(quadratic2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_phylo2 = exp(log_sd_phylo2);
+      REPORT(sd_phylo2);
+      ADREPORT(sd_phylo2);
     }
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);

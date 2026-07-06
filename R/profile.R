@@ -3635,6 +3635,18 @@ profile_sd_internal <- function(object, dpar, term) {
     return("log_sd_re_cov")
   }
   if (
+    identical(dpar, "mu") &&
+      isTRUE(object$model$structured$phylo_mu2$has) &&
+      term %in%
+        phylo_mu_sd_labels(
+          object$model$structured$phylo_mu2,
+          object$model$model_type
+        )
+  ) {
+    # Scoped second structured location field lives on its own internal scale.
+    return("log_sd_phylo2")
+  }
+  if (
     dpar %in%
       c("mu", "sigma") &&
       grepl(
