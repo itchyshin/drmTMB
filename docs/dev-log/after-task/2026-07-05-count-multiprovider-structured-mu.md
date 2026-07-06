@@ -125,6 +125,25 @@ Swept for sibling stale rejections (Rose principle): one in
 surfaces the concurrent rename chip owns (plan slice 6). Left untouched by
 design; flagged as required follow-up.
 
+**Slice-6 gate (complete).** The rename chip (#732) merged; slice 6 ran on a fresh
+branch off the post-rename main and performed the status flip on all the surfaces
+above. The full 4-lens gate then audited the completed admission, all clean:
+- **Curie** (recovery): crossed site×id ladder (n_lvl 10/20/30, 30 seeds/rung,
+  100/100 converged, pdHess=TRUE); RMSE falls with levels for sd_spatial
+  (0.151->0.081), sd_relmat (0.082->0.050), sigma_nb2 (0.064->0.042); a non-crossed
+  control demonstrates the separability requirement.
+- **Noether** (symbolic<->R<->TMB): CONSISTENT — the 2nd-field density is the exact
+  -log N(0, sd2^2 Q2^-1) with the precision convention traced through the builders;
+  DGP matches; fields independent; inert when off.
+- **Fisher** (inference): HONEST — no interval/coverage/supported/REML claim leaks;
+  point_fit backed by the raw recovery data; `non_gaussian_point_only` bucketing is
+  honest (recovery_only requires an 80-rep cluster rollup; the local ladder is not one).
+- **Rose** (claims): SIGN_OFF — rejection scaffold fully unwound; no stale 102/104 on
+  any live surface; board 103/104 / 67/67 / 1 remaining verified; all four gates +
+  conversion (22257 asserts) independently re-run green. Non-blocking residuals:
+  README:271 capability-cell carve-out + a NEWS ZI-context line (next docs pass); the
+  `_rejected` cell_id suffix retained + tracked (this section).
+
 ## 9. What Did Not Go Smoothly
 
 The status/gate machinery hard-codes row 105 as a rejection with the pattern
