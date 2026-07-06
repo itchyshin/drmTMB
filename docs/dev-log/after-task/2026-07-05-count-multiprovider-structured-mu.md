@@ -164,14 +164,18 @@ performs the status flip after the rename chip merges.
   `qseries_v1_claim_guard.py`, and the boundary + conversion-contract tests. The
   board moved 102/104 -> 103/104 (Gaussian core unchanged 67/67; 1 non-Gaussian
   row remaining). All four status gates + the conversion test are green.
-- **cell_id-suffix debt (tracked follow-up):** the cell_id
-  `qseries_count_mu_simultaneous_structured_types_rejected` still carries a
-  `_rejected` suffix even though the cell is now admitted (recovery-only). The id
-  was deliberately kept as a stable key during the status flip (per the q12
-  `_q8_planned`/`_q12` precedent). A rename to a non-`_rejected` id is a separate
-  follow-up: it must move the id in every dashboard TSV, the ledger, the sidecars,
-  `validate-mission-control.py`, the smoke tool, and the conversion + boundary
-  tests in lockstep.
+- **cell_id-suffix debt — RESOLVED (2026-07-06 follow-up).** The cell was admitted
+  keeping the stable `_rejected` key during the status flip (per the q12
+  `_q8_planned`/`_q12` precedent); a follow-up then renamed it to
+  `qseries_count_mu_simultaneous_structured_types_recovery` in lockstep across every
+  live surface — support-cells, the regenerated ledger, the nongaussian-status-audit
+  (its row-audit id too), `validate-mission-control.py`, the smoke tool,
+  `release_check.py`, the boundary test, `docs/design/218`, and `check-log`. The two
+  stale contract ids (`count_struct_mu_reject_simultaneous_types_nbinom2` and the
+  design/debug-contract ids) were already retired during the admission itself
+  (smoke `gate_id` flipped reject->fit; the candidate sidecars regenerated
+  row-105-free). The 3 dated planning docs that mention the old id are left frozen as
+  historical snapshots.
 - `sd_relmat` recovers modestly low under a smooth relatedness `Q` (finite-sample
   shrinkage, internally consistent with the empirical mode SD). A recovery test
   should average over seeds or use a tolerance band, not a point equality.
