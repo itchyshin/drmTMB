@@ -529,12 +529,9 @@ def build_ninety_review_packet_rows(
 
 def ninety_economy_detail(row: dict[str, str]) -> dict[str, str]:
     cell_id = row["cell_id"]
-    if cell_id == "qseries_count_mu_simultaneous_structured_types_rejected":
-        return {
-            "implementation_cost": "high_engine_design",
-            "least_compute_next_action": "review an additive multi-provider count-mu design and extractor policy before any parser or TMB edit",
-            "why_not_parallel_compute": "the current count engine has one structured mu slot; parallel local or host compute would only reproduce the pre-optimization one-provider gate",
-        }
+    # Row 105 (qseries_count_mu_simultaneous_structured_types_rejected) was
+    # admitted recovery-only in M5, so it is no longer a post-v1 candidate and no
+    # longer needs a "one-provider gate" economy note.
     if cell_id == "qseries_nongaussian_structured_slope_neighbors_planned":
         return {
             "implementation_cost": "medium_row_selection",
@@ -689,14 +686,11 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may only reproduce the current labelled q=2 rejection or, after review, check parser diagnostics; not a denominator or coverage run",
         "next_action": "review the labelled q=2 structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
     },
-    "qseries_count_mu_simultaneous_structured_types_rejected": {
-        "contract_id": "qseries_v1_count_mu_simultaneous_structured_types_design_contract",
-        "model_contract": "y_i ~ NB2(mu_i, phi); log(mu_i) = X_i beta + u_spatial,site[i] + u_relmat,id[i]; simultaneous structured providers require an explicit additive covariance and extractor policy",
-        "dgp_requirements": "count response y >= 0; named spatial coordinates and relmat levels; no missing provider levels; fixture must isolate simultaneous-provider routing from ordinary slope support",
-        "implementation_requirements": "derive the simultaneous-provider structured count-mu contract before changing the one-structured-provider gate; do not change formula grammar broadly, public API, q2/q4, REML, or AI-REML",
-        "recovery_requirements": "one local debug fixture may only reproduce the current simultaneous-provider rejection or, after review, check parser diagnostics; not a denominator or coverage run",
-        "next_action": "review the simultaneous-provider structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
-    },
+    # Row 105 (qseries_count_mu_simultaneous_structured_types_rejected) was
+    # admitted recovery-only in M5: the crossed spatial+relmat NB2 model now
+    # BUILDS instead of rejecting, so it is no longer a post-v1 design-contract
+    # candidate and its stale "one-structured-provider gate" contract entry is
+    # removed.
     "qseries_animal_q2_plus_q2_sigma_rejected": {
         "contract_id": "qseries_v1_animal_q2_plus_q2_sigma_design_contract",
         "model_contract": "biv_gaussian() with animal(1 | ps | id, A/Ainv = A) in sigma1 and sigma2 has native point-fit/extractor evidence only; scale-scale profile geometry, retained denominator policy, and bridge payload policy remain unadmitted",
