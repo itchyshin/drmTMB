@@ -3,7 +3,19 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-05, → Claude, 104/104 arc: M1 done, start M2).**
+> **▶ Latest — start here (2026-07-06, → Claude, 104/104 CLOSED; intervals/coverage arc scoped + started).**
+> The Q-Series is **closed at 104/104** on `main` (`6f3ca841`): row 87 admitted recovery-only
+> (PR #736) + the cell_id rename & closure-triage reconciliation (PR #737); all 4 validators +
+> full `devtools::test()` (36380) green. The **next arc — intervals + coverage +
+> structured-covariance** — is approved + researched; **method DECIDED (Shinichi): profile-likelihood
+> CIs are the star, one plain bootstrap fallback, `supported` DEFERRED (cap at `inference_ready`),
+> BCa banked.** Track A1 (Gaussian profile extension) is the first slice — candidate cells
+> identified, NOT yet spiked. START HERE:
+> [`docs/dev-log/handover/2026-07-06-claude-handover.md`](docs/dev-log/handover/2026-07-06-claude-handover.md)
+> (plan: [`docs/dev-log/2026-07-06-next-arc-ultraplan.md`](docs/dev-log/2026-07-06-next-arc-ultraplan.md);
+> research: [`docs/dev-log/2026-07-06-arc-interval-method-research-memo.md`](docs/dev-log/2026-07-06-arc-interval-method-research-memo.md)).
+>
+> **▶ Prior (2026-07-05, → Claude, 104/104 arc: M1 done, start M2).**
 > Started the Q-Series **94→104/104 completion arc** (ultra-plan:
 > [`docs/dev-log/2026-07-05-qseries-104-completion-ultra-plan.md`](docs/dev-log/2026-07-05-qseries-104-completion-ultra-plan.md)).
 > **M1 verdict: the covariance engine already works — no rewrite needed.** q4 all-four is
