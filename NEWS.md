@@ -5,6 +5,21 @@ registry in `docs/design/168-r-julia-finish-capability-matrix.md`; fitted,
 planned, unsupported, and release-gate language should not be read more broadly
 than that matrix.
 
+* `drmTMB()` now fits three non-count family structured `mu` **one-slope** cells
+  as native point-fit/extractor recovery-only routes: `Gamma()` with
+  `relmat(1 + x | id, K = K)`, `student()` with
+  `spatial(1 + x | id, coords = coords)`, and `beta()` with
+  `animal(1 + x | id, pedigree = ped)`. Each extends the existing structured
+  intercept gate to an unlabelled intercept-plus-one-slope term with no
+  compiled-code change. On a crossed `n_lvl in {10,20,30}` x 30-seed ladder, a
+  null-slope separability control, and a non-identity AR(1) relatedness check,
+  both variance components recover with RMSE falling as levels increase (Gamma and
+  beta 90/90 converged with positive-definite Hessian; Student-t 83/90, so use
+  `n_levels >= 20`). This is recovery-only: labelled or multiple structured
+  slopes, scale/shape/zero-inflation structured slopes, other families, intervals,
+  coverage, `inference_ready`, `supported`, REML, AI-REML, and bridge support
+  remain planned.
+
 * Simultaneous **two-provider** structured count `mu` is now admitted at
   point-fit/recovery for NB2: `nbinom2()` with
   `spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)` on a crossed
