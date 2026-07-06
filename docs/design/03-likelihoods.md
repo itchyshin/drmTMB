@@ -2142,9 +2142,30 @@ direct SD target `log_sd_phylo` for this shared
 q=1 count route. This route is implemented for ordinary non-zero-inflated
 Poisson and NB2 with one unlabelled q=1 structured `mu` intercept or
 intercept-plus-one-slope term. It is not a pure structured slope, not a
-multiple-slope route, not a labelled q=2/q=4 count block, not a
-zero-inflated structured route, and not simultaneous structured dependence. The
-simulation-runner and artifact contract for promoting the phylogenetic route
+multiple-slope route, not a labelled q=2/q=4 count block, and not a
+zero-inflated structured route.
+
+One scoped exception to the single-structured-type rule now exists on the
+ordinary (non-zero-inflated) NB2 count location. Exactly two intercept-only
+structured `mu` providers of distinct types may be combined — for example
+`spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)` on a crossed
+`site x id` design. The two fields carry separate group precisions (a spatial
+coordinate kernel and a relatedness `Q`), so the TMB template adds a second
+scoped field alongside the shared one: the sparse precision `Q_phylo2`, the
+latent vector `u_phylo2`, and the direct SD target `log_sd_phylo2`. Each field
+contributes an independent scalar GMRF (q=1, no among-endpoint correlation) to
+the count `eta` and to the joint negative log-likelihood. The two summaries stay
+addressable: `sdpars$mu` holds both SDs under their term labels, `ranef()`
+exposes both structured blocks (for example `spatial_mu` and `relmat_mu`), and
+`profile_targets()` lists both `sd:mu:` rows as direct targets. Every other
+combination of more than one structured type — any slope-bearing pair, any
+zero-inflated pair, any three-or-more-provider request, and every non-count
+family — is still rejected pre-optimization; fit those structured layers one at a
+time until their own combined-dependence recovery evidence exists. Users who need
+a different structured combination should split the model into single-provider
+fits for now.
+
+The simulation-runner and artifact contract for promoting the phylogenetic route
 beyond smoke-level evidence is recorded in
 `docs/design/72-poisson-phylo-q1-runner-contract.md`; the spatial, animal, and
 `relmat()` count routes currently have focused source-level recovery tests, and
