@@ -135,12 +135,24 @@ performs the status flip after the rename chip merges.
 
 ## 10. Known Residuals
 
-- Slice 6 (status admission) is deferred: flip row 105
-  `unsupported`/`rejected` -> `point_fit` in `qseries-v1-first-four-rejection-smoke.R`
-  (L423-439), `qseries_v1_release_check.py`, `validate-mission-control.py`, the
-  dashboard sidecars, and `test-structured-re-conversion-contracts.R`, after the
-  rename chip merges and `main` is pulled. The `skip_on_cran` boundary sub-test
-  (`test-nongaussian-structured-boundary.R:524`) must be updated then.
+- Slice 6 (status admission) is **DONE** (branch `drmtmb/row105-multiprovider`,
+  2026-07-05): row 105 flipped `unsupported`/`rejected` -> `point_fit`
+  (recovery-only) across the support-cell/ledger dashboards, the
+  nongaussian-status-audit (-> `non_gaussian_point_only`), the header-only
+  rejection-contract TSV, the regenerated release-audit sidecars,
+  `qseries-v1-first-four-rejection-smoke.R` (now a build/surface `expected_fit`
+  case), `qseries_v1_release_check.py` / `validate-mission-control.py` /
+  `qseries_v1_claim_guard.py`, and the boundary + conversion-contract tests. The
+  board moved 102/104 -> 103/104 (Gaussian core unchanged 67/67; 1 non-Gaussian
+  row remaining). All four status gates + the conversion test are green.
+- **cell_id-suffix debt (tracked follow-up):** the cell_id
+  `qseries_count_mu_simultaneous_structured_types_rejected` still carries a
+  `_rejected` suffix even though the cell is now admitted (recovery-only). The id
+  was deliberately kept as a stable key during the status flip (per the q12
+  `_q8_planned`/`_q12` precedent). A rename to a non-`_rejected` id is a separate
+  follow-up: it must move the id in every dashboard TSV, the ledger, the sidecars,
+  `validate-mission-control.py`, the smoke tool, and the conversion + boundary
+  tests in lockstep.
 - `sd_relmat` recovers modestly low under a smooth relatedness `Q` (finite-sample
   shrinkage, internally consistent with the empirical mode SD). A recovery test
   should average over seeds or use a tolerance band, not a point equality.
