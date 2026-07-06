@@ -7472,11 +7472,14 @@ validate_student_spatial_mu_structured_term <- function(term) {
       "i" = "Use {.code spatial(1 | id, coords = coords)} for the v1.0 recovery gate."
     ))
   }
-  if (!structured_term_is_intercept_only(term)) {
+  if (
+    !structured_term_is_intercept_only(term) &&
+      !structured_term_is_intercept_one_slope(term)
+  ) {
     cli::cli_abort(c(
-      "{.fn student} {.fn spatial} {.code mu} effects currently support only intercept-only structured terms.",
+      "{.fn student} {.fn spatial} {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Structured Student-t slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+      "i" = "Use {.code spatial(1 | id, coords = coords)} or the {.code 1 + x} one-slope form; multiple or labelled Student-t slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
     ))
   }
   invisible(NULL)
@@ -7660,11 +7663,14 @@ validate_gamma_relmat_mu_structured_term <- function(term) {
       "i" = "Use {.code relmat(1 | id, K = K)} or {.code relmat(1 | id, Q = Q)} for the v1.0 recovery gate."
     ))
   }
-  if (!structured_term_is_intercept_only(term)) {
+  if (
+    !structured_term_is_intercept_only(term) &&
+      !structured_term_is_intercept_one_slope(term)
+  ) {
     cli::cli_abort(c(
-      "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only intercept-only structured terms.",
+      "{.fn Gamma} {.fn relmat} {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Structured Gamma slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+      "i" = "Use {.code relmat(1 | id, K = K)} or the {.code 1 + x} one-slope form; multiple or labelled Gamma slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
     ))
   }
   invisible(NULL)
@@ -7718,11 +7724,14 @@ validate_beta_animal_mu_structured_term <- function(term) {
       "i" = "Use {.code animal(1 | id, pedigree = ped)}, {.code animal(1 | id, A = A)}, or {.code animal(1 | id, Ainv = Ainv)} for the v1.0 recovery gate."
     ))
   }
-  if (!structured_term_is_intercept_only(term)) {
+  if (
+    !structured_term_is_intercept_only(term) &&
+      !structured_term_is_intercept_one_slope(term)
+  ) {
     cli::cli_abort(c(
-      "{.fn beta} {.fn animal} {.code mu} effects currently support only intercept-only structured terms.",
+      "{.fn beta} {.fn animal} {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Structured beta slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+      "i" = "Use {.code animal(1 | id, pedigree = ped)} or the {.code 1 + x} one-slope form; multiple or labelled beta slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
     ))
   }
   invisible(NULL)
