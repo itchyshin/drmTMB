@@ -387,6 +387,43 @@ AI-REML, bridge parity, or `supported`. **cell_id debt:** the ids retain the
 tracked follow-on. The 4-lens gate signed off: Curie (recovery), Noether, Fisher
 (pdHess/profile honesty + the compute-limited-dense disclosure), Rose (accounting).
 
+### Decision executed (2026-07-05): simultaneous two-provider structured count mu admitted (recovery-only) → 103/104
+
+M5 of the arc admits the first non-Gaussian row of the two remaining post-v1
+rows: `qseries_count_mu_simultaneous_structured_types_rejected`, an NB2 count
+mean carrying **two structured providers at once** —
+`spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)` on a crossed
+`site × id` design. Unlike q6/q12 (parser-only, since M1 proved the covariance
+engine is q-generic within one group precision), this needed **C++**: spatial and
+relmat carry different group precisions (a coordinate kernel vs a relatedness
+`Q`), so the engine grew a genuine second scalar-GMRF structured field
+(`phylo_mu2`/`Q_phylo2`/`u_phylo2`/`log_sd_phylo2`), threaded through the guard,
+spec, TMB data/parameter hooks, and the `ranef`/`sdpars`/profile extractors, plus
+model_type 1 (Gaussian) and 7 (NB2) blocks. The engine work is done, committed,
+and proven; this M5 slice is the status admission only.
+
+Recovery is **recovery-only** on the crossed ladder
+(`docs/dev-log/simulation-artifacts/2026-07-05-m5-row105-recovery/`): `n_lvl ∈
+{10,20,30}`, 30 seeds/rung, 100/100 converged, **pdHess=TRUE** at 100%, and both
+fixed-covariance variance components recover with RMSE falling as levels rise
+(`sd_spatial` 0.151→0.081, `sd_relmat` 0.082→0.050, `sigma_nb2` 0.064→0.042); a
+non-crossed control demonstrates the separability requirement (site and id must
+vary independently or the two fields confound). Math is independently CONSISTENT
+(Noether).
+
+This moves the practical v1.0 surface **102/104 → 103/104**; the Gaussian core is
+**unchanged at 67/67** and post-v1.0 falls to the **1** remaining non-Gaussian row
+(`qseries_nongaussian_structured_slope_neighbors_planned`). It is **recovery
+evidence only:** the two SDs are direct profile targets (`log_sd_phylo` /
+`log_sd_phylo2`) but `interval_status`/`coverage_status` stay `unsupported`,
+`authority` stays `source`, and no row is `supported`. It does **not** promote
+intervals, coverage, `inference_ready`, STAN cross-check, REML, AI-REML, bridge
+parity, or public support. **cell_id debt:** the id keeps its `_rejected` suffix
+(stable key) though the cell is now admitted; a rename is a tracked follow-on (per
+the q12 precedent). The 4-lens gate signed off: Curie (crossed recovery + the
+separability control), Noether (symbolic↔R↔TMB CONSISTENT), Fisher (recovery-only
+honesty; no interval/coverage claim), Rose (claim accounting).
+
 ## Why the Older Work Drifted
 
 The first q-series waves were productive because they chose valuable cells

@@ -200,9 +200,17 @@ head(sigma(fit)^2) # fitted residual variances
   also has exact local fit-only gates for a scalar labelled spatial count tag,
   `bf(count ~ x + spatial(1 | p | site, coords = coords))`, and a hurdle
   route, `bf(count ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q))`.
+  A simultaneous two-provider NB2 count `mu` route,
+  `bf(count ~ x + spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q))`,
+  now builds and surfaces both structured fields on a crossed `site x id`
+  design as recovery-only evidence: both fixed-covariance variance components
+  recover with a positive-definite Hessian on the crossed ladder, joint
+  identifiability rests on the crossed design (a non-crossed control confounds
+  the two fields), and intervals and coverage remain unsupported. This is a
+  row-accounting recovery capability, not a broader support claim.
   Correlated count slope blocks, zero-inflation random effects, structured count
   slopes, labelled q=2/q=4 count covariance, NB2 `sigma` slopes or structured
-  `sigma` effects, richer hurdle structured effects, and simultaneous
+  `sigma` effects, richer hurdle structured effects, and other simultaneous
   structured count routes remain planned.
   Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
