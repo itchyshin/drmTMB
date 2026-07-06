@@ -1,0 +1,3 @@
+family	nlev	n	conv_rate	pdHess_rate	mean_sd_int	rmse_sd_int	mean_sd_slp	rmse_sd_slp
+beta_animal_AR1	30	20	1	1	0.381	0.065	0.276	0.061
+gamma_relmat_AR1	30	20	1	1	0.504	0.077	0.35	0.049

@@ -36,7 +36,7 @@ RMSE of both variance components **falls as levels increase**, means near truth:
 | --- | --- | --- | --- | --- |
 | gamma_relmat | 90/90 | 100% | 0.110 → 0.081 → 0.071 | 0.070 → 0.043 → 0.030 |
 | beta_animal | 90/90 | 100% | 0.107 → 0.094 → 0.053 | 0.096 → 0.064 → 0.049 |
-| student_spatial | 83/90 (26/28/29) | tracks conv | 0.129 → 0.103 → 0.065 | 0.087 → 0.058 → 0.052 |
+| student_spatial | 83/90 (26/28/29) | 86.7 → 96.7% (per-rung, = conv rate) | 0.129 → 0.103 → 0.065 | 0.087 → 0.058 → 0.052 |
 
 ## Control — true `sd_slp = 0` (`recovery-summary-control.tsv`)
 
@@ -48,6 +48,24 @@ Slope SD collapses to ≈0 while the intercept SD is still recovered → the two
 | gamma_relmat | 0.008 | 0.475 |
 | student_spatial | 0.003 | 0.478 |
 | beta_animal | 0.037 | 0.379 |
+
+## Non-identity relatedness check (closes the `K = I` / `A = I` caveat for gamma / beta)
+
+The crossed ladder above uses identity relatedness for gamma·relmat and beta·animal, so only
+student·spatial exercises a non-diagonal precision. To validate the general (non-diagonal)
+path for the other two providers, gamma·relmat and beta·animal were re-run with a non-identity
+**AR(1)** relatedness matrix (`rho = 0.5`, diagonal 1), `n_levels = 30`, 20 seeds
+(`recovery-summary-noniden.tsv`, driver `recovery-noniden.R`):
+
+| family | conv | pdHess | mean / RMSE sd_int (truth) | mean / RMSE sd_slp (truth) |
+| --- | --- | --- | --- | --- |
+| gamma_relmat (K = AR1) | 20/20 | 100% | 0.504 / 0.077 (0.5) | 0.350 / 0.049 (0.35) |
+| beta_animal (A = AR1) | 20/20 | 100% | 0.381 / 0.065 (0.4) | 0.276 / 0.061 (0.30) |
+
+Both recover cleanly under a genuinely correlated relatedness matrix, so the "no C++" one-slope
+path is validated on non-diagonal precision for **all three** providers (student·spatial already
+used the coords-based precision). `animal(1 + x | id, A = R)` accepts a supplied relatedness
+matrix directly.
 
 ## Verdict
 
