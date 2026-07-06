@@ -1,0 +1,69 @@
+drmTMB loaded via load_all
+
+Truth: sigma-intercept SD=0.50  sigma-slope SD=0.38
+
+==== seed 740001 ====
+  convergence=0  pdHess=TRUE
+  sdpars$sigma:
+    spatial(1 | site) spatial(0 + x | site) 
+            0.3530384             0.2448403 
+
+  drm_profile_targets(fit):
+                            parm         target_class  dpar
+1           fixef:mu:(Intercept)         fixed-effect    mu
+2                     fixef:mu:x         fixed-effect    mu
+3        fixef:sigma:(Intercept)         fixed-effect sigma
+4                          sigma distributional-scale sigma
+5     sd:sigma:spatial(1 | site)     random-effect-sd sigma
+6 sd:sigma:spatial(0 + x | site)     random-effect-sd sigma
+                   term tmb_parameter index   estimate link_estimate    scale
+1           (Intercept)       beta_mu     1  0.5091680     0.5091680     link
+2                     x       beta_mu     2  0.3757223     0.3757223     link
+3           (Intercept)    beta_sigma     1 -0.2876896    -0.2876896     link
+4            (constant)    beta_sigma     1  0.7499943    -0.2876896 response
+5     spatial(1 | site)  log_sd_phylo     1  0.3530384    -1.0411786 response
+6 spatial(0 + x | site)  log_sd_phylo     2  0.2448403    -1.4071491 response
+    transformation target_type profile_ready profile_note
+1 linear_predictor      direct          TRUE        ready
+2 linear_predictor      direct          TRUE        ready
+3 linear_predictor      direct          TRUE        ready
+4              exp      direct          TRUE        ready
+5              exp      direct          TRUE        ready
+6              exp      direct          TRUE        ready
+    slope target listed?     TRUE
+    intercept target listed? TRUE
+
+  confint(fit, parm='variance_components'):
+                            parm level     lower     upper    scale
+1                          sigma  0.95 0.4572085 1.2302734 response
+2     sd:sigma:spatial(1 | site)  0.95 0.1783016 0.6990183 response
+3 sd:sigma:spatial(0 + x | site)  0.95 0.0880650 0.6807105 response
+  transformation tmb_parameter index method profile.engine conf.status
+1            exp    beta_sigma     1   wald           <NA>        wald
+2            exp  log_sd_phylo     1   wald           <NA>        wald
+3            exp  log_sd_phylo     2   wald           <NA>        wald
+  profile.boundary profile.message
+1               NA            <NA>
+2               NA            <NA>
+3               NA            <NA>
+
+  [slope    ] wald=[0.088, 0.681]  profile=[0.022, 0.610]
+  [intercept] wald=[0.178, 0.699]  profile=[0.173, 0.722]
+
+==== seed 740002 ====
+  convergence=0  pdHess=TRUE
+  sdpars$sigma:
+    spatial(1 | site) spatial(0 + x | site) 
+            0.2581897             0.3591525 
+  [slope    ] wald=[0.127, 1.016]  profile=[0.000, 0.873]
+  [intercept] wald=[0.117, 0.572]  profile=[0.087, 0.564]
+
+==== seed 740003 ====
+  convergence=0  pdHess=TRUE
+  sdpars$sigma:
+    spatial(1 | site) spatial(0 + x | site) 
+            0.3436506             0.4929860 
+  [slope    ] wald=[0.243, 0.999]  profile=[0.229, 1.022]
+  [intercept] wald=[0.175, 0.675]  profile=[0.167, 0.696]
+
+SPIKE DONE
