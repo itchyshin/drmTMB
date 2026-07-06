@@ -390,7 +390,7 @@ tracked follow-on. The 4-lens gate signed off: Curie (recovery), Noether, Fisher
 ### Decision executed (2026-07-05): simultaneous two-provider structured count mu admitted (recovery-only) → 103/104
 
 M5 of the arc admits the first non-Gaussian row of the two remaining post-v1
-rows: `qseries_count_mu_simultaneous_structured_types_rejected`, an NB2 count
+rows: `qseries_count_mu_simultaneous_structured_types_recovery`, an NB2 count
 mean carrying **two structured providers at once** —
 `spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)` on a crossed
 `site × id` design. Unlike q6/q12 (parser-only, since M1 proved the covariance
