@@ -554,7 +554,11 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
     sep = "\t",
     quote = "",
     check.names = FALSE,
-    stringsAsFactors = FALSE
+    stringsAsFactors = FALSE,
+    # Force character columns: row 105 is now a build/surface fit, so every
+    # first-four smoke row has an empty expected_error_pattern, and an
+    # all-empty column would otherwise be read as logical NA.
+    colClasses = "character"
   )
   expect_named(
     result,
@@ -601,7 +605,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "expected_fit",
       "expected_fit",
       "expected_fit",
-      "expected_rejection",
+      "expected_fit",
       "expected_fit",
       "expected_fit",
       "expected_fit",
@@ -624,7 +628,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "",
       "",
       "",
-      "Only one structured",
+      "",
       "",
       "",
       "",
