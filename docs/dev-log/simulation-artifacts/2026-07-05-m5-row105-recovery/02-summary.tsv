@@ -1,0 +1,13 @@
+rung	n_lvl	param	n_seeds	truth	mean_hat	bias	rmse	pdHess_rate	conv0_rate	cap_sat_rate
+crossed_n10	10	sd_spatial	30	0.45	0.407	-0.043	0.1508	1	1	0
+crossed_n10	10	sd_relmat	30	0.4	0.3949	-0.0051	0.0819	1	1	0
+crossed_n10	10	sigma_nb2	30	0.35	0.333	-0.017	0.0637	1	1	0
+crossed_n20	20	sd_spatial	30	0.45	0.4166	-0.0334	0.1108	1	1	0
+crossed_n20	20	sd_relmat	30	0.4	0.3907	-0.0093	0.0512	1	1	0
+crossed_n20	20	sigma_nb2	30	0.35	0.3691	0.0191	0.044	1	1	0
+crossed_n30	30	sd_spatial	30	0.45	0.4194	-0.0306	0.0811	1	1	0
+crossed_n30	30	sd_relmat	30	0.4	0.3939	-0.0061	0.0503	1	1	0
+crossed_n30	30	sigma_nb2	30	0.35	0.3428	-0.0072	0.0422	1	1	0
+noncrossed_control_n10	10	sd_spatial	10	0.45	0.1081	-0.3419	0.4044	1	1	0
+noncrossed_control_n10	10	sd_relmat	10	0.4	0.3229	-0.0771	0.1841	1	1	0
+noncrossed_control_n10	10	sigma_nb2	10	0.35	0.3361	-0.0139	0.076	1	1	0
