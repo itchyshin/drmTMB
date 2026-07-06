@@ -3,7 +3,7 @@
 ## 1. Goal
 
 Admit the last `planned` Q-Series board cell,
-`qseries_nongaussian_structured_slope_neighbors_planned` (row 87), honestly and
+`qseries_nongaussian_structured_slope_neighbors_recovery` (row 87), honestly and
 recovery-only, closing the practical v1.0 fit surface at **104/104**. The row is a
 catch-all for "non-count OR labelled/multiple structured non-Gaussian slope
 variants". The honest representative is a **non-count family structured `mu`
@@ -119,16 +119,18 @@ CONSISTENT_WITH_NOTE, Fisher HONEST, Rose SIGN_OFF_WITH_NOTE.
 
 ## 10. Known Residuals
 
-- **cell_id `_planned` suffix.** The id keeps its suffix (stable key) though the cell is
-  admitted — same pattern as the row-105 `_rejected`→`_recovery` rename. Tracked as a
-  separate follow-on rename.
-- **Closure-triage lag.** `structured-re-q-series-closure-triage.tsv` still lists row 87
-  under `non_gaussian_planned`; its counts are hardcoded in `validate-mission-control.py`
-  and its `rejected` bucket holds `point_only` cells. The 16-bucket total stays 104 and
-  all validators are green. Left as a tracked follow-up, matching how row 105's admission
-  left the closure subsystem untouched. A clean fix means updating the sidecar + the
-  validator's hardcoded closure dict + the queue sum-checks together, and ideally
-  relabelling the `rejected`→`point_only` bucket.
+- **cell_id `_planned` suffix — RESOLVED (2026-07-06 follow-up).** The id kept its suffix
+  during the flip (stable key), then a follow-up renamed it to
+  `qseries_nongaussian_structured_slope_neighbors_recovery` in lockstep across the live
+  surfaces, per the row-105 `_rejected`→`_recovery` precedent.
+- **Closure-triage — reconciled (same follow-up).** Row 87 was moved out of the
+  `non_gaussian_planned` closure bucket into the point-only-holding bucket, with the coupled
+  validator closure dict + queue dict + queue sidecar updated in lockstep; the 16-bucket
+  total stays 104 and all validators are green. The remaining `rejected`-bucket misnomer (it
+  holds `point_only` cells; pre-existing, ~18 cells incl. row 105) — and the ideal relabel to
+  `point_only` — is left as a separate legacy cleanup, because a clean relabel cascades into
+  the queue's dual-purpose `intentional_rejections_hold` row and the dual-use
+  `non_gaussian_rejected` widget_state.
 - **student_spatial small-sample caveat.** Convergence 86.7% → 96.7% across the ladder;
   the `claim_boundary` and artifact carry `n_levels ≥ 20`.
 - **S7 pending:** full local suite / `R CMD check --as-cran` before merge (direct-DLL

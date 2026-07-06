@@ -413,7 +413,7 @@ vary independently or the two fields confound). Math is independently CONSISTENT
 
 This moves the practical v1.0 surface **102/104 → 103/104**; the Gaussian core is
 **unchanged at 67/67** and post-v1.0 falls to the **1** remaining non-Gaussian row
-(`qseries_nongaussian_structured_slope_neighbors_planned`). It is **recovery
+(`qseries_nongaussian_structured_slope_neighbors_recovery`). It is **recovery
 evidence only:** the two SDs are direct profile targets (`log_sd_phylo` /
 `log_sd_phylo2`) but `interval_status`/`coverage_status` stay `unsupported`,
 `authority` stays `source`, and no row is `supported`. It does **not** promote
@@ -427,7 +427,7 @@ honesty; no interval/coverage claim), Rose (claim accounting).
 ## Row 87 — the final cell → 104/104 (2026-07-06)
 
 The last `planned` non-Gaussian row,
-`qseries_nongaussian_structured_slope_neighbors_planned`, is admitted
+`qseries_nongaussian_structured_slope_neighbors_recovery`, is admitted
 **recovery-only**, taking the practical v1.0 surface **103/104 → 104/104**
 (Gaussian core unchanged at 67/67; post-v1.0 non-Gaussian design rows fall to
 **0**). The catch-all is represented by three non-count family × provider
@@ -446,14 +446,14 @@ labelled/multiple/scale-side structured slopes, other families, bridge parity, o
 public support. The 4-lens gate signed off: Curie (CLEAN_WITH_CAVEAT), Noether
 (CONSISTENT_WITH_NOTE — the one-slope field is two same-`dpar` columns, so the
 independent-per-column-SD C++ branch applies with no cross term), Fisher (HONEST),
-Rose (SIGN_OFF_WITH_NOTE). **cell_id debt:** the id keeps its `_planned` suffix
-(stable key) though the cell is now admitted; a rename is a tracked follow-on, as
-with the row-105 `_rejected`→`_recovery` precedent. **Closure-triage lag:** the
-coarse closure-triage still lists row 87 under `non_gaussian_planned` (its counts
-are hardcoded in `validate-mission-control.py`, and its `rejected` bucket actually
-holds `point_only` cells); the 16-bucket total stays 104 and all validators are
-green, so this is a tracked follow-up, matching how row 105's admission left the
-closure subsystem untouched.
+Rose (SIGN_OFF_WITH_NOTE). **cell_id debt — RESOLVED (2026-07-06 follow-up):** the id
+kept its `_planned` suffix during the flip (stable key), then a follow-up renamed it to
+`qseries_nongaussian_structured_slope_neighbors_recovery` in lockstep, per the row-105
+`_rejected`→`_recovery` precedent. **Closure-triage — reconciled (same follow-up):** row 87
+was moved out of the `non_gaussian_planned` bucket into the point-only-holding bucket, with
+the coupled validator closure dict + queue dict updated; the 16-bucket total stays 104 and
+all validators are green. The `rejected`-bucket misnomer (it holds `point_only` cells;
+pre-existing, ~18 cells incl. row 105) remains a separate legacy cleanup.
 
 ## Why the Older Work Drifted
 
