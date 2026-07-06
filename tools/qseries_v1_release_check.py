@@ -529,7 +529,7 @@ def build_ninety_review_packet_rows(
 
 def ninety_economy_detail(row: dict[str, str]) -> dict[str, str]:
     cell_id = row["cell_id"]
-    # Row 105 (qseries_count_mu_simultaneous_structured_types_rejected) was
+    # Row 105 (qseries_count_mu_simultaneous_structured_types_recovery) was
     # admitted recovery-only in M5, so it is no longer a post-v1 candidate and no
     # longer needs a "one-provider gate" economy note.
     if cell_id == "qseries_nongaussian_structured_slope_neighbors_planned":
@@ -686,7 +686,7 @@ FIRST_FOUR_CONTRACT_DETAIL = {
         "recovery_requirements": "one local debug fixture may only reproduce the current labelled q=2 rejection or, after review, check parser diagnostics; not a denominator or coverage run",
         "next_action": "review the labelled q=2 structured count-mu design before any parser edit, local debug fit, host compute, or support-cell edit",
     },
-    # Row 105 (qseries_count_mu_simultaneous_structured_types_rejected) was
+    # Row 105 (qseries_count_mu_simultaneous_structured_types_recovery) was
     # admitted recovery-only in M5: the crossed spatial+relmat NB2 model now
     # BUILDS instead of rejecting, so it is no longer a post-v1 design-contract
     # candidate and its stale "one-structured-provider gate" contract entry is

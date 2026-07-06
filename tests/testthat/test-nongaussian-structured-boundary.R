@@ -582,7 +582,7 @@ test_that("q-series v1 first-four rejection smoke reproduces current gates", {
       "qseries_ordinal_mu_phylo_rejected",
       "qseries_truncnbinom2_hu_relmat_rejected",
       "qseries_count_mu_labelled_q2_rejected",
-      "qseries_count_mu_simultaneous_structured_types_rejected",
+      "qseries_count_mu_simultaneous_structured_types_recovery",
       "qseries_student_mu_spatial_rejected",
       "qseries_student_nu_phylo_rejected",
       "qseries_poisson_zi_spatial_rejected",
