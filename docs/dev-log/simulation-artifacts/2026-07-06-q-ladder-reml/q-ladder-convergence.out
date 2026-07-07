@@ -1,0 +1,18 @@
+q-ladder convergence, ML, AVONET N=250 (beak/tarsus)
+
+q1 baseline    conv=1 pd=TRUE  minSD=0.4737 nZero=0 obj=338.55  t=2.3s
+q1 robust      conv=1 pd=TRUE  minSD=0.4737 nZero=0 obj=338.55  t=0.9s
+q1 multistart  conv=1 pd=TRUE  minSD=0.4736 nZero=0 obj=338.54  t=10.9s
+q1 penalty     conv=0 pd=TRUE  minSD=0.4677 nZero=0 obj=339.61  t=1.6s
+
+q2 baseline    conv=0 pd=TRUE  minSD=0.4619 nZero=0 obj=295.19  t=3.3s
+q2 robust      conv=1 pd=TRUE  minSD=0.4620 nZero=0 obj=295.19  t=1.8s
+q2 multistart  conv=1 pd=TRUE  minSD=0.4619 nZero=0 obj=295.16  t=29.9s
+q2 penalty     conv=1 pd=TRUE  minSD=0.4632 nZero=0 obj=297.33  t=5.5s
+
+q4 baseline    conv=1 pd=FALSE minSD=0.0097 nZero=0 obj=417.20  t=55.5s
+q4 robust      conv=1 pd=FALSE minSD=0.0097 nZero=0 obj=417.20  t=17.8s
+q4 multistart  conv=1 pd=FALSE minSD=0.0203 nZero=0 obj=416.34  t=429.7s
+q4 penalty     conv=1 pd=FALSE minSD=0.1420 nZero=0 obj=421.04  t=163.9s
+
+Q-LADDER DONE

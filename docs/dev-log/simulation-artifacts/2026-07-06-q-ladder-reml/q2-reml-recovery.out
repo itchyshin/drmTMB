@@ -1,0 +1,12 @@
+verify q2 REML fits with the relaxed gate ...
+  single q2 REML: sd_mu=0.297 sd_sigma=0.256 
+  rep 10 done
+  rep 20 done
+  rep 30 done
+There were 50 or more warnings (use warnings() to see the first 50)
+
+q2 RECOVERY  (truth sd_mu=0.60 sd_sigma=0.40 rho=0.40)  N=120 R=30
+  sd_mu    : ML 0.512 (bias -0.088) | REML 0.367 (bias -0.233)
+  sd_sigma : ML 0.235 (bias -0.165) | REML 0.289 (bias -0.111)
+  finite   : ML 30/30 | REML 28/30
+Q2 RECOVERY DONE

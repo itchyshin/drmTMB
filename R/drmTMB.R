@@ -2004,8 +2004,12 @@ drm_validate_reml_spec <- function(spec) {
     # drm_apply_estimator_spec so the restricted likelihood also adjusts for the
     # scale coefficients (Cox-Reid / adjusted-profile REML; Noether review
     # 2026-07-06). Keep rejecting MATCHED mean-and-scale phylo effects (both
-    # endpoints, e.g. `1 | p | species`): their mean-scale coupling is not yet
-    # REML-calibrated and its `sdreport` uncertainty is unstable.
+    # endpoints, e.g. `1 | p | species`): a recovery arbiter (2026-07-06, q2 2x2
+    # block, N=120, R=30) shows this REML implementation debiases the scale-side
+    # SD (bias -0.165 -> -0.111) but DEGRADES the mean-side SD (-0.088 -> -0.233)
+    # -- the mean-scale coupling trades bias through the correlation and is not yet
+    # REML-calibrated. Needs a Cox-Reid adjustment for the coupled block before it
+    # can ship; keep rejected for now.
     endpoint_axes <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
     if (any(endpoint_axes == "sigma") && any(endpoint_axes == "mu")) {
       cli::cli_abort(c(

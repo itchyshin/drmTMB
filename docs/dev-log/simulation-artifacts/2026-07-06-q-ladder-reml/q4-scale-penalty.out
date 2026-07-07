@@ -1,0 +1,13 @@
+launched q4-scale ladder on Totoro
+q4 biv phylo location-scale (beak+tarsus): identify vs scale?
+
+N=  250 baseline  conv=1 pd=FALSE minSD=0.0163 t=20.8s
+N=  250 penalty   conv=1 pd=FALSE minSD=0.3017 t=65.1s
+
+N=  500 baseline  conv=1 pd=FALSE minSD=0.0111 t=52.1s
+N=  500 penalty   conv=1 pd=FALSE minSD=0.0460 t=43.9s
+
+N= 1000 baseline  conv=1 pd=FALSE minSD=0.0158 t=126.5s
+N= 1000 penalty   conv=1 pd=FALSE minSD=0.0272 t=85.6s
+
+Q4-SCALE DONE
