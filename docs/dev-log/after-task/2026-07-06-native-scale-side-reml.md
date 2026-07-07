@@ -71,3 +71,48 @@ follow-up update.
 2. **Fisher** — adjudicate bias/coverage for an `inference_ready` claim.
 3. **DRM.jl fix** — `_glsp_reml_penalty` restricts β_μ only; extend to β_ψ (Julia path).
 4. **Harden** — ordinary/biv/other-provider scale-side REML + design-doc updates.
+
+## Coverage + Ayumi-scale results (overnight, 2026-07-06)
+
+Coverage grid on Totoro: phylo sigma-intercept, **tmbprofile** interval engine, 480 paired
+ML/REML reps per g at g ∈ {8,16,32}, plus an Ayumi-scale probe at g ∈ {64,128} (15 reps).
+Evidence: `docs/dev-log/simulation-artifacts/2026-07-06-native-reml-coverage/`.
+
+| g | ML cov | REML cov | ML bias | REML bias | REML finite-rate | REML s/fit (vs ML) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | 0.960 | 0.968 | −0.092 | −0.029 | 0.925 (vs 0.88) | 0.16 (vs 1.08) |
+| 16 | 0.951 | 0.960 | −0.041 | −0.008 | | |
+| 32 | 0.933 | 0.938 | −0.030 | −0.007 | | |
+| 64 | 0.933 | 0.933 | −0.041 | −0.024 | | 0.64 (vs 4.9) |
+| 128 | 0.933 | 0.933 | −0.009 | +0.019 | | 1.59 (vs 10.5) |
+
+**REML wins on four fronts:** clear point-estimate **debiasing**; a small consistent **coverage**
+gain (+0.005–0.01); a better **finite-rate** (0.925 vs 0.88 at g=8); and dramatically **faster**
+intervals (0.16 vs 1.08 s at g=8; 1.6 vs 10.5 s at g=128).
+
+**Two honest nuances:**
+1. **Interval engine matters.** With `profile_engine = "tmbprofile"` ML already covers ~nominal
+   (0.96), not the 0.895 seen earlier with the `"endpoint"` engine — so the earlier
+   under-coverage was substantially an *endpoint-engine* artifact, not pure bias. REML's headline
+   gains are debiasing + finite-rate + speed; coverage is fixed by *engine + REML together*.
+2. **The `"endpoint"` engine ERRORS on REML fits** (`'d' must be a nonempty numeric vector`,
+   `conf.status=profile_failed`) — because β_μ/β_σ move into the Laplace `random` block, the
+   endpoint refit gets an empty free-parameter vector. `tmbprofile` works; the endpoint-solver
+   REML gap is a separate follow-up (R/profile.R).
+
+**Ayumi-scale engine smoke (g = 64, 128 — bird-tree-scale stand-in):** native scale-side REML
+**converges 15/15, debiases, returns finite intervals, and is fast** (0.6 s at g=64, 1.6 s at
+g=128 — faster than ML). So the engine scales; "might Ayumi's bird data run?" → the engine
+smoke says **yes** (respecting the parked-thread boundary — this is an engine smoke, not an
+Ayumi reply; the full run still needs the actual data + coverage certification).
+
+## DRM.jl β_ψ fix (the Julia path)
+
+`_glsp_reml_refit_clean` (via `_glsp_reml_penalty`) restricted only the **mean** fixed effects
+(`pμ`); the σ variance component needs the **scale** fixed effect β_ψ integrated too. Fixed both
+wired σ-phylo branches in `../DRM.jl/src/gaussian_locscale_phylo.jl` (lines ~574, ~656):
+`pμ` → `pμ + pψ` (restrict β_μ AND β_ψ — the complete Cox-Reid restricted likelihood; corroborated
+by DRM.jl's own q4 route, which already profiles β_μ AND β_σ). **Verified via the bridge: REML now
+debiases 7/8 (mean 0.423 → 0.484, truth 0.60; was 0/30 the *wrong* way before the fix)** — the same
+correction as native drmTMB, now on the Julia path. Committed on a DRM.jl branch (not pushed);
+DRM.jl σ-phylo REML tests likely need updating to the corrected (debiasing) behavior.
