@@ -119,22 +119,32 @@ test_that("REML phylo SD is not more downward-biased than ML", {
   )
 })
 
-test_that("REML still rejects a scale-side phylogenetic effect", {
+test_that("REML admits a pure scale-side phylogenetic effect", {
+  skip_on_cran()
+  skip_if_not_installed("ape")
+  # Scale-side phylo sigma-intercept is now admitted under REML: `beta_sigma` is
+  # marginalized in the estimator spec so the restricted likelihood adjusts for
+  # the scale coefficients (Cox-Reid / adjusted-profile REML). Verified to
+  # debias the sigma random-effect SD vs ML (2026-07-06).
+  fx <- reml_phylo_location_fixture()
+  tree <- fx$tree
+  fit <- drmTMB(
+    bf(
+      y ~ x,
+      sigma ~ phylo(1 | species, tree = tree)
+    ),
+    data = fx$data,
+    REML = TRUE
+  )
+  expect_identical(fit$estimator, "REML")
+  expect_false(is.null(fit$sdpars$sigma))
+})
+
+test_that("REML still rejects matched mean-and-scale phylogenetic effects", {
   skip_on_cran()
   skip_if_not_installed("ape")
   fx <- reml_phylo_location_fixture()
   tree <- fx$tree
-  expect_error(
-    drmTMB(
-      bf(
-        y ~ x,
-        sigma ~ phylo(1 | species, tree = tree)
-      ),
-      data = fx$data,
-      REML = TRUE
-    ),
-    "scale-side"
-  )
   expect_error(
     drmTMB(
       bf(
@@ -144,6 +154,6 @@ test_that("REML still rejects a scale-side phylogenetic effect", {
       data = fx$data,
       REML = TRUE
     ),
-    "scale-side"
+    "matched mean-and-scale"
   )
 })

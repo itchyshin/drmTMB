@@ -1,0 +1,19 @@
+loaded drmTMB from /Users/z3437171/Dropbox/Github Local/drmTMB 
+
+=== smoke: one native REML fit ===
+  REML fit ran: conv= 0   sd_sigma= 0.362   estimator= REML 
+  rep 5/30: ml=0.186 reml=0.261
+  rep 10/30: ml=0.000 reml=0.353
+  rep 15/30: ml=0.408 reml=0.469
+  rep 20/30: ml=0.365 reml=0.424
+  rep 25/30: ml=0.268 reml=0.314
+  rep 30/30: ml=0.523 reml=0.606
+
+n usable = 30/30 ; truth = 0.600
+mean sd_ml   = 0.429  (bias -0.171)
+mean sd_reml = 0.506  (bias -0.094)
+REML - ML    = +0.077  (SE 0.011)
+reps REML > ML: 30/30
+
+VERDICT: native REML  PULLS THE SD UP (debiases) *** 
+GRID DONE

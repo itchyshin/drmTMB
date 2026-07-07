@@ -828,7 +828,32 @@ drm_apply_estimator_spec <- function(spec, REML = FALSE) {
   } else {
     "beta_mu"
   }
-  spec$tmb_random_names <- c(spec$random_names, mean_fixed)
+  # Scale-side REML (first slice, intercept-validated): when a sigma variance
+  # component is present, also marginalize the sigma fixed effect(s) so TMB's
+  # Laplace step restricts the likelihood for the scale coefficients too. This
+  # is the Cox-Reid / adjusted-profile REML that debiases the downward-biased
+  # sigma random-effect SD at small group counts (Noether math review,
+  # 2026-07-06: the log-link Jacobian is captured by AD, so no analytic term is
+  # missing). Gated on a sigma effect so mean-only REML is byte-identical.
+  sigma_n_re <- spec$random$sigma$n_re
+  has_sigma_re <- !is.null(sigma_n_re) && sigma_n_re > 0L
+  if (!has_sigma_re && isTRUE(spec$structured$phylo_mu$has)) {
+    eps <- tryCatch(
+      phylo_mu_endpoint_dpars(spec$structured$phylo_mu),
+      error = function(e) character()
+    )
+    has_sigma_re <- any(sub("[0-9]+$", "", eps) == "sigma")
+  }
+  scale_fixed <- if (has_sigma_re) {
+    if (identical(spec$model_type, "biv_gaussian")) {
+      c("beta_sigma1", "beta_sigma2")
+    } else {
+      "beta_sigma"
+    }
+  } else {
+    character()
+  }
+  spec$tmb_random_names <- c(spec$random_names, mean_fixed, scale_fixed)
   spec
 }
 
@@ -1974,11 +1999,18 @@ drm_validate_reml_spec <- function(spec) {
         "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
       ))
     }
-    endpoints <- phylo_mu_endpoint_dpars(phylo_mu)
-    if (any(sub("[0-9]+$", "", endpoints) == "sigma")) {
+    # First slice: admit a PURE scale-side phylo effect (a sigma endpoint with no
+    # mean endpoint) under REML -- `beta_sigma` is marginalized in
+    # drm_apply_estimator_spec so the restricted likelihood also adjusts for the
+    # scale coefficients (Cox-Reid / adjusted-profile REML; Noether review
+    # 2026-07-06). Keep rejecting MATCHED mean-and-scale phylo effects (both
+    # endpoints, e.g. `1 | p | species`): their mean-scale coupling is not yet
+    # REML-calibrated and its `sdreport` uncertainty is unstable.
+    endpoint_axes <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
+    if (any(endpoint_axes == "sigma") && any(endpoint_axes == "mu")) {
       cli::cli_abort(c(
-        "{.arg REML} is not implemented for scale-side structured effects.",
-        "i" = "REML restricts the likelihood for the location: keep {.code phylo()} on the mean with an intercept-only {.code sigma}, or set {.code REML = FALSE}."
+        "{.arg REML} is not yet implemented for matched mean-and-scale phylogenetic effects.",
+        "i" = "Use a scale-side {.code phylo()} effect alone, a mean-side one alone, or set {.code REML = FALSE}."
       ))
     }
   }
