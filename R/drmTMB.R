@@ -2027,18 +2027,56 @@ drm_validate_reml_spec <- function(spec) {
   invisible(TRUE)
 }
 
-# REML validation for the bivariate Gaussian model. The first bivariate slice
-# restricts the likelihood for fixed-effect mean models (mu1, mu2): TMB
-# marginalises beta_mu1 and beta_mu2, giving an unbiased residual covariance.
-# Bivariate random effects and structured (phylo) means under REML are a later
-# slice -- they need a bivariate restricted-likelihood reference to validate --
-# so they are rejected here.
+# REML validation for the bivariate Gaussian model. TMB marginalises beta_mu1 and
+# beta_mu2 (Laplace), which is exact for the Gaussian and gives an unbiased residual
+# covariance AND unbiased phylo location-variance. MEAN-side random / structured
+# (phylo) effects are admitted here, validated against an exact bivariate
+# restricted-likelihood reference plus a sample-size recovery ladder (doc 221:
+# biases collapse to 0 with n, REML debiases the variance components at every n, and
+# REML/ML SEs agree). Rejected until separately validated: scale-side random effects,
+# matched mean-and-scale phylo, direct random-effect scale formulae (sd_phylo ~ x),
+# and q > 2 labelled blocks. (Checks mirror drm_validate_reml_spec for the shared,
+# model-agnostic spec fields; kept inline to avoid touching the univariate path.)
 drm_validate_reml_spec_biv <- function(spec) {
-  if (length(spec$random_names) > 0L) {
+  if (isTRUE(spec$sparse_fixed$mu1) || isTRUE(spec$sparse_fixed$mu2)) {
     cli::cli_abort(c(
-      "{.arg REML} for bivariate Gaussian models currently supports fixed-effect mean models only.",
-      "i" = "Remove the random or structured ({.fn phylo}) mean effects, or set {.code REML = FALSE}."
+      "{.arg REML} is not implemented with sparse fixed-effect matrices yet.",
+      "i" = "Use {.code control = drm_control(sparse_fixed = FALSE)} or set {.code REML = FALSE}."
     ))
+  }
+  if (spec$random$sigma$n_re > 0L || spec$random$mu_sigma$n_cors > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} for bivariate Gaussian models currently supports {.code mu} random effects only.",
+      "i" = "Remove {.code sigma} random effects or set {.code REML = FALSE}."
+    ))
+  }
+  if (spec$random$covariance_blocks$n_qgt2_re > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented for q > 2 labelled covariance blocks yet.",
+      "i" = "Use ordinary location random-intercept or random-slope blocks, or set {.code REML = FALSE}."
+    ))
+  }
+  if (spec$random_scale$mu$n_models > 0L || spec$random_scale$phylo$n_models > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with direct random-effect scale formulae ({.code sd_phylo ~ x}) for bivariate models yet.",
+      "i" = "Use ordinary location random effects, or set {.code REML = FALSE}."
+    ))
+  }
+  phylo_mu <- spec$structured$phylo_mu
+  if (isTRUE(phylo_mu$has)) {
+    if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+      cli::cli_abort(c(
+        "{.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
+        "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
+      ))
+    }
+    endpoint_axes <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
+    if (any(endpoint_axes == "sigma")) {
+      cli::cli_abort(c(
+        "{.arg REML} for bivariate Gaussian models currently supports mean-side ({.code mu1}/{.code mu2}) phylogenetic effects only.",
+        "i" = "Scale-side or matched mean-and-scale phylogenetic effects under bivariate REML are not validated yet; set {.code REML = FALSE}."
+      ))
+    }
   }
   if (
     qr(as.matrix(spec$X$mu1))$rank < ncol(spec$X$mu1) ||

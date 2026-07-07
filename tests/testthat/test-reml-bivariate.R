@@ -86,10 +86,10 @@ test_that("bivariate REML df counts both marginalised mean blocks", {
   expect_equal(attr(stats::logLik(fit), "df"), length(fit$opt$par) + 4L)
 })
 
-test_that("bivariate REML rejects random/structured mean effects in this slice", {
+test_that("bivariate REML now ADMITS ordinary random-intercept means (rung 1)", {
   skip_on_cran()
   set.seed(5)
-  n_id <- 30
+  n_id <- 40
   n <- n_id * 4
   dat <- data.frame(
     id = factor(rep(seq_len(n_id), each = 4)),
@@ -98,19 +98,108 @@ test_that("bivariate REML rejects random/structured mean effects in this slice",
   u <- stats::rnorm(n_id, 0, 0.7)
   dat$y1 <- 0.3 + 0.5 * dat$x + u[dat$id] + stats::rnorm(n, 0, 0.6)
   dat$y2 <- 0.1 + 0.2 * dat$x + u[dat$id] + stats::rnorm(n, 0, 0.6)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x + (1 | p | id),
+       sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(), data = dat, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  )
+  expect_equal(fit$estimator, "REML")
+  expect_equal(fit$opt$convergence, 0L)
+  # 3 fixed (sigma1, sigma2, rho12) + 4 marginalised mean coefs (mu1, mu2 each x2)
+  expect_equal(attr(stats::logLik(fit), "df"), length(fit$opt$par) + 4L)
+})
+
+# Exact restricted-likelihood reference for the biv phylo-MEAN model (1 obs/species):
+# stack y = (y1; y2); V = G kron A (phylo loc-loc) + R kron I (residual). REML restricts
+# for beta_mu1, beta_mu2. drmTMB's biv phylo REML must match this maximiser. Recovery
+# across n is in docs/design/221-native-reml-finish.md (ladder: bias -> 0 with n, REML
+# debiases the variance components, REML/ML SEs agree).
+biv_phylo_reml_fixture <- function(n_tip = 150L, seed = 4L) {
+  set.seed(seed)
+  tree <- ape::rcoal(n_tip); tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE); L <- t(chol(A))
+  # Strong, well-identified phylo block (phylo SD > residual SD) so the exact-match
+  # test converges cleanly at moderate n; recovery across realistic signal/n is the
+  # ladder in doc 221 (a weak block under-identifies at small n, as expected).
+  G <- matrix(c(1.0^2, 0.5 * 1.0 * 0.8, 0.5 * 1.0 * 0.8, 0.8^2), 2, 2)
+  R <- matrix(c(0.5^2, 0.3 * 0.5 * 0.5, 0.3 * 0.5 * 0.5, 0.5^2), 2, 2)
+  M <- L %*% matrix(stats::rnorm(n_tip * 2), n_tip, 2) %*% chol(G)
+  E <- matrix(stats::rnorm(n_tip * 2), n_tip, 2) %*% chol(R)
+  x <- stats::rnorm(n_tip)
+  list(
+    data = data.frame(
+      sp = factor(tree$tip.label, levels = tree$tip.label), x = x,
+      y1 = 0.3 + 0.5 * x + M[, 1] + E[, 1], y2 = 0.1 + 0.2 * x + M[, 2] + E[, 2]),
+    tree = tree, A = A)
+}
+
+biv_phylo_reml_reference <- function(y1, y2, X, A) {
+  n <- nrow(A); p <- 2 * ncol(X); In <- diag(n)
+  Xb <- rbind(cbind(X, matrix(0, n, ncol(X))), cbind(matrix(0, n, ncol(X)), X))
+  y <- c(y1, y2)
+  dl <- function(m) as.numeric(determinant(m, logarithm = TRUE)$modulus)
+  Vof <- function(par) {
+    sp1 <- exp(par[1]); sp2 <- exp(par[2]); rp <- tanh(par[3])
+    sr1 <- exp(par[4]); sr2 <- exp(par[5]); r12 <- tanh(par[6])
+    rbind(cbind(sp1^2 * A + sr1^2 * In, rp * sp1 * sp2 * A + r12 * sr1 * sr2 * In),
+          cbind(rp * sp1 * sp2 * A + r12 * sr1 * sr2 * In, sp2^2 * A + sr2^2 * In))
+  }
+  nll <- function(par) {
+    V <- Vof(par); Vi <- solve(V); XtViX <- t(Xb) %*% Vi %*% Xb
+    b <- solve(XtViX, t(Xb) %*% Vi %*% y); r <- y - Xb %*% b
+    0.5 * ((2 * n - p) * log(2 * pi) + dl(V) + dl(XtViX) + as.numeric(t(r) %*% Vi %*% r))
+  }
+  opt <- stats::optim(
+    c(log(1.0), log(0.8), atanh(0.5), log(0.5), log(0.5), atanh(0.3)),
+    nll, method = "Nelder-Mead", control = list(reltol = 1e-11, maxit = 20000))
+  V <- Vof(opt$par); Vi <- solve(V)
+  b <- solve(t(Xb) %*% Vi %*% Xb, t(Xb) %*% Vi %*% y)
+  list(sd_phylo1 = exp(opt$par[1]), sd_phylo2 = exp(opt$par[2]), cor_phylo = tanh(opt$par[3]),
+       sigma1 = exp(opt$par[4]), sigma2 = exp(opt$par[5]), rho12 = tanh(opt$par[6]),
+       beta = as.numeric(b))
+}
+
+test_that("bivariate phylo-mean REML matches an exact restricted-likelihood reference", {
+  skip_on_cran()
+  fx <- biv_phylo_reml_fixture()
+  dat <- fx$data
+  tree <- fx$tree
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree),
+       mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree),
+       sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(), data = dat, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  )
+  expect_equal(fit$estimator, "REML")
+  expect_equal(fit$opt$convergence, 0L)
+  X <- stats::model.matrix(~x, dat)
+  ref <- biv_phylo_reml_reference(dat$y1, dat$y2, X, fx$A)
+  v <- setNames(summary(fit)$parameters$estimate, summary(fit)$parameters$parm)
+  g1 <- function(rx) unname(v[grep(rx, names(v))][1])
+  expect_equal(g1("^sd:mu:mu1"), ref$sd_phylo1, tolerance = 2e-2)
+  expect_equal(g1("^sd:mu:mu2"), ref$sd_phylo2, tolerance = 2e-2)
+  expect_equal(g1("^cor:phylo"), ref$cor_phylo, tolerance = 5e-2)
+  expect_equal(unname(v["sigma1"]), ref$sigma1, tolerance = 1e-2)
+  expect_equal(unname(v["sigma2"]), ref$sigma2, tolerance = 1e-2)
+  expect_equal(unname(v["rho12"]), ref$rho12, tolerance = 2e-2)
+  expect_equal(c(as.numeric(fit$par$mu1), as.numeric(fit$par$mu2)), ref$beta, tolerance = 1e-2)
+})
+
+test_that("bivariate REML still rejects direct-SD scale formulae (rung 2 not yet validated)", {
+  skip_on_cran()
+  fx <- biv_phylo_reml_fixture(n_tip = 60L)
+  dat <- fx$data
+  tree <- fx$tree
   expect_error(
     drmTMB(
-      bf(
-        mu1 = y1 ~ x + (1 | p | id),
-        mu2 = y2 ~ x + (1 | p | id),
-        sigma1 = ~1,
-        sigma2 = ~1,
-        rho12 = ~1
-      ),
-      family = biv_gaussian(),
-      data = dat,
-      REML = TRUE
+      bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree),
+         mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree),
+         sigma1 = ~1, sigma2 = ~1,
+         sd_phylo1(sp) ~ x, sd_phylo2(sp) ~ x, rho12 = ~1),
+      family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "fixed-effect mean models only"
+    "direct random-effect scale formulae"
   )
 })
