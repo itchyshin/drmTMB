@@ -3070,6 +3070,16 @@ profile_endpoint_evaluator <- function(object, target_position, control) {
       full[[target_position]] <- theta
       object$obj$gr(full)[free]
     }
+    # No free fixed parameters to re-optimize: the profiled parameter is the only
+    # entry of `opt$par`. This happens for REML fits, where the mean and scale
+    # coefficients are integrated into the Laplace `random` block, so the SD being
+    # profiled is the sole fixed parameter. The constrained profile objective is
+    # then simply the marginal NLL at the pinned target (the random effects are
+    # integrated by the inner Laplace) -- no inner optimization, and no empty-vector
+    # `nlminb` call (which errored with "'d' must be a nonempty numeric vector").
+    if (length(start_free) == 0L) {
+      return(list(nll = unname(fn_free(numeric(0))), par = numeric(0)))
+    }
     solve_from <- function(start_values) {
       opt <- stats::nlminb(start_values, fn_free, gr_free, control = control)
       opt_gradient <- tryCatch(
