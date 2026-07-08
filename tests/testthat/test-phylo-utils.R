@@ -85,6 +85,11 @@ phylo_prior_tmb_data <- function(precision) {
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
+      # Per-group direct-SD ADREPORT is opt-in; see `drm_control(se_group_sd = )`.
+      # This hand-built list mirrors the `DATA_*` contract of src/drmTMB.cpp, so
+      # every new `DATA_INTEGER` there must be added here too or `MakeADFun()`
+      # aborts with "Error when reading the variable".
+      report_group_sd = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
       X_mu2 = dummy_matrix,

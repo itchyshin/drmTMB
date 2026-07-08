@@ -616,18 +616,34 @@ test_that("REML rejects unsupported first-slice neighbours", {
       data = dat,
       REML = TRUE
     ),
-    "direct random-effect scale"
+    # Message sharpened in 83521a01: `sd_phylo(...) ~ .` is admitted under REML,
+    # so the rejection now names the *ordinary* direct scale specifically.
+    "direct ordinary random-effect scale"
   )
+  # The missing-data gate now fires only when the engine actually ENGAGES: on
+  # complete-case data `response = "include"` is an exact no-op (A. Mizuno,
+  # 2026-07-08). Introduce real missingness to exercise the rejection.
+  dat_missing_response <- dat
+  dat_missing_response$y[[2L]] <- NA_real_
   expect_error(
+    drmTMB(
+      bf(y ~ x),
+      family = gaussian(),
+      data = dat_missing_response,
+      missing = miss_control(response = "include"),
+      REML = TRUE
+    ),
+    "missing-data engine"
+  )
+  expect_no_error(suppressWarnings(
     drmTMB(
       bf(y ~ x),
       family = gaussian(),
       data = dat,
       missing = miss_control(response = "include"),
       REML = TRUE
-    ),
-    "explicit missing-data"
-  )
+    )
+  ))
   expect_error(
     drmTMB(
       bf(y ~ x),
@@ -648,24 +664,28 @@ test_that("REML rejects unsupported first-slice neighbours", {
     ),
     "Gaussian row aggregation"
   )
-  expect_error(
+  # Ordinary `sigma` random effects under REML were admitted in `feba9018`
+  # (S5 parity); recovery is validated in test-reml-ordinary-sigma.R.
+  expect_no_error(suppressWarnings(
     drmTMB(
       bf(y ~ x, sigma ~ 1 + (1 | id)),
       family = gaussian(),
       data = dat,
       REML = TRUE
-    ),
-    "ordinary .*mu.* random effects"
-  )
-  expect_error(
+    )
+  ))
+  # q > 2 labelled covariance blocks under REML were admitted in `1b3e852b`
+  # (ML/REML parity). This asserts the *validator* admits the shape; the tiny
+  # 8x4 fixture is below the within-group replication floor, so the optimizer
+  # may warn -- fit quality is gated by the recovery ladders, not here.
+  expect_no_error(suppressWarnings(
     drmTMB(
       bf(y ~ x + (1 + x + z | p | id), sigma ~ 1),
       family = gaussian(),
       data = dat,
       REML = TRUE
-    ),
-    "q > 2 labelled covariance"
-  )
+    )
+  ))
   # Mean-side phylo() under REML is supported (validated in
   # test-reml-phylo-location.R). PURE scale-side phylo (`sigma ~ ... phylo(...)`,
   # no mean-side phylo) is now ALSO supported -- admitted and debiasing-validated

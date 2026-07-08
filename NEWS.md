@@ -1,5 +1,37 @@
 # drmTMB 0.3.0 (development version)
 
+## Large direct-SD models: uncertainty no longer scales with the square of the group count
+
+Reported by Ayumi Mizuno on a 10,440-tip bivariate phylogenetic fit, where
+`TMB::sdreport()` exhausted 48 GB of memory.
+
+* **Breaking (default change).** A direct-SD surface (`sd(group, level =
+  "phylogenetic") ~ .`, formerly `sd_phylo()`) previously `ADREPORT`ed one
+  standard deviation *per group*, so the joint `ADREPORT` covariance was
+  `n_group x n_group`. Under `REML = TRUE` the fixed effects are integrated into
+  the Laplace `random` block and `vcov()` reads exactly that covariance, so a
+  bivariate fit at ten thousand tips needed roughly 14 GB for it alone. Those
+  per-group standard errors are now **opt-in** via
+  `drm_control(se_group_sd = TRUE)`. The fitted per-group standard deviations
+  themselves are unchanged and always available. Parameter standard errors,
+  `vcov()`, `summary()`, and `pdHess` now work under REML at that scale.
+
+* New `drm_control(se_report_covariance = )` and
+  `drm_control(se_skip_delta_method = )` pass through to the `getReportCovariance`
+  and `skip.delta.method` arguments of `TMB::sdreport()`, for further control over
+  the cost of uncertainty on large models.
+
+* `REML = TRUE` no longer rejects an explicitly-passed `missing =` control when
+  the data contain no missing values. The gate tested the *setting* rather than
+  whether the missing-data engine actually engages, and
+  `miss_control(response = "include")` is an exact no-op on complete-case data.
+  REML combined with a missing-data engine that genuinely engages is still
+  rejected, as that combination remains unvalidated.
+
+* `sigma ~ z + (1 + x | p | id)` again reports the specific "labelled
+  residual-scale random-slope covariance blocks are not implemented yet" error
+  rather than a generic shape error. The behaviour (rejection) is unchanged.
+
 ## Unified `sd(..., level = )` scale grammar
 
 * **`sd(group, level = "phylogenetic")` is the new generic spelling** for the

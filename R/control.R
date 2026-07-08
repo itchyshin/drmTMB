@@ -33,6 +33,29 @@
 #'   profile-likelihood paths while skipping Wald standard errors,
 #'   [stats::vcov()], and Wald confidence intervals. Profile-likelihood
 #'   intervals still require `keep_tmb_object = TRUE`.
+#' @param se_report_covariance Logical; passed to the `getReportCovariance`
+#'   argument of [TMB::sdreport()]. The default `TRUE` builds the full
+#'   covariance matrix of every `ADREPORT`ed quantity. Models with a direct-SD
+#'   surface (`sd_phylo(...) ~ .`) report one standard deviation *per group*, so
+#'   this matrix is `n_group x n_group` and its memory cost grows with the square
+#'   of the number of groups; at ten thousand tips it dominates the fit. Set to
+#'   `FALSE` to keep per-quantity standard errors while skipping their joint
+#'   covariance.
+#' @param se_group_sd Logical; report delta-method standard errors for the
+#'   *per-group* direct-SD surface (`sd_phylo(...) ~ .`). Defaults to `FALSE`.
+#'   The surface has one standard deviation per group, so `ADREPORT`ing it makes
+#'   the joint `ADREPORT` covariance `n_group x n_group`. Under `REML = TRUE` the
+#'   fixed effects are integrated into the Laplace `random` block and
+#'   [stats::vcov()] reads exactly that joint covariance, so at ten thousand tips
+#'   a bivariate fit needs tens of gigabytes for it. The fitted per-group
+#'   standard deviations themselves are always available (they are recomputed
+#'   from the parameters); only their standard errors are opt-in. Set to `TRUE`
+#'   to restore the pre-0.3.0 behaviour.
+#' @param se_skip_delta_method Logical; passed to the `skip.delta.method`
+#'   argument of [TMB::sdreport()]. Set to `TRUE` to skip standard errors for
+#'   `ADREPORT`ed quantities entirely while retaining fixed-effect standard
+#'   errors and [stats::vcov()]. This is the cheapest route to Wald inference on
+#'   the fixed effects for large structured models.
 #' @param keep_data Logical; keep the complete-case model data in the fitted
 #'   object. Set to `FALSE` to drop `fit$data` and `fit$model$data` after
 #'   fitting. Prediction, fitted values, residuals, simulation, and basic
@@ -100,6 +123,9 @@
 drm_control <- function(
   optimizer = list(),
   se = TRUE,
+  se_report_covariance = TRUE,
+  se_skip_delta_method = FALSE,
+  se_group_sd = FALSE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -132,6 +158,15 @@ drm_control <- function(
   }
   optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
   se <- drm_control_flag(se, "se")
+  se_report_covariance <- drm_control_flag(
+    se_report_covariance,
+    "se_report_covariance"
+  )
+  se_skip_delta_method <- drm_control_flag(
+    se_skip_delta_method,
+    "se_skip_delta_method"
+  )
+  se_group_sd <- drm_control_flag(se_group_sd, "se_group_sd")
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
@@ -189,6 +224,9 @@ drm_control <- function(
     list(
       optimizer = optimizer,
       se = se,
+      se_report_covariance = se_report_covariance,
+      se_skip_delta_method = se_skip_delta_method,
+      se_group_sd = se_group_sd,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
       keep_tmb_object = keep_tmb_object,

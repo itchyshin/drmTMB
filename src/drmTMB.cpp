@@ -300,6 +300,15 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(has_sd_mu_model);
   DATA_MATRIX(X_sd_phylo);
   DATA_INTEGER(has_sd_phylo_model);
+  // Report the PER-GROUP direct-SD surface through ADREPORT (delta method)?
+  // `sd_phylo_group` carries one entry per group, so ADREPORTing it makes the
+  // joint ADREPORT covariance n_group x n_group. Under REML the fixed effects
+  // live in the Laplace `random` block, so `vcov()` reads exactly that joint
+  // covariance -- and a 10,440-tip bivariate fit needs ~14 GB for it
+  // (reported by A. Mizuno, 2026-07-08). Default 0: the values are still
+  // REPORT()ed (free) and are recomputed in R by `sd_phylo_group_values()`;
+  // only their delta-method standard errors are opt-in.
+  DATA_INTEGER(report_group_sd);
   DATA_INTEGER(sd_phylo_beta_offset);
   DATA_MATRIX(X_mu1);
   DATA_MATRIX(X_mu2);
@@ -1005,8 +1014,10 @@ Type objective_function<Type>::operator()()
       if (has_sd_phylo_model == 1) {
         REPORT(log_sd_phylo_group);
         REPORT(sd_phylo_group);
-        ADREPORT(log_sd_phylo_group);
-        ADREPORT(sd_phylo_group);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
       } else {
         ADREPORT(log_sd_phylo);
         REPORT(sd_phylo);
@@ -3968,8 +3979,10 @@ Type objective_function<Type>::operator()()
       if (has_sd_phylo_model == 1) {
         REPORT(log_sd_phylo_group);
         REPORT(sd_phylo_group);
-        ADREPORT(log_sd_phylo_group);
-        ADREPORT(sd_phylo_group);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
       }
       ADREPORT(log_sd_phylo);
       ADREPORT(sd_phylo);

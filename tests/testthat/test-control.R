@@ -562,3 +562,178 @@ test_that("representative family methods tolerate manually removed model frames"
   expect_equal(pairs$from_response, "y1")
   expect_equal(pairs$to_response, "y2")
 })
+
+test_that("se_report_covariance and se_skip_delta_method reach TMB::sdreport()", {
+  skip_on_cran()
+  # Reported by A. Mizuno (2026-07-08): a bivariate direct-SD phylo fit ADREPORTs
+  # one SD per tip per response, so `getReportCovariance = TRUE` (TMB's default)
+  # builds an R x R dense matrix with R = 4 * n_tip + 13. At 10,440 tips that is
+  # ~14 GB. These controls expose the two TMB switches that avoid it.
+  ctrl <- drm_control(se_report_covariance = FALSE, se_skip_delta_method = TRUE)
+  expect_false(ctrl$se_report_covariance)
+  expect_true(ctrl$se_skip_delta_method)
+
+  # Defaults preserve the previous behaviour exactly.
+  expect_true(drm_control()$se_report_covariance)
+  expect_false(drm_control()$se_skip_delta_method)
+
+  expect_error(drm_control(se_report_covariance = NA), "must be")
+  expect_error(drm_control(se_skip_delta_method = "yes"), "must be")
+
+  set.seed(20260708)
+  n <- 60L
+  dat <- data.frame(
+    id = rep(paste0("g", seq_len(10L)), each = 6L),
+    x = stats::rnorm(n)
+  )
+  dat$y <- stats::rnorm(n, 0.3 + 0.5 * dat$x, sd = 0.4)
+
+  fit_default <- drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = dat)
+  fit_nocov <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(se_report_covariance = FALSE)
+  )
+
+  # The R x R ADREPORT covariance is dropped. TMB does not remove `$cov`; it
+  # leaves a logical scalar in its place, so assert on shape, not on NULL.
+  expect_true(is.matrix(fit_default$sdr$cov))
+  expect_false(is.matrix(fit_nocov$sdr$cov))
+  expect_length(fit_nocov$sdr$cov, 1L)
+
+  # ... while the per-quantity ADREPORT standard errors survive ...
+  expect_true(all(is.finite(fit_nocov$sdr$sd)))
+  expect_equal(fit_default$sdr$sd, fit_nocov$sdr$sd, tolerance = 1e-8)
+
+  # ... and fixed-effect standard errors are unchanged.
+  expect_equal(
+    sqrt(diag(stats::vcov(fit_default))),
+    sqrt(diag(stats::vcov(fit_nocov))),
+    tolerance = 1e-8
+  )
+
+  # A legacy plain-list `control` must keep the TRUE default (field absent = NULL).
+  fit_legacy <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 500)
+  )
+  expect_true(is.matrix(fit_legacy$sdr$cov))
+})
+
+test_that("REML rejects a missing-data engine only when it actually engages", {
+  skip_on_cran()
+  # Reported by A. Mizuno (2026-07-08): the gate tested the `missing` SETTING, so
+  # `miss_control(response = "include")` on complete-case data was rejected even
+  # though it is an exact no-op there. Narrow the gate; do not remove it.
+  set.seed(20260708)
+  n <- 60L
+  dat <- data.frame(
+    id = rep(paste0("g", seq_len(10L)), each = 6L),
+    x = stats::rnorm(n)
+  )
+  dat$y <- stats::rnorm(n, 0.3 + 0.5 * dat$x, sd = 0.4)
+
+  # No missing values: the engine is a no-op, so REML is admitted.
+  expect_no_error(suppressWarnings(
+    drmTMB(
+      bf(y ~ x + (1 | id)),
+      family = gaussian(),
+      data = dat,
+      missing = miss_control(response = "include"),
+      REML = TRUE
+    )
+  ))
+
+  # Real missingness: the engine engages and REML is still unvalidated with it.
+  dat_na <- dat
+  dat_na$y[c(3L, 17L)] <- NA_real_
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | id)),
+      family = gaussian(),
+      data = dat_na,
+      missing = miss_control(response = "include"),
+      REML = TRUE
+    ),
+    "missing-data engine"
+  )
+
+  # The default control still drops incomplete rows and fits under REML.
+  expect_no_error(suppressWarnings(
+    drmTMB(bf(y ~ x + (1 | id)), family = gaussian(), data = dat_na, REML = TRUE)
+  ))
+})
+
+test_that("se_group_sd keeps the per-group direct-SD ADREPORT out of sdreport", {
+  skip_on_cran()
+  # Reported by A. Mizuno (2026-07-08). `sd_phylo(...) ~ .` ADREPORTs one SD per
+  # group, so the joint ADREPORT covariance is n_group x n_group. Under REML the
+  # fixed effects move into the Laplace `random` block and `vcov()` reads exactly
+  # that covariance -- at 10,440 tips a bivariate fit needs ~14 GB for it.
+  # Default is now opt-in; the SD *values* remain available via REPORT().
+  n_tip <- 8L
+  n_each <- 4L
+  tree <- control_balanced_ultrametric_tree(n_tip)
+  species_values <- tree$tip.label
+  species <- rep(species_values, each = n_each)
+  z_species <- seq(-1, 1, length.out = n_tip)
+  x <- rep(seq(-0.5, 0.5, length.out = n_each), times = n_tip)
+  y <- 0.2 + 0.3 * x + rep(seq(-0.4, 0.4, length.out = n_tip), each = n_each)
+  y <- y + rep(c(-0.08, 0.05, -0.03, 0.04), times = n_tip)
+  dat <- data.frame(
+    y = y,
+    x = x,
+    species = species,
+    z_species = z_species[match(species, species_values)]
+  )
+
+  fit_it <- function(reml, group_sd) {
+    suppressWarnings(drmTMB(
+      bf(
+        y ~ x + phylo(1 | species, tree = tree),
+        sigma ~ 1,
+        sd_phylo(species) ~ z_species
+      ),
+      family = gaussian(),
+      data = dat,
+      REML = reml,
+      control = drm_control(
+        optimizer = list(eval.max = 300, iter.max = 300),
+        se_group_sd = group_sd
+      )
+    ))
+  }
+
+  expect_false(drm_control()$se_group_sd)
+
+  fit_off <- fit_it(FALSE, FALSE)
+  fit_on <- fit_it(FALSE, TRUE)
+
+  # Opting in adds 2 * n_tip entries (`sd_phylo_group` and `log_sd_phylo_group`).
+  expect_equal(
+    length(fit_on$sdr$value) - length(fit_off$sdr$value),
+    2L * n_tip
+  )
+  expect_false(any(grepl("sd_phylo_group", names(fit_off$sdr$value))))
+  expect_true(any(grepl("sd_phylo_group", names(fit_on$sdr$value))))
+
+  # The per-group SD values themselves are unaffected: they are REPORT()ed and
+  # recomputed in R, not read from the ADREPORT vector.
+  expect_equal(
+    fit_off$obj$report()$sd_phylo_group,
+    fit_on$obj$report()$sd_phylo_group,
+    tolerance = 1e-6
+  )
+
+  # Under REML `vcov()` reads the joint ADREPORT covariance, so the default must
+  # keep it small AND keep vcov() working.
+  reml_off <- fit_it(TRUE, FALSE)
+  expect_identical(reml_off$estimator, "REML")
+  expect_true(is.matrix(reml_off$sdr$cov))
+  expect_lt(nrow(reml_off$sdr$cov), 2L * n_tip)
+  expect_true(all(is.finite(sqrt(diag(stats::vcov(reml_off))))))
+  expect_true(all(is.finite(summary(reml_off)$coefficients$std_error)))
+})

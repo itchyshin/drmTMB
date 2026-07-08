@@ -227,14 +227,15 @@ drmTMB <- function(
       "i" = "Use {.code family = gaussian()} or {.code family = biv_gaussian()}, or set {.code REML = FALSE}."
     ))
   }
-  if (
-    isTRUE(REML) &&
-      (!identical(missing_control$response, "drop") ||
-        !identical(missing_control$predictor, "fail"))
-  ) {
+  if (isTRUE(REML) && drm_reml_missing_engine_engages(
+    missing_control,
+    formula,
+    data
+  )) {
     cli::cli_abort(c(
       "{.arg REML} is not implemented with explicit missing-data engines yet.",
-      "i" = "Use the default {.code missing = miss_control()} or set {.code REML = FALSE}."
+      "x" = "The model variables contain missing values and {.arg missing} requests a non-default engine.",
+      "i" = "Use the default {.code missing = miss_control()}, drop the incomplete rows, or set {.code REML = FALSE}."
     ))
   }
   if (isTRUE(REML) && !is.null(penalty)) {
@@ -424,6 +425,9 @@ drm_fit_spec <- function(
       control$logsigma_clamp_margin
     )
   }
+  # Per-group direct-SD ADREPORT is opt-in: it makes the joint ADREPORT covariance
+  # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
+  spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
   spec <- drm_apply_start_override(spec)
 
   obj <- TMB::MakeADFun(
@@ -1939,6 +1943,38 @@ drm_start_override_scalar <- function(x, default) {
   default
 }
 
+# Does the requested missing-data engine actually ENGAGE on this data?
+#
+# `miss_control(response = "include")` and `miss_control(predictor = "model")` are
+# exact no-ops when the model variables contain no missing values: the retained
+# rows, the design, and the likelihood are identical to the defaults. The previous
+# REML gate tested the *setting* rather than whether the engine engages, so it
+# rejected complete-case fits that merely passed `missing =` explicitly (reported
+# by A. Mizuno on drmTMB v0.2.0, 2026-07-08).
+#
+# Narrow the gate, do not remove it: an engine that really engages is still
+# unvalidated under REML. If we cannot prove the absence of missingness (e.g. the
+# formula's columns cannot be resolved), keep rejecting.
+drm_reml_missing_engine_engages <- function(missing_control, formula, data) {
+  default_response <- identical(missing_control$response, "drop")
+  default_predictor <- identical(missing_control$predictor, "fail")
+  if (default_response && default_predictor) {
+    return(FALSE)
+  }
+  needed <- tryCatch(
+    drm_julia_needed_columns(formula),
+    error = function(e) NULL
+  )
+  if (is.null(needed) || !is.data.frame(data)) {
+    return(TRUE)
+  }
+  present <- intersect(needed, names(data))
+  if (length(present) == 0L) {
+    return(TRUE)
+  }
+  anyNA(data[, present, drop = FALSE])
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -2147,8 +2183,23 @@ drm_compute_uncertainty <- function(obj, opt, control) {
     ))
   }
 
+  # `getReportCovariance = TRUE` (TMB's default) builds the full covariance of
+  # every ADREPORTed quantity. A direct-SD surface ADREPORTs one SD per group
+  # (`sd_phylo_group`, src/drmTMB.cpp), so that matrix is n_group x n_group and
+  # its cost is quadratic in the number of groups. Guard against a legacy plain
+  # list `control` (field absent => NULL) silently flipping the TRUE default.
+  report_covariance <- if (is.null(control$se_report_covariance)) {
+    TRUE
+  } else {
+    isTRUE(control$se_report_covariance)
+  }
   sdr <- tryCatch(
-    TMB::sdreport(obj, par.fixed = opt$par),
+    TMB::sdreport(
+      obj,
+      par.fixed = opt$par,
+      getReportCovariance = report_covariance,
+      skip.delta.method = isTRUE(control$se_skip_delta_method)
+    ),
     error = function(e) e
   )
   if (inherits(sdr, "error")) {
@@ -7990,18 +8041,22 @@ parse_random_sigma_term <- function(expr, dpar) {
         c("sigma1", "sigma2") &&
         !is.null(covariance_label) &&
         coef$type %in% c("correlated_slope", "correlated_block"))
-  if (!identical(coef$type, "slope") && !sigma_correlated_ok) {
-    cli::cli_abort(c(
-      "This residual-scale random-effect shape is not implemented for {.code sigma}.",
-      "x" = "Use {.code sigma ~ z + (1 | id)}, {.code sigma ~ z + (0 + x | id)}, or a correlated block {.code sigma ~ z + (1 + x | id)}.",
-      "i" = "Labelled univariate residual-scale slope covariance blocks remain planned."
-    ))
-  }
+  # Check the LABELLED univariate sigma case first: it is a more specific
+  # rejection than the generic shape guard below, and `(1 + x | p | id)` would
+  # otherwise be swallowed by it (`coef$type == "correlated_block"`), leaving
+  # the user with generic advice instead of the labelled-block explanation.
   if (!is.null(covariance_label) && identical(dpar, "sigma")) {
     cli::cli_abort(c(
       "Labelled residual-scale random-slope covariance blocks are not implemented yet.",
       "x" = "Use an unlabelled independent slope such as {.code sigma ~ z + (0 + x | id)}.",
       "i" = "The first labelled slope covariance slice is bivariate and same-response only, such as {.code mu1} with {.code sigma1}."
+    ))
+  }
+  if (!identical(coef$type, "slope") && !sigma_correlated_ok) {
+    cli::cli_abort(c(
+      "This residual-scale random-effect shape is not implemented for {.code sigma}.",
+      "x" = "Use {.code sigma ~ z + (1 | id)}, {.code sigma ~ z + (0 + x | id)}, or a correlated block {.code sigma ~ z + (1 + x | id)}.",
+      "i" = "Labelled univariate residual-scale slope covariance blocks remain planned."
     ))
   }
 
@@ -15786,6 +15841,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
       X_sd_phylo = spec$random_scale$phylo$X,
+      report_group_sd = 0L,
       has_sd_phylo_model = as.integer(
         spec$random_scale$phylo$n_models > 0L
       ),
@@ -15867,6 +15923,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -15937,6 +15994,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -15995,6 +16053,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16054,6 +16113,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16124,6 +16184,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16183,6 +16244,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16251,6 +16313,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16309,6 +16372,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16365,6 +16429,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16422,6 +16487,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16491,6 +16557,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16560,6 +16627,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16632,6 +16700,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16702,6 +16771,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16759,6 +16829,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16828,6 +16899,7 @@ make_tmb_data <- function(spec) {
       X_sd_mu = dummy_matrix,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
       has_sd_phylo_model = 0L,
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
@@ -16907,6 +16979,7 @@ make_tmb_data <- function(spec) {
       } else {
         dummy_matrix
       },
+      report_group_sd = 0L,
       has_sd_phylo_model = as.integer(
         spec$random_scale$phylo$n_models > 0L
       ),

@@ -7,6 +7,9 @@
 drm_control(
   optimizer = list(),
   se = TRUE,
+  se_report_covariance = TRUE,
+  se_skip_delta_method = FALSE,
+  se_group_sd = FALSE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -29,6 +32,32 @@ coefficients, fitted values, residuals, predictions, simulations, and
 profile-likelihood paths while skipping Wald standard errors,
 \code{\link[stats:vcov]{stats::vcov()}}, and Wald confidence intervals. Profile-likelihood
 intervals still require \code{keep_tmb_object = TRUE}.}
+
+\item{se_report_covariance}{Logical; passed to the \code{getReportCovariance}
+argument of \code{\link[TMB:sdreport]{TMB::sdreport()}}. The default \code{TRUE} builds the full
+covariance matrix of every \code{ADREPORT}ed quantity. Models with a direct-SD
+surface (\code{sd_phylo(...) ~ .}) report one standard deviation \emph{per group}, so
+this matrix is \verb{n_group x n_group} and its memory cost grows with the square
+of the number of groups; at ten thousand tips it dominates the fit. Set to
+\code{FALSE} to keep per-quantity standard errors while skipping their joint
+covariance.}
+
+\item{se_skip_delta_method}{Logical; passed to the \code{skip.delta.method}
+argument of \code{\link[TMB:sdreport]{TMB::sdreport()}}. Set to \code{TRUE} to skip standard errors for
+\code{ADREPORT}ed quantities entirely while retaining fixed-effect standard
+errors and \code{\link[stats:vcov]{stats::vcov()}}. This is the cheapest route to Wald inference on
+the fixed effects for large structured models.}
+
+\item{se_group_sd}{Logical; report delta-method standard errors for the
+\emph{per-group} direct-SD surface (\code{sd_phylo(...) ~ .}). Defaults to \code{FALSE}.
+The surface has one standard deviation per group, so \code{ADREPORT}ing it makes
+the joint \code{ADREPORT} covariance \verb{n_group x n_group}. Under \code{REML = TRUE} the
+fixed effects are integrated into the Laplace \code{random} block and
+\code{\link[stats:vcov]{stats::vcov()}} reads exactly that joint covariance, so at ten thousand tips
+a bivariate fit needs tens of gigabytes for it. The fitted per-group
+standard deviations themselves are always available (they are recomputed
+from the parameters); only their standard errors are opt-in. Set to \code{TRUE}
+to restore the pre-0.3.0 behaviour.}
 
 \item{keep_data}{Logical; keep the complete-case model data in the fitted
 object. Set to \code{FALSE} to drop \code{fit$data} and \code{fit$model$data} after
