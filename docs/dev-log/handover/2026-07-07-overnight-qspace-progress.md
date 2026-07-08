@@ -13,6 +13,10 @@ FAIL 0 / WARN 0 / SKIP 1**. Nothing pushed to origin; 3 new commits on the branc
   superseded by the n-ladder; +1 pre-existing test bugfix (`7611d9eb`).
 - **S3 block-diagonal** — bivariate block-diagonal location-scale phylo admitted under REML
   (`0acb908d`); dense full-q4 stays rejected.
+- **S2 `sd(level=)` grammar** — LANDED (`b8c36770`). Unified `sd(g, level="phylogenetic")`
+  canonicalizes to the `sd_phylo()` dpar string; legacy spellings soft-deprecated via `lifecycle`.
+  (Built by Gauss in a worktree that mis-branched from a pre-arc commit; I integrated the
+  clean-applying grammar diff and strengthened the tripwire to REML-admission-equivalence.)
 - **Headline science (banked):** reduced block-diagonal scale-side *random* phylo is identifiable
   under REML **with per-group replication** (n_each≥5 → 100% pdHess, biases→0); collapses at 1
   obs/species (→ use fixed `sd_phylo`, Model A+). Ladder + CSV in `scratchpad/`.
@@ -28,18 +32,19 @@ d83b475f feat(reml): admit matched mean+scale q2 phylo block under REML
 
 ## In flight
 
-- **S2 (`sd(level=)` grammar)** — dispatched to **Gauss** (Sonnet) in an ISOLATED WORKTREE, may
-  still be running or done. To resume: check for its completion summary; review the worktree diff;
-  the critical acceptance test is the **end-to-end equivalence** (new spelling `sd(sp,
-  level="phylogenetic")` ⇒ byte-identical parsed dpar string + identical fitted coef rows). Merge to
-  the main tree only if that holds, then run `test_dir(filter="reml")` + the new grammar test.
+- Nothing running. Gauss's S2 worktree was integrated and removed. **S1, S2, S3 all landed;
+  S4 is now unblocked.**
 
 ## Next steps (in priority order)
 
-1. **Review + merge S2** (Gauss's worktree). Foundational; unblocks S4.
-2. **q4 sign-flip** (S1 deferred) — build a q4 DGP with careful endpoint-order tracking; determine
+1. **q4 sign-flip** (S1 deferred) — build a q4 DGP with careful endpoint-order tracking; determine
    if the sign-flip is a DGP↔extraction mapping bug (likely — it's in both ML and REML) or small-n.
    Only relax the dense-q4 gate if it resolves cleanly. Cross-check vs DRM.jl `src/reml_q4.jl`.
+2. **S4 structured location-scale-scale + one structured RE** — now unblocked (S2+S3 done). Its
+   essence is already covered: Model A+ (fixed scale, rungs 1–2) + block-diagonal (random scale,
+   S3) are both structured location-scale-scale models with structured REs. The remaining piece is
+   the explicit full 6-endpoint q6 (fixed `sd_phylo` scale *and* a residual `sigma` block together)
+   + a dedicated q6 identifiability ladder. Incremental; decide whether it's needed for v0.3.0.
 3. **S5 ordinary two-level q12** — the identifiable home of q12 (replicated between/within
    individual DHGLM). **Concrete ML scoping this session** (`scratchpad/s5_ordinary_twolevel_scope.R`,
    n_id=150 × 8 obs): what FITS today under ML — correlated location-scale **intercepts**
