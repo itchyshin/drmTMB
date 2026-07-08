@@ -1,3 +1,36 @@
+# drmTMB 0.2.0
+
+## REML for Gaussian and bivariate-Gaussian location-scale models
+
+Restricted maximum likelihood (`REML = TRUE`) now covers more of the phylogenetic
+location-scale model family, debiasing the variance components and giving
+better-conditioned, honest scale-side standard errors. Validated by exact
+restricted-likelihood references and known-truth recovery ladders
+(`docs/design/221-native-reml-finish.md`); the native REML test suite is green.
+
+* **Bivariate Gaussian REML with phylogenetic / random location effects.**
+  `drmTMB(..., REML = TRUE)` now fits `biv_gaussian()` models whose means carry
+  correlated `phylo()` (or ordinary) random effects (the "correlate the means" model),
+  matching an exact bivariate restricted-likelihood reference. A sample-size recovery
+  ladder shows REML is less downward-biased than ML on the variance components at every
+  sample size, and its standard errors track ML's. Scale-side random effects, matched
+  mean-and-scale phylogenetic effects, and `q > 2` labelled covariance blocks remain
+  rejected under REML for now.
+
+* **Phylogenetic direct-SD scale (`sd_phylo(...) ~ predictors`) under REML.** The
+  heteroscedastic phylogenetic-variance model -- a predictor (e.g. climate) on the
+  phylogenetic SD -- is now admitted under REML for univariate and bivariate Gaussian
+  models, matching an exact restricted-likelihood reference. This is the scale side of
+  the corrected ecogeographic location-scale model.
+
+* **Correct REML standard errors for direct-SD coefficients.** `vcov()` and `summary()`
+  previously returned `NA` standard errors for the `sd_phylo` coefficients under REML
+  (they are absent from the sdreport ADREPORT joint covariance); they now fall back to
+  the fixed-parameter covariance and report finite Wald standard errors.
+
+Native phylogenetic location-scale fits with debiased variance components reduce the
+need for an external Bayesian comparator (e.g. MCMCglmm) for this workflow.
+
 # drmTMB 0.1.4
 
 Current development claims in this NEWS section follow the finish-plan claim
