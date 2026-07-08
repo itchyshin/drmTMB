@@ -38,9 +38,11 @@ test_that("phylogenetic direct-SD REML matches an exact restricted-likelihood re
   skip_on_cran()
   fx <- sdphylo_fixture()
   dat <- fx$data; tree <- fx$tree
-  fit <- drmTMB(bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1, sd_phylo(sp) ~ x),
+  # suppressWarnings: sd_phylo() is soft-deprecated (use sd(level=)); the legacy
+  # spelling is still tested here, so its expected deprecation warning is muted.
+  fit <- suppressWarnings(drmTMB(bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1, sd_phylo(sp) ~ x),
                 family = gaussian(), data = dat, REML = TRUE,
-                control = drm_control(optimizer_preset = "robust"))
+                control = drm_control(optimizer_preset = "robust")))
   expect_equal(fit$estimator, "REML")
   expect_equal(fit$opt$convergence, 0L)
   X <- stats::model.matrix(~x, dat); Zsd <- stats::model.matrix(~x, dat)
@@ -55,9 +57,11 @@ test_that("REML sd_phylo coefficient SEs are finite in summary()/vcov (cov.fixed
   skip_on_cran()
   fx <- sdphylo_fixture()
   dat <- fx$data; tree <- fx$tree
-  fit <- drmTMB(bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1, sd_phylo(sp) ~ x),
+  # suppressWarnings: sd_phylo() is soft-deprecated (use sd(level=)); the legacy
+  # spelling is still tested here, so its expected deprecation warning is muted.
+  fit <- suppressWarnings(drmTMB(bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1, sd_phylo(sp) ~ x),
                 family = gaussian(), data = dat, REML = TRUE,
-                control = drm_control(optimizer_preset = "robust"))
+                control = drm_control(optimizer_preset = "robust")))
   cf <- summary(fit)$coefficients
   sd_rows <- grep("^sd_phylo", rownames(cf))
   expect_true(length(sd_rows) >= 1L)

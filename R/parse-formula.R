@@ -373,10 +373,10 @@ parse_sd_lhs <- function(lhs) {
 
   optional_names <- arg_names[-target_pos]
   optional_args <- args[-target_pos]
-  bad <- setdiff(optional_names, c("dpar", "coef", "block"))
+  bad <- setdiff(optional_names, c("dpar", "coef", "block", "level"))
   if (length(bad) > 0L || any(!nzchar(optional_names))) {
     cli::cli_abort(c(
-      "{.fn {fun}} currently accepts only {.arg dpar}, {.arg coef}, and {.arg block} options.",
+      "{.fn {fun}} currently accepts only {.arg dpar}, {.arg coef}, {.arg block}, and {.arg level} options.",
       "x" = "Use syntax like {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}."
     ))
   }
@@ -389,6 +389,12 @@ parse_sd_lhs <- function(lhs) {
   target_dpar <- parse_sd_string_arg(optional_args, optional_names, "dpar")
   target_coef <- parse_sd_string_arg(optional_args, optional_names, "coef")
   target_block <- parse_sd_string_arg(optional_args, optional_names, "block")
+  target_level <- parse_sd_string_arg(optional_args, optional_names, "level")
+
+  canon <- canonicalize_sd_lhs_fun(fun, target_level)
+  fun <- canon$fun
+  level <- canon$level
+
   explicit <- any(!is.na(c(target_dpar, target_coef, target_block)))
   if (explicit && !identical(fun, "sd")) {
     hint <- if (fun %in% c("sd1", "sd2")) {
@@ -415,6 +421,7 @@ parse_sd_lhs <- function(lhs) {
   list(
     group = group,
     fun = fun,
+    level = level,
     dpar = format_sd_lhs_dpar(
       fun,
       group,
@@ -427,6 +434,51 @@ parse_sd_lhs <- function(lhs) {
     target_block = target_block,
     explicit = explicit
   )
+}
+
+# Map the raw `sd()`/`sd1()`/`sd2()`/`sd_phylo*()` LHS spelling plus an
+# optional `level` argument to the canonical function name used in the
+# emitted dpar string (see format_sd_lhs_dpar()). The canonical name for a
+# phylogenetic target is always `sd_phylo`/`sd_phylo1`/`sd_phylo2`, whether
+# the user wrote the legacy spelling directly or the generic
+# `sd(group, level = "phylogenetic")` spelling, so every downstream
+# `startsWith(dpars, "sd_phylo(")`-style check keeps working unchanged.
+canonicalize_sd_lhs_fun <- function(fun, level) {
+  legacy_phylo_funs <- c("sd_phylo", "sd_phylo1", "sd_phylo2")
+  generic_to_phylo <- c(sd = "sd_phylo", sd1 = "sd_phylo1", sd2 = "sd_phylo2")
+
+  if (fun %in% legacy_phylo_funs) {
+    if (!is.na(level)) {
+      generic_fun <- names(generic_to_phylo)[generic_to_phylo == fun]
+      cli::cli_abort(c(
+        "{.arg level} cannot be combined with {.fn {fun}}.",
+        "x" = "{.fn {fun}} already names the phylogenetic dependence level.",
+        "i" = "Use {.code {generic_fun}({{group}}, level = \"phylogenetic\")} instead of {.code {fun}({{group}}, level = ...)}."
+      ))
+    }
+    warn_sd_phylo_legacy_deprecated(fun)
+    return(list(fun = fun, level = "phylogenetic"))
+  }
+
+  if (is.na(level)) {
+    return(list(fun = fun, level = NA_character_))
+  }
+
+  allowed_levels <- c("phylogenetic", "spatial", "animal", "relmat")
+  if (!level %in% allowed_levels) {
+    cli::cli_abort(c(
+      "{.arg level} must name a supported random-effect scale dependence level.",
+      "x" = "Supported values are {.val {allowed_levels}}."
+    ))
+  }
+  if (!identical(level, "phylogenetic")) {
+    cli::cli_abort(c(
+      "{.code {fun}(group, level = \"{level}\")} random-effect SD models are planned but not implemented yet.",
+      "i" = "This implementation currently supports {.code {fun}(group, level = \"phylogenetic\")} (equivalently {.fn {generic_to_phylo[[fun]]}})."
+    ))
+  }
+
+  list(fun = unname(generic_to_phylo[[fun]]), level = level)
 }
 
 parse_sd_string_arg <- function(args, arg_names, name) {

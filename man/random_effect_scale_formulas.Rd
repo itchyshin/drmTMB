@@ -25,26 +25,30 @@ The currently documented syntax is:
 scale models;
 \item \code{sd1(group) ~ predictors} and \code{sd2(group) ~ predictors} for bivariate
 Gaussian location random-effect scale models targeting \code{mu1} and \code{mu2};
-\item \code{sd_phylo(species) ~ predictors} for univariate Gaussian phylogenetic
-location random-effect scale models;
-\item \code{sd_phylo1(species) ~ predictors} and
-\code{sd_phylo2(species) ~ predictors} for bivariate Gaussian phylogenetic
-location random-effect scale models targeting \code{mu1} and \code{mu2}.
+\item \code{sd(group, level = "phylogenetic") ~ predictors} for univariate Gaussian
+phylogenetic location random-effect scale models;
+\item \code{sd1(group, level = "phylogenetic") ~ predictors} and
+\code{sd2(group, level = "phylogenetic") ~ predictors} for bivariate Gaussian
+phylogenetic location random-effect scale models targeting \code{mu1} and
+\code{mu2}.
 }
 
-The \verb{sd_phylo*()} spellings are the current implemented phylogenetic
-direct-SD interface, but they should not be treated as a pattern to clone for
-every structured-effect family. Future spatial, animal-model, and
-user-supplied relatedness direct-SD routes should prefer a generic spelling
-such as \code{sd(group, level = "spatial")}, \code{sd1(group, level = "animal")}, or a
-closely reviewed equivalent, rather than adding parallel \verb{sd_spatial*()},
-\verb{sd_animal*()}, and \verb{sd_relmat*()} families.
+\code{sd(group, level = "phylogenetic")} and its bivariate siblings are the
+generic spelling for these targets. The historical spellings
+\code{sd_phylo(species) ~ predictors}, \code{sd_phylo1(species) ~ predictors}, and
+\code{sd_phylo2(species) ~ predictors} are \strong{deprecated (soft)}: they still
+parse and fit identically, but emit a one-time deprecation warning per
+session and should not be used in new formulas. Future spatial,
+animal-model, and user-supplied relatedness direct-SD routes are planned
+to use the same \verb{level = } grammar, such as \code{sd(group, level = "spatial")}
+or \code{sd1(group, level = "animal")}, rather than adding parallel
+\verb{sd_spatial*()}, \verb{sd_animal*()}, and \verb{sd_relmat*()} families.
 
 These formulas model the standard deviation of a latent random-effect block.
 They are distinct from residual scale formulas such as \code{sigma ~ predictors}
 and from latent correlation formulas such as \code{\link[=corpair]{corpair()}}. Non-Gaussian
-random-effect scale formulas, spatial direct-SD formulas, and explicit
-coefficient-specific targets such as
+random-effect scale formulas, spatial/animal/relmat direct-SD formulas, and
+explicit coefficient-specific targets such as
 \code{sd(group, dpar = "mu", coef = "slope") ~ predictors} remain planned.
 }
 \examples{
@@ -60,7 +64,7 @@ bf(
 
 bf(
   y ~ x + phylo(1 | species, tree = tree),
-  sd_phylo(species) ~ ecology
+  sd(species, level = "phylogenetic") ~ ecology
 )
 
 }

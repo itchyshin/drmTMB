@@ -20,6 +20,7 @@
 #' @importFrom Matrix sparseMatrix
 #' @importFrom TMB MakeADFun sdreport
 #' @importFrom cli cli_abort cli_text
+#' @importFrom lifecycle deprecate_warn
 #' @importFrom stats AIC BIC ave coef complete.cases delete.response deviance df.residual
 #' @importFrom stats gaussian logLik nobs
 #' @importFrom stats lm.fit model.frame model.matrix model.response na.omit

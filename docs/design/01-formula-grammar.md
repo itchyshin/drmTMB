@@ -671,18 +671,25 @@ parameter. It is not syntax for phylogenetic residual-scale SDs or q=4
 location-scale endpoint SDs.
 
 The project direction is generic `sd*()` direct-SD grammar, not a permanent
-explosion of structure-specific helper names. The currently implemented
-`sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` names remain compatibility paths
-until a lifecycle decision says otherwise, because they make the tree-scaled
-`D_tip A_tip D_tip` contract explicit and avoid silently changing existing
-examples. The planned generic spelling is a single direct-SD family with an
-explicit dependence level, for example
-`sd(species, level = "phylogenetic") ~ z`,
-`sd(site, level = "spatial") ~ z`,
-`sd(id, level = "animal") ~ z`, and
-`sd(line, level = "relmat") ~ z`. That generic route should land only with
-parser tests, examples, reference-index discoverability, compatibility aliases,
-and a clear migration note.
+explosion of structure-specific helper names. The `sd*()` family now has a
+single generic phylogenetic spelling: `sd(species, level = "phylogenetic") ~ z`,
+`sd1(species, level = "phylogenetic") ~ z`, and
+`sd2(species, level = "phylogenetic") ~ z` parse to the identical `sd_phylo(...)`
+/ `sd_phylo1(...)` / `sd_phylo2(...)` dpar string that the legacy spellings
+already emit, so every downstream branch and every fitted example is
+unaffected. `level` is consumed entirely by the parser and never appears in
+the dpar string. The historical `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()`
+spellings remain valid, working compatibility aliases; parsing one fires a
+one-time-per-session `lifecycle::deprecate_warn()` and new examples should
+prefer the `level = "phylogenetic"` spelling. Supplying `level = "phylogenetic"`
+on an already-`sd_phylo*()` call is rejected as redundant.
+`sd(site, level = "spatial") ~ z`, `sd(id, level = "animal") ~ z`, and
+`sd(line, level = "relmat") ~ z` are reserved: the parser recognises the
+`level` argument and its allowed values, but rejects them as not yet
+implemented (no `sd_spatial()`/`sd_animal()`/`sd_relmat()` helper names exist
+or are planned). Those levels should land only with a fitted variance model,
+parser tests, examples, reference-index discoverability, and a clear migration
+note, mirroring the phylogenetic route.
 
 Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
 `block` arguments:

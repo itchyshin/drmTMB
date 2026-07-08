@@ -192,14 +192,16 @@ test_that("bivariate REML ADMITS phylogenetic direct-SD scale (rung 2)", {
   fx <- biv_phylo_reml_fixture(n_tip = 200L)
   dat <- fx$data
   tree <- fx$tree
-  fit <- drmTMB(
+  # suppressWarnings: sd_phylo1/sd_phylo2() are soft-deprecated (use sd1/sd2(level=));
+  # the legacy spelling is still tested here, so mute its expected deprecation warning.
+  fit <- suppressWarnings(drmTMB(
     bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree),
        mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree),
        sigma1 = ~1, sigma2 = ~1,
        sd_phylo1(sp) ~ x, sd_phylo2(sp) ~ x, rho12 = ~1),
     family = biv_gaussian(), data = dat, REML = TRUE,
     control = drm_control(optimizer_preset = "robust")
-  )
+  ))
   expect_equal(fit$estimator, "REML")
   # sd_phylo coefficient SEs must be finite under REML (vcov cov.fixed fallback)
   cf <- summary(fit)$coefficients
