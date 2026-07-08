@@ -255,8 +255,12 @@ test_that("bivariate REML ADMITS the block-diagonal location-scale phylo layout,
   expect_length(sds, 4L)
   expect_true(all(is.finite(sds) & sds > 0))
 
-  # Negative control: the DENSE full-q4 layout (one shared label on all four
-  # endpoints -> mean-scale cross-covariance) stays REJECTED under REML.
+  # The DENSE full-q4 layout (one shared label on all four endpoints, carrying the
+  # mean-scale cross-covariances) is ALSO admitted under REML as of 2026-07-08 -- the
+  # earlier "sign-flip / always collapses" verdict was an under-powered-fit artifact
+  # (scratchpad/q4_signflip_diagnostic.R, reml_dense_q4_ladder.R). It is information
+  # hungry (needs n_tip >= ~200 AND n_each >= ~10); this fixture is deliberately below
+  # that, so assert ADMISSION (no gate rejection) only -- not convergence.
   dense <- bf(
     mu1 = y1 ~ 1 + phylo(1 | p | sp, tree = tree),
     mu2 = y2 ~ 1 + phylo(1 | p | sp, tree = tree),
@@ -264,8 +268,9 @@ test_that("bivariate REML ADMITS the block-diagonal location-scale phylo layout,
     sigma2 = ~ 1 + phylo(1 | p | sp, tree = tree),
     rho12 = ~ 1
   )
-  expect_error(
-    drmTMB(dense, family = biv_gaussian(), data = dat, REML = TRUE),
-    "block-diagonal location-scale layout only"
-  )
+  fit_dense <- suppressWarnings(drmTMB(
+    dense, family = biv_gaussian(), data = dat, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  ))
+  expect_identical(fit_dense$estimator, "REML")
 })

@@ -178,11 +178,21 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   REPLICATION (n_each >= ~8; at n_each = 3 it underperforms ML -- weak
   identification). A BIVARIATE labelled scale-side sigma block `(1 | s | id)` on
   `sigma1`/`sigma2` is likewise admitted under REML (2026-07-08): both scale-RE SDs
-  recover under ML and REML, REML at least as good, pdHess 1.00. Still rejected as
-  planned estimator work: the DENSE (unstructured) q4 phylogenetic location-scale
-  block, whose mean-scale cross-covariance drives a sign-flip and collapse (doc
-  221); bivariate mean-scale (`mu`-`sigma`) random-effect correlations; and q > 2
-  scale covariance blocks. Matching labelled `animal()` and `relmat()`
+  recover under ML and REML, REML at least as good, pdHess 1.00. The DENSE
+  (unstructured) q4 phylogenetic location-scale block is ALSO admitted under REML
+  (2026-07-08): the earlier "sign-flip" verdict is superseded -- the DGP-to-endpoint
+  mapping is correct (a single nonzero DGP correlation lands on the right pair with
+  the right sign), and the apparent flip was an under-powered fit whose variance
+  component collapsed, leaving its correlations unidentified. With adequate
+  information (n_tip >= ~200 AND per-species replication n_each >= ~10) the dense q4
+  converges and recovers, and REML is STRICTLY better than ML there (higher
+  pdHess/convergence rate, variance components debiased toward truth). At 1
+  obs/species it still collapses -- use the block-diagonal layout or a fixed
+  `sd_phylo*()` scale. Bivariate mean-scale (`mu`-`sigma`) random-effect correlations
+  and q > 2 labelled LOCATION covariance blocks are likewise admitted under REML
+  (REML consistently less biased than ML on the block SDs). Still NOT implemented
+  (under ML or REML): CORRELATED residual-scale slope blocks -- only independent
+  residual-scale random slopes exist. Matching labelled `animal()` and `relmat()`
   known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
   location covariance and for constant all-four q=4 location-scale blocks when
   `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or

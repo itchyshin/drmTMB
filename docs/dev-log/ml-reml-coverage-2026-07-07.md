@@ -33,17 +33,24 @@ ML covers the full ladder tested (10/10 shapes fit).
 | 7 | biv rung1 phylo-means | ✅ | ✅ | |
 | 8 | biv rung2 direct-SD phylo scale `sd_phylo1/2(sp)~z` | ✅ | ✅ | |
 | 9 | biv q4 **block-diagonal** (mu-label ⊥ sigma-label) | ✅ | ✅ | **landed this session (S3)** |
-| 10 | biv q4 **dense** (one shared label) | ✅ | ⛔ GATE | **deliberate** — dense scale-side phylo rejected under REML (mean-scale cross-cov → sign-flip + collapse, doc 221). |
+| 10 | biv q4 **dense** (one shared label) | ✅ | ✅ | **landed 2026-07-08** — the "sign-flip" was an under-powered-fit artifact (mapping verified correct); needs n_tip≥~200 AND n_each≥~10, where REML beats ML (higher pdHess, debiased SDs). |
+| 11 | biv mu-sigma RE correlation (`1\|p\|id` across mu+sigma) | ✅ | ✅ | **landed 2026-07-08** |
+| 12 | q>2 labelled LOCATION block (`1+x1+x2\|id`) | ✅ | ✅ | **landed 2026-07-08** (REML consistently less biased than ML) |
+| 13 | **correlated residual-scale slope** block (`sigma ~ x + (1+x\|id)`) | ⛔ | ⛔ | **not implemented in ML either** — new engine work (the q12 piece) |
 
-## Reading
+## Reading (as of 2026-07-08)
 
-- **ML is complete** across every combination tested — nothing is missing on the ML side.
-- **REML gaps (3), none of them a bug:**
-  - Rows 5–6: ordinary **sigma** random effects under REML are gated off (one gate,
-    `drm_validate_reml_spec` ~:1973). This is the **S5** slice (relax + validate with a replication
-    ladder). ML already supports them, so this is a REML-parity fill, not new ML work.
-  - Row 10: dense q4 is **intentionally** rejected under REML (identifiability, not a gap).
-
-**Bottom line for Shinichi:** the REML-parity principle is satisfied — no combination has REML
-without ML, and ML is implemented for every combination on the ladder. The remaining REML gaps are
-exactly the S5 (ordinary sigma-RE) work and the deliberate dense-q4 hold.
+- **ML/REML parity is COMPLETE for every implemented cell.** Every combination that ML fits, REML
+  now also fits (rows 1–12). No REML-without-ML anywhere, and no ML-without-REML either.
+- **The only remaining gap (row 13) is missing from *ML* too:** correlated residual-scale slope
+  blocks (`sigma ~ x + (1 + x | id)`) are not implemented in the engine at all — only *independent*
+  residual-scale slopes exist. This is the q12 piece and it is **new ML engine work**, after which
+  REML follows.
+- **Two prior verdicts were overturned by evidence this session:**
+  1. The q2 "REML degrades the mean, needs Cox-Reid" verdict — a below-floor small-`N` artifact.
+  2. The dense-q4 "sign-flip + always collapses" verdict — an **under-powered-fit** artifact. The
+     DGP↔endpoint mapping is provably correct, and with adequate information REML is *strictly
+     better* than ML on the dense q4 (higher pdHess/convergence, debiased SDs).
+- **Standing caveat (data, not algorithm):** REML debiases scale-side variance components only with
+  adequate within-group replication. Below the floor it can underperform ML. Each cell's floor is
+  quantified in its ladder (`scratchpad/reml_*_ladder.R`, `scratchpad/q4_signflip_diagnostic.R`).

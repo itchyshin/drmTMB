@@ -35,6 +35,21 @@ replication. Every combination admitted under REML is also admitted under ML
   now admitted; REML debiases the scale-side variance component with adequate
   within-group replication (at very low replication it can underperform ML).
 
+* **Dense (unstructured) q4 phylogenetic location-scale block under REML.** The
+  previous "sign-flip" verdict is superseded: the DGP-to-endpoint mapping is correct
+  (a single nonzero simulated correlation lands on the right pair with the right
+  sign), and the apparent flip was an under-powered fit whose variance component
+  collapsed. With adequate information (roughly `n_tip >= 200` and per-species
+  replication `n_each >= 10`) the dense q4 converges and recovers, and REML is
+  *strictly better* than ML there -- higher convergence/`pdHess` rate and variance
+  components debiased toward truth. At one observation per species it still collapses;
+  use the block-diagonal layout or a fixed `sd(level = "phylogenetic")` scale.
+
+* **Bivariate mean-scale random-effect correlations and `q > 2` labelled location
+  covariance blocks under REML.** Both are now admitted; REML is consistently less
+  biased than ML on the block standard deviations. **ML/REML parity is now complete
+  for every implemented cell** (`docs/dev-log/ml-reml-coverage-2026-07-07.md`).
+
 # drmTMB 0.2.0
 
 ## REML for Gaussian and bivariate-Gaussian location-scale models

@@ -1980,12 +1980,12 @@ drm_validate_reml_spec <- function(spec) {
   # intercept, slope, and correlated blocks: n_each >= ~8 -> REML less biased and both
   # converge; at n_each = 3 the component is weakly identified and REML UNDERPERFORMS
   # ML (use ML or add replication). q > 2 scale blocks stay rejected below.
-  if (spec$random$covariance_blocks$n_qgt2_re > 0L) {
-    cli::cli_abort(c(
-      "{.arg REML} is not implemented for q > 2 labelled covariance blocks yet.",
-      "i" = "Use ordinary random-intercept or random-slope location blocks, or set {.code REML = FALSE}."
-    ))
-  }
+  # q > 2 labelled covariance blocks (e.g. a mu-side `(1 + x1 + x2 | id)` q3 block) are
+  # admitted under REML (2026-07-08). A recovery ladder
+  # (scratchpad/reml_parity_gaps_3A_ladder.R, n_id=60) shows REML is CONSISTENTLY less
+  # biased than ML on every block SD at n_each = 5 and 10 -- the classic REML
+  # variance-component debiasing. Larger q blocks remain advanced, sample-size hungry
+  # fits (see docs/dev-log/known-limitations.md); pdHess is a want, not a gate.
   # Phylogenetic direct-SD scale (`sd_phylo(...) ~ predictors`, heteroscedastic phylo
   # variance) is admitted under REML: it is a location-side variance component the
   # restricted likelihood debiases (validated 2026-07-07 -- runs, recovers, REML gamma
@@ -2049,20 +2049,18 @@ drm_validate_reml_spec_biv <- function(spec) {
   # and `beta_sigma2` are marginalized in drm_apply_estimator_spec. A bivariate
   # recovery ladder (scratchpad/reml_biv_sigma_re_probe.R, n_id=60) shows both
   # scale-RE SDs recover under ML and REML (REML at least as good; slightly better on
-  # the scale-RE correlation at low replication), pdHess 1.00. A bivariate MEAN-scale
-  # cross-correlation (`mu_sigma` cors) stays rejected pending its own validation.
-  if (spec$random$mu_sigma$n_cors > 0L) {
-    cli::cli_abort(c(
-      "{.arg REML} for bivariate Gaussian models does not yet support mean-scale ({.code mu}-{.code sigma}) random-effect correlations.",
-      "i" = "Use separate {.code mu} and {.code sigma} random effects (a labelled scale-side block is fine), or set {.code REML = FALSE}."
-    ))
-  }
-  if (spec$random$covariance_blocks$n_qgt2_re > 0L) {
-    cli::cli_abort(c(
-      "{.arg REML} is not implemented for q > 2 labelled covariance blocks yet.",
-      "i" = "Use ordinary location random-intercept or random-slope blocks, or set {.code REML = FALSE}."
-    ))
-  }
+  # the scale-RE correlation at low replication), pdHess 1.00.
+  #
+  # Bivariate MEAN-scale (`mu`-`sigma`) random-effect correlations are ALSO admitted
+  # (2026-07-08) -- e.g. a labelled `(1 | p | id)` block spanning `mu1` and `sigma1`.
+  # A recovery ladder (scratchpad/reml_parity_gaps_3A_ladder.R, n_id=60) shows both SDs
+  # and the mean-scale correlation recover under ML and REML with small biases (<=0.06),
+  # REML at least as good on the scale-side SD.
+  #
+  # q > 2 labelled covariance blocks are likewise admitted under REML (2026-07-08); the
+  # same ladder shows REML CONSISTENTLY less biased than ML on all block SDs (the
+  # classic REML variance-component debiasing). Larger q blocks stay sample-size hungry
+  # (see docs/dev-log/known-limitations.md); pdHess is a want, not a gate.
   # Phylogenetic direct-SD scale (`sd_phylo1/sd_phylo2 ~ predictors`) with location
   # `phylo` means is admitted under REML (Ayumi's corrected model; same location-side
   # debiasing as the univariate case). Ordinary direct-SD scale formulae stay rejected;
@@ -2081,25 +2079,33 @@ drm_validate_reml_spec_biv <- function(spec) {
         "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
       ))
     }
-    # Scale-side phylo endpoints are admitted under REML ONLY for the BLOCK-DIAGONAL
-    # covariance layout (phylo location block ⊥ phylo scale block -- distinct labels,
-    # e.g. `1 | p | sp` on mu1/mu2 and `1 | ps | sp` on sigma1/sigma2). There is no
-    # mean-scale cross-covariance to trade bias through, so the scale-side random
-    # phylo is identifiable -- WITH per-group replication. A replication ladder
-    # (scratchpad/reml_blockdiag_replication_ladder.R, 2026-07-07) shows n_each >= 5
-    # -> 100% pdHess, 0% scale-correlation collapse, biases -> 0; at 1 obs/species it
-    # collapses (pdHess=FALSE, scale-cor -> boundary) -- for species-mean data use a
-    # FIXED sd_phylo1/sd_phylo2 scale (Model A+) instead. The DENSE (unstructured)
-    # full-q4 scale-side phylo, which carries the mean-scale cross-covariance, stays
-    # rejected under REML (sign-flip + collapse, doc 221).
-    endpoint_axes <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
-    if (any(endpoint_axes == "sigma") && !phylo_mu_is_block_diagonal(phylo_mu)) {
-      cli::cli_abort(c(
-        "{.arg REML} for bivariate Gaussian models supports mean-side ({.code mu1}/{.code mu2}) phylogenetic effects and the block-diagonal location-scale layout only.",
-        "i" = "Dense (unstructured) or matched mean-and-scale phylogenetic effects under bivariate REML are not validated yet.",
-        "i" = "Use a block-diagonal layout (distinct labels for the {.code mu} and {.code sigma} blocks), a fixed {.fn sd_phylo1}/{.fn sd_phylo2} scale, or set {.code REML = FALSE}."
-      ))
-    }
+    # Scale-side phylo endpoints are admitted under REML in ALL covariance layouts
+    # (2026-07-08): block-diagonal, dense (unstructured) q4, and scale-only.
+    #
+    # BLOCK-DIAGONAL (phylo location block ⊥ phylo scale block -- distinct labels, e.g.
+    # `1 | p | sp` on mu1/mu2 and `1 | ps | sp` on sigma1/sigma2): no mean-scale
+    # cross-covariance, identifiable WITH per-group replication
+    # (scratchpad/reml_blockdiag_replication_ladder.R: n_each >= 5 -> 100% pdHess,
+    # biases -> 0).
+    #
+    # DENSE q4 (one shared label across all four endpoints, carrying the mean-scale
+    # cross-covariances) is ALSO admitted. The earlier "sign-flip + always collapses"
+    # verdict is SUPERSEDED: scratchpad/q4_signflip_diagnostic.R proves the
+    # DGP<->endpoint mapping is CORRECT (a single nonzero DGP correlation lands on the
+    # right pair with the right sign) -- the apparent sign-flip was a symptom of an
+    # UNDER-POWERED fit whose variance component collapsed, leaving its correlations
+    # unidentified. With adequate information (n_tip >= ~200 AND per-species
+    # replication n_each >= ~10) the dense q4 converges and recovers, and REML is
+    # STRICTLY BETTER than ML there: higher pdHess/convergence rate (0.75 vs 0.50 at
+    # n_tip=200) and variance components debiased toward truth
+    # (scratchpad/reml_dense_q4_ladder.R). Rejecting it under REML while ML admits it
+    # would be an inverted gate.
+    #
+    # DATA CAVEAT (not a gate): at 1 obs/species, or n_tip/n_each below the above, the
+    # dense q4 collapses (pdHess FALSE, nuisance correlations pinned at the boundary).
+    # Use the block-diagonal layout or a FIXED sd_phylo1/sd_phylo2 scale (Model A+) for
+    # species-mean data. pdHess is a want, not a gate -- route CIs through
+    # profile/bootstrap.
   }
   if (
     qr(as.matrix(spec$X$mu1))$rank < ncol(spec$X$mu1) ||
