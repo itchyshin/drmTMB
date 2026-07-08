@@ -2069,11 +2069,23 @@ drm_validate_reml_spec_biv <- function(spec) {
         "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
       ))
     }
+    # Scale-side phylo endpoints are admitted under REML ONLY for the BLOCK-DIAGONAL
+    # covariance layout (phylo location block ⊥ phylo scale block -- distinct labels,
+    # e.g. `1 | p | sp` on mu1/mu2 and `1 | ps | sp` on sigma1/sigma2). There is no
+    # mean-scale cross-covariance to trade bias through, so the scale-side random
+    # phylo is identifiable -- WITH per-group replication. A replication ladder
+    # (scratchpad/reml_blockdiag_replication_ladder.R, 2026-07-07) shows n_each >= 5
+    # -> 100% pdHess, 0% scale-correlation collapse, biases -> 0; at 1 obs/species it
+    # collapses (pdHess=FALSE, scale-cor -> boundary) -- for species-mean data use a
+    # FIXED sd_phylo1/sd_phylo2 scale (Model A+) instead. The DENSE (unstructured)
+    # full-q4 scale-side phylo, which carries the mean-scale cross-covariance, stays
+    # rejected under REML (sign-flip + collapse, doc 221).
     endpoint_axes <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
-    if (any(endpoint_axes == "sigma")) {
+    if (any(endpoint_axes == "sigma") && !phylo_mu_is_block_diagonal(phylo_mu)) {
       cli::cli_abort(c(
-        "{.arg REML} for bivariate Gaussian models currently supports mean-side ({.code mu1}/{.code mu2}) phylogenetic effects only.",
-        "i" = "Scale-side or matched mean-and-scale phylogenetic effects under bivariate REML are not validated yet; set {.code REML = FALSE}."
+        "{.arg REML} for bivariate Gaussian models supports mean-side ({.code mu1}/{.code mu2}) phylogenetic effects and the block-diagonal location-scale layout only.",
+        "i" = "Dense (unstructured) or matched mean-and-scale phylogenetic effects under bivariate REML are not validated yet.",
+        "i" = "Use a block-diagonal layout (distinct labels for the {.code mu} and {.code sigma} blocks), a fixed {.fn sd_phylo1}/{.fn sd_phylo2} scale, or set {.code REML = FALSE}."
       ))
     }
   }

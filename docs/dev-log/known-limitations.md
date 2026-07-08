@@ -159,11 +159,21 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   bivariate `sd_phylo1()` / `sd_phylo2()` path is implemented as a
   location-only response-specific direct-SD model; it is not a way to model
   residual `sigma1` / `sigma2` random-effect SDs or q=4 phylogenetic
-  location-scale endpoint SDs. Native `REML = TRUE` is currently
-  exact-Gaussian and mean-side-only for phylogenetic structured effects;
-  scale-side, matched `mu`/`sigma`, q2, and q4 phylogenetic REML requests
-  reject early and should be treated as planned estimator work rather than
-  balanced native REML support. Matching labelled `animal()` and `relmat()`
+  location-scale endpoint SDs. Native `REML = TRUE` admits, for phylogenetic
+  structured effects: mean-side (`mu`/`mu1`/`mu2`) effects; a matched
+  mean-and-scale q2 block (univariate `mu`+`sigma` with a `1 | p | id`
+  correlation, supported with N >= 250 to identify and N >= 1000 for the
+  loc-scale correlation, doc 221); a direct-SD phylo scale (`sd_phylo*() ~ x`);
+  and the bivariate BLOCK-DIAGONAL location-scale layout (a phylo mean block
+  independent of a phylo scale block, distinct labels such as `1 | p | id` on
+  `mu` and `1 | ps | id` on `sigma`). The block-diagonal scale-side random
+  phylo is identifiable WITH per-group replication (the replication ladder
+  shows n_each >= 5 -> ~100% pdHess and biases -> 0 at n_tip >= 150); it
+  collapses at 1 obs/species (pdHess FALSE, scale correlation -> boundary),
+  where a fixed `sd_phylo*()` scale (Model A+) should be used instead. Still
+  rejected as planned estimator work: the DENSE (unstructured) q4 phylogenetic
+  location-scale block, whose mean-scale cross-covariance drives a sign-flip and
+  collapse (doc 221), and ordinary (non-phylo) scale-side random effects. Matching labelled `animal()` and `relmat()`
   known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
   location covariance and for constant all-four q=4 location-scale blocks when
   `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or

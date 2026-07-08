@@ -207,3 +207,63 @@ test_that("bivariate REML ADMITS phylogenetic direct-SD scale (rung 2)", {
   expect_true(length(sd_rows) >= 1L)
   expect_true(all(is.finite(cf[sd_rows, "std_error"])))
 })
+
+test_that("bivariate REML ADMITS the block-diagonal location-scale phylo layout, rejects dense (S3)", {
+  skip_on_cran()
+  skip_if_not_installed("ape")
+  # Block-diagonal q4: a phylo MEAN block (label p) is INDEPENDENT of a phylo SCALE
+  # block (label ps) -- no mean-scale cross-covariance. This is identifiable under
+  # REML WITH per-group replication; the scale-side random phylo collapses at 1
+  # obs/species (use a fixed sd_phylo scale for species-mean data). Evidence: the
+  # replication ladder scratchpad/reml_blockdiag_replication_ladder.R (2026-07-07)
+  # -- n_each>=5 -> 100% pdHess and biases -> 0 at n_tip>=150. This fixture uses
+  # n_each=5. We assert ADMISSION + convergence + estimable variance components
+  # (not the weakly-identified scale correlation, and -- per the pdHess-is-a-want
+  # doctrine -- not pdHess), plus the dense-layout negative control.
+  set.seed(3L)
+  n_tip <- 100L; n_each <- 5L; n <- n_tip * n_each
+  tree <- ape::rcoal(n_tip); tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE); L <- t(chol(A))
+  Gl <- chol(matrix(c(.6^2, .4 * .6 * .5, .4 * .6 * .5, .5^2), 2, 2))
+  Gs <- chol(matrix(c(.4^2, .3 * .4 * .3, .3 * .4 * .3, .3^2), 2, 2))
+  Am <- L %*% matrix(stats::rnorm(n_tip * 2), n_tip, 2) %*% Gl
+  As <- L %*% matrix(stats::rnorm(n_tip * 2), n_tip, 2) %*% Gs
+  tip <- rep(seq_len(n_tip), each = n_each)
+  s1 <- exp(log(.5) + As[tip, 1]); s2 <- exp(log(.6) + As[tip, 2])
+  dat <- data.frame(
+    sp = factor(tree$tip.label[tip], levels = tree$tip.label),
+    y1 = 0.3 + Am[tip, 1] + stats::rnorm(n, 0, s1),
+    y2 = 0.7 + Am[tip, 2] + stats::rnorm(n, 0, s2)
+  )
+  block_diag <- bf(
+    mu1 = y1 ~ 1 + phylo(1 | p | sp, tree = tree),
+    mu2 = y2 ~ 1 + phylo(1 | p | sp, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | ps | sp, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | ps | sp, tree = tree),
+    rho12 = ~ 1
+  )
+  fit <- suppressWarnings(drmTMB(
+    block_diag, family = biv_gaussian(), data = dat, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  ))
+  expect_identical(fit$estimator, "REML")
+  expect_identical(fit$opt$convergence, 0L)
+  v <- setNames(summary(fit)$parameters$estimate, summary(fit)$parameters$parm)
+  sds <- v[grepl("^sd:mu:", names(v))]
+  expect_length(sds, 4L)
+  expect_true(all(is.finite(sds) & sds > 0))
+
+  # Negative control: the DENSE full-q4 layout (one shared label on all four
+  # endpoints -> mean-scale cross-covariance) stays REJECTED under REML.
+  dense <- bf(
+    mu1 = y1 ~ 1 + phylo(1 | p | sp, tree = tree),
+    mu2 = y2 ~ 1 + phylo(1 | p | sp, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | sp, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | sp, tree = tree),
+    rho12 = ~ 1
+  )
+  expect_error(
+    drmTMB(dense, family = biv_gaussian(), data = dat, REML = TRUE),
+    "block-diagonal location-scale layout only"
+  )
+})
