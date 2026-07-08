@@ -140,20 +140,31 @@ test_that("REML admits a pure scale-side phylogenetic effect", {
   expect_false(is.null(fit$sdpars$sigma))
 })
 
-test_that("REML still rejects matched mean-and-scale phylogenetic effects", {
+test_that("REML admits matched mean-and-scale phylogenetic effects (q2 block)", {
   skip_on_cran()
   skip_if_not_installed("ape")
+  # The matched mean-and-scale phylo block (q2 2x2) is admitted under REML
+  # (2026-07-07). The earlier N=120 "REML degrades the mean" arbiter was below
+  # q2's N>=250 identifiability floor and is superseded: the sample-size ladder
+  # (N=250..2000, 30 seeds, doc 221) shows REML is less biased than ML on sd_mu at
+  # every n. This fixture (n=90, no true sigma-phylo signal) is below the floor, so
+  # we assert the block FITS under REML, not tight recovery.
   fx <- reml_phylo_location_fixture()
   tree <- fx$tree
-  expect_error(
-    drmTMB(
-      bf(
-        y ~ x + phylo(1 | p | species, tree = tree),
-        sigma ~ 1 + phylo(1 | p | species, tree = tree)
-      ),
-      data = fx$data,
-      REML = TRUE
+  # suppressWarnings: this fixture has NO true sigma-phylo signal, so the
+  # near-zero sigma variance component yields NaN Wald SEs in sdreport -- an
+  # expected boundary artifact, orthogonal to the admission this test asserts.
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      y ~ x + phylo(1 | p | species, tree = tree),
+      sigma ~ 1 + phylo(1 | p | species, tree = tree)
     ),
-    "matched mean-and-scale"
-  )
+    data = fx$data,
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  ))
+  expect_identical(fit$estimator, "REML")
+  expect_identical(fit$opt$convergence, 0L)
+  expect_false(is.null(fit$sdpars$mu))
+  expect_false(is.null(fit$sdpars$sigma))
 })

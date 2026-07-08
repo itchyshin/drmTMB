@@ -2001,24 +2001,17 @@ drm_validate_reml_spec <- function(spec) {
         "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
       ))
     }
-    # First slice: admit a PURE scale-side phylo effect (a sigma endpoint with no
-    # mean endpoint) under REML -- `beta_sigma` is marginalized in
-    # drm_apply_estimator_spec so the restricted likelihood also adjusts for the
-    # scale coefficients (Cox-Reid / adjusted-profile REML; Noether review
-    # 2026-07-06). Keep rejecting MATCHED mean-and-scale phylo effects (both
-    # endpoints, e.g. `1 | p | species`): a recovery arbiter (2026-07-06, q2 2x2
-    # block, N=120, R=30) shows this REML implementation debiases the scale-side
-    # SD (bias -0.165 -> -0.111) but DEGRADES the mean-side SD (-0.088 -> -0.233)
-    # -- the mean-scale coupling trades bias through the correlation and is not yet
-    # REML-calibrated. Needs a Cox-Reid adjustment for the coupled block before it
-    # can ship; keep rejected for now.
-    endpoint_axes <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
-    if (any(endpoint_axes == "sigma") && any(endpoint_axes == "mu")) {
-      cli::cli_abort(c(
-        "{.arg REML} is not yet implemented for matched mean-and-scale phylogenetic effects.",
-        "i" = "Use a scale-side {.code phylo()} effect alone, a mean-side one alone, or set {.code REML = FALSE}."
-      ))
-    }
+    # A PURE scale-side phylo effect (a sigma endpoint, no mean endpoint) AND a
+    # MATCHED mean-and-scale phylo effect (both endpoints -- the q2 2x2 block, e.g.
+    # `1 | p | species`) are both admitted under REML. `beta_sigma` is marginalized
+    # in drm_apply_estimator_spec, so the restricted likelihood already adjusts for
+    # the coupled scale coefficients (Cox-Reid / adjusted-profile REML; Noether
+    # 2026-07-06) -- no separate Cox-Reid term is needed. The earlier N=120 "REML
+    # degrades the mean-side SD" arbiter (2026-07-06) was BELOW q2's N>=250
+    # identifiability floor and is SUPERSEDED (2026-07-07): the sample-size ladder
+    # (N=250..2000, 30 seeds, doc 221) shows REML is LESS biased than ML on sd_mu at
+    # every n, debiases sd_sigma throughout, and recovers the loc-scale correlation
+    # (needs N>=1000 to identify). pdHess concordance REML 0.97 > ML 0.93.
   }
   if (qr(as.matrix(spec$X$mu))$rank < ncol(spec$X$mu)) {
     cli::cli_abort(c(
