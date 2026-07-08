@@ -1,0 +1,37 @@
+cell_id	flag	flag_value	scenario	surface	expected	detail	reason	evidence
+reml_off_base_fit	REML	FALSE	base_gaussian_phylo	fit	ok		converges	tests/testthat/test-estimator-surface-conformance.R
+reml_off_base_sdreport	REML	FALSE	base_gaussian_phylo	sdreport	ok	status=ok		tests/testthat/test-estimator-surface-conformance.R
+reml_off_base_vcov	REML	FALSE	base_gaussian_phylo	vcov	ok		reads sdr$cov.fixed	R/methods.R:2350
+reml_off_base_summary_coef_se	REML	FALSE	base_gaussian_phylo	summary_coef_se	ok		all finite	tests/testthat/test-estimator-surface-conformance.R
+reml_off_base_confint_wald	REML	FALSE	base_gaussian_phylo	confint_wald	ok			tests/testthat/test-estimator-surface-conformance.R
+reml_off_base_confint_profile_fixef	REML	FALSE	base_gaussian_phylo	confint_profile_fixef	ok		beta_mu is a free fixed parameter	R/profile.R:848
+reml_off_base_confint_profile_sd	REML	FALSE	base_gaussian_phylo	confint_profile_sd	ok			R/profile.R:848
+reml_off_base_profile_targets	REML	FALSE	base_gaussian_phylo	profile_targets	ok	any_ready		R/profile.R:848
+reml_off_base_check_drm	REML	FALSE	base_gaussian_phylo	check_drm	ok	attr_ok		R/check.R:1
+reml_off_base_ranef	REML	FALSE	base_gaussian_phylo	ranef	ok			R/methods.R:2342
+reml_off_base_predict	REML	FALSE	base_gaussian_phylo	predict	ok			R/methods.R:2342
+reml_off_base_simulate	REML	FALSE	base_gaussian_phylo	simulate	ok			R/methods.R:2342
+reml_off_base_pdhess	REML	FALSE	base_gaussian_phylo	pdHess	ok			R/drmTMB.R:2171
+reml_on_base_fit	REML	TRUE	base_gaussian_phylo	fit	ok		converges	tests/testthat/test-estimator-surface-conformance.R
+reml_on_base_sdreport	REML	TRUE	base_gaussian_phylo	sdreport	ok	status=ok	small ADREPORT vector since se_group_sd defaults FALSE	R/drmTMB.R:2171
+reml_on_base_vcov	REML	TRUE	base_gaussian_phylo	vcov	ok		reads the JOINT sdr$cov, not cov.fixed: beta_mu/beta_sigma are in the Laplace random block	R/methods.R:2342-2349
+reml_on_base_summary_coef_se	REML	TRUE	base_gaussian_phylo	summary_coef_se	ok		all finite	tests/testthat/test-estimator-surface-conformance.R
+reml_on_base_confint_wald	REML	TRUE	base_gaussian_phylo	confint_wald	ok			tests/testthat/test-estimator-surface-conformance.R
+reml_on_base_confint_profile_fixef	REML	TRUE	base_gaussian_phylo	confint_profile_fixef	error	not ready for direct profiling	CAPABILITY LOSS: beta_mu is integrated into the Laplace random block, so there is no free parameter to profile. Take fixed-effect intervals from an ML fit.	R/profile.R:848
+reml_on_base_confint_profile_sd	REML	TRUE	base_gaussian_phylo	confint_profile_sd	ok		endpoint solver handles the empty free-parameter vector	R/profile.R:3054
+reml_on_base_profile_targets	REML	TRUE	base_gaussian_phylo	profile_targets	ok	any_ready		R/profile.R:848
+reml_on_base_check_drm	REML	TRUE	base_gaussian_phylo	check_drm	ok	attr_ok		R/check.R:1
+reml_on_base_ranef	REML	TRUE	base_gaussian_phylo	ranef	ok			R/methods.R:2342
+reml_on_base_predict	REML	TRUE	base_gaussian_phylo	predict	ok			R/methods.R:2342
+reml_on_base_simulate	REML	TRUE	base_gaussian_phylo	simulate	ok			R/methods.R:2342
+reml_on_base_pdhess	REML	TRUE	base_gaussian_phylo	pdHess	ok			R/drmTMB.R:2171
+reml_gate_phylo_mu	REML	TRUE	gate_phylo_mu	fit	ok		the only admitted structured provider	R/drmTMB.R:1978
+reml_gate_spatial_mu	REML	TRUE	gate_spatial_mu	fit	error	only phylogenetic	conservative gate ("not validated yet"); the estimator machinery is provider-agnostic	R/drmTMB.R:2040
+reml_gate_relmat_mu	REML	TRUE	gate_relmat_mu	fit	error	only phylogenetic	conservative gate ("not validated yet")	R/drmTMB.R:2040
+reml_gate_poisson	REML	TRUE	gate_poisson	fit	error	univariate and bivariate Gaussian	REML is Gaussian-only; no restricted likelihood for non-Gaussian	R/drmTMB.R:226
+reml_gate_aggregate_gaussian	REML	TRUE	gate_aggregate_gaussian	fit	error	Gaussian row aggregation	unimplemented	R/drmTMB.R:2000
+reml_gate_sparse_fixed	REML	TRUE	gate_sparse_fixed	fit	error	sparse fixed-effect	unimplemented	R/drmTMB.R:1989
+reml_gate_ordinary_direct_sd	REML	TRUE	gate_ordinary_direct_sd	fit	error	direct ordinary random-effect scale	unimplemented; the phylogenetic direct-SD scale IS admitted	R/drmTMB.R:2032
+reml_gate_missing_engine_complete	REML	TRUE	gate_missing_engine_complete	fit	ok		the engine is a no-op on complete-case data (narrowed 2026-07-08)	R/drmTMB.R:1958
+reml_gate_missing_engine_na	REML	TRUE	gate_missing_engine_na	fit	error	missing-data engine	the engine genuinely engages; unvalidated under REML	R/drmTMB.R:236
+reml_gate_sd_phylo_plus_sigma_phylo	REML	TRUE	gate_sd_phylo_plus_sigma_phylo	fit	error	phylogenetic residual-scale effects	PLANNED: the location-scale-scale model (Ayumi, issue #3). q_phylo=2 so `sd_phylo()` names no endpoint -- suspected grammar ambiguity, not an unimplemented kernel.	R/drmTMB.R:10546

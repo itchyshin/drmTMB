@@ -30,6 +30,18 @@ location model only.
 
 Native TMB REML currently rejects scale-side and matched location-scale
 phylogenetic requests:
+> ### ⚠️ SUPERSEDED IN PART (2026-07-08)
+>
+> **Pure scale-side phylo is now ADMITTED** under REML (`b9446fd7`), as are ordinary `sigma`
+> random effects (`feba9018`), a bivariate labelled scale-side sigma block (`99138cfa`), and dense q4 /
+> q>2 blocks (`1b3e852b`). What is still rejected is the **matched mean+scale** phylo block, and every
+> **non-phylo provider** (`spatial`/`animal`/`relmat`) -- the latter a conservative "not validated yet"
+> gate (`R/drmTMB.R:2040`), not a capability limit.
+>
+> Authority: `docs/dev-log/dashboard/estimator-surface-conformance.tsv` (machine-checked by
+> `tests/testthat/test-estimator-surface-conformance.R`) and
+> `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`. Prose is derived; the TSVs are truth.
+
 
 ```r
 bf(y ~ x, sigma ~ phylo(1 | species, tree = tree))

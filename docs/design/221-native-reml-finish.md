@@ -154,7 +154,7 @@ mean+scale, direct-SD, and q>2 rejects retained. Evidence:
 - **q4 probe** (full 4×4, *genuine* well-conditioned signal, n=600): **REML conv=0, pdHess=TRUE**
   while ML false-converged (code 8) + NaN SEs — REML rescued the fit, contradicting the earlier
   "q4 pdHess=FALSE persists at all N" (that was the ≈0-signal beak+tarsus pair). SDs roughly
-  recovered. **TODO before the full ladder:** a phylo mean–scale correlation came back
+  recovered. ~~**TODO before the full ladder:** a phylo mean–scale correlation came back
   sign-flipped vs the DGP truth in *both* ML and REML ⇒ a DGP↔endpoint-ordering mapping to verify
-  (not a REML issue). Then run the q4 ladder (Totoro) with the pdHess-concordance + profile-CI
+  (not a REML issue).~~ **RESOLVED 2026-07-08 (`1b3e852b`):** `scratchpad/q4_signflip_diagnostic.R` builds a q4 DGP with exactly ONE nonzero correlation and shows it lands on the RIGHT endpoint pair with the RIGHT sign -- the mapping is correct. The apparent flip was a collapsed variance component leaving its correlations unidentified at the boundary. Then run the q4 ladder (Totoro) with the pdHess-concordance + profile-CI
   columns.

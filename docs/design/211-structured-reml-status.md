@@ -21,6 +21,19 @@ likelihood reference and checks that the REML phylogenetic SD is not more
 downward-biased than the ML estimate in the fixture.
 
 ## Current Native REML Rejections
+> ### ⚠️ SUPERSEDED IN PART (2026-07-08)
+>
+> Scale-side phylogenetic structured effects are **no longer rejected** (`b9446fd7`), nor are ordinary
+> `sigma` random effects (`feba9018`). The surviving REML rejections, each machine-checked, are:
+> non-Gaussian families; `spatial`/`animal`/`relmat` structured effects; ordinary direct-SD scale formulae;
+> Gaussian row aggregation; sparse fixed effects; an *engaged* missing-data engine; and `sd_phylo()`
+> combined with a `sigma ~ phylo(...)` endpoint. Also a **capability loss** recorded nowhere before
+> 2026-07-08: under REML the mean coefficients move into the Laplace `random` block, so **profile intervals
+> on fixed effects are unavailable** (`R/profile.R:848`) -- take those from an ML fit.
+>
+> Authority: `docs/dev-log/dashboard/estimator-surface-conformance.tsv` (machine-checked by
+> `tests/testthat/test-estimator-surface-conformance.R`) and
+> `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`. Prose is derived; the TSVs are truth.
 
 Native REML currently rejects:
 

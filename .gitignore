@@ -78,3 +78,7 @@ rsconnect/
 /dis_reg_models
 /doc/
 /Meta/
+
+# scratchpad: evidence scripts ARE committed (see handover); logs and caches are not
+scratchpad/*.log
+scratchpad/*.rds

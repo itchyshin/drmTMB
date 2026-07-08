@@ -95,6 +95,39 @@ intervals (0.16 vs 1.08 s at g=8; 1.6 vs 10.5 s at g=128).
    (0.96), not the 0.895 seen earlier with the `"endpoint"` engine — so the earlier
    under-coverage was substantially an *endpoint-engine* artifact, not pure bias. REML's headline
    gains are debiasing + finite-rate + speed; coverage is fixed by *engine + REML together*.
+
+   > ### ⚠️ CORRECTION (2026-07-08) — nuance 1 above is WRONG. Do not build on it.
+   >
+   > **The comparison was confounded across four factors at once.** The 0.895 came from the
+   > g-sweep (`.../2026-07-06-sigma-axis-gsweep-coverage/`): **spatial** provider, truth SD
+   > **0.50**, `endpoint` engine, median interval width **0.65**. The 0.960 came from this
+   > document's own grid: **phylo** provider, truth SD **0.60**, `tmbprofile` engine, median
+   > width **1.20**. Provider, truth, runner *and* engine all differ, and the phylo intervals
+   > are nearly **twice as wide**. That contrast is not evidence about the interval engine.
+   >
+   > **The controlled test refutes it.** Running all three arms on the *same fitted objects*
+   > (`scratchpad/engine_equivalence_probe.R`, 12 seeds, spatial sigma-slope cell):
+   >
+   > ```
+   > UPPER  endpoint@90    − tmbprofile : median +0.0000
+   > UPPER  endpoint@uncap − tmbprofile : median +0.0000
+   > LOWER  endpoint@90    − tmbprofile : median −0.0000
+   > ```
+   >
+   > `endpoint@90` and `endpoint@uncapped` are bit-identical — the runner's
+   > `profile_endpoint_max_eval = 90L` (`tools/run-structured-re-sigma-slope-coverage-grid.R:515`)
+   > **never binds**. Two solvers on the same profile likelihood agree, as they must.
+   > *(Incidentally `tmbprofile` was the **less** reliable engine here: finite on 9/12 seeds vs
+   > `endpoint`'s 12/12.)*
+   >
+   > **Therefore the under-coverage is centre bias (ML small-`g` variance-component bias), not a
+   > solver artifact.** `mean est 0.3885` against truth `0.50` reproduces the pilot's −0.105.
+   > Doc 218's "interval-method levers exhausted" verdict stands on its own evidence; it is not
+   > rescued by an engine switch.
+   >
+   > Superseded by: this session's Phase-1 attribution work. The banked brain note
+   > *"Native scale-side REML debiases sigma-phylo variance components"* carries the same
+   > erroneous claim and has been corrected in place.
 2. **The `"endpoint"` engine ERRORS on REML fits** (`'d' must be a nonempty numeric vector`,
    `conf.status=profile_failed`) — because β_μ/β_σ move into the Laplace `random` block, the
    endpoint refit gets an empty free-parameter vector. `tmbprofile` works; the endpoint-solver
@@ -114,5 +147,6 @@ wired σ-phylo branches in `../DRM.jl/src/gaussian_locscale_phylo.jl` (lines ~57
 `pμ` → `pμ + pψ` (restrict β_μ AND β_ψ — the complete Cox-Reid restricted likelihood; corroborated
 by DRM.jl's own q4 route, which already profiles β_μ AND β_σ). **Verified via the bridge: REML now
 debiases 7/8 (mean 0.423 → 0.484, truth 0.60; was 0/30 the *wrong* way before the fix)** — the same
-correction as native drmTMB, now on the Julia path. Committed on a DRM.jl branch (not pushed);
-DRM.jl σ-phylo REML tests likely need updating to the corrected (debiasing) behavior.
+correction as native drmTMB, now on the Julia path. Committed on the DRM.jl branch `drmjl/sigma-phylo-reml-beta-psi-fix` (`ab17c0e`), **pushed to
+`origin`** (verified 2026-07-08; this doc previously said "not pushed", which was true when written
+and became stale). DRM.jl σ-phylo REML tests likely need updating to the corrected (debiasing) behavior.
