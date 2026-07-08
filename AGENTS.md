@@ -3,7 +3,26 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-06, → Claude, 104/104 CLOSED; intervals/coverage arc scoped + started).**
+> **▶ Latest — start here (2026-07-08, → Claude, ML/REML parity COMPLETE; next arc = crosses→ticks).**
+> Branch `drmtmb/biv-scale-side-reml` (pushed, 25 ahead of `main`, FF-mergeable). **Every combination
+> ML fits, REML now fits** — no REML-without-ML, no ML-without-REML. Shipped: q2 matched mean+scale,
+> block-diagonal biv location-scale, `sd(..., level=)` grammar (legacy `sd_phylo*` soft-deprecated),
+> ordinary sigma REs (uni+biv), **dense q4 + biv mu-sigma cors + q>2 blocks**, and a new **C++
+> correlated residual-scale slope block** (`sigma ~ x + (1+x|id)`). **Two prior verdicts OVERTURNED
+> by evidence:** q2 "needs Cox-Reid" (small-N artefact) and dense-q4 "sign-flip" (under-powered-fit
+> artefact — mapping proven correct; REML strictly beats ML there). Standing caveat: scale-side
+> variance components need **within-group replication**; `pdHess` is a want, not a gate.
+> **Next arc = turn every ✗ to ✓ on the q-series matrix.** Authority = the TSV
+> (`docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`); **doc 210 is STALE**.
+> Excluding the 9 `multiple_slope` rows (**two-slope DEFERRED per Shinichi**): **95 v1.0 cells —
+> 94 fit, but only 8 interval-ready / 8 coverage-ready.** Fitting is done; **inference is the arc.**
+> Target `inference_ready` ONLY — `supported` stays deferred (doc 218 §5: the biased-centre wall
+> needs a research-grade bias-correction derivation). Workstreams: (c) interval campaign Track A1
+> [already scoped + method-decided], (a) univariate labelled structured slope block, (b) non-Gaussian
+> labelled/bivariate structured slopes. START HERE:
+> [`docs/dev-log/handover/2026-07-08-claude-handover.md`](docs/dev-log/handover/2026-07-08-claude-handover.md)
+>
+> **▶ Prior (2026-07-06, → Claude, 104/104 CLOSED; intervals/coverage arc scoped + started).**
 > The Q-Series is **closed at 104/104** on `main` (`6f3ca841`): row 87 admitted recovery-only
 > (PR #736) + the cell_id rename & closure-triage reconciliation (PR #737); all 4 validators +
 > full `devtools::test()` (36380) green. The **next arc — intervals + coverage +
