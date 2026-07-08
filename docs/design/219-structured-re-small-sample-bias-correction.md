@@ -46,11 +46,40 @@ promoted from opt-in because a six-reviewer panel ruled the cells cannot reach a
 public tier while nominal coverage hides behind a two-argument opt-in that the
 default `confint(fit)` does not apply.
 
+> ### ⚠️ CORRECTION (2026-07-08) — "dispersion SDs already over-cover" is REGIME-DEPENDENT, not universal
+>
+> The "Location axis only" bullet below states the premise as if it held for the
+> whole dispersion axis. It does not. The evidence, both directions:
+>
+> - **Where it FAILS (the promoted cells).** Fisher recomputed Wald-`z` coverage
+>   of `sd:sigma:<provider>(1 | ·)` for the six `sigma` one-slope cells promoted to
+>   `inference_ready`: **phylo 0.939, relmat 0.942, animal 0.963** at `g = 8`, with
+>   **10–11:1 upper-tail miss asymmetry** (`scratchpad/fisher.R`; g-sweep under
+>   `docs/dev-log/simulation-artifacts/2026-07-06-sigma-axis-gsweep-coverage/`).
+>   In that regime the SD *intercept* member **under**-covers, and the raw
+>   `z`-interval is exactly the wrong default for it.
+> - **Where it HOLDS.** A recheck pilot on the *pure* sigma-intercept model
+>   (`sigma ~ phylo(1 | sp)`, no slope), truth SD 0.60, `g = 8`, `n_each = 10`
+>   (within-group replication), over-covers at **0.972** raw with balanced misses;
+>   the `"group"` correction pushes it to 0.981 — further from nominal
+>   (`scratchpad/f3_sigma_intercept_correction_pilot.R`). Here the premise is
+>   right: applying the upward shift makes it worse.
+>
+> **So the honest rule:** the exclusion is defensible for the *replicated pure
+> sigma-intercept* cell and wrong for the *sigma one-slope* cells that were
+> actually promoted. The bullet's error is generalising one regime to the axis.
+> The promoted cells need either the correction, the skew-aware / REML route, or
+> demotion — that is the open question the Fisher audit hands to the interval-gate
+> rebuild (design-217 successor). Do not read this correction as "always apply the
+> shift to `sigma`" — the pilot shows that would over-correct the replicated case.
+
 The default is deliberately narrow:
 
 - **Location axis only.** Dispersion (`sigma`, `sigma1`, `sigma2`) structured SDs
   already over-cover under the normal quantile, so neither adjustment is applied
   to them by default — they keep the raw `z`-interval.
+  **(See the 2026-07-08 correction above: true only for the SD *slope* member, not
+  the SD *intercept*, which under-covers.)**
 - **Structured blocks only.** A plain labelled covariance block such as
   `(1 + x | p | id)` resolves a registry `g`, but its correction magnitude is not
   yet simulation-calibrated, so the default leaves it at the raw `z`-interval too.
@@ -158,6 +187,10 @@ nominal at every g, no over-correction at large g.
 - **Location axis only.** Not applied by default to dispersion (`sigma`) SDs,
   which already over-cover; applying the upward shift there would push them
   further conservative. The `"group"` opt-in does reach the dispersion axis.
+  **⚠️ 2026-07-08: regime-dependent — see the correction near the head of this
+  doc. `sd:sigma:(1|·)` under-covers (0.939–0.963) for the promoted sigma
+  one-slope cells at g=8, but over-covers (0.972) for the replicated pure-intercept
+  model. The blanket exclusion is wrong; the fix is per-regime, not "always shift".**
 - **Boundary regime.** When a true variance component is at or near zero, the
   sampling distribution is one-sided and neither the centre shift nor the t-width
   restores nominal coverage (Self & Liang 1987; Stram & Lee 1994). The covered
