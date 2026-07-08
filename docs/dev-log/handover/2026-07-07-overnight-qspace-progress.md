@@ -41,9 +41,16 @@ d83b475f feat(reml): admit matched mean+scale q2 phylo block under REML
    if the sign-flip is a DGP↔extraction mapping bug (likely — it's in both ML and REML) or small-n.
    Only relax the dense-q4 gate if it resolves cleanly. Cross-check vs DRM.jl `src/reml_q4.jl`.
 3. **S5 ordinary two-level q12** — the identifiable home of q12 (replicated between/within
-   individual DHGLM). Needs relaxing the **uni** gate `drm_validate_reml_spec` (~R/drmTMB.R:1973,
-   rejects ordinary sigma random effects under REML) + correlated residual-scale slope support
-   (currently "planned"). A real slice; validate with a replication ladder like S3's.
+   individual DHGLM). **Concrete ML scoping this session** (`scratchpad/s5_ordinary_twolevel_scope.R`,
+   n_id=150 × 8 obs): what FITS today under ML — correlated location-scale **intercepts**
+   `(1|p|id)` on both mu and sigma (npar 7); independent scale slopes `sigma ~ x + (0+x|id)`. What
+   is REJECTED — a correlated location **slope** block `(1+x|p|id)` combined with a sigma
+   correlation ("Larger labelled mu/sigma covariance blocks not implemented"); correlated
+   residual-scale slopes ("Only independent residual-scale random slopes are implemented"). So
+   ordinary q12 needs **two** things, not one: (a) NEW engine support for correlated residual-scale
+   slopes + the larger labelled mu/sigma slope block (a real "planned" feature), AND (b) the **uni**
+   REML gate relaxation (`drm_validate_reml_spec` ~R/drmTMB.R:1973, rejects ordinary sigma random
+   effects under REML). Validate with a replication ladder like S3's. Substantial — likely v0.4.0.
 4. **S6 capability matrix** (doc 168 REML column — its "no general REML estimator" caveat is stale)
    + **S7 v0.3.0 release**.
 
