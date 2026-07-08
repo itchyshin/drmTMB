@@ -6,6 +6,14 @@ under **ML** (`REML = FALSE`) and under **REML** (`REML = TRUE`)? A small replic
 (n_tip=40 × n_each=5) so admitted models actually fit; classification = fit / GATE (validation
 reject) / err.
 
+> **UPDATE 2026-07-08.** Rows 5–6 (univariate ordinary sigma random effects under REML) are now
+> **CLOSED** — the gate `drm_validate_reml_spec` (~R/drmTMB.R:1973) was relaxed to admit an ordinary
+> sigma random intercept `(1|id)`, an independent random slope `(0+x|id)`, and the correlated
+> mu-sigma block `(1|p|id)`. Recovery ladders (`scratchpad/reml_ordinary_sigma_re_probe.R`): REML
+> debiases the scale-RE SD vs ML uniformly across all three shapes **with replication** (n_each≥~8;
+> at n_each=3 REML underperforms — weak-identification tail). Tests: `test-reml-ordinary-sigma.R`.
+> Scoped to univariate; the bivariate ordinary sigma-RE cell is a separate future slice.
+
 ## Result — the parity invariant HOLDS
 
 **No REML-without-ML anywhere.** Every cell REML admits, ML also admits. REML is a clean **subset**
@@ -18,8 +26,8 @@ ML covers the full ladder tested (10/10 shapes fit).
 | 2 | q2 univariate matched mean+scale | ✅ | ✅ | **landed this session (S1)** |
 | 3 | univariate ordinary loc-intercept `(1\|id)` | ✅ | ✅ | |
 | 4 | univariate ordinary loc-slope `(1+x\|id)` | ✅ | ✅ | |
-| 5 | univariate ordinary loc+scale **correlated** `(1\|p\|id)` both | ✅ | ⛔ GATE | REML gap — ordinary **sigma** RE blocked under REML (`drm_validate_reml_spec` ~R/drmTMB.R:1973). **S5.** |
-| 6 | univariate ordinary scale-slope (indep) `sigma~x+(0+x\|id)` | ✅ | ⛔ GATE | same ordinary-sigma-RE-under-REML gap. **S5.** |
+| 5 | univariate ordinary loc+scale **correlated** `(1\|p\|id)` both | ✅ | ✅ | **landed 2026-07-08** (gate 1973 relaxed; debiases with replication) |
+| 6 | univariate ordinary scale-slope (indep) `sigma~x+(0+x\|id)` | ✅ | ✅ | **landed 2026-07-08** (same) |
 | 7 | biv rung1 phylo-means | ✅ | ✅ | |
 | 8 | biv rung2 direct-SD phylo scale `sd_phylo1/2(sp)~z` | ✅ | ✅ | |
 | 9 | biv q4 **block-diagonal** (mu-label ⊥ sigma-label) | ✅ | ✅ | **landed this session (S3)** |

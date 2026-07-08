@@ -1965,17 +1965,21 @@ drm_validate_reml_spec <- function(spec) {
       "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} or set {.code REML = FALSE}."
     ))
   }
-  # A fixed-effect `sigma ~ predictors` model is allowed under REML: REML
-  # restricts the likelihood for the mean fixed effects regardless of the scale
-  # model, and the restricted likelihood with a heteroscedastic residual
-  # (V = diag(sigma_i^2) + random-effect covariance) is exact for a Gaussian.
-  # Scale-side random effects remain rejected below.
-  if (spec$random$sigma$n_re > 0L || spec$random$mu_sigma$n_cors > 0L) {
-    cli::cli_abort(c(
-      "{.arg REML} currently supports ordinary {.code mu} random effects only.",
-      "i" = "Remove {.code sigma} random effects or set {.code REML = FALSE}."
-    ))
-  }
+  # A fixed-effect `sigma ~ predictors` model is allowed under REML: REML restricts
+  # the likelihood for the mean fixed effects regardless of the scale model, and the
+  # restricted likelihood with a heteroscedastic residual (V = diag(sigma_i^2) +
+  # random-effect covariance) is exact for a Gaussian.
+  #
+  # ORDINARY sigma random effects are ALSO admitted under REML (2026-07-08): a
+  # residual-scale random intercept `(1 | id)`, an independent random slope
+  # `(0 + x | id)`, and the matched mean-scale block `(1 | p | id)`. `beta_sigma` is
+  # marginalized in drm_apply_estimator_spec, so the restricted likelihood adjusts for
+  # the scale intercept and debiases the scale-side variance component. Recovery
+  # ladders (scratchpad/reml_ordinary_sigma_re_probe.R) show REML debiases the
+  # scale-RE SD vs ML with adequate within-group REPLICATION -- uniform across
+  # intercept, slope, and correlated blocks: n_each >= ~8 -> REML less biased and both
+  # converge; at n_each = 3 the component is weakly identified and REML UNDERPERFORMS
+  # ML (use ML or add replication). q > 2 scale blocks stay rejected below.
   if (spec$random$covariance_blocks$n_qgt2_re > 0L) {
     cli::cli_abort(c(
       "{.arg REML} is not implemented for q > 2 labelled covariance blocks yet.",

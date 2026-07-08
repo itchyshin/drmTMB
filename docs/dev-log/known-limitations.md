@@ -170,10 +170,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   phylo is identifiable WITH per-group replication (the replication ladder
   shows n_each >= 5 -> ~100% pdHess and biases -> 0 at n_tip >= 150); it
   collapses at 1 obs/species (pdHess FALSE, scale correlation -> boundary),
-  where a fixed `sd_phylo*()` scale (Model A+) should be used instead. Still
-  rejected as planned estimator work: the DENSE (unstructured) q4 phylogenetic
-  location-scale block, whose mean-scale cross-covariance drives a sign-flip and
-  collapse (doc 221), and ordinary (non-phylo) scale-side random effects. Matching labelled `animal()` and `relmat()`
+  where a fixed `sd_phylo*()` scale (Model A+) should be used instead.
+  UNIVARIATE ordinary (non-phylo) sigma random effects are also admitted under
+  REML (2026-07-08): a residual-scale random intercept `(1 | id)`, an independent
+  random slope `(0 + x | id)`, and the correlated mu-sigma block `(1 | p | id)`.
+  REML debiases the scale-side variance component with adequate within-group
+  REPLICATION (n_each >= ~8; at n_each = 3 it underperforms ML -- weak
+  identification). Still rejected as planned estimator work: the DENSE
+  (unstructured) q4 phylogenetic location-scale block, whose mean-scale
+  cross-covariance drives a sign-flip and collapse (doc 221); BIVARIATE ordinary
+  scale-side random effects; and q > 2 scale covariance blocks. Matching labelled `animal()` and `relmat()`
   known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
   location covariance and for constant all-four q=4 location-scale blocks when
   `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or
