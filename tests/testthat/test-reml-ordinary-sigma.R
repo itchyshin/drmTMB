@@ -66,19 +66,36 @@ test_that("REML admits a correlated mu-sigma block (1 | p | id)", {
   expect_true(any(grepl("^cor.*id", names(v))))
 })
 
-test_that("the REML relaxation stays bounded: q>2 scale covariance blocks remain rejected", {
+test_that("REML admits a CORRELATED residual-scale intercept+slope block", {
+  skip_on_cran()
+  # `sigma ~ x + (1 + x | id)` is implemented as of 2026-07-08 (new same-dpar
+  # conditioning in the univariate C++ likelihood). Recovery of (sd_int, sd_slope, rho)
+  # is validated in scratchpad/correlated_scale_slope_recovery.R.
+  d <- make_dhglm(n_id = 60L, n_each = 10L, seed = 4L)
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ x + (1 + x | id)),
+    family = gaussian(), data = d, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  ))
+  expect_identical(fit$estimator, "REML")
+  expect_identical(fit$opt$convergence, 0L)
+  v <- setNames(summary(fit)$parameters$estimate, summary(fit)$parameters$parm)
+  # two scale-side SDs (intercept + slope) and their correlation are estimated
+  expect_length(v[grepl("^sd:sigma", names(v))], 2L)
+  expect_true(any(grepl("^cor", names(v)) & grepl("sigma", names(v))))
+})
+
+test_that("the relaxation stays bounded: LABELLED residual-scale slope blocks remain rejected", {
   skip_on_cran()
   d <- make_dhglm()
-  d$x2 <- stats::rnorm(nrow(d))
-  # Relaxing the REML gate admitted ordinary intercept / independent-slope /
-  # correlated scale REs -- NOT larger (q > 2) scale covariance blocks, which stay
-  # unsupported (a general residual-scale limitation, under ML and REML alike).
+  # Unlabelled correlated residual-scale blocks are implemented; the LABELLED
+  # univariate residual-scale slope covariance block remains planned.
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ 1 + (1 + x + x2 | id)),
+      bf(y ~ x + (1 | id), sigma ~ 1 + (1 + x | p | id)),
       family = gaussian(), data = d, REML = TRUE
     ),
-    "random intercept|independent|q > 2|covariance"
+    "Labelled residual-scale random-slope covariance blocks"
   )
 })
 

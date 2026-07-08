@@ -7976,17 +7976,25 @@ parse_random_sigma_term <- function(expr, dpar) {
     group = as.character(group),
     covariance_label = covariance_label
   )
-  if (
-    !identical(coef$type, "slope") &&
-      !(dpar %in%
+  # Correlated residual-scale intercept-slope blocks are implemented (2026-07-08):
+  #   * univariate, UNLABELLED: `sigma ~ z + (1 + x | id)` (same-dpar sigma
+  #     intercept <-> slope correlation; C++ model_type == 1 conditions u_sigma on its
+  #     paired intercept exactly as the bivariate loop does), and the multi-slope
+  #     `(1 + x1 + x2 | id)` generalisation.
+  #   * bivariate, LABELLED: the existing cross-response `sigma1`/`sigma2` allowance.
+  sigma_correlated_ok <-
+    (identical(dpar, "sigma") &&
+      is.null(covariance_label) &&
+      coef$type %in% c("correlated_slope", "correlated_block")) ||
+      (dpar %in%
         c("sigma1", "sigma2") &&
         !is.null(covariance_label) &&
         coef$type %in% c("correlated_slope", "correlated_block"))
-  ) {
+  if (!identical(coef$type, "slope") && !sigma_correlated_ok) {
     cli::cli_abort(c(
-      "Only independent residual-scale random slopes are implemented for {.code sigma}.",
-      "x" = "Use {.code sigma ~ z + (1 | id)} for a random intercept or {.code sigma ~ z + (0 + x | id)} for an independent random slope.",
-      "i" = "Correlated residual-scale intercept-slope blocks such as {.code sigma ~ z + (1 + x | id)} are planned for a later phase."
+      "This residual-scale random-effect shape is not implemented for {.code sigma}.",
+      "x" = "Use {.code sigma ~ z + (1 | id)}, {.code sigma ~ z + (0 + x | id)}, or a correlated block {.code sigma ~ z + (1 + x | id)}.",
+      "i" = "Labelled univariate residual-scale slope covariance blocks remain planned."
     ))
   }
   if (!is.null(covariance_label) && identical(dpar, "sigma")) {
@@ -10897,13 +10905,12 @@ build_random_mu_structure <- function(terms, data) {
 }
 
 build_random_sigma_structure <- function(terms, data) {
+  # The generic mu builder already emits the correlation slots (`n_cors`,
+  # `cor_labels`, `re_cor_id0`, `re_pair_index0`) for a correlated intercept+slope
+  # block. Since 2026-07-08 the univariate C++ likelihood consumes them for sigma
+  # (`eta_cor_sigma`), so residual-scale correlations are no longer an internal error.
   re_sigma <- build_random_mu_structure(terms, data)
   re_sigma$dpars <- rep("sigma", re_sigma$n_terms)
-  if (re_sigma$n_cors > 0L) {
-    cli::cli_abort(
-      "Internal error: residual sigma random-effect correlations are not implemented."
-    )
-  }
   re_sigma
 }
 

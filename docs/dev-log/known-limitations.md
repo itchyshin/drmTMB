@@ -17,11 +17,20 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `(1 + x1 + x2 | id)`. Larger q blocks are advanced, sample-size hungry fits;
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
-- Residual-scale random intercepts and independent numeric random slopes are
-  implemented on log-`sigma` in the `sigma` formula as
-  `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)`. Correlated
-  univariate residual-scale slope blocks and labelled univariate
-  residual-scale slope covariance remain planned.
+- Residual-scale random intercepts, independent numeric random slopes, and
+  UNLABELLED correlated intercept-slope blocks are implemented on log-`sigma` in
+  the `sigma` formula as `sigma ~ x + (1 | id)`, `sigma ~ x + (0 + w | id)`, and
+  `sigma ~ x + (1 + w | id)` (also the multi-slope `(1 + w1 + w2 | id)`). The
+  correlated block was added 2026-07-08: the univariate C++ likelihood applies the
+  same-dpar `eta_cor_sigma` conditioning, mirroring the `mu` loop; recovery of
+  (SD-intercept, SD-slope, correlation) is validated in
+  `scratchpad/correlated_scale_slope_recovery.R` (biases <= 0.006 at n_id=150,
+  n_each=20). Consequently `y ~ x + (1 + x | id)` with `sigma ~ x + (1 + x | id)`
+  -- the ordinary two-level DHGLM with correlated random slopes on BOTH the
+  location and the scale -- now fits under ML and REML. Still planned: LABELLED
+  univariate residual-scale slope covariance (`sigma ~ x + (1 + x | p | id)`) and
+  the labelled cross-formula `mu`-`sigma` SLOPE block, i.e. the remaining q12
+  mean-scale slope cross-correlation.
 - The first univariate Gaussian cross-formula covariance block is implemented
   for matching labelled `mu` and `sigma` random intercepts, such as
   `y ~ x + (1 | p | id)` with `sigma ~ z + (1 | p | id)`.
@@ -190,9 +199,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   obs/species it still collapses -- use the block-diagonal layout or a fixed
   `sd_phylo*()` scale. Bivariate mean-scale (`mu`-`sigma`) random-effect correlations
   and q > 2 labelled LOCATION covariance blocks are likewise admitted under REML
-  (REML consistently less biased than ML on the block SDs). Still NOT implemented
-  (under ML or REML): CORRELATED residual-scale slope blocks -- only independent
-  residual-scale random slopes exist. Matching labelled `animal()` and `relmat()`
+  (REML consistently less biased than ML on the block SDs). UNLABELLED correlated
+  residual-scale intercept-slope blocks (`sigma ~ x + (1 + x | id)`) are also
+  implemented and admitted under REML (2026-07-08). Still NOT implemented (under ML
+  or REML): LABELLED univariate residual-scale slope covariance blocks, and the
+  labelled cross-formula `mu`-`sigma` SLOPE block (the remaining q12 mean-scale
+  slope cross-correlation). Matching labelled `animal()` and `relmat()`
   known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
   location covariance and for constant all-four q=4 location-scale blocks when
   `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or

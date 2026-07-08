@@ -1924,17 +1924,21 @@ test_that("unsupported random-effect cases fail clearly", {
   expect_no_error(
     drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat)
   )
-  expect_error(
-    drmTMB(bf(y ~ x, sigma ~ (1 + x | id)), family = gaussian(), data = dat),
-    "Only independent residual-scale random slopes"
-  )
+  # `sigma ~ (1 + x | id)` -- an UNLABELLED correlated residual-scale intercept+slope
+  # block -- is implemented as of 2026-07-08: the univariate C++ likelihood now applies
+  # the same-dpar `eta_cor_sigma` conditioning, mirroring the mu loop. Recovery is
+  # validated in scratchpad/correlated_scale_slope_recovery.R.
+  expect_no_error(suppressWarnings(
+    drmTMB(bf(y ~ x, sigma ~ (1 + x | id)), family = gaussian(), data = dat)
+  ))
+  # The LABELLED univariate residual-scale slope covariance block remains rejected.
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ (1 + x | p | id)),
       family = gaussian(),
       data = dat
     ),
-    "Only independent residual-scale random slopes"
+    "Labelled residual-scale random-slope covariance blocks"
   )
   expect_error(
     drmTMB(

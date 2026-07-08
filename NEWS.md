@@ -50,6 +50,21 @@ replication. Every combination admitted under REML is also admitted under ML
   biased than ML on the block standard deviations. **ML/REML parity is now complete
   for every implemented cell** (`docs/dev-log/ml-reml-coverage-2026-07-07.md`).
 
+## New: correlated residual-scale random slopes
+
+* **`sigma ~ x + (1 + x | id)` -- a correlated residual-scale intercept-slope block --
+  is now implemented** (and the multi-slope `(1 + x1 + x2 | id)` generalisation).
+  Previously only *independent* residual-scale slopes (`(0 + x | id)`) were supported.
+  The univariate TMB likelihood now applies the same-dpar correlation conditioning to
+  the `sigma` random effects, mirroring the `mu` side. Recovery of the intercept SD,
+  slope SD, and their correlation is validated against known truth.
+
+* Consequently **the ordinary two-level DHGLM with correlated random slopes on BOTH the
+  location and the scale** -- `y ~ x + (1 + x | id)` with `sigma ~ x + (1 + x | id)` --
+  now fits, under ML and REML. The remaining piece of the full q12 is the *labelled*
+  cross-formula `mu`-`sigma` **slope** block (the mean-scale slope cross-correlation),
+  which is still planned.
+
 # drmTMB 0.2.0
 
 ## REML for Gaussian and bivariate-Gaussian location-scale models

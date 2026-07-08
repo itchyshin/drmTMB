@@ -850,6 +850,12 @@ Type objective_function<Type>::operator()()
 
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      // Same-dpar residual-scale correlations: a correlated intercept+slope block
+      // such as `sigma ~ x + (1 + x | id)`. Mirrors the bivariate loop's ordering.
+      vector<Type> rho_sigma_re(n_sigma_re_cors);
+      for (int j = 0; j < n_sigma_re_cors; ++j) {
+        rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+      }
       vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
       for (int j = 0; j < n_mu_sigma_re_cors; ++j) {
         rho_mu_sigma_re(j) = Type(0.999999) * tanh(eta_cor_mu_sigma(j));
@@ -858,11 +864,29 @@ Type objective_function<Type>::operator()()
         for (int j = 0; j < n_sigma_re_terms; ++j) {
           int idx = sigma_re_index(i, j);
           Type u_cond = u_sigma(idx);
+          // (1) same-dpar (sigma intercept <-> sigma slope) conditioning FIRST.
+          // `sigma_re_cor_id` marks correlation-GROUP MEMBERSHIP (it is >= 0 on the
+          // base intercept rows too); `sigma_re_pair_index` is -1 on the base rows and
+          // points at the paired intercept on the slope rows. Only the paired (slope)
+          // rows are conditioned -- this mirrors the mu loop's
+          // `cor_id >= 0 && mu_re_pos(idx) == 1` guard without needing a sigma_re_pos
+          // DATA vector. Guarding on pair_idx also protects the u_sigma(pair_idx)
+          // dereference directly.
+          int cor_id = sigma_re_cor_id(idx);
+          int pair_idx = sigma_re_pair_index(idx);
+          if (cor_id >= 0 && pair_idx >= 0) {
+            Type rho = rho_sigma_re(cor_id);
+            u_cond = rho * u_sigma(pair_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+          }
+          // (2) cross-dpar (mu <-> sigma) conditioning applied to the ALREADY
+          // conditioned u_cond. When no same-dpar conditioning fires this is identical
+          // to the previous behaviour (u_cond == u_sigma(idx)), so existing fits are
+          // unchanged.
           int cross_cor_id = sigma_re_cross_cor(idx);
           if (cross_cor_id >= 0) {
             Type rho = rho_mu_sigma_re(cross_cor_id);
             int mu_idx = sigma_re_cross_mu(idx);
-            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_sigma(idx);
+            u_cond = rho * u_mu(mu_idx) + sqrt(Type(1.0) - rho * rho) * u_cond;
           }
           log_sigma(i) += sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) * u_cond;
         }
@@ -2274,6 +2298,16 @@ Type objective_function<Type>::operator()()
       REPORT(sd_sigma_re);
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
+      if (n_sigma_re_cors > 0) {
+        vector<Type> rho_sigma_re(n_sigma_re_cors);
+        for (int j = 0; j < n_sigma_re_cors; ++j) {
+          rho_sigma_re(j) = Type(0.999999) * tanh(eta_cor_sigma(j));
+        }
+        REPORT(eta_cor_sigma);
+        REPORT(rho_sigma_re);
+        ADREPORT(eta_cor_sigma);
+        ADREPORT(rho_sigma_re);
+      }
       if (n_mu_sigma_re_cors > 0) {
         vector<Type> rho_mu_sigma_re(n_mu_sigma_re_cors);
         for (int j = 0; j < n_mu_sigma_re_cors; ++j) {

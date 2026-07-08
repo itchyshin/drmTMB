@@ -36,16 +36,20 @@ ML covers the full ladder tested (10/10 shapes fit).
 | 10 | biv q4 **dense** (one shared label) | ✅ | ✅ | **landed 2026-07-08** — the "sign-flip" was an under-powered-fit artifact (mapping verified correct); needs n_tip≥~200 AND n_each≥~10, where REML beats ML (higher pdHess, debiased SDs). |
 | 11 | biv mu-sigma RE correlation (`1\|p\|id` across mu+sigma) | ✅ | ✅ | **landed 2026-07-08** |
 | 12 | q>2 labelled LOCATION block (`1+x1+x2\|id`) | ✅ | ✅ | **landed 2026-07-08** (REML consistently less biased than ML) |
-| 13 | **correlated residual-scale slope** block (`sigma ~ x + (1+x\|id)`) | ⛔ | ⛔ | **not implemented in ML either** — new engine work (the q12 piece) |
+| 13 | **correlated residual-scale slope** block (`sigma ~ x + (1+x\|id)`) | ✅ | ✅ | **landed 2026-07-08** — new C++ same-dpar conditioning; recovery validated (biases ≤0.006) |
+| 14 | both-sides correlated slopes (`mu (1+x\|id)` + `sigma (1+x\|id)`) | ✅ | ✅ | **landed 2026-07-08** — the ordinary two-level DHGLM with slopes on location *and* scale |
+| 15 | **labelled** cross `mu`↔`sigma` SLOPE block (`(1+x\|p\|id)` both) | ⛔ | ⛔ | **not implemented in ML either** — the remaining q12 mean-scale slope cross-correlation |
 
 ## Reading (as of 2026-07-08)
 
 - **ML/REML parity is COMPLETE for every implemented cell.** Every combination that ML fits, REML
-  now also fits (rows 1–12). No REML-without-ML anywhere, and no ML-without-REML either.
-- **The only remaining gap (row 13) is missing from *ML* too:** correlated residual-scale slope
-  blocks (`sigma ~ x + (1 + x | id)`) are not implemented in the engine at all — only *independent*
-  residual-scale slopes exist. This is the q12 piece and it is **new ML engine work**, after which
-  REML follows.
+  now also fits (rows 1–14). No REML-without-ML anywhere, and no ML-without-REML either.
+- **Row 13 (correlated residual-scale slope block) was implemented 2026-07-08** — new C++ same-dpar
+  `eta_cor_sigma` conditioning in the univariate likelihood, mirroring the mu loop. It unlocks row 14:
+  the ordinary two-level DHGLM with correlated random slopes on *both* the location and the scale.
+- **The only remaining gap (row 15) is missing from *ML* too:** the **labelled** cross-formula
+  `mu`↔`sigma` SLOPE block (`(1 + x | p | id)` on both) — i.e. the mean-scale *slope*
+  cross-correlation, the last piece of the full q12. New ML engine work; REML follows.
 - **Two prior verdicts were overturned by evidence this session:**
   1. The q2 "REML degrades the mean, needs Cox-Reid" verdict — a below-floor small-`N` artifact.
   2. The dense-q4 "sign-flip + always collapses" verdict — an **under-powered-fit** artifact. The
