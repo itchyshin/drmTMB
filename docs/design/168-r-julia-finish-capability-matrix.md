@@ -127,10 +127,18 @@ weakly identified cells cannot collapse into one status word.
 - Profile and bootstrap intervals are target-specific. Endpoint parity for one
   Gaussian phylogenetic SD target does not promote fixed effects, non-Gaussian
   families, scale formulas, multiple structured terms, or neighbouring syntax.
-- `drmTMB#547` fixes q4 Julia REML option forwarding only. The native TMB path
-  does not currently provide a general REML estimator; do not add a phantom
-  scale-side REML gap row unless a real estimator design exists. Speed
-  and full q4 inference validation remain separate evidence slices.
+- `drmTMB#547` fixed q4 Julia REML option forwarding. SEPARATELY, the native TMB
+  path now DOES provide a Gaussian REML estimator (v0.2.0+, branch
+  `drmtmb/biv-scale-side-reml`): admitted + recovery-validated cells are mean-side
+  phylo, q2 matched mean+scale phylo, direct-SD phylo scale (`sd_phylo*() ~ x`),
+  the block-diagonal bivariate location-scale layout, and ordinary sigma random
+  effects (univariate intercept/slope/correlated + a bivariate labelled scale-side
+  block). The scale-side REML is real, not a phantom row. Authoritative ML-vs-REML
+  coverage: `docs/dev-log/ml-reml-coverage-2026-07-07.md`. Still gated (planned):
+  DENSE q4, bivariate `mu`-`sigma` RE correlations, q > 2 scale blocks, and
+  correlated residual-scale slopes. REML debiases scale-side variance components
+  only with adequate within-group replication (the ladders quantify the floor).
+  Speed and full q4 inference validation remain separate evidence slices.
 - AI-REML wording belongs only to exact Gaussian REML/MME derivations. For
   Laplace and non-Gaussian distributional models, use the actual method name.
 - Speed claims require point estimate, objective/log-likelihood, CI/status,

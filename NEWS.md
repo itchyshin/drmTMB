@@ -1,3 +1,40 @@
+# drmTMB 0.3.0 (development version)
+
+## Unified `sd(..., level = )` scale grammar
+
+* **`sd(group, level = "phylogenetic")` is the new generic spelling** for the
+  phylogenetic direct-SD targets (`sd1(...)` / `sd2(...)` for the bivariate
+  endpoints). The legacy `sd_phylo()` / `sd_phylo1()` / `sd_phylo2()` spellings are
+  soft-deprecated: they keep working and emit a one-time deprecation warning.
+  Reserved `level` values (`"spatial"`, `"animal"`, `"relmat"`) are parsed but not
+  yet implemented.
+
+## More REML coverage (Gaussian location-scale)
+
+Restricted maximum likelihood now covers substantially more of the location-scale
+family, debiasing scale-side variance components with adequate within-group
+replication. Every combination admitted under REML is also admitted under ML
+(`docs/dev-log/ml-reml-coverage-2026-07-07.md`).
+
+* **Matched mean-and-scale phylogenetic block (q2) under REML.** A univariate
+  `mu` + `sigma` model with a correlated `phylo(1 | p | id)` block is now admitted; a
+  sample-size ladder shows REML is less biased than ML (N >= 250 to identify,
+  N >= 1000 for the location-scale correlation). This supersedes the earlier small-`N`
+  "REML degrades the mean" verdict.
+
+* **Block-diagonal bivariate location-scale phylogenetic layout under REML.** A phylo
+  mean block and a phylo scale block with distinct labels (`1 | p | id` on the means,
+  `1 | ps | id` on the scales) are admitted; the scale-side random phylo is
+  identifiable with per-group replication (it collapses at one observation per
+  species, where a fixed `sd_phylo()` scale should be used instead). The dense
+  (single-label) q4 block stays rejected.
+
+* **Ordinary sigma random effects under REML.** A residual-scale random intercept
+  `(1 | id)`, an independent random slope `(0 + x | id)`, the correlated mean-scale
+  block `(1 | p | id)`, and a bivariate labelled scale-side block `(1 | s | id)` are
+  now admitted; REML debiases the scale-side variance component with adequate
+  within-group replication (at very low replication it can underperform ML).
+
 # drmTMB 0.2.0
 
 ## REML for Gaussian and bivariate-Gaussian location-scale models
