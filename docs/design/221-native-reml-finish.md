@@ -132,6 +132,18 @@ mean+scale, direct-SD, and q>2 rejects retained. Evidence:
   profile/bootstrap — `pdHess=TRUE` is a *want*, not a *gate* (standing doctrine). **Protocol:**
   record ML/REML `pdHess` concordance on every ladder (q2/q4 included).
 
+**Rung 2 — VALIDATED & LANDED (2026-07-07).** Phylogenetic direct-SD scale
+(`sd_phylo(...) ~ predictors`, heteroscedastic phylo variance) admitted under REML, uni + biv
+(Ayumi's corrected model). Gates relaxed in `drm_validate_reml_spec` +
+`drm_validate_reml_spec_biv`; ordinary direct-SD and the q4-block guard stay rejected. Evidence:
+- **Correctness:** `test-reml-direct-sd-phylo.R` — uni REML matches the exact restricted
+  likelihood `V = D A D + σ²I` (γ, σ to 3e-2/2e-2).
+- **SE fix:** the `sd_phylo` betas are not ADREPORTed into `sdr$value`, so `vcov()`/`summary()`
+  returned NA for them under REML; fixed with a `cov.fixed`/`opt$par` fallback in `vcov.drmTMB`
+  (regression-guarded). Uni + biv now show finite `sd_phylo` SEs under REML.
+- Full native REML suite green (47 assertions, 0 fail). **Ayumi's model now runs fully under
+  REML** (biv phylo means + `sd_phylo1/2 ~ climate` + `sigma ~ 1`).
+
 **Rung 3 (q2/q4) — the coupled-block "REML is wrong" verdict is OVERTURNED by data (2026-07-07).**
 - **q2 ladder** (matched mean+scale 2×2, N=250→2000, 30 seeds): REML is **less** biased than ML
   on `sd_mu` at *every* n (N=1000: REML −0.005 vs ML −0.027) — **no mean-side degradation**. The

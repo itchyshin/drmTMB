@@ -1982,13 +1982,15 @@ drm_validate_reml_spec <- function(spec) {
       "i" = "Use ordinary random-intercept or random-slope location blocks, or set {.code REML = FALSE}."
     ))
   }
-  if (
-    spec$random_scale$mu$n_models > 0L ||
-      spec$random_scale$phylo$n_models > 0L
-  ) {
+  # Phylogenetic direct-SD scale (`sd_phylo(...) ~ predictors`, heteroscedastic phylo
+  # variance) is admitted under REML: it is a location-side variance component the
+  # restricted likelihood debiases (validated 2026-07-07 -- runs, recovers, REML gamma
+  # coefficients closer to truth than ML, pdHess=TRUE, finite Wald SEs via cov.fixed).
+  # Ordinary direct-SD scale formulae remain unvalidated and rejected.
+  if (spec$random_scale$mu$n_models > 0L) {
     cli::cli_abort(c(
-      "{.arg REML} is not implemented with direct random-effect scale formulae yet.",
-      "i" = "Use ordinary location random effects such as {.code (1 | id)}, or set {.code REML = FALSE}."
+      "{.arg REML} is not implemented with direct ordinary random-effect scale formulae yet.",
+      "i" = "Use a phylogenetic direct-SD scale ({.code sd_phylo(...) ~ ...}), ordinary location random effects, or set {.code REML = FALSE}."
     ))
   }
   phylo_mu <- spec$structured$phylo_mu
@@ -2056,10 +2058,14 @@ drm_validate_reml_spec_biv <- function(spec) {
       "i" = "Use ordinary location random-intercept or random-slope blocks, or set {.code REML = FALSE}."
     ))
   }
-  if (spec$random_scale$mu$n_models > 0L || spec$random_scale$phylo$n_models > 0L) {
+  # Phylogenetic direct-SD scale (`sd_phylo1/sd_phylo2 ~ predictors`) with location
+  # `phylo` means is admitted under REML (Ayumi's corrected model; same location-side
+  # debiasing as the univariate case). Ordinary direct-SD scale formulae stay rejected;
+  # the q4-block guard (do not combine sd_phylo with a q=4 phylo block) is separate.
+  if (spec$random_scale$mu$n_models > 0L) {
     cli::cli_abort(c(
-      "{.arg REML} is not implemented with direct random-effect scale formulae ({.code sd_phylo ~ x}) for bivariate models yet.",
-      "i" = "Use ordinary location random effects, or set {.code REML = FALSE}."
+      "{.arg REML} is not implemented with direct ordinary random-effect scale formulae for bivariate models yet.",
+      "i" = "Use a phylogenetic direct-SD scale ({.code sd_phylo1/sd_phylo2 ~ ...}) with location {.fn phylo} terms, or set {.code REML = FALSE}."
     ))
   }
   phylo_mu <- spec$structured$phylo_mu

@@ -2268,32 +2268,57 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  cov_fixed <- drm_sdreport_cov_coefficients(object)
+  cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
   matched <- match(paste0("fixef:", labels), targets$parm)
-  positions <- rep(NA_integer_, length(labels))
-  opt_names <- drm_sdreport_coefficient_parameter_names(object)
-  for (i in seq_along(labels)) {
-    row <- matched[[i]]
-    if (is.na(row)) {
-      next
+  out <- matrix(
+    NA_real_,
+    nrow = length(labels),
+    ncol = length(labels),
+    dimnames = list(labels, labels)
+  )
+  # Fill (co)variances for coefficients whose TMB parameter is found in `src_names`,
+  # reading from `cov_src`. Only fills cells still NA, so an earlier source wins for
+  # parameters present in more than one source.
+  fill_from <- function(out, cov_src, src_names) {
+    if (!is.matrix(cov_src)) {
+      return(out)
     }
-    hits <- which(opt_names == targets$tmb_parameter[[row]])
-    index <- targets$index[[row]]
-    if (!is.na(index) && index >= 1L && index <= length(hits)) {
-      positions[[i]] <- hits[[index]]
+    pos <- rep(NA_integer_, length(labels))
+    for (i in seq_along(labels)) {
+      row <- matched[[i]]
+      if (is.na(row)) {
+        next
+      }
+      hits <- which(src_names == targets$tmb_parameter[[row]])
+      index <- targets$index[[row]]
+      if (!is.na(index) && index >= 1L && index <= length(hits)) {
+        pos[[i]] <- hits[[index]]
+      }
     }
+    ok <- which(!is.na(pos) & pos <= nrow(cov_src))
+    for (a in ok) {
+      for (b in ok) {
+        if (is.na(out[a, b])) {
+          out[a, b] <- cov_src[pos[[a]], pos[[b]]]
+        }
+      }
+    }
+    out
   }
-  out <- matrix(NA_real_, nrow = length(labels), ncol = length(labels))
-  ok <- !is.na(positions)
-  out[ok, ok] <- cov_fixed[
-    positions[ok],
-    positions[ok],
-    drop = FALSE
-  ]
-  dimnames(out) <- list(labels, labels)
+  out <- fill_from(
+    out,
+    cov_primary,
+    drm_sdreport_coefficient_parameter_names(object)
+  )
+  # Under REML the outer variance-structure coefficients (e.g. the sd_phylo betas)
+  # are not ADREPORTed into `sdr$value`, so they are absent from the joint `sdr$cov`
+  # used above; their (co)variances live in `cov.fixed` / `opt$par`. Fill those gaps.
+  if (isTRUE(object$REML) && anyNA(diag(out))) {
+    out <- fill_from(out, object$sdr$cov.fixed, names(object$opt$par))
+  }
   out
 }
 

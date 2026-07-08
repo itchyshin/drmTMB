@@ -187,19 +187,23 @@ test_that("bivariate phylo-mean REML matches an exact restricted-likelihood refe
   expect_equal(c(as.numeric(fit$par$mu1), as.numeric(fit$par$mu2)), ref$beta, tolerance = 1e-2)
 })
 
-test_that("bivariate REML still rejects direct-SD scale formulae (rung 2 not yet validated)", {
+test_that("bivariate REML ADMITS phylogenetic direct-SD scale (rung 2)", {
   skip_on_cran()
-  fx <- biv_phylo_reml_fixture(n_tip = 60L)
+  fx <- biv_phylo_reml_fixture(n_tip = 200L)
   dat <- fx$data
   tree <- fx$tree
-  expect_error(
-    drmTMB(
-      bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree),
-         mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree),
-         sigma1 = ~1, sigma2 = ~1,
-         sd_phylo1(sp) ~ x, sd_phylo2(sp) ~ x, rho12 = ~1),
-      family = biv_gaussian(), data = dat, REML = TRUE
-    ),
-    "direct random-effect scale formulae"
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree),
+       mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree),
+       sigma1 = ~1, sigma2 = ~1,
+       sd_phylo1(sp) ~ x, sd_phylo2(sp) ~ x, rho12 = ~1),
+    family = biv_gaussian(), data = dat, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
   )
+  expect_equal(fit$estimator, "REML")
+  # sd_phylo coefficient SEs must be finite under REML (vcov cov.fixed fallback)
+  cf <- summary(fit)$coefficients
+  sd_rows <- grep("^sd_phylo", rownames(cf))
+  expect_true(length(sd_rows) >= 1L)
+  expect_true(all(is.finite(cf[sd_rows, "std_error"])))
 })
