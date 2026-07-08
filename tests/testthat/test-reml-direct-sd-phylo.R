@@ -54,8 +54,9 @@ test_that("phylogenetic direct-SD REML matches an exact restricted-likelihood re
 test_that("REML sd_phylo coefficient SEs are finite in summary()/vcov (cov.fixed fallback)", {
   skip_on_cran()
   fx <- sdphylo_fixture()
-  fit <- drmTMB(bf(y ~ x + phylo(1 | sp, tree = fx$tree), sigma ~ 1, sd_phylo(sp) ~ x),
-                family = gaussian(), data = fx$data, REML = TRUE,
+  dat <- fx$data; tree <- fx$tree
+  fit <- drmTMB(bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1, sd_phylo(sp) ~ x),
+                family = gaussian(), data = dat, REML = TRUE,
                 control = drm_control(optimizer_preset = "robust"))
   cf <- summary(fit)$coefficients
   sd_rows <- grep("^sd_phylo", rownames(cf))
