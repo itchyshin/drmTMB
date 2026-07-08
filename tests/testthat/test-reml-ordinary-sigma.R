@@ -81,3 +81,34 @@ test_that("the REML relaxation stays bounded: q>2 scale covariance blocks remain
     "random intercept|independent|q > 2|covariance"
   )
 })
+
+test_that("REML admits a bivariate labelled scale-side sigma block", {
+  skip_on_cran()
+  # Bivariate ordinary sigma random effects: a labelled scale-side block (1|s|id) on
+  # sigma1/sigma2. Admitted under REML (biv gate relaxed 2026-07-08); a biv recovery
+  # ladder (scratchpad/reml_biv_sigma_re_probe.R) shows both scale-RE SDs recover
+  # under ML and REML with REML at least as good. A biv MEAN-scale correlation stays
+  # rejected (not validated).
+  set.seed(2L)
+  n_id <- 40L; n_each <- 8L; n <- n_id * n_each
+  id <- rep(seq_len(n_id), each = n_each); x <- stats::rnorm(n)
+  Ss <- chol(matrix(c(.4^2, .3 * .4 * .35, .3 * .4 * .35, .35^2), 2, 2))
+  a <- matrix(stats::rnorm(n_id * 2), n_id, 2) %*% Ss
+  d <- data.frame(
+    id = factor(id), x = x,
+    y1 = .3 + .5 * x + stats::rnorm(n, 0, exp(log(.5) + a[id, 1])),
+    y2 = .6 + .2 * x + stats::rnorm(n, 0, exp(log(.6) + a[id, 2]))
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
+       sigma1 = ~ 1 + (1 | s | id), sigma2 = ~ 1 + (1 | s | id), rho12 = ~ 1),
+    family = biv_gaussian(), data = d, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  ))
+  expect_identical(fit$estimator, "REML")
+  expect_identical(fit$opt$convergence, 0L)
+  v <- setNames(summary(fit)$parameters$estimate, summary(fit)$parameters$parm)
+  sds <- v[grepl("^sd:sigma:", names(v))]
+  expect_length(sds, 2L)
+  expect_true(all(is.finite(sds) & sds > 0))
+})

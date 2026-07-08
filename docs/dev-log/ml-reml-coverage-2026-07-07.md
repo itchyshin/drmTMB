@@ -11,8 +11,10 @@ reject) / err.
 > sigma random intercept `(1|id)`, an independent random slope `(0+x|id)`, and the correlated
 > mu-sigma block `(1|p|id)`. Recovery ladders (`scratchpad/reml_ordinary_sigma_re_probe.R`): REML
 > debiases the scale-RE SD vs ML uniformly across all three shapes **with replication** (n_each≥~8;
-> at n_each=3 REML underperforms — weak-identification tail). Tests: `test-reml-ordinary-sigma.R`.
-> Scoped to univariate; the bivariate ordinary sigma-RE cell is a separate future slice.
+> at n_each=3 REML underperforms — weak-identification tail). The **bivariate** labelled scale-side
+> sigma block `(1|s|id)` on sigma1/sigma2 is also now admitted under REML (biv gate ~R/drmTMB.R:2046;
+> `scratchpad/reml_biv_sigma_re_probe.R` — both scale-RE SDs recover under ML and REML). Tests:
+> `test-reml-ordinary-sigma.R`. Still gated: bivariate mean-scale (`mu`-`sigma`) RE correlations.
 
 ## Result — the parity invariant HOLDS
 

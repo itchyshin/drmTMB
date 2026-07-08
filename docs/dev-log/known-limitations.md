@@ -176,10 +176,13 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   random slope `(0 + x | id)`, and the correlated mu-sigma block `(1 | p | id)`.
   REML debiases the scale-side variance component with adequate within-group
   REPLICATION (n_each >= ~8; at n_each = 3 it underperforms ML -- weak
-  identification). Still rejected as planned estimator work: the DENSE
-  (unstructured) q4 phylogenetic location-scale block, whose mean-scale
-  cross-covariance drives a sign-flip and collapse (doc 221); BIVARIATE ordinary
-  scale-side random effects; and q > 2 scale covariance blocks. Matching labelled `animal()` and `relmat()`
+  identification). A BIVARIATE labelled scale-side sigma block `(1 | s | id)` on
+  `sigma1`/`sigma2` is likewise admitted under REML (2026-07-08): both scale-RE SDs
+  recover under ML and REML, REML at least as good, pdHess 1.00. Still rejected as
+  planned estimator work: the DENSE (unstructured) q4 phylogenetic location-scale
+  block, whose mean-scale cross-covariance drives a sign-flip and collapse (doc
+  221); bivariate mean-scale (`mu`-`sigma`) random-effect correlations; and q > 2
+  scale covariance blocks. Matching labelled `animal()` and `relmat()`
   known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
   location covariance and for constant all-four q=4 location-scale blocks when
   `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or

@@ -2043,10 +2043,18 @@ drm_validate_reml_spec_biv <- function(spec) {
       "i" = "Use {.code control = drm_control(sparse_fixed = FALSE)} or set {.code REML = FALSE}."
     ))
   }
-  if (spec$random$sigma$n_re > 0L || spec$random$mu_sigma$n_cors > 0L) {
+  # ORDINARY sigma random effects are admitted under REML for bivariate models too
+  # (2026-07-08): a labelled scale-side block `(1 | s | id)` on `sigma1`/`sigma2`
+  # (bivariate sigma REs require an explicit covariance-block label). `beta_sigma1`
+  # and `beta_sigma2` are marginalized in drm_apply_estimator_spec. A bivariate
+  # recovery ladder (scratchpad/reml_biv_sigma_re_probe.R, n_id=60) shows both
+  # scale-RE SDs recover under ML and REML (REML at least as good; slightly better on
+  # the scale-RE correlation at low replication), pdHess 1.00. A bivariate MEAN-scale
+  # cross-correlation (`mu_sigma` cors) stays rejected pending its own validation.
+  if (spec$random$mu_sigma$n_cors > 0L) {
     cli::cli_abort(c(
-      "{.arg REML} for bivariate Gaussian models currently supports {.code mu} random effects only.",
-      "i" = "Remove {.code sigma} random effects or set {.code REML = FALSE}."
+      "{.arg REML} for bivariate Gaussian models does not yet support mean-scale ({.code mu}-{.code sigma}) random-effect correlations.",
+      "i" = "Use separate {.code mu} and {.code sigma} random effects (a labelled scale-side block is fine), or set {.code REML = FALSE}."
     ))
   }
   if (spec$random$covariance_blocks$n_qgt2_re > 0L) {
