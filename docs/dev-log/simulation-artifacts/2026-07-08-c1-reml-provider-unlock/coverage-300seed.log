@@ -1,0 +1,12 @@
+C1 REML profile coverage  N_SEEDS=300 NCORES=64  target=sd_sigma_intercept truth=0.50
+provider g   coverage    n_fin     conv      MCSE  med_wid
+-------------------------------------------------------------- 
+spatial  8      0.969      254      300    0.0110    0.777
+spatial  16     0.926      299      300    0.0151    0.526
+spatial  32     0.947      300      300    0.0130    0.408
+relmat   8      0.983      292      300    0.0076    0.659
+relmat   16     0.926      299      300    0.0151    0.425
+relmat   32     0.927      300      300    0.0151    0.286
+animal   8      0.974      273      300    0.0096    0.739
+
+wrote scratchpad/c1_coverage.rds
