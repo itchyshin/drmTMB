@@ -9,7 +9,10 @@
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
-#' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
+#' [TMB::sdreport()], finite fixed-effect standard errors, standard errors that
+#' are finite but inflated relative to the others despite a positive-definite
+#' Hessian (a weakly identified, near-flat direction such as a boundary
+#' correlation), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
@@ -195,6 +198,7 @@ check_drm.drmTMB <- function(
     check_sdreport_status(object),
     check_hessian(object),
     check_standard_errors_finite(object),
+    check_standard_errors_inflated(object),
     check_dropped_rows(object),
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
@@ -689,6 +693,75 @@ check_standard_errors_finite <- function(object) {
       "All fixed-effect standard errors are finite."
     } else {
       "At least one fixed-effect standard error is non-finite; inspect Hessian status, identifiability, and model scaling."
+    }
+  )
+}
+
+# Flag a finite-but-pathological standard error on a fit that TMB reports as
+# converged with a positive-definite Hessian (issue #19; A. Mizuno's point 6). A
+# clean `pdHess` is necessary, not sufficient: a near-flat, weakly identified
+# direction (typically a correlation or SD running to a boundary) leaves the
+# numerical Hessian barely positive-definite while the Wald SE explodes. A
+# parameter is flagged only when its SE is BOTH absolutely large AND vastly
+# larger than the typical parameter's SE, so ordinary well-identified fits do not
+# trip it. Non-finite SEs and a non-positive-definite Hessian are owned by
+# `check_standard_errors_finite` and `check_hessian`, so this check defers when
+# those already carry the signal.
+inflated_standard_error_floor <- 50
+inflated_standard_error_ratio <- 1000
+
+check_standard_errors_inflated <- function(object) {
+  if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
+    return(NULL)
+  }
+  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
+    return(NULL)
+  }
+  variances <- diag(vcov)
+  standard_errors <- rep(NA_real_, length(variances))
+  non_negative <- is.finite(variances) & variances >= 0
+  standard_errors[non_negative] <- sqrt(variances[non_negative])
+  finite_standard_errors <- standard_errors[is.finite(standard_errors)]
+  if (length(finite_standard_errors) == 0L) {
+    return(NULL)
+  }
+  median_se <- stats::median(finite_standard_errors)
+  inflated <- is.finite(standard_errors) &
+    standard_errors >= inflated_standard_error_floor &
+    standard_errors >= inflated_standard_error_ratio * median_se
+  n_inflated <- sum(inflated)
+  param_names <- rownames(vcov)
+  if (is.null(param_names)) {
+    param_names <- paste0("par", seq_along(standard_errors))
+  }
+  check_row(
+    "standard_errors_inflated",
+    if (n_inflated > 0L) "note" else "ok",
+    paste0(
+      "n_inflated=",
+      n_inflated,
+      "; max_se=",
+      format_check_number(max(finite_standard_errors)),
+      "; median_se=",
+      format_check_number(median_se),
+      if (n_inflated > 0L) {
+        paste0("; example=", param_names[which(inflated)[[1L]]])
+      } else {
+        ""
+      }
+    ),
+    if (n_inflated > 0L) {
+      paste(
+        "At least one standard error is finite but extremely large despite a",
+        "positive-definite Hessian (pdHess = TRUE), which signals a near-flat,",
+        "weakly identified direction the Hessian did not resolve -- often a",
+        "correlation or SD running to a boundary. Confirm with a likelihood",
+        "profile (profile()) and consider a simpler model before interpreting",
+        "the affected parameter; a clean Hessian is necessary, not sufficient."
+      )
+    } else {
+      "No fixed-effect standard error is inflated relative to the others."
     }
   )
 }
@@ -2551,6 +2624,43 @@ check_phylo_replication <- function(object) {
   )
 }
 
+# Fitted phylogenetic-SD values for the phylo_mu effect. A scalar `sd_phylo`
+# model stores one SD per coefficient in `object$sdpars$mu`; a direct-SD surface
+# model (`sd_phylo(...) ~ .`, `has_sd_phylo_model == 1`) has NO scalar SD -- it
+# fits one SD per group, ADREPORTed/REPORTed as `sd_phylo_group` and surfaced in
+# R as `object$sdpars[[dpar]]`. Reading the (absent) scalar for a surface model
+# yields NA and mis-fires `phylo_mu_diagnostics` as an error (reported by
+# A. Mizuno, 2026-07-08); summarise the fitted surface instead.
+phylo_mu_diagnostic_sd_values <- function(object, phylo_mu) {
+  sd_phylo <- object$model$random_scale$phylo
+  is_surface <- is.list(sd_phylo) &&
+    !is.null(sd_phylo$n_models) &&
+    sd_phylo$n_models > 0L
+  if (is_surface) {
+    mu_dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+    surface_dpars <- Filter(
+      function(d) {
+        target <- sd_phylo$target_dpar[[d]]
+        if (is.null(target) || is.na(target)) {
+          target <- "mu"
+        }
+        target %in% mu_dpars
+      },
+      sd_phylo$dpars
+    )
+    if (length(surface_dpars) > 0L) {
+      values <- unlist(
+        lapply(surface_dpars, function(d) unname(object$sdpars[[d]])),
+        use.names = FALSE
+      )
+      return(list(values = values, is_surface = TRUE, count = length(values)))
+    }
+  }
+  sd_label <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
+  values <- unname(object$sdpars$mu[match(sd_label, names(object$sdpars$mu))])
+  list(values = values, is_surface = FALSE, count = length(sd_label))
+}
+
 check_phylo_mu_diagnostics <- function(object) {
   if (!has_phylo_mu_effect(object)) {
     return(NULL)
@@ -2563,12 +2673,11 @@ check_phylo_mu_diagnostics <- function(object) {
   n_species <- length(counts)
   weak_replication <- is.finite(min_count) && min_count < 2L
 
-  sd_label <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
-  sd_values <- unname(object$sdpars$mu[match(
-    sd_label,
-    names(object$sdpars$mu)
-  )])
-  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+  sd_summary <- phylo_mu_diagnostic_sd_values(object, phylo_mu)
+  sd_values <- sd_summary$values
+  is_surface <- sd_summary$is_surface
+  sd_count <- sd_summary$count
+  finite_positive_sd <- length(sd_values) > 0L &&
     all(is.finite(sd_values)) &&
     all(sd_values > 0)
 
@@ -2588,7 +2697,27 @@ check_phylo_mu_diagnostics <- function(object) {
   }
   weak_sd <- !finite_positive_sd ||
     (has_scale_ratio && any(finite_sd_ratios < 0.05))
-  sd_text <- if (length(sd_label) == 1L) {
+  finite_sd <- sd_values[is.finite(sd_values)]
+  sd_text <- if (is_surface) {
+    paste0(
+      "; n_group=",
+      sd_count,
+      "; phylo_sd_range=[",
+      format_check_number(min_finite_or_na(finite_sd)),
+      ",",
+      format_check_number(max_finite_or_na(finite_sd)),
+      "]",
+      "; median_phylo_sd=",
+      format_check_number(
+        if (length(finite_sd) > 0L) stats::median(finite_sd) else NA_real_
+      ),
+      if (has_scale_ratio) {
+        paste0("; min_sd_ratio=", format_check_number(min_sd_ratio))
+      } else {
+        ""
+      }
+    )
+  } else if (sd_count == 1L) {
     paste0(
       "; phylo_sd=",
       format_check_number(sd_values),
@@ -2601,7 +2730,7 @@ check_phylo_mu_diagnostics <- function(object) {
   } else {
     paste0(
       "; n_coef=",
-      length(sd_label),
+      sd_count,
       "; min_phylo_sd=",
       format_check_number(min_sd),
       if (has_scale_ratio) {
@@ -3541,16 +3670,20 @@ bivariate_phylo_mu_diagnostic_message <- function(
   if (near_rho_boundary && (weak_replication || weak_sd)) {
     return(paste(
       "The fitted phylogenetic mean-mean correlation is close to +/-1 and",
-      "replication or phylogenetic SD evidence is weak; inspect profiles,",
-      "species replication, or a simpler structured-effect model before",
-      "interpreting this correlation."
+      "replication or phylogenetic SD evidence is weak; the correlation is",
+      "likely weakly identified, and a large standard error on it despite a",
+      "clean Hessian (pdHess = TRUE) is the expected symptom, not evidence",
+      "against it. Inspect profiles, species replication, or a simpler",
+      "structured-effect model before interpreting this correlation."
     ))
   }
   if (near_rho_boundary) {
     return(paste(
-      "The fitted phylogenetic mean-mean correlation is close to +/-1;",
-      "inspect likelihood profiles or compare against a model without the",
-      "bivariate phylogenetic covariance before interpreting it."
+      "The fitted phylogenetic mean-mean correlation is close to +/-1; a large",
+      "standard error on it despite a clean Hessian (pdHess = TRUE) is the",
+      "expected symptom of weak identification. Inspect likelihood profiles or",
+      "compare against a model without the bivariate phylogenetic covariance",
+      "before interpreting it."
     ))
   }
   if (same_group_covariance && (weak_replication || weak_sd)) {

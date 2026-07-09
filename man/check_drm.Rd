@@ -45,7 +45,10 @@ The current checks cover optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
-\code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, dropped rows,
+\code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, standard errors that
+are finite but inflated relative to the others despite a positive-definite
+Hessian (a weakly identified, near-flat direction such as a boundary
+correlation), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
