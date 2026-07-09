@@ -46,9 +46,24 @@ only in G3 after G2 replaces the evidence. The file is 98k lines with hardcoded 
 repeat-breakage) — reconcile counts in lockstep, full `devtools::test()` + 4 validators after. This is
 why it is a fresh-session slice, not an end-of-session one.
 
-**G2 · The 8-tick investigation campaign. [compute — Codex/human; Claude writes the runbook]**
-Re-run each of the 8 at `n_miss ≥ 40` (N ≈ 800–1600), **uncensored denominators**, then
-`tools/gate-inference-ready.R <replicates.tsv> --truth= --members=` on each. Feeds G1's driver.
+**G2 · The 8-tick investigation campaign. [LOCAL — this Mac has 20 cores; Codex NOT required]**
+The fits are tiny (g=8, ~160 obs); the campaign is minutes locally, not a cluster job. Re-run each at
+`n_miss ≥ 40`, **uncensored denominators**, then `tools/gate-inference-ready.R`. The 3 sigma one-slope
+cells reuse the existing `tools/run-structured-re-sigma-slope-coverage-grid.R` (shards 1/5/6 =
+`sigma:(Intercept)`, 2/7 = `sigma:x`) — no new runner. **STARTED 2026-07-08 evening:** shards 1,2,5,6,7
+at `n_rep=600` → `docs/dev-log/simulation-artifacts/2026-07-08-g2-sigma-oneslope-adjudication/`
+(launcher `scratchpad/g2_launch.sh`). The mu-intercept and q2 cells still need their own campaign runs
+(their existing raw replicates are pre-Fisher-fix and censored).
+
+**G1 driver — the cell→file→schema map (discovered 2026-07-08; this is the non-obvious part).**
+`evidence_url` is NOT a uniform data pointer, and the three cell-types have three schemas:
+| cell group | real replicate file | schema / members | adapter needed |
+|---|---|---|---|
+| sigma one-slope (3) | G2 output `…/2026-07-08-g2-…/0{1,2,5,6,7}-*-replicates.tsv` | `wald_lower/upper`, `profile_lower/upper` | none — `gate-inference-ready.R` reads directly |
+| q2 mu1+mu2 (2) | `…/2026-06-27-bias-corrected-engine-coverage-g8[-spatial-animal]/replicates.tsv` | `wald_lower/upper`, `bc_lower/upper`; `truth` | `--members=wald,bc`; **evidence_url points at design 219, not this file — fix the map** |
+| mu-intercept (3) | `…/2026-06-30-gaussian-lowq-mu-intercept-topup-nibi/results/shard_*/…-replicates.tsv` | `provider`, `truth_sd_mu_intercept`, `estimate`, `lower_miss`/`upper_miss` — **no `{member}_lower/upper`** | filter by `provider`; adapt columns to the gate's schema, or extend the gate to accept this layout |
+So the driver = a small config table (cell → file, provider filter, member cols, truth col) + a
+mu-intercept adapter. Emit `docs/dev-log/dashboard/inference-gate-results.tsv`. THEN the validator wiring.
 
 **G3 · Adjudicate + flip to fail-closed. [Fisher/Claude]** Demote whatever fails; the board headline
 becomes true for the first time. Blocked on G1 + G2.
