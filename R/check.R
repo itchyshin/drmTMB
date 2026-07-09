@@ -2551,6 +2551,43 @@ check_phylo_replication <- function(object) {
   )
 }
 
+# Fitted phylogenetic-SD values for the phylo_mu effect. A scalar `sd_phylo`
+# model stores one SD per coefficient in `object$sdpars$mu`; a direct-SD surface
+# model (`sd_phylo(...) ~ .`, `has_sd_phylo_model == 1`) has NO scalar SD -- it
+# fits one SD per group, ADREPORTed/REPORTed as `sd_phylo_group` and surfaced in
+# R as `object$sdpars[[dpar]]`. Reading the (absent) scalar for a surface model
+# yields NA and mis-fires `phylo_mu_diagnostics` as an error (reported by
+# A. Mizuno, 2026-07-08); summarise the fitted surface instead.
+phylo_mu_diagnostic_sd_values <- function(object, phylo_mu) {
+  sd_phylo <- object$model$random_scale$phylo
+  is_surface <- is.list(sd_phylo) &&
+    !is.null(sd_phylo$n_models) &&
+    sd_phylo$n_models > 0L
+  if (is_surface) {
+    mu_dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+    surface_dpars <- Filter(
+      function(d) {
+        target <- sd_phylo$target_dpar[[d]]
+        if (is.null(target) || is.na(target)) {
+          target <- "mu"
+        }
+        target %in% mu_dpars
+      },
+      sd_phylo$dpars
+    )
+    if (length(surface_dpars) > 0L) {
+      values <- unlist(
+        lapply(surface_dpars, function(d) unname(object$sdpars[[d]])),
+        use.names = FALSE
+      )
+      return(list(values = values, is_surface = TRUE, count = length(values)))
+    }
+  }
+  sd_label <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
+  values <- unname(object$sdpars$mu[match(sd_label, names(object$sdpars$mu))])
+  list(values = values, is_surface = FALSE, count = length(sd_label))
+}
+
 check_phylo_mu_diagnostics <- function(object) {
   if (!has_phylo_mu_effect(object)) {
     return(NULL)
@@ -2563,12 +2600,11 @@ check_phylo_mu_diagnostics <- function(object) {
   n_species <- length(counts)
   weak_replication <- is.finite(min_count) && min_count < 2L
 
-  sd_label <- phylo_mu_sd_labels(phylo_mu, object$model$model_type)
-  sd_values <- unname(object$sdpars$mu[match(
-    sd_label,
-    names(object$sdpars$mu)
-  )])
-  finite_positive_sd <- length(sd_values) == length(sd_label) &&
+  sd_summary <- phylo_mu_diagnostic_sd_values(object, phylo_mu)
+  sd_values <- sd_summary$values
+  is_surface <- sd_summary$is_surface
+  sd_count <- sd_summary$count
+  finite_positive_sd <- length(sd_values) > 0L &&
     all(is.finite(sd_values)) &&
     all(sd_values > 0)
 
@@ -2588,7 +2624,27 @@ check_phylo_mu_diagnostics <- function(object) {
   }
   weak_sd <- !finite_positive_sd ||
     (has_scale_ratio && any(finite_sd_ratios < 0.05))
-  sd_text <- if (length(sd_label) == 1L) {
+  finite_sd <- sd_values[is.finite(sd_values)]
+  sd_text <- if (is_surface) {
+    paste0(
+      "; n_group=",
+      sd_count,
+      "; phylo_sd_range=[",
+      format_check_number(min_finite_or_na(finite_sd)),
+      ",",
+      format_check_number(max_finite_or_na(finite_sd)),
+      "]",
+      "; median_phylo_sd=",
+      format_check_number(
+        if (length(finite_sd) > 0L) stats::median(finite_sd) else NA_real_
+      ),
+      if (has_scale_ratio) {
+        paste0("; min_sd_ratio=", format_check_number(min_sd_ratio))
+      } else {
+        ""
+      }
+    )
+  } else if (sd_count == 1L) {
     paste0(
       "; phylo_sd=",
       format_check_number(sd_values),
@@ -2601,7 +2657,7 @@ check_phylo_mu_diagnostics <- function(object) {
   } else {
     paste0(
       "; n_coef=",
-      length(sd_label),
+      sd_count,
       "; min_phylo_sd=",
       format_check_number(min_sd),
       if (has_scale_ratio) {

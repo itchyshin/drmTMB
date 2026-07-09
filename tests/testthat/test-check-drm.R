@@ -745,6 +745,44 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
   expect_false(attr(bad_chk, "ok"))
 })
 
+test_that("check_drm() summarises the sd_phylo surface in phylo_mu_diagnostics", {
+  # Regression (A. Mizuno, 2026-07-08): `sd_phylo(...) ~ .` fits a per-group SD
+  # surface and has no scalar phylo SD, so `phylo_mu_diagnostics` read NA and
+  # mis-fired as status=error. It must instead summarise the fitted surface and
+  # error only when the fitted SDs are genuinely non-finite/non-positive.
+  sim <- check_drm_sd_phylo_data()
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ 1,
+      sd_phylo(species) ~ z_species
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  chk <- check_drm(fit)
+  phylo_mu <- chk[chk$check == "phylo_mu_diagnostics", ]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(nrow(phylo_mu), 1L)
+  expect_equal(phylo_mu$status, "ok")
+  expect_match(phylo_mu$value, "n_group=", fixed = TRUE)
+  expect_match(phylo_mu$value, "phylo_sd_range=[", fixed = TRUE)
+  expect_match(phylo_mu$value, "median_phylo_sd=", fixed = TRUE)
+  expect_false(grepl("phylo_sd=NA", phylo_mu$value, fixed = TRUE))
+  expect_true(attr(chk, "ok"))
+
+  # A genuinely non-finite fitted surface still errors.
+  bad <- fit
+  bad$sdpars[["sd_phylo(species)"]][[1L]] <- NA_real_
+  bad_chk <- check_drm(bad)
+  bad_phylo_mu <- bad_chk[bad_chk$check == "phylo_mu_diagnostics", ]
+  expect_equal(bad_phylo_mu$status, "error")
+  expect_match(bad_phylo_mu$message, "non-positive or non-finite")
+})
+
 test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
   sim <- check_drm_biv_sd_phylo_data()
   dat <- sim$data
