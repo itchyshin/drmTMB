@@ -91,3 +91,29 @@ test_that("REML degrees of freedom count the marginalised mean fixed effects", {
   # mean coefficients (intercept, x).
   expect_equal(attr(stats::logLik(fit), "df"), length(fit$opt$par) + 2L)
 })
+
+test_that("REML df also counts the marginalised SCALE fixed effects", {
+  skip_on_cran()
+  fx <- reml_hetero_fixture()
+  # A sigma random effect makes REML marginalise `beta_sigma` too, so df must add
+  # back the scale fixed effects as well as the mean ones. Regression: df used to
+  # drop ncol(X$sigma), under-counting the scale coefficients (and hence AIC/BIC).
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ x + (1 | id)),
+    family = gaussian(), data = fx$data, REML = TRUE
+  )
+  expect_true("beta_sigma" %in% fit$model$tmb_random_names)
+  expect_equal(
+    attr(stats::logLik(fit), "df"),
+    length(fit$opt$par) + ncol(fit$model$X$mu) + ncol(fit$model$X$sigma)
+  )
+  # The total parameter count does not depend on the estimator: REML df == ML df.
+  fit_ml <- drmTMB(
+    bf(y ~ x, sigma ~ x + (1 | id)),
+    family = gaussian(), data = fx$data, REML = FALSE
+  )
+  expect_equal(
+    attr(stats::logLik(fit), "df"),
+    attr(stats::logLik(fit_ml), "df")
+  )
+})
