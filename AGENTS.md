@@ -3,7 +3,19 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-08, → Claude, ML/REML parity COMPLETE; next arc = crosses→ticks).**
+> **▶ Latest — start here (2026-07-08 night, → Claude, board HONEST + Ayumi-derived work queued).**
+> `main` = `15d4412b` (pushed) · tag `v0.2.0.9001`. **The 8 `inference_ready` cells are CORRECT — do
+> NOT demote them.** An initial "5/8 FAIL" audit applied the `supported` bar (nominal-exact) to the
+> `inference_ready` tier; at small `g`, ~0.90 coverage + upper-tail skew is EXPECTED, not a defect
+> (banked; re-confirmed N=600: g8 profile ~0.91). Two-tier gate now enforces it
+> (`tools/gate-inference-ready.R` + `-driver.R`; all 8 `inference_ready=PASS`, `supported=no`).
+> **Ayumi's 48 GB `sdreport()` ceiling is FIXED and validated at her 10,440-tip scale** (`se_group_sd`
+> opt-in default). Next mission (all LOCAL, no Codex): #16 fix `phylo_mu_diagnostics` false positive
+> (`R/check.R:2554`), #18 point-6 inflated-SE-with-clean-`pdHess`, #17 Ayumi fixture test, #20 ML/REML
+> doc, then C1 (REML provider unlock) + C2 (loc-scale-scale, off Ayumi's path). START HERE:
+> [`docs/dev-log/handover/2026-07-08-night-claude-handover.md`](docs/dev-log/handover/2026-07-08-night-claude-handover.md)
+>
+> **▶ Prior (2026-07-08, → Claude, ML/REML parity COMPLETE; next arc = crosses→ticks).**
 > Branch `drmtmb/biv-scale-side-reml` (pushed, 25 ahead of `main`, FF-mergeable). **Every combination
 > ML fits, REML now fits** — no REML-without-ML, no ML-without-REML. Shipped: q2 matched mean+scale,
 > block-diagonal biv location-scale, `sd(..., level=)` grammar (legacy `sd_phylo*` soft-deprecated),
