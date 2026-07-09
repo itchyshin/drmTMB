@@ -2035,10 +2035,25 @@ drm_validate_reml_spec <- function(spec) {
   }
   phylo_mu <- spec$structured$phylo_mu
   if (isTRUE(phylo_mu$has)) {
-    if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+    # Scale-side (sigma-endpoint) spatial/animal/relatedness structured effects are
+    # admitted under REML (2026-07-08, C1). Like the ordinary scale REs above,
+    # `beta_sigma` is marginalized in drm_apply_estimator_spec, so the restricted
+    # likelihood debiases the scale-side variance component; the fit mechanism is
+    # unchanged (this is an R-side gate relaxation only). A recovery + coverage
+    # campaign (Totoro; scratchpad/reml_provider_ladder_parallel.R N=400 recovery,
+    # scratchpad/c1_coverage_driver.R N=300 profile coverage) shows REML debiases the
+    # scale-side intercept SD 400/400 across spatial/animal/relmat with bias -> 0 as
+    # g grows, and REML profile-CI coverage clears the small-g inference_ready floor
+    # in every cell (>= 0.926 vs a 0.91 g=8 floor). MEAN-side non-phylo structured
+    # effects, and non-phylo effects spanning both endpoints, remain unvalidated and
+    # rejected; the bivariate path (drm_validate_reml_spec_biv) is unchanged.
+    structured_type <- structured_mu_type(phylo_mu)
+    scale_side_only <- length(phylo_mu_dpar_codes(phylo_mu)) > 0L &&
+      all(phylo_mu_dpar_codes(phylo_mu) == 1L)
+    if (!identical(structured_type, "phylo") && !scale_side_only) {
       cli::cli_abort(c(
-        "{.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
-        "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
+        "{.arg REML} supports phylogenetic ({.fn phylo}) mean-side structured effects and scale-side ({.code sigma ~ spatial()/animal()/relmat()}) structured effects.",
+        "i" = "Mean-side spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
       ))
     }
     # A PURE scale-side phylo effect (a sigma endpoint, no mean endpoint) AND a
