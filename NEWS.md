@@ -1,4 +1,4 @@
-# drmTMB 0.3.0 (development version)
+# drmTMB 0.3.0
 
 ## Large direct-SD models: uncertainty no longer scales with the square of the group count
 
@@ -81,6 +81,36 @@ replication. Every combination admitted under REML is also admitted under ML
   covariance blocks under REML.** Both are now admitted; REML is consistently less
   biased than ML on the block standard deviations. **ML/REML parity is now complete
   for every implemented cell** (`docs/dev-log/ml-reml-coverage-2026-07-07.md`).
+
+* **Scale-side spatial / animal / relatedness structured effects under REML.**
+  `sigma ~ spatial(...)`, `sigma ~ animal(...)`, and `sigma ~ relmat(...)` now fit
+  under `REML = TRUE`. A recovery + coverage campaign shows REML debiases the
+  scale-side intercept standard deviation in every cell (bias approaching zero as the
+  group count grows) and profile-CI coverage clears the small-sample floor. Mean-side
+  non-phylogenetic structured effects under REML remain unvalidated and rejected.
+
+* **Degrees of freedom under REML now count the marginalised scale fixed effects.**
+  A scale-side REML fit marginalises `beta_sigma` as well as `beta_mu`; `logLik()`'s
+  `df` (and therefore `AIC()` / `BIC()`) now counts both, matching the ML parameter
+  count. Fits without a sigma variance component are unchanged.
+
+## New: `check_drm()` diagnostics for weak identification and direct-SD surfaces
+
+* `phylo_mu_diagnostics` no longer reports a false `error` for a fitted
+  `sd(group, level = "phylogenetic") ~ .` surface (which has no scalar phylogenetic
+  standard deviation). It now summarises the fitted per-group SD surface and errors
+  only on genuinely non-finite or non-positive fitted standard deviations.
+
+* New `standard_errors_inflated` check flags a finite-but-inflated Wald standard error
+  on a converged, positive-definite-Hessian fit -- the signature of a weakly identified,
+  near-flat direction such as a boundary correlation. The bivariate phylogenetic
+  mean-mean boundary warning now names the same symptom in words. A clean `pdHess` is
+  necessary, not sufficient.
+
+* New "Choosing between maximum likelihood and REML" guidance in the *Improving
+  convergence* article: ML is the default; REML's `p / n` correction to variance
+  components matters mainly at small group counts, and it leaves the mean coefficients
+  essentially unchanged.
 
 ## New: correlated residual-scale random slopes
 

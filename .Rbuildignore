@@ -3,6 +3,7 @@
 ^\.codex$
 ^\.git$
 ^\.github$
+^scratchpad$
 ^bench$
 ^data-raw$
 ^dis_reg_models$
