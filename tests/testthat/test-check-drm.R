@@ -885,6 +885,8 @@ test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
   expect_equal(near_boundary_phylo$status, "warning")
   expect_match(near_boundary_phylo$value, "boundary=0.9800")
   expect_match(near_boundary_phylo$message, "close to \\+/-1")
+  # The warning names the inflated-SE-despite-clean-Hessian symptom (issue #19).
+  expect_match(near_boundary_phylo$message, "clean Hessian")
   expect_false(attr(near_boundary_chk, "ok"))
 
   weak_sd <- stable
@@ -896,6 +898,62 @@ test_that("check_drm() reports bivariate phylogenetic covariance diagnostics", {
 
   expect_equal(weak_sd_phylo$status, "note")
   expect_match(weak_sd_phylo$message, "tiny relative")
+})
+
+test_that("check_drm() flags an inflated standard error despite a clean Hessian (issue #19)", {
+  skip_on_cran()
+  # A. Mizuno point 6: a bivariate phylo cross-correlation runs to the +/-1
+  # boundary when the second trait carries almost no phylogenetic variance, so
+  # its Wald SE explodes (non-identified, flat profile) while pdHess stays TRUE.
+  # check_drm() must surface that -- a clean Hessian is necessary, not sufficient.
+  set.seed(1)
+  n_tip <- 32L
+  tree <- ape::compute.brlen(ape::stree(n_tip, type = "balanced"), 1)
+  tree$tip.label <- paste0("t", seq_len(n_tip))
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  L <- t(chol(A))
+  z1 <- as.vector(L %*% stats::rnorm(n_tip))
+  z2 <- as.vector(L %*% stats::rnorm(n_tip))
+  phylo1 <- 0.8 * z1
+  phylo2 <- 0.12 * z2 # deliberately weak second-trait phylogenetic signal
+  names(phylo1) <- names(phylo2) <- tree$tip.label
+  species <- rep(tree$tip.label, each = 10L)
+  x <- stats::rnorm(length(species))
+  dat <- data.frame(
+    y1 = 0.20 + 0.25 * x + phylo1[species] + 0.5 * stats::rnorm(length(species)),
+    y2 = -0.15 - 0.20 * x + phylo2[species] + 0.5 * stats::rnorm(length(species)),
+    x = x,
+    species = species
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      corpair(species, level = "phylogenetic", block = "p",
+              from = "mu1", to = "mu2") ~ 1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(
+      optimizer = list(eval.max = 800, iter.max = 800),
+      keep_tmb_object = TRUE
+    )
+  ))
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(isTRUE(fit$sdr$pdHess)) # the "despite a clean Hessian" premise
+
+  chk <- as.data.frame(check_drm(fit))
+  inflated <- chk[chk$check == "standard_errors_inflated", ]
+  expect_equal(nrow(inflated), 1L)
+  expect_equal(inflated$status, "note")
+  # Exactly the cross-correlation is flagged; the other coefficients are not.
+  expect_match(inflated$value, "n_inflated=1", fixed = TRUE)
+  expect_match(inflated$value, "corpair", fixed = TRUE)
+  expect_match(inflated$message, "pdHess = TRUE", fixed = TRUE)
 })
 
 test_that("check_drm() notes ordinary species covariance beside phylogenetic covariance", {

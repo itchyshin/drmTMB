@@ -9,7 +9,10 @@
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
-#' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
+#' [TMB::sdreport()], finite fixed-effect standard errors, standard errors that
+#' are finite but inflated relative to the others despite a positive-definite
+#' Hessian (a weakly identified, near-flat direction such as a boundary
+#' correlation), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
@@ -195,6 +198,7 @@ check_drm.drmTMB <- function(
     check_sdreport_status(object),
     check_hessian(object),
     check_standard_errors_finite(object),
+    check_standard_errors_inflated(object),
     check_dropped_rows(object),
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
@@ -689,6 +693,75 @@ check_standard_errors_finite <- function(object) {
       "All fixed-effect standard errors are finite."
     } else {
       "At least one fixed-effect standard error is non-finite; inspect Hessian status, identifiability, and model scaling."
+    }
+  )
+}
+
+# Flag a finite-but-pathological standard error on a fit that TMB reports as
+# converged with a positive-definite Hessian (issue #19; A. Mizuno's point 6). A
+# clean `pdHess` is necessary, not sufficient: a near-flat, weakly identified
+# direction (typically a correlation or SD running to a boundary) leaves the
+# numerical Hessian barely positive-definite while the Wald SE explodes. A
+# parameter is flagged only when its SE is BOTH absolutely large AND vastly
+# larger than the typical parameter's SE, so ordinary well-identified fits do not
+# trip it. Non-finite SEs and a non-positive-definite Hessian are owned by
+# `check_standard_errors_finite` and `check_hessian`, so this check defers when
+# those already carry the signal.
+inflated_standard_error_floor <- 50
+inflated_standard_error_ratio <- 1000
+
+check_standard_errors_inflated <- function(object) {
+  if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
+    return(NULL)
+  }
+  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
+    return(NULL)
+  }
+  variances <- diag(vcov)
+  standard_errors <- rep(NA_real_, length(variances))
+  non_negative <- is.finite(variances) & variances >= 0
+  standard_errors[non_negative] <- sqrt(variances[non_negative])
+  finite_standard_errors <- standard_errors[is.finite(standard_errors)]
+  if (length(finite_standard_errors) == 0L) {
+    return(NULL)
+  }
+  median_se <- stats::median(finite_standard_errors)
+  inflated <- is.finite(standard_errors) &
+    standard_errors >= inflated_standard_error_floor &
+    standard_errors >= inflated_standard_error_ratio * median_se
+  n_inflated <- sum(inflated)
+  param_names <- rownames(vcov)
+  if (is.null(param_names)) {
+    param_names <- paste0("par", seq_along(standard_errors))
+  }
+  check_row(
+    "standard_errors_inflated",
+    if (n_inflated > 0L) "note" else "ok",
+    paste0(
+      "n_inflated=",
+      n_inflated,
+      "; max_se=",
+      format_check_number(max(finite_standard_errors)),
+      "; median_se=",
+      format_check_number(median_se),
+      if (n_inflated > 0L) {
+        paste0("; example=", param_names[which(inflated)[[1L]]])
+      } else {
+        ""
+      }
+    ),
+    if (n_inflated > 0L) {
+      paste(
+        "At least one standard error is finite but extremely large despite a",
+        "positive-definite Hessian (pdHess = TRUE), which signals a near-flat,",
+        "weakly identified direction the Hessian did not resolve -- often a",
+        "correlation or SD running to a boundary. Confirm with a likelihood",
+        "profile (profile()) and consider a simpler model before interpreting",
+        "the affected parameter; a clean Hessian is necessary, not sufficient."
+      )
+    } else {
+      "No fixed-effect standard error is inflated relative to the others."
     }
   )
 }
@@ -3597,16 +3670,20 @@ bivariate_phylo_mu_diagnostic_message <- function(
   if (near_rho_boundary && (weak_replication || weak_sd)) {
     return(paste(
       "The fitted phylogenetic mean-mean correlation is close to +/-1 and",
-      "replication or phylogenetic SD evidence is weak; inspect profiles,",
-      "species replication, or a simpler structured-effect model before",
-      "interpreting this correlation."
+      "replication or phylogenetic SD evidence is weak; the correlation is",
+      "likely weakly identified, and a large standard error on it despite a",
+      "clean Hessian (pdHess = TRUE) is the expected symptom, not evidence",
+      "against it. Inspect profiles, species replication, or a simpler",
+      "structured-effect model before interpreting this correlation."
     ))
   }
   if (near_rho_boundary) {
     return(paste(
-      "The fitted phylogenetic mean-mean correlation is close to +/-1;",
-      "inspect likelihood profiles or compare against a model without the",
-      "bivariate phylogenetic covariance before interpreting it."
+      "The fitted phylogenetic mean-mean correlation is close to +/-1; a large",
+      "standard error on it despite a clean Hessian (pdHess = TRUE) is the",
+      "expected symptom of weak identification. Inspect likelihood profiles or",
+      "compare against a model without the bivariate phylogenetic covariance",
+      "before interpreting it."
     ))
   }
   if (same_group_covariance && (weak_replication || weak_sd)) {
