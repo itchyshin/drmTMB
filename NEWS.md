@@ -1,3 +1,61 @@
+# drmTMB 0.4.0
+
+`drmTMB` 0.4.0 is staged toward the v1.0 release. This entry currently records
+the docs/ledger-alignment slice of the cycle; later arcs append below rather
+than replacing it.
+
+## Bug fixes
+
+* Structured `sigma` random effects for `family = nbinom2()`
+  (`sigma ~ phylo()`/`spatial()`/`animal()`/`relmat()`) now correctly modify the
+  scale predictor. They were previously applied to the *mean* predictor (the TMB
+  kernel's `model_type == 7` branch lacked the scale-side dispatch the beta
+  family already had), so a `sigma ~ phylo(...)` fit silently matched a
+  mean-phylo fit while reporting a `*_sigma` SD. Point-fit recovery is now
+  verified (`tests/testthat/test-nbinom2-sigma-structured-recovery.R`); intervals
+  and coverage remain out of scope (recovery-grade).
+
+## Documentation and release-ledger alignment
+
+* `README.md`, `ROADMAP.md`, and `docs/dev-log/known-limitations.md` now state
+  the exact REML structured-effect boundary shipped across 0.2.0/0.3.0:
+  univariate Gaussian REML accepts phylogenetic mean-side, scale-side, and
+  matched q2 mean-and-scale blocks, plus univariate spatial/animal/relmat
+  scale-side blocks; it rejects non-phylogenetic mean-side (or mixed
+  mean+scale) structured effects, sparse-fixed designs, Gaussian row
+  aggregation, and ordinary direct-SD formulae. Bivariate Gaussian REML
+  accepts phylogenetic structured effects in every covariance layout,
+  including the dense q4 block, and rejects spatial/animal/relmat entirely.
+  REML remains rejected outright for every non-Gaussian family.
+* `ROADMAP.md` corrects the Q-Series `inference_ready` anchor count from five
+  rows to eight, adding the three q1 `mu:(Intercept)` anchors (phylo,
+  spatial, relmat) that the release ledger already carried but the roadmap
+  text had not listed. Two of the eight rows -- the phylo and relmat q2
+  `mu1:x`/`mu2:x` slope-SD rows -- are `inference_ready` only through the
+  bias-corrected `confint()` channel; their raw uncorrected Wald intervals
+  fail coverage. No structured row is `supported`, and non-Gaussian
+  structured rows remain point-recovery evidence only, with no intervals,
+  coverage, or `supported` claim.
+* `docs/dev-log/known-limitations.md` records that `nbinom2()` structured
+  `sigma` terms (`phylo`/`spatial`/`animal`/`relmat`) are currently
+  mis-targeted onto the mean predictor rather than the scale predictor. This
+  is a latent numerical bug, not a working capability, and is treated as
+  rejected pending a post-v1.0 fix.
+* The package version moves to `0.4.0`, and the pkgdown navbar, README
+  preview banner, and roadmap version line now track it.
+
+## Inference guidance
+
+* **Profile-likelihood confidence intervals (`confint(method = "profile")`)
+  are the headline recommended inference method** for structured
+  random-effect standard deviations and correlations. The C1 REML coverage
+  campaign found the default Wald channel produces asymmetric miss rates and
+  conservative or anti-conservative coverage on several structured `sigma`
+  and `mu1`/`mu2` slope-SD rows; prefer `method = "profile"` (`profile()`,
+  `plot()`, and the `profile_engine = "auto"` endpoint solver) whenever a
+  target is listed by `profile_targets()`, and treat a Wald interval flagged
+  `wald_at_boundary` as a prompt to switch, not as a usable result.
+
 # drmTMB 0.3.0
 
 ## Large direct-SD models: uncertainty no longer scales with the square of the group count

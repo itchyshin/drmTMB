@@ -480,6 +480,20 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   hurdle, and one-inflation structured effects need ordinary family-specific
   random-effect recovery and interval evidence before entering the fitted
   surface.
+- `nbinom2()` structured `sigma` intercept-plus-one-slope terms
+  (`sigma ~ phylo(1 + x | id, tree = tree)`, `spatial(...)`, `animal(...)`,
+  `relmat(...)`) correctly target the scale predictor `log_sigma` as of 0.4.0.
+  Earlier versions carried a routing bug that applied the structured
+  contribution to the mean predictor `eta_mu` instead (`model_type == 7` lacked
+  the `phylo_mu_dpar == 1` branch that the beta-family route at
+  `src/drmTMB.cpp:2631-2643` uses), so a `sigma ~ phylo(...)` fit was numerically
+  identical to a mean-phylo fit even though the reported SD was labelled
+  `*_sigma`; 0.4.0 mirrors the beta dispatch in `model_type == 7`. These four
+  rows are **recovery-grade only**: point-fit recovery is verified
+  (`tests/testthat/test-nbinom2-sigma-structured-recovery.R` — a scale-DGP
+  logLik gain with fitted-`sigma`-vs-truth correlation, plus a mean-DGP mis-wire
+  regression guard), but intervals, coverage, and `supported` status remain out
+  of scope.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
