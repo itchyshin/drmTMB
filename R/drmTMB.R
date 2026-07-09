@@ -2158,12 +2158,27 @@ drm_validate_reml_spec_biv <- function(spec) {
 drm_fit_df <- function(spec, opt) {
   df <- length(opt$par)
   if (identical(spec$estimator, "REML")) {
-    df <- df +
-      if (identical(spec$model_type, "biv_gaussian")) {
-        ncol(spec$X$mu1) + ncol(spec$X$mu2)
-      } else {
-        ncol(spec$X$mu)
+    # Add back every fixed-effect block TMB marginalized into the Laplace `random`
+    # block so `df` counts them as model parameters. `tmb_random_names`
+    # (drm_apply_estimator_spec) is the record of what was marginalized: `beta_mu`
+    # is always there under REML, and `beta_sigma` is there iff a sigma variance
+    # component made the scale coefficients restricted too. Reading it -- rather
+    # than re-deriving the `has_sigma_re` gate -- keeps `df` in lockstep with the
+    # actual marginalization, so a scale-side REML fit's df (and hence AIC/BIC)
+    # counts its sigma fixed effects instead of silently under-counting them.
+    marginalized <- spec$tmb_random_names
+    blocks <- if (identical(spec$model_type, "biv_gaussian")) {
+      c(beta_mu1 = "mu1", beta_mu2 = "mu2",
+        beta_sigma1 = "sigma1", beta_sigma2 = "sigma2")
+    } else {
+      c(beta_mu = "mu", beta_sigma = "sigma")
+    }
+    for (par_name in names(blocks)) {
+      x_name <- blocks[[par_name]]
+      if (par_name %in% marginalized && !is.null(spec$X[[x_name]])) {
+        df <- df + ncol(spec$X[[x_name]])
       }
+    }
   }
   df
 }
