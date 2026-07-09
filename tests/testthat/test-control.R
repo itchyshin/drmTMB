@@ -737,3 +737,71 @@ test_that("se_group_sd keeps the per-group direct-SD ADREPORT out of sdreport", 
   expect_true(all(is.finite(sqrt(diag(stats::vcov(reml_off))))))
   expect_true(all(is.finite(summary(reml_off)$coefficients$std_error)))
 })
+
+test_that("bivariate sd_phylo1/2 REML keeps finite SEs with the default se_group_sd (issue #17)", {
+  skip_on_cran()
+  # Regression proxy for A. Mizuno's 10,440-tip bivariate REML fit (issue #3 ceiling).
+  # The fix made se_group_sd opt-in: with se_group_sd = FALSE (the default), the
+  # per-group direct-SD ADREPORT (2 * n_tip entries per trait) stays OUT of sdreport,
+  # so the joint REML covariance is small (not n_group x n_group) and vcov(),
+  # summary() standard errors, and pdHess all work. The mechanism is scale-invariant;
+  # this asserts it for a bivariate sd_phylo1/2 model at a CI-sized tree (the fix was
+  # validated at her full scale separately).
+  set.seed(2026070817)
+  n_tip <- 16L
+  n_each <- 6L
+  tree <- control_balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  species_values <- tree$tip.label
+  z_species <- stats::setNames(
+    seq(-0.8, 0.8, length.out = n_tip),
+    species_values
+  )
+  tau1 <- exp(-0.55 + 0.45 * z_species)
+  tau2 <- exp(-0.65 - 0.35 * z_species)
+  chol_lower <- t(chol(A))
+  base1 <- as.vector(chol_lower %*% stats::rnorm(n_tip))
+  base2_raw <- 0.25 * stats::rnorm(n_tip) + sqrt(1 - 0.25^2) * stats::rnorm(n_tip)
+  base2 <- as.vector(chol_lower %*% base2_raw)
+  phylo1 <- tau1 * base1
+  phylo2 <- tau2 * base2
+  names(phylo1) <- names(phylo2) <- species_values
+  species <- rep(species_values, each = n_each)
+  x <- stats::rnorm(length(species))
+  e1 <- stats::rnorm(length(species))
+  e2 <- 0.05 * e1 + sqrt(1 - 0.05^2) * stats::rnorm(length(species))
+  dat <- data.frame(
+    y1 = 0.25 + 0.30 * x + phylo1[species] + 0.22 * e1,
+    y2 = -0.15 - 0.25 * x + phylo2[species] + 0.24 * e2,
+    x = x,
+    z_species = z_species[species],
+    species = species
+  )
+
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1,
+      sd_phylo1(species) ~ z_species,
+      sd_phylo2(species) ~ z_species
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    REML = TRUE,
+    control = drm_control(optimizer = list(eval.max = 800, iter.max = 800))
+  ))
+
+  expect_identical(fit$estimator, "REML")
+  expect_false(drm_control()$se_group_sd)
+  # The per-group direct-SD ADREPORT stays out of sdreport under the default.
+  expect_false(any(grepl("sd_phylo_group", names(fit$sdr$value))))
+  # The joint REML covariance is small, not n_group x n_group (2 * n_tip per trait).
+  expect_lt(nrow(fit$sdr$cov), 2L * n_tip)
+  # Wald standard errors and the Hessian check all work at bivariate REML scale.
+  expect_true(all(is.finite(sqrt(diag(stats::vcov(fit))))))
+  expect_true(all(is.finite(summary(fit)$coefficients$std_error)))
+  expect_true(isTRUE(fit$sdr$pdHess))
+})

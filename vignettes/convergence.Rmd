@@ -510,14 +510,27 @@ latent covariance. If both layers are present and one moves to the boundary,
 the model may be trying to allocate the same biological or measurement signal
 to more than one covariance component.
 
+A near-boundary phylogenetic correlation is often *weakly identified* rather
+than genuinely close to `+/-1`. If one response carries little phylogenetic
+signal, its phylogenetic SD is pulled toward zero and the cross-correlation has
+nothing to correlate against, so it drifts to the boundary along a nearly flat
+likelihood ridge. The telltale sign is a **large standard error on the
+correlation despite a positive-definite Hessian** (`pdHess = TRUE`):
+`check_drm()` flags this as a `biv_phylo_mu_covariance` warning and a
+`standard_errors_inflated` note, and a likelihood profile of the correlation is
+flat with no usable interval. A clean Hessian is necessary, not sufficient. The
+fix is to drop the cross-correlation (fit the two phylogenetic effects
+independently) or report it as non-identified; the trait means and their
+standard errors are largely unaffected.
+
 For these fits, use a staged workflow:
 
 1. Fit a fixed/residual bivariate model and inspect `rho12`.
 2. Fit the simpler phylogenetic or ordinary group-level model that contains
    only the covariance layer you need first.
 3. Compare `check_drm()` rows for optimizer convergence, fixed-gradient
-   culprit, `rho12_boundary`, phylogenetic covariance diagnostics, and species
-   replication.
+   culprit, `rho12_boundary`, phylogenetic covariance diagnostics,
+   `standard_errors_inflated`, and species replication.
 4. Use `profile_targets()` or `corpairs()` only for targets whose interval
    status is reported as available.
 5. Treat `se = FALSE` runs as optimizer stress evidence only; they do not
@@ -606,6 +619,59 @@ itself.
 Treat the penalty as a complement to -- not a replacement for -- simplifying
 the model, collecting replicated data, or fitting the same model in a Bayesian
 framework where the prior is explicit.
+
+## Choosing between maximum likelihood and REML
+
+`drmTMB` fits by maximum likelihood (`REML = FALSE`) by default. Restricted
+maximum likelihood (`REML = TRUE`) is available for Gaussian and
+bivariate-Gaussian models, including phylogenetic ones. The choice affects only
+**variance components** -- phylogenetic and other random-effect standard
+deviations -- and mainly at small sample sizes.
+
+Why: maximum likelihood estimates a variance component as if the fixed effects
+were known, which biases the variance *downward* by a factor of order `p / n`
+(`p` fixed effects, `n` groups; for a phylogenetic effect `n` is the number of
+tips). REML accounts for the degrees of freedom spent on the fixed effects and
+removes that leading bias. The correction is set by the *ratio* `p / n`, not by
+`n` alone: a rich fixed-effect surface -- several mean covariates plus an
+`sd_phylo(...) ~ x` surface, which all count toward `p` -- can leave a
+noticeable correction even at a few hundred tips. On the standard-deviation
+scale the correction is about half the size of the variance correction (roughly
+`p / 2n`, by the delta method), which is why the SD movements below are modest.
+As `p / n` shrinks toward zero the two estimators converge.
+
+What actually moves: for a Gaussian location-scale model the mean and the
+variance are information-orthogonal, so switching ML to REML leaves the
+**mean-model coefficients essentially unchanged** and adjusts the
+**variance-component estimates** -- the phylogenetic SD and, for an
+`sd_phylo(...) ~ x` surface, its coefficients. In a 16-species fit the mean
+coefficients moved by under 0.005 while the `sd_phylo` intercept and slope moved
+by about 0.04 to 0.06; by a few hundred species even the SD difference is
+negligible.
+
+Practical guidance:
+
+- **Small `p / n`** -- hundreds of tips or more against a modest number of fixed
+  effects (a large clade, or a dataset in the thousands of tips): use the
+  default ML. The correction is a fraction of a percent and does not change the
+  conclusions. At Ayumi Mizuno's ~10,440-tip scale it is about 0.05%.
+- **Large `p / n`** -- tens of species, or a small subclade carrying a rich
+  fixed-effect surface: prefer `REML = TRUE`. This is where ML's downward
+  variance bias is largest and REML earns its keep.
+- **If you interpret a variance component, fit both and compare.** If the
+  phylogenetic SD or the `sd_phylo ~ x` coefficients move materially between ML
+  and REML, report that sensitivity; if they barely move, the estimate is
+  robust to the choice.
+
+```{r, purl=FALSE}
+fit_ml <- drmTMB(form, data = dat, family = gaussian()) # default (ML)
+fit_reml <- drmTMB(form, data = dat, family = gaussian(), REML = TRUE)
+# Compare the variance-component estimates; the mean coefficients should agree.
+```
+
+A REML fit is labeled `estimator = "REML"` and goes through the same
+`check_drm()`, profile, and standard-error diagnostics as an ML fit; REML does
+not change how you read them.
 
 ## Separate optimization from uncertainty
 
