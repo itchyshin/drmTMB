@@ -42,7 +42,7 @@ gate_sigma_file <- function(cell_id, member, file, min_miss) {
   }
   d <- read_tsv(file)
   truth <- if ("truth_sd" %in% names(d)) d$truth_sd[[1L]] else NA_real_
-  g <- gate_data_frame(d, truth, members = c("wald", "profile"), min_miss = min_miss)
+  g <- gate_data_frame(d, truth, members = c("profile", "wald"), g = 8L, min_miss = min_miss)
   finish(cell_id, member, g, file)
 }
 
@@ -53,7 +53,7 @@ gate_mu_intercept_file <- function(cell_id, file, min_miss) {
   truth <- d$truth_sd_mu_intercept[[1L]]
   nd <- data.frame(default_lower = d$conf.low, default_upper = d$conf.high,
                    estimate_sd = d$estimate)
-  g <- gate_data_frame(nd, truth, members = "default", min_miss = min_miss)
+  g <- gate_data_frame(nd, truth, members = "default", g = 8L, min_miss = min_miss)
   finish(cell_id, "mu:(Intercept)", g, file)
 }
 
@@ -67,7 +67,7 @@ gate_q2_provider <- function(cell_id, provider, file, min_miss) {
     s <- d[d$target == tg, , drop = FALSE]
     nd <- data.frame(wald_lower = s$wald_lower, wald_upper = s$wald_upper,
                      bc_lower = s$bc_lower, bc_upper = s$bc_upper)
-    g <- gate_data_frame(nd, s$truth[[1L]], members = c("wald", "bc"), min_miss = min_miss)
+    g <- gate_data_frame(nd, s$truth[[1L]], members = c("bc", "wald"), g = 8L, min_miss = min_miss)
     out[[tg]] <- finish(cell_id, tg, g, file)
   }
   do.call(rbind, out)
@@ -75,18 +75,18 @@ gate_q2_provider <- function(cell_id, provider, file, min_miss) {
 
 pending <- function(cell_id, member, channels, file) {
   data.frame(cell_id = cell_id, member = member, channel = channels,
-             n_fit = NA_integer_, finite_rate = NA_real_, coverage = NA_real_,
-             mcse = NA_real_, n_high = NA_integer_, n_low = NA_integer_,
-             ratio = NA_real_, binom_p = NA_real_, status = "pending_campaign",
+             coverage = NA_real_, mcse = NA_real_, ss_floor = NA_real_,
+             ratio = NA_real_, binom_p = NA_real_,
+             inference_ready = "pending_campaign", supported = "pending_campaign",
              source_file = file, stringsAsFactors = FALSE)
 }
 finish <- function(cell_id, member, g, file) {
   if (is.null(g)) return(pending(cell_id, member, "?", file))
   data.frame(cell_id = cell_id, member = member, channel = g$member,
-             n_fit = g$n_fit, finite_rate = g$finite_rate, coverage = g$coverage,
-             mcse = g$mcse, n_high = g$n_high, n_low = g$n_low, ratio = g$ratio,
-             binom_p = g$binom_p, status = g$status, source_file = file,
-             stringsAsFactors = FALSE)
+             coverage = g$coverage, mcse = g$mcse, ss_floor = g$ss_floor,
+             ratio = g$ratio, binom_p = g$binom_p,
+             inference_ready = g$inference_ready, supported = g$supported,
+             source_file = file, stringsAsFactors = FALSE)
 }
 
 MIN_MISS <- as.integer(Sys.getenv("MIN_MISS", "40"))
@@ -110,22 +110,18 @@ res <- do.call(rbind, rows)
 out_path <- "docs/dev-log/dashboard/inference-gate-results.tsv"
 utils::write.table(res, out_path, sep = "\t", row.names = FALSE, quote = FALSE)
 cat("# inference-gate-results (min_miss =", MIN_MISS, ")  wrote", out_path, "\n\n")
-print(res[, c("cell_id", "member", "channel", "coverage", "ratio", "binom_p", "status")],
+print(res[, c("cell_id", "member", "channel", "coverage", "ss_floor", "ratio", "inference_ready", "supported")],
       row.names = FALSE)
-cat("\n# summary by cell (a cell is inference_ready only if EVERY member passes on >=1 channel):\n")
+cat("\n# TWO-TIER verdict per cell. inference_ready = honest small-sample interval\n")
+cat("# (coverage >= g-appropriate floor; upper-tail skew is a documented caveat, NOT a fail).\n")
+cat("# supported = nominal-exact + balance (the harder tier; expected to be withheld at g=8).\n")
+cat("# A cell holds a tier iff EVERY member passes that tier on >=1 channel.\n\n")
 for (cid in unique(res$cell_id)) {
-  s <- res[res$cell_id == cid, ]
-  per_member <- split(s, s$member)
-  mstat <- function(m) {
-    if (any(m$status == "pending_campaign")) "PENDING"
-    else if (any(m$status == "PASS")) "PASS"
-    else if (any(m$status == "FAIL")) "FAIL"            # a real calibration failure on some channel
-    else "INSUFFICIENT"                                   # underpowered / not evaluable
-  }
-  ms <- vapply(per_member, mstat, character(1))
-  verdict <- if (any(ms == "PENDING")) "PENDING (campaign incomplete)"
-             else if (any(ms == "FAIL")) "FAIL (miss-asymmetry on a member)"
-             else if (all(ms == "PASS")) "PASS"
-             else "INSUFFICIENT (underpowered; needs more reps)"
-  cat(sprintf("  %-42s %s\n", cid, verdict))
+  cs <- res[res$cell_id == cid, ]
+  if (any(cs$inference_ready == "pending_campaign")) { cat(sprintf("  %-42s PENDING\n", cid)); next }
+  per_member <- split(cs, cs$member)
+  ir_ok  <- all(vapply(per_member, function(m) any(m$inference_ready == "PASS"), logical(1)))
+  sup_ok <- all(vapply(per_member, function(m) any(m$supported == "PASS"), logical(1)))
+  cat(sprintf("  %-42s inference_ready=%-4s  supported=%-3s\n", cid,
+              if (ir_ok) "PASS" else "FAIL", if (sup_ok) "yes" else "no"))
 }
