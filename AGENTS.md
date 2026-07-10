@@ -3,7 +3,18 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-08 night, → Claude, board HONEST + Ayumi-derived work queued).**
+> **▶ Latest — start here (2026-07-10, → Claude, v0.4.0 RELEASED · next = missing-data → non-Gaussian).**
+> `origin/main` = `5ee29c32` · tag **`v0.4.0`** · `--as-cran` **0/0/0**. Shipped: honest 668-cell
+> capability census + map, nbinom2 structured-sigma bug fix, unstructured non-Gaussian interval
+> coverage validated, `capability-and-limits` vignette. **Local `main` is 2 ahead + UNPUSHED** (Track A
+> CI-trio `ceed999c` + a pre-existing chore) — reconcile. **Next mission (NEW branch off main):**
+> extend missing-data from Gaussian-only to binary/count/% (both response + predictor `mi()`) +
+> scaffold/warn all 18 families — full ultra-plan at `~/.claude/plans/crystalline-tinkering-fog.md`.
+> Track B comparators (#60) DONE (all match to machine precision, uncollected); Track C stability
+> (#710) did not deliver (OPEN). START HERE:
+> [`docs/dev-log/handover/2026-07-10-claude-handover.md`](docs/dev-log/handover/2026-07-10-claude-handover.md)
+>
+> **▶ Prior (2026-07-08 night, → Claude, board HONEST + Ayumi-derived work queued).**
 > `main` = `15d4412b` (pushed) · tag `v0.2.0.9001`. **The 8 `inference_ready` cells are CORRECT — do
 > NOT demote them.** An initial "5/8 FAIL" audit applied the `supported` bar (nominal-exact) to the
 > `inference_ready` tier; at small `g`, ~0.90 coverage + upper-tail skew is EXPECTED, not a defect
