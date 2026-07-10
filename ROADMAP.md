@@ -21,9 +21,10 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 - The Q-Series release-status ledger does not authorize coverage, q4/q8
   promotion, broad bridge support, REML, AI-REML, or public-support wording.
 
-## Version 0.1.3 Preview Release
+## Version and release status
 
-- Current preview version: `0.1.3`.
+- Current development version: `0.4.0` (staging toward the next release; the
+  latest tagged release is `v0.3.0`).
 - Meaning of `0.1.3`: a preview that keeps the `0.1.2` profile-inference,
   tutorial, and roadmap hardening, then adds the current structured Gaussian
   first slices, `meta_V(V = V)` known-covariance syntax, non-Gaussian first
@@ -483,14 +484,22 @@ Phase 5 closure boundary:
 Q-Series v1 closes as a row-level evidence arc, not broad structured-RE support.
 The authority table is
 `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` with 104 rows:
-five rows are `inference_ready` for interval and coverage status:
-`qseries_phylo_q2_mu1_mu2_one_slope`,
-`qseries_relmat_q2_mu1_mu2_one_slope`,
+eight rows are `inference_ready` for interval and coverage status:
+`qseries_phylo_q1_mu_intercept`,
 `qseries_phylo_q1_sigma_one_slope`,
-`qseries_animal_q1_sigma_one_slope`, and
-`qseries_relmat_q1_sigma_one_slope`. No structured row is `supported`. The
-default `confint()` small-sample correction is accepted only for location-axis
-structured SD targets and covers the q2 rows, not sigma. The sigma rows use raw
+`qseries_phylo_q2_mu1_mu2_one_slope`,
+`qseries_spatial_q1_mu_intercept`,
+`qseries_animal_q1_sigma_one_slope`,
+`qseries_relmat_q1_mu_intercept`,
+`qseries_relmat_q1_sigma_one_slope`, and
+`qseries_relmat_q2_mu1_mu2_one_slope`. No structured row is `supported`. The
+default `confint()` small-sample bias+t correction is accepted only for the
+location-axis structured-RE slope-only SD and covers just the two q2
+`mu1:x`/`mu2:x` rows (phylo, relmat); those two rows are `inference_ready`
+only through that bias-corrected channel, and their raw uncorrected Wald
+intervals fail coverage. The three q1 `mu:(Intercept)` rows (phylo, spatial,
+relmat) are `inference_ready` under the plain raw/default Wald direct-SD
+channel. The three q1 sigma one-slope rows (phylo, animal, relmat) use raw
 uncorrected log-SD Wald-z evidence, with one-sided miss asymmetry and
 conservative `sigma:x` coverage. Fixed-covariance spatial q2, animal q2,
 spatial sigma, q4/q8, count, and non-Gaussian structured rows remain

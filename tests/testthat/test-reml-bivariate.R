@@ -274,3 +274,48 @@ test_that("bivariate REML ADMITS the block-diagonal location-scale phylo layout,
   ))
   expect_identical(fit_dense$estimator, "REML")
 })
+
+test_that("bivariate dense-q4 phylo REML recovers at adequate power (S3 port)", {
+  skip_on_cran()
+  skip_if_not_installed("ape")
+  # Ports scratchpad/reml_dense_q4_ladder.R into the suite: the dense full-q4 layout
+  # (one shared label on all four endpoints, carrying mean-scale cross-covariances) is
+  # information-hungry but converges and RECOVERS under REML at adequate power
+  # (n_tip >= ~200, n_each >= ~10). Truth: phylo SDs .5/.5/.4/.4; a single nonzero
+  # phylo cross-correlation cor(mu1, sigma1) = +0.6; all other correlations 0.
+  set.seed(202L)
+  n_tip <- 200L; n_each <- 10L; n <- n_tip * n_each
+  tree <- ape::rcoal(n_tip); tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE); L <- t(chol(A))
+  sds <- c(.5, .5, .4, .4); R <- diag(4); R[1, 3] <- R[3, 1] <- 0.6
+  Sig <- diag(sds) %*% R %*% diag(sds)
+  a <- L %*% matrix(stats::rnorm(n_tip * 4), n_tip, 4) %*% chol(Sig)
+  tip <- rep(seq_len(n_tip), each = n_each)
+  dat <- data.frame(
+    sp = factor(tree$tip.label[tip], levels = tree$tip.label),
+    y1 = .3 + a[tip, 1] + stats::rnorm(n, 0, exp(log(.5) + a[tip, 3])),
+    y2 = .6 + a[tip, 2] + stats::rnorm(n, 0, exp(log(.6) + a[tip, 4]))
+  )
+  form <- bf(
+    mu1 = y1 ~ 1 + phylo(1 | p | sp, tree = tree),
+    mu2 = y2 ~ 1 + phylo(1 | p | sp, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | sp, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | sp, tree = tree),
+    rho12 = ~ 1
+  )
+  fit <- suppressWarnings(drmTMB(
+    form, family = biv_gaussian(), data = dat, REML = TRUE,
+    control = drm_control(optimizer_preset = "robust")
+  ))
+  expect_identical(fit$estimator, "REML")
+  expect_identical(fit$opt$convergence, 0L)
+  pr <- summary(fit)$parameters
+  sd_hat <- pr$estimate[grep("^sd:", pr$parm)]
+  cor_hat <- pr$estimate[grep("^cor", pr$parm)]
+  expect_length(sd_hat, 4L)
+  expect_true(all(is.finite(sd_hat) & sd_hat > 0))
+  # the set of phylo SDs recovers .5/.5/.4/.4 (loose; single well-powered seed)
+  expect_equal(sort(sd_hat), sort(sds), tolerance = 0.2)
+  # the one true phylo cross-correlation (+0.6) is recovered as the dominant, positive one
+  expect_gt(max(cor_hat), 0.25)
+})

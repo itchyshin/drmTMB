@@ -4,7 +4,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   includes:
-    before_navbar: '<span class="drmtmb-version-note">0.1.3.9000 development</span>'
+    before_navbar: '<span class="drmtmb-version-note">0.4.0 development</span>'
   bslib:
     primary: "#0f7887"
     headings-color: "#112638"
@@ -25,6 +25,8 @@ navbar:
     model_guides:
       text: Model Guides
       menu:
+        - text: What can I trust? (capabilities & limits)
+          href: articles/capability-and-limits.html
         - text: What can I fit today?
           href: articles/model-map.html
         - text: Which scale are you modelling?
@@ -43,6 +45,8 @@ navbar:
           href: articles/large-data.html
         - text: Running models with the Julia engine
           href: articles/julia-engine.html
+        - text: Cross-family bivariate (Julia)
+          href: articles/cross-family.html
     tutorials:
       text: Tutorials
       menu:
@@ -105,7 +109,6 @@ reference:
     desc: Formula constructors, family objects, and status-marked model syntax.
     contents:
       - drm_formula
-      - bf
       - meta_V
       - mi
       - impute_model
@@ -187,6 +190,7 @@ articles:
       - drmTMB
   - title: Start Here
     contents:
+      - capability-and-limits
       - model-map
       - model-workflow
       - missing-data
