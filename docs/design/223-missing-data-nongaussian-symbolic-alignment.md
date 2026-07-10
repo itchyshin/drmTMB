@@ -1,7 +1,11 @@
 # 223 — Missing-data → non-Gaussian: P0 symbolic-alignment gate
 
-**Status:** P0 gate — **SIGNED & CLEARED 2026-07-10** (Noether + Fisher, §7). P1–P3 unblocked;
-next in plan order is P4a (loud per-family guardrails). Blocks were: P1–P3 of the missing-data
+**Status:** P0 gate — **SIGNED & CLEARED 2026-07-10** via a 3-reviewer adversarial pass: Noether
+(math↔engine) + Fisher (inference) **CLEARED**; Rose (completeness-critic) returned
+**CHANGES_REQUIRED → resolved** (§7). Clearance followed a **§4 scope correction** the critic
+surfaced — non-Gaussian *builders* do not construct the missing-response mask, so P1 is **four**
+edits/family, not three. P1–P3 unblocked; next in plan order is P4a (loud per-family guardrails).
+Blocks were: P1–P3 of the missing-data
 non-Gaussian ultra-plan (`~/.claude/plans/crystalline-tinkering-fog.md`; handover
 `docs/dev-log/handover/2026-07-10-claude-handover.md`).
 **Branch:** `drmtmb/missing-data-nongaussian` (off `main` = `ceed999c`, v0.4.0 released).
@@ -76,8 +80,11 @@ Gaussian `sigma` is the residual SD; for beta it is `precision^(-1/2)`; for nbin
 | scale `σ` | `σ = exp(log_sigma)`, `log_sigma = X β_σ` | `sigma <- exp(X %*% b_sig)` | `coef` sigma block | `β_σ` |
 | response | `y ~ N(μ, σ²)` | `rnorm(n, mu, sigma)` | — | Var `= σ²` |
 
-Missing-y guard **already implemented** (`observed_y`, the mask lives in the mi() block
-685–2333 and the density is masked). This is the template P1 mirrors per family.
+Missing-y guard **already implemented for Gaussian**: the per-row `observed_y(i)` density guards
+live inside the `model_type == 1` block (`src/drmTMB.cpp:~1149–2253`), and the Gaussian *builder*
+constructs the mask (`R/drmTMB.R:2968–2986`; the earlier `dnorm` at ~635 is a separate aggregation
+path and is not itself masked). This **builder + C++ guard** pair — not the guard alone — is the
+template P1 mirrors per family. See §4: non-Gaussian builders do **not** yet construct the mask.
 
 ### 3.1 Binomial (model_type 18) — `src/drmTMB.cpp:2853–2870`
 
@@ -105,6 +112,9 @@ Missing-y guard **already implemented** (`observed_y`, the mask lives in the mi(
   P2 refactors away, and the reference that missing-**response** Poisson (P1) must match.
 - Guard: the plain-`y` density at 3072 is currently inside a `!(has_mi && …)` filter; P1
   adds the `observed_y(i)==1` condition for the no-mi missing-response path.
+- **P3 forward-note (not P1):** a row that is *simultaneously* missing-predictor and
+  missing-response is not yet handled — the MD9a `observed_y` guard (3049–3052) lives only inside
+  the imputation branch. P3 must specify this interaction before loosening the predictor gate.
 
 ### 3.3 Beta (model_type 10) — `src/drmTMB.cpp:2611–2721`
 
@@ -117,8 +127,16 @@ Missing-y guard **already implemented** (`observed_y`, the mask lives in the mi(
 - **Recovery truth:** to simulate at precision `φ`, the intercept-only truth is
   `log_sigma = -½ log φ`, i.e. `σ_true = φ^(-1/2)`.
 - **Trap (missing y):** density evaluates `log(y)` and `log(1-y)` @2709–2710. Guard must
-  wrap this block; sentinel outside `(0,1)` (default sentinel `0` → `log(0) = -Inf`) so any
-  guard leak fails **loud**, not silently finite. See §4.
+  wrap the **whole `log_density` block 2705–2711** (not just the `nll -=` at 2711 — otherwise
+  `log(sentinel)` is still evaluated into a discarded local); sentinel outside `(0,1)` (default
+  sentinel `0` → `log(0) = -Inf`) so any guard leak fails **loud**, not silently finite. See §4.
+- **Non-blocking cautions (recovery design):** (i) a soft-clamp is applied to `log_sigma` *before*
+  `φ` (`drm_softclamp_log_sigma` @2680–2683), **default-OFF** (`use_logsigma_clamp = 0L` unless
+  `control$logsigma_clamp` set); if enabled it shifts the recovery target near the band edge — keep
+  it off and keep `σ_true` inside the band. (ii) `beta_shape_floor = 1e-8` floors `a=μφ`, `b=(1-μ)φ`
+  (2688–2704): an extreme cell (`μ` near 0/1 with small `φ`) can hit the floor and bias dispersion
+  recovery — use moderate cells. (iii) beta uses `X_mu·β_μ` with **no `offset_mu`** (unlike
+  binomial/poisson/nbinom2) — a shared offset-bearing harness silently no-ops the offset for beta.
 
 ### 3.4 nbinom2 (model_type 7) — `src/drmTMB.cpp:3139–3293` + `src/drm_count_kernels.h:31–41`
 
@@ -146,6 +164,9 @@ NB2 form `Γ(y+size)/(Γ(size) y!)·(size/(size+μ))^size·(μ/(size+μ))^y`:
   and keep point-near-truth non-optional**; that conjunction is what this gate enforces. (Same
   `φ ≠ 1` requirement for beta, §3.3.)
 - Guard: wrap the density call at 3285–3286 in `if (observed_y(i) == 1) { … }`.
+- **Non-blocking caution:** a soft-clamp is applied to `log_sigma` before `size`
+  (`drm_softclamp_log_sigma` @3279–3282), **default-OFF** — same guidance as beta (§3.3): keep it
+  off for recovery so the truth is the raw `-½ log θ`.
 
 ---
 
@@ -159,10 +180,22 @@ MAR) **plus** a-priori distinctness of the missingness-mechanism and data-model 
 loud, never silently.** (Biv already implements the correct specialization — it keeps the
 observed marginal when one response is missing, `src/drmTMB.cpp:110–115`.)
 
-**R side** (`R/drmTMB.R:2968–2986`, `R/missing-data.R:310`):
-`observed_y <- !is.na(y_raw)`; each missing `y` is replaced by `response_sentinel`
-(`getOption("drmTMB.missing_response_sentinel", 0)`, one finite numeric, **default 0**).
-`observed_y` is passed as `DATA_IVECTOR(observed_y)` (`src/drmTMB.cpp:252`).
+**R side — the mask is built per-builder, and only Gaussian/biv build it today (BLOCKING for P1
+scope; Rose).** The `observed_y <- !is.na(y_raw)` + sentinel-fill code at `R/drmTMB.R:2968–2986`
+lives **inside `drm_build_gaussian_ls_spec` (@2655)** and is Gaussian-scoped (biv has its own at
+6671–6690). **No non-Gaussian builder constructs a mask:** the Poisson builder hardcodes
+`observed_y = rep(TRUE, length(y))` / `response_sentinel = NA_real_` (`R/drmTMB.R:5496–5497`), and
+the beta (@4327), binomial (@4893), and nbinom2 (@5562) builders set neither, so the common
+assembly defaults `observed_y = rep(TRUE)` (@13756). The sentinel is
+`getOption("drmTMB.missing_response_sentinel", 0)` (`R/missing-data.R:310`, one finite numeric,
+**default 0**); `observed_y` reaches C++ as `DATA_IVECTOR(observed_y)` (`src/drmTMB.cpp:252`).
+
+⇒ **P1 per non-Gaussian family = FOUR edits, not three:** (a) **build the mask in the family
+builder** — mirror Gaussian 2968–2986 (`observed_y <- !is.na(y_raw)` + sentinel substitution,
+gated on `include_missing_response`); (b) the C++ per-row `if (observed_y(i)==1)` guard (below);
+(c) loosen the R reject gate (§5); (d) the tests (below). **Skipping (a) is silent under-scoping:**
+the C++ guard is present but `observed_y` stays all-TRUE and `y` is never sentinel-filled, so the
+guard never fires and `NA` responses reach TMB.
 
 **C++ side (P1, per family):** wrap the per-observation density contribution in
 
@@ -226,13 +259,16 @@ truth-in-CI must never be reported as "coverage" (Fisher A). pdHess and any
 flat-direction/identifiability flag rank **below** recovery for the verdict but must still be
 **reported** alongside a passing recovery (recovery-over-pdHess ≠ ignore-pdHess; Fisher C).
 Sample-size-first: non-Gaussian families carry less information per observation; run an n-ladder
-before condemning any recovery.
+before condemning any recovery. **Keep `logsigma_clamp` OFF and dispersion cells moderate** (truth
+inside the clamp band; `a=μφ`/`b=(1-μ)φ` off the `1e-8` floor) so the recovery target is the raw
+`-½ log θ` / `-½ log φ`, not a clamp/floor-shifted value (§3.3–3.4).
 
 ---
 
 ## 7. Sign-off (Noether + Fisher)
 
-P0 is the gate. Before P1 code, two Opus-tier reviewers must sign:
+P0 is the gate. Before P1 code, two Opus-tier reviewers must sign the math contract, with a
+completeness-critic pass alongside:
 
 - **Noether (math↔engine contract):** confirm each §3 row's link and dispersion match the
   cited code lines exactly, and that `size = exp(-2·log_sigma)` (not `+2`) is the external
@@ -241,10 +277,13 @@ P0 is the gate. Before P1 code, two Opus-tier reviewers must sign:
   imply, and that the guard/sentinel contract (§4) yields a valid observed-data likelihood
   (masking = marginalizing missing responses out of the joint, i.e. MCAR/MAR-ignorable).
 
-Both Opus reviewers signed 2026-07-10 (against `src/drmTMB.cpp`, `src/drm_count_kernels.h`,
-`R/drmTMB.R`, `R/missing-data.R`). Fisher's sign-off carried four binding test-design
-conditions, now folded into §3.4 (mandatory `θ≠1`/`φ≠1` dispersion cell), §4 (ignorability),
-and §6 (single-fit recovery vs replicated coverage; pdHess reported-not-ignored).
+**Three** Opus reviewers ran an independent adversarial pass 2026-07-10 (against `src/drmTMB.cpp`,
+`src/drm_count_kernels.h`, `R/drmTMB.R`, `R/missing-data.R`) — workflow `wf_5b0ddda3-922`. Noether
+and Fisher **CLEARED**; Rose (completeness-critic) returned **CHANGES_REQUIRED** with one blocking
+omission (now fixed in §4) plus non-blocking cautions (now folded into §3.2–3.4 and §6). Fisher's
+sign-off carried four binding test-design conditions, folded into §3.4 (mandatory `θ≠1`/`φ≠1`
+dispersion cell), §4 (ignorability), and §6 (single-fit recovery vs replicated coverage; pdHess
+reported-not-ignored).
 
 - **Noether: SIGNED (2026-07-10)** — verified §2 census (all 18 string→int + C++ blocks)
   correct; §3.1–3.4 links/dispersions match code exactly; nbinom2 external
@@ -257,3 +296,10 @@ and §6 (single-fit recovery vs replicated coverage; pdHess reported-not-ignored
   the plain data-`if(observed_y==1)` guard yields a valid observed-data likelihood (masking =
   exact marginalization, ignorable under MAR + parameter distinctness). Conditioned on the four
   §3.4/§4/§6 edits above (all applied).
+- **Rose (completeness-critic): CHANGES_REQUIRED → RESOLVED (2026-07-10)** — core alignment claims
+  independently reproduced, but flagged one **blocking** omission: §4 presented the Gaussian
+  builder's mask code as generic when **non-Gaussian builders build no mask** (Poisson hardcodes
+  `observed_y=rep(TRUE)` @5496–5497; beta/binomial/nbinom2 default via assembly @13756). **Fixed:**
+  §4 now specifies the per-builder mask as edit (a) of a four-edit P1. Non-blocking cautions
+  (soft-clamp, `beta_shape_floor`, beta guard span 2705–2711, beta offset asymmetry, P3
+  missing-pred×missing-resp interaction) folded into §3.2–3.4 and §6.
