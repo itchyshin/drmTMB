@@ -247,11 +247,12 @@ drmTMB <- function(
   }
   if (
     identical(missing_control$response, "include") &&
-      !family_type %in% c("gaussian", "biv_gaussian")
+      !family_type %in% drm_missing_response_families()
   ) {
     cli::cli_abort(c(
-      "{.code miss_control(response = \"include\")} is implemented only for Gaussian response models in this missing-data slice.",
-      "i" = "Use the default {.code missing = miss_control(response = \"drop\")} for this family until its observed-data likelihood slice lands."
+      "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
+      "x" = "Missing-response masking is currently validated only for {.code gaussian()} and {.code biv_gaussian()}.",
+      "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
   if (
@@ -259,14 +260,17 @@ drmTMB <- function(
       !family_type %in% c("gaussian", "poisson")
   ) {
     cli::cli_abort(c(
-      "{.code miss_control(predictor = \"model\")} is implemented only for univariate Gaussian models and the first Poisson-response missing-predictor slice.",
-      "i" = "Use complete predictors or {.code missing = miss_control(predictor = \"fail\")} for this family."
+      "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
+      "x" = "Missing-predictor models are currently validated only for {.code gaussian()} responses (the broad {.fn mi} predictor-family catalogue) and {.code poisson()} responses (one binary missing predictor).",
+      "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
   if (!family_type %in% c("gaussian", "poisson") && !is.null(impute)) {
-    cli::cli_abort(
-      "{.arg impute} is currently implemented only for univariate Gaussian and first-slice Poisson {.fn mi} predictor models."
-    )
+    cli::cli_abort(c(
+      "{.arg impute} is not implemented for the {.val {family_type}} response family yet.",
+      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()} and {.code poisson()} responses.",
+      "i" = "Drop {.arg impute} (or use a {.code gaussian()} or {.code poisson()} response) for a {.val {family_type}} model until its {.fn mi} slice lands."
+    ))
   }
   if (isTRUE(control$sparse_fixed) && !identical(family_type, "gaussian")) {
     cli::cli_abort(c(
