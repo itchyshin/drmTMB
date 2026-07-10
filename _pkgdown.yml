@@ -25,6 +25,8 @@ navbar:
     model_guides:
       text: Model Guides
       menu:
+        - text: What can I trust? (capabilities & limits)
+          href: articles/capability-and-limits.html
         - text: What can I fit today?
           href: articles/model-map.html
         - text: Which scale are you modelling?
@@ -43,6 +45,8 @@ navbar:
           href: articles/large-data.html
         - text: Running models with the Julia engine
           href: articles/julia-engine.html
+        - text: Cross-family bivariate (Julia)
+          href: articles/cross-family.html
     tutorials:
       text: Tutorials
       menu:
@@ -105,7 +109,6 @@ reference:
     desc: Formula constructors, family objects, and status-marked model syntax.
     contents:
       - drm_formula
-      - bf
       - meta_V
       - mi
       - impute_model
@@ -187,6 +190,7 @@ articles:
       - drmTMB
   - title: Start Here
     contents:
+      - capability-and-limits
       - model-map
       - model-workflow
       - missing-data

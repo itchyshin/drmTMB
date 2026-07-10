@@ -15,6 +15,17 @@ than replacing it.
   verified (`tests/testthat/test-nbinom2-sigma-structured-recovery.R`); intervals
   and coverage remain out of scope (recovery-grade).
 
+## Coverage validation
+
+* A simulation coverage campaign (400 seeds, n-ladder 50–800; see
+  `docs/dev-log/simulation-artifacts/2026-07-09-nongaussian-unstructured-coverage-pilot/`)
+  confirms that unstructured (fixed-effect) non-Gaussian confidence intervals are
+  calibrated. The mean coefficients of `binomial()`, `poisson()`, `beta()`, and
+  `nbinom2()` — including rare-event and low-count stress — and the location-scale
+  `sigma` coefficients of `nbinom2()` all show finite-rate ≈ 1.0 and near-nominal
+  Wald coverage. `beta()` location-scale intervals are calibrated for interior
+  proportions; exact 0/1 observations require `zero_one_beta()`.
+
 ## Documentation and release-ledger alignment
 
 * `README.md`, `ROADMAP.md`, and `docs/dev-log/known-limitations.md` now state
