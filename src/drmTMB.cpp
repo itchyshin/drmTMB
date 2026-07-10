@@ -2856,14 +2856,19 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       Type log_p1 = -logspace_add(Type(0.0), -eta_mu(i));
       Type log_p0 = -logspace_add(Type(0.0), eta_mu(i));
-      Type failures = trials(i) - y(i);
-      Type log_choose =
-        lgamma(trials(i) + Type(1.0)) -
-        lgamma(y(i) + Type(1.0)) -
-        lgamma(failures + Type(1.0));
-      nll -= weights(i) *
-        (log_choose + y(i) * log_p1 + failures * log_p0);
       mu(i) = exp(log_p1);
+      // Missing-response mask (MD): observed_y is integer DATA, so this plain
+      // `if` is resolved at tape construction and the masked row's density
+      // (including lgamma at the placeholder response) is never taped.
+      if (observed_y(i) == 1) {
+        Type failures = trials(i) - y(i);
+        Type log_choose =
+          lgamma(trials(i) + Type(1.0)) -
+          lgamma(y(i) + Type(1.0)) -
+          lgamma(failures + Type(1.0));
+        nll -= weights(i) *
+          (log_choose + y(i) * log_p1 + failures * log_p0);
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);

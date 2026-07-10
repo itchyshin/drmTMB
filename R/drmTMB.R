@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated only for {.code gaussian()} and {.code biv_gaussian()}.",
+      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, and {.code binomial()}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -353,7 +353,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     cumulative_logit = drm_build_cumulative_logit_spec(
       formula,
@@ -4898,8 +4899,11 @@ drm_build_binomial_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4963,8 +4967,15 @@ drm_build_binomial_spec <- function(
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   vars <- all.vars(f_mu)
-  if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  # For response = "include", keep rows with a missing response but complete
+  # predictors, so exclude the response variable(s) from the complete-case rule.
+  keep_vars <- if (include_missing_response) {
+    setdiff(vars, all.vars(f_mu[[2L]]))
+  } else {
+    vars
+  }
+  if (length(keep_vars) > 0L) {
+    keep <- stats::complete.cases(data[, keep_vars, drop = FALSE])
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -4979,10 +4990,38 @@ drm_build_binomial_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
+  raw_response <- stats::model.response(mf_mu)
+  observed_y <- if (is.null(dim(raw_response))) {
+    !is.na(raw_response)
+  } else {
+    stats::complete.cases(raw_response)
+  }
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing binomial response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed binomial response is required for fitting."
+    )
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; give
+    # them a valid placeholder (0 successes, 1 trial) so the response parser
+    # accepts them. The C++ observed_y guard drops their density, so the
+    # placeholder never enters the likelihood (masking == complete-case).
+    if (is.null(dim(raw_response))) {
+      raw_response[!observed_y] <- 0
+    } else {
+      raw_response[!observed_y, 1L] <- 0
+      raw_response[!observed_y, 2L] <- 1
+    }
+  }
   response <- prepare_binomial_response(
-    stats::model.response(mf_mu),
+    raw_response,
     response = mu_entry$response,
     has_weights = !is.null(weights)
   )
@@ -5028,19 +5067,26 @@ drm_build_binomial_spec <- function(
     keep = keep,
     dpars = "mu",
     start = binomial_start(
-      response$successes,
-      response$failures,
-      X_mu,
-      offset_mu
+      response$successes[observed_y],
+      response$failures[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu
     ),
     map = binomial_map(),
     random_names = NULL
+  )
+  spec$missing_data <- new_drm_missing_data(
+    control = missing,
+    original_row = which(keep),
+    model_row = seq_along(spec$y),
+    observed_y = observed_y,
+    response_sentinel = if (include_missing_response) 0 else NA_real_
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- spec$missing_data$counts$likelihood_rows
   spec
 }
 

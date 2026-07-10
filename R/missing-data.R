@@ -308,7 +308,7 @@ drm_parse_missing_control <- function(missing) {
 }
 
 drm_missing_response_families <- function() {
-  c("gaussian", "biv_gaussian")
+  c("gaussian", "biv_gaussian", "binomial")
 }
 
 drm_missing_response_sentinel <- function() {
