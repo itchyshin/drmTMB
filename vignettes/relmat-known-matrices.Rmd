@@ -485,7 +485,16 @@ The following `relmat()` routes remain planned:
 - residual-scale structured slopes;
 - predictor-dependent `relmat()` `corpair()` regressions;
 - generic direct-SD grammar for known-matrix standard deviations;
-- non-Gaussian known-matrix structured effects.
+- non-Gaussian known-matrix structured effects beyond the first
+  recovery-grade gates noted below.
+
+Several non-Gaussian families already fit a first `relmat()` structured gate
+at recovery grade. Trust the point estimate, not the interval: these routes
+are not coverage-validated. They are `Gamma()` on `mu` (intercept or one
+slope), `poisson()` and `nbinom2()` on `mu`, `nbinom2()` on `sigma` (one
+slope), and `truncated_nbinom2()` (with its hurdle NB2 alias) on `hu`
+(intercept). The `beta()` family and the families with no structured layer
+still reject `relmat()`.
 
 Known sampling covariance is a different model layer. If the matrix describes
 known observation-level uncertainty for effect-size estimates, use

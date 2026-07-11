@@ -19,11 +19,16 @@ traits measured on incompatible response scales -- for example a continuous
 Gaussian trait and a Poisson count -- move together once each trait's own mean
 and scale model is in place.
 
-The route is **experimental** and lives on a separate development branch. On the
-default `drmTMB` install the Julia bridge admits the Gaussian one-response and
-Gaussian two-response cells (see `vignette("julia-engine")`); the cross-family
-pair is staged behind the same `engine = "julia"` mechanism and the same
-`family = c(famA(), famB())` two-response syntax. Every live code chunk below is
+The route is **experimental** (recovery grade -- trust the point estimate of the
+latent correlation, not the interval). Its R dispatch ships in `drmTMB` 0.5.0 and
+routes admitted mixed-family pairs through the Julia bridge with no R-level
+decline gate; what is developed separately, and not bundled, is the DRM.jl
+cross-family latent engine it calls, so a working fit needs a DRM.jl checkout
+that provides it. On the default `drmTMB` install the Julia bridge admits the
+Gaussian one-response and Gaussian two-response cells (see
+`vignette("julia-engine")`); the cross-family pair uses the same
+`engine = "julia"` mechanism and the same `family = c(famA(), famB())`
+two-response syntax. Every live code chunk below is
 marked `eval = FALSE` so the article builds without Julia, JuliaCall, or DRM.jl
 present. Each chunk is followed by a narration of the output you should expect on
 a working cross-family checkout.
@@ -178,8 +183,7 @@ differing families as a vector and request the Julia engine:
 bform <- bf(
   mu1 = performance ~ condition,
   mu2 = offspring   ~ condition,
-  sigma1 = ~ 1,
-  rho12  = ~ 1
+  sigma1 = ~ 1
 )
 
 fit_xf <- drmTMB(
@@ -193,37 +197,43 @@ fit_xf
 ```
 
 A successful cross-family fit prints as a lightweight `<drmTMB Julia-engine
-fit>`: the bridge returns plain pieces from DRM.jl and `drmTMB` reconstructs the
+cross-family fit>`: the bridge returns plain pieces from DRM.jl and `drmTMB`
+reconstructs the
 coefficients, likelihood summary, fitted values, and the latent correlation
 payload, rather than pretending to be a full native fit.
 
 Note the parameter set. The Gaussian response keeps a `sigma1` scale formula;
 the Poisson response has no separate dispersion parameter, so there is no
-`sigma2` entry. `rho12 ~ 1` requests a single constant latent correlation.
+`sigma2` entry. The latent correlation is not requested through a formula --
+DRM.jl estimates it from the coupling of the two latent scales, and you read it
+back with `rho_latent(fit_xf)` (see below).
 
 ## Reading the latent-scale correlation
 
-The point estimate of the latent correlation comes back through the same
-accessor as the native bivariate Gaussian fit. There is no separate
-`rho_latent()` function: for a cross-family fit, `rho12()` *is* the latent-scale
-correlation, because that is the scale on which the cross-family `rho12` is
-defined.
+The point estimate of the latent correlation comes back through a dedicated
+accessor, `rho_latent()`. This is deliberately *not* `rho12()`: `rho12()` is
+reserved for the native bivariate-Gaussian residual correlation and has no
+cross-family method, so `rho12(fit_xf)` errors. Use `rho_latent(fit_xf)`, which
+returns the latent-scale correlation that couples the two responses here.
 
 ```{r extract-rho, eval = FALSE}
 ## the latent-scale correlation between the two responses
-rho12(fit_xf)
+rho_latent(fit_xf)
 
 ## coefficients split by distributional parameter
 coef(fit_xf)
 ```
 
-Expected shape of the output: `rho12(fit_xf)` returns the fitted latent
+Expected shape of the output: `rho_latent(fit_xf)` returns the fitted latent
 correlation -- for the simulation above, a single positive value near the
 `rho12_true = 0.45` used to generate the data (recovery is approximate at
 `n = 200` and depends on the count's information content). `coef(fit_xf)` is a
-named list with a `mu1` block on the Gaussian identity scale, a `mu2` block on
-the Poisson log scale, a `sigma1` block (log residual SD of the Gaussian trait),
-and a one-entry `rho12` block holding `eta_rho12` on the `tanh` scale.
+named list with only the two location blocks: a `mu1` block on the Gaussian
+identity scale and a `mu2` block on the Poisson log scale. The Gaussian
+dispersion block is not in this default output; reach it with
+`coef(fit_xf, dpar = "sigma1")` (log residual SD of the Gaussian trait). There is
+no `rho12`/`eta_rho12` block in the coefficients -- the latent correlation is a
+separate scalar returned by `rho_latent(fit_xf)`.
 
 Read each block on its own family's scale: `mu1` effects are changes in expected
 performance per unit condition; `mu2` effects are changes in log expected
@@ -240,7 +250,7 @@ important when `rho12` is moderate-to-large or the sample is small.
 
 ```{r confint-profile, eval = FALSE}
 ## profile-likelihood interval for the latent-scale correlation
-confint(fit_xf, parm = "rho12", method = "profile", level = 0.95)
+confint(fit_xf, parm = "rho_latent", method = "profile", level = 0.95)
 ```
 
 Expected output: a one-row matrix (or data frame) giving the profile lower and
@@ -253,8 +263,8 @@ A Wald interval is available as the faster, symmetric alternative when the
 latent-scale Hessian block is returned and `rho12` sits away from the boundary:
 
 ```{r confint-wald, eval = FALSE}
-## symmetric Wald interval, when the rho12 Hessian block is available
-confint(fit_xf, parm = "rho12", method = "wald", level = 0.95)
+## symmetric Wald interval, when the latent-scale Hessian block is available
+confint(fit_xf, parm = "rho_latent", method = "wald", level = 0.95)
 ```
 
 Prefer the profile interval for reporting. The Wald interval can stray outside
@@ -271,9 +281,9 @@ back:
 | R method | Cross-family behaviour |
 | --- | --- |
 | `coef()` / `fixef()` | fixed-effect coefficients split by distributional parameter, each on its own family's link scale |
-| `rho12()` / `corpairs()` | the latent-scale correlation payload |
-| `confint(method = "profile")` | profile-likelihood interval for `rho12` (preferred) |
-| `confint(method = "wald")` | symmetric Wald interval for `rho12` when its Hessian block is available |
+| `rho_latent()` | the latent-scale correlation payload |
+| `confint(method = "profile")` | profile-likelihood interval for `rho_latent` (preferred) |
+| `confint(method = "wald")` | symmetric Wald interval for `rho_latent` when its Hessian block is available |
 | `logLik()`, `nobs()`, `df.residual()` | likelihood and dimension summaries |
 | `fitted()` / `predict(dpar = ...)` | in-sample `mu1`, `mu2` on each response scale; no `newdata` yet |
 | `is_converged()` | convergence flag returned by DRM.jl |
@@ -291,9 +301,14 @@ To keep the article honest about what ships today:
   Julia-engine routes on the default branch. They have R-scale parity tests
   against the native TMB backend (see `vignette("julia-engine")`).
 - The cross-family route -- `family = c(famA(), famB())` with **different**
-  families through `engine = "julia"` -- is experimental and developed on a
-  separate branch. On a default install, a mixed-family two-response request is
-  declined until its coefficient-scale and latent-correlation parity tests land.
+  families through `engine = "julia"` -- is experimental (recovery grade). Its R
+  dispatch ships in 0.5.0 and actively routes admitted mixed-family pairs
+  (gaussian / poisson / binomial / nbinom2 / beta / gamma axes) through the
+  bridge to DRM.jl -- there is no R-level decline gate. What is developed
+  separately is the DRM.jl cross-family latent engine: without a DRM.jl checkout
+  that provides it, the request errors at the DRM.jl setup boundary, not by an R
+  decline. Its coefficient-scale and latent-correlation parity tests ship as
+  skip-gated tests that run against such a checkout.
 - The underlying two-response *syntax* is not new: `c(gaussian(), gaussian())`
   already routes to the native bivariate Gaussian engine. The cross-family work
   is about admitting **unequal** family pairs and returning their latent `rho12`
@@ -303,7 +318,7 @@ To keep the article honest about what ships today:
   "julia"` only when deliberately exercising the bridge.
 
 The design intent is a narrow, well-tested extension: the same `bf()` front end,
-the same `family = c(...)` two-response declaration, the same `rho12()` and
+the same `family = c(...)` two-response declaration, and the `rho_latent()` and
 `confint(method = "profile")` accessors, now spanning two responses that live on
 different scales and are coupled by a single interpretable latent correlation.
 

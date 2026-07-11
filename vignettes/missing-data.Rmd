@@ -142,8 +142,10 @@ model for each supported predictor-family route.
 ## Relation to gllvmTMB and glmmTMB
 
 The sibling `gllvmTMB` missing-data layer uses the same vocabulary:
-`miss_control()`, `mi()`, `impute`, `fit$missing_data`, `predict_missing()` for
-responses, and `imputed()` for predictors. Its multivariate trait engine needs
+`miss_control()`, `mi()`, `impute`, `fit$missing_data`, and `imputed()` for
+predictors. `gllvmTMB` adds `predict_missing()` for masked responses; in
+`drmTMB` that information comes from `fitted()`, `residuals()`, and
+`fit$missing_data`. The `gllvmTMB` multivariate trait engine needs
 per-unit products across trait rows, so its missing-predictor implementation is
 not a drop-in copy of the scalar `drmTMB` route. The shared contract is the
 important part: missing responses are masked or marginalised, missing

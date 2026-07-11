@@ -47,26 +47,30 @@ Every model/effect combination in `drmTMB` sits in one of three tiers.
    fitting it anyway is not an option -- use the alternative named below
    each entry.
 
-No row in `drmTMB` currently claims a fourth, stricter tier the project
-calls "supported" internally (nominal-exact coverage with symmetric misses
-on both sides). Read "inference-ready" as an honest floor for a first
-fitted structured route, not as parity with a long-mature fixed-effect
-interval in a package such as `glmmTMB` or `lme4`.
+No cell in `drmTMB` is coverage-verified at the strictest bar the project
+tracks internally as "supported" (nominal-exact coverage with symmetric
+misses on both sides). The census does mark four cells `fit_status =
+supported` -- ordinary (unstructured) Gaussian and bivariate-Gaussian random
+effects -- but those are point-trustworthy with interval coverage still
+planned, not coverage-verified. Read "inference-ready" as an honest floor
+for a first fitted structured route, not as parity with a long-mature
+fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 
 ## At a glance
 
 | Model / effect | Tier | What you can trust |
 | --- | --- | --- |
+| Ordinary (unstructured) Gaussian / bivariate-Gaussian random effects (intercepts, slopes) | Point-trustworthy (census "supported", coverage planned) | Point estimate -- the everyday random-intercept/slope mixed model; its interval is not yet coverage-verified |
 | Gaussian `mu` q1 intercept -- `phylo()`, `spatial()`, `relmat()` | Inference-ready | Point estimate and interval; prefer `method = "profile"` |
 | Gaussian `sigma` q1 one-slope -- `phylo()`, `animal()`, `relmat()` | Inference-ready | Point estimate and interval; documented mild under-coverage, prefer `method = "profile"` |
-| Gaussian `mu` q2 mean-slope -- `phylo()`, `relmat()` | Inference-ready (default-corrected channel only) | Point estimate and interval from plain `confint(fit)`; an explicitly uncorrected Wald interval under-covers |
+| Bivariate Gaussian `mu1`/`mu2` q2 mean-mean -- `phylo()`, `relmat()` | Inference-ready (default-corrected channel only) | Point estimate and interval from plain `confint(fit)`; an explicitly uncorrected Wald interval under-covers |
 | binomial / Poisson / beta / nbinom2 unstructured `mu` | Inference-ready | Point estimate and Wald interval from `n` &gt;= 50 |
 | nbinom2 unstructured location-scale (`mu` and `sigma ~ x`) | Inference-ready | Point estimate and Wald interval on both formulas |
 | beta unstructured location-scale, interior proportions | Inference-ready | Point estimate and Wald interval; exact 0 or 1 needs `zero_one_beta()` instead |
 | Poisson / nbinom2 structured `mu` q1 -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only |
 | nbinom2 structured `sigma` -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only; scale-targeting bug fixed in 0.4.0 |
-| A handful of row-specific slices: Student-t `nu ~ phylo()`, ordinal `mu ~ phylo()`, beta `animal()` on `mu`/`sigma`, Student-t `mu ~ spatial()`, truncated-nbinom2 `hu ~ relmat()` | Recovery-only | Point estimate only |
-| Structured effects for Gamma, lognormal, skew-normal, Tweedie, zero-one-beta | Not available | Use a Gaussian or basic count/proportion structured route, or fixed effects |
+| A handful of row-specific slices: Student-t `nu ~ phylo()`, ordinal `mu ~ phylo()`, beta `animal()` on `mu`/`sigma`, Student-t `mu ~ spatial()`, truncated-nbinom2 `hu ~ relmat()`, Gamma `mu ~ relmat()` | Recovery-only | Point estimate only |
+| Structured effects for lognormal, skew-normal, Tweedie, zero-one-beta | Not available | Use a Gaussian or basic count/proportion structured route, or fixed effects |
 | REML for non-Gaussian families; non-phylogenetic mean-side or any bivariate non-phylogenetic structured REML | Not available (rejected by design) | Use `REML = FALSE` (maximum likelihood) |
 | `q4`/`q6`/`q8`/`q12` covariance interval promotion; derived-correlation intervals | Not available (planned) | Use the fitted point estimate; try `profile_targets()` for a direct target |
 
@@ -77,17 +81,19 @@ should read it.
 
 ### Gaussian structured random effects: eight anchor cells
 
-Exactly eight cells across `drmTMB`'s structured Gaussian random-effect
-routes are inference-ready today, and all eight sit inside `phylo()`,
-`spatial()`, `animal()`, or `relmat()` on a Gaussian `mu` or `sigma`
-formula:
+Eight cells across `drmTMB`'s structured Gaussian-family random-effect
+routes are inference-ready today. Six sit on a univariate Gaussian `mu` or
+`sigma` formula, all at q1; the remaining two are the separate
+bivariate-Gaussian family (`mu1`/`mu2` q2 mean-mean blocks):
 
 - three q1 mean-intercept rows -- `phylo()`, `spatial()`, `relmat()` on
-  `mu`;
+  univariate Gaussian `mu`;
 - three q1 sigma one-slope rows -- `phylo()`, `animal()`, `relmat()` on
-  `sigma`;
-- two q2 mean-slope rows -- `phylo()`, `relmat()`, a joint `mu`-slope
-  covariance block.
+  univariate Gaussian `sigma`;
+- two q2 mean-mean rows -- `phylo()`, `relmat()` on bivariate Gaussian
+  `mu1`/`mu2`, a joint cross-response covariance block. The univariate
+  Gaussian single-response q2 mean-slope route is recovery-only, not
+  inference-ready.
 
 None of these eight is free of a caveat, and the caveat is different for
 each group. The sigma one-slope rows carry a documented, mild residual
@@ -98,21 +104,36 @@ class of interval, not a defect to work around. Use `method = "profile"`
 for these rows, and read a reported interval as honest-but-conservative
 rather than nominal-exact.
 
-The two q2 mean-slope rows are inference-ready only because `confint()`'s
-defaults already correct for known small-sample bias on location-axis
-structured-SD targets: `bias_correct = "location"` shifts the log-scale
+The two bivariate-Gaussian q2 mean-mean rows are inference-ready only
+because `confint()`'s defaults already correct for known small-sample bias
+on location-axis structured-SD targets: `bias_correct = "location"` shifts the log-scale
 point estimate to counter ML shrinkage, and `small_sample_df = "location"`
 widens the interval with a `t(df = g - 1)` reference instead of a normal
 quantile. Calling plain `confint(fit)` gives you this corrected interval
 automatically. If you explicitly turn the correction off
 (`bias_correct = "none"`, `small_sample_df = "none"`), the resulting raw
 Wald interval under-covers on these two rows -- do not do that for a
-`phylo()`/`relmat()` q2 mean-slope report.
+bivariate `phylo()`/`relmat()` q2 mean-mean report.
 
-None of the eight cells reaches the stricter "supported" tier the project
-tracks internally (nominal-exact coverage with balanced misses on both
-tails). Report these intervals as inference-ready, not as a fully mature
-fixed-effect-grade interval.
+None of these eight structured cells carries the "supported" `fit_status`
+the census reserves for the package's ordinary (unstructured) Gaussian and
+bivariate-Gaussian random effects -- and even those supported cells are
+point-trustworthy with interval coverage still planned, not
+coverage-verified. Report these structured intervals as inference-ready, not
+as a fully mature fixed-effect-grade interval.
+
+### Ordinary (unstructured) random effects: point-trustworthy, coverage pending
+
+One group of cells deserves explicit mention even though its interval does
+not yet meet the coverage bar for this tier. Ordinary random intercepts and
+slopes on Gaussian `mu` -- the everyday `(1 | id)` and `(0 + x | id)` mixed
+model -- and their bivariate-Gaussian `mu1`/`mu2` counterpart are the only
+cells the capability census marks `fit_status = supported`, the package's
+highest fit maturity, so their point estimates are the most trustworthy
+random-effect estimates `drmTMB` produces. Their interval coverage, however,
+is still planned rather than simulation-verified: until that coverage
+campaign lands, read any interval on these rows the way you would a
+recovery-only row below, and report the point estimate with confidence.
 
 ### Unstructured non-Gaussian fixed effects
 
@@ -159,8 +180,9 @@ after the fix.
 
 A further handful of row-specific slices sit at the same tier: Student-t
 `nu ~ phylo()`, ordinal `mu ~ phylo()`, beta `animal()` structured effects
-on `mu` and on `sigma`, Student-t `mu ~ spatial()`, and truncated-nbinom2
-`hu ~ relmat()`. Each of these fits and recovers its point estimate in a
+on `mu` and on `sigma`, Student-t `mu ~ spatial()`, truncated-nbinom2
+`hu ~ relmat()`, and Gamma `mu ~ relmat()` (unlabelled intercept and
+one-slope). Each of these fits and recovers its point estimate in a
 recovery study; none has a coverage study behind its interval. If your
 scientific question turns on the width of a confidence/compatibility
 interval rather than the sign and rough size of an effect, do not build
@@ -170,12 +192,14 @@ the argument on one of these rows yet.
 
 **Structured random effects outside the narrow gates above.** `drmTMB`
 does not currently accept structured `phylo()`, `spatial()`, `animal()`,
-or `relmat()` random effects for Gamma, lognormal, skew-normal, Tweedie, or
-zero-one-beta families. Try instead: model the same structural dependence
-through a Gaussian route (for example a log- or logit-transformed response
-under `gaussian()`), fall back to the ordinary Poisson/nbinom2 structured
-routes described above for count data, or drop to fixed effects for the
-family you need while structured support catches up.
+or `relmat()` random effects for lognormal, skew-normal, Tweedie, or
+zero-one-beta families. Gamma is the one partial exception: it accepts
+`relmat()` on `mu` (recovery-only, listed under Tier 2 above) but rejects
+`phylo()`, `spatial()`, and `animal()`. Try instead: model the same
+structural dependence through a Gaussian route (for example a log- or
+logit-transformed response under `gaussian()`), fall back to the ordinary
+Poisson/nbinom2 structured routes described above for count data, or drop to
+fixed effects for the family you need while structured support catches up.
 
 **REML outside its Gaussian scope.** REML is implemented for Gaussian
 models only, and even inside Gaussian models it accepts a specific

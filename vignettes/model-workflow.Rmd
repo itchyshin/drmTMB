@@ -597,8 +597,8 @@ marginal_parameters(
 )
 ```
 
-These helpers are tables, not plotting functions. They are the current Phase 17
-surface for future visualization work: each row names the distributional
+These helpers are tables, not plotting functions. They are the current tabular
+surface for visualization work: each row names the distributional
 parameter, fitted component, prediction scale, estimate, interval status, and
 grid values. By default, prediction tables are point-estimate summaries with
 `conf.status = "not_requested"` and

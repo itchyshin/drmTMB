@@ -118,11 +118,13 @@ drmTMB(
 )
 ```
 
-Residual-scale random effects live on `log(sigma)`. The implemented
-residual-scale slope route is independent: `sigma ~ z + (0 + w | id)` fits a
-random slope SD for `w`, while correlated or labelled residual-scale slope
-covariance such as `sigma ~ z + (1 + w | id)` or
-`sigma ~ z + (0 + w | p | id)` remains planned.
+Residual-scale random effects live on `log(sigma)`. The independent
+residual-scale slope route `sigma ~ z + (0 + w | id)` fits a random slope SD
+for `w`, and the unlabelled correlated block `sigma ~ z + (1 + w | id)` is
+also implemented (recovery grade: trust the point estimate, not the
+interval). Only labelled residual-scale slope covariance such as
+`sigma ~ z + (1 + w | p | id)` or `sigma ~ z + (0 + w | p | id)` remains
+planned.
 
 The companion article "Which scale are you modelling?" gives a side-by-side
 guide to `sigma ~ x`, `sigma ~ x + (1 | id)`,
@@ -499,8 +501,9 @@ targets an unlabelled random intercept; coefficient-specific syntax such as
 `sd(population, dpar = "mu", coef = "temperature") ~ habitat` is reserved until
 random-slope SD regression has likelihood code and simulation tests.
 For residual-scale random slopes, keep the same boundary in mind here:
-independent `sigma` slopes fit on `log(sigma)`, while correlated or labelled
-univariate residual-scale slope covariance remains planned.
+independent `sigma` slopes fit on `log(sigma)` and the unlabelled correlated
+block `sigma ~ z + (1 + w | id)` is also fitted (recovery grade), while
+labelled univariate residual-scale slope covariance remains planned.
 
 ### Name the biological response before the symbol
 
@@ -1033,7 +1036,9 @@ y \mid \mu, \sigma, V
   `mu`.
 - Residual-scale random intercepts and independent random slopes in `sigma`,
   such as `sigma ~ x2 + (1 | id)` and `sigma ~ x2 + (0 + w | id)`, are
-  implemented for univariate Gaussian models.
+  implemented for univariate Gaussian models, along with the unlabelled
+  correlated intercept-slope block `sigma ~ x2 + (1 + w | id)` (recovery
+  grade).
 - The `sigma` formula is the observation-level residual standard deviation. It
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
@@ -1046,8 +1051,8 @@ y \mid \mu, \sigma, V
 - `sd(group)` random-effect scale formulae are implemented for one or more
   distinct unlabelled Gaussian `mu` random intercepts, with group-level
   predictors that are constant within the named grouping variable.
-- Correlated univariate residual-scale slope blocks, slope-specific `sd()`
-  targets, labelled-block `sd()` targets, same-response labelled
+- Labelled univariate residual-scale slope covariance blocks, slope-specific
+  `sd()` targets, labelled-block `sd()` targets, same-response labelled
   location-scale slope covariance beyond the first random-intercept slice,
   multiple phylogenetic slopes,
   phylogenetic slope correlations, standalone or partial phylogenetic scale

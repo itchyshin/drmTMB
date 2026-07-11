@@ -29,9 +29,13 @@ labelled bivariate Gaussian \code{mu1}/\code{mu2} terms fit the first q=2
 coordinate-spatial location covariance, matching univariate Gaussian \code{mu} and
 \code{sigma} intercept terms fit one spatial mean-scale correlation, and matching
 labelled all-four \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the first constant
-q=4 location-scale block. Mesh inputs, multiple structured slopes,
-residual-scale structured slopes, slope correlations, predictor-dependent
-spatial \code{corpair()} regression, and non-Gaussian spatial effects remain
+q=4 location-scale block. Fitted non-Gaussian spatial routes cover the
+univariate student \code{mu} q=1 intercept or one-slope, ordinary Poisson and NB2
+\code{mu} q=1 intercepts or one-slopes, zero-inflated Poisson \code{zi} q=1 intercept,
+and the NB2 \code{sigma} q=1 one-slope, all at recovery grade: trust the point
+estimate, not the interval. Mesh inputs, multiple structured slopes,
+residual-scale structured slopes beyond the NB2 one-slope gate, slope
+correlations, and predictor-dependent spatial \code{corpair()} regression remain
 planned.
 }
 \examples{

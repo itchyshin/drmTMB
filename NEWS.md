@@ -87,12 +87,11 @@ See `vignette("missing-data")` for the full capability matrix.
   structured rows remain point-recovery evidence only, with no intervals,
   coverage, or `supported` claim.
 * `docs/dev-log/known-limitations.md` records that `nbinom2()` structured
-  `sigma` terms (`phylo`/`spatial`/`animal`/`relmat`) are currently
-  mis-targeted onto the mean predictor rather than the scale predictor. This
-  is a latent numerical bug, not a working capability, and is treated as
-  rejected pending a post-v1.0 fix.
-* The package version moves to `0.4.0`, and the pkgdown navbar, README
-  preview banner, and roadmap version line now track it.
+  `sigma` terms (`phylo`/`spatial`/`animal`/`relmat`) now correctly target the
+  scale predictor `log_sigma` (the routing fix announced under *Bug fixes*
+  above); earlier versions mis-targeted the mean predictor. These four rows are
+  recovery-grade only -- point-fit recovery is verified, but intervals and
+  coverage remain out of scope.
 
 ## Inference guidance
 

@@ -30,8 +30,10 @@ dispatches to one of the implemented builders:
 ```text
 gaussian()                  -> drm_build_gaussian_ls_spec()
 student()                   -> drm_build_student_ls_spec()
+skew_normal()               -> drm_build_skew_normal_ls_spec()
 lognormal()                 -> drm_build_lognormal_ls_spec()
 Gamma(link = "log")         -> drm_build_gamma_ls_spec()
+tweedie()                   -> drm_build_tweedie_ls_spec()
 beta()                      -> drm_build_beta_ls_spec()
 zero_one_beta()             -> drm_build_zero_one_beta_spec()
 beta_binomial()             -> drm_build_beta_binomial_spec()
@@ -68,6 +70,8 @@ model_type = 11  univariate zero-truncated negative-binomial 2 engine
 model_type = 12  univariate hurdle negative-binomial 2 engine
 model_type = 13  univariate cumulative-logit ordinal engine
 model_type = 14  univariate beta-binomial mean-overdispersion engine
+model_type = 16  univariate Tweedie mean-scale-power engine
+model_type = 17  univariate skew-normal location-scale-shape engine
 model_type = 18  univariate binomial event-probability engine
 model_type = 99  internal phylogenetic prior helper used by tests
 ```
@@ -103,6 +107,7 @@ covariance; deprecated `meta_known_V(V = V)` is the compatibility alias.
 | Gaussian animal and lower-level relatedness effects | `animal(1 \| id, Ainv = Ainv)` or `relmat(1 \| id, Q = Q)` in `mu` and `sigma` intercept routes; one numeric `mu` slope; matching labelled bivariate q=2 `mu1`/`mu2` blocks; constant all-four q=4 location-scale endpoint blocks | `animal()` and `relmat()` marker parsing plus `build_known_relatedness_mu_structure()` and bivariate structured q4 admission inside `R/drmTMB.R` | `model_type = 1` and `model_type = 2`; known covariance or precision matrices reuse the structured `u_phylo`, `log_sd_phylo`, and `theta_phylo` backend with `animal_mu`, `animal_sigma`, `relmat_mu`, or `relmat_sigma` labels in R output | `tests/testthat/test-animal-relmat-gaussian.R`, `tests/testthat/test-profile-targets.R`, `tests/testthat/test-check-drm.R` | `vignettes/animal-models.Rmd`, `vignettes/relmat-known-matrices.Rmd`, `vignettes/structural-dependence.Rmd`, `docs/design/57-structural-parity-next-slices.md` |
 | Likelihood row weights | `drmTMB(..., weights = w)` | `evaluate_likelihood_weights_arg()` and `subset_likelihood_weights()` in `R/drmTMB.R`; `weights.drmTMB()` in `R/methods.R` | `DATA_VECTOR(weights)` multiplies independent row contributions; full dense known-covariance blocks reject non-unit weights | `tests/testthat/test-gaussian-location-scale.R`, `tests/testthat/test-biv-gaussian.R` | `docs/design/22-likelihood-weights.md`, `docs/design/03-likelihoods.md` |
 | Student-t location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` | `student()` in `R/family.R`; `drm_build_student_ls_spec()` in `R/drmTMB.R` | `model_type = 3`; `nu = 2 + exp(eta_nu)` | `tests/testthat/test-student-location-scale.R` | `vignettes/robust-student.Rmd`, `docs/design/14-gamlss-parameter-names.md` |
+| Skew-normal location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` with `family = skew_normal()` (fixed-effect first slice) | `skew_normal()` in `R/family.R`; `drm_build_skew_normal_ls_spec()` in `R/drmTMB.R`; keeps the first slice fixed-effect only on `mu`, `sigma`, and `nu` | `model_type = 17`; mean-parameterized skew-normal with mean `mu = eta_mu`, SD `sigma = exp(eta_sigma)`, and slant `nu = eta_nu`; internal scale `omega` and location `xi` rescale so the fitted mean and SD equal `mu` and `sigma`; the `nu` slant fits at diagnostic grade only (trust the point estimate, not the interval) | `tests/testthat/test-skew-normal-location-scale.R`, `tests/testthat/test-phase18-skew-normal-fixed-effect.R`, `tests/testthat/test-confint-skew-normal-slant.R`, `tests/testthat/test-skew-normal-density-contract.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`, `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` |
 | Lognormal location-scale | `drm_formula(biomass ~ x, sigma ~ z)` | `lognormal()` in `R/family.R`; `drm_build_lognormal_ls_spec()` in `R/drmTMB.R` | `model_type = 4`; `log(y) ~ Normal(mu, sigma^2)` with the log-Jacobian term | `tests/testthat/test-lognormal-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md` |
 | Gamma mean-CV | `drm_formula(biomass ~ x, sigma ~ z)` with `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::Gamma(link = "log")` | `model_type = 5`; `shape = 1 / sigma^2`, `scale = mu * sigma^2` | `tests/testthat/test-gamma-location-scale.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
 | Tweedie mean-scale-power | `drm_formula(biomass ~ x, sigma ~ z, nu ~ 1)` with `family = tweedie()` | `tweedie()` in `R/family.R`; `drm_build_tweedie_ls_spec()` and `rtweedie_compound()` in `R/drmTMB.R` and `R/methods.R` | `model_type = 16`; `mu = exp(eta_mu)`, `phi = sigma^2`, `nu = 1 + plogis(eta_nu)`, and `Var(y) = sigma^2 * mu^nu` | `tests/testthat/test-tweedie-location-scale.R`, `tests/testthat/test-family-link-contract.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`, `docs/design/27-tweedie-family-plan.md` |

@@ -219,8 +219,11 @@ After fitting, inspect the spatial layer before interpreting it:
 The one-slope route is deliberately narrow. The formula term
 `spatial(1 + depth | site, coords = coords)` fits an intercept field and one
 numeric slope field with the same coordinate precision and separate SDs. It
-does not estimate an intercept-slope correlation, and it does not imply support
-for spatial `sigma`.
+does not estimate an intercept-slope correlation. Spatial `sigma` is supported
+through a separate route -- a standalone `sigma ~ spatial(1 | site)` or
+`sigma ~ spatial(1 + depth | site)` field, or the matched location-scale block --
+which fits at recovery grade (trust the point estimate, not the interval); this
+`mu` one-slope term is not that route.
 
 ## Rendered checks
 
@@ -420,7 +423,7 @@ The following spatial routes remain planned:
 
 - mesh or SPDE inputs such as `spatial(1 | site, mesh = mesh)`;
 - multiple spatial slopes and spatial slope correlations;
-- standalone or partial spatial terms in `sigma`, plus spatial terms in `nu`,
+- partial spatial terms in `sigma`, plus spatial terms in `nu`,
   zero-inflation, or `rho12`;
 - direct spatial SD surfaces;
 - predictor-dependent spatial `corpair()` regressions;

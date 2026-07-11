@@ -20,8 +20,10 @@ The implemented contract is
 extra-Poisson variation. Internally this is equivalent to the usual NB2
 size parameter \code{size = 1 / sigma^2}. Ordinary non-zero-inflated NB2 models
 also support first-slice random intercepts on the log-\code{sigma} predictor,
-such as \code{bf(count ~ x, sigma ~ z + (1 | id))}; NB2 \code{sigma} slopes,
-structured \code{sigma} effects, and zero-inflated NB2 \code{sigma} random effects
+such as \code{bf(count ~ x, sigma ~ z + (1 | id))}. Structured \code{sigma} effects
+(\code{phylo}/\code{spatial}/\code{animal}/\code{relmat}) also fit as a point-recovery route
+(trust the point estimate, not the interval; not yet coverage-verified).
+NB2 \code{sigma} random slopes and zero-inflated NB2 \code{sigma} random effects
 remain planned.
 }
 \examples{

@@ -375,8 +375,9 @@ and hurdle NB2 models are fitted. Ordinary non-zero-inflated Poisson and NB2
 `mu` models can also fit unlabelled random intercepts and independent numeric
 random slopes such as `(1 | site)` and `(0 + effort | site)`. The
 first structured count routes are ordinary Poisson and ordinary NB2 q=1
-phylogenetic `mu` intercepts, `phylo(1 | species, tree = tree)`, on the
-log-mean scale. Ordinary NB2 also fits `sigma ~ z + (1 | id)` as a grouped
+structured `mu` intercepts via `phylo(1 | species, tree = tree)`,
+`spatial()`, `animal()`, and `relmat()`, one at a time, on the log-mean
+scale (recovery grade -- trust the point estimate, not the interval). Ordinary NB2 also fits `sigma ~ z + (1 | id)` as a grouped
 overdispersion random intercept on the log-`sigma` scale. The zero-inflated,
 hurdle, truncated, and other scale-side count routes remain fixed-effect only.
 

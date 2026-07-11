@@ -1849,7 +1849,7 @@ layer_boundary$support[
 ] <- "Fitted q2"
 layer_boundary$support[
   layer_boundary$target == "Regression or q4/scale extension" &
-    layer_boundary$layer %in% c("Spatial", "relmat")
+    layer_boundary$layer %in% c("Spatial", "Animal", "relmat")
 ] <- "Partial q4"
 layer_boundary$support <- factor(
   layer_boundary$support,
@@ -2280,7 +2280,7 @@ gallery_source_map <- data.frame(
     "unsupported targets remain unsupported",
     "fixed-effect univariate mu",
     "implemented residual, group, phylogenetic, spatial, animal, and relmat q2 rows",
-    "richer spatial, animal, and relmat correlation paths remain planned",
+    "partial q4 location-scale blocks for spatial, animal, and relmat (recovery-grade); regression and remaining richer paths planned",
     "display grammar for later result articles"
   ),
   stringsAsFactors = FALSE

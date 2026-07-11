@@ -39,9 +39,10 @@ zero-one beta boundary proportion, denominator-aware beta-binomial
 success/trial proportion, Poisson, negative-binomial, or zero-truncated
 negative-binomial count, positive continuous lognormal or Gamma, and
 exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
-predictor models supplied by \code{\link[=impute_model]{impute_model()}}. The first non-Gaussian response
-slice supports a Poisson response with one fixed-effect Bernoulli/logit
-binary missing predictor. EM/profile engines and simulation-based imputation
+predictor models supplied by \code{\link[=impute_model]{impute_model()}}. The non-Gaussian response
+slices support \code{poisson()}, \code{binomial()}, \code{nbinom2()}, and \code{beta()} responses,
+each with one fixed-effect Bernoulli/logit binary missing predictor.
+EM/profile engines and simulation-based imputation
 summaries are reserved for later slices.
 }
 \examples{

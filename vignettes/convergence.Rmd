@@ -576,7 +576,8 @@ fit_map <- drmTMB(
 
 `drm_phylo_penalty()` puts a penalised-complexity prior on each phylogenetic SD
 (`sd_u`, `sd_alpha`: a priori `P(sd > sd_u) = sd_alpha`) and, when `cor_sd` is
-set, a mean-zero normal `N(0, cor_sd)` on the phylogenetic correlation. The
+set, a mean-zero normal `N(0, cor_sd)` on the unconstrained (transformed,
+atanh-scale) phylogenetic correlation parameter. The
 correlation penalty is the part that pulls a coupled correlation off the `+/-1`
 boundary.
 
