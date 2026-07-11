@@ -50,12 +50,12 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Preview status
 
-This site is built from the `0.4.0` development version. The package is still
+This site is built from the `0.5.0` development version. The package is still
 pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
 roadmap work rather than hidden features.
 
-The first CRAN release will be numbered **0.5.0**, not 1.0 — an honest reflection
+The first CRAN release is numbered **0.5.0**, not 1.0 — an honest reflection
 that much of the family and inference surface is still scaffolded or
 recovery-grade. "v1.0" throughout the dev-log denotes the later
 complete-capability maturity milestone. The contributor-facing
@@ -67,12 +67,12 @@ not a broader support claim.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `v0.3.0` release from GitHub
+`drmTMB` is not on CRAN yet. Install the tagged `v0.5.0` release from GitHub
 with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.3.0")
+pak::pak("itchyshin/drmTMB@v0.5.0")
 ```
 
 If you want the newest development build from `main`, use:
