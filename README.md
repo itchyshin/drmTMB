@@ -59,7 +59,7 @@ The first CRAN release will be numbered **0.5.0**, not 1.0 — an honest reflect
 that much of the family and inference surface is still scaffolded or
 recovery-grade. "v1.0" throughout the dev-log denotes the later
 complete-capability maturity milestone. The contributor-facing
-[Q-Series release status](docs/dev-log/release-audits/q-series-v1-release-status.md)
+[Q-Series release status](https://github.com/itchyshin/drmTMB/blob/main/docs/dev-log/release-audits/q-series-v1-release-status.md)
 ledger tracks that milestone: it separates implemented/basic-working Gaussian
 structured-effect rows and basic-distribution recovery rows from post-v1.0
 `inference_ready` and `supported` validation. It is a release-planning ledger,
