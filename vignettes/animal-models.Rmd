@@ -185,8 +185,10 @@ reports the residual correlation between the two responses after the fixed
 effects and random effects have been included.
 
 For reports, do not leave the q=2 animal correlation as a lone dot when interval
-evidence is available. Request interval provenance first, then plot the
-explicit table:
+evidence is available. The animal q=2 profile interval computes, but it is
+recovery-grade and not coverage-checked, unlike the `phylo()` and `relmat()` q=2
+mean-mean anchors -- trust the point estimate more than the interval width.
+Request interval provenance first, then plot the explicit table:
 
 ```r
 animal_pairs <- corpairs(fit_animal_q2, level = "animal", conf.int = TRUE)
@@ -371,7 +373,7 @@ animal_q2_pairs <- corpairs(
 animal_q2_pairs
 ```
 
-```{r animal-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The eye spans the 95 percent profile interval and the hollow point estimate is to the right of the dotted zero reference line."}
+```{r animal-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale and the dotted vertical line marks zero correlation. This animal q=2 interval is recovery-grade, not coverage-checked.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The eye spans the 95 percent profile interval and the hollow point estimate is to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   animal_q2_display <- animal_q2_pairs
   animal_q2_display$display_label <- "Animal\nmu1-mu2"
@@ -404,7 +406,13 @@ The following animal-model routes remain planned:
 - residual-scale structured slopes;
 - predictor-dependent animal `corpair()` regressions;
 - generic direct-SD grammar for animal-model standard deviations;
-- non-Gaussian animal structured effects.
+- richer non-Gaussian animal structured effects: labelled covariance blocks,
+  multiple structured slopes, structured scale routes beyond the NB2 one-slope
+  gate, and q=2 or q=4 non-Gaussian animal covariance blocks. A single q=1
+  animal term already fits today for `poisson()`, `nbinom2()`, and `beta()`
+  (Poisson and NB2 `mu` intercept plus one-slope, NB2 `sigma` one-slope, and a
+  `beta()` animal intercept in `mu` or `sigma`) at recovery grade -- trust the
+  point estimate, not the interval.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the

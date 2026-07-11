@@ -83,7 +83,7 @@ fit <- drmTMB(
 Here `keep_data = FALSE` removes the stored complete-case data frame from the
 fitted object after optimization. `keep_model_frame = FALSE` removes stored
 model frames after TMB data are built, including nested model-frame caches for
-direct random-effect SD models such as `sd_phylo(species) ~ z_species` and
+direct random-effect SD models such as `sd(species, level = "phylogenetic") ~ z_species` and
 fitted q=2 latent-correlation models such as `corpair(...) ~ ecology`.
 `se = FALSE` skips the `TMB::sdreport()` step after optimization. The fitted
 coefficients, fitted values, residuals, prediction, simulation, `sigma`,

@@ -552,7 +552,12 @@ Do not teach the following as fitted proportion examples yet:
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_V(V = V)`, or deprecated `meta_known_V(V = V)` for compatibility, with
   beta or beta-binomial responses;
-- `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models;
+- `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models,
+  with one exception: `beta()` already accepts a single unlabelled `animal()`
+  term -- an intercept or one-slope on `mu`, or an intercept on `sigma`, one
+  endpoint at a time -- but only at recovery grade (trust the point estimate,
+  not the interval), so it is held back here on tier grounds, not for want of
+  likelihood code;
 - bivariate or mixed-response bounded models such as
   `family = c(beta(), gaussian())`;
 - ordered beta or beta-binomial zero-inflation;
@@ -560,6 +565,6 @@ Do not teach the following as fitted proportion examples yet:
   `cbind(successes, trials)` as a replacement for
   `cbind(successes, failures)`.
 
-Those are useful future routes, but each needs likelihood code, simulation
-recovery, diagnostics, and source-map evidence before it becomes tutorial
-syntax.
+Most of those are useful future routes that still need likelihood code,
+simulation recovery, diagnostics, and source-map evidence before they become
+tutorial syntax.

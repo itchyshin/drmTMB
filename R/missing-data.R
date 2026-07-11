@@ -13,9 +13,10 @@
 #' success/trial proportion, Poisson, negative-binomial, or zero-truncated
 #' negative-binomial count, positive continuous lognormal or Gamma, and
 #' exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
-#' predictor models supplied by [impute_model()]. The first non-Gaussian response
-#' slice supports a Poisson response with one fixed-effect Bernoulli/logit
-#' binary missing predictor. EM/profile engines and simulation-based imputation
+#' predictor models supplied by [impute_model()]. The non-Gaussian response
+#' slices support `poisson()`, `binomial()`, `nbinom2()`, and `beta()` responses,
+#' each with one fixed-effect Bernoulli/logit binary missing predictor.
+#' EM/profile engines and simulation-based imputation
 #' summaries are reserved for later slices.
 #'
 #' @param response Response missingness policy. `"drop"` keeps existing
@@ -78,8 +79,8 @@ miss_control <- function(
 #' Gamma models for one positive continuous predictor, and fixed-effect
 #' Tweedie models for one non-negative semi-continuous predictor with exact
 #' zeros. Most current non-Gaussian predictor families are fitted inside a
-#' Gaussian response location model; a Poisson response is currently supported
-#' only for one binary missing predictor.
+#' Gaussian response location model; Poisson, binomial, negative-binomial, and
+#' beta responses are currently supported for one binary missing predictor.
 #'
 #' @param formula Two-sided predictor-model formula. For most families, the
 #'   left-hand side must be the same variable used inside [mi()]. For

@@ -23,9 +23,10 @@ structured predictor model supplied through \code{impute}, for example
 fixed-effect predictor models supplied with \code{\link[=impute_model]{impute_model()}} cover binary,
 ordered categorical, unordered categorical, strict proportion, zero-one
 boundary proportion, denominator-aware beta-binomial proportion, count,
-positive continuous, and semi-continuous predictors. The first
-non-Gaussian response route supports \code{family = poisson()} with one binary
-\code{mi()} predictor modelled by \code{family = binomial()}.
+positive continuous, and semi-continuous predictors. The non-Gaussian
+response routes support one binary \code{mi()} predictor modelled by
+\code{family = binomial()} for \code{family = poisson()}, \code{binomial()}, \code{nbinom2()},
+and \code{beta()}.
 }
 \examples{
 bf(y ~ z + mi(x), sigma ~ 1)

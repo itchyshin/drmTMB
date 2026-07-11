@@ -131,9 +131,10 @@ skew_normal <- function() {
 #' The model is defined on the log response scale:
 #' `log(y) ~ Normal(mu, sigma^2)`. The fitted distributional parameter `mu` is
 #' therefore the mean of `log(y)`, not the arithmetic mean of `y`.
-#' Ordinary `mu` random intercepts and independent numeric slopes such as
-#' `(1 | id)` and `(0 + x | id)` are supported in the first
-#' positive-continuous mixed-model slice.
+#' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
+#' first positive-continuous mixed-model slice; the independent numeric slope
+#' `(0 + x | id)` also fits but is a recovery-grade route only (trust the
+#' point estimate, not the interval).
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -343,8 +344,10 @@ cumulative_logit <- function() {
 #' extra-Poisson variation. Internally this is equivalent to the usual NB2
 #' size parameter `size = 1 / sigma^2`. Ordinary non-zero-inflated NB2 models
 #' also support first-slice random intercepts on the log-`sigma` predictor,
-#' such as `bf(count ~ x, sigma ~ z + (1 | id))`; NB2 `sigma` slopes,
-#' structured `sigma` effects, and zero-inflated NB2 `sigma` random effects
+#' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
+#' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
+#' (trust the point estimate, not the interval; not yet coverage-verified).
+#' NB2 `sigma` random slopes and zero-inflated NB2 `sigma` random effects
 #' remain planned.
 #'
 #' @return A `drm_family` object.

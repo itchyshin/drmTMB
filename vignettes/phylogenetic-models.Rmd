@@ -341,7 +341,7 @@ fit_big$sdpars$mu
 | --- | --- | --- |
 | Phylogenetic location deviations in one Gaussian response | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
 | Phylogenetic location deviations in a Poisson or NB2 mean | `phylo(1 | species, tree = tree)` in `mu` | Fitted q=1 location intercept. |
-| One phylogenetic location SD modelled by a species predictor | `sd_phylo(species) ~ z` | Fitted direct-SD route (not residual `sigma`). |
+| One phylogenetic location SD modelled by a species predictor | `sd(species, level = "phylogenetic") ~ z` | Fitted direct-SD route (not residual `sigma`); `sd_phylo(species)` is a soft-deprecated (0.3.0) alias. |
 | Two Gaussian means sharing a phylogenetic correlation | matching `phylo(1 | p | species, tree = tree)` in `mu1` and `mu2` | Fitted; read with `corpairs(level = "phylogenetic")`. |
 | Phylogenetic location and scale as one block | matching labelled `phylo(1 | p | species, tree = tree)` across `mu1`, `mu2`, `sigma1`, `sigma2` | Fitted first constant q=4 slice. |
 

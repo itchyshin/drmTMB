@@ -29,9 +29,10 @@ meta_V <- function(V) {
 #' fixed-effect predictor models supplied with [impute_model()] cover binary,
 #' ordered categorical, unordered categorical, strict proportion, zero-one
 #' boundary proportion, denominator-aware beta-binomial proportion, count,
-#' positive continuous, and semi-continuous predictors. The first
-#' non-Gaussian response route supports `family = poisson()` with one binary
-#' `mi()` predictor modelled by `family = binomial()`.
+#' positive continuous, and semi-continuous predictors. The non-Gaussian
+#' response routes support one binary `mi()` predictor modelled by
+#' `family = binomial()` for `family = poisson()`, `binomial()`, `nbinom2()`,
+#' and `beta()`.
 #'
 #' @param x A predictor in a supported missing-predictor route.
 #'
@@ -247,9 +248,13 @@ phylo_interaction <- function(term, tree1, tree2) {
 #' coordinate-spatial location covariance, matching univariate Gaussian `mu` and
 #' `sigma` intercept terms fit one spatial mean-scale correlation, and matching
 #' labelled all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant
-#' q=4 location-scale block. Mesh inputs, multiple structured slopes,
-#' residual-scale structured slopes, slope correlations, predictor-dependent
-#' spatial `corpair()` regression, and non-Gaussian spatial effects remain
+#' q=4 location-scale block. Fitted non-Gaussian spatial routes cover the
+#' univariate student `mu` q=1 intercept or one-slope, ordinary Poisson and NB2
+#' `mu` q=1 intercepts or one-slopes, zero-inflated Poisson `zi` q=1 intercept,
+#' and the NB2 `sigma` q=1 one-slope, all at recovery grade: trust the point
+#' estimate, not the interval. Mesh inputs, multiple structured slopes,
+#' residual-scale structured slopes beyond the NB2 one-slope gate, slope
+#' correlations, and predictor-dependent spatial `corpair()` regression remain
 #' planned.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.

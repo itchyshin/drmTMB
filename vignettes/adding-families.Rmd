@@ -199,8 +199,9 @@ the family to a model builder. In broad terms, that builder must:
 5. assemble the data list passed to TMB;
 6. record enough metadata for prediction, simulation, summaries, and checks.
 
-For the Student-t family, the builder currently rejects random effects,
-`meta_V(V = V)`, random-effect scale formulae, and bivariate terms. That is
+For the Student-t family, the builder currently rejects sigma and shape random
+effects, `meta_V(V = V)`, random-effect scale formulae, and bivariate terms.
+That is
 intentional. A clear unsupported-feature error is better than a plausible fit
 whose likelihood has not been implemented.
 

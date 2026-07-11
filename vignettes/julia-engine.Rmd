@@ -49,6 +49,14 @@ Use the top-level `REML = TRUE` / `REML = FALSE` argument, as in native
 mixed-model workflows; the bridge converts that public switch to DRM.jl's
 internal `method = :REML` only for supported REML cells.
 
+Beyond Gaussian, the bridge also routes a set of non-Gaussian **phylogenetic**
+cells: a `phylo(1 | group)` random intercept on Poisson, NB2, Gamma, Beta, or
+Binomial responses, plus `relmat()`, `animal()`, and `spatial()` structured
+routes for Gaussian, Poisson, NB2, and Gamma. These are net-new capabilities
+with no native TMB equivalent, so treat them at recovery grade — the parity
+tests check a finite-and-sane floor, not full coefficient parity — and keep
+`engine = "tmb"` when you need the validated native surface.
+
 The bridge does not yet support weights,
 imputation, non-default control settings, most missing-data routes,
 general fixed-effect non-Gaussian models, random-effect scale formulas beyond
@@ -390,7 +398,7 @@ structure, then admit only cells with R-scale parity tests.
 | Bivariate q = 4 phylogenetic location-scale: labelled `phylo()` on `mu1`, `mu2`, `sigma1`, and `sigma2`, optional `REML = TRUE` | exact-gradient sparse q = 4 route | admitted; `REML = TRUE` is forwarded when the DRM.jl build supports the q = 4 REML cell, with profile/bootstrap diagnostics for the four among-axis SDs |
 | Gaussian phylogenetic slopes or multiple distinct structured random-effect blocks | sparse all-node likelihood route | blocked in the R bridge |
 | Non-Gaussian fixed-effect models | family-specific ML route after coefficient-scale parity tests | blocked in the R bridge |
-| Non-Gaussian phylogenetic models | future sparse all-node likelihood route | blocked in the R bridge |
+| Non-Gaussian phylogenetic models: `phylo(1 | group)` intercept on Poisson, NB2, Gamma, Beta, or Binomial (plus `relmat()`, `animal()`, `spatial()` structured routes for Gaussian, Poisson, NB2, Gamma) | sparse all-node Laplace / general-covariance route | admitted by the R gate; net-new capability with no native TMB equivalent, so parity coverage is narrower than Gaussian (finite-and-sane floor, not coefficient parity) |
 
 That split matters. Julia can keep several internal algorithms, but the R
 bridge should not ask applied users to choose among them before the parity
@@ -770,7 +778,7 @@ missing feature parity.
 | `impute = ...` or `missing = miss_control(predictor = "model")` | missing-predictor and imputation routes stay TMB-native | native `engine = "tmb"` |
 | `missing = miss_control(response = "include")` outside Gaussian or bivariate Gaussian | observed-response masks are admitted only for the Gaussian bridge cells | native `engine = "tmb"` |
 | non-default `control` | optimizer and storage controls do not yet map to DRM.jl | native `engine = "tmb"` |
-| non-Gaussian families | coefficient-scale parity is not yet tested | native `engine = "tmb"` |
+| fixed-effect (non-phylogenetic) non-Gaussian families | count and proportion families route through Julia only with a phylogenetic random intercept; a fixed-effect non-Gaussian model stays TMB-native | native `engine = "tmb"`, or add a `phylo(1 | species)` intercept for Poisson, NB2, Gamma, Beta, or Binomial |
 | partial or mismatched bivariate `phylo()` axes | the q = 4 route requires matching labelled intercepts on `mu1`, `mu2`, `sigma1`, and `sigma2` | native `engine = "tmb"` |
 | Scale or variance-component Wald intervals from the Gaussian phylo route | the Julia route returns only the mean fixed-effect covariance block in this slice | Julia profile/bootstrap for the admitted phylogenetic SD target below, or native fit for other targets |
 | `predict(fit, newdata = ..., dpar = "sigma")` | fresh-data Julia prediction is currently limited to location parameters | native fit or direct DRM.jl call |
@@ -786,9 +794,11 @@ drmTMB(
 )
 ```
 
-That is the right behaviour. NB2 scale parameters are not identical across the
-current R and Julia public contracts, so the bridge needs explicit transforms
-and tests before this route can be admitted.
+That is the right behaviour. Count families such as NB2 route through the
+Julia engine only with a phylogenetic random intercept (the large-p sparse
+lane); a fixed-effect `nbinom2` model stays TMB-native. Add a
+`phylo(1 | species)` intercept to use the Julia route, or keep
+`engine = "tmb"` for non-phylogenetic count models.
 
 ## Profile and bootstrap direction
 
@@ -1114,6 +1124,11 @@ or structure needs all of the following:
 5. Updated public docs that say exactly which formula, family, and post-fit
    methods are admitted.
 
-This checklist is why the first R bridge admits Gaussian fixed-effect models
-and one Gaussian phylogenetic mean cell only. It is better for a bridge to be
-narrow and dependable than broad and ambiguous.
+This checklist is why the R bridge admits only cells that have R-scale parity
+tests: Gaussian fixed-effect and bivariate models, the Gaussian phylogenetic
+and σ-phylo location-scale cells, the bivariate q = 4 phylogenetic
+location-scale route, and gated non-Gaussian phylogenetic cells (a
+`phylo(1 | group)` intercept on Poisson, NB2, Gamma, Beta, or Binomial, plus
+`relmat()`, `animal()`, and `spatial()` structured routes for Gaussian,
+Poisson, NB2, and Gamma). It is better for a bridge to be narrow and dependable
+than broad and ambiguous.
