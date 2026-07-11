@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, and {.code poisson()}.",
+      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, {.code poisson()}, and {.code nbinom2()}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -6052,6 +6052,16 @@ drm_build_nbinom2_spec <- function(
     dpars = if (has_zi) c("mu", "sigma", "zi") else c("mu", "sigma"),
     start = if (has_zi) {
       zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu)
+    } else if (include_missing_response) {
+      nbinom2_start(
+        y[observed_y],
+        X_mu[observed_y, , drop = FALSE],
+        X_sigma[observed_y, , drop = FALSE],
+        if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+        re_mu = re_mu,
+        re_sigma = re_sigma,
+        phylo_mu = phylo_mu
+      )
     } else {
       nbinom2_start(
         y,
@@ -6076,11 +6086,26 @@ drm_build_nbinom2_spec <- function(
     )
   )
   spec <- add_structured_mu2_parameters(spec, phylo_mu2, y)
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = 0
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 

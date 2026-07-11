@@ -18,7 +18,7 @@
 # cases (predictor="model" with a non-validated family hits the predictor gate
 # first), so it is exercised through the predictor axis.
 
-response_validated <- c("gaussian", "biv_gaussian", "binomial", "poisson")
+response_validated <- c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2")
 predictor_validated <- c("gaussian", "poisson")
 
 # One response family object per family_type a user can pass, with a y valid
