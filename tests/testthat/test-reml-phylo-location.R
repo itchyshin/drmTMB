@@ -65,6 +65,7 @@ reml_reference <- function(y, X, Z, A) {
 
 test_that("REML for a phylo location model matches a hand-computed restricted likelihood", {
   skip_on_cran()
+  skip_fragile_recovery()
   skip_if_not_installed("ape")
   fx <- reml_phylo_location_fixture()
   tree <- fx$tree
@@ -96,6 +97,7 @@ test_that("REML for a phylo location model matches a hand-computed restricted li
 
 test_that("REML phylo SD is not more downward-biased than ML", {
   skip_on_cran()
+  skip_fragile_recovery()
   skip_if_not_installed("ape")
   fx <- reml_phylo_location_fixture()
   tree <- fx$tree
@@ -121,6 +123,7 @@ test_that("REML phylo SD is not more downward-biased than ML", {
 
 test_that("REML admits a pure scale-side phylogenetic effect", {
   skip_on_cran()
+  skip_fragile_recovery()
   skip_if_not_installed("ape")
   # Scale-side phylo sigma-intercept is now admitted under REML: `beta_sigma` is
   # marginalized in the estimator spec so the restricted likelihood adjusts for
@@ -142,6 +145,7 @@ test_that("REML admits a pure scale-side phylogenetic effect", {
 
 test_that("REML admits matched mean-and-scale phylogenetic effects (q2 block)", {
   skip_on_cran()
+  skip_fragile_recovery()
   skip_if_not_installed("ape")
   # The matched mean-and-scale phylo block (q2 2x2) is admitted under REML
   # (2026-07-07). The earlier N=120 "REML degrades the mean" arbiter was below

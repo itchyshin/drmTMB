@@ -29,10 +29,10 @@ Depends:
 Imports:
     cli,
     lifecycle,
-    Matrix,
+    Matrix (>= 1.6.0),
     methods,
     stats,
-    TMB,
+    TMB (>= 1.9.6),
     utils
 LinkingTo:
     RcppEigen,
