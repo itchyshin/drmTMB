@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, and {.code binomial()}.",
+      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, and {.code poisson()}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -5250,6 +5250,8 @@ drm_build_poisson_spec <- function(
   impute = NULL,
   missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -5360,6 +5362,18 @@ drm_build_poisson_spec <- function(
   )
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a Poisson response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (include_missing_response && !is.null(zi_entry)) {
+    cli::cli_abort(c(
+      "Missing-response masking is not implemented with zero-inflated Poisson models yet.",
+      "i" = "Fit {.code missing = miss_control(response = \"include\")} without a {.code zi} formula, or keep the responses complete for a zero-inflated fit."
+    ))
+  }
   if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
     cli::cli_abort(c(
       "The first Poisson-response {.fn mi} slice supports one binary missing predictor.",
@@ -5420,6 +5434,11 @@ drm_build_poisson_spec <- function(
     structured_mu_vars(zi_spatial$term),
     random_effect_vars(mu_re$terms)
   ))
+  # response = "include": keep missing-response rows, so exclude the response
+  # from the complete-case rule (predictors are still required complete).
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -5443,7 +5462,7 @@ drm_build_poisson_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_predictor) {
+    na.action = if (include_missing_predictor || include_missing_response) {
       stats::na.pass
     } else {
       stats::na.omit
@@ -5462,14 +5481,35 @@ drm_build_poisson_spec <- function(
       "No complete observations remain after applying model missingness rules."
     )
   }
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing Poisson response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed Poisson response is required for fitting."
+    )
+  }
   count_tolerance <- sqrt(.Machine$double.eps)
+  y_obs <- y[observed_y]
   if (
-    !all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)
+    !all(is.finite(y_obs)) ||
+      any(y_obs < 0) ||
+      any(abs(y_obs - round(y_obs)) > count_tolerance)
   ) {
     cli::cli_abort(c(
       "Poisson models require non-negative integer count response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
     ))
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; give
+    # them a valid placeholder count (0) so the response parser accepts them.
+    # The C++ observed_y guard drops their density, so the placeholder never
+    # enters the likelihood (masking == complete-case).
+    y[!observed_y] <- 0
   }
 
   missing_predictor <- drm_build_gaussian_missing_predictor_model(
@@ -5532,6 +5572,14 @@ drm_build_poisson_spec <- function(
   )
   start <- if (has_zi) {
     zi_poisson_start(y, X_mu, X_zi, offset_mu, phylo_mu = phylo_mu)
+  } else if (include_missing_response) {
+    poisson_start(
+      y[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+      re_mu = re_mu,
+      phylo_mu = phylo_mu
+    )
   } else {
     poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
   }
@@ -5550,6 +5598,14 @@ drm_build_poisson_spec <- function(
         original_row = which(keep)
       ),
       version = "MD9a"
+    )
+  } else if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(y),
+      observed_y = observed_y,
+      response_sentinel = 0
     )
   } else {
     NULL
@@ -5601,7 +5657,7 @@ drm_build_poisson_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_predictor) {
+  spec$nobs <- if (include_missing_predictor || include_missing_response) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)

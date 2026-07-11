@@ -3073,7 +3073,10 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> mu = exp(eta_mu);
     for (int i = 0; i < y.size(); ++i) {
-      if (!(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+      // Missing-response mask (MD) composes with the mi-imputation filter:
+      // observed_y is integer DATA, so the masked row's dpois is never taped.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         nll -= weights(i) * dpois(y(i), mu(i), true);
       }
     }
