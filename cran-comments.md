@@ -6,21 +6,22 @@ regression models (univariate and bivariate) built on Template Model Builder
 
 ## R CMD check results
 
-`R CMD check --as-cran` on local macOS (R 4.5.2): 0 errors | 0 warnings | 2 notes.
+`R CMD check --as-cran` on local macOS (R 4.6.0): 0 errors | 0 warnings | 1 note.
 
-The two notes are:
+The note is:
 
 * **New submission.** This is the first CRAN submission of the package.
 
-* **Installed size.** The installed package is ~25 Mb, of which ~13 Mb is the
-  compiled TMB C++ in `libs/`. The C++ holds the automatic-differentiation
-  likelihood templates that the package's speed depends on; the size is
-  intrinsic to TMB-based packages (the same pattern as the existing CRAN
-  package `glmmTMB`) and cannot be reduced without removing functionality.
+CRAN's own build machines may additionally report an **installed size** note: the
+installed package is ~25 Mb, of which ~13 Mb is the compiled TMB C++ in `libs/`.
+The C++ holds the automatic-differentiation likelihood templates that the
+package's speed depends on; the size is intrinsic to TMB-based packages (the same
+pattern as the existing CRAN package `glmmTMB`) and cannot be reduced without
+removing functionality.
 
 ## Test environments
 
-* local macOS (aarch64-apple-darwin), R 4.5.2 — `R CMD check --as-cran`, clean.
+* local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`, clean.
 
 ## Reverse dependencies
 

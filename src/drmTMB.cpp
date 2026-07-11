@@ -13,6 +13,7 @@
 #endif
 #include <TMB.hpp>
 #include "drm_count_kernels.h"
+#include "drm_response_kernels.h"
 
 // Smooth clamp of a log-sigma linear predictor. EXACTLY identity inside the band
 // [lo, hi] (so a well-posed fit, whose log-sigma lies in the band, is unchanged
@@ -1147,9 +1148,9 @@ Type objective_function<Type>::operator()()
           Type mu0 = mu(i) + beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * dnorm(y(i), mu1, sigma_i, true) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * dnorm(y(i), mu0, sigma_i, true) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
           nll -= logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           mi_x_full(i) = mi_probability(i);
           mu(i) += beta_mu(mi_col) * (mi_probability(i) - X_mu(i, mi_col));
@@ -1230,7 +1231,7 @@ Type objective_function<Type>::operator()()
             Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
             Type log_y = observed_y(i) == 1 ?
-              weights(i) * dnorm(y(i), mu_state, sigma_i, true) : Type(0.0);
+              weights(i) * drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
             log_terms(state) = log_prob + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1310,7 +1311,7 @@ Type objective_function<Type>::operator()()
             Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
             Type log_y = observed_y(i) == 1 ?
-              weights(i) * dnorm(y(i), mu_state, sigma_i, true) : Type(0.0);
+              weights(i) * drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
             log_terms(state) = mi_log_prior(i, state) + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1394,7 +1395,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1532,7 +1533,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1663,7 +1664,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(k) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1725,7 +1726,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1807,7 +1808,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1911,7 +1912,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1992,7 +1993,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log(mi_quad_weights(q)) + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2076,7 +2077,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log_prior + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2169,7 +2170,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
             log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2611,6 +2612,50 @@ Type objective_function<Type>::operator()()
   } else if (model_type == 10) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
+    // Missing-predictor mi() 2-point sum for a binary predictor (fixed-effect
+    // slice, so this runs before any RE); response density via the shared leaf
+    // carrying the dispersion log_sigma.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0)) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0)) :
+            Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
       for (int i = 0; i < y.size(); ++i) {
@@ -2702,13 +2747,18 @@ Type objective_function<Type>::operator()()
         beta_shape_floor,
         beta_raw
       );
-      Type log_density =
-        lgamma(alpha(i) + beta_shape(i)) -
-        lgamma(alpha(i)) -
-        lgamma(beta_shape(i)) +
-        (alpha(i) - Type(1.0)) * log(y(i)) +
-        (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
-      nll -= weights(i) * log_density;
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows, whose likelihood is added by the mi() 2-point sum above.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type log_density =
+          lgamma(alpha(i) + beta_shape(i)) -
+          lgamma(alpha(i)) -
+          lgamma(beta_shape(i)) +
+          (alpha(i) - Type(1.0)) * log(y(i)) +
+          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -2852,18 +2902,67 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
   } else if (model_type == 18) {
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    // Missing-predictor mi() 2-point sum for a binary predictor (mirrors the
+    // poisson MD9a); the response density is the shared leaf.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta1, Type(0.0), Type(0.0), trials(i)) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta0, Type(0.0), Type(0.0), trials(i)) :
+            Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          // plug the posterior-mean predictor into eta for REPORT/prediction
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     vector<Type> mu(y.size());
     for (int i = 0; i < y.size(); ++i) {
       Type log_p1 = -logspace_add(Type(0.0), -eta_mu(i));
       Type log_p0 = -logspace_add(Type(0.0), eta_mu(i));
-      Type failures = trials(i) - y(i);
-      Type log_choose =
-        lgamma(trials(i) + Type(1.0)) -
-        lgamma(y(i) + Type(1.0)) -
-        lgamma(failures + Type(1.0));
-      nll -= weights(i) *
-        (log_choose + y(i) * log_p1 + failures * log_p0);
       mu(i) = exp(log_p1);
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows, whose likelihood is already added by the mi() 2-point sum above.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type failures = trials(i) - y(i);
+        Type log_choose =
+          lgamma(trials(i) + Type(1.0)) -
+          lgamma(y(i) + Type(1.0)) -
+          lgamma(failures + Type(1.0));
+        nll -= weights(i) *
+          (log_choose + y(i) * log_p1 + failures * log_p0);
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -3047,9 +3146,9 @@ Type objective_function<Type>::operator()()
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * dpois(y(i), exp(eta1), true) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0)) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * dpois(y(i), exp(eta0), true) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0)) : Type(0.0);
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           nll -= log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
@@ -3068,7 +3167,10 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> mu = exp(eta_mu);
     for (int i = 0; i < y.size(); ++i) {
-      if (!(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+      // Missing-response mask (MD) composes with the mi-imputation filter:
+      // observed_y is integer DATA, so the masked row's dpois is never taped.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         nll -= weights(i) * dpois(y(i), mu(i), true);
       }
     }
@@ -3280,10 +3382,59 @@ Type objective_function<Type>::operator()()
       drm_softclamp_log_sigma(
         log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
     }
+    // Missing-predictor mi() 2-point sum for a binary predictor; the response
+    // density is the shared leaf, carrying the dispersion log_sigma(i).
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0)) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0)) :
+            Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
-      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
-      nll -= weights(i) * log_density;
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows, whose likelihood is already added by the mi() 2-point sum above.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);

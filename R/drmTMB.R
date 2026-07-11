@@ -247,26 +247,30 @@ drmTMB <- function(
   }
   if (
     identical(missing_control$response, "include") &&
-      !family_type %in% c("gaussian", "biv_gaussian")
+      !family_type %in% drm_missing_response_families()
   ) {
     cli::cli_abort(c(
-      "{.code miss_control(response = \"include\")} is implemented only for Gaussian response models in this missing-data slice.",
-      "i" = "Use the default {.code missing = miss_control(response = \"drop\")} for this family until its observed-data likelihood slice lands."
+      "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
+      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, and {.code beta()}.",
+      "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
   if (
     identical(missing_control$predictor, "model") &&
-      !family_type %in% c("gaussian", "poisson")
+      !family_type %in% drm_missing_predictor_families()
   ) {
     cli::cli_abort(c(
-      "{.code miss_control(predictor = \"model\")} is implemented only for univariate Gaussian models and the first Poisson-response missing-predictor slice.",
-      "i" = "Use complete predictors or {.code missing = miss_control(predictor = \"fail\")} for this family."
+      "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
+      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue) and {.code poisson()}/{.code binomial()}/{.code nbinom2()}/{.code beta()} responses (one binary missing predictor).",
+      "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
-  if (!family_type %in% c("gaussian", "poisson") && !is.null(impute)) {
-    cli::cli_abort(
-      "{.arg impute} is currently implemented only for univariate Gaussian and first-slice Poisson {.fn mi} predictor models."
-    )
+  if (!family_type %in% drm_missing_predictor_families() && !is.null(impute)) {
+    cli::cli_abort(c(
+      "{.arg impute} is not implemented for the {.val {family_type}} response family yet.",
+      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, and {.code beta()} responses.",
+      "i" = "Drop {.arg impute} (or use a supported response) for a {.val {family_type}} model until its {.fn mi} slice lands."
+    ))
   }
   if (isTRUE(control$sparse_fixed) && !identical(family_type, "gaussian")) {
     cli::cli_abort(c(
@@ -331,7 +335,9 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      impute = impute,
+      missing = missing_control
     ),
     zero_one_beta = drm_build_zero_one_beta_spec(
       formula,
@@ -349,7 +355,9 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      impute = impute,
+      missing = missing_control
     ),
     cumulative_logit = drm_build_cumulative_logit_spec(
       formula,
@@ -369,7 +377,9 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      impute = impute,
+      missing = missing_control
     ),
     truncated_nbinom2 = drm_build_truncated_nbinom2_spec(
       formula,
@@ -4328,8 +4338,12 @@ drm_build_beta_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  impute = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4427,6 +4441,33 @@ drm_build_beta_ls_spec <- function(
   sigma_entry$rhs <- sigma_re$rhs
   validate_beta_sigma_random_terms(sigma_re$terms)
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first beta-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a beta response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(animal_term))
+  ) {
+    cli::cli_abort(c(
+      "The first beta-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
+      "i" = "Remove random or structured terms for the {.fn mi} predictor slice."
+    ))
+  }
+
   for (entry in list(mu_entry, sigma_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -4434,13 +4475,29 @@ drm_build_beta_ls_spec <- function(
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
 
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
     structured_mu_vars(mu_animal$term),
-    structured_mu_vars(sigma_animal$term)
+    structured_mu_vars(sigma_animal$term),
+    impute_vars
   ))
+  # response = "include": keep missing-response rows, so exclude the response
+  # from the complete-case rule (predictors are still required complete).
+  # predictor = "model": keep missing-predictor rows (exclude the mi() variable;
+  # impute covariates stay required-complete).
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -4457,7 +4514,11 @@ drm_build_beta_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4477,17 +4538,58 @@ drm_build_beta_ls_spec <- function(
       "No complete observations remain after applying model missingness rules."
     )
   }
-  if (!all(is.finite(y)) || any(y <= 0) || any(y >= 1)) {
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing beta response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed beta response is required for fitting."
+    )
+  }
+  y_obs <- y[observed_y]
+  if (!all(is.finite(y_obs)) || any(y_obs <= 0) || any(y_obs >= 1)) {
     cli::cli_abort(c(
       "Beta models require response values strictly between 0 and 1.",
       "x" = "The response {.val {mu_entry$response}} contains boundary, out-of-range, or non-finite values after missing-row filtering."
     ))
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; the
+    # placeholder 0 sits OUTSIDE (0,1) so any guard leak fails loud (log(0)).
+    # The C++ observed_y guard drops the density, so it is never taped.
+    y[!observed_y] <- 0
+  }
+
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup, data_model, env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
   }
 
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
 
   if (nrow(X_sigma) != length(y)) {
@@ -4516,22 +4618,64 @@ drm_build_beta_ls_spec <- function(
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
-    start = beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu),
+    start = if (include_missing_response) {
+      beta_ls_start(
+        y[observed_y],
+        X_mu[observed_y, , drop = FALSE],
+        X_sigma[observed_y, , drop = FALSE],
+        re_mu = re_mu,
+        phylo_mu = phylo_mu
+      )
+    } else {
+      beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu)
+    },
     map = beta_ls_map(re_mu, phylo_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-beta-mi"
+    )
+  } else if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = 0
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -4894,8 +5038,12 @@ drm_build_binomial_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  impute = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4955,12 +5103,42 @@ drm_build_binomial_spec <- function(
       "i" = "Fit the first binomial slice as a fixed-effect model, or use a package with established binomial mixed-model support."
     ))
   }
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first binomial-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a binomial response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
-  vars <- all.vars(f_mu)
-  if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
+  vars <- unique(c(all.vars(f_mu), impute_vars))
+  # response = "include": keep missing-response rows (exclude the response from
+  # the complete-case rule). predictor = "model": keep missing-predictor rows
+  # (exclude the mi() variable); impute-model covariates stay complete.
+  keep_vars <- vars
+  if (include_missing_response) {
+    keep_vars <- setdiff(keep_vars, all.vars(f_mu[[2L]]))
+  }
+  if (include_missing_predictor) {
+    keep_vars <- setdiff(keep_vars, mi_setup$variable)
+  }
+  if (length(keep_vars) > 0L) {
+    keep <- stats::complete.cases(data[, keep_vars, drop = FALSE])
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -4975,19 +5153,79 @@ drm_build_binomial_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
+  raw_response <- stats::model.response(mf_mu)
+  if (length(raw_response) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  observed_y <- if (is.null(dim(raw_response))) {
+    !is.na(raw_response)
+  } else {
+    stats::complete.cases(raw_response)
+  }
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing binomial response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed binomial response is required for fitting."
+    )
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; give
+    # them a valid placeholder (0 successes, 1 trial) so the response parser
+    # accepts them. The C++ observed_y guard drops their density, so the
+    # placeholder never enters the likelihood (masking == complete-case).
+    if (is.null(dim(raw_response))) {
+      raw_response[!observed_y] <- 0
+    } else {
+      raw_response[!observed_y, 1L] <- 0
+      raw_response[!observed_y, 2L] <- 1
+    }
+  }
   response <- prepare_binomial_response(
-    stats::model.response(mf_mu),
+    raw_response,
     response = mu_entry$response,
     has_weights = !is.null(weights)
   )
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup, data_model, env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
 
   if (nrow(X_mu) != length(response$successes)) {
     cli::cli_abort("Internal model-frame mismatch in binomial model.")
@@ -5016,6 +5254,7 @@ drm_build_binomial_spec <- function(
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
+    missing_predictor = missing_predictor,
     denominator = response[
       c("success_name", "failure_name", "trials", "encoding")
     ],
@@ -5024,19 +5263,44 @@ drm_build_binomial_spec <- function(
     keep = keep,
     dpars = "mu",
     start = binomial_start(
-      response$successes,
-      response$failures,
-      X_mu,
-      offset_mu
+      response$successes[observed_y],
+      response$failures[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu
     ),
     map = binomial_map(),
     random_names = NULL
   )
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-binomial-mi"
+    )
+  } else {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = if (include_missing_response) 0 else NA_real_
+    )
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- spec$missing_data$counts$likelihood_rows
   spec
 }
 
@@ -5200,6 +5464,8 @@ drm_build_poisson_spec <- function(
   impute = NULL,
   missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -5310,6 +5576,18 @@ drm_build_poisson_spec <- function(
   )
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a Poisson response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (include_missing_response && !is.null(zi_entry)) {
+    cli::cli_abort(c(
+      "Missing-response masking is not implemented with zero-inflated Poisson models yet.",
+      "i" = "Fit {.code missing = miss_control(response = \"include\")} without a {.code zi} formula, or keep the responses complete for a zero-inflated fit."
+    ))
+  }
   if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
     cli::cli_abort(c(
       "The first Poisson-response {.fn mi} slice supports one binary missing predictor.",
@@ -5370,6 +5648,11 @@ drm_build_poisson_spec <- function(
     structured_mu_vars(zi_spatial$term),
     random_effect_vars(mu_re$terms)
   ))
+  # response = "include": keep missing-response rows, so exclude the response
+  # from the complete-case rule (predictors are still required complete).
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -5393,7 +5676,7 @@ drm_build_poisson_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_predictor) {
+    na.action = if (include_missing_predictor || include_missing_response) {
       stats::na.pass
     } else {
       stats::na.omit
@@ -5412,14 +5695,35 @@ drm_build_poisson_spec <- function(
       "No complete observations remain after applying model missingness rules."
     )
   }
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing Poisson response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed Poisson response is required for fitting."
+    )
+  }
   count_tolerance <- sqrt(.Machine$double.eps)
+  y_obs <- y[observed_y]
   if (
-    !all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)
+    !all(is.finite(y_obs)) ||
+      any(y_obs < 0) ||
+      any(abs(y_obs - round(y_obs)) > count_tolerance)
   ) {
     cli::cli_abort(c(
       "Poisson models require non-negative integer count response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
     ))
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; give
+    # them a valid placeholder count (0) so the response parser accepts them.
+    # The C++ observed_y guard drops their density, so the placeholder never
+    # enters the likelihood (masking == complete-case).
+    y[!observed_y] <- 0
   }
 
   missing_predictor <- drm_build_gaussian_missing_predictor_model(
@@ -5482,6 +5786,14 @@ drm_build_poisson_spec <- function(
   )
   start <- if (has_zi) {
     zi_poisson_start(y, X_mu, X_zi, offset_mu, phylo_mu = phylo_mu)
+  } else if (include_missing_response) {
+    poisson_start(
+      y[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+      re_mu = re_mu,
+      phylo_mu = phylo_mu
+    )
   } else {
     poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
   }
@@ -5500,6 +5812,14 @@ drm_build_poisson_spec <- function(
         original_row = which(keep)
       ),
       version = "MD9a"
+    )
+  } else if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(y),
+      observed_y = observed_y,
+      response_sentinel = 0
     )
   } else {
     NULL
@@ -5551,7 +5871,7 @@ drm_build_poisson_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_predictor) {
+  spec$nobs <- if (include_missing_predictor || include_missing_response) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)
@@ -5563,8 +5883,12 @@ drm_build_nbinom2_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  impute = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -5752,6 +6076,35 @@ drm_build_nbinom2_spec <- function(
     has_zi = !is.null(zi_entry)
   )
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first nbinom2-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for an nbinom2 response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(mu_structured_term) ||
+        !is.null(mu_structured_term2) ||
+        !is.null(sigma_structured_term) ||
+        !is.null(zi_entry))
+  ) {
+    cli::cli_abort(c(
+      "The first nbinom2-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
+      "i" = "Remove random, structured, or zero-inflation terms for the {.fn mi} predictor slice."
+    ))
+  }
   for (entry in c(
     list(mu_entry, sigma_entry),
     if (!is.null(zi_entry)) list(zi_entry)
@@ -5770,6 +6123,17 @@ drm_build_nbinom2_spec <- function(
   } else {
     NULL
   }
+  if (include_missing_response && !is.null(zi_entry)) {
+    cli::cli_abort(c(
+      "Missing-response masking is not implemented with zero-inflated {.fn nbinom2} models yet.",
+      "i" = "Fit {.code missing = miss_control(response = \"include\")} without a {.code zi} formula, or keep the responses complete for a zero-inflated fit."
+    ))
+  }
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
@@ -5778,8 +6142,17 @@ drm_build_nbinom2_spec <- function(
     structured_mu_vars(mu_structured_term2),
     structured_mu_vars(sigma_structured_term),
     random_effect_vars(mu_re$terms),
-    random_effect_vars(sigma_re$terms)
+    random_effect_vars(sigma_re$terms),
+    impute_vars
   ))
+  # response = "include": keep missing-response rows. predictor = "model": keep
+  # missing-predictor rows (exclude the mi() variable; impute covariates stay).
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -5796,7 +6169,11 @@ drm_build_nbinom2_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -5810,26 +6187,68 @@ drm_build_nbinom2_spec <- function(
   }
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
-
   if (length(y) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying model missingness rules."
     )
   }
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing nbinom2 response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed nbinom2 response is required for fitting."
+    )
+  }
   count_tolerance <- sqrt(.Machine$double.eps)
+  y_obs <- y[observed_y]
   if (
-    !all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)
+    !all(is.finite(y_obs)) ||
+      any(y_obs < 0) ||
+      any(abs(y_obs - round(y_obs)) > count_tolerance)
   ) {
     cli::cli_abort(c(
       "{.fn nbinom2} models require non-negative integer count response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
     ))
   }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; give
+    # them a valid placeholder count (0). The C++ observed_y guard drops their
+    # density, so the placeholder never enters the likelihood.
+    y[!observed_y] <- 0
+  }
+
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup, data_model, env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
 
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_zi <- if (!is.null(mf_zi)) {
     stats::model.matrix(stats::terms(mf_zi), mf_zi)
@@ -5911,12 +6330,23 @@ drm_build_nbinom2_spec <- function(
     ),
     random_scale = list(mu = sd_mu, phylo = empty_sd_phylo_structure()),
     structured = list(phylo_mu = phylo_mu, phylo_mu2 = phylo_mu2),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = if (has_zi) c("mu", "sigma", "zi") else c("mu", "sigma"),
     start = if (has_zi) {
       zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu)
+    } else if (include_missing_response) {
+      nbinom2_start(
+        y[observed_y],
+        X_mu[observed_y, , drop = FALSE],
+        X_sigma[observed_y, , drop = FALSE],
+        if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+        re_mu = re_mu,
+        re_sigma = re_sigma,
+        phylo_mu = phylo_mu
+      )
     } else {
       nbinom2_start(
         y,
@@ -5941,11 +6371,42 @@ drm_build_nbinom2_spec <- function(
     )
   )
   spec <- add_structured_mu2_parameters(spec, phylo_mu2, y)
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-nbinom2-mi"
+    )
+  } else if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = 0
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -17094,7 +17555,16 @@ split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "binomial")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    return(list(mu = beta_mu))
+    out <- list(mu = beta_mu)
+    if (
+      is.list(spec$missing_predictor) &&
+        isTRUE(spec$missing_predictor$enabled)
+    ) {
+      beta_mi <- unname(par$beta_mi)
+      names(beta_mi) <- spec$missing_predictor$coef_names
+      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+    }
+    return(out)
   }
   if (identical(spec$model_type, "zi_poisson")) {
     beta_mu <- unname(par$beta_mu)
@@ -17198,7 +17668,9 @@ split_tmb_parameters <- function(par, spec) {
       }
     }
     if (
-      identical(spec$model_type, "gaussian") &&
+      (identical(spec$model_type, "gaussian") ||
+        identical(spec$model_type, "nbinom2") ||
+        identical(spec$model_type, "beta")) &&
         is.list(spec$missing_predictor) &&
         isTRUE(spec$missing_predictor$enabled)
     ) {

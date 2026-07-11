@@ -11,7 +11,19 @@ boundary itself is maintained in
 registry is `docs/design/168-r-julia-finish-capability-matrix.md`; when these
 ledgers disagree, the stricter row wins until the evidence is reconciled.
 
-## Version 1.0 Preparation
+## Release versioning: 0.5.0 first, v1.0 as maturity milestone
+
+- **The first CRAN release is numbered `0.5.0`, not `1.0.0`** (decision 2026-07-10).
+  A 1.0 on a first CRAN entry would over-claim: much of the family and inference
+  surface is still scaffolded or recovery-grade, and the public grammar is still
+  growing. `0.5.0` is the honest number and leaves a clean runway.
+- **`1.0` is reserved as the capability *maturity milestone*** — the complete
+  "Q-Series v1.0" surface (below) plus the full distributional-regression story
+  (location + scale + shape + adequacy diagnostics + quantile/exceedance outputs)
+  and a committed-stable public API. The "Q-Series v1.0" ledger name refers to
+  *that* milestone, not the release number.
+
+## Version 1.0 maturity surface (the milestone, not the next release)
 
 - Q-Series v1.0 status is tracked in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. That generated
@@ -23,8 +35,9 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version and release status
 
-- Current development version: `0.4.0` (staging toward the next release; the
-  latest tagged release is `v0.3.0`).
+- Current development version: `0.4.0` (staging toward the **first CRAN release,
+  `0.5.0`**; the latest tag is `v0.4.0`). DESCRIPTION is bumped to `0.5.0` at the
+  release tag; `1.0` is the later maturity milestone, not this release.
 - Meaning of `0.1.3`: a preview that keeps the `0.1.2` profile-inference,
   tutorial, and roadmap hardening, then adds the current structured Gaussian
   first slices, `meta_V(V = V)` known-covariance syntax, non-Gaussian first
