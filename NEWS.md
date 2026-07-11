@@ -8,6 +8,41 @@ maturity milestone**, which 0.5.0 deliberately does not yet claim. This entry
 currently records the docs/ledger-alignment slice of the cycle; later arcs append
 below rather than replacing it.
 
+## Missing data: non-Gaussian responses and predictors
+
+The likelihood-based missing-data layer now extends beyond Gaussian responses.
+Both modes are validated per family against single sources of truth
+(`drm_missing_response_families()`, `drm_missing_predictor_families()`), and an
+anti-drift test asserts that every family outside those allow-lists still rejects
+loudly, so an unsupported request never silently degrades to a wrong likelihood.
+See `vignette("missing-data")` for the full capability matrix.
+
+* **Missing-response masking (FIML) for non-Gaussian responses.** `missing =
+  miss_control(response = "include")` now marginalises missing responses out of
+  the joint likelihood for `binomial()`, `poisson()`, `nbinom2()`, and `beta()`
+  fits, in addition to the existing univariate and bivariate Gaussian routes.
+  Masked rows keep their complete predictors and row identity but contribute no
+  response density (a plain data guard in the TMB kernel, so the placeholder is
+  never taped). Valid under ignorable (MCAR/MAR) missingness.
+
+* **Missing-predictor `mi()` for non-Gaussian responses.** `missing =
+  miss_control(predictor = "model")` with an `impute` model now supports one
+  binary (Bernoulli/logit) missing predictor on `binomial()`, `nbinom2()`, and
+  `beta()` responses, joining the existing Poisson route. The missing predictor
+  is marginalised by an exact 2-point sum inside the same joint likelihood, with
+  the response density carrying its family dispersion (`nbinom2()`
+  `size = exp(-2*log_sigma)`; `beta()` `phi = exp(-2*log_sigma)`). Point-fit
+  recovery of the mean, dispersion, and predictor-model coefficients is tested at
+  scale for each family.
+
+* **Pluggable response-density leaf.** The `mi()` quadrature now routes each
+  family's response density through one shared kernel
+  (`drm_response_log_density`), so a non-Gaussian response reuses the same
+  integration loop. The Gaussian extraction was a byte-identical refactor
+  (verified by golden capture on the log-likelihood, gradient, and objective),
+  and the per-family leaves replicate their inline densities exactly, including
+  the `beta()` boundary nudge and shape floor.
+
 ## Bug fixes
 
 * Structured `sigma` random effects for `family = nbinom2()`
