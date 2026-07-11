@@ -3,7 +3,12 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
+> **▶ Latest — start here (2026-07-11, → Codex, 0.5.0 CRAN-submittable; UBSAN bug FIXED + full docs audit applied; awaiting Codex's independent live readiness call).**
+> `main` = `095409c0` (synced, all 4 PRs merged) · tag **`v0.5.0` = `09d44c7c` is STALE — re-tag from `main` before any submit** · local `--as-cran` clean · win-builder R-release+devel clean · 3-OS tag CI green · **not on CRAN**.
+> R-hub "blocker" resolved: `valgrind`/`rchk` = emmeans-build / TMB-header NOISE (not us); the real find (clang UBSAN `mi_col` nan→int, `src/drmTMB.cpp:258`) is FIXED (R-side sentinel); fragile-recovery tests `skip_on_cran`-guarded (final all-green R-hub run UNVERIFIED). 60-finding shipped-docs accuracy audit applied (PR #759, incl. the `cross-family.Rmd` blocker); README + capability-map widget de-staled. **Codex: run the live checks and give the submit-vs-hold verdict** (Claude's call = HOLD; Shinichi leans not-ready). START HERE:
+> [`docs/dev-log/handover/2026-07-11-codex-handover.md`](docs/dev-log/handover/2026-07-11-codex-handover.md)
+>
+> **▶ Prior — (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
 > `main` = `97ba0042` (synced) · tag **`v0.5.0`** = `09d44c7c` · tag CI **GREEN 3-OS** · **NOT on CRAN yet**.
 > Missing-data non-Gaussian arc (P0–P5) COMPLETE; release-eng portability gate closed
 > (`skip_fragile_recovery()` greened the red tag; `TMB(>=1.9.6)`/`Matrix(>=1.6.0)` floors; ROADMAP fix).
