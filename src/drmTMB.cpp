@@ -2857,15 +2857,59 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
   } else if (model_type == 18) {
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    // Missing-predictor mi() 2-point sum for a binary predictor (mirrors the
+    // poisson MD9a); the response density is the shared leaf.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta1, Type(0.0), Type(0.0), trials(i)) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta0, Type(0.0), Type(0.0), trials(i)) :
+            Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          // plug the posterior-mean predictor into eta for REPORT/prediction
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     vector<Type> mu(y.size());
     for (int i = 0; i < y.size(); ++i) {
       Type log_p1 = -logspace_add(Type(0.0), -eta_mu(i));
       Type log_p0 = -logspace_add(Type(0.0), eta_mu(i));
       mu(i) = exp(log_p1);
-      // Missing-response mask (MD): observed_y is integer DATA, so this plain
-      // `if` is resolved at tape construction and the masked row's density
-      // (including lgamma at the placeholder response) is never taped.
-      if (observed_y(i) == 1) {
+      // Missing-response mask (MD): plain data-if; also skip missing-predictor
+      // rows, whose likelihood is already added by the mi() 2-point sum above.
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type failures = trials(i) - y(i);
         Type log_choose =
           lgamma(trials(i) + Type(1.0)) -

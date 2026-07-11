@@ -37,6 +37,15 @@ Type drm_response_log_density(
       // poisson: log link, mu = exp(eta); no dispersion or trials.
       return dpois(y_val, exp(eta_val), true);
     }
+    case 18: {
+      // binomial: logit link; trials_val successes-out-of-trials.
+      Type log_p1 = -logspace_add(Type(0.0), -eta_val);
+      Type log_p0 = -logspace_add(Type(0.0), eta_val);
+      Type failures = trials_val - y_val;
+      Type log_choose = lgamma(trials_val + Type(1.0)) -
+        lgamma(y_val + Type(1.0)) - lgamma(failures + Type(1.0));
+      return log_choose + y_val * log_p1 + failures * log_p0;
+    }
     default:
       // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
       // the model_type == 1 mi() block calls this helper).

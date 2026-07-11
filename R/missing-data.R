@@ -311,6 +311,10 @@ drm_missing_response_families <- function() {
   c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
 }
 
+drm_missing_predictor_families <- function() {
+  c("gaussian", "poisson", "binomial")
+}
+
 drm_missing_response_sentinel <- function() {
   sentinel <- getOption("drmTMB.missing_response_sentinel", 0)
   if (
@@ -3918,6 +3922,31 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
               stats::dpois(
                 spec$y[rows_y],
                 lambda = exp(eta0[rows_y]),
+                log = TRUE
+              )
+        } else if (identical(spec$model_type, "binomial")) {
+          offset_mu <- if (!is.null(spec$offset$mu)) {
+            spec$offset$mu
+          } else {
+            rep(0, length(spec$y))
+          }
+          eta_base <- as.vector(offset_mu + spec$X$mu %*% beta_mu)
+          eta1 <- eta_base + beta_x * (1 - x_base)
+          eta0 <- eta_base + beta_x * (0 - x_base)
+          log_p1[rows_y] <- log_p1[rows_y] +
+            spec$weights[rows_y] *
+              stats::dbinom(
+                spec$y[rows_y],
+                size = spec$trials[rows_y],
+                prob = stats::plogis(eta1[rows_y]),
+                log = TRUE
+              )
+          log_p0[rows_y] <- log_p0[rows_y] +
+            spec$weights[rows_y] *
+              stats::dbinom(
+                spec$y[rows_y],
+                size = spec$trials[rows_y],
+                prob = stats::plogis(eta0[rows_y]),
                 log = TRUE
               )
         } else {

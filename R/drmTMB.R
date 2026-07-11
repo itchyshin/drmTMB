@@ -257,19 +257,19 @@ drmTMB <- function(
   }
   if (
     identical(missing_control$predictor, "model") &&
-      !family_type %in% c("gaussian", "poisson")
+      !family_type %in% drm_missing_predictor_families()
   ) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-predictor models are currently validated only for {.code gaussian()} responses (the broad {.fn mi} predictor-family catalogue) and {.code poisson()} responses (one binary missing predictor).",
+      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue) and {.code poisson()}/{.code binomial()} responses (one binary missing predictor).",
       "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
-  if (!family_type %in% c("gaussian", "poisson") && !is.null(impute)) {
+  if (!family_type %in% drm_missing_predictor_families() && !is.null(impute)) {
     cli::cli_abort(c(
       "{.arg impute} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()} and {.code poisson()} responses.",
-      "i" = "Drop {.arg impute} (or use a {.code gaussian()} or {.code poisson()} response) for a {.val {family_type}} model until its {.fn mi} slice lands."
+      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, and {.code binomial()} responses.",
+      "i" = "Drop {.arg impute} (or use a supported response) for a {.val {family_type}} model until its {.fn mi} slice lands."
     ))
   }
   if (isTRUE(control$sparse_fixed) && !identical(family_type, "gaussian")) {
@@ -355,6 +355,7 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
+      impute = impute,
       missing = missing_control
     ),
     cumulative_logit = drm_build_cumulative_logit_spec(
@@ -4948,6 +4949,7 @@ drm_build_binomial_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
+  impute = NULL,
   missing = miss_control()
 ) {
   missing <- drm_parse_missing_control(missing)
@@ -5011,16 +5013,39 @@ drm_build_binomial_spec <- function(
       "i" = "Fit the first binomial slice as a fixed-effect model, or use a package with established binomial mixed-model support."
     ))
   }
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first binomial-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a binomial response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
-  vars <- all.vars(f_mu)
-  # For response = "include", keep rows with a missing response but complete
-  # predictors, so exclude the response variable(s) from the complete-case rule.
-  keep_vars <- if (include_missing_response) {
-    setdiff(vars, all.vars(f_mu[[2L]]))
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
   } else {
-    vars
+    character(0)
+  }
+  vars <- unique(c(all.vars(f_mu), impute_vars))
+  # response = "include": keep missing-response rows (exclude the response from
+  # the complete-case rule). predictor = "model": keep missing-predictor rows
+  # (exclude the mi() variable); impute-model covariates stay complete.
+  keep_vars <- vars
+  if (include_missing_response) {
+    keep_vars <- setdiff(keep_vars, all.vars(f_mu[[2L]]))
+  }
+  if (include_missing_predictor) {
+    keep_vars <- setdiff(keep_vars, mi_setup$variable)
   }
   if (length(keep_vars) > 0L) {
     keep <- stats::complete.cases(data[, keep_vars, drop = FALSE])
@@ -5038,7 +5063,11 @@ drm_build_binomial_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   raw_response <- stats::model.response(mf_mu)
   observed_y <- if (is.null(dim(raw_response))) {
@@ -5075,10 +5104,33 @@ drm_build_binomial_spec <- function(
   )
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup, data_model, env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
 
   if (nrow(X_mu) != length(response$successes)) {
     cli::cli_abort("Internal model-frame mismatch in binomial model.")
@@ -5107,6 +5159,7 @@ drm_build_binomial_spec <- function(
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
+    missing_predictor = missing_predictor,
     denominator = response[
       c("success_name", "failure_name", "trials", "encoding")
     ],
@@ -5123,13 +5176,31 @@ drm_build_binomial_spec <- function(
     map = binomial_map(),
     random_names = NULL
   )
-  spec$missing_data <- new_drm_missing_data(
-    control = missing,
-    original_row = which(keep),
-    model_row = seq_along(spec$y),
-    observed_y = observed_y,
-    response_sentinel = if (include_missing_response) 0 else NA_real_
-  )
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-binomial-mi"
+    )
+  } else {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = if (include_missing_response) 0 else NA_real_
+    )
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
@@ -17301,7 +17372,16 @@ split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "binomial")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    return(list(mu = beta_mu))
+    out <- list(mu = beta_mu)
+    if (
+      is.list(spec$missing_predictor) &&
+        isTRUE(spec$missing_predictor$enabled)
+    ) {
+      beta_mi <- unname(par$beta_mi)
+      names(beta_mi) <- spec$missing_predictor$coef_names
+      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+    }
+    return(out)
   }
   if (identical(spec$model_type, "zi_poisson")) {
     beta_mu <- unname(par$beta_mu)
