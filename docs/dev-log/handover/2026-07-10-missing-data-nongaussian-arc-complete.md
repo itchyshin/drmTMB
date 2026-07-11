@@ -1,7 +1,7 @@
 # Handover — drmTMB, 2026-07-10 → next Claude / Shinichi
 
 Meta: from Claude (Opus 4.8) · repo `drmTMB` · branch
-`drmtmb/missing-data-nongaussian` (18 commits ahead of `main`, **not merged, not
+`drmtmb/missing-data-nongaussian` (20 commits ahead of `main`, **not merged, not
 pushed**). This closes the **missing-data non-Gaussian arc (P0–P5)**. Everything
 below is committed **LOCAL** on the branch; nothing is pushed.
 
