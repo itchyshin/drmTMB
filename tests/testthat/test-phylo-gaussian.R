@@ -1619,6 +1619,11 @@ test_that("bivariate phylogenetic labelled one-slope location blocks expose part
 })
 
 test_that("bivariate phylogenetic q4 recovers broad simulation targets", {
+  # Near-boundary bivariate-Gaussian q4 phylogenetic recovery fit whose q4
+  # diagnostic-message classification is not reproducible across BLAS/LAPACK
+  # builds (same fragile class as the spatial q4 block; shared check.R q4
+  # location-scale path). Skip on CRAN; runs in the full tag-CI matrix + locally.
+  skip_on_cran()
   sim <- new_biv_phylo_q4_gaussian_data()
   dat <- sim$data
   tree <- sim$tree
