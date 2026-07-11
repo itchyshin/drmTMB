@@ -21,7 +21,13 @@ removing functionality.
 
 ## Test environments
 
-* local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`, clean.
+* local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`, clean
+  (0 errors | 0 warnings | 1 note, the new-submission note only).
+* GitHub Actions R-CMD-check (R release) — ubuntu-latest, macOS-latest, and
+  windows-latest full matrix, all clean.
+* win-builder — R-release and R-devel (submitted).
+* R-hub v2 — Linux containers including the gcc/UBSAN sanitizer configuration
+  relevant to the compiled TMB C++ (submitted).
 
 ## Reverse dependencies
 
