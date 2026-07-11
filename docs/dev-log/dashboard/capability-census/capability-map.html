@@ -97,28 +97,47 @@
 
   <div class="callout">
     <div>
-      <p><b>"104/104 = 100%" is row-accounting, not evidence.</b> That headline counts one structured-RE board where every <span class="k">next_gate</span> still carries blocking language. This map is the honest ground truth: <b>668</b> real combinations, each labelled by the tier of evidence behind it — from <span class="k">supported</span> down to <span class="k">rejected-by-design</span>, with one confirmed latent bug surfaced.</p>
+      <p><b>"104/104 = 100%" is row-accounting, not evidence.</b> That headline counts one structured-RE board where every <span class="k">next_gate</span> still carries blocking language. This map is the honest ground truth: <b>668</b> real combinations, each labelled by the tier of evidence behind it — from <span class="k">supported</span> down to <span class="k">rejected-by-design</span>. The per-cell census is the 2026-07-09 snapshot; the headline facts below were reconciled to the code on 2026-07-11 (see the maintained <a href="../2026-07-11-capability-surface.html">capability surface</a>).</p>
     </div>
   </div>
 
   <div class="tiles" id="tiles"></div>
 
   <div class="facts">
-    <div class="fact"><div class="big good" id="f-evi">14</div><p>combinations carry interval/coverage-grade evidence (<b>supported</b> or <b>inference-ready</b>) — <b>every one Gaussian</b>. The other ~270 implemented cells are recovery- or diagnostic-grade.</p></div>
-    <div class="fact"><div class="big" id="f-ng">0</div><p>non-Gaussian combinations rise above recovery-grade. All 14 distributional families beyond Gaussian are point-fit recovery at best.</p></div>
-    <div class="fact"><div class="big crit" id="f-bug">4</div><p><b>mis-wired</b> cells: <code>nbinom2</code> <code>sigma ~ phylo/spatial/animal/relmat</code> is accepted and reports a <code>*_sigma</code> SD, but the effect lands on the <b>mean</b>, not the scale. Confirmed latent bug.</p></div>
+    <div class="fact"><div class="big good" id="f-evi">20</div><p>combinations carry interval/coverage-grade evidence — <b>4 supported</b> + <b>16 inference-ready</b>. <b>6 are non-Gaussian</b>; the rest Gaussian / bivariate-Gaussian. The other ~263 implemented cells are recovery- or diagnostic-grade.</p></div>
+    <div class="fact"><div class="big" id="f-ng">6</div><p>non-Gaussian combinations rise above recovery-grade — <code>beta</code> μ/σ, <code>nbinom2</code> μ/σ, <code>binomial</code> μ, <code>poisson</code> μ, each via <b>unstructured fixed effects</b>. Structured non-Gaussian effects remain recovery-grade.</p></div>
+    <div class="fact"><div class="big good" id="f-bug">0</div><p>confirmed mis-wired cells. The earlier <code>nbinom2</code> <code>sigma ~ phylo/spatial/animal/relmat</code> defect (effect landing on the mean) is <b>fixed</b> — model_type 7 now routes to <code>log_sigma</code> when the dpar is scale (<code>src/drmTMB.cpp:3303</code>).</p></div>
   </div>
 
-  <div class="sec"><h2>Family × evidence tier</h2><p class="note">Counts of <em>implemented</em> combinations per family. Green is evidence-grade; red is the mis-wire. Click any cell to filter the detail table below.</p></div>
+  <div class="sec"><h2>Family × evidence tier</h2><p class="note">Counts of <em>implemented</em> combinations per family. Green is evidence-grade. The red <code>miswire</code> cells (nbinom2 <code>sigma</code>-structured) are a <b>2026-07-09 census-snapshot artifact</b> — that defect is since fixed in code (see the facts above); read them as recovery-grade. Click any cell to filter the detail table below.</p></div>
   <div class="scroll"><table class="mtx"><thead id="mtx-head"></thead><tbody id="mtx-body"></tbody></table></div>
   <div class="legend" id="legend"></div>
 
   <div class="sec"><h2>Caveats the headline hides</h2><p class="note">Even the evidence-grade cells are conditional. Read these before quoting any status.</p></div>
   <div class="caveats">
-    <div class="cav bug"><h3>Latent bug — nbinom2 structured scale</h3><p><code>sigma ~ phylo/spatial/animal/relmat(1+x|id)</code> passes validation and reports a <code>phylo_sigma</code> SD, but <code>src/drmTMB.cpp</code> model_type 7 (lines 3194–3231) adds the effect to <code>eta_mu</code> — there is no <code>phylo_mu_dpar==1</code> branch (beta model_type 10 has one at 2639). The existing "expected_fit" smoke test checks only the SD label and convergence, not the numerical target, so it masks the defect. Queued for Arc 2 (fix + numerical confirmation + rename the stale cells).</p></div>
+    <div class="cav"><h3>Resolved — nbinom2 structured scale</h3><p>The earlier defect (<code>sigma ~ phylo/spatial/animal/relmat(1+x|id)</code> reporting a <code>phylo_sigma</code> SD while the effect landed on <code>eta_mu</code>) is <b>fixed</b>: <code>src/drmTMB.cpp</code> model_type 7 now branches on the dpar code — <code>if (phylo_mu_dpar(k) == 1) log_sigma(i) += contribution; else eta_mu(i) += contribution;</code> (line 3303). nbinom2 <code>sigma</code>-structured cells are now recovery-grade, not mis-wired.</p></div>
     <div class="cav"><h3>2 of the 8 anchors are single-channel</h3><p><code>phylo_q2_mu1_mu2_one_slope</code> and <code>relmat_q2_mu1_mu2_one_slope</code> reach inference-ready <em>only</em> under the bias-corrected channel; raw Wald fails coverage (0.876 / 0.874 vs the 0.91 floor). The flat board drops the <code>_with_caveats</code> suffix.</p></div>
     <div class="cav"><h3>Open under-coverage note on the sigma anchors</h3><p><code>docs/design/219</code> flags regime-dependent under-coverage (0.939–0.963) for the promoted <code>sigma</code> one-slope cells — an acknowledged, unresolved correction question sitting inside the evidence file.</p></div>
     <div class="cav"><h3>Stale <code>_rejected</code> cell names</h3><p>~30 board cells are named <code>qseries_..._rejected</code> from an earlier phase but now actually fit (<code>fit_status=point_fit</code>). The name is misleading, not the status — a cleanup item, not a capability gap.</p></div>
+  </div>
+
+  <div class="sec"><h2>Missing data (0.5.0)</h2><p class="note">A separate axis from the census above (that grid does not model missingness). Likelihood-based: missing responses are marginalised, missing predictors are modelled inside the same likelihood — not multiple imputation, not a posterior. Validated per response family against the <code>drm_missing_response_families()</code> / <code>drm_missing_predictor_families()</code> allow-lists, with a parametrized anti-drift test that makes every other family reject loudly.</p></div>
+  <div class="scroll"><table class="mtx">
+    <thead><tr><th style="text-align:left">Response family</th><th>Missing response<br><span class="k">response = "include"</span></th><th>Missing predictor <code>mi()</code><br><span class="k">predictor = "model"</span></th></tr></thead>
+    <tbody>
+      <tr><td style="text-align:left"><code>gaussian()</code></td><td style="color:var(--t-supported);font-weight:600">✓</td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">broad predictor catalogue</span></td></tr>
+      <tr><td style="text-align:left">bivariate Gaussian</td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">partial y1/y2 pairs</span></td><td style="color:var(--t-none)">—</td></tr>
+      <tr><td style="text-align:left"><code>binomial()</code></td><td style="color:var(--t-supported);font-weight:600">✓</td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">one binary predictor</span></td></tr>
+      <tr><td style="text-align:left"><code>poisson()</code></td><td style="color:var(--t-supported);font-weight:600">✓</td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">one binary predictor</span></td></tr>
+      <tr><td style="text-align:left"><code>nbinom2()</code></td><td style="color:var(--t-supported);font-weight:600">✓</td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">one binary predictor</span></td></tr>
+      <tr><td style="text-align:left"><code>beta()</code></td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">interior (0,1)</span></td><td style="color:var(--t-supported);font-weight:600">✓ <span style="font-weight:400;color:var(--dim)">one binary predictor</span></td></tr>
+      <tr><td style="text-align:left">every other family</td><td style="color:var(--t-rejected)">— rejects</td><td style="color:var(--t-rejected)">— rejects</td></tr>
+    </tbody>
+  </table></div>
+  <div class="caveats">
+    <div class="cav"><h3>Imputation-model catalogue</h3><p>With a <b>Gaussian response</b> the missing predictor can be modelled with a wide family set — Gaussian, Bernoulli/logit, ordered cumulative logit, unordered softmax, beta, zero-one beta, beta-binomial (known trials), Poisson, NB2, zero-truncated NB2, lognormal, Gamma, fixed-power Tweedie. The non-Gaussian responses above model <b>one binary</b> predictor each.</p></div>
+    <div class="cav"><h3>Structured / multivariate mi()</h3><p>One intercept-only structured predictor model (<code>phylo/spatial/animal/relmat</code>, MD4) is available for the Gaussian-response route only. Multivariate/bivariate missing-predictor modelling is not available — that is gllvmTMB's lane.</p></div>
+    <div class="cav"><h3>Rejected with a family-specific message</h3><p>Non-binary missing predictors on non-Gaussian responses; multiple missing predictors; <code>mi()</code> with random-effect, structured, or zero-inflated response terms; missing responses for families outside the six above; and EM / profile / REML missing-data engines.</p></div>
   </div>
 
   <div class="sec"><h2>All 668 combinations</h2><p class="note">Filter and search the full census. One row = one combination.</p></div>

@@ -3784,7 +3784,19 @@ drm_tmb_missing_predictor_data <- function(spec) {
         beta_binomial = 12L,
         0L
       ),
-      mi_col = as.integer(model$mu_col - 1L),
+      # mu_col is NA_integer_ for missing-response fits (no predictor column to
+      # impute). TMB's DATA_INTEGER(mi_col) converts the value via
+      # CppAD::Integer(), which is undefined behaviour on NaN (clang-UBSAN:
+      # "nan is outside the range of representable values of type 'int'"). Pass a
+      # finite sentinel: mi_col is only read inside the predictor-imputation
+      # branches, which a response-masking fit never enters, so 0L is inert.
+      mi_col = as.integer(
+        if (length(model$mu_col) == 1L && !is.na(model$mu_col)) {
+          model$mu_col - 1L
+        } else {
+          0L
+        }
+      ),
       mi_x = as.numeric(model$x),
       mi_successes = if (!is.null(model$successes)) {
         as.numeric(model$successes)
