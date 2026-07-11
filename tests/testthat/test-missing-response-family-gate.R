@@ -28,7 +28,7 @@ drm_missing_gate_candidates <- function() {
 test_that("drm_missing_response_families() is the single source of truth (gaussian + biv + binomial today)", {
   expect_setequal(
     drm_missing_response_families(),
-    c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2")
+    c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
   )
 })
 

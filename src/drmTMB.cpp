@@ -2702,13 +2702,17 @@ Type objective_function<Type>::operator()()
         beta_shape_floor,
         beta_raw
       );
-      Type log_density =
-        lgamma(alpha(i) + beta_shape(i)) -
-        lgamma(alpha(i)) -
-        lgamma(beta_shape(i)) +
-        (alpha(i) - Type(1.0)) * log(y(i)) +
-        (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
-      nll -= weights(i) * log_density;
+      // Missing-response mask (MD): plain data-if, so log(y)/log(1-y) at the
+      // masked-row placeholder (0, outside (0,1)) is never taped.
+      if (observed_y(i) == 1) {
+        Type log_density =
+          lgamma(alpha(i) + beta_shape(i)) -
+          lgamma(alpha(i)) -
+          lgamma(beta_shape(i)) +
+          (alpha(i) - Type(1.0)) * log(y(i)) +
+          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);

@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, {.code poisson()}, and {.code nbinom2()}.",
+      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, and {.code beta()}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -335,7 +335,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     zero_one_beta = drm_build_zero_one_beta_spec(
       formula,
@@ -4334,8 +4335,11 @@ drm_build_beta_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4447,6 +4451,11 @@ drm_build_beta_ls_spec <- function(
     structured_mu_vars(mu_animal$term),
     structured_mu_vars(sigma_animal$term)
   ))
+  # response = "include": keep missing-response rows, so exclude the response
+  # from the complete-case rule (predictors are still required complete).
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -4463,7 +4472,7 @@ drm_build_beta_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4478,16 +4487,29 @@ drm_build_beta_ls_spec <- function(
       "x" = "Denominator syntax such as {.code cbind(successes, failures)} is planned for {.fn beta_binomial}, not {.fn beta}."
     ))
   }
-  if (length(y) == 0L) {
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
     cli::cli_abort(
-      "No complete observations remain after applying model missingness rules."
+      "Internal complete-case filter left a missing beta response."
     )
   }
-  if (!all(is.finite(y)) || any(y <= 0) || any(y >= 1)) {
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed beta response is required for fitting."
+    )
+  }
+  y_obs <- y[observed_y]
+  if (!all(is.finite(y_obs)) || any(y_obs <= 0) || any(y_obs >= 1)) {
     cli::cli_abort(c(
       "Beta models require response values strictly between 0 and 1.",
       "x" = "The response {.val {mu_entry$response}} contains boundary, out-of-range, or non-finite values after missing-row filtering."
     ))
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; the
+    # placeholder 0 sits OUTSIDE (0,1) so any guard leak fails loud (log(0)).
+    # The C++ observed_y guard drops the density, so it is never taped.
+    y[!observed_y] <- 0
   }
 
   X_mu <- stats::model.matrix(
@@ -4526,18 +4548,43 @@ drm_build_beta_ls_spec <- function(
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
-    start = beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu),
+    start = if (include_missing_response) {
+      beta_ls_start(
+        y[observed_y],
+        X_mu[observed_y, , drop = FALSE],
+        X_sigma[observed_y, , drop = FALSE],
+        re_mu = re_mu,
+        phylo_mu = phylo_mu
+      )
+    } else {
+      beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu)
+    },
     map = beta_ls_map(re_mu, phylo_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = 0
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 

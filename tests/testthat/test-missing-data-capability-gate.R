@@ -18,7 +18,7 @@
 # cases (predictor="model" with a non-validated family hits the predictor gate
 # first), so it is exercised through the predictor axis.
 
-response_validated <- c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2")
+response_validated <- c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
 predictor_validated <- c("gaussian", "poisson")
 
 # One response family object per family_type a user can pass, with a y valid
@@ -111,11 +111,11 @@ test_that("the abort names the offending family (family-specific message)", {
   expect_error(
     drmTMB(
       bf(y ~ x),
-      family = cases$beta$fam,
-      data = cases$beta$data,
+      family = cases$gamma$fam,
+      data = cases$gamma$data,
       missing = miss_control(response = "include")
     ),
-    regexp = "beta",
+    regexp = "gamma",
     fixed = TRUE
   )
 })
