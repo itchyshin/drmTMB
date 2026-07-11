@@ -3,7 +3,17 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-08 night, → Claude, board HONEST + Ayumi-derived work queued).**
+> **▶ Latest — start here (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
+> `main` = `97ba0042` (synced) · tag **`v0.5.0`** = `09d44c7c` · tag CI **GREEN 3-OS** · **NOT on CRAN yet**.
+> Missing-data non-Gaussian arc (P0–P5) COMPLETE; release-eng portability gate closed
+> (`skip_fragile_recovery()` greened the red tag; `TMB(>=1.9.6)`/`Matrix(>=1.6.0)` floors; ROADMAP fix).
+> **Live blocker: R-hub `valgrind` + `rchk` FAILED** (run 29156817171) — investigate real-vs-noise
+> before `submit_cran()` (maintainer's call). win-builder R-release+devel submitted (emails pending).
+> Next arc (post-CRAN): missing-RESPONSE masking → ALL families; pigauto↔drmTMB MI bridge for
+> predictors; DROP broad predictor catalogue + bivariate mi(). START HERE:
+> [`docs/dev-log/handover/2026-07-11-claude-handover.md`](docs/dev-log/handover/2026-07-11-claude-handover.md)
+>
+> **▶ Prior — (2026-07-08 night, → Claude, board HONEST + Ayumi-derived work queued).**
 > `main` = `15d4412b` (pushed) · tag `v0.2.0.9001`. **The 8 `inference_ready` cells are CORRECT — do
 > NOT demote them.** An initial "5/8 FAIL" audit applied the `supported` bar (nominal-exact) to the
 > `inference_ready` tier; at small `g`, ~0.90 coverage + upper-tail skew is EXPECTED, not a defect
