@@ -19,7 +19,7 @@
 # first), so it is exercised through the predictor axis.
 
 response_validated <- c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
-predictor_validated <- c("gaussian", "poisson", "binomial")
+predictor_validated <- c("gaussian", "poisson", "binomial", "nbinom2")
 
 # One response family object per family_type a user can pass, with a y valid
 # enough to reach the policy gate (the gate fires before family y-validation).

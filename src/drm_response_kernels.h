@@ -46,6 +46,11 @@ Type drm_response_log_density(
         lgamma(y_val + Type(1.0)) - lgamma(failures + Type(1.0));
       return log_choose + y_val * log_p1 + failures * log_p0;
     }
+    case 7: {
+      // nbinom2: log link via eta; dispersion size = exp(-2*log_sigma).
+      // The kernel takes the raw linear predictor (eta), NOT mu.
+      return drm_nbinom2_log_density(y_val, eta_val, log_sigma_val);
+    }
     default:
       // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
       // the model_type == 1 mi() block calls this helper).
