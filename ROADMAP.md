@@ -35,9 +35,9 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version and release status
 
-- Current development version: `0.4.0` (staging toward the **first CRAN release,
-  `0.5.0`**; the latest tag is `v0.4.0`). DESCRIPTION is bumped to `0.5.0` at the
-  release tag; `1.0` is the later maturity milestone, not this release.
+- Current version: **`0.5.0`** — the **first CRAN release**, tagged `v0.5.0` and
+  merged to `main` (DESCRIPTION `Version: 0.5.0`). CRAN upload is the maintainer's
+  call; `1.0` is the later maturity milestone, not this release.
 - Meaning of `0.1.3`: a preview that keeps the `0.1.2` profile-inference,
   tutorial, and roadmap hardening, then adds the current structured Gaussian
   first slices, `meta_V(V = V)` known-covariance syntax, non-Gaussian first

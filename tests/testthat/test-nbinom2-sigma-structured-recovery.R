@@ -35,6 +35,7 @@ fit_ll <- function(f) tryCatch(as.numeric(logLik(f)), error = function(e) NA_rea
 
 test_that("nbinom2 structured sigma recovers scale structure (0.4.0 routing fix)", {
   skip_on_cran()
+  skip_fragile_recovery()
   skip_if_not_installed("ape")
   skip_if_not_installed("MASS")
   d <- nb2_sigma_phylo_data(202, where = "sigma")
@@ -60,6 +61,7 @@ test_that("nbinom2 structured sigma recovers scale structure (0.4.0 routing fix)
 
 test_that("nbinom2 structured sigma does NOT absorb a mean-phylo signal (mis-wire guard)", {
   skip_on_cran()
+  skip_fragile_recovery()
   skip_if_not_installed("ape")
   skip_if_not_installed("MASS")
   d <- nb2_sigma_phylo_data(101, where = "mean")

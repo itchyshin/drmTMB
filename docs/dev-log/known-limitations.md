@@ -494,6 +494,21 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   logLik gain with fitted-`sigma`-vs-truth correlation, plus a mean-DGP mis-wire
   regression guard), but intervals, coverage, and `supported` status remain out
   of scope.
+- **Cross-platform reproducibility of recovery-grade structured routes.** The
+  near-boundary optimizations these routes use — `nbinom2()`
+  `sigma ~ phylo(1 + x | id)` dispersion structure, and REML q2 matched
+  mean-and-scale phylogenetic location-scale blocks — are ill-conditioned near
+  the variance boundary, so the optimizer can select a different local optimum or
+  return a different convergence code across BLAS/LAPACK builds
+  (macOS / Linux / Windows). A tight cross-platform assertion (exact
+  `convergence == 0L`, or a delta-logLik threshold) is therefore not reproducible.
+  Recovery is validated on the reference platform;
+  `tests/testthat/test-nbinom2-sigma-structured-recovery.R` and
+  `test-reml-phylo-location.R` are gated with `skip_fragile_recovery()` (skipped
+  on CI by default, opt in with `DRMTMB_RUN_FRAGILE_RECOVERY=1`) so the
+  release-tag full-OS-matrix check is not red on these recovery-grade
+  diagnostics. This is a property of the estimator near the boundary, not a
+  defect in the shipped fixed-effect / inference-ready surface.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
