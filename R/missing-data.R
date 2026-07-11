@@ -312,7 +312,7 @@ drm_missing_response_families <- function() {
 }
 
 drm_missing_predictor_families <- function() {
-  c("gaussian", "poisson", "binomial", "nbinom2")
+  c("gaussian", "poisson", "binomial", "nbinom2", "beta")
 }
 
 drm_missing_response_sentinel <- function() {
@@ -3975,6 +3975,37 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 spec$y[rows_y],
                 size = size[rows_y],
                 mu = exp(eta0[rows_y]),
+                log = TRUE
+              )
+        } else if (identical(spec$model_type, "beta")) {
+          beta_sigma <- as.numeric(par_list$beta_sigma)
+          eta_base <- as.vector(spec$X$mu %*% beta_mu)
+          log_sigma <- as.vector(spec$X$sigma %*% beta_sigma)
+          phi <- exp(-2 * log_sigma)
+          beta_mu_eps <- 1e-12
+          beta_shape_floor <- 1e-8
+          eta1 <- eta_base + beta_x * (1 - x_base)
+          eta0 <- eta_base + beta_x * (0 - x_base)
+          mu1 <- beta_mu_eps + (1 - 2 * beta_mu_eps) * stats::plogis(eta1)
+          mu0 <- beta_mu_eps + (1 - 2 * beta_mu_eps) * stats::plogis(eta0)
+          alpha1 <- pmax(mu1 * phi, beta_shape_floor)
+          beta_shape1 <- pmax((1 - mu1) * phi, beta_shape_floor)
+          alpha0 <- pmax(mu0 * phi, beta_shape_floor)
+          beta_shape0 <- pmax((1 - mu0) * phi, beta_shape_floor)
+          log_p1[rows_y] <- log_p1[rows_y] +
+            spec$weights[rows_y] *
+              stats::dbeta(
+                spec$y[rows_y],
+                shape1 = alpha1[rows_y],
+                shape2 = beta_shape1[rows_y],
+                log = TRUE
+              )
+          log_p0[rows_y] <- log_p0[rows_y] +
+            spec$weights[rows_y] *
+              stats::dbeta(
+                spec$y[rows_y],
+                shape1 = alpha0[rows_y],
+                shape2 = beta_shape0[rows_y],
                 log = TRUE
               )
         } else {

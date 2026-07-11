@@ -51,6 +51,24 @@ Type drm_response_log_density(
       // The kernel takes the raw linear predictor (eta), NOT mu.
       return drm_nbinom2_log_density(y_val, eta_val, log_sigma_val);
     }
+    case 10: {
+      // beta: nudged logit mean, precision phi = exp(-2*log_sigma). Replicates
+      // the model_type==10 block verbatim (eps 1e-12, shape floor 1e-8).
+      Type beta_mu_eps = Type(1e-12);
+      Type beta_shape_floor = Type(1e-8);
+      Type mu_raw = exp(drm_log_inv_logit(eta_val));
+      Type mu = beta_mu_eps + (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+      Type phi = exp(Type(-2.0) * log_sigma_val);
+      Type alpha_raw = mu * phi;
+      Type beta_raw = (Type(1.0) - mu) * phi;
+      Type alpha =
+        CppAD::CondExpLt(alpha_raw, beta_shape_floor, beta_shape_floor, alpha_raw);
+      Type beta_shape =
+        CppAD::CondExpLt(beta_raw, beta_shape_floor, beta_shape_floor, beta_raw);
+      return lgamma(alpha + beta_shape) - lgamma(alpha) - lgamma(beta_shape) +
+        (alpha - Type(1.0)) * log(y_val) +
+        (beta_shape - Type(1.0)) * log(Type(1.0) - y_val);
+    }
     default:
       // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
       // the model_type == 1 mi() block calls this helper).

@@ -11,15 +11,16 @@
 # set to `response_validated` here IN THE SAME COMMIT that loosens the R gate.
 # Same for P3 and `predictor_validated`.
 #
-# Gates under test (R/drmTMB.R):
-#   response  = "include" -> family_type in {gaussian, biv_gaussian}
-#   predictor = "model"   -> family_type in {gaussian, poisson}
+# Gates under test (R/drmTMB.R), kept in sync with the SSOT helpers
+# drm_missing_response_families() / drm_missing_predictor_families():
+#   response  = "include" -> drm_missing_response_families()
+#   predictor = "model"   -> drm_missing_predictor_families()
 # The `impute` family gate is redundant with the predictor gate for reject
 # cases (predictor="model" with a non-validated family hits the predictor gate
 # first), so it is exercised through the predictor axis.
 
 response_validated <- c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
-predictor_validated <- c("gaussian", "poisson", "binomial", "nbinom2")
+predictor_validated <- c("gaussian", "poisson", "binomial", "nbinom2", "beta")
 
 # One response family object per family_type a user can pass, with a y valid
 # enough to reach the policy gate (the gate fires before family y-validation).
@@ -78,7 +79,7 @@ test_that("every non-validated response family loudly rejects miss_control(predi
         data = cs$data,
         missing = miss_control(predictor = "model")
       ),
-      regexp = "Missing-predictor models are currently validated only",
+      regexp = "models are currently validated only",
       info = sprintf("family_type = %s", ft)
     )
   }
@@ -87,7 +88,10 @@ test_that("every non-validated response family loudly rejects miss_control(predi
 test_that("supplying `impute` with a non-validated response family loudly rejects", {
   set.seed(1)
   cases <- cap_family_cases()
-  for (ft in c("beta", "nbinom2", "binomial")) {
+  # Use response families that remain OUTSIDE drm_missing_predictor_families();
+  # as P3 validates a family (beta/nbinom2/binomial are now validated) it must
+  # move out of this reject set, mirroring predictor_validated above.
+  for (ft in c("gamma", "tweedie", "lognormal")) {
     cs <- cases[[ft]]
     # predictor="model" + impute on a non-validated response hits the predictor
     # capability gate first; either way it must reject loudly, never proceed.
