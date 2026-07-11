@@ -33,6 +33,10 @@ Type drm_response_log_density(
       Type sigma_i = sqrt(V_known_val + exp(Type(2.0) * log_sigma_val));
       return dnorm(y_val, eta_val, sigma_i, true);
     }
+    case 6: {
+      // poisson: log link, mu = exp(eta); no dispersion or trials.
+      return dpois(y_val, exp(eta_val), true);
+    }
     default:
       // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
       // the model_type == 1 mi() block calls this helper).

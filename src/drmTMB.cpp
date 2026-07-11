@@ -3057,9 +3057,9 @@ Type objective_function<Type>::operator()()
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * dpois(y(i), exp(eta1), true) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0)) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * dpois(y(i), exp(eta0), true) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0)) : Type(0.0);
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           nll -= log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
