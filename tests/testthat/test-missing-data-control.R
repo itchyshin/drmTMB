@@ -16,7 +16,7 @@ test_that("miss_control() validates implemented and reserved options", {
   expect_error(miss_control(engine = "profile"), "reserved")
 })
 
-test_that("drmTMB() parses missing-control lists and rejects non-Gaussian response masks", {
+test_that("drmTMB() parses missing-control lists and rejects not-yet-supported response masks", {
   x <- seq(-1.2, 1.4, length.out = 12)
   dat <- data.frame(
     y = 0.4 + 0.7 * x + 0.1 * sin(seq_along(x)),
@@ -34,15 +34,17 @@ test_that("drmTMB() parses missing-control lists and rejects non-Gaussian respon
     "drm_missing_data"
   )
 
+  # poisson/binomial/nbinom2/beta missing-response are now implemented (P1);
+  # a still-unsupported family (student) must reject via the capability gate.
   expect_error(
     drmTMB(
       bf(y ~ x),
       data = dat,
-      family = poisson(),
+      family = student(),
       missing = miss_control(response = "include"),
       control = drm_control(se = FALSE)
     ),
-    "Gaussian response"
+    "not implemented for the"
   )
 
   expect_error(
