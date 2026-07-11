@@ -522,6 +522,11 @@ separate MD7b, MD7c, and MD7e routes.
 | MD8b Gamma positive-continuous `mi()`, fixed only | Implemented: support one positive continuous missing predictor with a fixed-effect Gamma mean-CV predictor model such as `impute = list(biomass = impute_model(biomass ~ z, family = Gamma(link = "log")))`. | Stop before Tweedie or exact-zero semi-continuous predictor models, grouped or structured positive-continuous predictor models, multiple missing predictors, and simulation-based imputation summaries. |
 | MD8c Tweedie semi-continuous `mi()`, fixed only | Implemented: support one non-negative semi-continuous missing predictor with exact zeros using a fixed-effect Tweedie predictor model such as `impute = list(biomass = impute_model(biomass ~ z, family = tweedie()))`. The first slice fixes the predictor-model Tweedie power at 1.5 and estimates the mean and scale. | Stop before estimated or predictor-dependent Tweedie power, grouped or structured semi-continuous predictor models, multiple missing predictors, and simulation-based imputation summaries. |
 | MD9a Poisson response plus binary `mi()`, fixed only | Implemented: support one binary missing predictor with a fixed-effect Bernoulli/logit predictor model inside an ordinary Poisson response mean model, such as `drmTMB(bf(count ~ z + mi(treatment)), family = poisson(), impute = list(treatment = impute_model(treatment ~ z, family = binomial())), missing = miss_control(predictor = "model"))`. | Stop before missing Poisson responses, zero-inflated Poisson response models with `mi()`, response random effects or structured response terms with `mi()`, non-binary missing predictors in Poisson response models, multiple missing predictors, and simulation-based imputation summaries. |
+| MD-leaf pluggable response density | Implemented: `drm_response_log_density(model_type, y, eta, log_sigma, V_known, trials)` in `src/drm_response_kernels.h` is the one per-family response-density leaf the `mi()` quadrature calls, so a non-Gaussian response reuses the same integration loop. The Gaussian extraction is a byte-identical refactor (golden capture on logLik, gradient, objective); the per-family leaves replicate their inline densities exactly. | Stop before routing every family through the leaf (only the `mi()` call sites need it) and before any behaviour change on the vanilla no-`mi()` paths. |
+| MD9b binomial response plus binary `mi()`, fixed only | Implemented: one binary missing predictor with a fixed-effect Bernoulli/logit predictor model inside an ordinary binomial response mean model (model_type 18); the `mi()` 2-point sum evaluates the response density through the shared leaf. | Stop before missing binomial responses combined with `mi()`, response random effects or structured terms with `mi()`, non-binary missing predictors, multiple missing predictors, and simulation-based imputation summaries. |
+| MD9c NB2 response plus binary `mi()`, fixed only | Implemented: one binary missing predictor inside an ordinary nbinom2 response location-scale model (model_type 7); the `mi()` 2-point sum carries the NB2 dispersion (`size = exp(-2*log_sigma)`) through the shared leaf. | Stop before zero-inflated or hurdle NB2 responses with `mi()`, response random effects or structured terms with `mi()`, non-binary missing predictors, multiple missing predictors, and simulation-based imputation summaries. |
+| MD9d beta response plus binary `mi()`, fixed only | Implemented: one binary missing predictor inside a beta response location-scale model for interior proportions (model_type 10); the `mi()` 2-point sum carries the beta precision (`phi = exp(-2*log_sigma)`, with the same boundary nudge and shape floor as the vanilla beta density) through the shared leaf. | Stop before boundary (0/1) beta responses with `mi()` (use `zero_one_beta()`), response random effects or structured terms with `mi()`, non-binary missing predictors, multiple missing predictors, and simulation-based imputation summaries. |
+| MD10 non-Gaussian response masks | Implemented: `miss_control(response = "include")` retains and marginalises missing responses for `binomial()`, `poisson()`, `nbinom2()`, and `beta()` via a plain `observed_y` data guard around each family's density (a data-if, never `CondExp`, so the masked-row placeholder is never taped). Each slice ships a sentinel-invariance test (sentinel-independent logLik/coef) and an MCAR recovery test, mirroring MD1/MD2. | Stop before missing responses for families outside these four plus Gaussian/bivariate-Gaussian, mixed masking-plus-`mi()` in a single fit, and dense known `V` response masks. |
 
 ## Testing Requirements
 
@@ -788,18 +793,21 @@ Gaussian missing predictors are integrated by TMB's Laplace approximation.
 Finite-state and count predictors are integrated by deterministic summation.
 Positive and bounded continuous predictors are integrated by deterministic
 quadrature, with exact boundary masses where the family requires them.
-The first non-Gaussian response route also supports family = poisson() with one
-fixed-effect binary mi() predictor and a Bernoulli/logit impute_model().
-Multiple missing predictors, grouped or structured non-Gaussian predictor
-models, transformed or interacted mi() terms, non-binary missing predictors in
-non-Gaussian response models, missing non-Gaussian responses, hurdle count
-predictors, EM/profile engines, REML for explicit missing-data routes,
-simulated imputation summaries, response imputation, measurement-error models,
-and pigauto interoperability remain separate future lanes.
+The non-Gaussian response routes support family = poisson(), binomial(),
+nbinom2(), and beta() with one fixed-effect binary mi() predictor and a
+Bernoulli/logit impute_model(); missing responses can also be masked for those
+same four families with miss_control(response = "include"). Multiple missing
+predictors, grouped or structured non-Gaussian predictor models, transformed or
+interacted mi() terms, non-binary missing predictors in non-Gaussian response
+models, hurdle count predictors, EM/profile engines, REML for explicit
+missing-data routes, simulated imputation summaries, response imputation,
+measurement-error models, and pigauto interoperability remain separate future
+lanes.
 ```
 
-For the preview release, treat the missing-data surface as done only in this
-bounded sense: the package has an explicit control API, Gaussian response masks,
+For the 0.5.0 release, treat the missing-data surface as done only in this
+bounded sense: the package has an explicit control API, response masks for
+Gaussian, bivariate Gaussian, binomial, Poisson, NB2, and beta responses,
 one-at-a-time modelled missing predictors for the implemented predictor-family
 set, `imputed()` summaries, tests of the likelihood contributions, reference
 documentation, and a worked article. It is not done as a general missing-data
@@ -807,9 +815,11 @@ framework. The next missing-data work should be a separate feature slice, not
 cleanup for this release boundary.
 
 The non-Gaussian missing-predictor coverage is broad when the response is a
-univariate Gaussian location model. The non-Gaussian response side is not broad
-yet: MD9a is only an ordinary Poisson response with one fixed-effect binary
-`mi()` predictor and complete count responses. NB2 responses, non-binary
-missing predictors in non-Gaussian response models, zero-inflated/hurdle
-responses with `mi()`, random or structured response terms with `mi()`, and
-missing non-Gaussian responses remain planned.
+univariate Gaussian location model. On the non-Gaussian response side it is
+deliberately narrow: Poisson, binomial, NB2, and beta responses each take one
+fixed-effect binary `mi()` predictor with complete responses (MD9a–MD9d), and
+those four families plus Gaussian and bivariate Gaussian support response
+masking (MD10). Non-binary missing predictors in non-Gaussian response models,
+zero-inflated/hurdle responses with `mi()`, random or structured response terms
+with `mi()`, and missing responses for families outside those six remain
+planned.

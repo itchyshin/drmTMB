@@ -198,6 +198,46 @@ covariance or correlation summary you need, and check
 `profile_targets(fit)` for any direct target that already has an interval
 route before assuming none exists.
 
+## Missing data
+
+Missing-data support is a separate axis from the tiers above: it is likelihood
+based (missing responses are marginalised, missing predictors are modelled inside
+the same likelihood), not multiple imputation and not a posterior. It is
+validated per response family against two single-source-of-truth allow-lists
+(`drm_missing_response_families()`, `drm_missing_predictor_families()`), and a
+parametrized test asserts that every family outside them rejects loudly — so an
+unsupported request is a clear error, never a silent wrong likelihood. The full
+worked walkthrough is in `vignette("missing-data")`.
+
+| Response family | Missing response (`response = "include"`) | Missing predictor `mi()` (`predictor = "model"`) |
+| --- | :---: | :---: |
+| `gaussian()` | ✓ | ✓ (broad predictor-model catalogue) |
+| bivariate Gaussian | ✓ (partial `y1`/`y2` pairs) | — |
+| `binomial()` | ✓ | ✓ (one binary predictor) |
+| `poisson()` | ✓ | ✓ (one binary predictor) |
+| `nbinom2()` | ✓ | ✓ (one binary predictor) |
+| `beta()` | ✓ | ✓ (one binary predictor) |
+| every other family | — (rejects) | — (rejects) |
+
+Two details behind the checkmarks:
+
+- **Imputation-model catalogue.** When the *response* is a univariate Gaussian
+  location model, the *missing predictor* can be modelled with a wide family set —
+  Gaussian, Bernoulli/logit, ordered cumulative logit, unordered softmax, beta,
+  zero-one beta, beta-binomial (known trials), Poisson, NB2, zero-truncated NB2,
+  lognormal, Gamma, and fixed-power Tweedie. The non-Gaussian *responses* above
+  currently model **one binary** (Bernoulli/logit) missing predictor each.
+- **Structured / multivariate `mi()`.** One intercept-only structured predictor
+  model (`phylo()`, `spatial()`, `animal()`, `relmat()`) is available for the
+  Gaussian-response `mi()` route only. Multivariate/bivariate missing-predictor
+  modelling is not available (that is `gllvmTMB`'s lane).
+
+Not available anywhere yet, and rejected with a family-specific message:
+non-binary missing predictors on non-Gaussian responses; multiple missing
+predictors; `mi()` with random-effect, structured, or zero-inflated response
+terms; missing responses for families outside the six above; and EM, profile, or
+REML missing-data engines.
+
 ## Choosing an interval method
 
 `confint()`'s default method is Wald (`method = "wald"`), and for most
