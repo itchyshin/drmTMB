@@ -3290,8 +3290,13 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
-      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
-      nll -= weights(i) * log_density;
+      // Missing-response mask (MD): plain data-if on integer observed_y, so the
+      // masked row's NB2 density is never taped.
+      if (observed_y(i) == 1) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);

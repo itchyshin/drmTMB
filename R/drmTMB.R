@@ -374,7 +374,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     truncated_nbinom2 = drm_build_truncated_nbinom2_spec(
       formula,
@@ -5669,8 +5670,11 @@ drm_build_nbinom2_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -5876,6 +5880,12 @@ drm_build_nbinom2_spec <- function(
   } else {
     NULL
   }
+  if (include_missing_response && !is.null(zi_entry)) {
+    cli::cli_abort(c(
+      "Missing-response masking is not implemented with zero-inflated {.fn nbinom2} models yet.",
+      "i" = "Fit {.code missing = miss_control(response = \"include\")} without a {.code zi} formula, or keep the responses complete for a zero-inflated fit."
+    ))
+  }
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
@@ -5886,6 +5896,11 @@ drm_build_nbinom2_spec <- function(
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms)
   ))
+  # response = "include": keep missing-response rows, so exclude the response
+  # from the complete-case rule (predictors are still required complete).
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -5902,7 +5917,7 @@ drm_build_nbinom2_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -5916,20 +5931,34 @@ drm_build_nbinom2_spec <- function(
   }
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
-
-  if (length(y) == 0L) {
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
     cli::cli_abort(
-      "No complete observations remain after applying model missingness rules."
+      "Internal complete-case filter left a missing nbinom2 response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed nbinom2 response is required for fitting."
     )
   }
   count_tolerance <- sqrt(.Machine$double.eps)
+  y_obs <- y[observed_y]
   if (
-    !all(is.finite(y)) || any(y < 0) || any(abs(y - round(y)) > count_tolerance)
+    !all(is.finite(y_obs)) ||
+      any(y_obs < 0) ||
+      any(abs(y_obs - round(y_obs)) > count_tolerance)
   ) {
     cli::cli_abort(c(
       "{.fn nbinom2} models require non-negative integer count response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
     ))
+  }
+  if (include_missing_response && !all(observed_y)) {
+    # Masked rows keep complete predictors but contribute no likelihood; give
+    # them a valid placeholder count (0). The C++ observed_y guard drops their
+    # density, so the placeholder never enters the likelihood.
+    y[!observed_y] <- 0
   }
 
   X_mu <- stats::model.matrix(
