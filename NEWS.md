@@ -3,10 +3,10 @@
 `drmTMB` 0.4.0 is the development line toward the **first CRAN release, numbered
 0.5.0** (not 1.0). The honest version number reflects that much of the family and
 inference surface is still scaffolded or recovery-grade. Throughout the dev-log
-and the "Q-Series v1.0" ledger, **"v1.0" denotes the later complete-capability
-maturity milestone**, which 0.5.0 deliberately does not yet claim. This entry
-currently records the docs/ledger-alignment slice of the cycle; later arcs append
-below rather than replacing it.
+and the "Q-Series v1.0" ledger, **"v1.0" is reserved for the later maturity
+milestone** that 0.5.0 deliberately does not yet claim. This entry currently
+records the docs/ledger-alignment slice of the cycle; later arcs append below
+rather than replacing it.
 
 ## Missing data: non-Gaussian responses and predictors
 

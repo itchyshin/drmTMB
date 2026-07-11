@@ -4533,6 +4533,11 @@ drm_build_beta_ls_spec <- function(
       "x" = "Denominator syntax such as {.code cbind(successes, failures)} is planned for {.fn beta_binomial}, not {.fn beta}."
     ))
   }
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
   observed_y <- !is.na(y)
   if (!include_missing_response && !all(observed_y)) {
     cli::cli_abort(
@@ -5155,6 +5160,11 @@ drm_build_binomial_spec <- function(
     }
   )
   raw_response <- stats::model.response(mf_mu)
+  if (length(raw_response) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
   observed_y <- if (is.null(dim(raw_response))) {
     !is.na(raw_response)
   } else {
@@ -6177,6 +6187,11 @@ drm_build_nbinom2_spec <- function(
   }
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
   observed_y <- !is.na(y)
   if (!include_missing_response && !all(observed_y)) {
     cli::cli_abort(
