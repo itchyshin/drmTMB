@@ -1379,6 +1379,11 @@ test_that("bivariate Gaussian mu fits animal q2 pedigree covariance", {
 })
 
 test_that("bivariate Gaussian supports animal and relmat q4 known-matrix blocks", {
+  # Near-boundary bivariate-Gaussian q4 structured recovery fit whose q4
+  # diagnostic-message classification is not reproducible across BLAS/LAPACK
+  # builds (same fragile class as the spatial q4 block; shared check.R q4
+  # location-scale path). Skip on CRAN; runs in the full tag-CI matrix + locally.
+  skip_on_cran()
   sim <- new_biv_known_relatedness_q4_gaussian_data()
   dat <- sim$data
   Q <- sim$Q
