@@ -69,10 +69,13 @@ observation covariance when a dense bivariate known \code{V} was supplied.
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted,
 fixed-effect distributional parameters. This is available for any
 \code{model_type} with a promoted or feasibility-spike entry in
-\code{\link[=drm_family_dpq]{drm_family_dpq()}} (as of DO-T1: \code{"gaussian"} and the \code{"tweedie"}/
-\code{"skew_normal"} spikes); other model types raise a clear "not yet
-implemented" error via \code{\link[=fitted_distribution]{fitted_distribution()}}. Spike-status families emit
-a one-time warning that the residual is exploratory, not DG-verified. See
+\code{\link[=drm_family_dpq]{drm_family_dpq()}} (as of DO-T3 batch B: \code{"gaussian"}, \code{"student"},
+\code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"}, \code{"beta"}, \code{"beta_binomial"},
+\code{"binomial"}, \code{"cumulative_logit"}, \code{"poisson"}, and \code{"nbinom2"} are
+promoted; \code{"tweedie"} remains a feasibility spike); other model types
+raise a clear "not yet implemented" error via \code{\link[=fitted_distribution]{fitted_distribution()}}.
+Spike-status families emit a one-time warning that the residual is
+exploratory, not DG-verified. See
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the fixed-effect-only adequacy caveat: for
 random-effect or structured fits, these residuals are conditional on the
 fixed-effect prediction, not marginal, so a departure (or its absence) is

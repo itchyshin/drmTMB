@@ -169,18 +169,19 @@ test_that("spike-status families warn once per session, not on every call", {
 })
 
 test_that("residuals(type = 'quantile') errors clearly for an unimplemented model type", {
-  # "poisson" was promoted to status = "reference" in DO-T3 batch A, so this
-  # test now exercises a family batch A left unimplemented (beta_binomial is
-  # staged for a later DO-T3 batch).
+  # "poisson" was promoted to status = "reference" in DO-T3 batch A, and
+  # "beta_binomial" in DO-T3 batch B, so this test now exercises a family
+  # both batches left unimplemented (zero_one_beta is staged for a later
+  # DO-T3 batch).
   set.seed(1)
-  n <- 30
+  n <- 60
   x <- stats::rnorm(n)
-  trials <- sample(5:10, n, replace = TRUE)
-  success <- stats::rbinom(n, size = trials, prob = 0.4)
-  dat <- data.frame(success = success, failure = trials - success, x = x)
+  mu_true <- stats::plogis(-0.2 + 0.6 * x)
+  y <- stats::rbeta(n, shape1 = mu_true / 0.4^2, shape2 = (1 - mu_true) / 0.4^2)
+  dat <- data.frame(y = y, x = x, w = stats::rnorm(n), v = stats::rnorm(n))
   fit <- drmTMB(
-    bf(cbind(success, failure) ~ x, sigma ~ 1),
-    family = beta_binomial(),
+    bf(y ~ x, sigma ~ 1, zoi ~ w, coi ~ v),
+    family = zero_one_beta(),
     data = dat,
     control = drm_control(se = FALSE)
   )

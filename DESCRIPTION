@@ -41,6 +41,7 @@ Suggests:
     ape,
     callr,
     emmeans,
+    extraDistr,
     glmmTMB,
     ggplot2,
     JuliaCall,

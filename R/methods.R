@@ -2922,13 +2922,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "beta_binomial")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    phi <- 1 / sigma^2
+    # SAME conversion drm_family_dpq_beta_binomial() (R/family-dpq.R) uses --
+    # closed in DO-T3 batch B (Emmy's dedup; batch A left this inline).
+    native <- drm_beta_shapes(mu, sigma)
     trials <- object$model$trials
     sims <- replicate(nsim, {
       p <- stats::rbeta(
         length(mu),
-        shape1 = mu * phi,
-        shape2 = (1 - mu) * phi
+        shape1 = native$shape1,
+        shape2 = native$shape2
       )
       stats::rbinom(length(mu), size = trials, prob = p)
     })
@@ -3113,12 +3115,16 @@ rskew_normal_public <- function(n, mu, sigma, nu) {
   mu <- rep(mu, length.out = n)
   sigma <- rep(sigma, length.out = n)
   nu <- rep(nu, length.out = n)
-  delta <- nu / sqrt(1 + nu^2)
-  mean_shift <- delta * sqrt(2 / pi)
-  omega <- sigma / sqrt(1 - mean_shift^2)
-  xi <- mu - omega * mean_shift
-  xi +
-    omega * (delta * abs(stats::rnorm(n)) + sqrt(1 - delta^2) * stats::rnorm(n))
+  # (xi, omega, alpha, delta) moment inversion: SAME helper
+  # drm_skew_normal_native() (R/family-dpq.R) uses for the {d,p,q} closures,
+  # so the two routes cannot silently drift apart (Emmy's dedup, DO-T3
+  # batch B).
+  native <- drm_skew_normal_moments(mu, sigma, nu)
+  native$xi +
+    native$omega * (
+      native$delta * abs(stats::rnorm(n)) +
+        sqrt(1 - native$delta^2) * stats::rnorm(n)
+    )
 }
 
 rtweedie_compound <- function(n, mu, phi, power) {
@@ -3189,10 +3195,13 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
 #' fixed-effect distributional parameters. This is available for any
 #' `model_type` with a promoted or feasibility-spike entry in
-#' [drm_family_dpq()] (as of DO-T1: `"gaussian"` and the `"tweedie"`/
-#' `"skew_normal"` spikes); other model types raise a clear "not yet
-#' implemented" error via [fitted_distribution()]. Spike-status families emit
-#' a one-time warning that the residual is exploratory, not DG-verified. See
+#' [drm_family_dpq()] (as of DO-T3 batch B: `"gaussian"`, `"student"`,
+#' `"skew_normal"`, `"lognormal"`, `"gamma"`, `"beta"`, `"beta_binomial"`,
+#' `"binomial"`, `"cumulative_logit"`, `"poisson"`, and `"nbinom2"` are
+#' promoted; `"tweedie"` remains a feasibility spike); other model types
+#' raise a clear "not yet implemented" error via [fitted_distribution()].
+#' Spike-status families emit a one-time warning that the residual is
+#' exploratory, not DG-verified. See
 #' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
 #' random-effect or structured fits, these residuals are conditional on the
 #' fixed-effect prediction, not marginal, so a departure (or its absence) is

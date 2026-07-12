@@ -21,21 +21,27 @@ residuals, \code{predict(type = "quantile")}, \code{exceedance()}) route through
 the public-to-native parameter conversion is not re-derived in each caller.
 }
 \details{
-As of DO-T3 batch A, the base-R-closed-form families --
-\code{"gaussian"}, \code{"student"}, \code{"lognormal"}, \code{"gamma"}, \code{"beta"},
-\code{"binomial"}, \code{"poisson"}, and \code{"nbinom2"} -- are promoted
-(\code{status = "reference"}) entries. \code{"tweedie"} and \code{"skew_normal"} remain
-feasibility spikes (\code{status = "spike"}): the closures are correct for the
-cases exercised in the DO-T0a verification script, but have not been
-through the DG2/DG3 evidence gates and are not promoted past
-\code{diagnostic_hold}. All other \code{model_type} values are staged for later
-DO-T3 batches and raise a clear "not yet implemented" error.
+As of DO-T3 batch B, the promoted (\code{status = "reference"}) families are
+\code{"gaussian"}, \code{"student"}, \code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"},
+\code{"beta"}, \code{"beta_binomial"}, \code{"binomial"}, \code{"cumulative_logit"},
+\code{"poisson"}, and \code{"nbinom2"}. \strong{\code{"skew_normal"} promotion is a
+distributional-output-axis result only} (DG2/DG3 for \verb{\{d,p,q\}}
+correctness); it does not certify the skew_normal family's own fit-quality
+status (\code{diagnostic_hold} in \code{check_drmTMB()}), which is a separate axis
+and is unchanged -- see the firewall note beside
+\code{drm_family_dpq_skew_normal()}. \code{"tweedie"} remains a feasibility spike
+(\code{status = "spike"}): the closure is correct for the cases exercised in
+the DO-T0a verification script, but has not been through the DG2/DG3
+evidence gates and is not promoted past \code{diagnostic_hold}. All other
+\code{model_type} values are staged for later DO-T3 batches and raise a clear
+"not yet implemented" error.
 
 The \code{d}/\code{p}/\code{q} closures take \verb{(y_or_u, params)}, where \code{params} is a wide,
 one-row-per-observation data frame. This signature is \strong{frozen} (CP1): a
-family needing extra per-row context beyond its dpars -- binomial \code{trials},
-ordinal cutpoints, truncation bounds, mixture weights -- attaches it as an
-extra \code{params} column inside \code{\link[=fitted_distribution_params]{fitted_distribution_params()}}, never by
-changing the closure signature.
+family needing extra per-row context beyond its dpars -- binomial/
+beta_binomial \code{trials}, cumulative_logit ordinal cutpoints (\code{CP1}..\code{CPk}),
+truncation bounds, mixture weights -- attaches it as an extra \code{params}
+column inside \code{\link[=fitted_distribution_params]{fitted_distribution_params()}}, never by changing the
+closure signature.
 }
 \keyword{internal}

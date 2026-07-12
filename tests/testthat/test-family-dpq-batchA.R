@@ -1,7 +1,9 @@
 # DO-T3 batch A tests for R/family-dpq.R: the base-R-closed-form families
 # promoted to `status = "reference"` -- student, lognormal, gamma, beta,
-# binomial, poisson, nbinom2. Gaussian/tweedie/skew_normal (DO-T0a) are
-# covered in tests/testthat/test-family-dpq.R and not repeated here.
+# binomial, poisson, nbinom2. Gaussian/tweedie (DO-T0a) are covered in
+# tests/testthat/test-family-dpq.R; skew_normal/beta_binomial/
+# cumulative_logit (DO-T3 batch B) are covered in
+# tests/testthat/test-family-dpq-batchB.R. Not repeated here.
 #
 # DG2 per family (blocking before "reference" status; verification-spec.md):
 #   1. inverse identity p(q(a)) ~= a for a in {.01,.05,.25,.5,.75,.95,.99}

@@ -1,8 +1,10 @@
 # DO-T0a foundation tests for R/family-dpq.R (drm_family_dpq(),
 # fitted_distribution(), and the Dunn-Smyth seed-contract primitive).
-# Gaussian is the promoted reference (status = "reference"); tweedie and
-# skew_normal are feasibility spikes (status = "spike") -- see the DO-T0a
-# after-task report for what remains before DO-T3 promotion.
+# Gaussian is the promoted reference (status = "reference"); tweedie remains
+# a feasibility spike (status = "spike") -- see the DO-T0a after-task report
+# for what remains before promotion. skew_normal was promoted to
+# `status = "reference"` in DO-T3 batch B; its DG2/DG3 tests live in
+# test-family-dpq-batchB.R, not here.
 
 test_that("fitted_distribution() gaussian matches the compiled log-density", {
   set.seed(20260712)
@@ -83,18 +85,19 @@ test_that("fitted_distribution() gaussian meta_V includes known sampling varianc
 })
 
 test_that("drm_family_dpq() aborts clearly for an unimplemented model type", {
-  # "poisson" was promoted to status = "reference" in DO-T3 batch A, so this
-  # test now exercises a family batch A left unimplemented (beta_binomial is
-  # staged for a later DO-T3 batch).
+  # "poisson" was promoted to status = "reference" in DO-T3 batch A, and
+  # "beta_binomial" in DO-T3 batch B, so this test now exercises a family
+  # both batches left unimplemented (zero_one_beta is staged for a later
+  # DO-T3 batch).
   set.seed(1)
-  n <- 30
+  n <- 60
   x <- stats::rnorm(n)
-  trials <- sample(5:10, n, replace = TRUE)
-  success <- stats::rbinom(n, size = trials, prob = 0.4)
-  dat <- data.frame(success = success, failure = trials - success, x = x)
+  mu_true <- stats::plogis(-0.2 + 0.6 * x)
+  y <- stats::rbeta(n, shape1 = mu_true / 0.4^2, shape2 = (1 - mu_true) / 0.4^2)
+  dat <- data.frame(y = y, x = x, w = stats::rnorm(n), v = stats::rnorm(n))
   fit <- drmTMB(
-    bf(cbind(success, failure) ~ x, sigma ~ 1),
-    family = beta_binomial(),
+    bf(y ~ x, sigma ~ 1, zoi ~ w, coi ~ v),
+    family = zero_one_beta(),
     data = dat,
     control = drm_control(se = FALSE)
   )
@@ -133,45 +136,12 @@ test_that("tweedie feasibility spike matches tweedie::dtweedie and the atom at 0
   expect_equal(p0, d0)
 })
 
-test_that("skew_normal feasibility spike CDF matches the bivariate-normal identity", {
-  testthat::skip_if_not_installed("mvtnorm")
-  set.seed(20260715)
-  n <- 40
-  x <- stats::rnorm(n)
-  mu_true <- 0.5 + 0.4 * x
-  y <- rskew_normal_public(n, mu = mu_true, sigma = 1.1, nu = 3)
-  dat <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = skew_normal(), data = dat)
-  fd <- fitted_distribution(fit)
-
-  expect_identical(fd$status, "spike")
-
-  mu_hat <- predict(fit, dpar = "mu")
-  sigma_hat <- predict(fit, dpar = "sigma")
-  nu_hat <- predict(fit, dpar = "nu")
-
-  # compiled log-density agreement
-  nll_compiled <- fit$obj$fn(fit$obj$env$last.par.best)
-  expect_equal(nll_compiled, -sum(log(fd$d(dat$y))), tolerance = 1e-6)
-
-  # independent CDF formula: F(z) = 2*Phi(z) - 2*Phi2(0, z; rho = delta)
-  alpha <- nu_hat[1]
-  delta <- alpha / sqrt(1 + alpha^2)
-  mean_shift <- delta * sqrt(2 / pi)
-  omega <- sigma_hat[1] / sqrt(1 - mean_shift^2)
-  idx <- 1:5
-  xi <- mu_hat[idx] - omega * mean_shift
-  z <- (dat$y[idx] - xi) / omega
-  external_cdf <- vapply(z, function(zz) {
-    2 * stats::pnorm(zz) -
-      2 * mvtnorm::pmvnorm(
-        upper = c(0, zz),
-        mean = c(0, 0),
-        corr = matrix(c(1, delta, delta, 1), 2)
-      )
-  }, numeric(1))
-  expect_equal(fd$p(dat$y[idx]), external_cdf, tolerance = 1e-6)
-})
+# The skew_normal DG2/DG3 tests (formerly a "feasibility spike" CDF-identity
+# check here) moved to tests/testthat/test-family-dpq-batchB.R and were
+# extended to full DG2 (inverse identity, normalization, compiled-density
+# agreement, the mvtnorm bivariate-normal external-reference identity) + DG3
+# smoke when skew_normal was promoted to `status = "reference"` in DO-T3
+# batch B.
 
 test_that("drm_dunn_smyth_u() is seed-reproducible, bounded, and RNG-neutral", {
   lower <- c(0, 0.5, 0.9)
