@@ -41,8 +41,10 @@ effects, intervals, or missing-predictor support.
 | G4 | finite correctly named interval at a known-DGP point |
 | G5 | archived replicated coverage evidence |
 
-The visible verified ✓ begins at G3. MR-T0 seeds six admitted routes at G1 and
-twelve rejected routes at G0; none is verified yet.
+The visible verified ✓ begins at G3. MR-T0 seeded six admitted routes at G1 and
+twelve rejected routes at G0. MR-T1 promotes those six routes to G3 with
+separate passing G2 contract evidence and G3 recovery evidence; the remaining
+twelve routes stay at G0 until their scheduled tranches.
 
 ## Commands
 

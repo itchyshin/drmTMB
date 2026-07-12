@@ -392,6 +392,7 @@ def validate(
 
     cell_ids = set(ids)
     evidence_id_set = set(evidence_ids)
+    evidence_by_id = {row["evidence_id"]: row for row in evidence}
     for row in cells:
         if row["capability_status"] not in CAPABILITY_STATUSES:
             errors.append(f"{row['cell_id']}: invalid capability_status")
@@ -406,6 +407,11 @@ def validate(
         primary = row["primary_evidence_id"]
         if primary and primary not in evidence_id_set:
             errors.append(f"{row['cell_id']}: missing primary evidence {primary}")
+        elif primary and evidence_by_id[primary]["cell_id"] != row["cell_id"]:
+            errors.append(
+                f"{row['cell_id']}: primary evidence {primary} belongs to "
+                f"{evidence_by_id[primary]['cell_id']}"
+            )
 
     for row in evidence:
         if row["cell_id"] not in cell_ids:
@@ -454,6 +460,47 @@ def validate(
             errors.append(
                 f"{cell['cell_id']}: current work status does not match latest transition"
             )
+
+    evidence_by_cell: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in evidence:
+        evidence_by_cell[row["cell_id"]].append(row)
+    for route, cell in missing.items():
+        gate = int(cell["test_gate"][1:])
+        if gate < 2:
+            continue
+        cell_evidence = evidence_by_cell[cell["cell_id"]]
+        g2_ids = {
+            row["evidence_id"]
+            for row in cell_evidence
+            if row["evidence_class"] == "g2_contract_test"
+            and row["result"] == "G2_pass"
+        }
+        if not g2_ids:
+            errors.append(f"{route}: G2+ requires passing same-cell G2 contract evidence")
+        recovery_ids = {
+            row["evidence_id"]
+            for row in cell_evidence
+            if row["evidence_class"] == "recovery_test"
+            and row["result"] == "G3_pass"
+        }
+        if gate >= 3 and not recovery_ids:
+            errors.append(f"{route}: G3+ requires passing same-cell recovery evidence")
+        primary = evidence_by_id.get(cell["primary_evidence_id"])
+        if gate >= 3 and primary and (
+            primary["evidence_class"] != "recovery_test"
+            or primary["result"] != "G3_pass"
+        ):
+            errors.append(f"{route}: G3+ primary evidence must be a passing recovery test")
+        transition = latest_transition.get(cell["cell_id"])
+        transition_evidence = set(
+            filter(None, transition["evidence_ids"].split(";"))
+        ) if transition else set()
+        if not transition or not (transition_evidence & g2_ids):
+            errors.append(f"{route}: latest G2+ transition must cite G2 contract evidence")
+        if gate >= 3 and (
+            not transition or not (transition_evidence & recovery_ids)
+        ):
+            errors.append(f"{route}: latest G3+ transition must cite recovery evidence")
 
     if errors:
         raise SystemExit("Capability ledger validation failed:\n- " + "\n- ".join(errors))
@@ -721,9 +768,10 @@ def surface_markdown(
         "inflation formula combined with response-missingness. Neither route "
         "inherits a tick from Poisson or NB2.",
         "",
-        "The six admitted routes remain G1/implemented-unverified until MR-T1 "
-        "completes direct sentinel mutation, residual/accounting, and named "
-        "recovery audits.",
+        "Each route's displayed gate and work state come from its own ledger "
+        "evidence. Verified routes have passed direct sentinel mutation, "
+        "residual/accounting, and named recovery audits; no route inherits a "
+        "tick from a base family.",
         "",
         "## Per-family model-surface summary",
         "",
@@ -860,17 +908,20 @@ function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 
-def tranche_summary(cells: list[dict[str, str]]) -> str:
-    missing = [row for row in cells if row["axis"] == "missing_response"]
+def tranche_summary(cells: list[dict[str, str]], tranche_id: str) -> str:
+    missing = [
+        row for row in cells
+        if row["axis"] == "missing_response" and row["tranche_id"] == tranche_id
+    ]
     counts = Counter(row["work_status"] for row in missing)
     lines = [
-        "# MR-T0 capability-ledger baseline",
+        f"# {tranche_id} missing-response ledger summary",
         "",
         "_Generated; do not hand-edit._",
         "",
         "| Tranche | Routes | Backlog | Implemented unverified | Verified | Next gate |",
         "|---|---:|---:|---:|---:|---|",
-        f"| MR-T0 baseline | 18 | {counts['backlog']} | {counts['implemented_unverified']} | {counts['verified']} | Execute MR-T1 only after Shinichi reviews this surface |",
+        f"| {tranche_id} | {len(missing)} | {counts['backlog']} | {counts['implemented_unverified']} | {counts['verified']} | Follow each route's evidence and next-gate fields |",
         "",
         "## Route accounting",
         "",
@@ -878,8 +929,8 @@ def tranche_summary(cells: list[dict[str, str]]) -> str:
         "",
         "## Does not cover",
         "",
-        "MR-T0 does not implement a family route, validate sentinel invariance, "
-        "repair extractors, add recovery evidence, or change any model inference tier.",
+        "This summary does not promote intervals, coverage, model inference tiers, "
+        "missing-predictor support, REML, or structured-effect claims.",
         "",
     ]
     return "\n".join(lines)
@@ -899,7 +950,10 @@ def outputs(
         ROOT / "docs/dev-log/dashboard/capability-surface.md": surface_markdown(cells, evidence).encode("utf-8"),
         ROOT / "docs/dev-log/dashboard/capability-surface.html": surface_html(cells, evidence).encode("utf-8"),
         ROOT / "vignettes/includes/capability-ledger-missing-response.md": missing_markdown(missing, compact=True).encode("utf-8"),
-        LEDGER / "tranches/MR-T0.md": tranche_summary(cells).encode("utf-8"),
+        **{
+            LEDGER / "tranches" / f"{tranche}.md": tranche_summary(cells, tranche).encode("utf-8")
+            for tranche in ("MR-T1", "MR-T2", "MR-T3", "MR-T4", "MR-T5", "MR-T6")
+        },
     }
     for family in sorted({row["family"] for row in model}):
         result[CENSUS / f"{family}.tsv"] = legacy_tsv_bytes(
