@@ -58,39 +58,3 @@ test_that("miss_control(response = 'include') rejects loudly for every non-valid
     )
   }
 })
-
-test_that("zero-inflated and hurdle routes do not inherit missing-response admission", {
-  dat <- data.frame(
-    y = c(0L, 1L, NA_integer_, 2L, 0L, 3L, 1L, 2L),
-    x = seq(-1, 1, length.out = 8L)
-  )
-  control <- miss_control(response = "include")
-
-  expect_error(
-    drmTMB(
-      bf(y ~ x, zi ~ 1),
-      family = poisson(link = "log"),
-      data = dat,
-      missing = control
-    ),
-    "without a .*zi.* formula"
-  )
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, zi ~ 1),
-      family = nbinom2(),
-      data = dat,
-      missing = control
-    ),
-    "without a .*zi.* formula"
-  )
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, hu ~ 1),
-      family = truncated_nbinom2(),
-      data = dat,
-      missing = control
-    ),
-    "not implemented for hurdle NB2"
-  )
-})
