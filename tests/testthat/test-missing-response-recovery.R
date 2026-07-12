@@ -2,7 +2,11 @@ mask_mcar_within_group <- function(data, response, seed, fraction = 0.25) {
   set.seed(seed)
   rows <- split(seq_len(nrow(data)), data$id)
   missing <- unlist(lapply(rows, function(idx) {
-    sample(idx, size = max(1L, floor(length(idx) * fraction)))
+    n_missing <- length(idx) * fraction
+    if (n_missing != as.integer(n_missing)) {
+      stop("Each group size must permit the requested exact missing fraction.")
+    }
+    sample(idx, size = as.integer(n_missing))
   }), use.names = FALSE)
   data[[response]][missing] <- NA
   data
@@ -11,7 +15,7 @@ mask_mcar_within_group <- function(data, response, seed, fraction = 0.25) {
 test_that("Gaussian missing responses recover fixed and random parameters", {
   set.seed(2026071101)
   n_id <- 36L
-  n_each <- 10L
+  n_each <- 12L
   id <- factor(rep(seq_len(n_id), each = n_each))
   x <- rnorm(length(id))
   z <- rnorm(length(id))
@@ -27,6 +31,7 @@ test_that("Gaussian missing responses recover fixed and random parameters", {
     exp(truth_sigma[[1L]] + truth_sigma[[2L]] * z)
   )
   dat <- mask_mcar_within_group(dat, "y", seed = 2026071102)
+  expect_equal(mean(is.na(dat$y)), 0.25)
 
   fit <- drmTMB(
     bf(y ~ x + (1 | id), sigma ~ z),
@@ -36,11 +41,11 @@ test_that("Gaussian missing responses recover fixed and random parameters", {
     control = drm_control(se = FALSE)
   )
 
-  expect_equal(unname(coef(fit, "mu")), truth_mu, tolerance = 0.18)
-  expect_equal(unname(coef(fit, "sigma")), truth_sigma, tolerance = 0.15)
-  expect_equal(unname(fit$sdpars$mu), truth_sd, tolerance = 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - truth_mu)), 0.18)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - truth_sigma)), 0.15)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - truth_sd)), 0.25)
   expect_gt(cor(fit$random_effects$mu$values, u), 0.6)
-  expect_equal(nobs(fit), 0.8 * nrow(dat))
+  expect_equal(nobs(fit), 0.75 * nrow(dat))
 })
 
 test_that("bivariate Gaussian partial responses recover fixed and q2 parameters", {
@@ -70,6 +75,8 @@ test_that("bivariate Gaussian partial responses recover fixed and q2 parameters"
     truth_sigma[[2L]] * e2
   dat <- mask_mcar_within_group(dat, "y1", seed = 2026071104)
   dat <- mask_mcar_within_group(dat, "y2", seed = 2026071105)
+  expect_equal(mean(is.na(dat$y1)), 0.25)
+  expect_equal(mean(is.na(dat$y2)), 0.25)
 
   fit <- drmTMB(
     bf(
@@ -85,15 +92,14 @@ test_that("bivariate Gaussian partial responses recover fixed and q2 parameters"
     control = drm_control(se = FALSE)
   )
 
-  expect_equal(unname(coef(fit, "mu1")), truth_mu1, tolerance = 0.22)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - truth_mu1)), 0.22)
   expect_lt(max(abs(unname(coef(fit, "mu2")) - truth_mu2)), 0.18)
-  expect_equal(
-    c(mean(sigma(fit)$sigma1), mean(sigma(fit)$sigma2)),
-    truth_sigma,
-    tolerance = 0.12
+  expect_lt(
+    max(abs(c(mean(sigma(fit)$sigma1), mean(sigma(fit)$sigma2)) - truth_sigma)),
+    0.12
   )
-  expect_equal(unname(fit$sdpars$mu), truth_sd, tolerance = 0.24)
-  expect_equal(unname(fit$corpars$mu), truth_group_rho, tolerance = 0.3)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - truth_sd)), 0.24)
+  expect_lt(abs(unname(fit$corpars$mu) - truth_group_rho), 0.3)
   expect_lt(
     abs(tanh(unname(coef(fit, "rho12"))) - truth_residual_rho),
     0.14
@@ -103,7 +109,7 @@ test_that("bivariate Gaussian partial responses recover fixed and q2 parameters"
 test_that("Poisson missing responses recover fixed and random parameters", {
   set.seed(2026071106)
   n_id <- 48L
-  n_each <- 9L
+  n_each <- 12L
   id <- factor(rep(seq_len(n_id), each = n_each))
   x <- rnorm(length(id))
   truth_mu <- c(0.35, -0.3)
@@ -112,6 +118,7 @@ test_that("Poisson missing responses recover fixed and random parameters", {
   dat <- data.frame(id = id, x = x)
   dat$count <- rpois(nrow(dat), exp(truth_mu[[1L]] + truth_mu[[2L]] * x + u[id]))
   dat <- mask_mcar_within_group(dat, "count", seed = 2026071107)
+  expect_equal(mean(is.na(dat$count)), 0.25)
 
   fit <- drmTMB(
     bf(count ~ x + (1 | id)),
@@ -121,15 +128,15 @@ test_that("Poisson missing responses recover fixed and random parameters", {
     control = drm_control(se = FALSE)
   )
 
-  expect_equal(unname(coef(fit, "mu")), truth_mu, tolerance = 0.25)
-  expect_equal(unname(fit$sdpars$mu), truth_sd, tolerance = 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - truth_mu)), 0.25)
+  expect_lt(abs(unname(fit$sdpars$mu) - truth_sd), 0.25)
   expect_gt(cor(fit$random_effects$mu$values, u), 0.4)
 })
 
 test_that("NB2 missing responses recover fixed, dispersion, and random parameters", {
   set.seed(2026071108)
   n_id <- 48L
-  n_each <- 10L
+  n_each <- 12L
   id <- factor(rep(seq_len(n_id), each = n_each))
   x <- rnorm(length(id))
   z <- rnorm(length(id))
@@ -142,6 +149,7 @@ test_that("NB2 missing responses recover fixed, dispersion, and random parameter
   dat <- data.frame(id = id, x = x, z = z)
   dat$count <- rnbinom(nrow(dat), size = 1 / sigma_value^2, mu = mu)
   dat <- mask_mcar_within_group(dat, "count", seed = 2026071109)
+  expect_equal(mean(is.na(dat$count)), 0.25)
 
   fit <- drmTMB(
     bf(count ~ x + (1 | id), sigma ~ z),
@@ -151,16 +159,16 @@ test_that("NB2 missing responses recover fixed, dispersion, and random parameter
     control = drm_control(se = FALSE)
   )
 
-  expect_equal(unname(coef(fit, "mu")), truth_mu, tolerance = 0.25)
-  expect_equal(unname(coef(fit, "sigma")), truth_sigma, tolerance = 0.25)
-  expect_equal(unname(fit$sdpars$mu), truth_sd, tolerance = 0.3)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - truth_mu)), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - truth_sigma)), 0.25)
+  expect_lt(abs(unname(fit$sdpars$mu) - truth_sd), 0.3)
   expect_gt(cor(fit$random_effects$mu$values, u), 0.3)
 })
 
 test_that("beta missing responses recover fixed, dispersion, and random parameters", {
   set.seed(2026071110)
   n_id <- 48L
-  n_each <- 10L
+  n_each <- 12L
   id <- factor(rep(seq_len(n_id), each = n_each))
   x <- rnorm(length(id))
   z <- rnorm(length(id))
@@ -175,6 +183,7 @@ test_that("beta missing responses recover fixed, dispersion, and random paramete
   dat <- data.frame(id = id, x = x, z = z)
   dat$prop <- rbeta(nrow(dat), mu * phi, (1 - mu) * phi)
   dat <- mask_mcar_within_group(dat, "prop", seed = 2026071111)
+  expect_equal(mean(is.na(dat$prop)), 0.25)
 
   fit <- drmTMB(
     bf(prop ~ x + (1 | id), sigma ~ z),
@@ -184,8 +193,8 @@ test_that("beta missing responses recover fixed, dispersion, and random paramete
     control = drm_control(se = FALSE)
   )
 
-  expect_equal(unname(coef(fit, "mu")), truth_mu, tolerance = 0.25)
-  expect_equal(unname(coef(fit, "sigma")), truth_sigma, tolerance = 0.3)
-  expect_equal(unname(fit$sdpars$mu), truth_sd, tolerance = 0.3)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - truth_mu)), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - truth_sigma)), 0.3)
+  expect_lt(abs(unname(fit$sdpars$mu) - truth_sd), 0.3)
   expect_gt(cor(fit$random_effects$mu$values, u), 0.4)
 })

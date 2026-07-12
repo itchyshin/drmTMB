@@ -80,6 +80,7 @@ test_that("binomial MCAR-masked responses recover the truth", {
   # n chosen so single-fit recovery is robust; a coverage claim needs many
   # replicates (out of scope here), per the P0 recovery-vs-coverage distinction.
   dd <- missing_response_binomial_data(seed = 202, n = 4000, miss_frac = 0.25)
+  expect_equal(mean(!dd$observed), 0.25)
   fit <- drmTMB(
     bf(y ~ x),
     family = binomial(),

@@ -43,5 +43,19 @@ expect_missing_response_sentinel_invariant <- function(
     tolerance = 1e-8,
     ignore_attr = TRUE
   )
+  opt_a <- stats::nlminb(par, obj_a$fn, obj_a$gr)
+  opt_b <- stats::nlminb(par, obj_b$fn, obj_b$gr)
+  testthat::expect_equal(opt_a$convergence, 0L)
+  testthat::expect_equal(opt_b$convergence, 0L)
+  testthat::expect_equal(
+    unname(opt_a$par),
+    unname(opt_b$par),
+    tolerance = 1e-6
+  )
+  testthat::expect_equal(
+    -opt_a$objective,
+    -opt_b$objective,
+    tolerance = 1e-6
+  )
   invisible(fit)
 }
