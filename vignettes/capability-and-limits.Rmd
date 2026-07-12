@@ -233,17 +233,27 @@ parametrized test asserts that every family outside them rejects loudly — so a
 unsupported request is a clear error, never a silent wrong likelihood. The full
 worked walkthrough is in `vignette("missing-data")`.
 
-| Response family | Missing response (`response = "include"`) | Missing predictor `mi()` (`predictor = "model"`) |
-| --- | :---: | :---: |
-| `gaussian()` | ✓ | ✓ (broad predictor-model catalogue) |
-| bivariate Gaussian | ✓ (partial `y1`/`y2` pairs) | — |
-| `binomial()` | ✓ | ✓ (one binary predictor) |
-| `poisson()` | ✓ | ✓ (one binary predictor) |
-| `nbinom2()` | ✓ | ✓ (one binary predictor) |
-| `beta()` | ✓ | ✓ (one binary predictor) |
-| every other family | — (rejects) | — (rejects) |
+The response-missingness board below is generated from the same 18-route ledger
+as the capability surface. It distinguishes code admission from completed
+validation: a route receives a verified ✓ only at G3 recovery or above.
 
-Two details behind the checkmarks:
+```{r capability-ledger-missing-response, echo = FALSE, results = "asis"}
+cat(
+  readLines("includes/capability-ledger-missing-response.md", warn = FALSE),
+  sep = "\n"
+)
+```
+
+Missing-predictor support is a different axis and is not managed by the new
+response-missingness ledger:
+
+| Response family | Missing predictor `mi()` (`predictor = "model"`) |
+| --- | :---: |
+| `gaussian()` | ✓ (broad predictor-model catalogue) |
+| `binomial()`, `poisson()`, `nbinom2()`, `beta()` | ✓ (one binary predictor) |
+| every other family | — (rejects) |
+
+Two missing-predictor details:
 
 - **Imputation-model catalogue.** When the *response* is a univariate Gaussian
   location model, the *missing predictor* can be modelled with a wide family set —
@@ -259,8 +269,8 @@ Two details behind the checkmarks:
 Not available anywhere yet, and rejected with a family-specific message:
 non-binary missing predictors on non-Gaussian responses; multiple missing
 predictors; `mi()` with random-effect, structured, or zero-inflated response
-terms; missing responses for families outside the six above; and EM, profile, or
-REML missing-data engines.
+terms; missing-response routes that remain at G0 on the generated board; and EM,
+profile, or REML missing-data engines.
 
 ## Choosing an interval method
 

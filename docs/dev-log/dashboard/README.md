@@ -1,5 +1,30 @@
 # drmTMB Mission-Control Dashboard
 
+## Generated capability ledger
+
+The current capability surface is generated from an auditable ledger rather
+than hand-maintained checkmarks:
+
+- `capability-ledger/cells.tsv`: 668 model-surface cells plus 18 separate
+  missing-response routes;
+- `capability-ledger/evidence.tsv`: evidence records linked to stable cell IDs;
+- `capability-ledger/transitions.tsv`: append-only work-state transitions;
+- `capability-surface.html` and `capability-surface.md`: generated reader views.
+
+Regenerate and verify with:
+
+```sh
+python3 tools/capability_ledger.py --write
+python3 tools/capability_ledger.py --check
+python3 -m unittest tools/tests/test_capability_ledger.py
+Rscript --no-init-file tools/check-capability-runtime.R
+```
+
+The 2026-07-11 dated capability files are archived snapshots. The undated
+surface is canonical. Missing-response G0-G5 evidence is independent of the
+model-surface inference tier, and a missing-response ✓ appears only at G3 or
+above.
+
 This directory stores the durable source for the local finish-plan dashboard.
 The live copy is served from `/tmp/drm-dashboard` so agents can update JSON
 status while the repository remains the source of truth.
