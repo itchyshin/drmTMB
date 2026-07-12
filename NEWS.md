@@ -1,5 +1,16 @@
 # drmTMB 0.5.0.9001
 
+## Missing responses: MR-T2 continuous families
+
+* `response = "include"` now masks missing Student-t, skew-normal, lognormal,
+  and Gamma responses. Plain data-time likelihood guards prevent masked values
+  from reaching density or positive-support transformations; observed-only
+  starts, direct sentinel invariance, row/extractor contracts, and fixed-seed
+  25% MCAR recovery promote all four routes to G3. Student-t, lognormal, and
+  Gamma are verified through their ordinary random-intercept routes;
+  skew-normal remains fixed-effect only. This does not promote structured
+  effects, intervals, or coverage.
+
 ## Missing responses: MR-T1 verification
 
 * The six previously admitted `response = "include"` routes—univariate and

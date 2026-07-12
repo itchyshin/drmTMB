@@ -2404,15 +2404,17 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma = exp(log_sigma);
     vector<Type> nu = Type(2.0) + exp(eta_nu);
     for (int i = 0; i < y.size(); ++i) {
-      Type z = (y(i) - mu(i)) / sigma(i);
-      Type half = Type(0.5);
-      Type log_density =
-        lgamma(half * (nu(i) + Type(1.0))) -
-        lgamma(half * nu(i)) -
-        half * log(nu(i) * M_PI) -
-        log_sigma(i) -
-        half * (nu(i) + Type(1.0)) * log(Type(1.0) + z * z / nu(i));
-      nll -= weights(i) * log_density;
+      if (observed_y(i) == 1) {
+        Type z = (y(i) - mu(i)) / sigma(i);
+        Type half = Type(0.5);
+        Type log_density =
+          lgamma(half * (nu(i) + Type(1.0))) -
+          lgamma(half * nu(i)) -
+          half * log(nu(i) * M_PI) -
+          log_sigma(i) -
+          half * (nu(i) + Type(1.0)) * log(Type(1.0) + z * z / nu(i));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(mu);
     REPORT(log_sigma);
@@ -2443,14 +2445,16 @@ Type objective_function<Type>::operator()()
       Type variance_factor = Type(1.0) - mean_shift * mean_shift;
       omega(i) = sigma(i) / sqrt(variance_factor);
       xi(i) = mu(i) - omega(i) * mean_shift;
-      Type z = (y(i) - xi(i)) / omega(i);
-      Type skew_cdf = pnorm(alpha * z, Type(0.0), Type(1.0));
-      Type log_density =
-        log_two -
-        log(omega(i)) +
-        dnorm(z, Type(0.0), Type(1.0), true) +
-        log(skew_cdf + Type(1e-300));
-      nll -= weights(i) * log_density;
+      if (observed_y(i) == 1) {
+        Type z = (y(i) - xi(i)) / omega(i);
+        Type skew_cdf = pnorm(alpha * z, Type(0.0), Type(1.0));
+        Type log_density =
+          log_two -
+          log(omega(i)) +
+          dnorm(z, Type(0.0), Type(1.0), true) +
+          log(skew_cdf + Type(1e-300));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(mu);
     REPORT(log_sigma);
@@ -2489,8 +2493,10 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
-      Type log_y = log(y(i));
-      nll -= weights(i) * (dnorm(log_y, mu(i), sigma(i), true) - log_y);
+      if (observed_y(i) == 1) {
+        Type log_y = log(y(i));
+        nll -= weights(i) * (dnorm(log_y, mu(i), sigma(i), true) - log_y);
+      }
     }
     REPORT(mu);
     REPORT(log_sigma);
@@ -2566,15 +2572,17 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
-      Type variance_multiplier = sigma(i) * sigma(i);
-      Type shape = Type(1.0) / variance_multiplier;
-      Type scale = mu(i) * variance_multiplier;
-      Type log_density =
-        (shape - Type(1.0)) * log(y(i)) -
-        y(i) / scale -
-        lgamma(shape) -
-        shape * log(scale);
-      nll -= weights(i) * log_density;
+      if (observed_y(i) == 1) {
+        Type variance_multiplier = sigma(i) * sigma(i);
+        Type shape = Type(1.0) / variance_multiplier;
+        Type scale = mu(i) * variance_multiplier;
+        Type log_density =
+          (shape - Type(1.0)) * log(y(i)) -
+          y(i) / scale -
+          lgamma(shape) -
+          shape * log(scale);
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);

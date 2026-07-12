@@ -9,6 +9,42 @@ missing_response_retaped_object <- function(fit, tmb_data) {
   )
 }
 
+missing_response_mask_mcar_within_group <- function(
+  data,
+  response,
+  group,
+  seed,
+  fraction = 0.25
+) {
+  set.seed(seed)
+  rows <- split(seq_len(nrow(data)), data[[group]])
+  missing <- unlist(lapply(rows, function(idx) {
+    n_missing <- length(idx) * fraction
+    if (n_missing != as.integer(n_missing)) {
+      stop("Each group size must permit the requested exact missing fraction.")
+    }
+    sample(idx, size = as.integer(n_missing))
+  }), use.names = FALSE)
+  data[[response]][missing] <- NA
+  data
+}
+
+missing_response_mask_mcar <- function(
+  data,
+  response,
+  seed,
+  fraction = 0.25
+) {
+  n_missing <- nrow(data) * fraction
+  if (n_missing != as.integer(n_missing)) {
+    stop("The sample size must permit the requested exact missing fraction.")
+  }
+  set.seed(seed)
+  missing <- sample(seq_len(nrow(data)), size = as.integer(n_missing))
+  data[[response]][missing] <- NA
+  data
+}
+
 expect_missing_response_sentinel_invariant <- function(
   fit,
   response = "y",

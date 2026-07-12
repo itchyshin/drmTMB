@@ -309,7 +309,10 @@ drm_parse_missing_control <- function(missing) {
 }
 
 drm_missing_response_families <- function() {
-  c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
+  c(
+    "gaussian", "biv_gaussian", "student", "skew_normal", "lognormal",
+    "gamma", "binomial", "poisson", "nbinom2", "beta"
+  )
 }
 
 drm_missing_predictor_families <- function() {

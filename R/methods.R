@@ -3167,22 +3167,27 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   type <- match.arg(type)
   if (identical(object$model$model_type, "lognormal")) {
     if (type == "response") {
-      return(object$model$y - stats::fitted(object))
+      return(drm_mask_missing_response_values(
+        object,
+        object$model$y - stats::fitted(object)
+      ))
     }
-    return(
+    return(drm_mask_missing_response_values(
+      object,
       (log(object$model$y) - predict(object, dpar = "mu")) /
         predict(object, dpar = "sigma")
-    )
+    ))
   }
   if (identical(object$model$model_type, "gamma")) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(
+    return(drm_mask_missing_response_values(
+      object,
       response /
         (predict(object, dpar = "mu") * predict(object, dpar = "sigma"))
-    )
+    ))
   }
   if (identical(object$model$model_type, "tweedie")) {
     mu <- predict(object, dpar = "mu")
