@@ -87,10 +87,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   recovery-verified for univariate Gaussian, independent-observation bivariate
   Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta,
   zero-one beta, beta-binomial, cumulative-logit, binomial, Poisson, NB2, and
-  non-hurdle truncated-NB2 responses. Student-t, lognormal, Gamma,
+  non-hurdle truncated-NB2 responses, plus fixed-effect ZIP, ZINB2, and hurdle
+  NB2 mixtures. Student-t, lognormal, Gamma,
   beta-binomial, and truncated NB2 have ordinary random-intercept recovery
   evidence; cumulative logit, skew-normal, Tweedie, and zero-one beta are
-  fixed-effect only. Hurdle and zero-inflated response masks remain unverified.
+  fixed-effect only. The three count mixtures also have fixed-effect masking
+  evidence only; their random and structured routes do not inherit the tick.
   These route-level ticks do not establish masking for every structured
   modifier. The fitted object preserves retained row accounting and fitted
   values while returning `NA` residuals for masked univariate responses. Dense
@@ -103,8 +105,7 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   support one fixed-effect binary `mi()` predictor when the response is
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
-  declared category among observed responses. Missing-response support for the
-  three remaining mixture response routes, multiple missing predictors,
+  declared category among observed responses. Multiple missing predictors,
   non-binary missing predictors in non-Gaussian response models, grouped or
   structured non-Gaussian predictor models,
   transformed or interacted `mi()` terms, EM/profile engines, REML for

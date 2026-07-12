@@ -826,9 +826,10 @@ lognormal, Gamma, Tweedie, zero-one beta, beta-binomial, cumulative logit, and
 non-hurdle truncated NB2 support response masking (MD10 and MR-T2–MR-T5).
 Non-binary missing predictors in non-Gaussian response models,
 zero-inflated/hurdle responses with `mi()`, random or structured response terms
-with `mi()`, and missing responses for the three mixture routes remain planned.
+with `mi()`, and broader random or structured mixture masking remain planned.
 Student-t, lognormal, Gamma, beta-binomial, and truncated NB2 response-mask
 evidence includes an ordinary random intercept; skew-normal remains
 fixed-effect only, and no
 structured-route evidence is inherited from these route-level ticks. Tweedie
-and zero-one beta response masking is likewise fixed-effect only.
+and zero-one beta response masking is likewise fixed-effect only. ZIP, ZINB2,
+and hurdle NB2 have independent fixed-effect mixture recovery evidence only.

@@ -67,11 +67,36 @@ expect_route_rejection <- function(expr, route, pattern) {
   invisible(TRUE)
 }
 
+expect_route_acceptance <- function(expr, route, model_type) {
+  fit <- tryCatch(suppressWarnings(force(expr)), error = identity)
+  if (inherits(fit, "error")) {
+    stop(
+      route,
+      " unexpectedly rejected missing responses: ",
+      conditionMessage(fit),
+      call. = FALSE
+    )
+  }
+  if (!identical(fit$model$model_type, model_type)) {
+    stop(route, " reached the wrong model type", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
 dat <- data.frame(
   y = c(0L, 1L, NA_integer_, 2L, 0L, 3L, 1L, 2L),
   x = seq(-1, 1, length.out = 8L)
 )
 control <- miss_control(response = "include")
+set.seed(2026071660L)
+runtime_dat <- data.frame(x = stats::rnorm(240L))
+runtime_mu <- exp(0.4 + 0.25 * runtime_dat$x)
+runtime_dat$y <- ifelse(
+  stats::runif(240L) < 0.30,
+  0L,
+  stats::rnbinom(240L, size = 3, mu = runtime_mu)
+)
+runtime_dat$y[seq_len(60L)] <- NA_integer_
 
 route_status <- stats::setNames(routes$capability_status, routes$family_route)
 if (!identical(route_status[["zi_poisson"]], "implemented")) {
@@ -85,6 +110,18 @@ if (!identical(route_status[["zi_poisson"]], "implemented")) {
     "zi_poisson",
     "without a .*zi.* formula"
   )
+} else {
+  expect_route_acceptance(
+    drmTMB(
+      bf(y ~ x, zi ~ 1),
+      family = stats::poisson(link = "log"),
+      data = runtime_dat,
+      missing = control,
+      control = drm_control(se = FALSE)
+    ),
+    "zi_poisson",
+    "zi_poisson"
+  )
 }
 if (!identical(route_status[["zi_nbinom2"]], "implemented")) {
   expect_route_rejection(
@@ -97,6 +134,18 @@ if (!identical(route_status[["zi_nbinom2"]], "implemented")) {
     "zi_nbinom2",
     "without a .*zi.* formula"
   )
+} else {
+  expect_route_acceptance(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, zi ~ 1),
+      family = nbinom2(),
+      data = runtime_dat,
+      missing = control,
+      control = drm_control(se = FALSE)
+    ),
+    "zi_nbinom2",
+    "zi_nbinom2"
+  )
 }
 if (!identical(route_status[["hurdle_nbinom2"]], "implemented")) {
   expect_route_rejection(
@@ -108,6 +157,18 @@ if (!identical(route_status[["hurdle_nbinom2"]], "implemented")) {
     ),
     "hurdle_nbinom2",
     "not implemented for hurdle NB2"
+  )
+} else {
+  expect_route_acceptance(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, hu ~ 1),
+      family = truncated_nbinom2(),
+      data = runtime_dat,
+      missing = control,
+      control = drm_control(se = FALSE)
+    ),
+    "hurdle_nbinom2",
+    "hurdle_nbinom2"
   )
 }
 
