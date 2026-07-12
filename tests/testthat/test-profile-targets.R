@@ -3342,6 +3342,7 @@ test_that("confint profile intervals transform mu/sigma covariance targets", {
 })
 
 test_that("confint profiles the second mu/sigma covariance block", {
+  skip_on_cran()
   dat <- new_profile_two_mu_sigma_group_data()
   fit <- drmTMB(
     bf(
