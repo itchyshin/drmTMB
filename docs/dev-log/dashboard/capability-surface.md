@@ -9,7 +9,7 @@ The model surface and missing-response execution axis answer different questions
 - Model surface: **668 cells** across **18 routes**.
 - Runtime status: **283 implemented**, **343 rejected by design**, **42 not implemented**.
 - Evidence: **4 supported**, **16 inference-ready**, **44 interval-feasible**, **150 recovery-grade**.
-- Missing-response board: **18 routes; 12 G0; 6 G1; 0 G2; 0 verified (G3+)**.
+- Missing-response board: **18 routes; 12 G0; 0 G1; 0 G2; 6 verified (G3+)**.
 
 ## Missing-response execution board
 
@@ -17,16 +17,16 @@ G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = int
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `gaussian` | implemented | G1 | implemented unverified | MR-T1: complete the shared G2/G3 audit. |
-| `biv_gaussian` | implemented | G1 | implemented unverified | MR-T1: complete the shared G2/G3 audit. |
+| `gaussian` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `biv_gaussian` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `student` | rejected | G0 | backlog | MR-T2: design and implement this route before G2/G3 validation. |
 | `lognormal` | rejected | G0 | backlog | MR-T2: design and implement this route before G2/G3 validation. |
 | `gamma` | rejected | G0 | backlog | MR-T2: design and implement this route before G2/G3 validation. |
-| `poisson` | implemented | G1 | implemented unverified | MR-T1: complete the shared G2/G3 audit. |
-| `nbinom2` | implemented | G1 | implemented unverified | MR-T1: complete the shared G2/G3 audit. |
+| `poisson` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `zi_poisson` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
 | `zi_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
-| `beta` | implemented | G1 | implemented unverified | MR-T1: complete the shared G2/G3 audit. |
+| `beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `truncated_nbinom2` | rejected | G0 | backlog | MR-T5: design and implement this route before G2/G3 validation. |
 | `hurdle_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
 | `cumulative_logit` | rejected | G0 | backlog | MR-T4: design and implement this route before G2/G3 validation. |
@@ -34,13 +34,13 @@ G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = int
 | `zero_one_beta` | rejected | G0 | backlog | MR-T3: design and implement this route before G2/G3 validation. |
 | `tweedie` | rejected | G0 | backlog | MR-T3: design and implement this route before G2/G3 validation. |
 | `skew_normal` | rejected | G0 | backlog | MR-T2: design and implement this route before G2/G3 validation. |
-| `binomial` | implemented | G1 | implemented unverified | MR-T1: complete the shared G2/G3 audit. |
+| `binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 
 ### Corrections made in MR-T0
 
 `zi_poisson` and `zi_nbinom2` are G0/rejected. Their base family types pass the broad family gate, but their builders explicitly reject a zero-inflation formula combined with response-missingness. Neither route inherits a tick from Poisson or NB2.
 
-The six admitted routes remain G1/implemented-unverified until MR-T1 completes direct sentinel mutation, residual/accounting, and named recovery audits.
+Each route's displayed gate and work state come from its own ledger evidence. Verified routes have passed direct sentinel mutation, residual/accounting, and named recovery audits; no route inherits a tick from a base family.
 
 ## Per-family model-surface summary
 
@@ -75,12 +75,12 @@ This retains the original whole-package map. Its missing-response column is rege
 
 | Response | dpars | Fixed | Random (int/slope) | Structured (phylo/spatial/animal/relmat) | REML | Interval tier | Miss-response | Miss-predictor mi() |
 |---|---|---|---|---|---|---|---|---|
-| **gaussian** | mu, sigma | ✓ | ✓ int + ✓ slope on **mu AND sigma** (correlated/labelled blocks) | mu **&** sigma: phylo, spatial, animal, relmat (+phylo_interaction); one at a time | ✓ (Gaussian-gated; structured scope-restricted under REML) | **Inference-ready** (8 structured anchor cells + fixed recovery); highest in pkg | G1 implemented; audit pending | ✓ **broad** impute catalogue |
-| **biv_gaussian** | mu1, mu2, sigma1, sigma2, rho12 | ✓ | ✓ int + ✓ slope on mu1/mu2 and sigma1/sigma2 (biv covariance surface) | **phylo, spatial, animal, relmat** on mu location (q2); q4 all-four extends to sigma1/sigma2; one source at a time ⚑ | ✓ (phylo location **only** under REML) | **Inference-ready** (phylo/relmat q2 mean-mean corr); else recovery; pdHess caveat | G1 implemented; audit pending | — (none) |
-| **nbinom2** | mu, sigma, zi | ✓ | mu ✓ int + ✓ slope (not with zi); sigma **int only** (not with zi/mu-RE); zi — | mu **&** sigma: phylo, phylo_interaction, spatial, animal, relmat | — | **Inference-ready** (mu+sigma fixed); structured recovery | G1 implemented; audit pending | one binary (bernoulli) |
-| **poisson** | mu, zi (no sigma) | ✓ | mu ✓ int + ✓ slope (not with zi); zi fixed-only | mu: phylo, phylo_interaction, spatial, animal, relmat; **spatial also on zi** | — | **Inference-ready** (mu fixed); structured recovery | G1 implemented; audit pending | one binary (bernoulli) |
-| **beta** | mu, sigma | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | **animal only** (mu int/slope, sigma int); no phylo/spatial/relmat | — | **Inference-ready** (mu+sigma fixed, **interior (0,1) only**); animal recovery | G1 implemented; audit pending | one binary (bernoulli) |
-| **binomial** | mu only (logit) | ✓ | **none** (RE not implemented) | none | — | **Inference-ready** (mu fixed) | G1 implemented; audit pending | one binary (bernoulli) |
+| **gaussian** | mu, sigma | ✓ | ✓ int + ✓ slope on **mu AND sigma** (correlated/labelled blocks) | mu **&** sigma: phylo, spatial, animal, relmat (+phylo_interaction); one at a time | ✓ (Gaussian-gated; structured scope-restricted under REML) | **Inference-ready** (8 structured anchor cells + fixed recovery); highest in pkg | G3 ✓ recovery verified | ✓ **broad** impute catalogue |
+| **biv_gaussian** | mu1, mu2, sigma1, sigma2, rho12 | ✓ | ✓ int + ✓ slope on mu1/mu2 and sigma1/sigma2 (biv covariance surface) | **phylo, spatial, animal, relmat** on mu location (q2); q4 all-four extends to sigma1/sigma2; one source at a time ⚑ | ✓ (phylo location **only** under REML) | **Inference-ready** (phylo/relmat q2 mean-mean corr); else recovery; pdHess caveat | G3 ✓ recovery verified | — (none) |
+| **nbinom2** | mu, sigma, zi | ✓ | mu ✓ int + ✓ slope (not with zi); sigma **int only** (not with zi/mu-RE); zi — | mu **&** sigma: phylo, phylo_interaction, spatial, animal, relmat | — | **Inference-ready** (mu+sigma fixed); structured recovery | G3 ✓ recovery verified | one binary (bernoulli) |
+| **poisson** | mu, zi (no sigma) | ✓ | mu ✓ int + ✓ slope (not with zi); zi fixed-only | mu: phylo, phylo_interaction, spatial, animal, relmat; **spatial also on zi** | — | **Inference-ready** (mu fixed); structured recovery | G3 ✓ recovery verified | one binary (bernoulli) |
+| **beta** | mu, sigma | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | **animal only** (mu int/slope, sigma int); no phylo/spatial/relmat | — | **Inference-ready** (mu+sigma fixed, **interior (0,1) only**); animal recovery | G3 ✓ recovery verified | one binary (bernoulli) |
+| **binomial** | mu only (logit) | ✓ | **none** (RE not implemented) | none | — | **Inference-ready** (mu fixed) | G3 ✓ recovery verified | one binary (bernoulli) |
 | **student** | mu, sigma, nu | ✓ | mu ✓ int + ✓ slope; sigma RE rejected; nu fixed | **spatial on mu** (q1); **phylo on nu** (int) only | — | Feasible/recovery (mu/sigma/nu fixed + mu RE); nu~phylo diagnostic | G0 rejected/planned | — |
 | **gamma** | mu, sigma (log link only) | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | **relmat on mu** (int/slope) only | — | Feasible/recovery (mu match glm; no coverage sim); mu~relmat recovery | G0 rejected/planned | — |
 | **truncated_nbinom2** | mu, sigma, hu | ✓ | mu ✓ int + ✓ slope (**rejected when hu present**); sigma RE rejected; hu — | **relmat on hu** (int) only; none on mu/sigma | — | Feasible (mu/sigma fixed + mu RE int); slope recovery | G0 rejected/planned | — |

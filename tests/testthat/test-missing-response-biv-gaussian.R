@@ -196,6 +196,18 @@ test_that("bivariate Gaussian response-mask sentinel cannot leak", {
   )
   expect_equal(fit_zero$missing_data$response_sentinel, 0)
   expect_equal(fit_large$missing_data$response_sentinel, 1e6)
+  expect_missing_response_sentinel_invariant(
+    fit_zero,
+    response = "y1",
+    observed = fit_zero$missing_data$observed_y1,
+    sentinels = c(-1e6, 1e6)
+  )
+  expect_missing_response_sentinel_invariant(
+    fit_zero,
+    response = "y2",
+    observed = fit_zero$missing_data$observed_y2,
+    sentinels = c(-1e6, 1e6)
+  )
 })
 
 test_that("bivariate response masks keep predictor and dense-V boundaries explicit", {

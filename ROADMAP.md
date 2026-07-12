@@ -61,16 +61,15 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   residual `rho12`, mesh/SPDE spatial structure, sparse large-pedigree speed
   claims, and the full double-hierarchical endpoint remain roadmap work for
   later releases.
-- Missing-data preview boundary: the current `miss_control()` surface is a
-  bounded fitted path for Gaussian response masks, one-at-a-time modelled
-  missing predictors in univariate Gaussian location models across the
-  implemented predictor-family set, `imputed()` summaries, and MD9a, the first
-  non-Gaussian response route for an ordinary Poisson model with one
-  fixed-effect binary `mi()` predictor. Broader missing-data work, including
-  multiple missing predictors, missing non-Gaussian responses, non-binary
-  `mi()` predictors in non-Gaussian response models, grouped or structured
-  non-Gaussian predictor models, and response-imputation summaries, remains
-  later roadmap work rather than cleanup for this preview.
+- Missing-data preview boundary: `miss_control(response = "include")` is G3
+  recovery-verified for univariate and bivariate Gaussian, binomial, Poisson,
+  NB2, and beta responses. The fitted object preserves original-row accounting,
+  full-length fitted values, and `NA` residuals on masked univariate response
+  rows. The separate missing-predictor surface models one predictor at a time
+  and retains its existing family-aware catalogue and `imputed()` summaries.
+  The remaining 12 fitted response routes are scheduled through MR-T2–MR-T6;
+  multiple missing predictors, response-imputation summaries, and G4/G5
+  interval or coverage promotion remain later work.
 - Completed before tagging the version:
   - `devtools::check()` passes with 0 errors and 0 warnings;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;

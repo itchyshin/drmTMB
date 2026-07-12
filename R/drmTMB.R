@@ -4625,11 +4625,12 @@ drm_build_beta_ls_spec <- function(
     dpars = c("mu", "sigma"),
     start = if (include_missing_response) {
       beta_ls_start(
-        y[observed_y],
-        X_mu[observed_y, , drop = FALSE],
-        X_sigma[observed_y, , drop = FALSE],
+        y,
+        X_mu,
+        X_sigma,
         re_mu = re_mu,
-        phylo_mu = phylo_mu
+        phylo_mu = phylo_mu,
+        observed_y = observed_y
       )
     } else {
       beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu)
@@ -14562,13 +14563,22 @@ beta_ls_start <- function(
   X_mu,
   X_sigma,
   re_mu = empty_random_mu_structure(length(y)),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  observed_y = rep(TRUE, length(y))
 ) {
+  observed_y <- as.logical(observed_y)
+  if (length(observed_y) != length(y) || !any(observed_y)) {
+    cli::cli_abort(
+      "Internal beta start error: {.code observed_y} must identify at least one response."
+    )
+  }
+  y_start <- y[observed_y]
+  X_mu_start <- X_mu[observed_y, , drop = FALSE]
   beta_mu <- tryCatch(
     suppressWarnings(
       stats::glm.fit(
-        X_mu,
-        y,
+        X_mu_start,
+        y_start,
         family = stats::quasibinomial(link = "logit")
       )$coefficients
     ),
@@ -14576,11 +14586,16 @@ beta_ls_start <- function(
   )
   if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
     beta_mu <- rep(0, ncol(X_mu))
-    beta_mu[[1L]] <- stats::qlogis(min(max(mean(y), 1e-4), 1 - 1e-4))
+    beta_mu[[1L]] <- stats::qlogis(
+      min(max(mean(y_start), 1e-4), 1 - 1e-4)
+    )
   }
   eta_mu <- as.vector(X_mu %*% beta_mu)
   mu <- stats::plogis(eta_mu)
-  ratio <- mean((y - mu)^2 / pmax(mu * (1 - mu), .Machine$double.eps))
+  ratio <- mean(
+    (y_start - mu[observed_y])^2 /
+      pmax(mu[observed_y] * (1 - mu[observed_y]), .Machine$double.eps)
+  )
   if (!is.finite(ratio) || ratio <= 0) {
     ratio <- 0.2
   }
@@ -14589,12 +14604,14 @@ beta_ls_start <- function(
   beta_sigma <- rep(0, ncol(X_sigma))
   beta_sigma[[1L]] <- log(max(sigma0, 1e-4))
   link_y <- stats::qlogis(pmin(pmax(y, 1e-4), 1 - 1e-4))
-  y_scale <- stats::sd(link_y)
+  resid <- link_y - eta_mu
+  resid[!observed_y] <- 0
+  y_scale <- stats::sd(link_y[observed_y])
   if (!is.finite(y_scale) || y_scale <= 0) {
     y_scale <- 1
   }
-  mu_re_start <- beta_mu_re_start(link_y - eta_mu, re_mu, y_scale)
-  phylo_start <- gaussian_phylo_start(link_y - eta_mu, phylo_mu)
+  mu_re_start <- beta_mu_re_start(resid, re_mu, y_scale)
+  phylo_start <- gaussian_phylo_start(resid, phylo_mu)
   c(
     list(
       beta_mu = beta_mu,

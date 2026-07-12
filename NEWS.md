@@ -1,3 +1,15 @@
+# drmTMB 0.5.0.9001
+
+## Missing responses: MR-T1 verification
+
+* The six previously admitted `response = "include"` routes—univariate and
+  bivariate Gaussian, binomial, Poisson, NB2, and beta—now share direct
+  retaped-sentinel tests, original-row and extractor contracts, and fixed-seed
+  25% MCAR recovery tests. Univariate residuals are `NA` on masked response
+  rows while fitted values retain the original row length. These tests promote
+  the six routes to the capability ledger's G3 recovery-verified tier; they do
+  not claim interval calibration or coverage.
+
 # drmTMB 0.5.0
 
 `drmTMB` 0.5.0 is the **first CRAN release** (not 1.0). The honest version number
