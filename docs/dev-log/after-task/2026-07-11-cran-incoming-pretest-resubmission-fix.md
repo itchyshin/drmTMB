@@ -45,6 +45,12 @@ run during routine CRAN checks.
   `NOT_CRAN=false`: 0 errors, 0 warnings, 1 expected new-submission NOTE. The
   test stage passed in 144 seconds and vignette rebuilding passed in 75
   seconds. The incoming spell check no longer flags either word.
+- Exact-branch full validation workflow
+  [29175928882](https://github.com/itchyshin/drmTMB/actions/runs/29175928882):
+  macOS passed in 15:50, Ubuntu passed in 19:01, and Windows passed in 31:34.
+  This CI lane explicitly used `NOT_CRAN=true` and therefore retained all
+  exhaustive Phase 18 and conversion-contract tests.
+- Patched R-devel win-builder preflight submitted; result email pending.
 
 ## Tests Of The Tests
 
@@ -85,5 +91,6 @@ incoming pre-test remains necessary before calling the timing NOTE closed.
 
 ## Next Actions
 
-1. Run the full GitHub Actions matrix with `NOT_CRAN=true`.
-2. Confirm the patched Windows timing, then let the maintainer resubmit 0.5.0.
+1. Confirm the patched win-builder timing from its result email.
+2. Let the maintainer resubmit 0.5.0; do not move the tag or press the CRAN
+   submit button automatically.
