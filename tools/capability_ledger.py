@@ -954,6 +954,7 @@ def outputs(
         ROOT / "docs/dev-log/dashboard/capability-surface.md": surface_markdown(cells, evidence).encode("utf-8"),
         ROOT / "docs/dev-log/dashboard/capability-surface.html": surface_html(cells, evidence).encode("utf-8"),
         ROOT / "vignettes/includes/capability-ledger-missing-response.md": missing_markdown(missing, compact=True).encode("utf-8"),
+        ROOT / "vignettes/includes/capability-ledger-family-map.md": corrected_family_map_markdown(missing).encode("utf-8"),
         **{
             LEDGER / "tranches" / f"{tranche}.md": tranche_summary(cells, tranche).encode("utf-8")
             for tranche in ("MR-T1", "MR-T2", "MR-T3", "MR-T4", "MR-T5", "MR-T6")

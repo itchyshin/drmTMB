@@ -227,11 +227,13 @@ route before assuming none exists.
 Missing-data support is a separate axis from the tiers above: it is likelihood
 based (missing responses are marginalised, missing predictors are modelled inside
 the same likelihood), not multiple imputation and not a posterior. It is
-validated per response family against two single-source-of-truth allow-lists
-(`drm_missing_response_families()`, `drm_missing_predictor_families()`), and a
-parametrized test asserts that every family outside them rejects loudly — so an
-unsupported request is a clear error, never a silent wrong likelihood. The full
-worked walkthrough is in `vignette("missing-data")`.
+validated against two single-source-of-truth inventories. A positive runtime
+test reconciles all 18 fitted response routes with the response ledger;
+predictor-family tests still require every family outside
+`drm_missing_predictor_families()` to reject. Route-specific tests cover
+unsupported response neighbours, so an unsupported request is a clear error,
+never a silent wrong likelihood. The full worked walkthrough is in
+`vignette("missing-data")`.
 
 The response-missingness board below is generated from the same 18-route ledger
 as the capability surface. It distinguishes code admission from completed
@@ -269,8 +271,24 @@ Two missing-predictor details:
 Not available anywhere yet, and rejected with a family-specific message:
 non-binary missing predictors on non-Gaussian responses; multiple missing
 predictors; `mi()` with random-effect, structured, or zero-inflated response
-terms; missing-response routes that remain at G0 on the generated board; and EM,
-profile, or REML missing-data engines.
+terms; response masking combined with `mi()` in the same fit; and EM, profile,
+or REML missing-data engines. No fitted response route remains at G0 on the
+generated board, but each G3 tick applies only to the route and effect structure
+named in its evidence row.
+
+## Full per-family capability map
+
+The table below preserves the original whole-package view alongside the
+missing-response board. It shows distributional parameters, fixed and random
+effects, structured providers, REML, inference maturity, and both missing-data
+axes. Its missing-response column is generated from the same 18-route ledger.
+
+```{r capability-ledger-family-map, echo = FALSE, results = "asis"}
+cat(
+  readLines("includes/capability-ledger-family-map.md", warn = FALSE),
+  sep = "\n"
+)
+```
 
 ## Choosing an interval method
 

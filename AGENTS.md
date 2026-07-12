@@ -3,6 +3,18 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-07-12, → Codex, missing-response implementation 18/18; MR-T7 active).**
+> `main` = `843f276f` (synced) · tag **`v0.5.0`** remains frozen at `095409c0` ·
+> CRAN resubmission is awaiting an external decision. MR-T0–MR-T6 are merged
+> through PR #770: all 18 fitted response routes have independent G3
+> missing-response evidence and the live oracle reports 18 verified / 0 G0.
+> This is not G4/G5, REML, MNAR, response-plus-`mi()`, or blanket
+> random/structured support. **Only MR-T7 certification remains:** full local
+> test/document/`--as-cran`/pkgdown, three fresh reviewers, closeout PR,
+> final-main 3-OS CI, clang-ASAN/clang-UBSAN/GCC-ASAN, live Pages, issue #761,
+> handover, and tracked-clean synchronized `main`. START HERE:
+> [`docs/dev-log/handover/2026-07-12-missing-response-arc-closeout.md`](docs/dev-log/handover/2026-07-12-missing-response-arc-closeout.md)
+>
 > **▶ Latest — start here (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
 > `main` = `97ba0042` (synced) · tag **`v0.5.0`** = `09d44c7c` · tag CI **GREEN 3-OS** · **NOT on CRAN yet**.
 > Missing-data non-Gaussian arc (P0–P5) COMPLETE; release-eng portability gate closed

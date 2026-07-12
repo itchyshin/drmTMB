@@ -1,8 +1,10 @@
 # Ultra-plan: missing-response masking across all fitted drmTMB routes
 
-**Status:** MR-T0 is merged; MR-T1 has an independent DONE verdict and is
-awaiting its PR/Ubuntu gate for the shared contract and legacy six. The maintainer reports that the CRAN email confirmation is
-complete. No missing-response family implementation has begun.
+**Status:** MR-T0 through MR-T6 are merged through PR #770 on `main` at
+`843f276f`. The generated ledger and live runtime oracle agree on 18 fitted
+routes, 18 verified at G3, and zero G0. MR-T7 certification is the only active
+tranche; no missing-response implementation remains. The CRAN submission is a
+separate release track and remains awaiting an external decision.
 
 ## 1. Outcome
 
@@ -295,8 +297,11 @@ DRAC job array.
 
 ## 11. Immediate next action
 
-Review the generated ledger and capability page. The page now combines the
-18-route execution board with the retained whole-package per-family map. If
-Shinichi authorizes continuation, execute **MR-T1 only**: repair the shared
-sentinel/residual/accounting harness and audit the six currently admitted routes
-before implementing another family.
+Execute **MR-T7 certification only** from synchronized post-PR-#770 `main`:
+regenerate and reconcile the 18-route ledger; run full tests, documentation,
+`--as-cran`, and pkgdown checks/build; obtain three independent DONE verdicts;
+merge the closeout PR; then require final-main three-OS CI, the requested
+clang-ASAN/clang-UBSAN/GCC-ASAN matrix, and live Pages verification. Record the
+bounded final claim, exact findings, workflow URLs, handover, and clean-main
+proof before closing issue #761. Do not promote G4/G5, REML, MNAR, response plus
+`mi()`, or blanket random/structured masking.
