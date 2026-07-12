@@ -3,7 +3,19 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-12, → Codex, missing-response implementation 18/18; MR-T7 active).**
+> **▶ Latest — start here (2026-07-12, → Claude, missing-response arc COMPLETE).**
+> `main` = `d06bf015` (synced) · tag **`v0.5.0`** remains frozen at `095409c0` ·
+> CRAN remains a separate external decision. MR-T0–MR-T7 are merged through
+> PR #771: all 18 fitted response routes have independent G3 missing-response
+> evidence; the ledger/runtime oracle report 18 verified / 0 G0–G2; local full
+> test, genuine `--as-cran`, pkgdown, three fresh reviews, final-main 3-OS CI,
+> final sanitizer matrix, live Pages, and issue #761 closeout are complete.
+> G4/G5, MNAR, response-plus-`mi()`, non-Gaussian
+> REML, and blanket random/structured support remain outside the claim. START
+> HERE:
+> [`docs/dev-log/handover/2026-07-12-claude-handover.md`](docs/dev-log/handover/2026-07-12-claude-handover.md)
+>
+> **▶ Prior — (2026-07-12, → Codex, missing-response implementation 18/18; MR-T7 active).**
 > `main` = `843f276f` (synced) · tag **`v0.5.0`** remains frozen at `095409c0` ·
 > CRAN resubmission is awaiting an external decision. MR-T0–MR-T6 are merged
 > through PR #770: all 18 fitted response routes have independent G3
@@ -15,7 +27,7 @@ regression using Template Model Builder.
 > handover, and tracked-clean synchronized `main`. START HERE:
 > [`docs/dev-log/handover/2026-07-12-missing-response-arc-closeout.md`](docs/dev-log/handover/2026-07-12-missing-response-arc-closeout.md)
 >
-> **▶ Latest — start here (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
+> **▶ Prior — (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
 > `main` = `97ba0042` (synced) · tag **`v0.5.0`** = `09d44c7c` · tag CI **GREEN 3-OS** · **NOT on CRAN yet**.
 > Missing-data non-Gaussian arc (P0–P5) COMPLETE; release-eng portability gate closed
 > (`skip_fragile_recovery()` greened the red tag; `TMB(>=1.9.6)`/`Matrix(>=1.6.0)` floors; ROADMAP fix).
