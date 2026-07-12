@@ -37,13 +37,10 @@
 #' For a continuous-with-isolated-atoms family (`fd$has_atom`, `fd$discrete ==
 #' FALSE`), the left limit is `F(y_i)` unchanged away from every atom location
 #' in `fd$atoms` (`F` is continuous there, so the Dunn-Smyth draw degenerates
-#' to the plain continuous case automatically) and `F(a - epsilon)` (a small
-#' fixed offset below the atom, evaluated via `fd$p()`) at each atom `a` --
-#' Tweedie has one atom at `y = 0` (`F(-epsilon) = 0` exactly, since the
-#' support starts at 0); `zero_one_beta` has two, at `y = 0` and `y = 1`
-#' (`F(1 - epsilon)` is the interior beta CDF's left limit approaching the
-#' upper atom, an epsilon-accurate approximation to the exact continuous limit
-#' -- see `drm_atom_left_limit()`'s comment for the precision discussion).
+#' to the plain continuous case automatically) and the exact left limit
+#' `F(a-) = F(a) - P(Y = a) = F(a) - fd$d(a)` at each atom `a` -- exact for both
+#' Tweedie's atom at `y = 0` and `zero_one_beta`'s atoms at `y = 0` and `y = 1`,
+#' with no epsilon offset (see `drm_atom_left_limit()`).
 #'
 #' `fitted_distribution()$status == "spike"` families (feasibility spikes,
 #' not yet DG2/DG3-verified) still compute a residual, but emit a one-time
@@ -51,6 +48,13 @@
 #' is exploratory, not DG-verified. `status == "unimplemented"` families
 #' already raise a clear error inside `fitted_distribution()`, before this
 #' function's body runs.
+#'
+#' For a bivariate `biv_gaussian` fit, `response` (`1` or `2`) is REQUIRED and
+#' selects which response's MARGINAL quantile residuals to compute -- exactly
+#' the univariate Dunn-Smyth construction above applied to that response's
+#' `N(mu_k, sigma_k)` marginal (`rho12` does not enter). Omitting `response`
+#' for a `biv_gaussian` fit errors clearly, as does supplying it for a
+#' univariate fit; see [fitted_distribution()].
 #'
 #' @param object A `drmTMB` fit.
 #' @param seed Optional single integer. Fixes the Dunn-Smyth randomization
@@ -65,13 +69,17 @@
 #'   families every column is identical (the residual has no randomization
 #'   uncertainty to average over); the envelope is only non-degenerate for
 #'   discrete/atom families.
+#' @param response For a bivariate `biv_gaussian` fit, `1` or `2`, selecting
+#'   which response's marginal residuals to compute; see
+#'   [fitted_distribution()]. Must be `NULL` (the default) for univariate
+#'   model types.
 #'
 #' @return A numeric vector (`nsim = 1`) or an `n`-by-`nsim` matrix
 #'   (`nsim > 1`) of approximately N(0,1) residuals under a correctly
 #'   specified fixed-effect model. Missing-response rows (see
 #'   [drm_mask_missing_response_values()]) are `NA`.
 #' @keywords internal
-drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L) {
+drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L, response = NULL) {
   if (!inherits(object, "drmTMB")) {
     cli::cli_abort("{.arg object} must be a {.cls drmTMB} fit.")
   }
@@ -88,14 +96,15 @@ drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L) {
     cli::cli_abort("{.arg nsim} must be a single positive integer.")
   }
   nsim <- as.integer(nsim)
+  response <- drm_validate_fitted_distribution_response(object, response)
 
-  fd <- fitted_distribution(object)
+  fd <- fitted_distribution(object, response = response)
   drm_warn_adequacy_spike(fd$status, object$model$model_type)
-  y <- object$model$y
+  y <- drm_quantile_residual_response_y(object, response)
 
   if (nsim == 1L) {
     u <- drm_quantile_residual_u(fd, y, seed = seed)
-    return(drm_mask_missing_response_values(object, stats::qnorm(u)))
+    return(drm_quantile_residual_mask(object, stats::qnorm(u), response))
   }
 
   seeds <- if (is.null(seed)) {
@@ -105,11 +114,64 @@ drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L) {
   }
   cols <- lapply(seeds, function(s) {
     u <- drm_quantile_residual_u(fd, y, seed = s)
-    drm_mask_missing_response_values(object, stats::qnorm(u))
+    drm_quantile_residual_mask(object, stats::qnorm(u), response)
   })
   out <- matrix(unlist(cols), ncol = nsim)
   colnames(out) <- paste0("sim", seq_len(nsim))
   out
+}
+
+# The response vector drm_quantile_residual_u() computes F(y)/left-limits
+# against. Univariate fits: object$model$y (unchanged). biv_gaussian fits
+# (DO-T3 batch D): object$model$y1/y2, selected by the validated `response`
+# (there is no object$model$y field for biv_gaussian fits at all).
+drm_quantile_residual_response_y <- function(object, response) {
+  if (identical(object$model$model_type, "biv_gaussian")) {
+    return(if (identical(response, 1L)) object$model$y1 else object$model$y2)
+  }
+  object$model$y
+}
+
+# Missing-response masking for one drm_quantile_residuals() result column.
+# Univariate fits reuse drm_mask_missing_response_values() (R/missing-data.R)
+# unchanged. biv_gaussian fits (DO-T3 batch D) do NOT reuse it directly:
+# that helper reads `missing_data$observed_y`, which for a biv_gaussian fit
+# is a TWO-COLUMN matrix (cbind(y1 = observed_y1, y2 = observed_y2),
+# R/missing-data.R's new_drm_biv_missing_data()) sized 2n, not the n-length
+# single-response `value` here -- passing it through unchanged would either
+# error on the length mismatch or (worse) silently misalign. This masks
+# against the SAME per-response `observed_y1`/`observed_y2` logical vectors
+# `drm_mask_biv_missing_response_values()` (R/missing-data.R) uses for the
+# two-column response-residual matrix, applied to a single selected column.
+drm_quantile_residual_mask <- function(object, value, response) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(drm_mask_missing_response_values(object, value))
+  }
+  missing_data <- object$missing_data
+  if (
+    !is.list(missing_data) ||
+      !identical(missing_data$response_policy, "include")
+  ) {
+    return(value)
+  }
+  observed <- if (identical(response, 1L)) {
+    missing_data$observed_y1
+  } else {
+    missing_data$observed_y2
+  }
+  if (is.null(observed)) {
+    return(value)
+  }
+  observed <- as.logical(observed)
+  if (length(value) != length(observed)) {
+    cli::cli_abort(c(
+      "Internal error: cannot mask missing responses because of a length mismatch.",
+      "x" = "Received {length(value)} value{?s} but the response mask has {length(observed)} entr{?y/ies}.",
+      "i" = "Masking is required so the internal missing-response sentinel is never reported as data."
+    ))
+  }
+  value[!observed] <- NA_real_
+  value
 }
 
 # u = F(y), or the Dunn-Smyth randomized draw when F has jumps -- see
@@ -203,8 +265,8 @@ drm_reset_adequacy_warning_state <- function() {
 # and their tests read this table rather than re-deriving it, so a numeric
 # "does the trend depart from flat" assertion in tests uses exactly the data
 # the plot draws.
-drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L) {
-  z <- drm_quantile_residuals(object, seed = seed, nsim = nsim)
+drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L, response = NULL) {
+  z <- drm_quantile_residuals(object, seed = seed, nsim = nsim, response = response)
   if (is.null(dim(z))) {
     z <- matrix(z, ncol = 1L)
   }

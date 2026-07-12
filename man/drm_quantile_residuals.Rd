@@ -4,7 +4,7 @@
 \alias{drm_quantile_residuals}
 \title{Randomized quantile residuals (internal)}
 \usage{
-drm_quantile_residuals(object, seed = NULL, nsim = 1L)
+drm_quantile_residuals(object, seed = NULL, nsim = 1L, response = NULL)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -22,6 +22,11 @@ realization, using \code{nsim} distinct derived seeds when \code{seed} is suppli
 families every column is identical (the residual has no randomization
 uncertainty to average over); the envelope is only non-degenerate for
 discrete/atom families.}
+
+\item{response}{For a bivariate \code{biv_gaussian} fit, \code{1} or \code{2}, selecting
+which response's marginal residuals to compute; see
+\code{\link[=fitted_distribution]{fitted_distribution()}}. Must be \code{NULL} (the default) for univariate
+model types.}
 }
 \value{
 A numeric vector (\code{nsim = 1}) or an \code{n}-by-\code{nsim} matrix
@@ -49,13 +54,10 @@ since zero-inflation/hurdle mass sits AT an existing lattice point rather
 than opening a new atom, and a zero-truncated \code{F} is 0 below its support).
 For a continuous-with-isolated-atoms family (\code{fd$has_atom}, \code{fd$discrete == FALSE}), the left limit is \code{F(y_i)} unchanged away from every atom location
 in \code{fd$atoms} (\code{F} is continuous there, so the Dunn-Smyth draw degenerates
-to the plain continuous case automatically) and \code{F(a - epsilon)} (a small
-fixed offset below the atom, evaluated via \code{fd$p()}) at each atom \code{a} --
-Tweedie has one atom at \code{y = 0} (\code{F(-epsilon) = 0} exactly, since the
-support starts at 0); \code{zero_one_beta} has two, at \code{y = 0} and \code{y = 1}
-(\code{F(1 - epsilon)} is the interior beta CDF's left limit approaching the
-upper atom, an epsilon-accurate approximation to the exact continuous limit
--- see \code{drm_atom_left_limit()}'s comment for the precision discussion).
+to the plain continuous case automatically) and the exact left limit
+\verb{F(a-) = F(a) - P(Y = a) = F(a) - fd$d(a)} at each atom \code{a} -- exact for both
+Tweedie's atom at \code{y = 0} and \code{zero_one_beta}'s atoms at \code{y = 0} and \code{y = 1},
+with no epsilon offset (see \code{drm_atom_left_limit()}).
 
 \code{fitted_distribution()$status == "spike"} families (feasibility spikes,
 not yet DG2/DG3-verified) still compute a residual, but emit a one-time
@@ -63,5 +65,12 @@ not yet DG2/DG3-verified) still compute a residual, but emit a one-time
 is exploratory, not DG-verified. \code{status == "unimplemented"} families
 already raise a clear error inside \code{fitted_distribution()}, before this
 function's body runs.
+
+For a bivariate \code{biv_gaussian} fit, \code{response} (\code{1} or \code{2}) is REQUIRED and
+selects which response's MARGINAL quantile residuals to compute -- exactly
+the univariate Dunn-Smyth construction above applied to that response's
+\code{N(mu_k, sigma_k)} marginal (\code{rho12} does not enter). Omitting \code{response}
+for a \code{biv_gaussian} fit errors clearly, as does supplying it for a
+univariate fit; see \code{\link[=fitted_distribution]{fitted_distribution()}}.
 }
 \keyword{internal}

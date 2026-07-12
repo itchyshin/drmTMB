@@ -167,22 +167,21 @@ test_that("drm_warn_adequacy_spike() warns once per model_type per session, not 
 
 test_that("residuals(type = 'quantile') errors clearly for an unimplemented model type", {
   # "poisson" was promoted to status = "reference" in DO-T3 batch A,
-  # "beta_binomial" in DO-T3 batch B, and "zero_one_beta"/"tweedie"/the
-  # count-mixture families in DO-T3 batch C, so this test now exercises the
-  # one model type every batch has left unimplemented: biv_gaussian.
-  n <- 40
+  # "beta_binomial" in DO-T3 batch B, "zero_one_beta"/"tweedie"/the
+  # count-mixture families in DO-T3 batch C, and "biv_gaussian" (the last
+  # remaining model type) in DO-T3 batch D -- all 18 fitted model_type
+  # values now have a promoted entry, so a live fit can no longer reach the
+  # unimplemented-model-type error path. This mutates a real fit's
+  # model_type to a synthetic value (fitted_distribution()/drm_family_dpq()
+  # read only object$model$model_type, so this is enough to exercise the
+  # abort branch directly, without needing a genuinely-unimplemented family
+  # to exist).
+  set.seed(1)
+  n <- 20
   x <- stats::rnorm(n)
-  dat <- data.frame(
-    y1 = 0.4 + 0.6 * x + stats::rnorm(n),
-    y2 = -0.2 + 0.3 * x + stats::rnorm(n),
-    x = x
-  )
-  fit <- drmTMB(
-    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
-    family = biv_gaussian(),
-    data = dat,
-    control = drm_control(se = FALSE)
-  )
+  dat <- data.frame(y = 0.5 + 0.8 * x + stats::rnorm(n), x = x)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  fit$model$model_type <- "not_a_real_model_type"
   expect_error(
     residuals(fit, type = "quantile"),
     "does not yet cover model type"

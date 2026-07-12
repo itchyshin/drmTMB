@@ -37,14 +37,13 @@
 #               "unimplemented" = no entry (drm_family_dpq() aborts before
 #               returning). Consumers (DO-T1 residual gate, DO-T3 ledger
 #               grader) read this to decide what to expose. As of DO-T3 batch
-#               C, "gaussian", "student", "skew_normal", "lognormal", "gamma",
-#               "tweedie", "beta", "zero_one_beta", "beta_binomial",
-#               "binomial", "cumulative_logit", "poisson", "zi_poisson",
-#               "nbinom2", "truncated_nbinom2", "hurdle_nbinom2", and
-#               "zi_nbinom2" are "reference" (base-R-closed-form, hand-derived,
-#               or atom/mixture-decomposition DG2 pass; see the batch-A/B/C
-#               after-task reports). Only "biv_gaussian" remains
-#               "unimplemented". Enum locked at CP1.
+#               D, all 18 fitted model_type values are "reference"
+#               (base-R-closed-form, hand-derived, atom/mixture-decomposition,
+#               or bivariate-marginal DG2 pass; see the batch-A/B/C/D
+#               after-task reports); the "unimplemented" abort branch is now
+#               defensive-only (unreachable via any live drmTMB() fit's
+#               model_type, kept so a future new model_type fails loudly
+#               rather than silently). Enum locked at CP1.
 #
 # Noether's trap: the public -> native parameter map is family-specific and
 # NON-identity. A generic `pFAMILY(y, mu, sigma)` is wrong. Each case below
@@ -66,18 +65,21 @@
 #' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch C, the promoted (`status = "reference"`) families are
-#' `"gaussian"`, `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`,
-#' `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`, `"binomial"`,
-#' `"cumulative_logit"`, `"poisson"`, `"zi_poisson"`, `"nbinom2"`,
-#' `"truncated_nbinom2"`, `"hurdle_nbinom2"`, and `"zi_nbinom2"`.
+#' As of DO-T3 batch D, all 18 fitted `model_type` values are promoted
+#' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
+#' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
+#' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
+#' `"zi_poisson"`, `"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`,
+#' `"zi_nbinom2"`, and `"biv_gaussian"`.
 #' **`"skew_normal"` promotion is a distributional-output-axis result only**
 #' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
 #' family's own fit-quality status (`diagnostic_hold` in `check_drmTMB()`),
 #' which is a separate axis and is unchanged -- see the firewall note beside
-#' `drm_family_dpq_skew_normal()`. Only `"biv_gaussian"` remains
-#' `"unimplemented"` and raises a clear "not yet implemented" error (staged
-#' for a later DO-T3 batch: bivariate marginal distributional output).
+#' `drm_family_dpq_skew_normal()`. **`"biv_gaussian"` is MARGINAL-only**: its
+#' `{d,p,q}` describe one response's marginal `N(mu_k, sigma_k)` (exact,
+#' independent of `rho12`), never the joint bivariate distribution -- see
+#' `drm_family_dpq_biv_gaussian()` and [fitted_distribution()]'s `response`
+#' argument, which selects `k`.
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a
@@ -111,6 +113,7 @@ drm_family_dpq <- function(object) {
     truncated_nbinom2 = drm_family_dpq_truncated_nbinom2(),
     hurdle_nbinom2 = drm_family_dpq_hurdle_nbinom2(),
     zi_nbinom2 = drm_family_dpq_zi_nbinom2(),
+    biv_gaussian = drm_family_dpq_biv_gaussian(),
     cli::cli_abort(c(
       "{.fn drm_family_dpq} does not yet cover model type {.val {object$model$model_type}}.",
       i = "Per-family density/CDF/quantile rollout for the remaining model types is staged for a later phase (DO-T3)."
@@ -1065,6 +1068,35 @@ drm_family_dpq_zi_nbinom2 <- function() {
   )
 }
 
+# ---- biv_gaussian (reference, MARGINAL-ONLY, DO-T3 batch D) ----------------
+#
+# The marginal of a bivariate normal for response k is EXACTLY
+# N(mu_k, sigma_k), independent of rho12 -- a property of the multivariate
+# normal (integrating the joint density over the other response leaves rho12
+# out entirely), not an approximation. So biv_gaussian's {d,p,q} are the SAME
+# univariate gaussian closures drm_family_dpq_gaussian() already provides,
+# reused verbatim: no new density/CDF/quantile code, no new cascade.
+#
+# The response-selection step -- which of (mu1, sigma1) vs (mu2, sigma2)
+# supplies the generic "mu"/"sigma" columns the reused closures read -- does
+# NOT happen here. drm_family_dpq(object) has no `response` argument (its
+# signature is unchanged by this batch); the {d,p,q} closures below are
+# identical regardless of which response was selected upstream. Selection
+# happens in fitted_distribution_params()'s biv_gaussian branch, driven by
+# the `response` argument fitted_distribution()/fitted_distribution.drmTMB()
+# add in this batch (REQUIRED for biv_gaussian, validated by
+# drm_validate_fitted_distribution_response()).
+#
+# V_known: drm_gaussian_obs_sigma() (reused unchanged) reads params$V_known,
+# which fitted_distribution_params() attaches via drm_biv_response_v_known()
+# -- response k's n-row slice of the fit's row-paired 2n-length
+# known_v_diag() (0 for a non-meta biv fit; the correct known sampling
+# variance for a meta_V() biv fit's fitted rows). See that helper's comment
+# for the length-mismatch bug this fixes.
+drm_family_dpq_biv_gaussian <- function() {
+  drm_family_dpq_gaussian()
+}
+
 # ---- fitted_distribution() shared accessor ---------------------------------
 
 #' Fitted distribution accessor
@@ -1078,29 +1110,41 @@ drm_family_dpq_zi_nbinom2 <- function() {
 #' re-deriving the public-to-native parameter conversion.
 #'
 #' `fitted_distribution()` only supports `model_type`s with a promoted entry
-#' in [drm_family_dpq()]: as of DO-T3 batch C that is `"gaussian"`,
-#' `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`, `"tweedie"`,
-#' `"beta"`, `"zero_one_beta"`, `"beta_binomial"`, `"binomial"`,
-#' `"cumulative_logit"`, `"poisson"`, `"zi_poisson"`, `"nbinom2"`,
-#' `"truncated_nbinom2"`, `"hurdle_nbinom2"`, and `"zi_nbinom2"` (all
-#' `status = "reference"`); only `"biv_gaussian"` raises a clear "not yet
-#' implemented" error. `newdata` support inherits the same limitation as
-#' [predict_parameters()]: fixed-effect, population-level predictions only.
-#' For meta-analysis gaussian fits (`meta_V()`), the known sampling variance
-#' is taken from the fit for fitted rows (`newdata = NULL`); when `newdata`
-#' is supplied it must carry a `V` column giving the per-row known sampling
-#' variance, or an error is raised (rather than silently assuming 0).
-#' Ordinary (non-meta) fits need no `V` column. For binomial and
-#' beta_binomial fits, fitted rows reuse the fitted `trials` denominator;
-#' `newdata` must carry a `trials` column giving the per-row denominator,
-#' mirroring the meta_V() `V`-column contract. For cumulative_logit fits, the
-#' fitted ordinal cutpoints are attached as `CP1`..`CPk` columns (constant
-#' across rows, including `newdata` rows -- the cutpoints do not depend on
-#' covariates).
+#' in [drm_family_dpq()]: as of DO-T3 batch D all 18 fitted `model_type`
+#' values are promoted (`status = "reference"`), including bivariate
+#' `"biv_gaussian"` (see the `response` argument below). `newdata` support
+#' inherits the same limitation as [predict_parameters()]: fixed-effect,
+#' population-level predictions only. For meta-analysis gaussian fits
+#' (`meta_V()`), the known sampling variance is taken from the fit for fitted
+#' rows (`newdata = NULL`); when `newdata` is supplied it must carry a `V`
+#' column giving the per-row known sampling variance, or an error is raised
+#' (rather than silently assuming 0). Ordinary (non-meta) fits need no `V`
+#' column. For binomial and beta_binomial fits, fitted rows reuse the fitted
+#' `trials` denominator; `newdata` must carry a `trials` column giving the
+#' per-row denominator, mirroring the meta_V() `V`-column contract. For
+#' cumulative_logit fits, the fitted ordinal cutpoints are attached as
+#' `CP1`..`CPk` columns (constant across rows, including `newdata` rows --
+#' the cutpoints do not depend on covariates).
+#'
+#' `response` selects which response a bivariate `biv_gaussian` fit's
+#' returned distribution describes: `1` for `(mu1, sigma1)`, `2` for `(mu2,
+#' sigma2)`. It is **required** for `biv_gaussian` (an error names the two
+#' valid values if omitted) and is **not used** for univariate `model_type`s
+#' (passing a non-`NULL` value errors, rather than being silently ignored).
+#' The returned distribution is the MARGINAL of that one response -- exactly
+#' `N(mu_k, sigma_k)`, independent of `rho12` -- never the joint bivariate
+#' distribution; there is no `response = "joint"` option. `newdata` for a
+#' `biv_gaussian` fit inherits any known bivariate sampling covariance as
+#' `V_known = 0` (marginal-only scope, matching DO-T2's original
+#' `predict(type = "quantile")` documentation); fitted rows correctly use
+#' response `k`'s slice of a `meta_V()` fit's known sampling variance.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used.
+#' @param response For a bivariate `biv_gaussian` fit, `1` or `2`, selecting
+#'   which response's marginal distribution to return. Required for
+#'   `biv_gaussian`; must be `NULL` (the default) for univariate model types.
 #' @param ... Reserved for future options.
 #'
 #' @return An object of class `"drm_fitted_distribution"`: a list with
@@ -1122,13 +1166,19 @@ fitted_distribution <- function(object, ...) {
 
 #' @rdname fitted_distribution
 #' @export
-fitted_distribution.drmTMB <- function(object, newdata = NULL, ...) {
+fitted_distribution.drmTMB <- function(object, newdata = NULL, response = NULL, ...) {
   dots <- list(...)
   if (length(dots) > 0L) {
     cli::cli_abort("{.arg ...} is reserved for future options.")
   }
+  response <- drm_validate_fitted_distribution_response(object, response)
   dpq <- drm_family_dpq(object)
-  params <- fitted_distribution_params(object, newdata = newdata, dpars = dpq$dpars)
+  params <- fitted_distribution_params(
+    object,
+    newdata = newdata,
+    dpars = dpq$dpars,
+    response = response
+  )
   structure(
     list(
       model_type = object$model$model_type,
@@ -1145,21 +1195,64 @@ fitted_distribution.drmTMB <- function(object, newdata = NULL, ...) {
   )
 }
 
+# `response` validation/normalization shared by fitted_distribution.drmTMB()
+# and R/adequacy.R's drm_quantile_residuals() (both need the SAME rule:
+# required + must be 1 or 2 for biv_gaussian, must be NULL otherwise) -- one
+# source of truth for the error wording rather than two independently
+# maintained checks. Returns response coerced to a single integer (1L/2L) for
+# biv_gaussian, or NULL for a univariate model type.
+drm_validate_fitted_distribution_response <- function(object, response) {
+  is_biv <- identical(object$model$model_type, "biv_gaussian")
+  if (!is_biv) {
+    if (!is.null(response)) {
+      cli::cli_abort(c(
+        "{.arg response} is only used for bivariate model types.",
+        i = "This fit's model type ({.val {object$model$model_type}}) is univariate; omit {.arg response} (or pass {.code NULL})."
+      ))
+    }
+    return(NULL)
+  }
+  if (is.null(response)) {
+    cli::cli_abort(c(
+      "{.val biv_gaussian} is bivariate; pass {.code response = 1} or {.code response = 2} for the marginal distribution.",
+      i = "The marginal of a bivariate normal is exactly N(mu_k, sigma_k), independent of rho12."
+    ))
+  }
+  if (length(response) != 1L || is.na(response) || !(response %in% c(1, 2))) {
+    cli::cli_abort("{.arg response} must be {.val 1} or {.val 2} for a bivariate {.val biv_gaussian} fit.")
+  }
+  as.integer(response)
+}
+
 # Wide (one row per observation) table of native dpar estimates, built from
 # predict_parameters()'s long format. Also attaches `V_known` (the gaussian
 # meta-analysis known sampling variance per row; 0 for ordinary fits and for
 # any newdata rows) so gaussian's {d,p,q} can reconstruct the same total
 # observation SD the compiled density uses (src/drmTMB.cpp:634) without a
 # second V_known-handling code path.
-fitted_distribution_params <- function(object, newdata, dpars) {
+#
+# biv_gaussian (DO-T3 batch D): `dpars` is drm_family_dpq_biv_gaussian()'s
+# generic c("mu", "sigma") (reused verbatim from the gaussian entry), but a
+# biv_gaussian fit's coefficients are named "mu1"/"mu2"/"sigma1"/"sigma2" --
+# not "mu"/"sigma". `request_dpars` translates the generic names to response
+# `response`'s fit-specific names (e.g. c("mu1", "sigma1")) before calling
+# predict_parameters(), then the returned columns are renamed back to the
+# generic "mu"/"sigma" so the reused gaussian {d,p,q} closures (which read
+# params$mu/params$sigma) work unchanged.
+fitted_distribution_params <- function(object, newdata, dpars, response = NULL) {
+  is_biv <- identical(object$model$model_type, "biv_gaussian")
+  request_dpars <- if (is_biv) paste0(dpars, response) else dpars
   long <- predict_parameters(
     object,
     newdata = newdata,
-    dpar = dpars,
+    dpar = request_dpars,
     type = "response",
     include_newdata = FALSE
   )
-  columns <- lapply(dpars, function(p) long$estimate[long$dpar == p])
+  columns <- lapply(
+    seq_along(dpars),
+    function(i) long$estimate[long$dpar == request_dpars[[i]]]
+  )
   names(columns) <- dpars
   lengths <- vapply(columns, length, integer(1))
   if (length(unique(lengths)) != 1L) {
@@ -1168,7 +1261,9 @@ fitted_distribution_params <- function(object, newdata, dpars) {
     )
   }
   params <- as.data.frame(columns, stringsAsFactors = FALSE, check.names = FALSE)
-  params$V_known <- if (is.null(newdata)) {
+  params$V_known <- if (is_biv) {
+    drm_biv_response_v_known(object, newdata, response, nrow(params))
+  } else if (is.null(newdata)) {
     known_v_diag(object)
   } else {
     drm_newdata_v_known(object, newdata, nrow(params))
@@ -1187,6 +1282,32 @@ fitted_distribution_params <- function(object, newdata, dpars) {
     }
   }
   params
+}
+
+# Known sampling variance for one `response` (1 or 2) of a biv_gaussian fit's
+# FITTED rows (`newdata = NULL`); 0 for `newdata` rows (no per-row known
+# bivariate sampling covariance is available for out-of-sample rows,
+# mirroring DO-T2's original marginal-path scope note). known_v_diag()
+# returns the fit's FULL row-paired 2n-length known variance vector
+# (`y1[1], y2[1], y1[2], y2[2], ...`, matching biv_gaussian_start()'s
+# V_known_diag convention, R/drmTMB.R) -- DO-T2 flagged that reusing it
+# directly for a single response's n-row params table throws a length
+# mismatch (`V_known` bug, R/distributional-outputs.R's DO-T2 comment).
+# `unstack_biv_response()` (R/methods.R) is the SAME de-interleaving helper
+# `bivariate_observation_covariance()`/`simulate.drmTMB()`'s biv_gaussian
+# branch already use for the (y1, y2) response pair itself; reused here for
+# V_known rather than re-deriving the seq.int(1L/2L, by = 2L, ...) indexing a
+# third time. For a non-meta biv fit this is all zeros (known_v_diag()
+# defaults to rep(0, 2n) for a non-meta fit).
+drm_biv_response_v_known <- function(object, newdata, response, n) {
+  if (!is.null(newdata)) {
+    return(rep(0, n))
+  }
+  v_full <- known_v_diag(object)
+  if (is.null(v_full)) {
+    return(rep(0, n))
+  }
+  unstack_biv_response(v_full)[, response]
 }
 
 # Known sampling variance for `newdata` rows. Ordinary gaussian fits have none

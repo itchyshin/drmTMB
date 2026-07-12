@@ -34,6 +34,10 @@
 #'   [drm_quantile_residuals()].
 #' @param nsim Number of Dunn-Smyth realizations to overplot as an envelope;
 #'   passed to [drm_quantile_residuals()].
+#' @param response For a bivariate `biv_gaussian` fit, `1` or `2`, selecting
+#'   which response's marginal residuals to plot; see
+#'   [fitted_distribution()]. Must be `NULL` (the default) for univariate
+#'   model types.
 #' @param ... Reserved for future options.
 #'
 #' @return A `ggplot` object.
@@ -47,10 +51,10 @@
 #'   worm_plot(fit)
 #' }
 #' @export
-worm_plot <- function(object, seed = NULL, nsim = 1L, ...) {
+worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
   drm_adequacy_plot_dots(list(...))
   drm_adequacy_require_ggplot2()
-  data <- drm_quantile_residual_qq_data(object, seed = seed, nsim = nsim)
+  data <- drm_quantile_residual_qq_data(object, seed = seed, nsim = nsim, response = response)
   primary <- data[data$sim == 1L, , drop = FALSE]
 
   out <- ggplot2::ggplot(
@@ -117,6 +121,10 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, ...) {
 #'   [drm_quantile_residuals()].
 #' @param nsim Number of Dunn-Smyth realizations to overplot as an envelope;
 #'   passed to [drm_quantile_residuals()].
+#' @param response For a bivariate `biv_gaussian` fit, `1` or `2`, selecting
+#'   which response's marginal residuals to plot; see
+#'   [fitted_distribution()]. Must be `NULL` (the default) for univariate
+#'   model types.
 #' @param ... Reserved for future options.
 #'
 #' @return A `ggplot` object.
@@ -130,10 +138,10 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, ...) {
 #'   qq_plot(fit)
 #' }
 #' @export
-qq_plot <- function(object, seed = NULL, nsim = 1L, ...) {
+qq_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
   drm_adequacy_plot_dots(list(...))
   drm_adequacy_require_ggplot2()
-  data <- drm_quantile_residual_qq_data(object, seed = seed, nsim = nsim)
+  data <- drm_quantile_residual_qq_data(object, seed = seed, nsim = nsim, response = response)
   primary <- data[data$sim == 1L, , drop = FALSE]
 
   out <- ggplot2::ggplot(

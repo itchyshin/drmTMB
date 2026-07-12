@@ -6,7 +6,10 @@
 # test-family-dpq-batchB.R. tweedie was promoted to `status = "reference"` in
 # DO-T3 batch C (the atom-decomposition DG2 case); its DG2/DG3 tests moved to
 # test-family-dpq-batchC.R along with the rest of that batch's atom/mixture
-# families -- not repeated here.
+# families -- not repeated here. biv_gaussian (bivariate, MARGINAL-only) was
+# promoted in DO-T3 batch D, the last of all 18 fitted model_type values; its
+# DG2/DG3 tests, and fitted_distribution()'s `response` argument, live in
+# test-family-dpq-batchD.R.
 
 test_that("fitted_distribution() gaussian matches the compiled log-density", {
   set.seed(20260712)
@@ -88,25 +91,17 @@ test_that("fitted_distribution() gaussian meta_V includes known sampling varianc
 
 test_that("drm_family_dpq() aborts clearly for an unimplemented model type", {
   # "poisson" was promoted to status = "reference" in DO-T3 batch A,
-  # "beta_binomial" in DO-T3 batch B, and "zero_one_beta"/"tweedie"/the
-  # count-mixture families in DO-T3 batch C, so this test now exercises the
-  # one model type every batch has left unimplemented: biv_gaussian
-  # (bivariate marginal distributional output is a later DO-T3 batch).
-  n <- 40
-  x <- stats::rnorm(n)
-  dat <- data.frame(
-    y1 = 0.4 + 0.6 * x + stats::rnorm(n),
-    y2 = -0.2 + 0.3 * x + stats::rnorm(n),
-    x = x
-  )
-  fit <- drmTMB(
-    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
-    family = biv_gaussian(),
-    data = dat,
-    control = drm_control(se = FALSE)
-  )
+  # "beta_binomial" in DO-T3 batch B, "zero_one_beta"/"tweedie"/the
+  # count-mixture families in DO-T3 batch C, and "biv_gaussian" (the last
+  # remaining model type) in DO-T3 batch D -- all 18 fitted model_type
+  # values now have a promoted entry, so this test can no longer reach the
+  # abort branch through any live drmTMB() fit's model_type. drm_family_dpq()
+  # only ever reads object$model$model_type (no other field), so a minimal
+  # synthetic object is enough to exercise the defensive abort branch
+  # directly, without needing a genuinely-unimplemented family to exist.
+  fake_fit <- list(model = list(model_type = "not_a_real_model_type"))
   expect_error(
-    drm_family_dpq(fit),
+    drm_family_dpq(fake_fit),
     "does not yet cover model type"
   )
 })

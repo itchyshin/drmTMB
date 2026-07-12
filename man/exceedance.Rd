@@ -7,7 +7,14 @@
 \usage{
 exceedance(object, threshold, newdata = NULL, lower.tail = FALSE, ...)
 
-\method{exceedance}{drmTMB}(object, threshold, newdata = NULL, lower.tail = FALSE, ...)
+\method{exceedance}{drmTMB}(
+  object,
+  threshold,
+  newdata = NULL,
+  lower.tail = FALSE,
+  response = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -23,6 +30,11 @@ are used; see \code{\link[=fitted_distribution]{fitted_distribution()}}.}
 If \code{TRUE}, returns \code{Pr(Y <= threshold)}.}
 
 \item{...}{Reserved for future options.}
+
+\item{response}{For a bivariate \code{biv_gaussian} fit, \code{1} or \code{2}, selecting
+which response's marginal exceedance to compute; see
+\code{\link[=fitted_distribution]{fitted_distribution()}}. Must be \code{NULL} (the default) for univariate
+model types.}
 }
 \value{
 A numeric vector, one value per row, with \code{attr(., "calibrated") == FALSE}.
@@ -47,8 +59,10 @@ fixed-effect, population-level parameter estimates \code{theta_hat}: the result
 carries \code{attr(., "calibrated") <- FALSE} and does not propagate \code{theta_hat}
 uncertainty. See \code{\link[=fitted_distribution]{fitted_distribution()}} for the \code{"spike"}/\code{"unimplemented"}
 status gate this inherits (a \code{"spike"}-status family emits a one-time
-warning; an unregistered \code{model_type}, including bivariate \code{biv_gaussian},
-raises a clear error).
+warning) and for the \code{response} argument's contract on a bivariate
+\code{biv_gaussian} fit (REQUIRED there: \code{1} or \code{2}, selecting which response's
+MARGINAL exceedance to return; \code{rho12} and any joint tail structure are
+ignored).
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, -0.5, 0, 0.5))

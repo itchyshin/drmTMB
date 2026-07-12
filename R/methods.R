@@ -3200,26 +3200,26 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #'
 #' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
 #' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
-#' fixed-effect distributional parameters. This is available for any
-#' `model_type` with a promoted or feasibility-spike entry in
-#' [drm_family_dpq()] (as of DO-T3 batch B: `"gaussian"`, `"student"`,
-#' `"skew_normal"`, `"lognormal"`, `"gamma"`, `"beta"`, `"beta_binomial"`,
-#' `"binomial"`, `"cumulative_logit"`, `"poisson"`, and `"nbinom2"` are
-#' promoted; `"tweedie"` remains a feasibility spike); other model types
-#' raise a clear "not yet implemented" error via [fitted_distribution()].
-#' Spike-status families emit a one-time warning that the residual is
-#' exploratory, not DG-verified. See
+#' fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
+#' `model_type` values have a promoted entry in [drm_family_dpq()], so
+#' `type = "quantile"` is available for every family, including bivariate
+#' `biv_gaussian` (where `response` -- `1` or `2` -- is REQUIRED and selects
+#' which response's MARGINAL residuals to compute; omitting it errors
+#' clearly, as does supplying it for a univariate fit; see
+#' [fitted_distribution()]). Spike-status families (feasibility-only, not yet
+#' DG2/DG3-verified) emit a one-time warning that the residual is
+#' exploratory, not DG-verified; none currently have this status. See
 #' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
 #' random-effect or structured fits, these residuals are conditional on the
 #' fixed-effect prediction, not marginal, so a departure (or its absence) is
 #' evidence about fixed-effect adequacy only -- never a general validity
-#' claim. Pass `seed` and/or `nsim` through `...` to
+#' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
 #' [drm_quantile_residuals()].
 #'
 #' @param object A `drmTMB` fit.
 #' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
 #' @param ... Reserved for future residual options; for `type = "quantile"`,
-#'   forwarded to [drm_quantile_residuals()] (`seed`, `nsim`).
+#'   forwarded to [drm_quantile_residuals()] (`seed`, `nsim`, `response`).
 #'
 #' @return A numeric vector for univariate models, or a two-column matrix for
 #'   bivariate Gaussian models. For `type = "quantile"` with `nsim > 1`, an

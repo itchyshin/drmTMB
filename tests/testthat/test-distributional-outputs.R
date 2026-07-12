@@ -187,7 +187,15 @@ test_that("biv_gaussian: predict(type = 'quantile') returns MARGINAL per-respons
   )
 })
 
-test_that("biv_gaussian: exceedance() is out of scope and errors via the frozen registry", {
+test_that("biv_gaussian: exceedance() computes a per-response MARGINAL exceedance (DO-T3 batch D)", {
+  # Before DO-T3 batch D, biv_gaussian had no drm_family_dpq() entry, so
+  # exceedance() (which never special-cased biv_gaussian the way DO-T2's
+  # predict(type = "quantile") path did) could only reach
+  # fitted_distribution()'s "not yet covered" error. Batch D registers
+  # biv_gaussian (MARGINAL-only, response = 1 or 2 required) and threads a
+  # `response` argument through exceedance() -- see
+  # test-family-dpq-batchD.R for the full MC-agreement DG2/DG3 exercise;
+  # this test covers the omitted-response/supplied-response contract.
   dat <- new_biv_gaussian_quantile_data(n = 200)
   fit <- drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
@@ -196,8 +204,13 @@ test_that("biv_gaussian: exceedance() is out of scope and errors via the frozen 
   )
   expect_error(
     exceedance(fit, threshold = 0),
-    "does not yet cover model type"
+    "biv_gaussian.*is bivariate.*response = 1.*response = 2"
   )
+
+  exc1 <- exceedance(fit, threshold = 0, response = 1)
+  fd1 <- fitted_distribution(fit, response = 1)
+  expect_identical(attr(exc1, "calibrated"), FALSE)
+  expect_equal(as.numeric(exc1), 1 - fd1$p(rep(0, nrow(dat))))
 })
 
 # ---- error handling ----------------------------------------------------------

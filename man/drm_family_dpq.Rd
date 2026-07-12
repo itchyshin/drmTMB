@@ -21,18 +21,21 @@ residuals, \code{predict(type = "quantile")}, \code{exceedance()}) route through
 the public-to-native parameter conversion is not re-derived in each caller.
 }
 \details{
-As of DO-T3 batch C, the promoted (\code{status = "reference"}) families are
-\code{"gaussian"}, \code{"student"}, \code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"},
-\code{"tweedie"}, \code{"beta"}, \code{"zero_one_beta"}, \code{"beta_binomial"}, \code{"binomial"},
-\code{"cumulative_logit"}, \code{"poisson"}, \code{"zi_poisson"}, \code{"nbinom2"},
-\code{"truncated_nbinom2"}, \code{"hurdle_nbinom2"}, and \code{"zi_nbinom2"}.
+As of DO-T3 batch D, all 18 fitted \code{model_type} values are promoted
+(\code{status = "reference"}): \code{"gaussian"}, \code{"student"}, \code{"skew_normal"},
+\code{"lognormal"}, \code{"gamma"}, \code{"tweedie"}, \code{"beta"}, \code{"zero_one_beta"},
+\code{"beta_binomial"}, \code{"binomial"}, \code{"cumulative_logit"}, \code{"poisson"},
+\code{"zi_poisson"}, \code{"nbinom2"}, \code{"truncated_nbinom2"}, \code{"hurdle_nbinom2"},
+\code{"zi_nbinom2"}, and \code{"biv_gaussian"}.
 \strong{\code{"skew_normal"} promotion is a distributional-output-axis result only}
 (DG2/DG3 for \verb{\{d,p,q\}} correctness); it does not certify the skew_normal
 family's own fit-quality status (\code{diagnostic_hold} in \code{check_drmTMB()}),
 which is a separate axis and is unchanged -- see the firewall note beside
-\code{drm_family_dpq_skew_normal()}. Only \code{"biv_gaussian"} remains
-\code{"unimplemented"} and raises a clear "not yet implemented" error (staged
-for a later DO-T3 batch: bivariate marginal distributional output).
+\code{drm_family_dpq_skew_normal()}. \strong{\code{"biv_gaussian"} is MARGINAL-only}: its
+\verb{\{d,p,q\}} describe one response's marginal \code{N(mu_k, sigma_k)} (exact,
+independent of \code{rho12}), never the joint bivariate distribution -- see
+\code{drm_family_dpq_biv_gaussian()} and \code{\link[=fitted_distribution]{fitted_distribution()}}'s \code{response}
+argument, which selects \code{k}.
 
 The \code{d}/\code{p}/\code{q} closures take \verb{(y_or_u, params)}, where \code{params} is a wide,
 one-row-per-observation data frame. This signature is \strong{frozen} (CP1): a

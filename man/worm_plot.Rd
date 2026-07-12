@@ -4,7 +4,7 @@
 \alias{worm_plot}
 \title{Worm plot of randomized quantile residuals}
 \usage{
-worm_plot(object, seed = NULL, nsim = 1L, ...)
+worm_plot(object, seed = NULL, nsim = 1L, response = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -14,6 +14,11 @@ worm_plot(object, seed = NULL, nsim = 1L, ...)
 
 \item{nsim}{Number of Dunn-Smyth realizations to overplot as an envelope;
 passed to \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.}
+
+\item{response}{For a bivariate \code{biv_gaussian} fit, \code{1} or \code{2}, selecting
+which response's marginal residuals to plot; see
+\code{\link[=fitted_distribution]{fitted_distribution()}}. Must be \code{NULL} (the default) for univariate
+model types.}
 
 \item{...}{Reserved for future options.}
 }

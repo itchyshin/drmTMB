@@ -15,16 +15,27 @@
 # MODEL-CONDITIONAL curve at theta_hat for the fitted covariate range, not a
 # WHO/population reference standard.
 #
-# Bivariate biv_gaussian scope: biv_gaussian is not a registered model_type in
-# drm_family_dpq() (that switch is FROZEN at DO-T0a and covers only
-# "gaussian"/"tweedie"/"skew_normal"), so fitted_distribution() itself errors
-# for biv_gaussian. predict(type = "quantile") special-cases biv_gaussian with
-# its own MARGINAL-only path (drm_biv_gaussian_marginal_distribution()): each
-# response's marginal is exactly univariate normal (mu<k>, sigma<k>) regardless
-# of rho12, so no new parameter-map logic is added to the frozen registry.
-# exceedance() and centile_chart() do NOT special-case biv_gaussian -- they
-# call fitted_distribution() directly and inherit its "not yet covered" error
-# for biv_gaussian, exactly like DO-T1's residuals(type = "quantile").
+# Bivariate biv_gaussian scope (DO-T3 batch D): biv_gaussian IS now a
+# registered model_type in drm_family_dpq() (drm_family_dpq_biv_gaussian(),
+# reusing the gaussian {d,p,q} closures verbatim -- see R/family-dpq.R), so
+# fitted_distribution() handles it directly via its `response` argument
+# (REQUIRED for biv_gaussian: 1 selects (mu1, sigma1), 2 selects (mu2,
+# sigma2)). Every surface below -- predict(type = "quantile"), exceedance(),
+# and centile_chart() (which delegates to predict()) -- routes through the
+# SAME registry entry, so there is no separate biv-only marginal code path
+# any more (removed in this batch: the DO-T2-era
+# drm_biv_gaussian_marginal_distribution() special case). predict(type =
+# "quantile") keeps its existing `dpar`-based response selector ("mu1"/
+# "sigma1" for response 1, "mu2"/"sigma2" for response 2 -- the established,
+# tested convention) and translates it to `response` internally
+# (drm_biv_gaussian_response_index()); centile_chart() delegates to predict()
+# and so inherits the same `dpar` selector unchanged. exceedance() had no
+# response selector at all before this batch (biv_gaussian was unregistered,
+# so it only ever reached fitted_distribution()'s "not yet covered" error);
+# it gains a `response` argument directly, matching fitted_distribution()'s.
+# Each response's marginal is exactly univariate normal (mu<k>, sigma<k>)
+# regardless of rho12 -- a MARGINAL-only output, never the joint bivariate
+# distribution.
 
 # ---- predict(type = "quantile") --------------------------------------------
 
@@ -65,15 +76,17 @@ drm_quantile_prob_labels <- function(prob) {
 # Ordinary (non-bivariate) fits: `dpar` is not a response selector (it was
 # already validated by predict.drmTMB()'s match.arg() against
 # names(object$coefficients)), so this ignores it and calls
-# fitted_distribution() directly. biv_gaussian fits: `dpar` selects response 1
-# ("mu1"/"sigma1") or response 2 ("mu2"/"sigma2") -- see
-# drm_biv_gaussian_marginal_distribution().
+# fitted_distribution() directly (response = NULL, the univariate default).
+# biv_gaussian fits: `dpar` selects response 1 ("mu1"/"sigma1") or response 2
+# ("mu2"/"sigma2"), translated to fitted_distribution()'s `response` argument
+# (DO-T3 batch D: the registry now covers biv_gaussian directly, replacing
+# the DO-T2-era drm_biv_gaussian_marginal_distribution() special case).
 drm_response_fitted_distribution <- function(object, newdata, dpar) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(fitted_distribution(object, newdata = newdata))
   }
   response <- drm_biv_gaussian_response_index(dpar)
-  drm_biv_gaussian_marginal_distribution(object, newdata, response)
+  fitted_distribution(object, newdata = newdata, response = response)
 }
 
 drm_biv_gaussian_response_index <- function(dpar) {
@@ -88,52 +101,6 @@ drm_biv_gaussian_response_index <- function(dpar) {
     i = "Use {.val mu1} or {.val sigma1} for response 1, {.val mu2} or {.val sigma2} for response 2.",
     i = "Bivariate quantiles are MARGINAL only: rho12 and any joint tail structure are ignored."
   ))
-}
-
-# Marginal fitted_distribution() for one response of a biv_gaussian fit. The
-# marginal of a bivariate normal is EXACTLY univariate normal in its own
-# (mu<k>, sigma<k>) regardless of rho12, so this needs no new entry in the
-# frozen drm_family_dpq() registry. This calls predict_parameters() directly
-# (the same long-format source fitted_distribution_params() reads, R/family-dpq.R)
-# rather than that helper itself, because fitted_distribution_params() also
-# attaches a `V_known` column sized for a UNIVARIATE model_type's own
-# known-sampling-variance vector (R/family-dpq.R's known_v_diag()/
-# drm_newdata_v_known()); for biv_gaussian, known_v_diag() returns the
-# diagonal of the full 2n x 2n stacked (y1, y2) covariance, which does not
-# align with this response's n-row parameter table. Deliberately ignores any
-# known bivariate sampling covariance: marginal-only scope (documented on
-# predict.drmTMB()).
-drm_biv_gaussian_marginal_distribution <- function(object, newdata, response) {
-  mu_col <- paste0("mu", response)
-  sigma_col <- paste0("sigma", response)
-  long <- predict_parameters(
-    object,
-    newdata = newdata,
-    dpar = c(mu_col, sigma_col),
-    type = "response",
-    include_newdata = FALSE
-  )
-  mu <- long$estimate[long$dpar == mu_col]
-  sigma <- long$estimate[long$dpar == sigma_col]
-  if (length(mu) != length(sigma)) {
-    cli::cli_abort(
-      "Internal error: bivariate marginal distributional parameters have inconsistent lengths."
-    )
-  }
-  params <- data.frame(mu = mu, sigma = sigma)
-  structure(
-    list(
-      model_type = object$model$model_type,
-      status = "reference",
-      discrete = FALSE,
-      has_atom = FALSE,
-      params = params,
-      d = function(y) stats::dnorm(y, mean = params$mu, sd = params$sigma),
-      p = function(y) stats::pnorm(y, mean = params$mu, sd = params$sigma),
-      q = function(u) stats::qnorm(u, mean = params$mu, sd = params$sigma)
-    ),
-    class = "drm_fitted_distribution"
-  )
 }
 
 # ---- exceedance() -----------------------------------------------------------
@@ -159,8 +126,10 @@ drm_biv_gaussian_marginal_distribution <- function(object, newdata, response) {
 #' carries `attr(., "calibrated") <- FALSE` and does not propagate `theta_hat`
 #' uncertainty. See [fitted_distribution()] for the `"spike"`/`"unimplemented"`
 #' status gate this inherits (a `"spike"`-status family emits a one-time
-#' warning; an unregistered `model_type`, including bivariate `biv_gaussian`,
-#' raises a clear error).
+#' warning) and for the `response` argument's contract on a bivariate
+#' `biv_gaussian` fit (REQUIRED there: `1` or `2`, selecting which response's
+#' MARGINAL exceedance to return; `rho12` and any joint tail structure are
+#' ignored).
 #'
 #' @param object A `drmTMB` fit.
 #' @param threshold Numeric threshold `c`. Either a single value (recycled
@@ -170,6 +139,10 @@ drm_biv_gaussian_marginal_distribution <- function(object, newdata, response) {
 #'   are used; see [fitted_distribution()].
 #' @param lower.tail Logical. If `FALSE` (default), returns `Pr(Y > threshold)`.
 #'   If `TRUE`, returns `Pr(Y <= threshold)`.
+#' @param response For a bivariate `biv_gaussian` fit, `1` or `2`, selecting
+#'   which response's marginal exceedance to compute; see
+#'   [fitted_distribution()]. Must be `NULL` (the default) for univariate
+#'   model types.
 #' @param ... Reserved for future options.
 #'
 #' @return A numeric vector, one value per row, with `attr(., "calibrated") ==
@@ -192,6 +165,7 @@ exceedance.drmTMB <- function(
   threshold,
   newdata = NULL,
   lower.tail = FALSE,
+  response = NULL,
   ...
 ) {
   dots <- list(...)
@@ -205,7 +179,7 @@ exceedance.drmTMB <- function(
     cli::cli_abort("{.arg lower.tail} must be a single TRUE or FALSE value.")
   }
 
-  fd <- fitted_distribution(object, newdata = newdata)
+  fd <- fitted_distribution(object, newdata = newdata, response = response)
   drm_warn_adequacy_spike(fd$status, object$model$model_type)
 
   n <- nrow(fd$params)

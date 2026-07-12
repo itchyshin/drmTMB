@@ -7,7 +7,7 @@
 \usage{
 fitted_distribution(object, ...)
 
-\method{fitted_distribution}{drmTMB}(object, newdata = NULL, ...)
+\method{fitted_distribution}{drmTMB}(object, newdata = NULL, response = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -16,6 +16,10 @@ fitted_distribution(object, ...)
 
 \item{newdata}{Optional data frame for prediction. If omitted, fitted rows
 are used.}
+
+\item{response}{For a bivariate \code{biv_gaussian} fit, \code{1} or \code{2}, selecting
+which response's marginal distribution to return. Required for
+\code{biv_gaussian}; must be \code{NULL} (the default) for univariate model types.}
 }
 \value{
 An object of class \code{"drm_fitted_distribution"}: a list with
@@ -36,25 +40,33 @@ re-deriving the public-to-native parameter conversion.
 }
 \details{
 \code{fitted_distribution()} only supports \code{model_type}s with a promoted entry
-in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch C that is \code{"gaussian"},
-\code{"student"}, \code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"}, \code{"tweedie"},
-\code{"beta"}, \code{"zero_one_beta"}, \code{"beta_binomial"}, \code{"binomial"},
-\code{"cumulative_logit"}, \code{"poisson"}, \code{"zi_poisson"}, \code{"nbinom2"},
-\code{"truncated_nbinom2"}, \code{"hurdle_nbinom2"}, and \code{"zi_nbinom2"} (all
-\code{status = "reference"}); only \code{"biv_gaussian"} raises a clear "not yet
-implemented" error. \code{newdata} support inherits the same limitation as
-\code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect, population-level predictions only.
-For meta-analysis gaussian fits (\code{meta_V()}), the known sampling variance
-is taken from the fit for fitted rows (\code{newdata = NULL}); when \code{newdata}
-is supplied it must carry a \code{V} column giving the per-row known sampling
-variance, or an error is raised (rather than silently assuming 0).
-Ordinary (non-meta) fits need no \code{V} column. For binomial and
-beta_binomial fits, fitted rows reuse the fitted \code{trials} denominator;
-\code{newdata} must carry a \code{trials} column giving the per-row denominator,
-mirroring the meta_V() \code{V}-column contract. For cumulative_logit fits, the
-fitted ordinal cutpoints are attached as \code{CP1}..\code{CPk} columns (constant
-across rows, including \code{newdata} rows -- the cutpoints do not depend on
-covariates).
+in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch D all 18 fitted \code{model_type}
+values are promoted (\code{status = "reference"}), including bivariate
+\code{"biv_gaussian"} (see the \code{response} argument below). \code{newdata} support
+inherits the same limitation as \code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect,
+population-level predictions only. For meta-analysis gaussian fits
+(\code{meta_V()}), the known sampling variance is taken from the fit for fitted
+rows (\code{newdata = NULL}); when \code{newdata} is supplied it must carry a \code{V}
+column giving the per-row known sampling variance, or an error is raised
+(rather than silently assuming 0). Ordinary (non-meta) fits need no \code{V}
+column. For binomial and beta_binomial fits, fitted rows reuse the fitted
+\code{trials} denominator; \code{newdata} must carry a \code{trials} column giving the
+per-row denominator, mirroring the meta_V() \code{V}-column contract. For
+cumulative_logit fits, the fitted ordinal cutpoints are attached as
+\code{CP1}..\code{CPk} columns (constant across rows, including \code{newdata} rows --
+the cutpoints do not depend on covariates).
+
+\code{response} selects which response a bivariate \code{biv_gaussian} fit's
+returned distribution describes: \code{1} for \verb{(mu1, sigma1)}, \code{2} for \verb{(mu2, sigma2)}. It is \strong{required} for \code{biv_gaussian} (an error names the two
+valid values if omitted) and is \strong{not used} for univariate \code{model_type}s
+(passing a non-\code{NULL} value errors, rather than being silently ignored).
+The returned distribution is the MARGINAL of that one response -- exactly
+\code{N(mu_k, sigma_k)}, independent of \code{rho12} -- never the joint bivariate
+distribution; there is no \code{response = "joint"} option. \code{newdata} for a
+\code{biv_gaussian} fit inherits any known bivariate sampling covariance as
+\code{V_known = 0} (marginal-only scope, matching DO-T2's original
+\code{predict(type = "quantile")} documentation); fitted rows correctly use
+response \code{k}'s slice of a \code{meta_V()} fit's known sampling variance.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, -0.5, 0, 0.5))

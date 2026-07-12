@@ -12,7 +12,7 @@
 \item{type}{Residual type: \code{"response"}, \code{"pearson"}, or \code{"quantile"}.}
 
 \item{...}{Reserved for future residual options; for \code{type = "quantile"},
-forwarded to \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} (\code{seed}, \code{nsim}).}
+forwarded to \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} (\code{seed}, \code{nsim}, \code{response}).}
 }
 \value{
 A numeric vector for univariate models, or a two-column matrix for
@@ -67,20 +67,20 @@ observation covariance when a dense bivariate known \code{V} was supplied.
 
 \code{type = "quantile"} returns Dunn-Smyth randomized quantile residuals from
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted,
-fixed-effect distributional parameters. This is available for any
-\code{model_type} with a promoted or feasibility-spike entry in
-\code{\link[=drm_family_dpq]{drm_family_dpq()}} (as of DO-T3 batch B: \code{"gaussian"}, \code{"student"},
-\code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"}, \code{"beta"}, \code{"beta_binomial"},
-\code{"binomial"}, \code{"cumulative_logit"}, \code{"poisson"}, and \code{"nbinom2"} are
-promoted; \code{"tweedie"} remains a feasibility spike); other model types
-raise a clear "not yet implemented" error via \code{\link[=fitted_distribution]{fitted_distribution()}}.
-Spike-status families emit a one-time warning that the residual is
-exploratory, not DG-verified. See
+fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
+\code{model_type} values have a promoted entry in \code{\link[=drm_family_dpq]{drm_family_dpq()}}, so
+\code{type = "quantile"} is available for every family, including bivariate
+\code{biv_gaussian} (where \code{response} -- \code{1} or \code{2} -- is REQUIRED and selects
+which response's MARGINAL residuals to compute; omitting it errors
+clearly, as does supplying it for a univariate fit; see
+\code{\link[=fitted_distribution]{fitted_distribution()}}). Spike-status families (feasibility-only, not yet
+DG2/DG3-verified) emit a one-time warning that the residual is
+exploratory, not DG-verified; none currently have this status. See
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the fixed-effect-only adequacy caveat: for
 random-effect or structured fits, these residuals are conditional on the
 fixed-effect prediction, not marginal, so a departure (or its absence) is
 evidence about fixed-effect adequacy only -- never a general validity
-claim. Pass \code{seed} and/or \code{nsim} through \code{...} to
+claim. Pass \code{seed}, \code{nsim}, and/or \code{response} through \code{...} to
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
 }
 \examples{
