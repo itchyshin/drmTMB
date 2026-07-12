@@ -1,11 +1,11 @@
-# Drift guard for missing-response scaffolding (P4a).
+# Drift guard for the fitted-family missing-response inventory.
 #
 # `drm_missing_response_families()` is the single source of truth for which families
-# have validated missing-response ("include") support. This test asserts that EVERY
-# other family rejects `miss_control(response = "include")` with a loud, family-specific
-# abort, so the capability matrix cannot silently drift as P1 loosens the gate one family
-# at a time. When P1 validates a family it joins `drm_missing_response_families()` and is
-# skipped here (its own recovery test then covers it).
+# have validated missing-response ("include") support. Before MR-T7, the second test
+# looped only over unvalidated candidates and therefore became an empty test once all
+# fitted base families were admitted. It now asserts the completed inventory directly;
+# route-specific files remain responsible for their G2/G3 evidence and neighbouring
+# rejections, including the three count-mixture aliases.
 
 drm_missing_gate_candidates <- function() {
   list(
@@ -37,24 +37,10 @@ test_that("drm_missing_response_families() is the response-mask source of truth"
   )
 })
 
-test_that("miss_control(response = 'include') rejects loudly for every non-validated family", {
-  dat <- data.frame(y = c(1, 2, NA, 4, 5), x = c(-1, -0.5, 0, 0.5, 1))
+test_that("every fitted base-family candidate has validated response masking", {
   validated <- drm_missing_response_families()
-
   candidates <- drm_missing_gate_candidates()
-  for (nm in names(candidates)) {
-    ft <- drm_family_type(candidates[[nm]])
-    if (ft %in% validated) next # validated families proceed; covered by their own tests
+  candidate_types <- vapply(candidates, drm_family_type, character(1L))
 
-    expect_error(
-      drmTMB(
-        bf(y ~ x),
-        data = dat,
-        family = candidates[[nm]],
-        missing = miss_control(response = "include")
-      ),
-      regexp = "not implemented for the",
-      info = paste0("family '", nm, "' (type ", ft, ") must reject response = 'include'")
-    )
-  }
+  expect_setequal(candidate_types, setdiff(validated, c("gaussian", "biv_gaussian")))
 })

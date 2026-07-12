@@ -1,5 +1,15 @@
 # drmTMB 0.5.0.9001
 
+## Missing responses: MR-T7 certification
+
+* The generated capability ledger and live runtime oracle now reconcile all 18
+  fitted response routes at G3 recovery-verified, with zero G0 routes. The
+  capability page, missing-data article, design inventory, NEWS, roadmap, and
+  machine-readable evidence are regenerated from the same route state. This
+  closeout adds no family, formula grammar, estimator, interval, or coverage
+  claim: each tick remains bounded to its documented fixed, random, or
+  structured route, and G4/G5 remain separate future evidence tiers.
+
 ## Missing responses: MR-T6 count mixtures
 
 * `response = "include"` now masks fixed-effect zero-inflated Poisson,

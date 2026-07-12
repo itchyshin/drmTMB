@@ -13,7 +13,7 @@ regression using Template Model Builder.
 > test/document/`--as-cran`/pkgdown, three fresh reviewers, closeout PR,
 > final-main 3-OS CI, clang-ASAN/clang-UBSAN/GCC-ASAN, live Pages, issue #761,
 > handover, and tracked-clean synchronized `main`. START HERE:
-> [`docs/dev-log/2026-07-11-missing-response-all-families-ultra-plan.md`](docs/dev-log/2026-07-11-missing-response-all-families-ultra-plan.md)
+> [`docs/dev-log/handover/2026-07-12-missing-response-arc-closeout.md`](docs/dev-log/handover/2026-07-12-missing-response-arc-closeout.md)
 >
 > **▶ Latest — start here (2026-07-11, → Claude, drmTMB 0.5.0 first-CRAN-release SHIPPED; R-hub blocker).**
 > `main` = `97ba0042` (synced) · tag **`v0.5.0`** = `09d44c7c` · tag CI **GREEN 3-OS** · **NOT on CRAN yet**.

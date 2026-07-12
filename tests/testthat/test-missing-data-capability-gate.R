@@ -1,15 +1,14 @@
 # P4a anti-drift lock for the missing-data capability gates.
 #
-# Every response family_type that is NOT yet validated for a missing-data mode
-# must LOUDLY reject (a family-specific cli_abort), so the capability matrix
-# cannot silently drift as P1/P3 validate families one slice at a time. This
-# test asserts observed BEHAVIOUR (does the fit reject?), not the gate's own
-# allow-list constant, so it is an independent oracle: loosening a gate without
-# the full implementation, or vice versa, breaks this test.
+# The response inventory is complete after MR-T6, so its drift guard is now a
+# positive equality check rather than a vacuous loop over no remaining families.
+# Missing-predictor support is still partial: every response family_type outside
+# that allow-list must LOUDLY reject (a family-specific cli_abort), so the
+# capability matrix cannot silently drift as predictor slices are added.
 #
-# When P1 validates a response family (e.g. binomial), MOVE it from the reject
-# set to `response_validated` here IN THE SAME COMMIT that loosens the R gate.
-# Same for P3 and `predictor_validated`.
+# New fitted response families must join the response inventory and ship their
+# own route-specific masking/recovery tests. Predictor-family promotions must
+# still update `predictor_validated` in the same commit that loosens the R gate.
 #
 # Gates under test (R/drmTMB.R), kept in sync with the SSOT helpers
 # drm_missing_response_families() / drm_missing_predictor_families():
@@ -51,23 +50,11 @@ cap_family_cases <- function() {
   )
 }
 
-test_that("every non-validated response family loudly rejects miss_control(response = \"include\")", {
-  set.seed(1)
+test_that("the completed response capability inventory covers every fitted base family", {
   cases <- cap_family_cases()
-  for (ft in names(cases)) {
-    if (ft %in% response_validated) next
-    cs <- cases[[ft]]
-    expect_error(
-      drmTMB(
-        bf(y ~ x),
-        family = cs$fam,
-        data = cs$data,
-        missing = miss_control(response = "include")
-      ),
-      regexp = "not implemented for the",
-      info = sprintf("family_type = %s", ft)
-    )
-  }
+
+  expect_setequal(response_validated, drm_missing_response_families())
+  expect_setequal(names(cases), setdiff(response_validated, "biv_gaussian"))
 })
 
 test_that("every non-validated response family loudly rejects miss_control(predictor = \"model\")", {
