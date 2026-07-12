@@ -1,17 +1,3 @@
-mask_mcar_within_group <- function(data, response, seed, fraction = 0.25) {
-  set.seed(seed)
-  rows <- split(seq_len(nrow(data)), data$id)
-  missing <- unlist(lapply(rows, function(idx) {
-    n_missing <- length(idx) * fraction
-    if (n_missing != as.integer(n_missing)) {
-      stop("Each group size must permit the requested exact missing fraction.")
-    }
-    sample(idx, size = as.integer(n_missing))
-  }), use.names = FALSE)
-  data[[response]][missing] <- NA
-  data
-}
-
 test_that("Gaussian missing responses recover fixed and random parameters", {
   set.seed(2026071101)
   n_id <- 36L
@@ -30,7 +16,9 @@ test_that("Gaussian missing responses recover fixed and random parameters", {
     truth_mu[[1L]] + truth_mu[[2L]] * x + u[id],
     exp(truth_sigma[[1L]] + truth_sigma[[2L]] * z)
   )
-  dat <- mask_mcar_within_group(dat, "y", seed = 2026071102)
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026071102
+  )
   expect_equal(mean(is.na(dat$y)), 0.25)
 
   fit <- drmTMB(
@@ -73,8 +61,12 @@ test_that("bivariate Gaussian partial responses recover fixed and q2 parameters"
     truth_sigma[[1L]] * e1
   dat$y2 <- truth_mu2[[1L]] + truth_mu2[[2L]] * x + b2[id] +
     truth_sigma[[2L]] * e2
-  dat <- mask_mcar_within_group(dat, "y1", seed = 2026071104)
-  dat <- mask_mcar_within_group(dat, "y2", seed = 2026071105)
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y1", "id", seed = 2026071104
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "id", seed = 2026071105
+  )
   expect_equal(mean(is.na(dat$y1)), 0.25)
   expect_equal(mean(is.na(dat$y2)), 0.25)
 
@@ -117,7 +109,9 @@ test_that("Poisson missing responses recover fixed and random parameters", {
   u <- rnorm(n_id, sd = truth_sd)
   dat <- data.frame(id = id, x = x)
   dat$count <- rpois(nrow(dat), exp(truth_mu[[1L]] + truth_mu[[2L]] * x + u[id]))
-  dat <- mask_mcar_within_group(dat, "count", seed = 2026071107)
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "count", "id", seed = 2026071107
+  )
   expect_equal(mean(is.na(dat$count)), 0.25)
 
   fit <- drmTMB(
@@ -148,7 +142,9 @@ test_that("NB2 missing responses recover fixed, dispersion, and random parameter
   sigma_value <- exp(truth_sigma[[1L]] + truth_sigma[[2L]] * z)
   dat <- data.frame(id = id, x = x, z = z)
   dat$count <- rnbinom(nrow(dat), size = 1 / sigma_value^2, mu = mu)
-  dat <- mask_mcar_within_group(dat, "count", seed = 2026071109)
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "count", "id", seed = 2026071109
+  )
   expect_equal(mean(is.na(dat$count)), 0.25)
 
   fit <- drmTMB(
@@ -182,7 +178,9 @@ test_that("beta missing responses recover fixed, dispersion, and random paramete
   phi <- 1 / sigma_value^2
   dat <- data.frame(id = id, x = x, z = z)
   dat$prop <- rbeta(nrow(dat), mu * phi, (1 - mu) * phi)
-  dat <- mask_mcar_within_group(dat, "prop", seed = 2026071111)
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "prop", "id", seed = 2026071111
+  )
   expect_equal(mean(is.na(dat$prop)), 0.25)
 
   fit <- drmTMB(

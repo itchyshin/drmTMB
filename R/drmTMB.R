@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated only for {.code gaussian()}, {.code biv_gaussian()}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, and {.code beta()}.",
+      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, and {.code beta()}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -305,25 +305,29 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     skew_normal = drm_build_skew_normal_ls_spec(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     lognormal = drm_build_lognormal_ls_spec(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     gamma = drm_build_gamma_ls_spec(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     tweedie = drm_build_tweedie_ls_spec(
       formula,
@@ -3358,8 +3362,11 @@ drm_build_student_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -3460,6 +3467,9 @@ drm_build_student_ls_spec <- function(
     structured_mu_vars(mu_spatial$term),
     structured_mu_vars(nu_phylo$term)
   ))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -3476,7 +3486,7 @@ drm_build_student_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -3488,7 +3498,32 @@ drm_build_student_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
-  y <- stats::model.response(mf_mu)
+  y_raw <- stats::model.response(mf_mu)
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing Student-t response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed Student-t response is required for fitting."
+    )
+  }
+  if (!all(is.finite(y_raw[observed_y]))) {
+    cli::cli_abort(
+      "Student-t models require finite observed response values."
+    )
+  }
+  response_sentinel <- if (include_missing_response) {
+    drm_missing_response_sentinel()
+  } else {
+    NA_real_
+  }
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
+  }
 
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
@@ -3548,7 +3583,8 @@ drm_build_student_ls_spec <- function(
       X_sigma,
       X_nu,
       re_mu = re_mu,
-      phylo_mu = phylo_mu
+      phylo_mu = phylo_mu,
+      observed_y = observed_y
     ),
     map = student_ls_map(re_mu, phylo_mu),
     random_names = c(
@@ -3556,11 +3592,27 @@ drm_build_student_ls_spec <- function(
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T2-student"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -3568,8 +3620,11 @@ drm_build_skew_normal_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -3684,6 +3739,9 @@ drm_build_skew_normal_ls_spec <- function(
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
 
   vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -3700,7 +3758,7 @@ drm_build_skew_normal_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -3712,23 +3770,43 @@ drm_build_skew_normal_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
-  y <- stats::model.response(mf_mu)
+  y_raw <- stats::model.response(mf_mu)
 
-  if (length(y) == 0L) {
+  if (length(y_raw) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying model missingness rules."
     )
   }
-  if (!is.null(dim(y))) {
+  if (!is.null(dim(y_raw))) {
     cli::cli_abort(
       "{.fn skew_normal} models require a single continuous response."
     )
   }
-  if (!all(is.finite(y))) {
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing skew-normal response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed skew-normal response is required for fitting."
+    )
+  }
+  if (!all(is.finite(y_raw[observed_y]))) {
     cli::cli_abort(c(
       "{.fn skew_normal} models require finite continuous response values.",
       "x" = "The response {.val {mu_entry$response}} contains non-finite values after missing-row filtering."
     ))
+  }
+  response_sentinel <- if (include_missing_response) {
+    drm_missing_response_sentinel()
+  } else {
+    NA_real_
+  }
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
   }
 
   X_mu <- stats::model.matrix(
@@ -3770,15 +3848,37 @@ drm_build_skew_normal_ls_spec <- function(
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", "nu"),
-    start = skew_normal_ls_start(y, X_mu, X_sigma, X_nu),
+    start = skew_normal_ls_start(
+      y,
+      X_mu,
+      X_sigma,
+      X_nu,
+      observed_y = observed_y
+    ),
     map = skew_normal_ls_map(),
     random_names = NULL
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T2-skew-normal"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -3786,8 +3886,11 @@ drm_build_lognormal_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -3864,6 +3967,9 @@ drm_build_lognormal_ls_spec <- function(
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms)
   ))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -3880,25 +3986,42 @@ drm_build_lognormal_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
     data = data_model,
     na.action = stats::na.omit
   )
-  y <- stats::model.response(mf_mu)
+  y_raw <- stats::model.response(mf_mu)
 
-  if (length(y) == 0L) {
+  if (length(y_raw) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying model missingness rules."
     )
   }
-  if (!all(is.finite(y)) || any(y <= 0)) {
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing lognormal response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed lognormal response is required for fitting."
+    )
+  }
+  y_obs <- y_raw[observed_y]
+  if (!all(is.finite(y_obs)) || any(y_obs <= 0)) {
     cli::cli_abort(c(
       "Lognormal models require positive finite response values.",
       "x" = "The response {.val {mu_entry$response}} contains zero, negative, or non-finite values after missing-row filtering."
     ))
+  }
+  response_sentinel <- if (include_missing_response) 1 else NA_real_
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
   }
 
   X_mu <- stats::model.matrix(
@@ -3936,15 +4059,37 @@ drm_build_lognormal_ls_spec <- function(
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
-    start = lognormal_ls_start(y, X_mu, X_sigma, re_mu = re_mu),
+    start = lognormal_ls_start(
+      y,
+      X_mu,
+      X_sigma,
+      re_mu = re_mu,
+      observed_y = observed_y
+    ),
     map = lognormal_ls_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T2-lognormal"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -3952,8 +4097,11 @@ drm_build_gamma_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4034,6 +4182,9 @@ drm_build_gamma_ls_spec <- function(
     random_effect_vars(mu_re$terms),
     structured_mu_vars(mu_relmat$term)
   ))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -4050,25 +4201,42 @@ drm_build_gamma_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
     data = data_model,
     na.action = stats::na.omit
   )
-  y <- stats::model.response(mf_mu)
+  y_raw <- stats::model.response(mf_mu)
 
-  if (length(y) == 0L) {
+  if (length(y_raw) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying model missingness rules."
     )
   }
-  if (!all(is.finite(y)) || any(y <= 0)) {
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing Gamma response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed Gamma response is required for fitting."
+    )
+  }
+  y_obs <- y_raw[observed_y]
+  if (!all(is.finite(y_obs)) || any(y_obs <= 0)) {
     cli::cli_abort(c(
       "Gamma models require positive finite response values.",
       "x" = "The response {.val {mu_entry$response}} contains zero, negative, or non-finite values after missing-row filtering."
     ))
+  }
+  response_sentinel <- if (include_missing_response) 1 else NA_real_
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
   }
 
   X_mu <- stats::model.matrix(
@@ -4112,7 +4280,8 @@ drm_build_gamma_ls_spec <- function(
       X_mu,
       X_sigma,
       re_mu = re_mu,
-      phylo_mu = phylo_mu
+      phylo_mu = phylo_mu,
+      observed_y = observed_y
     ),
     map = gamma_ls_map(re_mu, phylo_mu),
     random_names = c(
@@ -4120,11 +4289,27 @@ drm_build_gamma_ls_spec <- function(
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T2-gamma"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -14288,7 +14473,12 @@ gaussian_ls_start <- function(
     observed_y = observed_y
   )
 
-  mu_re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
+  mu_re_start <- gaussian_mu_re_start(
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
+  )
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
   re_cov_start <- covariance_block_re_start(re_cov_blocks, y_scale)
   beta_sd_mu <- c(
@@ -14402,16 +14592,33 @@ student_ls_start <- function(
   X_sigma,
   X_nu,
   re_mu = empty_random_mu_structure(length(y)),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  observed_y = rep(TRUE, length(y))
 ) {
-  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma, re_mu = re_mu)
+  observed_y <- as.logical(observed_y)
+  gaussian_start <- gaussian_ls_start(
+    y,
+    X_mu,
+    X_sigma,
+    re_mu = re_mu,
+    observed_y = observed_y
+  )
   eta_mu <- as.vector(X_mu %*% gaussian_start$beta_mu)
-  phylo_start <- gaussian_phylo_start(y - eta_mu, phylo_mu)
+  phylo_start <- gaussian_phylo_start(
+    (y - eta_mu)[observed_y],
+    phylo_mu
+  )
   c(
     list(
       beta_mu = gaussian_start$beta_mu,
       beta_sigma = gaussian_start$beta_sigma,
-      beta_nu = student_nu_start(y, X_mu, gaussian_start$beta_mu, X_nu)
+      beta_nu = student_nu_start(
+        y,
+        X_mu,
+        gaussian_start$beta_mu,
+        X_nu,
+        observed_y = observed_y
+      )
     ),
     list(
       beta_zi = 0,
@@ -14436,8 +14643,15 @@ student_ls_start <- function(
   )
 }
 
-student_nu_start <- function(y, X_mu, beta_mu, X_nu) {
-  resid <- y - as.vector(X_mu %*% beta_mu)
+student_nu_start <- function(
+  y,
+  X_mu,
+  beta_mu,
+  X_nu,
+  observed_y = rep(TRUE, length(y))
+) {
+  observed_y <- as.logical(observed_y)
+  resid <- y[observed_y] - as.vector(X_mu[observed_y, , drop = FALSE] %*% beta_mu)
   kurtosis <- mean((resid - mean(resid))^4) / stats::var(resid)^2
   nu0 <- if (is.finite(kurtosis) && kurtosis > 3.1) {
     4 + 6 / (kurtosis - 3)
@@ -14450,8 +14664,20 @@ student_nu_start <- function(y, X_mu, beta_mu, X_nu) {
   beta_nu
 }
 
-skew_normal_ls_start <- function(y, X_mu, X_sigma, X_nu) {
-  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma)
+skew_normal_ls_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  X_nu,
+  observed_y = rep(TRUE, length(y))
+) {
+  observed_y <- as.logical(observed_y)
+  gaussian_start <- gaussian_ls_start(
+    y,
+    X_mu,
+    X_sigma,
+    observed_y = observed_y
+  )
   c(
     list(
       beta_mu = gaussian_start$beta_mu,
@@ -14462,7 +14688,8 @@ skew_normal_ls_start <- function(y, X_mu, X_sigma, X_nu) {
         gaussian_start$beta_mu,
         X_sigma,
         gaussian_start$beta_sigma,
-        X_nu
+        X_nu,
+        observed_y = observed_y
       )
     ),
     list(
@@ -14488,14 +14715,23 @@ skew_normal_ls_start <- function(y, X_mu, X_sigma, X_nu) {
   )
 }
 
-skew_normal_nu_start <- function(y, X_mu, beta_mu, X_sigma, beta_sigma, X_nu) {
+skew_normal_nu_start <- function(
+  y,
+  X_mu,
+  beta_mu,
+  X_sigma,
+  beta_sigma,
+  X_nu,
+  observed_y = rep(TRUE, length(y))
+) {
   beta_nu <- numeric(ncol(X_nu))
   if (length(beta_nu) == 0L) {
     return(beta_nu)
   }
-  mu <- as.vector(X_mu %*% beta_mu)
-  sigma <- exp(as.vector(X_sigma %*% beta_sigma))
-  standardized <- (y - mu) / sigma
+  observed_y <- as.logical(observed_y)
+  mu <- as.vector(X_mu[observed_y, , drop = FALSE] %*% beta_mu)
+  sigma <- exp(as.vector(X_sigma[observed_y, , drop = FALSE] %*% beta_sigma))
+  standardized <- (y[observed_y] - mu) / sigma
   skewness <- mean((standardized - mean(standardized))^3) /
     stats::sd(standardized)^3
   if (!is.finite(skewness)) {
@@ -14510,9 +14746,19 @@ lognormal_ls_start <- function(
   y,
   X_mu,
   X_sigma,
-  re_mu = empty_random_mu_structure(length(y))
+  re_mu = empty_random_mu_structure(length(y)),
+  observed_y = rep(TRUE, length(y))
 ) {
-  gaussian_start <- gaussian_ls_start(log(y), X_mu, X_sigma, re_mu = re_mu)
+  observed_y <- as.logical(observed_y)
+  log_y <- numeric(length(y))
+  log_y[observed_y] <- log(y[observed_y])
+  gaussian_start <- gaussian_ls_start(
+    log_y,
+    X_mu,
+    X_sigma,
+    re_mu = re_mu,
+    observed_y = observed_y
+  )
   c(
     list(
       beta_mu = gaussian_start$beta_mu,
@@ -15196,25 +15442,42 @@ gamma_ls_start <- function(
   X_mu,
   X_sigma,
   re_mu = empty_random_mu_structure(length(y)),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  observed_y = rep(TRUE, length(y))
 ) {
+  observed_y <- as.logical(observed_y)
+  if (length(observed_y) != length(y) || !any(observed_y)) {
+    cli::cli_abort(
+      "Internal Gamma start error: {.code observed_y} must identify at least one response."
+    )
+  }
+  y_start <- y[observed_y]
+  X_mu_start <- X_mu[observed_y, , drop = FALSE]
   beta_mu <- tryCatch(
-    stats::lm.fit(X_mu, log(y))$coefficients,
+    stats::lm.fit(X_mu_start, log(y_start))$coefficients,
     error = function(e) rep(0, ncol(X_mu))
   )
   beta_mu[!is.finite(beta_mu)] <- 0
   eta_mu <- as.vector(X_mu %*% beta_mu)
   mu <- exp(eta_mu)
-  cv0 <- stats::sd((y - mu) / mu)
+  cv0 <- stats::sd((y_start - mu[observed_y]) / mu[observed_y])
   if (!is.finite(cv0) || cv0 <= 0) {
     cv0 <- 0.5
   }
-  y_scale <- stats::sd(log(y))
+  y_scale <- stats::sd(log(y_start))
   if (!is.finite(y_scale) || y_scale <= 0) {
     y_scale <- 1
   }
-  mu_re_start <- gaussian_mu_re_start(log(y) - eta_mu, re_mu, y_scale)
-  phylo_start <- gaussian_phylo_start(log(y) - eta_mu, phylo_mu)
+  log_y <- numeric(length(y))
+  log_y[observed_y] <- log(y_start)
+  resid <- log_y - eta_mu
+  mu_re_start <- gaussian_mu_re_start(
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
+  )
+  phylo_start <- gaussian_phylo_start(resid[observed_y], phylo_mu)
   beta_sigma <- rep(0, ncol(X_sigma))
   beta_sigma[[1L]] <- log(max(cv0, 1e-3))
   c(
@@ -15496,24 +15759,31 @@ biv_gaussian_phylo_start <- function(phylo_mu, y_scale) {
   )
 }
 
-gaussian_mu_re_start <- function(resid, re_mu, y_scale) {
+gaussian_mu_re_start <- function(
+  resid,
+  re_mu,
+  y_scale,
+  observed_y = rep(TRUE, length(resid))
+) {
   if (re_mu$n_re == 0L) {
     return(list(u_mu = 0, log_sd_mu = 0, eta_cor_mu = 0))
   }
 
   log_sd_mu <- numeric(re_mu$n_terms)
+  observed_y <- as.logical(observed_y)
   for (k in seq_len(re_mu$n_terms)) {
-    design_value <- re_mu$value[, k]
-    group <- re_mu$index[, k]
+    design_value <- re_mu$value[observed_y, k]
+    group <- re_mu$index[observed_y, k]
+    resid_observed <- resid[observed_y]
     if (isTRUE(all.equal(design_value, rep(1, length(design_value))))) {
       group_est <- stats::aggregate(
-        resid,
+        resid_observed,
         by = list(group = group),
         FUN = mean
       )$x
     } else {
       moment <- stats::aggregate(
-        cbind(num = design_value * resid, den = design_value^2),
+        cbind(num = design_value * resid_observed, den = design_value^2),
         by = list(group = group),
         FUN = sum
       )

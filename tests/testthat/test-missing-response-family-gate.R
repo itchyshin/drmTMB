@@ -25,10 +25,13 @@ drm_missing_gate_candidates <- function() {
   )
 }
 
-test_that("drm_missing_response_families() is the single source of truth (gaussian + biv + binomial today)", {
+test_that("drm_missing_response_families() is the response-mask source of truth", {
   expect_setequal(
     drm_missing_response_families(),
-    c("gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta")
+    c(
+      "gaussian", "biv_gaussian", "student", "skew_normal", "lognormal",
+      "gamma", "binomial", "poisson", "nbinom2", "beta"
+    )
   )
 })
 
@@ -86,7 +89,6 @@ test_that("zero-inflated and hurdle routes do not inherit missing-response admis
       data = dat,
       missing = control
     ),
-    "Missing-response masking is currently validated only",
-    fixed = TRUE
+    "not implemented for the"
   )
 })
