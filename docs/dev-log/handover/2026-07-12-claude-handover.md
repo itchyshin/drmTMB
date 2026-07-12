@@ -2,7 +2,7 @@
 
 Meta: Codex → Claude · repository `drmTMB` · source `main` at
 `d06bf0159e57d44b28f75656f977c838e0262041` · handover branch
-`handover/2026-07-12-claude` · parent issue #761.
+`handover/2026-07-12-claude` · handover PR #772 · parent issue #761.
 
 ## Mission and outcome
 
@@ -181,7 +181,7 @@ This handover branch itself modifies only `AGENTS.md` and this file.
 | LANDED | MR-T0–MR-T7 implementation and certification | merged to `main` at `d06bf015`; no resume needed |
 | CARRIED-OVER, user-owned | 24 untracked post-CRAN drafts, shard logs, Ayumi files, recovery probes, and `scratchpad/function-map-draft/` | pre-existing and outside this arc; preserve exactly; inspect with `git status --short` only if Shinichi assigns that work |
 | CARRIED-OVER, historical archive | handoff gate reported 354 commits across numerous old local branches | pre-existing local branch archive, unrelated to MR-T0–MR-T7; do not push, merge, delete, or resume en masse |
-| CARRIED-OVER, docs-only | `handover/2026-07-12-claude` | handover PR intentionally left open for human review; resume with `gh pr view --web` after locating its PR URL in this file or GitHub |
+| CARRIED-OVER, docs-only | PR #772 on `handover/2026-07-12-claude` | intentionally left open for human review; inspect with `gh pr view 772 --web` |
 
 The mandatory `/Users/z3437171/shinichi-brain/tools/handoff_gate.sh` was run
 before this document was written. It failed only on the two declared
