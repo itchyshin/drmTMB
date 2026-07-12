@@ -57,18 +57,18 @@ class CapabilityLedgerTests(unittest.TestCase):
         cells = copy.deepcopy(self.cells)
         evidence = copy.deepcopy(self.evidence)
         transitions = copy.deepcopy(self.transitions)
-        student = next(
+        route = next(
             row for row in cells
-            if row["axis"] == "missing_response" and row["family_route"] == "student"
+            if row["axis"] == "missing_response" and row["family_route"] == "tweedie"
         )
-        student["capability_status"] = "implemented"
-        student["work_status"] = "verified"
-        student["test_gate"] = "G3"
-        student["primary_evidence_id"] = "ev-mr-student-g3-test"
+        route["capability_status"] = "implemented"
+        route["work_status"] = "verified"
+        route["test_gate"] = "G3"
+        route["primary_evidence_id"] = "ev-mr-tweedie-g3-test"
         evidence.extend([
             {
-                "evidence_id": "ev-mr-student-g2-test",
-                "cell_id": student["cell_id"],
+                "evidence_id": "ev-mr-tweedie-g2-test",
+                "cell_id": route["cell_id"],
                 "evidence_class": "g2_contract_test",
                 "path_or_url": "tools/tests/test_capability_ledger.py",
                 "commit_sha": "test",
@@ -81,8 +81,8 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "claim_boundary": "Synthetic evidence for generator test.",
             },
             {
-                "evidence_id": "ev-mr-student-g3-test",
-                "cell_id": student["cell_id"],
+                "evidence_id": "ev-mr-tweedie-g3-test",
+                "cell_id": route["cell_id"],
                 "evidence_class": "recovery_test",
                 "path_or_url": "tools/tests/test_capability_ledger.py",
                 "commit_sha": "test",
@@ -96,11 +96,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             },
         ])
         transitions.append({
-            "transition_id": "tr-mr-student-g3-test",
-            "cell_id": student["cell_id"],
+            "transition_id": "tr-mr-tweedie-g3-test",
+            "cell_id": route["cell_id"],
             "from_work_status": "backlog",
             "to_work_status": "verified",
-            "evidence_ids": "ev-mr-student-g2-test;ev-mr-student-g3-test",
+            "evidence_ids": "ev-mr-tweedie-g2-test;ev-mr-tweedie-g3-test",
             "reason": "Synthetic future G3 transition",
             "actor": "unit test",
             "commit_sha": "test",
@@ -126,25 +126,25 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_evidence_free_g3_transition_is_rejected(self):
         cells = copy.deepcopy(self.cells)
         transitions = copy.deepcopy(self.transitions)
-        student = next(
+        route = next(
             row for row in cells
-            if row["axis"] == "missing_response" and row["family_route"] == "student"
+            if row["axis"] == "missing_response" and row["family_route"] == "tweedie"
         )
-        student["capability_status"] = "implemented"
-        student["work_status"] = "verified"
-        student["test_gate"] = "G3"
+        route["capability_status"] = "implemented"
+        route["work_status"] = "verified"
+        route["test_gate"] = "G3"
         transitions.append({
-            "transition_id": "tr-mr-student-invalid-g3-test",
-            "cell_id": student["cell_id"],
+            "transition_id": "tr-mr-tweedie-invalid-g3-test",
+            "cell_id": route["cell_id"],
             "from_work_status": "backlog",
             "to_work_status": "verified",
-            "evidence_ids": student["primary_evidence_id"],
+            "evidence_ids": route["primary_evidence_id"],
             "reason": "Invalid evidence-free promotion",
             "actor": "unit test",
             "commit_sha": "test",
             "date": "2026-07-11",
         })
-        with self.assertRaisesRegex(SystemExit, "G2.*requires|G3.*requires"):
+        with self.assertRaisesRegex(SystemExit, "G2.*(requires|must cite)|G3.*requires"):
             ledger.validate(cells, self.evidence, transitions)
 
     def test_check_detects_one_byte_stale_output(self):

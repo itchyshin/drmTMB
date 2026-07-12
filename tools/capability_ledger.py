@@ -71,7 +71,10 @@ ROUTES = [
     (17, "skew_normal", "skew_normal", "base", "MR-T2"),
     (18, "binomial", "binomial", "base", "MR-T1"),
 ]
-ADMITTED = {"gaussian", "biv_gaussian", "binomial", "poisson", "nbinom2", "beta"}
+ADMITTED = {
+    "gaussian", "biv_gaussian", "student", "lognormal", "gamma", "poisson",
+    "nbinom2", "beta", "skew_normal", "binomial",
+}
 
 WORK_STATUSES = {
     "backlog", "designed", "in_progress", "implemented_unverified",

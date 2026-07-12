@@ -62,12 +62,13 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   claims, and the full double-hierarchical endpoint remain roadmap work for
   later releases.
 - Missing-data preview boundary: `miss_control(response = "include")` is G3
-  recovery-verified for univariate and bivariate Gaussian, binomial, Poisson,
-  NB2, and beta responses. The fitted object preserves original-row accounting,
-  full-length fitted values, and `NA` residuals on masked univariate response
-  rows. The separate missing-predictor surface models one predictor at a time
-  and retains its existing family-aware catalogue and `imputed()` summaries.
-  The remaining 12 fitted response routes are scheduled through MR-T2–MR-T6;
+  recovery-verified for univariate and bivariate Gaussian, Student-t,
+  skew-normal, lognormal, Gamma, binomial, Poisson, NB2, and beta responses.
+  Student-t, lognormal, and Gamma include ordinary random-intercept recovery;
+  skew-normal remains fixed-effect only. The fitted object preserves
+  original-row accounting, full-length fitted values, and `NA` residuals on
+  masked univariate response rows. The remaining eight fitted response routes
+  are scheduled through MR-T3–MR-T6; broader structured-route masking claims,
   multiple missing predictors, response-imputation summaries, and G4/G5
   interval or coverage promotion remain later work.
 - Completed before tagging the version:
