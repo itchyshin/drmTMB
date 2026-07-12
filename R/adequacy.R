@@ -27,7 +27,7 @@
 #' (`fitted_distribution()$discrete`) or families with an isolated atom
 #' (`$has_atom`), `F` has jumps, so a plain `F(y_i)` residual is not uniform
 #' even under the true model. The Dunn-Smyth fix instead draws
-#' `u_i ~ Uniform(F(y_i-), F(y_i)]` via [drm_dunn_smyth_u()], where `F(y_i-)`
+#' `u_i ~ Uniform(F(y_i-), F(y_i)]` via `drm_dunn_smyth_u()`, where `F(y_i-)`
 #' is the left limit of `F` at `y_i`: `F(y_i - 1)` for a discrete/count family
 #' (`fd$discrete`; the left limit of any discrete distribution's CDF is the
 #' CDF at the previous integer, whatever the support -- this covers ordinary
@@ -59,7 +59,7 @@
 #' @param object A `drmTMB` fit.
 #' @param seed Optional single integer. Fixes the Dunn-Smyth randomization
 #'   reproducibly (discrete/atom families only) without disturbing the
-#'   caller's RNG stream; see [drm_dunn_smyth_u()]. Ignored for continuous,
+#'   caller's RNG stream; see `drm_dunn_smyth_u()`. Ignored for continuous,
 #'   atom-free families, where the residual has no randomization to fix.
 #' @param nsim Number of independent randomized realizations to draw (Fisher's
 #'   multi-realization seed envelope). `nsim = 1` (default) returns a plain
@@ -77,7 +77,7 @@
 #' @return A numeric vector (`nsim = 1`) or an `n`-by-`nsim` matrix
 #'   (`nsim > 1`) of approximately N(0,1) residuals under a correctly
 #'   specified fixed-effect model. Missing-response rows (see
-#'   [drm_mask_missing_response_values()]) are `NA`.
+#'   `drm_mask_missing_response_values()`) are `NA`.
 #' @keywords internal
 drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L, response = NULL) {
   if (!inherits(object, "drmTMB")) {

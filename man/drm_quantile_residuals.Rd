@@ -11,7 +11,7 @@ drm_quantile_residuals(object, seed = NULL, nsim = 1L, response = NULL)
 
 \item{seed}{Optional single integer. Fixes the Dunn-Smyth randomization
 reproducibly (discrete/atom families only) without disturbing the
-caller's RNG stream; see \code{\link[=drm_dunn_smyth_u]{drm_dunn_smyth_u()}}. Ignored for continuous,
+caller's RNG stream; see \code{drm_dunn_smyth_u()}. Ignored for continuous,
 atom-free families, where the residual has no randomization to fix.}
 
 \item{nsim}{Number of independent randomized realizations to draw (Fisher's
@@ -32,7 +32,7 @@ model types.}
 A numeric vector (\code{nsim = 1}) or an \code{n}-by-\code{nsim} matrix
 (\code{nsim > 1}) of approximately N(0,1) residuals under a correctly
 specified fixed-effect model. Missing-response rows (see
-\code{\link[=drm_mask_missing_response_values]{drm_mask_missing_response_values()}}) are \code{NA}.
+\code{drm_mask_missing_response_values()}) are \code{NA}.
 }
 \description{
 \code{drm_quantile_residuals()} computes Dunn-Smyth (1996) randomized quantile
@@ -45,7 +45,7 @@ exact and deterministic: \code{u_i = F(y_i)}. For discrete families
 (\code{fitted_distribution()$discrete}) or families with an isolated atom
 (\verb{$has_atom}), \code{F} has jumps, so a plain \code{F(y_i)} residual is not uniform
 even under the true model. The Dunn-Smyth fix instead draws
-\verb{u_i ~ Uniform(F(y_i-), F(y_i)]} via \code{\link[=drm_dunn_smyth_u]{drm_dunn_smyth_u()}}, where \verb{F(y_i-)}
+\verb{u_i ~ Uniform(F(y_i-), F(y_i)]} via \code{drm_dunn_smyth_u()}, where \verb{F(y_i-)}
 is the left limit of \code{F} at \code{y_i}: \code{F(y_i - 1)} for a discrete/count family
 (\code{fd$discrete}; the left limit of any discrete distribution's CDF is the
 CDF at the previous integer, whatever the support -- this covers ordinary

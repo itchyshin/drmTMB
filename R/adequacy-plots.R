@@ -112,7 +112,7 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
     ) +
     ggplot2::labs(
       x = "Theoretical N(0,1) quantile",
-      y = "Deviation (ordered residual − theoretical quantile)",
+      y = "Deviation (ordered residual - theoretical quantile)",
       title = "Worm plot of randomized quantile residuals",
       subtitle = paste(
         "Fixed-effect adequacy: flat = no detectable departure from N(0,1);",

@@ -42,7 +42,7 @@ one-row-per-observation data frame. This signature is \strong{frozen} (CP1): a
 family needing extra per-row context beyond its dpars -- binomial/
 beta_binomial \code{trials}, cumulative_logit ordinal cutpoints (\code{CP1}..\code{CPk}),
 truncation bounds, mixture weights -- attaches it as an extra \code{params}
-column inside \code{\link[=fitted_distribution_params]{fitted_distribution_params()}}, never by changing the
+column inside \code{fitted_distribution_params()}, never by changing the
 closure signature.
 }
 \keyword{internal}

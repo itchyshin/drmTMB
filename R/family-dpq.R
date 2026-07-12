@@ -86,7 +86,7 @@
 #' family needing extra per-row context beyond its dpars -- binomial/
 #' beta_binomial `trials`, cumulative_logit ordinal cutpoints (`CP1`..`CPk`),
 #' truncation bounds, mixture weights -- attaches it as an extra `params`
-#' column inside [fitted_distribution_params()], never by changing the
+#' column inside `fitted_distribution_params()`, never by changing the
 #' closure signature.
 #'
 #' @param object A `drmTMB` fit.
