@@ -29,14 +29,21 @@
 #' even under the true model. The Dunn-Smyth fix instead draws
 #' `u_i ~ Uniform(F(y_i-), F(y_i)]` via [drm_dunn_smyth_u()], where `F(y_i-)`
 #' is the left limit of `F` at `y_i`: `F(y_i - 1)` for a discrete/count family
-#' (support starting at 0), and 0 at the atom (`y_i == 0`) for an
-#' atom-bearing, otherwise-continuous family such as Tweedie -- away from the
-#' atom `F` is continuous, so the left limit equals `F(y_i)` there and the
-#' Dunn-Smyth draw degenerates to the plain continuous case automatically. A
-#' family with atoms at other locations (e.g. a future `zero_one_beta` entry,
-#' with atoms at both 0 and 1) needs its own left-limit rule; that is a DO-T3
-#' concern and is not reachable from any family currently registered in
-#' [drm_family_dpq()].
+#' (`fd$discrete`; the left limit of any discrete distribution's CDF is the
+#' CDF at the previous integer, whatever the support -- this covers ordinary
+#' counts, zero-inflated/hurdle counts, and zero-truncated counts uniformly,
+#' since zero-inflation/hurdle mass sits AT an existing lattice point rather
+#' than opening a new atom, and a zero-truncated `F` is 0 below its support).
+#' For a continuous-with-isolated-atoms family (`fd$has_atom`, `fd$discrete ==
+#' FALSE`), the left limit is `F(y_i)` unchanged away from every atom location
+#' in `fd$atoms` (`F` is continuous there, so the Dunn-Smyth draw degenerates
+#' to the plain continuous case automatically) and `F(a - epsilon)` (a small
+#' fixed offset below the atom, evaluated via `fd$p()`) at each atom `a` --
+#' Tweedie has one atom at `y = 0` (`F(-epsilon) = 0` exactly, since the
+#' support starts at 0); `zero_one_beta` has two, at `y = 0` and `y = 1`
+#' (`F(1 - epsilon)` is the interior beta CDF's left limit approaching the
+#' upper atom, an epsilon-accurate approximation to the exact continuous limit
+#' -- see `drm_atom_left_limit()`'s comment for the precision discussion).
 #'
 #' `fitted_distribution()$status == "spike"` families (feasibility spikes,
 #' not yet DG2/DG3-verified) still compute a residual, but emit a one-time
@@ -115,9 +122,46 @@ drm_quantile_residual_u <- function(fd, y, seed = NULL) {
   lower <- if (fd$discrete) {
     ifelse(y <= 0, 0, fd$p(y - 1))
   } else {
-    ifelse(y == 0, 0, upper)
+    drm_atom_left_limit(fd, y, upper)
   }
   drm_dunn_smyth_u(lower, upper, seed = seed)
+}
+
+# F(y-) for a continuous-with-isolated-atoms family (fd$has_atom == TRUE,
+# fd$discrete == FALSE; e.g. Tweedie, atoms = c(0), or zero_one_beta,
+# atoms = c(0, 1)). Away from every atom location F is continuous, so the
+# left limit equals F(y) (`upper`, unchanged); AT an atom `a`, the left limit
+# is F(a - epsilon), a DO-T1 (batch A/B) generalization from the original
+# hardcoded "atom at 0 only" rule to an arbitrary `fd$atoms` vector (DO-T3
+# batch C -- required once `zero_one_beta`, with atoms at both 0 and 1, was
+# registered in drm_family_dpq()).
+#
+# Exact left limit at an atom a: F(a-) = F(a) - P(Y = a) = upper - d(a).
+# `fd$d()` at an atom row returns the point mass (not a density), so this is
+# exact for BOTH zero_one_beta's atoms {0, 1} and Tweedie's atom at 0 -- with
+# no epsilon and, crucially, no regime-dependent bias. (The earlier
+# F(a - epsilon) form had error ~ (1 - zoi) * epsilon^shape2 at the upper atom,
+# which is NOT negligible for a dispersed beta with shape2 < 1 -- e.g.
+# shape2 = 0.1 gives epsilon^0.1 ~ 0.16 -- silently widening the Dunn-Smyth
+# interval there; Noether, DO-T3 batch C.) `fd$d()` and `fd$p()` are per-row
+# closures bound to the FULL params table (frozen `(y_or_u, params)`
+# signature), so both are called once on the full length-n `y` vector and
+# indexed at atom rows. Non-atom rows keep the plain continuous limit `upper`.
+drm_atom_left_limit <- function(fd, y, upper) {
+  atoms <- fd$atoms
+  if (is.null(atoms) || length(atoms) == 0L) {
+    return(upper)
+  }
+  at_any_atom <- rep(FALSE, length(y))
+  for (a in atoms) {
+    at_any_atom <- at_any_atom | (y == a)
+  }
+  lower <- upper
+  if (any(at_any_atom)) {
+    mass <- fd$d(y)
+    lower[at_any_atom] <- upper[at_any_atom] - mass[at_any_atom]
+  }
+  lower
 }
 
 # One-time-per-model_type-per-session spike warning (new.env(parent =

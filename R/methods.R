@@ -2903,14 +2903,16 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     zoi <- predict(object, dpar = "zoi")
     coi <- predict(object, dpar = "coi")
-    phi <- 1 / sigma^2
+    # SAME conversion drm_family_dpq_zero_one_beta() (R/family-dpq.R) uses --
+    # closed in DO-T3 batch C (Emmy's dedup; batch A/B left this inline).
+    native <- drm_beta_shapes(mu, sigma)
     sims <- replicate(nsim, {
       boundary <- stats::runif(length(mu)) < zoi
       one <- stats::runif(length(mu)) < coi
       interior <- stats::rbeta(
         length(mu),
-        shape1 = mu * phi,
-        shape2 = (1 - mu) * phi
+        shape1 = native$shape1,
+        shape2 = native$shape2
       )
       ifelse(boundary, as.numeric(one), interior)
     })
@@ -3007,10 +3009,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "truncated_nbinom2")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
+    # SAME conversion drm_nbinom2_size() (R/family-dpq.R) uses -- closed in
+    # DO-T3 batch C (Emmy's dedup; batch A left this inline).
+    size <- drm_nbinom2_size(sigma)
     p0 <- truncated_nbinom2_p0(mu, sigma)
     sims <- replicate(nsim, {
       u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-      stats::qnbinom(u, size = 1 / sigma^2, mu = mu)
+      stats::qnbinom(u, size = size, mu = mu)
     })
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -3021,6 +3026,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     hu <- predict(object, dpar = "hu")
+    size <- drm_nbinom2_size(sigma)
     p0 <- truncated_nbinom2_p0(mu, sigma)
     sims <- replicate(nsim, {
       hurdle_zero <- stats::runif(length(mu)) < hu
@@ -3028,7 +3034,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
       ifelse(
         hurdle_zero,
         0L,
-        stats::qnbinom(u, size = 1 / sigma^2, mu = mu)
+        stats::qnbinom(u, size = size, mu = mu)
       )
     })
     sims <- as.data.frame(sims)
@@ -3040,12 +3046,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     zi <- predict(object, dpar = "zi")
+    size <- drm_nbinom2_size(sigma)
     sims <- replicate(nsim, {
       structural_zero <- stats::runif(length(mu)) < zi
       ifelse(
         structural_zero,
         0L,
-        stats::rnbinom(length(mu), size = 1 / sigma^2, mu = mu)
+        stats::rnbinom(length(mu), size = size, mu = mu)
       )
     })
     sims <- as.data.frame(sims)
@@ -4926,7 +4933,9 @@ lognormal_mean <- function(object) {
 }
 
 truncated_nbinom2_p0 <- function(mu, sigma) {
-  stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
+  # SAME conversion drm_nbinom2_size() (R/family-dpq.R) uses -- closed in
+  # DO-T3 batch C (Emmy's dedup; batch A left this inline).
+  stats::dnbinom(0, size = drm_nbinom2_size(sigma), mu = mu)
 }
 
 truncated_nbinom2_prob_positive <- function(mu, sigma) {

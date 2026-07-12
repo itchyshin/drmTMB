@@ -20,17 +20,31 @@
 #   has_atom  - TRUE if the distribution places positive mass on isolated
 #               points that are not the whole discrete support (e.g. Tweedie
 #               1<nu<2 has an atom at 0 but is otherwise continuous)
+#   atoms     - numeric vector of isolated atom LOCATIONS (DO-T3 batch C):
+#               numeric(0) for atom-free/purely-discrete families, c(0) for
+#               Tweedie/zi_poisson/zi_nbinom2/hurdle_nbinom2 (the atom at
+#               y = 0 -- discrete count families carry this only for DG2's
+#               atom-enumeration bookkeeping; drm_quantile_residual_u()'s
+#               left-limit rule for them is the ordinary discrete F(y-1) rule,
+#               not this field), c(0, 1) for zero_one_beta. Consumed by
+#               drm_quantile_residual_u() (R/adequacy.R) to generalize the
+#               Dunn-Smyth left limit F(y-) beyond a hardcoded atom-at-0
+#               assumption; additive (every family sets it, frozen closure
+#               signature unchanged).
 #   status    - fixed enum "unimplemented" / "spike" / "reference":
 #               "reference" = DG2/DG3 verified + promoted; "spike" =
 #               feasibility-only, NOT promoted past diagnostic_hold;
 #               "unimplemented" = no entry (drm_family_dpq() aborts before
 #               returning). Consumers (DO-T1 residual gate, DO-T3 ledger
 #               grader) read this to decide what to expose. As of DO-T3 batch
-#               B, "gaussian", "student", "skew_normal", "lognormal", "gamma",
-#               "beta", "beta_binomial", "binomial", "cumulative_logit",
-#               "poisson", and "nbinom2" are "reference" (base-R-closed-form
-#               or hand-derived DG2 pass; see the batch-A/batch-B after-task
-#               reports). "tweedie" remains "spike". Enum locked at CP1.
+#               C, "gaussian", "student", "skew_normal", "lognormal", "gamma",
+#               "tweedie", "beta", "zero_one_beta", "beta_binomial",
+#               "binomial", "cumulative_logit", "poisson", "zi_poisson",
+#               "nbinom2", "truncated_nbinom2", "hurdle_nbinom2", and
+#               "zi_nbinom2" are "reference" (base-R-closed-form, hand-derived,
+#               or atom/mixture-decomposition DG2 pass; see the batch-A/B/C
+#               after-task reports). Only "biv_gaussian" remains
+#               "unimplemented". Enum locked at CP1.
 #
 # Noether's trap: the public -> native parameter map is family-specific and
 # NON-identity. A generic `pFAMILY(y, mu, sigma)` is wrong. Each case below
@@ -52,20 +66,18 @@
 #' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch B, the promoted (`status = "reference"`) families are
+#' As of DO-T3 batch C, the promoted (`status = "reference"`) families are
 #' `"gaussian"`, `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`,
-#' `"beta"`, `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`,
-#' `"poisson"`, and `"nbinom2"`. **`"skew_normal"` promotion is a
-#' distributional-output-axis result only** (DG2/DG3 for `{d,p,q}`
-#' correctness); it does not certify the skew_normal family's own fit-quality
-#' status (`diagnostic_hold` in `check_drmTMB()`), which is a separate axis
-#' and is unchanged -- see the firewall note beside
-#' `drm_family_dpq_skew_normal()`. `"tweedie"` remains a feasibility spike
-#' (`status = "spike"`): the closure is correct for the cases exercised in
-#' the DO-T0a verification script, but has not been through the DG2/DG3
-#' evidence gates and is not promoted past `diagnostic_hold`. All other
-#' `model_type` values are staged for later DO-T3 batches and raise a clear
-#' "not yet implemented" error.
+#' `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`, `"binomial"`,
+#' `"cumulative_logit"`, `"poisson"`, `"zi_poisson"`, `"nbinom2"`,
+#' `"truncated_nbinom2"`, `"hurdle_nbinom2"`, and `"zi_nbinom2"`.
+#' **`"skew_normal"` promotion is a distributional-output-axis result only**
+#' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
+#' family's own fit-quality status (`diagnostic_hold` in `check_drmTMB()`),
+#' which is a separate axis and is unchanged -- see the firewall note beside
+#' `drm_family_dpq_skew_normal()`. Only `"biv_gaussian"` remains
+#' `"unimplemented"` and raises a clear "not yet implemented" error (staged
+#' for a later DO-T3 batch: bivariate marginal distributional output).
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a
@@ -77,7 +89,7 @@
 #'
 #' @param object A `drmTMB` fit.
 #' @return A list with elements `dpars`, `d`, `p`, `q`, `discrete`,
-#'   `has_atom`, `status`.
+#'   `has_atom`, `atoms`, `status`.
 #' @keywords internal
 drm_family_dpq <- function(object) {
   entry <- switch(
@@ -89,11 +101,16 @@ drm_family_dpq <- function(object) {
     gamma = drm_family_dpq_gamma(),
     tweedie = drm_family_dpq_tweedie(),
     beta = drm_family_dpq_beta(),
+    zero_one_beta = drm_family_dpq_zero_one_beta(),
     beta_binomial = drm_family_dpq_beta_binomial(),
     binomial = drm_family_dpq_binomial(),
     cumulative_logit = drm_family_dpq_cumulative_logit(),
     poisson = drm_family_dpq_poisson(),
+    zi_poisson = drm_family_dpq_zi_poisson(),
     nbinom2 = drm_family_dpq_nbinom2(),
+    truncated_nbinom2 = drm_family_dpq_truncated_nbinom2(),
+    hurdle_nbinom2 = drm_family_dpq_hurdle_nbinom2(),
+    zi_nbinom2 = drm_family_dpq_zi_nbinom2(),
     cli::cli_abort(c(
       "{.fn drm_family_dpq} does not yet cover model type {.val {object$model$model_type}}.",
       i = "Per-family density/CDF/quantile rollout for the remaining model types is staged for a later phase (DO-T3)."
@@ -112,6 +129,7 @@ drm_family_dpq_gaussian <- function() {
     dpars = c("mu", "sigma"),
     discrete = FALSE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       stats::dnorm(y, mean = params$mu, sd = drm_gaussian_obs_sigma(params))
@@ -141,7 +159,7 @@ drm_gaussian_obs_sigma <- function(params) {
   drm_total_obs_sd(v_known, params$sigma)
 }
 
-# ---- tweedie (feasibility spike) -------------------------------------------
+# ---- tweedie (reference, atom family, DO-T3 batch C) -----------------------
 #
 # Compound Poisson-gamma with an atom at y = 0 for 1 < nu < 2. The compiled
 # density is TMB's built-in `dtweedie(y, mu, phi, nu, log = TRUE)`
@@ -149,15 +167,28 @@ drm_gaussian_obs_sigma <- function(params) {
 # and native nu = 1 + plogis(eta_nu) (the "logit12" link). `tweedie::dtweedie`/
 # `ptweedie`/`qtweedie` use the same (mu, phi, power) parameterization, so no
 # transform beyond the public->native map above is needed. Requires the
-# `tweedie` package (Suggests-only spike dependency here; promote to a formal
-# Suggests entry if DO-T3 adopts this route for the family rollout).
+# `tweedie` package (Suggests-guarded via `drm_require_tweedie()`, which
+# aborts with a clear message if it is not installed -- unchanged by this
+# batch's promotion; `{d,p,q}` correctness does not depend on adding a hard
+# runtime dependency).
+#
+# DO-T3 batch C atom-decomposition DG2: the single atom is at y = 0
+# (`atoms = c(0)`); normalization is `P(Y = 0) + integral_{(0,Inf)} d(y) dy
+# = 1`, where `P(Y = 0) = tweedie::dtweedie(0, mu, phi, power)` (the compound
+# Poisson-gamma's zero-count probability under a Poisson(mu^(2-power) /
+# (phi*(2-power))) number of gamma jumps) -- this WAS the DO-T0a spike's
+# original CDF-identity check (`p(0) == d(0)`, still true); batch C formalizes
+# it as an explicit atom-decomposition test
+# (tests/testthat/test-family-dpq-batchC.R) alongside the p-q inverse
+# identity and DG3 smoke, and flips `status` to `"reference"`.
 
 drm_family_dpq_tweedie <- function() {
   list(
     dpars = c("mu", "sigma", "nu"),
     discrete = FALSE,
     has_atom = TRUE,
-    status = "spike",
+    atoms = c(0),
+    status = "reference",
     d = drm_tweedie_dpq(tweedie::dtweedie),
     p = drm_tweedie_dpq(tweedie::ptweedie),
     q = drm_tweedie_dpq(tweedie::qtweedie)
@@ -228,6 +259,7 @@ drm_family_dpq_skew_normal <- function() {
     dpars = c("mu", "sigma", "nu"),
     discrete = FALSE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       drm_skew_normal_density(y, params)
@@ -358,6 +390,7 @@ drm_family_dpq_student <- function() {
     dpars = c("mu", "sigma", "nu"),
     discrete = FALSE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       stats::dt((y - params$mu) / params$sigma, df = params$nu) / params$sigma
@@ -389,6 +422,7 @@ drm_family_dpq_lognormal <- function() {
     dpars = c("mu", "sigma"),
     discrete = FALSE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       stats::dlnorm(y, meanlog = params$mu, sdlog = params$sigma)
@@ -420,6 +454,7 @@ drm_family_dpq_gamma <- function() {
     dpars = c("mu", "sigma"),
     discrete = FALSE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       native <- drm_gamma_shape_scale(params$mu, params$sigma)
@@ -449,12 +484,11 @@ drm_family_dpq_gamma <- function() {
 # `q()` here can differ from the compiled density at pathological (near-0,
 # near-1, huge-phi) parameter combinations. This is expected to be
 # undetectable at the fixed theta vectors DG2 exercises (interior mu, modest
-# phi) and is flagged as a residual uncertainty, not silently ignored. The
-# `"zero_one_beta"` family in `simulate.drmTMB()` still duplicates this same
-# `phi <- 1 / sigma^2` formula inline (not yet routed through
-# `drm_beta_shapes()`); `"beta_binomial"`'s duplicate was closed in DO-T3
-# batch B (see that family's section below and the batch-B dedup note).
-# `zero_one_beta`'s consolidation is left for its own DO-T3 batch.
+# phi) and is flagged as a residual uncertainty, not silently ignored.
+# `"beta_binomial"`'s duplicate was closed in DO-T3 batch B and
+# `"zero_one_beta"`'s in DO-T3 batch C (see each family's section below and
+# its batch's dedup note); `simulate.drmTMB()`'s `"zero_one_beta"` branch now
+# calls `drm_beta_shapes()` too.
 
 drm_beta_shapes <- function(mu, sigma) {
   phi <- 1 / sigma^2
@@ -466,6 +500,7 @@ drm_family_dpq_beta <- function() {
     dpars = c("mu", "sigma"),
     discrete = FALSE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       native <- drm_beta_shapes(params$mu, params$sigma)
@@ -478,6 +513,90 @@ drm_family_dpq_beta <- function() {
     q = function(u, params) {
       native <- drm_beta_shapes(params$mu, params$sigma)
       stats::qbeta(u, shape1 = native$shape1, shape2 = native$shape2)
+    }
+  )
+}
+
+# ---- zero_one_beta (reference, atom family, DO-T3 batch C) -----------------
+#
+# Zero-one-inflated beta: atoms at BOTH boundaries (y = 0, y = 1) plus an
+# interior beta component. Public dpars `(mu, sigma, zoi, coi)`; `zoi` is
+# `P(boundary) = P(Y in {0, 1})`, `coi` is `P(Y = 1 | boundary)`, matching the
+# compiled kernel exactly (src/drmTMB.cpp:2782-2858, model_type == 15):
+# `P(Y = 0) = zoi * (1 - coi)`, `P(Y = 1) = zoi * coi`, and the interior
+# density for `0 < y < 1` is `(1 - zoi) * dbeta(y, shape1, shape2)` with
+# `(shape1, shape2)` the SAME `drm_beta_shapes(mu, sigma)` conversion the
+# "beta" family above uses (the compiled kernel's `phi(i) = exp(-2 *
+# log_sigma(i))`, `alpha(i) = mu(i) * phi(i)`, `beta_shape(i) = (1 - mu(i)) *
+# phi(i)`, floored at `1e-8` -- same undetected-at-DG2-tolerance floor gap
+# flagged for "beta" above). Noether's trap: the compiled kernel additionally
+# inflates `mu` away from the exact boundary by `1e-12`
+# (`mu = 1e-12 + (1 - 2e-12) * plogis(eta_mu)`) purely to keep the AD tape
+# well-defined at `mu` near 0/1; `predict(fit, dpar = "mu")` returns the plain
+# `plogis(eta_mu)` (no epsilon), so `alpha`/`beta_shape` computed here can
+# differ from the compiled kernel's by ~1e-12 * phi -- undetectable at DG2's
+# `1e-8` density-agreement tolerance for the interior `mu`/modest `phi`
+# fixed-theta vectors DG2 exercises, flagged here rather than silently
+# ignored (same pattern as beta's `1e-8` floor gap).
+#
+# CDF: `F(y) = 0` for `y < 0`; `F(y) = P(Y = 0) + (1 - zoi) * pbeta(y, shape1,
+# shape2)` for `0 <= y < 1` (this single formula already gives `F(0) =
+# P(Y = 0)` exactly, since `pbeta(0, ...) = 0`); `F(y) = 1` for `y >= 1`.
+# Quantile: `q(u) = qbeta((u - P(Y = 0)) / (1 - zoi), shape1, shape2)`
+# clamped to `[0, 1]` before the `qbeta()` call -- this single closed-form
+# expression is the correct right-inverse everywhere (clamped-to-0 input maps
+# to `qbeta(0, ...) = 0` at/below the y = 0 atom's threshold, clamped-to-1
+# input maps to `qbeta(1, ...) = 1` at/above `F(1-) = 1 - P(Y = 1)`), so no
+# separate branch is needed for the two atoms, mirroring the "fraction"
+# transform used by `zi_poisson`/`zi_nbinom2`/`hurdle_nbinom2` below.
+#
+# DG2 atom-decomposition (batch C): `atoms = c(0, 1)`; normalization is
+# `P(Y = 0) + P(Y = 1) + integral_(0,1) (1 - zoi) * dbeta(y, ...) dy = 1`,
+# i.e. `zoi * (1 - coi) + zoi * coi + (1 - zoi) * 1 = zoi + (1 - zoi) = 1`.
+# External reference (independent of `simulate()`/the package's own
+# likelihood): `stats::pbeta()` for the interior component plus the explicit
+# `zoi`/`coi` atom-mass algebra above, hand-built in the test body (no single
+# external package computes this exact zero-one-inflated-beta mixture).
+#
+# Emmy's batch-C dedup: `simulate.drmTMB()`'s `"zero_one_beta"` branch
+# (methods.R) used to duplicate `phi <- 1 / sigma^2; shape1 <- mu * phi;
+# shape2 <- (1 - mu) * phi` inline (flagged in batch A, left open in batch B);
+# it now calls `drm_beta_shapes()` too, closing the last open duplicate of
+# that formula.
+
+drm_family_dpq_zero_one_beta <- function() {
+  list(
+    dpars = c("mu", "sigma", "zoi", "coi"),
+    discrete = FALSE,
+    has_atom = TRUE,
+    atoms = c(0, 1),
+    status = "reference",
+    d = function(y, params) {
+      native <- drm_beta_shapes(params$mu, params$sigma)
+      zoi <- params$zoi
+      coi <- params$coi
+      interior <- (1 - zoi) *
+        stats::dbeta(y, shape1 = native$shape1, shape2 = native$shape2)
+      ifelse(y == 0, zoi * (1 - coi), ifelse(y == 1, zoi * coi, interior))
+    },
+    p = function(y, params) {
+      native <- drm_beta_shapes(params$mu, params$sigma)
+      zoi <- params$zoi
+      coi <- params$coi
+      p0 <- zoi * (1 - coi)
+      y_clamped <- pmin(pmax(y, 0), 1)
+      interior_cdf <- p0 +
+        (1 - zoi) *
+          stats::pbeta(y_clamped, shape1 = native$shape1, shape2 = native$shape2)
+      ifelse(y < 0, 0, ifelse(y >= 1, 1, interior_cdf))
+    },
+    q = function(u, params) {
+      native <- drm_beta_shapes(params$mu, params$sigma)
+      zoi <- params$zoi
+      coi <- params$coi
+      p0 <- zoi * (1 - coi)
+      frac <- pmin(pmax((u - p0) / (1 - zoi), 0), 1)
+      stats::qbeta(frac, shape1 = native$shape1, shape2 = native$shape2)
     }
   )
 }
@@ -579,6 +698,7 @@ drm_family_dpq_beta_binomial <- function() {
     dpars = c("mu", "sigma"),
     discrete = TRUE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) drm_beta_binomial_dpmf(y, params),
     p = function(y, params) drm_beta_binomial_p(y, params),
@@ -603,6 +723,7 @@ drm_family_dpq_binomial <- function() {
     dpars = c("mu"),
     discrete = TRUE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       stats::dbinom(y, size = params$trials, prob = params$mu)
@@ -673,6 +794,7 @@ drm_family_dpq_cumulative_logit <- function() {
     dpars = c("mu"),
     discrete = TRUE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       drm_cumulative_logit_p(y, params) - drm_cumulative_logit_p(y - 1, params)
@@ -694,10 +816,64 @@ drm_family_dpq_poisson <- function() {
     dpars = c("mu"),
     discrete = TRUE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) stats::dpois(y, lambda = params$mu),
     p = function(y, params) stats::ppois(y, lambda = params$mu),
     q = function(u, params) stats::qpois(u, lambda = params$mu)
+  )
+}
+
+# ---- zi_poisson (reference, discrete, DO-T3 batch C) ------------------------
+#
+# Zero-inflated Poisson: `mu` is the identity-map Poisson rate (same as
+# "poisson"), `zi` is the structural-zero probability, matching the compiled
+# kernel exactly (src/drmTMB.cpp:3196-3258, model_type == 8):
+# `P(Y = 0) = zi + (1 - zi) * dpois(0, mu)`, `P(Y = k) = (1 - zi) *
+# dpois(k, mu)` for `k >= 1`. Fully discrete over the SAME non-negative-
+# integer lattice "poisson" uses (the zero-inflation adds mass AT an existing
+# support point, 0, rather than opening a new atom outside the discrete
+# lattice), so `drm_quantile_residual_u()`'s ordinary discrete `F(y - 1)`
+# left-limit rule (R/adequacy.R) already handles it correctly with no
+# special-case code; `atoms = c(0)` is carried here only for DG2's
+# atom-enumeration bookkeeping (verification-spec.md's "zi_*: {0}"), not
+# consumed by the residual left-limit rule (see the field's doc comment at
+# the top of this file).
+#
+# CDF: for y >= 0, `F(y) = zi + (1 - zi) * ppois(y, mu)` -- a single formula
+# (no separate y = 0 case needed: `F(0) = zi + (1 - zi) * dpois(0, mu) = zi +
+# (1 - zi) * ppois(0, mu)` already, since `ppois(0, mu) = dpois(0, mu)`).
+# Quantile: solving `zi + (1 - zi) * ppois(y, mu) >= u` for the smallest
+# integer y gives `y = qpois((u - zi) / (1 - zi), mu)`, clamped to `[0, 1]`
+# before the `qpois()` call so `u <= zi` (below the atom's threshold) maps to
+# `qpois(0, mu) = 0` and `u = 1` maps to `qpois(1, mu) = Inf` (ordinary
+# `qpois()` boundary behaviour, unchanged).
+
+drm_family_dpq_zi_poisson <- function() {
+  list(
+    dpars = c("mu", "zi"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = c(0),
+    status = "reference",
+    d = function(y, params) {
+      zi <- params$zi
+      base <- stats::dpois(y, lambda = params$mu)
+      ifelse(y == 0, zi + (1 - zi) * base, (1 - zi) * base)
+    },
+    p = function(y, params) {
+      zi <- params$zi
+      ifelse(
+        y < 0,
+        0,
+        zi + (1 - zi) * stats::ppois(y, lambda = params$mu)
+      )
+    },
+    q = function(u, params) {
+      zi <- params$zi
+      frac <- pmin(pmax((u - zi) / (1 - zi), 0), 1)
+      stats::qpois(frac, lambda = params$mu)
+    }
   )
 }
 
@@ -709,9 +885,12 @@ drm_family_dpq_poisson <- function() {
 # src/drm_count_kernels.h:31-41). `drm_nbinom2_size()` is the SAME conversion
 # `simulate.drmTMB()`'s nbinom2 branch calls (methods.R:
 # `stats::rnbinom(size = drm_nbinom2_size(sigma), mu = mu)`); both routes call
-# this one helper. `truncated_nbinom2_p0()` (methods.R) duplicates the same
-# `1 / sigma^2` formula inline for a different (not-yet-promoted) family;
-# left unconsolidated to keep this change scoped to "nbinom2".
+# this one helper. `truncated_nbinom2_p0()` (methods.R) used to duplicate the
+# same `1 / sigma^2` formula inline for a then-not-yet-promoted family; DO-T3
+# batch C promotes "truncated_nbinom2"/"hurdle_nbinom2"/"zi_nbinom2" (all
+# built on this SAME nbinom2 kernel, `src/drmTMB.cpp` model_type == 11/12/9)
+# and closes that duplicate too (Emmy's dedup) -- see each family's section
+# below and the `truncated_nbinom2_p0()` comment in methods.R.
 
 drm_nbinom2_size <- function(sigma) {
   1 / sigma^2
@@ -722,6 +901,7 @@ drm_family_dpq_nbinom2 <- function() {
     dpars = c("mu", "sigma"),
     discrete = TRUE,
     has_atom = FALSE,
+    atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
       stats::dnbinom(y, size = drm_nbinom2_size(params$sigma), mu = params$mu)
@@ -731,6 +911,156 @@ drm_family_dpq_nbinom2 <- function() {
     },
     q = function(u, params) {
       stats::qnbinom(u, size = drm_nbinom2_size(params$sigma), mu = params$mu)
+    }
+  )
+}
+
+# ---- truncated_nbinom2 (reference, discrete, DO-T3 batch C) ----------------
+#
+# Zero-truncated NB2: support `{1, 2, ...}`, built on the SAME nbinom2 kernel
+# ("mu"/"sigma" -> `size = drm_nbinom2_size(sigma)`) renormalized by the
+# untruncated zero-mass `p0 = dnbinom(0, size, mu)`, matching the compiled
+# kernel exactly (src/drmTMB.cpp:3463-3510, model_type == 11):
+# `log_density(y) - log(1 - p0)` for `y >= 1`, via the SAME
+# `drm_nbinom2_log_density()`/`drm_nbinom2_log_p0()` C++ helpers
+# (src/drm_count_kernels.h) "nbinom2" itself uses. No isolated atom (the
+# support is a proper, if renormalized, discrete lattice starting at 1, not a
+# jump breaking an otherwise-continuous or otherwise-wider-discrete
+# distribution), so `atoms = numeric(0)` and the ordinary discrete `F(y - 1)`
+# left-limit rule in `drm_quantile_residual_u()` (R/adequacy.R) applies
+# unchanged -- `F(0) = 0` below the truncated support, so `F(1 - 1) = F(0) =
+# 0` is the correct left limit at the smallest supported value `y = 1`.
+#
+# CDF: `F(y) = (pnbinom(y, size, mu) - p0) / (1 - p0)` for `y >= 1`, `F(y) =
+# 0` for `y < 1` (`d()` similarly floors at 0 below the support). Quantile:
+# `q(u) = qnbinom(p0 + u * (1 - p0), size, mu)` -- the SAME transform
+# `simulate.drmTMB()`'s truncated_nbinom2 branch already draws with (methods.R:
+# `u <- p0 + pmax(runif, eps) * (1 - p0); qnbinom(u, ...)`), here as the
+# deterministic right-inverse rather than a random draw.
+
+drm_family_dpq_truncated_nbinom2 <- function() {
+  list(
+    dpars = c("mu", "sigma"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = numeric(0),
+    status = "reference",
+    d = function(y, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
+      base <- stats::dnbinom(y, size = size, mu = params$mu)
+      ifelse(y < 1, 0, base / (1 - p0))
+    },
+    p = function(y, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
+      cdf <- (stats::pnbinom(y, size = size, mu = params$mu) - p0) / (1 - p0)
+      ifelse(y < 1, 0, cdf)
+    },
+    q = function(u, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
+      stats::qnbinom(p0 + u * (1 - p0), size = size, mu = params$mu)
+    }
+  )
+}
+
+# ---- hurdle_nbinom2 (reference, discrete, DO-T3 batch C) -------------------
+#
+# Hurdle NB2: `P(Y = 0) = hu`, `P(Y = k) = (1 - hu) * truncated_nb2_pmf(k)`
+# for `k >= 1`, built directly on the SAME zero-truncated-NB2 route
+# "truncated_nbinom2" above uses, matching the compiled kernel exactly
+# (src/drmTMB.cpp:3511-3597, model_type == 12): `log_hu` for `y == 0`,
+# `log(1 - hu) + log_density(y) - log(1 - p0)` for `y >= 1`. Fully discrete
+# over the non-negative-integer lattice (the hurdle mechanism REPLACES, not
+# adds to, the y = 0 mass, unlike zero-inflation's additive mixture), so
+# `atoms = c(0)` is carried for DG2 bookkeeping only (same convention as
+# "zi_poisson" above) -- the ordinary discrete `F(y - 1)` left-limit rule
+# applies unchanged.
+#
+# CDF: `F(0) = hu`; for `y >= 1`, `F(y) = hu + (1 - hu) * truncated_F(y)`
+# where `truncated_F(y) = (pnbinom(y, size, mu) - p0) / (1 - p0)` is the SAME
+# truncated-CDF "truncated_nbinom2" computes. Quantile: solving for the
+# smallest y with `F(y) >= u` gives `q(u) = qnbinom(p0 + (1 - p0) * frac,
+# size, mu)` where `frac = (u - hu) / (1 - hu)` clamped to `[0, 1]` -- the
+# same "fraction" transform as "zi_poisson"/"zi_nbinom2", composed with
+# "truncated_nbinom2"'s own `p0 + (1 - p0) * (...)` quantile transform.
+
+drm_family_dpq_hurdle_nbinom2 <- function() {
+  list(
+    dpars = c("mu", "sigma", "hu"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = c(0),
+    status = "reference",
+    d = function(y, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
+      base <- stats::dnbinom(y, size = size, mu = params$mu)
+      ifelse(y == 0, params$hu, (1 - params$hu) * base / (1 - p0))
+    },
+    p = function(y, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      hu <- params$hu
+      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
+      trunc_cdf <- pmax(
+        (stats::pnbinom(pmax(y, 0), size = size, mu = params$mu) - p0) /
+          (1 - p0),
+        0
+      )
+      ifelse(y < 0, 0, hu + (1 - hu) * trunc_cdf)
+    },
+    q = function(u, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      hu <- params$hu
+      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
+      frac <- pmin(pmax((u - hu) / (1 - hu), 0), 1)
+      stats::qnbinom(p0 + (1 - p0) * frac, size = size, mu = params$mu)
+    }
+  )
+}
+
+# ---- zi_nbinom2 (reference, discrete, DO-T3 batch C) -----------------------
+#
+# Zero-inflated NB2: the SAME additive zero-inflation mixture as "zi_poisson"
+# above, over the NB2 base instead of Poisson, matching the compiled kernel
+# exactly (src/drmTMB.cpp:3598-3668, model_type == 9):
+# `P(Y = 0) = zi + (1 - zi) * dnbinom(0, size, mu)`, `P(Y = k) = (1 - zi) *
+# dnbinom(k, size, mu)` for `k >= 1`. `atoms = c(0)` for DG2 bookkeeping only
+# (same convention as "zi_poisson"); the ordinary discrete `F(y - 1)`
+# left-limit rule applies unchanged.
+#
+# CDF/quantile: the SAME `zi + (1 - zi) * F_base(y)` / `qF_base((u - zi) /
+# (1 - zi))` transforms as "zi_poisson", with `pnbinom`/`qnbinom` at
+# `size = drm_nbinom2_size(sigma)` in place of `ppois`/`qpois`.
+
+drm_family_dpq_zi_nbinom2 <- function() {
+  list(
+    dpars = c("mu", "sigma", "zi"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = c(0),
+    status = "reference",
+    d = function(y, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      zi <- params$zi
+      base <- stats::dnbinom(y, size = size, mu = params$mu)
+      ifelse(y == 0, zi + (1 - zi) * base, (1 - zi) * base)
+    },
+    p = function(y, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      zi <- params$zi
+      ifelse(
+        y < 0,
+        0,
+        zi + (1 - zi) * stats::pnbinom(y, size = size, mu = params$mu)
+      )
+    },
+    q = function(u, params) {
+      size <- drm_nbinom2_size(params$sigma)
+      zi <- params$zi
+      frac <- pmin(pmax((u - zi) / (1 - zi), 0), 1)
+      stats::qnbinom(frac, size = size, mu = params$mu)
     }
   )
 }
@@ -747,13 +1077,14 @@ drm_family_dpq_nbinom2 <- function() {
 #' `exceedance()`) are meant to route through this accessor rather than
 #' re-deriving the public-to-native parameter conversion.
 #'
-#' `fitted_distribution()` only supports `model_type`s with a promoted or
-#' spike entry in [drm_family_dpq()]: as of DO-T3 batch B that is
-#' `"gaussian"`, `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`,
-#' `"beta"`, `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`,
-#' `"poisson"`, `"nbinom2"` (`status = "reference"`), plus `"tweedie"`
-#' (`status = "spike"`); other families raise a clear "not yet implemented"
-#' error. `newdata` support inherits the same limitation as
+#' `fitted_distribution()` only supports `model_type`s with a promoted entry
+#' in [drm_family_dpq()]: as of DO-T3 batch C that is `"gaussian"`,
+#' `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`, `"tweedie"`,
+#' `"beta"`, `"zero_one_beta"`, `"beta_binomial"`, `"binomial"`,
+#' `"cumulative_logit"`, `"poisson"`, `"zi_poisson"`, `"nbinom2"`,
+#' `"truncated_nbinom2"`, `"hurdle_nbinom2"`, and `"zi_nbinom2"` (all
+#' `status = "reference"`); only `"biv_gaussian"` raises a clear "not yet
+#' implemented" error. `newdata` support inherits the same limitation as
 #' [predict_parameters()]: fixed-effect, population-level predictions only.
 #' For meta-analysis gaussian fits (`meta_V()`), the known sampling variance
 #' is taken from the fit for fitted rows (`newdata = NULL`); when `newdata`
@@ -773,9 +1104,11 @@ drm_family_dpq_nbinom2 <- function() {
 #' @param ... Reserved for future options.
 #'
 #' @return An object of class `"drm_fitted_distribution"`: a list with
-#'   `model_type`, `status`, `discrete`, `has_atom`, `params` (wide data frame
-#'   of per-row native dpar estimates), and `d`, `p`, `q` (one-argument
-#'   functions bound to `params`).
+#'   `model_type`, `status`, `discrete`, `has_atom`, `atoms` (numeric vector of
+#'   isolated atom locations, `numeric(0)` when none -- see
+#'   [drm_family_dpq()]'s header comment), `params` (wide data frame of
+#'   per-row native dpar estimates), and `d`, `p`, `q` (one-argument functions
+#'   bound to `params`).
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, -0.5, 0, 0.5))
@@ -802,6 +1135,7 @@ fitted_distribution.drmTMB <- function(object, newdata = NULL, ...) {
       status = dpq$status,
       discrete = dpq$discrete,
       has_atom = dpq$has_atom,
+      atoms = dpq$atoms,
       params = params,
       d = function(y) dpq$d(y, params),
       p = function(y) dpq$p(y, params),

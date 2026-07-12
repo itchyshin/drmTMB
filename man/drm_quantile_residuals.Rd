@@ -42,14 +42,20 @@ exact and deterministic: \code{u_i = F(y_i)}. For discrete families
 even under the true model. The Dunn-Smyth fix instead draws
 \verb{u_i ~ Uniform(F(y_i-), F(y_i)]} via \code{\link[=drm_dunn_smyth_u]{drm_dunn_smyth_u()}}, where \verb{F(y_i-)}
 is the left limit of \code{F} at \code{y_i}: \code{F(y_i - 1)} for a discrete/count family
-(support starting at 0), and 0 at the atom (\code{y_i == 0}) for an
-atom-bearing, otherwise-continuous family such as Tweedie -- away from the
-atom \code{F} is continuous, so the left limit equals \code{F(y_i)} there and the
-Dunn-Smyth draw degenerates to the plain continuous case automatically. A
-family with atoms at other locations (e.g. a future \code{zero_one_beta} entry,
-with atoms at both 0 and 1) needs its own left-limit rule; that is a DO-T3
-concern and is not reachable from any family currently registered in
-\code{\link[=drm_family_dpq]{drm_family_dpq()}}.
+(\code{fd$discrete}; the left limit of any discrete distribution's CDF is the
+CDF at the previous integer, whatever the support -- this covers ordinary
+counts, zero-inflated/hurdle counts, and zero-truncated counts uniformly,
+since zero-inflation/hurdle mass sits AT an existing lattice point rather
+than opening a new atom, and a zero-truncated \code{F} is 0 below its support).
+For a continuous-with-isolated-atoms family (\code{fd$has_atom}, \code{fd$discrete == FALSE}), the left limit is \code{F(y_i)} unchanged away from every atom location
+in \code{fd$atoms} (\code{F} is continuous there, so the Dunn-Smyth draw degenerates
+to the plain continuous case automatically) and \code{F(a - epsilon)} (a small
+fixed offset below the atom, evaluated via \code{fd$p()}) at each atom \code{a} --
+Tweedie has one atom at \code{y = 0} (\code{F(-epsilon) = 0} exactly, since the
+support starts at 0); \code{zero_one_beta} has two, at \code{y = 0} and \code{y = 1}
+(\code{F(1 - epsilon)} is the interior beta CDF's left limit approaching the
+upper atom, an epsilon-accurate approximation to the exact continuous limit
+-- see \code{drm_atom_left_limit()}'s comment for the precision discussion).
 
 \code{fitted_distribution()$status == "spike"} families (feasibility spikes,
 not yet DG2/DG3-verified) still compute a residual, but emit a one-time

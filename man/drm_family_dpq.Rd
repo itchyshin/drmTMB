@@ -11,7 +11,7 @@ drm_family_dpq(object)
 }
 \value{
 A list with elements \code{dpars}, \code{d}, \code{p}, \code{q}, \code{discrete},
-\code{has_atom}, \code{status}.
+\code{has_atom}, \code{atoms}, \code{status}.
 }
 \description{
 \code{drm_family_dpq()} returns the \verb{\{d, p, q\}} closures and atom metadata for a
@@ -21,20 +21,18 @@ residuals, \code{predict(type = "quantile")}, \code{exceedance()}) route through
 the public-to-native parameter conversion is not re-derived in each caller.
 }
 \details{
-As of DO-T3 batch B, the promoted (\code{status = "reference"}) families are
+As of DO-T3 batch C, the promoted (\code{status = "reference"}) families are
 \code{"gaussian"}, \code{"student"}, \code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"},
-\code{"beta"}, \code{"beta_binomial"}, \code{"binomial"}, \code{"cumulative_logit"},
-\code{"poisson"}, and \code{"nbinom2"}. \strong{\code{"skew_normal"} promotion is a
-distributional-output-axis result only} (DG2/DG3 for \verb{\{d,p,q\}}
-correctness); it does not certify the skew_normal family's own fit-quality
-status (\code{diagnostic_hold} in \code{check_drmTMB()}), which is a separate axis
-and is unchanged -- see the firewall note beside
-\code{drm_family_dpq_skew_normal()}. \code{"tweedie"} remains a feasibility spike
-(\code{status = "spike"}): the closure is correct for the cases exercised in
-the DO-T0a verification script, but has not been through the DG2/DG3
-evidence gates and is not promoted past \code{diagnostic_hold}. All other
-\code{model_type} values are staged for later DO-T3 batches and raise a clear
-"not yet implemented" error.
+\code{"tweedie"}, \code{"beta"}, \code{"zero_one_beta"}, \code{"beta_binomial"}, \code{"binomial"},
+\code{"cumulative_logit"}, \code{"poisson"}, \code{"zi_poisson"}, \code{"nbinom2"},
+\code{"truncated_nbinom2"}, \code{"hurdle_nbinom2"}, and \code{"zi_nbinom2"}.
+\strong{\code{"skew_normal"} promotion is a distributional-output-axis result only}
+(DG2/DG3 for \verb{\{d,p,q\}} correctness); it does not certify the skew_normal
+family's own fit-quality status (\code{diagnostic_hold} in \code{check_drmTMB()}),
+which is a separate axis and is unchanged -- see the firewall note beside
+\code{drm_family_dpq_skew_normal()}. Only \code{"biv_gaussian"} remains
+\code{"unimplemented"} and raises a clear "not yet implemented" error (staged
+for a later DO-T3 batch: bivariate marginal distributional output).
 
 The \code{d}/\code{p}/\code{q} closures take \verb{(y_or_u, params)}, where \code{params} is a wide,
 one-row-per-observation data frame. This signature is \strong{frozen} (CP1): a

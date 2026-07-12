@@ -19,9 +19,11 @@ are used.}
 }
 \value{
 An object of class \code{"drm_fitted_distribution"}: a list with
-\code{model_type}, \code{status}, \code{discrete}, \code{has_atom}, \code{params} (wide data frame
-of per-row native dpar estimates), and \code{d}, \code{p}, \code{q} (one-argument
-functions bound to \code{params}).
+\code{model_type}, \code{status}, \code{discrete}, \code{has_atom}, \code{atoms} (numeric vector of
+isolated atom locations, \code{numeric(0)} when none -- see
+\code{\link[=drm_family_dpq]{drm_family_dpq()}}'s header comment), \code{params} (wide data frame of
+per-row native dpar estimates), and \code{d}, \code{p}, \code{q} (one-argument functions
+bound to \code{params}).
 }
 \description{
 \code{fitted_distribution()} returns an object carrying, for each row of the
@@ -33,13 +35,14 @@ consumers (quantile residuals, \code{predict(type = "quantile")},
 re-deriving the public-to-native parameter conversion.
 }
 \details{
-\code{fitted_distribution()} only supports \code{model_type}s with a promoted or
-spike entry in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch B that is
-\code{"gaussian"}, \code{"student"}, \code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"},
-\code{"beta"}, \code{"beta_binomial"}, \code{"binomial"}, \code{"cumulative_logit"},
-\code{"poisson"}, \code{"nbinom2"} (\code{status = "reference"}), plus \code{"tweedie"}
-(\code{status = "spike"}); other families raise a clear "not yet implemented"
-error. \code{newdata} support inherits the same limitation as
+\code{fitted_distribution()} only supports \code{model_type}s with a promoted entry
+in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch C that is \code{"gaussian"},
+\code{"student"}, \code{"skew_normal"}, \code{"lognormal"}, \code{"gamma"}, \code{"tweedie"},
+\code{"beta"}, \code{"zero_one_beta"}, \code{"beta_binomial"}, \code{"binomial"},
+\code{"cumulative_logit"}, \code{"poisson"}, \code{"zi_poisson"}, \code{"nbinom2"},
+\code{"truncated_nbinom2"}, \code{"hurdle_nbinom2"}, and \code{"zi_nbinom2"} (all
+\code{status = "reference"}); only \code{"biv_gaussian"} raises a clear "not yet
+implemented" error. \code{newdata} support inherits the same limitation as
 \code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect, population-level predictions only.
 For meta-analysis gaussian fits (\code{meta_V()}), the known sampling variance
 is taken from the fit for fitted rows (\code{newdata = NULL}); when \code{newdata}

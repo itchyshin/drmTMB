@@ -97,10 +97,9 @@ test_that("gaussian: exceedance() matches simulate() MC within 3*MCSE, both tail
 
 # ---- tweedie atom: exceedance() correctly includes the mass at y = 0 -------
 
-test_that("tweedie spike: exceedance(c = 0) correctly handles the zero atom vs simulate() MC", {
+test_that("tweedie (reference, atom family): exceedance(c = 0) correctly handles the zero atom vs simulate() MC", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("tweedie")
-  drm_reset_adequacy_warning_state()
   set.seed(20260714)
   n <- 40
   x <- stats::rnorm(n)
@@ -109,32 +108,31 @@ test_that("tweedie spike: exceedance(c = 0) correctly handles the zero atom vs s
   dat <- data.frame(y = y, x = x)
   fit <- drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = tweedie(), data = dat)
 
+  # tweedie was promoted to status = "reference" in DO-T3 batch C, so
+  # exceedance() no longer emits the feasibility-grade spike warning (see
+  # test-adequacy.R's drm_warn_adequacy_spike() test for that primitive).
   N <- 2e4
-  expect_warning(
-    exceedance(fit, threshold = 0),
-    "feasibility-grade"
-  )
-  exc0 <- expect_no_warning(exceedance(fit, threshold = 0))
-  exc0_atom <- expect_no_warning(exceedance(fit, threshold = 0, lower.tail = TRUE))
+  exc0 <- exceedance(fit, threshold = 0)
+  exc0_atom <- exceedance(fit, threshold = 0, lower.tail = TRUE)
   expect_identical(attr(exc0, "calibrated"), FALSE)
   # complement identity: Pr(Y > 0) + Pr(Y <= 0) == 1
   expect_equal(as.numeric(exc0) + as.numeric(exc0_atom), rep(1, n))
   # external cross-check: the atom mass equals tweedie::dtweedie() at y = 0
-  # (same identity test-family-dpq.R verifies for fitted_distribution()$p()).
+  # (same identity test-family-dpq-batchC.R verifies for
+  # fitted_distribution()$p()).
   mu_hat <- predict(fit, dpar = "mu")
   sigma_hat <- predict(fit, dpar = "sigma")
   nu_hat <- predict(fit, dpar = "nu")
   atom_mass <- tweedie::dtweedie(rep(0, n), mu = mu_hat, phi = sigma_hat^2, power = nu_hat[1])
   expect_equal(as.numeric(exc0_atom), atom_mass)
 
-  sims <- as.matrix(suppressWarnings(simulate(fit, nsim = N, seed = 321)))
+  sims <- as.matrix(simulate(fit, nsim = N, seed = 321))
   mc_exc0 <- rowMeans(sims > 0)
   mc_atom0 <- rowMeans(sims <= 0)
   mcse_exc0 <- sqrt(exc0 * (1 - exc0) / N)
   mcse_atom0 <- sqrt(exc0_atom * (1 - exc0_atom) / N)
   expect_true(all(abs(as.numeric(exc0) - mc_exc0) <= 3 * mcse_exc0))
   expect_true(all(abs(as.numeric(exc0_atom) - mc_atom0) <= 3 * mcse_atom0))
-  drm_reset_adequacy_warning_state()
 })
 
 # ---- calibrated = FALSE attribute -------------------------------------------

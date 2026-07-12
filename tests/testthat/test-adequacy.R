@@ -149,39 +149,37 @@ test_that("tweedie (atom family): Dunn-Smyth randomization seed does not change 
   expect_true(all(pvals > 0.05))
 })
 
-test_that("spike-status families warn once per session, not on every call", {
-  testthat::skip_if_not_installed("tweedie")
+test_that("drm_warn_adequacy_spike() warns once per model_type per session, not on every call", {
+  # DO-T3 batch C promotes tweedie (the last "spike"-status family) to
+  # "reference", so no live family reaches residuals(type = "quantile") with
+  # status = "spike" any more; this exercises the one-time-warning primitive
+  # directly (the same function residuals()/predict(type = "quantile")/
+  # exceedance() call) rather than through a fitted model.
   drm_reset_adequacy_warning_state()
-  set.seed(20260714)
-  n <- 60
-  x <- stats::rnorm(n)
-  mu_true <- exp(0.5 + 0.3 * x)
-  y <- rtweedie_compound(n, mu = mu_true, phi = 0.9^2, power = 1.5)
-  dat <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = tweedie(), data = dat)
-
   expect_warning(
-    residuals(fit, type = "quantile"),
+    drm_warn_adequacy_spike("spike", "a_hypothetical_spike_family"),
     "feasibility-grade"
   )
-  expect_no_warning(residuals(fit, type = "quantile"))
+  expect_no_warning(drm_warn_adequacy_spike("spike", "a_hypothetical_spike_family"))
+  expect_false(drm_warn_adequacy_spike("reference", "a_hypothetical_spike_family"))
   drm_reset_adequacy_warning_state()
 })
 
 test_that("residuals(type = 'quantile') errors clearly for an unimplemented model type", {
-  # "poisson" was promoted to status = "reference" in DO-T3 batch A, and
-  # "beta_binomial" in DO-T3 batch B, so this test now exercises a family
-  # both batches left unimplemented (zero_one_beta is staged for a later
-  # DO-T3 batch).
-  set.seed(1)
-  n <- 60
+  # "poisson" was promoted to status = "reference" in DO-T3 batch A,
+  # "beta_binomial" in DO-T3 batch B, and "zero_one_beta"/"tweedie"/the
+  # count-mixture families in DO-T3 batch C, so this test now exercises the
+  # one model type every batch has left unimplemented: biv_gaussian.
+  n <- 40
   x <- stats::rnorm(n)
-  mu_true <- stats::plogis(-0.2 + 0.6 * x)
-  y <- stats::rbeta(n, shape1 = mu_true / 0.4^2, shape2 = (1 - mu_true) / 0.4^2)
-  dat <- data.frame(y = y, x = x, w = stats::rnorm(n), v = stats::rnorm(n))
+  dat <- data.frame(
+    y1 = 0.4 + 0.6 * x + stats::rnorm(n),
+    y2 = -0.2 + 0.3 * x + stats::rnorm(n),
+    x = x
+  )
   fit <- drmTMB(
-    bf(y ~ x, sigma ~ 1, zoi ~ w, coi ~ v),
-    family = zero_one_beta(),
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(),
     data = dat,
     control = drm_control(se = FALSE)
   )

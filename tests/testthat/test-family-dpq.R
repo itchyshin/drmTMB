@@ -1,10 +1,12 @@
 # DO-T0a foundation tests for R/family-dpq.R (drm_family_dpq(),
 # fitted_distribution(), and the Dunn-Smyth seed-contract primitive).
-# Gaussian is the promoted reference (status = "reference"); tweedie remains
-# a feasibility spike (status = "spike") -- see the DO-T0a after-task report
-# for what remains before promotion. skew_normal was promoted to
-# `status = "reference"` in DO-T3 batch B; its DG2/DG3 tests live in
-# test-family-dpq-batchB.R, not here.
+# Gaussian is the promoted reference (status = "reference") and is the only
+# family with its full DG2 suite kept in this file. skew_normal was promoted
+# to `status = "reference"` in DO-T3 batch B; its DG2/DG3 tests live in
+# test-family-dpq-batchB.R. tweedie was promoted to `status = "reference"` in
+# DO-T3 batch C (the atom-decomposition DG2 case); its DG2/DG3 tests moved to
+# test-family-dpq-batchC.R along with the rest of that batch's atom/mixture
+# families -- not repeated here.
 
 test_that("fitted_distribution() gaussian matches the compiled log-density", {
   set.seed(20260712)
@@ -85,19 +87,21 @@ test_that("fitted_distribution() gaussian meta_V includes known sampling varianc
 })
 
 test_that("drm_family_dpq() aborts clearly for an unimplemented model type", {
-  # "poisson" was promoted to status = "reference" in DO-T3 batch A, and
-  # "beta_binomial" in DO-T3 batch B, so this test now exercises a family
-  # both batches left unimplemented (zero_one_beta is staged for a later
-  # DO-T3 batch).
-  set.seed(1)
-  n <- 60
+  # "poisson" was promoted to status = "reference" in DO-T3 batch A,
+  # "beta_binomial" in DO-T3 batch B, and "zero_one_beta"/"tweedie"/the
+  # count-mixture families in DO-T3 batch C, so this test now exercises the
+  # one model type every batch has left unimplemented: biv_gaussian
+  # (bivariate marginal distributional output is a later DO-T3 batch).
+  n <- 40
   x <- stats::rnorm(n)
-  mu_true <- stats::plogis(-0.2 + 0.6 * x)
-  y <- stats::rbeta(n, shape1 = mu_true / 0.4^2, shape2 = (1 - mu_true) / 0.4^2)
-  dat <- data.frame(y = y, x = x, w = stats::rnorm(n), v = stats::rnorm(n))
+  dat <- data.frame(
+    y1 = 0.4 + 0.6 * x + stats::rnorm(n),
+    y2 = -0.2 + 0.3 * x + stats::rnorm(n),
+    x = x
+  )
   fit <- drmTMB(
-    bf(y ~ x, sigma ~ 1, zoi ~ w, coi ~ v),
-    family = zero_one_beta(),
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(),
     data = dat,
     control = drm_control(se = FALSE)
   )
@@ -107,41 +111,15 @@ test_that("drm_family_dpq() aborts clearly for an unimplemented model type", {
   )
 })
 
-test_that("tweedie feasibility spike matches tweedie::dtweedie and the atom at 0", {
-  testthat::skip_if_not_installed("tweedie")
-  set.seed(20260714)
-  n <- 80
-  x <- stats::rnorm(n)
-  mu_true <- exp(0.5 + 0.3 * x)
-  y <- rtweedie_compound(n, mu = mu_true, phi = 0.9^2, power = 1.5)
-  dat <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = tweedie(), data = dat)
-  fd <- fitted_distribution(fit)
-
-  expect_identical(fd$status, "spike")
-  expect_true(fd$has_atom)
-
-  mu_hat <- predict(fit, dpar = "mu")
-  sigma_hat <- predict(fit, dpar = "sigma")
-  nu_hat <- predict(fit, dpar = "nu")
-
-  d_direct <- tweedie::dtweedie(dat$y, mu = mu_hat, phi = sigma_hat^2, power = nu_hat[1])
-  expect_equal(fd$d(dat$y), d_direct)
-
-  nll_compiled <- fit$obj$fn(fit$obj$env$last.par.best)
-  expect_equal(nll_compiled, -sum(log(pmax(fd$d(dat$y), 1e-300))), tolerance = 1e-6)
-
-  p0 <- fd$p(rep(0, n))
-  d0 <- tweedie::dtweedie(rep(0, n), mu = mu_hat, phi = sigma_hat^2, power = nu_hat[1])
-  expect_equal(p0, d0)
-})
-
 # The skew_normal DG2/DG3 tests (formerly a "feasibility spike" CDF-identity
 # check here) moved to tests/testthat/test-family-dpq-batchB.R and were
 # extended to full DG2 (inverse identity, normalization, compiled-density
 # agreement, the mvtnorm bivariate-normal external-reference identity) + DG3
 # smoke when skew_normal was promoted to `status = "reference"` in DO-T3
-# batch B.
+# batch B. The tweedie DG2/DG3 tests (formerly a "feasibility spike"
+# density/atom check here) moved to tests/testthat/test-family-dpq-batchC.R
+# and were extended to the full atom-decomposition DG2 suite + DG3 smoke when
+# tweedie was promoted to `status = "reference"` in DO-T3 batch C.
 
 test_that("drm_dunn_smyth_u() is seed-reproducible, bounded, and RNG-neutral", {
   lower <- c(0, 0.5, 0.9)
@@ -159,23 +137,10 @@ test_that("drm_dunn_smyth_u() is seed-reproducible, bounded, and RNG-neutral", {
   expect_identical(before, after)
 })
 
-test_that("Dunn-Smyth randomized quantile residuals are ~N(0,1) at the tweedie atom", {
-  testthat::skip_if_not_installed("tweedie")
-  set.seed(20260714)
-  n <- 300
-  x <- stats::rnorm(n)
-  mu_true <- exp(0.5 + 0.3 * x)
-  y <- rtweedie_compound(n, mu = mu_true, phi = 0.9^2, power = 1.5)
-  dat <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = tweedie(), data = dat)
-  fd <- fitted_distribution(fit)
-
-  Fy <- fd$p(dat$y)
-  Fy_left <- ifelse(dat$y == 0, 0, Fy)
-  u_ds <- drm_dunn_smyth_u(Fy_left, Fy, seed = 7)
-  z_ds <- stats::qnorm(u_ds)
-
-  expect_equal(mean(z_ds), 0, tolerance = 0.1)
-  expect_equal(stats::sd(z_ds), 1, tolerance = 0.1)
-  expect_gt(stats::ks.test(z_ds, "pnorm")$p.value, 0.01)
-})
+# The tweedie-atom Dunn-Smyth demonstration (formerly here, hand-building
+# Fy_left via `ifelse(y == 0, 0, Fy)`) moved to
+# tests/testthat/test-family-dpq-batchC.R as part of tweedie's DG3 smoke test
+# -- drm_atom_left_limit() (R/adequacy.R) now derives that same left-limit
+# rule generically from `fd$atoms` rather than a family-specific `y == 0`
+# check, and the batch C test exercises the generic path via
+# `residuals(fit, type = "quantile")`.
