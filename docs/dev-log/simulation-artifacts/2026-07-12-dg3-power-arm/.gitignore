@@ -1,0 +1,5 @@
+# Raw per-fit streams + heartbeat .log files are regenerable from run-toy-pass.R
+# + the harness in inst/dg3-power-arm/. Only the summary + driver are tracked.
+*.tsv
+!summary-*.tsv
+*.log
