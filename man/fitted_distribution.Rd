@@ -33,16 +33,21 @@ consumers (quantile residuals, \code{predict(type = "quantile")},
 re-deriving the public-to-native parameter conversion.
 }
 \details{
-As of DO-T0a, \code{fitted_distribution()} only supports \code{model_type}s with a
-promoted or spike entry in \code{\link[=drm_family_dpq]{drm_family_dpq()}} (currently \code{"gaussian"},
-\code{"tweedie"}, \code{"skew_normal"}); other families raise a clear "not yet
-implemented" error. \code{newdata} support inherits the same limitation as
-\code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect, population-level predictions only.
-For meta-analysis gaussian fits (\code{meta_V()}), the known sampling variance is
-taken from the fit for fitted rows (\code{newdata = NULL}); when \code{newdata} is
-supplied it must carry a \code{V} column giving the per-row known sampling
-variance, or an error is raised (rather than silently assuming 0). Ordinary
-(non-meta) fits need no \code{V} column.
+\code{fitted_distribution()} only supports \code{model_type}s with a promoted or
+spike entry in \code{\link[=drm_family_dpq]{drm_family_dpq()}}: as of DO-T3 batch A that is
+\code{"gaussian"}, \code{"student"}, \code{"lognormal"}, \code{"gamma"}, \code{"beta"},
+\code{"binomial"}, \code{"poisson"}, \code{"nbinom2"} (\code{status = "reference"}), plus
+\code{"tweedie"} and \code{"skew_normal"} (\code{status = "spike"}); other families raise
+a clear "not yet implemented" error. \code{newdata} support inherits the same
+limitation as \code{\link[=predict_parameters]{predict_parameters()}}: fixed-effect, population-level
+predictions only. For meta-analysis gaussian fits (\code{meta_V()}), the known
+sampling variance is taken from the fit for fitted rows (\code{newdata = NULL});
+when \code{newdata} is supplied it must carry a \code{V} column giving the per-row
+known sampling variance, or an error is raised (rather than silently
+assuming 0). Ordinary (non-meta) fits need no \code{V} column. For binomial
+fits, fitted rows reuse the fitted \code{trials} denominator; \code{newdata} must
+carry a \code{trials} column giving the per-row denominator, mirroring the
+meta_V() \code{V}-column contract.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, -0.5, 0, 0.5))

@@ -2858,11 +2858,10 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "gamma")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    shape <- 1 / sigma^2
-    scale <- mu * sigma^2
+    native <- drm_gamma_shape_scale(mu, sigma)
     sims <- replicate(
       nsim,
-      stats::rgamma(length(mu), shape = shape, scale = scale)
+      stats::rgamma(length(mu), shape = native$shape, scale = native$scale)
     )
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -2885,13 +2884,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "beta")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    phi <- 1 / sigma^2
+    native <- drm_beta_shapes(mu, sigma)
     sims <- replicate(
       nsim,
       stats::rbeta(
         length(mu),
-        shape1 = mu * phi,
-        shape2 = (1 - mu) * phi
+        shape1 = native$shape1,
+        shape2 = native$shape2
       )
     )
     sims <- as.data.frame(sims)
@@ -2996,7 +2995,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     sims <- replicate(
       nsim,
-      stats::rnbinom(length(mu), size = 1 / sigma^2, mu = mu)
+      stats::rnbinom(length(mu), size = drm_nbinom2_size(sigma), mu = mu)
     )
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -4846,8 +4845,17 @@ drm_prediction_offset <- function(object, newdata, dpar) {
   out
 }
 
+# Shared gaussian total-observation-SD formula: sqrt(known sampling variance +
+# sigma^2). Both observation_sigma() (this file) and
+# drm_gaussian_obs_sigma() (R/family-dpq.R, the {d,p,q} params-table path)
+# route through this single source of truth instead of independently
+# re-deriving sqrt(V_known + sigma^2) (Emmy's dedup, DO-T3 batch A prelude).
+drm_total_obs_sd <- function(v_known, sigma) {
+  sqrt(v_known + sigma^2)
+}
+
 observation_sigma <- function(object) {
-  sqrt(known_v_diag(object) + predict(object, dpar = "sigma")^2)
+  drm_total_obs_sd(known_v_diag(object), predict(object, dpar = "sigma"))
 }
 
 observation_covariance <- function(object) {

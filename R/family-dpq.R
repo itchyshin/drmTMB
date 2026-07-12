@@ -25,8 +25,12 @@
 #               feasibility-only, NOT promoted past diagnostic_hold;
 #               "unimplemented" = no entry (drm_family_dpq() aborts before
 #               returning). Consumers (DO-T1 residual gate, DO-T3 ledger
-#               grader) read this to decide what to expose. Only "gaussian" is
-#               "reference" as of DO-T0a. Enum locked at CP1.
+#               grader) read this to decide what to expose. As of DO-T3 batch
+#               A, "gaussian", "student", "lognormal", "gamma", "beta",
+#               "binomial", "poisson", and "nbinom2" are "reference"
+#               (base-R-closed-form DG2 pass; see the batch-A after-task
+#               report). "tweedie" and "skew_normal" remain "spike". Enum
+#               locked at CP1.
 #
 # Noether's trap: the public -> native parameter map is family-specific and
 # NON-identity. A generic `pFAMILY(y, mu, sigma)` is wrong. Each case below
@@ -48,13 +52,15 @@
 #' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T0a, only `"gaussian"` is a promoted (`status = "reference"`)
-#' entry. `"tweedie"` and `"skew_normal"` are feasibility spikes
-#' (`status = "spike"`): the closures are correct for the cases exercised in
-#' the DO-T0a verification script, but have not been through the DG2/DG3
-#' evidence gates and are not promoted past `diagnostic_hold`. All other
-#' `model_type` values are staged for DO-T3 and raise a clear "not yet
-#' implemented" error.
+#' As of DO-T3 batch A, the base-R-closed-form families --
+#' `"gaussian"`, `"student"`, `"lognormal"`, `"gamma"`, `"beta"`,
+#' `"binomial"`, `"poisson"`, and `"nbinom2"` -- are promoted
+#' (`status = "reference"`) entries. `"tweedie"` and `"skew_normal"` remain
+#' feasibility spikes (`status = "spike"`): the closures are correct for the
+#' cases exercised in the DO-T0a verification script, but have not been
+#' through the DG2/DG3 evidence gates and are not promoted past
+#' `diagnostic_hold`. All other `model_type` values are staged for later
+#' DO-T3 batches and raise a clear "not yet implemented" error.
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a
@@ -71,8 +77,15 @@ drm_family_dpq <- function(object) {
   entry <- switch(
     object$model$model_type,
     gaussian = drm_family_dpq_gaussian(),
-    tweedie = drm_family_dpq_tweedie(),
+    student = drm_family_dpq_student(),
     skew_normal = drm_family_dpq_skew_normal(),
+    lognormal = drm_family_dpq_lognormal(),
+    gamma = drm_family_dpq_gamma(),
+    tweedie = drm_family_dpq_tweedie(),
+    beta = drm_family_dpq_beta(),
+    binomial = drm_family_dpq_binomial(),
+    poisson = drm_family_dpq_poisson(),
+    nbinom2 = drm_family_dpq_nbinom2(),
     cli::cli_abort(c(
       "{.fn drm_family_dpq} does not yet cover model type {.val {object$model$model_type}}.",
       i = "Per-family density/CDF/quantile rollout for the remaining model types is staged for a later phase (DO-T3)."
@@ -108,13 +121,16 @@ drm_family_dpq_gaussian <- function() {
 # `obs_sigma = sqrt(V_known + sigma * sigma)` (the meta-analysis known-sampling
 # -variance case; V_known is 0 for ordinary gaussian fits). `params$V_known` is
 # attached by `fitted_distribution_params()`; if absent (older caller), treat
-# as an ordinary (non-meta) fit.
+# as an ordinary (non-meta) fit. Routes through `drm_total_obs_sd()`
+# (R/methods.R), the SAME helper `observation_sigma()` (methods.R) calls, so
+# the sqrt(V_known + sigma^2) formula has one source of truth instead of being
+# re-derived here (Emmy's dedup, DO-T3 batch A prelude).
 drm_gaussian_obs_sigma <- function(params) {
   v_known <- params$V_known
   if (is.null(v_known)) {
     v_known <- 0
   }
-  sqrt(v_known + params$sigma^2)
+  drm_total_obs_sd(v_known, params$sigma)
 }
 
 # ---- tweedie (feasibility spike) -------------------------------------------
@@ -282,6 +298,229 @@ drm_skew_normal_cdf_native <- function(y, xi, omega, alpha) {
   )$value
 }
 
+# ---- student (reference) ---------------------------------------------------
+#
+# Location-scale Student-t: sigma is a SCALE, NOT the response SD (Noether's
+# trap). Compiled density (src/drmTMB.cpp:2404-2418, model_type == 3):
+# z = (y - mu) / sigma, log_density = log(dt(z, df = nu)) - log(sigma). This
+# is exactly `stats::dt(z, df = nu) / sigma` (the location-scale-t density),
+# so F(y) = pt((y - mu) / sigma, df = nu) with no further transform. The same
+# (mu, sigma, nu) native map is what `simulate.drmTMB()`'s student branch
+# already uses (methods.R: `mu + sigma * rt(df = nu)`); no separate helper is
+# needed since the map is an identity on (mu, sigma, nu), not a derived
+# formula.
+
+drm_family_dpq_student <- function() {
+  list(
+    dpars = c("mu", "sigma", "nu"),
+    discrete = FALSE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) {
+      stats::dt((y - params$mu) / params$sigma, df = params$nu) / params$sigma
+    },
+    p = function(y, params) {
+      stats::pt((y - params$mu) / params$sigma, df = params$nu)
+    },
+    q = function(u, params) {
+      params$mu + params$sigma * stats::qt(u, df = params$nu)
+    }
+  )
+}
+
+# ---- lognormal (reference) -------------------------------------------------
+#
+# Compiled density (src/drmTMB.cpp:2494-2499, model_type == 4):
+# `log_density = dnorm(log(y), mu, sigma, log = TRUE) - log(y)`, i.e. the
+# lognormal density INCLUDING the `-log(y)` Jacobian of the log transform.
+# `stats::dlnorm(y, meanlog, sdlog)` already applies this Jacobian internally,
+# so `d()` below needs no extra term. Noether's trap: the CDF does NOT carry
+# a `-log(y)` term (it is a monotone reparametrisation of a probability, not
+# a density) -- `stats::plnorm(y, meanlog = mu, sdlog = sigma)` is exactly
+# right and nothing must be added. Matches `simulate.drmTMB()`'s lognormal
+# branch (methods.R: `stats::rlnorm(meanlog = mu, sdlog = sigma)`); the
+# (mu, sigma) native map is an identity, so no separate helper is needed.
+
+drm_family_dpq_lognormal <- function() {
+  list(
+    dpars = c("mu", "sigma"),
+    discrete = FALSE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) {
+      stats::dlnorm(y, meanlog = params$mu, sdlog = params$sigma)
+    },
+    p = function(y, params) {
+      stats::plnorm(y, meanlog = params$mu, sdlog = params$sigma)
+    },
+    q = function(u, params) {
+      stats::qlnorm(u, meanlog = params$mu, sdlog = params$sigma)
+    }
+  )
+}
+
+# ---- gamma (reference) ------------------------------------------------------
+#
+# Public (mu, sigma) -> native (shape, scale): shape = 1 / sigma^2,
+# scale = mu * sigma^2, matching the compiled density
+# (src/drmTMB.cpp:2576-2578, model_type == 5). `drm_gamma_shape_scale()` is
+# the SAME conversion `simulate.drmTMB()`'s gamma branch calls (methods.R,
+# `simulate.drmTMB` gamma case) -- both routes call this one helper rather
+# than each re-deriving `1 / sigma^2` / `mu * sigma^2`.
+
+drm_gamma_shape_scale <- function(mu, sigma) {
+  list(shape = 1 / sigma^2, scale = mu * sigma^2)
+}
+
+drm_family_dpq_gamma <- function() {
+  list(
+    dpars = c("mu", "sigma"),
+    discrete = FALSE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) {
+      native <- drm_gamma_shape_scale(params$mu, params$sigma)
+      stats::dgamma(y, shape = native$shape, scale = native$scale)
+    },
+    p = function(y, params) {
+      native <- drm_gamma_shape_scale(params$mu, params$sigma)
+      stats::pgamma(y, shape = native$shape, scale = native$scale)
+    },
+    q = function(u, params) {
+      native <- drm_gamma_shape_scale(params$mu, params$sigma)
+      stats::qgamma(u, shape = native$shape, scale = native$scale)
+    }
+  )
+}
+
+# ---- beta (reference) --------------------------------------------------------
+#
+# Public (mu, sigma) -> native (shape1, shape2): phi = 1 / sigma^2,
+# shape1 = mu * phi, shape2 = (1 - mu) * phi, matching the compiled density
+# (src/drmTMB.cpp:2740-2769, model_type == 10 -- the "beta" family; NOT
+# model_type == 15, which is "zero_one_beta"). `drm_beta_shapes()` is the SAME
+# conversion `simulate.drmTMB()`'s "beta" branch calls (methods.R). The
+# compiled density additionally floors alpha/beta_shape at 1e-8
+# (`CppAD::CondExpLt`) to guard against numeric underflow at extreme (mu,
+# sigma); `stats::{d,p,q}beta()` does not apply that floor, so `d()`/`p()`/
+# `q()` here can differ from the compiled density at pathological (near-0,
+# near-1, huge-phi) parameter combinations. This is expected to be
+# undetectable at the fixed theta vectors DG2 exercises (interior mu, modest
+# phi) and is flagged as a residual uncertainty, not silently ignored. The
+# `"zero_one_beta"` and `"beta_binomial"` families in `simulate.drmTMB()`
+# duplicate this same `phi <- 1 / sigma^2` formula inline (not yet routed
+# through `drm_beta_shapes()`); that consolidation is left for their DO-T3
+# batch, to keep this change scoped to the "beta" family.
+
+drm_beta_shapes <- function(mu, sigma) {
+  phi <- 1 / sigma^2
+  list(shape1 = mu * phi, shape2 = (1 - mu) * phi)
+}
+
+drm_family_dpq_beta <- function() {
+  list(
+    dpars = c("mu", "sigma"),
+    discrete = FALSE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) {
+      native <- drm_beta_shapes(params$mu, params$sigma)
+      stats::dbeta(y, shape1 = native$shape1, shape2 = native$shape2)
+    },
+    p = function(y, params) {
+      native <- drm_beta_shapes(params$mu, params$sigma)
+      stats::pbeta(y, shape1 = native$shape1, shape2 = native$shape2)
+    },
+    q = function(u, params) {
+      native <- drm_beta_shapes(params$mu, params$sigma)
+      stats::qbeta(u, shape1 = native$shape1, shape2 = native$shape2)
+    }
+  )
+}
+
+# ---- binomial (reference, discrete) -----------------------------------------
+#
+# Native map is the identity: mu IS the success probability (compiled density
+# at src/drmTMB.cpp:2963-2980, model_type == 18); `d()`/`p()`/`q()` need only
+# `mu` and the per-row `trials` denominator. `trials` is not a distributional
+# parameter with a link (it has no entry in `drm_dpar_link()`), so it cannot
+# be listed in `dpars`; it is attached as an extra `params` column inside
+# [fitted_distribution_params()] instead, per the closure-signature-freeze
+# contract (CP1) -- see that function's binomial branch below. Matches
+# `simulate.drmTMB()`'s binomial branch (methods.R:
+# `stats::rbinom(size = trials, prob = mu)`).
+
+drm_family_dpq_binomial <- function() {
+  list(
+    dpars = c("mu"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) {
+      stats::dbinom(y, size = params$trials, prob = params$mu)
+    },
+    p = function(y, params) {
+      stats::pbinom(y, size = params$trials, prob = params$mu)
+    },
+    q = function(u, params) {
+      stats::qbinom(u, size = params$trials, prob = params$mu)
+    }
+  )
+}
+
+# ---- poisson (reference, discrete) -------------------------------------------
+#
+# Native map is the identity: mu IS the Poisson rate (compiled density at
+# src/drmTMB.cpp:3184-3195, model_type == 6, `dpois(y, mu)`). Matches
+# `simulate.drmTMB()`'s poisson branch (methods.R:
+# `stats::rpois(lambda = mu)`).
+
+drm_family_dpq_poisson <- function() {
+  list(
+    dpars = c("mu"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) stats::dpois(y, lambda = params$mu),
+    p = function(y, params) stats::ppois(y, lambda = params$mu),
+    q = function(u, params) stats::qpois(u, lambda = params$mu)
+  )
+}
+
+# ---- nbinom2 (reference, discrete) -------------------------------------------
+#
+# Public sigma -> native size: size = 1 / sigma^2 (the NB2 "alpha" the
+# compiled `drm_nbinom2_log_density()` kernel uses is `sigma^2`, i.e. the
+# reciprocal of the size `stats::{d,p,q}nbinom(..., size=, mu=)` expects --
+# src/drm_count_kernels.h:31-41). `drm_nbinom2_size()` is the SAME conversion
+# `simulate.drmTMB()`'s nbinom2 branch calls (methods.R:
+# `stats::rnbinom(size = drm_nbinom2_size(sigma), mu = mu)`); both routes call
+# this one helper. `truncated_nbinom2_p0()` (methods.R) duplicates the same
+# `1 / sigma^2` formula inline for a different (not-yet-promoted) family;
+# left unconsolidated to keep this change scoped to "nbinom2".
+
+drm_nbinom2_size <- function(sigma) {
+  1 / sigma^2
+}
+
+drm_family_dpq_nbinom2 <- function() {
+  list(
+    dpars = c("mu", "sigma"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    status = "reference",
+    d = function(y, params) {
+      stats::dnbinom(y, size = drm_nbinom2_size(params$sigma), mu = params$mu)
+    },
+    p = function(y, params) {
+      stats::pnbinom(y, size = drm_nbinom2_size(params$sigma), mu = params$mu)
+    },
+    q = function(u, params) {
+      stats::qnbinom(u, size = drm_nbinom2_size(params$sigma), mu = params$mu)
+    }
+  )
+}
+
 # ---- fitted_distribution() shared accessor ---------------------------------
 
 #' Fitted distribution accessor
@@ -294,16 +533,21 @@ drm_skew_normal_cdf_native <- function(y, xi, omega, alpha) {
 #' `exceedance()`) are meant to route through this accessor rather than
 #' re-deriving the public-to-native parameter conversion.
 #'
-#' As of DO-T0a, `fitted_distribution()` only supports `model_type`s with a
-#' promoted or spike entry in [drm_family_dpq()] (currently `"gaussian"`,
-#' `"tweedie"`, `"skew_normal"`); other families raise a clear "not yet
-#' implemented" error. `newdata` support inherits the same limitation as
-#' [predict_parameters()]: fixed-effect, population-level predictions only.
-#' For meta-analysis gaussian fits (`meta_V()`), the known sampling variance is
-#' taken from the fit for fitted rows (`newdata = NULL`); when `newdata` is
-#' supplied it must carry a `V` column giving the per-row known sampling
-#' variance, or an error is raised (rather than silently assuming 0). Ordinary
-#' (non-meta) fits need no `V` column.
+#' `fitted_distribution()` only supports `model_type`s with a promoted or
+#' spike entry in [drm_family_dpq()]: as of DO-T3 batch A that is
+#' `"gaussian"`, `"student"`, `"lognormal"`, `"gamma"`, `"beta"`,
+#' `"binomial"`, `"poisson"`, `"nbinom2"` (`status = "reference"`), plus
+#' `"tweedie"` and `"skew_normal"` (`status = "spike"`); other families raise
+#' a clear "not yet implemented" error. `newdata` support inherits the same
+#' limitation as [predict_parameters()]: fixed-effect, population-level
+#' predictions only. For meta-analysis gaussian fits (`meta_V()`), the known
+#' sampling variance is taken from the fit for fitted rows (`newdata = NULL`);
+#' when `newdata` is supplied it must carry a `V` column giving the per-row
+#' known sampling variance, or an error is raised (rather than silently
+#' assuming 0). Ordinary (non-meta) fits need no `V` column. For binomial
+#' fits, fitted rows reuse the fitted `trials` denominator; `newdata` must
+#' carry a `trials` column giving the per-row denominator, mirroring the
+#' meta_V() `V`-column contract.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
@@ -377,6 +621,13 @@ fitted_distribution_params <- function(object, newdata, dpars) {
   } else {
     drm_newdata_v_known(object, newdata, nrow(params))
   }
+  if (identical(object$model$model_type, "binomial")) {
+    params$trials <- if (is.null(newdata)) {
+      object$model$trials
+    } else {
+      drm_newdata_trials(object, newdata, nrow(params))
+    }
+  }
   params
 }
 
@@ -408,6 +659,36 @@ drm_newdata_v_known <- function(object, newdata, n) {
     cli::cli_abort("The {.code V} column in {.arg newdata} must be non-negative and non-missing.")
   }
   v
+}
+
+# Binomial `trials` (the denominator of `cbind(success, failure) ~ ...`) for
+# `newdata` rows. Fitted rows reuse `object$model$trials` directly -- the same
+# vector `simulate.drmTMB()`'s binomial branch reads (methods.R). `newdata`
+# carries no response to re-derive a denominator from (that is the point of
+# out-of-sample prediction), so -- mirroring `drm_newdata_v_known()`'s
+# `meta_V()` contract above -- an explicit per-row `trials` column is
+# required rather than silently assuming a value (CP1-sanctioned extension
+# pattern: attach as a `params` column, never by changing the {d,p,q}
+# closure signature).
+drm_newdata_trials <- function(object, newdata, n) {
+  trials <- newdata[["trials"]]
+  if (is.null(trials)) {
+    cli::cli_abort(c(
+      "This binomial fit needs the number of trials for every new row.",
+      i = "Add a {.code trials} column to {.arg newdata} giving the per-row denominator (the {.code cbind(success, failure)} total).",
+      i = "Fitted rows do not need this; only {.arg newdata} rows do."
+    ))
+  }
+  trials <- as.numeric(trials)
+  if (length(trials) != n) {
+    cli::cli_abort(
+      "The {.code trials} column in {.arg newdata} must have one value per row ({.val {n}})."
+    )
+  }
+  if (any(trials <= 0, na.rm = TRUE) || anyNA(trials)) {
+    cli::cli_abort("The {.code trials} column in {.arg newdata} must be positive and non-missing.")
+  }
+  trials
 }
 
 # ---- Dunn-Smyth randomized quantile residual seed contract -----------------

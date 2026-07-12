@@ -21,13 +21,15 @@ residuals, \code{predict(type = "quantile")}, \code{exceedance()}) route through
 the public-to-native parameter conversion is not re-derived in each caller.
 }
 \details{
-As of DO-T0a, only \code{"gaussian"} is a promoted (\code{status = "reference"})
-entry. \code{"tweedie"} and \code{"skew_normal"} are feasibility spikes
-(\code{status = "spike"}): the closures are correct for the cases exercised in
-the DO-T0a verification script, but have not been through the DG2/DG3
-evidence gates and are not promoted past \code{diagnostic_hold}. All other
-\code{model_type} values are staged for DO-T3 and raise a clear "not yet
-implemented" error.
+As of DO-T3 batch A, the base-R-closed-form families --
+\code{"gaussian"}, \code{"student"}, \code{"lognormal"}, \code{"gamma"}, \code{"beta"},
+\code{"binomial"}, \code{"poisson"}, and \code{"nbinom2"} -- are promoted
+(\code{status = "reference"}) entries. \code{"tweedie"} and \code{"skew_normal"} remain
+feasibility spikes (\code{status = "spike"}): the closures are correct for the
+cases exercised in the DO-T0a verification script, but have not been
+through the DG2/DG3 evidence gates and are not promoted past
+\code{diagnostic_hold}. All other \code{model_type} values are staged for later
+DO-T3 batches and raise a clear "not yet implemented" error.
 
 The \code{d}/\code{p}/\code{q} closures take \verb{(y_or_u, params)}, where \code{params} is a wide,
 one-row-per-observation data frame. This signature is \strong{frozen} (CP1): a
