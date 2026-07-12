@@ -6847,13 +6847,6 @@ drm_build_truncated_nbinom2_spec <- function(
     NULL
   }
   has_hu <- !is.null(hu_entry)
-  if (include_missing_response && has_hu) {
-    cli::cli_abort(c(
-      "{.code miss_control(response = \"include\")} is not implemented for hurdle NB2 models yet.",
-      "x" = "Missing-response masking is validated for the non-hurdle {.fn truncated_nbinom2} route only; hurdle likelihood evidence is tracked separately.",
-      "i" = "Use {.code missing = miss_control(response = \"drop\")} until the hurdle mixture route is validated."
-    ))
-  }
 
   if (is.na(mu_entry$response)) {
     cli::cli_abort(
@@ -7008,14 +7001,15 @@ drm_build_truncated_nbinom2_spec <- function(
       }
     ))
   }
-  if (has_hu && !any(y > 0)) {
+  if (has_hu && !any(y_obs > 0)) {
     cli::cli_abort(c(
       "{.fn truncated_nbinom2} hurdle models need at least one positive count after missing-row filtering.",
       "x" = "The positive-count NB2 component cannot be estimated from all-zero responses."
     ))
   }
+  response_sentinel <- if (has_hu) 0L else 1L
   if (include_missing_response && !all(observed_y)) {
-    y[!observed_y] <- 1L
+    y[!observed_y] <- response_sentinel
   }
 
   X_mu <- stats::model.matrix(
@@ -7042,7 +7036,15 @@ drm_build_truncated_nbinom2_spec <- function(
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   phylo_mu <- build_structured_mu_structure(hu_relmat$term, data_model, env)
-  start <- if (has_hu) {
+  start <- if (has_hu && include_missing_response) {
+    hurdle_nbinom2_start(
+      y[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      X_sigma[observed_y, , drop = FALSE],
+      X_hu[observed_y, , drop = FALSE],
+      phylo_mu = phylo_mu
+    )
+  } else if (has_hu) {
     hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu, phylo_mu = phylo_mu)
   } else if (include_missing_response) {
     truncated_nbinom2_start(
@@ -7060,8 +7062,12 @@ drm_build_truncated_nbinom2_spec <- function(
       original_row = which(keep),
       model_row = seq_along(y),
       observed_y = observed_y,
-      response_sentinel = 1,
-      version = "MR-T5-truncated-nbinom2"
+      response_sentinel = response_sentinel,
+      version = if (has_hu) {
+        "MR-T6-hurdle-nbinom2"
+      } else {
+        "MR-T5-truncated-nbinom2"
+      }
     )
   } else {
     NULL

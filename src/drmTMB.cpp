@@ -3564,19 +3564,23 @@ Type objective_function<Type>::operator()()
     vector<Type> positive_mean(y.size());
     vector<Type> fitted_mean(y.size());
     for (int i = 0; i < y.size(); ++i) {
-      Type log_hu = -logspace_add(Type(0.0), -eta_hu(i));
-      Type log_one_minus_hu = -logspace_add(Type(0.0), eta_hu(i));
-      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
-      int yi = (int) asDouble(y(i));
       Type log_p0 = drm_nbinom2_log_p0(eta_mu(i), log_sigma(i));
       Type log_trunc_prob = drm_log1mexp(log_p0);
       trunc_prob(i) = exp(log_trunc_prob);
       positive_mean(i) = mu(i) / trunc_prob(i);
       fitted_mean(i) = (Type(1.0) - hu(i)) * positive_mean(i);
-      if (yi == 0) {
-        nll -= weights(i) * log_hu;
-      } else {
-        nll -= weights(i) * (log_one_minus_hu + log_density - log_trunc_prob);
+      if (observed_y(i) == 1) {
+        Type log_hu = -logspace_add(Type(0.0), -eta_hu(i));
+        Type log_one_minus_hu = -logspace_add(Type(0.0), eta_hu(i));
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        int yi = (int) asDouble(y(i));
+        if (yi == 0) {
+          nll -= weights(i) * log_hu;
+        } else {
+          nll -=
+            weights(i) * (log_one_minus_hu + log_density - log_trunc_prob);
+        }
       }
     }
     REPORT(eta_mu);

@@ -3328,7 +3328,10 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     if (type == "response") {
       return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu))
+    ))
   }
   if (identical(object$model$model_type, "zi_nbinom2")) {
     mu <- predict(object, dpar = "mu")

@@ -42,6 +42,34 @@ mr_t6_zinb_data <- function(n = 1800L, seed = 20260613L) {
   list(data = dat, truth = truth)
 }
 
+mr_t6_hurdle_data <- function(n = 1800L, seed = 20260623L) {
+  set.seed(seed)
+  dat <- data.frame(
+    x = rnorm(n), z = rnorm(n), w = rnorm(n),
+    habitat = factor(rep(c("open", "closed"), length.out = n))
+  )
+  truth <- list(
+    mu = c(`(Intercept)` = 0.40, x = -0.22, habitatopen = 0.20),
+    sigma = c(`(Intercept)` = -0.75, z = 0.18),
+    hu = c(`(Intercept)` = -0.85, w = 0.45, habitatopen = -0.35)
+  )
+  X_mu <- model.matrix(~ x + habitat, dat)
+  X_sigma <- model.matrix(~ z, dat)
+  X_hu <- model.matrix(~ w + habitat, dat)
+  mu <- exp(as.vector(X_mu %*% truth$mu))
+  sigma <- exp(as.vector(X_sigma %*% truth$sigma))
+  hu <- plogis(as.vector(X_hu %*% truth$hu))
+  p0 <- dnbinom(0, size = 1 / sigma^2, mu = mu)
+  hurdle_zero <- runif(n) < hu
+  positive_u <- p0 + pmax(runif(n), .Machine$double.eps) * (1 - p0)
+  dat$count <- ifelse(
+    hurdle_zero,
+    0L,
+    qnbinom(positive_u, size = 1 / sigma^2, mu = mu)
+  )
+  list(data = dat, truth = truth)
+}
+
 mr_t6_fit <- function(route, data, missing = miss_control(), se = FALSE) {
   control <- drm_control(se = se)
   switch(
@@ -53,6 +81,10 @@ mr_t6_fit <- function(route, data, missing = miss_control(), se = FALSE) {
     zi_nbinom2 = drmTMB(
       bf(count ~ x + habitat, sigma ~ z, zi ~ w + habitat),
       nbinom2(), data, missing = missing, control = control
+    ),
+    hurdle_nbinom2 = drmTMB(
+      bf(count ~ x + habitat, sigma ~ z, hu ~ w + habitat),
+      truncated_nbinom2(), data, missing = missing, control = control
     )
   )
 }
@@ -290,5 +322,119 @@ test_that("MR-T6 ZINB2 keeps malformed and neighbouring gates closed", {
       missing = miss_control(response = "include", predictor = "model")
     ),
     "not implemented together"
+  )
+})
+
+test_that("MR-T6 hurdle NB2 masks the complete mixture contribution", {
+  sim <- mr_t6_hurdle_data(n = 720L, seed = 2026071641L)
+  dat <- missing_response_mask_mcar(sim$data, "count", seed = 2026071642L)
+  parity <- mr_t6_expect_parity("hurdle_nbinom2", dat)
+  fit <- parity$mask
+  observed <- parity$observed
+
+  expect_equal(mean(!observed), 0.25)
+  expect_gt(sum(observed & sim$data$count == 0), 0L)
+  expect_gt(sum(observed & sim$data$count > 0), 0L)
+  expect_equal(fit$missing_data$observed_y, observed)
+  expect_equal(fit$missing_data$response_sentinel, 0)
+  expect_equal(fit$missing_data$original_row, seq_len(nrow(dat)))
+  expect_equal(fit$missing_data$model_row, seq_len(nrow(dat)))
+  expect_equal(nobs(fit), sum(observed))
+  expect_length(fitted(fit), nrow(dat))
+  expect_length(predict(fit, dpar = "mu"), nrow(dat))
+  expect_length(predict(fit, dpar = "sigma"), nrow(dat))
+  expect_length(predict(fit, dpar = "hu"), nrow(dat))
+  expect_true(all(is.na(residuals(fit)[!observed])))
+  expect_true(all(is.na(residuals(fit, type = "pearson")[!observed])))
+  expect_equal(
+    fitted(fit)[observed], fitted(parity$cc), tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(0, 7))
+
+  sims <- simulate(fit, nsim = 3, seed = 2026071643L)
+  expect_equal(dim(sims), c(nrow(dat), 3L))
+  expect_true(all(as.matrix(sims) >= 0))
+  expect_true(all(as.matrix(sims) == round(as.matrix(sims))))
+  expect_gt(sum(as.matrix(sims) == 0), 0L)
+  expect_gt(sum(as.matrix(sims) > 0), 0L)
+})
+
+test_that("MR-T6 hurdle separately masks observed zeros and positives", {
+  sim <- mr_t6_hurdle_data(n = 600L, seed = 2026071644L)
+  zeros_missing <- mr_t6_mask_stratum(
+    sim$data, positive = FALSE, seed = 2026071645L
+  )
+  positives_missing <- mr_t6_mask_stratum(
+    sim$data, positive = TRUE, seed = 2026071646L
+  )
+  expect_true(all(sim$data$count[is.na(zeros_missing$count)] == 0))
+  expect_true(all(sim$data$count[is.na(positives_missing$count)] > 0))
+  mr_t6_expect_parity("hurdle_nbinom2", zeros_missing)
+  mr_t6_expect_parity("hurdle_nbinom2", positives_missing)
+})
+
+test_that("MR-T6 hurdle recovers every dpar under 25 percent MCAR", {
+  sim <- mr_t6_hurdle_data()
+  dat <- missing_response_mask_mcar(sim$data, "count", seed = 2026071650L)
+  fit <- mr_t6_fit(
+    "hurdle_nbinom2", dat,
+    missing = miss_control(response = "include"), se = TRUE
+  )
+  expect_equal(mean(is.na(dat$count)), 0.25)
+  expect_equal(fit$opt$convergence, 0L)
+  expect_lt(max(abs(coef(fit, "mu") - sim$truth$mu)), 0.18)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$truth$sigma)), 0.25)
+  expect_lt(max(abs(coef(fit, "hu") - sim$truth$hu)), 0.35)
+})
+
+test_that("MR-T6 hurdle keeps malformed and neighbouring gates closed", {
+  include <- miss_control(response = "include")
+  dat <- mr_t6_hurdle_data(n = 120L, seed = 2026071648L)$data
+  expect_error(
+    mr_t6_fit("hurdle_nbinom2", transform(dat, count = NA_integer_), include),
+    "At least one observed truncated NB2"
+  )
+  no_positive <- dat
+  no_positive$count <- 0L
+  no_positive$count[[1L]] <- NA_integer_
+  expect_error(
+    mr_t6_fit("hurdle_nbinom2", no_positive, include),
+    "at least one positive count"
+  )
+  for (bad in c(-1, 1.5, Inf)) {
+    malformed <- dat
+    malformed$count[[1L]] <- NA_real_
+    malformed$count[[2L]] <- bad
+    expect_error(
+      mr_t6_fit("hurdle_nbinom2", malformed, include),
+      "non-negative integer",
+      info = paste("bad hurdle response", bad)
+    )
+  }
+  dat$count[[1L]] <- NA_integer_
+  dat$x[[2L]] <- NA_real_
+  fit <- mr_t6_fit("hurdle_nbinom2", dat, include)
+  expect_equal(fit$missing_data$original_row, setdiff(seq_len(120L), 2L))
+  expect_equal(nobs(fit), 118L)
+  expect_length(fitted(fit), 119L)
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x + habitat, sigma ~ z, hu ~ w + habitat),
+      truncated_nbinom2(), dat, missing = include, REML = TRUE
+    ),
+    "only for.*Gaussian"
+  )
+  dat$q <- rbinom(nrow(dat), 1, 0.5)
+  dat$q[[3L]] <- NA_integer_
+  expect_error(
+    drmTMB(
+      bf(count ~ x + habitat + mi(q), sigma ~ z, hu ~ w + habitat),
+      truncated_nbinom2(), dat,
+      impute = list(q = impute_model(q ~ x, family = binomial())),
+      missing = miss_control(response = "include", predictor = "model")
+    ),
+    "predictor.*model"
   )
 })
