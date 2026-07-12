@@ -153,18 +153,11 @@ test_that("MR-T5 recovers every fitted parameter with 25 percent MCAR", {
   expect_gt(cor(id_effects, sim$u_id), 0.35)
 })
 
-test_that("MR-T5 does not relax neighbouring route gates", {
+test_that("MR-T5 retains neighbouring REML and mi gates", {
   include <- miss_control(response = "include")
   dat <- mr_t5_truncated_data(n = 80L, seed = 2026071507L)$data
   dat$count[[1L]] <- NA_real_
 
-  expect_error(
-    drmTMB(
-      bf(count ~ x, sigma ~ z, hu ~ 1), truncated_nbinom2(), dat,
-      missing = include
-    ),
-    "not implemented for hurdle NB2"
-  )
   expect_error(
     drmTMB(
       bf(count ~ x, sigma ~ z), truncated_nbinom2(), dat,

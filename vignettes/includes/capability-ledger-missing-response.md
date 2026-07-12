@@ -7,11 +7,11 @@
 | `gamma` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `poisson` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `zi_poisson` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
-| `zi_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
+| `zi_poisson` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `zi_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `hurdle_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
+| `hurdle_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `zero_one_beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |

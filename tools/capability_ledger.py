@@ -75,6 +75,7 @@ ADMITTED = {
     "gaussian", "biv_gaussian", "student", "lognormal", "gamma", "poisson",
     "nbinom2", "beta", "zero_one_beta", "tweedie", "beta_binomial",
     "cumulative_logit", "skew_normal", "binomial", "truncated_nbinom2",
+    "zi_poisson", "zi_nbinom2", "hurdle_nbinom2",
 }
 
 WORK_STATUSES = {
@@ -765,12 +766,11 @@ def surface_markdown(
         "",
         missing_markdown(missing).rstrip(),
         "",
-        "### Corrections made in MR-T0",
+        "### Route-level evidence rule",
         "",
-        "`zi_poisson` and `zi_nbinom2` are G0/rejected. Their base family types "
-        "pass the broad family gate, but their builders explicitly reject a zero-"
-        "inflation formula combined with response-missingness. Neither route "
-        "inherits a tick from Poisson or NB2.",
+        "Mixture routes have their own masking and recovery evidence. A zero-"
+        "inflated or hurdle route never inherits a tick from its Poisson, NB2, "
+        "or truncated-NB2 base family.",
         "",
         "Each route's displayed gate and work state come from its own ledger "
         "evidence. Verified routes have passed direct sentinel mutation, "

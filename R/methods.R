@@ -3287,9 +3287,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- (1 - zi) * mu
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt((1 - zi) * mu * (1 + zi * mu)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt((1 - zi) * mu * (1 + zi * mu))
+    ))
   }
   if (identical(object$model$model_type, "nbinom2")) {
     mu <- predict(object, dpar = "mu")
@@ -3323,9 +3326,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- hurdle_nbinom2_mean(mu, sigma, hu)
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu))
+    ))
   }
   if (identical(object$model$model_type, "zi_nbinom2")) {
     mu <- predict(object, dpar = "mu")
@@ -3334,11 +3340,14 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- (1 - zi) * mu
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
     component_var <- mu + sigma^2 * mu^2
     unconditional_var <- (1 - zi) * component_var + zi * (1 - zi) * mu^2
-    return(response / sqrt(unconditional_var))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(unconditional_var)
+    ))
   }
   if (
     identical(object$model$model_type, "gaussian") ||
@@ -3469,7 +3478,7 @@ sigma.drmTMB <- function(object, ...) {
       identical(object$model$model_type, "binomial") ||
       identical(object$model$model_type, "cumulative_logit")
   ) {
-    return(rep(1, object$nobs))
+    return(rep(1, length(object$model$y)))
   }
   if (identical(object$model$model_type, "biv_gaussian")) {
     return(new_biv_sigma(

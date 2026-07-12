@@ -47,17 +47,6 @@ test_that("drmTMB() parses missing-control lists and gates unsupported response 
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, hu ~ 1),
-      data = count_dat,
-      family = truncated_nbinom2(),
-      missing = miss_control(response = "include"),
-      control = drm_control(se = FALSE)
-    ),
-    "not implemented for hurdle NB2"
-  )
-
-  expect_error(
-    drmTMB(
       bf(y ~ x, sigma ~ 1),
       data = dat,
       impute = list(x = x ~ 1),

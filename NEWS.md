@@ -1,5 +1,17 @@
 # drmTMB 0.5.0.9001
 
+## Missing responses: MR-T6 count mixtures
+
+* `response = "include"` now masks fixed-effect zero-inflated Poisson,
+  zero-inflated NB2, and hurdle NB2 responses. Each route guards its complete
+  zero-or-positive mixture contribution before response classification, uses
+  observed-only starts, and has separate missing-zero and missing-positive
+  parity tests. Zero-versus-positive sentinel retapes, row/extractor contracts,
+  and exact fixed-seed 25% MCAR recovery promote all three routes to G3. All 18
+  fitted response routes are now G3 recovery-verified for their documented
+  masking slice; random/structured mixture routes, response plus `mi()`, REML,
+  intervals, and coverage remain outside this arc.
+
 ## Missing responses: MR-T5 truncated counts
 
 * `response = "include"` now masks positive-count responses for the non-hurdle

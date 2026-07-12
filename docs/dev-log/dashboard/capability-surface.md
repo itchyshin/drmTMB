@@ -9,7 +9,7 @@ The model surface and missing-response execution axis answer different questions
 - Model surface: **668 cells** across **18 routes**.
 - Runtime status: **283 implemented**, **343 rejected by design**, **42 not implemented**.
 - Evidence: **4 supported**, **16 inference-ready**, **44 interval-feasible**, **150 recovery-grade**.
-- Missing-response board: **18 routes; 3 G0; 0 G1; 0 G2; 15 verified (G3+)**.
+- Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Missing-response execution board
 
@@ -24,11 +24,11 @@ G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = int
 | `gamma` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `poisson` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `zi_poisson` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
-| `zi_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
+| `zi_poisson` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `zi_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `hurdle_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
+| `hurdle_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `zero_one_beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
@@ -36,9 +36,9 @@ G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = int
 | `skew_normal` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 
-### Corrections made in MR-T0
+### Route-level evidence rule
 
-`zi_poisson` and `zi_nbinom2` are G0/rejected. Their base family types pass the broad family gate, but their builders explicitly reject a zero-inflation formula combined with response-missingness. Neither route inherits a tick from Poisson or NB2.
+Mixture routes have their own masking and recovery evidence. A zero-inflated or hurdle route never inherits a tick from its Poisson, NB2, or truncated-NB2 base family.
 
 Each route's displayed gate and work state come from its own ledger evidence. Verified routes have passed direct sentinel mutation, residual/accounting, and named recovery audits; no route inherits a tick from a base family.
 
@@ -84,12 +84,12 @@ This retains the original whole-package map. Its missing-response column is rege
 | **student** | mu, sigma, nu | ✓ | mu ✓ int + ✓ slope; sigma RE rejected; nu fixed | **spatial on mu** (q1); **phylo on nu** (int) only | — | Feasible/recovery (mu/sigma/nu fixed + mu RE); nu~phylo diagnostic | G3 ✓ recovery verified | — |
 | **gamma** | mu, sigma (log link only) | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | **relmat on mu** (int/slope) only | — | Feasible/recovery (mu match glm; no coverage sim); mu~relmat recovery | G3 ✓ recovery verified | — |
 | **truncated_nbinom2** | mu, sigma, hu | ✓ | mu ✓ int + ✓ slope (**rejected when hu present**); sigma RE rejected; hu — | **relmat on hu** (int) only; none on mu/sigma | — | Feasible (mu/sigma fixed + mu RE int); slope recovery | G3 ✓ recovery verified | — |
-| **hurdle_nbinom2** (=truncated_nbinom2 + hu~) | mu, sigma, hu | ✓ | inherits truncated_nbinom2 (mu int/slope, not with hu) | relmat on hu (int) | — | Feasible (mu/sigma/hu fixed); hu~relmat recovery | G0 rejected/planned | — |
+| **hurdle_nbinom2** (=truncated_nbinom2 + hu~) | mu, sigma, hu | ✓ | inherits truncated_nbinom2 (mu int/slope, not with hu) | relmat on hu (int) | — | Feasible (mu/sigma/hu fixed); hu~relmat recovery | G3 ✓ recovery verified | — |
 | **cumulative_logit** | mu only (logit) | ✓ | **none** (ordinal RE not implemented) | **phylo on mu** (int) only | — | Feasible (fixed + cutpoints); mu~phylo recovery | G3 ✓ recovery verified | — |
 | **lognormal** | mu, sigma | ✓ | mu ✓ int (slope = recovery); sigma RE rejected | none | — | Feasible/recovery (mu/sigma fixed + mu RE int) | G3 ✓ recovery verified | — |
 | **beta_binomial** | mu, sigma | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | none | — | Feasible (mu/sigma fixed + mu RE); ≠ binomial calibration | G3 ✓ recovery verified | — |
 | **skew_normal** | mu, sigma, nu | ✓ | **none** on any dpar | none | — | Feasible (mu/sigma); nu diagnostic only | G3 ✓ recovery verified | — |
 | **tweedie** | mu, sigma, nu (nu int-only) | ✓ | **none** on any dpar | none | — | Feasible (all fixed) | G3 ✓ recovery verified | — |
 | **zero_one_beta** | mu, sigma, zoi, coi | ✓ (fixed-only) | **none** on any dpar | none | — | Feasible (smoke-only coverage); use over beta() for exact 0/1 | G3 ✓ recovery verified | — |
-| **zi_poisson** (=poisson + zi~) | mu, zi | ✓ | mu RE rejected when zi present → effectively fixed-only | zi~spatial, mu~spatial (recovery) | — | Feasible (mu/zi fixed); spatial recovery | G0 rejected/planned | one binary (poisson gate) |
-| **zi_nbinom2** (=nbinom2 + zi~) | mu, sigma, zi | ✓ | RE not with zi → fixed-only in zi models | mu~spatial (diagnostic only) | — | Feasible (mu/sigma/zi fixed); mu~spatial diagnostic | G0 rejected/planned | one binary (nbinom2 gate) |
+| **zi_poisson** (=poisson + zi~) | mu, zi | ✓ | mu RE rejected when zi present → effectively fixed-only | zi~spatial, mu~spatial (recovery) | — | Feasible (mu/zi fixed); spatial recovery | G3 ✓ recovery verified | one binary (poisson gate) |
+| **zi_nbinom2** (=nbinom2 + zi~) | mu, sigma, zi | ✓ | RE not with zi → fixed-only in zi models | mu~spatial (diagnostic only) | — | Feasible (mu/sigma/zi fixed); mu~spatial diagnostic | G3 ✓ recovery verified | one binary (nbinom2 gate) |

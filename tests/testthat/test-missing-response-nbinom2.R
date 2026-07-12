@@ -118,17 +118,3 @@ test_that("response = 'include' masks missing responses but drops missing-predic
   expect_equal(sum(!fit$missing_data$observed_y), n_missing_response)
   expect_equal(nobs(fit), sum(dd$observed) - 1L)
 })
-
-test_that("nbinom2 response mask rejects zero-inflation", {
-  dd <- missing_response_nbinom2_data()
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, zi ~ 1),
-      family = nbinom2(),
-      data = dd$masked,
-      missing = miss_control(response = "include"),
-      control = drm_control(se = FALSE)
-    ),
-    "zero-inflat"
-  )
-})

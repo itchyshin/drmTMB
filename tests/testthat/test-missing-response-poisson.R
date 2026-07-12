@@ -136,19 +136,8 @@ test_that("poisson response mask combines with a random-effect mu term", {
   expect_equal(sum(!fit$missing_data$observed_y), length(miss))
 })
 
-test_that("poisson response mask rejects zero-inflation and mi() predictor combos", {
+test_that("poisson response mask rejects response plus mi() predictor combos", {
   dd <- missing_response_poisson_data()
-  expect_error(
-    drmTMB(
-      bf(y ~ x, zi ~ 1),
-      family = poisson(),
-      data = dd$masked,
-      missing = miss_control(response = "include"),
-      control = drm_control(se = FALSE)
-    ),
-    "zero-inflat"
-  )
-
   d2 <- dd$masked
   d2$z <- rbinom(nrow(d2), 1, 0.5)
   d2$x <- factor(d2$z) # reuse a binary predictor as the mi() target
