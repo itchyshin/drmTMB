@@ -49,9 +49,13 @@ overdispersion or zero-inflation in a no-free-dispersion family, ignored
 truncation, a missing zero/one atom); a mis-specification a free
 nuisance/dispersion/inflation parameter absorbs (heteroscedasticity via
 Student-t \code{nu}, missing zero-inflation via \code{nbinom2} \code{sigma}, a
-constant-vs-covariate inflation mechanism) is a genuine structural blind
-spot, not evidence of adequacy. See \code{residuals.drmTMB()}'s Details for the
-full gated-campaign breakdown
+constant-vs-covariate inflation mechanism for \code{hurdle_nbinom2}/
+\code{zero_one_beta}) is a genuine structural blind spot, not evidence of
+adequacy; the same mechanism mis-spec for \code{zi_poisson}/\code{zi_nbinom2} is
+sample-size-limited rather than structurally blind but stays far below
+0.8 even at n = 3000. See \code{residuals.drmTMB()}'s Details for the
+full gated-campaign breakdown (tweedie: 99 of 400 seeds locally, full run
+deferred to Totoro)
 (\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}).
 }
 \examples{

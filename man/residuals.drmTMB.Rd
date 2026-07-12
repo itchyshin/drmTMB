@@ -84,7 +84,9 @@ claim. Pass \code{seed}, \code{nsim}, and/or \code{response} through \code{...} 
 \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
 
 \strong{What this detects -- and does not.} Evidence: a 400-seed gated
-simulation campaign across all 18 fitted families
+simulation campaign across all 18 fitted families (tweedie: 99 of 400
+seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
+Totoro)
 (\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}).
 Under a correctly specified fixed-effect model, type-I error stays at or
 below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
@@ -104,8 +106,14 @@ has no absorbing parameter), missing zero-inflation absorbed by \code{nbinom2}
 \code{sigma} (power 0.035, versus 0.9625 under Poisson), and zero-inflation/
 hurdle/zero-one-inflation \emph{mechanism} mis-specification (a constant
 inflation probability fit when it truly varies with a covariate), which
-largely re-converges to the type-I rate regardless of sample size (tested
-to n = 3000). A mean-structure diagnostic, not this one, is what catches
+splits into two patterns under the n-ladder (tested to n = 3000): for
+\code{hurdle_nbinom2}/\code{zero_one_beta}, power stays flat at or below about 0.01
+at every n -- a genuine structural blind spot; for
+\code{zi_nbinom2}/\code{zi_poisson}, power rises with n (to about 0.11/0.06 at
+n = 3000), so the marginal is not identical under the mechanism mis-spec,
+but power stays far below the >= 0.8 detectable benchmark even at
+n = 3000, so it remains impractical to detect at realistic sample sizes.
+A mean-structure diagnostic, not this one, is what catches
 an absorbed mis-specification. Separately, \code{gamma}-vs-\code{lognormal}
 wrong-family detection is sample-size limited rather than structurally
 blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0

@@ -23,7 +23,9 @@
   none of these outputs propagate `theta_hat` uncertainty.
 * **What the diagnostic detects, and what it does not (see
   `docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`,
-  400-seed gated campaign across all 18 families).** Under a correctly
+  400-seed gated campaign across all 18 families; tweedie: 99 of 400 seeds
+  locally, 66/99 dispersion-arm non-convergence, full run deferred to
+  Totoro).** Under a correctly
   specified fixed-effect model, type-I error stays near or below the nominal
   rate (Type-I 0.0025-0.025 across families at alpha = 0.05; the KS+PIT
   statistic is conservative, so power is understated, not overstated). Under
@@ -49,11 +51,15 @@
   matching absorbing structure). Detecting an absorbed mis-specification is a
   mean-structure diagnostic's job, not this one's. Zero-inflation/hurdle/
   zero-one-inflation *mechanism* mis-specification (a constant inflation
-  probability fit when it truly varies with a covariate) largely re-converges
-  to the type-I rate regardless of sample size (tested to n = 3000: power
-  stays at or below about 0.11 for `zi_nbinom2`/`zi_poisson`, at or below
-  about 0.025 -- flat, no trend -- for `hurdle_nbinom2`/`zero_one_beta`) and
-  should not be relied on as an adequacy check for the mechanism.
+  probability fit when it truly varies with a covariate) splits into two
+  patterns under the n-ladder (tested to n = 3000): for `hurdle_nbinom2`/
+  `zero_one_beta` power stays flat at or below about 0.01 at every n -- a
+  genuine structural blind spot; for `zi_nbinom2`/`zi_poisson` power rises
+  with n (to about 0.11/0.06 at n = 3000), so the marginal is not identical
+  under the mechanism mis-spec, but power stays far below the >= 0.8
+  detectable benchmark even at n = 3000, so it remains impractical to detect
+  at realistic sample sizes. Neither pattern should be relied on as an
+  adequacy check for the mechanism.
   `gamma`-vs-`lognormal` wrong-family detection is sample-size limited rather
   than structurally blind: power rises from about 0.19 at n = 300 to 0.79 at
   n = 1000 and 1.0 at n = 3000, so this specific mis-specification needs n

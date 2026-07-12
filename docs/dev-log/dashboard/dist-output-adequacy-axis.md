@@ -110,7 +110,7 @@ explicitly in `n_fail`/`n_ok` in the source `.tsv`, not silently dropped --
 so its 0.1429 power figure rests on a smaller effective seed count (77) than
 the other tweedie arms (99).
 
-### n-ladder arms (mechanism mis-specification, sample-size-limited)
+### n-ladder arms (mechanism mis-specification, checked for a sample-size fix)
 
 Four families have a "constant-vs-covariate" inflation/hurdle/atom
 *mechanism* mis-spec that stayed near the type-I rate at n = 300-400; the
@@ -133,13 +133,25 @@ sample-size-**limited**, not structurally blind -- power rises from
 rows above).
 
 **Reading the mechanism-arm table.** Unlike the heteroscedasticity/
-overdispersion arms above (which reach power >= 0.92 at n=300), the four
-mechanism arms stay near the type-I rate even at n = 3000. This is the
-diagnostic's structural blind spot, not a sample-size problem: a constant
-inflation/hurdle/atom probability and a covariate-varying one produce the
-same MARGINAL distribution of quantile residuals once the model's own free
-inflation parameter has absorbed the average level, so no amount of
-additional data closes the gap with this diagnostic.
+overdispersion arms above (which reach power >= 0.92 at n=300), all four
+mechanism arms stay well under 0.8 even at n = 3000 -- but they split into
+two genuinely different patterns, not one.
+
+- `hurdle_nbinom2` and `zero_one_beta`: power is FLAT and near the type-I
+  rate at every n (`hurdle_nbinom2`: 0.01, 0.005, 0.005 at n=300/1000/3000;
+  `zero_one_beta`: 0.000, 0.0025, 0.000). This is the diagnostic's
+  structural blind spot, not a sample-size problem: a constant
+  inflation/hurdle probability and a covariate-varying one produce the same
+  MARGINAL distribution of quantile residuals once the model's own free
+  inflation parameter has absorbed the average level, so no amount of
+  additional data closes the gap with this diagnostic.
+- `zi_poisson` and `zi_nbinom2`: power RISES with n (`zi_poisson`: 0.02,
+  0.0325, 0.06 at n=300/1000/3000; `zi_nbinom2`: 0.04, 0.0275, 0.1075) --
+  their marginals do differ under the mechanism mis-spec, so this is not a
+  structural blind spot. But power remains far below the >= 0.8 detectable
+  benchmark even at n=3000, so the mis-specification is sample-size-limited
+  in principle but impractical to detect at realistic sample sizes with
+  this diagnostic.
 
 ## The structural blind spot, stated once
 
@@ -147,9 +159,15 @@ A mis-specification that a fitted family's own free nuisance/dispersion/
 inflation parameter can absorb leaves the fitted-model's quantile residual
 marginally close to N(0,1) and is **not detectable** by this diagnostic --
 see the low-power rows above (`nbinom2` excess-zeros 0.035, `student`
-heteroscedasticity 0.035, all four mechanism arms <= 0.11 even at n=3000).
-A mean-structure diagnostic, not this one, is what catches those. This is
-documented in full prose in `docs/dev-log/known-limitations.md` (the
+heteroscedasticity 0.035, and the two flat mechanism arms `hurdle_nbinom2`/
+`zero_one_beta`, <= 0.01 even at n=3000). `zi_poisson`/`zi_nbinom2`'s
+mechanism arms are a related but distinct case: power rises with n (to
+0.06/0.11 at n=3000) rather than staying flat, so they are
+sample-size-limited in principle rather than structurally blind, but they
+stay far below 0.8 at every n tested, so they remain undetectable in
+practice at realistic sample sizes. A mean-structure diagnostic, not this
+one, is what catches the genuinely structural cases. This is documented in
+full prose in `docs/dev-log/known-limitations.md` (the
 "Distributional-adequacy diagnostic scope" bullet) and in the roxygen
 Details of `residuals.drmTMB()` (`R/adequacy.R`) and `worm_plot()`/
 `qq_plot()` (`R/adequacy-plots.R`).

@@ -609,6 +609,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   (`fitted_distribution()`) promoted to `status = "reference"` for all 18
   fitted families, but the diagnostic has a narrower detection scope than
   "checks the model." A 400-seed gated campaign across all 18 families
+  (tweedie: 99 of 400 seeds locally, 66/99 dispersion-arm non-convergence,
+  full run deferred to Totoro)
   (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`,
   `summary-gated-full.tsv`) confirms type-I error at or below the nominal
   rate under a correctly specified fit (0.0025-0.025 at alpha = 0.05; the

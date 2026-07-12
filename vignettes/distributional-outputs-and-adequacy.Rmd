@@ -163,7 +163,8 @@ its own free parameters: heavy tails fit as Gaussian, ignored
 overdispersion or zero-inflation in a family with no free dispersion
 parameter, ignored truncation, a missing zero/one atom, and the
 heteroscedasticity example reproduced above. A 400-seed gated campaign
-across all 18 fitted families
+across all 18 fitted families (tweedie: 99 of 400 seeds locally, 66/99
+dispersion-arm non-convergence, full run deferred to Totoro)
 (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`)
 confirms type-I error at or below the nominal rate under a correctly
 specified fit, with power >= 0.8 (commonly 0.9-1.0) for these detectable
@@ -177,9 +178,13 @@ Examples from the same campaign: heteroscedasticity absorbed by Student-t
 `nu` (power 0.035, versus 1.0 for the same heteroscedasticity under
 Gaussian, which has no absorbing parameter); missing zero-inflation
 absorbed by `nbinom2`'s `sigma` (power 0.035, versus 0.96 under Poisson);
-and a constant-vs-covariate zero-inflation/hurdle mechanism, which this
-diagnostic essentially never catches regardless of sample size. **A
-mean-structure diagnostic, not this one, is what catches an absorbed
+and a constant-vs-covariate zero-inflation/hurdle/zero-one-inflation
+mechanism, which splits in two: for `hurdle_nbinom2`/`zero_one_beta` power
+stays flat near the type-I rate regardless of sample size (a genuine
+structural blind spot); for `zi_poisson`/`zi_nbinom2` power rises with
+sample size but stays far below 0.8 even at n = 3000, so it is impractical
+to detect at realistic sample sizes rather than permanently undetectable.
+**A mean-structure diagnostic, not this one, is what catches an absorbed
 mis-specification.**
 
 **Wording and scope, throughout this package:**

@@ -32,7 +32,8 @@
 #' **What this detects -- and does not.** A worm plot bends when the
 #' underlying quantile residuals depart from N(0,1); see
 #' `residuals.drmTMB()`'s Details for the full gated-campaign breakdown (400
-#' seeds x 18 families,
+#' seeds x 18 families, tweedie: 99 of 400 seeds locally, full run deferred
+#' to Totoro;
 #' `docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`). In
 #' short: it flags shape/atom mis-specification a family cannot reabsorb
 #' through its own free parameters (heavy tails, ignored overdispersion or
@@ -42,9 +43,13 @@
 #' nuisance/dispersion/inflation parameter absorbs the mis-specification
 #' (e.g. heteroscedasticity absorbed by Student-t `nu`, missing
 #' zero-inflation absorbed by `nbinom2` `sigma`, or a constant-vs-covariate
-#' zero-inflation/hurdle/zero-one-inflation mechanism mis-set). A
-#' mean-structure diagnostic, not this one, is what catches an absorbed
-#' mis-specification.
+#' zero-inflation/hurdle mechanism mis-set for `hurdle_nbinom2`/
+#' `zero_one_beta`). For `zi_poisson`/`zi_nbinom2`, the same
+#' constant-vs-covariate mechanism mis-spec is NOT flat -- power rises with
+#' n -- but stays far below 0.8 even at n = 3000, so it is
+#' sample-size-limited in principle but impractical to detect at realistic
+#' sample sizes. A mean-structure diagnostic, not this one, is what catches
+#' an absorbed mis-specification.
 #'
 #' @param object A `drmTMB` fit.
 #' @param seed Optional single integer seed, passed to
@@ -140,9 +145,13 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
 #' truncation, a missing zero/one atom); a mis-specification a free
 #' nuisance/dispersion/inflation parameter absorbs (heteroscedasticity via
 #' Student-t `nu`, missing zero-inflation via `nbinom2` `sigma`, a
-#' constant-vs-covariate inflation mechanism) is a genuine structural blind
-#' spot, not evidence of adequacy. See `residuals.drmTMB()`'s Details for the
-#' full gated-campaign breakdown
+#' constant-vs-covariate inflation mechanism for `hurdle_nbinom2`/
+#' `zero_one_beta`) is a genuine structural blind spot, not evidence of
+#' adequacy; the same mechanism mis-spec for `zi_poisson`/`zi_nbinom2` is
+#' sample-size-limited rather than structurally blind but stays far below
+#' 0.8 even at n = 3000. See `residuals.drmTMB()`'s Details for the
+#' full gated-campaign breakdown (tweedie: 99 of 400 seeds locally, full run
+#' deferred to Totoro)
 #' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
 #'
 #' @param object A `drmTMB` fit.
