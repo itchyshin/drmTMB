@@ -40,7 +40,7 @@ test_that("drmTMB() parses missing-control lists and gates unsupported response 
     drmTMB(
       bf(y ~ x),
       data = dat,
-      family = tweedie(),
+      family = beta_binomial(),
       missing = miss_control(response = "include"),
       control = drm_control(se = FALSE)
     ),

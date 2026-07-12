@@ -63,12 +63,13 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   later releases.
 - Missing-data preview boundary: `miss_control(response = "include")` is G3
   recovery-verified for univariate and bivariate Gaussian, Student-t,
-  skew-normal, lognormal, Gamma, binomial, Poisson, NB2, and beta responses.
+  skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, binomial,
+  Poisson, and NB2 responses.
   Student-t, lognormal, and Gamma include ordinary random-intercept recovery;
-  skew-normal remains fixed-effect only. The fitted object preserves
+  skew-normal, Tweedie, and zero-one beta remain fixed-effect only. The fitted object preserves
   original-row accounting, full-length fitted values, and `NA` residuals on
-  masked univariate response rows. The remaining eight fitted response routes
-  are scheduled through MR-T3–MR-T6; broader structured-route masking claims,
+  masked univariate response rows. The remaining six fitted response routes
+  are scheduled through MR-T4–MR-T6; broader structured-route masking claims,
   multiple missing predictors, response-imputation summaries, and G4/G5
   interval or coverage promotion remain later work.
 - Completed before tagging the version:

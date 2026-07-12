@@ -1,5 +1,15 @@
 # drmTMB 0.5.0.9001
 
+## Missing responses: MR-T3 atom and boundary families
+
+* `response = "include"` now masks missing Tweedie and zero-one beta
+  responses. Tweedie tests retape masked rows as a zero atom and a positive
+  continuous value; zero-one beta tests zero and one atoms against an interior
+  value. Observed-only starts, full mixture guards, row/extractor contracts,
+  and exact fixed-seed 25% MCAR recovery promote both fixed-effect routes to
+  G3. Random effects, structured effects, response plus `mi()`, intervals, and
+  coverage remain outside this tranche.
+
 ## Missing responses: MR-T2 continuous families
 
 * `response = "include"` now masks missing Student-t, skew-normal, lognormal,

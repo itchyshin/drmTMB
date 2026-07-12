@@ -59,15 +59,15 @@ class CapabilityLedgerTests(unittest.TestCase):
         transitions = copy.deepcopy(self.transitions)
         route = next(
             row for row in cells
-            if row["axis"] == "missing_response" and row["family_route"] == "tweedie"
+            if row["axis"] == "missing_response" and row["family_route"] == "beta_binomial"
         )
         route["capability_status"] = "implemented"
         route["work_status"] = "verified"
         route["test_gate"] = "G3"
-        route["primary_evidence_id"] = "ev-mr-tweedie-g3-test"
+        route["primary_evidence_id"] = "ev-mr-beta-binomial-g3-test"
         evidence.extend([
             {
-                "evidence_id": "ev-mr-tweedie-g2-test",
+                "evidence_id": "ev-mr-beta-binomial-g2-test",
                 "cell_id": route["cell_id"],
                 "evidence_class": "g2_contract_test",
                 "path_or_url": "tools/tests/test_capability_ledger.py",
@@ -81,7 +81,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "claim_boundary": "Synthetic evidence for generator test.",
             },
             {
-                "evidence_id": "ev-mr-tweedie-g3-test",
+                "evidence_id": "ev-mr-beta-binomial-g3-test",
                 "cell_id": route["cell_id"],
                 "evidence_class": "recovery_test",
                 "path_or_url": "tools/tests/test_capability_ledger.py",
@@ -96,11 +96,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             },
         ])
         transitions.append({
-            "transition_id": "tr-mr-tweedie-g3-test",
+            "transition_id": "tr-mr-beta-binomial-g3-test",
             "cell_id": route["cell_id"],
             "from_work_status": "backlog",
             "to_work_status": "verified",
-            "evidence_ids": "ev-mr-tweedie-g2-test;ev-mr-tweedie-g3-test",
+            "evidence_ids": "ev-mr-beta-binomial-g2-test;ev-mr-beta-binomial-g3-test",
             "reason": "Synthetic future G3 transition",
             "actor": "unit test",
             "commit_sha": "test",
@@ -128,13 +128,13 @@ class CapabilityLedgerTests(unittest.TestCase):
         transitions = copy.deepcopy(self.transitions)
         route = next(
             row for row in cells
-            if row["axis"] == "missing_response" and row["family_route"] == "tweedie"
+            if row["axis"] == "missing_response" and row["family_route"] == "beta_binomial"
         )
         route["capability_status"] = "implemented"
         route["work_status"] = "verified"
         route["test_gate"] = "G3"
         transitions.append({
-            "transition_id": "tr-mr-tweedie-invalid-g3-test",
+            "transition_id": "tr-mr-beta-binomial-invalid-g3-test",
             "cell_id": route["cell_id"],
             "from_work_status": "backlog",
             "to_work_status": "verified",

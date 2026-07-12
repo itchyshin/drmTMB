@@ -2605,7 +2605,9 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < y.size(); ++i) {
       phi(i) = sigma(i) * sigma(i);
       nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_nu(i)));
-      nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
+      if (observed_y(i) == 1) {
+        nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -2820,22 +2822,24 @@ Type objective_function<Type>::operator()()
         beta_shape_floor,
         beta_raw
       );
-      if (asDouble(y(i)) <= 0.0) {
-        nll -= weights(i) * (log_zoi + log_one_minus_coi);
-        continue;
+      if (observed_y(i) == 1) {
+        if (asDouble(y(i)) <= 0.0) {
+          nll -= weights(i) * (log_zoi + log_one_minus_coi);
+          continue;
+        }
+        if (asDouble(y(i)) >= 1.0) {
+          nll -= weights(i) * (log_zoi + log_coi);
+          continue;
+        }
+        Type log_density =
+          log_one_minus_zoi +
+          lgamma(alpha(i) + beta_shape(i)) -
+          lgamma(alpha(i)) -
+          lgamma(beta_shape(i)) +
+          (alpha(i) - Type(1.0)) * log(y(i)) +
+          (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+        nll -= weights(i) * log_density;
       }
-      if (asDouble(y(i)) >= 1.0) {
-        nll -= weights(i) * (log_zoi + log_coi);
-        continue;
-      }
-      Type log_density =
-        log_one_minus_zoi +
-        lgamma(alpha(i) + beta_shape(i)) -
-        lgamma(alpha(i)) -
-        lgamma(beta_shape(i)) +
-        (alpha(i) - Type(1.0)) * log(y(i)) +
-        (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
-      nll -= weights(i) * log_density;
     }
     REPORT(eta_mu);
     REPORT(mu);

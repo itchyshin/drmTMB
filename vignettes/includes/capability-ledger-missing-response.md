@@ -14,8 +14,8 @@
 | `hurdle_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
 | `cumulative_logit` | rejected | G0 | backlog | MR-T4: design and implement this route before G2/G3 validation. |
 | `beta_binomial` | rejected | G0 | backlog | MR-T4: design and implement this route before G2/G3 validation. |
-| `zero_one_beta` | rejected | G0 | backlog | MR-T3: design and implement this route before G2/G3 validation. |
-| `tweedie` | rejected | G0 | backlog | MR-T3: design and implement this route before G2/G3 validation. |
+| `zero_one_beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `tweedie` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `skew_normal` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 

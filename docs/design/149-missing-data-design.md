@@ -528,6 +528,7 @@ separate MD7b, MD7c, and MD7e routes.
 | MD9d beta response plus binary `mi()`, fixed only | Implemented: one binary missing predictor inside a beta response location-scale model for interior proportions (model_type 10); the `mi()` 2-point sum carries the beta precision (`phi = exp(-2*log_sigma)`, with the same boundary nudge and shape floor as the vanilla beta density) through the shared leaf. | Stop before boundary (0/1) beta responses with `mi()` (use `zero_one_beta()`), response random effects or structured terms with `mi()`, non-binary missing predictors, multiple missing predictors, and simulation-based imputation summaries. |
 | MD10 non-Gaussian response masks | Implemented: `miss_control(response = "include")` retains and marginalises missing responses for `binomial()`, `poisson()`, `nbinom2()`, and `beta()` via a plain `observed_y` data guard around each family's density (a data-if, never `CondExp`, so the masked-row placeholder is never taped). Each slice ships a sentinel-invariance test (sentinel-independent logLik/coef) and an MCAR recovery test, mirroring MD1/MD2. | Stop before missing responses for families outside these four plus Gaussian/bivariate-Gaussian, mixed masking-plus-`mi()` in a single fit, and dense known `V` response masks. |
 | MR-T2 continuous response masks | Implemented: `response = "include"` now uses the same plain `observed_y` data guard for Student-t, skew-normal, lognormal, and Gamma. Starts and validation use observed responses only; lognormal and Gamma keep the entire density and `log(y)` transformation inside the guard. Direct sentinel mutation, row/extractor contracts, and fixed-seed 25% MCAR recovery cover every fitted distributional parameter. | Student-t, lognormal, and Gamma are verified through ordinary random intercepts; skew-normal is fixed-effect only. Do not inherit this evidence to structured modifiers, REML, intervals, coverage, response plus `mi()`, or any remaining family. |
+| MR-T3 atom and boundary response masks | Implemented: `response = "include"` masks Tweedie and zero-one beta responses through one plain data-time guard around each whole atom/continuous density decision. Starts and validation use observed responses only. Direct retapes compare Tweedie zero versus positive sentinels and zero-one beta zero/one atoms versus an interior sentinel; exact fixed-seed 25% MCAR tests recover every fitted dpar. | Both routes are fixed-effect only. Do not inherit evidence to random or structured effects, REML, response plus `mi()`, intervals, coverage, or any remaining family. |
 
 ## Testing Requirements
 
@@ -820,10 +821,12 @@ univariate Gaussian location model. On the non-Gaussian response side it is
 deliberately narrow: Poisson, binomial, NB2, and beta responses each take one
 fixed-effect binary `mi()` predictor with complete responses (MD9a–MD9d), and
 those four families plus Gaussian, bivariate Gaussian, Student-t, skew-normal,
-lognormal, and Gamma support response masking (MD10 and MR-T2). Non-binary
+lognormal, Gamma, Tweedie, and zero-one beta support response masking (MD10,
+MR-T2, and MR-T3). Non-binary
 missing predictors in non-Gaussian response models,
 zero-inflated/hurdle responses with `mi()`, random or structured response terms
-with `mi()`, and missing responses for the other eight fitted routes remain
+with `mi()`, and missing responses for the other six fitted routes remain
 planned. Student-t, lognormal, and Gamma response-mask evidence includes an
 ordinary random intercept; skew-normal remains fixed-effect only, and no
-structured-route evidence is inherited from these route-level ticks.
+structured-route evidence is inherited from these route-level ticks. Tweedie
+and zero-one beta response masking is likewise fixed-effect only.
