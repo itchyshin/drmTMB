@@ -1,7 +1,7 @@
 # Ultra-plan: missing-response masking across all fitted drmTMB routes
 
-**Status:** MR-T0 is merged; MR-T1 is implementing and independently reviewing
-the shared contract and legacy six. The maintainer reports that the CRAN email confirmation is
+**Status:** MR-T0 is merged; MR-T1 has an independent DONE verdict and is
+awaiting its PR/Ubuntu gate for the shared contract and legacy six. The maintainer reports that the CRAN email confirmation is
 complete. No missing-response family implementation has begun.
 
 ## 1. Outcome

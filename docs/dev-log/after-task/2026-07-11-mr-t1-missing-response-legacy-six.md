@@ -56,7 +56,12 @@ zero response likelihood.
   including rejection of evidence-free G3 promotion.
 - `Rscript --no-init-file tools/check-capability-runtime.R`: passed with 18
   routes, 6 verified and 12 at G0.
-- Whole-package and pkgdown checks: pending the final rebased MR-T1 head.
+- `devtools::test()` with `NOT_CRAN=true`: passed the full post-MR-T1 package
+  suite with no failures; 24 unavailable Julia routes skipped and 62 existing
+  diagnostic, deprecation, and optimizer warnings were reported.
+- `devtools::document()`: passed on the rebased head.
+- `pkgdown::build_article("missing-data", new_process = FALSE)`: rendered the
+  affected article from the live source package.
 
 ## Tests Of The Tests
 
@@ -92,7 +97,10 @@ that issue and its own PR rather than opening a duplicate.
 The first recovery helper silently rounded the requested missing fraction down
 within groups. The initial ledger validator also linked primary evidence but
 did not enforce the evidence classes behind a G3 tick. Both defects were found
-before the PR through adversarial review.
+before the PR through adversarial review. A first standalone
+`pkgdown::build_article()` subprocess loaded the older installed package and
+failed on a now-supported NB2 predictor example; rendering in the live
+`devtools::load_all()` process passed.
 
 ## Team Learning
 
@@ -109,5 +117,5 @@ non-Gaussian REML, and new formula grammar remain unsupported.
 
 ## Next Actions
 
-Rebase on the CRAN-fix integration, run the whole-package and pkgdown gates,
-land MR-T1, then begin MR-T2 continuous routes.
+Land MR-T1 after its Ubuntu R-CMD-check, synchronize `main`, then begin MR-T2
+continuous routes.
