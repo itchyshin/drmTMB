@@ -3156,21 +3156,46 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' fitted residual `sigma1`, `sigma2`, and `rho12`, or using the full row-paired
 #' observation covariance when a dense bivariate known `V` was supplied.
 #'
+#' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
+#' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
+#' fixed-effect distributional parameters. This is available for any
+#' `model_type` with a promoted or feasibility-spike entry in
+#' [drm_family_dpq()] (as of DO-T1: `"gaussian"` and the `"tweedie"`/
+#' `"skew_normal"` spikes); other model types raise a clear "not yet
+#' implemented" error via [fitted_distribution()]. Spike-status families emit
+#' a one-time warning that the residual is exploratory, not DG-verified. See
+#' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
+#' random-effect or structured fits, these residuals are conditional on the
+#' fixed-effect prediction, not marginal, so a departure (or its absence) is
+#' evidence about fixed-effect adequacy only -- never a general validity
+#' claim. Pass `seed` and/or `nsim` through `...` to
+#' [drm_quantile_residuals()].
+#'
 #' @param object A `drmTMB` fit.
-#' @param type Residual type: `"response"` or `"pearson"`.
-#' @param ... Reserved for future residual options.
+#' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
+#' @param ... Reserved for future residual options; for `type = "quantile"`,
+#'   forwarded to [drm_quantile_residuals()] (`seed`, `nsim`).
 #'
 #' @return A numeric vector for univariate models, or a two-column matrix for
-#'   bivariate Gaussian models.
+#'   bivariate Gaussian models. For `type = "quantile"` with `nsim > 1`, an
+#'   `n`-by-`nsim` matrix (see [drm_quantile_residuals()]).
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' residuals(fit)
 #' residuals(fit, type = "pearson")
+#' residuals(fit, type = "quantile")
 #' @export
-residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
+residuals.drmTMB <- function(
+  object,
+  type = c("response", "pearson", "quantile"),
+  ...
+) {
   type <- match.arg(type)
+  if (identical(type, "quantile")) {
+    return(drm_quantile_residuals(object, ...))
+  }
   if (identical(object$model$model_type, "lognormal")) {
     if (type == "response") {
       return(drm_mask_missing_response_values(

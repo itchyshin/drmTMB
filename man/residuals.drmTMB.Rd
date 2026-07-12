@@ -4,18 +4,20 @@
 \alias{residuals.drmTMB}
 \title{Extract model residuals}
 \usage{
-\method{residuals}{drmTMB}(object, type = c("response", "pearson"), ...)
+\method{residuals}{drmTMB}(object, type = c("response", "pearson", "quantile"), ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
-\item{type}{Residual type: \code{"response"} or \code{"pearson"}.}
+\item{type}{Residual type: \code{"response"}, \code{"pearson"}, or \code{"quantile"}.}
 
-\item{...}{Reserved for future residual options.}
+\item{...}{Reserved for future residual options; for \code{type = "quantile"},
+forwarded to \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} (\code{seed}, \code{nsim}).}
 }
 \value{
 A numeric vector for univariate models, or a two-column matrix for
-bivariate Gaussian models.
+bivariate Gaussian models. For \code{type = "quantile"} with \code{nsim > 1}, an
+\code{n}-by-\code{nsim} matrix (see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}).
 }
 \description{
 \code{residuals()} returns response residuals or Pearson-style residuals from a
@@ -62,10 +64,26 @@ For bivariate Gaussian models, response residuals are returned as a
 two-column matrix. Pearson residuals are standardized and whitened using the
 fitted residual \code{sigma1}, \code{sigma2}, and \code{rho12}, or using the full row-paired
 observation covariance when a dense bivariate known \code{V} was supplied.
+
+\code{type = "quantile"} returns Dunn-Smyth randomized quantile residuals from
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted,
+fixed-effect distributional parameters. This is available for any
+\code{model_type} with a promoted or feasibility-spike entry in
+\code{\link[=drm_family_dpq]{drm_family_dpq()}} (as of DO-T1: \code{"gaussian"} and the \code{"tweedie"}/
+\code{"skew_normal"} spikes); other model types raise a clear "not yet
+implemented" error via \code{\link[=fitted_distribution]{fitted_distribution()}}. Spike-status families emit
+a one-time warning that the residual is exploratory, not DG-verified. See
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the fixed-effect-only adequacy caveat: for
+random-effect or structured fits, these residuals are conditional on the
+fixed-effect prediction, not marginal, so a departure (or its absence) is
+evidence about fixed-effect adequacy only -- never a general validity
+claim. Pass \code{seed} and/or \code{nsim} through \code{...} to
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 residuals(fit)
 residuals(fit, type = "pearson")
+residuals(fit, type = "quantile")
 }
