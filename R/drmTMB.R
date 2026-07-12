@@ -5960,12 +5960,6 @@ drm_build_poisson_spec <- function(
       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
     ))
   }
-  if (include_missing_response && !is.null(zi_entry)) {
-    cli::cli_abort(c(
-      "Missing-response masking is not implemented with zero-inflated Poisson models yet.",
-      "i" = "Fit {.code missing = miss_control(response = \"include\")} without a {.code zi} formula, or keep the responses complete for a zero-inflated fit."
-    ))
-  }
   if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
     cli::cli_abort(c(
       "The first Poisson-response {.fn mi} slice supports one binary missing predictor.",
@@ -6162,7 +6156,15 @@ drm_build_poisson_spec <- function(
     data_model,
     env
   )
-  start <- if (has_zi) {
+  start <- if (has_zi && include_missing_response) {
+    zi_poisson_start(
+      y[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      X_zi[observed_y, , drop = FALSE],
+      if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+      phylo_mu = phylo_mu
+    )
+  } else if (has_zi) {
     zi_poisson_start(y, X_mu, X_zi, offset_mu, phylo_mu = phylo_mu)
   } else if (include_missing_response) {
     poisson_start(

@@ -3287,9 +3287,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- (1 - zi) * mu
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt((1 - zi) * mu * (1 + zi * mu)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt((1 - zi) * mu * (1 + zi * mu))
+    ))
   }
   if (identical(object$model$model_type, "nbinom2")) {
     mu <- predict(object, dpar = "mu")
@@ -3469,7 +3472,7 @@ sigma.drmTMB <- function(object, ...) {
       identical(object$model$model_type, "binomial") ||
       identical(object$model$model_type, "cumulative_logit")
   ) {
-    return(rep(1, object$nobs))
+    return(rep(1, length(object$model$y)))
   }
   if (identical(object$model$model_type, "biv_gaussian")) {
     return(new_biv_sigma(

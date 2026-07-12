@@ -3240,12 +3240,14 @@ Type objective_function<Type>::operator()()
     vector<Type> mu = exp(eta_mu);
     vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
     for (int i = 0; i < y.size(); ++i) {
-      Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
-      Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
-      if (asDouble(y(i)) == 0.0) {
-        nll -= weights(i) * logspace_add(log_zi, log_one_minus_zi - mu(i));
-      } else {
-        nll -= weights(i) * (log_one_minus_zi + dpois(y(i), mu(i), true));
+      if (observed_y(i) == 1) {
+        Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+        Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+        if (asDouble(y(i)) == 0.0) {
+          nll -= weights(i) * logspace_add(log_zi, log_one_minus_zi - mu(i));
+        } else {
+          nll -= weights(i) * (log_one_minus_zi + dpois(y(i), mu(i), true));
+        }
       }
     }
     REPORT(eta_mu);
