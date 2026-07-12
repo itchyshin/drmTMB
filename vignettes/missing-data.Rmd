@@ -46,9 +46,10 @@ and multiple missing predictors are later work.
 On the response-masking side, `missing = miss_control(response = "include")`
 retains and marginalises missing responses for `gaussian()`, bivariate Gaussian,
 `student()`, `skew_normal()`, `lognormal()`, `Gamma(link = "log")`,
-`binomial()`, `poisson()`, `nbinom2()`, and `beta()` fits. Student-t,
+`tweedie()`, `zero_one_beta()`, `binomial()`, `poisson()`, `nbinom2()`, and
+`beta()` fits. Student-t,
 lognormal, and Gamma include ordinary random-intercept recovery evidence;
-skew-normal is a fixed-effect route. These ticks do not automatically extend to
+skew-normal, Tweedie, and zero-one beta are fixed-effect routes. These ticks do not automatically extend to
 every structured modifier supported by a family.
 
 The response model and the imputation model use two different formula
@@ -77,7 +78,9 @@ never silently degrades to a wrong likelihood.
 | `lognormal()` | ✓ (ordinary random-intercept evidence) | — |
 | `Gamma(link = "log")` | ✓ (ordinary random-intercept evidence) | — |
 | `skew_normal()` | ✓ (fixed effects only) | — |
-| all other families (`tweedie()`, `truncated_nbinom2()`, `zero_one_beta()`, `beta_binomial()`, `cumulative_logit()`, zero-inflated and hurdle routes) | — | — |
+| `tweedie()` | ✓ (fixed effects; zero atom plus continuous component) | — |
+| `zero_one_beta()` | ✓ (fixed effects; zero/one atoms plus interior) | — |
+| all other families (`truncated_nbinom2()`, `beta_binomial()`, `cumulative_logit()`, zero-inflated and hurdle routes) | — | — |
 
 The allow-lists are single sources of truth in the package
 (`drm_missing_response_families()` and `drm_missing_predictor_families()`), and
@@ -103,7 +106,7 @@ predictor model.
 | Missing-data case | Current route | Main boundary |
 | --- | --- | --- |
 | Missing univariate Gaussian response | `missing = miss_control(response = "include")` | Predictors, grouping variables, offsets, weights, and structured-effect inputs must be complete. |
-| Missing non-Gaussian response (`student()`, `skew_normal()`, `lognormal()`, `Gamma()`, `binomial()`, `poisson()`, `nbinom2()`, `beta()`) | `missing = miss_control(response = "include")` | Missing response cells are marginalised out; predictors and other inputs must be complete. Lognormal/Gamma observed responses must be positive; `beta()` needs interior `(0, 1)` responses; skew-normal is fixed-effect only. |
+| Missing non-Gaussian response (`student()`, `skew_normal()`, `lognormal()`, `Gamma()`, `tweedie()`, `zero_one_beta()`, `binomial()`, `poisson()`, `nbinom2()`, `beta()`) | `missing = miss_control(response = "include")` | Missing response cells are marginalised out; predictors and other inputs must be complete. Lognormal/Gamma observed responses must be positive; Tweedie allows zero and positive values; zero-one beta needs observed interior data plus optional 0/1 atoms; strict `beta()` needs interior `(0, 1)` responses. |
 | Missing bivariate Gaussian response cell | `missing = miss_control(response = "include")` | Partial `y1`/`y2` rows are supported without dense known sampling covariance. |
 | One missing numeric predictor | `bf(y ~ z + mi(x), sigma ~ 1)` with `impute = list(x = x ~ z)` | The missing `mi()` variable must be numeric and modelled with one Gaussian predictor model. |
 | One missing binary predictor | `bf(y ~ z + mi(treatment), sigma ~ 1)` with `impute = list(treatment = impute_model(treatment ~ z, family = binomial()))` | The missing `mi()` variable must be binary and modelled with one fixed-effect Bernoulli/logit predictor model. |
