@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, and {.code beta()}.",
+      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, and {.fn zero_one_beta}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -333,7 +333,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     beta = drm_build_beta_ls_spec(
       formula,
@@ -347,7 +348,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     beta_binomial = drm_build_beta_binomial_spec(
       formula,
@@ -4317,8 +4319,11 @@ drm_build_tweedie_ls_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4412,6 +4417,9 @@ drm_build_tweedie_ls_spec <- function(
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
 
   vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -4428,7 +4436,7 @@ drm_build_tweedie_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4440,23 +4448,40 @@ drm_build_tweedie_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
-  y <- stats::model.response(mf_mu)
+  y_raw <- stats::model.response(mf_mu)
 
-  if (length(y) == 0L) {
+  if (length(y_raw) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying model missingness rules."
     )
   }
-  if (!is.null(dim(y))) {
+  if (!is.null(dim(y_raw))) {
     cli::cli_abort(
       "{.fn tweedie} models require a single non-negative response."
     )
   }
-  if (!all(is.finite(y)) || any(y < 0)) {
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing Tweedie response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed Tweedie response is required for fitting."
+    )
+  }
+  y_obs <- y_raw[observed_y]
+  if (!all(is.finite(y_obs)) || any(y_obs < 0)) {
     cli::cli_abort(c(
       "{.fn tweedie} models require non-negative finite response values.",
       "x" = "The response {.val {mu_entry$response}} contains negative or non-finite values after missing-row filtering."
     ))
+  }
+  response_sentinel <- if (include_missing_response) 0 else NA_real_
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
   }
 
   X_mu <- stats::model.matrix(
@@ -4507,15 +4532,36 @@ drm_build_tweedie_ls_spec <- function(
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", "nu"),
-    start = tweedie_ls_start(y, X_mu, X_sigma, X_nu),
+    start = tweedie_ls_start(
+      y[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      X_sigma[observed_y, , drop = FALSE],
+      X_nu[observed_y, , drop = FALSE]
+    ),
     map = tweedie_ls_map(),
     random_names = NULL
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T3-tweedie"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -4869,8 +4915,11 @@ drm_build_zero_one_beta_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -4951,6 +5000,9 @@ drm_build_zero_one_beta_spec <- function(
     all.vars(f_zoi),
     all.vars(f_coi)
   ))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -4967,7 +5019,7 @@ drm_build_zero_one_beta_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4984,10 +5036,27 @@ drm_build_zero_one_beta_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
-  y <- prepare_zero_one_beta_response(
-    stats::model.response(mf_mu),
+  y_raw <- stats::model.response(mf_mu)
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing zero-one beta response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed zero-one beta response is required for fitting."
+    )
+  }
+  y_obs <- prepare_zero_one_beta_response(
+    y_raw[observed_y],
     response = mu_entry$response
   )
+  response_sentinel <- if (include_missing_response) 0 else NA_real_
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
+  }
 
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
@@ -5032,15 +5101,37 @@ drm_build_zero_one_beta_spec <- function(
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", "zoi", "coi"),
-    start = zero_one_beta_start(y, X_mu, X_sigma, X_zoi, X_coi),
+    start = zero_one_beta_start(
+      y_obs,
+      X_mu[observed_y, , drop = FALSE],
+      X_sigma[observed_y, , drop = FALSE],
+      X_zoi[observed_y, , drop = FALSE],
+      X_coi[observed_y, , drop = FALSE]
+    ),
     map = zero_one_beta_map(),
     random_names = NULL
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T3-zero-one-beta"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 

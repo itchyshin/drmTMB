@@ -3195,9 +3195,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     nu <- predict(object, dpar = "nu")
     response <- object$model$y - mu
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(sigma^2 * mu^nu))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(sigma^2 * mu^nu)
+    ))
   }
   if (identical(object$model$model_type, "beta")) {
     mu <- predict(object, dpar = "mu")
@@ -3219,9 +3222,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- zero_one_beta_mean(mu, zoi, coi)
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(zero_one_beta_variance(mu, sigma, zoi, coi)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(zero_one_beta_variance(mu, sigma, zoi, coi))
+    ))
   }
   if (identical(object$model$model_type, "beta_binomial")) {
     mu <- predict(object, dpar = "mu")
