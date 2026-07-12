@@ -3727,7 +3727,7 @@ drm_build_skew_normal_ls_spec <- function(
 
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
-  validate_skew_normal_random_terms(mu_re$terms, "mu")
+  validate_skew_normal_mu_random_terms(mu_re$terms)
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_skew_normal_random_terms(sigma_re$terms, "sigma")
@@ -3743,7 +3743,12 @@ drm_build_skew_normal_ls_spec <- function(
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    all.vars(f_nu),
+    random_effect_vars(mu_re$terms)
+  ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
@@ -3825,6 +3830,8 @@ drm_build_skew_normal_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in skew-normal model.")
   }
 
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+
   spec <- list(
     model_type = "skew_normal",
     y = as.numeric(y),
@@ -3841,11 +3848,11 @@ drm_build_skew_normal_ls_spec <- function(
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(
-      mu = empty_sd_mu_structure(0L),
+      mu = empty_sd_mu_structure(re_mu$n_re),
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
@@ -3858,10 +3865,11 @@ drm_build_skew_normal_ls_spec <- function(
       X_mu,
       X_sigma,
       X_nu,
+      re_mu = re_mu,
       observed_y = observed_y
     ),
-    map = skew_normal_ls_map(),
-    random_names = NULL
+    map = skew_normal_ls_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
@@ -4403,7 +4411,7 @@ drm_build_tweedie_ls_spec <- function(
 
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
-  validate_tweedie_random_terms(mu_re$terms, "mu")
+  validate_tweedie_mu_random_terms(mu_re$terms)
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_tweedie_random_terms(sigma_re$terms, "sigma")
@@ -4419,7 +4427,12 @@ drm_build_tweedie_ls_spec <- function(
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    all.vars(f_nu),
+    random_effect_vars(mu_re$terms)
+  ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
@@ -4507,6 +4520,8 @@ drm_build_tweedie_ls_spec <- function(
     ))
   }
 
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+
   spec <- list(
     model_type = "tweedie",
     y = as.numeric(y),
@@ -4523,11 +4538,11 @@ drm_build_tweedie_ls_spec <- function(
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(
-      mu = empty_sd_mu_structure(0L),
+      mu = empty_sd_mu_structure(re_mu$n_re),
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
@@ -4536,13 +4551,15 @@ drm_build_tweedie_ls_spec <- function(
     keep = keep,
     dpars = c("mu", "sigma", "nu"),
     start = tweedie_ls_start(
-      y[observed_y],
-      X_mu[observed_y, , drop = FALSE],
-      X_sigma[observed_y, , drop = FALSE],
-      X_nu[observed_y, , drop = FALSE]
+      y,
+      X_mu,
+      X_sigma,
+      X_nu,
+      re_mu = re_mu,
+      observed_y = observed_y
     ),
-    map = tweedie_ls_map(),
-    random_names = NULL
+    map = tweedie_ls_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
@@ -4988,6 +5005,10 @@ drm_build_zero_one_beta_spec <- function(
     ))
   }
 
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_zero_one_beta_mu_random_terms(mu_re$terms)
+
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -5001,7 +5022,8 @@ drm_build_zero_one_beta_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     all.vars(f_zoi),
-    all.vars(f_coi)
+    all.vars(f_coi),
+    random_effect_vars(mu_re$terms)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -5073,6 +5095,8 @@ drm_build_zero_one_beta_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in zero-one beta model.")
   }
 
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+
   spec <- list(
     model_type = "zero_one_beta",
     y = as.numeric(y),
@@ -5095,24 +5119,26 @@ drm_build_zero_one_beta_spec <- function(
       coi = mf_coi
     ),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(0L)),
+    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", "zoi", "coi"),
     start = zero_one_beta_start(
-      y_obs,
-      X_mu[observed_y, , drop = FALSE],
-      X_sigma[observed_y, , drop = FALSE],
-      X_zoi[observed_y, , drop = FALSE],
-      X_coi[observed_y, , drop = FALSE]
+      y,
+      X_mu,
+      X_sigma,
+      X_zoi,
+      X_coi,
+      re_mu = re_mu,
+      observed_y = observed_y
     ),
-    map = zero_one_beta_map(),
-    random_names = NULL
+    map = zero_one_beta_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
@@ -5426,14 +5452,7 @@ drm_build_binomial_spec <- function(
 
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
-  if (length(mu_re$terms) > 0L) {
-    labels <- vapply(mu_re$terms, `[[`, character(1L), "label")
-    cli::cli_abort(c(
-      "Random effects are not implemented for binomial response models yet.",
-      "x" = "Unsupported random-effect term{?s}: {.val {labels}}.",
-      "i" = "Fit the first binomial slice as a fixed-effect model, or use a package with established binomial mixed-model support."
-    ))
-  }
+  validate_binomial_mu_random_terms(mu_re$terms)
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
   if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
@@ -5449,6 +5468,12 @@ drm_build_binomial_spec <- function(
       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
     ))
   }
+  if (include_missing_predictor && length(mu_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "A binomial {.code mu} random intercept cannot yet be combined with missing-predictor {.fn mi}.",
+      "i" = "Use one of a {.code (1 | id)} random intercept or {.code miss_control(predictor = \"model\")}, not both."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -5457,7 +5482,7 @@ drm_build_binomial_spec <- function(
   } else {
     character(0)
   }
-  vars <- unique(c(all.vars(f_mu), impute_vars))
+  vars <- unique(c(all.vars(f_mu), impute_vars, random_effect_vars(mu_re$terms)))
   # response = "include": keep missing-response rows (exclude the response from
   # the complete-case rule). predictor = "model": keep missing-predictor rows
   # (exclude the mi() variable); impute-model covariates stay complete.
@@ -5562,6 +5587,8 @@ drm_build_binomial_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in binomial model.")
   }
 
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+
   spec <- list(
     model_type = "binomial",
     y = as.numeric(response$successes),
@@ -5577,11 +5604,11 @@ drm_build_binomial_spec <- function(
     terms = list(mu = stats::delete.response(stats::terms(mf_mu))),
     model_frame = list(mu = mf_mu),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(
-      mu = empty_sd_mu_structure(0L),
+      mu = empty_sd_mu_structure(re_mu$n_re),
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
@@ -5594,13 +5621,15 @@ drm_build_binomial_spec <- function(
     keep = keep,
     dpars = "mu",
     start = binomial_start(
-      response$successes[observed_y],
-      response$failures[observed_y],
-      X_mu[observed_y, , drop = FALSE],
-      if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu
+      response$successes,
+      response$failures,
+      X_mu,
+      offset_mu,
+      re_mu = re_mu,
+      observed_y = observed_y
     ),
-    map = binomial_map(),
-    random_names = NULL
+    map = binomial_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   if (include_missing_predictor) {
     spec$start$beta_mi <- missing_predictor$beta_start
@@ -5701,19 +5730,19 @@ drm_build_cumulative_logit_spec <- function(
   if (formula_contains_structured_marker(mu_entry$rhs)) {
     drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
   }
-  if (formula_contains_call(mu_entry$rhs, "|")) {
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_cumulative_logit_mu_random_terms(mu_re$terms)
+  if (!is.null(mu_phylo$term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(c(
-      "Ordinal random effects are not implemented.",
-      "x" = "The {.code mu} formula contains a random-effect bar term.",
-      "i" = "The first ordinal mixed-model target is a random intercept such as {.code bf(score ~ x + (1 | id))}.",
-      "i" = "Random slopes should remain a later step after ordinal intercept recovery, cutpoint stability, extractor support, and interval checks are in place.",
-      "i" = "{.pkg ordinal}'s {.fn clmm} is a useful benchmark, but matching it requires a separate likelihood and recovery slice."
+      "A {.fn cumulative_logit} phylogenetic effect cannot yet be combined with an ordinary {.code mu} random intercept.",
+      "i" = "Use one of {.code phylo(1 | species)} or {.code (1 | id)} for this slice."
     ))
   }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
-  vars <- all.vars(f_mu)
+  vars <- unique(c(all.vars(f_mu), random_effect_vars(mu_re$terms)))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
@@ -5775,6 +5804,8 @@ drm_build_cumulative_logit_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in cumulative_logit model.")
   }
 
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+
   spec <- list(
     model_type = "cumulative_logit",
     y = as.numeric(ordinal$y),
@@ -5787,11 +5818,11 @@ drm_build_cumulative_logit_spec <- function(
     terms = list(mu = terms_mu),
     model_frame = list(mu = mf_mu),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
     random_scale = list(
-      mu = empty_sd_mu_structure(1L),
+      mu = empty_sd_mu_structure(re_mu$n_re),
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = phylo_mu),
@@ -5805,10 +5836,14 @@ drm_build_cumulative_logit_spec <- function(
       X_mu,
       ordinal$n_categories,
       phylo_mu = phylo_mu,
+      re_mu = re_mu,
       observed_y = observed_y
     ),
-    map = cumulative_logit_map(phylo_mu),
-    random_names = if (isTRUE(phylo_mu$has)) "u_phylo" else NULL
+    map = cumulative_logit_map(phylo_mu, re_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
@@ -8642,6 +8677,29 @@ validate_student_sigma_random_terms <- function(terms) {
   ))
 }
 
+validate_skew_normal_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      term$type != "intercept" || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only an ordinary {.fn skew_normal} {.code mu} random intercept is implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(y ~ x + (1 | id), sigma ~ z)}.",
+      "i" = "Skew-normal random slopes, labelled covariance blocks, and scale/shape random effects remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
 validate_skew_normal_random_terms <- function(terms, dpar) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -8653,6 +8711,75 @@ validate_skew_normal_random_terms <- function(terms, dpar) {
     "i" = "Use fixed-effect formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}.",
     "i" = "Residual-shape random effects, residual-scale random effects, ordinary grouped skew-normal random effects, and latent {.code skew(id)} syntax need separate likelihood, extractor, interval, and simulation-recovery evidence."
   ))
+}
+
+validate_zero_one_beta_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      term$type != "intercept" || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only an ordinary {.fn zero_one_beta} {.code mu} random intercept is implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(y ~ x + (1 | id), sigma ~ z)}.",
+      "i" = "Zero-one-beta random slopes, scale/inflation random effects, and labelled covariance blocks remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_cumulative_logit_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      term$type != "intercept" || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only an ordinary {.fn cumulative_logit} {.code mu} random intercept is implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(score ~ x + (1 | id))}.",
+      "i" = "Ordinal random slopes, labelled covariance blocks, and cutpoint-varying random effects remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_binomial_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      term$type != "intercept" || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only an ordinary binomial {.code mu} random intercept is implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id))}.",
+      "i" = "Binomial random slopes, labelled covariance blocks, and structured effects remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
 }
 
 validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
@@ -8692,6 +8819,29 @@ validate_positive_continuous_sigma_random_terms <- function(
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary positive-continuous {.code mu} random intercepts; residual-scale random effects need their own likelihood and recovery tests."
   ))
+}
+
+validate_tweedie_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      term$type != "intercept" || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only an ordinary {.fn tweedie} {.code mu} random intercept is implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)}.",
+      "i" = "Tweedie random slopes, labelled covariance blocks, and scale/shape random effects remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
 }
 
 validate_tweedie_random_terms <- function(terms, dpar) {
@@ -14925,6 +15075,7 @@ skew_normal_ls_start <- function(
   X_mu,
   X_sigma,
   X_nu,
+  re_mu = empty_random_mu_structure(length(y)),
   observed_y = rep(TRUE, length(y))
 ) {
   observed_y <- as.logical(observed_y)
@@ -14932,6 +15083,7 @@ skew_normal_ls_start <- function(
     y,
     X_mu,
     X_sigma,
+    re_mu = re_mu,
     observed_y = observed_y
   )
   c(
@@ -14952,9 +15104,9 @@ skew_normal_ls_start <- function(
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = gaussian_start$u_mu,
+      log_sd_mu = gaussian_start$log_sd_mu,
+      eta_cor_mu = gaussian_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -15275,28 +15427,53 @@ binomial_start <- function(
   successes,
   failures,
   X_mu,
-  offset_mu = rep(0, length(successes))
+  offset_mu = rep(0, length(successes)),
+  re_mu = empty_random_mu_structure(length(successes)),
+  observed_y = rep(TRUE, length(successes))
 ) {
+  observed_y <- as.logical(observed_y)
+  n <- length(successes)
+  off_full <- if (length(offset_mu) == n) offset_mu else rep(0, n)
+  s_obs <- successes[observed_y]
+  f_obs <- failures[observed_y]
+  X_mu_obs <- X_mu[observed_y, , drop = FALSE]
+  off_obs <- off_full[observed_y]
   beta_mu <- tryCatch(
     suppressWarnings(
       stats::glm.fit(
-        X_mu,
-        cbind(successes, failures),
+        X_mu_obs,
+        cbind(s_obs, f_obs),
         family = stats::binomial(link = "logit"),
-        offset = offset_mu
+        offset = off_obs
       )$coefficients
     ),
     error = function(e) rep(0, ncol(X_mu))
   )
   if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
-    trials <- successes + failures
-    prop <- (successes + 0.5) / (trials + 1)
+    trials_obs <- s_obs + f_obs
+    prop_obs <- (s_obs + 0.5) / (trials_obs + 1)
     beta_mu <- rep(0, ncol(X_mu))
     beta_mu[[1L]] <-
-      stats::qlogis(min(max(mean(prop), 1e-4), 1 - 1e-4)) -
-      mean(offset_mu)
+      stats::qlogis(min(max(mean(prop_obs), 1e-4), 1 - 1e-4)) -
+      mean(off_obs)
   }
   names(beta_mu) <- colnames(X_mu)
+  eta_mu <- as.vector(X_mu %*% beta_mu) + off_full
+  trials_all <- successes + failures
+  prop_all <- (successes + 0.5) / (trials_all + 1)
+  link_y <- stats::qlogis(pmin(pmax(prop_all, 1e-4), 1 - 1e-4))
+  resid <- link_y - eta_mu
+  resid[!observed_y] <- 0
+  y_scale <- stats::sd(link_y[observed_y])
+  if (!is.finite(y_scale) || y_scale <= 0) {
+    y_scale <- 1
+  }
+  mu_re_start <- gaussian_mu_re_start(
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
+  )
   c(
     list(beta_mu = beta_mu),
     list(
@@ -15305,9 +15482,9 @@ binomial_start <- function(
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -15324,20 +15501,32 @@ binomial_start <- function(
   )
 }
 
-binomial_map <- function() {
+binomial_map <- function(re_mu = empty_random_mu_structure(1L)) {
   poisson_map(
-    re_mu = empty_random_mu_structure(1L),
+    re_mu = re_mu,
     phylo_mu = empty_phylo_mu_structure()
   )
 }
 
-zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
-  interior <- y > 0 & y < 1
+zero_one_beta_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  X_zoi,
+  X_coi,
+  re_mu = empty_random_mu_structure(length(y)),
+  observed_y = rep(TRUE, length(y))
+) {
+  observed_y <- as.logical(observed_y)
+  y_obs <- y[observed_y]
+  X_mu_obs <- X_mu[observed_y, , drop = FALSE]
+  X_sigma_obs <- X_sigma[observed_y, , drop = FALSE]
+  interior <- y_obs > 0 & y_obs < 1
   if (sum(interior) >= max(2L, ncol(X_mu), ncol(X_sigma))) {
     beta_start <- beta_ls_start(
-      y[interior],
-      X_mu[interior, , drop = FALSE],
-      X_sigma[interior, , drop = FALSE]
+      y_obs[interior],
+      X_mu_obs[interior, , drop = FALSE],
+      X_sigma_obs[interior, , drop = FALSE]
     )
     beta_mu <- beta_start$beta_mu
     beta_sigma <- beta_start$beta_sigma
@@ -15345,17 +15534,17 @@ zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
     beta_mu <- numeric(ncol(X_mu))
     beta_sigma <- numeric(ncol(X_sigma))
     beta_mu[[1L]] <- stats::qlogis(
-      min(max(mean(y[interior]), 1e-4), 1 - 1e-4)
+      min(max(mean(y_obs[interior]), 1e-4), 1 - 1e-4)
     )
     beta_sigma[[1L]] <- log(0.5)
   }
   names(beta_mu) <- colnames(X_mu)
   names(beta_sigma) <- colnames(X_sigma)
 
-  boundary <- y == 0 | y == 1
+  boundary <- y_obs == 0 | y_obs == 1
   zoi0 <- min(max(mean(boundary), 1e-3), 0.95)
   coi0 <- if (any(boundary)) {
-    min(max(mean(y[boundary] == 1), 1e-3), 1 - 1e-3)
+    min(max(mean(y_obs[boundary] == 1), 1e-3), 1 - 1e-3)
   } else {
     0.5
   }
@@ -15365,6 +15554,21 @@ zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
   names(beta_coi) <- colnames(X_coi)
   beta_zoi[[1L]] <- stats::qlogis(zoi0)
   beta_coi[[1L]] <- stats::qlogis(coi0)
+
+  eta_mu <- as.vector(X_mu %*% beta_mu)
+  link_y <- stats::qlogis(pmin(pmax(y, 1e-4), 1 - 1e-4))
+  resid <- link_y - eta_mu
+  resid[!observed_y] <- 0
+  y_scale <- stats::sd(link_y[observed_y])
+  if (!is.finite(y_scale) || y_scale <= 0) {
+    y_scale <- 1
+  }
+  mu_re_start <- gaussian_mu_re_start(
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
+  )
 
   c(
     list(
@@ -15378,9 +15582,9 @@ zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -15397,8 +15601,8 @@ zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
   )
 }
 
-zero_one_beta_map <- function() {
-  beta_ls_map(re_mu = empty_random_mu_structure(1L))
+zero_one_beta_map <- function(re_mu = empty_random_mu_structure(1L)) {
+  beta_ls_map(re_mu = re_mu)
 }
 
 poisson_start <- function(
@@ -15782,23 +15986,39 @@ gamma_ls_start <- function(
   )
 }
 
-tweedie_ls_start <- function(y, X_mu, X_sigma, X_nu) {
-  y_positive <- y[y > 0]
+tweedie_ls_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  X_nu,
+  re_mu = empty_random_mu_structure(length(y)),
+  observed_y = rep(TRUE, length(y))
+) {
+  observed_y <- as.logical(observed_y)
+  if (length(observed_y) != length(y) || !any(observed_y)) {
+    cli::cli_abort(
+      "Internal Tweedie start error: {.code observed_y} must identify at least one response."
+    )
+  }
+  y_start <- y[observed_y]
+  X_mu_start <- X_mu[observed_y, , drop = FALSE]
+  y_positive <- y_start[y_start > 0]
   zero_floor <- if (length(y_positive) > 0L) {
     max(min(y_positive) * 0.5, .Machine$double.eps)
   } else {
     0.1
   }
-  log_y <- log(pmax(y, zero_floor))
+  log_y_start <- log(pmax(y_start, zero_floor))
   beta_mu <- tryCatch(
-    stats::lm.fit(X_mu, log_y)$coefficients,
+    stats::lm.fit(X_mu_start, log_y_start)$coefficients,
     error = function(e) rep(0, ncol(X_mu))
   )
   beta_mu[!is.finite(beta_mu)] <- 0
   eta_mu <- as.vector(X_mu %*% beta_mu)
   mu <- exp(eta_mu)
   nu0 <- 1.5
-  phi0 <- stats::var(y) / mean(pmax(mu, .Machine$double.eps)^nu0)
+  phi0 <- stats::var(y_start) /
+    mean(pmax(mu[observed_y], .Machine$double.eps)^nu0)
   if (!is.finite(phi0) || phi0 <= 0) {
     phi0 <- 0.5
   }
@@ -15807,6 +16027,19 @@ tweedie_ls_start <- function(y, X_mu, X_sigma, X_nu) {
   beta_sigma[[1L]] <- log(max(sigma0, 1e-4))
   beta_nu <- numeric(ncol(X_nu))
   beta_nu[[1L]] <- stats::qlogis(nu0 - 1)
+  y_scale <- stats::sd(log_y_start)
+  if (!is.finite(y_scale) || y_scale <= 0) {
+    y_scale <- 1
+  }
+  log_y <- numeric(length(y))
+  log_y[observed_y] <- log_y_start
+  resid <- log_y - eta_mu
+  mu_re_start <- gaussian_mu_re_start(
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
+  )
   c(
     list(
       beta_mu = beta_mu,
@@ -15817,9 +16050,9 @@ tweedie_ls_start <- function(y, X_mu, X_sigma, X_nu) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -15836,8 +16069,8 @@ tweedie_ls_start <- function(y, X_mu, X_sigma, X_nu) {
   )
 }
 
-tweedie_ls_map <- function() {
-  out <- gaussian_ls_map()
+tweedie_ls_map <- function(re_mu = empty_random_mu_structure(1L)) {
+  out <- gaussian_ls_map(re_mu = re_mu)
   out$beta_nu <- NULL
   out
 }
@@ -15847,6 +16080,7 @@ cumulative_logit_start <- function(
   X_mu,
   n_categories,
   phylo_mu = empty_phylo_mu_structure(),
+  re_mu = empty_random_mu_structure(length(y)),
   observed_y = rep(TRUE, length(y))
 ) {
   beta_mu <- rep(0, ncol(X_mu))
@@ -15858,6 +16092,12 @@ cumulative_logit_start <- function(
   cutpoints <- stats::qlogis(cumulative[-n_categories])
   theta_ord <- ordinal_raw_from_cutpoints(cutpoints)
   phylo_start <- gaussian_phylo_start(as.numeric(y_start), phylo_mu)
+  mu_re_start <- gaussian_mu_re_start(
+    rep(0, length(y)),
+    re_mu,
+    1,
+    observed_y = observed_y
+  )
 
   c(
     list(
@@ -15869,9 +16109,9 @@ cumulative_logit_start <- function(
       beta_nu = 0,
       beta_zi = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -15919,7 +16159,10 @@ ordinal_cutpoints_from_raw <- function(theta_ord) {
   out
 }
 
-cumulative_logit_map <- function(phylo_mu = empty_phylo_mu_structure()) {
+cumulative_logit_map <- function(
+  phylo_mu = empty_phylo_mu_structure(),
+  re_mu = empty_random_mu_structure(1L)
+) {
   out <- list(
     beta_sigma = factor(NA),
     beta_nu = factor(NA),
@@ -15930,15 +16173,19 @@ cumulative_logit_map <- function(phylo_mu = empty_phylo_mu_structure()) {
     beta_sigma1 = factor(NA),
     beta_sigma2 = factor(NA),
     beta_rho12 = factor(NA),
-    u_mu = factor(NA),
-    log_sd_mu = factor(NA),
-    eta_cor_mu = factor(NA),
     eta_cor_mu_sigma = factor(NA),
     eta_cor_sigma = factor(NA),
     u_sigma = factor(NA),
     log_sd_sigma = factor(NA),
     eta_cor_phylo = factor(NA)
   )
+  if (re_mu$n_re == 0L) {
+    out$u_mu <- factor(NA)
+    out$log_sd_mu <- factor(NA)
+  }
+  if (re_mu$n_cors == 0L) {
+    out$eta_cor_mu <- factor(NA)
+  }
   if (!isTRUE(phylo_mu$has)) {
     out <- c(out, list(
       u_phylo = factor(NA),
@@ -16397,8 +16644,8 @@ student_ls_map <- function(
   out
 }
 
-skew_normal_ls_map <- function() {
-  out <- gaussian_ls_map()
+skew_normal_ls_map <- function(re_mu = empty_random_mu_structure(1L)) {
+  out <- gaussian_ls_map(re_mu = re_mu)
   out$beta_nu <- NULL
   out
 }
@@ -17377,16 +17624,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      n_mu_re_terms = spec$random$mu$n_terms,
+      n_mu_re_cors = spec$random$mu$n_cors,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -17493,16 +17740,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      n_mu_re_terms = spec$random$mu$n_terms,
+      n_mu_re_cors = spec$random$mu$n_cors,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -17551,16 +17798,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
-      n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      n_mu_re_terms = spec$random$mu$n_terms,
+      n_mu_re_cors = spec$random$mu$n_cors,
+      mu_re_index = spec$random$mu$index0,
+      mu_re_value = spec$random$mu$value,
+      mu_re_term = spec$random$mu$term_id0,
+      mu_re_dpar = spec$random$mu$dpar_id0,
+      mu_re_pos = spec$random$mu$re_pos0,
+      mu_re_cor_id = spec$random$mu$re_cor_id0,
+      mu_re_pair_index = spec$random$mu$re_pair_index0,
+      mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -18396,6 +18643,8 @@ split_tmb_sdpars <- function(par, spec) {
         "lognormal",
         "gamma",
         "tweedie",
+        "binomial",
+        "zero_one_beta",
         "beta",
         "beta_binomial",
         "cumulative_logit",
@@ -18751,9 +19000,12 @@ split_tmb_random_effects <- function(par, spec) {
         "gaussian",
         "biv_gaussian",
         "student",
+        "skew_normal",
         "lognormal",
         "gamma",
         "tweedie",
+        "binomial",
+        "zero_one_beta",
         "beta",
         "beta_binomial",
         "cumulative_logit",

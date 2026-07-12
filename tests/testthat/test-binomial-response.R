@@ -215,14 +215,8 @@ test_that("binomial rejects unsupported response encodings and routes", {
     drmTMB(bf(y ~ x, sigma ~ 1), family = stats::binomial(), data = dat),
     "only the.*mu"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + (1 | id)),
-      family = stats::binomial(),
-      data = transform(dat, id = gl(8, 10))
-    ),
-    "Random effects"
-  )
+  # A `mu` random intercept `(1 | id)` is now supported (Arc 2a); recovery is
+  # checked in test-arc2a-mu-random-intercept.R.
   expect_error(
     drmTMB(bf(mvbind(y, y) ~ x), family = stats::binomial(), data = dat),
     "mvbind"

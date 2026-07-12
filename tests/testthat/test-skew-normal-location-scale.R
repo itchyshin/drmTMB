@@ -416,14 +416,9 @@ test_that("skew-normal first slice rejects unsupported neighbours clearly", {
     y2 = stats::rnorm(16)
   )
 
-  expect_error(
-    drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1),
-      family = skew_normal(),
-      data = dat
-    ),
-    "random effects are not implemented"
-  )
+  # A `mu` random intercept `(1 | id)` is now supported (Arc 2a); recovery is
+  # checked in test-arc2a-mu-random-intercept.R. sigma- and nu-side random
+  # effects remain rejected.
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ z + (1 | id), nu ~ 1),

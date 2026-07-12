@@ -366,14 +366,9 @@ test_that("Tweedie rejects unsupported first-slice neighbours", {
   dat$id <- rep(seq_len(10), each = 4)
   dat$V <- 0.1
 
-  expect_error(
-    drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1),
-      family = tweedie(),
-      data = dat
-    ),
-    "random effects"
-  )
+  # A `mu` random intercept `(1 | id)` is now supported (Arc 2a); recovery is
+  # checked in test-arc2a-mu-random-intercept.R. sigma- and nu-side random
+  # effects remain rejected in this slice.
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ z + (1 | id), nu ~ 1),
@@ -433,5 +428,79 @@ test_that("Tweedie rejects unsupported first-slice neighbours", {
       data = dat
     ),
     "Random-effect scale"
+  )
+})
+
+new_tweedie_random_intercept_data <- function(
+  n_id = 40,
+  n_each = 12,
+  seed = 20260712,
+  beta_mu = c("(Intercept)" = 0.30, x = 0.60),
+  nu = 1.5,
+  phi = 0.6,
+  sd_id = 0.5
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(id = id, x = stats::runif(n, -1, 1))
+  u_id <- stats::rnorm(n_id, sd = sd_id)
+  u_id <- u_id - mean(u_id)
+  names(u_id) <- levels(id)
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + u_id[id]
+  mu <- exp(eta_mu)
+  dat$y <- drmTMB:::rtweedie_compound(n, mu = mu, phi = phi, power = nu)
+  list(data = dat, beta_mu = beta_mu, nu = nu, phi = phi, sd_id = sd_id, u_id = u_id)
+}
+
+test_that("tweedie mu supports an ordinary random intercept", {
+  sim <- new_tweedie_random_intercept_data()
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), nu ~ 1),
+    family = tweedie(),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "tweedie")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(1 | id)")
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_gt(unname(fit$sdpars$mu[["(1 | id)"]]), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$sd_id), 0.30)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.30)
+
+  id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
+  expect_equal(length(id_effects), length(sim$u_id))
+  expect_gt(stats::cor(id_effects, sim$u_id), 0.45)
+  expect_true(drmTMB:::has_ordinary_mu_random_effects(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 1L)
+  expect_equal(
+    predict(fit, dpar = "mu", type = "link"),
+    as.vector(fit$model$X$mu %*% coef(fit, "mu")) +
+      drmTMB:::mu_random_effect_contribution(fit),
+    tolerance = 1e-8
+  )
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == "sd:mu:(1 | id)", , drop = FALSE]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "log_sd_mu")
+  expect_true(sd_target$profile_ready)
+
+  chk <- check_drm(fit)
+  replication <- chk[chk$check == "mu_random_effect_replication", ]
+  expect_equal(replication$status, "ok")
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x | id), nu ~ 1),
+      family = tweedie(),
+      data = sim$data
+    ),
+    "random intercept"
   )
 })

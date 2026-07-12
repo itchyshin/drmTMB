@@ -261,20 +261,20 @@ test_that("MR-T3 response masks do not relax neighbouring gates", {
     )
   }
 
+  # A `mu` random intercept `(1 | id)` is supported for these families (Arc 2a),
+  # including under response masking; it is no longer a rejected gate.
   tw$id <- factor(rep(1:8, each = 10))
-  expect_error(
-    drmTMB(
+  expect_no_error(
+    suppressWarnings(drmTMB(
       bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1), tweedie(), tw,
       missing = include
-    ),
-    "random effects are not implemented|fixed-effect"
+    ))
   )
   zoib$id <- factor(rep(1:8, each = 10))
-  expect_error(
-    drmTMB(
+  expect_no_error(
+    suppressWarnings(drmTMB(
       bf(y ~ x + (1 | id), sigma ~ z, zoi ~ w, coi ~ v),
       zero_one_beta(), zoib, missing = include
-    ),
-    "unsupported model terms|fixed-effect only"
+    ))
   )
 })

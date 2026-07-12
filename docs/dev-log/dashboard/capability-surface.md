@@ -7,8 +7,8 @@ The model surface and missing-response execution axis answer different questions
 ## Snapshot
 
 - Model surface: **668 cells** across **18 routes**.
-- Runtime status: **283 implemented**, **343 rejected by design**, **42 not implemented**.
-- Evidence: **4 supported**, **16 inference-ready**, **44 interval-feasible**, **150 recovery-grade**.
+- Runtime status: **288 implemented**, **339 rejected by design**, **41 not implemented**.
+- Evidence: **4 supported**, **16 inference-ready**, **44 interval-feasible**, **155 recovery-grade**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Missing-response execution board
@@ -48,20 +48,20 @@ Each route's displayed gate and work state come from its own ledger evidence. Ve
 |---|---:|---:|---:|---:|---|
 | `beta` | 24 | 7 | 17 | 0 | inference ready with caveats |
 | `beta_binomial` | 32 | 4 | 28 | 0 | interval feasible |
-| `binomial` | 12 | 1 | 11 | 0 | inference ready with caveats |
+| `binomial` | 12 | 2 | 10 | 0 | inference ready with caveats |
 | `biv_gaussian` | 154 | 140 | 13 | 1 | supported |
-| `cumulative_logit` | 13 | 2 | 11 | 0 | interval feasible |
+| `cumulative_logit` | 13 | 3 | 10 | 0 | interval feasible |
 | `gamma` | 24 | 5 | 19 | 0 | interval feasible |
 | `gaussian` | 66 | 52 | 12 | 2 | supported |
 | `hurdle_nbinom2` | 48 | 4 | 44 | 0 | interval feasible |
 | `lognormal` | 23 | 4 | 19 | 0 | interval feasible |
 | `nbinom2` | 30 | 19 | 8 | 3 | inference ready with caveats |
 | `poisson` | 29 | 15 | 9 | 5 | inference ready with caveats |
-| `skew_normal` | 28 | 3 | 24 | 1 | interval feasible |
+| `skew_normal` | 28 | 4 | 23 | 1 | interval feasible |
 | `student` | 24 | 8 | 16 | 0 | interval feasible |
 | `truncated_nbinom2` | 23 | 4 | 19 | 0 | interval feasible |
-| `tweedie` | 28 | 3 | 24 | 1 | interval feasible |
-| `zero_one_beta` | 64 | 4 | 32 | 28 | interval feasible |
+| `tweedie` | 28 | 4 | 23 | 1 | interval feasible |
+| `zero_one_beta` | 64 | 5 | 32 | 27 | interval feasible |
 | `zi_nbinom2` | 34 | 4 | 29 | 1 | interval feasible |
 | `zi_poisson` | 12 | 4 | 8 | 0 | interval feasible |
 

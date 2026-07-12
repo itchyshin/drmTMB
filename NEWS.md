@@ -1,5 +1,25 @@
 # drmTMB 0.6.0 (development)
 
+## Random intercepts for every family (Arc 2a)
+
+* An ordinary `mu` random intercept `(1 | group)` is now accepted for the five
+  families that previously rejected all random effects: `binomial()`,
+  `cumulative_logit()`, `skew_normal()`, `tweedie()`, and `zero_one_beta()`.
+  Every fitted family now supports at least a mean random intercept, joining the
+  families (`gaussian()`, `poisson()`, `nbinom2()`, `gamma()`, `lognormal()`,
+  `beta()`, `beta_binomial()`, `student()`, `truncated_nbinom2()`) that already
+  did.
+* Fits are by maximum likelihood (Laplace). Random-effect standard deviations
+  are recovered at a known data-generating point (per-family DG2 sentinels in
+  `tests/testthat/test-arc2a-mu-random-intercept.R`). With few or small clusters
+  the random-effect standard deviation can be biased low under the Laplace
+  approximation; adaptive Gauss-Hermite quadrature is the standard remedy for
+  the non-Gaussian families and remains planned.
+* Scope: `mu`-side intercepts only. Random slopes, `sigma`/shape/inflation-dpar
+  random effects, labelled covariance blocks, and (for `cumulative_logit`)
+  combining a phylogenetic effect with an ordinary intercept remain rejected in
+  this slice.
+
 ## Distributional output & adequacy layer (#747, #748)
 
 * Every fitted family now exposes a shared fitted-distribution foundation:

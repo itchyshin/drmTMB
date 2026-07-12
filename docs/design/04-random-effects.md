@@ -221,8 +221,10 @@ bf(
 
 Current implementation details:
 
-- random effects are supported only for univariate Gaussian `mu` and residual
-  `sigma`;
+- an ordinary `mu` random intercept `(1 | group)` is supported for every fitted
+  univariate family (Arc 2a); random slopes, correlated intercept-slope blocks,
+  labelled covariance blocks, and residual `sigma` random effects remain
+  Gaussian-only (with `nbinom2` intercept-only `sigma`);
 - random-slope terms must be written as `0 + x`, with a single numeric
   predictor, for independent slope terms;
 - ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or
