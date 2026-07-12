@@ -2905,6 +2905,12 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     })
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    if (
+      is.list(object$missing_data) &&
+        identical(object$missing_data$response_policy, "include")
+    ) {
+      sims[!object$missing_data$observed_y, ] <- NA_integer_
+    }
     return(sims)
   }
 
@@ -3236,11 +3242,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     observed <- object$model$y / trials
     response <- observed - mu
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(
+    return(drm_mask_missing_response_values(
+      object,
       response / sqrt(beta_binomial_proportion_variance(mu, sigma, trials))
-    )
+    ))
   }
   if (identical(object$model$model_type, "binomial")) {
     mu <- predict(object, dpar = "mu")
@@ -3259,11 +3266,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     expected <- ordinal_expected_score(object)
     response <- object$model$y - expected
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(
+    return(drm_mask_missing_response_values(
+      object,
       response / sqrt(pmax(ordinal_score_variance(object), .Machine$double.eps))
-    )
+    ))
   }
   if (identical(object$model$model_type, "poisson")) {
     mu <- predict(object, dpar = "mu")
