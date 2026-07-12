@@ -2620,6 +2620,23 @@ deviance.drmTMB <- function(object, ...) {
 #' are fixed-effect, population-level
 #' predictions for the supplied rows.
 #'
+#' `type = "quantile"` returns per-row conditional quantiles of the fitted
+#' RESPONSE distribution (not of a linear predictor): `qnorm`-style inverse
+#' CDF evaluation via [fitted_distribution()]`$q()` at [predict_parameters()]'s
+#' fixed-effect, population-level parameter estimates -- see
+#' [fitted_distribution()] for the fixed-effect-only scope and the
+#' `"spike"`/`"unimplemented"` status gate this inherits (a `"spike"`-status
+#' family emits a one-time warning; an unregistered `model_type` raises a
+#' clear error). For bivariate `biv_gaussian` fits, `dpar` selects which
+#' response's MARGINAL quantile to return (`"mu1"`/`"sigma1"` for response 1,
+#' `"mu2"`/`"sigma2"` for response 2); the joint `rho12` correlation, any joint
+#' tail structure, and any known bivariate sampling covariance are ignored --
+#' this is a marginal-only computation, not a joint bivariate quantile. The
+#' result carries `attr(., "calibrated") <- FALSE`: this is a distributional
+#' (plug-in) interval at the point estimate `theta_hat`, not a
+#' calibrated-coverage interval, and it does not propagate `theta_hat`
+#' uncertainty.
+#'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used. When supplied, `newdata` must include the predictors used by the
@@ -2628,12 +2645,20 @@ deviance.drmTMB <- function(object, ...) {
 #'   levels. Transformed predictor terms, such as `log(size)`, must also
 #'   evaluate to finite design-matrix values.
 #' @param dpar Distributional parameter to predict. If `NULL`, the first
-#'   fitted distributional parameter is used.
-#' @param type Prediction scale: `"response"` or `"link"`.
+#'   fitted distributional parameter is used. For `type = "quantile"` on a
+#'   bivariate `biv_gaussian` fit, `dpar` instead selects which response's
+#'   marginal quantile to compute (see Details).
+#' @param type Prediction scale: `"response"`, `"link"`, or `"quantile"`.
+#' @param prob Numeric vector of probabilities in (0, 1), used only when
+#'   `type = "quantile"`.
 #' @param ... Reserved for future prediction options.
 #'
-#' @return A numeric vector.
-#' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()]
+#' @return A numeric vector for `type` `"response"`/`"link"`. For
+#'   `type = "quantile"`, a numeric matrix with one row per observation and
+#'   one column per `prob` (columns named as percentages, e.g. `"2.5%"`), with
+#'   `attr(., "calibrated") == FALSE`.
+#' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
+#'   [exceedance()]
 #'
 #' @examples
 #' dat <- data.frame(
@@ -2645,12 +2670,14 @@ deviance.drmTMB <- function(object, ...) {
 #' predict(fit, dpar = "sigma")
 #' predict(fit, dpar = "sigma", type = "link")
 #' predict(fit, newdata = data.frame(x = c(0, 1)), dpar = "mu")
+#' predict(fit, type = "quantile", prob = c(0.025, 0.5, 0.975))
 #' @export
 predict.drmTMB <- function(
   object,
   newdata = NULL,
   dpar = NULL,
-  type = c("response", "link"),
+  type = c("response", "link", "quantile"),
+  prob = c(0.025, 0.5, 0.975),
   ...
 ) {
   if (is.null(dpar)) {
@@ -2658,6 +2685,9 @@ predict.drmTMB <- function(
   }
   dpar <- match.arg(dpar, names(object$coefficients))
   type <- match.arg(type)
+  if (identical(type, "quantile")) {
+    return(drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob))
+  }
   if (is_random_scale_dpar(object, dpar)) {
     return(predict_random_scale_dpar(
       object,
@@ -2828,11 +2858,10 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "gamma")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    shape <- 1 / sigma^2
-    scale <- mu * sigma^2
+    native <- drm_gamma_shape_scale(mu, sigma)
     sims <- replicate(
       nsim,
-      stats::rgamma(length(mu), shape = shape, scale = scale)
+      stats::rgamma(length(mu), shape = native$shape, scale = native$scale)
     )
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -2855,13 +2884,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "beta")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    phi <- 1 / sigma^2
+    native <- drm_beta_shapes(mu, sigma)
     sims <- replicate(
       nsim,
       stats::rbeta(
         length(mu),
-        shape1 = mu * phi,
-        shape2 = (1 - mu) * phi
+        shape1 = native$shape1,
+        shape2 = native$shape2
       )
     )
     sims <- as.data.frame(sims)
@@ -2874,14 +2903,16 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     zoi <- predict(object, dpar = "zoi")
     coi <- predict(object, dpar = "coi")
-    phi <- 1 / sigma^2
+    # SAME conversion drm_family_dpq_zero_one_beta() (R/family-dpq.R) uses --
+    # closed in DO-T3 batch C (Emmy's dedup; batch A/B left this inline).
+    native <- drm_beta_shapes(mu, sigma)
     sims <- replicate(nsim, {
       boundary <- stats::runif(length(mu)) < zoi
       one <- stats::runif(length(mu)) < coi
       interior <- stats::rbeta(
         length(mu),
-        shape1 = mu * phi,
-        shape2 = (1 - mu) * phi
+        shape1 = native$shape1,
+        shape2 = native$shape2
       )
       ifelse(boundary, as.numeric(one), interior)
     })
@@ -2893,13 +2924,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "beta_binomial")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    phi <- 1 / sigma^2
+    # SAME conversion drm_family_dpq_beta_binomial() (R/family-dpq.R) uses --
+    # closed in DO-T3 batch B (Emmy's dedup; batch A left this inline).
+    native <- drm_beta_shapes(mu, sigma)
     trials <- object$model$trials
     sims <- replicate(nsim, {
       p <- stats::rbeta(
         length(mu),
-        shape1 = mu * phi,
-        shape2 = (1 - mu) * phi
+        shape1 = native$shape1,
+        shape2 = native$shape2
       )
       stats::rbinom(length(mu), size = trials, prob = p)
     })
@@ -2966,7 +2999,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     sims <- replicate(
       nsim,
-      stats::rnbinom(length(mu), size = 1 / sigma^2, mu = mu)
+      stats::rnbinom(length(mu), size = drm_nbinom2_size(sigma), mu = mu)
     )
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -2976,10 +3009,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   if (identical(object$model$model_type, "truncated_nbinom2")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
+    # SAME conversion drm_nbinom2_size() (R/family-dpq.R) uses -- closed in
+    # DO-T3 batch C (Emmy's dedup; batch A left this inline).
+    size <- drm_nbinom2_size(sigma)
     p0 <- truncated_nbinom2_p0(mu, sigma)
     sims <- replicate(nsim, {
       u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-      stats::qnbinom(u, size = 1 / sigma^2, mu = mu)
+      stats::qnbinom(u, size = size, mu = mu)
     })
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -2990,6 +3026,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     hu <- predict(object, dpar = "hu")
+    size <- drm_nbinom2_size(sigma)
     p0 <- truncated_nbinom2_p0(mu, sigma)
     sims <- replicate(nsim, {
       hurdle_zero <- stats::runif(length(mu)) < hu
@@ -2997,7 +3034,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
       ifelse(
         hurdle_zero,
         0L,
-        stats::qnbinom(u, size = 1 / sigma^2, mu = mu)
+        stats::qnbinom(u, size = size, mu = mu)
       )
     })
     sims <- as.data.frame(sims)
@@ -3009,12 +3046,13 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     zi <- predict(object, dpar = "zi")
+    size <- drm_nbinom2_size(sigma)
     sims <- replicate(nsim, {
       structural_zero <- stats::runif(length(mu)) < zi
       ifelse(
         structural_zero,
         0L,
-        stats::rnbinom(length(mu), size = 1 / sigma^2, mu = mu)
+        stats::rnbinom(length(mu), size = size, mu = mu)
       )
     })
     sims <- as.data.frame(sims)
@@ -3084,12 +3122,16 @@ rskew_normal_public <- function(n, mu, sigma, nu) {
   mu <- rep(mu, length.out = n)
   sigma <- rep(sigma, length.out = n)
   nu <- rep(nu, length.out = n)
-  delta <- nu / sqrt(1 + nu^2)
-  mean_shift <- delta * sqrt(2 / pi)
-  omega <- sigma / sqrt(1 - mean_shift^2)
-  xi <- mu - omega * mean_shift
-  xi +
-    omega * (delta * abs(stats::rnorm(n)) + sqrt(1 - delta^2) * stats::rnorm(n))
+  # (xi, omega, alpha, delta) moment inversion: SAME helper
+  # drm_skew_normal_native() (R/family-dpq.R) uses for the {d,p,q} closures,
+  # so the two routes cannot silently drift apart (Emmy's dedup, DO-T3
+  # batch B).
+  native <- drm_skew_normal_moments(mu, sigma, nu)
+  native$xi +
+    native$omega * (
+      native$delta * abs(stats::rnorm(n)) +
+        sqrt(1 - native$delta^2) * stats::rnorm(n)
+    )
 }
 
 rtweedie_compound <- function(n, mu, phi, power) {
@@ -3156,21 +3198,88 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' fitted residual `sigma1`, `sigma2`, and `rho12`, or using the full row-paired
 #' observation covariance when a dense bivariate known `V` was supplied.
 #'
+#' `type = "quantile"` returns Dunn-Smyth randomized quantile residuals from
+#' [drm_quantile_residuals()]: `qnorm(F(y; theta_hat))` at the fitted,
+#' fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
+#' `model_type` values have a promoted entry in [drm_family_dpq()], so
+#' `type = "quantile"` is available for every family, including bivariate
+#' `biv_gaussian` (where `response` -- `1` or `2` -- is REQUIRED and selects
+#' which response's MARGINAL residuals to compute; omitting it errors
+#' clearly, as does supplying it for a univariate fit; see
+#' [fitted_distribution()]). Spike-status families (feasibility-only, not yet
+#' DG2/DG3-verified) emit a one-time warning that the residual is
+#' exploratory, not DG-verified; none currently have this status. See
+#' [drm_quantile_residuals()] for the fixed-effect-only adequacy caveat: for
+#' random-effect or structured fits, these residuals are conditional on the
+#' fixed-effect prediction, not marginal, so a departure (or its absence) is
+#' evidence about fixed-effect adequacy only -- never a general validity
+#' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
+#' [drm_quantile_residuals()].
+#'
+#' **What this detects -- and does not.** Evidence: a 400-seed gated
+#' simulation campaign across all 18 fitted families (tweedie: 99 of 400
+#' seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
+#' Totoro)
+#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
+#' Under a correctly specified fixed-effect model, type-I error stays at or
+#' below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
+#' underlying KS+PIT statistic is conservative, so power is understated, not
+#' overstated. `type = "quantile"` **detects** distributional shape and atom
+#' mis-specification that a family cannot reabsorb through its own free
+#' parameters -- heavy tails fit as Gaussian, overdispersion or
+#' zero-inflation ignored by a family with no free dispersion parameter,
+#' truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+#' n = 300-400 per arm (commonly 0.9-1.0). It has a genuine **structural
+#' blind spot**, not a bug: a mis-specification that a fitted family's own
+#' free nuisance/dispersion/inflation parameter absorbs leaves the
+#' fitted-model residual marginally N(0,1) and is **not detectable** here --
+#' for example heteroscedasticity absorbed by Student-t `nu` (power 0.035 at
+#' n = 300, versus 1.0 for the same heteroscedasticity under Gaussian, which
+#' has no absorbing parameter), missing zero-inflation absorbed by `nbinom2`
+#' `sigma` (power 0.035, versus 0.9625 under Poisson), and zero-inflation/
+#' hurdle/zero-one-inflation *mechanism* mis-specification (a constant
+#' inflation probability fit when it truly varies with a covariate), which
+#' splits into two patterns under the n-ladder (tested to n = 3000): for
+#' `hurdle_nbinom2`/`zero_one_beta`, power stays flat at or below about 0.01
+#' at every n -- a genuine structural blind spot; for
+#' `zi_nbinom2`/`zi_poisson`, power rises with n (to about 0.11/0.06 at
+#' n = 3000), so the marginal is not identical under the mechanism mis-spec,
+#' but power stays far below the >= 0.8 detectable benchmark even at
+#' n = 3000, so it remains impractical to detect at realistic sample sizes.
+#' A mean-structure diagnostic, not this one, is what catches
+#' an absorbed mis-specification. Separately, `gamma`-vs-`lognormal`
+#' wrong-family detection is sample-size limited rather than structurally
+#' blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
+#' at n = 3000, so that specific mis-specification needs n well above 1000 to
+#' be reliably caught. A distributional-output/adequacy tick on a family
+#' never changes or implies anything about that family's own inference-tier
+#' status; see `tests/testthat/test-dg-firewall.R`.
+#'
 #' @param object A `drmTMB` fit.
-#' @param type Residual type: `"response"` or `"pearson"`.
-#' @param ... Reserved for future residual options.
+#' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
+#' @param ... Reserved for future residual options; for `type = "quantile"`,
+#'   forwarded to [drm_quantile_residuals()] (`seed`, `nsim`, `response`).
 #'
 #' @return A numeric vector for univariate models, or a two-column matrix for
-#'   bivariate Gaussian models.
+#'   bivariate Gaussian models. For `type = "quantile"` with `nsim > 1`, an
+#'   `n`-by-`nsim` matrix (see [drm_quantile_residuals()]).
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' residuals(fit)
 #' residuals(fit, type = "pearson")
+#' residuals(fit, type = "quantile")
 #' @export
-residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
+residuals.drmTMB <- function(
+  object,
+  type = c("response", "pearson", "quantile"),
+  ...
+) {
   type <- match.arg(type)
+  if (identical(type, "quantile")) {
+    return(drm_quantile_residuals(object, ...))
+  }
   if (identical(object$model$model_type, "lognormal")) {
     if (type == "response") {
       return(drm_mask_missing_response_values(
@@ -4791,8 +4900,17 @@ drm_prediction_offset <- function(object, newdata, dpar) {
   out
 }
 
+# Shared gaussian total-observation-SD formula: sqrt(known sampling variance +
+# sigma^2). Both observation_sigma() (this file) and
+# drm_gaussian_obs_sigma() (R/family-dpq.R, the {d,p,q} params-table path)
+# route through this single source of truth instead of independently
+# re-deriving sqrt(V_known + sigma^2) (Emmy's dedup, DO-T3 batch A prelude).
+drm_total_obs_sd <- function(v_known, sigma) {
+  sqrt(v_known + sigma^2)
+}
+
 observation_sigma <- function(object) {
-  sqrt(known_v_diag(object) + predict(object, dpar = "sigma")^2)
+  drm_total_obs_sd(known_v_diag(object), predict(object, dpar = "sigma"))
 }
 
 observation_covariance <- function(object) {
@@ -4854,7 +4972,9 @@ lognormal_mean <- function(object) {
 }
 
 truncated_nbinom2_p0 <- function(mu, sigma) {
-  stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
+  # SAME conversion drm_nbinom2_size() (R/family-dpq.R) uses -- closed in
+  # DO-T3 batch C (Emmy's dedup; batch A left this inline).
+  stats::dnbinom(0, size = drm_nbinom2_size(sigma), mu = mu)
 }
 
 truncated_nbinom2_prob_positive <- function(mu, sigma) {

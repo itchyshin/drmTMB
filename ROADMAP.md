@@ -23,6 +23,30 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   and a committed-stable public API. The "Q-Series v1.0" ledger name refers to
   *that* milestone, not the release number.
 
+## First-CRAN-release strategy — build to finished-for-scope, don't rush (decision 2026-07-12)
+
+- **Ratified by Shinichi 2026-07-12:** we do NOT rush a thin `0.5.0` onto CRAN.
+  The first CRAN release should be **systematic and finished for its declared
+  scope** — not comprehensive, but genuinely useful and coherent for a
+  *particular set of common distributions* (gaussian, the counts, beta/gamma,
+  the bounded families) across the *structures that actually work* (fixed
+  effects, supported random/structured cases, missing responses, and the new
+  distributional-output + adequacy layer, #747/#748). Target a more-capable cut
+  (a `0.6.0`-class release), not the frozen minimal `0.5.0`.
+- **The frozen `v0.5.0` tag (`095409c0`) and its incoming-pretest-fixed
+  resubmission tarball are a FALLBACK, not the plan.** They stay ready (Windows
+  win-builder preflight clean; Uwe Ligges confirmed the `NOT_CRAN` test-time
+  fix), so we can still ship quickly if needed — but the intent is to fill the
+  capability gap first.
+- **Release-readiness bar = the capability surface.** "Finished-for-scope" is
+  concrete: a defined block of `reference`/inference-ready cells (common
+  distributions × supported structures × the output+adequacy layer), with the
+  honest limits *stated, not hidden* — "not comprehensive" is framing, not an
+  apology. `docs/dev-log/dashboard/capability-surface.*` is that map.
+- **Honesty invariants at release** (non-negotiable): plug-in intervals carry
+  `calibrated = FALSE`; adequacy is "no detectable departure", never "adequate";
+  a distributional-adequacy (DG) tick never promotes a family's inference tier.
+
 ## Version 1.0 maturity surface (the milestone, not the next release)
 
 - Q-Series v1.0 status is tracked in

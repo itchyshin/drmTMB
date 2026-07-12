@@ -54,6 +54,8 @@ navbar:
           href: articles/drmTMB.html
         - text: When variance carries signal
           href: articles/location-scale.html
+        - text: Distributional outputs and adequacy
+          href: articles/distributional-outputs-and-adequacy.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Count abundance and extra zeros

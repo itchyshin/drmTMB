@@ -1,0 +1,7 @@
+# Raw per-fit streams (one <family>.tsv per cell, ~5.7M) and heartbeat .log
+# files are regenerable from the run-*.R drivers here + the harness in
+# inst/dg3-power-arm/. Only the aggregated summary + the drivers are tracked.
+*.tsv
+!summary-*.tsv
+*.log
+*.out

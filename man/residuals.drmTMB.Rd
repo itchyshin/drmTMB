@@ -4,18 +4,20 @@
 \alias{residuals.drmTMB}
 \title{Extract model residuals}
 \usage{
-\method{residuals}{drmTMB}(object, type = c("response", "pearson"), ...)
+\method{residuals}{drmTMB}(object, type = c("response", "pearson", "quantile"), ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
-\item{type}{Residual type: \code{"response"} or \code{"pearson"}.}
+\item{type}{Residual type: \code{"response"}, \code{"pearson"}, or \code{"quantile"}.}
 
-\item{...}{Reserved for future residual options.}
+\item{...}{Reserved for future residual options; for \code{type = "quantile"},
+forwarded to \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} (\code{seed}, \code{nsim}, \code{response}).}
 }
 \value{
 A numeric vector for univariate models, or a two-column matrix for
-bivariate Gaussian models.
+bivariate Gaussian models. For \code{type = "quantile"} with \code{nsim > 1}, an
+\code{n}-by-\code{nsim} matrix (see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}).
 }
 \description{
 \code{residuals()} returns response residuals or Pearson-style residuals from a
@@ -62,10 +64,68 @@ For bivariate Gaussian models, response residuals are returned as a
 two-column matrix. Pearson residuals are standardized and whitened using the
 fitted residual \code{sigma1}, \code{sigma2}, and \code{rho12}, or using the full row-paired
 observation covariance when a dense bivariate known \code{V} was supplied.
+
+\code{type = "quantile"} returns Dunn-Smyth randomized quantile residuals from
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}: \verb{qnorm(F(y; theta_hat))} at the fitted,
+fixed-effect distributional parameters. As of DO-T3 batch D, all 18 fitted
+\code{model_type} values have a promoted entry in \code{\link[=drm_family_dpq]{drm_family_dpq()}}, so
+\code{type = "quantile"} is available for every family, including bivariate
+\code{biv_gaussian} (where \code{response} -- \code{1} or \code{2} -- is REQUIRED and selects
+which response's MARGINAL residuals to compute; omitting it errors
+clearly, as does supplying it for a univariate fit; see
+\code{\link[=fitted_distribution]{fitted_distribution()}}). Spike-status families (feasibility-only, not yet
+DG2/DG3-verified) emit a one-time warning that the residual is
+exploratory, not DG-verified; none currently have this status. See
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}} for the fixed-effect-only adequacy caveat: for
+random-effect or structured fits, these residuals are conditional on the
+fixed-effect prediction, not marginal, so a departure (or its absence) is
+evidence about fixed-effect adequacy only -- never a general validity
+claim. Pass \code{seed}, \code{nsim}, and/or \code{response} through \code{...} to
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}.
+
+\strong{What this detects -- and does not.} Evidence: a 400-seed gated
+simulation campaign across all 18 fitted families (tweedie: 99 of 400
+seeds locally, 66/99 dispersion-arm non-convergence, full run deferred to
+Totoro)
+(\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}).
+Under a correctly specified fixed-effect model, type-I error stays at or
+below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
+underlying KS+PIT statistic is conservative, so power is understated, not
+overstated. \code{type = "quantile"} \strong{detects} distributional shape and atom
+mis-specification that a family cannot reabsorb through its own free
+parameters -- heavy tails fit as Gaussian, overdispersion or
+zero-inflation ignored by a family with no free dispersion parameter,
+truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+n = 300-400 per arm (commonly 0.9-1.0). It has a genuine \strong{structural
+blind spot}, not a bug: a mis-specification that a fitted family's own
+free nuisance/dispersion/inflation parameter absorbs leaves the
+fitted-model residual marginally N(0,1) and is \strong{not detectable} here --
+for example heteroscedasticity absorbed by Student-t \code{nu} (power 0.035 at
+n = 300, versus 1.0 for the same heteroscedasticity under Gaussian, which
+has no absorbing parameter), missing zero-inflation absorbed by \code{nbinom2}
+\code{sigma} (power 0.035, versus 0.9625 under Poisson), and zero-inflation/
+hurdle/zero-one-inflation \emph{mechanism} mis-specification (a constant
+inflation probability fit when it truly varies with a covariate), which
+splits into two patterns under the n-ladder (tested to n = 3000): for
+\code{hurdle_nbinom2}/\code{zero_one_beta}, power stays flat at or below about 0.01
+at every n -- a genuine structural blind spot; for
+\code{zi_nbinom2}/\code{zi_poisson}, power rises with n (to about 0.11/0.06 at
+n = 3000), so the marginal is not identical under the mechanism mis-spec,
+but power stays far below the >= 0.8 detectable benchmark even at
+n = 3000, so it remains impractical to detect at realistic sample sizes.
+A mean-structure diagnostic, not this one, is what catches
+an absorbed mis-specification. Separately, \code{gamma}-vs-\code{lognormal}
+wrong-family detection is sample-size limited rather than structurally
+blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
+at n = 3000, so that specific mis-specification needs n well above 1000 to
+be reliably caught. A distributional-output/adequacy tick on a family
+never changes or implies anything about that family's own inference-tier
+status; see \code{tests/testthat/test-dg-firewall.R}.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 residuals(fit)
 residuals(fit, type = "pearson")
+residuals(fit, type = "quantile")
 }

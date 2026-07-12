@@ -1,6 +1,6 @@
 Package: drmTMB
 Title: Distributional Regression Models Using Template Model Builder
-Version: 0.5.0.9001
+Version: 0.6.0.9000
 Authors@R: c(
     person("Shinichi", "Nakagawa", email = "itchyshin@gmail.com",
            role = c("aut", "cre", "cph"),
@@ -17,7 +17,11 @@ Description: Fast distributional regression models for univariate and
     fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
     hurdle count, and ordinal cumulative-logit models.
     Skewness and additional response-family models are staged for later
-    phases.
+    phases. Every fitted family also exposes a distributional-output and
+    adequacy layer: randomized quantile-residual worm and QQ plots that
+    detect fixed-effect shape and atom mis-specification, and
+    conditional-quantile, exceedance, and centile outputs with plug-in
+    (uncalibrated) intervals.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues
@@ -41,6 +45,7 @@ Suggests:
     ape,
     callr,
     emmeans,
+    extraDistr,
     glmmTMB,
     ggplot2,
     JuliaCall,
@@ -48,10 +53,12 @@ Suggests:
     lme4,
     MASS,
     metafor,
+    mvtnorm,
     pkgload,
     rmarkdown,
     spelling,
     testthat (>= 3.0.0),
+    tweedie,
     withr
 Config/testthat/edition: 3
 VignetteBuilder: knitr

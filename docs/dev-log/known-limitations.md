@@ -602,6 +602,58 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   they are joint MVN likelihood blocks; deprecated `meta_known_V(V = V)` remains
   a compatibility alias. `REML = TRUE` is available for univariate Gaussian
   known-`V` fits only inside the current intercept-only `sigma` REML boundary.
+- **Distributional-adequacy diagnostic scope.** `residuals(fit, type =
+  "quantile")`, `worm_plot()`, and `qq_plot()` (#747) and
+  `predict(type = "quantile")`/`exceedance()`/`centile_chart()`/plug-in
+  intervals (#748) are built on a per-family `{d,p,q}` foundation
+  (`fitted_distribution()`) promoted to `status = "reference"` for all 18
+  fitted families, but the diagnostic has a narrower detection scope than
+  "checks the model." A 400-seed gated campaign across all 18 families
+  (tweedie: 99 of 400 seeds locally, 66/99 dispersion-arm non-convergence,
+  full run deferred to Totoro)
+  (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`,
+  `summary-gated-full.tsv`) confirms type-I error at or below the nominal
+  rate under a correctly specified fit (0.0025-0.025 at alpha = 0.05; the
+  underlying KS+PIT statistic is conservative, so power is understated, not
+  overstated). It reliably **detects** distributional shape/atom
+  mis-specification a family cannot reabsorb through its own free
+  parameters -- heavy tails fit as Gaussian, overdispersion or
+  zero-inflation ignored by a family with no free dispersion parameter,
+  ignored truncation, a missing zero/one atom -- with gated power >= 0.8 at
+  n = 300-400 per arm (commonly 0.9-1.0). It has a genuine **structural
+  blind spot**: a mis-specification that a fitted family's own free
+  nuisance/dispersion/inflation parameter absorbs leaves the fitted-model
+  residual marginally N(0,1) and is **not detectable** here -- for example
+  heteroscedasticity absorbed by Student-t `nu` (power 0.035 at n = 300,
+  versus 1.0 for the same heteroscedasticity under Gaussian, which has no
+  absorbing parameter), missing zero-inflation absorbed by `nbinom2`
+  `sigma` (power 0.035, versus 0.9625 under Poisson), a family's own
+  constant dispersion parameter partially soaking up a truly
+  covariate-varying dispersion (`beta_binomial`/`truncated_nbinom2`/
+  `tweedie`: power 0.01-0.14, versus 0.81-1.0 for the same mis-specification
+  in Gamma/beta/lognormal, which lack a matching absorbing structure), and
+  zero-inflation/hurdle/zero-one-inflation *mechanism* mis-specification (a
+  constant inflation probability fit when it truly varies with a covariate),
+  which largely re-converges to the type-I rate regardless of sample size
+  (tested to n = 3000: power stays at or below about 0.11 for
+  `zi_nbinom2`/`zi_poisson`, flat at or below about 0.025 for
+  `hurdle_nbinom2`/`zero_one_beta`). A mean-structure diagnostic, not this
+  one, is what catches an absorbed mis-specification. Separately,
+  `gamma`-vs-`lognormal` wrong-family detection is sample-size limited
+  rather than structurally blind: power rises from about 0.19 at n = 300 to
+  0.79 at n = 1000 and 1.0 at n = 3000, so that specific mis-specification
+  needs n well above 1000 to be reliably caught. Throughout: adequacy is
+  worded "no detectable departure", never "adequate"; residuals and centile
+  outputs are fixed-effect-only (conditional on the fixed-effect prediction
+  for random-effect or structured fits, not marginal); plug-in intervals
+  carry `attr(., "calibrated") <- FALSE` and do not propagate `theta_hat`
+  uncertainty; and a distributional-output/adequacy tick never changes or
+  implies anything about a family's own inference-tier status (e.g.
+  skew-normal's `diagnostic_hold` fit-quality status is unaffected by its
+  DG2/DG3 promotion) -- see `tests/testthat/test-dg-firewall.R`. Calibrated
+  coverage (DG4/DG5), uncertainty beyond `theta_hat`, random-effect/
+  structured residual adequacy, and bivariate joint (non-marginal) outputs
+  are separately authorized future work.
 - The first large-data storage controls are implemented through
   `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
   including nested model-frame caches for direct-SD and fitted q=2

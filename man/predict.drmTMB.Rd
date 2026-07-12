@@ -4,7 +4,14 @@
 \alias{predict.drmTMB}
 \title{Predict distributional parameters}
 \usage{
-\method{predict}{drmTMB}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
+\method{predict}{drmTMB}(
+  object,
+  newdata = NULL,
+  dpar = NULL,
+  type = c("response", "link", "quantile"),
+  prob = c(0.025, 0.5, 0.975),
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -17,14 +24,22 @@ levels. Transformed predictor terms, such as \code{log(size)}, must also
 evaluate to finite design-matrix values.}
 
 \item{dpar}{Distributional parameter to predict. If \code{NULL}, the first
-fitted distributional parameter is used.}
+fitted distributional parameter is used. For \code{type = "quantile"} on a
+bivariate \code{biv_gaussian} fit, \code{dpar} instead selects which response's
+marginal quantile to compute (see Details).}
 
-\item{type}{Prediction scale: \code{"response"} or \code{"link"}.}
+\item{type}{Prediction scale: \code{"response"}, \code{"link"}, or \code{"quantile"}.}
+
+\item{prob}{Numeric vector of probabilities in (0, 1), used only when
+\code{type = "quantile"}.}
 
 \item{...}{Reserved for future prediction options.}
 }
 \value{
-A numeric vector.
+A numeric vector for \code{type} \code{"response"}/\code{"link"}. For
+\code{type = "quantile"}, a numeric matrix with one row per observation and
+one column per \code{prob} (columns named as percentages, e.g. \code{"2.5\%"}), with
+\code{attr(., "calibrated") == FALSE}.
 }
 \description{
 \code{predict()} returns fitted or predicted values for one distributional
@@ -44,6 +59,23 @@ including registry-backed q > 2 ordinary covariance blocks, bivariate
 bivariate \code{sigma1}/\code{sigma2} blocks. When \code{newdata} is supplied, predictions
 are fixed-effect, population-level
 predictions for the supplied rows.
+
+\code{type = "quantile"} returns per-row conditional quantiles of the fitted
+RESPONSE distribution (not of a linear predictor): \code{qnorm}-style inverse
+CDF evaluation via \code{\link[=fitted_distribution]{fitted_distribution()}}\verb{$q()} at \code{\link[=predict_parameters]{predict_parameters()}}'s
+fixed-effect, population-level parameter estimates -- see
+\code{\link[=fitted_distribution]{fitted_distribution()}} for the fixed-effect-only scope and the
+\code{"spike"}/\code{"unimplemented"} status gate this inherits (a \code{"spike"}-status
+family emits a one-time warning; an unregistered \code{model_type} raises a
+clear error). For bivariate \code{biv_gaussian} fits, \code{dpar} selects which
+response's MARGINAL quantile to return (\code{"mu1"}/\code{"sigma1"} for response 1,
+\code{"mu2"}/\code{"sigma2"} for response 2); the joint \code{rho12} correlation, any joint
+tail structure, and any known bivariate sampling covariance are ignored --
+this is a marginal-only computation, not a joint bivariate quantile. The
+result carries \code{attr(., "calibrated") <- FALSE}: this is a distributional
+(plug-in) interval at the point estimate \code{theta_hat}, not a
+calibrated-coverage interval, and it does not propagate \code{theta_hat}
+uncertainty.
 }
 \examples{
 dat <- data.frame(
@@ -55,7 +87,9 @@ predict(fit, dpar = "mu")
 predict(fit, dpar = "sigma")
 predict(fit, dpar = "sigma", type = "link")
 predict(fit, newdata = data.frame(x = c(0, 1)), dpar = "mu")
+predict(fit, type = "quantile", prob = c(0.025, 0.5, 0.975))
 }
 \seealso{
-\code{\link[=fitted.drmTMB]{fitted.drmTMB()}}, \code{\link[=rho12]{rho12()}}, \code{\link[stats:sigma]{stats::sigma()}}
+\code{\link[=fitted.drmTMB]{fitted.drmTMB()}}, \code{\link[=rho12]{rho12()}}, \code{\link[stats:sigma]{stats::sigma()}}, \code{\link[=fitted_distribution]{fitted_distribution()}},
+\code{\link[=exceedance]{exceedance()}}
 }

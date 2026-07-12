@@ -3,6 +3,13 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **⚠ Compute & CI — D-50 (2026-07-12).** Simulation / recovery / power / coverage campaigns run on
+> **Totoro or DRAC**, **never GitHub Actions**, and their outputs are **never stored as GitHub
+> artifacts** (Actions storage is a hard 2 GB/month cap that this repo's `phase18-simulation-grid`-style
+> workflows had nearly filled). Campaign results stay **local** + in the repo dev-log. GitHub Actions here
+> is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
+> section · shinichi-brain `DECISIONS.md` D-50.)
+
 > **▶ Latest — start here (2026-07-12, → Claude, missing-response arc COMPLETE).**
 > `main` = `d06bf015` (synced) · tag **`v0.5.0`** remains frozen at `095409c0` ·
 > CRAN remains a separate external decision. MR-T0–MR-T7 are merged through
