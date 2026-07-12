@@ -48,10 +48,12 @@ Suggests:
     lme4,
     MASS,
     metafor,
+    mvtnorm,
     pkgload,
     rmarkdown,
     spelling,
     testthat (>= 3.0.0),
+    tweedie,
     withr
 Config/testthat/edition: 3
 VignetteBuilder: knitr
