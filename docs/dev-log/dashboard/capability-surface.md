@@ -9,7 +9,7 @@ The model surface and missing-response execution axis answer different questions
 - Model surface: **668 cells** across **18 routes**.
 - Runtime status: **283 implemented**, **343 rejected by design**, **42 not implemented**.
 - Evidence: **4 supported**, **16 inference-ready**, **44 interval-feasible**, **150 recovery-grade**.
-- Missing-response board: **18 routes; 6 G0; 0 G1; 0 G2; 12 verified (G3+)**.
+- Missing-response board: **18 routes; 4 G0; 0 G1; 0 G2; 14 verified (G3+)**.
 
 ## Missing-response execution board
 
@@ -29,8 +29,8 @@ G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = int
 | `beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `truncated_nbinom2` | rejected | G0 | backlog | MR-T5: design and implement this route before G2/G3 validation. |
 | `hurdle_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
-| `cumulative_logit` | rejected | G0 | backlog | MR-T4: design and implement this route before G2/G3 validation. |
-| `beta_binomial` | rejected | G0 | backlog | MR-T4: design and implement this route before G2/G3 validation. |
+| `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `zero_one_beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `tweedie` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `skew_normal` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
@@ -85,9 +85,9 @@ This retains the original whole-package map. Its missing-response column is rege
 | **gamma** | mu, sigma (log link only) | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | **relmat on mu** (int/slope) only | — | Feasible/recovery (mu match glm; no coverage sim); mu~relmat recovery | G3 ✓ recovery verified | — |
 | **truncated_nbinom2** | mu, sigma, hu | ✓ | mu ✓ int + ✓ slope (**rejected when hu present**); sigma RE rejected; hu — | **relmat on hu** (int) only; none on mu/sigma | — | Feasible (mu/sigma fixed + mu RE int); slope recovery | G0 rejected/planned | — |
 | **hurdle_nbinom2** (=truncated_nbinom2 + hu~) | mu, sigma, hu | ✓ | inherits truncated_nbinom2 (mu int/slope, not with hu) | relmat on hu (int) | — | Feasible (mu/sigma/hu fixed); hu~relmat recovery | G0 rejected/planned | — |
-| **cumulative_logit** | mu only (logit) | ✓ | **none** (ordinal RE not implemented) | **phylo on mu** (int) only | — | Feasible (fixed + cutpoints); mu~phylo recovery | G0 rejected/planned | — |
+| **cumulative_logit** | mu only (logit) | ✓ | **none** (ordinal RE not implemented) | **phylo on mu** (int) only | — | Feasible (fixed + cutpoints); mu~phylo recovery | G3 ✓ recovery verified | — |
 | **lognormal** | mu, sigma | ✓ | mu ✓ int (slope = recovery); sigma RE rejected | none | — | Feasible/recovery (mu/sigma fixed + mu RE int) | G3 ✓ recovery verified | — |
-| **beta_binomial** | mu, sigma | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | none | — | Feasible (mu/sigma fixed + mu RE); ≠ binomial calibration | G0 rejected/planned | — |
+| **beta_binomial** | mu, sigma | ✓ | mu ✓ int + ✓ slope; sigma RE rejected | none | — | Feasible (mu/sigma fixed + mu RE); ≠ binomial calibration | G3 ✓ recovery verified | — |
 | **skew_normal** | mu, sigma, nu | ✓ | **none** on any dpar | none | — | Feasible (mu/sigma); nu diagnostic only | G3 ✓ recovery verified | — |
 | **tweedie** | mu, sigma, nu (nu int-only) | ✓ | **none** on any dpar | none | — | Feasible (all fixed) | G3 ✓ recovery verified | — |
 | **zero_one_beta** | mu, sigma, zoi, coi | ✓ (fixed-only) | **none** on any dpar | none | — | Feasible (smoke-only coverage); use over beta() for exact 0/1 | G3 ✓ recovery verified | — |

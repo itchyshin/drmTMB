@@ -68,8 +68,10 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   Student-t, lognormal, and Gamma include ordinary random-intercept recovery;
   skew-normal, Tweedie, and zero-one beta remain fixed-effect only. The fitted object preserves
   original-row accounting, full-length fitted values, and `NA` residuals on
-  masked univariate response rows. The remaining six fitted response routes
-  are scheduled through MR-T4–MR-T6; broader structured-route masking claims,
+  masked univariate response rows. Beta-binomial whole rows and ordered-factor
+  cumulative-logit responses are also G3; the latter rejects any observed
+  subset with an empty declared category. The remaining four fitted response
+  routes are scheduled through MR-T5–MR-T6; broader structured-route masking claims,
   multiple missing predictors, response-imputation summaries, and G4/G5
   interval or coverage promotion remain later work.
 - Completed before tagging the version:
