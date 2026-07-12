@@ -29,6 +29,23 @@
 #' flat worm plot is "no detectable departure" evidence about the fixed-effect
 #' distributional form, never a general validity or calibration claim.
 #'
+#' **What this detects -- and does not.** A worm plot bends when the
+#' underlying quantile residuals depart from N(0,1); see
+#' `residuals.drmTMB()`'s Details for the full gated-campaign breakdown (400
+#' seeds x 18 families,
+#' `docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`). In
+#' short: it flags shape/atom mis-specification a family cannot reabsorb
+#' through its own free parameters (heavy tails, ignored overdispersion or
+#' zero-inflation in a no-free-dispersion family, ignored truncation, a
+#' missing zero/one atom -- gated power >= 0.8), but it stays flat -- a
+#' genuine structural blind spot, not evidence of adequacy -- when a free
+#' nuisance/dispersion/inflation parameter absorbs the mis-specification
+#' (e.g. heteroscedasticity absorbed by Student-t `nu`, missing
+#' zero-inflation absorbed by `nbinom2` `sigma`, or a constant-vs-covariate
+#' zero-inflation/hurdle/zero-one-inflation mechanism mis-set). A
+#' mean-structure diagnostic, not this one, is what catches an absorbed
+#' mis-specification.
+#'
 #' @param object A `drmTMB` fit.
 #' @param seed Optional single integer seed, passed to
 #'   [drm_quantile_residuals()].
@@ -115,6 +132,18 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
 #' This is fixed-effect adequacy only -- see [drm_quantile_residuals()]. See
 #' [worm_plot()] for the detrended variant that makes systematic bends easier
 #' to read.
+#'
+#' **What this detects -- and does not.** Same scope as [worm_plot()] --
+#' shape/atom mis-specification a family cannot reabsorb through its own
+#' free parameters is detected with gated power >= 0.8 (heavy tails, ignored
+#' overdispersion or zero-inflation in a no-free-dispersion family, ignored
+#' truncation, a missing zero/one atom); a mis-specification a free
+#' nuisance/dispersion/inflation parameter absorbs (heteroscedasticity via
+#' Student-t `nu`, missing zero-inflation via `nbinom2` `sigma`, a
+#' constant-vs-covariate inflation mechanism) is a genuine structural blind
+#' spot, not evidence of adequacy. See `residuals.drmTMB()`'s Details for the
+#' full gated-campaign breakdown
+#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
 #'
 #' @param object A `drmTMB` fit.
 #' @param seed Optional single integer seed, passed to

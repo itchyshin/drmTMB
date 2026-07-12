@@ -3216,6 +3216,37 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' claim. Pass `seed`, `nsim`, and/or `response` through `...` to
 #' [drm_quantile_residuals()].
 #'
+#' **What this detects -- and does not.** Evidence: a 400-seed gated
+#' simulation campaign across all 18 fitted families
+#' (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`).
+#' Under a correctly specified fixed-effect model, type-I error stays at or
+#' below the nominal rate (0.0025-0.025 at alpha = 0.05 across families); the
+#' underlying KS+PIT statistic is conservative, so power is understated, not
+#' overstated. `type = "quantile"` **detects** distributional shape and atom
+#' mis-specification that a family cannot reabsorb through its own free
+#' parameters -- heavy tails fit as Gaussian, overdispersion or
+#' zero-inflation ignored by a family with no free dispersion parameter,
+#' truncation ignored, a missing zero/one atom -- with gated power >= 0.8 at
+#' n = 300-400 per arm (commonly 0.9-1.0). It has a genuine **structural
+#' blind spot**, not a bug: a mis-specification that a fitted family's own
+#' free nuisance/dispersion/inflation parameter absorbs leaves the
+#' fitted-model residual marginally N(0,1) and is **not detectable** here --
+#' for example heteroscedasticity absorbed by Student-t `nu` (power 0.035 at
+#' n = 300, versus 1.0 for the same heteroscedasticity under Gaussian, which
+#' has no absorbing parameter), missing zero-inflation absorbed by `nbinom2`
+#' `sigma` (power 0.035, versus 0.9625 under Poisson), and zero-inflation/
+#' hurdle/zero-one-inflation *mechanism* mis-specification (a constant
+#' inflation probability fit when it truly varies with a covariate), which
+#' largely re-converges to the type-I rate regardless of sample size (tested
+#' to n = 3000). A mean-structure diagnostic, not this one, is what catches
+#' an absorbed mis-specification. Separately, `gamma`-vs-`lognormal`
+#' wrong-family detection is sample-size limited rather than structurally
+#' blind: power rises from about 0.19 at n = 300 to 0.79 at n = 1000 and 1.0
+#' at n = 3000, so that specific mis-specification needs n well above 1000 to
+#' be reliably caught. A distributional-output/adequacy tick on a family
+#' never changes or implies anything about that family's own inference-tier
+#' status; see `tests/testthat/test-dg-firewall.R`.
+#'
 #' @param object A `drmTMB` fit.
 #' @param type Residual type: `"response"`, `"pearson"`, or `"quantile"`.
 #' @param ... Reserved for future residual options; for `type = "quantile"`,

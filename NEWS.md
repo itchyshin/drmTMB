@@ -1,4 +1,76 @@
-# drmTMB 0.5.0.9001
+# drmTMB 0.6.0 (development)
+
+## Distributional output & adequacy layer (#747, #748)
+
+* Every fitted family now exposes a shared fitted-distribution foundation:
+  `drm_family_dpq()` (internal registry) and `fitted_distribution()` return
+  per-row density (`d`), CDF (`p`), and quantile (`q`) closures at the
+  fitted, fixed-effect distributional parameters. All 18 fitted `model_type`
+  values are promoted to `status = "reference"`, including bivariate
+  `biv_gaussian` (marginal-only: `response = 1` or `2` selects which
+  response's `N(mu_k, sigma_k)` marginal is returned; the joint distribution
+  and `rho12` are out of scope).
+* `residuals(fit, type = "quantile")` returns Dunn-Smyth (1996) randomized
+  quantile residuals, `qnorm(F(y; theta_hat))`, for every family; `worm_plot()`
+  and `qq_plot()` draw the corresponding detrended and ordinary QQ diagnostics,
+  with an optional `nsim` multi-realization seed envelope so a single
+  randomized draw is not over-read.
+* `predict(fit, type = "quantile", prob = )` returns conditional response
+  quantiles; `exceedance(fit, threshold, newdata)` returns `Pr(Y > threshold)`
+  (or its complement) as a thin wrapper over the shared CDF; `centile_chart()`
+  draws model-conditional centile curves against one covariate. All three, and
+  the plug-in prediction intervals, carry `attr(., "calibrated") <- FALSE`;
+  none of these outputs propagate `theta_hat` uncertainty.
+* **What the diagnostic detects, and what it does not (see
+  `docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`,
+  400-seed gated campaign across all 18 families).** Under a correctly
+  specified fixed-effect model, type-I error stays near or below the nominal
+  rate (Type-I 0.0025-0.025 across families at alpha = 0.05; the KS+PIT
+  statistic is conservative, so power is understated, not overstated). Under
+  a genuine distributional shape/atom mis-specification that a family cannot
+  reabsorb through its own free parameters -- heavy tails fit as Gaussian
+  (power 0.925-0.995), overdispersion or zero-inflation ignored by a family
+  with no free dispersion parameter (Poisson: 0.9625-0.9825), truncation
+  ignored and a plain count model fit instead (`truncated_nbinom2` vs plain
+  `nbinom2`: 1.0), a zero/one atom ignored and a plain beta fit instead
+  (`zero_one_beta`/`tweedie`: 0.99-1.0) -- power is high, typically >= 0.8 at
+  n = 300-400 per arm. There is a genuine **structural blind spot**, not a
+  bug: a mis-specification that a fitted family's own free nuisance or
+  dispersion parameter can absorb leaves the fitted-model residual marginally
+  N(0,1) and is **not detectable** by this diagnostic -- e.g.
+  heteroscedasticity absorbed by Student-t `nu` (power 0.035 at n = 300,
+  versus 1.0 for the same heteroscedasticity under Gaussian, which has no
+  absorbing parameter), missing zero-inflation absorbed by `nbinom2` `sigma`
+  (power 0.035, versus 0.9625 for the same missing zero-inflation under
+  Poisson), and fitting a plain `nbinom2`/beta-binomial/Tweedie to data whose
+  TRUE dispersion actually varies with a covariate, which its own constant
+  dispersion parameter partially soaks up (power 0.01-0.14, versus 0.81-1.0
+  for the same mis-specification in Gamma/beta/lognormal, which lack a
+  matching absorbing structure). Detecting an absorbed mis-specification is a
+  mean-structure diagnostic's job, not this one's. Zero-inflation/hurdle/
+  zero-one-inflation *mechanism* mis-specification (a constant inflation
+  probability fit when it truly varies with a covariate) largely re-converges
+  to the type-I rate regardless of sample size (tested to n = 3000: power
+  stays at or below about 0.11 for `zi_nbinom2`/`zi_poisson`, at or below
+  about 0.025 -- flat, no trend -- for `hurdle_nbinom2`/`zero_one_beta`) and
+  should not be relied on as an adequacy check for the mechanism.
+  `gamma`-vs-`lognormal` wrong-family detection is sample-size limited rather
+  than structurally blind: power rises from about 0.19 at n = 300 to 0.79 at
+  n = 1000 and 1.0 at n = 3000, so this specific mis-specification needs n
+  well above 1000 to be reliably caught.
+* Honest-scope invariants apply throughout: intervals are labelled
+  `calibrated = FALSE`; a pass is worded "no detectable departure", never
+  "adequate" or "the model is correct"; and a distributional-output/adequacy
+  (DG) tick on a family never changes or implies anything about that family's
+  own inference-tier status (e.g. skew-normal's `diagnostic_hold` fit-quality
+  status is unaffected by its DG2/DG3 promotion) -- see
+  `tests/testthat/test-dg-firewall.R`.
+* This is fixed-effect adequacy only: for random-effect or structured fits,
+  quantile residuals are conditional on the fixed-effect prediction, not
+  marginal, so a departure (or its absence) is evidence about fixed-effect
+  adequacy only. Calibrated coverage (DG4/DG5), uncertainty beyond
+  `theta_hat`, random-effect/structured residual adequacy, and bivariate
+  joint (non-marginal) outputs remain separately authorized future work.
 
 ## Missing responses: MR-T7 certification
 

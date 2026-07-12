@@ -43,6 +43,23 @@ fitted trend are drawn on top.
 This is fixed-effect adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}. A
 flat worm plot is "no detectable departure" evidence about the fixed-effect
 distributional form, never a general validity or calibration claim.
+
+\strong{What this detects -- and does not.} A worm plot bends when the
+underlying quantile residuals depart from N(0,1); see
+\code{residuals.drmTMB()}'s Details for the full gated-campaign breakdown (400
+seeds x 18 families,
+\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}). In
+short: it flags shape/atom mis-specification a family cannot reabsorb
+through its own free parameters (heavy tails, ignored overdispersion or
+zero-inflation in a no-free-dispersion family, ignored truncation, a
+missing zero/one atom -- gated power >= 0.8), but it stays flat -- a
+genuine structural blind spot, not evidence of adequacy -- when a free
+nuisance/dispersion/inflation parameter absorbs the mis-specification
+(e.g. heteroscedasticity absorbed by Student-t \code{nu}, missing
+zero-inflation absorbed by \code{nbinom2} \code{sigma}, or a constant-vs-covariate
+zero-inflation/hurdle/zero-one-inflation mechanism mis-set). A
+mean-structure diagnostic, not this one, is what catches an absorbed
+mis-specification.
 }
 \examples{
 set.seed(20260712)

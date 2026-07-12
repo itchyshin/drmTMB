@@ -41,6 +41,18 @@ on top.
 This is fixed-effect adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}. See
 \code{\link[=worm_plot]{worm_plot()}} for the detrended variant that makes systematic bends easier
 to read.
+
+\strong{What this detects -- and does not.} Same scope as \code{\link[=worm_plot]{worm_plot()}} --
+shape/atom mis-specification a family cannot reabsorb through its own
+free parameters is detected with gated power >= 0.8 (heavy tails, ignored
+overdispersion or zero-inflation in a no-free-dispersion family, ignored
+truncation, a missing zero/one atom); a mis-specification a free
+nuisance/dispersion/inflation parameter absorbs (heteroscedasticity via
+Student-t \code{nu}, missing zero-inflation via \code{nbinom2} \code{sigma}, a
+constant-vs-covariate inflation mechanism) is a genuine structural blind
+spot, not evidence of adequacy. See \code{residuals.drmTMB()}'s Details for the
+full gated-campaign breakdown
+(\verb{docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/}).
 }
 \examples{
 set.seed(20260712)
