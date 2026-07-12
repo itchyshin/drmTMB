@@ -2620,6 +2620,23 @@ deviance.drmTMB <- function(object, ...) {
 #' are fixed-effect, population-level
 #' predictions for the supplied rows.
 #'
+#' `type = "quantile"` returns per-row conditional quantiles of the fitted
+#' RESPONSE distribution (not of a linear predictor): `qnorm`-style inverse
+#' CDF evaluation via [fitted_distribution()]`$q()` at [predict_parameters()]'s
+#' fixed-effect, population-level parameter estimates -- see
+#' [fitted_distribution()] for the fixed-effect-only scope and the
+#' `"spike"`/`"unimplemented"` status gate this inherits (a `"spike"`-status
+#' family emits a one-time warning; an unregistered `model_type` raises a
+#' clear error). For bivariate `biv_gaussian` fits, `dpar` selects which
+#' response's MARGINAL quantile to return (`"mu1"`/`"sigma1"` for response 1,
+#' `"mu2"`/`"sigma2"` for response 2); the joint `rho12` correlation, any joint
+#' tail structure, and any known bivariate sampling covariance are ignored --
+#' this is a marginal-only computation, not a joint bivariate quantile. The
+#' result carries `attr(., "calibrated") <- FALSE`: this is a distributional
+#' (plug-in) interval at the point estimate `theta_hat`, not a
+#' calibrated-coverage interval, and it does not propagate `theta_hat`
+#' uncertainty.
+#'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used. When supplied, `newdata` must include the predictors used by the
@@ -2628,12 +2645,20 @@ deviance.drmTMB <- function(object, ...) {
 #'   levels. Transformed predictor terms, such as `log(size)`, must also
 #'   evaluate to finite design-matrix values.
 #' @param dpar Distributional parameter to predict. If `NULL`, the first
-#'   fitted distributional parameter is used.
-#' @param type Prediction scale: `"response"` or `"link"`.
+#'   fitted distributional parameter is used. For `type = "quantile"` on a
+#'   bivariate `biv_gaussian` fit, `dpar` instead selects which response's
+#'   marginal quantile to compute (see Details).
+#' @param type Prediction scale: `"response"`, `"link"`, or `"quantile"`.
+#' @param prob Numeric vector of probabilities in (0, 1), used only when
+#'   `type = "quantile"`.
 #' @param ... Reserved for future prediction options.
 #'
-#' @return A numeric vector.
-#' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()]
+#' @return A numeric vector for `type` `"response"`/`"link"`. For
+#'   `type = "quantile"`, a numeric matrix with one row per observation and
+#'   one column per `prob` (columns named as percentages, e.g. `"2.5%"`), with
+#'   `attr(., "calibrated") == FALSE`.
+#' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
+#'   [exceedance()]
 #'
 #' @examples
 #' dat <- data.frame(
@@ -2645,12 +2670,14 @@ deviance.drmTMB <- function(object, ...) {
 #' predict(fit, dpar = "sigma")
 #' predict(fit, dpar = "sigma", type = "link")
 #' predict(fit, newdata = data.frame(x = c(0, 1)), dpar = "mu")
+#' predict(fit, type = "quantile", prob = c(0.025, 0.5, 0.975))
 #' @export
 predict.drmTMB <- function(
   object,
   newdata = NULL,
   dpar = NULL,
-  type = c("response", "link"),
+  type = c("response", "link", "quantile"),
+  prob = c(0.025, 0.5, 0.975),
   ...
 ) {
   if (is.null(dpar)) {
@@ -2658,6 +2685,9 @@ predict.drmTMB <- function(
   }
   dpar <- match.arg(dpar, names(object$coefficients))
   type <- match.arg(type)
+  if (identical(type, "quantile")) {
+    return(drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob))
+  }
   if (is_random_scale_dpar(object, dpar)) {
     return(predict_random_scale_dpar(
       object,
