@@ -19,6 +19,20 @@ package's speed depends on; the size is intrinsic to TMB-based packages (the sam
 pattern as the existing CRAN package `glmmTMB`) and cannot be reduced without
 removing functionality.
 
+## Resubmission
+
+This is a resubmission of drmTMB 0.5.0 after the CRAN incoming pre-tests.
+
+* I quoted the method name 'Tweedie' and hyphenated "semi-continuous" in
+  DESCRIPTION to resolve the two possible-spelling flags.
+* I reduced routine CRAN check time by moving the exhaustive Phase 18
+  simulation/reporting harness, its generated 22,000-assertion conversion
+  audit, and two measured high-dimensional diagnostics to the package's
+  existing non-CRAN test lane. Fast unit, likelihood, API, malformed-input,
+  extractor, and representative recovery tests remain in the routine CRAN
+  suite. The full validation suite continues to run in repository CI with
+  `NOT_CRAN=true`.
+
 ## Test environments
 
 * local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`, clean

@@ -11,7 +11,7 @@ Description: Fast distributional regression models for univariate and
     implementation focuses on Gaussian and Student-t location-scale models,
     known sampling covariance, phylogenetic location effects, random-effect
     scale models, bivariate residual correlation, positive-continuous,
-    Tweedie semicontinuous, strict-proportion, zero-one bounded, and
+    'Tweedie' semi-continuous, strict-proportion, zero-one bounded, and
     denominator-aware proportion families, fixed-effect Bernoulli/binomial
     event-probability models, and
     fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,

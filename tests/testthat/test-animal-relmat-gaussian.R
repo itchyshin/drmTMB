@@ -1496,6 +1496,7 @@ test_that("bivariate Gaussian supports animal and relmat q4 known-matrix blocks"
 })
 
 test_that("bivariate Gaussian supports animal and relmat q4 all-four one-slope blocks", {
+  skip_on_cran()
   sim <- new_biv_known_relatedness_q4_gaussian_data()
   dat <- sim$data
   K <- sim$K
