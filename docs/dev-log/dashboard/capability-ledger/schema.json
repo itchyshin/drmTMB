@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "axes": [
+    "model_surface",
+    "missing_response"
+  ],
+  "cell_fields": [
+    "cell_id",
+    "source_order",
+    "axis",
+    "family_route",
+    "family_type",
+    "model_type",
+    "route_variant",
+    "route_modifier",
+    "dpar",
+    "effect_type",
+    "structure_provider",
+    "dimension",
+    "q_gate",
+    "estimator",
+    "capability_status",
+    "work_status",
+    "evidence_tier",
+    "test_gate",
+    "tranche_id",
+    "owner",
+    "blocking_reviewers",
+    "primary_evidence_id",
+    "claim_boundary",
+    "next_gate",
+    "issue_url",
+    "pr_url",
+    "updated_commit",
+    "updated_date",
+    "legacy_evidence_source",
+    "notes"
+  ],
+  "evidence_fields": [
+    "evidence_id",
+    "cell_id",
+    "evidence_class",
+    "path_or_url",
+    "commit_sha",
+    "run_id",
+    "command",
+    "result",
+    "replicates",
+    "reviewed_by",
+    "review_date",
+    "claim_boundary"
+  ],
+  "transition_fields": [
+    "transition_id",
+    "cell_id",
+    "from_work_status",
+    "to_work_status",
+    "evidence_ids",
+    "reason",
+    "actor",
+    "commit_sha",
+    "date"
+  ],
+  "enums": {
+    "capability_status": [
+      "implemented",
+      "not_implemented",
+      "rejected_by_design",
+      "scaffolded"
+    ],
+    "work_status": [
+      "backlog",
+      "blocked",
+      "deferred",
+      "designed",
+      "implemented_unverified",
+      "in_progress",
+      "verified"
+    ],
+    "test_gate": [
+      "G0",
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "na"
+    ],
+    "evidence_tier": [
+      "diagnostic_only",
+      "inference_ready_with_caveats",
+      "interval_feasible",
+      "miswired",
+      "na",
+      "none",
+      "point_fit_recovery",
+      "supported"
+    ]
+  },
+  "expected_counts": {
+    "model_surface": 668,
+    "missing_response": 18
+  },
+  "missing_response_verified_gate": "G3",
+  "claim_boundary": "Missing-response evidence is independent of model inference maturity."
+}

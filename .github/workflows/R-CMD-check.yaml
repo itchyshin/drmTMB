@@ -61,6 +61,13 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - name: Validate generated capability ledger
+        if: runner.os == 'Linux'
+        run: |
+          python3 tools/capability_ledger.py --check
+          python3 -m unittest tools/tests/test_capability_ledger.py
+          Rscript --no-init-file tools/check-capability-runtime.R
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
