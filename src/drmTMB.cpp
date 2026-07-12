@@ -2428,6 +2428,24 @@ Type objective_function<Type>::operator()()
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(
         log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
@@ -2594,6 +2612,24 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     vector<Type> mu = exp(eta_mu);
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(
@@ -2784,6 +2820,24 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_zoi = X_zi * beta_zoi;
     vector<Type> eta_coi = X_nu * beta_coi;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     vector<Type> mu(y.size());
     Type beta_mu_eps = Type(1e-12);
     for (int i = 0; i < mu.size(); ++i) {
@@ -2916,6 +2970,24 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
   } else if (model_type == 18) {
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     // Missing-predictor mi() 2-point sum for a binary predictor (mirrors the
     // poisson MD9a); the response density is the shared leaf.
     if (has_mi == 1 && mi_family == 1) {
@@ -2983,6 +3055,24 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
   } else if (model_type == 13) {
     vector<Type> mu = X_mu * beta_mu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     if (has_phylo_mu == 1) {
       int n_phylo = Q_phylo.rows();
       int q_phylo = log_sd_phylo.size();

@@ -172,6 +172,16 @@ reference:
       - structured_effects
       - summary.drmTMB
       - weights.drmTMB
+  - title: Distributional outputs and adequacy
+    desc: >
+      A first-class fitted distribution for every family, plus the adequacy
+      diagnostics and centile/exceedance outputs built on it (#747, #748).
+    contents:
+      - fitted_distribution
+      - exceedance
+      - centile_chart
+      - worm_plot
+      - qq_plot
   - title: Julia engine
     desc: Experimental Julia-engine methods and extractors for cross-family bivariate fits.
     contents:

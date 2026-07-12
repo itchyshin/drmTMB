@@ -351,13 +351,13 @@ test_that("MR-T2 response masks do not relax neighbouring model gates", {
     )
   }
 
-  expect_error(
-    drmTMB(
+  # A skew_normal `mu` random intercept is supported (Arc 2a), incl. masking.
+  expect_no_error(
+    suppressWarnings(drmTMB(
       bf(y ~ x + (1 | id), sigma ~ z),
       skew_normal(),
       transform(dat, id = factor(rep(1:8, each = 10))),
       missing = miss_control(response = "include")
-    ),
-    "random effects are not implemented"
+    ))
   )
 })

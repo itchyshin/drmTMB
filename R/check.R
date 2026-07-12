@@ -1239,7 +1239,12 @@ check_random_effect_replication <- function(object, block) {
         "beta",
         "beta_binomial",
         "nbinom2",
-        "truncated_nbinom2"
+        "truncated_nbinom2",
+        "binomial",
+        "cumulative_logit",
+        "skew_normal",
+        "tweedie",
+        "zero_one_beta"
       )
   ) {
     return(NULL)
@@ -1280,7 +1285,12 @@ check_random_effect_design <- function(object, block) {
         "beta",
         "beta_binomial",
         "nbinom2",
-        "truncated_nbinom2"
+        "truncated_nbinom2",
+        "binomial",
+        "cumulative_logit",
+        "skew_normal",
+        "tweedie",
+        "zero_one_beta"
       )
   ) {
     return(NULL)
