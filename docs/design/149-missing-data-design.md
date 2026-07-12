@@ -822,12 +822,13 @@ univariate Gaussian location model. On the non-Gaussian response side it is
 deliberately narrow: Poisson, binomial, NB2, and beta responses each take one
 fixed-effect binary `mi()` predictor with complete responses (MD9a–MD9d), and
 those four families plus Gaussian, bivariate Gaussian, Student-t, skew-normal,
-lognormal, Gamma, Tweedie, zero-one beta, beta-binomial, and cumulative logit
-support response masking (MD10 and MR-T2–MR-T4). Non-binary
-missing predictors in non-Gaussian response models,
+lognormal, Gamma, Tweedie, zero-one beta, beta-binomial, cumulative logit, and
+non-hurdle truncated NB2 support response masking (MD10 and MR-T2–MR-T5).
+Non-binary missing predictors in non-Gaussian response models,
 zero-inflated/hurdle responses with `mi()`, random or structured response terms
-with `mi()`, and missing responses for the other four fitted routes remain
-planned. Student-t, lognormal, and Gamma response-mask evidence includes an
-ordinary random intercept; skew-normal remains fixed-effect only, and no
+with `mi()`, and missing responses for the three mixture routes remain planned.
+Student-t, lognormal, Gamma, beta-binomial, and truncated NB2 response-mask
+evidence includes an ordinary random intercept; skew-normal remains
+fixed-effect only, and no
 structured-route evidence is inherited from these route-level ticks. Tweedie
 and zero-one beta response masking is likewise fixed-effect only.
