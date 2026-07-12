@@ -51,36 +51,29 @@ test_that("nbinom2 response mask is inert: include == complete-case", {
   expect_equal(nobs(fit_mask), sum(observed))
   expect_equal(fit_mask$missing_data$observed_y, observed)
   expect_equal(fit_mask$missing_data$response_policy, "include")
+  expect_equal(fit_mask$missing_data$original_row, seq_len(nrow(dd$masked)))
+  expect_equal(fit_mask$missing_data$model_row, seq_len(nrow(dd$masked)))
+  expect_length(fitted(fit_mask), nrow(dd$masked))
+  expect_equal(
+    fitted(fit_mask)[observed],
+    fitted(fit_cc),
+    tolerance = 1e-7,
+    ignore_attr = TRUE
+  )
+  expect_true(all(is.na(residuals(fit_mask)[!observed])))
+  expect_true(all(is.na(residuals(fit_mask, type = "pearson")[!observed])))
 })
 
 test_that("nbinom2 masked-row placeholder cannot leak into likelihood or gradients", {
   dd <- missing_response_nbinom2_data()
-  fit_it <- function() {
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = nbinom2(),
-      data = dd$masked,
-      missing = miss_control(response = "include"),
-      control = drm_control(se = FALSE)
-    )
-  }
-  f0 <- withr::with_options(
-    list(drmTMB.missing_response_sentinel = 0),
-    fit_it()
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = nbinom2(),
+    data = dd$masked,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
-  f1 <- withr::with_options(
-    list(drmTMB.missing_response_sentinel = 1e6),
-    fit_it()
-  )
-  expect_equal(as.numeric(logLik(f0)), as.numeric(logLik(f1)))
-  expect_equal(coef(f0, "mu"), coef(f1, "mu"))
-  expect_equal(coef(f0, "sigma"), coef(f1, "sigma"))
-  expect_equal(
-    f0$obj$gr(f0$opt$par),
-    f1$obj$gr(f1$opt$par),
-    tolerance = 1e-9,
-    ignore_attr = TRUE
-  )
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(0, 7))
 })
 
 test_that("nbinom2 MCAR-masked responses recover the mean AND the dispersion (theta != 1)", {
@@ -91,7 +84,8 @@ test_that("nbinom2 MCAR-masked responses recover the mean AND the dispersion (th
     bf(y ~ x, sigma ~ 1),
     family = nbinom2(),
     data = dd$masked,
-    missing = miss_control(response = "include")
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
   expect_equal(unname(coef(fit, "mu")), dd$truth_mu, tolerance = 0.1)
   # dispersion recovery: log_sigma -> -0.5*log(theta) (the reciprocal-size trap;

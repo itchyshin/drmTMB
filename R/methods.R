@@ -3199,9 +3199,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     sigma <- predict(object, dpar = "sigma")
     response <- object$model$y - mu
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2))
+    ))
   }
   if (identical(object$model$model_type, "zero_one_beta")) {
     mu <- predict(object, dpar = "mu")
@@ -3234,11 +3237,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     observed <- object$model$y / trials
     response <- observed - mu
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(
+    return(drm_mask_missing_response_values(
+      object,
       response / sqrt(pmax(mu * (1 - mu) / trials, .Machine$double.eps))
-    )
+    ))
   }
   if (identical(object$model$model_type, "cumulative_logit")) {
     expected <- ordinal_expected_score(object)
@@ -3254,9 +3258,9 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     mu <- predict(object, dpar = "mu")
     response <- object$model$y - mu
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(mu))
+    return(drm_mask_missing_response_values(object, response / sqrt(mu)))
   }
   if (identical(object$model$model_type, "zi_poisson")) {
     mu <- predict(object, dpar = "mu")
@@ -3273,9 +3277,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     sigma <- predict(object, dpar = "sigma")
     response <- object$model$y - mu
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(mu + sigma^2 * mu^2))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(mu + sigma^2 * mu^2)
+    ))
   }
   if (identical(object$model$model_type, "truncated_nbinom2")) {
     mu <- predict(object, dpar = "mu")

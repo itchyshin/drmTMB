@@ -127,6 +127,10 @@ test_that("Gaussian response-mask sentinel cannot leak into likelihood or gradie
   )
   expect_equal(fit_zero$missing_data$response_sentinel, 0)
   expect_equal(fit_large$missing_data$response_sentinel, 1e6)
+  expect_missing_response_sentinel_invariant(
+    fit_zero,
+    sentinels = c(0, 1e6)
+  )
 
   dat_group <- missing_response_gaussian_group_data()
   observed_group <- !is.na(dat_group$y)
@@ -156,6 +160,10 @@ test_that("Gaussian response-mask sentinel cannot leak into likelihood or gradie
     fitted(fit_random_large)[observed_group],
     tolerance = 1e-8,
     ignore_attr = TRUE
+  )
+  expect_missing_response_sentinel_invariant(
+    fit_random_zero,
+    sentinels = c(-1e6, 1e6)
   )
 })
 

@@ -53,6 +53,17 @@ test_that("beta response mask is inert: include == complete-case (and stays fini
   expect_equal(nobs(fit_mask), sum(observed))
   expect_equal(fit_mask$missing_data$observed_y, observed)
   expect_equal(fit_mask$missing_data$response_policy, "include")
+  expect_equal(fit_mask$missing_data$original_row, seq_len(nrow(dd$masked)))
+  expect_equal(fit_mask$missing_data$model_row, seq_len(nrow(dd$masked)))
+  expect_length(fitted(fit_mask), nrow(dd$masked))
+  expect_equal(
+    fitted(fit_mask)[observed],
+    fitted(fit_cc),
+    tolerance = 1e-7,
+    ignore_attr = TRUE
+  )
+  expect_true(all(is.na(residuals(fit_mask)[!observed])))
+  expect_true(all(is.na(residuals(fit_mask, type = "pearson")[!observed])))
 })
 
 test_that("beta masked-row placeholder (0, outside (0,1)) stays out of the likelihood", {
@@ -67,6 +78,7 @@ test_that("beta masked-row placeholder (0, outside (0,1)) stays out of the likel
   # a placeholder leak would blow the gradient up (log(0)); confirm it is finite
   expect_true(all(is.finite(fit$obj$gr(fit$opt$par))))
   expect_equal(fit$missing_data$response_sentinel, 0)
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(0.2, 0.8))
 })
 
 test_that("beta MCAR-masked responses recover the mean AND the dispersion (phi != 1)", {
@@ -77,7 +89,8 @@ test_that("beta MCAR-masked responses recover the mean AND the dispersion (phi !
     bf(y ~ x, sigma ~ 1),
     family = beta(),
     data = dd$masked,
-    missing = miss_control(response = "include")
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
   expect_equal(unname(coef(fit, "mu")), dd$truth_mu, tolerance = 0.12)
   # dispersion recovery: log_sigma -> -0.5*log(phi)
