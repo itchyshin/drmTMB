@@ -3326,7 +3326,7 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- hurdle_nbinom2_mean(mu, sigma, hu)
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
     return(response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu)))
   }
@@ -3337,11 +3337,14 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- (1 - zi) * mu
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
     component_var <- mu + sigma^2 * mu^2
     unconditional_var <- (1 - zi) * component_var + zi * (1 - zi) * mu^2
-    return(response / sqrt(unconditional_var))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(unconditional_var)
+    ))
   }
   if (
     identical(object$model$model_type, "gaussian") ||

@@ -17,6 +17,31 @@ mr_t6_zip_data <- function(n = 1800L, seed = 20260608L) {
   list(data = dat, truth = truth)
 }
 
+mr_t6_zinb_data <- function(n = 1800L, seed = 20260613L) {
+  set.seed(seed)
+  dat <- data.frame(
+    x = rnorm(n), z = rnorm(n), w = rnorm(n),
+    habitat = factor(sample(c("open", "edge"), n, replace = TRUE))
+  )
+  truth <- list(
+    mu = c(`(Intercept)` = 0.45, x = -0.30, habitatopen = 0.25),
+    sigma = c(`(Intercept)` = -0.75, z = 0.20),
+    zi = c(`(Intercept)` = -1.15, w = 0.45, habitatopen = -0.35)
+  )
+  X_mu <- model.matrix(~ x + habitat, dat)
+  X_sigma <- model.matrix(~ z, dat)
+  X_zi <- model.matrix(~ w + habitat, dat)
+  mu <- exp(as.vector(X_mu %*% truth$mu))
+  sigma <- exp(as.vector(X_sigma %*% truth$sigma))
+  zi <- plogis(as.vector(X_zi %*% truth$zi))
+  dat$count <- ifelse(
+    runif(n) < zi,
+    0L,
+    rnbinom(n, size = 1 / sigma^2, mu = mu)
+  )
+  list(data = dat, truth = truth)
+}
+
 mr_t6_fit <- function(route, data, missing = miss_control(), se = FALSE) {
   control <- drm_control(se = se)
   switch(
@@ -24,6 +49,10 @@ mr_t6_fit <- function(route, data, missing = miss_control(), se = FALSE) {
     zi_poisson = drmTMB(
       bf(count ~ x + habitat, zi ~ z + habitat),
       poisson(), data, missing = missing, control = control
+    ),
+    zi_nbinom2 = drmTMB(
+      bf(count ~ x + habitat, sigma ~ z, zi ~ w + habitat),
+      nbinom2(), data, missing = missing, control = control
     )
   )
 }
@@ -151,6 +180,112 @@ test_that("MR-T6 ZIP keeps malformed and neighbouring gates closed", {
   expect_error(
     drmTMB(
       bf(count ~ x + habitat + mi(q), zi ~ z + habitat), poisson(), dat,
+      impute = list(q = impute_model(q ~ x, family = binomial())),
+      missing = miss_control(response = "include", predictor = "model")
+    ),
+    "not implemented together"
+  )
+})
+
+test_that("MR-T6 ZINB2 masks the complete mixture contribution", {
+  sim <- mr_t6_zinb_data(n = 720L, seed = 2026071621L)
+  dat <- missing_response_mask_mcar(sim$data, "count", seed = 2026071622L)
+  parity <- mr_t6_expect_parity("zi_nbinom2", dat)
+  fit <- parity$mask
+  observed <- parity$observed
+
+  expect_equal(mean(!observed), 0.25)
+  expect_gt(sum(observed & sim$data$count == 0), 0L)
+  expect_gt(sum(observed & sim$data$count > 0), 0L)
+  expect_equal(fit$missing_data$observed_y, observed)
+  expect_equal(fit$missing_data$response_sentinel, 0)
+  expect_equal(fit$missing_data$original_row, seq_len(nrow(dat)))
+  expect_equal(fit$missing_data$model_row, seq_len(nrow(dat)))
+  expect_equal(nobs(fit), sum(observed))
+  expect_length(fitted(fit), nrow(dat))
+  expect_length(predict(fit, dpar = "mu"), nrow(dat))
+  expect_length(predict(fit, dpar = "sigma"), nrow(dat))
+  expect_length(predict(fit, dpar = "zi"), nrow(dat))
+  expect_true(all(is.na(residuals(fit)[!observed])))
+  expect_true(all(is.na(residuals(fit, type = "pearson")[!observed])))
+  expect_equal(
+    fitted(fit)[observed], fitted(parity$cc), tolerance = 1e-6,
+    ignore_attr = TRUE
+  )
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(0, 7))
+
+  sims <- simulate(fit, nsim = 3, seed = 2026071623L)
+  expect_equal(dim(sims), c(nrow(dat), 3L))
+  expect_true(all(as.matrix(sims) >= 0))
+  expect_true(all(as.matrix(sims) == round(as.matrix(sims))))
+  expect_gt(sum(as.matrix(sims) == 0), 0L)
+  expect_gt(sum(as.matrix(sims) > 0), 0L)
+})
+
+test_that("MR-T6 ZINB2 separately masks observed zeros and positives", {
+  sim <- mr_t6_zinb_data(n = 600L, seed = 2026071624L)
+  zeros_missing <- mr_t6_mask_stratum(
+    sim$data, positive = FALSE, seed = 2026071625L
+  )
+  positives_missing <- mr_t6_mask_stratum(
+    sim$data, positive = TRUE, seed = 2026071626L
+  )
+  expect_true(all(sim$data$count[is.na(zeros_missing$count)] == 0))
+  expect_true(all(sim$data$count[is.na(positives_missing$count)] > 0))
+  mr_t6_expect_parity("zi_nbinom2", zeros_missing)
+  mr_t6_expect_parity("zi_nbinom2", positives_missing)
+})
+
+test_that("MR-T6 ZINB2 recovers every dpar under 25 percent MCAR", {
+  sim <- mr_t6_zinb_data()
+  dat <- missing_response_mask_mcar(sim$data, "count", seed = 2026071627L)
+  fit <- mr_t6_fit(
+    "zi_nbinom2", dat, missing = miss_control(response = "include"), se = TRUE
+  )
+  expect_equal(mean(is.na(dat$count)), 0.25)
+  expect_equal(fit$opt$convergence, 0L)
+  expect_lt(max(abs(coef(fit, "mu") - sim$truth$mu)), 0.12)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$truth$sigma)), 0.18)
+  expect_lt(max(abs(coef(fit, "zi") - sim$truth$zi)), 0.45)
+})
+
+test_that("MR-T6 ZINB2 keeps malformed and neighbouring gates closed", {
+  include <- miss_control(response = "include")
+  dat <- mr_t6_zinb_data(n = 120L, seed = 2026071628L)$data
+  expect_error(
+    mr_t6_fit("zi_nbinom2", transform(dat, count = NA_integer_), include),
+    "At least one observed nbinom2"
+  )
+  for (bad in c(-1, 1.5, Inf)) {
+    malformed <- dat
+    malformed$count[[1L]] <- NA_real_
+    malformed$count[[2L]] <- bad
+    expect_error(
+      mr_t6_fit("zi_nbinom2", malformed, include),
+      "non-negative integer",
+      info = paste("bad ZINB2 response", bad)
+    )
+  }
+  dat$count[[1L]] <- NA_integer_
+  dat$x[[2L]] <- NA_real_
+  fit <- mr_t6_fit("zi_nbinom2", dat, include)
+  expect_equal(fit$missing_data$original_row, setdiff(seq_len(120L), 2L))
+  expect_equal(nobs(fit), 118L)
+  expect_length(fitted(fit), 119L)
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x + habitat, sigma ~ z, zi ~ w + habitat), nbinom2(), dat,
+      missing = include, REML = TRUE
+    ),
+    "only for.*Gaussian"
+  )
+  dat$q <- rbinom(nrow(dat), 1, 0.5)
+  dat$q[[3L]] <- NA_integer_
+  expect_error(
+    drmTMB(
+      bf(count ~ x + habitat + mi(q), sigma ~ z, zi ~ w + habitat),
+      nbinom2(), dat,
       impute = list(q = impute_model(q ~ x, family = binomial())),
       missing = miss_control(response = "include", predictor = "model")
     ),

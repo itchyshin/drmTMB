@@ -3639,14 +3639,18 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma = exp(log_sigma);
     vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
     for (int i = 0; i < y.size(); ++i) {
-      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
-      int yi = (int) asDouble(y(i));
-      Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
-      Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
-      if (yi == 0) {
-        nll -= weights(i) * logspace_add(log_zi, log_one_minus_zi + log_density);
-      } else {
-        nll -= weights(i) * (log_one_minus_zi + log_density);
+      if (observed_y(i) == 1) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        int yi = (int) asDouble(y(i));
+        Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+        Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+        if (yi == 0) {
+          nll -=
+            weights(i) * logspace_add(log_zi, log_one_minus_zi + log_density);
+        } else {
+          nll -= weights(i) * (log_one_minus_zi + log_density);
+        }
       }
     }
     REPORT(eta_mu);
