@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, {.fn zero_one_beta}, {.fn beta_binomial}, and {.fn cumulative_logit}.",
+      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, and the non-hurdle {.fn truncated_nbinom2} route.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -393,7 +393,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     biv_gaussian = drm_build_biv_gaussian_spec(
       formula,
@@ -6791,8 +6792,11 @@ drm_build_truncated_nbinom2_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -6836,6 +6840,14 @@ drm_build_truncated_nbinom2_spec <- function(
     entries[[which(dpars == "hu")]]
   } else {
     NULL
+  }
+  has_hu <- !is.null(hu_entry)
+  if (include_missing_response && has_hu) {
+    cli::cli_abort(c(
+      "{.code miss_control(response = \"include\")} is not implemented for hurdle NB2 models yet.",
+      "x" = "Missing-response masking is validated for the non-hurdle {.fn truncated_nbinom2} route only; hurdle likelihood evidence is tracked separately.",
+      "i" = "Use {.code missing = miss_control(response = \"drop\")} until the hurdle mixture route is validated."
+    ))
   }
 
   if (is.na(mu_entry$response)) {
@@ -6922,6 +6934,9 @@ drm_build_truncated_nbinom2_spec <- function(
     structured_mu_vars(hu_relmat$term),
     random_effect_vars(mu_re$terms)
   ))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -6938,7 +6953,7 @@ drm_build_truncated_nbinom2_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -6957,12 +6972,23 @@ drm_build_truncated_nbinom2_spec <- function(
       "No complete observations remain after applying model missingness rules."
     )
   }
+  observed_y <- !is.na(y)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing truncated NB2 response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed truncated NB2 response is required for fitting."
+    )
+  }
   count_tolerance <- sqrt(.Machine$double.eps)
-  has_hu <- !is.null(hu_entry)
-  invalid_count <- !all(is.finite(y)) ||
-    any(abs(y - round(y)) > count_tolerance)
-  invalid_truncated <- invalid_count || any(y <= 0)
-  invalid_hurdle <- invalid_count || any(y < 0)
+  y_obs <- y[observed_y]
+  invalid_count <- !all(is.finite(y_obs)) ||
+    any(abs(y_obs - round(y_obs)) > count_tolerance)
+  invalid_truncated <- invalid_count || any(y_obs <= 0)
+  invalid_hurdle <- invalid_count || any(y_obs < 0)
   if ((!has_hu && invalid_truncated) || (has_hu && invalid_hurdle)) {
     cli::cli_abort(c(
       if (has_hu) {
@@ -6982,6 +7008,9 @@ drm_build_truncated_nbinom2_spec <- function(
       "{.fn truncated_nbinom2} hurdle models need at least one positive count after missing-row filtering.",
       "x" = "The positive-count NB2 component cannot be estimated from all-zero responses."
     ))
+  }
+  if (include_missing_response && !all(observed_y)) {
+    y[!observed_y] <- 1L
   }
 
   X_mu <- stats::model.matrix(
@@ -7008,6 +7037,30 @@ drm_build_truncated_nbinom2_spec <- function(
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   phylo_mu <- build_structured_mu_structure(hu_relmat$term, data_model, env)
+  start <- if (has_hu) {
+    hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu, phylo_mu = phylo_mu)
+  } else if (include_missing_response) {
+    truncated_nbinom2_start(
+      y[observed_y],
+      X_mu[observed_y, , drop = FALSE],
+      X_sigma[observed_y, , drop = FALSE],
+      re_mu = re_mu
+    )
+  } else {
+    truncated_nbinom2_start(y, X_mu, X_sigma, re_mu = re_mu)
+  }
+  missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(y),
+      observed_y = observed_y,
+      response_sentinel = 1,
+      version = "MR-T5-truncated-nbinom2"
+    )
+  } else {
+    NULL
+  }
 
   spec <- list(
     model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2",
@@ -7048,15 +7101,12 @@ drm_build_truncated_nbinom2_spec <- function(
       phylo = empty_sd_phylo_structure()
     ),
     structured = list(phylo_mu = phylo_mu),
+    missing_data = missing_data,
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = if (has_hu) c("mu", "sigma", "hu") else c("mu", "sigma"),
-    start = if (has_hu) {
-      hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu, phylo_mu = phylo_mu)
-    } else {
-      truncated_nbinom2_start(y, X_mu, X_sigma, re_mu = re_mu)
-    },
+    start = start,
     map = if (has_hu) {
       hurdle_nbinom2_map(phylo_mu = phylo_mu)
     } else {
@@ -7071,7 +7121,11 @@ drm_build_truncated_nbinom2_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
