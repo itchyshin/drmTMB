@@ -21,7 +21,8 @@
 
 response_validated <- c(
   "gaussian", "biv_gaussian", "student", "skew_normal", "lognormal", "gamma",
-  "tweedie", "binomial", "poisson", "nbinom2", "beta", "zero_one_beta"
+  "tweedie", "binomial", "poisson", "nbinom2", "beta", "zero_one_beta",
+  "beta_binomial", "cumulative_logit"
 )
 predictor_validated <- c("gaussian", "poisson", "binomial", "nbinom2", "beta")
 
@@ -118,11 +119,11 @@ test_that("the abort names the offending family (family-specific message)", {
   expect_error(
     drmTMB(
       bf(y ~ x),
-      family = cases$beta_binomial$fam,
-      data = cases$beta_binomial$data,
+      family = cases$truncated_nbinom2$fam,
+      data = cases$truncated_nbinom2$data,
       missing = miss_control(response = "include")
     ),
-    regexp = "beta_binomial",
+    regexp = "truncated_nbinom2",
     fixed = TRUE
   )
 })

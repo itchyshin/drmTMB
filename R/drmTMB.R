@@ -251,7 +251,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, and {.fn zero_one_beta}.",
+      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, {.fn zero_one_beta}, {.fn beta_binomial}, and {.fn cumulative_logit}.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -355,7 +355,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     binomial = drm_build_binomial_spec(
       formula,
@@ -369,7 +370,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     ),
     poisson = drm_build_poisson_spec(
       formula,
@@ -5139,8 +5141,11 @@ drm_build_beta_binomial_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -5227,6 +5232,9 @@ drm_build_beta_binomial_spec <- function(
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms)
   ))
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -5243,17 +5251,45 @@ drm_build_beta_binomial_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
     data = data_model,
     na.action = stats::na.omit
   )
-  response <- prepare_betabinomial_response(
-    stats::model.response(mf_mu),
+  response_raw <- stats::model.response(mf_mu)
+  if (is.null(dim(response_raw)) || ncol(response_raw) != 2L) {
+    cli::cli_abort(
+      "{.fn beta_binomial} requires a two-column count response."
+    )
+  }
+  observed_y <- stats::complete.cases(response_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a partial beta-binomial response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one complete observed beta-binomial response row is required for fitting."
+    )
+  }
+  response_obs <- prepare_betabinomial_response(
+    response_raw[observed_y, , drop = FALSE],
     response = mu_entry$response
   )
+  response_sentinel <- c(successes = 0, failures = 1, trials = 1)
+  response <- list(
+    successes = rep(response_sentinel[["successes"]], nrow(response_raw)),
+    failures = rep(response_sentinel[["failures"]], nrow(response_raw)),
+    trials = rep(response_sentinel[["trials"]], nrow(response_raw)),
+    success_name = response_obs$success_name,
+    failure_name = response_obs$failure_name
+  )
+  response$successes[observed_y] <- response_obs$successes
+  response$failures[observed_y] <- response_obs$failures
+  response$trials[observed_y] <- response_obs$trials
 
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
@@ -5298,16 +5334,33 @@ drm_build_beta_binomial_spec <- function(
       response$failures,
       X_mu,
       X_sigma,
-      re_mu = re_mu
+      re_mu = re_mu,
+      observed_y = observed_y
     ),
     map = beta_binomial_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T4-beta-binomial"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -5585,8 +5638,11 @@ drm_build_cumulative_logit_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_dpar <- startsWith(dpars, "sd(")
@@ -5657,6 +5713,9 @@ drm_build_cumulative_logit_spec <- function(
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   vars <- all.vars(f_mu)
+  if (include_missing_response) {
+    vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -5673,15 +5732,39 @@ drm_build_cumulative_logit_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
-  y <- stats::model.response(mf_mu)
-  if (length(y) == 0L) {
+  y_raw <- stats::model.response(mf_mu)
+  if (length(y_raw) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying ordinal model missingness rules."
     )
   }
-  ordinal <- prepare_ordinal_response(y, response = mu_entry$response)
+  if (include_missing_response && !is.ordered(y_raw)) {
+    cli::cli_abort(c(
+      "Cumulative-logit missing-response fits require an ordered-factor response.",
+      "i" = "Convert integer scores with {.code ordered(score, levels = ...)} so declared categories and cutpoints remain identifiable after masking."
+    ))
+  }
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && !all(observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing ordinal response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed ordinal response is required for fitting."
+    )
+  }
+  ordinal_obs <- prepare_ordinal_response(
+    y_raw[observed_y], response = mu_entry$response
+  )
+  response_sentinel <- 1L
+  y <- as.integer(y_raw)
+  y[!observed_y] <- response_sentinel
+  ordinal <- ordinal_obs
+  ordinal$y <- y
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
   X_mu <- ordinal_mu_model_matrix(terms_mu, mf_mu)
@@ -5720,16 +5803,33 @@ drm_build_cumulative_logit_spec <- function(
       ordinal$y,
       X_mu,
       ordinal$n_categories,
-      phylo_mu = phylo_mu
+      phylo_mu = phylo_mu,
+      observed_y = observed_y
     ),
     map = cumulative_logit_map(phylo_mu),
     random_names = if (isTRUE(phylo_mu$has)) "u_phylo" else NULL
   )
+  spec$missing_data <- if (include_missing_response) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = response_sentinel,
+      version = "MR-T4-cumulative-logit"
+    )
+  } else {
+    NULL
+  }
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_response) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -14978,18 +15078,26 @@ beta_ls_start <- function(
   )
 }
 
-beta_mu_re_start <- function(resid, re_mu, y_scale) {
-  start <- gaussian_mu_re_start(resid, re_mu, y_scale)
+beta_mu_re_start <- function(
+  resid,
+  re_mu,
+  y_scale,
+  observed_y = rep(TRUE, length(resid))
+) {
+  start <- gaussian_mu_re_start(
+    resid, re_mu, y_scale, observed_y = observed_y
+  )
   if (re_mu$n_re == 0L) {
     return(start)
   }
 
   u_mu <- numeric(re_mu$n_re)
   for (k in seq_len(re_mu$n_terms)) {
-    design_value <- re_mu$value[, k]
-    group_index <- re_mu$index[, k]
+    design_value <- re_mu$value[observed_y, k]
+    group_index <- re_mu$index[observed_y, k]
+    resid_observed <- resid[observed_y]
     moment <- stats::aggregate(
-      cbind(num = design_value * resid, den = design_value^2),
+      cbind(num = design_value * resid_observed, den = design_value^2),
       by = list(group = group_index),
       FUN = sum
     )
@@ -15023,21 +15131,26 @@ beta_binomial_start <- function(
   failures,
   X_mu,
   X_sigma,
-  re_mu = empty_random_mu_structure(length(successes))
+  re_mu = empty_random_mu_structure(length(successes)),
+  observed_y = rep(TRUE, length(successes))
 ) {
   trials <- successes + failures
+  successes_start <- successes[observed_y]
+  failures_start <- failures[observed_y]
+  trials_start <- trials[observed_y]
+  X_mu_start <- X_mu[observed_y, , drop = FALSE]
   beta_mu <- tryCatch(
     suppressWarnings(
       stats::glm.fit(
-        X_mu,
-        cbind(successes, failures),
+        X_mu_start,
+        cbind(successes_start, failures_start),
         family = stats::quasibinomial(link = "logit")
       )$coefficients
     ),
     error = function(e) rep(0, ncol(X_mu))
   )
   if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
-    prop <- (successes + 0.5) / (trials + 1)
+    prop <- (successes_start + 0.5) / (trials_start + 1)
     beta_mu <- rep(0, ncol(X_mu))
     beta_mu[[1L]] <- stats::qlogis(min(max(mean(prop), 1e-4), 1 - 1e-4))
   }
@@ -15048,11 +15161,15 @@ beta_binomial_start <- function(
   beta_sigma[[1L]] <- log(0.35)
   eta_mu <- as.vector(X_mu %*% beta_mu)
   link_y <- stats::qlogis((successes + 0.5) / (trials + 1))
-  y_scale <- stats::sd(link_y)
+  resid <- link_y - eta_mu
+  resid[!observed_y] <- 0
+  y_scale <- stats::sd(link_y[observed_y])
   if (!is.finite(y_scale) || y_scale <= 0) {
     y_scale <- 1
   }
-  mu_re_start <- beta_mu_re_start(link_y - eta_mu, re_mu, y_scale)
+  mu_re_start <- beta_mu_re_start(
+    resid, re_mu, y_scale, observed_y = observed_y
+  )
 
   c(
     list(
@@ -15664,15 +15781,18 @@ cumulative_logit_start <- function(
   y,
   X_mu,
   n_categories,
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  observed_y = rep(TRUE, length(y))
 ) {
   beta_mu <- rep(0, ncol(X_mu))
   names(beta_mu) <- colnames(X_mu)
 
-  cumulative <- cumsum(tabulate(y, nbins = n_categories)) / length(y)
+  y_start <- y[observed_y]
+  cumulative <- cumsum(tabulate(y_start, nbins = n_categories)) /
+    length(y_start)
   cutpoints <- stats::qlogis(cumulative[-n_categories])
   theta_ord <- ordinal_raw_from_cutpoints(cutpoints)
-  phylo_start <- gaussian_phylo_start(as.numeric(y), phylo_mu)
+  phylo_start <- gaussian_phylo_start(as.numeric(y_start), phylo_mu)
 
   c(
     list(

@@ -31,7 +31,7 @@ test_that("drm_missing_response_families() is the response-mask source of truth"
     c(
       "gaussian", "biv_gaussian", "student", "skew_normal", "lognormal",
       "gamma", "tweedie", "binomial", "poisson", "nbinom2", "beta",
-      "zero_one_beta"
+      "zero_one_beta", "beta_binomial", "cumulative_logit"
     )
   )
 })

@@ -1,5 +1,16 @@
 # drmTMB 0.5.0.9001
 
+## Missing responses: MR-T4 encoded responses
+
+* `response = "include"` now masks beta-binomial and cumulative-logit
+  responses. A missing success or failure count masks the entire beta-binomial
+  row, including its derived trials; ordered-factor levels remain declared and
+  any observed subset with an empty category rejects before cutpoints are
+  built. Coordinated encoded-sentinel retapes, row/extractor contracts, and
+  exact fixed-seed 25% MCAR recovery promote both routes to G3. Integer ordinal
+  masking, broader random/structured routes, response plus `mi()`, intervals,
+  and coverage remain outside this tranche.
+
 ## Missing responses: MR-T3 atom and boundary families
 
 * `response = "include"` now masks missing Tweedie and zero-one beta

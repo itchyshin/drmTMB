@@ -2887,21 +2887,23 @@ Type objective_function<Type>::operator()()
     vector<Type> alpha(y.size());
     vector<Type> beta_shape(y.size());
     for (int i = 0; i < y.size(); ++i) {
-      Type failures = trials(i) - y(i);
       phi(i) = exp(Type(-2.0) * log_sigma(i));
       alpha(i) = mu(i) * phi(i);
       beta_shape(i) = (Type(1.0) - mu(i)) * phi(i);
-      Type log_density =
-        lgamma(trials(i) + Type(1.0)) -
-        lgamma(y(i) + Type(1.0)) -
-        lgamma(failures + Type(1.0)) +
-        lgamma(phi(i)) -
-        lgamma(trials(i) + phi(i)) +
-        lgamma(y(i) + alpha(i)) -
-        lgamma(alpha(i)) +
-        lgamma(failures + beta_shape(i)) -
-        lgamma(beta_shape(i));
-      nll -= weights(i) * log_density;
+      if (observed_y(i) == 1) {
+        Type failures = trials(i) - y(i);
+        Type log_density =
+          lgamma(trials(i) + Type(1.0)) -
+          lgamma(y(i) + Type(1.0)) -
+          lgamma(failures + Type(1.0)) +
+          lgamma(phi(i)) -
+          lgamma(trials(i) + phi(i)) +
+          lgamma(y(i) + alpha(i)) -
+          lgamma(alpha(i)) +
+          lgamma(failures + beta_shape(i)) -
+          lgamma(beta_shape(i));
+        nll -= weights(i) * log_density;
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -3028,18 +3030,20 @@ Type objective_function<Type>::operator()()
     }
     int n_categories = theta_ord.size() + 1;
     for (int i = 0; i < y.size(); ++i) {
-      int yi = (int) asDouble(y(i));
-      Type log_prob;
-      if (yi == 1) {
-        log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
-      } else if (yi == n_categories) {
-        log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
-      } else {
-        Type upper = cutpoints(yi - 1) - mu(i);
-        Type lower = cutpoints(yi - 2) - mu(i);
-        log_prob = drm_log_inv_logit_diff(upper, lower);
+      if (observed_y(i) == 1) {
+        int yi = (int) asDouble(y(i));
+        Type log_prob;
+        if (yi == 1) {
+          log_prob = drm_log_inv_logit(cutpoints(0) - mu(i));
+        } else if (yi == n_categories) {
+          log_prob = drm_log1m_inv_logit(cutpoints(n_categories - 2) - mu(i));
+        } else {
+          Type upper = cutpoints(yi - 1) - mu(i);
+          Type lower = cutpoints(yi - 2) - mu(i);
+          log_prob = drm_log_inv_logit_diff(upper, lower);
+        }
+        nll -= weights(i) * log_prob;
       }
-      nll -= weights(i) * log_prob;
     }
     REPORT(mu);
     REPORT(cutpoints);

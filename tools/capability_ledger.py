@@ -73,7 +73,8 @@ ROUTES = [
 ]
 ADMITTED = {
     "gaussian", "biv_gaussian", "student", "lognormal", "gamma", "poisson",
-    "nbinom2", "beta", "zero_one_beta", "tweedie", "skew_normal", "binomial",
+    "nbinom2", "beta", "zero_one_beta", "tweedie", "beta_binomial",
+    "cumulative_logit", "skew_normal", "binomial",
 }
 
 WORK_STATUSES = {
