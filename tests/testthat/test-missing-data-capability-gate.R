@@ -22,7 +22,7 @@
 response_validated <- c(
   "gaussian", "biv_gaussian", "student", "skew_normal", "lognormal", "gamma",
   "tweedie", "binomial", "poisson", "nbinom2", "beta", "zero_one_beta",
-  "beta_binomial", "cumulative_logit"
+  "beta_binomial", "cumulative_logit", "truncated_nbinom2"
 )
 predictor_validated <- c("gaussian", "poisson", "binomial", "nbinom2", "beta")
 
@@ -113,18 +113,17 @@ test_that("supplying `impute` with a non-validated response family loudly reject
   }
 })
 
-test_that("the abort names the offending family (family-specific message)", {
+test_that("the admitted truncated route still rejects its hurdle neighbour", {
   set.seed(1)
   cases <- cap_family_cases()
   expect_error(
     drmTMB(
-      bf(y ~ x),
+      bf(y ~ x, sigma ~ 1, hu ~ 1),
       family = cases$truncated_nbinom2$fam,
       data = cases$truncated_nbinom2$data,
       missing = miss_control(response = "include")
     ),
-    regexp = "truncated_nbinom2",
-    fixed = TRUE
+    regexp = "not implemented for hurdle NB2"
   )
 })
 

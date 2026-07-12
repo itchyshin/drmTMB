@@ -86,13 +86,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   missing-data analysis framework. `miss_control(response = "include")` is G3
   recovery-verified for univariate Gaussian, independent-observation bivariate
   Gaussian, Student-t, skew-normal, lognormal, Gamma, Tweedie, beta,
-  zero-one beta, binomial, Poisson, and NB2 responses. Student-t, lognormal,
-  and Gamma have ordinary random-intercept recovery evidence; skew-normal,
-  Tweedie, and zero-one beta are fixed-effect only. These
-  route-level ticks do not establish masking for every structured modifier. It
-  preserves retained row accounting and fitted values while returning `NA`
-  residuals for masked univariate responses. Dense known sampling covariance
-  with partial bivariate response rows remains unsupported.
+  zero-one beta, beta-binomial, cumulative-logit, binomial, Poisson, NB2, and
+  non-hurdle truncated-NB2 responses. Student-t, lognormal, Gamma,
+  beta-binomial, and truncated NB2 have ordinary random-intercept recovery
+  evidence; cumulative logit, skew-normal, Tweedie, and zero-one beta are
+  fixed-effect only. Hurdle and zero-inflated response masks remain unverified.
+  These route-level ticks do not establish masking for every structured
+  modifier. The fitted object preserves retained row accounting and fitted
+  values while returning `NA` residuals for masked univariate responses. Dense
+  known sampling covariance with partial bivariate response rows remains
+  unsupported.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
@@ -101,9 +104,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   complete. Beta-binomial masking requires a complete success/failure pair per
   observed row; cumulative-logit masking requires an ordered factor and every
   declared category among observed responses. Missing-response support for the
-  other four fitted response routes,
-  multiple missing predictors, non-binary missing predictors in non-Gaussian
-  response models, grouped or structured non-Gaussian predictor models,
+  three remaining mixture response routes, multiple missing predictors,
+  non-binary missing predictors in non-Gaussian response models, grouped or
+  structured non-Gaussian predictor models,
   transformed or interacted `mi()` terms, EM/profile engines, REML for
   explicit missing-data routes, simulation-based imputation summaries,
   response imputation, measurement-error models, and pigauto interoperability

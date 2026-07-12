@@ -10,7 +10,7 @@
 | `zi_poisson` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
 | `zi_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
 | `beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `truncated_nbinom2` | rejected | G0 | backlog | MR-T5: design and implement this route before G2/G3 validation. |
+| `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `hurdle_nbinom2` | rejected | G0 | backlog | MR-T6: design and implement this route before G2/G3 validation. |
 | `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
 | `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |

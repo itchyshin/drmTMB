@@ -2978,7 +2978,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     p0 <- truncated_nbinom2_p0(mu, sigma)
     sims <- replicate(nsim, {
-      u <- p0 + stats::runif(length(mu)) * (1 - p0)
+      u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
       stats::qnbinom(u, size = 1 / sigma^2, mu = mu)
     })
     sims <- as.data.frame(sims)
@@ -3309,9 +3309,12 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     fitted_mean <- truncated_nbinom2_mean(mu, sigma)
     response <- object$model$y - fitted_mean
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
-    return(response / sqrt(truncated_nbinom2_variance(mu, sigma)))
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(truncated_nbinom2_variance(mu, sigma))
+    ))
   }
   if (identical(object$model$model_type, "hurdle_nbinom2")) {
     mu <- predict(object, dpar = "mu")

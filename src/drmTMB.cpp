@@ -3488,12 +3488,15 @@ Type objective_function<Type>::operator()()
     vector<Type> trunc_prob(y.size());
     vector<Type> positive_mean(y.size());
     for (int i = 0; i < y.size(); ++i) {
-      Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
       Type log_p0 = drm_nbinom2_log_p0(eta_mu(i), log_sigma(i));
       Type log_trunc_prob = drm_log1mexp(log_p0);
       trunc_prob(i) = exp(log_trunc_prob);
       positive_mean(i) = mu(i) / trunc_prob(i);
-      nll -= weights(i) * (log_density - log_trunc_prob);
+      if (observed_y(i) == 1) {
+        Type log_density =
+          drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
+        nll -= weights(i) * (log_density - log_trunc_prob);
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);

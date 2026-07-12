@@ -107,7 +107,7 @@ if (!identical(route_status[["hurdle_nbinom2"]], "implemented")) {
       missing = control
     ),
     "hurdle_nbinom2",
-    "not implemented for the|Missing-response masking is currently validated only"
+    "not implemented for hurdle NB2"
   )
 }
 

@@ -1,5 +1,15 @@
 # drmTMB 0.5.0.9001
 
+## Missing responses: MR-T5 truncated counts
+
+* `response = "include"` now masks positive-count responses for the non-hurdle
+  `truncated_nbinom2()` route. The complete NB2 density and zero-truncation
+  normalization are skipped together for masked rows; positive sentinels,
+  observed-only starts, row/extractor contracts, and exact fixed-seed 25% MCAR
+  recovery promote the ordinary `mu` random-intercept route to G3. Hurdle,
+  `sigma`-random, structured, response-plus-`mi()`, interval, and coverage
+  claims remain outside this tranche.
+
 ## Missing responses: MR-T4 encoded responses
 
 * `response = "include"` now masks beta-binomial and cumulative-logit

@@ -31,7 +31,8 @@ test_that("drm_missing_response_families() is the response-mask source of truth"
     c(
       "gaussian", "biv_gaussian", "student", "skew_normal", "lognormal",
       "gamma", "tweedie", "binomial", "poisson", "nbinom2", "beta",
-      "zero_one_beta", "beta_binomial", "cumulative_logit"
+      "zero_one_beta", "beta_binomial", "cumulative_logit",
+      "truncated_nbinom2"
     )
   )
 })
@@ -90,6 +91,6 @@ test_that("zero-inflated and hurdle routes do not inherit missing-response admis
       data = dat,
       missing = control
     ),
-    "not implemented for the"
+    "not implemented for hurdle NB2"
   )
 })

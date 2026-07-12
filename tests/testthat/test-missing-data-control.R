@@ -34,17 +34,26 @@ test_that("drmTMB() parses missing-control lists and gates unsupported response 
     "drm_missing_data"
   )
 
-  # MR-T1 and MR-T2 response masks are implemented; a still-unsupported family
-  # must reject via the capability gate.
-  expect_error(
+  count_dat <- data.frame(y = c(1L, 2L, NA_integer_, 3L, 5L, 2L), x = 1:6)
+  expect_s3_class(
     drmTMB(
       bf(y ~ x),
-      data = dat,
+      data = count_dat,
+      family = truncated_nbinom2(),
+      missing = miss_control(response = "include"),
+      control = drm_control(se = FALSE)
+    )$missing_data,
+    "drm_missing_data"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, hu ~ 1),
+      data = count_dat,
       family = truncated_nbinom2(),
       missing = miss_control(response = "include"),
       control = drm_control(se = FALSE)
     ),
-    "not implemented for the"
+    "not implemented for hurdle NB2"
   )
 
   expect_error(
