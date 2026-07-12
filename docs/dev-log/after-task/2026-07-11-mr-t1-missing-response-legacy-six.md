@@ -89,8 +89,8 @@ effect support claim changed.
 
 ## GitHub Issue Maintenance
 
-Parent issue #761 already covers the whole MR-T0–MR-T7 arc. MR-T1 will update
-that issue and its own PR rather than opening a duplicate.
+Parent issue #761 covers the whole MR-T0–MR-T7 arc. PR #765 contains MR-T1,
+and the issue received the six-route/G3 summary rather than a duplicate issue.
 
 ## What Did Not Go Smoothly
 
