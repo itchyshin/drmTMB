@@ -10,7 +10,18 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-12, → Claude, missing-response arc COMPLETE).**
+> **▶ Latest — start here (2026-07-12, → Claude, ARC 2a COMPLETE — mu random intercept for every family).**
+> `main` = `0ba88fd8` (Arc 2a merged + pushed) · five families (binomial,
+> cumulative_logit, skew_normal, tweedie, zero_one_beta) now accept `(1 | group)`
+> on `mu`; every fitted univariate family has at least a mean random intercept.
+> Per-family DG2 recovery evidence; `--as-cran` 0/0 (11593 tests); ledger cells
+> mc-0059/0225/0463/0538/0567 → verified. pkgdown reference-index build FIXED
+> (`_pkgdown.yml` #747/#748 topics). ML-Laplace only, intercept-only; slopes/
+> sigma-RE (Arc 2b/2c), AGHQ/REML, and the tweedie fix-`p` API remain carried over.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-12-arc2a-claude-handover.md`](docs/dev-log/handover/2026-07-12-arc2a-claude-handover.md)
+>
+> **▶ Prior (2026-07-12, → Claude, missing-response arc COMPLETE).**
 > `main` = `d06bf015` (synced) · tag **`v0.5.0`** remains frozen at `095409c0` ·
 > CRAN remains a separate external decision. MR-T0–MR-T7 are merged through
 > PR #771: all 18 fitted response routes have independent G3 missing-response
