@@ -62,6 +62,9 @@ spatial range, and broad sparse-matrix work remain separate arcs.
 - Seven older Ayumi/SR199 dashboard references were redirected from missing
   local checkpoint/output files to tracked after-task or design evidence; the
   paired contract expectation was updated.
+- `.gitattributes` narrowly classifies the retained Arc 1a profile TSV's empty
+  final field and captured log padding as data, preserving exact campaign bytes
+  while allowing a genuine branch-wide whitespace check.
 
 ## 5. Checks Run
 
@@ -75,7 +78,8 @@ spatial range, and broad sparse-matrix work remain separate arcs.
 - `pkgdown::check_pkgdown()` reported `No problems found`.
 - `python3 tools/capability_ledger.py --write` and `--check` passed; all 14
   generator tests passed; `python3 tools/validate-mission-control.py` returned
-  `mission_control_ok`; `git diff --check` passed.
+  `mission_control_ok`; `git diff --check origin/main` passed for the complete
+  branch diff.
 - Full recovery/profile hash manifests passed read-back. The tracked capability
   HTML SHA-256 is
   `58d786abe86cadc038020957d76fd386d6e245e99c87d62cd8581f28aa6d5d12`.
@@ -111,10 +115,17 @@ surfaces now carry the superseding boundary.
 
 ## 7a. Issue Ledger
 
-The open-issue search found only broad Phase 18 issue #59. It is not a focused
-Arc 1a tracker and was left unchanged. No duplicate issue was opened. A focused
-feature-branch pull request is the appropriate review surface; it must not be
-merged without separate approval.
+The live open-issue audit found two direct neighbours. Issue #147 is the named
+`animal()`/`relmat()` implementation tracker; an Arc 1a evidence-and-boundary
+comment was posted, and the issue remains open until the feature PR is reviewed
+and merged. Issue #33 is the broader structured/bivariate random-slope tracker;
+its stale “phylogenetic slope remains planned” statement was corrected in a
+comment, while the issue remains open for labelled, correlated, multiple, and
+bivariate slope work. Broader REML issues #714 (matrix-free large-data REML)
+and #555 (Ayumi-scale bivariate q4 REML) were inspected and remain explicitly
+outside Arc 1a. Phase 18 issue #59 is also broader campaign infrastructure, not
+a focused Arc 1a tracker. No duplicate issue was opened, and the Arc 1a pull
+request must not be merged without separate approval.
 
 ## 9. What Did Not Go Smoothly
 
@@ -122,8 +133,11 @@ The first admission helper checked the fixed sigma design but not the complete
 sigma submodel. D-43 therefore found two sequential boundary leaks. The first
 full-suite run also exposed one old test that required an untracked/missing
 checkpoint filename even after Mission Control correctly rejected that
-reference. The implementation and final verification were paused until each
-problem was repaired and re-run.
+reference. Rose then found that the working-tree-only whitespace check had not
+examined committed campaign rows whose schema has an empty final field. A
+narrow artifact-path attribute now preserves those exact bytes and makes the
+complete branch-diff check pass. The implementation and final verification
+were paused until each problem was repaired and re-run.
 
 ## 11. Team Learning
 

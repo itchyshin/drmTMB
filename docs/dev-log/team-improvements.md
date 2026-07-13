@@ -618,3 +618,13 @@ scouting belongs to Jason).
 - Trigger: Mission Control found seven older Ayumi/SR199 rows whose evidence
   URLs named missing local artifacts. The rows now cite tracked after-task or
   design evidence, and the paired contract test follows that durable source.
+
+## 2026-07-13 - Check The Whole Branch, Not Only The Working Tree
+
+- Improvement implemented: closeout whitespace checks compare the full feature
+  branch with its merge base. Retained artifacts whose schema-valid empty
+  fields or exact console padding are meaningful get path-scoped attributes;
+  the exception must not be global.
+- Trigger: a clean working tree made `git diff --check` vacuously pass while
+  committed Arc 1a TSV/log rows still triggered the branch-diff check. Rose
+  caught the discrepancy before the completion claim.
