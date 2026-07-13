@@ -62,6 +62,11 @@ test_that("lognormal sigma supports an independent random intercept", {
   fit <- drmTMB(bf(y ~ x, sigma ~ (1 | id)), family = lognormal(), data = d)
   expect_sigma_random_intercept_recovered(fit, "lognormal", b$u, b$sd_sigma)
 
+  # a fixed-effect covariate + RE on sigma fits (previously a rejected boundary case)
+  combo <- drmTMB(bf(y ~ x, sigma ~ z + (1 | id)), family = lognormal(), data = d)
+  expect_equal(combo$opt$convergence, 0)
+  expect_true(isTRUE(combo$sdr$pdHess))
+
   # a sigma random effect may not be combined with a mu random effect
   expect_error(
     drmTMB(bf(y ~ x + (1 | id), sigma ~ (1 | id)), family = lognormal(), data = d),
@@ -82,6 +87,11 @@ test_that("Gamma sigma supports an independent random intercept", {
   d <- data.frame(y = y, x = b$x, z = stats::rnorm(b$n), id = b$id)
   fit <- drmTMB(bf(y ~ x, sigma ~ (1 | id)), family = Gamma(link = "log"), data = d)
   expect_sigma_random_intercept_recovered(fit, "gamma", b$u, b$sd_sigma)
+
+  # a fixed-effect covariate + RE on sigma fits (previously a rejected boundary case)
+  combo <- drmTMB(bf(y ~ x, sigma ~ z + (1 | id)), family = Gamma(link = "log"), data = d)
+  expect_equal(combo$opt$convergence, 0)
+  expect_true(isTRUE(combo$sdr$pdHess))
 
   # a sigma random effect may not be combined with a mu random effect
   expect_error(

@@ -2505,6 +2505,11 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_mu);
       ADREPORT(sd_mu_re);
     }
+    // Arc 2c: independent sigma random intercept only. Unlike the gaussian block
+    // (model_type 1), this omits sigma_re_cor_id / sigma_re_cross_cor conditioning
+    // by design -- the R-side validator keeps lognormal/Gamma sigma-RE to a single
+    // uncorrelated intercept, not combinable with a mu RE. Relaxing that R gate to
+    // correlated or cross-dpar blocks REQUIRES adding that conditioning here too.
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
       for (int i = 0; i < y.size(); ++i) {
@@ -2602,6 +2607,8 @@ Type objective_function<Type>::operator()()
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
     }
+    // Arc 2c: independent sigma random intercept only (see the model_type 4 note).
+    // Omits cor_id / cross-dpar conditioning by design; guarded R-side.
     if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
       for (int i = 0; i < y.size(); ++i) {

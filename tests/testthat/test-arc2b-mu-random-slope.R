@@ -76,6 +76,10 @@ test_that("skew_normal mu supports an independent random slope", {
     drmTMB(bf(y ~ x + (0 + x | p | id), sigma ~ z, nu ~ 1), family = skew_normal(), data = d),
     "random intercept"
   )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | id), sigma ~ z, nu ~ 1), family = skew_normal(), data = d),
+    "random intercept"
+  )
 })
 
 test_that("tweedie mu supports an independent random slope", {
@@ -87,6 +91,10 @@ test_that("tweedie mu supports an independent random slope", {
   expect_mu_random_slope_recovered(fit, "tweedie", b$slope, b$slope_sd, cor_min = 0.55)
   expect_error(
     drmTMB(bf(y ~ x + (0 + x | p | id), sigma ~ 1, nu ~ 1), family = tweedie(), data = d),
+    "random intercept"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | id), sigma ~ 1, nu ~ 1), family = tweedie(), data = d),
     "random intercept"
   )
 })
@@ -104,6 +112,10 @@ test_that("zero_one_beta mu supports an independent random slope", {
     drmTMB(bf(y ~ x + (0 + x | p | id)), family = zero_one_beta(), data = d),
     "random intercept"
   )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 + x | id)), family = zero_one_beta(), data = d),
+    "random intercept"
+  )
 })
 
 test_that("binomial mu supports an independent random slope (trials > 1)", {
@@ -115,6 +127,10 @@ test_that("binomial mu supports an independent random slope (trials > 1)", {
   expect_mu_random_slope_recovered(fit, "binomial", b$slope, b$slope_sd, cor_min = 0.40)
   expect_error(
     drmTMB(bf(cbind(succ, fail) ~ x + (0 + x | p | id)), family = binomial(), data = d),
+    "random intercept"
+  )
+  expect_error(
+    drmTMB(bf(cbind(succ, fail) ~ x + (1 + x | id)), family = binomial(), data = d),
     "random intercept"
   )
 })
