@@ -85,6 +85,38 @@ separate session.
 `has_sigma_random_effects()` reportedly omits lognormal/Gamma — an omission from Arc 2c. Fix as
 a **tiny standalone slice**, not carried as an arc. Verify + add a test.
 
+## S4 review OUTCOME (2026-07-13) — promotion WITHHELD, re-scope required
+
+S1 (harness) + S2 (Totoro campaign, 7,200 fits) are **done and committed**; the profile
+interval **completely fixes the Wald ∞-width defect** (finite_rate 1.000, failed 0.000). But
+the D-43 review (Fisher / Rose / tier-definition) returned **2 NOT-DONE / 1 conditional-DONE →
+promotion withheld.** Corrected disposition for the next session:
+
+1. **Wrong target tier.** `interval_feasible` = "interval computes, NO Monte-Carlo coverage"
+   (its 44 existing cells; `2026-07-11-capability-surface.md:35`). This campaign IS a coverage
+   study, so the evidentially-correct tier is **`inference_ready_with_caveats`** (precedent:
+   mc-0276, mc-0153/0154 — RE-SD-adjacent cells with a coverage number sit there). Re-scope the
+   promotion to that tier, or leave `point_fit_recovery` — do NOT land `interval_feasible`.
+2. **Corrected claim_boundaries** (Fisher): lognormal must lead with the worst-in-range **0.917**
+   (M32), not 0.935, and say "mildly anti-conservative, not nominal"; binomial's M≥32 pass is
+   **coverage-driven, not profile-driven** (no ∞-width to fix at M≥32) — don't credit the profile
+   method there; both boundaries must state they are Monte-Carlo-coverage-backed *unlike* the
+   other 44 interval_feasible cells, name the single fixture (one true-SD, n_each=12), and name
+   the residual lever (REML Gaussian / AGHQ non-Gaussian).
+3. **Schema fix:** `coverage_status` does NOT exist in `capability-ledger/cells.tsv` (stale term
+   from the old q-series sidecar). The caveat lives entirely in `claim_boundary`. The flip needs
+   new `evidence.tsv` rows (`ev-mc-0382-arc4a`, `ev-mc-0061-arc4a`, path → the Arc-4a artifact) +
+   matching `transitions.tsv` rows, and rewrites of `next_gate`/`claim_boundary`/
+   `primary_evidence_id` on cells.tsv:62 (mc-0061) and :383 (mc-0382). No evidence_tier count
+   guard exists, so `--check` stays clean.
+4. **BLOCKER bug (fix BEFORE promoting mc-0382):** `has_sigma_random_effects()`
+   (`R/methods.R:5294-5298`) gates on gaussian/biv_gaussian/nbinom2 only — **omits lognormal/
+   Gamma** — so `predict(fit, dpar="sigma")` (R/methods.R:2726-2732) silently drops the σ-BLUP
+   shift for the Arc-2c sigma-RE, and the emmeans block (R/emmeans-preflight.R:243) doesn't fire.
+   This is a live correctness defect in the exact capability being promoted. Fix (add the two
+   families) + test that `predict(dpar="sigma")` includes the σ-BLUP, then promote.
+5. **Run the Noether/math-consistency lens** (only Fisher + Rose + tier-def ran).
+
 ## Deferred (evidence-motivated, in order)
 
 Arc 1a/1b Gaussian REML (the finite-M/df-bias remedy) · then the AGHQ estimator axis (the
