@@ -171,9 +171,10 @@ deferred rather than inferred from neighbouring cells.
 
 ## Next Actions
 
-Rose must audit the exact final tree and return DONE before any completion
-claim. Then commit and push the closeout, open the feature-branch pull request,
-and provide the canonical HTML path, generator command, commit SHA, and SHA-256
-to Claude. The external `a1bf21a1` artifact remains pending until Claude
-confirms an exact mirror read-back. Do not merge the Arc 1a PR without separate
-approval.
+Rose returned DONE for exact pushed commit `5fc6589b` after independently
+replaying the branch-wide whitespace check, issue ledger, capability and board
+validators, artifact hashes, and HTML read-back. PR #780 is open for review and
+must not be merged without separate approval. Provide the canonical HTML path,
+generator command, final commit SHA, and SHA-256 to Claude; the external
+`a1bf21a1` artifact remains pending until Claude confirms an exact mirror
+read-back.
