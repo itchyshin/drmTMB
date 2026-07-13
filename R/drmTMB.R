@@ -2210,8 +2210,8 @@ drm_validate_reml_spec_biv <- function(spec) {
   if (isTRUE(phylo_mu$has)) {
     if (!identical(structured_mu_type(phylo_mu), "phylo")) {
       cli::cli_abort(c(
-        "{.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
-        "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
+        "For bivariate models, {.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
+        "i" = "The Arc 1a spatial, animal, and relatedness mean-side routes are univariate only; set {.code REML = FALSE} for this bivariate model."
       ))
     }
     # Scale-side phylo endpoints are admitted under REML in ALL covariance layouts

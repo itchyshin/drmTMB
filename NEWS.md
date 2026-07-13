@@ -1,5 +1,22 @@
 # drmTMB 0.6.0 (development)
 
+## Exact-Gaussian REML for mean-side structured providers (Arc 1a)
+
+* `drmTMB(..., REML = TRUE)` now admits pure-`mu`, univariate Gaussian
+  `spatial()`, `animal()`, and `relmat()` terms as an unlabelled intercept or an
+  independent intercept plus one numeric slope. These routes require
+  `sigma ~ 1` with no sigma random effect.
+* Independent restricted-likelihood oracles, representation-parity fixtures,
+  and Totoro recovery and profile campaigns support the three cells at
+  `inference_ready_with_caveats`. Spatial and relmat evidence covers exactly
+  `M={8,16,32}`; animal covers one fixed `M=8` pedigree; all use `n_each=20`.
+  Coverage clears the pre-specified small-sample floors but is not
+  nominal-exact, so `supported` is withheld.
+* The fitted structured scale multiplies the provider covariance matrix; it is
+  not generally a node-level marginal standard deviation. Slope-only,
+  labelled or multiple slopes, sigma random effects, matched `mu+sigma`,
+  bivariate and non-Gaussian routes remain outside this Arc 1a claim.
+
 ## Residual-scale random intercepts for lognormal and Gamma (Arc 2c)
 
 * `predict(..., dpar = "sigma")` now includes the fitted residual-scale random

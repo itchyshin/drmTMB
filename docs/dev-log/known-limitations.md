@@ -206,9 +206,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `sigma ~ relmat(...)` -- are also admitted under REML (2026-07-08, C1): a recovery
   ladder debiases the scale-side intercept SD 400/400 across the three providers
   (bias -> 0 with the group count) and REML profile-CI coverage clears the small-`g`
-  inference floor (>= 0.926 vs 0.91). MEAN-side non-phylogenetic structured effects
-  under REML remain UNVALIDATED and rejected, as does the bivariate scale-side
-  structured path. The DENSE
+  inference floor (>= 0.926 vs 0.91). Arc 1a also admits narrowly bounded pure-`mu`
+  univariate `spatial()`/`animal()`/`relmat()` intercept and independent one-slope
+  REML routes with constant residual scale and no sigma random effect. Their
+  `inference_ready_with_caveats` evidence covers only the discrete tested domains;
+  labelled or multiple slopes, matched `mu+sigma`, and bivariate provider routes
+  remain rejected. The bivariate scale-side structured path also remains rejected. The DENSE
   (unstructured) q4 phylogenetic location-scale block is ALSO admitted under REML
   (2026-07-08): the earlier "sign-flip" verdict is superseded -- the DGP-to-endpoint
   mapping is correct (a single nonzero DGP correlation lands on the right pair with

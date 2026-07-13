@@ -34,7 +34,7 @@ Recovery used 400 datasets per cell, pairing ML and REML on each dataset:
 datasets per cell: 14,000 REML fits and 21,000 strict endpoint-profile targets.
 All attempted datasets remain in the primary denominators.
 
-## Frozen results before D-43
+## Frozen results and D-43 decision
 
 All 11,200 recovery fits converged and had finite target estimates and
 gradients. Of these, 11,199 had `pdHess = TRUE`, including all 5,600 REML fits;
@@ -56,8 +56,15 @@ minimum margin of 0.0124. Exact binomial intervals and lower/upper misses are in
 The miss tails are asymmetric and must remain a caveat. The most pronounced
 cell is the animal one-slope target at `M = 8`, with 8 lower and 59 upper
 misses. These results support neither nominal-exact coverage nor extrapolation
-beyond the tested finite domains. Capability-tier decisions remain conditional
-on the fresh Noether/Fisher/Pat D-43 review.
+beyond the tested finite domains.
+
+Fresh default-NOT-DONE reviews by Noether, Fisher, and Pat support all three
+provider cells at no higher than `inference_ready_with_caveats`. Noether's
+decisive review used the final admission guard at commit `384a526d`, which also
+rejects ordinary sigma random effects for every Arc 1a provider. The reviewers
+withhold `supported` and require the discrete domains, covariance-scale
+interpretation, miss asymmetry, boundary-truncated slope profiles, and
+deterministic-only representation parity above to remain in every claim.
 
 ## Commands
 

@@ -4,6 +4,13 @@ This note records the first `drmTMB(..., REML = TRUE)` implementation contract.
 It is an estimator slice for ordinary Gaussian mixed models, not a missing-data
 engine and not a broad replacement for ML model selection.
 
+> **Historical slice.** Later route-specific work expanded native Gaussian
+> REML beyond the exclusions recorded here. In particular, Arc 1a admits
+> bounded pure-`mu` univariate `spatial()`, `animal()`, and `relmat()` shapes.
+> Current authority is `docs/design/211-structured-reml-status.md` and the
+> estimator-conformance board; the list below remains the original first-slice
+> contract.
+
 ## Purpose
 
 REML is useful for Gaussian mixed-model variance-component estimation when the

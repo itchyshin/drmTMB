@@ -8,7 +8,8 @@
 > supports `mc-0382` and `mc-0061` at `inference_ready_with_caveats` over discrete tested domains,
 > never `interval_feasible`. Task B used TMB 1.9.21 adaptive marginal Gauss-Kronrod, not AGHQ, and
 > returned a negative/inconclusive gate; see
-> `simulation-artifacts/2026-07-13-marginal-gk-probe/README.md`. Task C remains deferred. Final
+> `simulation-artifacts/2026-07-13-marginal-gk-probe/README.md`. Task C (Arc 1a) is now
+> implemented and campaign-verified on its dedicated branch. Final
 > package/site verification, Rose review, branch landing, and the external Claude mirror remain
 > pending.
 
@@ -65,7 +66,7 @@ reproduces AGHQ's ≈unbiased SD, the mechanism is proven and Slice 1 (wire `int
 `drm_fit_spec` for binomial `model_type==18`, intercept-only) is greenlit; if not, AGHQ stays
 deferred and REML (Task C) is the whole of day 2. [live]
 
-## Task C — the bounded R-only win: REML Arc 1a, one slice (~1 day). Parallel to / fallback for B.
+## Task C — REML Arc 1a (implemented and evidence-backed on 2026-07-13)
 
 Gaussian/biv-Gaussian REML→ML parity (roadmap Arc 1a/1b) is the finite-M/df-bias remedy — the
 Gaussian half of today's DG3 coverage gap. Established C1 recipe
@@ -74,6 +75,13 @@ focused reference test + Totoro recovery (N≈300-400) + Totoro coverage (N≈30
 **Do one self-contained slice**, recommended **Slice 2 — univariate mean-side
 `spatial()/animal()/relmat()` REML admission** (relax `R/drmTMB.R:2072-2077`; deterministic
 exact-restricted-likelihood reference test mirroring `test-reml-phylo-location`). [live]
+
+Execution used the stricter approved Arc 1a ultra-plan: independent dense
+restricted-likelihood oracles, representation-parity and rejection guards,
+11,200 recovery fits, 14,000 coverage fits with 21,000 target profiles, and
+fresh Noether/Fisher/Pat D-43 review. The three provider cells reach no higher
+than `inference_ready_with_caveats`; see
+`simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/README.md`.
 
 ## Sequencing & estimate
 

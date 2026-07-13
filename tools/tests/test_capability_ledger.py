@@ -134,6 +134,35 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(before["binomial"], after["binomial"])
         self.assertIn("`mu`: rejected", before["binomial"])
 
+    def test_arc1a_reml_provider_promotions_are_live_and_discrete(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        for cell_id in ("mc-0287", "mc-0299", "mc-0311"):
+            row = by_id[cell_id]
+            self.assertEqual(row["capability_status"], "implemented")
+            self.assertEqual(row["work_status"], "verified")
+            self.assertEqual(
+                row["evidence_tier"], "inference_ready_with_caveats"
+            )
+            self.assertEqual(
+                row["primary_evidence_id"], f"ev-{cell_id}-arc1a-coverage"
+            )
+            self.assertNotIn("M>=", row["claim_boundary"])
+            self.assertIn("sigma ~ 1", row["claim_boundary"])
+            self.assertIn("not nominal", row["claim_boundary"])
+
+        self.assertIn("M={8,16,32}", by_id["mc-0287"]["claim_boundary"])
+        self.assertIn("fixed `M=8` pedigree", by_id["mc-0299"]["claim_boundary"])
+        self.assertIn("M={8,16,32}", by_id["mc-0311"]["claim_boundary"])
+
+        gaussian = next(
+            row for row in ledger.family_map_rows(self.cells)
+            if row["family_route"] == "gaussian"
+        )
+        self.assertIn(
+            "`mu`: scope-limited (implemented 8; rejected 4)",
+            gaussian["REML"],
+        )
+
     def test_highest_evidence_names_exact_cell_scope(self):
         binomial = next(
             row for row in ledger.family_map_rows(self.cells)

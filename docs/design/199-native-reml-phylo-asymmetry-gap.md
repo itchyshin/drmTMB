@@ -34,9 +34,10 @@ phylogenetic requests:
 >
 > **Pure scale-side phylo is now ADMITTED** under REML (`b9446fd7`), as are ordinary `sigma`
 > random effects (`feba9018`), a bivariate labelled scale-side sigma block (`99138cfa`), and dense q4 /
-> q>2 blocks (`1b3e852b`). What is still rejected is the **matched mean+scale** phylo block, and every
-> **non-phylo provider** (`spatial`/`animal`/`relmat`) -- the latter a conservative "not validated yet"
-> gate (`R/drmTMB.R:2040`), not a capability limit.
+> q>2 blocks (`1b3e852b`). Arc 1a now also admits narrowly bounded pure-`mu` univariate
+> `spatial()`/`animal()`/`relmat()` intercept and independent one-slope routes. It does not admit
+> those providers on `sigma`, in matched `mu+sigma` blocks, or in bivariate models. The
+> **matched mean+scale phylo** block remains rejected.
 >
 > Authority: `docs/dev-log/dashboard/estimator-surface-conformance.tsv` (machine-checked by
 > `tests/testthat/test-estimator-surface-conformance.R`) and
@@ -107,8 +108,9 @@ the honest public wording is:
 
 - native ML is balanced for univariate Gaussian `phylo()` location and scale
   intercept layouts;
-- native REML is exact-Gaussian mean-side-only for phylogenetic structured
-  effects;
+- native REML has exact-Gaussian, route-specific mean-side support for
+  phylogenetic effects and the bounded Arc 1a spatial, animal, and relmat
+  shapes; this does not create provider-wide parity across `mu` and `sigma`;
 - q2/q4 bivariate phylogenetic native REML is unsupported;
 - Julia/DRM.jl REML rows, where available, remain experimental bridge evidence
   until direct DRM.jl, native R, and R-via-Julia parity agree row by row.

@@ -64405,7 +64405,10 @@ test_that("native REML scope ledger keeps requested and effective estimators exp
       "next_gate"
     )
   )
-  expect_setequal(reml$slice_id, paste0("SR", 151:159))
+  expect_setequal(
+    reml$slice_id,
+    c(paste0("SR", 151:159), "SR171", "SR172", "SR173")
+  )
   structured_re_expect_all_match(reml$diagnostic_fields, "requested_estimator")
   structured_re_expect_all_match(reml$diagnostic_fields, "effective_estimator")
   expect_equal(reml$status, rep("covered", nrow(reml)))
@@ -64414,6 +64417,15 @@ test_that("native REML scope ledger keeps requested and effective estimators exp
   expect_equal(nrow(q1_mu), 1L)
   expect_equal(q1_mu$effective_estimator, "REML")
   expect_match(q1_mu$claim_boundary, "mean-side phylo only", fixed = TRUE)
+
+  arc1a <- reml[reml$slice_id %in% c("SR171", "SR172", "SR173"), , drop = FALSE]
+  expect_equal(nrow(arc1a), 3L)
+  expect_equal(
+    arc1a$support_status,
+    rep("inference_ready_with_caveats", 3L)
+  )
+  structured_re_expect_all_match(arc1a$claim_boundary, "n_each=20")
+  structured_re_expect_all_match(arc1a$claim_boundary, "supported is withheld")
 
   q1_sigma <- reml[reml$slice_id == "SR153", , drop = FALSE]
   expect_equal(q1_sigma$effective_estimator, "unsupported")
