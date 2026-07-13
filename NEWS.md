@@ -1,5 +1,43 @@
 # drmTMB 0.6.0 (development)
 
+## Residual-scale random intercepts for lognormal and Gamma (Arc 2c)
+
+* A residual-scale (`sigma`) random intercept `sigma ~ ... + (1 | id)` is now
+  accepted for `lognormal()` and `Gamma(link = "log")`, joining `gaussian()`
+  (full) and `nbinom2()` (intercept-only) as the families that allow a
+  random effect on a dispersion parameter.
+* As with the mean random effects, the `sigma`-SD is fit by maximum likelihood
+  with the Laplace approximation and can be biased downward when the number of
+  groups or the per-group replication is small; this release verifies point
+  recovery on simulated data, not interval coverage (60-seed sweep: -3% to -4%
+  relative `sigma`-SD bias at 40 groups; see
+  `docs/dev-log/simulation-artifacts/2026-07-12-arc2c-sigma-recovery/`).
+  Sentinels in `tests/testthat/test-arc2c-sigma-random-intercept.R`.
+* Scope (first gate): one independent `sigma` random intercept only. A `sigma`
+  random slope, labelled covariance blocks, and combining a `sigma` random
+  effect with a `mu` random effect in the same model remain rejected until joint
+  recovery tests exist. The other non-Gaussian families still reject `sigma`
+  random effects.
+
+## Random slopes for the intercept-only families (Arc 2b)
+
+* One independent `mu` random slope `(0 + x | id)` is now accepted for the five
+  families that gained a random intercept in Arc 2a: `binomial()`,
+  `cumulative_logit()`, `skew_normal()`, `tweedie()`, and `zero_one_beta()`.
+  Combined with Arc 2a, every fitted univariate family now supports both a mean
+  random intercept and an independent mean random slope.
+* Random-effect standard deviations for these families are fit by maximum
+  likelihood with the Laplace approximation and can be biased downward when the
+  number of groups or the per-group replication is small; this release verifies
+  point recovery on simulated data, not interval coverage. Point recovery is
+  characterised by a 60-seed sweep (per-family relative slope-SD bias of -2% to
+  -9% at 40 groups; see
+  `docs/dev-log/simulation-artifacts/2026-07-12-arc2b-slope-recovery/`) with
+  single-seed DG2 sentinels in `tests/testthat/test-arc2b-mu-random-slope.R`.
+* Scope: one independent `mu` slope only. Correlated intercept-slope blocks
+  `(1 + x | id)`, labelled covariance blocks `(0 + x | p | id)`, and
+  `sigma`/shape/inflation-dpar random effects remain rejected for these families.
+
 ## Random intercepts for every family (Arc 2a)
 
 * An ordinary `mu` random intercept `(1 | group)` is now accepted for the five

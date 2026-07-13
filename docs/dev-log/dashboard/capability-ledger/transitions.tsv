@@ -708,3 +708,10 @@ tr-mc-0225-arc2a	mc-0225	deferred	verified	ev-mc-0225-arc2a	Arc 2a: cumulative_l
 tr-mc-0463-arc2a	mc-0463	deferred	verified	ev-mc-0463-arc2a	Arc 2a: skew_normal mu random intercept implemented + DG2 recovery sentinel	Arc 2a	966174c0a4a21428d4e9e6c011131a88e461cf88	2026-07-12
 tr-mc-0538-arc2a	mc-0538	deferred	verified	ev-mc-0538-arc2a	Arc 2a: tweedie mu random intercept implemented + DG2 recovery sentinel	Arc 2a	966174c0a4a21428d4e9e6c011131a88e461cf88	2026-07-12
 tr-mc-0567-arc2a	mc-0567	backlog	verified	ev-mc-0567-arc2a	Arc 2a: zero_one_beta mu random intercept implemented + DG2 recovery sentinel	Arc 2a	966174c0a4a21428d4e9e6c011131a88e461cf88	2026-07-12
+tr-mc-0061-arc2b	mc-0061	deferred	verified	ev-mc-0061-arc2b	Arc 2b: binomial mu random slope implemented + DG2 recovery (point_fit_recovery)	Arc 2b	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
+tr-mc-0227-arc2b	mc-0227	deferred	verified	ev-mc-0227-arc2b	Arc 2b: cumulative_logit mu random slope implemented + DG2 recovery (point_fit_recovery)	Arc 2b	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
+tr-mc-0464-arc2b	mc-0464	deferred	verified	ev-mc-0464-arc2b	Arc 2b: skew_normal mu random slope implemented + DG2 recovery (point_fit_recovery)	Arc 2b	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
+tr-mc-0539-arc2b	mc-0539	deferred	verified	ev-mc-0539-arc2b	Arc 2b: tweedie mu random slope implemented + DG2 recovery (point_fit_recovery)	Arc 2b	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
+tr-mc-0575-arc2b	mc-0575	backlog	verified	ev-mc-0575-arc2b	Arc 2b: zero_one_beta mu random slope implemented + DG2 recovery (point_fit_recovery)	Arc 2b	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
+tr-mc-0242-arc2c	mc-0242	deferred	verified	ev-mc-0242-arc2c	Arc 2c: gamma sigma random intercept implemented + DG2 recovery (point_fit_recovery)	Arc 2c	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
+tr-mc-0382-arc2c	mc-0382	deferred	verified	ev-mc-0382-arc2c	Arc 2c: lognormal sigma random intercept implemented + DG2 recovery (point_fit_recovery)	Arc 2c	705ee1953879ea0c09be0a056d8981e121efbdcc	2026-07-12
