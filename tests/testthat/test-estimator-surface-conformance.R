@@ -14,7 +14,7 @@
 #   * profile intervals cannot touch fixed effects under REML
 #   * the endpoint profile solver errored on an empty free-parameter vector
 #   * the missing-data gate tested the SETTING, not whether the engine engaged
-#   * spatial / animal / relmat structured effects are rejected
+#   * spatial / animal / relmat structured effects originally lacked REML rows
 #
 # So: the grid is declared in
 #   docs/dev-log/dashboard/estimator-surface-conformance.tsv
@@ -72,12 +72,16 @@ conformance_gates <- function(env) {
   tree <- env$tree
   coords <- env$coords
   Kmat <- env$Kmat
+  Amat <- env$Amat
   list(
     gate_phylo_mu = function() drmTMB(
       bf(y ~ x + phylo(1 | species, tree = tree)),
       family = gaussian(), data = dat, REML = TRUE, control = ctrl),
     gate_spatial_mu = function() drmTMB(
       bf(y ~ x + spatial(1 | species, coords = coords)),
+      family = gaussian(), data = dat, REML = TRUE, control = ctrl),
+    gate_animal_mu = function() drmTMB(
+      bf(y ~ x + animal(1 | species, A = Amat)),
       family = gaussian(), data = dat, REML = TRUE, control = ctrl),
     gate_relmat_mu = function() drmTMB(
       bf(y ~ x + relmat(1 | species, K = Kmat)),
@@ -167,7 +171,7 @@ conformance_env <- function() {
   Kmat <- outer(seq_len(n_tip), seq_len(n_tip), function(i, j) 0.35^abs(i - j))
   diag(Kmat) <- diag(Kmat) + 0.15
   dimnames(Kmat) <- list(tree$tip.label, tree$tip.label)
-  list(dat = dat, tree = tree, coords = coords, Kmat = Kmat,
+  list(dat = dat, tree = tree, coords = coords, Kmat = Kmat, Amat = Kmat,
        ctrl = drm_control(optimizer = list(eval.max = 400, iter.max = 400)))
 }
 

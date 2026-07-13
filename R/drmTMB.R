@@ -127,16 +127,18 @@
 #'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
 #'   through JuliaCall for the supported bridge slice.
 #' @param REML Logical; use restricted maximum likelihood where the selected
-#'   engine supports it. Native `engine = "tmb"` supports: univariate Gaussian
-#'   mixed models with ordinary dense `mu` fixed effects, ordinary `mu` random
-#'   intercepts or slopes, a mean-side phylogenetic [phylo()] effect, diagonal or
-#'   dense known sampling covariance through [meta_V()], non-unit likelihood
-#'   `weights` (with diagonal or no known covariance), and a fixed-effect
-#'   `sigma ~ predictors` (heteroscedastic) or intercept-only `sigma`; and
-#'   bivariate Gaussian *fixed-effect* location models (`mu1`/`mu2`). It does not
-#'   yet support aggregation, scale-side or non-phylogenetic structured effects,
-#'   direct `sd()` scale formulae, scale random effects, or bivariate random or
-#'   structured means.
+#'   engine supports it. Native `engine = "tmb"` keeps REML Gaussian-only and
+#'   restricts the likelihood by marginalising the admitted fixed-effect mean
+#'   coefficients. Validated univariate routes include ordinary random effects;
+#'   mean-side [phylo()], [spatial()], [animal()], and [relmat()] effects; known
+#'   sampling covariance through [meta_V()]; non-unit likelihood `weights`; and
+#'   selected scale-side random or structured effects. Mean-side `spatial()`,
+#'   `animal()`, and `relmat()` REML is deliberately limited to an unlabelled
+#'   intercept or independent intercept-plus-one-numeric-slope term with
+#'   `sigma ~ 1`. Slope-only, labelled, multiple-slope, matched non-phylogenetic
+#'   mean-scale, and bivariate non-phylogenetic structured REML remain outside
+#'   that route. Aggregation and ordinary direct `sd()` scale formulae also
+#'   remain unsupported under REML.
 #'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
 #'   Gaussian bridge cells, including fixed-effect location-scale models,
 #'   Gaussian `sigma`-phylo location-scale models, and the bivariate q = 4
@@ -1994,6 +1996,37 @@ drm_reml_missing_engine_engages <- function(missing_control, formula, data) {
   anyNA(data[, present, drop = FALSE])
 }
 
+drm_reml_admits_mean_structured_provider <- function(structured) {
+  if (!isTRUE(structured$has)) {
+    return(FALSE)
+  }
+  if (!structured_mu_type(structured) %in% c("spatial", "animal", "relmat")) {
+    return(FALSE)
+  }
+
+  dpars <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(structured))
+  if (length(dpars) == 0L || !all(dpars == "mu")) {
+    return(FALSE)
+  }
+
+  covariance_labels <- phylo_mu_endpoint_covariance_labels(structured)
+  unlabelled <- all(is.na(covariance_labels) | !nzchar(covariance_labels))
+  if (!unlabelled || !identical(phylo_mu_covariance_mode(structured), "scalar")) {
+    return(FALSE)
+  }
+
+  q <- structured_mu_q(structured)
+  coef_names <- structured_mu_endpoint_coef_names(structured)
+  intercept_only <- q == 1L && identical(coef_names, "(Intercept)")
+  intercept_one_slope <- q == 2L &&
+    length(coef_names) == 2L &&
+    identical(coef_names[[1L]], "(Intercept)") &&
+    is.character(coef_names[[2L]]) &&
+    nzchar(coef_names[[2L]])
+
+  intercept_only || intercept_one_slope
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -2064,15 +2097,23 @@ drm_validate_reml_spec <- function(spec) {
     # scale-side intercept SD 400/400 across spatial/animal/relmat with bias -> 0 as
     # g grows, and REML profile-CI coverage clears the small-g inference_ready floor
     # in every cell (>= 0.926 vs a 0.91 g=8 floor). MEAN-side non-phylo structured
-    # effects, and non-phylo effects spanning both endpoints, remain unvalidated and
-    # rejected; the bivariate path (drm_validate_reml_spec_biv) is unchanged.
+    # effects spanning both endpoints remain rejected; the bivariate path
+    # (drm_validate_reml_spec_biv) is unchanged. Arc 1a admits only pure mean-side,
+    # unlabelled intercept-only or intercept-plus-one-slope terms for those three
+    # providers. The Gaussian engine and random set are unchanged: `u_phylo` and
+    # `beta_mu` are already marginalized exactly.
     structured_type <- structured_mu_type(phylo_mu)
     scale_side_only <- length(phylo_mu_dpar_codes(phylo_mu)) > 0L &&
       all(phylo_mu_dpar_codes(phylo_mu) == 1L)
-    if (!identical(structured_type, "phylo") && !scale_side_only) {
+    mean_provider_admitted <- drm_reml_admits_mean_structured_provider(phylo_mu)
+    if (
+      !identical(structured_type, "phylo") &&
+        !scale_side_only &&
+        !mean_provider_admitted
+    ) {
       cli::cli_abort(c(
-        "{.arg REML} supports phylogenetic ({.fn phylo}) mean-side structured effects and scale-side ({.code sigma ~ spatial()/animal()/relmat()}) structured effects.",
-        "i" = "Mean-side spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
+        "{.arg REML} supports phylogenetic ({.fn phylo}) structured effects, scale-side {.fn spatial}/{.fn animal}/{.fn relmat} effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers.",
+        "i" = "Slope-only, labelled, multiple-slope, and matched mean-scale non-phylogenetic structured effects remain unvalidated; use an admitted shape or set {.code REML = FALSE}."
       ))
     }
     # A PURE scale-side phylo effect (a sigma endpoint, no mean endpoint) AND a
