@@ -576,3 +576,26 @@ scouting belongs to Jason).
   negligible impact in the intended operating range and to tell users honestly
   when a guard can affect inference. Design note:
   `docs/design/176-numerical-guard-simulation-audit.md`.
+
+## 2026-07-13 - Coverage DGPs Must Declare The Estimand
+
+- Improvement implemented: every random-effect coverage campaign must state
+  whether simulated effects are iid population draws or constrained realised
+  effects. A population-SD coverage claim must not mean-centre each realised
+  draw before fitting unless the scored estimand is adjusted to match.
+- Trigger: the first Arc 4a profile campaign used `u <- u - mean(u)` but scored
+  intervals against the unadjusted population SD. Noether caught the mismatch;
+  the 7,200-fit result was withdrawn and all 12 cells were rerun with iid
+  uncentered effects before any ledger promotion.
+
+## 2026-07-13 - Numerical Error Must Follow The Objective Scale
+
+- Improvement implemented: when an independent numerical oracle transforms an
+  integral into an objective, propagate the numerical error estimate through
+  the same transformation and include both the evaluated point and the
+  normalization reference. Call the result an estimate or recorded envelope,
+  not a guaranteed bound unless the numerical method supplies one.
+- Trigger: the marginal-Gauss-Kronrod probe initially compared TMB's normalized
+  negative log likelihood with `stats::integrate()` errors still on the
+  probability-integral scale. Noether's review required `-log()` propagation
+  and reference-plus-point accounting; the negative Slice-0 verdict survived.

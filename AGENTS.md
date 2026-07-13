@@ -10,7 +10,22 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-13, → Claude, ARC 2b/2c COMPLETE — mu slope everywhere + sigma intercept for lognormal/Gamma; Arc 4a ratified next).**
+> **▶ Latest — start here (2026-07-13, → CLAUDE, Arc 4a closeout landed; mirror pending).**
+> Branch `feature/arc4a-profile-coverage` now contains the `has_sigma_random_effects()` repair,
+> fitted lognormal/Gamma sigma-prediction regression tests, and a corrected iid-un­centered
+> Totoro campaign (14,400 fits; zero failures). Fresh Noether/Fisher/Pat D-43 review supports
+> promoting `mc-0382` and `mc-0061` only to `inference_ready_with_caveats`, over the exact tested
+> domains recorded in the ledger. The live-ledger capability generator and tracked HTML surface
+> are refreshed branch-locally. The isolated TMB 1.9.21 adaptive marginal Gauss-Kronrod probe is
+> **negative/inconclusive**: its normalized objective misses the direct oracle's numerical-error
+> envelope and the frozen fixture is boundary-singular, so package integration remains deferred.
+> Full package/site checks and Rose's repaired-tree audit are DONE. Implementation commit
+> `2806f00b` is pushed and PR #779 remains open. Only Claude's external `a1bf21a1` mirror is
+> pending; do not claim it refreshed before exact HTML/hash read-back. Task C remains deferred.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-13-arc4a-claude-handover.md`](docs/dev-log/handover/2026-07-13-arc4a-claude-handover.md)
+>
+> **▶ Prior (2026-07-13, → Claude, ARC 2b/2c COMPLETE — mu slope everywhere + sigma intercept for lognormal/Gamma; Arc 4a ratified next).**
 > `main` = `43c1a321` (Arc 2b/2c + DG3 evidence merged, PRs #775/#777) · every fitted
 > univariate family now has a `mu` random intercept **and** an independent slope; lognormal +
 > Gamma also a `sigma` random intercept. All `point_fit_recovery` (ML-Laplace) · `--as-cran`

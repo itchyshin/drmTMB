@@ -1,0 +1,17 @@
+gaussian_slope   M=8   attempted=1200 eligible=1200 profile_finite=1200
+gaussian_slope   M=16  attempted=1200 eligible=1200 profile_finite=1200
+gaussian_slope   M=32  attempted=1200 eligible=1200 profile_finite=1200
+gaussian_slope   M=64  attempted=1200 eligible=1200 profile_finite=1200
+binomial_slope   M=8   attempted=1200 eligible=1200 profile_finite=1200
+binomial_slope   M=16  attempted=1200 eligible=1200 profile_finite=1200
+binomial_slope   M=32  attempted=1200 eligible=1200 profile_finite=1200
+binomial_slope   M=64  attempted=1200 eligible=1200 profile_finite=1200
+lognormal_sigma  M=8   attempted=1200 eligible=1200 profile_finite=1200
+lognormal_sigma  M=16  attempted=1200 eligible=1200 profile_finite=1200
+lognormal_sigma  M=32  attempted=1200 eligible=1200 profile_finite=1200
+lognormal_sigma  M=64  attempted=1200 eligible=1200 profile_finite=1200
+
+WROTE /home/snakagaw/drmTMB_work/arc4a-iid-v2-20260713-0720/profile-coverage-results-iid-v2-raw.tsv
+WROTE /home/snakagaw/drmTMB_work/arc4a-iid-v2-20260713-0720/profile-coverage-results-iid-v2-summary.tsv
+WROTE /home/snakagaw/drmTMB_work/arc4a-iid-v2-20260713-0720/profile-coverage-results-iid-v2-manifest.tsv
+DG3-PROFILE IID-V2 DONE

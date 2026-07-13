@@ -33,12 +33,12 @@ quantity each `sigma` formula models.
 | Continuous, symmetric residuals | `gaussian()` | `mu`, `sigma` | residual standard deviation | most mature path; non-Gaussian extensions are separate |
 | Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma`/`nu` random effects and bivariate models planned |
 | Continuous with asymmetric residuals | `skew_normal()` | `mu`, `sigma`, `nu` | response standard deviation; `nu` is residual slant | fixed effects only |
-| Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | `mu` random intercepts (and slopes) at recovery grade; `sigma` random effects and bivariate models planned |
-| Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma` random effects and bivariate models planned |
+| Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | `mu` random intercepts/slopes and a `sigma` random intercept are fitted; only the exact ledger domain for the `sigma` intercept is inference-ready with caveats |
+| Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | `mu` random intercepts/slopes and a `sigma` random intercept are fitted at recovery grade; `sigma` slopes and bivariate models are planned |
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | fixed effects only; `nu ~ 1` only |
 | Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | exact 0/1 boundary values use `zero_one_beta()` |
 | Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | fixed effects only |
-| Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | fixed effects only; use `cbind(successes, failures)` for trial totals |
+| Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | ordinary `mu` random intercepts and independent slopes are fitted; use `cbind(successes, failures)` for trial totals |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma` random effects and bivariate models planned |
 | Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts, independent slopes, and q=1 phylogenetic `mu` intercept implemented; `zi` random effects planned |
 | Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary non-zero-inflated `mu` random intercepts, independent slopes, grouped `sigma` random intercepts, q=1 phylogenetic `mu` intercept, and q=1 `sigma` structured one-slope routes (`phylo`/`spatial`/`animal`/`relmat`, recovery grade) implemented; plain `sigma` random slopes, `sigma` structured routes beyond one slope, and `zi` random effects planned |
@@ -66,13 +66,15 @@ recovery grade, and lognormal `mu` accepts a random intercept (slopes at
 recovery grade). Ordinary Poisson
 and ordinary NB2 also have q=1 structured `mu` intercept routes using one of
 `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean scale.
-Ordinary NB2 also
-has a first grouped overdispersion route, `sigma ~ z + (1 | id)`, on the
-log-`sigma` scale. Tweedie is currently fixed-effect only, with intercept-only
+Ordinary NB2, lognormal, and Gamma also have first grouped scale routes,
+`sigma ~ z + (1 | id)`, on their family-specific log-`sigma` scales. The
+lognormal and Gamma scale routes must be fitted separately from their `mu`
+random-effect routes. Tweedie is currently fixed-effect only, with intercept-only
 `nu ~ 1`; skew-normal is currently fixed-effect only, with `nu` modelling
 residual slant. Other non-Gaussian random-effect requests are still boundary
 checks: Tweedie random effects or predictor-dependent power, skew-normal random
-effects or structured effects, NB2 plain `sigma` random slopes and `sigma`
+effects or structured effects, NB2/lognormal/Gamma plain `sigma` random slopes,
+combined lognormal/Gamma `mu`+`sigma` random effects, and NB2 `sigma`
 structured routes beyond the one-slope gate,
 Student-t `nu` random effects, zero-inflation or hurdle random effects,
 ordinal mixed models, other non-count `spatial()`/`animal()`/`relmat()`
@@ -269,10 +271,12 @@ For this family, `predict(fit, dpar = "mu")` returns the mean of `log(y)`,
 `sigma(fit)` returns the standard deviation of `log(y)`, and `fitted(fit)`
 returns the arithmetic response mean. Use this path when multiplicative
 variation is scientifically natural and the response values are positive and
-finite. A `mu` random intercept runs at recovery grade, with random slopes also
-at recovery grade (trust the point estimate, not the interval). Scale (`sigma`)
-random effects, known sampling covariance, phylogenetic terms, and bivariate
-lognormal models are planned later.
+finite. A `mu` random intercept and independent slopes run at recovery grade.
+An ordinary log-`sigma` random intercept is also fitted; only the exact tested
+domain in capability cell `mc-0382` is inference-ready with caveats, with mildly
+anti-conservative rather than nominal coverage. Fit the `mu` and `sigma`
+random-effect routes separately; the package rejects their combination. Scale slopes, known sampling
+covariance, phylogenetic terms, and bivariate lognormal models are planned later.
 
 Gamma mean-CV models are implemented for positive continuous responses where
 relative variability is the scale target:
@@ -312,6 +316,11 @@ rate, or concentration when predictors may change relative variability. The
 first implementation requires `stats::Gamma(link = "log")`; `stats::Gamma()`
 with its default inverse link is rejected, and `drmTMB` does not export
 `gamma()` because `base::gamma()` already exists.
+
+Gamma also fits one ordinary log-`sigma` random intercept at recovery grade.
+Fit it separately from the ordinary `mu` random-effect route; combining `mu`
+and `sigma` random effects is rejected. Gamma `sigma` slopes and labels remain
+unsupported.
 
 Tweedie mean-scale-power models are implemented for non-negative
 semicontinuous responses with exact zeros and positive continuous values:
@@ -684,10 +693,12 @@ drmTMB(
 
 For plain binomial models, `mu_i` is the fitted event probability. `fitted(fit)`
 returns probabilities; multiply by `successes_i + failures_i` when the
-scientific summary is the expected number of successes. The first slice is
-fixed-effect only and rejects factor responses, proportions with trial weights,
-random effects, structured effects, bivariate responses, and `engine =
-"julia"`.
+scientific summary is the expected number of successes. Ordinary `mu` random
+intercepts and independent numeric slopes are fitted first slices. Only the
+exact independent-slope domain in capability cell `mc-0061` is inference-ready
+with caveats; correlated or labelled slopes remain unsupported. Factor
+responses, proportions with trial weights, structured effects, bivariate
+responses, and `engine = "julia"` remain unsupported.
 
 Use `beta_binomial()` when the response is still counted successes out of known
 trials but the data show extra-binomial variation. It uses the same

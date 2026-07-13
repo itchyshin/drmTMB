@@ -324,8 +324,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate lognormal location-scale models are implemented for positive
   finite responses. `mu` and `sigma` are on the log-response scale, and
   ordinary unlabelled `mu` random intercepts and independent numeric slopes
-  such as `(1 | id) + (0 + x | id)` are fitted. Correlated slopes, labelled
-  covariance blocks, `sigma` random effects, known sampling covariance,
+  such as `(1 | id) + (0 + x | id)` are fitted. One ordinary log-`sigma`
+  random intercept is also fitted; its exact Arc 4a ledger domain is
+  inference-ready with caveats and mildly anti-conservative coverage. The
+  `mu` and `sigma` random-effect routes must be fitted separately; combining
+  them is rejected.
+  Correlated or labelled slopes, `sigma` slopes, known sampling covariance,
   phylogenetic terms, and bivariate lognormal models are not yet implemented.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
@@ -350,8 +354,11 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts
   and independent numeric slopes such as `(1 | id) + (0 + x | id)` are fitted.
-  Non-log Gamma links, correlated slopes, labelled covariance blocks, `sigma`
-  random effects, known sampling covariance, phylogenetic terms, and bivariate
+  One ordinary log-`sigma` random intercept is fitted at point-recovery grade.
+  The `mu` and `sigma` random-effect routes must be fitted separately;
+  combining them is rejected.
+  Non-log Gamma links, correlated or labelled slopes, `sigma` slopes, known
+  sampling covariance, phylogenetic terms, and bivariate
   or mixed Gamma models are not yet implemented.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
@@ -426,13 +433,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
   messages. Beta-binomial evidence does not promote plain binomial interval
   calibration.
-- Fixed-effect univariate Bernoulli/binomial logit models are implemented with
+- Univariate Bernoulli/binomial logit models are implemented with
   `family = stats::binomial(link = "logit")`. The first path supports explicit
   0/1 event indicators and `cbind(successes, failures)` responses, stores
   trial totals from row sums, includes the binomial normalizing constant for
   `stats::glm()` log-likelihood, AIC, and BIC parity, and has no public
-  `sigma`. Non-logit links, factor response ordering, proportions plus
-  `weights`, `weights = trials`, random effects, structured effects,
+  `sigma`. Ordinary `mu` random intercepts and independent numeric slopes are
+  fitted first slices. The exact independent-slope domain in capability cell
+  `mc-0061` is inference-ready with caveats; it does not authorize neighbouring
+  random-effect designs. Non-logit links, factor response ordering, proportions plus
+  `weights`, `weights = trials`, correlated or labelled random slopes, structured effects,
   bivariate or mixed responses, and `engine = "julia"` remain unsupported.
 - Phylogenetic random effects are implemented for univariate Gaussian `mu` and
   `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations,
@@ -573,7 +583,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   row-specific phylo `nu` gate, Student-t known-covariance
   models, broad Student-t phylogenetic models, bivariate Student-t models,
   correlated lognormal/Gamma/beta/beta-binomial random slopes,
-  lognormal/Gamma/beta/beta-binomial `sigma` random effects,
+  lognormal/Gamma `sigma` slopes, labelled or combined `sigma` random effects,
+  beta/beta-binomial `sigma` random effects,
   lognormal/Gamma/beta/beta-binomial structured-effect models,
   beta exact-boundary mass, ordinal scale or discrimination models,
   count covariance labels and correlated count slopes, count hurdle or

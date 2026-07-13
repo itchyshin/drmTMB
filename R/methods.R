@@ -5293,7 +5293,7 @@ n_mu_random_effect_terms <- function(object) {
 
 has_sigma_random_effects <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian", "nbinom2") &&
+    c("gaussian", "biv_gaussian", "nbinom2", "lognormal", "gamma") &&
     length(object$random_effects$sigma$values) > 0L
 }
 

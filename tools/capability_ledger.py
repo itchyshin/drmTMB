@@ -91,6 +91,39 @@ EVIDENCE_TIERS = {
     "diagnostic_only", "point_fit_recovery", "none", "miswired", "na",
 }
 
+TIER_ORDER = [
+    "supported", "inference_ready_with_caveats", "interval_feasible",
+    "diagnostic_only", "point_fit_recovery", "none", "miswired",
+]
+STRUCTURED_PROVIDERS = [
+    "phylo", "spatial", "animal", "relmat", "phylo_interaction",
+]
+
+# A route reaches the missing-predictor runtime gate through its fitted
+# family_type, not necessarily through its user-facing route name. Keep this
+# mapping explicit: mixture routes deliberately share the base family's gate,
+# while the hurdle route deliberately does not.
+MISSING_PREDICTOR_RUNTIME_GATE = {
+    "gaussian": "gaussian",
+    "biv_gaussian": "biv_gaussian",
+    "student": "student",
+    "lognormal": "lognormal",
+    "gamma": "gamma",
+    "poisson": "poisson",
+    "nbinom2": "nbinom2",
+    "zi_poisson": "poisson",
+    "zi_nbinom2": "nbinom2",
+    "beta": "beta",
+    "truncated_nbinom2": "truncated_nbinom2",
+    "hurdle_nbinom2": "truncated_nbinom2",
+    "cumulative_logit": "cumulative_logit",
+    "beta_binomial": "beta_binomial",
+    "zero_one_beta": "zero_one_beta",
+    "tweedie": "tweedie",
+    "skew_normal": "skew_normal",
+    "binomial": "binomial",
+}
+
 
 def git_sha() -> str:
     return subprocess.check_output(
@@ -511,7 +544,10 @@ def validate(
         raise SystemExit("Capability ledger validation failed:\n- " + "\n- ".join(errors))
 
 
-def model_projection(cells: list[dict[str, str]]) -> list[dict[str, str]]:
+def model_projection(
+    cells: list[dict[str, str]], evidence: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    evidence_by_id = {row["evidence_id"]: row for row in evidence}
     rows = sorted(
         (row for row in cells if row["axis"] == "model_surface"),
         key=lambda row: int(row["source_order"]),
@@ -527,12 +563,18 @@ def model_projection(cells: list[dict[str, str]]) -> list[dict[str, str]]:
         "estimator": row["estimator"],
         "status": row["capability_status"],
         "evidence_tier": row["evidence_tier"],
-        "evidence_source": row["legacy_evidence_source"],
-        "notes": row["notes"],
+        "evidence_source": (
+            evidence_by_id[row["primary_evidence_id"]]["path_or_url"]
+            if row["primary_evidence_id"]
+            else row["legacy_evidence_source"]
+        ),
+        "notes": row["claim_boundary"] or row["notes"],
     } for row in rows]
 
 
-def widget_value(model: list[dict[str, str]]) -> dict[str, object]:
+def widget_value(
+    model: list[dict[str, str]], generated_date: str
+) -> dict[str, object]:
     tiers = [
         "supported", "inference_ready_with_caveats", "interval_feasible",
         "diagnostic_only", "point_fit_recovery", "none", "miswired",
@@ -550,7 +592,7 @@ def widget_value(model: list[dict[str, str]]) -> dict[str, object]:
         row["evidence_tier"] for row in model if row["status"] == "implemented"
     )
     return {
-        "generated": DATE,
+        "generated": generated_date,
         "rows": [
             {key: row[key] for key in (
                 "family", "dpar", "effect_type", "structure_provider",
@@ -602,45 +644,222 @@ def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> st
     return "\n".join(lines) + "\n"
 
 
-def family_map_rows() -> list[dict[str, str]]:
-    """Recover the code-verified 2026-07-11 family map as a retained view."""
-    source = ROOT / "docs/dev-log/dashboard/2026-07-11-capability-surface.md"
-    lines = source.read_text(encoding="utf-8").splitlines()
-    start = next(
-        index for index, line in enumerate(lines)
-        if line.startswith("| Response | dpars | Fixed |")
+def ledger_updated_date(cells: list[dict[str, str]]) -> str:
+    """Return the newest ISO date present in the authoritative ledger."""
+    dates = {row["updated_date"] for row in cells if row.get("updated_date")}
+    invalid = sorted(date for date in dates if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date))
+    if invalid:
+        raise SystemExit(f"Invalid ledger updated_date value(s): {', '.join(invalid)}")
+    if not dates:
+        raise SystemExit("Capability ledger has no updated_date values")
+    return max(dates)
+
+
+def runtime_missing_predictor_families() -> set[str]:
+    """Read the fitted-family allow-list from the R runtime's SSOT helper."""
+    source = (ROOT / "R/missing-data.R").read_text(encoding="utf-8")
+    match = re.search(
+        r"drm_missing_predictor_families\s*<-\s*function\(\)\s*\{\s*c\((.*?)\)\s*\}",
+        source,
+        flags=re.DOTALL,
     )
-    headers = [cell.strip() for cell in lines[start].strip("|").split("|")]
+    if not match:
+        raise SystemExit("Cannot read drm_missing_predictor_families() runtime gate")
+    families = set(re.findall(r'["\']([^"\']+)["\']', match.group(1)))
+    if not families:
+        raise SystemExit("drm_missing_predictor_families() runtime gate is empty")
+    return families
+
+
+def validate_missing_predictor_runtime_map() -> set[str]:
+    """Validate route-to-family routing, then return the live R allow-list."""
+    expected = {route: family_type for _, route, family_type, _, _ in ROUTES}
+    if MISSING_PREDICTOR_RUNTIME_GATE != expected:
+        raise SystemExit(
+            "MISSING_PREDICTOR_RUNTIME_GATE does not match the fitted route contract"
+        )
+    runtime = runtime_missing_predictor_families()
+    unknown = runtime - set(expected.values())
+    if unknown:
+        raise SystemExit(
+            "R missing-predictor runtime gate names unknown family type(s): "
+            + ", ".join(sorted(unknown))
+        )
+    return runtime
+
+
+def _aggregate_state(rows: list[dict[str, str]]) -> str:
+    """Aggregate cells without turning absence into rejection."""
+    if not rows:
+        return "absent"
+    counts = Counter(row["capability_status"] for row in rows)
+    labels = {
+        "implemented": "implemented",
+        "rejected_by_design": "rejected",
+        "not_implemented": "not implemented",
+        "scaffolded": "scaffolded",
+    }
+    if len(counts) == 1:
+        return labels[next(iter(counts))]
+    details = "; ".join(
+        f"{labels[status]} {counts[status]}"
+        for status in (
+            "implemented", "rejected_by_design", "not_implemented", "scaffolded"
+        )
+        if counts[status]
+    )
+    prefix = "scope-limited" if counts["implemented"] else "mixed"
+    return f"{prefix} ({details})"
+
+
+def _dpar_order(rows: list[dict[str, str]]) -> list[str]:
+    first_seen: dict[str, int] = {}
+    for row in rows:
+        first_seen.setdefault(row["dpar"], int(row["source_order"]))
+    return sorted(first_seen, key=first_seen.get)
+
+
+def _effect_summary(
+    rows: list[dict[str, str]], dpars: list[str], effect_type: str
+) -> str:
+    pieces = []
+    for dpar in dpars:
+        selected = [
+            row for row in rows
+            if row["dpar"] == dpar and row["effect_type"] == effect_type
+        ]
+        pieces.append(f"`{dpar}`: {_aggregate_state(selected)}")
+    return "; ".join(pieces)
+
+
+def _ordinary_summary(rows: list[dict[str, str]], dpars: list[str]) -> str:
+    pieces = []
+    for dpar in dpars:
+        intercept = [
+            row for row in rows
+            if row["dpar"] == dpar and row["effect_type"] == "ordinary_re_intercept"
+        ]
+        slope = [
+            row for row in rows
+            if row["dpar"] == dpar and row["effect_type"] == "ordinary_re_slope"
+        ]
+        pieces.append(
+            f"`{dpar}`: int {_aggregate_state(intercept)} / "
+            f"slope {_aggregate_state(slope)}"
+        )
+    return "; ".join(pieces)
+
+
+def _structured_summary(rows: list[dict[str, str]], dpars: list[str]) -> str:
+    pieces = []
+    for dpar in dpars:
+        providers = []
+        for provider in STRUCTURED_PROVIDERS:
+            selected = [
+                row for row in rows
+                if row["dpar"] == dpar
+                and row["effect_type"] == "structured"
+                and row["structure_provider"] == provider
+            ]
+            providers.append(f"{provider}={_aggregate_state(selected)}")
+        pieces.append(f"`{dpar}`: " + ", ".join(providers))
+    return "; ".join(pieces)
+
+
+def _evidence_summary(rows: list[dict[str, str]]) -> tuple[str, str]:
+    implemented = [row for row in rows if row["capability_status"] == "implemented"]
+    available = {row["evidence_tier"] for row in implemented}
+    highest = next((tier for tier in TIER_ORDER if tier in available), "none")
+    scoped = sorted(
+        (row for row in implemented if row["evidence_tier"] == highest),
+        key=lambda row: int(row["source_order"]),
+    )
+    if not scoped:
+        return highest, f"**{highest}** — no implemented cell at this tier"
+    scopes = "; ".join(
+        "`{cell}` ({dpar}; {effect}; provider={provider}; estimator={estimator}; "
+        "dimension={dimension}; q={q}; variant={variant})".format(
+            cell=row["cell_id"],
+            dpar=row["dpar"],
+            effect=row["effect_type"],
+            provider=row["structure_provider"],
+            estimator=row["estimator"],
+            dimension=row["dimension"],
+            q=row["q_gate"],
+            variant=row["route_variant"],
+        )
+        for row in scoped
+    )
+    return highest, f"**{highest}** — {scopes}"
+
+
+def _missing_predictor_summary(route: str, runtime: set[str]) -> str:
+    family_type = MISSING_PREDICTOR_RUNTIME_GATE[route]
+    if family_type not in runtime:
+        return f"rejected by runtime gate (`{family_type}` response)"
+    if family_type == "gaussian":
+        return "implemented: broad predictor-family catalogue"
+    inherited = "" if route == family_type else f" via `{family_type}` family-type gate"
+    return f"implemented: one binary missing predictor{inherited}"
+
+
+def family_map_rows(cells: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Project the per-family reference exclusively from live ledger cells."""
+    runtime = validate_missing_predictor_runtime_map()
+    model = [row for row in cells if row["axis"] == "model_surface"]
+    by_route: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in model:
+        by_route[row["family_route"]].append(row)
+
     rows = []
-    for line in lines[start + 2:]:
-        if not line.startswith("|"):
-            break
-        values = [cell.strip() for cell in line.strip("|").split("|")]
-        if len(values) != len(headers):
-            raise SystemExit("Archived per-family capability table is malformed")
-        row = dict(zip(headers, values))
-        match = re.search(r"\*\*([^*]+)\*\*", row["Response"])
-        if not match:
-            raise SystemExit(f"Cannot identify family route in {row['Response']}")
-        row["family_route"] = match.group(1)
-        rows.append(row)
-    if len(rows) != 18:
-        raise SystemExit(f"Expected 18 retained family-map rows, found {len(rows)}")
+    for _, route, _, _, _ in ROUTES:
+        route_rows = by_route.get(route, [])
+        if not route_rows:
+            raise SystemExit(f"No live model-surface cells for route {route}")
+        dpars = _dpar_order(route_rows)
+        ml = [row for row in route_rows if row["estimator"] == "ML"]
+        reml = [row for row in route_rows if row["estimator"] == "REML"]
+        highest, evidence = _evidence_summary(route_rows)
+        rows.append({
+            "family_route": route,
+            "Response": f"**{route}**",
+            "dpars": ", ".join(f"`{dpar}`" for dpar in dpars),
+            "Fixed": _effect_summary(ml, dpars, "fixed"),
+            "Random (int/slope)": _ordinary_summary(ml, dpars),
+            "Structured (phylo/spatial/animal/relmat/phylo_interaction)": (
+                _structured_summary(ml, dpars)
+            ),
+            "REML": "",
+            "Highest evidence (exact scope)": evidence,
+            "highest_evidence_tier": highest,
+            "Miss-predictor mi()": _missing_predictor_summary(route, runtime),
+        })
+        # REML is one estimator-wide state per dpar. It is intentionally
+        # computed from REML rows only, including fixed, ordinary, and
+        # structured cells, rather than inferred from the ML surface.
+        rows[-1]["REML"] = "; ".join(
+            f"`{dpar}`: {_aggregate_state([row for row in reml if row['dpar'] == dpar])}"
+            for dpar in dpars
+        )
     return rows
 
 
-def corrected_family_map_markdown(missing: list[dict[str, str]]) -> str:
+def corrected_family_map_markdown(
+    missing: list[dict[str, str]], family_rows: list[dict[str, str]]
+) -> str:
     by_route = {row["family_route"]: row for row in missing}
     headers = [
         "Response", "dpars", "Fixed", "Random (int/slope)",
-        "Structured (phylo/spatial/animal/relmat)", "REML", "Interval tier",
+        "Structured (phylo/spatial/animal/relmat/phylo_interaction)", "REML",
+        "Highest evidence (exact scope)",
         "Miss-response", "Miss-predictor mi()",
     ]
     lines = [
         "| " + " | ".join(headers) + " |",
         "|" + "|".join("---" for _ in headers) + "|",
     ]
-    for row in family_map_rows():
+    for source_row in family_rows:
+        row = dict(source_row)
         gate = by_route[row["family_route"]]["test_gate"]
         gate_num = int(gate[1:])
         labels = {
@@ -663,7 +882,9 @@ def inline_markdown(value: str) -> str:
     return value
 
 
-def family_map_html(missing: list[dict[str, str]]) -> str:
+def family_map_html(
+    missing: list[dict[str, str]], family_rows: list[dict[str, str]]
+) -> str:
     by_route = {row["family_route"]: row for row in missing}
     descriptors = {
         "gaussian": "continuous", "biv_gaussian": "two responses",
@@ -676,7 +897,7 @@ def family_map_html(missing: list[dict[str, str]]) -> str:
         "zi_poisson": "zero-inflated count", "zi_nbinom2": "zero-inflated NB2",
     }
     body = []
-    for row in family_map_rows():
+    for row in family_rows:
         route = row["family_route"]
         gate = by_route[route]["test_gate"]
         gate_num = int(gate[1:])
@@ -694,16 +915,20 @@ def family_map_html(missing: list[dict[str, str]]) -> str:
             f'<span class="mr-state {gate_class}">{gate} {label}</span>'
             + (f"<small>{note}</small>" if note else "")
         )
-        interval_class = "inference" if "Inference-ready" in row["Interval tier"] else "feasible"
+        interval_class = (
+            "inference"
+            if row["highest_evidence_tier"] in {"supported", "inference_ready_with_caveats"}
+            else "feasible"
+        )
         body.append(
             "<tr>"
             f'<th scope="row"><code>{html.escape(route)}</code><small>{html.escape(descriptors[route])}</small></th>'
             f"<td>{inline_markdown(row['dpars'])}</td>"
             f"<td class=\"fixed\">{inline_markdown(row['Fixed'])}</td>"
             f"<td>{inline_markdown(row['Random (int/slope)'])}</td>"
-            f"<td>{inline_markdown(row['Structured (phylo/spatial/animal/relmat)'])}</td>"
+            f"<td>{inline_markdown(row['Structured (phylo/spatial/animal/relmat/phylo_interaction)'])}</td>"
             f"<td>{inline_markdown(row['REML'])}</td>"
-            f'<td><span class="tier {interval_class}">{inline_markdown(row["Interval tier"])}</span></td>'
+            f'<td><span class="tier {interval_class}">{inline_markdown(row["Highest evidence (exact scope)"])}</span></td>'
             f"<td>{missing_cell}</td>"
             f"<td>{inline_markdown(row['Miss-predictor mi()'])}</td>"
             "</tr>"
@@ -712,8 +937,11 @@ def family_map_html(missing: list[dict[str, str]]) -> str:
 
 
 def surface_markdown(
-    cells: list[dict[str, str]], evidence: list[dict[str, str]]
+    cells: list[dict[str, str]], evidence: list[dict[str, str]],
+    family_rows: list[dict[str, str]] | None = None,
 ) -> str:
+    if family_rows is None:
+        family_rows = family_map_rows(cells)
     model = [row for row in cells if row["axis"] == "model_surface"]
     missing = sorted(
         (row for row in cells if row["axis"] == "missing_response"),
@@ -728,15 +956,11 @@ def surface_markdown(
     by_family: dict[str, list[dict[str, str]]] = defaultdict(list)
     for row in model:
         by_family[row["family_route"]].append(row)
-    tier_order = [
-        "supported", "inference_ready_with_caveats", "interval_feasible",
-        "diagnostic_only", "point_fit_recovery", "none", "miswired",
-    ]
     lines = [
         "# drmTMB capability surface",
         "",
-        "_Generated from `capability-ledger/` by `tools/capability_ledger.py`; do "
-        "not hand-edit this file._",
+        f"_Generated {ledger_updated_date(cells)} from `capability-ledger/` by "
+        "`tools/capability_ledger.py`; do not hand-edit this file._",
         "",
         "The model surface and missing-response execution axis answer different "
         "questions. The first records what a model cell fits and what inference "
@@ -786,7 +1010,7 @@ def surface_markdown(
         rows = by_family[family]
         counts = Counter(row["capability_status"] for row in rows)
         available = {row["evidence_tier"] for row in rows if row["capability_status"] == "implemented"}
-        highest = next((tier for tier in tier_order if tier in available), "none")
+        highest = next((tier for tier in TIER_ORDER if tier in available), "none")
         lines.append(
             f"| `{family}` | {len(rows)} | {counts['implemented']} | "
             f"{counts['rejected_by_design']} | {counts['not_implemented']} | "
@@ -803,18 +1027,23 @@ def surface_markdown(
         "",
         "## Per-family capability reference",
         "",
-        "This retains the original whole-package map. Its missing-response "
-        "column is regenerated from the corrected 18-route ledger.",
+        "This table is projected from the current model-surface cells. Its "
+        "missing-response column is joined separately from the 18-route ledger, "
+        "and its missing-predictor column follows the live R runtime gate.",
         "",
-        corrected_family_map_markdown(missing).rstrip(),
+        corrected_family_map_markdown(missing, family_rows).rstrip(),
         "",
     ])
     return "\n".join(lines)
 
 
 def surface_html(
-    cells: list[dict[str, str]], evidence: list[dict[str, str]]
+    cells: list[dict[str, str]], evidence: list[dict[str, str]],
+    family_rows: list[dict[str, str]] | None = None,
 ) -> str:
+    if family_rows is None:
+        family_rows = family_map_rows(cells)
+    generated_date = ledger_updated_date(cells)
     model = sorted(
         (row for row in cells if row["axis"] == "model_surface"),
         key=lambda row: int(row["source_order"]),
@@ -895,14 +1124,14 @@ def surface_html(
 <div class="legend"><span><i style="background:var(--amber)"></i>implemented, audit pending</span><span><i style="background:var(--red)"></i>rejected, planned</span><span><i style="background:var(--green)"></i>verified only at G3+</span></div>
 <section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
 <h2 id="model-cells">Detailed model surface</h2>
-<p class="muted">These 668 cells retain the existing model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="muted">These 668 cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
 <div class="table-wrap"><table><caption>Generated 668-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
-<p class="muted">The original whole-package map is retained here. It summarizes distributional parameters, fixed and random effects, structured providers, REML, inference maturity, and both missing-data axes. The missing-response column now follows the corrected 18-route ledger.</p>
-<div class="family-wrap"><table class="family-map"><caption>Whole-package per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat</th><th scope="col">REML</th><th scope="col">Inference tier</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing)}</tbody></table></div>
-<footer>Generated {DATE} by <code>tools/capability_ledger.py</code> from <code>docs/dev-log/dashboard/capability-ledger/</code>. Do not hand-edit generated outputs.</footer>
+<p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
+<div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
+<footer>Generated {generated_date} by <code>tools/capability_ledger.py</code> from <code>docs/dev-log/dashboard/capability-ledger/</code>. Do not hand-edit generated outputs.</footer>
 </main><script>const DATA={model_data};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
@@ -943,18 +1172,28 @@ def tranche_summary(cells: list[dict[str, str]], tranche_id: str) -> str:
 def outputs(
     cells: list[dict[str, str]], evidence: list[dict[str, str]]
 ) -> dict[Path, bytes]:
-    model = model_projection(cells)
+    model = model_projection(cells, evidence)
+    generated_date = ledger_updated_date(cells)
+    family_rows = family_map_rows(cells)
     missing = sorted(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
     )
     result: dict[Path, bytes] = {
         CENSUS / "_master.tsv": legacy_tsv_bytes(MODEL_FIELDS, model),
-        CENSUS / "_widget_data.json": compact_json_bytes(widget_value(model)),
-        ROOT / "docs/dev-log/dashboard/capability-surface.md": surface_markdown(cells, evidence).encode("utf-8"),
-        ROOT / "docs/dev-log/dashboard/capability-surface.html": surface_html(cells, evidence).encode("utf-8"),
+        CENSUS / "_widget_data.json": compact_json_bytes(
+            widget_value(model, generated_date)
+        ),
+        ROOT / "docs/dev-log/dashboard/capability-surface.md": surface_markdown(
+            cells, evidence, family_rows
+        ).encode("utf-8"),
+        ROOT / "docs/dev-log/dashboard/capability-surface.html": surface_html(
+            cells, evidence, family_rows
+        ).encode("utf-8"),
         ROOT / "vignettes/includes/capability-ledger-missing-response.md": missing_markdown(missing, compact=True).encode("utf-8"),
-        ROOT / "vignettes/includes/capability-ledger-family-map.md": corrected_family_map_markdown(missing).encode("utf-8"),
+        ROOT / "vignettes/includes/capability-ledger-family-map.md": corrected_family_map_markdown(
+            missing, family_rows
+        ).encode("utf-8"),
         **{
             LEDGER / "tranches" / f"{tranche}.md": tranche_summary(cells, tranche).encode("utf-8")
             for tranche in ("MR-T1", "MR-T2", "MR-T3", "MR-T4", "MR-T5", "MR-T6")
