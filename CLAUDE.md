@@ -79,6 +79,3 @@ its instructions, update both directories so the two runtimes stay in sync.
 Selective reuse of A-inverse or SPDE speed code may be appropriate later, but
 copying code requires provenance notes in `inst/COPYRIGHTS` and tests around
 the ported behaviour.
-
-<!-- shinichi-hub -->
-@/Users/z3437171/Dropbox/Github Local/Shinichi/AGENTS.md
