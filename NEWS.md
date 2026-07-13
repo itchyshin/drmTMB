@@ -1,5 +1,24 @@
 # drmTMB 0.6.0 (development)
 
+## Residual-scale random intercepts for lognormal and Gamma (Arc 2c)
+
+* A residual-scale (`sigma`) random intercept `sigma ~ ... + (1 | id)` is now
+  accepted for `lognormal()` and `Gamma(link = "log")`, joining `gaussian()`
+  (full) and `nbinom2()` (intercept-only) as the families that allow a
+  random effect on a dispersion parameter.
+* As with the mean random effects, the `sigma`-SD is fit by maximum likelihood
+  with the Laplace approximation and can be biased downward when the number of
+  groups or the per-group replication is small; this release verifies point
+  recovery on simulated data, not interval coverage (60-seed sweep: -3% to -4%
+  relative `sigma`-SD bias at 40 groups; see
+  `docs/dev-log/simulation-artifacts/2026-07-12-arc2c-sigma-recovery/`).
+  Sentinels in `tests/testthat/test-arc2c-sigma-random-intercept.R`.
+* Scope (first gate): one independent `sigma` random intercept only. A `sigma`
+  random slope, labelled covariance blocks, and combining a `sigma` random
+  effect with a `mu` random effect in the same model remain rejected until joint
+  recovery tests exist. The other non-Gaussian families still reject `sigma`
+  random effects.
+
 ## Random slopes for the intercept-only families (Arc 2b)
 
 * One independent `mu` random slope `(0 + x | id)` is now accepted for the five

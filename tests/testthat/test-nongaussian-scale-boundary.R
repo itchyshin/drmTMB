@@ -33,21 +33,16 @@ test_that("non-Gaussian sigma random effects have a specific boundary", {
     ),
     boundary
   )
+  # lognormal/Gamma sigma random *intercepts* are now supported (Arc 2c); recovery
+  # is checked in test-arc2c-sigma-random-intercept.R. A sigma random *slope* is
+  # still rejected, now with the intercept-only-gate wording.
   expect_error(
     drmTMB(
       bf(y_pos ~ x, sigma ~ x + (0 + x | id)),
       family = lognormal(),
       data = dat
     ),
-    boundary
-  )
-  expect_error(
-    drmTMB(
-      bf(y_pos ~ x, sigma ~ x + (1 | id)),
-      family = stats::Gamma(link = "log"),
-      data = dat
-    ),
-    boundary
+    "random intercepts are implemented"
   )
   expect_error(
     drmTMB(bf(y_prop ~ x, sigma ~ x + (1 | id)), family = beta(), data = dat),

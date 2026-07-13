@@ -355,14 +355,8 @@ test_that("Gamma models reject unsupported or invalid inputs", {
     ),
     "random intercepts"
   )
-  expect_error(
-    drmTMB(
-      bf(abs(y) + 0.1 ~ x, sigma ~ 1 + (1 | id)),
-      family = stats::Gamma(link = "log"),
-      data = dat
-    ),
-    "sigma.*random effects"
-  )
+  # sigma ~ (1 | id) is now supported for Gamma (Arc 2c); recovery is checked in
+  # test-arc2c-sigma-random-intercept.R. A sigma random slope still errors.
   expect_error(
     drmTMB(
       bf(abs(y) + 0.1 ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1),
