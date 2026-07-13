@@ -230,6 +230,7 @@ articles:
       - phylogenetic-spatial
   - title: Inference, Diagnostics, and Figures
     contents:
+      - distributional-outputs-and-adequacy
       - convergence
       - large-data
       - julia-engine
