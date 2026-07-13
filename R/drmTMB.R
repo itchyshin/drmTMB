@@ -134,8 +134,9 @@
 #'   sampling covariance through [meta_V()]; non-unit likelihood `weights`; and
 #'   selected scale-side random or structured effects. Mean-side `spatial()`,
 #'   `animal()`, and `relmat()` REML is deliberately limited to an unlabelled
-#'   intercept or independent intercept-plus-one-numeric-slope term with
-#'   `sigma ~ 1`. Slope-only, labelled, multiple-slope, matched non-phylogenetic
+#'   intercept or independent intercept-plus-one-numeric-slope term with a
+#'   constant residual scale (`sigma ~ 1`, with no sigma random effect).
+#'   Slope-only, labelled, multiple-slope, matched non-phylogenetic
 #'   mean-scale, and bivariate non-phylogenetic structured REML remain outside
 #'   that route. Aggregation and ordinary direct `sd()` scale formulae also
 #'   remain unsupported under REML.
@@ -1996,7 +1997,11 @@ drm_reml_missing_engine_engages <- function(missing_control, formula, data) {
   anyNA(data[, present, drop = FALSE])
 }
 
-drm_reml_admits_mean_structured_provider <- function(structured, X_sigma) {
+drm_reml_admits_mean_structured_provider <- function(
+  structured,
+  X_sigma,
+  sigma_n_re
+) {
   if (!isTRUE(structured$has)) {
     return(FALSE)
   }
@@ -2004,6 +2009,14 @@ drm_reml_admits_mean_structured_provider <- function(structured, X_sigma) {
     is.null(X_sigma) ||
       ncol(X_sigma) != 1L ||
       !identical(colnames(X_sigma), "(Intercept)")
+  ) {
+    return(FALSE)
+  }
+  if (
+    is.null(sigma_n_re) ||
+      length(sigma_n_re) != 1L ||
+      is.na(sigma_n_re) ||
+      sigma_n_re != 0L
   ) {
     return(FALSE)
   }
@@ -2114,7 +2127,8 @@ drm_validate_reml_spec <- function(spec) {
       all(phylo_mu_dpar_codes(phylo_mu) == 1L)
     mean_provider_admitted <- drm_reml_admits_mean_structured_provider(
       phylo_mu,
-      spec$X$sigma
+      spec$X$sigma,
+      spec$random$sigma$n_re
     )
     if (
       !identical(structured_type, "phylo") &&
@@ -2123,7 +2137,7 @@ drm_validate_reml_spec <- function(spec) {
     ) {
       cli::cli_abort(c(
         "{.arg REML} supports phylogenetic ({.fn phylo}) structured effects, scale-side {.fn spatial}/{.fn animal}/{.fn relmat} effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers.",
-        "i" = "These mean-side routes require {.code sigma ~ 1}; slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set {.code REML = FALSE}."
+        "i" = "These mean-side routes require a constant residual scale ({.code sigma ~ 1}, with no sigma random effect); slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set {.code REML = FALSE}."
       ))
     }
     # A PURE scale-side phylo effect (a sigma endpoint, no mean endpoint) AND a

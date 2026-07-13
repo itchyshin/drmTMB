@@ -338,6 +338,7 @@ test_that("Arc 1a REML provider admission remains bounded", {
     fixture <- arc1a_provider_fixture(provider, "one_slope", g = 8L)
     dat <- fixture$data
     dat$z <- dat$x^2
+    dat$batch <- rep(paste0("batch", seq_len(8L)), length.out = nrow(dat))
     forms <- switch(
       provider,
       spatial = {
@@ -363,6 +364,10 @@ test_that("Arc 1a REML provider admission remains bounded", {
             y ~ x + spatial(1 + x | id, coords = coords),
             sigma ~ x
           ),
+          sigma_random_effect = bf(
+            y ~ x + spatial(1 + x | id, coords = coords),
+            sigma ~ 1 + (1 | batch)
+          ),
           matched_mean_scale = bf(
             y ~ x + spatial(1 | p | id, coords = coords),
             sigma ~ spatial(1 | p | id, coords = coords)
@@ -385,6 +390,10 @@ test_that("Arc 1a REML provider admission remains bounded", {
           heteroscedastic_sigma = bf(
             y ~ x + animal(1 + x | id, A = A),
             sigma ~ x
+          ),
+          sigma_random_effect = bf(
+            y ~ x + animal(1 + x | id, A = A),
+            sigma ~ 1 + (1 | batch)
           ),
           matched_mean_scale = bf(
             y ~ x + animal(1 | p | id, A = A),
@@ -409,6 +418,10 @@ test_that("Arc 1a REML provider admission remains bounded", {
             y ~ x + relmat(1 + x | id, K = K),
             sigma ~ x
           ),
+          sigma_random_effect = bf(
+            y ~ x + relmat(1 + x | id, K = K),
+            sigma ~ 1 + (1 | batch)
+          ),
           matched_mean_scale = bf(
             y ~ x + relmat(1 | p | id, K = K),
             sigma ~ relmat(1 | p | id, K = K)
@@ -420,6 +433,7 @@ test_that("Arc 1a REML provider admission remains bounded", {
       expected_error <- switch(
         shape,
         heteroscedastic_sigma = "require.*sigma ~ 1",
+        sigma_random_effect = "constant residual scale.*sigma ~ 1.*no sigma random effect",
         matched_mean_scale = "matched mean-scale",
         "slope-only, labelled, multiple-slope"
       )

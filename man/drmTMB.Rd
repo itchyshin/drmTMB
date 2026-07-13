@@ -107,8 +107,9 @@ mean-side \code{\link[=phylo]{phylo()}}, \code{\link[=spatial]{spatial()}}, \cod
 sampling covariance through \code{\link[=meta_V]{meta_V()}}; non-unit likelihood \code{weights}; and
 selected scale-side random or structured effects. Mean-side \code{spatial()},
 \code{animal()}, and \code{relmat()} REML is deliberately limited to an unlabelled
-intercept or independent intercept-plus-one-numeric-slope term with
-\code{sigma ~ 1}. Slope-only, labelled, multiple-slope, matched non-phylogenetic
+intercept or independent intercept-plus-one-numeric-slope term with a
+constant residual scale (\code{sigma ~ 1}, with no sigma random effect).
+Slope-only, labelled, multiple-slope, matched non-phylogenetic
 mean-scale, and bivariate non-phylogenetic structured REML remain outside
 that route. Aggregation and ordinary direct \code{sd()} scale formulae also
 remain unsupported under REML.
