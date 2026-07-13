@@ -106,8 +106,14 @@ Read `AGENTS.md` (native) → this doc → the campaign plan
 (`docs/dev-log/2026-07-13-arc4a-profile-interval-plan.md`) → the after-task report. Check out
 `feature/arc4a-profile-coverage`. Spawn Rose (and Fisher/Noether) before any promotion claim.
 
+**Model-tier routing (don't default everything to Sol — `MODEL-ROUTING.md`):** **Luna** =
+scouting / mechanical / the `has_sigma_random_effects` one-liner + test scaffolding (low
+effort). **Terra** = the real implementation (A0 fix, the re-scoped ledger promotion A1/A2,
+the AGHQ Slice-0 probe, the REML slice). **Sol** = the D-43 NOT-DONE review + Noether
+math-consistency check + orchestration only (high effort). Set `reasoning_effort` per task.
+
 **One-command resume** (paste in your authenticated Codex terminal, repo root):
 
 ```
-codex "Rehydrate from docs/dev-log/handover/2026-07-13-codex-handover.md + AGENTS.md, check out feature/arc4a-profile-coverage, then execute the campaign in docs/dev-log/2026-07-13-next-arcs-codex-campaign-plan.md — Task A0 (fix has_sigma_random_effects + test), then A1/A2 (re-scoped Arc 4a promotion to inference_ready_with_caveats), then Task B (AGHQ probe)."
+codex "First open the drmTMB capability surface — https://claude.ai/code/artifact/a1bf21a1-8c5a-495e-b0ee-1b91608a5ca2 — the live implemented-capability × evidence-tier map; keep it current as tiers change. Then rehydrate: AGENTS.md + docs/dev-log/handover/2026-07-13-codex-handover.md + docs/dev-log/2026-07-13-next-arcs-codex-campaign-plan.md; check out feature/arc4a-profile-coverage. Run it as an ultra-plan campaign with deliberate Codex model-tier routing — Luna for scouting/mechanical, Terra for implementation, Sol only for the D-43/Noether adversarial reviews + orchestration; reasoning_effort high only where correctness is expensive. Execute in order: Task A0 (fix has_sigma_random_effects for lognormal/Gamma + test predict(dpar='sigma')), then A1/A2 (promote mc-0382/mc-0061 to inference_ready_with_caveats — NOT interval_feasible — with corrected claim_boundaries + schema-correct evidence/transitions rows + Noether lens + D-43, then capability_ledger.py --write/--check and refresh the a1bf21a1 surface), then Task B (AGHQ integrate= probe vs glmer(nAGQ=25)). Live toolchain: pkgload::load_all to compile; Totoro for campaigns (no MFA, <=90 cores, OPENBLAS_NUM_THREADS=1); DRAC unreachable. Rose signs off before any completion claim."
 ```
