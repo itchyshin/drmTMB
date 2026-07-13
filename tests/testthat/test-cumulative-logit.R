@@ -503,10 +503,12 @@ test_that("cumulative-logit validates ordinal scope and malformed responses", {
     drmTMB(bf(y ~ x, sigma ~ 1), family = cumulative_logit(), data = dat),
     "support only"
   )
-  # A `mu` random intercept `(1 | id)` is now supported (Arc 2a); recovery is
-  # checked in test-arc2a-mu-random-intercept.R. Random slopes stay rejected.
+  # A `mu` random intercept `(1 | id)` (Arc 2a) and one independent random slope
+  # `(0 + x | id)` (Arc 2b) are now supported; recovery is checked in
+  # test-arc2a-mu-random-intercept.R / test-arc2b-mu-random-slope.R. Correlated
+  # intercept-slope blocks stay rejected.
   expect_error(
-    drmTMB(bf(y ~ x + (0 + x | id)), family = cumulative_logit(), data = dat),
+    drmTMB(bf(y ~ x + (1 + x | id)), family = cumulative_logit(), data = dat),
     "random intercept"
   )
   expect_error(

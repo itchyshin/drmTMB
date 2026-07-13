@@ -1,0 +1,6 @@
+family	n_ok	n_seeds	sd_true	sd_hat_mean	rel_bias_mean	rel_bias_median	cor_median	cor_min
+skew_normal	60	60	0.5	0.487	-0.026	-0.028	0.9293	0.8695
+tweedie	60	60	0.5	0.4842	-0.0316	-0.0123	0.8605	0.7326
+zero_one_beta	60	60	0.5	0.485	-0.0301	-0.0411	0.8994	0.8073
+binomial	60	60	0.5	0.4895	-0.0211	-0.0424	0.9451	0.9018
+cumulative_logit	60	60	0.5	0.4566	-0.0869	-0.0604	0.6947	0.4278

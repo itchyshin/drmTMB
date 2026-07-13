@@ -8684,17 +8684,18 @@ validate_skew_normal_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      term$type != "intercept" || !is.null(term$covariance_label)
+      !(term$type %in% c("intercept", "slope")) ||
+        !is.null(term$covariance_label)
     },
     logical(1L)
   )
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only an ordinary {.fn skew_normal} {.code mu} random intercept is implemented in this slice.",
+      "Only independent {.fn skew_normal} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(y ~ x + (1 | id), sigma ~ z)}.",
-      "i" = "Skew-normal random slopes, labelled covariance blocks, and scale/shape random effects remain planned until separate recovery tests exist."
+      "i" = "Use {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
+      "i" = "Correlated skew-normal slopes, labelled covariance blocks, and scale/shape random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -8720,17 +8721,18 @@ validate_zero_one_beta_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      term$type != "intercept" || !is.null(term$covariance_label)
+      !(term$type %in% c("intercept", "slope")) ||
+        !is.null(term$covariance_label)
     },
     logical(1L)
   )
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only an ordinary {.fn zero_one_beta} {.code mu} random intercept is implemented in this slice.",
+      "Only independent {.fn zero_one_beta} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(y ~ x + (1 | id), sigma ~ z)}.",
-      "i" = "Zero-one-beta random slopes, scale/inflation random effects, and labelled covariance blocks remain planned until separate recovery tests exist."
+      "i" = "Use {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
+      "i" = "Correlated zero-one-beta slopes, scale/inflation random effects, and labelled covariance blocks remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -8743,17 +8745,18 @@ validate_cumulative_logit_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      term$type != "intercept" || !is.null(term$covariance_label)
+      !(term$type %in% c("intercept", "slope")) ||
+        !is.null(term$covariance_label)
     },
     logical(1L)
   )
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only an ordinary {.fn cumulative_logit} {.code mu} random intercept is implemented in this slice.",
+      "Only independent {.fn cumulative_logit} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(score ~ x + (1 | id))}.",
-      "i" = "Ordinal random slopes, labelled covariance blocks, and cutpoint-varying random effects remain planned until separate recovery tests exist."
+      "i" = "Use {.code bf(score ~ x + (1 | id) + (0 + x | id))}.",
+      "i" = "Correlated ordinal slopes, labelled covariance blocks, and cutpoint-varying random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -8766,17 +8769,18 @@ validate_binomial_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      term$type != "intercept" || !is.null(term$covariance_label)
+      !(term$type %in% c("intercept", "slope")) ||
+        !is.null(term$covariance_label)
     },
     logical(1L)
   )
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only an ordinary binomial {.code mu} random intercept is implemented in this slice.",
+      "Only independent binomial {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id))}.",
-      "i" = "Binomial random slopes, labelled covariance blocks, and structured effects remain planned until separate recovery tests exist."
+      "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id))}.",
+      "i" = "Correlated binomial slopes, labelled covariance blocks, and structured effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -8828,17 +8832,18 @@ validate_tweedie_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      term$type != "intercept" || !is.null(term$covariance_label)
+      !(term$type %in% c("intercept", "slope")) ||
+        !is.null(term$covariance_label)
     },
     logical(1L)
   )
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only an ordinary {.fn tweedie} {.code mu} random intercept is implemented in this slice.",
+      "Only independent {.fn tweedie} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)}.",
-      "i" = "Tweedie random slopes, labelled covariance blocks, and scale/shape random effects remain planned until separate recovery tests exist."
+      "i" = "Use {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)}.",
+      "i" = "Correlated tweedie slopes, labelled covariance blocks, and scale/shape random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
