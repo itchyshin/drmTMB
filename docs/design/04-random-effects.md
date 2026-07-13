@@ -221,8 +221,12 @@ bf(
 
 Current implementation details:
 
-- an ordinary `mu` random intercept `(1 | group)` is supported for every fitted
-  univariate family (Arc 2a); random slopes, correlated intercept-slope blocks,
+- an ordinary `mu` random intercept `(1 | group)` and one independent `mu`
+  random slope `(0 + x | group)` are supported for every fitted univariate
+  family (Arc 2a intercepts; Arc 2b extended the independent slope to
+  `binomial`, `cumulative_logit`, `skew_normal`, `tweedie`, and `zero_one_beta`,
+  which are now backed by DG2 point-recovery evidence with an honest
+  small-cluster ML-Laplace SD-bias caveat). Correlated intercept-slope blocks,
   labelled covariance blocks, and residual `sigma` random effects remain
   Gaussian-only (with `nbinom2` intercept-only `sigma`);
 - random-slope terms must be written as `0 + x`, with a single numeric
