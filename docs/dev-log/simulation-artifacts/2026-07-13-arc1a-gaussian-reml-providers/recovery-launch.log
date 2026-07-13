@@ -1,0 +1,19 @@
+2026-07-13T15:31:06-0600 phase=recovery base_cells=14 n_rep=400 pending_tasks=5600 resumed_tasks=0 ncores=90
+2026-07-13T15:31:08-0600 checkpoint=1/16 completed_tasks=360/5600 raw_rows=720
+2026-07-13T15:31:10-0600 checkpoint=2/16 completed_tasks=720/5600 raw_rows=2080
+2026-07-13T15:31:13-0600 checkpoint=3/16 completed_tasks=1080/5600 raw_rows=2960
+2026-07-13T15:31:15-0600 checkpoint=4/16 completed_tasks=1440/5600 raw_rows=4160
+2026-07-13T15:31:18-0600 checkpoint=5/16 completed_tasks=1800/5600 raw_rows=5200
+2026-07-13T15:31:21-0600 checkpoint=6/16 completed_tasks=2160/5600 raw_rows=6240
+2026-07-13T15:31:24-0600 checkpoint=7/16 completed_tasks=2520/5600 raw_rows=7440
+2026-07-13T15:31:27-0600 checkpoint=8/16 completed_tasks=2880/5600 raw_rows=8320
+2026-07-13T15:31:30-0600 checkpoint=9/16 completed_tasks=3240/5600 raw_rows=9680
+2026-07-13T15:31:33-0600 checkpoint=10/16 completed_tasks=3600/5600 raw_rows=10400
+2026-07-13T15:31:37-0600 checkpoint=11/16 completed_tasks=3960/5600 raw_rows=11840
+2026-07-13T15:31:40-0600 checkpoint=12/16 completed_tasks=4320/5600 raw_rows=12640
+2026-07-13T15:31:43-0600 checkpoint=13/16 completed_tasks=4680/5600 raw_rows=13920
+2026-07-13T15:31:47-0600 checkpoint=14/16 completed_tasks=5040/5600 raw_rows=14880
+2026-07-13T15:31:50-0600 checkpoint=15/16 completed_tasks=5400/5600 raw_rows=16000
+2026-07-13T15:31:52-0600 checkpoint=16/16 completed_tasks=5600/5600 raw_rows=16800
+Summarized Arc 1a recovery: 11200 unique fits; 16800 target rows.
+2026-07-13T15:32:00-0600 DONE phase=recovery unique_fits=11200 target_rows=16800 raw=/home/snakagaw/drmtmb_arc1a_results/full-1a085440/recovery-raw.tsv

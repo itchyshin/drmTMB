@@ -1,0 +1,39 @@
+key	value
+generated_at_utc	2026-07-13 21:32:47 UTC
+phase	profile
+command	/usr/lib/R/bin/exec/R --no-echo --no-restore --no-init-file --file=tools/run-arc1a-gaussian-reml-provider-campaign.R --args --phase=profile --output-dir=/home/snakagaw/drmtmb_arc1a_results/full-1a085440 --n-rep=1000 --ncores=90 --overwrite=true
+host	totoro
+repo_root	/home/snakagaw/drmtmb_arc1a
+git_sha	1a0854401f7646a849dad2497dfc8a9e6761d2fb
+git_dirty	FALSE
+package_version	0.6.0.9000
+runner_path	/home/snakagaw/drmtmb_arc1a/tools/run-arc1a-gaussian-reml-provider-campaign.R
+runner_md5	d71cb6098eca9c70417d95d67ee7c6dc
+summarizer_path	/home/snakagaw/drmtmb_arc1a/tools/summarize-arc1a-gaussian-reml-provider-campaign.R
+summarizer_md5	0f6656c08d3c956211b8315999c78584
+n_rep	1000
+n_base_cells	14
+expected_unique_fits	14000
+expected_target_rows	21000
+base_seed	20260714
+seed_formula	set.seed(20260714); sample.int(.Machine$integer.max, 19600, replace=FALSE); recovery indices 1:5600 then profile indices 5601:19600 in stable cell/replicate order
+seed_pool_size	19600
+seed_pool_path	/home/snakagaw/drmtmb_arc1a_results/full-1a085440/arc1a-seed-pool.tsv
+n_each	20
+x_values	-1,-0.89473684,-0.78947368,-0.68421053,-0.57894737,-0.47368421,-0.36842105,-0.26315789,-0.15789474,-0.052631579,0.052631579,0.15789474,0.26315789,0.36842105,0.47368421,0.57894737,0.68421053,0.78947368,0.89473684,1
+beta0	0.4
+beta_x	0.25
+sigma	0.5
+tau0	0.5
+tau_x	0.38
+ncores_requested	90
+ncores_detected	384
+ncores_actual	90
+checkpoint_size	360
+profile_engine	endpoint
+profile_max_eval	NA
+OMP_NUM_THREADS	1
+OPENBLAS_NUM_THREADS	1
+MKL_NUM_THREADS	1
+TMB_NTHREADS	1
+raw_path	/home/snakagaw/drmtmb_arc1a_results/full-1a085440/profile-raw.tsv
