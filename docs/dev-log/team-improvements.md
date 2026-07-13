@@ -599,3 +599,22 @@ scouting belongs to Jason).
   negative log likelihood with `stats::integrate()` errors still on the
   probability-integral scale. Noether's review required `-log()` propagation
   and reference-plus-point accounting; the negative Slice-0 verdict survived.
+
+## 2026-07-13 - Admission Guards Must Cover The Whole Submodel
+
+- Improvement implemented: an estimator admission helper must inspect every
+  fixed, random, structured, offset, and missing-data component that can alter
+  the advertised likelihood, not only the fixed-effect model matrix.
+- Trigger: the first Arc 1a helper required an intercept-only fixed sigma design
+  but still admitted an ordinary sigma random effect. Noether's adversarial
+  D-43 probe found the leak; the helper now requires zero sigma random effects
+  and all three providers have the same negative regression.
+
+## 2026-07-13 - Dashboard Evidence Must Resolve In A Clean Worktree
+
+- Improvement implemented: validator-backed dashboard rows must cite tracked
+  evidence that exists in a clean checkout. Local checkpoint or raw-output
+  paths may be mentioned as history, but they cannot be the only evidence URL.
+- Trigger: Mission Control found seven older Ayumi/SR199 rows whose evidence
+  URLs named missing local artifacts. The rows now cite tracked after-task or
+  design evidence, and the paired contract test follows that durable source.

@@ -64642,7 +64642,7 @@ test_that("Ayumi closeout ledger keeps reply and commit gates blocked", {
   expect_equal(checkpoint$status, "covered")
   expect_match(
     checkpoint$evidence_url,
-    "2026-06-22-231209-codex-checkpoint",
+    "2026-06-22-ayumi-closeout-gates",
     fixed = TRUE
   )
 
