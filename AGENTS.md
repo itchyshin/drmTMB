@@ -10,7 +10,21 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-12, → Claude, ARC 2a COMPLETE — mu random intercept for every family).**
+> **▶ Latest — start here (2026-07-13, → Claude, ARC 2b/2c COMPLETE — mu slope everywhere + sigma intercept for lognormal/Gamma; Arc 4a ratified next).**
+> `main` = `43c1a321` (Arc 2b/2c + DG3 evidence merged, PRs #775/#777) · every fitted
+> univariate family now has a `mu` random intercept **and** an independent slope; lognormal +
+> Gamma also a `sigma` random intercept. All `point_fit_recovery` (ML-Laplace) · `--as-cran`
+> 0/0/1-benign · ledger 295/333/40 · artifact `a1bf21a1` refreshed. Two evidence studies:
+> Laplace-vs-AGHQ + DG3 RE-SD coverage (Totoro, 7200 fits) — the RE-SD downward bias is the
+> expected finite-sample Laplace effect (AGHQ fixes the per-n integral half, REML the per-M df
+> half; drmTMB-Laplace matches lme4 exactly). **Next arc RATIFIED (5-agent design workflow):
+> Arc 4a — the profile-CI DG3 rerun → interval_feasible promotion**
+> (`docs/dev-log/2026-07-13-arc4a-profile-interval-plan.md`; honest catch: profile fixes the
+> ∞-width, not the M=8 coverage gap). Totoro reachable (no MFA); DRAC is not.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-13-claude-handover.md`](docs/dev-log/handover/2026-07-13-claude-handover.md)
+>
+> **▶ Prior (2026-07-12, → Claude, ARC 2a COMPLETE — mu random intercept for every family).**
 > `main` = `0ba88fd8` (Arc 2a merged + pushed) · five families (binomial,
 > cumulative_logit, skew_normal, tweedie, zero_one_beta) now accept `(1 | group)`
 > on `mu`; every fitted univariate family has at least a mean random intercept.
