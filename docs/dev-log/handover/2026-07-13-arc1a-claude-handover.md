@@ -205,4 +205,3 @@ From `/Users/z3437171/.codex/worktrees/arc1a-gaussian-reml-providers`, paste:
 ```sh
 claude "Rehydrate from docs/dev-log/handover/2026-07-13-arc1a-claude-handover.md + the AGENTS.md snapshot, then mirror capability-surface.html into artifact a1bf21a1 and verify the exact SHA-256. Do not merge PR #780."
 ```
-
