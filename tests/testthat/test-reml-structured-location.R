@@ -337,10 +337,19 @@ test_that("Arc 1a REML provider admission remains bounded", {
   for (provider in c("spatial", "animal", "relmat")) {
     fixture <- arc1a_provider_fixture(provider, "one_slope", g = 8L)
     dat <- fixture$data
+    dat$z <- dat$x^2
     forms <- switch(
       provider,
       spatial = {
         coords <- fixture$auxiliary
+        expect_error(
+          bf(
+            y ~ x + z + spatial(1 + x + z | id, coords = coords),
+            sigma ~ 1
+          ),
+          "reserves only intercept and one-slope",
+          info = "spatial multiple_slope"
+        )
         list(
           slope_only = bf(
             y ~ x + spatial(0 + x | id, coords = coords),
@@ -349,28 +358,74 @@ test_that("Arc 1a REML provider admission remains bounded", {
           labelled = bf(
             y ~ x + spatial(1 | p | id, coords = coords),
             sigma ~ 1
+          ),
+          heteroscedastic_sigma = bf(
+            y ~ x + spatial(1 + x | id, coords = coords),
+            sigma ~ x
+          ),
+          matched_mean_scale = bf(
+            y ~ x + spatial(1 | p | id, coords = coords),
+            sigma ~ spatial(1 | p | id, coords = coords)
           )
         )
       },
       animal = {
         A <- fixture$K
+        expect_error(
+          bf(
+            y ~ x + z + animal(1 + x + z | id, A = A),
+            sigma ~ 1
+          ),
+          "reserves only intercept and one-slope",
+          info = "animal multiple_slope"
+        )
         list(
           slope_only = bf(y ~ x + animal(0 + x | id, A = A), sigma ~ 1),
-          labelled = bf(y ~ x + animal(1 | p | id, A = A), sigma ~ 1)
+          labelled = bf(y ~ x + animal(1 | p | id, A = A), sigma ~ 1),
+          heteroscedastic_sigma = bf(
+            y ~ x + animal(1 + x | id, A = A),
+            sigma ~ x
+          ),
+          matched_mean_scale = bf(
+            y ~ x + animal(1 | p | id, A = A),
+            sigma ~ animal(1 | p | id, A = A)
+          )
         )
       },
       relmat = {
         K <- fixture$K
+        expect_error(
+          bf(
+            y ~ x + z + relmat(1 + x + z | id, K = K),
+            sigma ~ 1
+          ),
+          "reserves only intercept and one-slope",
+          info = "relmat multiple_slope"
+        )
         list(
           slope_only = bf(y ~ x + relmat(0 + x | id, K = K), sigma ~ 1),
-          labelled = bf(y ~ x + relmat(1 | p | id, K = K), sigma ~ 1)
+          labelled = bf(y ~ x + relmat(1 | p | id, K = K), sigma ~ 1),
+          heteroscedastic_sigma = bf(
+            y ~ x + relmat(1 + x | id, K = K),
+            sigma ~ x
+          ),
+          matched_mean_scale = bf(
+            y ~ x + relmat(1 | p | id, K = K),
+            sigma ~ relmat(1 | p | id, K = K)
+          )
         )
       }
     )
     for (shape in names(forms)) {
+      expected_error <- switch(
+        shape,
+        heteroscedastic_sigma = "require.*sigma ~ 1",
+        matched_mean_scale = "matched mean-scale",
+        "slope-only, labelled, multiple-slope"
+      )
       expect_error(
         drmTMB(forms[[shape]], data = dat, REML = TRUE),
-        "Slope-only, labelled, multiple-slope",
+        expected_error,
         info = paste(provider, shape)
       )
     }

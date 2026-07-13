@@ -20,6 +20,10 @@ spatial range, fixed-effect REML profiles, or broad provider support.
 - Truth: `beta = (0.4, 0.25)`, residual `sigma = 0.5`, intercept covariance
   scale `tau0 = 0.5`, and slope covariance scale `tau_x = 0.38`.
 - Effects: uncentred independent Gaussian fields generated as `tau * L_K * z`.
+- Campaign representations: spatial coordinates, the animal `A` matrix, and
+  the relmat `K` matrix. The `A`/`Ainv`/pedigree and `K`/`Q` equivalence claims
+  come from one deterministic representation-parity fixture each, not from the
+  multi-seed campaign or broad large/sparse-matrix validation.
 - Seeds: `set.seed(20260714)` followed by 19,600 unique draws from
   `sample.int(.Machine$integer.max, 19600, replace = FALSE)`. Recovery uses
   indices 1--5,600 and profile coverage uses 5,601--19,600 in stable
@@ -32,8 +36,10 @@ All attempted datasets remain in the primary denominators.
 
 ## Frozen results before D-43
 
-All 11,200 recovery fits converged, had finite target estimates and gradients,
-and had `pdHess = TRUE`. Every one of the 14 cell-level and 21 target-level
+All 11,200 recovery fits converged and had finite target estimates and
+gradients. Of these, 11,199 had `pdHess = TRUE`, including all 5,600 REML fits;
+one spatial `M = 8` one-slope ML fit had `pdHess = FALSE`. Every one of the 14
+cell-level and 21 target-level
 admission rows passed the approved gates. Across providers, the worst absolute
 signed median errors were 0.048 for `beta0`, 0.023 for `beta_x`, 0.0084 on the
 relative residual-sigma scale, and 0.0915 on the relative structured-scale

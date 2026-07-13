@@ -1996,8 +1996,15 @@ drm_reml_missing_engine_engages <- function(missing_control, formula, data) {
   anyNA(data[, present, drop = FALSE])
 }
 
-drm_reml_admits_mean_structured_provider <- function(structured) {
+drm_reml_admits_mean_structured_provider <- function(structured, X_sigma) {
   if (!isTRUE(structured$has)) {
+    return(FALSE)
+  }
+  if (
+    is.null(X_sigma) ||
+      ncol(X_sigma) != 1L ||
+      !identical(colnames(X_sigma), "(Intercept)")
+  ) {
     return(FALSE)
   }
   if (!structured_mu_type(structured) %in% c("spatial", "animal", "relmat")) {
@@ -2105,7 +2112,10 @@ drm_validate_reml_spec <- function(spec) {
     structured_type <- structured_mu_type(phylo_mu)
     scale_side_only <- length(phylo_mu_dpar_codes(phylo_mu)) > 0L &&
       all(phylo_mu_dpar_codes(phylo_mu) == 1L)
-    mean_provider_admitted <- drm_reml_admits_mean_structured_provider(phylo_mu)
+    mean_provider_admitted <- drm_reml_admits_mean_structured_provider(
+      phylo_mu,
+      spec$X$sigma
+    )
     if (
       !identical(structured_type, "phylo") &&
         !scale_side_only &&
@@ -2113,7 +2123,7 @@ drm_validate_reml_spec <- function(spec) {
     ) {
       cli::cli_abort(c(
         "{.arg REML} supports phylogenetic ({.fn phylo}) structured effects, scale-side {.fn spatial}/{.fn animal}/{.fn relmat} effects, and pure mean-side unlabelled intercept or intercept-plus-one-slope effects for those three providers.",
-        "i" = "Slope-only, labelled, multiple-slope, and matched mean-scale non-phylogenetic structured effects remain unvalidated; use an admitted shape or set {.code REML = FALSE}."
+        "i" = "These mean-side routes require {.code sigma ~ 1}; slope-only, labelled, multiple-slope, heteroscedastic-sigma, and matched mean-scale non-phylogenetic structured effects remain unvalidated. Use an admitted shape or set {.code REML = FALSE}."
       ))
     }
     # A PURE scale-side phylo effect (a sigma endpoint, no mean endpoint) AND a
