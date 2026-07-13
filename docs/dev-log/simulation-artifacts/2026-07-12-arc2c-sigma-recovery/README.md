@@ -11,7 +11,7 @@ Fisher's plan-review bar: a single-seed point fit is blind to the systematic
 ML-Laplace small-cluster RE-SD bias, so a smoke test cannot earn a
 "recovery-verified" tick. This is the **≥50-seed local bias sweep** that backs the
 claim: 60 seeds per family at `n_id = 40`, `n_each = 15`, true sigma-RE SD = 0.40,
-ML-Laplace. Generator: `scratchpad/arc2c_sigma_bias_sweep.R`. The random intercept
+ML-Laplace. Generator: `generate.R` (in this directory). The random intercept
 lives on the **log-sigma** scale for both families (lognormal `sigma` is the sdlog;
 Gamma `sigma` is the coefficient of variation), so BLUP-vs-truth correlation is
 measured there.

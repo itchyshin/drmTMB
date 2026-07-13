@@ -8048,7 +8048,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
         "Non-Gaussian {.code sigma} random effects are not implemented.",
         "x" = "The {.code sigma} formula contains a random-effect bar term.",
         "i" = "Keep non-Gaussian scale formulas fixed-effect for now, such as {.code sigma ~ z}.",
-        "i" = "Gaussian residual-scale random effects are implemented separately; ordinary NB2 has only its first log-sigma random-intercept gate, while Student-t, lognormal, Gamma, beta, beta-binomial, truncated NB2, and hurdle NB2 scale random effects need family-specific likelihood and recovery tests before fitting."
+        "i" = "Gaussian residual-scale random effects are implemented separately; ordinary NB2, lognormal, and Gamma have a first log-sigma random-intercept gate, while Student-t, beta, beta-binomial, truncated NB2, and hurdle NB2 scale random effects need family-specific likelihood and recovery tests before fitting."
       ))
     }
     if (

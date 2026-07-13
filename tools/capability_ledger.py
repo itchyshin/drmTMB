@@ -440,7 +440,7 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    expected = Counter({"implemented": 288, "rejected_by_design": 339, "not_implemented": 41})
+    expected = Counter({"implemented": 295, "rejected_by_design": 333, "not_implemented": 40})
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
