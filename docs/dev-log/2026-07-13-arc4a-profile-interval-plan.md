@@ -1,5 +1,11 @@
 # Next arc (ratified) — Arc 4a: profile-CI DG3 rerun → interval_feasible promotion
 
+> **Superseded, 2026-07-13.** The campaign's centered-effect data-generating process did not align
+> with population-SD coverage, and `interval_feasible` was the wrong promotion tier. Preserve this
+> note as the historical plan, but use
+> `simulation-artifacts/2026-07-12-dg3-re-sd-coverage/README-profile-iid-v2.md` for corrected iid
+> evidence and the capability ledger for the discrete `inference_ready_with_caveats` boundaries.
+
 Status: **PLAN, ratified by a 5-agent design workflow (2026-07-13).** Chosen over three
 alternatives (Gaussian REML, AGHQ axis, 2c student/beta) by a parallel scope + adversarial
 Opus synthesis. This is the direct sequel to today's DG3 coverage finding.

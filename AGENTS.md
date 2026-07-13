@@ -10,17 +10,20 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-13, → CODEX, run the Arc 4a-completion + next-arc campaign).**
-> `main` = `43c1a321` (Arc 2b/2c + DG3 evidence merged). Arc 4a (profile-interval coverage) is
-> HALF done on branch `feature/arc4a-profile-coverage`: S1 harness + S2 Totoro campaign (7,200
-> fits) committed — the profile interval **fully fixes the Wald ∞-width defect** — but the ledger
-> promotion was **WITHHELD by a D-43 review** (wrong target tier: it's `inference_ready_with_caveats`,
-> not `interval_feasible`; plus a shipped bug — `has_sigma_random_effects()` omits lognormal/Gamma).
-> **Codex runs the live toolchain.** Work list: **[`docs/dev-log/2026-07-13-next-arcs-codex-campaign-plan.md`](docs/dev-log/2026-07-13-next-arcs-codex-campaign-plan.md)**
-> (Task A Arc 4a completion · Task B AGHQ de-risk probe · Task C REML Arc 1a slice). Totoro
-> reachable (no MFA); DRAC not.
+> **▶ Latest — start here (2026-07-13, → CODEX, Arc 4a closeout verified branch-locally).**
+> Branch `feature/arc4a-profile-coverage` now contains the `has_sigma_random_effects()` repair,
+> fitted lognormal/Gamma sigma-prediction regression tests, and a corrected iid-un­centered
+> Totoro campaign (14,400 fits; zero failures). Fresh Noether/Fisher/Pat D-43 review supports
+> promoting `mc-0382` and `mc-0061` only to `inference_ready_with_caveats`, over the exact tested
+> domains recorded in the ledger. The live-ledger capability generator and tracked HTML surface
+> are refreshed branch-locally. The isolated TMB 1.9.21 adaptive marginal Gauss-Kronrod probe is
+> **negative/inconclusive**: its normalized objective misses the direct oracle's numerical-error
+> envelope and the frozen fixture is boundary-singular, so package integration remains deferred.
+> Full package/site checks and Rose's repaired-tree audit are DONE. Commit/push/PR refresh and
+> Claude's external `a1bf21a1` mirror are still pending; do not claim those external gates closed.
+> Task C remains deferred.
 > START HERE:
-> [`docs/dev-log/handover/2026-07-13-codex-handover.md`](docs/dev-log/handover/2026-07-13-codex-handover.md)
+> [`docs/dev-log/2026-07-13-next-arcs-codex-campaign-plan.md`](docs/dev-log/2026-07-13-next-arcs-codex-campaign-plan.md)
 >
 > **▶ Prior (2026-07-13, → Claude, ARC 2b/2c COMPLETE — mu slope everywhere + sigma intercept for lognormal/Gamma; Arc 4a ratified next).**
 > `main` = `43c1a321` (Arc 2b/2c + DG3 evidence merged, PRs #775/#777) · every fitted

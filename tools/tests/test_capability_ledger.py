@@ -54,6 +54,134 @@ class CapabilityLedgerTests(unittest.TestCase):
         second = ledger.outputs(self.cells, self.evidence)
         self.assertEqual(first, second)
 
+    def test_model_projection_uses_current_primary_evidence_and_claim(self):
+        evidence_by_id = {
+            row["evidence_id"]: row for row in self.evidence
+        }
+        source_cells = sorted(
+            (row for row in self.cells if row["axis"] == "model_surface"),
+            key=lambda row: int(row["source_order"]),
+        )
+        projected = ledger.model_projection(self.cells, self.evidence)
+        self.assertEqual(len(source_cells), len(projected))
+        for cell, row in zip(source_cells, projected):
+            if cell["primary_evidence_id"]:
+                self.assertEqual(
+                    row["evidence_source"],
+                    evidence_by_id[cell["primary_evidence_id"]]["path_or_url"],
+                )
+            self.assertEqual(
+                row["notes"], cell["claim_boundary"] or cell["notes"]
+            )
+
+    def test_family_map_projects_current_ordinary_random_effects(self):
+        rows = {
+            row["family_route"]: row
+            for row in ledger.family_map_rows(self.cells)
+        }
+        self.assertIn(
+            "`mu`: int implemented / slope implemented",
+            rows["binomial"]["Random (int/slope)"],
+        )
+        for route in ("gamma", "lognormal"):
+            self.assertIn(
+                "`sigma`: int implemented / slope rejected",
+                rows[route]["Random (int/slope)"],
+            )
+
+    def test_family_map_aggregation_names_absence_and_partial_states(self):
+        status = lambda value: {"capability_status": value}
+        self.assertEqual(ledger._aggregate_state([]), "absent")
+        self.assertEqual(
+            ledger._aggregate_state([status("rejected_by_design")]),
+            "rejected",
+        )
+        self.assertEqual(
+            ledger._aggregate_state([status("not_implemented")]),
+            "not implemented",
+        )
+        self.assertEqual(
+            ledger._aggregate_state([
+                status("rejected_by_design"), status("not_implemented")
+            ]),
+            "mixed (rejected 1; not implemented 1)",
+        )
+        self.assertEqual(
+            ledger._aggregate_state([
+                status("implemented"), status("rejected_by_design")
+            ]),
+            "scope-limited (implemented 1; rejected 1)",
+        )
+
+    def test_family_map_reml_is_not_inferred_from_ml(self):
+        before = {
+            row["family_route"]: row["REML"]
+            for row in ledger.family_map_rows(self.cells)
+        }
+        cells = copy.deepcopy(self.cells)
+        ml_binomial = next(
+            row for row in cells
+            if row["axis"] == "model_surface"
+            and row["family_route"] == "binomial"
+            and row["estimator"] == "ML"
+            and row["effect_type"] == "ordinary_re_intercept"
+        )
+        ml_binomial["capability_status"] = "rejected_by_design"
+        after = {
+            row["family_route"]: row["REML"]
+            for row in ledger.family_map_rows(cells)
+        }
+        self.assertEqual(before["binomial"], after["binomial"])
+        self.assertIn("`mu`: rejected", before["binomial"])
+
+    def test_highest_evidence_names_exact_cell_scope(self):
+        binomial = next(
+            row for row in ledger.family_map_rows(self.cells)
+            if row["family_route"] == "binomial"
+        )
+        evidence = binomial["Highest evidence (exact scope)"]
+        self.assertIn("**inference_ready_with_caveats**", evidence)
+        self.assertIn("`mc-0057`", evidence)
+        self.assertIn(
+            "mu; fixed; provider=none; estimator=ML; dimension=univariate; q=na; variant=base",
+            evidence,
+        )
+
+    def test_missing_predictor_map_matches_live_runtime_gate(self):
+        runtime = ledger.validate_missing_predictor_runtime_map()
+        self.assertEqual(
+            runtime,
+            {"gaussian", "poisson", "binomial", "nbinom2", "beta"},
+        )
+        rows = {
+            row["family_route"]: row
+            for row in ledger.family_map_rows(self.cells)
+        }
+        self.assertIn("broad", rows["gaussian"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["zi_poisson"]["Miss-predictor mi()"])
+        self.assertIn("via `poisson`", rows["zi_poisson"]["Miss-predictor mi()"])
+        self.assertIn("rejected", rows["gamma"]["Miss-predictor mi()"])
+
+    def test_generated_surfaces_have_live_wording_and_ledger_date(self):
+        generated = ledger.outputs(self.cells, self.evidence)
+        markdown = generated[
+            ROOT / "docs/dev-log/dashboard/capability-surface.md"
+        ].decode("utf-8")
+        html = generated[
+            ROOT / "docs/dev-log/dashboard/capability-surface.html"
+        ].decode("utf-8")
+        for output in (markdown, html):
+            self.assertNotIn("retained view", output.lower())
+            self.assertNotIn("original whole-package map", output.lower())
+            self.assertNotIn("2026-07-11-capability-surface.md", output)
+        latest = max(row["updated_date"] for row in self.cells)
+        self.assertIn(f"Generated {latest}", html)
+        self.assertIn(f"Generated {latest}", markdown)
+        widget = generated[
+            ROOT / "docs/dev-log/dashboard/capability-census/_widget_data.json"
+        ].decode("utf-8")
+        self.assertIn(f'"generated":"{latest}"', widget)
+
     def test_mixture_routes_have_independent_recovery_evidence(self):
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
         cells_by_route = {

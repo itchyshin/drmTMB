@@ -1,6 +1,18 @@
 # Next arcs — a 1–2 day Codex campaign (ultra-plan)
 
-Status: **PLAN for Codex.** Sequences the concrete, de-risked next work after Arc 2b/2c +
+> **Execution update, 2026-07-13.** The approved Codex ultra-plan superseded the original
+> sequential outline below. A0 is repaired and tested. The original centered-effect Arc 4a
+> campaign was invalid for population-SD coverage; its promotion evidence is withdrawn and
+> replaced by the iid-un­centered 14,400-fit campaign in
+> `simulation-artifacts/2026-07-12-dg3-re-sd-coverage/README-profile-iid-v2.md`. Fresh D-43 review
+> supports `mc-0382` and `mc-0061` at `inference_ready_with_caveats` over discrete tested domains,
+> never `interval_feasible`. Task B used TMB 1.9.21 adaptive marginal Gauss-Kronrod, not AGHQ, and
+> returned a negative/inconclusive gate; see
+> `simulation-artifacts/2026-07-13-marginal-gk-probe/README.md`. Task C remains deferred. Final
+> package/site verification, Rose review, branch landing, and the external Claude mirror remain
+> pending.
+
+Status at authorship: **PLAN for Codex.** Sequences the concrete, de-risked next work after Arc 2b/2c +
 the Arc 4a profile-coverage evidence. Grounded in the 5-agent design workflow (`wf_d42c1616-6a3`),
 the Arc 4a S4 review disposition (`2026-07-13-arc4a-profile-interval-plan.md`), and today's
 Laplace-vs-AGHQ + DG3 coverage findings. **Routed to Codex because every task needs the live

@@ -1,5 +1,13 @@
 # Handover → Codex — Arc 2b/2c landed; run the Arc 4a-completion + next-arc campaign
 
+> **Superseded as an execution starting point (2026-07-13).** This remains the historical inbound
+> handover. The current branch repaired the sigma prediction bug, replaced the invalid
+> centered-effect Arc 4a evidence with an iid-un­centered 14,400-fit campaign, conditionally
+> promoted the two cells to `inference_ready_with_caveats` after fresh D-43 review, refreshed the
+> tracked capability surface, and obtained a negative/inconclusive marginal-Gauss-Kronrod probe.
+> Use `../2026-07-13-next-arcs-codex-campaign-plan.md` and the forthcoming Codex after-task report
+> for current truth. Task C remains deferred; final verification and Rose sign-off are still open.
+
 **Date:** 2026-07-13 · **From:** Claude · **To:** Codex (new session) · **Repo:** drmTMB ·
 `main @ 43c1a321` (Arc 2b/2c + DG3 evidence merged). This doc stands alone — you did not see
 the Claude chat. Your role: **the live R/TMB toolchain** (real fits, compiles, `R CMD check`,

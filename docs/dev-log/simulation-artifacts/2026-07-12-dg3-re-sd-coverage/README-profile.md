@@ -1,5 +1,11 @@
 # Arc 4a — profile interval vs Wald for the RE-SD (Totoro)
 
+> **Superseded evidence — do not use for a capability claim.** This retained
+> centered-v1 campaign subtracted each simulated random-effect sample mean but
+> scored coverage against the unadjusted population SD. That estimand mismatch
+> invalidates its promotion recommendation. The corrected IID campaign and
+> auditable raw results are documented in `README-profile-iid-v2.md`.
+
 **Date:** 2026-07-13 · **Compute:** Totoro, 80 cores, drmTMB 0.6.0.9000 · **Design:** 3 specs ×
 M ∈ {8,16,32,64} × 600 sims = 7,200 fits, all converged. Generator: `generate-profile.R`.
 Data: `profile-coverage-results.tsv`. Follows the DG3 Wald finding (`README.md`).
@@ -31,16 +37,14 @@ Data: `profile-coverage-results.tsv`. Follows the DG3 Wald finding (`README.md`)
    artifact of the ∞-upper intervals; the finite profile shows the true coverage is ~0.905–0.918
    at M=8 — below nominal, driven by the residual downward point-bias (which changing the interval
    method cannot fix).
-3. **Certified usable M-floor** (finite width AND coverage ≥ the ~0.91–0.93 the interval_feasible
-   precedent accepted): **gaussian M≥16 (0.940), lognormal M≥16 (0.935), binomial M≥32 (0.943)**.
+3. **The old apparent M pattern is not a certified floor.** The centered-v1
+   estimand defect means these values cannot authorize any tier or extrapolation.
 4. **binomial is point-bias-limited, as predicted.** Profile ≈ Wald coverage at every M — the
    interval construction was never binomial's problem; its residual gap is the integral bias that
    **AGHQ** removes (see the Laplace-vs-AGHQ study). Profile still helps it by removing the ∞-width.
 
-## Promotion recommendation (pending the S4 D-43 review)
+## Promotion recommendation withdrawn
 
-- **lognormal `sd:sigma:(1 | id)` (mc-0382)** → `interval_feasible`, certified **M ≥ 16**.
-- **binomial `sd:mu:(0 + x | id)` (mc-0061)** → `interval_feasible`, certified **M ≥ 32**
-  (below that its coverage is point-bias-limited; honest claim_boundary must say so).
-- Residual lever named in both claim_boundaries: **REML** (Gaussian df-bias) / **AGHQ**
-  (non-Gaussian integral-bias). No jump to inference_ready/supported.
+No cell may be promoted from this centered-v1 result. See
+`README-profile-iid-v2.md` for corrected IID evidence and the discrete claim
+domains submitted to fresh D-43 review.

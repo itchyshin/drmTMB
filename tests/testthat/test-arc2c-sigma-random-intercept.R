@@ -9,7 +9,7 @@
 # separately by the >=50-seed sweep in
 # docs/dev-log/simulation-artifacts/2026-07-12-arc2c-sigma-recovery/.
 
-expect_sigma_random_intercept_recovered <- function(fit, model_type, u_true,
+expect_sigma_random_intercept_recovered <- function(fit, data, model_type, u_true,
                                                     sd_true = 0.4,
                                                     sd_rel_tol = 0.35,
                                                     cor_min = 0.70) {
@@ -32,6 +32,35 @@ expect_sigma_random_intercept_recovered <- function(fit, model_type, u_true,
   expect_equal(length(sigma_effects), length(u_true))
   # BLUP vs truth on the log-sigma scale (both are on that scale here)
   expect_gt(stats::cor(sigma_effects, u_true), cor_min)
+
+  fixed_sigma <- drmTMB:::drm_fixed_effect_basis(fit, dpar = "sigma")$eta
+  sigma_contribution <- drmTMB:::sigma_random_effect_contribution(
+    fit,
+    dpar = "sigma"
+  )
+  expected_sigma_link <- fixed_sigma + sigma_contribution
+  expect_equal(
+    predict(fit, dpar = "sigma", type = "link"),
+    expected_sigma_link,
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, dpar = "sigma", type = "response"),
+    exp(expected_sigma_link),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, newdata = data, dpar = "sigma", type = "link"),
+    fixed_sigma,
+    tolerance = 1e-10
+  )
+  expect_equal(stats::sigma(fit), exp(expected_sigma_link), tolerance = 1e-10)
+  expect_contains(
+    drmTMB:::drm_emmeans_blocked_features(fit),
+    "sigma random effects"
+  )
+  printed <- capture.output(print(fit), type = "message")
+  expect_match(paste(printed, collapse = "\n"), "sigma random-effect terms: 1")
 
   targets <- profile_targets(fit)
   sd_target <- targets[targets$parm == paste0("sd:sigma:", label), , drop = FALSE]
@@ -60,7 +89,13 @@ test_that("lognormal sigma supports an independent random intercept", {
   y <- stats::rlnorm(b$n, meanlog = 0.2 + 0.5 * b$x, sdlog = sdlog)
   d <- data.frame(y = y, x = b$x, z = stats::rnorm(b$n), id = b$id)
   fit <- drmTMB(bf(y ~ x, sigma ~ (1 | id)), family = lognormal(), data = d)
-  expect_sigma_random_intercept_recovered(fit, "lognormal", b$u, b$sd_sigma)
+  expect_sigma_random_intercept_recovered(
+    fit,
+    d,
+    "lognormal",
+    b$u,
+    b$sd_sigma
+  )
 
   # a fixed-effect covariate + RE on sigma fits (previously a rejected boundary case)
   combo <- drmTMB(bf(y ~ x, sigma ~ z + (1 | id)), family = lognormal(), data = d)
@@ -86,7 +121,7 @@ test_that("Gamma sigma supports an independent random intercept", {
   y <- stats::rgamma(b$n, shape = 1 / sigma_i^2, scale = mu_i * sigma_i^2)
   d <- data.frame(y = y, x = b$x, z = stats::rnorm(b$n), id = b$id)
   fit <- drmTMB(bf(y ~ x, sigma ~ (1 | id)), family = Gamma(link = "log"), data = d)
-  expect_sigma_random_intercept_recovered(fit, "gamma", b$u, b$sd_sigma)
+  expect_sigma_random_intercept_recovered(fit, d, "gamma", b$u, b$sd_sigma)
 
   # a fixed-effect covariate + RE on sigma fits (previously a rejected boundary case)
   combo <- drmTMB(bf(y ~ x, sigma ~ z + (1 | id)), family = Gamma(link = "log"), data = d)
