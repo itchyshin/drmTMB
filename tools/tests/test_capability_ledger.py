@@ -1117,22 +1117,25 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
         self.assertIn("Ten exact structured routes", public["capability"])
-        llms = (ROOT / "pkgdown-site/llms.txt").read_text()
-        self.assertIn("Poisson slope-only `mu ~ spatial(0 + x", llms)
-        self.assertIn("Poisson `mu ~ spatial(1 | site", llms)
+        llms_path = ROOT / "pkgdown-site/llms.txt"
+        llms = llms_path.read_text() if llms_path.exists() else None
+        if llms is not None:
+            self.assertIn("Poisson slope-only `mu ~ spatial(0 + x", llms)
+            self.assertIn("Poisson `mu ~ spatial(1 | site", llms)
 
         count = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
         self.assertIn("diagnostic-only probability-component", count)
         self.assertNotIn("recovery-grade probability-component", count)
-        count_rendered = (
-            ROOT / "pkgdown-site/articles/count-nbinom2.md"
-        ).read_text()
-        for name, text in {
+        count_surfaces = {
             "README": public["README"],
             "count source": count,
-            "count rendered": count_rendered,
-            "llms": llms,
-        }.items():
+        }
+        count_rendered_path = ROOT / "pkgdown-site/articles/count-nbinom2.md"
+        if count_rendered_path.exists():
+            count_surfaces["count rendered"] = count_rendered_path.read_text()
+        if llms is not None:
+            count_surfaces["llms"] = llms
+        for name, text in count_surfaces.items():
             normalized = " ".join(text.split())
             self.assertIn("fixed-`zi`", normalized, name)
             self.assertIn("Poisson", normalized, name)

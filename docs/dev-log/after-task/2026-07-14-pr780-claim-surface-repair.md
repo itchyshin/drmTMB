@@ -100,7 +100,11 @@ fixed-`zi` spatial-`mu` diagnostic carve-outs from broad planned wording; both
 sources, their rendered pages, `llms.txt`, and the semantic guard were repaired.
 The first full-suite output also showed nine stale contract assertions; one
 subsequent selector inspected the first recovery row rather than a diagnostic
-row. Each finding was repaired and revalidated instead of being waived.
+row. The first final-head GitHub run then caught that the strengthened semantic
+test unconditionally read ignored local `pkgdown-site/` output, which does not
+exist in a clean checkout. The guard now always checks tracked source surfaces
+and additionally checks rendered/LLM output when that local build exists. Each
+finding was repaired and revalidated instead of being waived.
 
 ## 10. Known Residuals
 
