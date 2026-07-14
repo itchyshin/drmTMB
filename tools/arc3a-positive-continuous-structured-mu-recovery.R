@@ -34,6 +34,8 @@ parse_args <- function(args) {
     n_per_level = 20L,
     routes = NULL,
     load = "source",
+    shard_index = 1L,
+    shard_count = 1L,
     help = FALSE
   )
   for (arg in args) {
@@ -57,6 +59,10 @@ parse_args <- function(args) {
       out$routes <- strsplit(sub("^--routes=", "", arg), ",", fixed = TRUE)[[1L]]
     } else if (startsWith(arg, "--load=")) {
       out$load <- sub("^--load=", "", arg)
+    } else if (startsWith(arg, "--shard-index=")) {
+      out$shard_index <- as.integer(sub("^--shard-index=", "", arg))
+    } else if (startsWith(arg, "--shard-count=")) {
+      out$shard_count <- as.integer(sub("^--shard-count=", "", arg))
     } else {
       stop("Unknown argument: ", arg, call. = FALSE)
     }
@@ -67,6 +73,13 @@ parse_args <- function(args) {
   out$load <- match.arg(out$load, c("source", "installed"))
   if (is.na(out$n_per_level) || out$n_per_level < 1L) {
     stop("--n-per-level must be a positive integer", call. = FALSE)
+  }
+  if (is.na(out$shard_count) || out$shard_count < 1L || out$shard_count > 96L) {
+    stop("--shard-count must be an integer from 1 through 96", call. = FALSE)
+  }
+  if (is.na(out$shard_index) || out$shard_index < 1L ||
+      out$shard_index > out$shard_count) {
+    stop("--shard-index must be an integer from 1 through --shard-count", call. = FALSE)
   }
 
   defaults <- switch(
@@ -106,11 +119,11 @@ usage <- function() {
     "    [--seed-output=PATH] [--session-output=PATH]",
     "    [--reps=N] [--M=16,32,64] [--n-per-level=20]",
     "    [--routes=gamma_phylo,lognormal_phylo,lognormal_relmat_K,lognormal_relmat_Q,gamma_relmat_K]",
-    "    [--load=source|installed]",
+    "    [--load=source|installed] [--shard-index=1] [--shard-count=1]",
     "",
     "tiny/smoke: five manifest smoke fits at M=16, replicate 1",
     "pilot: 50 manifest pilot fits at M=16",
-    "certification: exactly 6,000 frozen-manifest fits",
+    "certification: one deterministic shard of the exactly 6,000-fit frozen manifest",
     "diagnostic: configurable local-only run; never certification evidence",
     sep = "\n"
   ))
@@ -280,6 +293,8 @@ session_lines <- c(
   paste0("n_per_level=", args$n_per_level),
   paste0("reps=", args$reps),
   paste0("routes=", paste(all_routes$fit_route, collapse = ",")),
+  paste0("shard_index=", args$shard_index),
+  paste0("shard_count=", args$shard_count),
   paste0("OPENBLAS_NUM_THREADS=", Sys.getenv("OPENBLAS_NUM_THREADS", unset = "")),
   paste0("OMP_NUM_THREADS=", Sys.getenv("OMP_NUM_THREADS", unset = "")),
   paste0("MKL_NUM_THREADS=", Sys.getenv("MKL_NUM_THREADS", unset = "")),
@@ -408,13 +423,16 @@ simulate_dgp <- function(family, provider, M, n_per_level, seed) {
   )
 }
 
-empty_row <- function(route, M, replicate, dgp_seed) {
+empty_row <- function(route, M, replicate, dgp_seed, global_fit_index) {
   data.frame(
     campaign_id = campaign_id,
     source_commit_sha = source_sha,
     source_dirty = source_dirty,
     host = host,
     phase = args$mode,
+    shard_index = args$shard_index,
+    shard_count = args$shard_count,
+    global_fit_index = global_fit_index,
     fit_route = route$fit_route,
     dgp_cell = route$dgp_cell,
     family = route$family,
@@ -476,8 +494,8 @@ record_failure <- function(row, stage, condition) {
   row
 }
 
-fit_one <- function(route, M, replicate, dgp_seed) {
-  row <- empty_row(route, M, replicate, dgp_seed)
+fit_one <- function(route, M, replicate, dgp_seed, global_fit_index) {
+  row <- empty_row(route, M, replicate, dgp_seed, global_fit_index)
   sim <- tryCatch(
     simulate_dgp(route$family, route$provider, M, args$n_per_level, dgp_seed),
     error = identity
@@ -638,9 +656,21 @@ schedule <- schedule[
   ,
   drop = FALSE
 ]
-expected_rows <- nrow(all_routes) * length(args$M) * args$reps
-if (nrow(schedule) != expected_rows || anyNA(schedule$dgp_seed)) {
+full_expected_rows <- nrow(all_routes) * length(args$M) * args$reps
+if (nrow(schedule) != full_expected_rows || anyNA(schedule$dgp_seed)) {
   stop("Internal schedule mismatch before fitting", call. = FALSE)
+}
+schedule$global_fit_index <- seq_len(nrow(schedule))
+schedule <- schedule[
+  ((schedule$global_fit_index - 1L) %% args$shard_count) + 1L == args$shard_index,
+  ,
+  drop = FALSE
+]
+expected_rows <- sum(
+  ((seq_len(full_expected_rows) - 1L) %% args$shard_count) + 1L == args$shard_index
+)
+if (nrow(schedule) != expected_rows || expected_rows < 1L) {
+  stop("Internal shard schedule mismatch before fitting", call. = FALSE)
 }
 
 results <- vector("list", nrow(schedule))
@@ -650,7 +680,8 @@ for (i in seq_len(nrow(schedule))) {
     route,
     M = schedule$M[[i]],
     replicate = schedule$replicate[[i]],
-    dgp_seed = schedule$dgp_seed[[i]]
+    dgp_seed = schedule$dgp_seed[[i]],
+    global_fit_index = schedule$global_fit_index[[i]]
   )
   append_tsv(results[[i]], raw_path)
   if (i == 1L) {
@@ -672,7 +703,7 @@ raw <- do.call(rbind, results)
 
 required_columns <- c(
   "campaign_id", "source_commit_sha", "host", "phase", "fit_route", "dgp_cell",
-  "family", "provider",
+  "family", "provider", "shard_index", "shard_count", "global_fit_index",
   "representation", "M", "n_per_level", "N", "replicate", "dgp_seed",
   "fit_key", "attempted", "fit_success", "analysis_success", "failure_stage",
   "error_class", "error_message", "elapsed_seconds", "convergence_code",
@@ -703,6 +734,10 @@ if (!identical(read_back$session_manifest_hash, rep(session_manifest_hash, nrow(
 }
 
 message("wrote raw attempts: ", raw_path, " (", nrow(raw), " rows)")
+message(
+  "shard=", args$shard_index, "/", args$shard_count,
+  "; frozen_full_manifest_rows=", full_expected_rows
+)
 message("wrote seed manifest: ", seed_path, " (", nrow(selected_seeds), " DGP rows)")
 message("wrote session manifest: ", session_path)
 message("raw_sha256=", sha256_file(raw_path))

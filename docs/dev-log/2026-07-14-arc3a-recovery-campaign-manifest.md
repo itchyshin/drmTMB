@@ -334,6 +334,25 @@ and the smoke passes:
 7. Copy compact summaries, manifests, and hashes back for review; keep raw
    results local. Do not run any simulation/recovery fit on GitHub Actions.
 
+The executable shard contract is deterministic round-robin partitioning of the
+frozen 6,000-row schedule:
+
+```sh
+Rscript tools/arc3a-positive-continuous-structured-mu-recovery.R \
+  --mode=certification --load=installed \
+  --shard-index="$i" --shard-count="$workers" \
+  --output="$run_root/raw-shard-$i.tsv" \
+  --seed-output="$run_root/seeds-shard-$i.tsv" \
+  --session-output="$run_root/session-shard-$i.txt"
+```
+
+`global_fit_index` is immutable before partitioning. The complete shard set
+must reconstruct indices 1–6,000 and unique `fit_key` values exactly once. Run
+`tools/summarize-arc3a-positive-continuous-structured-mu-recovery.R` only after
+all shards finish; it refuses missing/duplicate indices, dirty or mixed source
+SHAs, non-certification rows, missing shard IDs, scale-identity failures, or a
+denominator other than 6,000 before evaluating the predeclared gates.
+
 ## Williams transparent-reporting self-audit
 
 | # | Item | Status | Where addressed |
