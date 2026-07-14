@@ -45,6 +45,21 @@ Self-contained dossier at `inst/trust-dossier/` (cold-runnable in ~10 s):
 - **Simulation for RE-in-dispersion, not a comparator** (none exists); calibrated grid deferred
   to Totoro (D-50), not run in-lane. Rejected: claiming coverage from the 100-rep smoke.
 
+## 3b. Follow-on (S7–S8, after PR #781)
+- **S7 — real Totoro coverage grid (not just a stub).** Driver `inst/trust-dossier/totoro/run_grid.R`
+  reuses the Phase-18 meta_v harness over 4 effect-measure regimes (SMD/lnRR/logOR/logIRR — all fit by
+  the same Gaussian marginal likelihood, differing in DGP regime) × n_study × σ × sampling-scale. Three
+  tiers (smoke / local / full). Toy-smoked, then a **local broad run: 57,600 Wald intervals**, ~13 min /
+  8 cores. Result: coverage 0.91–0.94, uniform across measures, near-nominal for the mean, mild τ²
+  under-coverage at small k that climbs to nominal with study count (σ: 0.90→0.92→0.94 for n=20→40→80) —
+  the known Wald-heterogeneity behaviour, correctly reproduced. Summary CSVs committed under
+  `results-grid/`; the ~28k RDS replicates are NOT committed (regenerable). Full 768-cell × 2000-rep
+  campaign → Totoro via `totoro/DISPATCH.md` (D-50). Shareable page updated with the grid section.
+- **S8 — Wolfgang note drafted (NOT sent).** `scratchpad/wolfgang-note-DRAFT.md` — warm, low-pressure
+  (he is a close friend, currently busy; an apology for earlier over-eagerness already went out), leads
+  with the artifact + PR, honest scope, soft invitation to an independent (L3) run. Presented for the
+  user to send; no message sent on their behalf.
+
 ## 4. Files Touched
 Created (all under worktree):
 - `inst/trust-dossier/run.R`
@@ -56,6 +71,10 @@ Created (all under worktree):
 - `inst/trust-dossier/trust-card.md`
 - `inst/trust-dossier/results/{s1..s4 *.csv, badge.json, totoro-commission.md}` (generated)
 - `docs/dev-log/after-task/2026-07-14-trust-dossier-1.md` (this file)
+- `inst/trust-dossier/totoro/{run_grid.R, summarise_grid.R, DISPATCH.md}` (grid commission)
+- `inst/trust-dossier/results-grid/{grid-coverage-summary.csv, grid-coverage-bycell.csv, README.md}`
+- `scratchpad/wolfgang-note-DRAFT.md` (draft, not committed to the repo — session scratch)
+- Shareable page: claude.ai artifact 0c377eea (updated with the grid section)
 
 Outside worktree (brain vault, committed d084c8b): `memory/CROSS-REPO-GUARDS.md`, `AGENTS.md`.
 Not staged: `scratch-s4-probe.R`, `scratchpad-s0-smoke.R` (throwaway probes).
