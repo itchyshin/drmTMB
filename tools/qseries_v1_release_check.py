@@ -329,7 +329,8 @@ def render_fast_status(
         "mission_control=not_run; source=checked_in_release_status_and_ledger; "
         f"practical_v1_surface={progress.get('Practical v1.0 row surface', 'NA')}; "
         f"gaussian_core={progress.get('Gaussian v1.0 core', 'NA')}; "
-        f"basic_distribution_recovery={progress.get('Basic-distribution recovery', 'NA')}; "
+        f"basic_distribution_recovery_evidence={progress.get('Basic-distribution recovery evidence', 'NA')}; "
+        f"basic_distribution_diagnostic_only={progress.get('Basic-distribution diagnostic only', 'NA')}; "
         f"exact_inference_ready={progress.get('Exact `inference_ready` anchors', 'NA')}; "
         f"supported_authority={progress.get('`supported` authority', 'NA')}; "
         f"post_v1={progress.get('Post-v1.0 validation/design', 'NA')}; "
@@ -986,7 +987,8 @@ The Q-Series v1.0 release preflight status is:
 | --- | --- |
 | Practical v1.0 row surface | {progress.get('Practical v1.0 row surface', 'NA')} |
 | Gaussian v1.0 core | {progress.get('Gaussian v1.0 core', 'NA')} |
-| Basic-distribution recovery | {progress.get('Basic-distribution recovery', 'NA')} |
+| Basic-distribution recovery evidence | {progress.get('Basic-distribution recovery evidence', 'NA')} |
+| Basic-distribution diagnostic only | {progress.get('Basic-distribution diagnostic only', 'NA')} |
 | Exact `inference_ready` anchors | {progress.get('Exact `inference_ready` anchors', 'NA')} |
 | `supported` authority | {progress.get('`supported` authority', 'NA')} |
 | Post-v1.0 validation/design | {progress.get('Post-v1.0 validation/design', 'NA')} |
@@ -1452,7 +1454,8 @@ def main() -> int:
                 f"ledger=ok; claim_guard=ok; mission_control={mission_status}; "
                 f"practical_v1_surface={progress.get('Practical v1.0 row surface', 'NA')}; "
                 f"gaussian_core={progress.get('Gaussian v1.0 core', 'NA')}; "
-                f"basic_distribution_recovery={progress.get('Basic-distribution recovery', 'NA')}; "
+                f"basic_distribution_recovery_evidence={progress.get('Basic-distribution recovery evidence', 'NA')}; "
+                f"basic_distribution_diagnostic_only={progress.get('Basic-distribution diagnostic only', 'NA')}; "
                 f"exact_inference_ready={progress.get('Exact `inference_ready` anchors', 'NA')}; "
                 f"supported_authority={progress.get('`supported` authority', 'NA')}; "
                 f"post_v1={progress.get('Post-v1.0 validation/design', 'NA')}; "

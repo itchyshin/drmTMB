@@ -13,7 +13,7 @@ from the corrected Nibi SR475 retained-denominator surface.
 - Kept `qseries_animal_q1_mu_intercept` at `point_fit/planned/planned` because
   seeds `812407` and `812444` retain `wald_at_boundary` infinite intervals.
 - Added three inference-evidence summary rows under
-  `raw_default_wald_direct_sd`.
+  `default_location_bias_t_wald_direct_sd`.
 - Moved the live closure/queue accounting from 5 to 8 inference-ready rows and
   from 23 to 20 Gaussian low-q gate-required rows.
 - Removed the promoted rows from the Gaussian low-q audit and active low-q
@@ -36,7 +36,7 @@ from the corrected Nibi SR475 retained-denominator surface.
 ## 4. Claim Boundary
 
 This promotes exactly the phylo, spatial, and relmat Gaussian low-q q1
-`mu:(Intercept)` rows under the raw/default Wald direct-SD interval channel.
+`mu:(Intercept)` rows under the default location-axis bias-corrected small-sample-t Wald direct-SD interval channel.
 The promotion does not claim `supported`, animal q1 `mu`, q1 `sigma`, matched
 `mu+sigma`, q2, q4/q8, non-Gaussian interval evidence, REML, AI-REML, broad
 bridge support, denominator-pass public support, or public support.

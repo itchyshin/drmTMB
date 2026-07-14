@@ -1,5 +1,17 @@
 # Structured Slope Status
 
+> **Status supersession (2026-07-14).** This document preserves a historical
+> planning state. Any statement below that residual-scale structured slopes are
+> wholly planned is superseded. Current 0.6.0 fits the exact Gaussian q1
+> `sigma` one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()`; phylo, A-matrix animal, and K/Q relmat are inference-ready with
+> caveats, while spatial remains point-fit/extractor only. NB2 q1 structured
+> `sigma` intercept-plus-one-slope routes for the same four providers are also
+> fitted at recovery grade. Multiple or labelled structured sigma slopes,
+> spatial sigma-slope intervals, and broader non-Gaussian structured scale
+> routes remain planned.
+
+
 ## Purpose
 
 This note records the SR041-SR050 structured-slope boundary. It separates the
@@ -47,7 +59,8 @@ Structured slope routes also remain limited away from:
 
 - multiple structured slopes in the same structured term;
 - bivariate structured slope covariance;
-- residual-scale structured slopes;
+- residual-scale structured slopes beyond the exact fitted q1 `sigma`
+  one-slope routes (including multiple, labelled, or correlated variants);
 - non-Gaussian structured slopes;
 - predictor-dependent slope `corpair()` regressions;
 - structured `rho12` effects.

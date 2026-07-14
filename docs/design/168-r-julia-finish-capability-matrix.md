@@ -136,7 +136,8 @@ weakly identified cells cannot collapse into one status word.
   block). The scale-side REML is real, not a phantom row. Authoritative ML-vs-REML
   coverage: `docs/dev-log/ml-reml-coverage-2026-07-07.md`. Still gated (planned):
   DENSE q4, bivariate `mu`-`sigma` RE correlations, q > 2 scale blocks, and
-  correlated residual-scale slopes. REML debiases scale-side variance components
+  labelled or cross-formula correlated residual-scale slopes. Unlabelled
+  ordinary correlated `sigma` blocks are fitted. REML debiases scale-side variance components
   only with adequate within-group replication (the ladders quantify the floor).
   Speed and full q4 inference validation remain separate evidence slices.
 - AI-REML wording belongs only to exact Gaussian REML/MME derivations. For

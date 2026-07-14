@@ -22730,7 +22730,7 @@ test_that("Gaussian q1 mu intercept SR475 evidence promotes exact rows and block
   expect_equal(promoted_summary$cell_id, promoted)
   expect_equal(
     promoted_summary$interval_channel,
-    rep("raw_default_wald_direct_sd", 3L)
+    rep("default_location_bias_t_wald_direct_sd", 3L)
   )
   expect_equal(
     promoted_summary$promotion_status,
@@ -22750,7 +22750,7 @@ test_that("Gaussian q1 mu intercept SR475 evidence promotes exact rows and block
   )
   for (phrase in c(
     "Inference-ready with caveats",
-    "raw/default Wald direct-SD",
+    "default location-axis bias-corrected small-sample-t Wald direct-SD",
     "Nibi SR475",
     "475/475",
     "fit, convergence, pdHess, confint",
@@ -27226,7 +27226,7 @@ test_that("non-Gaussian structured-family rejection contract stays explicit", {
   expect_equal(qseries_rows$slope_class, "intercept_only")
   expect_equal(qseries_rows$route, "native_tmb")
   expect_equal(qseries_rows$estimator_effective, "ML_Laplace")
-  expect_equal(qseries_rows$fit_status, "point_fit")
+  expect_equal(qseries_rows$fit_status, "diagnostic_only")
   expect_equal(qseries_rows$extractor_status, "extractor_ready")
   expect_equal(qseries_rows$bridge_status, "unsupported")
   expect_equal(qseries_rows$interval_status, "unsupported")
@@ -27235,7 +27235,11 @@ test_that("non-Gaussian structured-family rejection contract stays explicit", {
   expect_equal(qseries_rows$denominator_policy, "no_denominator_local_debug_only")
   structured_re_expect_all_match(
     qseries_rows$claim_boundary,
-    "local fit-only recovery evidence"
+    "local fit-only diagnostic evidence"
+  )
+  structured_re_expect_all_match(
+    qseries_rows$claim_boundary,
+    "does not establish point-estimate recovery"
   )
   structured_re_expect_all_match(qseries_rows$claim_boundary, "not a denominator")
   structured_re_expect_all_match(qseries_rows$claim_boundary, "coverage")
@@ -30510,6 +30514,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   gaussian_deferred <- gaussian &
     qseries$fit_status %in% c("planned", "unsupported")
   nongaussian_recovery <- non_gaussian & qseries$fit_status == "point_fit"
+  nongaussian_diagnostic <- non_gaussian &
+    qseries$fit_status == "diagnostic_only"
   nongaussian_deferred <- non_gaussian &
     qseries$fit_status %in% c("planned", "unsupported")
 
@@ -30535,7 +30541,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     expect_equal(release_by_cell[[field]], qseries[[field]])
   }
   expected_track <- rep("basic_distribution_post_v1_design", nrow(qseries))
-  expected_track[non_gaussian & qseries$fit_status == "point_fit"] <-
+  expected_track[non_gaussian &
+    qseries$fit_status %in% c("point_fit", "diagnostic_only")] <-
     "basic_distribution_recovery"
   expected_track[gaussian & qseries$fit_status %in% c("planned", "unsupported")] <-
     "gaussian_post_v1_validation"
@@ -30550,7 +30557,10 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     sum(gaussian_basic)
   )
   expect_equal(sum(release$v1_track == "gaussian_post_v1_validation"), sum(gaussian_deferred))
-  expect_equal(sum(release$v1_track == "basic_distribution_recovery"), sum(nongaussian_recovery))
+  expect_equal(
+    sum(release$v1_track == "basic_distribution_recovery"),
+    sum(nongaussian_recovery) + sum(nongaussian_diagnostic)
+  )
   expect_equal(sum(release$v1_track == "basic_distribution_post_v1_design"), sum(nongaussian_deferred))
   expect_setequal(
     release$v1_priority,
@@ -30564,7 +30574,10 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   expect_equal(as.integer(value("qseries_v1_gaussian_basic_working", "row_count")), sum(gaussian_basic))
   expect_equal(as.integer(value("qseries_v1_gaussian_inference_ready", "row_count")), sum(exact_ir))
   expect_equal(as.integer(value("qseries_v1_gaussian_deferred_validation", "row_count")), sum(gaussian_deferred))
-  expect_equal(as.integer(value("qseries_v1_nongaussian_basic_recovery", "row_count")), sum(nongaussian_recovery))
+  expect_equal(
+    as.integer(value("qseries_v1_nongaussian_basic_recovery", "row_count")),
+    sum(nongaussian_recovery) + sum(nongaussian_diagnostic)
+  )
   expect_equal(as.integer(value("qseries_v1_nongaussian_deferred", "row_count")), sum(nongaussian_deferred))
   expect_equal(as.integer(value("qseries_v1_support_deferred", "row_count")), sum(qseries$authority_status == "supported"))
   expect_equal(value("qseries_v1_tooling_speedup", "row_count"), "not_applicable")
@@ -30587,7 +30600,7 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   )
   expect_match(
     value("qseries_v1_nongaussian_basic_recovery", "claim_boundary"),
-    "Recovery-only evidence is not interval evidence",
+    "Diagnostic-only evidence does not establish point-estimate recovery",
     fixed = TRUE
   )
 
@@ -30601,8 +30614,11 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     fixed = TRUE
   )
   expect_match(
-    release$claim_boundary[release$v1_track == "basic_distribution_recovery"][1],
-    "Recovery-only evidence is not interval evidence",
+    release$claim_boundary[
+      release$v1_track == "basic_distribution_recovery" &
+        release$fit_status == "diagnostic_only"
+    ][1],
+    "Diagnostic-only evidence does not establish point-estimate recovery",
     fixed = TRUE
   )
   expect_match(status_text, "104 support cells", fixed = TRUE)
@@ -30610,13 +30626,15 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   expect_match(status_text, "104 row-level roles", fixed = TRUE)
   expect_match(status_text, "8 exact Gaussian `inference_ready` anchors", fixed = TRUE)
   expect_match(status_text, "59 additional Gaussian basic-working rows", fixed = TRUE)
-  expect_match(status_text, "37 basic-distribution recovery rows", fixed = TRUE)
+  expect_match(status_text, "27 non-Gaussian recovery rows", fixed = TRUE)
+  expect_match(status_text, "10 non-Gaussian diagnostic-only rows", fixed = TRUE)
   expect_match(status_text, "0 rows stay in post-v1.0 validation or design", fixed = TRUE)
   expect_match(status_text, "0 `supported` authority rows", fixed = TRUE)
   expect_match(status_text, "row-accounting summaries, not package-release completion claims", fixed = TRUE)
   expect_match(status_text, "Practical v1.0 row surface | 104/104 | 100.0%", fixed = TRUE)
   expect_match(status_text, "Gaussian v1.0 core | 67/67 | 100.0%", fixed = TRUE)
-  expect_match(status_text, "Basic-distribution recovery | 37/37 | 100.0%", fixed = TRUE)
+  expect_match(status_text, "Basic-distribution recovery evidence | 27/37 | 73.0%", fixed = TRUE)
+  expect_match(status_text, "Basic-distribution diagnostic only | 10/37 | 27.0%", fixed = TRUE)
   expect_match(status_text, "Exact `inference_ready` anchors | 8/104 | 7.7%", fixed = TRUE)
   expect_match(status_text, "`supported` authority | 0/104 | 0.0%", fixed = TRUE)
   expect_match(status_text, "Post-v1.0 validation/design | 0/104 | 0.0%", fixed = TRUE)
@@ -31096,7 +31114,8 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
     "Mission Control: `ok`",
     "Practical v1.0 row surface | 104/104 (100.0%)",
     "Gaussian v1.0 core | 67/67 (100.0%)",
-    "Basic-distribution recovery | 37/37 (100.0%)",
+    "Basic-distribution recovery evidence | 27/37 (73.0%)",
+    "Basic-distribution diagnostic only | 10/37 (27.0%)",
     "Exact `inference_ready` anchors | 8/104 (7.7%)",
     "`supported` authority | 0/104 (0.0%)",
     "Post-v1.0 validation/design | 0/104 (0.0%)",
@@ -48734,7 +48753,8 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
 
   reml <- targets[targets$target_id == "q2_reml_boundary", , drop = FALSE]
   expect_equal(nrow(reml), 1L)
-  expect_equal(reml$profile_status, "unsupported")
+  expect_equal(reml$profile_status, "direct_ready")
+  expect_equal(reml$inference_status, "point_fit_recovery")
   expect_equal(reml$bridge_status, "unsupported")
   expect_match(reml$claim_boundary, "not HSquared AI-REML", fixed = TRUE)
 
@@ -57481,8 +57501,10 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
   )
   native_reml <- native[native$estimator == "REML", , drop = FALSE]
   expect_equal(nrow(native_reml), 1L)
-  expect_equal(native_reml$status, "unsupported")
-  expect_match(native_reml$claim_boundary, "unsupported", fixed = TRUE)
+  expect_equal(native_reml$status, "covered")
+  expect_equal(native_reml$inference_status, "point_only")
+  expect_match(native_reml$claim_boundary, "implemented", fixed = TRUE)
+  expect_match(native_reml$claim_boundary, "no interval reliability", fixed = TRUE)
   spatial_native <- native[
     native$evidence_id == "q2_spatial_location_ml",
     ,
@@ -58456,7 +58478,7 @@ test_that("q4 contracts keep smoke, extractor, and interval boundaries separate"
     "structured-re-q4-reml-requested-effective-audit.tsv"
   )
 
-  expect_setequal(targets$interval_status, c("not_evaluated", "unsupported"))
+  expect_setequal(targets$interval_status, "not_evaluated")
   sd_targets <- targets[targets$estimator == "ML", , drop = FALSE]
   structured_re_expect_all_match(sd_targets$direct_sd_targets, "sd_mu1")
   structured_re_expect_all_match(
@@ -58470,7 +58492,7 @@ test_that("q4 contracts keep smoke, extractor, and interval boundaries separate"
     drop = FALSE
   ]
   expect_equal(nrow(reml), 1L)
-  expect_equal(reml$profile_status, "unsupported")
+  expect_equal(reml$profile_status, "recovery_only")
   expect_match(reml$claim_boundary, "not HSquared AI-REML", fixed = TRUE)
 
   expect_setequal(
@@ -64165,7 +64187,7 @@ test_that("q4 contracts keep smoke, extractor, and interval boundaries separate"
     reml_audit$audit_id,
     c(
       "native_tmb_q4_ml_effective",
-      "native_tmb_q4_reml_rejection",
+      "native_tmb_q4_reml_admission",
       "direct_drmjl_q4_patterson_thompson",
       "r_via_julia_q4_patterson_thompson",
       "hsquared_ai_reml_boundary"
@@ -64178,11 +64200,17 @@ test_that("q4 contracts keep smoke, extractor, and interval boundaries separate"
   )
   structured_re_expect_all_match(reml_audit$claim_boundary, "interval coverage")
   native_reml <- reml_audit[
-    reml_audit$audit_id == "native_tmb_q4_reml_rejection",
+    reml_audit$audit_id == "native_tmb_q4_reml_admission",
     ,
     drop = FALSE
   ]
-  expect_equal(native_reml$effective_estimator, "unsupported_no_native_q4_reml")
+  expect_equal(native_reml$requested_estimator, "REML")
+  expect_equal(native_reml$effective_estimator, "REML")
+  expect_equal(native_reml$effective_family, "native_TMB_REML")
+  expect_equal(native_reml$fit_status, "covered_recovery")
+  expect_equal(native_reml$point_status, "covered_point_only")
+  expect_equal(native_reml$interval_status, "blocked_interval_reliability")
+  expect_equal(native_reml$bridge_status, "unsupported")
   bridge_reml <- reml_audit[
     reml_audit$audit_id == "r_via_julia_q4_patterson_thompson",
     ,
@@ -64405,7 +64433,10 @@ test_that("native REML scope ledger keeps requested and effective estimators exp
       "next_gate"
     )
   )
-  expect_setequal(reml$slice_id, paste0("SR", 151:159))
+  expect_setequal(
+    reml$slice_id,
+    c(paste0("SR", 151:159), "SR171", "SR172", "SR173")
+  )
   structured_re_expect_all_match(reml$diagnostic_fields, "requested_estimator")
   structured_re_expect_all_match(reml$diagnostic_fields, "effective_estimator")
   expect_equal(reml$status, rep("covered", nrow(reml)))
@@ -64413,14 +64444,36 @@ test_that("native REML scope ledger keeps requested and effective estimators exp
   q1_mu <- reml[reml$slice_id == "SR152", , drop = FALSE]
   expect_equal(nrow(q1_mu), 1L)
   expect_equal(q1_mu$effective_estimator, "REML")
-  expect_match(q1_mu$claim_boundary, "mean-side phylo only", fixed = TRUE)
+  expect_equal(q1_mu$support_status, "inference_ready_with_caveats")
+  expect_match(q1_mu$claim_boundary, "retained interval evidence", fixed = TRUE)
+
+  arc1a <- reml[reml$slice_id %in% c("SR171", "SR172", "SR173"), , drop = FALSE]
+  expect_equal(nrow(arc1a), 3L)
+  expect_equal(
+    arc1a$support_status,
+    rep("inference_ready_with_caveats", 3L)
+  )
+  structured_re_expect_all_match(arc1a$claim_boundary, "n_each=20")
+  structured_re_expect_all_match(arc1a$claim_boundary, "supported is withheld")
 
   q1_sigma <- reml[reml$slice_id == "SR153", , drop = FALSE]
-  expect_equal(q1_sigma$effective_estimator, "unsupported")
-  expect_match(q1_sigma$claim_boundary, "negative evidence", fixed = TRUE)
+  expect_equal(q1_sigma$effective_estimator, "REML")
+  expect_equal(q1_sigma$support_status, "point_fit_recovery")
+  expect_match(q1_sigma$claim_boundary, "point-fit recovery", fixed = TRUE)
+  expect_match(q1_sigma$claim_boundary, "not interval reliability", fixed = TRUE)
+
+  q2 <- reml[reml$slice_id == "SR154", , drop = FALSE]
+  expect_equal(nrow(q2), 1L)
+  expect_equal(q2$effective_estimator, "REML")
+  expect_equal(q2$support_status, "point_fit_recovery")
+  expect_match(q2$claim_boundary, "implemented", fixed = TRUE)
+  expect_match(q2$claim_boundary, "interval reliability", fixed = TRUE)
 
   q4 <- reml[reml$slice_id == "SR155", , drop = FALSE]
-  expect_equal(q4$effective_estimator, "unsupported")
+  expect_equal(nrow(q4), 1L)
+  expect_equal(q4$effective_estimator, "REML")
+  expect_equal(q4$support_status, "point_fit_recovery")
+  expect_match(q4$claim_boundary, "recovery evidence", fixed = TRUE)
   expect_match(q4$claim_boundary, "HSquared AI-REML", fixed = TRUE)
 
   optimizer <- reml[reml$slice_id == "SR158", , drop = FALSE]
@@ -64430,6 +64483,74 @@ test_that("native REML scope ledger keeps requested and effective estimators exp
   non_gaussian <- reml[reml$slice_id == "SR159", , drop = FALSE]
   expect_equal(non_gaussian$effective_estimator, "ML_or_Laplace")
   expect_match(non_gaussian$claim_boundary, "non-Gaussian REML", fixed = TRUE)
+})
+
+test_that("native REML scope gate keeps q2 and q4 admissions row-scoped", {
+  gate <- structured_re_read_dashboard_tsv(
+    "structured-re-reml-scope-gate.tsv"
+  )
+  target_map <- structured_re_read_dashboard_tsv(
+    "phylo-q2-q4-target-map.tsv"
+  )
+
+  expect_setequal(
+    gate$gate_id,
+    c(
+      "reml_exact_gaussian_q1_mu",
+      "reml_arc1a_spatial_mu",
+      "reml_arc1a_animal_mu",
+      "reml_arc1a_relmat_mu",
+      "reml_sigma_side_gate",
+      "reml_q2_gate",
+      "reml_q4_gate",
+      "reml_non_gaussian_gate",
+      "reml_bridge_gate"
+    )
+  )
+
+  q2 <- gate[gate$gate_id == "reml_q2_gate", , drop = FALSE]
+  expect_equal(q2$target, "gaussian_q2_phylo")
+  expect_equal(q2$route, "native_tmb")
+  expect_match(q2$claim_boundary, "implemented", fixed = TRUE)
+  expect_match(q2$claim_boundary, "point-fit", fixed = TRUE)
+  expect_match(q2$forbidden_wording, "interval", fixed = TRUE)
+  expect_match(q2$forbidden_wording, "non-phylo", fixed = TRUE)
+
+  q4 <- gate[gate$gate_id == "reml_q4_gate", , drop = FALSE]
+  expect_equal(q4$target, "gaussian_q4_phylo")
+  expect_equal(q4$route, "native_tmb")
+  expect_match(q4$claim_boundary, "implemented", fixed = TRUE)
+  expect_match(q4$claim_boundary, "recovery", fixed = TRUE)
+  expect_match(q4$forbidden_wording, "HSquared AI-REML", fixed = TRUE)
+  expect_match(q4$forbidden_wording, "supported", fixed = TRUE)
+
+  expect_setequal(
+    target_map$map_id,
+    c(
+      "native_tmb_q2_location_phylo_ml",
+      "native_tmb_q2_location_phylo_corpair_ml",
+      "native_tmb_q2_location_phylo_reml",
+      "native_tmb_q4_full_phylo_ml",
+      "native_tmb_q4_blockdiag_phylo_ml",
+      "native_tmb_q4_full_phylo_reml",
+      "julia_bridge_q4_full_phylo_reml"
+    )
+  )
+  q2_map <- target_map[
+    target_map$map_id == "native_tmb_q2_location_phylo_reml",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(q2_map$relation, "q2_reml_point_fit")
+  expect_equal(q2_map$profile_target_status, "direct_ready")
+  q4_map <- target_map[
+    target_map$map_id == "native_tmb_q4_full_phylo_reml",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(q4_map$relation, "native_reml_recovery")
+  expect_equal(q4_map$profile_target_status, "derived_not_ready")
+  expect_match(q4_map$claim_boundary, "not HSquared AI-REML", fixed = TRUE)
 })
 
 test_that("scope gate ledger keeps unsupported structured gaps explicit", {
@@ -64460,11 +64581,8 @@ test_that("scope gate ledger keeps unsupported structured gaps explicit", {
   reml_gate <- scope[scope$slice_id == "SR160", , drop = FALSE]
   expect_equal(nrow(reml_gate), 1L)
   expect_match(reml_gate$support_status, "blocked", fixed = TRUE)
-  expect_match(
-    reml_gate$claim_boundary,
-    "does not promote q1 sigma-side",
-    fixed = TRUE
-  )
+  expect_match(reml_gate$claim_boundary, "q1 sigma q2 and q4", fixed = TRUE)
+  expect_match(reml_gate$claim_boundary, "does not promote interval coverage", fixed = TRUE)
 
   unsupported <- scope[
     scope$slice_id %in% c("SR162", "SR164", "SR166", "SR168", "SR169"),
@@ -64630,7 +64748,7 @@ test_that("Ayumi closeout ledger keeps reply and commit gates blocked", {
   expect_equal(checkpoint$status, "covered")
   expect_match(
     checkpoint$evidence_url,
-    "2026-06-22-231209-codex-checkpoint",
+    "2026-06-22-ayumi-closeout-gates",
     fixed = TRUE
   )
 

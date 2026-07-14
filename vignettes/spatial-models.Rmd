@@ -132,7 +132,7 @@ inputs remain planned.
 | Does one Gaussian response have smooth site-level location deviations? | `spatial(1 | site, coords = coords)` in `mu` | Fitted first coordinate-spatial intercept slice. |
 | Does one predictor have a spatially varying slope? | `spatial(1 + depth | site, coords = coords)` in `mu` | Fitted one numeric-slope slice. The intercept and slope fields are independent and have separate SDs. |
 | Do two Gaussian response means share a coordinate-spatial correlation? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "spatial")` reports the latent spatial row separately from residual `rho12`. |
-| Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived for intervals. |
+| Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived and unavailable for intervals. |
 
 ## Start with the smallest useful model
 
@@ -156,6 +156,26 @@ fit_spatial_slope <- drmTMB(
   family = gaussian()
 )
 ```
+
+For the exact Arc 1a REML route, keep `sigma ~ 1`, use an unlabelled intercept
+or independent intercept-plus-one-numeric-slope shape, and set `REML = TRUE`:
+
+```r
+fit_spatial_reml <- drmTMB(
+  bf(
+    y ~ depth + spatial(1 + depth | site, coords = coords),
+    sigma ~ 1
+  ),
+  data = dat,
+  family = gaussian(),
+  REML = TRUE
+)
+```
+
+The multi-seed campaign used the coordinate representation shown here, with
+`n_each = 20` and exactly `M = {8, 16, 32}` sites. This is not a continuous
+minimum-sample-size claim, and it does not admit estimated range, labelled,
+slope-only, multiple-slope, scale-side, bivariate, or non-Gaussian REML routes.
 
 For two response means, use matching labelled terms and read the latent spatial
 correlation with `corpairs()`:
@@ -300,21 +320,15 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-```{r spatial-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted coordinate-spatial location SDs from the one-slope model. The intercept field has a finite 95% Wald interval; the depth-slope SD is near the zero boundary, so the figure keeps it point-only and labels the unsupported upper interval rather than drawing a misleading infinite bar.", fig.alt = "Horizontal point display for two spatial standard deviations. The intercept spatial SD has a finite 95 percent Wald interval away from zero; the depth-slope spatial SD sits near zero and is labelled as boundary point-only."}
+```{r spatial-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted coordinate-spatial intercept-field SD (response units) and depth-slope field SD (response units per unit depth) from the one-slope model. Interval calibration for these exact rows is not validated, so no interval bars are drawn.", fig.alt = "Horizontal point display for the spatial intercept and depth-slope standard deviations, without interval bars."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  spatial_sd <- confint(fit_spatial_slope, parm = "variance_components")
-  spatial_sd <- spatial_sd[grepl("^sd:mu:spatial", spatial_sd$parm), ]
-  spatial_sd_estimate <- fit_spatial_slope$sdpars$mu[
-    c("spatial(1 | site)", "spatial(0 + depth | site)")
-  ]
-  spatial_sd$estimate <- unname(spatial_sd_estimate)
-  spatial_sd$label <- c(
-    "Spatial\nintercept SD",
-    "Spatial\ndepth-slope SD"
+  spatial_sd <- data.frame(
+    estimate = unname(fit_spatial_slope$sdpars$mu[
+      c("spatial(1 | site)", "spatial(0 + depth | site)")
+    ]),
+    label = c("Spatial\nintercept SD", "Spatial\ndepth-slope SD"),
+    unit = c("Response units", "Response units per depth unit")
   )
-  spatial_sd$finite_interval <- is.finite(spatial_sd$lower) &
-    is.finite(spatial_sd$upper)
-  finite_upper <- max(spatial_sd$upper[spatial_sd$finite_interval])
 
   ggplot2::ggplot(spatial_sd, ggplot2::aes(y = label)) +
     ggplot2::geom_vline(
@@ -322,13 +336,6 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
       linewidth = 0.45,
       linetype = "dashed",
       colour = "grey55"
-    ) +
-    ggplot2::geom_errorbar(
-      data = spatial_sd[spatial_sd$finite_interval, ],
-      ggplot2::aes(xmin = lower, xmax = upper),
-      width = 0,
-      linewidth = 1.1,
-      colour = "#0072B2"
     ) +
     ggplot2::geom_point(
       ggplot2::aes(x = estimate),
@@ -338,33 +345,23 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
       fill = "white",
       colour = "#0072B2"
     ) +
-    ggplot2::geom_text(
-      data = spatial_sd[!spatial_sd$finite_interval, ],
-      ggplot2::aes(
-        x = finite_upper * 0.55,
-        label = "boundary interval"
-      ),
-      hjust = 0,
-      size = 3,
-      colour = "grey45"
-    ) +
     ggplot2::scale_x_continuous(
-      limits = c(0, finite_upper * 1.15),
       expand = ggplot2::expansion(mult = c(0.01, 0.04))
     ) +
     spatial_eye_theme() +
     ggplot2::labs(
-      title = "Spatial SDs are model summaries, not raw response spread",
-      subtitle = "Bars are finite 95% Wald intervals; boundary row stays point-only",
-      x = "Fitted spatial standard deviation on the response scale",
+      title = "Spatial intercept and slope SDs have different units",
+      subtitle = "Point estimates only; interval validation remains planned",
+      x = "Fitted spatial standard deviation",
       y = NULL
     )
 }
 ```
 
-For bivariate spatial location models, use a Confidence Eye only when
-`corpairs()` supplies an interval for the latent spatial correlation. The raw
-paired responses do not belong on this axis.
+For bivariate spatial location models, the current intercept-only q2
+`corpairs()` row is point-only: profile mechanics exist, but interval calibration
+and coverage remain planned. The raw paired responses do not belong on this
+axis.
 
 ```{r spatial-q2-correlation-fit}
 spatial_q2_example <- simulate_spatial_q2_guide_data()
@@ -386,16 +383,13 @@ fit_spatial_q2_example <- drmTMB(
 spatial_q2_pairs <- suppressWarnings(
   corpairs(
     fit_spatial_q2_example,
-    level = "spatial",
-    conf.int = TRUE,
-    ystep = 0.25,
-    ytol = 3
+    level = "spatial"
   )
 )
 spatial_q2_pairs
 ```
 
-```{r spatial-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Coordinate-spatial q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent spatial-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the coordinate-spatial mean-mean correlation. The eye spans a broad 95 percent profile interval and the hollow point estimate lies slightly to the right of the dotted zero reference line."}
+```{r spatial-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Coordinate-spatial intercept-only q=2 location-location point estimate from `corpairs()`; the dotted vertical line marks zero correlation and no interval is shown because calibration remains planned.", fig.alt = "Single-row point plot for the coordinate-spatial mean-mean correlation, with a hollow point estimate slightly to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   spatial_q2_display <- spatial_q2_pairs
   spatial_q2_display$display_label <- "Spatial\nmu1-mu2"
@@ -411,7 +405,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     spatial_eye_theme() +
     ggplot2::labs(
       title = "Spatial latent mean correlation",
-      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      subtitle = "Point estimate only; dotted line marks zero",
       x = "Correlation estimate"
     )
 }
@@ -428,9 +422,11 @@ The following spatial routes remain planned:
 - direct spatial SD surfaces;
 - predictor-dependent spatial `corpair()` regressions;
 - simultaneous `phylo()` plus `spatial()` layers in the same formula;
-- non-Gaussian spatial structured effects beyond the fitted Gaussian slices.
+- non-Gaussian spatial structured effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
 detailed [structural-dependence tutorial](phylogenetic-spatial.html) when you
 need the current worked examples, equations, and broader parity ladder.
+    ggplot2::facet_grid(unit ~ ., scales = "free_x", space = "free_y") +
+    ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0)) +

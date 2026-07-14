@@ -31,20 +31,20 @@ quantity each `sigma` formula models.
 | Response type | First family to try | Distributional parameters | What `sigma` means | Main current limit |
 | --- | --- | --- | --- | --- |
 | Continuous, symmetric residuals | `gaussian()` | `mu`, `sigma` | residual standard deviation | most mature path; non-Gaussian extensions are separate |
-| Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma`/`nu` random effects and bivariate models planned |
-| Continuous with asymmetric residuals | `skew_normal()` | `mu`, `sigma`, `nu` | response standard deviation; `nu` is residual slant | fixed effects only |
+| Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | ordinary `mu` random intercepts/slopes plus an exact recovery-grade q=1 `mu ~ spatial(1 + x | ...)` gate; the intercept-only spatial `mu` and `nu ~ phylo()` gates are diagnostic-only; other `sigma`/`nu` random effects and bivariate models are planned |
+| Continuous with asymmetric residuals | `skew_normal()` | `mu`, `sigma`, `nu` | response standard deviation; `nu` is residual slant | ordinary `mu` random intercepts and independent slopes are recovery-grade; `sigma`/`nu` random effects and structured routes are planned |
 | Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | `mu` random intercepts/slopes and a `sigma` random intercept are fitted; only the exact ledger domain for the `sigma` intercept is inference-ready with caveats |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | `mu` random intercepts/slopes and a `sigma` random intercept are fitted at recovery grade; `sigma` slopes and bivariate models are planned |
-| Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | fixed effects only; `nu ~ 1` only |
-| Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | exact 0/1 boundary values use `zero_one_beta()` |
-| Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | fixed effects only |
+| Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | ordinary `mu` random intercepts and independent slopes are recovery-grade; `nu ~ 1` remains intercept-only and other distributional random effects are planned |
+| Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | ordinary `mu` random intercepts/slopes and exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates are fitted; exact 0/1 boundary values use `zero_one_beta()` |
+| Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | ordinary `mu` random intercepts and independent slopes are recovery-grade; `sigma`, `zoi`, and `coi` random effects are planned |
 | Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | ordinary `mu` random intercepts and independent slopes are fitted; use `cbind(successes, failures)` for trial totals |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma` random effects and bivariate models planned |
-| Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts, independent slopes, and q=1 phylogenetic `mu` intercept implemented; `zi` random effects planned |
-| Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary non-zero-inflated `mu` random intercepts, independent slopes, grouped `sigma` random intercepts, q=1 phylogenetic `mu` intercept, and q=1 `sigma` structured one-slope routes (`phylo`/`spatial`/`animal`/`relmat`, recovery grade) implemented; plain `sigma` random slopes, `sigma` structured routes beyond one slope, and `zi` random effects planned |
-| Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | `mu` random intercepts and independent slopes implemented (recovery grade; not with `hu`); `hu`/`sigma` random effects and bivariate models planned |
-| Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed effects only; `hu` random effects planned |
-| Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal random effects and scale/discrimination planned |
+| Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts and independent slopes plus q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` `mu` intercept-plus-one-slope routes are fitted; one diagnostic-only q=1 `zi ~ spatial(1 | id, coords = coords)` intercept is also fitted; pure, multiple, or labelled structured slopes and other `zi` random effects are planned |
+| Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary non-zero-inflated `mu` random intercepts and independent slopes, grouped `sigma` random intercepts, q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` `mu` intercept-plus-one-slope routes, and separate q=1 structured `sigma` intercept-plus-one-slope routes (recovery grade) are fitted; plain `sigma` random slopes, richer or labelled structured routes, and `zi` random effects are planned |
+| Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | `mu` random intercepts and independent slopes implemented (recovery grade; not with `hu`); `sigma` random effects and bivariate models planned |
+| Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed-effect hurdle models plus one diagnostic-only q=1 `hu ~ relmat(1 | id, K/Q = ...)` intercept route are fitted; other `hu` random effects and structured routes are planned |
+| Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | ordinary `mu` random intercepts/slopes plus one diagnostic-only q=1 `mu ~ phylo(1 | id, tree = tree)` intercept are fitted; other structured ordinal effects and scale/discrimination are planned |
 | Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response `mu`/`sigma` intercept or slope-only covariance pairs implemented; richer covariance planned |
 
 The source-level family map in `docs/design/02-family-registry.md` records the
@@ -57,33 +57,44 @@ first count mixed-model slices listed here, while leaving blocked neighbours as
 future likelihood and simulation work.
 
 For non-Gaussian random effects, the current fitted path is deliberately
-narrow. Ordinary Poisson and NB2 `mu` models can fit unlabelled random
-intercepts and independent numeric random slopes, such as `(1 | site)` and
-`(0 + effort | site)`, when there is no zero-inflation formula. Student-t,
-Gamma, beta-binomial, and truncated NB2 (without a hurdle formula) `mu` models
-likewise accept unlabelled random intercepts and independent numeric slopes at
-recovery grade, and lognormal `mu` accepts a random intercept (slopes at
-recovery grade). Ordinary Poisson
-and ordinary NB2 also have q=1 structured `mu` intercept routes using one of
-`phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean scale.
+narrow. The eligible ordinary routes accept unlabelled `mu` random intercepts
+and independent numeric slopes at recovery grade, such as `(1 | site)` and
+`(0 + effort | site)`, inside their family-specific boundaries. These routes
+include Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta,
+beta-binomial, binomial, Poisson, NB2, truncated NB2, and cumulative-logit
+models. Zero-inflated and hurdle neighbours remain blocked except for the exact
+structured gates named below; in particular, an active `hu` formula does not
+admit ordinary count-side `mu` random effects. Ordinary Poisson and ordinary NB2 also have q=1 structured
+`mu` intercept-plus-one-slope routes using one of `phylo()`, `spatial()`,
+`animal()`, or `relmat()` on the log-mean scale. Ordinary NB2 separately has
+the same four q=1 structured `sigma` intercept-plus-one-slope routes at
+recovery grade.
 Ordinary NB2, lognormal, and Gamma also have first grouped scale routes,
 `sigma ~ z + (1 | id)`, on their family-specific log-`sigma` scales. The
 lognormal and Gamma scale routes must be fitted separately from their `mu`
-random-effect routes. Tweedie is currently fixed-effect only, with intercept-only
-`nu ~ 1`; skew-normal is currently fixed-effect only, with `nu` modelling
-residual slant. Other non-Gaussian random-effect requests are still boundary
-checks: Tweedie random effects or predictor-dependent power, skew-normal random
+random-effect routes. Tweedie still requires intercept-only `nu ~ 1`, and
+skew-normal `nu` remains fixed-effect residual slant. Other non-Gaussian
+random-effect requests are still boundary checks: Tweedie distributional
+random effects or predictor-dependent power, skew-normal `sigma`/`nu` random
 effects or structured effects, NB2/lognormal/Gamma plain `sigma` random slopes,
 combined lognormal/Gamma `mu`+`sigma` random effects, and NB2 `sigma`
 structured routes beyond the one-slope gate,
-Student-t `nu` random effects, zero-inflation or hurdle random effects,
-ordinal mixed models, other non-count `spatial()`/`animal()`/`relmat()`
+Student-t `nu` random effects beyond the exact diagnostic-only q=1
+`nu ~ phylo(1 | id, tree = tree)` intercept, zero-inflation random effects beyond the exact
+diagnostic-only q=1 Poisson `zi ~ spatial()` intercept, hurdle random
+effects beyond the exact diagnostic-only q=1 `hu ~ relmat(1 | id, K/Q = ...)`
+intercept route,
+ordinal mixed models beyond ordinary `mu` intercepts/slopes and the exact
+diagnostic-only q=1 `mu ~ phylo(1 | id, tree = tree)` intercept, other non-count `spatial()`/`animal()`/`relmat()`
 structured effects beyond the implemented recovery-grade routes (Gamma
 `relmat()` on `mu`, beta `animal()` on `mu`/`sigma`, Student-t `spatial()` on
 `mu`),
-count structured slopes, simultaneous structured count effects, and correlated
-or labelled count random-slope blocks need their own likelihood and recovery
-evidence before they become runnable syntax.
+pure, multiple, or labelled structured count slopes, simultaneous structured
+count effects beyond the exact crossed NB2
+`mu ~ spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)`
+recovery-only gate, and correlated or labelled ordinary count random-slope blocks
+need their own likelihood and recovery evidence before they become runnable
+syntax.
 Fixed-effect Wald intervals are available where the fixed
 coefficient covariance is available; profile targets remain limited to direct
 optimized parameters listed by `profile_targets()`.
@@ -442,9 +453,10 @@ For this family, `predict(fit, dpar = "mu")` returns the interior beta mean.
 `predict(fit, dpar = "zoi")` returns the probability of an exact 0 or exact 1
 response, and `predict(fit, dpar = "coi")` returns the probability that a
 boundary response is exactly 1. `fitted(fit)` returns the unconditional mean
-including boundary mass. This first slice is fixed-effect only; random effects,
-structured effects, known covariance, denominator syntax, and bivariate
-bounded-response models remain planned or blocked.
+including boundary mass. Ordinary unlabelled `mu` random intercepts and
+independent numeric slopes are now fitted at recovery grade. Random effects in
+`sigma`, `zoi`, or `coi`, structured effects, known covariance, denominator
+syntax, and bivariate bounded-response models remain planned or blocked.
 
 Poisson mean models are implemented for count responses:
 
@@ -654,6 +666,23 @@ returns the untruncated NB2 component mean, while `fitted(fit)` returns the
 unconditional response mean. The design deliberately uses `hu` as a formula
 component, parallel to the implemented `zi` component, instead of adding a
 separate `hurdle_nbinom2()` constructor.
+
+One structured hurdle route is also fitted as diagnostic-only: an unlabelled
+q=1 relatedness intercept in `hu`, supplied as either a covariance matrix `K`
+or precision matrix `Q`:
+
+```r
+drmTMB(
+  bf(count ~ habitat, sigma ~ treatment,
+    hu ~ relmat(1 | id, K = K)),
+  family = truncated_nbinom2(),
+  data = dat
+)
+```
+
+Treat this as a point-estimate route only. Structured `phylo()`, `spatial()`,
+or `animal()` hurdle effects, structured hurdle slopes, labels, intervals, and
+coverage remain planned.
 
 Use `zi` when the count distribution can still generate sampling zeros and you
 want an extra structural-zero process. Use `hu` when zeros are modelled

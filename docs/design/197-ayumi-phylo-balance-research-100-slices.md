@@ -1,5 +1,12 @@
 # Ayumi Phylo Balance Research And 100-Slice Plan
 
+> **Historical plan; REML status superseded 2026-07-14.** The A031-A040 and
+> A051-A066 rejection rows preserve what was known when this plan ran. Current
+> native TMB evidence admits tested phylogenetic q1 sigma, matched univariate
+> q2, bivariate mean-side q2, and block-diagonal/dense q4 REML at point-fit or
+> recovery tiers. No interval, coverage, supported, or HSquared AI-REML claim
+> follows. See `docs/dev-log/dashboard/structured-re-native-reml-scope-status.tsv`.
+
 ## Purpose
 
 This plan prepares the next Ayumi-facing arc after the current R/Julia

@@ -246,8 +246,10 @@ negative-binomial (NB2) location models. The phylogenetic deviation now acts on
 the linear predictor of the count mean through the log link, so related species
 share a baseline abundance. Two differences from the Gaussian case:
 
-- count families have no residual `sigma` formula, so the `phylo()` term is the
-  only random piece in `mu`;
+- Poisson has no residual `sigma` formula. NB2 instead has a modelled
+  overdispersion `sigma`; its exact q1 phylogenetic `sigma` gate accepts an
+  intercept plus one independent slope at recovery grade, separately from the
+  `mu` field;
 - the simulated deviation is built from the **correlation** form of $A$ (unit
   diagonal) scaled by the phylogenetic SD, so the SD is interpretable on the
   log-mean scale.
@@ -340,7 +342,10 @@ fit_big$sdpars$mu
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Phylogenetic location deviations in one Gaussian response | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
-| Phylogenetic location deviations in a Poisson or NB2 mean | `phylo(1 | species, tree = tree)` in `mu` | Fitted q=1 location intercept. |
+| Phylogenetic location deviations in a Poisson or NB2 mean | `phylo(1 + x | species, tree = tree)` in `mu` | Fitted q=1 unlabelled intercept plus one independent slope at recovery grade. |
+| Phylogenetic NB2 overdispersion deviations | `phylo(1 + x | species, tree = tree)` in `sigma` | Fitted q=1 unlabelled intercept plus one independent slope at recovery grade; no interval or coverage promotion. |
+| Phylogenetic Student-t tail-weight deviations | `phylo(1 | species, tree = tree)` in `nu` | Exact q=1 intercept with diagnostic-only fit/extractor evidence; this does not establish point-estimate recovery. |
+| Phylogenetic cumulative-logit location deviations | `phylo(1 | species, tree = tree)` in `mu` | Exact q=1 intercept with diagnostic-only fit/extractor evidence; this does not establish point-estimate recovery. |
 | One phylogenetic location SD modelled by a species predictor | `sd(species, level = "phylogenetic") ~ z` | Fitted direct-SD route (not residual `sigma`); `sd_phylo(species)` is a soft-deprecated (0.3.0) alias. |
 | Two Gaussian means sharing a phylogenetic correlation | matching `phylo(1 | p | species, tree = tree)` in `mu1` and `mu2` | Fitted; read with `corpairs(level = "phylogenetic")`. |
 | Phylogenetic location and scale as one block | matching labelled `phylo(1 | p | species, tree = tree)` across `mu1`, `mu2`, `sigma1`, `sigma2` | Fitted first constant q=4 slice. |
@@ -349,11 +354,14 @@ These bivariate and location-scale routes, and the broader parity ladder, are
 covered with worked examples in the
 [structural-dependence tutorial](phylogenetic-spatial.html).
 
-The following remain planned: multiple phylogenetic slopes and slope
-correlations; non-Gaussian phylogenetic *slopes* (only the q=1 intercept is
-fitted for counts); public matrix inputs such as `phylo(1 | species, A = A)`;
-simultaneous `phylo()` and `spatial()` layers in one formula; and
-structured random effects inside residual `rho12`.
+The following remain planned: multiple or labelled phylogenetic slopes and
+slope correlations; non-Gaussian phylogenetic effects outside the exact
+ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope,
+recovery-grade NB2 q1 phylogenetic `sigma`, Student-t q1 phylogenetic `nu`,
+and cumulative-logit q1 phylogenetic `mu` gates; public matrix
+inputs such as `phylo(1 | species, A = A)`; simultaneous `phylo()` and
+`spatial()` layers in one formula; and structured random effects inside
+residual `rho12`.
 
 ## References
 

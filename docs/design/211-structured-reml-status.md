@@ -2,69 +2,88 @@
 
 ## Purpose
 
-This note records the SR051-SR060 native REML boundary for structured random
-effects. It keeps exact-Gaussian mean-side phylogenetic REML separate from ML
-support, q2/q4 support, direct DRM.jl evidence, R-to-Julia bridge support, and
-HSquared/AI-REML wording.
+This note records the native exact-Gaussian REML boundary for structured
+random effects. It separates the implemented R/TMB routes from ML support,
+non-Gaussian Laplace fits, direct DRM.jl evidence, R-to-Julia bridge evidence,
+and HSquared/AI-REML terminology. The machine-readable authority is
+`docs/dev-log/dashboard/estimator-surface-conformance.tsv` together with the
+REML-specific scope boards under `docs/dev-log/dashboard/`.
 
-## Current Native REML Support
+## Arc 1a mean-side provider routes
 
-Native `REML = TRUE` supports the exact-Gaussian univariate mean-side
-phylogenetic location model:
+For a univariate Gaussian response, native `REML = TRUE` now admits a pure
+mean-side `spatial()`, `animal()`, or `relmat()` term when the structured shape
+is either an unlabelled intercept or an independent intercept plus one numeric
+slope. The residual scale must be constant: `sigma ~ 1`, with no ordinary or
+structured sigma random effect. For example:
 
 ```r
-bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1)
+bf(y ~ x + animal(1 + x | id, A = A), sigma ~ 1)
+bf(y ~ x + relmat(1 + x | id, K = K), sigma ~ 1)
 ```
 
-The focused REML test compares the fitted values to a hand-computed restricted
-likelihood reference and checks that the REML phylogenetic SD is not more
-downward-biased than the ML estimate in the fixture.
+For provider covariance matrix \(K_h\), the admitted one-slope model is
 
-## Current Native REML Rejections
-> ### ⚠️ SUPERSEDED IN PART (2026-07-08)
->
-> Scale-side phylogenetic structured effects are **no longer rejected** (`b9446fd7`), nor are ordinary
-> `sigma` random effects (`feba9018`). The surviving REML rejections, each machine-checked, are:
-> non-Gaussian families; `spatial`/`animal`/`relmat` structured effects; ordinary direct-SD scale formulae;
-> Gaussian row aggregation; sparse fixed effects; an *engaged* missing-data engine; and `sd_phylo()`
-> combined with a `sigma ~ phylo(...)` endpoint. Also a **capability loss** recorded nowhere before
-> 2026-07-08: under REML the mean coefficients move into the Laplace `random` block, so **profile intervals
-> on fixed effects are unavailable** (`R/profile.R:848`) -- take those from an ML fit.
->
-> Authority: `docs/dev-log/dashboard/estimator-surface-conformance.tsv` (machine-checked by
-> `tests/testthat/test-estimator-surface-conformance.R`) and
-> `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`. Prose is derived; the TSVs are truth.
+\[
+y = X\beta + Zb_0 + D_x Zb_1 + \varepsilon,
+\qquad
+b_j \sim N(0, s_j^2 K_h),
+\qquad
+\varepsilon \sim N(0, \sigma^2 I),
+\]
 
-Native REML currently rejects:
+with independent \(b_0\) and \(b_1\). The fitted structured SD scale is
+\(s_j\), so the latent-field covariance is \(s_j^2 K_h\). Node \(i\) has
+marginal SD \(s_j\sqrt{K_{h,ii}}\), which equals \(s_j\) only when that
+diagonal entry is one.
 
-- scale-side phylogenetic structured effects;
-- matched univariate phylogenetic `mu`/`sigma` location-scale effects;
-- q2 and q4 phylogenetic structured effects;
-- coordinate `spatial()` structured effects;
-- `animal()` structured effects;
-- `relmat()` structured effects.
+The implementation is checked against an independent dense restricted-
+likelihood oracle and deterministic representation-parity fixtures. The Arc 1a
+Totoro campaign used spatial coordinates, animal `A`, and relmat `K`.
+`animal(Ainv = ...)`, pedigree input, and `relmat(Q = ...)` parity is
+deterministic-fixture evidence, not a broad multi-seed claim.
 
-A direct smoke on 2026-06-22 showed that `spatial()`, `animal()`, and
-`relmat()` REML all reject with the current message:
+Fresh Noether, Fisher, and Pat D-43 reviews support
+`inference_ready_with_caveats` for exactly these discrete domains:
 
-```text
-`REML` currently supports only phylogenetic (`phylo()`) mean-side structured effects.
-Spatial, animal, and relatedness structured effects under REML are not validated yet.
-```
+- `spatial()`: `n_each=20`, `M={8,16,32}`;
+- `animal()`: `n_each=20`, the fixed `M=8` pedigree;
+- `relmat()`: `n_each=20`, `M={8,16,32}`.
 
-## Vocabulary Boundary
+All represented profile targets passed the pre-specified small-sample coverage
+floors, but coverage is not nominal-exact. Upper-tail miss asymmetry and
+zero-lower-bound slope profiles remain material caveats. The evidence therefore
+does not support continuous `M >= ...` claims or the `supported` tier.
 
-Native REML here means exact Gaussian restricted likelihood inside drmTMB's
-native TMB engine. It is not HSquared AI-REML. Direct DRM.jl q4 REML evidence
-is direct Julia evidence only until an R-to-Julia bridge row proves parity for
-that exact cell.
+## Excluded routes
 
-The R-to-Julia bridge now has live q1 Gaussian sigma-only and matched
-`mu+sigma` phylogenetic REML admission tests in
-`tests/testthat/test-julia-sigma-phylo-reml.R`. Those tests prove finite,
-effective-REML bridge admission for those exact cells only. They do not change
-the native TMB rejection list above, do not prove native/direct/R-via-Julia ML
-same-target parity, and do not create public bridge support wording.
+Arc 1a does not admit slope-only terms, factor slopes, labelled covariance
+blocks, multiple slopes, `sigma ~ x`, sigma random effects, matched structured
+`mu+sigma` terms, `phylo_interaction()`, bivariate routes, non-Gaussian
+families, estimated spatial range, sparse fixed effects, response aggregation,
+engaged missing-data engines, or direct-SD formulas. Fixed-effect profile
+intervals are unavailable under REML because the mean coefficients are in the
+integrated parameter block; use an ML fit when fixed-effect profiles are
+required.
 
-This note does not promote native q4 REML, non-Gaussian REML, R bridge support,
-public optimizer controls, or calibrated interval coverage.
+Other native REML routes, including existing phylogenetic and scale-side
+routes, retain their row-specific evidence and boundaries. Arc 1a does not
+borrow their claims, and they do not widen Arc 1a.
+
+The pre-existing phylogenetic native REML routes include q1 mean-side with
+retained interval evidence, sigma-only and matched univariate q2 point-fit
+evidence, bivariate mean-side q2 point-fit evidence, and block-diagonal or
+dense q4 recovery evidence. None of the latter rows inherits the q1 mean-side
+interval tier, and none is HSquared AI-REML.
+
+## Vocabulary boundary
+
+Native REML here means the exact Gaussian restricted likelihood evaluated by
+drmTMB's native TMB engine. It is not HSquared AI-REML. Direct DRM.jl evidence
+and R-to-Julia bridge tests remain route-specific evidence; neither creates a
+general bridge support claim.
+
+This note does not promote native q4 beyond its row-specific recovery tier,
+non-Gaussian REML, public optimizer controls, nominal-exact coverage, or
+`supported` status.

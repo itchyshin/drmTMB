@@ -67,7 +67,7 @@ routes planned:
 - direct spatial SD surfaces;
 - predictor-dependent spatial `corpair()` regressions;
 - simultaneous `phylo()` plus `spatial()` layers;
-- non-Gaussian spatial structured effects.
+- non-Gaussian spatial structured effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates.
 
 Usefulness check: a user should leave the map knowing both the exact spatial q4
 syntax they can run and the nearest fitted alternative when their desired route
@@ -151,10 +151,10 @@ copy without re-deciding the whole roadmap.
 | 398 | Formula grammar gate: non-Gaussian structured grammar remains closed unless the fitted scope and rejected neighbours are documented together. | Do not broaden `phylo()`, `spatial()`, `animal()`, or `relmat()` grammar implicitly from Gaussian support. |
 | 399 | Documentation gate: implementation-map, model-map, family docs, NEWS, ROADMAP, check-log, and after-task report must move with any fitted-status change. | Do not let an implementation PR close with only tests or only prose. |
 | 400 | Issue-template gate: create one issue per family, component, layer, q, and comparator combination. | Do not open a broad "non-Gaussian structured parity" issue as an implementation target. |
-| 401 | Poisson first-issue outline: one non-zero-inflated Poisson `mu` q1 structured intercept, starting with phylogeny, with simulations, diagnostics, docs, and malformed neighbours. | No slopes, q2/q4, `zi`, `hu`, or cross-parameter covariance. |
-| 402 | NB2 first-issue outline: one NB2 `mu` q1 structured intercept with fixed-effect `sigma`, overdispersion conditions, and ordinary NB2 comparator evidence. | No NB2 `sigma` structured effects, zero-inflated NB2 structure, or spatial/animal/`relmat()` parity until the first route recovers. |
-| 403 | `zi`/`hu` future issue outline: probability-component random effects need a user problem, prediction semantics, diagnostics, and recovery evidence before fitting. | Fixed-effect `zi` and `hu` remain the recommended route for extra-zero questions. |
-| 404 | Phase 18 admission note: non-Gaussian structured routes remain outside broad simulation until one narrow route passes recovery, diagnostics, intervals, and docs. | Do not roll the comprehensive simulation programme forward on planned status. |
+| 401 | Historical Poisson first-issue outline, superseded by exact q1 intercept-plus-one-slope gates for four providers and an exact spatial `zi` gate. | Neighbours outside those exact gates still require separate evidence. |
+| 402 | Historical NB2 first-issue outline, superseded by exact q1 `mu`, q1 structured `sigma`, crossed spatial-plus-relmat, and fixed-`zi` spatial `mu` gates. | Do not transfer their point/recovery tiers to q2/q4, broader mixtures, intervals, or coverage. |
+| 403 | Historical `zi`/`hu` outline, superseded in part by the exact Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, fixed-`zi` NB2 spatial `mu`, and truncated-NB2 relmat `hu` gates. | Other probability-component random effects still need their own design and evidence. |
+| 404 | Historical Phase 18 admission note, superseded in part: exact non-Gaussian structured rows have passed row-specific point/recovery gates. | Broad simulation and neighbouring routes remain outside until separately certified. |
 | 405 | Closeout: stop with a map, issue-ready gates, and validation evidence. | Do not add untested likelihood code in the planning closeout. |
 
 ## Issue Template Fields For Future Implementation

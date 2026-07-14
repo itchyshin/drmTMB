@@ -18,7 +18,8 @@ Mission Control passed in this generated report.
 | --- | --- |
 | Practical v1.0 row surface | 104/104 (100.0%) |
 | Gaussian v1.0 core | 67/67 (100.0%) |
-| Basic-distribution recovery | 37/37 (100.0%) |
+| Basic-distribution recovery evidence | 27/37 (73.0%) |
+| Basic-distribution diagnostic only | 10/37 (27.0%) |
 | Exact `inference_ready` anchors | 8/104 (7.7%) |
 | `supported` authority | 0/104 (0.0%) |
 | Post-v1.0 validation/design | 0/104 (0.0%) |

@@ -1,5 +1,13 @@
 # Phase 18 NB2 Phylogenetic q1 ADEMP Sheet
 
+> **Status supersession (2026-07-14).** This sheet preserves the first
+> intercept-only evidence lane. Current 0.6.0 also fits the unlabelled NB2
+> phylogenetic `mu` intercept-plus-one-slope route and the exact q1 NB2
+> phylogenetic `sigma` intercept-plus-one-slope route at recovery grade.
+> Pure, labelled, or multiple slopes, richer structured sigma blocks,
+> structured-sigma intervals/coverage, and zero-inflated NB2 phylogenetic
+> effects remain planned.
+
 This sheet records the focused Phase 18 evidence lane for an ordinary NB2
 phylogenetic `mu` intercept:
 

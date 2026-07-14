@@ -1,5 +1,10 @@
 # Phase 18 Count Structured q1 Artifacts, Slices 1721-1742
 
+> **Superseded boundary (2026-07-14).** This historical slice records the
+> single-provider q1 artifact state at closeout. The current package also has
+> one exact crossed NB2 `mu ~ spatial() + relmat()` recovery-only route; it does
+> not promote intervals, coverage, or broader simultaneous structured support.
+
 This note records the opt-in artifact lane, manual Actions task, first manual
 smoke audit, warning-diagnostic hardening, and post-merge diagnostic smoke
 audit, boundary-rate gate, boundary-gate audit helper, and first helper audit

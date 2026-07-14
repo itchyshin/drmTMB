@@ -1,5 +1,23 @@
 # Phase 18 Structured Workflow Registry
 
+> **Historical workflow snapshot, superseded 2026-07-14.** This document preserves a historical
+> planning state. Any statement below that residual-scale structured slopes are
+> wholly planned is superseded. Current 0.6.0 fits the exact Gaussian q1
+> `sigma` one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()`; phylo, A-matrix animal, and K/Q relmat are inference-ready with
+> caveats, while spatial remains point-fit/extractor only. NB2 q1 structured
+> `sigma` intercept-plus-one-slope routes for the same four providers are also
+> fitted at recovery grade. Multiple or labelled structured sigma slopes,
+> spatial sigma-slope intervals, and broader non-Gaussian structured scale
+> routes remain planned. The row counts and blocked statuses below are likewise
+> a historical workflow snapshot, not a current capability census. Later
+> fitted point/recovery gates include ordinary `mu` random effects for every
+> fitted univariate family, structured count `mu`, NB2 structured `sigma`, and
+> exact Student-t, Gamma, beta, Poisson-`zi`, hurdle-`hu`, and cumulative-logit
+> routes. Those routes do not inherit an Actions campaign or interval/coverage
+> claim from this note.
+
+
 This note turns the current capability audit into a workflow map. The goal is
 not to open new likelihoods or syntax. The goal is to let Ada and Grace dispatch
 repeatable lanes for random slopes, structured dependence, correlation blocks,
@@ -33,7 +51,7 @@ covariance `V`.
 | Student-t | Ready for ordinary `mu` intercept artifact lanes and focused independent-slope tests | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Keep `nu` as fixed-effect shape; no `nu` random-effect workflow until a design gate opens it |
 | Tweedie | Fixed-effect only with intercept-only `nu` | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Existing `tweedie_fixed_effect` task is the workflow; random effects are outside this slice |
 | Zero-truncated NB2 | Ready for ordinary `mu` intercept artifact lanes and focused independent-slope tests | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Existing positive-count task can run; hurdle and structured paths stay planned |
-| Ordinal `cumulative_logit()` | Blocked; fixed-effect location only | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Existing `ordinal_fixed_effect` task is the workflow; mixed ordinal models need design |
+| Ordinal `cumulative_logit()` | Ordinary `mu` intercept/slope recovery is fitted; this registry has only the historical fixed-effect artifact task | Exact phylogenetic `mu` intercept local-fit gate only | Blocked | Blocked | Blocked | Blocked | Blocked | Existing `ordinal_fixed_effect` task does not certify the later ordinary or phylogenetic gates; correlated/labelled, other structured, and mixed ordinal models need separate design and evidence |
 | Gaussian meta-analysis with known `V` | Ordinary Gaussian random effects are separate from known sampling covariance | Planned only as a future latent-relatedness plus study design | Planned | Planned | Planned | Not a `corpairs()` layer | Not a q=4 layer | Existing meta-`V` smoke surfaces stay in the fixed known-covariance lane |
 | Mixed-response bivariate families | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Failure-ledger rows only until a joint likelihood or copula/latent contract is designed |
 
@@ -41,8 +59,9 @@ The practical reading is simple. Most Gaussian, ordinary non-Gaussian `mu`, and
 q=1 count-structured rows can move through workflow plumbing and artifact
 audits today. The cells that still need supervision are the ones that would
 change the likelihood, formula grammar, or covariance target: non-Gaussian
-structured slopes, labelled count q=2/q=4 covariance, ordinal mixed models,
-inflation or hurdle random effects, Student-t `nu` random effects, and
+structured slopes, labelled count q=2/q=4 covariance, ordinal covariance
+outside ordinary `mu` and the exact phylogenetic gate, inflation or hurdle
+random effects outside exact gates, Student-t `nu` random effects outside its gate, and
 mixed-response bivariate families.
 
 ## Workflow Lanes
@@ -189,8 +208,9 @@ The current family-surface plan has eleven rows:
   positive-continuous fixed effects, Tweedie fixed effects, ordinal fixed
   effects, and meta-known-`V` Gaussian rows;
 - one smoke-only row: NB2 `sigma` random intercepts;
-- three blocked rows: zero-inflated or hurdle count random effects, Student-t
-  `nu` random effects, and ordinal random effects;
+- three blocked-neighbour rows: zero-inflated or hurdle count random effects
+  outside exact gates, Student-t `nu` random effects outside its exact gate,
+  and ordinal covariance outside ordinary `mu` and the exact phylogenetic gate;
 - one design-only row: mixed-response bivariate families.
 
 Blocked and design-only rows have no Actions task. Callers can set
@@ -445,7 +465,7 @@ contrast, replicate target, and MCSE target are specified. Comparator packages,
 | New family likelihoods, such as COM-Poisson or skew-normal | New likelihoods require parameterization, simulation tests, docs, and family registry updates. |
 | New formula grammar for direct-SD, structured slopes, or `gr(..., by = ...)` sugar | Grammar changes affect parsing, documentation, examples, and user expectations. |
 | Non-Gaussian structured slopes or labelled q=2/q=4 count covariance | These change identifiability, covariance dimension, extractors, and interval targets. |
-| Ordinal mixed models or inflation/hurdle random effects | These are family-specific likelihood changes, not workflow plumbing. |
+| Ordinal covariance outside ordinary `mu` and the exact phylogenetic gate, or inflation/hurdle random effects outside exact row-specific gates | These are family-specific likelihood changes, not workflow plumbing. |
 | Treating q=4 derived correlations as interval-ready | Current rows intentionally expose unavailable interval status unless a direct or derived interval method is implemented and tested. |
 
 ## Team Roles For The Workflow Phase

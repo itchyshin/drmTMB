@@ -18,30 +18,32 @@ Under native TMB ML, the univariate Gaussian parser and likelihood can fit:
 - `sigma` only: `y ~ x`, `sigma ~ phylo(1 | species, tree = tree)`
 - matched `mu` and `sigma`: `phylo()` on both axes with the same source
 
-Under native TMB REML, only the mean-side phylogenetic Gaussian row is admitted.
-Scale-side structured effects are intentionally rejected because the current
-native restricted-likelihood validation restricts the likelihood for the
-location fixed effects only.
+Under native TMB REML, the tested mean-side, sigma-side, and matched
+mean-plus-sigma phylogenetic Gaussian rows are admitted at different evidence
+tiers. The mean-side q1 row has retained interval evidence. The sigma-only and
+matched rows have point-fit/recovery evidence only and do not inherit that
+interval or coverage authority.
 
 ## Current Rows
 
 | Row | Meaning | Boundary |
 | --- | --- | --- |
 | `uni_mu_phylo_native_ml` | Native ML mean-side phylogenetic random intercept. | Point-fit support; no interval-coverage claim. |
-| `uni_mu_phylo_native_reml` | Native exact-Gaussian REML for a mean-side phylogenetic field. | Mean-side only under native REML. |
+| `uni_mu_phylo_native_reml` | Native exact-Gaussian REML for a mean-side phylogenetic field. | Row-specific retained interval evidence; no transfer to sigma-side rows. |
 | `uni_sigma_phylo_native_ml` | Native ML residual-scale phylogenetic random intercept. | Covered by the S023 focused test; no interval-coverage claim. |
-| `uni_sigma_phylo_native_reml` | Tempting native REML residual-scale phylogenetic row. | Unsupported; S024 pins the early scale-side rejection. |
+| `uni_sigma_phylo_native_reml` | Native REML residual-scale phylogenetic intercept. | Point-fit/recovery only; no interval reliability or coverage claim. |
 | `uni_mu_sigma_phylo_native_ml` | Native ML matched `mu` and `sigma` phylogenetic fields with a latent mean-scale correlation. | No coverage claim. |
-| `uni_mu_sigma_phylo_native_reml` | Tempting native balanced REML row. | Unsupported; native REML rejects scale-side structured effects. |
+| `uni_mu_sigma_phylo_native_reml` | Native REML matched mean-plus-scale phylogenetic intercepts. | Point-fit/recovery only; no interval reliability or coverage claim. |
 | `uni_mu_sigma_phylo_julia_reml_bridge` | Experimental R-to-Julia Gaussian sigma-phylo REML bridge row. | No public bridge promotion without row-specific parity evidence. |
 | `biv_q4_phylo_native_ml` | Native q4 ML diagnostic row for `mu1`, `mu2`, `sigma1`, and `sigma2`. | Diagnostic only; no calibrated q4 interval claim. |
-| `biv_q4_phylo_native_reml` | Tempting native q4 REML row. | Unsupported; not HSquared AI-REML. |
-| `biv_q4_phylo_julia_reml_bridge` | Experimental R-to-Julia q4 PLSM REML row. | Bridge evidence only; no native TMB REML claim. |
+| `biv_q4_phylo_native_reml` | Native block-diagonal and dense q4 phylogenetic REML. | Recovery evidence only; no interval reliability or coverage, and not HSquared AI-REML. |
+| `biv_q4_phylo_julia_reml_bridge` | Experimental R-to-Julia q4 PLSM REML row. | Bridge evidence only; native recovery is separate and does not establish parity. |
 
 ## Next Gate
 
-S023 added the focused univariate `sigma`-only ML test. S024 added the
-corresponding `sigma`-only native REML rejection test. S025 should expand
-scale-side phylo diagnostics without turning them into interval-coverage claims.
+The historical S023-S025 rejection plan is superseded by the implemented
+native sigma-only, matched, q2, and q4 rows. The next gate is retained,
+target-specific interval evidence; point or recovery admission must not be
+turned into an interval-coverage claim.
 
 This note does not draft or post an Ayumi reply.

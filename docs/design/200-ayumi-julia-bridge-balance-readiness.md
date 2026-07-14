@@ -79,8 +79,9 @@ phylogenetic bridge balance rows separate:
   parity is banked for one approximate native dense-TMB and R-via-Julia
   fixture, with no REML or interval wording.
 - `ayumi_bridge_gaussian_sigma_phylo_reml`: sigma-side Gaussian phylo REML has
-  live bridge admission evidence, but native TMB REML rejects scale-side phylo,
-  so this remains experimental bridge evidence.
+  live bridge admission evidence and separate native point-fit evidence, but
+  same-target native/direct/bridge parity is missing, so the bridge remains
+  experimental.
 - `ayumi_bridge_gaussian_mu_sigma_phylo_reml`: the matched `mu` plus `sigma`
   live bridge smoke passed with the active DRM.jl worktree, but it remains
   bridge-only REML admission evidence rather than native REML parity.
@@ -101,10 +102,11 @@ q2-specific bridge route exists.
 The bridge wave is experimental and useful, not promoted. The honest Ayumi
 answer after this wave is that native ML is balanced for univariate Gaussian
 `phylo()` layouts, q1 sigma-only and matched q1 `mu` plus `sigma` phylo ML each
-have one row-specific bridge parity fixture, native REML is mean-side-only, and
-the Julia bridge can run selected sigma-phylo REML cells locally when a
-compatible DRM.jl engine is configured. The adjacent q1 Poisson `phylo()` row
+have one row-specific bridge parity fixture, native REML has row-specific
+q1/q2/q4 point or recovery evidence, and the Julia bridge can run selected
+sigma-phylo REML cells locally when a compatible DRM.jl engine is configured.
+The adjacent q1 Poisson `phylo()` row
 is ML/Laplace bridge evidence only, and the q2 payload-boundary row is not q2
 bridge support. This does not solve bridge promotion, public optimizer controls,
-interval coverage, q4 native REML, non-Gaussian REML, NB2 parity, or the
+interval coverage, q4 native REML inference, non-Gaussian REML, NB2 parity, or the
 10,440-tip sigma-phylo interval blocker.

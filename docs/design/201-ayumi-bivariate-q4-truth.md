@@ -3,7 +3,7 @@
 ## Purpose
 
 This note banks the bivariate q4 wave for the Ayumi phylogenetic balance arc.
-It separates native TMB ML point/status evidence, native TMB REML rejection,
+It separates native TMB ML point/status evidence, native TMB REML recovery,
 experimental Julia bridge REML, q2-plus-q2 block-diagonal fits, and interval
 status evidence.
 
@@ -43,11 +43,12 @@ The same focused test keeps lower-dimensional evidence separated:
 The q4 inference evidence is intentionally status-first:
 
 - `docs/dev-log/dashboard/q4-target-inventory.tsv` records native q4 ML as
-  partial point/Wald/profile/bootstrap evidence, native q4 REML as unsupported,
+  partial point/Wald/profile/bootstrap evidence and native q4 REML as
+  recovery-only,
   Julia q4 REML as experimental, and profile-target reconstruction as a target
   inventory only.
 - `docs/dev-log/dashboard/phylo-q2-q4-target-map.tsv` keeps q2, q2-plus-q2,
-  full q4, native REML rejection, and Julia bridge rows distinct.
+  full q4, native REML recovery, and Julia bridge rows distinct.
 - `docs/dev-log/dashboard/phylo-extractor-status.tsv` records the q4
   `corpairs()`, `summary()$covariance`, and `profile_targets()` status fields.
 - `docs/dev-log/dashboard/bootstrap-refit-accounting.tsv` records 30-tip native
@@ -60,8 +61,8 @@ The q4 inference evidence is intentionally status-first:
 ## Decision
 
 The q4 truth for the Ayumi reply is: native TMB ML can fit the q4 block and
-report point/status evidence, but native TMB q4 REML is unsupported. The six q4
-correlations are derived targets without profile or Wald intervals. Bootstrap
-and profile rows are diagnostics, not calibrated uncertainty. Julia q4 REML
-bridge rows remain experimental and do not promote native TMB REML, HSquared
-AI-REML, or a 10,440-tip interval claim.
+report point/status evidence, and native TMB REML has tested block-diagonal and
+dense recovery evidence. The six q4 correlations still lack calibrated
+intervals. Bootstrap and profile rows are diagnostics, not calibrated
+uncertainty. Julia q4 REML bridge rows remain experimental and do not establish
+same-target parity, HSquared AI-REML, or a 10,440-tip interval claim.

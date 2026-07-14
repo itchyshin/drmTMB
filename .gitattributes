@@ -1,0 +1,5 @@
+# Preserve exact campaign bytes while treating schema-valid empty final TSV
+# fields and captured console padding as data rather than whitespace defects.
+docs/dev-log/simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/profile-raw.tsv whitespace=-blank-at-eol
+docs/dev-log/simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/*.log whitespace=-blank-at-eol
+docs/dev-log/simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/session-info.txt whitespace=-blank-at-eol

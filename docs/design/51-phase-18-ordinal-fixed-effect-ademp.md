@@ -104,7 +104,7 @@ Report metrics by condition cell and estimand:
 | Convergence rate | `mean(converged & pdHess)` |
 | Warning rate | `mean(warning_count > 0)` |
 | Runtime | median and high quantiles of elapsed seconds |
-| Boundary ledger | malformed ordered responses, empty categories, ordinal random effects, ordinal `sigma`, `sd(group)`, `meta_V(V = V)`, denominator syntax, and mixed-response requests reported beside the grid |
+| Boundary ledger | malformed ordered responses, empty categories, correlated/labelled or structured ordinal random effects outside the ordinary `mu` and exact phylogenetic gates, ordinal `sigma`, `sd(group)`, `meta_V(V = V)`, denominator syntax, and mixed-response requests reported beside the grid |
 
 Every aggregate metric should carry an MCSE. Failed or warning-bearing fits
 remain in the manifest and warning/error ledger. Expected ordered scores are

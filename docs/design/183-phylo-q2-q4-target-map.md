@@ -26,11 +26,11 @@ The machine-readable source is
 | --- | --- | --- |
 | `native_tmb_q2_location_phylo_ml` | Native TMB ML location-location phylogenetic correlation. | q2 only; no scale-axis or q4 support. |
 | `native_tmb_q2_location_phylo_corpair_ml` | Native TMB ML q2 phylogenetic corpair regression. | q2 covariate-correlation evidence only. |
-| `native_tmb_q2_location_phylo_reml` | Tempting native bivariate phylo REML row. | Unsupported until a native estimator is designed and validated. |
+| `native_tmb_q2_location_phylo_reml` | Native bivariate mean-side phylogenetic q2 REML row. | Point-fit/recovery evidence only; no interval reliability or coverage. |
 | `native_tmb_q4_full_phylo_ml` | Native TMB ML full four-axis phylogenetic block. | Diagnostic point/status evidence only; derived q4 correlations have no interval coverage. |
 | `native_tmb_q4_blockdiag_phylo_ml` | Two labelled q2 blocks, one for location and one for scale. | Block diagonal, not full q4 unstructured support. |
-| `native_tmb_q4_full_phylo_reml` | Tempting native q4 REML row. | Unsupported; q4 Patterson-Thompson REML is not HSquared AI-REML. |
-| `julia_bridge_q4_full_phylo_reml` | Experimental Julia q4 REML bridge row. | Bridge evidence only; no native TMB REML or public bridge promotion. |
+| `native_tmb_q4_full_phylo_reml` | Native dense q4 phylogenetic REML row. | Recovery evidence only; no interval reliability or coverage, and not HSquared AI-REML. |
+| `julia_bridge_q4_full_phylo_reml` | Experimental Julia q4 REML bridge row. | Bridge evidence only; native recovery is separate and does not establish same-target parity or public bridge support. |
 
 ## Next Action
 

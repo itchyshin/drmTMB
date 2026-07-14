@@ -451,6 +451,42 @@ def validate(
                 f"{evidence_by_id[primary]['cell_id']}"
             )
 
+    # The 668-cell ledger feeds the public capability surface. Keep the eight
+    # conceptual inference-ready configurations (ten endpoint-level ledger
+    # rows) explicit about their two distinct interval channels so generic
+    # historical "Wald" wording cannot erase the correction or apply it to
+    # the sigma axis.
+    by_id = {row["cell_id"]: row for row in cells}
+    location_bias_t_ids = {
+        "mc-0085", "mc-0086", "mc-0153", "mc-0154",
+        "mc-0272", "mc-0285", "mc-0309",
+    }
+    sigma_raw_wald_ids = {"mc-0276", "mc-0301", "mc-0313"}
+    for cell_id in sorted(location_bias_t_ids):
+        boundary = by_id[cell_id]["claim_boundary"]
+        for required in (
+            "location-axis bias-corrected small-sample-t Wald",
+            "inference-ready with caveats",
+            "not nominal",
+        ):
+            if required not in boundary:
+                errors.append(
+                    f"{cell_id}: location-axis interval boundary omits {required!r}"
+                )
+    for cell_id in sorted(sigma_raw_wald_ids):
+        boundary = by_id[cell_id]["claim_boundary"]
+        for required in (
+            "raw uncorrected log-SD Wald-z",
+            "location-axis bias+t correction does not apply to sigma",
+            "profile is diagnostic-only at g=8",
+            "inference-ready with caveats",
+            "not supported",
+        ):
+            if required not in boundary:
+                errors.append(
+                    f"{cell_id}: sigma interval boundary omits {required!r}"
+                )
+
     for row in evidence:
         if row["cell_id"] not in cell_ids:
             errors.append(f"{row['evidence_id']}: unknown cell_id")
@@ -473,7 +509,7 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    expected = Counter({"implemented": 295, "rejected_by_design": 333, "not_implemented": 40})
+    expected = Counter({"implemented": 298, "rejected_by_design": 330, "not_implemented": 40})
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 

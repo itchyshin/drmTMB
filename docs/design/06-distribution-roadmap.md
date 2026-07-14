@@ -82,26 +82,34 @@ They also require the family-link contract in
 rather than the identity-link behaviour used by the first Gaussian-like
 families.
 
-- `poisson(link = "log")`: `mu`, with optional `zi`; implemented as the
-  fixed-effect baseline count model and fixed-effect zero-inflated Poisson
-  model. The `mu` formula supports standard R exposure offsets such as
+- `poisson(link = "log")`: `mu`, with optional `zi`; implemented with fixed
+  effects plus ordinary unlabelled `mu` random intercepts, independent numeric
+  slopes, and one q1 structured `mu` intercept or unlabelled intercept-plus-one-
+  slope route from the exact admitted provider set when `zi` is absent. The
+  exact `zi ~ spatial(1 | id, coords = coords)` q1 intercept is a separate
+  diagnostic-only gate; other zero-inflated Poisson random effects remain
+  blocked. The `mu` formula supports standard R exposure offsets such as
   `offset(log(trap_nights))`. The `mu` parameter is the conditional Poisson
   mean when `zi` is present.
-- `nbinom2()`: `mu`, `sigma`; implemented fixed-effect path with
+- `nbinom2()`: `mu`, `sigma`; implemented path with
   `Var(y) = mu + sigma^2 * mu^2`, so larger `sigma` means greater
   overdispersion. The `mu` formula supports standard R exposure offsets such as
   `offset(log(trap_nights))`, ordinary random intercepts, and independent
-  numeric random slopes for non-zero-inflated NB2 models. Adding `zi ~
-  predictors` fits the implemented fixed-effect zero-inflated NB2 path, but
-  zero-inflated NB2 random effects remain planned.
-- `truncated_nbinom2()`: `mu`, `sigma`; implemented fixed-effect
-  zero-truncated NB2 path for positive counts. The parameters describe the
+  numeric random slopes for non-zero-inflated NB2 models. It also admits one q1
+  structured `mu` intercept or unlabelled intercept-plus-one-slope route, the
+  first ordinary `sigma` random intercept, and exact q1 structured `sigma`
+  recovery gates. Adding `zi ~ predictors` fits zero-inflated NB2; one exact
+  fixed-`zi` local-fit gate admits `mu ~ spatial(1 | id, coords = coords)`, while
+  other zero-inflated NB2 random effects remain blocked.
+- `truncated_nbinom2()`: `mu`, `sigma`; implemented zero-truncated NB2 path for
+  positive counts. The parameters describe the
   untruncated NB2 component, and `fitted()` returns the conditional
   positive-count mean. Ordinary `mu` random intercepts and independent numeric
   slopes are implemented for the non-hurdle path. Adding `hu ~ predictors`
-  fits the implemented
-  fixed-effect hurdle NB2 path, where `hu` is the hurdle-zero probability and
-  nonzero counts come from the zero-truncated NB2 component.
+  fits hurdle NB2, where `hu` is the hurdle-zero probability and nonzero counts
+  come from the zero-truncated NB2 component. The exact
+  `hu ~ relmat(1 | id, K/Q = ...)` q1 intercept is diagnostic-only; other
+  hurdle-side and count-side random effects remain blocked when `hu` is active.
 - `truncated_poisson()` for positive counts without overdispersion.
 - hurdle Poisson models, using `hu ~ predictors` as the hurdle-zero
   probability on a future truncated Poisson family.
@@ -133,20 +141,25 @@ Continuous proportions require a logit-linked `mu`; public scale naming should
 remain consistent with the rest of `drmTMB`.
 
 - `beta()`: implemented for continuous proportions in `(0, 1)` with `mu` and
-  public `sigma`; ordinary unlabelled random intercepts such as `(1 | id)` may
-  enter the logit-`mu` predictor. Internally `sigma` maps to beta precision
+  public `sigma`; ordinary unlabelled random intercepts and independent numeric
+  slopes may enter the logit-`mu` predictor. One exact recovery-grade
+  `animal()` gate admits a `mu` intercept or one-slope, or a `sigma` intercept,
+  one endpoint at a time. Internally `sigma` maps to beta precision
   through `phi = 1 / sigma^2`, so larger `sigma` means more variance, not more
   precision.
-- `zero_one_beta()`: implemented fixed-effect route for continuous proportions
-  on `[0, 1]` with exact structural zeroes or ones, using `zoi` for boundary
-  probability and `coi` for the probability of an exact one conditional on the
-  boundary.
+- `zero_one_beta()`: implemented for continuous proportions on `[0, 1]` with
+  exact structural zeroes or ones, using `zoi` for boundary probability and
+  `coi` for the probability of an exact one conditional on the boundary;
+  ordinary unlabelled `mu` random intercepts and independent numeric slopes are
+  recovery-grade, while `sigma`/`zoi`/`coi` random effects remain planned.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
-- `beta_binomial()`: implemented fixed-effect path for counts of successes out
-  of trials with overdispersion.
-- `stats::binomial(link = "logit")`: implemented `drmTMB#569` first slice for
-  0/1 event data and `cbind(successes, failures)` counts, fixed-effect `mu`
-  only, no `sigma`, no random effects, and no Julia bridge claim.
+- `beta_binomial()`: implemented for counts of successes out of trials with
+  overdispersion, including ordinary recovery-grade `mu` random intercepts and
+  independent numeric slopes.
+- `stats::binomial(link = "logit")`: implemented `drmTMB#569` route for 0/1
+  event data and `cbind(successes, failures)` counts, with fixed effects plus
+  ordinary recovery-grade `mu` random intercepts and independent numeric
+  slopes; there is no public `sigma` and no Julia bridge claim.
 
 Recommended user guidance:
 
@@ -169,15 +182,23 @@ family within a clear parameter-link contract.
 Useful for body size, biomass, time, concentration, and rates.
 
 - `lognormal()`: implemented for positive multiplicative responses, including
-  ordinary unlabelled `mu` random intercepts; `sigma` random effects, known
-  covariance, phylogenetic terms, and bivariate extensions are later phases.
+  ordinary unlabelled `mu` random intercepts and independent numeric slopes, or
+  a separate ordinary `sigma` random intercept. The exact sigma-intercept ledger
+  domain is inference-ready with caveats; combined `mu`/`sigma` random effects,
+  `sigma` slopes, known covariance, phylogenetic terms, and bivariate extensions
+  are later phases.
 - `Gamma(link = "log")`: implemented first contract is mean-CV, with
   `log(mu)`, `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
-  Ordinary unlabelled `mu` random intercepts are implemented; `sigma` random
-  effects, structured effects, and bivariate extensions are later phases.
-- `tweedie()`: implemented first fixed-effect route for non-negative
+  Ordinary unlabelled `mu` random intercepts and independent numeric slopes, a
+  separate ordinary `sigma` random intercept, and one recovery-grade
+  `mu ~ relmat()` intercept or one-slope route are implemented; combined
+  `mu`/`sigma` random effects, `sigma` slopes, other structured providers, and
+  bivariate extensions are later phases.
+- `tweedie()`: implemented route for non-negative
   semicontinuous responses such as biomass, cover, CPUE-like indices, and
-  other eco-evo measurements with exact zeros plus positive continuous values.
+  other eco-evo measurements with exact zeros plus positive continuous values;
+  ordinary unlabelled `mu` random intercepts and independent numeric slopes are
+  recovery-grade.
   The first route uses `log(mu)`, `log(sigma)`, intercept-only `nu ~ 1`,
   `phi = sigma^2`, `1 < nu < 2`, and
   `Var[y] = sigma^2 * mu^nu`. Comparator tests should explicitly transform
@@ -195,18 +216,20 @@ Useful for body size, biomass, time, concentration, and rates.
 
 These connect directly to location-scale-shape modelling.
 
-- `skew_normal()`: `mu`, `sigma`, `nu`, where `nu` is the skewness/shape
-  parameter.
+- `skew_normal()`: implemented `mu`, `sigma`, `nu`, where `nu` is the
+  skewness/shape parameter; ordinary unlabelled `mu` random intercepts and
+  independent numeric slopes are recovery-grade.
 - `skew_t()`: `mu`, `sigma`, `nu`, `tau`, where one shape controls asymmetry
   and the other controls tail shape.
 - `asym_laplace()`: quantile-focused distributional regression.
 
-Start with `skew_normal()` after Student-t is stable, and keep shape random
-effects out of the first implementation. Shape models are more fragile than
-scale models because asymmetry can trade off with location, residual scale,
-tail shape, outliers, and unmodelled heteroscedasticity. Phylogenetic
-location-scale-shape models should be staged only after Gaussian phylogenetic
-location-scale models pass simulation recovery.
+The current `skew_normal()` route keeps `sigma`/`nu` random effects, correlated
+or labelled `mu` slopes, and structured effects outside its recovery-grade
+ordinary `mu` gate. Shape models are more fragile than scale models because
+asymmetry can trade off with location, residual scale, tail shape, outliers,
+and unmodelled heteroscedasticity. The exact Student-t
+`nu ~ phylo(1 | id, tree = tree)` gate is diagnostic-grade; other phylogenetic
+location-scale-shape models need their own recovery evidence.
 
 Shape naming follows the GAMLSS convention: `nu` for the first shape parameter
 and `tau` for the second. Aliases such as `skew` or `df` may be helpful later,
@@ -232,15 +255,21 @@ model describes the consistency of reproductive outcomes.
 - `adjacent_category()` or `continuation_ratio()`: later if needed.
 - Distributional extensions: threshold scale or discrimination models.
 
-Initial ordinal scope is univariate only. The first implemented
-`cumulative_logit()` path uses ordered cutpoints, a location formula, and a
-fixed latent logistic scale:
+Initial ordinal scope is univariate only. The implemented `cumulative_logit()`
+path uses ordered cutpoints, a location formula, a fixed latent logistic scale,
+and ordinary recovery-grade `mu` random intercepts or independent numeric
+slopes:
 
 ```text
 Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
-mu_i = X_mu[i, ] beta_mu
+mu_i = X_mu[i, ] beta_mu + Z_mu[i, ] b_mu
 theta_1 < theta_2 < ... < theta_{K-1}
 ```
+
+The exact q1 `mu ~ phylo(1 | id, tree = tree)` intercept has local
+point-fit/extractor evidence only. Other structured providers, ordinal scale or
+discrimination models, and interval/coverage promotion for that phylogenetic
+gate remain planned.
 
 The next ordinal extension is a scale or discrimination formula. One candidate
 is `Pr(y_i <= k) = logit^{-1}((theta_k - mu_i) / sigma_i)` with

@@ -1,5 +1,17 @@
 # Phylogenetic and Spatial Speed Plan
 
+> **Status supersession (2026-07-14).** This document preserves a historical
+> planning state. Any statement below that residual-scale structured slopes are
+> wholly planned is superseded. Current 0.6.0 fits the exact Gaussian q1
+> `sigma` one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()`; phylo, A-matrix animal, and K/Q relmat are inference-ready with
+> caveats, while spatial remains point-fit/extractor only. NB2 q1 structured
+> `sigma` intercept-plus-one-slope routes for the same four providers are also
+> fitted at recovery grade. Multiple or labelled structured sigma slopes,
+> spatial sigma-slope intervals, and broader non-Gaussian structured scale
+> routes remain planned.
+
+
 Phylogenetic and spatial dependence are important from the first design phase,
 but they should enter through focused, tested modules after the Gaussian
 fixed-effect path is reliable.
@@ -222,10 +234,13 @@ The first mesh implementation should still fit only a univariate Gaussian `mu`
 random intercept. That keeps the comparator close to the current
 `coords = coords` path: both estimate one structured spatial SD, but the mesh
 route should use a sparse SPDE/GMRF precision and a projection matrix rather
-than a dense coordinate covariance. Residual-scale structured slopes,
-direct-SD models, spatial `corpair()` regressions, and non-Gaussian spatial
-effects should wait until the mesh intercept has recovery evidence and
-diagnostics.
+than a dense coordinate covariance. Mesh-based residual-scale slopes,
+direct-SD models, spatial `corpair()` regressions, and non-Gaussian mesh routes
+should wait until the mesh intercept has recovery evidence and diagnostics.
+That mesh boundary does not erase the exact fitted coordinate-covariance gates:
+ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade
+NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`,
+fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu`.
 
 Dependency and citation decisions are part of the gate. If `drmTMB` accepts
 `fmesher` objects or uses `fmesher` to build meshes, the package website,
@@ -380,9 +395,13 @@ coordinate-spatial slope SD is a direct profile target, including the
 `spatial(0 + x | site)` slope-field SD. The later q=2 bivariate spatial slice
 adds matching `mu1`/`mu2` coordinate-spatial intercept fields, and the later
 constant q=4 slice adds all-four location-scale spatial intercepts, but neither
-widens slope support: multiple spatial slopes, standalone spatial terms in
-`sigma`, mesh/SPDE slopes, non-Gaussian spatial effects, and spatial slope
-correlations remain planned.
+widens Gaussian slope covariance support: multiple or labelled spatial slopes,
+mesh/SPDE slopes, and spatial slope correlations remain planned. Non-Gaussian
+spatial effects outside the exact ordinary Poisson/NB2 q1 spatial `mu`
+intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
+spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
+fixed-`zi` NB2 spatial `mu` gates also
+remain planned.
 
 The first slope implementation should not estimate intercept-slope or
 slope-slope correlations. Those correlations multiply quickly and are usually

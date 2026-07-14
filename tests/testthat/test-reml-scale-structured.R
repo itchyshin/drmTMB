@@ -68,23 +68,17 @@ test_that("REML admits an intercept-only scale-side structured effect (C1)", {
   expect_equal(fit$opt$convergence, 0)
 })
 
-test_that("the C1 relaxation stays bounded: mean-side non-phylo stays rejected", {
+test_that("the C1 relaxation stays bounded: matched non-phylo stays rejected", {
   skip_on_cran()
   sim <- scale_structured_data("spatial")
   coords <- sim$aux
   dat <- sim$data
-  # MEAN-side non-phylo structured effect under REML: unvalidated, still rejected.
-  expect_error(
-    drmTMB(bf(y ~ x + spatial(1 + x | id, coords = coords), sigma ~ 1),
-           family = gaussian(), data = dat, REML = TRUE),
-    "Mean-side spatial, animal, and relatedness"
-  )
   # A mean+scale-spanning non-phylo structured effect is also still rejected
-  # (only pure scale-side is validated).
+  # after Arc 1a admits the pure mean-side intercept and one-slope shapes.
   expect_error(
     drmTMB(bf(y ~ x + spatial(1 | p | id, coords = coords),
               sigma ~ spatial(1 | p | id, coords = coords)),
            family = gaussian(), data = dat, REML = TRUE),
-    "Mean-side spatial, animal, and relatedness"
+    "matched mean-scale"
   )
 })

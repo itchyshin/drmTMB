@@ -5,12 +5,13 @@ the likelihood or formula grammar changes.
 
 ## Implemented Contract
 
-The implemented `cumulative_logit()` path is a univariate fixed-effect ordinal
-location model:
+The implemented `cumulative_logit()` path is a univariate ordinal location
+model with fixed effects plus ordinary recovery-grade `mu` random intercepts
+or independent numeric slopes:
 
 ```text
 Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)
-mu_i = X_mu[i, ] beta_mu
+mu_i = X_mu[i, ] beta_mu + Z_mu[i, ] b_mu
 theta_1 < theta_2 < ... < theta_{K-1}
 ```
 
@@ -21,15 +22,16 @@ identifiable. `predict(fit, dpar = "mu")` returns latent location, and
 
 ## Slice 287 Readiness Ledger
 
-The fitted ordinal surface is ready only for fixed-effect univariate
-location-model use:
+The fitted ordinal surface is ready for fixed-effect use and bounded ordinary
+`mu` random-effect recovery, not broad ordinal inference:
 
 | Surface | Current evidence | Boundary |
 | --- | --- | --- |
 | Likelihood and cutpoints | `tests/testthat/test-cumulative-logit.R` checks coefficient recovery, ordered cutpoints, independent category-probability likelihoods, weights, integer-score inputs, more than three categories, missing rows, sparse nonempty categories, and stable close-cutpoint/extreme-location probabilities. | Cutpoint-specific predictors are not fitted. |
 | Prediction and summaries | The same test file checks latent-location `predict()`, expected-score `fitted()`, response and Pearson residuals, category probabilities, seeded `simulate()`, and `sigma(fit) = 1`. | Expected ordered-category scores are summaries for plotting or comparison, not measured continuous outcomes. |
-| Intervals and targets | `confint()` exposes fitted fixed-effect `mu` rows as Wald intervals; `profile_targets()` lists internal ordered-cutpoint rows as direct TMB targets. | Polished response-scale cutpoint intervals, ordinal-scale intervals, and transformed category-probability intervals remain later work. |
-| Unsupported neighbours | Boundary tests reject `sigma ~`, `sd(group) ~`, `meta_V(V = V)`, `mvbind()`, denominator syntax, and `mu` random-effect bar terms before fitting. | The first future ordinal mixed target is a random intercept such as `bf(score ~ x + (1 | id))`; random slopes, structured effects, scale/discrimination, and bivariate or mixed-response ordinal models wait. |
+| Intervals and targets | `confint()` exposes fitted fixed-effect `mu` rows as Wald intervals; `profile_targets()` lists internal ordered-cutpoint rows and ordinary random-effect SD targets. | Ordinary random effects are recovery-grade only; polished response-scale cutpoint intervals, ordinal-scale intervals, transformed category-probability intervals, and broad random-effect interval promotion remain later work. |
+| Ordinary and structured random effects | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are recovery-grade. One exact q1 `mu ~ phylo(1 | id, tree = tree)` intercept has local point-fit/extractor evidence. | Correlated or labelled ordinary slopes, other structured providers, interval/coverage promotion for the phylogenetic gate, scale/discrimination, and bivariate or mixed-response ordinal models wait. |
+| Unsupported neighbours | Boundary tests reject `sigma ~`, `sd(group) ~`, `meta_V(V = V)`, `mvbind()`, denominator syntax, and unsupported correlated/labelled or structured neighbours before fitting. | Do not borrow the ordinary recovery gate or exact phylogenetic point-fit gate for broader ordinal covariance claims. |
 
 ## Preferred First Scale Extension
 

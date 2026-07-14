@@ -232,10 +232,11 @@ combined phylogenetic-plus-spatial models when both sources matter, and
 The current fitted `drmTMB` paths are a subset of that ladder. For Gaussian
 models, `phylo()`, coordinate `spatial()`, `animal()`, and `relmat()` each fit
 one univariate `mu` intercept and one numeric `mu` slope. These one-slope paths
-estimate independent structured intercept and slope fields with separate SDs;
-they do not fit multiple structured slopes, intercept-slope correlations,
-structured residual `rho12`, structured `sigma` slopes, or non-Gaussian
-structured slopes. A first bivariate path also fits matching intercept-only
+estimate independent structured intercept and slope fields with separate SDs.
+Those Gaussian `mu` terms do not themselves establish multiple or labelled
+slopes, intercept-slope correlations, or structured residual `rho12`.
+Separate exact q1 `sigma` and non-Gaussian gates are fitted for the providers
+and families named in the route table below. A first bivariate path also fits matching intercept-only
 `phylo()` terms in `mu1` and `mu2`, estimating the two phylogenetic location
 SDs and their mean-mean correlation. Matching labelled `phylo()` terms across
 `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first constant bivariate
@@ -258,9 +259,13 @@ manual Phase 18 artifact tasks named `phylo_mu_slope`, `spatial_mu_slope`,
 `animal_mu_slope`, and `relmat_mu_slope`. These tasks are opt-in, excluded from
 `task = "all"`, and are not recovery, coverage, or power evidence.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
-multiple spatial slopes, residual-scale structured slopes, spatial slope
-correlations, non-Gaussian spatial effects, and predictor-dependent spatial
-correlations remain planned extensions.
+multiple or labelled spatial slopes, spatial slope correlations,
+non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial
+`mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
+spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
+fixed-`zi` NB2 spatial `mu` gates, and
+predictor-dependent spatial correlations remain planned extensions. The q1 spatial `sigma` one-slope route has
+point-fit/extractor evidence, but its interval gate remains blocked.
 
 The scientific questions for the structural ladder are simple:
 
@@ -302,9 +307,8 @@ asks whether nearby sites remain similar after fixed effects. Step 4 asks
 whether both species relatedness and site coordinates are needed in the same
 model. Step 5 is the lower-level `relmat()` route for known dependence matrices
 that do not belong to the named animal, phylogenetic, or spatial routes. In the
-current package,
-Steps 1, 2, 3, and 5 have fitted first-slice Gaussian paths; Step 4 is
-documented planned syntax.
+current package, Steps 1, 2, 3, and 5 have fitted Gaussian paths plus exact
+row-specific non-Gaussian gates; Step 4 is documented planned syntax.
 
 For a one-response phylogenetic-plus-spatial endpoint such as
 `heat_tolerance`, the conceptual full model is:
@@ -352,11 +356,11 @@ Read the current route status this way:
 
 | Route | Current status | Use when | Syntax to read |
 | --- | --- | --- | --- |
-| 1. Animal | Implemented for Gaussian `mu` and `sigma` intercepts, one numeric Gaussian `mu` slope, the first matching bivariate q=2 location covariance, and constant q=4 location-scale covariance; sparse large-pedigree construction planned | Individuals have known additive relatedness from a pedigree or relationship matrix, and the biological question is an animal model or quantitative-genetic random effect. | `animal(1 | individual, pedigree = pedigree)`, `animal(1 + x | individual, Ainv = Ainv)`, or matching labelled `animal(1 | p | individual, pedigree = pedigree)` / `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2` |
-| 2. Phylo | Implemented for Gaussian `mu` and `sigma` intercepts, one numeric Gaussian `mu` slope, q=2 and q=4 structured covariance slices, direct-SD surfaces, and q=2 correlation regression | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`, `phylo(1 + x | species, tree = tree)`, and labelled bivariate blocks such as `phylo(1 | p | species, tree = tree)` |
-| 3. Spatial | Implemented for Gaussian `mu` and `sigma` intercepts, one numeric Gaussian `mu` coordinate slope, the first bivariate q=2 `mu1`/`mu2` covariance, and constant q=4 location-scale covariance | Nearby sampling sites may share smooth deviations in the expected response, in one numeric slope such as `depth`, or in paired response means. | `spatial(1 | site, coords = coords)`, `spatial(1 + depth | site, coords = coords)`, or matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` |
+| 1. Animal | Implemented for the documented Gaussian routes plus exact ordinary Poisson/NB2 q1 `mu` intercept-plus-one-slope, NB2 q1 `sigma`, and beta animal gates at their recorded tiers; sparse large-pedigree construction remains planned | Individuals have known additive relatedness from a pedigree or relationship matrix, and the biological question is an animal model or quantitative-genetic random effect. | `animal(1 | individual, pedigree = pedigree)`, `animal(1 + x | individual, Ainv = Ainv)`, or matching labelled Gaussian terms; consult the live ledger before using a non-Gaussian animal gate |
+| 2. Phylo | Implemented for the documented Gaussian routes plus exact ordinary Poisson/NB2 q1 `mu` intercept-plus-one-slope, NB2 q1 `sigma`, Student-t q1 `nu`, and cumulative-logit q1 `mu` gates | Species share evolutionary history, and related species may have similar trait means, trait variances, or cross-trait latent correlations. | `phylo(1 | species, tree = tree)`, `phylo(1 + x | species, tree = tree)`, labelled Gaussian blocks, or one exact non-Gaussian gate at its recorded tier |
+| 3. Spatial | Implemented for the documented Gaussian routes plus exact ordinary Poisson/NB2 q1 `mu` intercept-plus-one-slope, NB2 q1 `sigma`, Student-t q1 `mu`, Poisson q1 `zi`, fixed-`zi` Poisson q1 `mu`, and fixed-`zi` NB2 q1 `mu` gates | Nearby sampling sites may share smooth deviations in the expected response, in one numeric slope such as `depth`, or in paired response means. | `spatial(1 | site, coords = coords)`, `spatial(1 + depth | site, coords = coords)`, matching labelled Gaussian terms, or one exact non-Gaussian gate at its recorded tier |
 | 4. Phylo + spatial | Planned, not fitted yet | The same response could be structured by both species relatedness and site coordinates. | Fit separate phylogenetic and spatial sensitivity models for now; simultaneous `phylo()` plus `spatial()` in `mu` is rejected until the joint model has identifiability checks. |
-| 5. `relmat()` | Implemented for Gaussian `mu` and `sigma` intercepts, one numeric Gaussian `mu` slope, the first matching bivariate q=2 location covariance, and constant q=4 location-scale covariance | A known covariance or precision matrix does not naturally belong to animal, phylogenetic, or spatial syntax. | `relmat(1 | id, K = K)`, `relmat(1 + x | id, Q = Q)`, or matching labelled `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` for low-level workflows. |
+| 5. `relmat()` | Implemented for the documented Gaussian routes plus exact ordinary Poisson/NB2 q1 `mu` intercept-plus-one-slope, NB2 q1 `sigma`, Gamma q1 `mu`, and truncated-NB2 q1 `hu` gates | A known covariance or precision matrix does not naturally belong to animal, phylogenetic, or spatial syntax. | `relmat(1 | id, K = K)`, `relmat(1 + x | id, Q = Q)`, matching labelled Gaussian terms, or one exact non-Gaussian gate at its recorded tier |
 
 That status boundary is deliberate. A combined model like this is
 scientifically natural:
@@ -455,17 +459,14 @@ fit_animal_q2_known <- drmTMB(
 
 animal_q2_pairs <- corpairs(
   fit_animal_q2_known,
-  level = "animal",
-  conf.int = TRUE,
-  ystep = 0.5,
-  ytol = 2
+  level = "animal"
 )
 animal_q2_pairs
 animal_q2_checks <- check_drm(fit_animal_q2_known)
 animal_q2_checks[grepl("animal|convergence|hessian", animal_q2_checks$check), ]
 ```
 
-```{r animal-q2-correlation-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
+```{r animal-q2-correlation-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location point estimate from `corpairs()`; the dotted vertical line marks zero correlation. Interval calibration for this intercept-only row is not yet validated.", fig.alt = "Single-row point plot for the animal-model mean-mean correlation, with a hollow estimate to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   animal_q2_display <- animal_q2_pairs
   animal_q2_display$display_label <- "Animal\nmu1-mu2"
@@ -480,7 +481,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     structural_eye_theme() +
     ggplot2::labs(
       title = "Animal-model latent mean correlation",
-      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      subtitle = "Point estimate only; dotted line marks zero",
       x = "Correlation estimate"
     )
 }
@@ -510,10 +511,7 @@ fit_relmat_q2_known <- drmTMB(
 
 relmat_q2_pairs <- corpairs(
   fit_relmat_q2_known,
-  level = "relmat",
-  conf.int = TRUE,
-  ystep = 0.5,
-  ytol = 2
+  level = "relmat"
 )
 relmat_q2_pairs
 relmat_q2_targets <- profile_targets(fit_relmat_q2_known)
@@ -523,7 +521,7 @@ relmat_q2_targets[
 ]
 ```
 
-```{r relmat-q2-correlation-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "`relmat()` q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent known-matrix correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the known-matrix relmat mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
+```{r relmat-q2-correlation-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "`relmat()` q=2 location-location point estimate from `corpairs()`; the dotted vertical line marks zero correlation. Interval calibration for this intercept-only row is not yet validated.", fig.alt = "Single-row point plot for the known-matrix relmat mean-mean correlation, with a hollow estimate to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   relmat_q2_display <- relmat_q2_pairs
   relmat_q2_display$display_label <- "relmat\nmu1-mu2"
@@ -538,7 +536,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     structural_eye_theme() +
     ggplot2::labs(
       title = "Known-matrix latent mean correlation",
-      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      subtitle = "Point estimate only; dotted line marks zero",
       x = "Correlation estimate"
     )
 }
@@ -601,11 +599,13 @@ blocks; one independent coordinate-spatial `mu` slope, the first bivariate
 coordinate-spatial q=2 `mu1`/`mu2` covariance, and the constant q=4
 location-scale covariance are fitted. Animal and `relmat()` now have pedigree or
 known-matrix Gaussian `mu` and `sigma` intercepts, matching univariate
-`mu`/`sigma` correlations, matching labelled q=2 bivariate location covariance,
-and matching all-four constant q=4 location-scale covariance. Spatial
-`corpair()`, mesh/SPDE fields, sparse large-pedigree construction,
-residual-scale structured slopes, and animal/`relmat()` predictor-dependent
-`corpair()` routes remain planned.
+`mu`/`sigma` correlations, q1 `sigma` one-slope routes, matching labelled q=2
+bivariate location covariance, and matching all-four constant q=4
+location-scale covariance. The exact A-matrix animal and K/Q relmat sigma
+slopes are inference-ready with caveats; the spatial sigma-slope interval gate
+remains blocked. Spatial `corpair()`, mesh/SPDE fields, pedigree/Ainv bridge
+marshalling, sparse large-pedigree construction, multiple or labelled slopes,
+and animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
 
 The focused animal, spatial, and `relmat()` pages cover the current q=2 and
 constant q=4 routes. A fitted animal q=4 block looks like:
@@ -766,7 +766,7 @@ fit_phylo_mean <- drmTMB(
   data = tolerance
 )
 
-corpairs(fit_phylo_mean, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_phylo_mean, level = "phylogenetic")
 rho12(fit_phylo_mean)
 ```
 
@@ -792,17 +792,21 @@ fit_spatial_mean <- drmTMB(
   data = tolerance
 )
 
-corpairs(fit_spatial_mean, level = "spatial", conf.int = TRUE)
+corpairs(fit_spatial_mean, level = "spatial")
 rho12(fit_spatial_mean)
 ```
 
 Use this model when nearby sites may share paired deviations in the two response
 means. Use the q=4 spatial route only when the spatial question also involves
 constant location-scale covariance across `mu1`, `mu2`, `sigma1`, and `sigma2`.
-For one-response models, `sigma ~ spatial(1 | site, coords = coords)` now fits
-an intercept-only residual-scale spatial field. Predictor-dependent spatial
-`corpair()` regression, residual-scale structured slopes, and bivariate spatial
-slope blocks remain planned.
+For one-response models, `sigma ~ spatial(1 | site, coords = coords)` fits an
+intercept-only residual-scale spatial field, and
+`sigma ~ spatial(1 + x | site, coords = coords)` has point-fit/extractor
+evidence for the exact q1 one-slope route. Its interval gate remains blocked.
+Predictor-dependent spatial `corpair()` regression, multiple or labelled
+spatial sigma slopes, and bivariate spatial slope blocks remain planned. Treat
+the displayed spatial q2 correlation as a point estimate: interval calibration
+for this intercept-only row is not yet validated.
 
 ### 3. Let species-level predictors change phylogenetic mean SDs
 
@@ -827,12 +831,13 @@ fit_phylo_sd <- drmTMB(
 
 coef(fit_phylo_sd, "sd_phylo1(species)")
 coef(fit_phylo_sd, "sd_phylo2(species)")
-corpairs(fit_phylo_sd, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_phylo_sd, level = "phylogenetic")
 ```
 
 This is not a residual scale model. `sd_phylo1()` and `sd_phylo2()` model the
 phylogenetic location SD surfaces for the two responses. The cross-response
-phylogenetic mean-mean correlation remains constant.
+phylogenetic mean-mean correlation remains constant and is displayed as a point
+estimate; this direct-SD route does not have validated interval evidence.
 
 ### 4. Move to a q=4 phylogenetic location-scale block
 
@@ -855,7 +860,7 @@ fit_phylo_q4 <- drmTMB(
   data = tolerance
 )
 
-corpairs(fit_phylo_q4, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_phylo_q4, level = "phylogenetic")
 rho12(fit_phylo_q4)
 ```
 
@@ -866,6 +871,9 @@ location-scale rows are `mu1`-`sigma1`, `mu1`-`sigma2`, `mu2`-`sigma1`, and
 `mu2`-`sigma2`; the two cross-trait rows can be biologically harder to explain,
 but they are statistically part of the same q=4 block. They are not the
 residual `rho12` surface.
+
+The six q=4 correlations are point estimates. Direct or fix-and-refit profile
+intervals for these derived rows are not yet implemented and validated.
 
 Read the six q=4 rows as latent phylogenetic covariance summaries:
 
@@ -935,26 +943,36 @@ There are two different kinds of "random-effect" uncertainty.
 
 The first kind is uncertainty in the covariance parameters: random-effect SDs
 and correlations. These are the quantities shown by `sdpars`, `corpars`,
-`corpairs()`, and `summary(fit)$covariance`. For these parameters, 95%
-profile-likelihood intervals are preferable to symmetric Wald intervals because
-SDs are positive, correlations are bounded, and intervals can be asymmetric or
-one-sided near a boundary.
+`corpairs()`, and `summary(fit)$covariance`. The admitted interval method is
+row-specific rather than a blanket preference for profile likelihood. The q1
+`mu` anchors and the exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows
+use the default location-axis bias-corrected, small-sample-t Wald channel; q1
+`sigma` uses raw uncorrected log-SD Wald-z evidence and treats profile as
+diagnostic-only at `g = 8`; the Arc 1a REML cells use direct structured-SD
+profiles only in their tested discrete domains. Check the
+[capability-and-limits guide](capability-and-limits.html#choosing-an-interval-method)
+for the evidence channel attached to a particular row.
 
-That does not mean the fast route is absent. Use the default Wald table as a
-quick screen, especially before a long phylogenetic or spatial profile:
+The intercept-only q2 example on this page is not one of those admitted
+slope-only rows. Its default Wald output is diagnostic rather than a validated
+reporting interval:
 
 ```r
 confint(fit_phylo_mean, parm = "variance_components")
 ```
 
-This direct Wald route uses the fitted log-SD scale for SD targets and the
+The direct Wald route uses the fitted log-SD scale for SD targets and the
 guarded atanh correlation-link scale for direct correlation targets before
-returning intervals on the reported scale. Treat it as a local approximation:
-if the SD is near zero, the correlation is near a boundary, or the row is a key
-biological target, follow it with a targeted profile.
+returning intervals on the reported scale. For this intercept-only q2 row,
+neither a finite Wald result nor an available target promotes the row beyond
+diagnostic-only. A targeted profile can diagnose boundary geometry when
+`profile_targets(fit)` lists the target, but it does not replace a validated
+channel or promote a row whose interval evidence is diagnostic-only.
 
-For implemented direct targets, use `profile_targets()` to find the target name
-and `confint(..., method = "profile")` to request the interval:
+For a diagnostic look at likelihood geometry, use `profile_targets()` to find
+the target name and `confint(..., method = "profile")` to request a diagnostic
+profile. The intercept-only bivariate q2 example below is diagnostic-only under
+both Wald and profile channels:
 
 ```r
 profile_targets(fit_phylo_mean, ready_only = TRUE)
@@ -968,13 +986,14 @@ confint(
 )
 ```
 
-Profile interval rows include `conf.status = "profile"`. They also include
+Diagnostic profile rows include `conf.status = "profile"`. They also include
 `profile.boundary` and `profile.message`, so an interval that reaches a lower
-SD boundary or approaches a correlation boundary is marked before you treat it
-as a symmetric, well-behaved 95% interval. `profile_precision = "fast"` is a
-quicker first pass that uses coarser `TMB::tmbprofile()` controls; rerun with
-the default precision when the first pass is important enough for final
-reporting.
+SD boundary or approaches a correlation boundary is marked. Do not report
+either interval above as validated for this intercept-only q2 fit. The admitted
+q2 reporting channel belongs only to the exact phylo/relmat slope-only SD rows
+named in the capability guide. `profile_precision = "fast"` is a quicker
+diagnostic pass that uses coarser `TMB::tmbprofile()` controls; use default
+precision only when a more detailed geometry diagnosis is needed.
 
 The second kind is uncertainty in conditional random-effect modes, such as the
 species-specific fitted deviations. Those intervals are useful for caterpillar
@@ -992,8 +1011,9 @@ matching labelled ordinary or phylogenetic random intercepts. Those direct
 correlation-regression paths expose link-scale fixed-effect coefficients through
 `coef()`, `summary()`, `vcov()`, and `profile_targets()`, while `corpairs()`
 reports the response-scale mean, minimum, maximum, and number of group-level or
-species-level correlation values. For a 95% interval at a chosen group-level
-predictor value, profile the fitted `corpair()` dpar with `newdata`:
+species-level correlation values. The following call is a geometry diagnostic
+at a chosen group-level predictor value; profile availability is not validated
+interval evidence for this row:
 
 ```r
 confint(
@@ -1010,8 +1030,8 @@ The animal q=2 path uses the same fitted-versus-planned distinction. Constant
 predictor-dependent animal `corpair()` regression and sparse large-pedigree
 precision construction remain planned.
 
-The phylogenetic q=2 path uses the same profiling interface, but the `parm`
-names the phylogenetic level:
+The phylogenetic q=2 path exposes the same diagnostic profiling interface, but
+the `parm` names the phylogenetic level:
 
 ```r
 confint(
@@ -1027,7 +1047,9 @@ confint(
 
 `corpairs(conf.int = TRUE)` still reports `newdata_required` for the modelled
 summary row because that row averages and ranges over group-level or
-species-level correlation values. q=4 rows still need a fix-and-refit or
+species-level correlation values. Neither predictor-dependent q2 example above
+has coverage-backed interval validation, so do not use those diagnostic
+profiles as reporting intervals. q=4 rows still need a fix-and-refit or
 reparameterized profile before 95% intervals are claimed for all six derived
 correlations.
 
@@ -1047,8 +1069,11 @@ The general structured-effect bridge is:
 Here \(d\) is the distributional parameter being modelled. For the simplest
 fitted examples, \(d = \mu\): the structured effect is added to the mean
 predictor. Current Gaussian first slices also include intercept-only structured
-`sigma` terms and selected bivariate covariance blocks, while structured
-`sigma` slopes and structured `rho12` remain planned. For phylogenetic models,
+`sigma` terms, q1 `sigma` one-slope routes for all four providers, and selected
+bivariate covariance blocks. The phylo, A-matrix animal, and K/Q relmat sigma
+slopes are inference-ready with caveats; the spatial sigma-slope interval gate,
+multiple or labelled structured sigma slopes, and structured `rho12` remain
+planned. For phylogenetic models,
 \(\mathbf{K}\) is a tree-derived phylogenetic covariance matrix
 \(\mathbf{A}\). For spatial models, \(\mathbf{K}\) will be a distance-derived
 matrix or an SPDE/GMRF precision.
@@ -1179,12 +1204,15 @@ If a phylogenetic fit fails before optimization, check these points first:
 - species names use the same spelling and underscore/space convention in the
   data and tree;
 - the tree has finite positive branch lengths and is ultrametric;
-- the model uses the implemented syntax
-  `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula, or
-  matching terms in bivariate Gaussian `mu1` and `mu2` formulas.
+- the model uses an implemented syntax: Gaussian `phylo()` terms in the
+  documented univariate or matching bivariate formulas, ordinary Poisson/NB2
+  q1 phylogenetic `mu` intercept-plus-one-slope terms, recovery-grade NB2 q1
+  phylogenetic `sigma`, Student-t q1 phylogenetic `nu`, or cumulative-logit q1
+  phylogenetic `mu` gates recorded in the live ledger.
 
-Multiple phylogenetic slopes, phylogenetic slope correlations, non-Gaussian
-phylogenetic slopes, and structured effects in `rho12` remain planned.
+Multiple or labelled phylogenetic slopes, phylogenetic slope correlations,
+non-Gaussian phylogenetic effects outside those exact gates, and structured
+effects in `rho12` remain planned.
 Partial, unlabelled, mismatched, and slope q=4 phylogenetic location-scale
 forms should error clearly rather than silently fitting a different model.
 
@@ -1259,13 +1287,16 @@ fit_biv_phylo <- drmTMB(
   data = tolerance
 )
 
-corpairs(fit_biv_phylo, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_biv_phylo, level = "phylogenetic")
 rho12(fit_biv_phylo)
 ```
 
-In that output, `corpairs()` gives the constant phylogenetic correlation among
+In that output, `corpairs()` gives the constant phylogenetic correlation point
+estimate among
 species-level mean deviations. `rho12()` gives the fitted residual correlation
-for each observation, which can vary with `assay_context`.
+for each observation, which can vary with `assay_context`. The intercept-only
+q2 row does not have validated interval evidence; a callable profile is a
+diagnostic, not an inference-ready claim.
 
 This is the key implementation boundary. `drmTMB` can estimate latent
 phylogenetic correlations when the matching `phylo()` terms define a shared
@@ -1374,7 +1405,7 @@ The phylogenetic q=4 block is a different layer. Use `corpairs()` to read the
 latent species-level correlations:
 
 ```{r}
-corpairs(fit_phylo_q4, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_phylo_q4, level = "phylogenetic")
 ```
 
 Those six rows are not residual correlations. The `mean-mean` row asks whether
@@ -1387,11 +1418,8 @@ q=4 covariance rows, but their biological interpretation should be written
 with extra care.
 
 The `scale-scale` row asks whether the two traits' phylogenetic log-SD
-deviations move together. The `conf.status` column is part of the inference
-contract: profile-ready correlations can be profiled, while the current q=4
-rows are marked as derived targets until a direct or fix-and-refit profile is
-implemented. A profile-ready row can still fail on a difficult fitted model, so
-inspect `profile.message` before treating an interval as usable inference.
+deviations move together. These q=4 rows are point estimates and remain derived
+targets until a direct or fix-and-refit profile is implemented and validated.
 
 For a compact scalar view of the residual layer, use `rho12()`:
 
@@ -1606,11 +1634,13 @@ cite `fmesher` as software. Any code selectively ported from `gllvmTMB`,
 `inst/COPYRIGHTS` before the spatial feature is called complete.
 
 Structured random slopes are staged more conservatively than ordinary grouped
-random slopes. Coordinate spatial and phylogenetic Gaussian `mu` now have first
-one-slope paths, but they are deliberately independent: each returns separate
-SDs and no intercept-slope `corpair()` row. Multiple structured `mu` slopes,
-residual-scale structured slopes, mesh/SPDE slopes, and structured slope
-correlations remain later gates.
+random slopes. Coordinate spatial and phylogenetic Gaussian `mu` have first
+one-slope paths, and q1 structured `sigma` one-slope paths fit for
+phylo/spatial/animal/relmat. The phylo, A-matrix animal, and K/Q relmat sigma
+slopes are inference-ready with caveats; spatial is point-fit/extractor only.
+These paths are deliberately independent: each returns separate SDs and no
+intercept-slope `corpair()` row. Multiple or labelled structured slopes,
+mesh/SPDE slopes, and structured slope correlations remain later gates.
 The combined phylogeny-plus-spatial route should be a separate additive-block
 model with a phylogenetic field and a spatial field, not one large cross-factor
 covariance model. A more interesting future two-response target is the
@@ -1704,12 +1734,13 @@ phylogenetic mean-mean correlation remains a constant fitted correlation, and
 `rho12` remains the within-observation residual correlation:
 
 ```r
-corpairs(fit_biv_sd_phylo, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_biv_sd_phylo, level = "phylogenetic")
 rho12(fit_biv_sd_phylo)
 ```
 
-The `corpairs()` row is the fitted phylogenetic correlation between the two
-location random effects. The `rho12()` values are residual correlations between
+The `corpairs()` row is the fitted phylogenetic correlation point estimate
+between the two location random effects; this direct-SD route does not have
+validated interval evidence. The `rho12()` values are residual correlations between
 the two responses after the fitted fixed effects and phylogenetic effects have
 been included. Run
 `check_drm(fit_biv_sd_phylo)` before interpreting the direct-SD slopes; the
@@ -1761,7 +1792,7 @@ fit_biv_phylo_q4 <- drmTMB(
   data = tolerance
 )
 
-corpairs(fit_biv_phylo_q4, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_biv_phylo_q4, level = "phylogenetic")
 rho12(fit_biv_phylo_q4)
 ```
 
@@ -1774,23 +1805,22 @@ latent phylogenetic correlations among species-level effects. They are not the
 residual `rho12` curve, which is why the example shows `corpairs()` and
 `rho12()` separately.
 
-For the simpler fitted mean-mean phylogenetic correlation, use `corpars$phylo`,
-`corpairs(fit_biv_phylo, level = "phylogenetic", conf.int = TRUE)`, or
+For the simpler fitted mean-mean phylogenetic correlation point estimate, use
+`corpars$phylo`, `corpairs(fit_biv_phylo, level = "phylogenetic")`, or
 `summary(fit_biv_phylo)$covariance`. Run `check_drm(fit_biv_phylo)` before
 interpreting that row: the current diagnostic flags phylogenetic correlations
 near the boundary and phylogenetic location SDs that are tiny relative to the
-matching residual scales. If `check_drm(fit_biv_phylo)` does not warn and the
-fitted object kept its TMB object, a direct profile interval is available for
-the phylogenetic mean-mean correlation target. The q=4 correlations are derived
-from `theta_phylo`, so direct profile intervals for those six rows are not yet
-claimed:
+matching residual scales. `profile_targets()` can expose a callable diagnostic
+profile target, but that does not validate an interval or promote this
+intercept-only q2 row. The q=4 correlations are derived from `theta_phylo`, so
+direct profile intervals for those six rows are not yet claimed:
 
 ```r
 phylo_target <- "cor:phylo:cor(mu1:(Intercept),mu2:(Intercept) | phylo | species)"
 
-corpairs(fit_biv_phylo, level = "phylogenetic", conf.int = TRUE)
+corpairs(fit_biv_phylo, level = "phylogenetic")
 summary(fit_biv_phylo)$covariance
-confint(fit_biv_phylo, parm = phylo_target, method = "profile")
+profile_targets(fit_biv_phylo)
 ```
 
 Do not read a phylogenetic species effect as a residual observation-level

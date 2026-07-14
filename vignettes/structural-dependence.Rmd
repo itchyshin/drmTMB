@@ -26,11 +26,11 @@ fitted residual response-response correlations.
 
 | Question | Current route | Status |
 | --- | --- | --- |
-| Do related individuals share additive genetic deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted first Gaussian `mu` and `sigma` intercept slices, including matching univariate `mu`/`sigma` correlation, matching q=2 bivariate location covariance, and constant q=4 location-scale covariance. Sparse large-pedigree construction, residual-scale structured slopes, and predictor-dependent `corpair()` routes remain planned. |
-| Do related species share evolutionary deviations? | `phylo(1 | species, tree = tree)` | Fitted for Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope, bivariate q=2 and q=4 blocks, direct phylogenetic SD surfaces, and q=2 predictor-dependent phylogenetic `corpair()` regression. |
-| Do nearby sites share smooth deviations? | `spatial(1 | site, coords = coords)` or `spatial(1 + depth | site, coords = coords)` | Fitted first coordinate-spatial Gaussian `mu` and `sigma` intercept slices, including matching univariate `mu`/`sigma` correlation, one numeric `mu` slope, matching q=2 bivariate location covariance, and constant q=4 location-scale covariance. Mesh/SPDE, multiple slopes, residual-scale structured slopes, non-Gaussian, and spatial `corpair()` routes remain planned. |
+| Do related individuals share additive genetic deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2, and q4 routes. Exact non-Gaussian gates fit ordinary Poisson/NB2 q1 animal `mu` intercept-plus-one-slope, recovery-grade NB2 q1 animal `sigma`, and the row-specific beta animal route recorded in the live ledger. Pedigree/Ainv bridge marshalling, sparse large-pedigree construction, multiple or labelled slopes, and non-Gaussian neighbours outside those gates remain planned. |
+| Do related species share evolutionary deviations? | `phylo(1 | species, tree = tree)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2/q4, direct-SD, and `corpair()` routes. Exact non-Gaussian gates fit ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope and recovery-grade NB2 q1 phylogenetic `sigma`; Student-t q1 phylogenetic `nu` is diagnostic-only, while cumulative-logit q1 phylogenetic `mu` is diagnostic-only. Neighbouring non-Gaussian routes remain planned. |
+| Do nearby sites share smooth deviations? | `spatial(1 | site, coords = coords)` or `spatial(1 + depth | site, coords = coords)` | Fitted for the documented coordinate-spatial Gaussian `mu`/`sigma`, slope, q2, and q4 routes. Exact non-Gaussian gates fit ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope and recovery-grade NB2 q1 spatial `sigma`; Student-t q1 spatial `mu` is diagnostic-only for the intercept and recovery-grade for the intercept-plus-one-slope route. All three spatial-inflation gates—Poisson `zi`, fixed-`zi` Poisson `mu`, and fixed-`zi` NB2 `mu`—are diagnostic-only single-smoke routes. The spatial sigma-slope interval gate remains blocked; mesh/SPDE, multiple or labelled slopes, non-Gaussian routes outside those exact gates, and spatial `corpair()` routes remain planned. |
 | Does the same response need both species and site structure? | planned `phylo()` plus `spatial()` route | Planned. Fit separate sensitivity models for now; simultaneous structural layers need identifiability checks before use. |
-| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted first Gaussian `mu` and `sigma` intercept slices, including matching univariate `mu`/`sigma` correlation, matching q=2 bivariate location covariance, and constant q=4 location-scale covariance. Residual-scale structured slopes and predictor-dependent `corpair()` routes remain planned. |
+| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2, and q4 routes. Exact non-Gaussian gates fit ordinary Poisson/NB2 q1 relmat `mu` intercept-plus-one-slope, recovery-grade NB2 q1 relmat `sigma`, Gamma q1 relmat `mu`, and truncated-NB2 q1 relmat `hu`. Multiple or labelled slopes, broader K/Q bridge claims, predictor-dependent `corpair()` routes, and non-Gaussian neighbours outside those gates remain planned. |
 
 ## What to read next
 
@@ -70,9 +70,12 @@ that two Gaussian response means can share a latent structured correlation for
 that layer. A fitted q=4 route means the all-four endpoint block named above is
 available for constant location-scale covariance. The univariate intercept
 route can also enter `sigma` for `phylo()`, `spatial()`, `animal()`, and
-`relmat()`. These routes do not imply residual-scale structured slopes,
-non-Gaussian structural effects, or predictor-dependent `corpair()` regressions
-unless the route table above names that support explicitly.
+`relmat()`. Exact q1 `sigma` one-slope routes also fit for all four providers:
+phylo, A-matrix animal, and K/Q relmat are inference-ready with caveats, while
+spatial remains point-fit/extractor only. These routes do not imply multiple or
+labelled structured slopes, non-Gaussian structural effects outside the exact
+row-specific gates named above, or predictor-dependent `corpair()` regressions
+unless the route table explicitly names that support.
 
 Known sampling covariance belongs to the meta-analysis route, not `relmat()`.
 Use `relmat()` for latent random-effect relatedness matrices; use

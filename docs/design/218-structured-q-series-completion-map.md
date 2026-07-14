@@ -136,8 +136,10 @@ The current table records these broad facts without promoting beyond them:
   reduced-rank estimation arc).
 - Poisson and NB2 q1 structured `mu` intercept and unlabelled one-slope rows
   are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
-  labelled non-Gaussian structured slopes, zero-inflated structure, structured
-  count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
+  labelled non-Gaussian structured slopes, zero-inflated structure outside the
+  exact spatial Poisson `zi`, fixed-`zi` Poisson `mu`, and fixed-`zi` NB2 `mu` gates, structured count
+  scale routes outside the exact NB2 q1 `sigma` gates, q2/q4, REML, AI-REML,
+  interval support, or coverage.
 - The Q-Series v1.0 basic-distribution surface also includes one row-specific
   local fit-only ordinal gate: `cumulative_logit()` with
   `mu ~ phylo(1 | id, tree = tree)`. That row exposes the fitted phylogenetic
@@ -197,20 +199,14 @@ more engine work**.
 2. **REML is NOT the fix for that residual, and is not a drmTMB-only deliverable.**
    An adversarial scoping pass
    (`docs/dev-log/simulation-artifacts/2026-06-27-reml-unblock-scoping/`) found:
-   (a) drmTMB native REML is exact restricted ML that marginalises only the mean
-   *fixed* effects (`R/drmTMB.R:825-833`) — location-only by construction;
-   (b) the g=8 bias lives on the structured location-*scale* SD (`sigma`/`rho`
-   submodels), where the restricted likelihood is a *different, underived*
-   objective (`docs/design/199:50-60`), and the scope-gate rows fence
-   `sigma`/q2/q4 REML as `unsupported_until_derived`; (c) the only relevant
-   correction (q4 Patterson-Thompson) lives in DRM.jl, not drmTMB; (d) the sole
-   banked REML un-shrinkage evidence is for an *ordinary* intercept (location-only,
-   n=18) — the wrong cell — and there is **no in-repo evidence REML moves the
-   structured-SD centre at g=8.** Treating "unblock REML" as the g=8 coverage fix
-   is unsupported optimism. (Unblocking biv structured-RE REML as a *separate*
-   estimation capability is tractable but large, gated on deriving the
-   structured-mean bivariate restricted likelihood first, and even then reaches
-   only the mean axis, not the `sigma`/`rho` axis where the bias sits.)
+   (a) drmTMB native REML is exact restricted ML that marginalises the mean
+   *fixed* effects (`R/drmTMB.R:825-833`); (b) later work admitted tested
+   phylogenetic `sigma`, q2, and q4 rows at point-fit or recovery tiers, but did
+   not supply interval evidence for this g=8 target; (c) the q4
+   Patterson-Thompson route is not HSquared AI-REML and remains separate from
+   the corrected-Wald channel; and (d) there is still **no in-repo evidence that
+   switching estimators fixes this structured-SD centre at g=8.** Treating native
+   REML admission as the g=8 coverage fix is therefore unsupported optimism.
 
 3. **The bootstrap channel does not rescue it either.** drmTMB's
    `method = "bootstrap"` is a *parametric percentile* bootstrap

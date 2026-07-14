@@ -1,5 +1,11 @@
 # Ayumi Literature And Docs Summary
 
+> **Current-status correction (2026-07-14).** This preparation note predates
+> the native structured-REML admissions summarized in
+> `docs/design/211-structured-reml-status.md`. Read every REML statement below
+> through that row-specific authority; point-fit or recovery admission does not
+> imply interval, coverage, `supported`, or HSquared AI-REML promotion.
+
 ## Purpose
 
 This note banks A081-A090 for the Ayumi phylogenetic balance arc. It connects
@@ -19,9 +25,11 @@ That tutorial is a useful reader map for Ayumi's question: if a model studies
 both trait means and trait variability, it is natural to ask whether
 phylogenetic structure should be available in both `mu` and `sigma`. The answer
 in drmTMB is route-specific. Native ML has balanced univariate Gaussian fit
-targets for `mu`, `sigma`, and matched `mu+sigma` intercepts. Native REML does
-not: it is exact-Gaussian and mean-side-only for phylogenetic structured
-effects in current drmTMB.
+targets for `mu`, `sigma`, and matched `mu+sigma` intercepts. Native REML is
+exact-Gaussian and now includes q1 mean-side inference evidence, sigma-only and
+matched univariate q2 point-fit evidence, bivariate mean-side q2 point-fit
+evidence, and block-diagonal or dense q4 recovery evidence. The scale-side,
+q2, and q4 rows have no blanket interval, coverage, or support promotion.
 
 ## Package Contrast
 
@@ -75,8 +83,8 @@ For a future vignette or Ayumi reply, use this structure:
 3. Show q4 native ML as diagnostic status only.
 4. Show direct DRM.jl q4 profile/bootstrap as experimental design input, with
    known bootstrap scale-axis undercoverage.
-5. State that native q4 REML and R-via-Julia bridge promotion are not available
-   today.
+5. State that native q4 REML is recovery-grade only: interval, coverage,
+   `supported`, and R-via-Julia bridge promotion are not available today.
 
 ## Dashboard Panel Plan
 
