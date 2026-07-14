@@ -10,7 +10,7 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-14, PR #780 REPAIRED; merge authorization pending).**
+> **▶ Latest — start here (2026-07-14, → NEW CODEX, PR #780 REPAIRED; merge authorization pending).**
 > Branch `feature/arc1a-gaussian-reml-providers` extends native exact-Gaussian REML to
 > pure-`mu`, univariate `spatial()`, `animal()`, and `relmat()` intercept and independent
 > one-slope routes. Independent restricted-likelihood oracles, representation parity,
@@ -20,9 +20,13 @@ regression using Template Model Builder.
 > structured-SD/covariance wording and split the active non-Gaussian Q-Series truth into
 > 27 recovery rows plus 10 diagnostic-only rows. Full package/`--as-cran`/pkgdown/ledger
 > checks and final Fisher/Pat/Rose review are DONE. PR #780 is recommended to merge but
-> remains open and must not be merged without separate authorization. The external
-> `a1bf21a1` mirror remains pending and was not used as evidence. START HERE:
-> [`docs/dev-log/handover/2026-07-14-pr780-repair-disposition-handover.md`](docs/dev-log/handover/2026-07-14-pr780-repair-disposition-handover.md)
+> remains open with verified green implementation ancestor `1dd79228`; the docs-only
+> handoff successor must be checked live and the PR must not be merged without separate
+> authorization. The external `a1bf21a1` mirror remains pending and was not used as
+> evidence. A fresh Codex session should verify the live PR/head CI, then wait at the merge
+> decision boundary; only after an authorized merge should it determine the next arc
+> from updated `main`. START HERE:
+> [`docs/dev-log/handover/2026-07-14-codex-handover.md`](docs/dev-log/handover/2026-07-14-codex-handover.md)
 
 > **▶ Prior (2026-07-13, → CLAUDE, Arc 4a closeout landed; mirror pending).**
 > Branch `feature/arc4a-profile-coverage` now contains the `has_sigma_random_effects()` repair,
