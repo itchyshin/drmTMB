@@ -4023,6 +4023,26 @@ drm_build_lognormal_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  validate_positive_continuous_structured_provider_surface(
+    mu_entry,
+    family_label = "lognormal"
+  )
+  validate_positive_continuous_sigma_structured_surface(
+    sigma_entry,
+    family_label = "lognormal"
+  )
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  mu_structured_term <- select_positive_continuous_mu_structured_term(
+    list(phylo = mu_phylo$term, relmat = mu_relmat$term),
+    family_label = "lognormal"
+  )
+  validate_positive_continuous_mu_structured_term(
+    mu_structured_term,
+    family_label = "lognormal"
+  )
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn lognormal}")
@@ -4032,6 +4052,12 @@ drm_build_lognormal_ls_spec <- function(
     sigma_re$terms,
     "{.fn lognormal}",
     mu_terms = mu_re$terms
+  )
+  validate_positive_continuous_structured_combinations(
+    mu_structured_term,
+    mu_re$terms,
+    sigma_re$terms,
+    family_label = "lognormal"
   )
 
   for (entry in list(mu_entry, sigma_entry)) {
@@ -4045,7 +4071,8 @@ drm_build_lognormal_ls_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
-    random_effect_vars(sigma_re$terms)
+    random_effect_vars(sigma_re$terms),
+    structured_mu_vars(mu_structured_term)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -4116,6 +4143,11 @@ drm_build_lognormal_ls_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
+  phylo_mu <- build_structured_mu_structure(
+    mu_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "lognormal",
@@ -4137,7 +4169,7 @@ drm_build_lognormal_ls_spec <- function(
       mu_sigma = re_mu_sigma
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
@@ -4148,13 +4180,15 @@ drm_build_lognormal_ls_spec <- function(
       X_sigma,
       re_mu = re_mu,
       re_sigma = re_sigma,
+      phylo_mu = phylo_mu,
       observed_y = observed_y
     ),
-    map = lognormal_ls_map(re_mu, re_sigma = re_sigma),
+    map = lognormal_ls_map(re_mu, phylo_mu, re_sigma = re_sigma),
     random_names = {
       rn <- c(
         if (re_mu$n_re > 0L) "u_mu",
-        if (re_sigma$n_re > 0L) "u_sigma"
+        if (re_sigma$n_re > 0L) "u_sigma",
+        if (isTRUE(phylo_mu$has)) "u_phylo"
       )
       if (length(rn)) rn else NULL
     }
@@ -4246,9 +4280,27 @@ drm_build_gamma_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  validate_positive_continuous_structured_provider_surface(
+    mu_entry,
+    family_label = "Gamma"
+  )
+  validate_positive_continuous_sigma_structured_surface(
+    sigma_entry,
+    family_label = "Gamma"
+  )
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
   mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
   mu_entry$rhs <- mu_relmat$rhs
-  validate_gamma_relmat_mu_structured_term(mu_relmat$term)
+  mu_structured_term <- select_positive_continuous_mu_structured_term(
+    list(phylo = mu_phylo$term, relmat = mu_relmat$term),
+    family_label = "Gamma"
+  )
+  validate_positive_continuous_mu_structured_term(
+    mu_structured_term,
+    family_label = "Gamma",
+    preserve_gamma_relmat_slope = TRUE
+  )
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn Gamma}")
@@ -4258,6 +4310,13 @@ drm_build_gamma_ls_spec <- function(
     sigma_re$terms,
     "{.fn Gamma}",
     mu_terms = mu_re$terms
+  )
+  validate_positive_continuous_structured_combinations(
+    mu_structured_term,
+    mu_re$terms,
+    sigma_re$terms,
+    family_label = "Gamma",
+    preserve_gamma_relmat = TRUE
   )
 
   for (entry in list(mu_entry, sigma_entry)) {
@@ -4272,7 +4331,7 @@ drm_build_gamma_ls_spec <- function(
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms),
-    structured_mu_vars(mu_relmat$term)
+    structured_mu_vars(mu_structured_term)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -4343,7 +4402,11 @@ drm_build_gamma_ls_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
-  phylo_mu <- build_structured_mu_structure(mu_relmat$term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(
+    mu_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "gamma",
@@ -8988,6 +9051,134 @@ validate_beta_mu_random_terms <- function(terms) {
     ))
   }
   invisible(terms)
+}
+
+validate_positive_continuous_structured_provider_surface <- function(
+  entry,
+  family_label
+) {
+  providers <- unique(vapply(entry$structured, `[[`, character(1L), "type"))
+  if (length(providers) > 1L) {
+    cli::cli_abort(c(
+      "A {family_label} model can use only one structured {.code mu} provider at a time.",
+      "x" = "The formula contains structured providers: {.val {providers}}.",
+      "i" = "Fit one structured provider at a time for this pure-{.code mu} q=1 route."
+    ))
+  }
+  unsupported <- setdiff(providers, c("phylo", "relmat"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{family_label} structured {.code mu} effects do not admit {.fn {unsupported}} in this route.",
+      "i" = "Use an unlabelled intercept with {.fn phylo} or {.fn relmat}, or remove the structured term."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_positive_continuous_sigma_structured_surface <- function(
+  entry,
+  family_label
+) {
+  providers <- unique(vapply(entry$structured, `[[`, character(1L), "type"))
+  if (length(providers) > 0L) {
+    cli::cli_abort(c(
+      "{family_label} structured effects are admitted only in {.code mu} in this route.",
+      "x" = "The {.code sigma} formula contains structured provider{?s}: {.val {providers}}.",
+      "i" = "Keep {.code sigma} fixed-effect and move one unlabelled q=1 {.fn phylo} or {.fn relmat} intercept to {.code mu}."
+    ))
+  }
+  invisible(NULL)
+}
+
+select_positive_continuous_mu_structured_term <- function(
+  structured_terms,
+  family_label
+) {
+  active <- names(structured_terms)[
+    !vapply(structured_terms, is.null, logical(1L))
+  ]
+  if (length(active) > 1L) {
+    cli::cli_abort(c(
+      "A {family_label} model can use only one structured {.code mu} provider at a time.",
+      "x" = "The formula contains structured providers: {.val {active}}.",
+      "i" = "Fit either {.fn phylo} or {.fn relmat}, not both, for this pure-{.code mu} q=1 route."
+    ))
+  }
+  if (length(active) == 0L) {
+    return(NULL)
+  }
+  structured_terms[[active]]
+}
+
+validate_positive_continuous_mu_structured_term <- function(
+  term,
+  family_label,
+  preserve_gamma_relmat_slope = FALSE
+) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (
+    isTRUE(preserve_gamma_relmat_slope) &&
+      identical(family_label, "Gamma") &&
+      identical(marker, "relmat")
+  ) {
+    return(validate_gamma_relmat_mu_structured_term(term))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{family_label} {.fn {marker}} {.code mu} effects support only an unlabelled q=1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Remove the covariance label and use an unlabelled {.code 1 | {term$group}} term."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    object_argument <- if (identical(marker, "phylo")) {
+      "tree = tree"
+    } else {
+      "K = K"
+    }
+    cli::cli_abort(c(
+      "{family_label} {.fn {marker}} {.code mu} effects are intercept-only in this q=1 route.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code {marker}(1 | {term$group}, {object_argument})}; structured slopes remain deferred."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_positive_continuous_structured_combinations <- function(
+  term,
+  mu_terms,
+  sigma_terms,
+  family_label,
+  preserve_gamma_relmat = FALSE
+) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  if (
+    isTRUE(preserve_gamma_relmat) &&
+      identical(family_label, "Gamma") &&
+      identical(marker, "relmat")
+  ) {
+    return(invisible(NULL))
+  }
+  if (length(mu_terms) > 0L) {
+    cli::cli_abort(c(
+      "A {family_label} ordinary and structured {.code mu} random layer cannot be combined in this route.",
+      "i" = "Fit either the ordinary random effect or {.code {marker}(1 | {term$group}, ...)}, not both."
+    ))
+  }
+  if (length(sigma_terms) > 0L) {
+    cli::cli_abort(c(
+      "A {family_label} structured {.code mu} effect requires a fixed-effect {.code sigma} formula in this pure-{.code mu} route.",
+      "i" = "Remove the ordinary {.code sigma} random effect and keep a formula such as {.code sigma ~ z}."
+    ))
+  }
+  invisible(NULL)
 }
 
 validate_gamma_relmat_mu_structured_term <- function(term) {
@@ -15265,6 +15456,7 @@ lognormal_ls_start <- function(
   X_sigma,
   re_mu = empty_random_mu_structure(length(y)),
   re_sigma = empty_random_sigma_structure(length(y)),
+  phylo_mu = empty_phylo_mu_structure(),
   observed_y = rep(TRUE, length(y))
 ) {
   observed_y <- as.logical(observed_y)
@@ -15278,6 +15470,9 @@ lognormal_ls_start <- function(
     re_sigma = re_sigma,
     observed_y = observed_y
   )
+  eta_mu <- as.vector(X_mu %*% gaussian_start$beta_mu)
+  resid <- log_y - eta_mu
+  phylo_start <- gaussian_phylo_start(resid[observed_y], phylo_mu)
   c(
     list(
       beta_mu = gaussian_start$beta_mu,
@@ -15300,8 +15495,8 @@ lognormal_ls_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
@@ -17451,6 +17646,7 @@ make_tmb_data <- function(spec) {
   if (identical(spec$model_type, "lognormal")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 4L,
       y = spec$y,
@@ -17500,11 +17696,23 @@ make_tmb_data <- function(spec) {
       sigma_re_pair_index = spec$random$sigma$re_pair_index0,
       sigma_re_cross_cor = spec$random$mu_sigma$sigma_cross_cor_id0,
       sigma_re_cross_mu = spec$random$mu_sigma$sigma_cross_mu_index0,
-      has_phylo_mu = 0L,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "gamma")) {

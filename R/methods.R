@@ -5263,7 +5263,10 @@ has_mu_random_intercepts <- has_mu_random_effects
 
 has_phylo_mu_effect <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian", "poisson", "nbinom2") &&
+    c(
+      "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
+      "gamma"
+    ) &&
     isTRUE(object$model$structured$phylo_mu$has) &&
     identical(structured_mu_type(object$model$structured$phylo_mu), "phylo")
 }
@@ -5277,7 +5280,10 @@ has_spatial_mu_effect <- function(object) {
 
 has_structured_mu_effect <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian", "poisson", "nbinom2") &&
+    c(
+      "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
+      "gamma"
+    ) &&
     isTRUE(object$model$structured$phylo_mu$has)
 }
 

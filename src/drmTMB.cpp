@@ -2505,6 +2505,42 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_mu);
       ADREPORT(sd_mu_re);
     }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          mu(i) += phylo_mu_value(i, k) * u_phylo(effect_index);
+        }
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
     // Arc 2c: independent sigma random intercept only. Unlike the gaussian block
     // (model_type 1), this omits sigma_re_cor_id / sigma_re_cross_cor conditioning
     // by design -- the R-side validator keeps lognormal/Gamma sigma-RE to a single
