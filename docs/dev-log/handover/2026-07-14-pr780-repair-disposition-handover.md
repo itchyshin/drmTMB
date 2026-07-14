@@ -39,10 +39,22 @@ Full detail:
 
 ## Landing State
 
-The branch is to be committed and pushed to PR #780. No merge, issue closure,
-external artifact refresh, campaign rerun, or next feature arc is authorized by
-this handoff. Issue #147 remains open until GitHub closes it through an actual
-merge.
+The repaired branch is committed and pushed to PR #780 at `6712e86f`. No
+merge, issue closure, external artifact refresh, campaign rerun, or next feature
+arc is authorized by this handoff. Issue #147 remains open until GitHub closes
+it through an actual merge.
+
+The handoff gate confirmed the active branch is pushed and PR #780 is open, but
+returned nonzero because 358 pre-existing local branches have commits absent
+from their configured upstreams. Those branches predate and are unrelated to
+this repair. They are **CARRIED-OVER protected user state**: do not stage, push,
+delete, merge, or rewrite them from this handoff. To reproduce that inventory,
+run:
+
+```sh
+/Users/z3437171/Dropbox/Github\ Local/Shinichi/tools/handoff_gate.sh \
+  /Users/z3437171/.codex/worktrees/arc1a-gaussian-reml-providers
+```
 
 ## Carried Over
 
@@ -51,6 +63,9 @@ merge.
   evidence for this disposition.
 - **Next arc:** CARRIED-OVER; determine it from updated `main` only after PR
   #780's disposition is complete.
+- **358 unrelated local branches:** CARRIED-OVER protected user state; inspect
+  only with the handoff-gate command above and do not modify them as part of
+  PR #780.
 
 ## Resume
 
