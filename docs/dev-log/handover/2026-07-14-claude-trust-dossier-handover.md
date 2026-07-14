@@ -37,9 +37,19 @@ Meta: 2026-07-14 · from Claude · planning session (no code executed) · TARGET
 - **Do it in the Claude lane** (Codex low on tokens). Whichever platform is in-session owns the task.
 - **Output home = this fresh branch off `main`** (NOT the shared `feature/arc4a-profile-coverage`, which
   carries unrelated in-flight arc4a work from other sessions). Dossier → `inst/trust-dossier/`.
-- **Lead with the location–scale case** — drmTMB's native home turf, and the paper states plainly that
-  metafor's `rma` **cannot** put random effects in the dispersion model. So the story is *contribution*
-  (drmTMB extends beyond metafor), not mere parity. Parity on the Gaussian cases is the credibility floor.
+- **Ordering (REFINED 2026-07-14 after Wolfgang's reply — this reverses the earlier "lead with location-
+  scale"):** For Wolfgang (a comparator-minded skeptic) **LEAD with airtight comparator parity** — drmTMB ≡
+  metafor on his own examples (S1), the part he cannot argue. Present the **location-scale** case (S3) as
+  *validated against glmmTMB `dispformula` (+ brms) AND simulation-from-truth* — NOT as "metafor's `rma`
+  can't, trust us" (rma's limit is context, not the trust argument).
+- **Two ground truths (Wolfgang conceded the TDD+genAI philosophy is valid; the bar is what's left).** His
+  bar: *"thousands of tests, not a few illustrative examples"* + a comparator wherever one exists. Answer:
+  ground truth is two-tier — *(a) comparator* (metafor for standard, glmmTMB/brms for location-scale — exists
+  for nearly all of this dossier) and *(b) simulation from known truth* (recovery + coverage over a broad
+  adversarial grid) where no comparator exists. "No comparator" ≠ "unvalidatable".
+- **The simulation GRID is the CORE evidence, not a deferred smoke.** The few datasets = the *demo*; the
+  broad adversarial DGP grid on **Totoro** = the *validation* Wolfgang asked for. This session proves the
+  harness with a 1-rep smoke, then commissions the full grid on Totoro (never GitHub Actions, D-50).
 - **Acceptance bar (Wolfgang-co-signed, from the paper's sim):** μ̂ identical to 6 dp, τ̂² to 5 dp,
   SEs match, identical coverage / type-I / power. Equivalence-to-metafor = **L2** badge; an independent
   Wolfgang run = **L3**.
@@ -67,8 +77,9 @@ Meta: 2026-07-14 · from Claude · planning session (no code executed) · TARGET
 3. **S0 smoke GATE:** fit the Normal–Normal random-effects meta-analysis in drmTMB via `meta_V`/`meta_known_V`
    on `metadat::dat.assink2016`; compare μ̂ and τ̂² to `metafor::rma.mv`. Set `REML=TRUE`. Confirm non-NA,
    in-range, matches to tolerance. **If it matches → S1–S4; if not → STOP and report the gap.**
-4. Parallel after S0: S1 (multilevel dat.assink2016), S2 (bivariate dat.bcg), **S3 (location–scale headline,
-   Bangert-Drowns writing-to-learn)**, S4 (coverage smoke — 1 rep first). Then S5 package, S6 verify.
+4. Parallel after S0: **S1 (multilevel dat.assink2016 — the Wolfgang-facing headline: comparator parity)**,
+   S2 (bivariate dat.bcg), S3 (location–scale, Bangert-Drowns — validated vs glmmTMB/brms + sim), S4 (coverage
+   smoke — 1 rep to prove the harness; the full grid is the core evidence → Totoro). Then S5 package, S6 verify.
 
 ## Blockers / Open Questions
 - None blocking. Open: confirm the exact `meta_V` call signature for the multilevel (study + within-study)
