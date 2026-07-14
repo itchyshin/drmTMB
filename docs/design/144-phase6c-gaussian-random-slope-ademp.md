@@ -5,9 +5,11 @@
 This note is the first #446 operating-characteristic design sheet for the
 random-slope sprint. It plans a simulation lane; it does not run grids or claim
 accuracy, coverage, or power. The first lane is ordinary Gaussian grouped
-random slopes because #439 has already separated fitted q > 2 `mu` support,
-independent `sigma` slope support, and planned residual-scale covariance
-neighbours.
+random slopes because #439 separated fitted q > 2 `mu` support, independent
+`sigma` slope support, and then-planned residual-scale covariance neighbours.
+That boundary is historical: current 0.6.0 also fits unlabelled ordinary
+correlated sigma intercept-slope and multi-slope blocks; labelled residual-scale
+and cross-formula `mu`-`sigma` slope covariance remain planned.
 
 The design follows the ADEMP structure from Morris, White, and Crowther (2019)
 and the transparent-reporting checklist of Williams et al. (2024). The reader

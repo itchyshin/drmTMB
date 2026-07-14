@@ -118,7 +118,19 @@ def classify(row: dict[str, str]) -> tuple[str, str, str, str, str]:
             "Implementation, rejection, or interval route design after the v1.0 cut.",
             "Deferred Gaussian validation creates no support-cell promotion, no inference_ready, no supported claim, no coverage, no REML, no AI-REML, and no public support.",
         )
-    if row["family_class"] == "non_gaussian" and row["fit_status"] == "point_fit":
+    if row["family_class"] == "non_gaussian" and row["fit_status"] in {
+        "point_fit",
+        "diagnostic_only",
+    }:
+        diagnostic_only = row["fit_status"] == "diagnostic_only"
+        if diagnostic_only:
+            return (
+                "basic_distribution_recovery",
+                "P3",
+                "Basic-distribution diagnostic candidate for v1.0, with interval/support deferred.",
+                "Family-specific recovery, interval, coverage, and structured-covariance design after v1.0.",
+                "Diagnostic-only evidence does not establish point-estimate recovery and is not interval evidence, coverage evidence, inference_ready, supported, REML, AI-REML, broad structured-covariance support, or public support.",
+            )
         return (
             "basic_distribution_recovery",
             "P3",
@@ -206,6 +218,13 @@ def render_status_markdown(
     inference_ready_rows = track_counts.get("gaussian_inference_anchor", 0)
     gaussian_basic_rows = track_counts.get("gaussian_basic_working", 0)
     nongaussian_recovery_rows = track_counts.get("basic_distribution_recovery", 0)
+    nongaussian_diagnostic_rows = sum(
+        "diagnostic candidate" in row["v1_release_role"]
+        for row in ledger_rows
+    )
+    nongaussian_recovery_evidence_rows = (
+        nongaussian_recovery_rows - nongaussian_diagnostic_rows
+    )
     gaussian_deferred_rows = track_counts.get("gaussian_post_v1_validation", 0)
     nongaussian_deferred_rows = track_counts.get(
         "basic_distribution_post_v1_design", 0
@@ -219,7 +238,6 @@ def render_status_markdown(
     total_rows = len(support_rows)
     v1_basic_surface_pct = percent(v1_basic_surface_rows, total_rows)
     gaussian_core_pct = percent(v1_gaussian_core_rows, gaussian_rows)
-    nongaussian_recovery_pct = percent(nongaussian_recovery_rows, nongaussian_rows)
     inference_ready_pct = percent(inference_ready_rows, total_rows)
     supported_authority_pct = percent(supported_authority_rows, total_rows)
     post_v1_pct = percent(post_v1_rows, total_rows)
@@ -236,8 +254,9 @@ currently has {len(support_rows)} support cells: {gaussian_rows} Gaussian rows
 and {nongaussian_rows} non-Gaussian rows. The pragmatic v1.0 surface has
 {v1_basic_surface_rows} row-level roles: {inference_ready_rows} exact Gaussian
 `inference_ready` anchors, {gaussian_basic_rows} additional Gaussian
-basic-working rows, and {nongaussian_recovery_rows} basic-distribution recovery
-rows. The remaining {post_v1_rows} rows stay in post-v1.0 validation or design.
+basic-working rows, {nongaussian_recovery_evidence_rows} non-Gaussian recovery
+rows, and {nongaussian_diagnostic_rows} non-Gaussian diagnostic-only rows. The
+remaining {post_v1_rows} rows stay in post-v1.0 validation or design.
 
 There are {supported_authority_rows} `supported` authority rows. This summary
 does not authorize coverage, q4 coverage, support-cell promotion,
@@ -251,9 +270,10 @@ claims.
 
 | Measure | Rows | Percent | Meaning |
 | --- | ---: | ---: | --- |
-| Practical v1.0 row surface | {v1_basic_surface_rows}/{total_rows} | {v1_basic_surface_pct} | Exact Gaussian anchors plus additional Gaussian basic-working rows and basic-distribution recovery rows. |
+| Practical v1.0 row surface | {v1_basic_surface_rows}/{total_rows} | {v1_basic_surface_pct} | Exact Gaussian anchors plus additional Gaussian basic-working rows and non-Gaussian recovery or diagnostic-only rows. |
 | Gaussian v1.0 core | {v1_gaussian_core_rows}/{gaussian_rows} | {gaussian_core_pct} | Gaussian rows inside the exact-anchor or basic-working v1.0 surface. |
-| Basic-distribution recovery | {nongaussian_recovery_rows}/{nongaussian_rows} | {nongaussian_recovery_pct} | Non-Gaussian rows with point-fit recovery evidence only. |
+| Basic-distribution recovery evidence | {nongaussian_recovery_evidence_rows}/{nongaussian_rows} | {percent(nongaussian_recovery_evidence_rows, nongaussian_rows)} | Non-Gaussian rows with point-fit recovery evidence. |
+| Basic-distribution diagnostic only | {nongaussian_diagnostic_rows}/{nongaussian_rows} | {percent(nongaussian_diagnostic_rows, nongaussian_rows)} | Non-Gaussian rows with fit/extractor evidence that does not establish point-estimate recovery. |
 | Exact `inference_ready` anchors | {inference_ready_rows}/{total_rows} | {inference_ready_pct} | Row-local exact Gaussian inference anchors; no neighbour rows inherit this status. |
 | `supported` authority | {supported_authority_rows}/{total_rows} | {supported_authority_pct} | Structured rows with support authority; this remains zero. |
 | Post-v1.0 validation/design | {post_v1_rows}/{total_rows} | {post_v1_pct} | Rows deliberately left outside the v1.0 practical surface. |
@@ -264,7 +284,7 @@ claims.
 | --- | ---: | --- | --- |
 | `gaussian_inference_anchor` | {inference_ready_rows} | Exact row-local Gaussian inference anchors. | Keep row-local; no neighbour, q4/q8, `supported`, REML, AI-REML, new coverage, or public-support promotion. |
 | `gaussian_basic_working` | {gaussian_basic_rows} | Implemented/basic-working Gaussian rows for the v1.0 surface. | Basic-working is not interval evidence, coverage evidence, `inference_ready`, `supported`, REML, AI-REML, or public support. |
-| `basic_distribution_recovery` | {nongaussian_recovery_rows} | Basic-distribution recovery rows for v1.0. | Recovery-only evidence is not interval evidence, coverage evidence, `inference_ready`, `supported`, REML, AI-REML, or broad structured-covariance support. |
+| `basic_distribution_recovery` | {nongaussian_recovery_rows} | Legacy track ID containing {nongaussian_recovery_evidence_rows} recovery rows and {nongaussian_diagnostic_rows} diagnostic-only rows. | Diagnostic-only rows do not establish point-estimate recovery; neither tier supplies interval evidence, coverage evidence, `inference_ready`, `supported`, REML, AI-REML, or broad structured-covariance support. |
 | `gaussian_post_v1_validation` | {gaussian_deferred_rows} | Gaussian rows outside the v1.0 basic-working surface. | Leave for post-v1.0 implementation, rejection, interval, or coverage review. |
 | `basic_distribution_post_v1_design` | {nongaussian_deferred_rows} | Non-Gaussian rows outside the v1.0 basic-distribution surface. | Leave for post-v1.0 family-specific implementation, rejection, or limitation design. |
 
@@ -272,8 +292,10 @@ claims.
 
 `drmTMB` v1.0 can describe the Q-Series as having an audited
 implemented/basic-working Gaussian structured-random-effect surface and a
-basic-distribution recovery surface. Exactly {inference_ready_rows} Gaussian
-rows are row-local `inference_ready`, and no structured row is `supported`.
+non-Gaussian fitted surface with {nongaussian_recovery_evidence_rows} recovery
+rows and {nongaussian_diagnostic_rows} diagnostic-only rows. Exactly
+{inference_ready_rows} Gaussian rows are row-local `inference_ready`, and no
+structured row is `supported`.
 
 ## Forbidden Wording
 
@@ -299,6 +321,12 @@ def print_summary(rows: list[dict[str, str]]) -> None:
     inference_ready_rows = counts.get("gaussian_inference_anchor", 0)
     gaussian_basic_rows = counts.get("gaussian_basic_working", 0)
     nongaussian_recovery_rows = counts.get("basic_distribution_recovery", 0)
+    nongaussian_diagnostic_rows = sum(
+        "diagnostic candidate" in row["v1_release_role"] for row in rows
+    )
+    nongaussian_recovery_evidence_rows = (
+        nongaussian_recovery_rows - nongaussian_diagnostic_rows
+    )
     gaussian_deferred_rows = counts.get("gaussian_post_v1_validation", 0)
     nongaussian_deferred_rows = counts.get("basic_distribution_post_v1_design", 0)
     supported_authority_rows = sum(
@@ -317,8 +345,10 @@ def print_summary(rows: list[dict[str, str]]) -> None:
             f"({percent(v1_basic_surface_rows, total_rows)}), "
             f"gaussian_core={v1_gaussian_core_rows}/{gaussian_rows} "
             f"({percent(v1_gaussian_core_rows, gaussian_rows)}), "
-            f"basic_distribution_recovery={nongaussian_recovery_rows}/{nongaussian_rows} "
-            f"({percent(nongaussian_recovery_rows, nongaussian_rows)}), "
+            f"basic_distribution_recovery_evidence={nongaussian_recovery_evidence_rows}/{nongaussian_rows} "
+            f"({percent(nongaussian_recovery_evidence_rows, nongaussian_rows)}), "
+            f"basic_distribution_diagnostic_only={nongaussian_diagnostic_rows}/{nongaussian_rows} "
+            f"({percent(nongaussian_diagnostic_rows, nongaussian_rows)}), "
             f"exact_inference_ready={inference_ready_rows}/{total_rows} "
             f"({percent(inference_ready_rows, total_rows)}), "
             f"supported_authority={supported_authority_rows}/{total_rows} "

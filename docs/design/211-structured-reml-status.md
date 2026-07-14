@@ -28,14 +28,15 @@ For provider covariance matrix \(K_h\), the admitted one-slope model is
 \[
 y = X\beta + Zb_0 + D_x Zb_1 + \varepsilon,
 \qquad
-b_j \sim N(0, \tau_j^2 K_h),
+b_j \sim N(0, s_j^2 K_h),
 \qquad
 \varepsilon \sim N(0, \sigma^2 I),
 \]
 
-with independent \(b_0\) and \(b_1\). The fitted structured scale \(\tau_j\)
-multiplies \(K_h\); it is a node-level marginal standard deviation only when
-the relevant diagonal of \(K_h\) equals one.
+with independent \(b_0\) and \(b_1\). The fitted structured SD scale is
+\(s_j\), so the latent-field covariance is \(s_j^2 K_h\). Node \(i\) has
+marginal SD \(s_j\sqrt{K_{h,ii}}\), which equals \(s_j\) only when that
+diagonal entry is one.
 
 The implementation is checked against an independent dense restricted-
 likelihood oracle and deterministic representation-parity fixtures. The Arc 1a
@@ -70,6 +71,12 @@ Other native REML routes, including existing phylogenetic and scale-side
 routes, retain their row-specific evidence and boundaries. Arc 1a does not
 borrow their claims, and they do not widen Arc 1a.
 
+The pre-existing phylogenetic native REML routes include q1 mean-side with
+retained interval evidence, sigma-only and matched univariate q2 point-fit
+evidence, bivariate mean-side q2 point-fit evidence, and block-diagonal or
+dense q4 recovery evidence. None of the latter rows inherits the q1 mean-side
+interval tier, and none is HSquared AI-REML.
+
 ## Vocabulary boundary
 
 Native REML here means the exact Gaussian restricted likelihood evaluated by
@@ -77,5 +84,6 @@ drmTMB's native TMB engine. It is not HSquared AI-REML. Direct DRM.jl evidence
 and R-to-Julia bridge tests remain route-specific evidence; neither creates a
 general bridge support claim.
 
-This note does not promote native q4 REML, non-Gaussian REML, public optimizer
-controls, nominal-exact coverage, or `supported` status.
+This note does not promote native q4 beyond its row-specific recovery tier,
+non-Gaussian REML, public optimizer controls, nominal-exact coverage, or
+`supported` status.

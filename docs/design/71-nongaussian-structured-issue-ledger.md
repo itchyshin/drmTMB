@@ -247,7 +247,7 @@ failed fits.
 | --- | --- |
 | 415 | `zi` and `hu` structured effects need probability-component use cases, prediction semantics, diagnostics, and recovery before syntax. |
 | 416 | Non-Gaussian scale structured effects need family-specific scale interpretation and separation from latent structured SD. |
-| 417 | Shape and ordinal random effects need family-specific comparator and boundary evidence before any mixed-model syntax. |
+| 417 | Historical planning boundary, superseded in part: shape and ordinal random effects outside the exact fitted gates need family-specific comparator and boundary evidence before broader mixed-model syntax. |
 | 418 | Known sampling covariance and latent relatedness must stay separate in issue titles, formulas, diagnostics, and examples. |
 | 419 | Structured count q1 extractor names should reserve route-specific labels before code: `sdpars$mu`, `ranef("<level>_mu")`, direct `log_sd_*`, and no `corpairs()` row for q1. |
 | 420 | Structured count q1 diagnostics should reserve route-specific rows for replication, SD-ratio/boundary, Hessian, fixed-gradient, family-specific warnings, and unsupported-neighbour errors. |

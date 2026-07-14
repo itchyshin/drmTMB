@@ -139,7 +139,7 @@ workflows, but they are not yet full parity with every `phylo()` route.
 | --- | --- | --- |
 | Does one Gaussian response have additive individual deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` in `mu` | Fitted first slice. Dense pedigree construction, covariance input, and precision input are supported. |
 | Does one numeric fixed-effect slope also have additive individual deviations? | `animal(1 + x | individual, pedigree = pedigree)` in `mu` | Fitted first one-slope slice with independent intercept and slope fields. Multiple structured slopes and intercept-slope correlations remain planned. |
-| Does a one-response Gaussian model have additive residual-scale deviations? | `animal(1 | individual, Ainv = Ainv)` in `sigma`, alone or matching the `mu` term | Fitted first residual-scale intercept slice. Matching univariate `mu` and `sigma` animal terms estimate one animal mean-scale correlation; residual-scale structured slopes remain planned. |
+| Does a one-response Gaussian model have additive residual-scale deviations? | `animal(1 | individual, Ainv = Ainv)` in `sigma`, alone or matching the `mu` term; `animal(1 + x | individual, A = A)` for the exact one-slope route | The residual-scale intercept is fitted. The exact A-matrix q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` animal intercepts estimate one animal mean-scale correlation. Pedigree/Ainv bridge marshalling, multiple or labelled sigma slopes, and structured slope correlations remain planned. |
 | Do two Gaussian response means share an animal-model correlation? | matching labelled `animal(1 | p | individual, pedigree = pedigree)`, `animal(1 | p | individual, A = A)`, or `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "animal")` reports the latent animal correlation separately from residual `rho12`. |
 | Do animal-model deviations link means and residual scales across two responses? | the same labelled `animal(1 | p | individual, Ainv = Ainv)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "animal")` reports six constant latent animal correlations; profile intervals for those derived correlations remain unavailable. |
 | Does the animal effect change multiple slopes or a predictor-dependent correlation? | examples such as `animal(1 + x + z | individual, pedigree = pedigree)` or animal `corpair()` formulas | Planned. These routes need separate diagnostics, recovery tests, interval targets, and examples before use. |
@@ -161,6 +161,27 @@ fit_animal <- drmTMB(
   family = gaussian()
 )
 ```
+
+For the exact Arc 1a REML route, keep `sigma ~ 1`, use an unlabelled intercept
+or independent intercept-plus-one-numeric-slope shape, and set `REML = TRUE`:
+
+```r
+fit_animal_reml <- drmTMB(
+  bf(
+    y ~ x + animal(1 + x | individual, A = A),
+    sigma ~ 1
+  ),
+  data = dat,
+  family = gaussian(),
+  REML = TRUE
+)
+```
+
+The multi-seed campaign used the `A` representation shown here, with
+`n_each = 20` and one fixed `M = 8` relationship matrix. Pedigree and `Ainv`
+inputs have deterministic representation-parity evidence only, not multi-seed
+campaign coverage. These domains do not admit slope-only, labelled,
+multiple-slope, scale-side, bivariate, or non-Gaussian REML routes.
 
 For two responses, use the same animal block label in `mu1` and `mu2`:
 
@@ -184,21 +205,19 @@ latent animal-model correlation among individual location deviations. `rho12()`
 reports the residual correlation between the two responses after the fixed
 effects and random effects have been included.
 
-For reports, do not leave the q=2 animal correlation as a lone dot when interval
-evidence is available. The animal q=2 profile interval computes, but it is
-recovery-grade and not coverage-checked, unlike the `phylo()` and `relmat()` q=2
-mean-mean anchors -- trust the point estimate more than the interval width.
-Request interval provenance first, then plot the explicit table:
+For reports, keep this intercept-only q=2 animal correlation point-only. The
+profile mechanism computes, but interval calibration and coverage are still
+planned for this row:
 
 ```r
-animal_pairs <- corpairs(fit_animal_q2, level = "animal", conf.int = TRUE)
+animal_pairs <- corpairs(fit_animal_q2, level = "animal")
 plot_corpairs(animal_pairs)
 ```
 
 That plot should be read as an animal-layer correlation display, not as a
-residual `rho12` plot. The q=4 rows below are different: current q=4 animal
-correlations are derived rows, so their tables may expose point estimates and
-`conf.status` without profile Confidence Eyes.
+residual `rho12` plot. Do not add an interval eye until this exact row has
+validated interval evidence. The q=4 rows below are also point-only: current q=4
+animal correlations are derived rows.
 
 When the biological question is whether additive individual deviations in means
 and residual scales covary, use the same labelled animal term in all four
@@ -223,7 +242,8 @@ corpairs(fit_animal_q4, level = "animal")
 ```
 
 The q=4 path is constant across individuals and responses: it estimates four
-animal endpoint standard deviations and six latent animal correlations. It is
+latent animal endpoint scale parameters and six latent animal correlations.
+Each endpoint's individual marginal SD also includes `sqrt(A[i, i])`. This is
 not a direct-SD model and it does not make the residual correlation `rho12`
 animal-structured.
 
@@ -234,7 +254,7 @@ After fitting, inspect the animal layer before interpreting it:
 | Output | Use |
 | --- | --- |
 | `check_drm(fit)` | Confirm the structured layer was recognized and review convergence diagnostics. |
-| `fit$sdpars$mu` | Read the fitted animal-model location SD. |
+| `fit$sdpars$mu` | Read the fitted latent animal scale `s`; individual `i` has marginal SD `s sqrt(A[i, i])`. |
 | `ranef(fit, "animal_mu")` | Inspect conditional individual deviations on the fitted animal layer. |
 | `summary(fit)$covariance` | Check how the animal SD or correlation is reported beside other covariance layers. |
 | `profile_targets(fit)` | See which animal SD or q=2 correlation targets can be profiled directly; q=4 correlations are derived-only in the first slice. |
@@ -247,10 +267,12 @@ random-effect model, not as an additive animal model.
 ## Rendered checks
 
 The small examples below keep three evidence grains separate. The relationship
-matrix is raw structure supplied to the model. The SD plot is model-estimated
-uncertainty from `confint()`. The q=2 animal-correlation plot is a fitted
-latent correlation row from `corpairs()`, so it uses a Confidence Eye and a
-dotted zero line.
+matrix is raw structure supplied to the model. The SD plot converts the fitted
+latent scale `s` to individual marginal SDs `s sqrt(A[i, i])` before comparing
+them with residual `sigma`; it omits uncertainty intervals because the animal
+q1 location-SD row is not interval-validated. The q=2 animal-correlation plot
+is also a fitted point estimate from `corpairs()` with a dotted zero line; its
+interval calibration remains planned.
 
 ```{r animal-guide-fit}
 animal_example <- simulate_animal_guide_data()
@@ -297,14 +319,20 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-```{r animal-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and animal-model location SD from a univariate Gaussian model; points and bars are response-scale estimates with 95% Wald intervals from `confint(fit_animal, parm = \"variance_components\")`.", fig.alt = "Horizontal interval display comparing residual sigma and the animal-model location standard deviation. Both rows have hollow point estimates and finite 95 percent Wald intervals."}
+```{r animal-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and individual marginal animal SD point estimates `s sqrt(A[i,i])` from a univariate Gaussian model. The animal q1 location-SD interval is not validated, so this comparison is point-only.", fig.alt = "Horizontal point display comparing residual sigma with individual marginal animal standard deviations calculated as the fitted latent scale times the square root of each additive-relationship diagonal, without interval bars."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  animal_sd <- confint(fit_animal, parm = "variance_components")
-  animal_sd$estimate <- c(
-    unname(exp(coef(fit_animal, "sigma")["(Intercept)"])),
-    unname(fit_animal$sdpars$mu["animal(1 | individual)"])
+  animal_scale <- unname(fit_animal$sdpars$mu["animal(1 | individual)"])
+  animal_node_sd <- animal_scale * sqrt(diag(A))
+  animal_sd <- data.frame(
+    estimate = c(
+      unname(exp(coef(fit_animal, "sigma")["(Intercept)"])),
+      animal_node_sd
+    ),
+    label = c(
+      "Residual\nsigma",
+      rep("Animal node\nmarginal SD", length(animal_node_sd))
+    )
   )
-  animal_sd$label <- c("Residual\nsigma", "Animal\nlocation SD")
 
   ggplot2::ggplot(animal_sd, ggplot2::aes(y = label)) +
     ggplot2::geom_vline(
@@ -312,12 +340,6 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
       linewidth = 0.45,
       linetype = "dashed",
       colour = "grey55"
-    ) +
-    ggplot2::geom_errorbar(
-      ggplot2::aes(xmin = lower, xmax = upper),
-      width = 0,
-      linewidth = 1.1,
-      colour = "#0072B2"
     ) +
     ggplot2::geom_point(
       ggplot2::aes(x = estimate),
@@ -332,8 +354,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     ) +
     animal_eye_theme() +
     ggplot2::labs(
-      title = "Animal-model SD is separate from residual sigma",
-      subtitle = "Bars are 95% Wald intervals on the response scale",
+      title = "Animal marginal SD is separate from residual sigma",
+      subtitle = "Node SD = s sqrt(Aii); point estimates only",
       x = "Fitted standard deviation",
       y = NULL
     )
@@ -365,15 +387,12 @@ fit_animal_q2_example <- drmTMB(
 
 animal_q2_pairs <- corpairs(
   fit_animal_q2_example,
-  level = "animal",
-  conf.int = TRUE,
-  ystep = 0.5,
-  ytol = 2
+  level = "animal"
 )
 animal_q2_pairs
 ```
 
-```{r animal-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale and the dotted vertical line marks zero correlation. This animal q=2 interval is recovery-grade, not coverage-checked.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The eye spans the 95 percent profile interval and the hollow point estimate is to the right of the dotted zero reference line."}
+```{r animal-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model intercept-only q=2 location-location point estimate from `corpairs()`; the dotted vertical line marks zero correlation and no interval is shown because calibration remains planned.", fig.alt = "Single-row point plot for the animal-model mean-mean correlation, with a hollow point estimate to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   animal_q2_display <- animal_q2_pairs
   animal_q2_display$display_label <- "Animal\nmu1-mu2"
@@ -389,7 +408,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     animal_eye_theme() +
     ggplot2::labs(
       title = "Animal-model latent mean correlation",
-      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      subtitle = "Point estimate only; dotted line marks zero",
       x = "Correlation estimate"
     )
 }
@@ -403,16 +422,18 @@ The following animal-model routes remain planned:
 - multiple animal-model slopes such as
   `animal(1 + x + z | individual, pedigree = pedigree)`;
 - animal-model intercept-slope correlations;
-- residual-scale structured slopes;
+- multiple or labelled residual-scale structured slopes beyond the exact
+  A-matrix q1 `animal(1 + x | individual, A = A)` sigma route;
 - predictor-dependent animal `corpair()` regressions;
 - generic direct-SD grammar for animal-model standard deviations;
 - richer non-Gaussian animal structured effects: labelled covariance blocks,
   multiple structured slopes, structured scale routes beyond the NB2 one-slope
-  gate, and q=2 or q=4 non-Gaussian animal covariance blocks. A single q=1
-  animal term already fits today for `poisson()`, `nbinom2()`, and `beta()`
-  (Poisson and NB2 `mu` intercept plus one-slope, NB2 `sigma` one-slope, and a
-  `beta()` animal intercept in `mu` or `sigma`) at recovery grade -- trust the
-  point estimate, not the interval.
+  gate, and q=2 or q=4 non-Gaussian animal covariance blocks. Exact q=1
+  animal gates already fit today for `poisson()`, `nbinom2()`, and `beta()`:
+  Poisson, NB2, and beta `mu` accept an unlabelled intercept plus one independent
+  slope; NB2 `sigma` accepts the same q1 intercept-plus-one-slope form; beta
+  `sigma` accepts an intercept only. These rows retain their recorded
+  point-fit/recovery tiers -- trust the point estimate, not the interval.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the

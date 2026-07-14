@@ -280,9 +280,11 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 The variance-component shortcut returns constant scale targets and direct
 random-effect SD targets. The companion shortcuts `"fixed_effects"`,
 `"random_effects"`, and `"correlations"` keep large interval tables readable.
-When a report needs a likelihood profile for a specific SD or correlation row,
-copy the exact target name from `profile_targets()` and profile only that
-target. `profile_precision = "fast"` supplies coarser `TMB::tmbprofile()`
+For a diagnostic likelihood profile of a specific SD or correlation row, copy
+the exact target name from `profile_targets()` and profile only that target.
+Profile availability alone is not coverage-backed interval validation; confirm
+the exact row in the capability guide before reporting it.
+`profile_precision = "fast"` supplies coarser `TMB::tmbprofile()`
 controls (`ystep = 0.5`, `ytol = 2`) unless you override them in `...`; it is
 useful as a first pass for long phylogenetic or spatial SD profiles:
 
@@ -409,10 +411,11 @@ confint(fit_biv, parm = "sigma2", method = "profile", newdata = biv_grid)
 confint(fit_biv, parm = "rho12", method = "profile", newdata = biv_grid)
 ```
 
-For random-effect SDs and correlations, copy the exact target name from
-`profile_targets()`. Random-slope terms keep the coefficient suffix in the
-target name, and residual `rho12` remains separate from group-level or
-phylogenetic correlation rows:
+For diagnostic profiles of random-effect SDs and correlations, copy the exact
+target name from `profile_targets()`. Random-slope terms keep the coefficient
+suffix in the target name, and residual `rho12` remains separate from
+group-level or phylogenetic correlation rows. A callable target demonstrates
+mechanics, not coverage-backed interval validation for that model cell:
 
 ```{r, eval = FALSE}
 profile_targets(fit_slope)
@@ -437,11 +440,11 @@ summary(
 )
 ```
 
-Use the profile call when a report needs fixed-effect confidence intervals and
-profile-likelihood intervals for variance components, SDs, or correlations in
-one summary. Successful profile rows also include `profile.boundary` and
-`profile.message`; values other than `"ok"` tell you to check boundary or
-near-correlation-limit behaviour before interpreting the interval.
+Use these calls to inspect profile geometry. Successful profile rows include
+`profile.boundary` and `profile.message`; values other than `"ok"` flag boundary
+or near-correlation-limit behaviour. Before reporting a variance-component, SD,
+or correlation interval, also confirm that the exact row is interval-validated
+in the capability guide; profile availability alone is not that evidence.
 
 For correlations, the fast Wald route uses the model's fitted correlation-link
 scale, which is a guarded Fisher-z/atanh transform for current correlation

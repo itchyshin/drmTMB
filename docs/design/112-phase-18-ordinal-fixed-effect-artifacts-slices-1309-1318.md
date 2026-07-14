@@ -66,10 +66,13 @@ drmTMB(
 )
 ```
 
-The first lane is fixed-effect and location-only. It does not add ordinal
-random effects, ordinal scale or discrimination formulas, cutpoint-specific
-predictors, known sampling covariance, bivariate ordinal models, or
-mixed-response ordinal models.
+This historical first artifact lane is fixed-effect and location-only. Later
+slices added ordinary recovery-grade `mu` random intercepts and independent
+slopes plus one exact phylogenetic `mu` intercept local-fit gate; those later
+gates are not evidence from this artifact lane. It does not add correlated or
+labelled ordinary covariance, other structured ordinal effects, ordinal scale
+or discrimination formulas, cutpoint-specific predictors, known sampling
+covariance, bivariate ordinal models, or mixed-response ordinal models.
 
 ## P - Performance Measures
 
@@ -98,9 +101,10 @@ Slices 1309-1318 add:
 
 ## Boundaries
 
-This is not a broader ordinal expansion. Ordinal random effects, ordinal scale
-or discrimination formulas, cutpoint-specific predictors, known-covariance
-ordinal models, phylogenetic/spatial/animal/`relmat()` ordinal effects,
-bivariate ordinal models, and mixed-response ordinal models remain unsupported
-or planned until their own likelihood, diagnostic, interval, comparator, and
-simulation gates land.
+This is not a broader ordinal expansion. Current ordinary unlabelled `mu`
+intercepts/slopes and the exact phylogenetic `mu` intercept are later, separate
+gates. Correlated or labelled grouped covariance, other structured ordinal
+effects, ordinal scale or discrimination formulas, cutpoint-specific
+predictors, known-covariance ordinal models, bivariate ordinal models, and
+mixed-response ordinal models remain unsupported or planned until their own
+likelihood, diagnostic, interval, comparator, and simulation gates land.

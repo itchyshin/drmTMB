@@ -1,5 +1,17 @@
 # Phylogenetic, Spatial, and Known-Relatedness Common Math
 
+> **Status supersession (2026-07-14).** This document preserves a historical
+> planning state. Any statement below that residual-scale structured slopes are
+> wholly planned is superseded. Current 0.6.0 fits the exact Gaussian q1
+> `sigma` one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()`; phylo, A-matrix animal, and K/Q relmat are inference-ready with
+> caveats, while spatial remains point-fit/extractor only. NB2 q1 structured
+> `sigma` intercept-plus-one-slope routes for the same four providers are also
+> fitted at recovery grade. Multiple or labelled structured sigma slopes,
+> spatial sigma-slope intervals, and broader non-Gaussian structured scale
+> routes remain planned.
+
+
 This note records the shared mathematical spine for phylogenetic, spatial,
 animal-model, and user-supplied relatedness models in `drmTMB`. The
 phylogenetic and spatial sections are based on the local tutorial:
@@ -30,7 +42,9 @@ where:
 - `X_d beta_d` is the fixed-effect part for that parameter;
 - `Z_d z` maps the structured latent effect to observations;
 - `K` is a known or constructed correlation/covariance matrix;
-- `sigma_z` is the unknown marginal SD for that structured effect.
+- `sigma_z` is the fitted scale multiplier for that structured effect. The
+  marginal SD at node `i` is `sigma_z * sqrt(K[i, i])`, so it equals
+  `sigma_z` only when `K` has unit diagonal.
 
 The same template gives:
 
@@ -498,7 +512,7 @@ profile-interval coverage. Later slices added univariate residual-scale spatial
 intercepts, the first fixed-covariance sigma-only spatial one-slope cell,
 matching `mu1`/`mu2` coordinate fields, and a constant all-four q=4
 location-scale block, while matched `mu+sigma` structured slope cells,
-predictor-dependent spatial `corpair()` rows, non-Gaussian spatial effects, and
+predictor-dependent spatial `corpair()` rows, non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates, and
 multiple spatial slopes remain outside the fitted surface.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the

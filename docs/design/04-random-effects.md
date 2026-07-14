@@ -151,10 +151,12 @@ v_id, q_id ~ Normal(0, 1)
 
 It models residual-scale heterogeneity. Multiple independent residual-scale
 terms can be added, for example `(1 | id) + (0 + w1 | id) + (0 + w2 | id)`.
-Each term gets its own log-`sigma` random-effect SD in `sdpars$sigma`; the
-correlations among those residual-scale terms are fixed at zero in this phase,
-so no `corpars$sigma` rows are reported. This is not a model for the standard
-deviation of the `mu` random intercept.
+Each separate term gets its own log-`sigma` random-effect SD in
+`sdpars$sigma`, with correlations between terms fixed at zero. A single
+unlabelled term such as `(1 + w1 + w2 | id)` instead fits the within-block
+residual-scale correlations and reports them in `corpars$sigma`. Labelled
+residual-scale blocks and cross-formula slope covariance remain planned. This
+is not a model for the standard deviation of the `mu` random intercept.
 
 The first cross-formula covariance block is also implemented for matching
 labelled random intercepts:

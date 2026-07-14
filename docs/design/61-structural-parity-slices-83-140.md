@@ -1,5 +1,13 @@
 # Structural Parity Slices 83-140
 
+> **Historical slice ledger, superseded 2026-07-14.** Rows 123-132 record the
+> boundary at the time those slices landed; they are not current capability
+> claims. The live ledger now records ordinary `mu` random effects for every
+> fitted univariate family, Poisson/NB2 q1 structured `mu`, NB2 q1 structured
+> `sigma`, and exact Student-t, Gamma, beta, Poisson-`zi`, hurdle-`hu`, and
+> cumulative-logit diagnostic-only gates. Broader neighbours and interval or
+> coverage promotion remain blocked.
+
 This ledger records the post-0.1.3 continuation after the fitted structured
 one-slope parity lane. The user-facing question is whether the next ordinary
 bivariate random-slope slice helps an applied ecology or evolution user fit a
@@ -64,12 +72,12 @@ No spawned subagents were running for this slice set.
 | 121 | User usefulness check | Completed | The first useful value here is fitting a two-response slope-slope covariance, not renaming syntax midstream. |
 | 122 | Direct-SD handoff | Completed | After 140, the generic `sd*()` plan should start with grammar and compatibility design before code. |
 | 123 | Non-Gaussian status audit | Completed as inventory | Ordinary Poisson and NB2 `mu` random intercepts and independent slopes remain the fitted non-Gaussian random-effect path. |
-| 124 | Non-Gaussian structured boundary | Completed as guardrail | `phylo()`, `spatial()`, `animal()`, and `relmat()` remain Gaussian-only structured routes. |
+| 124 | Non-Gaussian structured boundary | Historical guardrail, superseded by exact later gates | Structured non-Gaussian routes remain blocked outside the row-specific Poisson/NB2, Student-t, beta, cumulative-logit, inflation, and hurdle gates recorded in the live ledger. |
 | 125 | Non-Gaussian slope covariance boundary | Completed as guardrail | Correlated count slopes and labelled count covariance remain planned. |
 | 126 | Non-Gaussian scale boundary | Completed as guardrail | Non-Gaussian `sigma` random effects remain blocked or planned by family. |
 | 127 | Shape and skew boundary | Completed as guardrail | Shape/skew random effects stay fixed-effect-first and simulation-gated. |
 | 128 | Inflation and hurdle boundary | Completed as guardrail | `zi`, `hu`, `zoi`, and `coi` random effects stay outside the fitted surface. |
-| 129 | Ordinal boundary | Completed as guardrail | Ordinal random effects remain blocked behind a separate mixed-ordinal design. |
+| 129 | Ordinal boundary | Historical guardrail, superseded in part | Ordinary cumulative-logit `mu` random intercepts and independent slopes are now recovery-grade, with one exact phylogenetic `mu` intercept gate; correlated/labelled and other structured neighbours remain blocked. |
 | 130 | Mixed-response boundary | Completed as guardrail | Non-Gaussian bivariate families remain planned until a joint likelihood contract exists. |
 | 131 | Structured count fallback | Completed as guardrail | Applied users should use ordinary count random effects when a plain grouping factor is enough. |
 | 132 | Simulation admission | Completed | Slope-only bivariate Gaussian can enter a small smoke grid; non-Gaussian structured dependence stays in the failure ledger. |

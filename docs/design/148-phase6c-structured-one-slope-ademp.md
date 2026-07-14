@@ -1,5 +1,17 @@
 # Phase 6c Structured Gaussian One-Slope ADEMP Sheet
 
+> **Status supersession (2026-07-14).** This document preserves a historical
+> planning state. Any statement below that residual-scale structured slopes are
+> wholly planned is superseded. Current 0.6.0 fits the exact Gaussian q1
+> `sigma` one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()`; phylo, A-matrix animal, and K/Q relmat are inference-ready with
+> caveats, while spatial remains point-fit/extractor only. NB2 q1 structured
+> `sigma` intercept-plus-one-slope routes for the same four providers are also
+> fitted at recovery grade. Multiple or labelled structured sigma slopes,
+> spatial sigma-slope intervals, and broader non-Gaussian structured scale
+> routes remain planned.
+
+
 ## Purpose
 
 This note is the #442/#446 operating-characteristic design sheet for fitted

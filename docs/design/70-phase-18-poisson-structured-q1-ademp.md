@@ -1,5 +1,13 @@
 # Phase 18 Poisson Structured q1 ADEMP Sheet
 
+> **Historical ADEMP boundary, superseded 2026-07-14.** Exclusions below
+> describe this phylogenetic Poisson campaign, not the package-wide fitted
+> surface. The live ledger now also records Poisson/NB2 q1 spatial, animal,
+> and relatedness `mu` routes, NB2 q1 structured `sigma`, and exact
+> Poisson-spatial-`zi`, hurdle-relatedness-`hu`, ordinal-phylo, Student-t,
+> Gamma, and beta point/recovery gates. Those later routes do not inherit this
+> campaign's recovery, interval, or coverage evidence.
+
 This sheet records the first structured non-Gaussian simulation gate. It follows
 the ADEMP structure of Morris, White, and Crowther (2019) and the transparent
 reporting checks of Williams et al. (2024). The fitted route is intentionally

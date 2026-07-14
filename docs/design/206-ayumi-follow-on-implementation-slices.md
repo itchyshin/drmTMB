@@ -5,6 +5,12 @@
 > implementation scope is now tracked in
 > `docs/design/207-structured-random-effect-balance-100-slices.md` and its
 > validator-owned dashboard ledgers.
+>
+> **Historical plan; native phylogenetic REML tasks superseded 2026-07-14.**
+> F006 and F011-F040 describe the pre-implementation rejection state. Current
+> q1 sigma, matched univariate q2, bivariate mean-side q2, and block-diagonal or
+> dense q4 native TMB REML rows have point-fit/recovery evidence only. Their
+> interval, coverage, supported, bridge-parity, and AI-REML gates remain open.
 
 ## Purpose
 

@@ -28,14 +28,15 @@ For provider covariance matrix \(K_h\), the one-slope route fits
 
 \[
 y=X\beta+Zb_0+D_xZb_1+\varepsilon,\qquad
-b_j\sim N(0,\tau_j^2K_h),\qquad
+b_j\sim N(0,s_j^2K_h),\qquad
 \varepsilon\sim N(0,\sigma^2I),
 \]
 
 with independent \(b_0\) and \(b_1\). The restricted objective is the standard
 dense Gaussian restricted likelihood with the \(\log|X^TV^{-1}X|\)
-adjustment. The structured scale \(\tau_j\) multiplies \(K_h\); it is not
-generally a node-level marginal standard deviation.
+adjustment. The fitted structured SD scale \(s_j\) gives covariance
+\(s_j^2K_h\). Node \(i\) has marginal SD \(s_j\sqrt{K_{h,ii}}\), which equals
+\(s_j\) only when that diagonal entry is one.
 
 ## 3a. Decisions and Rejected Alternatives
 

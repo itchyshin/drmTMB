@@ -8,7 +8,7 @@ The model surface and missing-response execution axis answer different questions
 
 - Model surface: **668 cells** across **18 routes**.
 - Runtime status: **298 implemented**, **330 rejected by design**, **40 not implemented**.
-- Evidence: **4 supported**, **21 inference-ready**, **44 interval-feasible**, **160 recovery-grade**.
+- Evidence: **4 supported**, **21 inference-ready**, **44 interval-feasible**, **156 recovery-grade**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Missing-response execution board

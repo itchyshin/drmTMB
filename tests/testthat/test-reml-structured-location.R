@@ -68,7 +68,10 @@ arc1a_provider_fixture <- function(
   id <- rep(observed, each = n_each)
   x <- rep(seq(-1, 1, length.out = n_each), times = g)
   index <- match(id, node_labels)
-  y <- 0.4 + 0.25 * x + b0[index] + b1[index] * x +
+  y <- 0.4 +
+    0.25 * x +
+    b0[index] +
+    b1[index] * x +
     stats::rnorm(g * n_each, 0, 0.5)
   data <- data.frame(
     y = y,
@@ -178,12 +181,14 @@ arc1a_reml_reference <- function(fixture) {
     chol_X <- chol(XtViX)
     beta <- backsolve(chol_X, forwardsolve(t(chol_X), crossprod(X, Vi %*% y)))
     residual <- y - drop(X %*% beta)
-    as.numeric(0.5 * (
-      (n - p) * log(2 * pi) +
-        2 * sum(log(diag(chol_V))) +
-        2 * sum(log(diag(chol_X))) +
-        drop(crossprod(residual, Vi %*% residual))
-    ))
+    as.numeric(
+      0.5 *
+        ((n - p) *
+          log(2 * pi) +
+          2 * sum(log(diag(chol_V))) +
+          2 * sum(log(diag(chol_X))) +
+          drop(crossprod(residual, Vi %*% residual)))
+    )
   }
   q <- length(covariance_terms)
   opt <- stats::optim(
@@ -285,7 +290,8 @@ test_that("Arc 1a REML providers match an independent restricted likelihood", {
         tmb_delta <- as.numeric(fit$obj$fn(displaced) - fit$obj$fn(base))
         reference_delta <- reference$objective(
           arc1a_tmb_to_reference_par(displaced)
-        ) - reference$objective(arc1a_tmb_to_reference_par(base))
+        ) -
+          reference$objective(arc1a_tmb_to_reference_par(base))
         expect_equal(
           tmb_delta,
           reference_delta,
@@ -321,12 +327,18 @@ test_that("Arc 1a equivalent covariance representations agree with an unobserved
   )
   fits <- lapply(
     c("canonical", "Ainv", "pedigree"),
-    function(representation) suppressWarnings(
-      arc1a_fit(animal_fixture, representation)
-    )
+    function(representation) {
+      suppressWarnings(
+        arc1a_fit(animal_fixture, representation)
+      )
+    }
   )
   for (i in 2:length(fits)) {
-    expect_equal(fits[[1L]]$opt$objective, fits[[i]]$opt$objective, tolerance = 1e-6)
+    expect_equal(
+      fits[[1L]]$opt$objective,
+      fits[[i]]$opt$objective,
+      tolerance = 1e-6
+    )
     expect_equal(fits[[1L]]$sdpars$mu, fits[[i]]$sdpars$mu, tolerance = 1e-5)
     expect_equal(fits[[1L]]$par$mu, fits[[i]]$par$mu, tolerance = 1e-5)
   }
@@ -338,6 +350,7 @@ test_that("Arc 1a REML provider admission remains bounded", {
     fixture <- arc1a_provider_fixture(provider, "one_slope", g = 8L)
     dat <- fixture$data
     dat$z <- dat$x^2
+    dat$x_factor <- factor(rep(c("low", "high"), length.out = nrow(dat)))
     dat$batch <- rep(paste0("batch", seq_len(8L)), length.out = nrow(dat))
     forms <- switch(
       provider,
@@ -358,6 +371,10 @@ test_that("Arc 1a REML provider admission remains bounded", {
           ),
           labelled = bf(
             y ~ x + spatial(1 | p | id, coords = coords),
+            sigma ~ 1
+          ),
+          factor_slope = bf(
+            y ~ x + spatial(1 + x_factor | id, coords = coords),
             sigma ~ 1
           ),
           heteroscedastic_sigma = bf(
@@ -387,6 +404,10 @@ test_that("Arc 1a REML provider admission remains bounded", {
         list(
           slope_only = bf(y ~ x + animal(0 + x | id, A = A), sigma ~ 1),
           labelled = bf(y ~ x + animal(1 | p | id, A = A), sigma ~ 1),
+          factor_slope = bf(
+            y ~ x + animal(1 + x_factor | id, A = A),
+            sigma ~ 1
+          ),
           heteroscedastic_sigma = bf(
             y ~ x + animal(1 + x | id, A = A),
             sigma ~ x
@@ -414,6 +435,10 @@ test_that("Arc 1a REML provider admission remains bounded", {
         list(
           slope_only = bf(y ~ x + relmat(0 + x | id, K = K), sigma ~ 1),
           labelled = bf(y ~ x + relmat(1 | p | id, K = K), sigma ~ 1),
+          factor_slope = bf(
+            y ~ x + relmat(1 + x_factor | id, K = K),
+            sigma ~ 1
+          ),
           heteroscedastic_sigma = bf(
             y ~ x + relmat(1 + x | id, K = K),
             sigma ~ x
@@ -435,6 +460,7 @@ test_that("Arc 1a REML provider admission remains bounded", {
         heteroscedastic_sigma = "require.*sigma ~ 1",
         sigma_random_effect = "constant residual scale.*sigma ~ 1.*no sigma random effect",
         matched_mean_scale = "matched mean-scale",
+        factor_slope = "slope variable .* must be numeric",
         "slope-only, labelled, multiple-slope"
       )
       expect_error(

@@ -1,5 +1,17 @@
 # Phase 6c Random-Slope Simulation Plan
 
+> **Status supersession (2026-07-14).** This document preserves a historical
+> planning state. Any statement below that residual-scale structured slopes are
+> wholly planned is superseded. Current 0.6.0 fits the exact Gaussian q1
+> `sigma` one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()`; phylo, A-matrix animal, and K/Q relmat are inference-ready with
+> caveats, while spatial remains point-fit/extractor only. NB2 q1 structured
+> `sigma` intercept-plus-one-slope routes for the same four providers are also
+> fitted at recovery grade. Multiple or labelled structured sigma slopes,
+> spatial sigma-slope intervals, and broader non-Gaussian structured scale
+> routes remain planned.
+
+
 This note closes the #446 planning gate. It tells the next Phase 18 worker
 which random-slope grids to run first, what each grid may prove, which
 artifacts it must save, and which claims remain candidate-only until formal
@@ -17,13 +29,13 @@ boundary, interval, or artifact checks fail.
 | Surface | Current status | First simulation status | Allowed claim after the first pilot | Held from |
 | --- | --- | --- | --- | --- |
 | Ordinary Gaussian `mu` q > 2 grouped slopes | Fitted with q=3 recovery, q=4 output-contract, extractor, `corpairs()`, `summary()`, and `profile_targets()` evidence | Formal pilot design | Bias/RMSE, convergence, boundary, and direct-SD profile readiness for named q=3/q=4 cells | Broad arbitrary q, q > 2 direct correlation intervals, and p6/p8 endpoint claims |
-| Independent Gaussian `sigma` slopes | Fitted on log-`sigma` with direct `log_sd_sigma` targets | Formal pilot design | Recovery and diagnostics for independent residual-scale slope SDs | Correlated or labelled residual-scale slope covariance |
+| Gaussian `sigma` slopes | Independent and unlabelled correlated intercept-slope or multi-slope blocks are fitted on log-`sigma` with direct `log_sd_sigma` targets and within-block correlation rows | Formal pilot design for named independent cells; correlated-block operating characteristics remain separate | Recovery and diagnostics only for the explicitly simulated residual-scale slope cells | Labelled residual-scale slope covariance, cross-formula slope covariance, and blanket correlated-block interval claims |
 | Bivariate Gaussian slope-only `mu1`/`mu2` | Artifact-ready through `biv_gaussian_mu_slope`; #440 holds it from recovery, coverage, and power | Formal pilot after the existing smoke artifact | Slope-SD and slope-slope group-correlation recovery for matching `(0 + x | p | id)` only | Intercept-plus-slope q4, random `rho12`, and p8/q8 |
 | Bivariate Gaussian q4 location `mu1`/`mu2` | Artifact-wired for matching `(1 + x | p | id)` through `biv_gaussian_q4_location` | Smoke artifact lane before any recovery or coverage pilot | Extractor, direct-SD profile-target, diagnostic, simulation, and derived-correlation status for the q4 location block only | q6 recovery, random `rho12`, q8 coverage/power, and broader p8/q8 endpoint variants |
 | Bivariate Gaussian q6 location `mu1`/`mu2` | Artifact-wired for matching `(1 + x + z | p | id)` through `biv_gaussian_q6_location` | Smoke artifact lane before any recovery or coverage pilot | Extractor, direct-SD profile-target, diagnostic, simulation, and derived-correlation status for the q6 location block only | Recovery, coverage, power, random `rho12`, q8 coverage/power, and broader p8/q8 endpoint variants |
 | Ordinary Poisson/NB2 independent `mu` slopes | `ready_grid` in the registry with focused tests and first-wave task routing | Formal pilot design | Count-link fixed-effect and slope-SD recovery for non-zero-inflated ordinary count models | Zero-inflated or hurdle random effects, correlated count slopes, labelled covariance, and pure, multiple, or labelled structured count slopes |
 | Student-t, lognormal, Gamma, beta, beta-binomial, zero-truncated NB2 independent `mu` slopes | `ready_source_test` by #441 | Smoke artifact design first, then formal pilot only after smoke audit | Source-tested route becomes artifact-backed if all smoke manifests and diagnostics pass | Coverage, power, correlated slopes, `sigma` or shape random effects, structured effects, and mixed-response models |
-| Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()` one-slope `mu` | Fitted for one numeric univariate Gaussian `mu` slope; #442 records q2/q4 boundaries | Structured one-slope wrapper design | Structured intercept/slope SD recovery for one marker family at a time | Multiple structured slopes, structured slope correlations, residual-scale structured slopes, structured `rho12`, and non-Gaussian structured slopes beyond the exact ordinary Poisson/NB2 q1 count cells |
+| Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()` one-slope routes | Fitted for one numeric univariate Gaussian `mu` slope and exact q1 `sigma` one-slope routes; spatial `sigma` remains point-fit/extractor only | Structured one-slope wrapper design | Structured intercept/slope SD recovery for one marker family and endpoint at a time | Multiple or labelled structured slopes, structured slope correlations, structured `rho12`, structured-sigma intervals beyond exact admitted rows, and non-Gaussian structured slopes beyond exact recovery cells |
 | Coscale and `corpairs()` boundary | #443 separates residual `rho12` from latent group/structured correlations | Reporting and stale-claim gate, not a DGP | Tables distinguish residual `rho12`, group-level correlations, and structured correlations | Random effects in `rho12` and treating `rho12` as a latent covariance layer |
 
 ## Run Order

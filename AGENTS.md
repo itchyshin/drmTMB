@@ -10,17 +10,19 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-13, → CLAUDE, ARC 1a COMPLETE; PR #780 open; mirror pending).**
+> **▶ Latest — start here (2026-07-14, PR #780 REPAIRED; merge authorization pending).**
 > Branch `feature/arc1a-gaussian-reml-providers` extends native exact-Gaussian REML to
 > pure-`mu`, univariate `spatial()`, `animal()`, and `relmat()` intercept and independent
 > one-slope routes. Independent restricted-likelihood oracles, representation parity,
 > all-provider rejection guards, 11,200 Totoro recovery fits, and 14,000 coverage fits
 > support `mc-0287`, `mc-0299`, and `mc-0311` only at
-> `inference_ready_with_caveats` over exact discrete domains. Full package/`--as-cran`/
-> pkgdown/ledger checks and Rose's exact-tip audit are DONE. PR #780 is open and must not
-> be merged without separate approval. Only Claude's exact mirror/read-back of external
-> artifact `a1bf21a1` remains pending under the explicit Gate 0 waiver. START HERE:
-> [`docs/dev-log/handover/2026-07-13-arc1a-claude-handover.md`](docs/dev-log/handover/2026-07-13-arc1a-claude-handover.md)
+> `inference_ready_with_caveats` over exact discrete domains. The merge audit repaired
+> structured-SD/covariance wording and split the active non-Gaussian Q-Series truth into
+> 27 recovery rows plus 10 diagnostic-only rows. Full package/`--as-cran`/pkgdown/ledger
+> checks and final Fisher/Pat/Rose review are DONE. PR #780 is recommended to merge but
+> remains open and must not be merged without separate authorization. The external
+> `a1bf21a1` mirror remains pending and was not used as evidence. START HERE:
+> [`docs/dev-log/handover/2026-07-14-pr780-repair-disposition-handover.md`](docs/dev-log/handover/2026-07-14-pr780-repair-disposition-handover.md)
 
 > **▶ Prior (2026-07-13, → CLAUDE, Arc 4a closeout landed; mirror pending).**
 > Branch `feature/arc4a-profile-coverage` now contains the `has_sigma_random_effects()` repair,

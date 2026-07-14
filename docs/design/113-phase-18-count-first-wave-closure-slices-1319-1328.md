@@ -1,5 +1,12 @@
 # Phase 18 Count First-Wave Closure, Slices 1319-1328
 
+> **Status supersession (2026-07-14).** This note preserves the first-wave
+> historical boundary. Current 0.6.0 also fits exact q1 structured NB2 `sigma`
+> intercept-plus-one-slope routes for `phylo()`, `spatial()`, `animal()`, and
+> `relmat()` at recovery grade. Ordinary NB2 `sigma` slopes, richer or labelled
+> structured sigma blocks, intervals/coverage, and zero-inflated, truncated, or
+> hurdle scale routes remain planned.
+
 This note closes Slice C of the Phase 18 review sequence. Its reader is an
 applied ecology, evolution, or environmental-science user who wants to know
 which count models have first-wave evidence, and an R package contributor who
@@ -17,7 +24,7 @@ The first-wave count story now has four separate evidence surfaces:
 | Surface | Fitted model claim | Artifact status | Boundary |
 | --- | --- | --- | --- |
 | Paired Poisson/NB2 `mu` random effects | Ordinary non-zero-inflated Poisson and NB2 `mu` random intercepts plus independent numeric `mu` slopes | DGPs, summarisers, smoke runners, repeatable grid writer, first-wave summary inclusion, profile-target rows, failure ledgers, and focused tests | No zero-inflated or hurdle random effects, zero-truncated NB2 random effects, correlated count slopes, structured count effects, or labelled count covariance blocks |
-| NB2 log-`sigma` random intercept | `bf(count ~ x, sigma ~ z + (1 | id))` for ordinary non-zero-inflated NB2 | ADEMP sheet, DGP, summariser, smoke runner, summary helper, grid writer, direct `log_sd_sigma` profile-target row, and focused tests | No NB2 `sigma` slopes, joint `mu`/`sigma` random effects, zero-inflated/truncated/hurdle NB2 scale random effects, structured NB2 `sigma`, or Poisson scale effects |
+| NB2 log-`sigma` random intercept | `bf(count ~ x, sigma ~ z + (1 | id))` for ordinary non-zero-inflated NB2 | ADEMP sheet, DGP, summariser, smoke runner, summary helper, grid writer, direct `log_sd_sigma` profile-target row, and focused tests | Historical first-wave boundary; exact q1 structured NB2 `sigma` intercept-plus-one-slope routes later became recovery grade. Ordinary NB2 `sigma` slopes, joint `mu`/`sigma`, richer structured sigma, intervals/coverage, zero-inflated/truncated/hurdle scale routes, and Poisson scale effects remain out. |
 | Poisson q=1 phylogenetic `mu` intercept | `bf(count ~ x + phylo(1 | species, tree = tree))` for ordinary non-zero-inflated Poisson | Runner contract, DGP, summariser, smoke runner, grid writer, optional direct `log_sd_phylo` profile artifacts, formal-grid wrapper, manual Actions task, and focused tests | No phylogenetic count slopes, q=2/q=4 count covariance, zero-inflated count phylogeny, spatial/animal/`relmat()` count structure, or count cross-parameter covariance |
 | NB2 q=1 phylogenetic `mu` intercept | `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)` for ordinary non-zero-inflated NB2 | ADEMP sheet, DGP, target-plus-grouped-comparator fitter, summariser, smoke runner, grid writer, formal-grid QA, local sentinel/audit note, sharded manual Actions dispatch, completed 16-shard audit, and focused tests | Keep status at `hold_smoke_only` after the merged 500-replicate shard audit because profile intervals and low-count fixed-`sigma` recovery remain weak |
 
@@ -51,9 +58,10 @@ count_jk ~ NB2(mu_jk, size = 1 / sigma_jk^2)
 
 The important user interpretation is that `sd:sigma:(1 | id)` measures
 between-group heterogeneity in overdispersion on the log-`sigma` scale. It is
-not evidence for count mean heterogeneity, zero-inflation heterogeneity,
-structured NB2 scale effects, or a general non-Gaussian scale random-effect
-policy.
+not evidence for count mean heterogeneity, zero-inflation heterogeneity, or a
+general non-Gaussian scale random-effect policy. Later exact q1 structured NB2
+`sigma` intercept-plus-one-slope routes have separate recovery-grade evidence;
+they do not retroactively broaden this ordinary grouped-intercept lane.
 
 ## C3 - Poisson/NB2 q1 Phylogenetic Count Sync
 

@@ -625,45 +625,19 @@ group_checks[
 ## Reading group-level covariance
 
 `corpairs()` keeps residual and group-level correlations in the same long table
-without giving them the same meaning. Because the group correlation is modelled
-with an intercept-only `corpair()` formula, the response-scale interval needs a
-one-row `newdata` target:
+without giving them the same meaning. The ordinary intercept-only q2 group row
+is interval-feasible but not coverage-backed, so this article keeps both rows
+point-only rather than presenting an unvalidated reporting interval:
 
 ```{r bivariate-coscale-group-corpairs}
-group_cor_dpar <- 'corpair(ID, level = "group", block = "p", from = "mu1", to = "mu2")'
-group_cor_newdata <- data.frame(row = 1)
-row.names(group_cor_newdata) <- "overall"
-
 pair_table <- corpairs(
-  fit_group,
-  conf.int = TRUE,
-  ystep = 0.5,
-  ytol = 2
+  fit_group
 )
-group_cor_ci <- confint(
-  fit_group,
-  parm = group_cor_dpar,
-  method = "profile",
-  newdata = group_cor_newdata,
-  trace = FALSE,
-  ystep = 0.5,
-  ytol = 2
-)
-group_pair_row <- pair_table$level == "group" &
-  pair_table$from_dpar == "mu1" &
-  pair_table$to_dpar == "mu2"
-pair_table$profile_target[group_pair_row] <- group_cor_ci$parm[[1]]
-pair_table$conf.low[group_pair_row] <- group_cor_ci$lower[[1]]
-pair_table$conf.high[group_pair_row] <- group_cor_ci$upper[[1]]
-pair_table$conf.method[group_pair_row] <- group_cor_ci$method[[1]]
-pair_table$conf.status[group_pair_row] <- group_cor_ci$conf.status[[1]]
-pair_table$interval_source[group_pair_row] <- group_cor_ci$method[[1]]
 pair_table[
   ,
   c(
     "level", "group", "block", "from_dpar", "to_dpar", "class",
-    "parameter", "estimate", "conf.low", "conf.high", "conf.status",
-    "interval_source", "modelled"
+    "parameter", "estimate", "conf.status", "interval_source", "modelled"
   )
 ]
 ```
@@ -672,7 +646,7 @@ The optional plotting helper consumes that explicit table. Faceting by `level`
 keeps the residual `rho12` row visually separate from the group-level
 random-intercept correlation:
 
-```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.6, fig.height = 3.4, fig.cap = "`corpairs()` Confidence Eye display separating residual `rho12` from the individual-level mean-mean random-intercept correlation; eyes are 95% profile intervals on the response-correlation scale and the dotted line marks zero correlation.", fig.alt = "Confidence Eye plot comparing residual rho12 correlation with the individual-level mean-mean random-intercept correlation. Each row has a pale horizontal eye spanning a 95 percent profile interval, a hollow point estimate, and a dotted zero line on a correlation scale from minus one to one."}
+```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.6, fig.height = 3.4, fig.cap = "Point display separating residual `rho12` from the individual-level mean-mean random-intercept correlation; the dotted line marks zero correlation. The group row is not shown with an interval because coverage-backed validation remains planned.", fig.alt = "Point plot comparing residual rho12 correlation with the individual-level mean-mean random-intercept correlation, with hollow point estimates and a dotted zero line on a correlation scale from minus one to one."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   pair_plot_table <- pair_table
   pair_plot_table$display_label <- ifelse(
@@ -683,7 +657,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_corpairs(pair_plot_table, label = "display_label", facet = NULL) +
     ggplot2::labs(
       title = "Residual and individual-level correlations are separate",
-      subtitle = "Eyes are 95% profile intervals; dotted line marks zero correlation",
+      subtitle = "Point estimates only; dotted line marks zero correlation",
       colour = NULL
     ) +
     ggplot2::theme_minimal(base_size = 11) +
@@ -741,6 +715,7 @@ block. The SDs are direct random-effect targets, while the modelled
 
 ```{r bivariate-coscale-group-targets}
 group_targets <- profile_targets(fit_group)
+group_cor_dpar <- 'corpair(ID, level = "group", block = "p", from = "mu1", to = "mu2")'
 group_target_names <- c(
   "sd:mu:mu1:(1 | p | ID)",
   "sd:mu:mu2:(1 | p | ID)",
@@ -754,12 +729,12 @@ group_targets[
 
 The group-level SD targets are named like `sd:mu:mu1:(1 | p | id)` and
 `sd:mu:mu2:(1 | p | id)`. The modelled group-level correlation target begins
-with `fixef:corpair(...)`, and `confint(..., newdata = ...)` returns the
-response-scale correlation interval used in the plot. These are separate from
-the residual-correlation target `rho12`. Returned profile rows include
-`profile.boundary` and `profile.message`; a non-`"ok"` message is a prompt to
-inspect `check_drm(fit)` and the profile path before treating the interval as a
-stable biological estimate.
+with `fixef:corpair(...)`. A `confint(..., newdata = ...)` call can diagnose its
+response-scale profile geometry, but that callable target is not
+coverage-backed interval evidence and was not used in the point-only plot.
+These targets are separate from residual `rho12`. Returned diagnostic profile
+rows include `profile.boundary` and `profile.message`; a non-`"ok"` message is a
+prompt to inspect `check_drm(fit)` and the profile path.
 
 ## First slope-slope covariance slice
 

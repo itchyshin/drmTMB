@@ -1,13 +1,20 @@
 # Native REML Phylo Asymmetry Gap
 
+> **Historical derivation-gap note; implementation status superseded
+> 2026-07-14.** Current native TMB REML admits the tested q1 mean, q1 sigma,
+> matched univariate q2, bivariate mean-side q2, and block-diagonal/dense q4
+> phylogenetic rows at row-specific interval, point-fit, or recovery tiers.
+> The discussion below records the earlier rejection state and is not the live
+> capability authority. See `docs/design/211-structured-reml-status.md` and
+> `docs/dev-log/dashboard/structured-re-native-reml-scope-status.tsv`.
+
 ## Purpose
 
-This note records the current native TMB REML boundary for the Ayumi
-phylogenetic balance arc. It explains why `REML = TRUE` is exact-Gaussian and
-mean-side-only for structured phylogenetic effects today, and what would be
-needed before native REML could be called balanced across `mu` and `sigma`.
+This note records the former native TMB REML boundary for the Ayumi
+phylogenetic balance arc and the derivation questions that preceded the later
+row-specific implementation.
 
-## Current Boundary
+## Historical Boundary
 
 Native TMB REML is implemented for the exact-Gaussian location model where the
 mean fixed effects are restricted and the structured phylogenetic random field
@@ -28,16 +35,16 @@ and also checks that the REML phylogenetic SD is no more downward-biased than
 the ML estimate on the same fixture. This is exact Gaussian REML for the
 location model only.
 
-Native TMB REML currently rejects scale-side and matched location-scale
-phylogenetic requests:
-> ### ⚠️ SUPERSEDED IN PART (2026-07-08)
+Native TMB REML rejected scale-side and matched location-scale phylogenetic
+requests when this note was written:
+> ### ⚠️ SUPERSEDED (2026-07-14)
 >
-> **Pure scale-side phylo is now ADMITTED** under REML (`b9446fd7`), as are ordinary `sigma`
-> random effects (`feba9018`), a bivariate labelled scale-side sigma block (`99138cfa`), and dense q4 /
-> q>2 blocks (`1b3e852b`). Arc 1a now also admits narrowly bounded pure-`mu` univariate
+> **Pure scale-side and matched univariate phylo are now ADMITTED** under REML, as are ordinary `sigma`
+> random effects, bivariate mean-side q2, and block-diagonal/dense q4 phylogenetic cells at point-fit
+> or recovery tiers. Arc 1a also admits narrowly bounded pure-`mu` univariate
 > `spatial()`/`animal()`/`relmat()` intercept and independent one-slope routes. It does not admit
 > those providers on `sigma`, in matched `mu+sigma` blocks, or in bivariate models. The
-> **matched mean+scale phylo** block remains rejected.
+> phylogenetic rows do not inherit interval reliability or coverage from the q1 mean row.
 >
 > Authority: `docs/dev-log/dashboard/estimator-surface-conformance.tsv` (machine-checked by
 > `tests/testthat/test-estimator-surface-conformance.R`) and
@@ -58,10 +65,9 @@ ML can fit univariate Gaussian mean-only, scale-only, and matched
 mean-plus-scale phylogenetic intercepts. The asymmetry is specific to native
 REML.
 
-Native bivariate Gaussian REML is also restricted to fixed-effect mean models
-in the current slice. `tests/testthat/test-reml-bivariate.R` rejects random or
-structured bivariate mean effects under `REML = TRUE`. Therefore q2 and q4
-phylogenetic bivariate native REML remain unsupported.
+That former bivariate restriction is also superseded: tested bivariate
+mean-side q2 and block-diagonal/dense q4 phylogenetic REML cells now have
+point-fit or recovery evidence. They remain below inference-ready.
 
 ## Derivation Gap
 
@@ -101,16 +107,15 @@ Before implementing balanced native REML, the estimator contract should name:
 
 ## Decision
 
-Native balanced REML for scale-side or matched phylogenetic structured effects
-is deferred. The next acceptable promotion path is a separate estimator design
-and validation lane, not a wording change in the Ayumi reply. Until that exists,
-the honest public wording is:
+Implementation is no longer deferred for the tested rows, but inference
+promotion remains deferred. The honest current wording is:
 
 - native ML is balanced for univariate Gaussian `phylo()` location and scale
   intercept layouts;
-- native REML has exact-Gaussian, route-specific mean-side support for
-  phylogenetic effects and the bounded Arc 1a spatial, animal, and relmat
-  shapes; this does not create provider-wide parity across `mu` and `sigma`;
-- q2/q4 bivariate phylogenetic native REML is unsupported;
+- native REML has exact-Gaussian, row-specific q1/q2/q4 phylogenetic point,
+  recovery, and limited interval evidence plus the bounded Arc 1a spatial,
+  animal, and relmat mean-side shapes; this does not create provider-wide
+  interval or coverage parity;
+- q2/q4 bivariate phylogenetic native REML remains below inference-ready;
 - Julia/DRM.jl REML rows, where available, remain experimental bridge evidence
   until direct DRM.jl, native R, and R-via-Julia parity agree row by row.

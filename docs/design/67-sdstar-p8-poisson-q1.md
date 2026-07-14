@@ -1,5 +1,13 @@
 # Slices 406-450: `sd*()` Plan, p8/q8 Plan, and Poisson Phylogenetic q=1 Gate
 
+> **Status supersession (2026-07-14).** This note preserves the first Poisson
+> q1 planning state. Current 0.6.0 also fits unlabelled Poisson/NB2 q1
+> structured `mu` intercept-plus-one-slope terms for `phylo()`, `spatial()`,
+> `animal()`, and `relmat()`, plus exact q1 NB2 structured `sigma`
+> intercept-plus-one-slope routes at recovery grade. Pure, labelled, or
+> multiple count slopes, richer structured sigma blocks, and structured-sigma
+> intervals/coverage remain planned.
+
 This note records the first post-0.1.3 implementation map follow-through. It
 keeps three ideas connected but separate:
 

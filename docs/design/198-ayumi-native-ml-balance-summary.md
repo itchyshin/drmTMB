@@ -22,10 +22,12 @@ layout also exposes the direct mean-scale phylogenetic correlation target.
 
 ## What This Does Not Claim
 
-Native ML balance is not native REML balance. Native REML still admits only the
-exact-Gaussian mean-side phylogenetic row and rejects scale-side structured
-effects. The balanced native ML row also does not imply calibrated interval
-coverage, q4 REML support, or a 10,440-tip sigma-phylo interval claim.
+Native ML balance is not native REML balance. Native REML now admits tested
+mean-side, sigma-side, matched, q2, and q4 phylogenetic Gaussian rows at
+row-specific tiers. Only the named mean-side q1 row has retained interval
+evidence; the sigma-side, matched, q2, and q4 rows remain point-fit or recovery
+only. The balanced native ML row therefore does not imply calibrated interval
+coverage, q4 REML inference, or a 10,440-tip sigma-phylo interval claim.
 
 The new bootstrap test is a plumbing smoke only. It checks that small mean-side
 and scale-side univariate phylo targets carry requested refit counts,
@@ -45,10 +47,10 @@ phylogenetic field, `check_drm()` should be part of the workflow because
 `pdHess = FALSE`, clamp-active warnings, and weak scale-side identifiability
 need to be read as inference warnings, not as automatic point-fit deletion.
 
-If the goal is native REML for scale-side or matched location-scale phylo, the
-honest answer is still "not implemented in native TMB." If the goal is full
-bivariate q4 REML or 10,440-tip interval inference, the answer stays in the
-experimental Julia/DRM.jl and benchmark-status lanes.
+If the goal is native REML for scale-side, matched location-scale, q2, or q4
+phylo, the honest answer is that point-fit or recovery routes exist but their
+interval and coverage evidence is not ready. A 10,440-tip interval claim stays
+outside the current native and experimental Julia/DRM.jl evidence.
 
 ## Evidence Rows
 

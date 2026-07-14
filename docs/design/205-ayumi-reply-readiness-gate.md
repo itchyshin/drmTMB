@@ -1,5 +1,11 @@
 # Ayumi Reply Readiness Gate
 
+> **Current-status correction (2026-07-14).** This readiness note predates the
+> native structured-REML admissions summarized in
+> `docs/design/211-structured-reml-status.md`. Use the corrected row-specific
+> tiers below; no point-fit or recovery row inherits interval, coverage,
+> `supported`, bridge, or HSquared AI-REML status.
+
 ## Purpose
 
 This note banks A091-A099 without drafting or posting an Ayumi issue reply. It
@@ -16,9 +22,11 @@ The local evidence map is materially clearer than before:
 - Native TMB ML is balanced for univariate Gaussian `phylo()` intercept cells:
   `mu`, `sigma`, and matched `mu+sigma` have fit-target evidence and dashboard
   rows.
-- Native TMB REML is not balanced for phylogenetic structured effects. It is
-  exact-Gaussian and mean-side-only in current drmTMB; scale-side,
-  matched `mu+sigma`, q2, and q4 phylogenetic REML reject early.
+- Native TMB REML is exact-Gaussian and row-specific. Q1 mean-side has retained
+  inference evidence; sigma-only and matched univariate q2 have point-fit
+  evidence; bivariate mean-side q2 has point-fit evidence; and block-diagonal
+  or dense q4 has recovery evidence. The latter rows do not inherit q1
+  mean-side interval or coverage promotion.
 - The R-via-Julia bridge has experimental sigma-phylo and matched sigma-phylo
   REML gates, including configured live bridge-admission tests for both cells,
   but it is not a promoted bridge route.
@@ -32,8 +40,9 @@ The local evidence map is materially clearer than before:
 
 Do not claim any of the following:
 
-- native balanced phylogenetic REML across `mu` and `sigma`;
-- native q4 REML;
+- inference-ready balanced phylogenetic REML across `mu` and `sigma`;
+- native q4 REML intervals, coverage, or `supported` status beyond the current
+  recovery-grade fit;
 - non-Gaussian REML or AI-REML;
 - HSquared AI-REML for q4;
 - calibrated q4 profile/bootstrap coverage;

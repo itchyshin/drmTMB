@@ -87,7 +87,7 @@ issue evidence, and dashboard state catch up. A row marked `banked` or
 `verified` must point to existing evidence.
 
 `q4-target-inventory.tsv` is the guarded R-side q4 target and estimator
-inventory. It separates native TMB ML evidence, unsupported native q4 REML,
+inventory. It separates native TMB ML evidence, native q4 REML recovery,
 experimental Julia bridge q4 REML, profile-target extraction, and bootstrap
 smoke or negative evidence. The validator checks its schema, statuses, and
 evidence paths so q4 target rows cannot drift into bridge, interval-coverage, or
@@ -114,7 +114,7 @@ a coverage table.
 
 `phylo-q2-q4-target-map.tsv` records the q2/q4 phylogenetic target split. It
 keeps bivariate location-only q2 evidence, block-diagonal q2-plus-q2 evidence,
-full four-axis q4 evidence, unsupported native REML rows, and experimental
+full four-axis q4 evidence, row-specific native REML point/recovery rows, and experimental
 Julia bridge rows separate so direct-ready lower-dimensional targets cannot be
 read as q4 interval support.
 
@@ -184,7 +184,7 @@ rehydrate issue access, tracker evidence, forbidden wording, route vocabulary,
 and reply gates before any new Ayumi-facing prose is drafted.
 
 `ayumi-phylo-balance-vocabulary.tsv` defines the balance terms used by the
-Ayumi arc. It keeps univariate balance, q4 balance, partial native REML,
+Ayumi arc. It keeps univariate balance, q4 balance, row-specific native REML tiers,
 experimental bridge support, diagnostic point fits, MAP vocabulary, reply
 gates, and issue-access limits as validator-owned rows.
 
@@ -1554,7 +1554,7 @@ spatial, and relmat have 475/475 usable intervals and MCSE <= 0.01; animal has
 is 0.9832 (phylo), 0.9705 (spatial), 0.9747 (animal), and 0.9789 (relmat).
 After Fisher/Grace review and Rose's corrected-surface audit, phylo, spatial,
 and relmat are promoted to interval+coverage `inference_ready` with caveats
-under the raw/default Wald direct-SD interval channel. Animal remains
+under the default location-axis bias-corrected small-sample-t Wald direct-SD interval channel. Animal remains
 `point_fit/planned/planned` and is blocked by two retained infinite-boundary
 intervals at seeds `812407` and `812444`. The 104-row support-cell table points
 the phylo, spatial, and relmat q1 `mu:(Intercept)` rows at this SR475 sidecar;
@@ -2167,11 +2167,11 @@ handoff gates explicit.
 
 `structured-re-q4-reml-requested-effective-audit.tsv` records the SR135
 requested-versus-effective estimator audit for q4. It separates native TMB q4
-ML, unsupported native TMB q4 REML, direct DRM.jl q4 Patterson-Thompson REML,
+ML, native TMB q4 recovery, direct DRM.jl q4 Patterson-Thompson REML,
 experimental R-via-Julia q4 Patterson-Thompson REML, and the unsupported
-HSquared AI-REML transfer boundary. It is an audit table only: no native q4
-REML, HSquared AI-REML, public bridge support, interval reliability, or interval
-coverage claim is promoted by those rows.
+HSquared AI-REML transfer boundary. It is an audit table only: native recovery
+does not promote HSquared AI-REML, public bridge support, interval reliability,
+or interval coverage.
 
 `structured-re-q4-calibrated-parity-probe.tsv` records the calibrated q4
 same-fixture probes that found native-converged 32-tip candidates after the
@@ -2222,8 +2222,9 @@ slice-ledger status.
 added after the conversion ledger: q1/q2/q4 contract tests, the ADEMP
 scaffold tests, and tiny diagnostic-pilot artifact checks. These rows bank
 testable boundaries, runner/accounting scaffolds, and pilot failure accounting
-only. They do not promote bridge support, native q2/q4 REML, q4 interval
-coverage, non-Gaussian REML, or any Ayumi-facing reply text.
+only. They bank native q2 point-fit and q4 recovery where named but do not
+promote bridge support, interval coverage, supported status, non-Gaussian REML,
+or any Ayumi-facing reply text.
 
 `structured-re-status-vocabulary.tsv` defines the row-level meaning of
 `covered`, `partial`, `planned`, `banked`, `blocked`, `experimental`, and
@@ -2252,12 +2253,14 @@ REML, coverage, or broader public support.
 
 `structured-re-q2-target-contract.tsv` records the q2 target vocabulary. It
 keeps q2 location covariance targets separate from q2-plus-q2 block evidence
-and full q4 derived correlations, and it keeps native q2 REML unsupported
-until an exact-Gaussian derivation and tests exist.
+and full q4 derived correlations. Native phylogenetic q2 REML has tested
+point-fit/recovery evidence; its bridge, interval, and coverage routes remain
+unsupported.
 
 `structured-re-q2-native-evidence.tsv` records fixture-level native q2 evidence
 for `phylo()`, `spatial()`, `animal()`, and `relmat()` rows. It is deliberately
-point-only and does not promote q4, REML, bridge, or interval coverage claims.
+point-only; the phylogenetic q2 REML row is admitted separately and does not
+promote q4, bridge, interval, or coverage claims.
 
 `structured-re-q2-bridge-boundary.tsv` records the q2 bridge split. The phylo
 row is experimental for one complete-response exact-Gaussian ML `mu1`/`mu2`
@@ -2266,6 +2269,8 @@ known-covariance bridge fixture each, and the `spatial()` row is experimental
 for one fixed-covariance coordinate fixture. Q2 REML, one-axis and three-axis
 phylo partials, scale-only partial blocks, range-estimating spatial routes,
 mesh/SPDE routes, and broad bridge support remain unsupported or planned.
+Native phylogenetic q2 REML point-fit evidence is separate from this bridge
+boundary and does not change it.
 
 `structured-re-relmat-q-bridge-boundary.tsv` records the relmat `K` versus `Q`
 bridge split across the one-slope cells now visible in the q-series ledger.
@@ -2375,7 +2380,7 @@ bridge support, or interval coverage.
 
 `structured-re-q4-target-contract.tsv` records q4 target classes. It separates
 direct structured-standard-deviation targets from derived cross-axis
-correlations and keeps native q4 REML unsupported.
+correlations and keeps native q4 REML at recovery-only.
 
 `structured-re-q4-phylocov-target-map.tsv` records the q4 phylogenetic
 covariance target names: four direct SD targets and six derived among-axis
@@ -2704,8 +2709,9 @@ REML, AI-REML, and broad bridge-support wording.
 
 `structured-re-reml-scope-gate.tsv` records where REML wording is allowed and
 where it is forbidden. It keeps REML exact-Gaussian and route-specific, blocks
-native q2/q4 REML promotion until derivations and tests exist, and keeps q4
-Patterson-Thompson REML separate from HSquared AI-REML.
+native q2/q4 REML at their exact point/recovery tiers, forbids interval or
+coverage generalization, and keeps q4 Patterson-Thompson REML separate from
+HSquared AI-REML.
 
 `structured-re-ademp-design.tsv` records the ADEMP q1, q2, and q4 design
 contracts. It names aims, data-generating mechanisms, estimands, methods,
@@ -2729,7 +2735,7 @@ finite pilot intervals and no calibrated coverage evidence.
 
 `structured-re-native-reml-scope-status.tsv` records SR151-SR159 as native
 REML scope evidence. It keeps requested and effective estimator fields visible
-for source maps, q1 allowed cells, sigma/q2/q4 rejection or feasibility rows,
+for source maps, q1 allowed cells, sigma/q2 point-fit and q4 recovery rows,
 Patterson-Thompson wording, public optimizer controls, and non-Gaussian
 wording scans.
 

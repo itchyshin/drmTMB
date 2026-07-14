@@ -22,9 +22,10 @@ returned successful refits, while 100-tip careful and robust smokes returned
 rows are evidence that status accounting works; they are not practical Ayumi
 intervals.
 
-Native TMB q4 REML remains unsupported. The exact-Gaussian native REML route is
-mean-side-only in current drmTMB. Scale-side, matched `mu+sigma`, q2, and q4
-native REML require a separate derivation and validation lane.
+Native TMB q4 REML now has tested block-diagonal and dense recovery evidence.
+The q1 sigma, matched univariate q2, and bivariate mean-side q2 routes also have
+point-fit/recovery evidence. None of these rows has calibrated interval or
+coverage evidence, and q4 Patterson-Thompson REML is not HSquared AI-REML.
 
 Direct DRM.jl has q4 profile/bootstrap machinery in the active implementation
 worktree. A lightweight source check confirmed that `profile_sigma_a`,
@@ -78,7 +79,8 @@ current answer is:
 
 > Native ML gives usable point/status evidence for selected balanced Gaussian
 > phylogenetic cells. Native q4 ML and scale-side real-data rows still need
-> boundary-aware inference work. Direct DRM.jl has useful q4 profile/bootstrap
+> boundary-aware inference work; native q4 REML recovery does not close that
+> interval gap. Direct DRM.jl has useful q4 profile/bootstrap
 > machinery, but the R bridge is not promoted and scale-axis bootstrap
 > undercoverage is already known.
 

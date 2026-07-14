@@ -17,9 +17,12 @@ spatial range, fixed-effect REML profiles, or broad provider support.
   pedigree; each crossed with the intercept and one-slope shapes (14 cells).
 - Observations: `n_each = 20` and the same fixed
   `seq(-1, 1, length.out = 20)` design for the fixed and random slopes.
-- Truth: `beta = (0.4, 0.25)`, residual `sigma = 0.5`, intercept covariance
-  scale `tau0 = 0.5`, and slope covariance scale `tau_x = 0.38`.
-- Effects: uncentred independent Gaussian fields generated as `tau * L_K * z`.
+- Truth: `beta = (0.4, 0.25)`, residual `sigma = 0.5`, intercept structured
+  SD scale `s0 = 0.5`, and slope structured SD scale `s_x = 0.38` (stored in
+  the campaign's historical `tau0` and `tau_x` columns).
+- Effects: uncentred independent Gaussian fields generated as `s * L_K * z`,
+  giving latent-field covariance `s^2 K`. Node `i` has marginal SD
+  `s * sqrt(K[i, i])`, which equals `s` only when that diagonal entry is one.
 - Campaign representations: spatial coordinates, the animal `A` matrix, and
   the relmat `K` matrix. The `A`/`Ainv`/pedigree and `K`/`Q` equivalence claims
   come from one deterministic representation-parity fixture each, not from the
@@ -62,7 +65,7 @@ Fresh default-NOT-DONE reviews by Noether, Fisher, and Pat support all three
 provider cells at no higher than `inference_ready_with_caveats`. Noether's
 decisive review used the final admission guard at commit `384a526d`, which also
 rejects ordinary sigma random effects for every Arc 1a provider. The reviewers
-withhold `supported` and require the discrete domains, covariance-scale
+withhold `supported` and require the discrete domains, structured-SD
 interpretation, miss asymmetry, boundary-truncated slope profiles, and
 deterministic-only representation parity above to remain in every claim.
 

@@ -22,11 +22,14 @@ a separate structural zero?
 This article stays inside the currently implemented `drmTMB` count surface:
 univariate NB2 models, fixed-effect zero-inflated NB2 models, ordinary Poisson
 and NB2 `mu` random-effect paths, and the first ordinary Poisson/NB2 q=1
-structured `mu` routes for `phylo()`, `spatial()`, `animal()`, and `relmat()`.
-Ordinary NB2 also has a first grouped overdispersion path in `sigma`. The worked
-example below remains fixed-effect so the mean, overdispersion, and
-structural-zero pieces are easy to read before adding group, structured
-log-mean, or grouped-overdispersion effects.
+structured `mu` intercept-plus-one-slope routes for `phylo()`, `spatial()`,
+`animal()`, and `relmat()`. Ordinary NB2 also has a first grouped
+overdispersion path in `sigma` and exact q1 structured `sigma`
+intercept-plus-one-slope routes for those four providers at recovery grade.
+The worked example below remains fixed-effect so the mean, overdispersion, and
+structural-zero pieces are easy to read before adding grouped or structured
+log-mean effects, grouped overdispersion, or the narrow
+structured-overdispersion routes.
 
 The source motivation comes from Nakagawa et al. (2026), who use
 location-scale models to discuss heteroscedasticity in continuous, count, and
@@ -375,11 +378,14 @@ and hurdle NB2 models are fitted. Ordinary non-zero-inflated Poisson and NB2
 `mu` models can also fit unlabelled random intercepts and independent numeric
 random slopes such as `(1 | site)` and `(0 + effort | site)`. The
 first structured count routes are ordinary Poisson and ordinary NB2 q=1
-structured `mu` intercepts via `phylo(1 | species, tree = tree)`,
-`spatial()`, `animal()`, and `relmat()`, one at a time, on the log-mean
-scale (recovery grade -- trust the point estimate, not the interval). Ordinary NB2 also fits `sigma ~ z + (1 | id)` as a grouped
-overdispersion random intercept on the log-`sigma` scale. The zero-inflated,
-hurdle, truncated, and other scale-side count routes remain fixed-effect only.
+structured `mu` intercept-plus-one-slope terms via
+`phylo(1 + x | species, tree = tree)`, `spatial()`, `animal()`, and `relmat()`,
+one at a time, on the log-mean scale (recovery grade -- trust the point
+estimate, not the interval). Ordinary NB2 also fits `sigma ~ z + (1 | id)` as
+a grouped overdispersion random intercept on the log-`sigma` scale and the
+same four q=1 structured intercept-plus-one-slope shapes in `sigma`, separately
+from `mu`, at recovery grade. Zero-inflated, hurdle, and truncated scale-side
+count routes remain fixed-effect only.
 
 ```r
 drmTMB(
@@ -389,20 +395,70 @@ drmTMB(
 )
 ```
 
+For ordinary non-zero-inflated NB2 models, the fitted q1 structured boundary
+is wider than an intercept: unlabelled `phylo()`, `spatial()`, `animal()`, and
+`relmat()` intercept-plus-one-slope terms fit in `mu`, and the exact same four
+providers fit q1 structured `sigma` intercept-plus-one-slope routes at recovery
+grade. For example, the two separate fitted shapes are:
+
+```r
+bf(count ~ habitat + phylo(1 + x | species, tree = tree), sigma ~ z)
+bf(count ~ habitat, sigma ~ z + phylo(1 + x | species, tree = tree))
+```
+
+The structured-`sigma` rows do not yet have interval or coverage promotion.
+Pure, labelled, or multiple structured slopes and richer count covariance
+remain planned.
+
+Hurdle NB2 has one separate diagnostic-only structured probability route: an
+unlabelled q=1 relatedness intercept in `hu`, supplied by `K` or `Q`:
+
+```r
+bf(count ~ habitat, sigma ~ treatment,
+  hu ~ relmat(1 | id, K = K))
+```
+
+Treat this exact route as diagnostic-only fit/extractor evidence. It does not
+establish point-estimate recovery, intervals, coverage, slopes, labels, or other
+structured providers.
+
+Zero-inflated Poisson likewise has one diagnostic-only probability-component
+gate, `zi ~ spatial(1 | id, coords = coords)`, for a q=1 structured intercept.
+It confirms fit/extractor feasibility but does not establish point-estimate
+recovery, NB2 `zi`, spatial slopes, labels, intervals, or coverage.
+
+Two separate gates keep zero inflation fixed and put one q=1 spatial intercept
+in the count mean. The exact diagnostic-only formulas are
+`bf(count ~ habitat + spatial(1 | site, coords = coords), zi ~ 1)` for Poisson
+and
+`bf(count ~ habitat + spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1)`
+for NB2. Both confirm only local fit/extractor feasibility. These two gates do
+not establish point-estimate recovery, intervals, or coverage, and neither is
+evidence for a random effect in `zi`.
+
 Do not teach the following as fitted count examples yet:
 
 - correlated or labelled NB2 `mu` random-slope blocks;
-- NB2 `sigma` random slopes, labelled blocks, structured effects, or `zi`
-  random effects;
-- random effects in zero-inflated Poisson, zero-inflated NB2, truncated NB2,
-  or hurdle NB2 count components;
+- ordinary NB2 `sigma` random slopes, labelled blocks, richer structured
+  effects beyond the exact q1 routes, or `zi` random effects beyond the exact
+  Poisson q=1 spatial-`zi` intercept;
+- random effects in zero-inflated Poisson beyond the exact q=1 spatial `zi`
+  intercept; fixed-`zi` Poisson or NB2 spatial-`mu` routes beyond the two exact
+  diagnostic-only q=1 intercept gates; and other zero-inflated NB2, truncated
+  NB2, or hurdle NB2 count-`mu` components;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_V(V = V)` or deprecated `meta_known_V(V = V)` with counts;
-- zero-inflated or hurdle structured count models, structured count slopes,
-  simultaneous structured count types, and labelled structured count covariance;
-- NB2 phylogenetic slopes, NB2 `sigma` phylogeny, and zero-inflated NB2
-  phylogeny;
-- phylogenetic count slopes or labelled q2/q4 phylogenetic count covariance;
+- zero-inflated structured count models beyond the exact q=1 Poisson
+  `zi ~ spatial()` intercept and the exact diagnostic-only fixed-`zi` Poisson
+  and NB2 `mu ~ spatial()` intercepts, and hurdle structured routes beyond the
+  exact q=1 `hu ~ relmat(K/Q)` intercept; pure, labelled, or multiple
+  structured count slopes; simultaneous structured count types beyond the
+  exact crossed NB2 `mu ~ spatial() + relmat()` recovery-only gate; and labelled
+  structured count covariance;
+- richer or labelled NB2 phylogenetic slopes, richer NB2 `sigma` phylogeny,
+  and zero-inflated NB2 phylogeny;
+- pure, labelled, or multiple phylogenetic count slopes or labelled q2/q4
+  phylogenetic count covariance;
 - bivariate or mixed-response count models such as
   `family = c(gaussian(), nbinom2())`;
 - COM-Poisson underdispersion models.

@@ -11,7 +11,7 @@ q2_bridge_boundary	SC281-SC290	emmy	grace;rose	boole	Unsupported or experimental
 q4_target_contract	SC291-SC300	noether	gauss;fisher	boole	Direct SD targets are separate from derived correlations	Derived correlations look interval-ready
 q4_extractor_parity	SC301-SC310	emmy	fisher;rose	florence	Point and extractor status is explicit with no interval claim	Extractor evidence is promoted to Wald or coverage language
 q4_bridge_boundary	SC311-SC320	ada	emmy;grace	noether	Smoke remains smoke unless full parity exists	q4 bridge smoke is described as support
-reml_scope_gate	SC321-SC330	noether	gauss;fisher	rose	Exact-Gaussian mean-side phylo only unless derivation and tests exist	Any q4 native or non-Gaussian AI-REML wording appears
+reml_scope_gate	SC321-SC330	noether	gauss;fisher	rose	Exact-Gaussian native REML rows carry only their tested q1 q2 or q4 evidence tier	Any row generalizes point or recovery evidence to interval coverage supported status AI-REML or non-Gaussian REML
 ademp_q1_design	SC331-SC340	curie	fisher;jason	grace	DGP estimands methods performance and MCSE are written	Coverage grid lacks failed-fit denominators or MCSE
 ademp_q2_design	SC341-SC350	curie	fisher;gauss	noether	Failed fits and unavailable intervals stay in denominators	q2 coverage excludes failed or interval-unavailable fits
 ademp_q4_design	SC351-SC360	curie	fisher;noether	gauss	q4 coverage remains planned until calibrated grid passes	Pilot accounting is described as reliability

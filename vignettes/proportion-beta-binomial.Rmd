@@ -145,9 +145,11 @@ data.frame(
 )
 ```
 
-This first plain-binomial slice is fixed-effect only. It rejects non-logit
-links, factor responses, proportions with trial weights, random effects,
-structured effects, bivariate or mixed responses, and `engine = "julia"`.
+The original plain-binomial slice was fixed-effect only. The current R engine
+also fits ordinary unlabelled `mu` random intercepts and independent numeric
+slopes at recovery grade. It still rejects non-logit links, factor responses,
+proportions with trial weights, correlated or labelled slopes, structured
+effects, bivariate or mixed responses, and `engine = "julia"`.
 
 ## Beta-Binomial Equation And Syntax
 

@@ -157,7 +157,7 @@ At a high level, the current public surface is:
 | unlabelled Gaussian `mu` random-intercept SD formulas | first slice | "Which scale are you modelling?" |
 | fixed-effect non-Gaussian families | stable for named fixed-effect paths | "Choosing response families" |
 | fixed-effect NB2 and zero-inflated NB2 count examples | stable for fixed effects | "Count abundance and extra zeros" |
-| bounded-response proportion examples | beta-binomial and beta fixed effects plus ordinary `mu` random intercepts; fixed-effect zero-one beta for structural exact boundaries | "Proportions and success rates" |
+| bounded-response proportion examples | beta, beta-binomial, and zero-one beta fixed effects plus ordinary recovery-grade `mu` random intercepts and independent numeric slopes; zero-one beta handles structural exact boundaries | "Proportions and success rates" |
 | Gaussian meta-analysis with known sampling covariance | stable | "Mean effects and residual heterogeneity in meta-analysis" |
 | fixed-effect bivariate Gaussian `rho12` | stable | "Changing residual coupling with rho12" |
 | ordinary bivariate covariance and `corpairs()` rows | first slice | "What can I fit today?" |

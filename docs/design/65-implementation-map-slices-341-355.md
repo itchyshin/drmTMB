@@ -118,7 +118,7 @@ Template fields:
   phylo/animal/relmat alternatives today.
 
 Usefulness check: spatial users get a clear q4 route without confusing it with
-mesh models or non-Gaussian spatial dependence.
+mesh models or non-Gaussian spatial dependence outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates.
 
 ## Slice 347: Spatial q4 Acceptance Checklist
 

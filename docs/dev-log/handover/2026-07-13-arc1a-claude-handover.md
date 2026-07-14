@@ -62,8 +62,9 @@ Full evidence and exact claim boundaries are in
 
 ## Key Decisions and Rationale
 
-- `tau` is the structured covariance multiplier, not generally a node-level
-  marginal SD when `diag(K) != 1`.
+- The fitted structured SD scale `s_j` gives covariance `s_j^2 K_h`; node `i`
+  has marginal SD `s_j sqrt(K_h[ii])`, which equals `s_j` only when that
+  diagonal entry is one.
 - Campaign evidence is discrete: spatial/relmat `M={8,16,32}`, animal fixed
   `M=8`, all with `n_each=20`; never rewrite these as inequality domains.
 - Coverage is mildly non-nominal with upper-tail miss asymmetry and frequent

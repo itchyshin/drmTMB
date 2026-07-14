@@ -821,6 +821,8 @@ Current implemented Gaussian syntax covers:
 - `sigma ~ x + (0 + w | id)` and
   `sigma ~ x + (0 + w_id | id) + (0 + w_site | site)` for independent
   residual-scale random slopes, including separate grouping factors;
+- `sigma ~ x + (1 + w | id)` and unlabelled multi-slope variants for fitted
+  within-block residual-scale correlations;
 - `sd(id) ~ x_group` and multiple distinct `sd(group) ~ x_group` formulas for
   standard deviations of unlabelled Gaussian `mu` random intercepts;
 - bivariate fixed-effect `rho12 ~ x` with `family = c(gaussian(), gaussian())`;
@@ -837,8 +839,9 @@ Current implemented Gaussian syntax covers:
 Current planned but not implemented syntax includes:
 
 - slope-specific and labelled-block random-effect scale models;
-- correlated residual-scale slope blocks in `sigma` and labelled `mu`/`sigma`
-  random-slope covariance;
+- labelled residual-scale slope blocks in `sigma` and cross-formula labelled
+  `mu`/`sigma` random-slope covariance (unlabelled ordinary correlated
+  intercept-slope and multi-slope `sigma` blocks are fitted);
 - residual-scale bivariate random slopes and full cross-parameter covariance
   blocks spanning more than one pair;
 - cross-formula covariance sharing from repeated slope labels outside the
@@ -847,4 +850,7 @@ Current planned but not implemented syntax includes:
   partial phylogenetic scale terms, predictor-dependent q=4 phylogenetic
   location-scale correlations, structured `rho12` effects, mesh/SPDE spatial
   fields, spatial slope correlations, and non-Gaussian spatial structured
-  effects.
+  effects outside the exact ordinary Poisson/NB2 q1 spatial `mu`
+  intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
+  spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
+  fixed-`zi` NB2 spatial `mu` gates.

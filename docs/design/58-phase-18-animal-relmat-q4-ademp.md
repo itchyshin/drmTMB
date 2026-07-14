@@ -2,9 +2,10 @@
 
 This addendum admits only the focused constant all-four Gaussian q=4
 `animal()` and `relmat()` smoke lane. It extends the known-matrix q=2 ADEMP
-sheet without changing the public boundary: slopes, sparse large-pedigree
+sheet without changing the public q4 boundary: sparse large-pedigree
 construction, predictor-dependent `corpair()` regressions, direct-SD grammar,
-and non-Gaussian structured effects remain planned.
+and non-Gaussian animal/relmat q4 covariance remain planned. Exact q1
+non-Gaussian provider gates are separate and are not evidence from this sheet.
 
 ## Aim
 

@@ -1,5 +1,11 @@
 # Phase 6c Random-Slope Sprint Closeout
 
+> **Status supersession (2026-07-14).** This closeout preserves the sprint's
+> historical boundary. Current 0.6.0 fits unlabelled ordinary correlated
+> Gaussian `sigma` intercept-slope and multi-slope blocks; labelled
+> residual-scale and cross-formula `mu`-`sigma` slope covariance remain
+> planned.
+
 This note closes #436 as the parent tracker for the focused Phase 6c
 random-slope and twin/sister exchange sprint. It does not close the broader
 Phase 6c structured-slope programme in #33, the Phase 18 simulation programme
@@ -29,7 +35,7 @@ slope, or higher-dimensional multivariate claims.
 | #439 | Ordinary Gaussian random-slope closeout | Earlier Phase 6c PR | ROADMAP ordinary grouped status, tests for Gaussian random slopes, `corpairs()`, `summary()`, and `profile_targets()` handles | Larger ordinary q blocks remain sample-size hungry; q > 2 correlations do not yet have direct profile intervals |
 | #440 | Bivariate Gaussian slope-only evidence gate | Earlier Phase 6c PR | `docs/design/145-phase6c-bivariate-slope-evidence-gate.md` and `biv_gaussian_mu_slope` artifact route | Held from recovery, coverage, power, residual-scale slope, random-`rho12`, and p8/q8 claims; the later q4 and q6 location routes now have smoke artifact routing |
 | #441 | Non-Gaussian independent `mu` slope admission | Earlier Phase 6c PR | `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md` and family-specific source tests | Correlated, labelled, structured, scale, shape, inflation, hurdle, ordinal, and mixed-response random slopes remain planned or blocked |
-| #442 | Structured Gaussian one-slope audit | Earlier Phase 6c PR | `docs/design/59-structural-slope-and-non-gaussian-map.md`, structured one-slope tests, metadata accessors, and simulation-plan handoff | Multiple structured slopes, structured slope correlations, residual-scale structured slopes, and non-Gaussian structured slopes beyond the exact ordinary Poisson/NB2 q1 count cells remain planned |
+| #442 | Structured Gaussian one-slope audit | Earlier Phase 6c PR | `docs/design/59-structural-slope-and-non-gaussian-map.md`, structured one-slope tests, metadata accessors, and simulation-plan handoff | Historical boundary, superseded by 0.6.0 q1 `sigma` and exact non-Gaussian provider gates. Multiple or labelled structured slopes, structured slope correlations, and non-Gaussian structured slopes outside the exact gates remain planned. |
 | #443 | Coscale and `corpairs()` boundary | Earlier Phase 6c PR | ROADMAP coscale boundary, formula/tutorial wording, and `corpair()`/`corpairs()` evidence | Residual `rho12`, singular `corpair()`, and plural `corpairs()` remain distinct layers |
 | #444 | Tutorial and release ledger | PR #465 | `docs/design/151-phase6c-random-slope-tutorial-ledger.md`, model-map, location-scale article, bivariate-coscale article, and worked-example inventory | Fuller simulated bivariate plasticity-syndrome and advanced structured-slope tutorials remain future work |
 | #446 | Simulation power, accuracy, and coverage plan | Earlier Phase 6c PR | `docs/design/148-phase6c-random-slope-simulation-plan.md` and registry preflight | Diagnostic pilots may propose formal grids; they cannot by themselves create recovery, coverage, or power claims |
@@ -40,7 +46,8 @@ The current sprint closed the support ledger before the planned large
 simulation work:
 
 - Ordinary Gaussian `mu` and independent Gaussian `sigma` random-slope rows
-  are separated from residual-scale correlated-slope plans.
+  were separated from then-planned residual-scale correlated-slope work;
+  current 0.6.0 also fits unlabelled ordinary correlated `sigma` blocks.
 - The first bivariate Gaussian slope-only `mu1`/`mu2` row is fitted and
   artifact-ready, but it remains held from recovery, coverage, power, and
   p8/q8 claims.
@@ -49,8 +56,11 @@ simulation work:
   scale, shape, inflation, hurdle, ordinal, and mixed-response neighbours stay
   planned or blocked.
 - The first Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()`
-  one-slope `mu` rows are visible as fitted first slices, with multiple
-  structured slopes and residual-scale structured slopes still planned.
+  one-slope `mu` rows were the fitted Phase 6c slices. Current 0.6.0 also fits
+  the q1 `sigma` one-slope rows; phylo, A-matrix animal, and K/Q relmat are
+  inference-ready with caveats, while spatial intervals remain blocked.
+  Multiple or labelled structured slopes and structured slope correlations
+  remain planned.
 - The `rho12` coscale, `corpair()` formula marker, and `corpairs()` extractor
   boundaries are explicit before simulation reports reuse these tables.
 - The tutorial path points readers to supported syntax, output rows,

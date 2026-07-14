@@ -1,5 +1,14 @@
 # Structural-Parity Next Slices
 
+> **Historical slice map, superseded 2026-07-14.** Status rows below preserve
+> the planning state when this map was written. Use the live capability ledger
+> and `docs/design/79-supported-nongaussian-evidence-goal.md` for current
+> claims. Narrow fitted non-Gaussian gates now include ordinary `mu` random
+> effects for every fitted univariate family, Poisson/NB2 q1 structured `mu`,
+> NB2 q1 structured `sigma`, and exact Student-t, Gamma, beta, Poisson-`zi`,
+> hurdle-`hu`, and cumulative-logit diagnostic-only routes. Their neighbours and
+> interval/coverage promotion remain blocked.
+
 Date: 2026-05-21
 
 Status: closeout note for post-0.1.3 structural-dependence parity slices 1-8.
@@ -157,10 +166,10 @@ now fitted.
 | 29 | Residual `rho12` versus latent correlations | Done as wording guard: residual coscale and structured endpoint correlations stay in separate rows |
 | 30 | q4 broad-grid boundary | Done: focused q4 smoke artifacts exist; broad operating-characteristic q4 reports still need larger replicate and interpretation work |
 | 31 | Random-slope parity map | Done: `docs/design/59-structural-slope-and-non-gaussian-map.md` maps fitted versus planned slope routes |
-| 32 | Ordinary Gaussian slope status | Done: ordinary Gaussian `mu` and `sigma` slopes stay fitted, with correlated residual-scale and bivariate slopes planned |
+| 32 | Ordinary Gaussian slope status | Historical boundary, superseded by current 0.6.0: ordinary Gaussian `mu` and `sigma` slopes include unlabelled correlated blocks; labelled residual-scale and cross-formula `mu`-`sigma` slope covariance remain planned |
 | 33 | Structured slope status | Done at the time as a fitted-versus-planned map; superseded by Slice 39, which fits the phylo, animal, and relmat one-slope Gaussian `mu` sibling paths |
 | 34 | Bivariate slope status | Done at the time as a boundary; superseded by Slice 83, which fits the matching slope-only `mu1`/`mu2` route while leaving broader bivariate slope blocks planned |
 | 35 | Non-Gaussian ordinary random-effect status | Done: Poisson and NB2 `mu` random intercepts and independent numeric slopes are fitted first slices |
-| 36 | Non-Gaussian structural-dependence status | Done: `phylo()`, `spatial()`, `animal()`, and `relmat()` remain Gaussian-only fitted structured routes |
-| 37 | Non-Gaussian distributional-parameter boundary | Done: non-Gaussian `sigma`, shape, inflation, hurdle, ordinal, and zero-one random effects remain planned or blocked |
+| 36 | Non-Gaussian structural-dependence status | Historical boundary, superseded by exact later gates: structured non-Gaussian routes remain blocked outside the row-specific gates recorded in the live ledger |
+| 37 | Non-Gaussian distributional-parameter boundary | Historical boundary, superseded in part: ordinary cumulative-logit and zero-one-beta `mu` random effects plus exact row-specific `sigma`, shape, inflation, and hurdle gates are fitted where recorded; neighbours remain planned or blocked |
 | 38 | User-facing usefulness pass | Done: the status map tells applied users what to fit now and what to leave out of simulation or tutorials |

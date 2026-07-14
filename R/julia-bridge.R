@@ -231,7 +231,7 @@ drm_julia_capability_comparison <- function() {
     claim_boundary = c(
       "Uses the default DRM.jl fitting path; no Julia-side engine_control surface is exposed from R.",
       "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
-      "Requires the full four-axis phylogenetic location-scale grammar; do not infer native TMB restricted-likelihood support for scale-side structured effects.",
+      "Requires the full four-axis phylogenetic location-scale grammar; native TMB has separate q4 recovery evidence, but this Julia row does not establish same-target bridge parity, interval reliability, or HSquared AI-REML support.",
       "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
       "Finite-and-sane bridge smoke evidence only; no native TMB parity or non-phylo binomial bridge promotion.",
       "Requires covariance/relatedness matrix K and sigma ~ 1; beta, precision Q, and sigma predictors stay gated.",
