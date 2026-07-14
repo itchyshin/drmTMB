@@ -1,0 +1,25 @@
+{
+  "dossier": "trust-dossier-1-meta-analysis",
+  "title": "drmTMB reproduces metafor & glmmTMB meta-analysis estimates",
+  "trust_level": "L2",
+  "trust_level_meaning": "equivalence-to-comparator on published examples (L3 = independent replication)",
+  "comparator_parity_pass": true,
+  "criteria": {
+    "S1_multilevel": "metafor==glmmTMB==drmTMB, max abs diff 4.6e-05 (achieved: var comps ~7dp, effect 5dp, SE 4dp)",
+    "S2_bivariate": "metafor==drmTMB, max abs diff 2.0e-05",
+    "S3a_location_scale": "metafor(scale=)==glmmTMB==drmTMB, max abs diff 2.7e-05",
+    "S3b_re_dispersion": "recovery (no comparator): all |bias|<3MCSE = TRUE",
+    "S4_coverage_smoke": "near-nominal on 100-rep smoke; calibrated grid -> Totoro"
+  },
+  "datasets": ["metadat::dat.assink2016", "metadat::dat.berkey1998", "metadat::dat.bangertdrowns2004"],
+  "seed": 20260714,
+  "source_sha": "650817bcf61437c260d97cfc30ee3def944bf43e",
+  "package_versions": {
+    "drmTMB": "0.6.0.9000",
+    "metafor": "5.0.1",
+    "glmmTMB": "1.1.14",
+    "metadat": "1.6.0"
+  },
+  "reference": ["Williams et al., Meta-analysis with the glmmTMB R package, arXiv:2604.04084", "Viechtbauer & Lopez-Lopez (2022), Location-scale models for meta-analysis"],
+  "signer": "unsigned (self-check); L3 signer = independent run"
+}
