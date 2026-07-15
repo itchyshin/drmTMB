@@ -2047,6 +2047,64 @@ drm_reml_admits_mean_structured_provider <- function(
   intercept_only || intercept_one_slope
 }
 
+drm_reml_admits_biv_spatial_q2_intercept <- function(spec) {
+  structured <- spec$structured$phylo_mu
+  if (
+    !isTRUE(structured$has) ||
+      !identical(structured_mu_type(structured), "spatial") ||
+      !identical(structured$structure, "coords") ||
+      structured_mu_q(structured) != 2L ||
+      !identical(phylo_mu_endpoint_dpars(structured), c("mu1", "mu2")) ||
+      !identical(
+        structured_mu_endpoint_coef_names(structured),
+        c("(Intercept)", "(Intercept)")
+      ) ||
+      !identical(phylo_mu_covariance_mode(structured), "scalar")
+  ) {
+    return(FALSE)
+  }
+
+  labels <- phylo_mu_endpoint_covariance_labels(structured)
+  one_labelled_block <- length(labels) == 2L &&
+    all(!is.na(labels) & nzchar(labels)) &&
+    identical(labels[[1L]], labels[[2L]]) &&
+    identical(phylo_mu_block_ids(structured), c(1L, 1L)) &&
+    length(structured$block_labels) == 1L &&
+    identical(structured$block_labels[[1L]], labels[[1L]])
+  if (!one_labelled_block) {
+    return(FALSE)
+  }
+
+  intercept_only_fixed <- vapply(
+    c("sigma1", "sigma2", "rho12"),
+    function(dpar) {
+      X <- spec$X[[dpar]]
+      !is.null(X) &&
+        ncol(X) == 1L &&
+        identical(colnames(X), "(Intercept)")
+    },
+    logical(1L)
+  )
+  no_ordinary_random <- isTRUE(spec$random$mu$n_re == 0L) &&
+    isTRUE(spec$random$sigma$n_re == 0L) &&
+    isTRUE(spec$random$mu_sigma$n_cors == 0L) &&
+    isTRUE(spec$random$covariance_blocks$n_blocks == 0L)
+  no_direct_scale <- isTRUE(spec$random_scale$mu$n_models == 0L) &&
+    isTRUE(spec$random_scale$phylo$n_models == 0L)
+  no_corpair_regression <- isTRUE(spec$random$mu$cor_model$n_models == 0L)
+  complete_pairs <- isTRUE(all(spec$missing_data$observed_y1)) &&
+    isTRUE(all(spec$missing_data$observed_y2))
+
+  all(intercept_only_fixed) &&
+    no_ordinary_random &&
+    no_direct_scale &&
+    no_corpair_regression &&
+    identical(spec$V_known_type, "none") &&
+    !isTRUE(spec$has_known_v) &&
+    isTRUE(all(spec$weights == 1)) &&
+    complete_pairs
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -2208,10 +2266,17 @@ drm_validate_reml_spec_biv <- function(spec) {
   }
   phylo_mu <- spec$structured$phylo_mu
   if (isTRUE(phylo_mu$has)) {
-    if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+    structured_type <- structured_mu_type(phylo_mu)
+    spatial_q2_admitted <-
+      drm_reml_admits_biv_spatial_q2_intercept(spec)
+    if (
+      !identical(structured_type, "phylo") &&
+        !spatial_q2_admitted
+    ) {
       cli::cli_abort(c(
-        "For bivariate models, {.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
-        "i" = "The Arc 1a spatial, animal, and relatedness mean-side routes are univariate only; set {.code REML = FALSE} for this bivariate model."
+        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and one exact fixed-covariance spatial q2 location block.",
+        "i" = "The spatial exception requires matching labelled {.code spatial(1 | p | site, coords = coords)} intercepts in {.code mu1} and {.code mu2}, constant {.code sigma1}, {.code sigma2}, and {.code rho12}, complete response pairs, unit weights, and no other random-effect layer.",
+        "i" = "Spatial slopes, unlabelled or scale-side blocks, animal/relatedness providers, known covariance, and other bivariate structured REML shapes remain deferred; use the exact admitted cell or set {.code REML = FALSE}."
       ))
     }
     # Scale-side phylo endpoints are admitted under REML in ALL covariance layouts
