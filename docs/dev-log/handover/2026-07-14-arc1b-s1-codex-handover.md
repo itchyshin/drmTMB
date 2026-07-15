@@ -135,7 +135,8 @@ git merge-base --is-ancestor 38c57f6c origin/codex/arc1b-s1-spatial-q2-reml
 gh pr view 783 --json state,mergedAt,isDraft,mergeable,mergeStateStatus,headRefOid,statusCheckRollup,url
 gh pr checks 783
 R_PROFILE_USER=/dev/null NOT_CRAN=true python3 tools/validate-mission-control.py
-curl -fsS http://127.0.0.1:8823/api/projects/drmTMB
+curl -fsS http://127.0.0.1:8823/p/drmTMB/status.json | \
+  python3 -m json.tool
 ```
 
 Expected result: local and remote branch heads agree; PR #783 remains open and
