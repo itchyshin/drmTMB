@@ -48,6 +48,10 @@ test_that("Arc 3a phylo addendum modes fail closed", {
     "tools",
     "summarize-arc3a-positive-continuous-structured-mu-recovery.R"
   )
+  testthat::skip_if_not(
+    file.exists(runner) && file.exists(summarizer),
+    "Arc 3a campaign tools require a source checkout"
+  )
   expect_silent(parse(file = runner))
   expect_silent(parse(file = summarizer))
 

@@ -122,6 +122,11 @@ phylo-only addendum used exact design-conditioned GLS and structured-field
 projection oracles and passed both cells. The closeout `--as-cran` rerun also
 duplicated the already completed 27-minute final suite; that duplicate test leg
 was stopped rather than represented as a completed second check.
+The first PR-head Ubuntu check then found that the campaign-contract test
+assumed source-only `tools/` files existed inside the built package. The test
+was repaired to skip only outside a source checkout, matching the repository's
+existing source-tool test pattern; source-tree focused tests still exercise
+the complete contract.
 
 ## 10. Known Residuals
 
