@@ -255,6 +255,11 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
   fx <- arc1b_biv_spatial_fixture(n_site = 8L, n_each = 3L)
   dat <- fx$data
   coords <- fx$coords
+  dat$site2 <- dat$site
+  dat$ecology <- ave(dat$x1, dat$site, FUN = mean)
+  coords2 <- coords
+  coords2[, 1L] <- coords2[, 1L] + 0.01
+  mesh <- list()
   Q <- solve(fx$K)
   dimnames(Q) <- list(rownames(coords), rownames(coords))
 
@@ -268,6 +273,63 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
     "requires matching labelled"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2,
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "must be matched"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | q | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "same covariance-block label"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site2, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "same grouping variable and coordinate object"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords2),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "same grouping variable and coordinate object"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords) +
+          spatial(1 | q | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords) +
+          spatial(1 | q | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "spatial"
   )
   expect_error(
     drmTMB(
@@ -304,11 +366,142 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
   )
   expect_error(
     drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~x1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "constant.*rho12"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1 + spatial(1 | p | site, coords = coords),
+        sigma2 = ~1 + spatial(1 | p | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "one exact fixed-covariance spatial q2"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1,
+        mu2 = y2 ~ x2,
+        sigma1 = ~1 + spatial(1 | p | site, coords = coords),
+        sigma2 = ~1 + spatial(1 | p | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "one exact fixed-covariance spatial q2"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1 + spatial(1 | s | site, coords = coords),
+        sigma2 = ~1 + spatial(1 | s | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "one exact fixed-covariance spatial q2"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, mesh = mesh),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, mesh = mesh),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "mesh fitting is planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = student(), data = dat, REML = TRUE
+    ),
+    "bivariate"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1 + (1 | site)
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "rho12.*unsupported model terms"
+  )
+  expect_error(
+    drmTMB(
       arc1b_spatial_q2_formula(coords),
       family = biv_gaussian(), data = dat, REML = TRUE,
       weights = rep(c(1, 2), length.out = nrow(dat))
     ),
     "unit weights"
+  )
+  dat_na <- dat
+  dat_na$y2[1L] <- NA_real_
+  expect_error(
+    drmTMB(
+      arc1b_spatial_q2_formula(coords),
+      family = biv_gaussian(), data = dat_na, REML = TRUE,
+      missing = miss_control(response = "include")
+    ),
+    "explicit missing-data engines"
+  )
+  V <- diag(2L * nrow(dat)) * 0.05
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + meta_V(V = V) +
+          spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "cannot yet be combined with.*meta_V"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1,
+        sd1(site) ~ ecology
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "No bivariate location random-effect term matches"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords),
+        mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1,
+        corpair(site, level = "spatial", block = "p", from = "mu1", to = "mu2") ~
+          ecology
+      ),
+      family = biv_gaussian(), data = dat, REML = TRUE
+    ),
+    "Predictor-dependent spatial.*planned"
   )
   expect_error(
     drmTMB(

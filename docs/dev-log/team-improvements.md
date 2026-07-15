@@ -642,3 +642,23 @@ scouting belongs to Jason).
 - Trigger: a clean working tree made `git diff --check` vacuously pass while
   committed Arc 1a TSV/log rows still triggered the branch-diff check. Rose
   caught the discrepancy before the completion claim.
+
+## 2026-07-14 - Validate The Live Mission Control Surface, Not Only Its Repo Inputs
+
+- Improvement implemented: closeout now reads back the actual port-8823 status,
+  sweep, home card, and served capability surface after the repository
+  validator passes. When an active worktree owns the lane, Mission Control must
+  route to that checkout rather than a stale canonical checkout.
+- Trigger: Arc 1b-S1 passed `tools/validate-mission-control.py`, but the live
+  board still showed an Arc 4a checkout and Arc 3a plan boundary. Direct HTTP
+  readback exposed the disagreement before handoff.
+
+## 2026-07-14 - Source-Only Runner Tests Need A Built-Package Boundary
+
+- Improvement implemented: tests that parse or source simulation runners under
+  `tools/` must execute fully in a source checkout and skip only when the runner
+  is absent from a correctly built package.
+- Trigger: the first Arc 1b-S1 genuine `--as-cran` run repeated the Arc 3a
+  packaging defect by sourcing an `.Rbuildignore`d runner. The focused source
+  test remains fail-closed; installed-package checks now respect the packaging
+  boundary.

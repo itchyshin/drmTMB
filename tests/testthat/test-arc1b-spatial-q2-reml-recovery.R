@@ -1,10 +1,12 @@
 source_arc1b_recovery_runner <- function(env = parent.frame()) {
-  source(
-    testthat::test_path(
-      "..", "..", "tools", "run-arc1b-spatial-q2-reml-recovery.R"
-    ),
-    local = env
+  runner <- testthat::test_path(
+    "..", "..", "tools", "run-arc1b-spatial-q2-reml-recovery.R"
   )
+  testthat::skip_if_not(
+    file.exists(runner),
+    "Arc 1b-S1 recovery runner requires a source checkout"
+  )
+  source(runner, local = env)
 }
 
 test_that("Arc 1b-S1 recovery runner retains every attempted fit", {

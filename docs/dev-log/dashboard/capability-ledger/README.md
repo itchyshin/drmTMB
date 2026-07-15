@@ -7,11 +7,14 @@ tranche summaries.
 
 ## Axes
 
-- `model_surface`: the current 671-cell census of family, distributional
+- `model_surface`: the current 673-cell census of family, distributional
   parameter, effect, provider, dimension, estimator, implementation status, and
   inference evidence. IDs `mc-0001`--`mc-0668` preserve the imported census;
   `mc-0669`--`mc-0671` retain the rejected Arc 3a neighbourhood after three
-  legacy provider rows became exact q1 intercept admissions.
+  legacy provider rows became exact q1 intercept admissions. Arc 1b-S1
+  re-scopes `mc-0199` to the exact bivariate spatial q2 REML `mu1` endpoint,
+  adds `mc-0672` for `mu2`, and uses `mc-0673` to preserve the rejected
+  remainder.
 - `missing_response`: 18 user-visible fitted routes tracked independently from
   model inference maturity.
 
@@ -23,8 +26,8 @@ effects, intervals, or missing-predictor support.
 
 - `cells.tsv` stores current state under immutable cell IDs. `mc-0001` through
   `mc-0668` freeze the imported model IDs, `mc-0669`--`mc-0671` are additive
-  Arc 3a boundary rows, and `mr-*` IDs name exact
-  missing-response routes.
+  Arc 3a boundary rows, `mc-0672`--`mc-0673` complete the Arc 1b-S1 row split,
+  and `mr-*` IDs name exact missing-response routes.
 - `evidence.tsv` stores one-to-many evidence. Historical model provenance was
   imported verbatim even where the old census used internal cell names rather
   than paths.

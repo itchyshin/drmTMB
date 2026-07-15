@@ -1,5 +1,25 @@
 # drmTMB 0.6.0 (development)
 
+## Exact bivariate-spatial q2 REML intercept (Arc 1b-S1)
+
+* `drmTMB(..., REML = TRUE)` now admits one exact bivariate-Gaussian
+  coordinate-spatial location cell: matching labelled
+  `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2`, with
+  intercept-only `sigma1`, `sigma2`, and `rho12`, complete response pairs,
+  unit weights, no known `meta_V()` covariance, and no additional ordinary
+  random effect, direct-SD formula, or `corpair()` regression. The spatial
+  covariance is fixed by the coordinates; range estimation is not part of
+  this slice.
+* An independent dense restricted-likelihood oracle matches the native TMB
+  objective at the optimum and displaced parameter vectors. A predeclared
+  1,200-fit Totoro campaign completed without fit or convergence failures;
+  1,198 fits had positive-definite Hessians, and the high-information cells
+  passed all structured-SD and latent-correlation recovery gates.
+* This is a `point_fit_recovery` admission only. Spatial slopes, range
+  estimation, animal/`relmat()` bivariate REML, scale-side q2, q4 or larger
+  blocks, intervals, coverage, AI-REML, and `supported` claims remain outside
+  this arc.
+
 ## Positive-continuous q1 structured location intercepts (Arc 3a)
 
 * Native univariate ML now fits one unlabelled q1 structured intercept in

@@ -175,7 +175,9 @@ fit_spatial_reml <- drmTMB(
 The multi-seed campaign used the coordinate representation shown here, with
 `n_each = 20` and exactly `M = {8, 16, 32}` sites. This is not a continuous
 minimum-sample-size claim, and it does not admit estimated range, labelled,
-slope-only, multiple-slope, scale-side, bivariate, or non-Gaussian REML routes.
+slope-only, multiple-slope, scale-side, other bivariate, or non-Gaussian REML
+routes. The exact bivariate exception is the matched labelled location-intercept
+cell below.
 
 For two response means, use matching labelled terms and read the latent spatial
 correlation with `corpairs()`:
@@ -197,6 +199,31 @@ rho12(fit_spatial_q2)
 site-level location deviations. `rho12()` reports the residual correlation
 between paired responses after fixed effects and random effects have been
 included.
+
+That exact q2 location-intercept model also admits native REML when the three
+residual parameters are intercept-only:
+
+```r
+fit_spatial_q2_reml <- drmTMB(
+  bf(
+    mu1 = trait1 ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    mu2 = trait2 ~ treatment +
+      spatial(1 | p | site, coords = coords),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  data = dat,
+  family = biv_gaussian(),
+  REML = TRUE
+)
+```
+
+Here the coordinates define a fixed spatial covariance matrix. This cell has
+dense-oracle and retained-denominator point-recovery evidence only; it does not
+authorize interval, coverage, range-estimation, slope, scale-side, or q4
+claims.
 
 For a constant location-scale spatial block, use the same labelled `spatial()`
 term in all four bivariate Gaussian endpoints:
@@ -360,8 +387,11 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
 For bivariate spatial location models, the current intercept-only q2
 `corpairs()` row is point-only: profile mechanics exist, but interval calibration
-and coverage remain planned. The raw paired responses do not belong on this
-axis.
+and coverage remain planned. Native REML for this exact cell requires complete
+response pairs, unit weights, intercept-only `sigma1`, `sigma2`, and `rho12`, no
+known `meta_V()` covariance, and no additional ordinary random effect, direct-SD
+formula, or `corpair()` regression. The raw paired responses do not belong on
+this axis.
 
 ```{r spatial-q2-correlation-fit}
 spatial_q2_example <- simulate_spatial_q2_guide_data()

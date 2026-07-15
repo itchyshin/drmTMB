@@ -27,7 +27,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        self.assertEqual(len(model), 671)
+        self.assertEqual(len(model), 673)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -58,7 +58,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 301, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 303, "rejected_by_design": 330, "not_implemented": 40},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -88,6 +88,93 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(comparator["primary_evidence_id"], "ev-mc-0248-legacy")
         self.assertEqual(comparator["evidence_tier"], "point_fit_recovery")
         self.assertIn("90/90-converged", comparator["claim_boundary"])
+
+    def test_arc1b_s1_cells_are_exact_and_preserve_the_rejected_remainder(self):
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+        evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
+        evidence_by_cell = {
+            cell_id: [row for row in self.evidence if row["cell_id"] == cell_id]
+            for cell_id in ("mc-0199", "mc-0672", "mc-0673")
+        }
+
+        self.assertEqual(
+            {status: sum(row["capability_status"] == status for row in model)
+             for status in ("implemented", "rejected_by_design", "not_implemented")},
+            {"implemented": 303, "rejected_by_design": 330, "not_implemented": 40},
+        )
+        self.assertEqual(
+            sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
+            161,
+        )
+
+        for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
+            row = by_id[cell_id]
+            self.assertEqual(row["dpar"], dpar)
+            self.assertEqual(row["route_variant"], "arc1b_s1_exact_q2_intercept")
+            self.assertEqual(row["structure_provider"], "spatial")
+            self.assertEqual(row["q_gate"], "q2")
+            self.assertEqual(row["estimator"], "REML")
+            self.assertEqual(row["capability_status"], "implemented")
+            self.assertEqual(row["work_status"], "verified")
+            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+            if cell_id == "mc-0199":
+                self.assertEqual(
+                    row["legacy_evidence_source"], "R/drmTMB.R:2056-2113"
+                )
+            self.assertEqual(
+                evidence_by_id[row["primary_evidence_id"]]["evidence_class"],
+                "model_recovery",
+            )
+            self.assertIn("1,200-attempt Totoro campaign", row["claim_boundary"])
+            for excluded in (
+                "unlabelled", "unmatched", "mismatched-label/group/coordinate",
+                "multiple-label", "slope-only", "predictor-dependent",
+                "q4+", "scale-only q2", "q2-plus-q2", "mesh/range-estimating",
+                "incomplete-pair", "non-unit-weight", "known-`meta_V()`",
+                "additional-random-layer", "direct-SD", "spatial-`corpair()`",
+                "random-`rho12`", "animal", "relmat", "non-Gaussian",
+                "AI-REML", "interval", "coverage", "inference-ready",
+                "supported",
+            ):
+                self.assertIn(excluded, row["claim_boundary"])
+            for admitted_condition in (
+                "response pairs are complete", "weights are one",
+                "no known `meta_V()`", "no additional ordinary random effect",
+                "direct-SD formula", "`corpair()` regression",
+            ):
+                self.assertIn(admitted_condition, row["claim_boundary"])
+            self.assertEqual(
+                {item["evidence_class"] for item in evidence_by_cell[cell_id]
+                 if "arc1b" in item["evidence_id"]},
+                {"contract_test", "model_recovery"},
+            )
+
+        remainder = by_id["mc-0673"]
+        self.assertEqual(remainder["route_variant"], "arc1b_s1_remaining_spatial_reml")
+        self.assertEqual(remainder["estimator"], "REML")
+        self.assertEqual(remainder["capability_status"], "rejected_by_design")
+        self.assertEqual(remainder["work_status"], "deferred")
+        self.assertEqual(remainder["evidence_tier"], "none")
+        self.assertIn("mc-0199` and `mc-0672", remainder["claim_boundary"])
+        for rejected_neighbour in (
+            "incomplete response pairs", "known `meta_V()` covariance",
+            "direct-SD formulae", "spatial `corpair()` regressions",
+            "random `rho12` effects", "q2-plus-q2", "mesh/range-estimating",
+        ):
+            self.assertIn(rejected_neighbour, remainder["claim_boundary"])
+        self.assertEqual(
+            evidence_by_id[remainder["primary_evidence_id"]]["evidence_class"],
+            "rejection_test",
+        )
+
+        for cell_id, dpar in (("mc-0107", "mu1"), ("mc-0108", "mu2")):
+            comparator = by_id[cell_id]
+            self.assertEqual(comparator["dpar"], dpar)
+            self.assertEqual(comparator["estimator"], "ML")
+            self.assertEqual(
+                comparator["primary_evidence_id"], f"ev-{cell_id}-legacy"
+            )
 
     def test_generation_is_deterministic(self):
         first = ledger.outputs(self.cells, self.evidence)

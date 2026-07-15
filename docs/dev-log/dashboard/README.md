@@ -5,7 +5,7 @@
 The current capability surface is generated from an auditable ledger rather
 than hand-maintained checkmarks:
 
-- `capability-ledger/cells.tsv`: 671 model-surface cells plus 18 separate
+- `capability-ledger/cells.tsv`: 673 model-surface cells plus 18 separate
   missing-response routes;
 - `capability-ledger/evidence.tsv`: evidence records linked to stable cell IDs;
 - `capability-ledger/transitions.tsv`: append-only work-state transitions;
