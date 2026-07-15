@@ -5,7 +5,7 @@
 The current capability surface is generated from an auditable ledger rather
 than hand-maintained checkmarks:
 
-- `capability-ledger/cells.tsv`: 673 model-surface cells plus 18 separate
+- `capability-ledger/cells.tsv`: 675 model-surface cells plus 18 separate
   missing-response routes;
 - `capability-ledger/evidence.tsv`: evidence records linked to stable cell IDs;
 - `capability-ledger/transitions.tsv`: append-only work-state transitions;
@@ -24,6 +24,28 @@ The 2026-07-11 dated capability files are archived snapshots. The undated
 surface is canonical. Missing-response G0-G5 evidence is independent of the
 model-surface inference tier, and a missing-response ✓ appears only at G3 or
 above.
+
+## Planned hierarchical `sd()` boundary (2026-07-15)
+
+This is queue state, not an active capability claim. The dependency order is
+the current relmat-K REML closeout, the Beta phylogenetic q1 `mu` prerequisite,
+a bounded Beta q1 location-scale-scale gate, and only then a separate
+hierarchical-`sd()` subarc.
+
+Keep the two scale axes explicit: `sigma` models distribution/family
+variability, whereas `sd(target, ...)` models the SD of a named latent or
+random-effect target. The current `sd()` RHS is fixed-effect-only and its
+predictors must be constant within the target group. A conservative first
+random-RHS extension may admit only a genuinely higher/coarser group with
+multiple target groups nested in every higher group, such as
+`sd(individual) ~ habitat + (1 | population)` with multiple individuals per
+population. Same-level `sd(individual) ~ (1 | individual)` stays rejected. A
+target already at the highest available level stays fixed-effect-only; a
+phylogenetic species target needs a separately justified genus/family level
+with adequate species replication. Treat this as a first-implementation
+admission and identifiability rule, not a universal theorem. It requires
+symbolic alignment, nesting checks, recovery, and direct rejection tests before
+any implementation or ledger promotion.
 
 This directory stores the durable source for the local finish-plan dashboard.
 The live copy is served from `/tmp/drm-dashboard` so agents can update JSON

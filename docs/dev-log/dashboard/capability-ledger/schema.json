@@ -98,7 +98,7 @@
     ]
   },
   "expected_counts": {
-    "model_surface": 673,
+    "model_surface": 675,
     "missing_response": 18
   },
   "missing_response_verified_gate": "G3",

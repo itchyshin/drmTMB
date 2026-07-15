@@ -259,7 +259,8 @@ manual Phase 18 artifact tasks named `phylo_mu_slope`, `spatial_mu_slope`,
 `animal_mu_slope`, and `relmat_mu_slope`. These tasks are opt-in, excluded from
 `task = "all"`, and are not recovery, coverage, or power evidence.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
-multiple or labelled spatial slopes, spatial slope correlations,
+additional multiple or labelled spatial-slope layouts outside the exact fitted
+ledger cells, spatial slope correlations,
 non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial
 `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
 spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
@@ -604,8 +605,9 @@ bivariate location covariance, and matching all-four constant q=4
 location-scale covariance. The exact A-matrix animal and K/Q relmat sigma
 slopes are inference-ready with caveats; the spatial sigma-slope interval gate
 remains blocked. Spatial `corpair()`, mesh/SPDE fields, pedigree/Ainv bridge
-marshalling, sparse large-pedigree construction, multiple or labelled slopes,
-and animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
+marshalling, sparse large-pedigree construction, additional multiple or
+labelled slope layouts outside the exact fitted ledger cells, and
+animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
 
 The focused animal, spatial, and `relmat()` pages cover the current q=2 and
 constant q=4 routes. A fitted animal q=4 block looks like:
@@ -1072,8 +1074,8 @@ predictor. Current Gaussian first slices also include intercept-only structured
 `sigma` terms, q1 `sigma` one-slope routes for all four providers, and selected
 bivariate covariance blocks. The phylo, A-matrix animal, and K/Q relmat sigma
 slopes are inference-ready with caveats; the spatial sigma-slope interval gate,
-multiple or labelled structured sigma slopes, and structured `rho12` remain
-planned. For phylogenetic models,
+additional multiple or labelled structured-sigma layouts outside the exact
+fitted ledger cells, and structured `rho12` remain planned. For phylogenetic models,
 \(\mathbf{K}\) is a tree-derived phylogenetic covariance matrix
 \(\mathbf{A}\). For spatial models, \(\mathbf{K}\) will be a distance-derived
 matrix or an SPDE/GMRF precision.
@@ -1210,9 +1212,10 @@ If a phylogenetic fit fails before optimization, check these points first:
   phylogenetic `sigma`, Student-t q1 phylogenetic `nu`, or cumulative-logit q1
   phylogenetic `mu` gates recorded in the live ledger.
 
-Multiple or labelled phylogenetic slopes, phylogenetic slope correlations,
-non-Gaussian phylogenetic effects outside those exact gates, and structured
-effects in `rho12` remain planned.
+Additional multiple or labelled phylogenetic-slope layouts outside the exact
+fitted ledger cells, phylogenetic slope correlations, non-Gaussian
+phylogenetic effects outside those exact gates, and structured effects in
+`rho12` remain planned.
 Partial, unlabelled, mismatched, and slope q=4 phylogenetic location-scale
 forms should error clearly rather than silently fitting a different model.
 
@@ -1639,8 +1642,9 @@ one-slope paths, and q1 structured `sigma` one-slope paths fit for
 phylo/spatial/animal/relmat. The phylo, A-matrix animal, and K/Q relmat sigma
 slopes are inference-ready with caveats; spatial is point-fit/extractor only.
 These paths are deliberately independent: each returns separate SDs and no
-intercept-slope `corpair()` row. Multiple or labelled structured slopes,
-mesh/SPDE slopes, and structured slope correlations remain later gates.
+intercept-slope `corpair()` row. Additional multiple or labelled
+structured-slope layouts outside the exact fitted ledger cells, mesh/SPDE
+slopes, and structured slope correlations remain later gates.
 The combined phylogeny-plus-spatial route should be a separate additive-block
 model with a phylogenetic field and a spatial field, not one large cross-factor
 covariance model. A more interesting future two-response target is the

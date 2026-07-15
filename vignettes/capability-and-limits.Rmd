@@ -76,10 +76,11 @@ fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 | nbinom2 structured `sigma` -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only; scale-targeting bug fixed in 0.4.0 |
 | Row-specific recovery slices: beta `animal()` on `mu`/`sigma`, Student-t `mu ~ spatial(1 + x | ...)`, and Gamma `mu ~ relmat()` | Recovery-only | Point estimate only; no interval or coverage promotion |
 | Bivariate Gaussian spatial q2 location-intercept REML -- matching labelled `spatial(1 | p | site, coords = coords)` in `mu1` and `mu2` | Recovery-only | Point estimates for both structured SDs and their latent correlation; requires intercept-only `sigma1`, `sigma2`, and `rho12`, complete pairs, unit weights, no known `meta_V()`, and no additional ordinary random, direct-SD, or `corpair()` layer; no interval or coverage promotion |
+| Bivariate Gaussian supplied-`K` relmat q2 location-intercept REML -- matching labelled `relmat(1 | p | id, K = K)` in `mu1` and `mu2` | Recovery-only (`point_fit_recovery`) | Point estimates for both structured SDs and their latent relatedness correlation; requires the same named `K`, group ordering, and label in both formulas, intercept-only `sigma1`, `sigma2`, and `rho12`, complete pairs, unit weights, and no additional random-effect, scale-side, `meta_V()`, direct-SD, or `corpair()` layer; no interval or coverage promotion |
 | Row-specific single-smoke slices: ordinal `mu ~ phylo()`, truncated-nbinom2 `hu ~ relmat()`, Student-t `nu ~ phylo()`, Student-t intercept-only `mu ~ spatial(1 | ...)`, Poisson slope-only `mu ~ spatial(0 + x | ...)`, Poisson labelled-scalar `mu ~ spatial()`, Poisson `mu ~ spatial(1 | ...) + (1 | id)`, Poisson `zi ~ spatial()`, fixed-`zi` Poisson `mu ~ spatial()`, and fixed-`zi` NB2 `mu ~ spatial()` | Diagnostic-only | Use only to confirm fit/extractor feasibility; no recovery, interval, or coverage claim |
 | Structured effects for lognormal, skew-normal, Tweedie, zero-one-beta | Not available | Use a Gaussian or basic count/proportion structured route, or fixed effects |
 | Gaussian pure-`mu` univariate REML -- `spatial()`, `animal()`, `relmat()` | Inference-ready with caveats | Unlabelled intercept or independent intercept plus one numeric slope, with `sigma ~ 1`; report a direct structured-SD profile interval only inside the tested discrete domains below |
-| REML for non-Gaussian families; non-phylogenetic mean-side REML outside the pure-`mu` Arc 1a boundary and the exact bivariate-spatial q2 intercept above; all other bivariate non-phylogenetic structured REML | Not available (rejected by design) | Use `REML = FALSE` (maximum likelihood) |
+| REML for non-Gaussian families; non-phylogenetic mean-side REML outside the pure-`mu` Arc 1a boundary and the exact bivariate spatial and supplied-`K` relmat q2 intercepts above; all other bivariate non-phylogenetic structured REML | Not available (rejected by design) | Use `REML = FALSE` (maximum likelihood) |
 | `q4`/`q6`/`q8`/`q12` covariance interval promotion; derived-correlation intervals | Not available (planned) | Use the fitted point estimate; try `profile_targets()` for a direct target |
 
 The rest of this page expands each row with the caveat that changes how you
@@ -290,15 +291,23 @@ layout, and heteroscedastic `sigma ~ x` formulas together with ordinary
 (non-phylogenetic) `sigma` random effects. Arc 1a additionally accepts a
 pure-`mu`, univariate `spatial()`, `animal()`, or `relmat()` term as an
 unlabelled intercept or an independent intercept plus one numeric slope, but
-only with constant `sigma ~ 1` and no sigma random effect. Arc 1b-S1 also
-accepts matching labelled fixed-covariance
+only with constant `sigma ~ 1` and no sigma random effect. Arc 1b-S1 accepts
+matching labelled fixed-covariance
 `spatial(1 | p | site, coords = coords)` intercepts in bivariate `mu1` and
 `mu2`, with intercept-only `sigma1`, `sigma2`, and `rho12`, complete response
 pairs, unit weights, no known `meta_V()` covariance, and no additional ordinary
-random, direct-SD, or `corpair()` layer, at recovery-only grade. It rejects
-non-phylogenetic mean-side shapes outside those boundaries,
-all other bivariate non-phylogenetic structured routes, and every non-Gaussian
-family outright.
+random, direct-SD, or `corpair()` layer, at recovery-only grade. Arc 1b-S2R
+admits the analogous location-only supplied-relatedness cell only when both
+formulas contain the same labelled `relmat(1 | p | id, K = K)` intercept and
+the named `K`, group ordering, and label match exactly. This relmat route has
+`point_fit_recovery` evidence: report its two structured SDs and latent
+relatedness correlation as point estimates, not calibrated intervals.
+
+The relmat REML exception does not admit `Q = Q`, slopes, q4 or larger blocks,
+scale-side terms, extra random effects, incomplete response pairs, non-unit
+weights, nonconstant residual formulas, direct-SD models, `meta_V()`, or
+`corpair()`. Animal-model bivariate REML and every non-Gaussian family also
+remain rejected.
 Try instead: fit the same model with `REML = FALSE` (maximum likelihood); ML
 is the route to use for any model REML rejects.
 

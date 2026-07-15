@@ -386,7 +386,7 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "one exact fixed-covariance spatial q2"
+    "exact fixed-covariance spatial or"
   )
   expect_error(
     drmTMB(
@@ -399,7 +399,7 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "one exact fixed-covariance spatial q2"
+    "exact fixed-covariance spatial or"
   )
   expect_error(
     drmTMB(
@@ -412,7 +412,7 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "one exact fixed-covariance spatial q2"
+    "exact fixed-covariance spatial or"
   )
   expect_error(
     drmTMB(
@@ -525,7 +525,7 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "animal/relatedness providers"
+    "animal"
   )
   expect_error(
     drmTMB(
@@ -536,6 +536,6 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "animal/relatedness providers"
+    "supplied precision.*Q"
   )
 })

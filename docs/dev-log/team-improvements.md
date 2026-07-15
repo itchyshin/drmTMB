@@ -8,6 +8,19 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-07-15 - Verify Remote Package Identity Before Compute
+
+- Improvement implemented: every Totoro or DRAC smoke and campaign must set an
+  absolute package-library path through `R_LIBS`, then print and verify
+  `packageVersion("drmTMB")` before fitting. `R_LIBS_USER` alone is not accepted
+  as proof because host startup configuration can override it.
+- Improvement implemented: a smoke that resolves the wrong installed package
+  is discarded before campaign-result inspection; the corrected command and
+  package identity are retained with the evidence.
+- Trigger: the first Arc 1b-S2R Totoro smoke resolved the server's old default
+  `drmTMB_0.1.4`. The corrected absolute-library smoke loaded `0.6.0.9000` and
+  the full 2,400-fit campaign used that same isolated library.
+
 ## 2026-07-14 - Design-Conditioned Recovery Gates
 
 - Improvement implemented: recovery plans for structured fixed effects now

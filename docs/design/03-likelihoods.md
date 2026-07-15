@@ -1538,8 +1538,47 @@ spatial q2 location-intercept block in `mu1` and `mu2`, with intercept-only
 `sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
 known `meta_V()` covariance, and no additional ordinary random effect,
 direct-SD formula, or `corpair()` regression; it stops at
-`point_fit_recovery`. The
-authoritative route-by-route table is
+`point_fit_recovery`.
+
+Arc 1b-S2R adds one parallel supplied-relatedness exception:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x1 + relmat(1 | p | id, K = K),
+    mu2 = y2 ~ x2 + relmat(1 | p | id, K = K),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  family = biv_gaussian(),
+  data = data,
+  REML = TRUE
+)
+```
+
+If \(B=[b_1,b_2]\) stores the two group-level location fields, this cell uses
+
+```text
+vec(B) ~ Normal(0, Sigma_K ⊗ K)
+Sigma_K =
+  [s1^2,              rho_K s1 s2;
+   rho_K s1 s2,       s2^2]
+```
+
+where `K` is the same named covariance matrix, in the same group-level order,
+for both endpoints. Here `rho_K` is the structured location correlation, not
+the residual response correlation `rho12`. The implementation reuses the
+existing exact-Gaussian TMB structured prior and REML integration of the
+location fixed effects; it does not add another likelihood engine. An
+independent dense restricted-likelihood
+oracle and the retained 2,400-attempt recovery campaign support only
+`point_fit_recovery`. Precision input `Q = Q`, `animal()`, unlabelled or
+unmatched blocks, slopes, q4+, scale-side structured terms, extra random-effect
+layers, incomplete or weighted pairs, non-Gaussian families, intervals, and
+coverage remain outside this cell.
+
+The authoritative route-by-route table is
 `docs/design/211-structured-reml-status.md`; this likelihood section must not
 be read as a family-wide or provider-wide promotion.
 

@@ -56,13 +56,57 @@ floors, but coverage is not nominal-exact. Upper-tail miss asymmetry and
 zero-lower-bound slope profiles remain material caveats. The evidence therefore
 does not support continuous `M >= ...` claims or the `supported` tier.
 
+## Arc 1b bivariate q2 location routes
+
+Arc 1b-S1 admits one matching labelled fixed-covariance spatial q2
+location-intercept block in bivariate Gaussian `mu1` and `mu2`. Arc 1b-S2R adds
+one parallel supplied-relatedness cell:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x1 + relmat(1 | p | id, K = K),
+    mu2 = y2 ~ x2 + relmat(1 | p | id, K = K),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  family = biv_gaussian(),
+  data = data,
+  REML = TRUE
+)
+```
+
+Both endpoints must use the same label, group, supplied named covariance
+matrix, and group-level ordering. Residual `sigma1`, `sigma2`, and `rho12` are
+constant; response pairs are complete; weights are one; and the model has no
+known `meta_V()` covariance, direct-SD formula, `corpair()` regression, or
+additional random-effect layer. The route reuses drmTMB's existing native-TMB
+exact-Gaussian REML engine and known-covariance structured prior.
+
+The independent dense restricted-likelihood oracle agrees with the TMB
+objective at the fitted optimum and two displaced parameter vectors. The
+predeclared Totoro campaign retained 2,400 unique attempts; all 2,400 converged
+with `pdHess = TRUE`, and every bias and RMSE gate passed. This evidence supports
+only the two endpoint ledger rows at `point_fit_recovery`. It does not promote
+intervals, coverage, `inference_ready_with_caveats`, or `supported` status.
+The retained denominator, gates, matrix digests, and hashes are recorded in
+`docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/README.md`.
+
+The S2R cell does not admit `relmat(..., Q = Q)`, `animal()`, unlabelled,
+unmatched, or differently ordered blocks, slopes, q4+, scale-side structure,
+extra random effects, incomplete pairs, non-unit weights, non-Gaussian
+families, or AI-REML. The spatial and supplied-`K` cells are separate exact
+admissions; neither creates provider-wide bivariate REML support.
+
 ## Excluded routes
 
 Arc 1a does not admit slope-only terms, factor slopes, labelled covariance
 blocks, multiple slopes, `sigma ~ x`, sigma random effects, matched structured
-`mu+sigma` terms, `phylo_interaction()`, bivariate routes, non-Gaussian
-families, estimated spatial range, sparse fixed effects, response aggregation,
-engaged missing-data engines, or direct-SD formulas. Fixed-effect profile
+`mu+sigma` terms, `phylo_interaction()`, bivariate routes beyond the separate
+Arc 1b exact q2 cells, non-Gaussian families, estimated spatial range, sparse
+fixed effects, response aggregation, engaged missing-data engines, or
+direct-SD formulas. Fixed-effect profile
 intervals are unavailable under REML because the mean coefficients are in the
 integrated parameter block; use an ML fit when fixed-effect profiles are
 required.

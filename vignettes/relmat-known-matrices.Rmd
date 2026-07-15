@@ -98,7 +98,10 @@ simulate_relmat_q2_guide_data <- function(seed = 1) {
   sex <- factor(rep(rep(c("female", "male"), each = n_each), n_observation_block / 2))
   age <- runif(length(observation), 0, 2)
   line_levels <- paste0("line_", seq_len(n_line))
-  line <- factor(rep(rep(line_levels, each = 4), each = n_each))
+  line <- factor(
+    rep(rep(line_levels, each = 4), each = n_each),
+    levels = line_levels
+  )
 
   K <- outer(seq_len(n_line), seq_len(n_line), function(i, j) {
     0.25^abs(i - j)
@@ -129,6 +132,7 @@ simulate_relmat_q2_guide_data <- function(seed = 1) {
       plant_height = 1.4 + 0.30 * age - 0.12 * (sex == "male") +
         u_height[line] + sigma_height * e_height
     ),
+    K = K,
     Q = Q
   )
 }
@@ -231,9 +235,9 @@ one.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have deviations structured by a user-supplied latent covariance or precision matrix? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in `mu` | Fitted first slice. `K` is a covariance matrix; `Q` is a precision matrix. |
-| Does one numeric fixed-effect slope also have known-matrix deviations? | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` in `mu` | Fitted first one-slope slice with independent intercept and slope fields. Multiple structured slopes and intercept-slope correlations remain planned. |
-| Does a one-response Gaussian model have known-matrix residual-scale deviations? | `relmat(1 | id, Q = Q)` in `sigma`, alone or matching the `mu` term; `relmat(1 + x | id, K = K)` for the exact one-slope route | The residual-scale intercept is fitted. The exact K/Q q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` `relmat()` intercepts estimate one known-matrix mean-scale correlation. Broader K/Q bridge claims, multiple or labelled sigma slopes, and structured slope correlations remain planned. |
-| Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. |
+| Does one numeric fixed-effect slope also have known-matrix deviations? | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` in `mu` | Fitted first univariate one-slope slice with independent intercept and slope fields. Additional structured-slope layouts outside the exact fitted bivariate ledger cells and intercept-slope correlations remain planned. |
+| Does a one-response Gaussian model have known-matrix residual-scale deviations? | `relmat(1 | id, Q = Q)` in `sigma`, alone or matching the `mu` term; `relmat(1 + x | id, K = K)` for the exact one-slope route | The residual-scale intercept is fitted. The exact K/Q q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` `relmat()` intercepts estimate one known-matrix mean-scale correlation. Broader K/Q bridge claims, additional multiple or labelled sigma-slope layouts outside the exact fitted bivariate ledger cells, and structured slope correlations remain planned. |
+| Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | ML fits both representations. Native REML has `point_fit_recovery` evidence only for the exact supplied-`K`, location-intercept cell with constant residual formulas, complete pairs, unit weights, and no other model layer. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. `Q` remains ML-only for this bivariate route. |
 | Does the known-matrix layer link means and residual scales across two responses? | the same labelled `relmat(1 | p | id, Q = Q)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "relmat")` reports six constant latent relatedness correlations; profile intervals for those derived correlations remain unavailable. |
 | Does the known-matrix layer change multiple slopes or a predictor-dependent correlation? | examples such as `relmat(1 + x + z | id, K = K)` or `relmat()` `corpair()` formulas | Planned. These routes need matrix validation, diagnostics, recovery tests, interval targets, and examples before use. |
 
@@ -273,36 +277,84 @@ fit_relmat_reml <- drmTMB(
 The multi-seed campaign used the `K` representation shown here, with
 `n_each = 20` and exactly `M = {8, 16, 32}` relatedness levels. `Q` has
 deterministic representation-parity evidence only, not multi-seed campaign
-coverage. These domains do not admit slope-only, labelled, multiple-slope,
-scale-side, bivariate, or non-Gaussian REML routes.
+coverage. Those Arc 1a domains do not admit slope-only, labelled,
+multiple-slope, scale-side, bivariate, or non-Gaussian REML routes. The
+separate exact bivariate supplied-`K` exception is shown next.
 
-For two responses, use the same `relmat()` block label in `mu1` and `mu2`:
+For two responses under REML, build one named covariance matrix whose rows and
+columns exactly match the factor levels, then use the same matrix and block
+label in `mu1` and `mu2`. This complete example constructs the data and a dense
+correlation matrix rather than leaving either object undefined:
 
 ```r
-fit_relmat_q2 <- drmTMB(
+set.seed(20260715)
+line_levels <- paste0("line_", seq_len(10))
+line <- factor(rep(line_levels, each = 6), levels = line_levels)
+treatment <- rep(rep(c(0, 1), each = 3), length(line_levels))
+index <- seq_along(line_levels)
+K <- outer(index, index, function(i, j) 0.4^abs(i - j))
+dimnames(K) <- list(line_levels, line_levels)
+L <- t(chol(K))
+z1 <- rnorm(length(line_levels))
+z2 <- 0.35 * z1 + sqrt(1 - 0.35^2) * rnorm(length(line_levels))
+u1 <- setNames(as.vector(L %*% z1) * 0.8, line_levels)
+u2 <- setNames(as.vector(L %*% z2) * 0.65, line_levels)
+e1 <- rnorm(length(line))
+e2 <- -0.2 * e1 + sqrt(1 - 0.2^2) * rnorm(length(line))
+dat <- data.frame(
+  trait1 = 0.3 + 0.5 * treatment + u1[line] + 0.3 * e1,
+  trait2 = -0.2 - 0.25 * treatment + u2[line] + 0.35 * e2,
+  treatment = treatment,
+  line = line
+)
+
+fit_relmat_q2_reml <- drmTMB(
   bf(
-    mu1 = trait1 ~ treatment +
-      relmat(1 | p | line, Q = Q),
-    mu2 = trait2 ~ treatment +
-      relmat(1 | p | line, Q = Q)
+    mu1 = trait1 ~ treatment + relmat(1 | p | line, K = K),
+    mu2 = trait2 ~ treatment + relmat(1 | p | line, K = K),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
   ),
   data = dat,
-  family = biv_gaussian()
+  family = biv_gaussian(),
+  REML = TRUE
 )
-corpairs(fit_relmat_q2, level = "relmat")
-rho12(fit_relmat_q2)
+corpairs(fit_relmat_q2_reml, level = "relmat")
+rho12(fit_relmat_q2_reml)
 ```
 
 `corpairs()` reports the fitted latent known-matrix correlation among line or
 unit-level location deviations. `rho12()` reports the residual correlation
 between responses after fixed effects and random effects have been included.
+The REML claim stops at `point_fit_recovery`: intervals and coverage remain
+unvalidated.
+
+The precision representation remains available for the established ML q2
+route, not for this bivariate REML exception:
+
+```r
+Q <- solve(K)
+fit_relmat_q2_ml <- drmTMB(
+  bf(
+    mu1 = trait1 ~ treatment + relmat(1 | p | line, Q = Q),
+    mu2 = trait2 ~ treatment + relmat(1 | p | line, Q = Q),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  data = dat,
+  family = biv_gaussian(),
+  REML = FALSE
+)
+```
 
 For reports, keep this intercept-only q=2 known-matrix correlation point-only.
 The profile mechanism is callable, but interval calibration and coverage are
 still planned for this row:
 
 ```r
-relmat_pairs <- corpairs(fit_relmat_q2, level = "relmat")
+relmat_pairs <- corpairs(fit_relmat_q2_reml, level = "relmat")
 plot_corpairs(relmat_pairs)
 ```
 
@@ -467,20 +519,21 @@ correlation among observations.
 ```{r relmat-q2-correlation-fit}
 relmat_q2_example <- simulate_relmat_q2_guide_data()
 relmat_q2_dat <- relmat_q2_example$data
-Q <- relmat_q2_example$Q
+K <- relmat_q2_example$K
 
 fit_relmat_q2_example <- drmTMB(
   bf(
     mu1 = seed_mass ~ age + sex +
-      relmat(1 | p | line, Q = Q),
+      relmat(1 | p | line, K = K),
     mu2 = plant_height ~ age + sex +
-      relmat(1 | p | line, Q = Q),
-    sigma1 = ~ sex,
-    sigma2 = ~ sex,
+      relmat(1 | p | line, K = K),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
     rho12 = ~ 1
   ),
-  family = c(gaussian(), gaussian()),
-  data = relmat_q2_dat
+  family = biv_gaussian(),
+  data = relmat_q2_dat,
+  REML = TRUE
 )
 
 relmat_q2_pairs <- corpairs(
@@ -497,12 +550,10 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
   plot_corpairs(
     relmat_q2_display,
-    colour = "level",
+    colour = NULL,
     label = "display_label",
     facet = NULL
   ) +
-    ggplot2::scale_colour_manual(values = c("relmat" = "#009E73")) +
-    ggplot2::scale_fill_manual(values = c("relmat" = "#009E73")) +
     relmat_eye_theme() +
     ggplot2::labs(
       title = "Known-matrix latent mean correlation",
@@ -522,6 +573,9 @@ The following `relmat()` routes remain planned:
   `relmat(1 + x | id, K = K)` sigma route;
 - predictor-dependent `relmat()` `corpair()` regressions;
 - generic direct-SD grammar for known-matrix standard deviations;
+- bivariate relmat REML with `Q`, slopes, q4 or larger blocks, scale-side
+  terms, extra random effects, incomplete pairs, non-unit weights, or
+  nonconstant `sigma1`, `sigma2`, or `rho12` formulas;
 - non-Gaussian known-matrix structured effects beyond the first
   recovery-grade gates noted below.
 
