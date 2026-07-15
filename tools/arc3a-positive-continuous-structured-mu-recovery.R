@@ -287,6 +287,7 @@ session_lines <- c(
   paste0("source_dirty_paths=", clean_text(paste(dirty_lines, collapse = ";"))),
   paste0("host=", host),
   paste0("mode=", args$mode),
+  paste0("load=", args$load),
   paste0("command=", clean_text(paste(commandArgs(FALSE), collapse = " "))),
   paste0("master_seed=", master_seed),
   paste0("M=", paste(args$M, collapse = ",")),
@@ -456,6 +457,7 @@ empty_row <- function(route, M, replicate, dgp_seed, global_fit_index) {
     convergence_code = NA_integer_,
     convergence_message = NA_character_,
     objective = NA_real_,
+    hessian_covariance_values = NA_character_,
     hessian_diagnostic_finite = FALSE,
     pdHess = NA,
     boundary = NA,
@@ -505,6 +507,8 @@ fit_one <- function(route, M, replicate, dgp_seed, global_fit_index) {
   row$tree_hash <- sim$geometry$tree_hash
   row$K_hash <- sim$geometry$K_hash
   row$Q_hash <- sim$geometry$Q_hash
+  row$field_level_names <- paste(names(sim$field), collapse = ";")
+  row$truth_field_values <- paste(sprintf("%.17g", unname(sim$field)), collapse = ";")
   row$provider_object_hash <- switch(
     route$representation,
     tree = row$tree_hash,
@@ -571,7 +575,16 @@ fit_one <- function(route, M, replicate, dgp_seed, global_fit_index) {
     contribution <- drmTMB:::phylo_mu_contribution(fit, dpar = "mu")
     fixed <- as.vector(fit$model$X$mu %*% beta_mu)
     predicted <- predict(fit, dpar = "mu", type = "link")
-    field_hat <- tapply(contribution, sim$data$id, function(x) mean(unique(x)))
+    field_hat <- tapply(contribution, sim$data$id, function(x) {
+      values <- unique(x)
+      if (length(values) != 1L) {
+        stop(
+          "Conditional structured contribution varies within a structured level",
+          call. = FALSE
+        )
+      }
+      values[[1L]]
+    })
     field_hat <- field_hat[names(sim$field)]
     list(
       beta_mu = beta_mu,
@@ -598,8 +611,6 @@ fit_one <- function(route, M, replicate, dgp_seed, global_fit_index) {
   row$prediction_identity_max_abs_error <- extracted$prediction_error
   row$conditional_field_rmse <- extracted$field_rmse
   row$conditional_field_correlation <- extracted$field_correlation
-  row$field_level_names <- paste(names(sim$field), collapse = ";")
-  row$truth_field_values <- paste(sprintf("%.17g", unname(sim$field)), collapse = ";")
   row$estimate_field_values <- paste(
     sprintf("%.17g", unname(extracted$field_hat)),
     collapse = ";"
@@ -634,8 +645,14 @@ fit_one <- function(route, M, replicate, dgp_seed, global_fit_index) {
   row$fit_success <- TRUE
   row$pdHess <- isTRUE(fit$sdr$pdHess)
   covariance <- fit$sdr$cov.fixed
-  row$hessian_diagnostic_finite <- !is.null(covariance) && length(covariance) > 0L &&
-    all(is.finite(covariance))
+  if (!is.null(covariance) && length(covariance) > 0L) {
+    row$hessian_covariance_values <- paste(
+      sprintf("%.17g", as.numeric(covariance)),
+      collapse = ";"
+    )
+  }
+  row$hessian_diagnostic_finite <- !is.null(covariance) &&
+    length(covariance) > 0L && all(is.finite(covariance))
   row$analysis_success <- row$fit_success && row$hessian_diagnostic_finite
   row$boundary <- row$estimate_tau <= 0.05 || row$estimate_tau >= 2.00
   sigma_hat <- exp(row$estimate_beta_sigma)
@@ -707,7 +724,8 @@ required_columns <- c(
   "representation", "M", "n_per_level", "N", "replicate", "dgp_seed",
   "fit_key", "attempted", "fit_success", "analysis_success", "failure_stage",
   "error_class", "error_message", "elapsed_seconds", "convergence_code",
-  "convergence_message", "objective", "pdHess", "boundary", "gross_sigma",
+  "convergence_message", "objective", "hessian_covariance_values",
+  "hessian_diagnostic_finite", "pdHess", "boundary", "gross_sigma",
   "truth_beta0", "truth_beta_x", "truth_beta_sigma", "truth_tau",
   "estimate_beta0", "estimate_beta_x", "estimate_beta_sigma", "estimate_tau",
   "extractor_beta_mu_names", "extractor_beta_sigma_names", "extractor_sd_name",

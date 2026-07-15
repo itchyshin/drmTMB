@@ -1,6 +1,7 @@
 # Arc 3a recovery campaign manifest: positive-continuous structured `mu`
 
-**Status:** PREDECLARED, NOT RUN. **Decision ceiling:**
+**Status:** PREDECLARED; RUNNER AND FAIL-CLOSED SUMMARIZER IMPLEMENTED; NOT
+RUN. Totoro execution remains on a host-capacity safety hold. **Decision ceiling:**
 `point_fit_recovery` for exactly Gamma–`phylo()`, lognormal–`phylo()`, and
 lognormal–`relmat()` q1 `mu` intercepts under native-TMB univariate ML. Existing
 Gamma–`relmat()` is a positive comparator, not a new promotion. This manifest
@@ -31,7 +32,8 @@ conditional-field recovery without treating conditional modes as unbiased
 fixed-parameter estimators.
 
 This campaign does **not** evaluate confidence intervals, coverage, tests,
-power, REML, structured slopes, structured `sigma`, q2+, multiple providers,
+power, REML, structured slopes, structured `sigma`, q2+, simultaneous
+structured providers,
 newdata prediction, bivariate models, or Julia parity.
 
 ## D — Data-generating mechanism
@@ -191,8 +193,8 @@ below, report
 \]
 
 Also report median error, 5th/95th error quantiles, mean estimate, and `n_s`.
-Bias MCSE is `sd(theta_hat - theta) / sqrt(n_s)`. RMSE MCSE is obtained from a
-deterministic 2,000-resample nonparametric bootstrap of squared errors using a
+Bias MCSE is `sd(theta_hat - theta) / sqrt(n_s)`. RMSE MCSE is obtained from an
+exactly 2,000-resample deterministic nonparametric bootstrap of squared errors using a
 separate recorded summary seed. Do not calculate confidence-interval coverage,
 Type I error, power, or any interval-based measure.
 
@@ -281,9 +283,11 @@ evidence for ledger promotion.
 If a route fails any gate, its decision is **HOLD** at its prior ledger state.
 Other new cells may pass independently only if the failure is cell-specific and
 the shared-engine, scale-identity, seed, and output-integrity gates remain
-valid. Any wrong likelihood units, double scaling, denominator loss, K/Q
-non-equivalence, shared extractor defect, or corrupted seed/output manifest
-places **all three new cells on HOLD**.
+valid. The summarizer propagates the Gamma-relmat comparator and lognormal K/Q
+parity decisions to all three new cells as shared gates. Any wrong likelihood
+units, double scaling, denominator loss, K/Q non-equivalence, comparator
+failure, shared extractor defect, or corrupted seed/output manifest places
+**all three new cells on HOLD**.
 
 The thresholds support only point-fit recovery over the exact tested domain.
 They do not imply interval feasibility, nominal coverage, `inference_ready`,
@@ -297,7 +301,8 @@ The raw certification table must include at least:
 `campaign_id`, source commit SHA, host, phase, family, provider, representation,
 `M`, `n_per_level`, `N`, replicate, DGP seed, fit key, attempted, failure stage,
 error class/message, elapsed seconds, convergence code/message, objective,
-`pdHess`, boundary and gross-sigma flags, every truth and estimate, extractor
+the serialized fixed-parameter Hessian-covariance diagnostic, `pdHess`, boundary
+and gross-sigma flags, every truth and estimate, extractor
 names, prediction-identity error, conditional-field RMSE/correlation, tree/K/Q
 hashes, and session manifest hash.
 
@@ -332,7 +337,22 @@ and the smoke passes:
    substitute a failed attempt. Record worker cleanup and confirm no orphan R
    processes remain.
 7. Copy compact summaries, manifests, and hashes back for review; keep raw
-   results local. Do not run any simulation/recovery fit on GitHub Actions.
+results local. Do not run any simulation/recovery fit on GitHub Actions.
+
+Before evaluating recovery, the summarizer authenticates the raw table against
+the independently reconstructed frozen schedule. It requires exact agreement
+for the Cartesian route/rung/replicate tuples, immutable global indices,
+round-robin shard membership, master-seed sequence, `M`, `n_per_level`, `N`,
+truth values, route/family/provider/representation/role mappings, source SHA,
+campaign ID, host class, and clean-source declaration. It verifies each shard's
+seed manifest and session-manifest hash, requires the exact host, parsed
+effective `load=installed` mode, and installed-snapshot certification command,
+and recomputes the balanced-tree and
+K/Q provider hashes. It then regenerates each latent field from its recorded
+DGP seed and frozen covariance, requires exact level names and field values,
+and recomputes field RMSE/correlation and all fit-, analysis-, Hessian-,
+boundary-, and gross-sigma flags. Any mismatch is a hard error before gate
+evaluation; missing or altered provenance cannot become a HOLD/PASS result.
 
 The executable shard contract is deterministic round-robin partitioning of the
 frozen 6,000-row schedule:
@@ -350,8 +370,10 @@ Rscript tools/arc3a-positive-continuous-structured-mu-recovery.R \
 must reconstruct indices 1–6,000 and unique `fit_key` values exactly once. Run
 `tools/summarize-arc3a-positive-continuous-structured-mu-recovery.R` only after
 all shards finish; it refuses missing/duplicate indices, dirty or mixed source
-SHAs, non-certification rows, missing shard IDs, scale-identity failures, or a
-denominator other than 6,000 before evaluating the predeclared gates.
+SHAs, non-certification rows, missing shard IDs, non-constant fields within a
+structured level, scale-identity failures, non-canonical seed/session/provider
+provenance, a bootstrap count other than exactly 2,000, or a denominator other
+than 6,000 before evaluating the predeclared gates.
 
 ## Williams transparent-reporting self-audit
 
@@ -363,18 +385,22 @@ denominator other than 6,000 before evaluating the predeclared gates.
 | 4 | Methods literature cited | ✅ | ADEMP and transparent-reporting sources cited at the top; the package likelihood and provider contracts are cited to the symbolic freeze |
 | 5 | Performance measures (formulas) | ✅ | Bias/RMSE formulas, denominators, diagnostics, parity, MCSEs, and PASS/HOLD thresholds above |
 | 6 | Software / packages / versions | partial | The artifact contract requires `sessionInfo()`, TMB/compiler details, source SHA, and host; actual versions can only be recorded at execution |
-| 7 | Code for DGP available | gap | The runner must be implemented, tested, committed, and source-SHA linked before compute |
-| 8 | Code for performance measures | gap | The standalone summarizer and deterministic MCSE implementation must be implemented and tested before compute |
+| 7 | Code for DGP available | ✅ | The deterministic runner is implemented and source-SHA linked; its staged commit must still be re-read back before compute |
+| 8 | Code for performance measures | ✅ | The standalone fail-closed summarizer, exact 2,000-resample RMSE MCSE, and provenance authentication are implemented and locally rehearsed |
 | 9 | Worked-example case study | partial | Not part of this internal campaign; the exact user-facing fit belongs in the Arc 3a package documentation before closeout |
 | 10 | Full performance table | gap | Campaign not run; the raw-record and complete-results contract above is predeclared |
 | 11 | MCSE reported alongside | gap | Campaign not run; binomial, bias, and bootstrap RMSE MCSEs are mandatory in every result table |
 
 ## Fisher verdict
 
-**READY FOR RUNNER IMPLEMENTATION; NOT READY FOR COMPUTE.** The estimands,
-units, information ladder, seeds, fit count, denominator rules, diagnostics,
-representation parity, and PASS/HOLD thresholds are frozen. Compute remains
-blocked until the Arc 3a engine, focused rejection/extractor tests, conditional
-prediction repair, standalone runner/summarizer, five-fit smoke, and exact
-Totoro snapshot read-back are green. A passing campaign can support only the
-three exact q1 ML cells at `point_fit_recovery`.
+**RUNNER/SUMMARIZER READY; EXECUTION ON SAFETY HOLD.** The estimands, units,
+information ladder, seeds, fit count, denominator rules, diagnostics,
+representation parity, and PASS/HOLD thresholds remain frozen. Iterative
+independent review found and closed schedule, denominator, Hessian, field,
+bootstrap, shared-gate, descriptive-output, and provenance defects. Positive
+and negative local contracts now fail closed, including duplicate CLI overrides
+of the effective installed-source mode. Fisher's final re-review returned
+READY. Compute still requires a newly committed clean snapshot, exact Totoro
+read-back, and safe host capacity; the latest host checks do not establish that
+capacity. A passing campaign can support only the three exact q1 ML cells at
+`point_fit_recovery`.
