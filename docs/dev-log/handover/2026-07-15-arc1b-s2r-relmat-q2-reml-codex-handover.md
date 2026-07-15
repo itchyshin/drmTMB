@@ -20,6 +20,17 @@ passed `os-matrix` and `ubuntu-latest (release)` at the provenance head; the
 Ubuntu job completed in 26m46s. This receipt is a docs-only successor, so read
 the successor's exact-head rerun live before closeout.
 
+## Landing state
+
+- **CARRIED-OVER:** branch `codex/arc1b-s2r-relmat-q2-reml`, focused PR #784.
+  The branch is committed and pushed, but the PR must remain open and unmerged
+  until Shinichi gives separate merge authorization. Resume with
+  `gh pr view 784 --json headRefOid,state,mergeable,mergeStateStatus,url` and
+  `gh pr checks 784 --watch`; do not merge as part of this handover.
+- The landing gate also reports pre-existing unpushed commits on hundreds of
+  unrelated local branches. They predate this isolated arc, are outside its
+  scope, and were neither edited nor claimed as landed here.
+
 ## Verified evidence
 
 - Independent dense restricted-likelihood oracle matches the TMB objective at
