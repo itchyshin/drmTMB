@@ -96,8 +96,8 @@ behaviour remains tested.
 The mandatory post-merge refresh found PR #781 to be an unrelated
 meta-analysis trust dossier. No open issue or PR owns this exact supplied-`K`
 bivariate REML slice, so no unrelated thread was changed and no duplicate issue
-was opened. The implementation will be proposed as one focused PR and left
-unmerged pending separate authorization.
+was opened. The implementation is proposed in focused PR #784 and remains open
+and unmerged pending separate authorization.
 
 ## 8. Consistency Audit
 
@@ -196,10 +196,7 @@ families, intervals, coverage, AI-REML, or the future hierarchical-`sd()` arc.
 
 ## 13. Next Actions
 
-1. Commit the implementation, replace the new ledger provenance placeholders
-   with the exact implementation commit, rerun the ledger and closeout gates,
-   and make a provenance-only successor commit.
-2. Push the focused branch, open its PR, wait for exact-head CI, and leave it
-   unmerged.
-3. After this arc is separately merged, begin the Beta phylogenetic q1 `mu`
+1. Push the docs-only PR/CI receipt, wait for its exact-head CI, and leave PR
+   #784 unmerged.
+2. After this arc is separately merged, begin the Beta phylogenetic q1 `mu`
    prerequisite; do not start the hierarchical-`sd()` subarc early.

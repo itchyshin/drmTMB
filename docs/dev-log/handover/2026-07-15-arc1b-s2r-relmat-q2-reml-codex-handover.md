@@ -11,6 +11,15 @@ non-Gaussian families, intervals, or coverage.
 Execution base: `d210439187f2a49922de8bcf8c183d164d7bd0dc` (merged PR #783).
 Branch: `codex/arc1b-s2r-relmat-q2-reml`.
 
+Implementation commit: `1f563a17fc2082745ea90820f576702e05b29021`.
+Evidence-provenance commit: `4e3fb76b83a037fcf02302f3a33135c24186b8a3`.
+Focused PR: [#784](https://github.com/itchyshin/drmTMB/pull/784), ready for
+review and intentionally unmerged. Exact-head GitHub run
+[29431954827](https://github.com/itchyshin/drmTMB/actions/runs/29431954827)
+passed `os-matrix` and `ubuntu-latest (release)` at the provenance head; the
+Ubuntu job completed in 26m46s. This receipt is a docs-only successor, so read
+the successor's exact-head rerun live before closeout.
+
 ## Verified evidence
 
 - Independent dense restricted-likelihood oracle matches the TMB objective at
