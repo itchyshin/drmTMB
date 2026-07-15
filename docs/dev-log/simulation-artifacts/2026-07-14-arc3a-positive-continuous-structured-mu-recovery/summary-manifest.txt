@@ -1,0 +1,42 @@
+campaign_id=arc3a_positive_continuous_structured_mu_20260714
+source_commit_sha=0ef41a6904372de1790a63ecbf233758221d52ff
+hosts=totoro
+worker_count=40
+attempted_rows=6000
+fit_success=6000
+analysis_success=6000
+summary_seed=2026071417
+bootstrap_reps=2000
+combined_raw_sha256=b303aab6781770e14be096b69c95b5da0e803f703cf3321baa91750a6465dcd3
+route_summary_sha256=91523d88d613f724706886b5487f8a9a95cb211686a04a4840cf7e37105fc9e3
+target_summary_sha256=23ceac696c13ca76899ef7ce09b1292226a5d710c627bc9c1f202501de1d882d
+parity_summary_sha256=aea481c2a564663c1b10371ece780aeeefa431f0c47abf2d90d9e67b42c5e935
+route_decision_sha256=b801eb545ad43ea852ef3242ab076f8da4c96e3ae342253ab4f311a5e0d9528e
+cell_decision_sha256=db6e7b0da4e4cd97d00664885b2b231794e9f9f3412112138ea60d8ad3f25076
+failure_stage_sha256=d5354ea55b639ff175eea97380068ae857f3e6d16cbefb62caa7ab6a103a761b
+all_new_cells_pass=FALSE
+comparator_pass=TRUE
+kq_parity_pass=TRUE
+shared_gate_pass=TRUE
+R version 4.5.3 (2026-03-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.4 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C
+
+time zone: America/Edmonton
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base
+
+loaded via a namespace (and not attached):
+[1] compiler_4.5.3

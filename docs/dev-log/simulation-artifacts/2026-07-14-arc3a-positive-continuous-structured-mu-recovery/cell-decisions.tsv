@@ -1,0 +1,5 @@
+cell	prior_state	certification_pass	shared_gate_pass	resulting_state
+gamma_phylo	implemented	FALSE	TRUE	implemented
+lognormal_phylo	implemented	FALSE	TRUE	implemented
+lognormal_relmat	implemented	TRUE	TRUE	point_fit_recovery
+gamma_relmat_comparator	point_fit_recovery	TRUE	TRUE	point_fit_recovery

@@ -1,12 +1,40 @@
 # Arc 3a recovery campaign manifest: positive-continuous structured `mu`
 
-**Status:** PREDECLARED; RUNNER AND FAIL-CLOSED SUMMARIZER IMPLEMENTED; NOT
-RUN. Totoro execution remains on a host-capacity safety hold. **Decision ceiling:**
-`point_fit_recovery` for exactly Gamma–`phylo()`, lognormal–`phylo()`, and
-lognormal–`relmat()` q1 `mu` intercepts under native-TMB univariate ML. Existing
-Gamma–`relmat()` is a positive comparator, not a new promotion. This manifest
-freezes the design and numerical PASS/HOLD rules before any campaign result is
-seen.
+**Status:** CERTIFICATION COMPLETE; MIXED FROZEN-GATE VERDICT. Totoro completed
+all 6,000 scheduled certification fits from the clean `0ef41a69` source
+snapshot with 40 workers. **Predeclared maximum decision ceiling:**
+`point_fit_recovery` for each of Gamma–`phylo()`, lognormal–`phylo()`, and
+lognormal–`relmat()` q1 `mu` intercepts under native-TMB univariate ML. The
+realized decision promotes only lognormal–`relmat()`; both phylogenetic routes
+remain `implemented`. Existing Gamma–`relmat()` is a positive comparator, not
+a new promotion. This manifest
+froze the design and numerical PASS/HOLD rules before any campaign result was
+seen. Compact results and hashes are retained under
+`docs/dev-log/simulation-artifacts/2026-07-14-arc3a-positive-continuous-structured-mu-recovery/`.
+
+## Certified result
+
+Every scheduled route/rung has 400/400 fit successes, 400/400 analysis
+successes, 400/400 optimizer convergence-zero results, and 400/400 positive-
+definite Hessians. No boundary, gross-sigma, or other failure-stage event
+occurred. The comparator and all shared gates pass. All 1,200 paired
+lognormal-relatedness `K`/`Q` fits pass the representation tolerances with zero
+tolerance failures.
+
+Lognormal–`relmat()` passes every frozen cell gate and reaches
+`point_fit_recovery`. Gamma–`relmat()` passes and retains its existing
+`point_fit_recovery` state. Gamma–`phylo()` and lognormal–`phylo()` remain
+`implemented`: their final-rung intercept RMSEs are `0.1930` and `0.1934`,
+above the frozen `0.12` rule, although every other final-rung scalar target,
+the field diagnostics, and the information-response gate pass.
+
+Independent source and mathematical review found that the phylogenetic HOLD
+is expected for the balanced Brownian-tree DGP. Its realized field mean has
+variance `tau^2 * (1 - 1/M) / log2(M)`, which implies an oracle-scale
+fixed-intercept SD of about `0.203` at `M = 64`. The frozen `0.12` threshold is
+therefore unattainable at this ladder even with known covariance and
+negligible observation noise. The threshold is not relaxed post hoc; see the
+artifact README for the derivation and exact observed values.
 
 This study follows the ADEMP structure of Morris, White, and Crowther (2019),
 *Using simulation studies to evaluate statistical methods*, and the transparent
@@ -384,23 +412,22 @@ than 6,000 before evaluating the predeclared gates.
 | 3 | Estimand / target | ✅ | Scalar and replicate-specific field targets table above |
 | 4 | Methods literature cited | ✅ | ADEMP and transparent-reporting sources cited at the top; the package likelihood and provider contracts are cited to the symbolic freeze |
 | 5 | Performance measures (formulas) | ✅ | Bias/RMSE formulas, denominators, diagnostics, parity, MCSEs, and PASS/HOLD thresholds above |
-| 6 | Software / packages / versions | partial | The artifact contract requires `sessionInfo()`, TMB/compiler details, source SHA, and host; actual versions can only be recorded at execution |
-| 7 | Code for DGP available | ✅ | The deterministic runner is implemented and source-SHA linked; its staged commit must still be re-read back before compute |
+| 6 | Software / packages / versions | ✅ | `summary-manifest.txt` records R 4.5.3, Ubuntu 24.04.4, source SHA, host, workers, seeds, and content hashes |
+| 7 | Code for DGP available | ✅ | The deterministic runner was executed from the clean, read-back `0ef41a69` installed snapshot |
 | 8 | Code for performance measures | ✅ | The standalone fail-closed summarizer, exact 2,000-resample RMSE MCSE, and provenance authentication are implemented and locally rehearsed |
-| 9 | Worked-example case study | partial | Not part of this internal campaign; the exact user-facing fit belongs in the Arc 3a package documentation before closeout |
-| 10 | Full performance table | gap | Campaign not run; the raw-record and complete-results contract above is predeclared |
-| 11 | MCSE reported alongside | gap | Campaign not run; binomial, bias, and bootstrap RMSE MCSEs are mandatory in every result table |
+| 9 | Worked-example case study | partial | Not part of this internal campaign; the exact user-facing fit remains a documentation closeout item rather than simulation evidence |
+| 10 | Full performance table | ✅ | Compact all-route/rung target, diagnostics, parity, decision, and failure-stage tables are checked in; the authenticated 6,000-row raw table remains local on Totoro |
+| 11 | MCSE reported alongside | ✅ | `target-recovery-summary.tsv` reports bias MCSE and exactly 2,000-resample bootstrap RMSE MCSE beside every scalar target |
 
 ## Fisher verdict
 
-**RUNNER/SUMMARIZER READY; EXECUTION ON SAFETY HOLD.** The estimands, units,
-information ladder, seeds, fit count, denominator rules, diagnostics,
-representation parity, and PASS/HOLD thresholds remain frozen. Iterative
-independent review found and closed schedule, denominator, Hessian, field,
-bootstrap, shared-gate, descriptive-output, and provenance defects. Positive
-and negative local contracts now fail closed, including duplicate CLI overrides
-of the effective installed-source mode. Fisher's final re-review returned
-READY. Compute still requires a newly committed clean snapshot, exact Totoro
-read-back, and safe host capacity; the latest host checks do not establish that
-capacity. A passing campaign can support only the three exact q1 ML cells at
-`point_fit_recovery`.
+**CERTIFICATION AUTHENTIC; APPLY THE FROZEN MIXED VERDICT.** The estimands,
+units, information ladder, seeds, fit count, denominator rules, diagnostics,
+representation parity, and PASS/HOLD thresholds remained frozen through
+execution. Fisher's pre-run review returned READY, the clean Totoro snapshot
+and first outputs were read back before scale-up, and the fail-closed
+summarizer authenticated all 6,000 attempts. Lognormal–`relmat()` may be
+promoted to `point_fit_recovery`; both phylogenetic routes must remain
+`implemented` under the frozen gate. The campaign does not authorize a new
+interval, coverage, inference-ready, supported, REML, slope, or broader-
+provider claim.

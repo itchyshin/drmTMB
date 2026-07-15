@@ -1,0 +1,6 @@
+fit_route	rung_gates	final_bias_gate	final_rmse_gate	information_response_gate	mcse_gate	nonparity_pass
+gamma_phylo	TRUE	TRUE	FALSE	TRUE	TRUE	FALSE
+lognormal_phylo	TRUE	TRUE	FALSE	TRUE	TRUE	FALSE
+lognormal_relmat_K	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE
+lognormal_relmat_Q	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE
+gamma_relmat_K	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE

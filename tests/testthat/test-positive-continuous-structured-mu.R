@@ -35,6 +35,167 @@ arc3a_balanced_tree <- function(n_tip = 8L) {
   )
 }
 
+test_that("Arc 3a phylo addendum modes fail closed", {
+  runner <- testthat::test_path(
+    "..",
+    "..",
+    "tools",
+    "arc3a-positive-continuous-structured-mu-recovery.R"
+  )
+  summarizer <- testthat::test_path(
+    "..",
+    "..",
+    "tools",
+    "summarize-arc3a-positive-continuous-structured-mu-recovery.R"
+  )
+  expect_silent(parse(file = runner))
+  expect_silent(parse(file = summarizer))
+
+  output <- tempfile(fileext = ".tsv")
+  rejected <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--no-init-file",
+      runner,
+      "--mode=phylo_certification",
+      "--routes=gamma_phylo",
+      paste0("--output=", output)
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  ))
+  expect_equal(attr(rejected, "status"), 1L)
+  expect_match(
+    paste(rejected, collapse = "\n"),
+    "must include exactly gamma_phylo,lognormal_phylo"
+  )
+  expect_equal(file.exists(output), FALSE)
+
+  invalid_contract <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--no-init-file",
+      summarizer,
+      paste0("--input-dir=", tempdir()),
+      paste0("--output-dir=", tempfile()),
+      "--contract=unfrozen"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  ))
+  expect_equal(attr(invalid_contract, "status"), 1L)
+  expect_match(
+    paste(invalid_contract, collapse = "\n"),
+    "'arg' should be one of"
+  )
+
+  missing_primary_dir <- tempfile()
+  dir.create(missing_primary_dir)
+  missing_primary <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--no-init-file",
+      summarizer,
+      paste0("--input-dir=", tempdir()),
+      paste0("--output-dir=", tempfile()),
+      "--contract=phylo_addendum",
+      paste0("--primary-artifact-dir=", missing_primary_dir)
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  ))
+  expect_equal(attr(missing_primary, "status"), 1L)
+  expect_match(
+    paste(missing_primary, collapse = "\n"),
+    "Missing primary artifact"
+  )
+
+  tampered_primary_dir <- tempfile()
+  dir.create(tampered_primary_dir)
+  primary_names <- c(
+    "arc3a-certification-combined-raw.tsv",
+    "route-decisions.tsv",
+    "cell-decisions.tsv",
+    "kq-parity-summary.tsv"
+  )
+  invisible(lapply(
+    file.path(tampered_primary_dir, primary_names),
+    writeLines,
+    text = "tampered"
+  ))
+  tampered_primary <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--no-init-file",
+      summarizer,
+      paste0("--input-dir=", tempdir()),
+      paste0("--output-dir=", tempfile()),
+      "--contract=phylo_addendum",
+      paste0("--primary-artifact-dir=", tampered_primary_dir)
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  ))
+  expect_equal(attr(tampered_primary, "status"), 1L)
+  expect_match(paste(tampered_primary, collapse = "\n"), "hash mismatch")
+
+  summarizer_text <- paste(readLines(summarizer, warn = FALSE), collapse = "\n")
+  expect_match(
+    summarizer_text,
+    "Authenticated primary comparator gate is not PASS"
+  )
+  expect_match(
+    summarizer_text,
+    "Authenticated primary K/Q parity gate is not PASS"
+  )
+})
+
+test_that("Arc 3a design-adjusted intercept oracle matches direct GLS", {
+  set.seed(2026071431)
+  M <- 8L
+  n_per_level <- 3L
+  N <- M * n_per_level
+  rho <- 0.4
+  C <- outer(seq_len(M), seq_len(M), \(i, j) rho^abs(i - j))
+  tau <- 0.5
+  sigma <- 0.35
+  Z <- model.matrix(~ 0 + factor(rep(seq_len(M), each = n_per_level)))
+  x <- rnorm(N)
+  X <- cbind(1, x)
+  b <- as.vector(t(chol(C)) %*% rnorm(M)) * tau
+  V <- tau^2 * Z %*% C %*% t(Z) + sigma^2 * diag(N)
+  direct_information <- crossprod(X, solve(V, X))
+  direct_projection <- solve(
+    direct_information,
+    crossprod(X, solve(V, Z %*% b))
+  )[[1L]]
+
+  ZtX <- cbind(
+    rep(n_per_level, M),
+    as.numeric(rowsum(x, rep(seq_len(M), each = n_per_level), reorder = FALSE))
+  )
+  middle_inverse <- solve(
+    solve(C) / tau^2 + diag(n_per_level / sigma^2, M)
+  )
+  woodbury_information <- crossprod(X) /
+    sigma^2 -
+    crossprod(ZtX, middle_inverse %*% ZtX) / sigma^4
+  woodbury_field_score <- crossprod(ZtX, b) /
+    sigma^2 -
+    crossprod(ZtX, middle_inverse %*% (n_per_level * b)) / sigma^4
+  woodbury_projection <- solve(
+    woodbury_information,
+    woodbury_field_score
+  )[[1L]]
+
+  expect_equal(
+    solve(woodbury_information)[1L, 1L],
+    solve(direct_information)[1L, 1L],
+    tolerance = 1e-10
+  )
+  expect_equal(woodbury_projection, direct_projection, tolerance = 1e-10)
+})
+
 arc3a_relatedness <- function(n_level = 8L, rho = 0.5) {
   labels <- sprintf("g%03d", seq_len(n_level))
   K <- outer(seq_len(n_level), seq_len(n_level), function(i, j) {
@@ -92,10 +253,16 @@ new_arc3a_positive_data <- function(
     x = x,
     species = factor(level, levels = names(field)),
     id = factor(level, levels = names(field)),
-    site = factor(rep(sprintf("s%02d", seq_len(4L)), length.out = length(level)))
+    site = factor(rep(
+      sprintf("s%02d", seq_len(4L)),
+      length.out = length(level)
+    ))
   )
   data$y2 <- data$y * exp(stats::rnorm(nrow(data), sd = 0.05))
-  data$plant <- factor(rep(tree$tip.label[seq_len(4L)], length.out = nrow(data)))
+  data$plant <- factor(rep(
+    tree$tip.label[seq_len(4L)],
+    length.out = nrow(data)
+  ))
   data$pollinator <- factor(
     rep(tree$tip.label[seq.int(5L, 8L)], length.out = nrow(data))
   )
@@ -151,7 +318,11 @@ fit_arc3a_positive <- function(
   )
 }
 
-arc3a_formula_from_text <- function(mu, sigma = "sigma ~ 1", env = parent.frame()) {
+arc3a_formula_from_text <- function(
+  mu,
+  sigma = "sigma ~ 1",
+  env = parent.frame()
+) {
   calls <- list(str2lang(mu), str2lang(sigma))
   names <- c("", "")
   structure(
@@ -235,7 +406,9 @@ test_that("Arc 3a cells fit known DGPs with the intended component labels", {
     expect_arc3a_fit_contract(fit, route$family, route$provider)
     expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.80)
     expect_lt(abs(coef(fit, "sigma")[[1L]] - sim$beta_sigma), 0.80)
-    expect_true(all(is.finite(ranef(fit)[[paste0(route$provider, "_mu")]]$values)))
+    expect_true(all(is.finite(
+      ranef(fit)[[paste0(route$provider, "_mu")]]$values
+    )))
   }
 })
 
@@ -285,13 +458,21 @@ test_that("lognormal structured likelihood matches transformed Gaussian likeliho
     )
   )
 
-  expect_equal(coef(fit_lognormal, "mu"), coef(fit_gaussian, "mu"), tolerance = 1e-5)
+  expect_equal(
+    coef(fit_lognormal, "mu"),
+    coef(fit_gaussian, "mu"),
+    tolerance = 1e-5
+  )
   expect_equal(
     coef(fit_lognormal, "sigma"),
     coef(fit_gaussian, "sigma"),
     tolerance = 1e-5
   )
-  expect_equal(fit_lognormal$sdpars$mu, fit_gaussian$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    fit_lognormal$sdpars$mu,
+    fit_gaussian$sdpars$mu,
+    tolerance = 1e-5
+  )
   expect_equal(
     ranef(fit_lognormal, "relmat_mu")$values,
     ranef(fit_gaussian, "relmat_mu")$values,
@@ -364,7 +545,11 @@ test_that("Arc 3a new routes reject slopes, labels, and extra variance layers", 
       "y ~ x + relmat(1 | p | id, K = K)"
     }
     expect_error(
-      drmTMB(arc3a_formula_from_text(labelled), family = family, data = sim$data),
+      drmTMB(
+        arc3a_formula_from_text(labelled),
+        family = family,
+        data = sim$data
+      ),
       "unlabelled q=1"
     )
 
