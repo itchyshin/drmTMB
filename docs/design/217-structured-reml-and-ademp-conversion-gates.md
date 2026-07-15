@@ -10,10 +10,16 @@ run.
 ## REML Scope Gate
 
 REML wording is allowed only for exact-Gaussian rows whose target, route,
-estimator, and validation evidence are named. Current dashboard rows keep
-native q2 REML, native q4 REML, non-Gaussian REML, broad R bridge REML support,
-and HSquared AI-REML wording out of scope. Q4 Patterson-Thompson REML is not
-HSquared AI-REML.
+estimator, and validation evidence are named. Two native bivariate q2
+location-intercept exceptions now meet that rule at `point_fit_recovery`: the
+matching labelled fixed-covariance spatial cell and the matching labelled
+`relmat(1 | p | id, K = K)` cell with the same supplied `K` and group ordering
+in `mu1` and `mu2`. The relatedness cell reuses the existing exact-Gaussian
+native-TMB REML engine. Other native q2 REML, native q4 REML, non-Gaussian
+REML, broad R bridge REML support, and HSquared AI-REML wording remain out of
+scope. In particular, `relmat(..., Q = Q)`, `animal()`, slopes, q4+,
+scale-side structure, intervals, and coverage do not inherit the supplied-`K`
+q2 claim. Q4 Patterson-Thompson REML is not HSquared AI-REML.
 
 The dashboard gate is
 `docs/dev-log/dashboard/structured-re-reml-scope-gate.tsv`. Each row states the
@@ -80,8 +86,13 @@ are separate estimands.
 ### Methods
 
 Fit native TMB ML first. Direct DRM.jl and R-via-Julia methods are included
-only when same-target payloads and reconstruction maps exist. Native q2 REML
-is excluded until an exact-Gaussian derivation exists.
+only when same-target payloads and reconstruction maps exist. Native REML is a
+separate method only for the exact matching labelled fixed-covariance spatial
+and supplied-`K` `relmat()` location-intercept cells. The latter has an
+independent dense restricted-likelihood oracle and retained 2,400-attempt
+recovery evidence, but no interval or coverage evidence. `Q`, `animal()`,
+slopes, q4+, scale-side, missing/weighted-pair, and other q2 REML layouts remain
+excluded from this ADEMP method set.
 
 ### Performance
 
@@ -132,7 +143,7 @@ direct and derived interval accounting passes with MCSE.
 | 1. Aims | Stated separately for q1, q2, and q4. |
 | 2. Data-generating mechanism | Written as model conditions before code. |
 | 3. Estimands | Direct and derived targets are separated by dimension. |
-| 4. Methods | Native TMB ML enters first; bridge and REML methods are gated. |
+| 4. Methods | Native TMB ML enters first; only the exact native spatial and supplied-`K` relmat q2 REML cells cross the route-specific point-recovery gate, while bridge and other REML methods remain gated. |
 | 5. Performance measures | Bias, RMSE, fit rates, availability, boundary rates, and wall time are named. |
 | 6. Software and session details | Deferred to runner implementation. |
 | 7. Code availability | Deferred to runner implementation. |

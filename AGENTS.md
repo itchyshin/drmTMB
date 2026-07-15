@@ -10,28 +10,33 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-15, → NEW CODEX, PR #783 MERGE BOUNDARY).**
-> Arc 1b-S1 is complete on `codex/arc1b-s1-spatial-q2-reml`. Verified
-> implementation/evidence ancestor `38c57f6c` supports only the exact
-> bivariate-Gaussian fixed-covariance spatial q2 location-intercept cell at
-> `point_fit_recovery`. Pre-handoff docs head `0630d9b3` passed GitHub run
-> 29394850631; verify the current docs-only successor head and CI live. PR #783
-> is open, recommended to merge, and must not be merged without Shinichi's
-> separate explicit authorization. PR #781 remains unrelated. Do not start the
-> next arc or the banked `sd()` proposal. START HERE:
-> [`docs/dev-log/handover/2026-07-15-codex-handover.md`](docs/dev-log/handover/2026-07-15-codex-handover.md)
+> **▶ Latest — start here (2026-07-15, → CURRENT CODEX, ARC 1b-S2R CLOSEOUT).**
+> PR #783 is merged at `d210439187f2a49922de8bcf8c183d164d7bd0dc`. Branch
+> `codex/arc1b-s2r-relmat-q2-reml` now admits native REML for one exact
+> bivariate-Gaussian supplied-relatedness cell: matching labelled
+> `relmat(1 | p | id, K = K)` location intercepts in `mu1` and `mu2`. Its
+> independent dense oracle and predeclared Totoro campaign retained all 2,400
+> attempts; every fit converged with `pdHess = TRUE`, and all recovery gates
+> passed. The maximum claim is `point_fit_recovery`: supplied `Q`, `animal()`,
+> slopes, scale-side blocks, q4+, intervals, and coverage remain unsupported.
+> Finish this arc's closeout before starting the next queue item. The queue is
+> Beta phylogenetic q1 `mu` prerequisite, then a bounded Beta q1
+> location-scale-scale gate, then a separate hierarchical-`sd()` subarc. That
+> future subarc may first consider only random RHS terms at a genuinely coarser
+> replicated grouping level; same-level and highest-level-without-a-higher-group
+> forms remain rejected. Keep family `sigma` distinct from latent-target
+> `sd()`, and do not bundle these arcs. PR #781 remains unrelated. START HERE:
+> [`docs/dev-log/handover/2026-07-15-arc1b-s2r-relmat-q2-reml-codex-handover.md`](docs/dev-log/handover/2026-07-15-arc1b-s2r-relmat-q2-reml-codex-handover.md)
 
-> **▶ Latest — start here (2026-07-14, → NEW CODEX, ARC 1b-S1 COMPLETE; PR #783 OPEN).**
+> **▶ Prior (2026-07-14, ARC 1b-S1 COMPLETE; PR #783 THEN OPEN).**
 > Branch `codex/arc1b-s1-spatial-q2-reml` admits native REML for one exact
 > bivariate-Gaussian fixed-covariance spatial q2 location-intercept cell. The
 > independent dense oracle, 41-expectation boundary matrix, 1,200 retained Totoro
 > fits, ledger/runtime/pkgdown checks, and Fisher/Noether/Rose review support only
 > `mc-0199` and `mc-0672` at `point_fit_recovery`; `mc-0673` preserves the rejected
-> remainder. Verified ancestor `38c57f6c` passed GitHub run 29392088529. PR #783 is
-> open, recommended to merge, and must not be merged without Shinichi's separate
-> explicit authorization; verify the docs-only handoff-head CI live. PR #781 remains
-> unrelated and untouched. Do not start the next arc or the banked `sd()` proposal.
-> START HERE:
+> remainder. Verified ancestor `38c57f6c` passed GitHub run 29392088529. PR #783
+> was subsequently merged; PR #781 remained unrelated and untouched. Historical
+> handover:
 > [`docs/dev-log/handover/2026-07-14-arc1b-s1-codex-handover.md`](docs/dev-log/handover/2026-07-14-arc1b-s1-codex-handover.md)
 
 > **▶ Prior (2026-07-14, Arc 3a complete; PR #782 merged).** See

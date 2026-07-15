@@ -1,0 +1,14 @@
+10afc085e2fa67f5e4c10907962a125ba0931fc3be02e5b705b6d8a1f49b93c3  R/drmTMB.R
+5a99c681a961607424aee9ed000ed375bcf0e79d0ce2a8ac64786bc08aacc58e  tests/testthat/test-reml-bivariate-relmat-q2.R
+1806b5be413c971923454e4f4ed4df6f784ecae8b9fc2c7bae68bccee2cce03a  tests/testthat/test-arc1b-s2r-relmat-q2-recovery-runner.R
+68022f9b2f4d26454a2572cd7d12843da88656d0fc75939739968a97528b5278  tools/run-arc1b-s2r-relmat-q2-reml-recovery.R
+a31d5af1f7428d5cbbde0a04f42d1825bd9cc807418eef3f338c42de4d744ef5  docs/dev-log/2026-07-15-arc1b-s2r-symbolic-alignment.md
+a9d663b573d5e401cc8e76d0bff289e8f84203f38ecfde6aa55b1cecc55c7dc5  docs/dev-log/2026-07-15-arc1b-s2r-recovery-design.md
+d051da89d821cead1dafe2cd4023fb4ef92697a8359f5c907bf995fe17682950  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/design.tsv
+0e5038ce95c1a027d1fa0af4d89b9643ca370ff98b4526e9fe18663983af8cbd  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/failure-ledger.tsv
+7645196dc9979e51ffe3faeee0e34b7e731efb8c190661a64686f686dfbee45d  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/gates.tsv
+22a77fbdf7a76126def136fb0c8cd1cbc3803e9955f556ee5ae531a8dc12f40c  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/matrix-digests.tsv
+0a39501215ab8ac91ab7aa74cd8758edfc7d47f108ef04e50420a700777dcd3a  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/raw-attempts.tsv
+5f776ec15f9df1cfc30536471992b26e2360f8328e245fd794569fe2714895af  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/rmse-difference.tsv
+429a063e9bf1d393720a80b36d4b201303a5862cce3937bdf005087d93cbedae  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/session-info.txt
+071b8596c4f6f49e3382b0b9d7996e489573417df889fde9f58b10df31832667  docs/dev-log/simulation-artifacts/2026-07-15-arc1b-s2r-relmat-q2-reml/summary.tsv

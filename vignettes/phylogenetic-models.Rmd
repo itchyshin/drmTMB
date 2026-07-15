@@ -354,8 +354,9 @@ These bivariate and location-scale routes, and the broader parity ladder, are
 covered with worked examples in the
 [structural-dependence tutorial](phylogenetic-spatial.html).
 
-The following remain planned: multiple or labelled phylogenetic slopes and
-slope correlations; non-Gaussian phylogenetic effects outside the exact
+The following remain planned: additional multiple or labelled
+phylogenetic-slope layouts outside the exact fitted ledger cells and slope
+correlations; non-Gaussian phylogenetic effects outside the exact
 ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope,
 recovery-grade NB2 q1 phylogenetic `sigma`, Student-t q1 phylogenetic `nu`,
 and cumulative-logit q1 phylogenetic `mu` gates; public matrix

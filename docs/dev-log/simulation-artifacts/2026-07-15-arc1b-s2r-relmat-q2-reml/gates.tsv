@@ -1,0 +1,13 @@
+gate	scope	observed	threshold	pass	status
+attempt_rows	campaign	2400	exactly 2400	TRUE	PASS
+unique_attempt_keys	campaign	2400	exactly 2400	TRUE	PASS
+convergence_rate	g32_m06	1	>= 0.95	TRUE	PASS
+pdHess_rate	g32_m06	1	>= 0.90	TRUE	PASS
+convergence_rate	g64_m06	1	>= 0.95	TRUE	PASS
+pdHess_rate	g64_m06	1	>= 0.90	TRUE	PASS
+absolute_bias	g64_m06:tau1	0.00496085939529473	<= 0.10	TRUE	PASS
+absolute_bias	g64_m06:tau2	0.00362838250593836	<= 0.10	TRUE	PASS
+absolute_bias	g64_m06:rho_K	0.000881709932428719	<= 0.12	TRUE	PASS
+rmse_nonincrease	m06:tau1	-0.0233449235652696	delta <= SE_delta (0.0046910553)	TRUE	PASS
+rmse_nonincrease	m06:tau2	-0.0170098184667251	delta <= SE_delta (0.0033988911)	TRUE	PASS
+rmse_nonincrease	m06:rho_K	-0.0565962792086857	delta <= SE_delta (0.0070545636)	TRUE	PASS

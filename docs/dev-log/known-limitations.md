@@ -215,9 +215,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   fixed-covariance `spatial(1 | p | site, coords = coords)` intercepts in `mu1`
   and `mu2`, with intercept-only `sigma1`, `sigma2`, and `rho12`, complete
   response pairs, unit weights, no known `meta_V()` covariance, and no
-  additional ordinary random, direct-SD, or `corpair()` layer. Other bivariate
-  spatial shapes and bivariate animal/`relmat()` provider routes remain rejected.
-  The bivariate scale-side structured path also remains rejected. The DENSE
+  additional ordinary random, direct-SD, or `corpair()` layer. Arc 1b-S2R adds
+  one separate bivariate exception at `point_fit_recovery`: matching labelled
+  `relmat(1 | p | id, K = K)` intercepts in `mu1` and `mu2`. Both formulas must
+  use the same label, group ordering, and supplied covariance matrix `K`; the
+  same intercept-only, complete-pair, unit-weight, and no-extra-layer boundaries
+  apply. Its independent dense oracle and 2,400 retained Totoro attempts passed
+  every predeclared recovery gate. Other bivariate spatial shapes, bivariate
+  `animal()` routes, supplied-`Q` `relmat()` REML, slopes, q4+, and bivariate
+  scale-side structured paths remain rejected; intervals and coverage are not
+  claimed for either exact bivariate exception. The DENSE
   (unstructured) q4 phylogenetic location-scale block is ALSO admitted under REML
   (2026-07-08): the earlier "sign-flip" verdict is superseded -- the DGP-to-endpoint
   mapping is correct (a single nonzero DGP correlation lands on the right pair with

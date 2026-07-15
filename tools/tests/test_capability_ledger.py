@@ -27,7 +27,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        self.assertEqual(len(model), 673)
+        self.assertEqual(len(model), 675)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -58,7 +58,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 303, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 305, "rejected_by_design": 330, "not_implemented": 40},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -101,11 +101,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 303, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 305, "rejected_by_design": 330, "not_implemented": 40},
         )
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            161,
+            163,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
@@ -175,6 +175,64 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(
                 comparator["primary_evidence_id"], f"ev-{cell_id}-legacy"
             )
+
+    def test_arc1b_s2r_cells_are_exact_and_preserve_relmat_rejections(self):
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+        evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
+
+        for cell_id, dpar in (("mc-0201", "mu1"), ("mc-0674", "mu2")):
+            row = by_id[cell_id]
+            self.assertEqual(row["dpar"], dpar)
+            self.assertEqual(
+                row["route_variant"], "arc1b_s2r_exact_q2_intercept"
+            )
+            self.assertEqual(row["structure_provider"], "relmat")
+            self.assertEqual(row["q_gate"], "q2")
+            self.assertEqual(row["estimator"], "REML")
+            self.assertEqual(row["capability_status"], "implemented")
+            self.assertEqual(row["work_status"], "verified")
+            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+            self.assertEqual(
+                evidence_by_id[row["primary_evidence_id"]]["evidence_class"],
+                "model_recovery",
+            )
+            for required in (
+                "matching labelled `relmat(1 | p | id, K = K)`",
+                "same label, grouping levels and order",
+                "identical named supplied covariance `K`",
+                "2,400-attempt Totoro campaign",
+                "point-fit recovery only",
+                "supplied precision `Q`",
+                "slopes", "q4+", "scale-side", "incomplete pairs",
+                "non-unit weights", "additional random layers",
+                "non-Gaussian", "interval", "coverage", "supported",
+            ):
+                self.assertIn(required, row["claim_boundary"])
+
+        remainder = by_id["mc-0675"]
+        self.assertEqual(
+            remainder["route_variant"], "arc1b_s2r_remaining_relmat_reml"
+        )
+        self.assertEqual(remainder["capability_status"], "rejected_by_design")
+        self.assertEqual(remainder["work_status"], "deferred")
+        self.assertEqual(remainder["evidence_tier"], "none")
+        self.assertIn("`mc-0201` and `mc-0674`", remainder["claim_boundary"])
+        self.assertEqual(
+            evidence_by_id[remainder["primary_evidence_id"]]["evidence_class"],
+            "rejection_test",
+        )
+
+        for cell_id in ("mc-0151", "mc-0152"):
+            self.assertEqual(by_id[cell_id]["estimator"], "ML")
+            self.assertEqual(
+                by_id[cell_id]["primary_evidence_id"], f"ev-{cell_id}-legacy"
+            )
+        self.assertEqual(by_id["mc-0200"]["capability_status"], "rejected_by_design")
+        for cell_id in ("mc-0199", "mc-0672"):
+            self.assertEqual(by_id[cell_id]["structure_provider"], "spatial")
+            self.assertEqual(by_id[cell_id]["evidence_tier"], "point_fit_recovery")
+        self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
 
     def test_generation_is_deterministic(self):
         first = ledger.outputs(self.cells, self.evidence)

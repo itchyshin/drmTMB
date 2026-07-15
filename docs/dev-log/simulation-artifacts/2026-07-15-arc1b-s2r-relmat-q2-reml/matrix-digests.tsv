@@ -1,0 +1,4 @@
+g	K_digest
+16	16x16;sum=35.111112065548;diag=             16;logdet=-2.6153008071717;first=id_001;last=id_016
+32	32x32;sum=72.444444444445;diag=             32;logdet=-5.4049550014881;first=id_001;last=id_032
+64	64x64;sum=147.11111111111;diag=             64;logdet=-10.984263390121;first=id_001;last=id_064

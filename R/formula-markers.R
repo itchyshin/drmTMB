@@ -302,13 +302,22 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' univariate Gaussian `mu` and `sigma` intercept terms estimate one
 #' relatedness mean-scale correlation, and the constant all-four q=4
 #' location-scale block comes from matching labelled terms in `mu1`, `mu2`,
-#' `sigma1`, and `sigma2`, for example `relmat(1 | p | line, Q = Q)`. The
+#' `sigma1`, and `sigma2`, for example `relmat(1 | p | line, Q = Q)`. The exact
+#' bivariate Gaussian REML exception requires matching labelled
+#' `relmat(1 | p | line, K = K)` location intercepts in `mu1` and `mu2`, the
+#' same named supplied covariance `K`, intercept-only residual formulas,
+#' complete pairs, unit weights, and no additional model layer. This exception
+#' has `point_fit_recovery` evidence only; bivariate `Q`, slopes, q4+, intervals,
+#' and coverage remain outside it. The
 #' univariate Gaussian `mu` path also
 #' supports one numeric slope, for example `relmat(1 + x | line, Q = Q)`, as
 #' independent intercept and slope fields with separate SDs and no
-#' intercept-slope correlation. Multiple structured slopes, slope correlations,
-#' residual-scale structured slopes, predictor-dependent `corpair()`
-#' regression, and relatedness `sd*()` direct-SD grammar remain planned.
+#' intercept-slope correlation. The exact q1 `sigma` one-slope route is also
+#' fitted for `K` and `Q`. Implemented bivariate labelled ML cells extend
+#' through the q2, q4, q6, and q12 layouts recorded in the capability ledger;
+#' additional structured-slope layouts, structured slope correlations,
+#' predictor-dependent `corpair()` regression, and relatedness `sd*()`
+#' direct-SD grammar remain planned.
 #' `relmat()` is
 #' intentionally separate from [meta_V()], which adds known sampling covariance
 #' among observations, and from residual `rho12`, which models
@@ -316,10 +325,11 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #'
 #' @param term Structured random-effect term, such as `1 | id` or
 #'   `1 + x | id`.
-#' @param K Known relatedness or covariance matrix for the first fitted
-#'   univariate Gaussian `mu` path.
-#' @param Q Known precision or inverse covariance matrix for the first fitted
-#'   univariate Gaussian `mu` path.
+#' @param K Known relatedness or covariance matrix for the documented fitted
+#'   univariate and bivariate routes.
+#' @param Q Known precision or inverse covariance matrix for the documented
+#'   fitted routes. The exact bivariate REML exception requires `K`; bivariate
+#'   `Q` remains available under ML.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export

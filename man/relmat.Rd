@@ -10,11 +10,12 @@ relmat(term, K = NULL, Q = NULL)
 \item{term}{Structured random-effect term, such as \code{1 | id} or
 \code{1 + x | id}.}
 
-\item{K}{Known relatedness or covariance matrix for the first fitted
-univariate Gaussian \code{mu} path.}
+\item{K}{Known relatedness or covariance matrix for the documented fitted
+univariate and bivariate routes.}
 
-\item{Q}{Known precision or inverse covariance matrix for the first fitted
-univariate Gaussian \code{mu} path.}
+\item{Q}{Known precision or inverse covariance matrix for the documented
+fitted routes. The exact bivariate REML exception requires \code{K}; bivariate
+\code{Q} remains available under ML.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -39,13 +40,22 @@ covariance from matching labelled terms in \code{mu1} and \code{mu2}, matching
 univariate Gaussian \code{mu} and \code{sigma} intercept terms estimate one
 relatedness mean-scale correlation, and the constant all-four q=4
 location-scale block comes from matching labelled terms in \code{mu1}, \code{mu2},
-\code{sigma1}, and \code{sigma2}, for example \code{relmat(1 | p | line, Q = Q)}. The
+\code{sigma1}, and \code{sigma2}, for example \code{relmat(1 | p | line, Q = Q)}. The exact
+bivariate Gaussian REML exception requires matching labelled
+\code{relmat(1 | p | line, K = K)} location intercepts in \code{mu1} and \code{mu2}, the
+same named supplied covariance \code{K}, intercept-only residual formulas,
+complete pairs, unit weights, and no additional model layer. This exception
+has \code{point_fit_recovery} evidence only; bivariate \code{Q}, slopes, q4+, intervals,
+and coverage remain outside it. The
 univariate Gaussian \code{mu} path also
 supports one numeric slope, for example \code{relmat(1 + x | line, Q = Q)}, as
 independent intercept and slope fields with separate SDs and no
-intercept-slope correlation. Multiple structured slopes, slope correlations,
-residual-scale structured slopes, predictor-dependent \code{corpair()}
-regression, and relatedness \verb{sd*()} direct-SD grammar remain planned.
+intercept-slope correlation. The exact q1 \code{sigma} one-slope route is also
+fitted for \code{K} and \code{Q}. Implemented bivariate labelled ML cells extend
+through the q2, q4, q6, and q12 layouts recorded in the capability ledger;
+additional structured-slope layouts, structured slope correlations,
+predictor-dependent \code{corpair()} regression, and relatedness \verb{sd*()}
+direct-SD grammar remain planned.
 \code{relmat()} is
 intentionally separate from \code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance
 among observations, and from residual \code{rho12}, which models
