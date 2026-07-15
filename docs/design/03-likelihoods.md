@@ -1531,9 +1531,15 @@ separate pre-existing admissions. These admissions do not transfer interval,
 coverage, `supported`, or AI-REML status to neighbouring rows.
 
 REML still rejects non-Gaussian models, explicit missing-data routes, Gaussian
-row aggregation, sparse fixed-effect matrices, non-phylogenetic bivariate
-structured effects, ordinary direct-`sd()` scale formulas, and any structured
-layout outside its exact row gate. The authoritative route-by-route table is
+row aggregation, sparse fixed-effect matrices, ordinary direct-`sd()` scale
+formulas, and any structured layout outside its exact row gate. Arc 1b-S1's one
+non-phylogenetic bivariate exception is a matching labelled fixed-covariance
+spatial q2 location-intercept block in `mu1` and `mu2`, with intercept-only
+`sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
+known `meta_V()` covariance, and no additional ordinary random effect,
+direct-SD formula, or `corpair()` regression; it stops at
+`point_fit_recovery`. The
+authoritative route-by-route table is
 `docs/design/211-structured-reml-status.md`; this likelihood section must not
 be read as a family-wide or provider-wide promotion.
 

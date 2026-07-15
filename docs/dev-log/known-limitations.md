@@ -210,8 +210,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   univariate `spatial()`/`animal()`/`relmat()` intercept and independent one-slope
   REML routes with constant residual scale and no sigma random effect. Their
   `inference_ready_with_caveats` evidence covers only the discrete tested domains;
-  labelled or multiple slopes, matched `mu+sigma`, and bivariate provider routes
-  remain rejected. The bivariate scale-side structured path also remains rejected. The DENSE
+  labelled or multiple slopes and matched `mu+sigma` remain rejected. Arc 1b-S1
+  admits one bivariate exception at `point_fit_recovery`: matching labelled
+  fixed-covariance `spatial(1 | p | site, coords = coords)` intercepts in `mu1`
+  and `mu2`, with intercept-only `sigma1`, `sigma2`, and `rho12`, complete
+  response pairs, unit weights, no known `meta_V()` covariance, and no
+  additional ordinary random, direct-SD, or `corpair()` layer. Other bivariate
+  spatial shapes and bivariate animal/`relmat()` provider routes remain rejected.
+  The bivariate scale-side structured path also remains rejected. The DENSE
   (unstructured) q4 phylogenetic location-scale block is ALSO admitted under REML
   (2026-07-08): the earlier "sign-flip" verdict is superseded -- the DGP-to-endpoint
   mapping is correct (a single nonzero DGP correlation lands on the right pair with

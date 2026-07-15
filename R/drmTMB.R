@@ -136,9 +136,15 @@
 #'   `animal()`, and `relmat()` REML is deliberately limited to an unlabelled
 #'   intercept or independent intercept-plus-one-numeric-slope term with a
 #'   constant residual scale (`sigma ~ 1`, with no sigma random effect).
-#'   Slope-only, labelled, multiple-slope, matched non-phylogenetic
-#'   mean-scale, and bivariate non-phylogenetic structured REML remain outside
-#'   that route. Aggregation and ordinary direct `sd()` scale formulae also
+#'   Slope-only, labelled, multiple-slope, and matched non-phylogenetic
+#'   mean-scale REML remain outside that route. The one bivariate
+#'   non-phylogenetic exception is matching labelled fixed-covariance
+#'   `spatial(1 | p | site, coords = coords)` intercepts in `mu1` and `mu2`,
+#'   with intercept-only `sigma1`, `sigma2`, and `rho12`, complete response
+#'   pairs, unit weights, no known [meta_V()] covariance, and no additional
+#'   ordinary random effect, direct-SD formula, or `corpair()` regression; it
+#'   has point-fit-recovery evidence only. Aggregation and ordinary direct `sd()`
+#'   scale formulae also
 #'   remain unsupported under REML.
 #'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
 #'   Gaussian bridge cells, including fixed-effect location-scale models,
@@ -2047,6 +2053,64 @@ drm_reml_admits_mean_structured_provider <- function(
   intercept_only || intercept_one_slope
 }
 
+drm_reml_admits_biv_spatial_q2_intercept <- function(spec) {
+  structured <- spec$structured$phylo_mu
+  if (
+    !isTRUE(structured$has) ||
+      !identical(structured_mu_type(structured), "spatial") ||
+      !identical(structured$structure, "coords") ||
+      structured_mu_q(structured) != 2L ||
+      !identical(phylo_mu_endpoint_dpars(structured), c("mu1", "mu2")) ||
+      !identical(
+        structured_mu_endpoint_coef_names(structured),
+        c("(Intercept)", "(Intercept)")
+      ) ||
+      !identical(phylo_mu_covariance_mode(structured), "scalar")
+  ) {
+    return(FALSE)
+  }
+
+  labels <- phylo_mu_endpoint_covariance_labels(structured)
+  one_labelled_block <- length(labels) == 2L &&
+    all(!is.na(labels) & nzchar(labels)) &&
+    identical(labels[[1L]], labels[[2L]]) &&
+    identical(phylo_mu_block_ids(structured), c(1L, 1L)) &&
+    length(structured$block_labels) == 1L &&
+    identical(structured$block_labels[[1L]], labels[[1L]])
+  if (!one_labelled_block) {
+    return(FALSE)
+  }
+
+  intercept_only_fixed <- vapply(
+    c("sigma1", "sigma2", "rho12"),
+    function(dpar) {
+      X <- spec$X[[dpar]]
+      !is.null(X) &&
+        ncol(X) == 1L &&
+        identical(colnames(X), "(Intercept)")
+    },
+    logical(1L)
+  )
+  no_ordinary_random <- isTRUE(spec$random$mu$n_re == 0L) &&
+    isTRUE(spec$random$sigma$n_re == 0L) &&
+    isTRUE(spec$random$mu_sigma$n_cors == 0L) &&
+    isTRUE(spec$random$covariance_blocks$n_blocks == 0L)
+  no_direct_scale <- isTRUE(spec$random_scale$mu$n_models == 0L) &&
+    isTRUE(spec$random_scale$phylo$n_models == 0L)
+  no_corpair_regression <- isTRUE(spec$random$mu$cor_model$n_models == 0L)
+  complete_pairs <- isTRUE(all(spec$missing_data$observed_y1)) &&
+    isTRUE(all(spec$missing_data$observed_y2))
+
+  all(intercept_only_fixed) &&
+    no_ordinary_random &&
+    no_direct_scale &&
+    no_corpair_regression &&
+    identical(spec$V_known_type, "none") &&
+    !isTRUE(spec$has_known_v) &&
+    isTRUE(all(spec$weights == 1)) &&
+    complete_pairs
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -2117,8 +2181,8 @@ drm_validate_reml_spec <- function(spec) {
     # scale-side intercept SD 400/400 across spatial/animal/relmat with bias -> 0 as
     # g grows, and REML profile-CI coverage clears the small-g inference_ready floor
     # in every cell (>= 0.926 vs a 0.91 g=8 floor). MEAN-side non-phylo structured
-    # effects spanning both endpoints remain rejected; the bivariate path
-    # (drm_validate_reml_spec_biv) is unchanged. Arc 1a admits only pure mean-side,
+    # effects spanning both endpoints remain rejected; the bivariate validator has
+    # its own exact Arc 1b-S1 spatial-q2 exception. Arc 1a admits only pure mean-side,
     # unlabelled intercept-only or intercept-plus-one-slope terms for those three
     # providers. The Gaussian engine and random set are unchanged: `u_phylo` and
     # `beta_mu` are already marginalized exactly.
@@ -2163,14 +2227,15 @@ drm_validate_reml_spec <- function(spec) {
 
 # REML validation for the bivariate Gaussian model. TMB marginalises beta_mu1 and
 # beta_mu2 (Laplace), which is exact for the Gaussian and gives an unbiased residual
-# covariance AND unbiased phylo location-variance. MEAN-side random / structured
-# (phylo) effects are admitted here, validated against an exact bivariate
-# restricted-likelihood reference plus a sample-size recovery ladder (doc 221:
+# covariance and structured location variance. Phylogenetic effects and one exact
+# fixed-covariance spatial q2 location-intercept cell are admitted here, validated
+# against independent bivariate restricted-likelihood references and recovery
+# evidence. The broader phylogenetic surface has a sample-size ladder (doc 221:
 # biases collapse to 0 with n, REML debiases the variance components at every n, and
-# REML/ML SEs agree). Rejected until separately validated: scale-side random effects,
-# matched mean-and-scale phylo, direct random-effect scale formulae (sd_phylo ~ x),
-# and q > 2 labelled blocks. (Checks mirror drm_validate_reml_spec for the shared,
-# model-agnostic spec fields; kept inline to avoid touching the univariate path.)
+# REML/ML SEs agree). Outside the admitted phylogenetic layouts, the spatial
+# exception rejects slopes, scale-side/q4 blocks, range estimation, additional random
+# or direct-SD layers, corpair regression, known covariance, and incomplete/weighted
+# pairs. (Checks mirror drm_validate_reml_spec for shared model-agnostic fields.)
 drm_validate_reml_spec_biv <- function(spec) {
   if (isTRUE(spec$sparse_fixed$mu1) || isTRUE(spec$sparse_fixed$mu2)) {
     cli::cli_abort(c(
@@ -2208,10 +2273,17 @@ drm_validate_reml_spec_biv <- function(spec) {
   }
   phylo_mu <- spec$structured$phylo_mu
   if (isTRUE(phylo_mu$has)) {
-    if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+    structured_type <- structured_mu_type(phylo_mu)
+    spatial_q2_admitted <-
+      drm_reml_admits_biv_spatial_q2_intercept(spec)
+    if (
+      !identical(structured_type, "phylo") &&
+        !spatial_q2_admitted
+    ) {
       cli::cli_abort(c(
-        "For bivariate models, {.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
-        "i" = "The Arc 1a spatial, animal, and relatedness mean-side routes are univariate only; set {.code REML = FALSE} for this bivariate model."
+        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and one exact fixed-covariance spatial q2 location block.",
+        "i" = "The spatial exception requires matching labelled {.code spatial(1 | p | site, coords = coords)} intercepts in {.code mu1} and {.code mu2}, constant {.code sigma1}, {.code sigma2}, and {.code rho12}, complete response pairs, unit weights, and no other random-effect layer.",
+        "i" = "Spatial slopes, unlabelled or scale-side blocks, animal/relatedness providers, known covariance, and other bivariate structured REML shapes remain deferred; use the exact admitted cell or set {.code REML = FALSE}."
       ))
     }
     # Scale-side phylo endpoints are admitted under REML in ALL covariance layouts

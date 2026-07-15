@@ -42,7 +42,7 @@ Shinichi's authorization.
 
 ## Decision
 
-**Recommended next, but not authorized for execution.** Arc 1b-S1 closes one
+**Approved for execution by Shinichi on 2026-07-14.** Arc 1b-S1 closes one
 known Gaussian REML/ML parity gap with a linear-Gaussian target and an
 independent dense restricted-likelihood oracle. Existing ML cells `mc-0107`
 and `mc-0108` already establish the same fixed-covariance spatial q2 model;
@@ -149,8 +149,10 @@ and authenticates source and raw hashes. The maximum Arc 1b-S1 tier is
 | Arc 5 `mi()` | Can be bounded by family | Existing missing-data gates | lower current priority by maintainer decision | Later |
 | Arc 6 mixed-family bivariate | Not yet | No common joint-likelihood oracle | combinatorial flagship | Post-0.6.0 |
 
-## Stop gate
+## Execution authorization and merge gate
 
-This document is planning only. Do not create the branch, change code, launch
-compute, edit the ledger, commit, push, or open a PR until Shinichi approves
-the copy-paste GOAL above after Arc 3a is merged and `main` is refreshed.
+Shinichi approved the copy-paste GOAL after Arc 3a merged as PR #782 and local
+`main` was refreshed to merge commit `29a4458addb550c9d82a9dc8c4324c15702e0591`.
+Execution therefore proceeds on `codex/arc1b-s1-spatial-q2-reml`. The finished
+slice may be committed, pushed, and opened as a focused PR, but that PR must
+remain unmerged until Shinichi gives a separate explicit merge authorization.

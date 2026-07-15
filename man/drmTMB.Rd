@@ -109,9 +109,15 @@ selected scale-side random or structured effects. Mean-side \code{spatial()},
 \code{animal()}, and \code{relmat()} REML is deliberately limited to an unlabelled
 intercept or independent intercept-plus-one-numeric-slope term with a
 constant residual scale (\code{sigma ~ 1}, with no sigma random effect).
-Slope-only, labelled, multiple-slope, matched non-phylogenetic
-mean-scale, and bivariate non-phylogenetic structured REML remain outside
-that route. Aggregation and ordinary direct \code{sd()} scale formulae also
+Slope-only, labelled, multiple-slope, and matched non-phylogenetic
+mean-scale REML remain outside that route. The one bivariate
+non-phylogenetic exception is matching labelled fixed-covariance
+\code{spatial(1 | p | site, coords = coords)} intercepts in \code{mu1} and \code{mu2},
+with intercept-only \code{sigma1}, \code{sigma2}, and \code{rho12}, complete response
+pairs, unit weights, no known \code{\link[=meta_V]{meta_V()}} covariance, and no additional
+ordinary random effect, direct-SD formula, or \code{corpair()} regression; it
+has point-fit-recovery evidence only. Aggregation and ordinary direct \code{sd()}
+scale formulae also
 remain unsupported under REML.
 Experimental \code{engine = "julia"} forwards \code{REML = TRUE} only for supported
 Gaussian bridge cells, including fixed-effect location-scale models,
