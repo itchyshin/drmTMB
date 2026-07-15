@@ -10,19 +10,21 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-14, → NEW CODEX, ARC 3a COMPLETE; PR #782 OPEN).**
-> Branch `codex/arc3a-positive-continuous-structured-mu` admits native univariate-ML
-> pure-`mu` q1 intercepts for Gamma-phylo and lognormal-phylo/relmat. The immutable
-> 6,000-fit primary campaign and separate predeclared 2,400-fit phylo oracle addendum
-> support only `mc-0251`, `mc-0386`, and `mc-0388` at `point_fit_recovery`; the primary
-> phylogenetic HOLD remains recorded. Full tests (38,676 passes, 0 failures), pkgdown,
-> ledger/runtime/Mission-Control checks, and Fisher/Noether/Rose review are green. PR
-> #782 is open and must not be merged without Shinichi's explicit authorization. The
-> recommended next arc is the separately planned Arc 1b-S1 exact bivariate-Gaussian
-> spatial q2 REML cell; the proposed distribution-wide `sd()` arc is banked and split,
-> not selected. Do not start either without a fresh approved GOAL after Arc 3a merges.
-> PR #781 is unrelated and untouched. START HERE:
-> [`docs/dev-log/handover/2026-07-14-arc3a-codex-handover.md`](docs/dev-log/handover/2026-07-14-arc3a-codex-handover.md)
+> **▶ Latest — start here (2026-07-14, → NEW CODEX, ARC 1b-S1 COMPLETE; PR #783 OPEN).**
+> Branch `codex/arc1b-s1-spatial-q2-reml` admits native REML for one exact
+> bivariate-Gaussian fixed-covariance spatial q2 location-intercept cell. The
+> independent dense oracle, 41-expectation boundary matrix, 1,200 retained Totoro
+> fits, ledger/runtime/pkgdown checks, and Fisher/Noether/Rose review support only
+> `mc-0199` and `mc-0672` at `point_fit_recovery`; `mc-0673` preserves the rejected
+> remainder. Verified ancestor `38c57f6c` passed GitHub run 29392088529. PR #783 is
+> open, recommended to merge, and must not be merged without Shinichi's separate
+> explicit authorization; verify the docs-only handoff-head CI live. PR #781 remains
+> unrelated and untouched. Do not start the next arc or the banked `sd()` proposal.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-14-arc1b-s1-codex-handover.md`](docs/dev-log/handover/2026-07-14-arc1b-s1-codex-handover.md)
+
+> **▶ Prior (2026-07-14, Arc 3a complete; PR #782 merged).** See
+> [`docs/dev-log/handover/2026-07-14-arc3a-codex-handover.md`](docs/dev-log/handover/2026-07-14-arc3a-codex-handover.md).
 
 > **▶ Prior (2026-07-14, PR #780 repair disposition).** PR #780's verified Arc 1a
 > implementation ancestor is `1dd79228`; see
