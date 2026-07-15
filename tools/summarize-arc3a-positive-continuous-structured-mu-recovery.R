@@ -399,7 +399,7 @@ expected_hessian_finite <- vapply(raw$hessian_covariance_values, function(x) {
   if (is.na(x) || !nzchar(x)) return(FALSE)
   values <- split_values(x)
   length(values) > 0L && all(is.finite(values))
-}, logical(1))
+}, logical(1), USE.NAMES = FALSE)
 assert(
   identical(as.logical(raw$hessian_diagnostic_finite), expected_hessian_finite),
   "hessian_diagnostic_finite does not reconstruct from retained covariance values"
