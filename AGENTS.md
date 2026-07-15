@@ -10,6 +10,17 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
+> **▶ Latest — start here (2026-07-15, → NEW CODEX, PR #783 MERGE BOUNDARY).**
+> Arc 1b-S1 is complete on `codex/arc1b-s1-spatial-q2-reml`. Verified
+> implementation/evidence ancestor `38c57f6c` supports only the exact
+> bivariate-Gaussian fixed-covariance spatial q2 location-intercept cell at
+> `point_fit_recovery`. Pre-handoff docs head `0630d9b3` passed GitHub run
+> 29394850631; verify the current docs-only successor head and CI live. PR #783
+> is open, recommended to merge, and must not be merged without Shinichi's
+> separate explicit authorization. PR #781 remains unrelated. Do not start the
+> next arc or the banked `sd()` proposal. START HERE:
+> [`docs/dev-log/handover/2026-07-15-codex-handover.md`](docs/dev-log/handover/2026-07-15-codex-handover.md)
+
 > **▶ Latest — start here (2026-07-14, → NEW CODEX, ARC 1b-S1 COMPLETE; PR #783 OPEN).**
 > Branch `codex/arc1b-s1-spatial-q2-reml` admits native REML for one exact
 > bivariate-Gaussian fixed-covariance spatial q2 location-intercept cell. The
