@@ -26,7 +26,9 @@ TRANSITIONS = LEDGER / "transitions.tsv"
 SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 
-DATE = "2026-07-11"
+DATE = "2026-07-14"
+IMPORTED_MODEL_COUNT = 668
+MODEL_SURFACE_COUNT = 671
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -193,7 +195,10 @@ def schema_value() -> dict[str, object]:
             "test_gate": sorted(TEST_GATES),
             "evidence_tier": sorted(EVIDENCE_TIERS),
         },
-        "expected_counts": {"model_surface": 668, "missing_response": 18},
+        "expected_counts": {
+            "model_surface": MODEL_SURFACE_COUNT,
+            "missing_response": 18,
+        },
         "missing_response_verified_gate": "G3",
         "claim_boundary": (
             "Missing-response evidence is independent of model inference maturity."
@@ -220,8 +225,10 @@ def bootstrap() -> None:
         raise SystemExit("Refusing bootstrap: capability-ledger source files already exist")
 
     master = read_legacy_tsv_text((CENSUS / "_master.tsv").read_text(encoding="utf-8"))
-    if len(master) != 668:
-        raise SystemExit(f"Expected 668 legacy rows, found {len(master)}")
+    if len(master) != IMPORTED_MODEL_COUNT:
+        raise SystemExit(
+            f"Expected {IMPORTED_MODEL_COUNT} legacy rows, found {len(master)}"
+        )
 
     visible = [
         "family", "model_type", "dpar", "effect_type", "structure_provider",
@@ -302,7 +309,9 @@ def bootstrap() -> None:
             "from_work_status": "",
             "to_work_status": work,
             "evidence_ids": evidence_id,
-            "reason": "MR-T0 import of the unchanged 668-cell census",
+            "reason": (
+                f"MR-T0 import of the unchanged {IMPORTED_MODEL_COUNT}-cell census"
+            ),
             "actor": "Codex MR-T0",
             "commit_sha": sha,
             "date": DATE,
@@ -326,7 +335,7 @@ def bootstrap() -> None:
         )
         cells.append({
             "cell_id": cell_id,
-            "source_order": str(668 + offset),
+            "source_order": str(IMPORTED_MODEL_COUNT + offset),
             "axis": "missing_response",
             "family_route": route,
             "family_type": family_type,
@@ -422,8 +431,13 @@ def validate(
         errors.append("transition_id values are not unique")
 
     by_axis = Counter(row["axis"] for row in cells)
-    if by_axis != Counter({"model_surface": 668, "missing_response": 18}):
-        errors.append(f"axis counts are {dict(by_axis)}, expected 668 + 18")
+    if by_axis != Counter(
+        {"model_surface": MODEL_SURFACE_COUNT, "missing_response": 18}
+    ):
+        errors.append(
+            f"axis counts are {dict(by_axis)}, expected "
+            f"{MODEL_SURFACE_COUNT} + 18"
+        )
     route_names = {row["family_route"] for row in cells if row["axis"] == "missing_response"}
     if route_names != {route for _, route, _, _, _ in ROUTES}:
         errors.append("missing_response route set does not match the 18-route contract")
@@ -451,7 +465,7 @@ def validate(
                 f"{evidence_by_id[primary]['cell_id']}"
             )
 
-    # The 668-cell ledger feeds the public capability surface. Keep the eight
+    # The model-cell ledger feeds the public capability surface. Keep the eight
     # conceptual inference-ready configurations (ten endpoint-level ledger
     # rows) explicit about their two distinct interval channels so generic
     # historical "Wald" wording cannot erase the correction or apply it to
@@ -509,7 +523,9 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    expected = Counter({"implemented": 298, "rejected_by_design": 330, "not_implemented": 40})
+    expected = Counter(
+        {"implemented": 301, "rejected_by_design": 330, "not_implemented": 40}
+    )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
@@ -1149,7 +1165,7 @@ def surface_html(
 <h1>Capability surface</h1>
 <p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
 <nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
-<p class="scope"><strong>Scope:</strong> 668 model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
+<p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
 <div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
@@ -1160,10 +1176,10 @@ def surface_html(
 <div class="legend"><span><i style="background:var(--amber)"></i>implemented, audit pending</span><span><i style="background:var(--red)"></i>rejected, planned</span><span><i style="background:var(--green)"></i>verified only at G3+</span></div>
 <section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
 <h2 id="model-cells">Detailed model surface</h2>
-<p class="muted">These 668 cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated 668-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
@@ -1173,7 +1189,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
 for(const v of [...new Set(DATA.map(r=>r.family_route))].sort()) fam.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
 for(const v of [...new Set(DATA.map(r=>r.capability_status))].sort()) status.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
-function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of 668 cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
+function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 

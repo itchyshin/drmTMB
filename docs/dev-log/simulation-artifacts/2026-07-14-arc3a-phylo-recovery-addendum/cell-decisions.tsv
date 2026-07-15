@@ -1,0 +1,3 @@
+cell	prior_state	certification_pass	shared_gate_pass	resulting_state
+gamma_phylo	implemented	TRUE	TRUE	point_fit_recovery
+lognormal_phylo	implemented	TRUE	TRUE	point_fit_recovery

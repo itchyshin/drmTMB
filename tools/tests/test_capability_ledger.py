@@ -27,7 +27,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        self.assertEqual(len(model), 668)
+        self.assertEqual(len(model), 671)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -49,6 +49,45 @@ class CapabilityLedgerTests(unittest.TestCase):
             sum(row["work_status"] == "verified" for row in missing),
             len(ledger.ADMITTED),
         )
+
+    def test_arc3a_cells_are_narrow_and_evidence_backed(self):
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+        evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
+
+        self.assertEqual(
+            {status: sum(row["capability_status"] == status for row in model)
+             for status in ("implemented", "rejected_by_design", "not_implemented")},
+            {"implemented": 301, "rejected_by_design": 330, "not_implemented": 40},
+        )
+        for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
+            row = by_id[cell_id]
+            self.assertEqual(row["q_gate"], "q1")
+            self.assertEqual(row["estimator"], "ML")
+            self.assertEqual(row["capability_status"], "implemented")
+            self.assertEqual(row["work_status"], "verified")
+            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+            self.assertIn("unlabelled q1 structured intercept", row["claim_boundary"])
+            for excluded in ("REML", "intervals", "coverage", "inference-ready", "supported"):
+                self.assertIn(excluded, row["claim_boundary"])
+            self.assertEqual(
+                evidence_by_id[row["primary_evidence_id"]]["cell_id"], cell_id
+            )
+
+        for cell_id in ("mc-0669", "mc-0670", "mc-0671"):
+            row = by_id[cell_id]
+            self.assertEqual(row["route_variant"], "arc3a_beyond_intercept")
+            self.assertEqual(row["q_gate"], "q2")
+            self.assertEqual(row["capability_status"], "rejected_by_design")
+            self.assertEqual(row["work_status"], "deferred")
+            self.assertEqual(row["evidence_tier"], "none")
+            for excluded in ("slope", "labelled", "q2", "structured `sigma`", "simultaneous"):
+                self.assertIn(excluded, row["claim_boundary"])
+
+        comparator = by_id["mc-0248"]
+        self.assertEqual(comparator["primary_evidence_id"], "ev-mc-0248-legacy")
+        self.assertEqual(comparator["evidence_tier"], "point_fit_recovery")
+        self.assertIn("90/90-converged", comparator["claim_boundary"])
 
     def test_generation_is_deterministic(self):
         first = ledger.outputs(self.cells, self.evidence)

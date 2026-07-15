@@ -334,8 +334,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   inference-ready with caveats and mildly anti-conservative coverage. The
   `mu` and `sigma` random-effect routes must be fitted separately; combining
   them is rejected.
-  Correlated or labelled slopes, `sigma` slopes, known sampling covariance,
-  phylogenetic terms, and bivariate lognormal models are not yet implemented.
+  Arc 3a fits one recovery-grade unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`.
+  Structured slopes, labels,
+  `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers, spatial/animal,
+  REML, intervals/coverage, and bivariate lognormal models remain rejected.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric
@@ -362,9 +364,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   One ordinary log-`sigma` random intercept is fitted at point-recovery grade.
   The `mu` and `sigma` random-effect routes must be fitted separately;
   combining them is rejected.
-  Non-log Gamma links, correlated or labelled slopes, `sigma` slopes, known
-  sampling covariance, phylogenetic terms, and bivariate
-  or mixed Gamma models are not yet implemented.
+  The existing `relmat()` intercept/one-slope route remains recovery grade.
+  Arc 3a also fits one recovery-grade unlabelled q1 `phylo()` intercept in `mu`.
+  Non-log Gamma links, new-route slopes,
+  labels, `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers,
+  spatial/animal, REML, intervals/coverage, and bivariate or mixed Gamma remain
+  rejected.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
@@ -508,10 +513,15 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   remain planned.
 - Except for ordinary Poisson/NB2 q=1 `mu` routes; the exact recovery-grade NB2
   q=1 `sigma` intercept-plus-one-slope routes; the recovery-grade truncated-NB2
-  `hu ~ relmat(1 | id, K/Q = ...)` intercept, Gamma `mu ~ relmat(1 + x | id,
-  K = K)`, beta `mu ~ animal(1 + x | id, pedigree = ped)` and `sigma ~
+  `hu ~ relmat(1 | id, K = K)` or `hu ~ relmat(1 | id, Q = Q)` intercept,
+  Gamma `mu ~ relmat(1 + x | id, K = K)`, beta
+  `mu ~ animal(1 + x | id, pedigree = ped)` and `sigma ~
   animal(1 | id, pedigree = ped)`, and Student-t `mu ~ spatial(1 + x | id,
-  coords = coords)` routes; and the row-specific Student-t `nu ~ phylo(1 | id,
+  coords = coords)` routes; the Arc 3a Gamma
+  `mu ~ phylo(1 | id, tree = tree)` and lognormal
+  `mu ~ phylo(1 | id, tree = tree)`, `mu ~ relmat(1 | id, K = K)`, or
+  `mu ~ relmat(1 | id, Q = Q)`
+  intercepts; and the row-specific Student-t `nu ~ phylo(1 | id,
   tree = tree)`, cumulative-logit `mu ~ phylo(1 | id, tree = tree)`,
   zero-inflated Poisson `zi ~ spatial(1 | id, coords = coords)`, zero-inflated
   Poisson fixed-`zi` `mu ~ spatial(1 | id, coords = coords)`, and zero-inflated
@@ -617,7 +627,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   beta/beta-binomial `sigma` random effects beyond the exact beta q1
   `sigma ~ animal()` intercept gate,
   lognormal/Gamma/beta/beta-binomial structured-effect models beyond the exact
-  Gamma-relatedness and beta-animal point/recovery gates,
+  Arc 3a Gamma-phylo and lognormal-phylo/relmat q1 `mu` intercepts,
+  Gamma-relatedness, and beta-animal point/recovery gates,
   beta exact-boundary mass, ordinal scale or discrimination models,
   count covariance labels and correlated count slopes, count hurdle or
   zero-inflation with random effects or structured effects beyond the exact
@@ -627,6 +638,7 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   intercept slices for `phylo()`, `spatial()`, `animal()`, and `relmat()` and
   beyond the exact NB2 structured-`sigma`, Student-t phylo `nu`, Student-t
   spatial `mu`, Gamma relatedness `mu`, beta animal `mu`/`sigma`, ordinal phylo
+  `mu`, Arc 3a Gamma phylogenetic `mu` and lognormal phylogenetic/relatedness
   `mu`, Poisson spatial `zi`, Poisson fixed-`zi` spatial `mu`, truncated-NB2
   relatedness `hu`, and NB2 fixed-`zi` spatial `mu` row-specific evidence
   gates,

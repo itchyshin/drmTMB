@@ -1,0 +1,4 @@
+M	attempts	jointly_analysis_successful	success_status_mismatch	objective_delta_max	fixed_delta_max	tau_delta_max	field_delta_max	tolerance_failures	availability_gate	numerical_gate
+16	400	400	0	1.60298441187479e-11	3.5942914000664e-07	1.0388278892659e-07	3.72756490896187e-07	0	TRUE	TRUE
+32	400	400	0	7.1963768277783e-11	4.2124369498131e-07	2.58928729013341e-07	4.54440104047382e-07	0	TRUE	TRUE
+64	400	400	0	2.80124368146062e-10	6.43425167978773e-07	4.51342986040881e-07	6.70905792532484e-07	0	TRUE	TRUE

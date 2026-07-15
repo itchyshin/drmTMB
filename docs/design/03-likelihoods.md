@@ -75,8 +75,8 @@ is the current routing contract:
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching slope-only `sigma1`/`sigma2` scale covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept or matching slope-only covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, ordinary q=8 location-scale endpoint covariance blocks with diagnostic smoke, recovery, and staged-start artifact routing, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. The q=8 route is fitted and diagnostic-artifact-ready only; q8 recovery accuracy, intervals, coverage, power, speed, bridge parity, and release claims remain separate evidence gates. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, ordinary `mu` random intercepts or independent numeric slopes, one recovery-grade `mu ~ spatial(1 + x | ...)` route, and exact diagnostic-grade intercept-only `mu ~ spatial(1 | ...)` and `nu ~ phylo(1 | id, tree = tree)` gates. |
 | `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, fixed-effect residual slant `nu`, and ordinary recovery-grade `mu` random intercepts or independent numeric slopes; `sigma`/`nu` random effects, correlated/labelled `mu` slopes, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are rejected. |
-| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
-| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
+| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, ordinary `mu` random intercepts or independent numeric slopes, and one Arc 3a q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`. |
+| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, ordinary `mu` random intercepts or independent numeric slopes, the existing `relmat()` intercept/one-slope route, and one Arc 3a q1 `phylo()` intercept in `mu`. |
 | `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, intercept-only `nu = 1 + plogis(eta_nu)`, and ordinary recovery-grade `mu` random intercepts or independent numeric slopes. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()`, and the MD9a first non-Gaussian response missing-predictor route for one fixed-effect binary `mi()` predictor. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
@@ -1764,20 +1764,45 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  bf(biomass ~ habitat, sigma ~ treatment),
+  bf(
+    biomass ~ habitat + phylo(1 | species, tree = tree),
+    sigma ~ treatment
+  ),
+  family = lognormal(),
+  data = dat
+)
+
+drmTMB(
+  bf(
+    biomass ~ habitat + relmat(1 | species, K = K),
+    sigma ~ treatment
+  ),
   family = lognormal(),
   data = dat
 )
 ```
+
+Here `tree` is an ultrametric `phylo` object whose tip labels match `species`;
+alternatively, `K` is a named positive-definite relatedness matrix. Supply its
+named precision as `Q = Q` instead of `K = K` when that representation is
+available.
 
 For lognormal fits, `predict(fit, dpar = "mu")` returns the log-scale
 location parameter, `sigma(fit)` returns the log-scale standard deviation, and
 `fitted(fit)` returns `E[y_i]` on the original response scale. The response
 must be positive and finite after missing-row filtering. Ordinary unlabelled
 `mu` random intercepts and independent numeric slopes enter the log-response
-location predictor. Correlated slopes, labelled covariance blocks, `sigma`
-random effects, known sampling covariance, structured terms, and bivariate
-lognormal models are later phases.
+location predictor. Arc 3a additionally admits exactly one unlabelled q1
+`phylo()` or `relmat()` intercept using `K` or `Q` in `mu`. If `b` is the structured field,
+then `eta_mu_i = X_mu[i, ] beta_mu + b_group[i]`, with
+`b ~ Normal(0, s_mu^2 K)` (or the equivalent precision representation).
+`s_mu` is a covariance multiplier: level `g` has marginal SD
+`s_mu * sqrt(K[g, g])`, or `s_mu * sqrt(solve(Q)[g, g])` for a precision input.
+It is a common marginal SD only when the covariance has unit diagonal. The new
+routes do not admit structured slopes, labels, `sigma` structure, another
+random-effect layer, simultaneous structured providers, spatial/animal structure, REML, or a
+bivariate lognormal response. The exact Arc 3a cells have point-fit recovery
+evidence; intervals and coverage remain untested.
 
 ## Implemented Gamma Mean-CV
 
@@ -1807,20 +1832,33 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  bf(biomass ~ habitat, sigma ~ treatment),
+  bf(
+    biomass ~ habitat + phylo(1 | species, tree = tree),
+    sigma ~ treatment
+  ),
   family = Gamma(link = "log"),
   data = dat
 )
 ```
+
+Here `tree` is an ultrametric `phylo` object whose tip labels match `species`.
 
 For Gamma fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 response mean. `sigma(fit)` returns the coefficient of variation, not the
 residual standard deviation; the fitted residual standard deviation is
 `mu_i * sigma_i`. The response must be positive and finite after missing-row
 filtering. Ordinary unlabelled `mu` random intercepts and independent numeric
-slopes enter the log-mean predictor. Correlated slopes, labelled covariance
-blocks, `sigma` random effects, known sampling covariance, structured terms,
-and bivariate or mixed Gamma models are later phases.
+slopes enter the log-mean predictor. The existing `relmat()` intercept and
+independent one-slope route remains fitted. Arc 3a additionally admits exactly
+one unlabelled q1 `phylo()` intercept in `mu`, using
+`eta_mu_i = X_mu[i, ] beta_mu + b_species[i]` and the same scaled structured
+Gaussian prior `b ~ Normal(0, s_mu^2 K_phylo)`. The new phylogenetic route does
+not admit slopes, labels, `sigma` structure, another random-effect layer,
+simultaneous structured providers, spatial/animal structure, REML, or
+bivariate/mixed Gamma. `s_mu` is the phylogenetic covariance multiplier, so
+species `g` has marginal SD `s_mu * sqrt(K_phylo[g, g])`.
+The exact Arc 3a cell has point-fit recovery evidence; intervals and coverage
+remain untested.
 
 ## Implemented Tweedie Mean-Scale-Shape
 
