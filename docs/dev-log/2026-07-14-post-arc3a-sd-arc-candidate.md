@@ -77,8 +77,23 @@ campaigns.
 
 ## Post-Arc-3a decision
 
-At Arc 3a closeout, compare this candidate against the remaining main-lane arcs
-using the updated `main` capability ledger, user value, boundedness of the first
-slice, engine/design risk, independent comparator availability, and achievable
-recovery evidence. The comparison may recommend this arc, defer it, or split
-the Beta gate further. No choice is made in this note.
+**Decision at Arc 3a closeout: bank and split; do not execute next.** The Beta
+example currently combines two independently absent capabilities--Beta
+`phylo()` in `mu` and a non-Gaussian direct random-effect-SD submodel--inside a
+three-estimand location-scale-scale fit. That is too much parser, likelihood,
+identifiability, and comparator risk for one first slice.
+
+The recommended next main-lane slice is Arc 1b-S1, the existing bivariate-
+Gaussian fixed-covariance spatial q2 location cell under REML, because it has
+an ML comparator and an independent dense restricted-likelihood oracle. The
+full plan is `docs/dev-log/2026-07-14-next-arc1b-spatial-q2-reml-ultra-plan.md`.
+
+When this `sd()` candidate returns, split it into three approved GOALs:
+
+1. admit and recover Beta phylogenetic `mu` without a direct-SD formula;
+2. prove canonical `sd(group, level = ...)` parsing and extractor compatibility
+   on an existing Gaussian structured route; and
+3. only then combine them in the Beta phylogenetic location-scale-scale model.
+
+Each later family still needs its own scale mapping and evidence. The shared
+`sd()` spelling is not a blanket likelihood contract.

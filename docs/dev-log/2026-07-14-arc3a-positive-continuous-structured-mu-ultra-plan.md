@@ -33,6 +33,18 @@ merge it without Shinichi's authorization.
 
 # Arc 3a positive-continuous structured-`mu` ultra-plan
 
+## Outcome
+
+Arc 3a met its bounded goal. The native engine, focused positive and negative
+contracts, generated ledger, and reader surfaces now admit exactly the three
+new q1 intercept cells. The 6,000-fit primary campaign certified
+lognormal–`relmat()` and retained its predeclared phylogenetic intercept HOLD.
+A separate fresh 2,400-fit addendum passed design-conditioned GLS-oracle and
+structured-projection gates for Gamma–`phylo()` and lognormal–`phylo()`.
+All three cells finish at `point_fit_recovery`; every deferred neighbour and
+all interval, coverage, REML, inference-ready, supported, and Julia claims
+remain outside the arc.
+
 ## Status at authorization
 
 PR #780 is merged. Local `HEAD`, local `main`, and `origin/main` were verified

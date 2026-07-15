@@ -1801,8 +1801,8 @@ then `eta_mu_i = X_mu[i, ] beta_mu + b_group[i]`, with
 It is a common marginal SD only when the covariance has unit diagonal. The new
 routes do not admit structured slopes, labels, `sigma` structure, another
 random-effect layer, simultaneous structured providers, spatial/animal structure, REML, or a
-bivariate lognormal response. Recovery certification remains separate from
-this implementation statement.
+bivariate lognormal response. The exact Arc 3a cells have point-fit recovery
+evidence; intervals and coverage remain untested.
 
 ## Implemented Gamma Mean-CV
 
@@ -1857,7 +1857,8 @@ not admit slopes, labels, `sigma` structure, another random-effect layer,
 simultaneous structured providers, spatial/animal structure, REML, or
 bivariate/mixed Gamma. `s_mu` is the phylogenetic covariance multiplier, so
 species `g` has marginal SD `s_mu * sqrt(K_phylo[g, g])`.
-Recovery certification remains separate from this implementation statement.
+The exact Arc 3a cell has point-fit recovery evidence; intervals and coverage
+remain untested.
 
 ## Implemented Tweedie Mean-Scale-Shape
 

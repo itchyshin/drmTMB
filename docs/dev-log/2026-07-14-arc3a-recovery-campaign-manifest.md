@@ -1,16 +1,21 @@
 # Arc 3a recovery campaign manifest: positive-continuous structured `mu`
 
-**Status:** CERTIFICATION COMPLETE; MIXED FROZEN-GATE VERDICT. Totoro completed
-all 6,000 scheduled certification fits from the clean `0ef41a69` source
-snapshot with 40 workers. **Predeclared maximum decision ceiling:**
+**Status:** PRIMARY CERTIFICATION COMPLETE WITH ITS MIXED FROZEN-GATE VERDICT;
+FRESH PHYLOGENETIC ADDENDUM COMPLETE. Totoro completed all 6,000 primary fits
+from clean source `0ef41a69` and all 2,400 addendum fits from the engine-identical
+`d00da037` source. **Predeclared maximum decision ceiling:**
 `point_fit_recovery` for each of Gamma–`phylo()`, lognormal–`phylo()`, and
 lognormal–`relmat()` q1 `mu` intercepts under native-TMB univariate ML. The
-realized decision promotes only lognormal–`relmat()`; both phylogenetic routes
-remain `implemented`. Existing Gamma–`relmat()` is a positive comparator, not
-a new promotion. This manifest
-froze the design and numerical PASS/HOLD rules before any campaign result was
-seen. Compact results and hashes are retained under
+primary decision promotes only lognormal–`relmat()`; both phylogenetic routes
+retain the primary campaign's HOLD. A separately predeclared, freshly seeded
+addendum subsequently certifies both phylogenetic routes at the same ceiling
+using the exact design-conditioned GLS intercept oracle and structured-field
+projection gates. Existing Gamma–`relmat()` is a positive comparator, not a
+new promotion. The original threshold was not relaxed or rewritten. Compact
+primary results and hashes are retained under
 `docs/dev-log/simulation-artifacts/2026-07-14-arc3a-positive-continuous-structured-mu-recovery/`.
+Compact addendum results and hashes are retained under
+`docs/dev-log/simulation-artifacts/2026-07-14-arc3a-phylo-recovery-addendum/`.
 
 ## Certified result
 
@@ -35,6 +40,15 @@ fixed-intercept SD of about `0.203` at `M = 64`. The frozen `0.12` threshold is
 therefore unattainable at this ladder even with known covariance and
 negligible observation noise. The threshold is not relaxed post hoc; see the
 artifact README for the derivation and exact observed values.
+
+The fresh addendum completed 2,400/2,400 valid fits: 400 replicates for each
+phylogenetic family at `M = 16, 32, 64`. Observed/design-oracle intercept RMSE
+ratios range from `0.9063` to `1.0294`; structured-projection correlations
+range from `0.9969` to `0.9989`; and projection-residual RMSE ranges from
+`0.00986` to `0.01939`. Every predeclared addendum gate passes. The final Arc
+3a decisions are therefore `point_fit_recovery` for Gamma–`phylo()`,
+lognormal–`phylo()`, and lognormal–`relmat()`, with no interval or coverage
+promotion.
 
 This study follows the ADEMP structure of Morris, White, and Crowther (2019),
 *Using simulation studies to evaluate statistical methods*, and the transparent
@@ -419,7 +433,7 @@ than 6,000 before evaluating the predeclared gates.
 | 10 | Full performance table | ✅ | Compact all-route/rung target, diagnostics, parity, decision, and failure-stage tables are checked in; the authenticated 6,000-row raw table remains local on Totoro |
 | 11 | MCSE reported alongside | ✅ | `target-recovery-summary.tsv` reports bias MCSE and exactly 2,000-resample bootstrap RMSE MCSE beside every scalar target |
 
-## Fisher verdict
+## Primary-campaign Fisher verdict
 
 **CERTIFICATION AUTHENTIC; APPLY THE FROZEN MIXED VERDICT.** The estimands,
 units, information ladder, seeds, fit count, denominator rules, diagnostics,
@@ -431,3 +445,13 @@ promoted to `point_fit_recovery`; both phylogenetic routes must remain
 `implemented` under the frozen gate. The campaign does not authorize a new
 interval, coverage, inference-ready, supported, REML, slope, or broader-
 provider claim.
+
+## Final addendum verdict
+
+**PASS at the frozen `point_fit_recovery` ceiling.** Fisher and Noether
+independently verified all 2,400 addendum denominators, compact hashes,
+design-conditioned oracle calculations, structured projections, MCSEs, and
+source-tree identity with the primary implementation. Rose verified that the
+ledger preserves the primary HOLD as history and uses the addendum only for
+the two phylogenetic promotions. No interval, coverage, inference-ready,
+supported, REML, slope, or broader-provider claim follows.

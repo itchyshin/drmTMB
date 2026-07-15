@@ -1,0 +1,3 @@
+fit_route	rung_gates	final_bias_gate	final_rmse_gate	intercept_oracle_gate	structured_projection_decomposition_gate	information_response_gate	mcse_gate	nonparity_pass
+gamma_phylo	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE
+lognormal_phylo	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE	TRUE

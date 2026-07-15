@@ -1,0 +1,7 @@
+fit_route	M	failure_stage	count
+gamma_phylo	16	none	400
+lognormal_phylo	16	none	400
+gamma_phylo	32	none	400
+lognormal_phylo	32	none	400
+gamma_phylo	64	none	400
+lognormal_phylo	64	none	400

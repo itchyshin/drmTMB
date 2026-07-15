@@ -1,8 +1,9 @@
 # Arc 3a capability-ledger migration plan
 
-**Verdict: READY for the ledger migration design; NOT READY to promote any
-cell until the Arc 3a implementation, rejection guards, and all-attempted
-recovery evidence exist.**
+**Verdict: MIGRATED.** The Arc 3a implementation and rejection guards are
+present. The primary 6,000-fit campaign plus the separate fresh 2,400-fit
+phylogenetic addendum support all three exact cells at
+`point_fit_recovery`; no higher inference tier changes.
 
 ## Purpose and current contract
 
@@ -223,8 +224,9 @@ records remain load-bearing.
 
 ## Final verdict
 
-**READY** to implement this migration alongside Arc 3a, using the stable-ID
-split above. **NOT READY** to change current cell statuses today: the required
-native-TMB implementation, direct rejection tests, and all-attempted recovery
-evidence do not yet exist in the ledger. Until they do, the live rows remain
-rejected/deferred and no inference tier changes.
+**COMPLETE.** The stable-ID split is implemented: `mc-0251`, `mc-0386`, and
+`mc-0388` are verified at `point_fit_recovery`; `mc-0669`--`mc-0671` preserve
+the directly tested rejected neighbourhood; and `mc-0248` remains unchanged.
+The original primary phylogenetic HOLD remains explicit, while the fresh
+addendum is the primary recovery evidence for the two phylogenetic cells. No
+inference tier changes.

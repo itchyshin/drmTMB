@@ -1,5 +1,15 @@
 # Arc 3a positive-continuous structured-`mu` recovery
 
+## Final Arc 3a disposition
+
+This directory preserves the primary 6,000-fit campaign and its mixed frozen
+verdict. It must not be rewritten as a three-cell PASS. A separate fresh
+2,400-fit phylogenetic addendum used a predeclared design-conditioned GLS
+oracle and structured-field projection gates; both phylogenetic routes passed.
+Together, the two studies support all three new Arc 3a cells at
+`point_fit_recovery`. See
+`../2026-07-14-arc3a-phylo-recovery-addendum/README.md`.
+
 ## Result
 
 The frozen Totoro certification completed all 6,000 scheduled fits: 400

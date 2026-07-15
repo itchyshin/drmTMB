@@ -8,9 +8,12 @@
   log-response location predictor. Gamma-`relmat()` retains its existing
   intercept and independent one-slope route.
 * Focused likelihood, extractor, prediction-decomposition, K/Q parity, and
-  rejection-neighbour tests are green. Formal retained-denominator recovery
-  certification is still pending, so the new rows are not yet promoted above
-  implementation evidence.
+  rejection-neighbour tests are green. A 6,000-fit primary Totoro campaign
+  certified lognormal-`relmat()` and retained the predeclared phylogenetic
+  intercept-RMSE HOLD. A separate, freshly seeded 2,400-fit phylogenetic
+  addendum then passed its design-conditioned GLS-oracle and structured-field
+  projection gates without relaxing the original threshold. All three new
+  cells are therefore `point_fit_recovery`; no interval tier is implied.
 * New-route slopes, labels/q2+, `sigma` structure, joint `mu`/`sigma`,
   simultaneous structured providers, spatial/animal, bivariate responses, REML, intervals, coverage,
   and `supported` claims remain outside this arc.

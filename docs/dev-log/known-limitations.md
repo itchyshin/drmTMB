@@ -334,8 +334,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   inference-ready with caveats and mildly anti-conservative coverage. The
   `mu` and `sigma` random-effect routes must be fitted separately; combining
   them is rejected.
-  Arc 3a fits one unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`;
-  its formal recovery certification is pending. Structured slopes, labels,
+  Arc 3a fits one recovery-grade unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`.
+  Structured slopes, labels,
   `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers, spatial/animal,
   REML, intervals/coverage, and bivariate lognormal models remain rejected.
 - Univariate Student-t location-scale-shape models are implemented for robust
@@ -365,8 +365,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   The `mu` and `sigma` random-effect routes must be fitted separately;
   combining them is rejected.
   The existing `relmat()` intercept/one-slope route remains recovery grade.
-  Arc 3a also fits one unlabelled q1 `phylo()` intercept in `mu`; its formal
-  recovery certification is pending. Non-log Gamma links, new-route slopes,
+  Arc 3a also fits one recovery-grade unlabelled q1 `phylo()` intercept in `mu`.
+  Non-log Gamma links, new-route slopes,
   labels, `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers,
   spatial/animal, REML, intervals/coverage, and bivariate or mixed Gamma remain
   rejected.

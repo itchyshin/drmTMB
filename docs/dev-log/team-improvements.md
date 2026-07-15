@@ -8,6 +8,20 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-07-14 - Design-Conditioned Recovery Gates
+
+- Improvement implemented: recovery plans for structured fixed effects now
+  predeclare a design-conditioned oracle or comparator when the sampling
+  geometry can make absolute truth-centred RMSE a misleading gate.
+- Improvement implemented: a failed primary gate remains immutable. A later
+  addendum must be separately predeclared, hashed, and reported; it may supply
+  new evidence but must not rewrite the original verdict.
+- Trigger: Arc 3a's balanced-tree phylogenetic routes held under a universal
+  absolute intercept-RMSE threshold even though a fresh exact GLS oracle and
+  structured-field projection showed near-one estimator/oracle ratios and
+  near-perfect field agreement. The separate 2,400-fit addendum resolved the
+  design-geometry question without erasing the primary 6,000-fit HOLD.
+
 ## 2026-06-23 - DRAC Compute Resource Gate
 
 - Improvement implemented: DRAC and other shared compute resources should be

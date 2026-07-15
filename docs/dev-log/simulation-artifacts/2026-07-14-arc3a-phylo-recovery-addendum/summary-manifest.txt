@@ -1,0 +1,51 @@
+campaign_id=arc3a_phylo_recovery_addendum_20260714
+contract=phylo_addendum
+source_commit_sha=d00da03713bcd0ace3dfcb236d7dd392ace27df2
+hosts=totoro
+worker_count=40
+attempted_rows=2400
+fit_success=2400
+analysis_success=2400
+summary_seed=2026071437
+bootstrap_reps=2000
+combined_raw_sha256=f4c3a0da9089cffd51a1703d2d2ba6526da5ca84db8ac26d9022926e6032d9cd
+route_summary_sha256=b59ebafea31940dfbb21323e423226b50b1e4f1aad6575ae994e6c32f9994b5d
+target_summary_sha256=2bbc251689a3621e8e9e61ce1f33194b7bacee5d187907b6dbacd5bedb5c5ab2
+parity_summary_sha256=bba1c5d52270e50876f008d495670b835941dc712bd9a2973e9ad36f1ad70030
+route_decision_sha256=ca2ea8ac5389eeecbf44e23c171f5fbf14e2efb62cd111158958d97b0cc65e48
+cell_decision_sha256=479a5e99be05f02442362bc2ee8d371662a816d21987726f508acbee90f30605
+failure_stage_sha256=959aaba9ba6a7409183b6a8cfa04ce435389649494c8ef906530498889e5a013
+oracle_diagnostics_sha256=4018b318c43f5c1b6acd79857da196333aaa6a59f7c38c3e5207bf5c655e8b26
+all_new_cells_pass=TRUE
+comparator_pass=TRUE
+kq_parity_pass=TRUE
+shared_gate_pass=TRUE
+primary_combined_raw_sha256=b303aab6781770e14be096b69c95b5da0e803f703cf3321baa91750a6465dcd3
+primary_cell_decision_sha256=db6e7b0da4e4cd97d00664885b2b231794e9f9f3412112138ea60d8ad3f25076
+primary_route_decision_sha256=b801eb545ad43ea852ef3242ab076f8da4c96e3ae342253ab4f311a5e0d9528e
+primary_parity_summary_sha256=aea481c2a564663c1b10371ece780aeeefa431f0c47abf2d90d9e67b42c5e935
+primary_comparator_pass=TRUE
+primary_kq_parity_pass=TRUE
+primary_shared_gate_pass=TRUE
+R version 4.5.3 (2026-03-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.4 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C
+
+time zone: America/Edmonton
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base
+
+loaded via a namespace (and not attached):
+[1] compiler_4.5.3
