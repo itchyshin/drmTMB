@@ -1,0 +1,18 @@
+gate	scope	observed	threshold	pass	status
+attempt_rows	campaign	1200	exactly 1200	TRUE	PASS
+unique_attempt_keys	campaign	1200	exactly 1200	TRUE	PASS
+convergence_rate	g0256_m02	1	>= 0.95	TRUE	PASS
+pdHess_rate	g0256_m02	0.9925	>= 0.90	TRUE	PASS
+convergence_rate	g1024_m02	1	>= 0.95	TRUE	PASS
+pdHess_rate	g1024_m02	1	>= 0.90	TRUE	PASS
+absolute_bias	g0256_m02:beta_mu_x	0.000686703356447108	<= 0.10	TRUE	PASS
+absolute_bias	g0256_m02:beta_sigma_x	0.00196469047107576	<= 0.10	TRUE	PASS
+absolute_bias	g0256_m02:log_tau	0.520323039997222	<= 0.10	FALSE	HOLD
+absolute_bias	g1024_m02:beta_mu_x	0.000614781858490298	<= 0.10	TRUE	PASS
+absolute_bias	g1024_m02:beta_sigma_x	0.0011900251065122	<= 0.10	TRUE	PASS
+absolute_bias	g1024_m02:log_tau	0.0888153317207048	<= 0.10	TRUE	PASS
+rmse_nonincrease	beta_mu_intercept	-0.00571192277670649	delta <= MCSE (0.00902735)	TRUE	PASS
+rmse_nonincrease	beta_mu_x	-0.0119012117794552	delta <= MCSE (0.00084268)	TRUE	PASS
+rmse_nonincrease	beta_sigma_intercept	-0.0177921589830348	delta <= MCSE (0.00119070)	TRUE	PASS
+rmse_nonincrease	beta_sigma_x	-0.0169012374923498	delta <= MCSE (0.00111164)	TRUE	PASS
+rmse_nonincrease	log_tau	-1.63096342253436	delta <= MCSE (0.26154213)	TRUE	PASS
