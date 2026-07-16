@@ -3,7 +3,8 @@
 This directory is the tracked compact evidence packet for the frozen 4,800-fit
 Totoro certification. It contains the complete design, seed audit, provenance,
 4,800-row attempt table, summaries, quality gates, and promotion decision. The
-atomic attempt shards and their complete manifest remain local and on Totoro;
+The certification's atomic attempt shards and their complete manifest remain
+local and on Totoro;
 they are not GitHub artifacts and are not duplicated as 9,600 repository files.
 The local sealed copy is under
 `/Users/z3437171/Dropbox/Github Local/drmTMB-local-artifacts/2026-07-16-beta-phylo-q1-pr2/`.

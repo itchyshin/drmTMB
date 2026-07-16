@@ -98,7 +98,7 @@ Totoro smoke retained all 12 cells: 12/12 convergence-code-zero, 12/12
 `0.002543139`, and maximum Hessian condition `2959.676`.
 
 The Totoro certification ran from 2026-07-16 20:08:27 UTC to 21:08:38 UTC and
-retained all 4,800 predeclared attempts. After import, the full 9,615-file
+retained all 4,800 predeclared attempts. After import, the full 9,613-file
 output passed local SHA-256 manifest authentication. The complete output
 manifest hash was
 `7e5532c61e0f97f107e54c0be43f438e2859421e8630129bbba529e91123459f`.
@@ -123,6 +123,15 @@ Beta support, not evidence of estimator, Laplace, or optimizer bias: no fit was
 attempted for that replicate. Increasing `g` does not repair a DGP that can
 produce an exact 0 or 1. Any interior-response redesign must be prospective and
 must start under a separately approved goal.
+
+Three non-promotional cells also retained adverse diagnostics. Distinct
+`g = 256, m = 2` replicate 103 (seed `2099989897`) and shared
+`g = 256, m = 2` replicate 153 (seed `2099929847`) each returned optimizer
+code 1 with a singular-convergence warning. Shared `g = 512, m = 2` replicate
+74 (seed `2099909926`) returned `pdHess = FALSE` with `NaNs produced`. The
+runner kept all three and marked their cell-quality rows false. They do not
+alter the separate two-arm promotion algebra, but they remain part of the
+negative evidence and may not be omitted from future design review.
 
 ## 6. Tests of the Tests
 
@@ -198,9 +207,10 @@ ignoring a support-invalid simulated dataset in the shared design. Recovery
 contracts should predeclare both statistical gates and an explicit
 interior-support policy for continuous bounded DGPs before compute.
 
-The full attempt-level output stays local and on Totoro, in line with D-50. The
+The full certification attempt-level output stays local and on Totoro, in line
+with D-50. The
 repository tracks the complete 4,800-row table and compact decision evidence,
-not 9,600 atomic shard files or a GitHub Actions artifact.
+not the certification's 9,600 atomic shard files or a GitHub Actions artifact.
 The sealed local copy is under
 `/Users/z3437171/Dropbox/Github Local/drmTMB-local-artifacts/2026-07-16-beta-phylo-q1-pr2/`.
 
