@@ -1,24 +1,22 @@
-successor_env <- new.env(parent = globalenv())
-sys.source(
-  testthat::test_path(
-    "..",
-    "..",
-    "tools",
-    "run-beta-phylo-q1-successor-recovery.R"
-  ),
-  envir = successor_env
+successor_path <- testthat::test_path(
+  "..",
+  "..",
+  "tools",
+  "run-beta-phylo-q1-successor-recovery.R"
+)
+diagnostic_path <- testthat::test_path(
+  "..",
+  "..",
+  "tools",
+  "run-beta-phylo-q1-is-diagnostic.R"
 )
 
-diagnostic_env <- new.env(parent = globalenv())
-sys.source(
-  testthat::test_path(
-    "..",
-    "..",
-    "tools",
-    "run-beta-phylo-q1-is-diagnostic.R"
-  ),
-  envir = diagnostic_env
-)
+if (all(file.exists(c(successor_path, diagnostic_path)))) {
+  successor_env <- new.env(parent = globalenv())
+  sys.source(successor_path, envir = successor_env)
+
+  diagnostic_env <- new.env(parent = globalenv())
+  sys.source(diagnostic_path, envir = diagnostic_env)
 
 test_that("successor high-information design is frozen and disjoint", {
   repo_root <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
@@ -494,3 +492,8 @@ test_that("pair-level importance diagnostics reject malformed shapes", {
   expect_true(all(is.na(malformed)))
   expect_true(all(is.na(nonfinite)))
 })
+} else {
+  test_that("Beta phylo successor runner development contracts", {
+    skip("Top-level development tools are intentionally excluded from the source package")
+  })
+}

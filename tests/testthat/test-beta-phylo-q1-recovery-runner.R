@@ -1,8 +1,13 @@
-runner_env <- new.env(parent = globalenv())
-sys.source(
-  testthat::test_path("..", "..", "tools", "run-beta-phylo-q1-recovery.R"),
-  envir = runner_env
+runner_path <- testthat::test_path(
+  "..",
+  "..",
+  "tools",
+  "run-beta-phylo-q1-recovery.R"
 )
+
+if (file.exists(runner_path)) {
+  runner_env <- new.env(parent = globalenv())
+  sys.source(runner_path, envir = runner_env)
 
 copy_prior_designs <- function(repo_root) {
   target <- tempfile("beta-phylo-repair-audit-")
@@ -407,3 +412,8 @@ test_that("repair promotion requires repair and pooled m4 gates", {
   expect_equal(pass$status, "PASS")
   expect_true(pass$promotion_authorized)
 })
+} else {
+  test_that("Beta phylo recovery runner development contract", {
+    skip("Top-level development tools are intentionally excluded from the source package")
+  })
+}
