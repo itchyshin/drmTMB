@@ -1029,7 +1029,14 @@ run_recovery <- function(args = parse_args()) {
     return(invisible(list(grid = grid, seed_audit = seed_audit)))
   }
   rows <- split(grid, seq_len(nrow(grid)))
-  worker <- function(x) recovery_attempt(x[1L, , drop = FALSE])
+  worker <- function(x) {
+    row <- x[1L, , drop = FALSE]
+    if (repair_mode) {
+      with_repair_rng(recovery_attempt(row))
+    } else {
+      recovery_attempt(row)
+    }
+  }
   result <- if (args$cores == 1L || .Platform$OS.type == "windows") {
     lapply(rows, worker)
   } else {

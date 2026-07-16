@@ -103,6 +103,34 @@ test_that("beta phylo repair seed generation freezes and restores RNG kind", {
   )
 })
 
+test_that("beta phylo repair DGP freezes and restores RNG kind", {
+  old_kind <- RNGkind()
+  on.exit(do.call(RNGkind, as.list(old_kind)), add = TRUE)
+  reference <- runner_env$with_repair_rng(
+    runner_env$beta_phylo_dgp(g = 8L, m = 4L, seed = 2026071629L)
+  )
+
+  suppressWarnings(
+    RNGkind(
+      kind = "L'Ecuyer-CMRG",
+      normal.kind = "Box-Muller",
+      sample.kind = "Rounding"
+    )
+  )
+  caller_kind <- RNGkind()
+  observed <- suppressWarnings(
+    runner_env$with_repair_rng(
+      runner_env$beta_phylo_dgp(g = 8L, m = 4L, seed = 2026071629L)
+    )
+  )
+
+  expect_equal(observed$tree$edge, reference$tree$edge)
+  expect_equal(observed$tree$edge.length, reference$tree$edge.length)
+  expect_equal(observed$data, reference$data)
+  expect_equal(observed$truth, reference$truth)
+  expect_equal(RNGkind(), caller_kind)
+})
+
 test_that("frozen repair design fails closed on absence, hash, or grid drift", {
   repo_root <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   path <- runner_env$frozen_repair_design_path(repo_root)

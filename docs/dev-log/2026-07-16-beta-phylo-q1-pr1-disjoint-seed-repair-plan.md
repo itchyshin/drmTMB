@@ -56,6 +56,11 @@ runner restores the caller's RNG state and kind. The committed certification
 design is authoritative; every repair mode must regenerate and authenticate it
 before the first fit.
 
+The same frozen kind wraps every repair DGP attempt, including the coalescent
+tree, phylogenetic effect, predictor, and Beta response draws. Thus a certified
+numeric seed denotes the same generated dataset under a different user profile
+or host RNG setting; the wrapper restores the caller's state after each attempt.
+
 | Phase | Mode | Master seed | Attempts | Role |
 | --- | --- | ---: | ---: | --- |
 | local and Totoro read-back smoke | `repair_smoke` | 2026071629 | 3 | one fit per cell; never pooled |
