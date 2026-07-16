@@ -10,7 +10,21 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 STOPPED).**
+> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 RESUMED).**
+> Shinichi explicitly restarted the original two-PR Beta phylogenetic LSS goal.
+> PR 1 remains branch-only and unpromoted while a prospective successor evidence
+> contract is frozen. Every prior `g = 256` HOLD remains immutable, visible
+> practical-boundary evidence; it may not be rescored or erased by a high-N
+> pass. First run the bounded importance-sampling diagnostic, then the fresh
+> disjoint `m = 4`, `g = {512, 1024}` confirmation exactly as predeclared. A
+> material Laplace discrepancy stops PR 1 for a separate estimator-method goal;
+> an inconclusive diagnostic permits no causal mechanism claim. Do not start PR
+> 2 before PR 1 is reviewed, merged, and its exact post-merge CI is green. Keep
+> family `sigma` (`phi = sigma^(-2)`) distinct from latent phylogenetic SD.
+> START HERE:
+> [`docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md`](docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md)
+>
+> **▶ Prior (2026-07-16, BETA PHYLOGENETIC q1 STOPPED).**
 > The approved two-PR Beta phylogenetic LSS goal stopped at PR 1's recovery
 > gate on branch `codex/beta-phylo-q1-constant-sd`. The narrow constant-SD
 > implementation and exact likelihood/gradient tests remain branch-only; no PR
