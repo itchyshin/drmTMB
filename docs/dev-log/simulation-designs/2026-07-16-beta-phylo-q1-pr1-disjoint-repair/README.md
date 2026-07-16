@@ -10,8 +10,15 @@ proves that all certification seeds are unique and that none occurs in the
 original `m = 2` campaign, the invalid-overlap `m = 4` campaign, or the repair
 smoke and pilot schedules.
 
+The fail-closed design-only read-back ran from clean commit
+`e812cab1c6807f841e4d322a0c115381fb77dc78`. It authenticated the pinned
+`R/` and `src/` trees, all 12 prior evidence files, the tracked runner and
+design, and the frozen RNG kind before loading the package. No model fit ran.
+
 ```text
 cfd025e7280ff30db4d95bcdf86da48c251080d516ba1324e80d88681138676a  design.tsv
 b9e8b02eec3ef2e562b1eeaf2c5591af976ef3ae27c00bdabe5d53bc47130bd6  seed-audit.tsv
 a0850b493b6d21836fca9e606b53470e411d80f0d8b16594284462a1bd92d1e8  session-info.txt
+d1bc3e0f8ee42dcc2431a7a02d1a54530e7d26fe58ec4a3ab42390f9ed4794c9  provenance-audit.tsv
+c83d9b201459fe47d1c2fbd1c7b3c275cd508c06ced3bfef0f4bd520a71020c4  run-provenance.tsv
 ```
