@@ -7,6 +7,25 @@ No PR was opened, PR 2 was not started, and no capability ledger row changed.
 The active branch is `codex/beta-phylo-q1-constant-sd`; its pushed head before
 banking this closeout was `ad1ebe9bdd73fc009668af81cd4f5e806f3b983e`.
 
+## Landing State
+
+**CARRIED-OVER:** branch `codex/beta-phylo-q1-constant-sd`, with implementation,
+tests, all retained evidence, and closeout artifact commit
+`c4cdb3fc2eb0bdd498ad9af833fa0f8a8468cf9d`. It is deliberately not merged and
+has no PR because the recovery prerequisite failed. Resume only after
+Shinichi chooses a new goal:
+
+```sh
+git switch codex/beta-phylo-q1-constant-sd
+git status --short --branch
+git log -3 --oneline
+```
+
+The handoff gate was run before this ledger. It reported the then-uncommitted
+closeout plus 358 pre-existing unpushed commits on unrelated local branches.
+The closeout is now committed and pushed; the unrelated local branches predate
+this task and must not be modified or claimed as part of it.
+
 ## Read first
 
 1. `docs/dev-log/after-task/2026-07-16-beta-phylo-q1-pilot-abort.md`
