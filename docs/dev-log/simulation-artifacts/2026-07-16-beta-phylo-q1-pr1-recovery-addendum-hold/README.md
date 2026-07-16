@@ -4,6 +4,12 @@ This directory preserves the separately predeclared `m = 4` replication
 addendum exactly as produced on Totoro. It does not replace or relax the
 original `m = 2` HOLD.
 
+**Provenance erratum:** after this HOLD was banked, a complete seed-set audit
+found that 1,197/1,200 numeric DGP seeds overlap the original campaign because
+the offset masters differed by only one. The result remains an immutable HOLD,
+but it is not fresh independent evidence. A separately committed design
+repairs seed provenance without changing any gate.
+
 ## Provenance
 
 - Source commit: `b6f74622d5c1041e438d7ac8b1ce654a40a55bc3`

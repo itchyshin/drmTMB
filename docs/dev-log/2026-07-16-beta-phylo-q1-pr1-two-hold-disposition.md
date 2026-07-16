@@ -22,11 +22,17 @@ attempts and failed the `g = 256` absolute mean log-`tau` bias gate at `0.5203`
 versus `0.10`. Its `g = 1024` value was `0.0888` and passed.
 
 The separately predeclared addendum changed only within-species replication
-from `m = 2` to `m = 4` and used a fresh master seed. It also retained
+from `m = 2` to `m = 4` and used a different master seed. It also retained
 1,200/1,200 attempts, with convergence code zero for every fit. It reduced the
 `g = 256` absolute mean log-`tau` bias to `0.2470`, but this still failed the
 same `0.10` gate. Its `g = 1024` value was `0.0618` and passed. All fixed-slope
 bias gates and all RMSE non-increase gates passed in both campaigns.
+
+A later complete seed-set audit found that the offset schedules share
+1,197/1,200 numeric DGP seeds. The `m = 4` HOLD remains valid as a result from
+its frozen schedule, but it is not independent confirmation of the original
+campaign. The separately predeclared disjoint-seed repair repeats the exact
+`m = 4` contract and gates before any raw-`tau` redesign is considered.
 
 ## Diagnostic interpretation
 
@@ -42,7 +48,9 @@ The combined evidence supports three statements only:
 
 1. fixed `mu` and family-`sigma` slopes recover over the tested grids;
 2. latent phylogenetic `tau` recovery improves with both species count and
-   within-species replication and passes at `g = 1024` in two fresh campaigns;
+   within-species replication and passes at `g = 1024` in both scheduled
+   campaigns; these campaigns are not independent because 1,197/1,200 DGP
+   seeds overlap;
 3. neither frozen ladder authorizes the planned `point_fit_recovery` ledger
    promotion at moderate `g`.
 
