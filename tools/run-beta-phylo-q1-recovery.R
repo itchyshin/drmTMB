@@ -565,21 +565,25 @@ repair_provenance_audit <- function(repo_root) {
     invalid_summary = file.path(invalid_root, "summary.tsv")
   )
   hash_audit <- repair_hash_audit(artifact_paths, expected_hash)
+  frozen_expected <-
+    "cfd025e7280ff30db4d95bcdf86da48c251080d516ba1324e80d88681138676a"
+  frozen_observed <- if (file.exists(frozen_repair_design_path(repo_root))) {
+    sha256_file(frozen_repair_design_path(repo_root))
+  } else {
+    NA_character_
+  }
+  frozen_audit <- data.frame(
+    check = "sha256_frozen_repair_design",
+    observed = frozen_observed,
+    expected = frozen_expected,
+    pass = !is.na(frozen_observed) && frozen_observed == frozen_expected,
+    stringsAsFactors = FALSE
+  )
   audit <- rbind(
     git_audit,
     hash_audit,
-    data.frame(
-      check = "sha256_frozen_repair_design",
-      observed = if (file.exists(frozen_repair_design_path(repo_root))) {
-        sha256_file(frozen_repair_design_path(repo_root))
-      } else {
-        NA_character_
-      },
-      expected = "cfd025e7280ff30db4d95bcdf86da48c251080d516ba1324e80d88681138676a",
-      stringsAsFactors = FALSE
-    )
+    frozen_audit
   )
-  audit$pass <- !is.na(audit$observed) & audit$observed == audit$expected
   assert_repair_provenance(audit)
   audit
 }
