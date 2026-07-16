@@ -10,18 +10,53 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-15, → NEW CODEX, BETA PHYLOGENETIC LSS PLANNING).**
+> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
+> Shinichi explicitly restarted the original two-PR Beta phylogenetic LSS goal.
+> PR 1 remains branch-only while closeout checks and final review finish. The
+> authenticated successor campaign retained 800/800 clean fits. Exact
+> `g = 512, m = 4` HOLDS: mean log-latent-SD bias was `-0.10129`, with MC
+> interval `[-0.12589, -0.07668]`. Exact `g = 1024, m = 4` PASSES at `-0.04645`,
+> with interval `[-0.06420, -0.02870]`; this supports only
+> `point_fit_recovery` in that exact tested cell, not `g >= 1024`. Every prior
+> `g = 256` HOLD remains visible practical-boundary evidence. The bounded D0
+> importance screen was INCONCLUSIVE (2/5 sign-stability passes), D1 did not
+> run, and no approximation-versus-information mechanism may be claimed.
+> Documentation-transfer PR #785 merged at `7eddc481`; reconcile PR 1 onto that
+> base before opening it. Do not start PR 2 before PR 1 is reviewed, merged, and
+> its exact post-merge CI is green. Keep family `sigma`
+> (`phi = sigma^(-2)`) distinct from latent phylogenetic SD.
+> START HERE:
+> [`docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md`](docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md)
+>
+> **▶ Prior (2026-07-16, BETA PHYLOGENETIC q1 STOPPED).**
+> The approved two-PR Beta phylogenetic LSS goal stopped at PR 1's recovery
+> gate on branch `codex/beta-phylo-q1-constant-sd`. The narrow constant-SD
+> implementation and exact likelihood/gradient tests remain branch-only; no PR
+> was opened and no ledger row was promoted. The original `m = 2` and valid
+> within-block `m = 4` campaigns are HOLD at moderate `g`. After repairing seed
+> independence, complete-DGP RNG provenance, source/artifact authentication,
+> and output guards, a genuinely disjoint 30-fit Totoro pilot again gave
+> `g = 256` mean log-latent-SD bias `-0.2214` (MCSE `0.0861`) against the frozen
+> absolute `0.10` gate. Noether, Fisher, and Rose returned STOP; the 1,200-fit
+> certification was not launched. Do not open PR 1, begin PR 2, rescore raw SD,
+> change the gate, or omit `g = 256` without Shinichi's explicit new goal.
+> Family `sigma` (`phi = sigma^(-2)`) remains distinct from the latent
+> phylogenetic location-effect SD. START HERE:
+> [`docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md`](docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md)
+
+> **▶ Prior (2026-07-15, BETA PHYLOGENETIC LSS PLANNING TRANSFER; PR #785 MERGED).**
 > Arc 1b-S2R is merged through PR #784 at
 > `b8aa6d701389aad617a4ad8203bdfa3dc1f01495`; its exact reviewed head
 > `24016bf36242e35c7098a9336fa216d17f4a3ad4` passed GitHub run 29434103188.
-> The next lane is the queued two-PR Beta phylogenetic location-scale-scale
-> pilot: first the constant-SD q1 phylogenetic `mu` prerequisite, then the exact
+> This planning transfer established the queued two-PR Beta phylogenetic
+> location-scale-scale sequence: first the constant-SD q1 phylogenetic `mu`
+> prerequisite, then the exact
 > `sd(spp_id, level = "phylogenetic") ~ 1 + x` regression, both capped at
 > `point_fit_recovery`. Keep family `sigma` (`phi = 1 / sigma^2`) distinct from
 > latent-target `sd()`. Hierarchical random effects inside `sd()` remain a later
-> separate subarc. **Ultra-plan and obtain explicit approval before any
-> implementation or compute.** PR #781 and unrelated worktrees remain outside
-> scope. START HERE:
+> separate subarc. Shinichi subsequently approved and restarted the goal; the
+> current 2026-07-16 block above supersedes the planning-stage stop. PR #781
+> and unrelated worktrees remain outside scope. START HERE:
 > [`docs/dev-log/handover/2026-07-15-beta-phylo-lss-codex-handover.md`](docs/dev-log/handover/2026-07-15-beta-phylo-lss-codex-handover.md)
 
 > **▶ Prior (2026-07-15, ARC 1b-S2R CLOSEOUT; PR #784 SUBSEQUENTLY MERGED).**

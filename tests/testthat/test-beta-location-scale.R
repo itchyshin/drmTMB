@@ -46,6 +46,95 @@ new_beta_random_intercept_data <- function(
   )
 }
 
+new_beta_phylo_data <- function(
+  n_tip = 16L,
+  n_each = 18L,
+  seed = 20260716
+) {
+  set.seed(seed)
+  tree <- ape::rcoal(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_sd <- 0.45
+  phylo_effect <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip, sd = phylo_sd))
+  names(phylo_effect) <- tree$tip.label
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu <- c(`(Intercept)` = -0.20, x = 0.35)
+  beta_sigma <- c(`(Intercept)` = -1.00, x = 0.15)
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * x + phylo_effect[species]
+  log_sigma <- beta_sigma[[1L]] + beta_sigma[[2L]] * x
+  mu <- stats::plogis(eta_mu)
+  sigma <- exp(log_sigma)
+  phi <- 1 / sigma^2
+  list(
+    data = data.frame(
+      y = stats::rbeta(length(mu), mu * phi, (1 - mu) * phi),
+      x,
+      species
+    ),
+    tree = tree,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    phylo_sd = phylo_sd
+  )
+}
+
+beta_phylo_mu_joint_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  q_phylo <- length(par$log_sd_phylo)
+  eta_mu <- as.vector(data$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  phylo_prior <- 0
+
+  for (k in seq_len(q_phylo)) {
+    effect_index <- (k - 1L) * n_phylo + data$phylo_mu_node_index + 1L
+    if (data$phylo_mu_dpar[[k]] == 0L) {
+      eta_mu <- eta_mu + data$phylo_mu_value[, k] * par$u_phylo[effect_index]
+    }
+    effect <- par$u_phylo[((k - 1L) * n_phylo + 1L):(k * n_phylo)]
+    quadratic <- sum(effect * as.vector(data$Q_phylo %*% effect))
+    phylo_prior <- phylo_prior +
+      0.5 *
+        (n_phylo *
+          log(2 * pi) +
+          2 * n_phylo * par$log_sd_phylo[[k]] -
+          data$log_det_Q_phylo +
+          exp(-2 * par$log_sd_phylo[[k]]) * quadratic)
+  }
+
+  mu_eps <- 1e-12
+  mu <- mu_eps + (1 - 2 * mu_eps) * stats::plogis(eta_mu)
+  phi <- exp(-2 * log_sigma)
+  alpha <- pmax(mu * phi, 1e-8)
+  beta_shape <- pmax((1 - mu) * phi, 1e-8)
+  phylo_prior -
+    sum(
+      data$weights *
+        stats::dbeta(
+          data$y,
+          shape1 = alpha,
+          shape2 = beta_shape,
+          log = TRUE
+        )
+    )
+}
+
+central_difference_gradient <- function(fn, par) {
+  vapply(
+    seq_along(par),
+    function(i) {
+      step <- 1e-6 * max(1, abs(par[[i]]))
+      plus <- par
+      minus <- par
+      plus[[i]] <- plus[[i]] + step
+      minus[[i]] <- minus[[i]] - step
+      (fn(plus) - fn(minus)) / (2 * step)
+    },
+    numeric(1)
+  )
+}
+
 test_that("drmTMB fits fixed-effect beta mean-scale models", {
   sim <- new_beta_data()
 
@@ -141,6 +230,85 @@ test_that("beta mu supports ordinary random intercepts", {
   chk <- check_drm(fit)
   replication <- chk[chk$check == "mu_random_effect_replication", ]
   expect_equal(replication$status, "ok")
+})
+
+test_that("beta admits an intercept-only q1 phylogenetic mu effect", {
+  skip_if_not_installed("ape")
+  sim <- new_beta_phylo_data()
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ x),
+    family = beta(),
+    data = sim$data,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit$opt$convergence, 0L)
+  expect_true(all(is.finite(fit$obj$gr(fit$opt$par))))
+  expect_equal(fit$model$structured$phylo_mu$q, 1L)
+  expect_true(drmTMB:::has_phylo_mu_effect(fit))
+  expect_true(drmTMB:::has_structured_mu_effect(fit))
+  expect_named(fit$sdpars$mu, "phylo(1 | species)")
+  expect_equal(
+    length(fit$random_effects$phylo_mu$values),
+    2L * length(tree$tip.label) - 2L
+  )
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.40)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.25)
+  expect_lt(abs(unname(fit$sdpars$mu[[1L]]) - sim$phylo_sd), 0.35)
+
+  report <- fit$obj$report()
+  leaf_loglik <- sum(stats::dbeta(
+    fit$model$y,
+    shape1 = stats::plogis(report$eta_mu) * exp(-2 * report$log_sigma),
+    shape2 = (1 - stats::plogis(report$eta_mu)) * exp(-2 * report$log_sigma),
+    log = TRUE
+  ))
+  wrong_phi_loglik <- sum(stats::dbeta(
+    fit$model$y,
+    shape1 = stats::plogis(report$eta_mu) * exp(2 * report$log_sigma),
+    shape2 = (1 - stats::plogis(report$eta_mu)) * exp(2 * report$log_sigma),
+    log = TRUE
+  ))
+  expect_equal(report$phi, exp(-2 * report$log_sigma), tolerance = 1e-12)
+  expect_true(is.finite(leaf_loglik))
+  expect_gt(abs(leaf_loglik - wrong_phi_loglik), 1)
+
+  full_obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  full_par <- fit$obj$env$last.par.best
+  probe_par <- full_par
+  probe_par[[1L]] <- probe_par[[1L]] + 0.07
+  probe_par[[3L]] <- probe_par[[3L]] - 0.04
+  probe_par[[length(probe_par)]] <- probe_par[[length(probe_par)]] + 0.05
+  split_par <- split(unname(probe_par), names(probe_par))
+  expect_equal(
+    full_obj$fn(probe_par),
+    beta_phylo_mu_joint_nll(fit, split_par),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    as.numeric(full_obj$gr(probe_par)),
+    central_difference_gradient(full_obj$fn, probe_par),
+    tolerance = 2e-5
+  )
+
+  expect_equal(
+    predict(fit, dpar = "mu", type = "link"),
+    as.vector(fit$model$X$mu %*% coef(fit, "mu")) +
+      drmTMB:::phylo_mu_contribution(fit),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    predict(fit, dpar = "sigma", type = "link"),
+    report$log_sigma,
+    tolerance = 1e-8
+  )
 })
 
 test_that("beta likelihood matches independent dbeta calculation", {
@@ -407,5 +575,56 @@ test_that("beta rejects boundary and unsupported inputs", {
       data = binom_dat
     ),
     "single strict proportion"
+  )
+})
+
+test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", {
+  skip_if_not_installed("ape")
+  sim <- new_beta_phylo_data(n_tip = 8L, n_each = 8L)
+  tree <- sim$tree
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ x),
+      family = beta(),
+      data = sim$data
+    ),
+    "intercept-only q1"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | p | species, tree = tree), sigma ~ x),
+      family = beta(),
+      data = sim$data
+    ),
+    "unlabelled q1"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | species, tree = tree) + (1 | species), sigma ~ x),
+      family = beta(),
+      data = sim$data
+    ),
+    "cannot yet be combined"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ x + phylo(1 | species, tree = tree)),
+      family = beta(),
+      data = sim$data
+    ),
+    "Structured-effect syntax is planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 | species, tree = tree),
+        sigma ~ x,
+        sd(species, level = "phylogenetic") ~ 1 + x
+      ),
+      family = beta(),
+      data = sim$data
+    ),
+    "Unsupported parameter:.*sd_phylo\\(species\\)"
   )
 })

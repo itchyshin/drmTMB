@@ -1,0 +1,6 @@
+check	observed	expected	pass
+unique_current_seeds	3	3	TRUE
+overlap_original_m2	0	0	TRUE
+overlap_invalid_m4	0	0	TRUE
+overlap_repair_pilot	0	0	TRUE
+overlap_addendum_repair	0	0	TRUE

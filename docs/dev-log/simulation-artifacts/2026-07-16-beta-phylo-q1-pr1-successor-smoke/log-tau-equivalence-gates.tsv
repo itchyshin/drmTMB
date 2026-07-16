@@ -1,0 +1,3 @@
+cell_id	cell_number	g	m	parameter	attempted	usable	bias	rmse	mcse_bias	lower	upper	pass
+g0512_m04	1	512	4	log_tau	1	1	-0.109760437437016	0.109760437437016	NA	NA	NA	FALSE
+g1024_m04	2	1024	4	log_tau	1	1	0.1301265180169	0.1301265180169	NA	NA	NA	FALSE

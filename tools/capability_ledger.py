@@ -28,7 +28,7 @@ CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
-MODEL_SURFACE_COUNT = 675
+MODEL_SURFACE_COUNT = 676
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -524,7 +524,7 @@ def validate(
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
     expected = Counter(
-        {"implemented": 305, "rejected_by_design": 330, "not_implemented": 40}
+        {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40}
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")

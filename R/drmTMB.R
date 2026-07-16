@@ -237,11 +237,14 @@ drmTMB <- function(
       "i" = "Use {.code family = gaussian()} or {.code family = biv_gaussian()}, or set {.code REML = FALSE}."
     ))
   }
-  if (isTRUE(REML) && drm_reml_missing_engine_engages(
-    missing_control,
-    formula,
-    data
-  )) {
+  if (
+    isTRUE(REML) &&
+      drm_reml_missing_engine_engages(
+        missing_control,
+        formula,
+        data
+      )
+  ) {
     cli::cli_abort(c(
       "{.arg REML} is not implemented with explicit missing-data engines yet.",
       "x" = "The model variables contain missing values and {.arg missing} requests a non-default engine.",
@@ -2038,7 +2041,9 @@ drm_reml_admits_mean_structured_provider <- function(
 
   covariance_labels <- phylo_mu_endpoint_covariance_labels(structured)
   unlabelled <- all(is.na(covariance_labels) | !nzchar(covariance_labels))
-  if (!unlabelled || !identical(phylo_mu_covariance_mode(structured), "scalar")) {
+  if (
+    !unlabelled || !identical(phylo_mu_covariance_mode(structured), "scalar")
+  ) {
     return(FALSE)
   }
 
@@ -2366,8 +2371,12 @@ drm_fit_df <- function(spec, opt) {
     # counts its sigma fixed effects instead of silently under-counting them.
     marginalized <- spec$tmb_random_names
     blocks <- if (identical(spec$model_type, "biv_gaussian")) {
-      c(beta_mu1 = "mu1", beta_mu2 = "mu2",
-        beta_sigma1 = "sigma1", beta_sigma2 = "sigma2")
+      c(
+        beta_mu1 = "mu1",
+        beta_mu2 = "mu2",
+        beta_sigma1 = "sigma1",
+        beta_sigma2 = "sigma2"
+      )
     } else {
       c(beta_mu = "mu", beta_sigma = "sigma")
     }
@@ -4906,6 +4915,9 @@ drm_build_beta_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  validate_beta_phylo_mu_structured_term(mu_phylo$term)
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
   validate_beta_animal_mu_structured_term(mu_animal$term)
@@ -4919,21 +4931,39 @@ drm_build_beta_ls_spec <- function(
     sigma_animal$term$dpars <- "sigma"
   }
   validate_beta_animal_sigma_structured_term(sigma_animal$term)
-  if (!is.null(mu_animal$term) && !is.null(sigma_animal$term)) {
+  if (!is.null(mu_phylo$term) && !is.null(mu_animal$term)) {
     cli::cli_abort(c(
-      "{.fn beta} structured animal effects currently support one endpoint at a time.",
-      "x" = "Both {.code mu} and {.code sigma} contain {.fn animal} terms.",
-      "i" = "Fit either {.code animal(1 | id, ...)} in {.code mu} or in {.code sigma}; q2/q4 beta location-scale blocks remain post-v1.0 design work."
+      "A {.fn beta} model can use only one structured {.code mu} provider in this route.",
+      "x" = "The formula contains both {.fn phylo} and {.fn animal} terms.",
+      "i" = "Use one unlabelled q1 {.fn phylo} or {.fn animal} intercept in {.code mu}; simultaneous structured providers remain deferred."
     ))
   }
-  animal_term <- if (!is.null(mu_animal$term)) {
-    mu_animal$term
+  beta_mu_structured_term <- if (!is.null(mu_phylo$term)) {
+    mu_phylo$term
   } else {
+    mu_animal$term
+  }
+  if (!is.null(beta_mu_structured_term) && !is.null(sigma_animal$term)) {
+    cli::cli_abort(c(
+      "{.fn beta} structured effects currently support one endpoint at a time.",
+      "x" = "The formula contains a structured {.code mu} term and {.fn animal} in {.code sigma}.",
+      "i" = "Keep {.code sigma} fixed-effect-only when {.code mu} contains a structured term; q2/q4 beta location-scale blocks remain deferred."
+    ))
+  }
+  beta_structured_term <- if (!is.null(sigma_animal$term)) {
     sigma_animal$term
+  } else {
+    beta_mu_structured_term
   }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_mu_random_terms(mu_re$terms)
+  if (!is.null(mu_phylo$term) && length(mu_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "A {.fn beta} phylogenetic {.code mu} effect cannot yet be combined with an ordinary {.code mu} random effect.",
+      "i" = "Use either {.code phylo(1 | id, tree = tree)} or an ordinary {.code (1 | id)} term for this q1 prerequisite."
+    ))
+  }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_beta_sigma_random_terms(sigma_re$terms)
@@ -4957,7 +4987,8 @@ drm_build_beta_ls_spec <- function(
     include_missing_predictor &&
       (length(mu_re$terms) > 0L ||
         length(sigma_re$terms) > 0L ||
-        !is.null(animal_term))
+        !is.null(beta_mu_structured_term) ||
+        !is.null(sigma_animal$term))
   ) {
     cli::cli_abort(c(
       "The first beta-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
@@ -4981,7 +5012,7 @@ drm_build_beta_ls_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
-    structured_mu_vars(mu_animal$term),
+    structured_mu_vars(beta_mu_structured_term),
     structured_mu_vars(sigma_animal$term),
     impute_vars
   ))
@@ -5061,7 +5092,9 @@ drm_build_beta_ls_spec <- function(
   }
 
   missing_predictor <- drm_build_gaussian_missing_predictor_model(
-    mi_setup, data_model, env = env
+    mi_setup,
+    data_model,
+    env = env
   )
   if (include_missing_predictor) {
     if (!missing_predictor$model_column %in% names(mf_mu)) {
@@ -5093,7 +5126,11 @@ drm_build_beta_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in beta model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
-  phylo_mu <- build_structured_mu_structure(animal_term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(
+    beta_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "beta",
@@ -5728,7 +5765,11 @@ drm_build_binomial_spec <- function(
   } else {
     character(0)
   }
-  vars <- unique(c(all.vars(f_mu), impute_vars, random_effect_vars(mu_re$terms)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    impute_vars,
+    random_effect_vars(mu_re$terms)
+  ))
   # response = "include": keep missing-response rows (exclude the response from
   # the complete-case rule). predictor = "model": keep missing-predictor rows
   # (exclude the mi() variable); impute-model covariates stay complete.
@@ -5802,7 +5843,9 @@ drm_build_binomial_spec <- function(
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   missing_predictor <- drm_build_gaussian_missing_predictor_model(
-    mi_setup, data_model, env = env
+    mi_setup,
+    data_model,
+    env = env
   )
   if (include_missing_predictor) {
     if (!missing_predictor$model_column %in% names(mf_mu)) {
@@ -6034,7 +6077,8 @@ drm_build_cumulative_logit_spec <- function(
     )
   }
   ordinal_obs <- prepare_ordinal_response(
-    y_raw[observed_y], response = mu_entry$response
+    y_raw[observed_y],
+    response = mu_entry$response
   )
   response_sentinel <- 1L
   y <- as.integer(y_raw)
@@ -6522,7 +6566,11 @@ drm_build_poisson_spec <- function(
     keep = keep,
     dpars = if (has_zi) c("mu", "zi") else "mu",
     start = start,
-    map = if (has_zi) zi_poisson_map(phylo_mu) else poisson_map(re_mu, phylo_mu),
+    map = if (has_zi) {
+      zi_poisson_map(phylo_mu)
+    } else {
+      poisson_map(re_mu, phylo_mu)
+    },
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
@@ -6878,7 +6926,9 @@ drm_build_nbinom2_spec <- function(
   }
 
   missing_predictor <- drm_build_gaussian_missing_predictor_model(
-    mi_setup, data_model, env = env
+    mi_setup,
+    data_model,
+    env = env
   )
   if (include_missing_predictor) {
     if (!missing_predictor$model_column %in% names(mf_mu)) {
@@ -6996,7 +7046,11 @@ drm_build_nbinom2_spec <- function(
         X_mu[observed_y, , drop = FALSE],
         X_sigma[observed_y, , drop = FALSE],
         X_zi[observed_y, , drop = FALSE],
-        if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+        if (length(offset_mu) == nrow(X_mu)) {
+          offset_mu[observed_y]
+        } else {
+          offset_mu
+        },
         phylo_mu
       )
     } else if (has_zi) {
@@ -7006,7 +7060,11 @@ drm_build_nbinom2_spec <- function(
         y[observed_y],
         X_mu[observed_y, , drop = FALSE],
         X_sigma[observed_y, , drop = FALSE],
-        if (length(offset_mu) == nrow(X_mu)) offset_mu[observed_y] else offset_mu,
+        if (length(offset_mu) == nrow(X_mu)) {
+          offset_mu[observed_y]
+        } else {
+          offset_mu
+        },
         re_mu = re_mu,
         re_sigma = re_sigma,
         phylo_mu = phylo_mu
@@ -8527,10 +8585,12 @@ validate_count_structured_mu_term <- function(
   )
   zero_inflated_structured_mu_allowed <- isTRUE(
     allow_zero_inflated_structured_mu
-  ) && marker %in% zero_inflated_structured_mu_types
+  ) &&
+    marker %in% zero_inflated_structured_mu_types
   structured_plus_ordinary_allowed <- isTRUE(
     allow_structured_plus_ordinary
-  ) && marker %in% structured_plus_ordinary_types
+  ) &&
+    marker %in% structured_plus_ordinary_types
   labelled_scalar_structured_mu_allowed <- isTRUE(
     allow_labelled_scalar_structured_mu
   ) &&
@@ -8539,7 +8599,8 @@ validate_count_structured_mu_term <- function(
     structured_term_is_intercept_only(term)
   slope_only_structured_mu_allowed <- isTRUE(
     allow_slope_only_structured_mu
-  ) && marker %in% slope_only_structured_mu_types &&
+  ) &&
+    marker %in% slope_only_structured_mu_types &&
     structured_term_is_slope_only(term)
   if (isTRUE(has_zi) && !isTRUE(zero_inflated_structured_mu_allowed)) {
     cli::cli_abort(c(
@@ -8559,7 +8620,9 @@ validate_count_structured_mu_term <- function(
       "i" = "Keep structured zero-inflated slopes, labelled q=2/q=4 covariance, intervals, coverage, REML, and AI-REML deferred until row-specific recovery evidence exists."
     ))
   }
-  if (length(ordinary_terms) > 0L && !isTRUE(structured_plus_ordinary_allowed)) {
+  if (
+    length(ordinary_terms) > 0L && !isTRUE(structured_plus_ordinary_allowed)
+  ) {
     cli::cli_abort(c(
       "{family_label} structured {.code mu} effects cannot be combined with ordinary {.code mu} random effects in this first gate.",
       "x" = "The formula contains both {.fn {marker}} and ordinary random-effect bar terms.",
@@ -9146,7 +9209,7 @@ validate_beta_mu_random_terms <- function(terms) {
       "Only independent {.fn beta} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
-      "i" = "The only structured beta gate is the row-specific unlabelled {.fn animal} intercept route in either {.code mu} or {.code sigma}; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
+      "i" = "The row-specific structured beta gates are the unlabelled {.fn animal} routes and one exact unlabelled q1 {.fn phylo} intercept in {.code mu} with fixed-effect family {.code sigma}; correlated beta slopes, labelled covariance blocks, other structured effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -9373,6 +9436,27 @@ validate_beta_animal_mu_structured_term <- function(term) {
   invisible(NULL)
 }
 
+validate_beta_phylo_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance and q2/q4 beta models remain deferred."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
+    ))
+  }
+  invisible(NULL)
+}
+
 validate_beta_animal_sigma_structured_term <- function(term) {
   if (is.null(term)) {
     return(invisible(NULL))
@@ -9519,10 +9603,10 @@ parse_random_sigma_term <- function(expr, dpar) {
     (identical(dpar, "sigma") &&
       is.null(covariance_label) &&
       coef$type %in% c("correlated_slope", "correlated_block")) ||
-      (dpar %in%
-        c("sigma1", "sigma2") &&
-        !is.null(covariance_label) &&
-        coef$type %in% c("correlated_slope", "correlated_block"))
+    (dpar %in%
+      c("sigma1", "sigma2") &&
+      !is.null(covariance_label) &&
+      coef$type %in% c("correlated_slope", "correlated_block"))
   # Check the LABELLED univariate sigma case first: it is a more specific
   # rejection than the generic shape guard below, and `(1 + x | p | id)` would
   # otherwise be swallowed by it (`coef$type == "correlated_block"`), leaving
@@ -15456,7 +15540,8 @@ student_nu_start <- function(
   observed_y = rep(TRUE, length(y))
 ) {
   observed_y <- as.logical(observed_y)
-  resid <- y[observed_y] - as.vector(X_mu[observed_y, , drop = FALSE] %*% beta_mu)
+  resid <- y[observed_y] -
+    as.vector(X_mu[observed_y, , drop = FALSE] %*% beta_mu)
   kurtosis <- mean((resid - mean(resid))^4) / stats::var(resid)^2
   nu0 <- if (is.finite(kurtosis) && kurtosis > 3.1) {
     4 + 6 / (kurtosis - 3)
@@ -15606,7 +15691,11 @@ lognormal_ls_map <- function(
   phylo_mu = empty_phylo_mu_structure(),
   re_sigma = empty_random_sigma_structure(1L)
 ) {
-  out <- gaussian_ls_map(re_mu = re_mu, re_sigma = re_sigma, phylo_mu = phylo_mu)
+  out <- gaussian_ls_map(
+    re_mu = re_mu,
+    re_sigma = re_sigma,
+    phylo_mu = phylo_mu
+  )
   out$beta_nu <- factor(NA)
   out
 }
@@ -15709,7 +15798,10 @@ beta_mu_re_start <- function(
   observed_y = rep(TRUE, length(resid))
 ) {
   start <- gaussian_mu_re_start(
-    resid, re_mu, y_scale, observed_y = observed_y
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
   )
   if (re_mu$n_re == 0L) {
     return(start)
@@ -15792,7 +15884,10 @@ beta_binomial_start <- function(
     y_scale <- 1
   }
   mu_re_start <- beta_mu_re_start(
-    resid, re_mu, y_scale, observed_y = observed_y
+    resid,
+    re_mu,
+    y_scale,
+    observed_y = observed_y
   )
 
   c(
@@ -16596,10 +16691,13 @@ cumulative_logit_map <- function(
     out$eta_cor_mu <- factor(NA)
   }
   if (!isTRUE(phylo_mu$has)) {
-    out <- c(out, list(
-      u_phylo = factor(NA),
-      log_sd_phylo = factor(NA)
-    ))
+    out <- c(
+      out,
+      list(
+        u_phylo = factor(NA),
+        log_sd_phylo = factor(NA)
+      )
+    )
   }
   out
 }
