@@ -796,6 +796,7 @@ write_pr2_shard <- function(value, path, row, identity) {
 }
 
 pr2_manifest_paths <- function(out_dir) {
+  out_dir <- normalizePath(out_dir, mustWork = TRUE)
   paths <- list.files(out_dir, recursive = TRUE, full.names = TRUE, all.files = TRUE)
   paths <- paths[file.info(paths)$isdir %in% FALSE]
   excluded <- file.path(out_dir, c("output-manifest.tsv", "completion-seal.tsv"))
@@ -803,6 +804,7 @@ pr2_manifest_paths <- function(out_dir) {
 }
 
 write_pr2_output_manifest <- function(out_dir) {
+  out_dir <- normalizePath(out_dir, mustWork = TRUE)
   paths <- pr2_manifest_paths(out_dir)
   relative <- substring(paths, nchar(normalizePath(out_dir, mustWork = TRUE)) + 2L)
   manifest <- data.frame(

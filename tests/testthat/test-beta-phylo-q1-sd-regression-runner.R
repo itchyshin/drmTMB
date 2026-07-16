@@ -319,12 +319,13 @@ write_authenticated_pr2_fixture <- function(out, identity, mode) {
 }
 
 test_that("output manifests authenticate exact files and reject mutation", {
-  out <- tempfile("pr2-output-")
+  out <- tempfile("pr2-output-", tmpdir = ".")
   on.exit(unlink(out, recursive = TRUE), add = TRUE)
   identity <- make_pr2_identity()
   expected <- write_authenticated_pr2_fixture(out, identity, "one_fit")
 
-  observed <- runner_env$authenticate_pr2_output(out)
+  relative_out <- sub("^\\./", "", out)
+  observed <- runner_env$authenticate_pr2_output(relative_out)
   expect_true(runner_env$pr2_same_source(observed, expected, include_dll = TRUE))
   expect_equal(observed$status, "COMPLETE")
   write("tamper", file.path(out, "raw-attempts.tsv"), append = TRUE)
