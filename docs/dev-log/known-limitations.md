@@ -550,6 +550,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `g = 512` recovery gates held, family `sigma` stays fixed-effect-only, and
   Beta phylogenetic slopes, labels/q2+, direct latent-`sd()` regression,
   intervals, and coverage remain deferred.
+  A branch-only attempt to admit
+  `sd(id, level = "phylogenetic") ~ 1 + x` also remains deferred: its frozen
+  4,800-attempt campaign returned `HOLD_NO_PR2_PROMOTION` because the shared
+  `g = 1024, m = 4` arm retained only 399/400 finite fits after one simulated
+  response hit Beta's forbidden 0/1 boundary. That retained DGP event was not
+  filtered or replaced and does not diagnose estimator bias.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,

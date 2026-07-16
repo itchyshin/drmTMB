@@ -1,0 +1,17 @@
+check	observed	expected	pass
+protected_paths_clean	0	0	TRUE
+frozen_design_sha256	e28e908cb832849977236a490545e2f9caa93dd79ecb0553c85292ad2da82927	e28e908cb832849977236a490545e2f9caa93dd79ecb0553c85292ad2da82927	TRUE
+prior_manifest_sha256	517420047e8af797eee2eccb70033de497eca01b186b4fb49a82223950768c82	517420047e8af797eee2eccb70033de497eca01b186b4fb49a82223950768c82	TRUE
+tracked_seed_audit_sha256	cfd104ba75cf681554c21c5173236767b8ad5ea371e1abf4f2639570851da077	cfd104ba75cf681554c21c5173236767b8ad5ea371e1abf4f2639570851da077	TRUE
+TMB_version	1.9.21	1.9.21	TRUE
+RNG_kind	L'Ecuyer-CMRG/Inversion/Rejection	L'Ecuyer-CMRG/Inversion/Rejection	TRUE
+compute_host	totoro	Totoro or active named DRAC allocation	TRUE
+not_github_actions	false	false	TRUE
+OPENBLAS_NUM_THREADS	1	1	TRUE
+OMP_NUM_THREADS	1	1	TRUE
+MKL_NUM_THREADS	1	1	TRUE
+VECLIB_MAXIMUM_THREADS	1	1	TRUE
+BLIS_NUM_THREADS	1	1	TRUE
+active_BLAS	/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0	non-empty recorded path	TRUE
+git_head	2f1399dda78253ea725f93e47a0e88da2ed5a8e6	40-character commit	TRUE
+git_tree	c58340dbaf17878048b9243a7366752557c99369	40-character tree	TRUE

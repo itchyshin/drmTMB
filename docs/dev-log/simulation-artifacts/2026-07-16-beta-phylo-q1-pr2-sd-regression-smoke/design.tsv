@@ -1,0 +1,13 @@
+cell_id	cell_number	predictor_design	g	m	replicate	seed
+distinct_g0256_m02	1	distinct	256	2	1	2089989999
+distinct_g0256_m04	2	distinct	256	4	1	2089979999
+distinct_g0512_m02	3	distinct	512	2	1	2089969999
+distinct_g0512_m04	4	distinct	512	4	1	2089959999
+distinct_g1024_m02	5	distinct	1024	2	1	2089949999
+distinct_g1024_m04	6	distinct	1024	4	1	2089939999
+shared_g0256_m02	7	shared	256	2	1	2089929999
+shared_g0256_m04	8	shared	256	4	1	2089919999
+shared_g0512_m02	9	shared	512	2	1	2089909999
+shared_g0512_m04	10	shared	512	4	1	2089899999
+shared_g1024_m02	11	shared	1024	2	1	2089889999
+shared_g1024_m04	12	shared	1024	4	1	2089879999

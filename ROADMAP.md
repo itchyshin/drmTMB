@@ -11,19 +11,24 @@ boundary itself is maintained in
 registry is `docs/design/168-r-julia-finish-capability-matrix.md`; when these
 ledgers disagree, the stricter row wins until the evidence is reconciled.
 
-## Immediate bounded arc queue (ratified 2026-07-15)
+## Immediate bounded arc queue (ratified 2026-07-15; PR 2 held 2026-07-16)
 
-1. **Current closeout — Beta phylogenetic LSS PR 1:** land the exact
+1. **Landed — Beta phylogenetic LSS PR 1:** PR #786 merged the exact
    univariate ML `beta()` q1 `mu ~ phylo(1 | spp_id, tree = tree)` prerequisite
    at `point_fit_recovery` only for the tested `g = 1024, m = 4` regime.
    Preserve the `g = 256` and `g = 512` recovery HOLDs and the inconclusive
    estimator diagnostic. This is not `g >= 1024` and does not establish a
    universal minimum species count.
-2. **Next lane — Beta phylogenetic LSS PR 2:** only after PR 1 review, merge,
-   and exact green post-merge CI, add the bounded direct latent-SD target
-   `sd(spp_id, level = "phylogenetic") ~ 1 + x`. Keep family `sigma`, which
-   controls `phi = sigma^(-2)`, distinct from latent-target `sd(...)`, and do
-   not infer broader Beta or all-family `sd()` support.
+2. **HOLD — Beta phylogenetic LSS PR 2:** the bounded branch-only target
+   `sd(spp_id, level = "phylogenetic") ~ 1 + x` passed symbolic, independent-
+   oracle, one-fit, and smoke gates, but its frozen 4,800-attempt recovery
+   contract did not pass both promotion arms. The distinct
+   `g = 1024, m = 4` arm passed; the shared arm retained 399/400 finite fits
+   after one generated Beta response hit the forbidden support boundary.
+   No PR, ledger promotion, or capability claim follows. A successor requires
+   a separately approved, prospectively frozen DGP; it may not rerun, filter,
+   or replace the retained failure. Family `sigma`, which controls
+   `phi = sigma^(-2)`, remains distinct from latent-target `sd(...)`.
 3. **After that — separate hierarchical-`sd()` subarc:** the current `sd()` RHS
    remains fixed-effect-only, with predictors constant within the target group.
    The conservative first random-RHS design may admit only a genuinely
@@ -95,6 +100,12 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   `g = 1024, m = 4` successor cell passes at `point_fit_recovery`; `g = 256`
   and `g = 512` HOLD. Slopes, labels/q2+, phylogeny in family `sigma`, direct
   latent-`sd()` regression, REML, intervals, and coverage remain outside PR 1.
+
+- **Beta phylogenetic q1 PR 2 is branch-only and HOLD:** the exact direct
+  latent-SD regression implementation and its independent likelihood/gradient
+  sentinels passed, but the frozen shared `g = 1024, m = 4` recovery arm failed
+  its all-400-finite rule. Direct latent-`sd()` regression is therefore not an
+  admitted Beta capability.
 
 - Q-Series v1.0 status is tracked in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. That generated

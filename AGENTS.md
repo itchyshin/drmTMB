@@ -10,7 +10,24 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
+> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 PR 2 HOLD).**
+> PR #786 merged the constant-SD prerequisite at
+> `0bdfda144c976824bed604be2cfae22b33bd8fe0`; exact post-merge R-CMD-check
+> run 29524995333 is green. PR 2's bounded direct latent-SD implementation
+> remains only on `codex/beta-phylo-q1-sd-regression`. Its exact source
+> `2f1399dda78253ea725f93e47a0e88da2ed5a8e6`, independent oracles,
+> authenticated one-fit, and 12-cell Totoro smoke passed. The frozen 4,800-fit
+> certification then returned `HOLD_NO_PR2_PROMOTION`: the distinct
+> `g = 1024, m = 4` arm passed, but shared-arm replicate 373 (seed
+> `2099879627`) generated a response outside Beta's strict interior support,
+> leaving 399/400 finite fits. This is a realized DGP/support-boundary event,
+> not estimator-bias evidence. Do not rerun, filter, replace the seed, change
+> the gate, promote a ledger row, open PR 2, or claim direct latent-`sd()`
+> support. Family `sigma` (`phi = sigma^(-2)`) remains distinct from latent
+> phylogenetic location-effect `sd()`. START HERE:
+> [`docs/dev-log/handover/2026-07-16-beta-phylo-q1-pr2-hold-codex-handover.md`](docs/dev-log/handover/2026-07-16-beta-phylo-q1-pr2-hold-codex-handover.md)
+>
+> **▶ Prior (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
 > Shinichi explicitly restarted the original two-PR Beta phylogenetic LSS goal.
 > PR 1 remains branch-only while closeout checks and final review finish. The
 > authenticated successor campaign retained 800/800 clean fits. Exact
