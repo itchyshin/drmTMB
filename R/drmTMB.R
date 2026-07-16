@@ -4852,7 +4852,9 @@ drm_build_beta_ls_spec <- function(
   include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
-  is_sd_dpar <- startsWith(dpars, "sd(")
+  is_sd_mu_dpar <- startsWith(dpars, "sd(")
+  is_sd_phylo_dpar <- startsWith(dpars, "sd_phylo(")
+  is_sd_dpar <- is_sd_mu_dpar | is_sd_phylo_dpar
 
   unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
   reject_planned_bounded_inflation(
@@ -4866,10 +4868,10 @@ drm_build_beta_ls_spec <- function(
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
-  if (any(is_sd_dpar)) {
+  if (any(is_sd_mu_dpar)) {
     cli::cli_abort(c(
       "Random-effect scale formulae are not implemented for {.fn beta} models yet.",
-      "i" = "Use beta formulas such as {.code bf(prop ~ x + (1 | id), sigma ~ z)}; group-level scale models need separate recovery tests."
+      "i" = "Only {.code sd(species, level = \"phylogenetic\") ~ ...} for the exact q1 phylogenetic {.code mu} effect is admitted; ordinary group-level scale models need separate recovery tests."
     ))
   }
   if (sum(dpars == "mu") != 1L) {
@@ -4886,6 +4888,11 @@ drm_build_beta_ls_spec <- function(
     entries[[which(dpars == "sigma")]]
   } else {
     default_dpar_entry("sigma", quote(1))
+  }
+  sd_phylo_entries <- if (any(is_sd_phylo_dpar)) {
+    entries[is_sd_phylo_dpar]
+  } else {
+    list()
   }
 
   if (is.na(mu_entry$response)) {
@@ -4918,6 +4925,10 @@ drm_build_beta_ls_spec <- function(
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
   validate_beta_phylo_mu_structured_term(mu_phylo$term)
+  sd_phylo_targets <- parse_sd_phylo_entries(
+    sd_phylo_entries,
+    mu_phylo$term
+  )
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
   validate_beta_animal_mu_structured_term(mu_animal$term)
@@ -4984,6 +4995,15 @@ drm_build_beta_ls_spec <- function(
     ))
   }
   if (
+    length(sd_phylo_entries) > 0L &&
+      (include_missing_response || include_missing_predictor)
+  ) {
+    cli::cli_abort(c(
+      "Beta phylogenetic direct-SD regression is not implemented with missing-data routes.",
+      "i" = "Use complete responses and predictors for {.code sd(species, level = \"phylogenetic\") ~ ...}; missing-response and {.fn mi} combinations remain deferred."
+    ))
+  }
+  if (
     include_missing_predictor &&
       (length(mu_re$terms) > 0L ||
         length(sigma_re$terms) > 0L ||
@@ -4996,12 +5016,16 @@ drm_build_beta_ls_spec <- function(
     ))
   }
 
-  for (entry in list(mu_entry, sigma_entry)) {
+  for (entry in c(list(mu_entry, sigma_entry), sd_phylo_entries)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  sd_phylo_vars <- unique(unlist(lapply(
+    sd_phylo_entries,
+    function(entry) all.vars(drm_entry_formula(entry, response = FALSE))
+  )))
 
   impute_vars <- if (include_missing_predictor) {
     all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
@@ -5014,6 +5038,7 @@ drm_build_beta_ls_spec <- function(
     random_effect_vars(mu_re$terms),
     structured_mu_vars(beta_mu_structured_term),
     structured_mu_vars(sigma_animal$term),
+    sd_phylo_vars,
     impute_vars
   ))
   # response = "include": keep missing-response rows, so exclude the response
@@ -5131,6 +5156,12 @@ drm_build_beta_ls_spec <- function(
     data_model,
     env
   )
+  sd_phylo <- build_sd_phylo_structure(
+    sd_phylo_entries,
+    sd_phylo_targets,
+    phylo_mu,
+    data_model
+  )
 
   spec <- list(
     model_type = "beta",
@@ -5140,23 +5171,35 @@ drm_build_beta_ls_spec <- function(
     V_known_diag = rep(0, length(y)),
     V_known_type = "none",
     has_known_v = FALSE,
-    X = list(mu = X_mu, sigma = X_sigma),
-    terms = list(
-      mu = stats::delete.response(stats::terms(mf_mu)),
-      sigma = stats::terms(mf_sigma)
+    X = c(
+      list(mu = X_mu, sigma = X_sigma),
+      sd_phylo$X_list
     ),
-    model_frame = list(mu = mf_mu, sigma = mf_sigma),
+    terms = c(
+      list(
+        mu = stats::delete.response(stats::terms(mf_mu)),
+        sigma = stats::terms(mf_sigma)
+      ),
+      sd_phylo$terms_list
+    ),
+    model_frame = c(
+      list(mu = mf_mu, sigma = mf_sigma),
+      sd_phylo$model_frame_list
+    ),
     random = list(
       mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
+    random_scale = list(
+      mu = empty_sd_mu_structure(re_mu$n_re),
+      phylo = sd_phylo
+    ),
     structured = list(phylo_mu = phylo_mu),
     missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
-    dpars = c("mu", "sigma"),
+    dpars = c("mu", "sigma", sd_phylo$dpars),
     start = if (include_missing_response) {
       beta_ls_start(
         y,
@@ -5164,12 +5207,20 @@ drm_build_beta_ls_spec <- function(
         X_sigma,
         re_mu = re_mu,
         phylo_mu = phylo_mu,
+        sd_phylo = sd_phylo,
         observed_y = observed_y
       )
     } else {
-      beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu, phylo_mu = phylo_mu)
+      beta_ls_start(
+        y,
+        X_mu,
+        X_sigma,
+        re_mu = re_mu,
+        phylo_mu = phylo_mu,
+        sd_phylo = sd_phylo
+      )
     },
-    map = beta_ls_map(re_mu, phylo_mu),
+    map = beta_ls_map(re_mu, phylo_mu, sd_phylo),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
@@ -15714,6 +15765,7 @@ beta_ls_start <- function(
   X_sigma,
   re_mu = empty_random_mu_structure(length(y)),
   phylo_mu = empty_phylo_mu_structure(),
+  sd_phylo = empty_sd_phylo_structure(),
   observed_y = rep(TRUE, length(y))
 ) {
   observed_y <- as.logical(observed_y)
@@ -15762,6 +15814,10 @@ beta_ls_start <- function(
   }
   mu_re_start <- beta_mu_re_start(resid, re_mu, y_scale)
   phylo_start <- gaussian_phylo_start(resid, phylo_mu)
+  beta_sd_mu <- gaussian_sd_phylo_start(y_scale, sd_phylo)
+  if (length(beta_sd_mu) == 0L) {
+    beta_sd_mu <- 0
+  }
   c(
     list(
       beta_mu = beta_mu,
@@ -15771,7 +15827,7 @@ beta_ls_start <- function(
       beta_nu = 0,
       beta_zi = 0,
       theta_ord = 0,
-      beta_sd_mu = 0,
+      beta_sd_mu = beta_sd_mu,
       u_mu = mu_re_start$u_mu,
       log_sd_mu = mu_re_start$log_sd_mu,
       eta_cor_mu = mu_re_start$eta_cor_mu,
@@ -15837,9 +15893,16 @@ beta_mu_re_start <- function(
 
 beta_ls_map <- function(
   re_mu = empty_random_mu_structure(1L),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  sd_phylo = empty_sd_phylo_structure()
 ) {
-  lognormal_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
+  out <- gaussian_ls_map(
+    re_mu = re_mu,
+    phylo_mu = phylo_mu,
+    sd_phylo = sd_phylo
+  )
+  out$beta_nu <- factor(NA)
+  out
 }
 
 beta_binomial_start <- function(
@@ -18046,6 +18109,7 @@ make_tmb_data <- function(spec) {
   if (identical(spec$model_type, "beta")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
+    sd_phylo <- spec$random_scale$phylo
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 10L,
@@ -18064,9 +18128,9 @@ make_tmb_data <- function(spec) {
       X_zi = dummy_matrix,
       X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
-      X_sd_phylo = dummy_matrix,
+      X_sd_phylo = sd_phylo$X,
       report_group_sd = 0L,
-      has_sd_phylo_model = 0L,
+      has_sd_phylo_model = as.integer(sd_phylo$n_models > 0L),
       sd_phylo_beta_offset = 0L,
       X_mu1 = dummy_matrix,
       X_mu2 = dummy_matrix,
@@ -18097,7 +18161,11 @@ make_tmb_data <- function(spec) {
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
-      phylo_mu_sd_row = 0L,
+      phylo_mu_sd_row = if (sd_phylo$n_models > 0L) {
+        sd_phylo$observation_sd_row0
+      } else {
+        0L
+      },
       phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
         phylo_mu$observation_node_index0
       } else {
@@ -19639,7 +19707,7 @@ split_tmb_random_effects <- function(par, spec) {
       }
       values <- latent
       if (
-        identical(spec$model_type, "gaussian") &&
+        spec$model_type %in% c("gaussian", "beta") &&
           q == 1L &&
           is.list(spec$random_scale$phylo) &&
           spec$random_scale$phylo$n_models > 0L

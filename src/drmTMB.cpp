@@ -2802,12 +2802,29 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_mu_re);
     }
     if (has_phylo_mu == 1) {
+      vector<Type> sd_phylo_group(X_sd_phylo.rows());
+      vector<Type> log_sd_phylo_group(X_sd_phylo.rows());
+      if (has_sd_phylo_model == 1) {
+        for (int g = 0; g < X_sd_phylo.rows(); ++g) {
+          Type eta_sd = Type(0.0);
+          for (int k = 0; k < X_sd_phylo.cols(); ++k) {
+            eta_sd += X_sd_phylo(g, k) *
+              beta_sd_mu(sd_phylo_beta_offset + k);
+          }
+          log_sd_phylo_group(g) = eta_sd;
+          sd_phylo_group(g) = exp(eta_sd);
+        }
+      }
       int n_phylo = Q_phylo.rows();
       int q_phylo = log_sd_phylo.size();
       for (int i = 0; i < y.size(); ++i) {
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
-          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          Type field_effect = u_phylo(effect_index);
+          if (has_sd_phylo_model == 1) {
+            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
+          }
+          Type contribution = phylo_mu_value(i, k) * field_effect;
           if (phylo_mu_dpar(k) == 1) {
             log_sigma(i) += contribution;
           } else {
@@ -2827,20 +2844,39 @@ Type objective_function<Type>::operator()()
           quadratic_k += effect_k(j) * Q_u(j);
         }
         quadratic += quadratic_k;
-        nll += Type(0.5) * (
-          Type(n_phylo) * log(Type(2.0) * M_PI) +
-          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
-          log_det_Q_phylo +
-          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
-        );
+        if (has_sd_phylo_model == 1) {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) -
+            log_det_Q_phylo +
+            quadratic_k
+          );
+        } else {
+          nll += Type(0.5) * (
+            Type(n_phylo) * log(Type(2.0) * M_PI) +
+            Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+            log_det_Q_phylo +
+            exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+          );
+        }
       }
       REPORT(u_phylo);
       REPORT(log_sd_phylo);
       REPORT(quadratic);
-      ADREPORT(log_sd_phylo);
-      vector<Type> sd_phylo = exp(log_sd_phylo);
-      REPORT(sd_phylo);
-      ADREPORT(sd_phylo);
+      if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
+        REPORT(log_sd_phylo_group);
+        REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
+        if (report_group_sd == 1) {
+          ADREPORT(log_sd_phylo_group);
+          ADREPORT(sd_phylo_group);
+        }
+      } else {
+        ADREPORT(log_sd_phylo);
+        vector<Type> sd_phylo = exp(log_sd_phylo);
+        REPORT(sd_phylo);
+        ADREPORT(sd_phylo);
+      }
     }
     vector<Type> mu(y.size());
     Type beta_mu_eps = Type(1e-12);
