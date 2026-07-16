@@ -44,7 +44,22 @@ regression using Template Model Builder.
 > phylogenetic location-effect SD. START HERE:
 > [`docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md`](docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md)
 
-> **▶ Prior (2026-07-15, ARC 1b-S2R CLOSEOUT).**
+> **▶ Prior (2026-07-15, BETA PHYLOGENETIC LSS PLANNING TRANSFER; PR #785 MERGED).**
+> Arc 1b-S2R is merged through PR #784 at
+> `b8aa6d701389aad617a4ad8203bdfa3dc1f01495`; its exact reviewed head
+> `24016bf36242e35c7098a9336fa216d17f4a3ad4` passed GitHub run 29434103188.
+> This planning transfer established the queued two-PR Beta phylogenetic
+> location-scale-scale sequence: first the constant-SD q1 phylogenetic `mu`
+> prerequisite, then the exact
+> `sd(spp_id, level = "phylogenetic") ~ 1 + x` regression, both capped at
+> `point_fit_recovery`. Keep family `sigma` (`phi = 1 / sigma^2`) distinct from
+> latent-target `sd()`. Hierarchical random effects inside `sd()` remain a later
+> separate subarc. Shinichi subsequently approved and restarted the goal; the
+> current 2026-07-16 block above supersedes the planning-stage stop. PR #781
+> and unrelated worktrees remain outside scope. START HERE:
+> [`docs/dev-log/handover/2026-07-15-beta-phylo-lss-codex-handover.md`](docs/dev-log/handover/2026-07-15-beta-phylo-lss-codex-handover.md)
+
+> **▶ Prior (2026-07-15, ARC 1b-S2R CLOSEOUT; PR #784 SUBSEQUENTLY MERGED).**
 > PR #783 is merged at `d210439187f2a49922de8bcf8c183d164d7bd0dc`. Branch
 > `codex/arc1b-s2r-relmat-q2-reml` now admits native REML for one exact
 > bivariate-Gaussian supplied-relatedness cell: matching labelled
