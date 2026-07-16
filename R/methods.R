@@ -5265,7 +5265,7 @@ has_phylo_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
       "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
-      "gamma"
+      "gamma", "beta"
     ) &&
     isTRUE(object$model$structured$phylo_mu$has) &&
     identical(structured_mu_type(object$model$structured$phylo_mu), "phylo")
@@ -5282,7 +5282,7 @@ has_structured_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
       "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
-      "gamma"
+      "gamma", "beta"
     ) &&
     isTRUE(object$model$structured$phylo_mu$has)
 }

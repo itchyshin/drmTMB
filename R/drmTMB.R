@@ -4906,6 +4906,9 @@ drm_build_beta_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  validate_beta_phylo_mu_structured_term(mu_phylo$term)
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
   validate_beta_animal_mu_structured_term(mu_animal$term)
@@ -4919,21 +4922,39 @@ drm_build_beta_ls_spec <- function(
     sigma_animal$term$dpars <- "sigma"
   }
   validate_beta_animal_sigma_structured_term(sigma_animal$term)
-  if (!is.null(mu_animal$term) && !is.null(sigma_animal$term)) {
+  if (!is.null(mu_phylo$term) && !is.null(mu_animal$term)) {
     cli::cli_abort(c(
-      "{.fn beta} structured animal effects currently support one endpoint at a time.",
-      "x" = "Both {.code mu} and {.code sigma} contain {.fn animal} terms.",
-      "i" = "Fit either {.code animal(1 | id, ...)} in {.code mu} or in {.code sigma}; q2/q4 beta location-scale blocks remain post-v1.0 design work."
+      "A {.fn beta} model can use only one structured {.code mu} provider in this route.",
+      "x" = "The formula contains both {.fn phylo} and {.fn animal} terms.",
+      "i" = "Use one unlabelled q1 {.fn phylo} or {.fn animal} intercept in {.code mu}; simultaneous structured providers remain deferred."
     ))
   }
-  animal_term <- if (!is.null(mu_animal$term)) {
-    mu_animal$term
+  beta_mu_structured_term <- if (!is.null(mu_phylo$term)) {
+    mu_phylo$term
   } else {
+    mu_animal$term
+  }
+  if (!is.null(beta_mu_structured_term) && !is.null(sigma_animal$term)) {
+    cli::cli_abort(c(
+      "{.fn beta} structured effects currently support one endpoint at a time.",
+      "x" = "The formula contains a structured {.code mu} term and {.fn animal} in {.code sigma}.",
+      "i" = "Keep {.code sigma} fixed-effect-only when {.code mu} contains a structured term; q2/q4 beta location-scale blocks remain deferred."
+    ))
+  }
+  beta_structured_term <- if (!is.null(sigma_animal$term)) {
     sigma_animal$term
+  } else {
+    beta_mu_structured_term
   }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_mu_random_terms(mu_re$terms)
+  if (!is.null(mu_phylo$term) && length(mu_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "A {.fn beta} phylogenetic {.code mu} effect cannot yet be combined with an ordinary {.code mu} random effect.",
+      "i" = "Use either {.code phylo(1 | id, tree = tree)} or an ordinary {.code (1 | id)} term for this q1 prerequisite."
+    ))
+  }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_beta_sigma_random_terms(sigma_re$terms)
@@ -4957,7 +4978,7 @@ drm_build_beta_ls_spec <- function(
     include_missing_predictor &&
       (length(mu_re$terms) > 0L ||
         length(sigma_re$terms) > 0L ||
-        !is.null(animal_term))
+        !is.null(beta_mu_structured_term) || !is.null(sigma_animal$term))
   ) {
     cli::cli_abort(c(
       "The first beta-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
@@ -4981,7 +5002,7 @@ drm_build_beta_ls_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
-    structured_mu_vars(mu_animal$term),
+    structured_mu_vars(beta_mu_structured_term),
     structured_mu_vars(sigma_animal$term),
     impute_vars
   ))
@@ -5093,7 +5114,7 @@ drm_build_beta_ls_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in beta model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
-  phylo_mu <- build_structured_mu_structure(animal_term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(beta_structured_term, data_model, env)
 
   spec <- list(
     model_type = "beta",
@@ -9368,6 +9389,27 @@ validate_beta_animal_mu_structured_term <- function(term) {
       "{.fn beta} {.fn animal} {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Use {.code animal(1 | id, pedigree = ped)} or the {.code 1 + x} one-slope form; multiple or labelled beta slopes, q2/q4 covariance, and scale-side routes remain post-v1.0 design work."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_beta_phylo_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance and q2/q4 beta models remain deferred."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
     ))
   }
   invisible(NULL)
