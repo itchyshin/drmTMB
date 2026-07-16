@@ -73,3 +73,26 @@ current goal. The evidence-valid choices are:
 
 A diagnostic-only public admission is not recommended because PR 2 depends on
 trustworthy recovery of the constant latent SD prerequisite.
+
+## Final repair-pilot disposition
+
+The later fail-closed repair fixed seed independence and RNG provenance without
+changing the model, mean log-`tau` estimand, thresholds, or retained
+denominator. Local and Totoro three-fit smoke runs were mechanically clean. The
+disjoint 30-fit Totoro pilot then retained 30/30 fits with convergence code
+zero, `pdHess = TRUE`, no warnings, and no boundaries. All fixed-slope and RMSE
+gates passed.
+
+The mandatory `g = 256` mean log-`tau` bias was `-0.2214` (MCSE `0.0861`),
+again outside the frozen absolute `0.10` gate and close to the earlier full
+`m = 4` result of `-0.2470`. The `g = 1024` pilot passed at `-0.0771`.
+
+The predeclared pooled rule strengthened the stop decision. With earlier bias
+`b_old = -0.246998`, an equal-sized repair block could give pooled absolute
+bias at most `0.10` only if its bias were at least `+0.046998`. The pilot and
+both earlier moderate-tree campaigns were negative. Noether, Fisher, and Rose
+therefore returned STOP, and the 1,200-attempt certification was not launched.
+
+This is `ABORTED-BEFORE-CERTIFICATION`, not a promotion result. No PR was
+opened, the ledger remains unchanged, and direct phylogenetic-`sd()` PR 2 stays
+blocked pending a new explicit decision from Shinichi.

@@ -1,8 +1,14 @@
 # Queued candidate GOAL: Beta phylogenetic LSS pilot
 
-Status: **QUEUED, NOT ACTIVE**. Ultra-plan this candidate only after the current
-relmat-K REML arc is fully closed and separately merged. Do not implement it
-until Shinichi approves the new ultra-plan.
+Status: **APPROVED, ATTEMPTED, AND STOPPED AT THE PR 1 RECOVERY GATE**. The
+constant-SD implementation and exact unit tests exist only on
+`codex/beta-phylo-q1-constant-sd`; no PR was opened and no capability row was
+promoted. Two full campaigns returned HOLD. A genuinely disjoint 30-fit pilot
+then reproduced the `g = 256` mean log-latent-SD failure and triggered the
+predeclared abort before the 1,200-fit repair certification. PR 2 was not
+started. See
+`docs/dev-log/after-task/2026-07-16-beta-phylo-q1-pilot-abort.md` and
+`docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md`.
 
 ## Goal
 

@@ -10,7 +10,23 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-15, → CURRENT CODEX, ARC 1b-S2R CLOSEOUT).**
+> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 STOPPED).**
+> The approved two-PR Beta phylogenetic LSS goal stopped at PR 1's recovery
+> gate on branch `codex/beta-phylo-q1-constant-sd`. The narrow constant-SD
+> implementation and exact likelihood/gradient tests remain branch-only; no PR
+> was opened and no ledger row was promoted. The original `m = 2` and valid
+> within-block `m = 4` campaigns are HOLD at moderate `g`. After repairing seed
+> independence, complete-DGP RNG provenance, source/artifact authentication,
+> and output guards, a genuinely disjoint 30-fit Totoro pilot again gave
+> `g = 256` mean log-latent-SD bias `-0.2214` (MCSE `0.0861`) against the frozen
+> absolute `0.10` gate. Noether, Fisher, and Rose returned STOP; the 1,200-fit
+> certification was not launched. Do not open PR 1, begin PR 2, rescore raw SD,
+> change the gate, or omit `g = 256` without Shinichi's explicit new goal.
+> Family `sigma` (`phi = sigma^(-2)`) remains distinct from the latent
+> phylogenetic location-effect SD. START HERE:
+> [`docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md`](docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md)
+
+> **▶ Prior (2026-07-15, ARC 1b-S2R CLOSEOUT).**
 > PR #783 is merged at `d210439187f2a49922de8bcf8c183d164d7bd0dc`. Branch
 > `codex/arc1b-s2r-relmat-q2-reml` now admits native REML for one exact
 > bivariate-Gaussian supplied-relatedness cell: matching labelled
