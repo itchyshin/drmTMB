@@ -20,14 +20,18 @@ drmTMB(
 
 ## Symbolic model
 
-For observation `i` in species `s(i)`, `x_i` is an observation-level predictor, `A` is the unit-diagonal tip covariance from the tree, and `v` is a unit-scale augmented phylogenetic field:
+For observation `i` in species `s(i)`, `x_i` is an observation-level predictor,
+`A` is the unit-diagonal tip covariance from the tree, `v_aug` is a unit-scale
+augmented phylogenetic field, and `a_aug` is its scaled counterpart used by
+TMB:
 
 ```text
 y_i | v ~ Beta(mu_i phi_i, (1 - mu_i) phi_i)
 logit(mu_i) = beta_0 + beta_1 x_i + a_s(i)
 log(sigma_i) = gamma_0 + gamma_1 x_i
 phi_i = sigma_i^(-2) = exp{-2(gamma_0 + gamma_1 x_i)}
-a_s = tau v_s,  v_aug ~ N(0, Q_aug^(-1)),  tau = exp(lambda)
+a_aug = tau v_aug,  v_aug ~ N(0, Q_aug^(-1)),  tau = exp(lambda)
+a_aug ~ N(0, tau^2 Q_aug^(-1)),  a_s = a_aug,s
 a_tip ~ N(0, tau^2 A)
 ```
 
@@ -40,15 +44,21 @@ The public family parameter `sigma` is not the conditional response SD. The late
 | beta | fixed `mu` intercept and `x` slope | `beta_mu`, `X_mu` | `coef(fit, "mu")` | recovery target |
 | gamma | fixed `sigma` intercept and `x` slope | `beta_sigma`, `X_sigma` | `coef(fit, "sigma")` | recovery target |
 | phi_i | `sigma_i^(-2)` | `exp(-2 * log_sigma)` | `fit$obj$report()$phi` | likelihood sentinel |
-| v_aug | unit augmented phylogenetic field | `u_phylo`, `Q_phylo`, `log_det_Q_phylo` | conditional `ranef()` / prediction contribution | latent nuisance field |
+| v_aug | unit augmented phylogenetic field | `u_phylo / exp(log_sd_phylo)` conceptually; not stored separately | none | standardized latent field |
 | tau | constant location SD | `exp(log_sd_phylo)` | `sdpars(fit)$mu` | recovery target |
-| a_s | `tau v_s` at observed tips | `u_phylo[phylo_mu_node_index]` | conditional `predict(..., dpar = "mu", type = "link")` | extraction check |
+| a_aug, a_s | `tau v_aug`, with `a_s` at observed tips | `u_phylo`, `Q_phylo`, `log_det_Q_phylo`; `u_phylo[phylo_mu_node_index]` at tips | conditional `ranef()` / `predict(..., dpar = "mu", type = "link")` contribution | latent nuisance field and extraction check |
 
 The R builder passes the phylogenetic marker through `build_structured_mu_structure()`. Existing Beta C++ adds the field only to `eta_mu`, gives it the scalar augmented-GMRF prior, and separately forms `phi = exp(-2 * log_sigma)`. PR 1 is therefore a narrow R admission and evidence change, not a likelihood rewrite.
 
 ## Independent fixed-parameter contract
 
-At a displaced full parameter vector, reconstruct the joint NLL from the Beta `dbeta()` terms and the augmented-field prior `0.5 * [n_aug log(2 pi) + 2 n_aug lambda - log|Q_aug| + exp(-2 lambda) v_aug' Q_aug v_aug]`. Compare it with a non-marginalized `MakeADFun` objective, and compare every AD derivative with a central finite difference at that same displaced vector. A leaf-only `dbeta()` check verifies `phi = sigma^(-2)`; `phi = sigma^2` must give a materially different likelihood.
+At a displaced full parameter vector, reconstruct the joint NLL from the Beta
+`dbeta()` terms and the scaled augmented-field prior
+`0.5 * [n_aug log(2 pi) + 2 n_aug lambda - log|Q_aug| + exp(-2 lambda) a_aug' Q_aug a_aug]`.
+Compare it with a non-marginalized `MakeADFun` objective, and compare every AD
+derivative with a central finite difference at that same displaced vector. A
+leaf-only `dbeta()` check verifies `phi = sigma^(-2)`; `phi = sigma^2` must give
+a materially different likelihood.
 
 ## DGP and retained rejection boundary
 

@@ -27,7 +27,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        self.assertEqual(len(model), 675)
+        self.assertEqual(len(model), 676)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -58,7 +58,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 305, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -101,11 +101,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 305, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40},
         )
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            163,
+            164,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
@@ -233,6 +233,48 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(by_id[cell_id]["structure_provider"], "spatial")
             self.assertEqual(by_id[cell_id]["evidence_tier"], "point_fit_recovery")
         self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
+
+    def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_rejected(self):
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+        evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
+
+        admitted = by_id["mc-0017"]
+        self.assertEqual(admitted["route_variant"], "beta_phylo_q1_constant_sd")
+        self.assertEqual(admitted["structure_provider"], "phylo")
+        self.assertEqual(admitted["q_gate"], "q1")
+        self.assertEqual(admitted["estimator"], "ML")
+        self.assertEqual(admitted["capability_status"], "implemented")
+        self.assertEqual(admitted["work_status"], "verified")
+        self.assertEqual(admitted["evidence_tier"], "point_fit_recovery")
+        self.assertEqual(
+            evidence_by_id[admitted["primary_evidence_id"]]["evidence_class"],
+            "model_recovery",
+        )
+        for required in (
+            "unlabelled intercept-only",
+            "fixed-effect-only family sigma",
+            "exact tested g = 1024, m = 4",
+            "g = 256 and g = 512",
+            "not establish g >= 1024",
+            "REML",
+            "direct sd() regression",
+            "intervals",
+            "coverage",
+            "supported",
+        ):
+            self.assertIn(required, admitted["claim_boundary"])
+
+        remainder = by_id["mc-0676"]
+        self.assertEqual(remainder["route_variant"], "beta_phylo_remainder")
+        self.assertEqual(remainder["capability_status"], "rejected_by_design")
+        self.assertEqual(remainder["work_status"], "deferred")
+        self.assertEqual(remainder["evidence_tier"], "none")
+        self.assertIn("mc-0017", remainder["claim_boundary"])
+        self.assertEqual(
+            evidence_by_id[remainder["primary_evidence_id"]]["evidence_class"],
+            "rejection_test",
+        )
 
     def test_generation_is_deterministic(self):
         first = ledger.outputs(self.cells, self.evidence)

@@ -10,17 +10,21 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 RESUMED).**
+> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
 > Shinichi explicitly restarted the original two-PR Beta phylogenetic LSS goal.
-> PR 1 remains branch-only and unpromoted while a prospective successor evidence
-> contract is frozen. Every prior `g = 256` HOLD remains immutable, visible
-> practical-boundary evidence; it may not be rescored or erased by a high-N
-> pass. First run the bounded importance-sampling diagnostic, then the fresh
-> disjoint `m = 4`, `g = {512, 1024}` confirmation exactly as predeclared. A
-> material Laplace discrepancy stops PR 1 for a separate estimator-method goal;
-> an inconclusive diagnostic permits no causal mechanism claim. Do not start PR
-> 2 before PR 1 is reviewed, merged, and its exact post-merge CI is green. Keep
-> family `sigma` (`phi = sigma^(-2)`) distinct from latent phylogenetic SD.
+> PR 1 remains branch-only while closeout checks and final review finish. The
+> authenticated successor campaign retained 800/800 clean fits. Exact
+> `g = 512, m = 4` HOLDS: mean log-latent-SD bias was `-0.10129`, with MC
+> interval `[-0.12589, -0.07668]`. Exact `g = 1024, m = 4` PASSES at `-0.04645`,
+> with interval `[-0.06420, -0.02870]`; this supports only
+> `point_fit_recovery` in that exact tested cell, not `g >= 1024`. Every prior
+> `g = 256` HOLD remains visible practical-boundary evidence. The bounded D0
+> importance screen was INCONCLUSIVE (2/5 sign-stability passes), D1 did not
+> run, and no approximation-versus-information mechanism may be claimed.
+> Documentation-transfer PR #785 merged at `7eddc481`; reconcile PR 1 onto that
+> base before opening it. Do not start PR 2 before PR 1 is reviewed, merged, and
+> its exact post-merge CI is green. Keep family `sigma`
+> (`phi = sigma^(-2)`) distinct from latent phylogenetic SD.
 > START HERE:
 > [`docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md`](docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md)
 >

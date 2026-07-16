@@ -1,5 +1,24 @@
 # drmTMB 0.6.0 (development)
 
+## Beta q1 phylogenetic location intercept
+
+* Native univariate ML `beta()` now admits one unlabelled intercept-only
+  `phylo(1 | species, tree = tree)` term in `mu`. Family `sigma` remains a
+  fixed-effect formula and controls `phi = sigma^(-2)`; it is distinct from
+  the constant latent phylogenetic location-effect SD.
+* An independent `dbeta()` plus augmented-GMRF joint-likelihood oracle and
+  central-difference gradient check cover the exact implementation. A fresh,
+  predeclared 800-fit Totoro campaign retained 400 attempts at each of
+  `g = 512, m = 4` and `g = 1024, m = 4`; all fits converged with
+  `pdHess = TRUE`. The log-latent-SD recovery gate held at `g = 512` and
+  passed only at the exact tested `g = 1024, m = 4` cell.
+* This is a `point_fit_recovery` admission only for that exact tested regime,
+  not `g >= 1024` or a universal minimum species count. Moderate-information
+  `g = 256` and `g = 512` results remain explicit HOLDs. REML, q2/q4, labels,
+  phylogenetic slopes, phylogeny in family `sigma`, direct `sd()` regression,
+  `zero_one_beta()`, missing/external data, intervals, coverage, and broader
+  Beta or all-family claims remain outside this PR.
+
 ## Exact supplied-relatedness q2 REML intercept (Arc 1b-S2R)
 
 * `drmTMB(..., REML = TRUE)` now admits one exact bivariate-Gaussian

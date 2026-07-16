@@ -67,7 +67,11 @@ new_beta_phylo_data <- function(
   sigma <- exp(log_sigma)
   phi <- 1 / sigma^2
   list(
-    data = data.frame(y = stats::rbeta(length(mu), mu * phi, (1 - mu) * phi), x, species),
+    data = data.frame(
+      y = stats::rbeta(length(mu), mu * phi, (1 - mu) * phi),
+      x,
+      species
+    ),
     tree = tree,
     beta_mu = beta_mu,
     beta_sigma = beta_sigma,
@@ -90,12 +94,13 @@ beta_phylo_mu_joint_nll <- function(fit, par) {
     }
     effect <- par$u_phylo[((k - 1L) * n_phylo + 1L):(k * n_phylo)]
     quadratic <- sum(effect * as.vector(data$Q_phylo %*% effect))
-    phylo_prior <- phylo_prior + 0.5 * (
-      n_phylo * log(2 * pi) +
-        2 * n_phylo * par$log_sd_phylo[[k]] -
-        data$log_det_Q_phylo +
-        exp(-2 * par$log_sd_phylo[[k]]) * quadratic
-    )
+    phylo_prior <- phylo_prior +
+      0.5 *
+        (n_phylo *
+          log(2 * pi) +
+          2 * n_phylo * par$log_sd_phylo[[k]] -
+          data$log_det_Q_phylo +
+          exp(-2 * par$log_sd_phylo[[k]]) * quadratic)
   }
 
   mu_eps <- 1e-12
@@ -103,23 +108,31 @@ beta_phylo_mu_joint_nll <- function(fit, par) {
   phi <- exp(-2 * log_sigma)
   alpha <- pmax(mu * phi, 1e-8)
   beta_shape <- pmax((1 - mu) * phi, 1e-8)
-  phylo_prior - sum(data$weights * stats::dbeta(
-    data$y,
-    shape1 = alpha,
-    shape2 = beta_shape,
-    log = TRUE
-  ))
+  phylo_prior -
+    sum(
+      data$weights *
+        stats::dbeta(
+          data$y,
+          shape1 = alpha,
+          shape2 = beta_shape,
+          log = TRUE
+        )
+    )
 }
 
 central_difference_gradient <- function(fn, par) {
-  vapply(seq_along(par), function(i) {
-    step <- 1e-6 * max(1, abs(par[[i]]))
-    plus <- par
-    minus <- par
-    plus[[i]] <- plus[[i]] + step
-    minus[[i]] <- minus[[i]] - step
-    (fn(plus) - fn(minus)) / (2 * step)
-  }, numeric(1))
+  vapply(
+    seq_along(par),
+    function(i) {
+      step <- 1e-6 * max(1, abs(par[[i]]))
+      plus <- par
+      minus <- par
+      plus[[i]] <- plus[[i]] + step
+      minus[[i]] <- minus[[i]] - step
+      (fn(plus) - fn(minus)) / (2 * step)
+    },
+    numeric(1)
+  )
 }
 
 test_that("drmTMB fits fixed-effect beta mean-scale models", {
@@ -601,5 +614,17 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
       data = sim$data
     ),
     "Structured-effect syntax is planned"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 | species, tree = tree),
+        sigma ~ x,
+        sd(species, level = "phylogenetic") ~ 1 + x
+      ),
+      family = beta(),
+      data = sim$data
+    ),
+    "Unsupported parameter:.*sd_phylo\\(species\\)"
   )
 })

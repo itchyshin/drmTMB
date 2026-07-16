@@ -529,7 +529,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `hu ~ relmat(1 | id, K = K)` or `hu ~ relmat(1 | id, Q = Q)` intercept,
   Gamma `mu ~ relmat(1 + x | id, K = K)`, beta
   `mu ~ animal(1 + x | id, pedigree = ped)` and `sigma ~
-  animal(1 | id, pedigree = ped)`, and Student-t `mu ~ spatial(1 + x | id,
+  animal(1 | id, pedigree = ped)`, the exact recovery-only Beta
+  `mu ~ phylo(1 | id, tree = tree)` intercept at tested `g = 1024, m = 4`,
+  and Student-t `mu ~ spatial(1 + x | id,
   coords = coords)` routes; the Arc 3a Gamma
   `mu ~ phylo(1 | id, tree = tree)` and lognormal
   `mu ~ phylo(1 | id, tree = tree)`, `mu ~ relmat(1 | id, K = K)`, or
@@ -544,6 +546,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   random effects are not implemented. `phylo()`,
   `spatial()`, `animal()`, and `relmat()` markers outside those exact routes
   now error in non-Gaussian models with a structured non-Gaussian boundary.
+  The Beta exception is not a universal `g >= 1024` threshold: `g = 256` and
+  `g = 512` recovery gates held, family `sigma` stays fixed-effect-only, and
+  Beta phylogenetic slopes, labels/q2+, direct latent-`sd()` regression,
+  intervals, and coverage remain deferred.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,
