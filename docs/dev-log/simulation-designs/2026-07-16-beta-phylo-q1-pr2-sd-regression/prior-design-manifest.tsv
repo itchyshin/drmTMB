@@ -1,0 +1,12 @@
+path	sha256
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-disjoint-repair-pilot-aborted/design.tsv	1e18d29890a6df5a9d83bea9277bfd0cc177433f06e310b0749011b38979834a
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-disjoint-repair-smoke-local/design.tsv	adaa06bb0d5ca100d37d573089d8c0df986d48f640d27d16fe64ba6ad53b047c
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-disjoint-repair-smoke-totoro/design.tsv	adaa06bb0d5ca100d37d573089d8c0df986d48f640d27d16fe64ba6ad53b047c
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-is-screen-successor/design.tsv	fefc3ca7cd143f946cbd68d2a99ddfab56ad2acb5001659911d393bb6dbdce6f
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-recovery-addendum-hold/design.tsv	3c4d1eb2826f17d936fc85a07e7096166527ede00bb2e3901feacb5c2955503c
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-recovery-original-hold/design.tsv	203025d9e593ae0b1a56d45fbbf35ab6f9fc959fee78bf4a14b1f5215f8e2b8a
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-successor-certification/design.tsv	73685aed37eda78f7a5fb86cb90e0d6974a54fb1055d11214bdea8b316415b9f
+docs/dev-log/simulation-artifacts/2026-07-16-beta-phylo-q1-pr1-successor-smoke/design.tsv	9c5038f973440f510e5460ebbdcd20839c565a137bc97864f28052830f6aa02f
+docs/dev-log/simulation-designs/2026-07-16-beta-phylo-q1-pr1-disjoint-repair/design.tsv	cfd025e7280ff30db4d95bcdf86da48c251080d516ba1324e80d88681138676a
+docs/dev-log/simulation-designs/2026-07-16-beta-phylo-q1-pr1-is-diagnostic/design.tsv	fefc3ca7cd143f946cbd68d2a99ddfab56ad2acb5001659911d393bb6dbdce6f
+docs/dev-log/simulation-designs/2026-07-16-beta-phylo-q1-pr1-successor-high-information/design.tsv	73685aed37eda78f7a5fb86cb90e0d6974a54fb1055d11214bdea8b316415b9f
