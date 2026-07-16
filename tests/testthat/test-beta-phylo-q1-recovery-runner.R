@@ -288,13 +288,11 @@ test_that("repair provenance and output guards fail closed", {
   )
   tampered <- tempfile(fileext = ".tsv")
   file.copy(prior, tampered)
+  expected_hash <- c(invalid_gates = runner_env$sha256_file(prior))
+  paths <- c(invalid_gates = tampered)
+  expect_true(all(runner_env$repair_hash_audit(paths, expected_hash)$pass))
   write("tamper", tampered, append = TRUE)
-  hash_audit <- data.frame(
-    check = "sha256_invalid_gates",
-    observed = runner_env$sha256_file(tampered),
-    expected = runner_env$sha256_file(prior),
-    pass = FALSE
-  )
+  hash_audit <- runner_env$repair_hash_audit(paths, expected_hash)
   expect_error(
     runner_env$assert_repair_provenance(hash_audit),
     "sha256_invalid_gates"
@@ -305,6 +303,94 @@ test_that("repair provenance and output guards fail closed", {
   writeLines("occupied", file.path(out, "existing.txt"))
   on.exit(unlink(out, recursive = TRUE), add = TRUE)
   expect_error(runner_env$assert_empty_output_dir(out), "Refusing to overwrite")
+
+  hidden_out <- tempfile("hidden-repair-output-")
+  dir.create(hidden_out)
+  writeLines("occupied", file.path(hidden_out, ".hidden"))
+  on.exit(unlink(hidden_out, recursive = TRUE), add = TRUE)
+  expect_error(
+    runner_env$assert_empty_output_dir(hidden_out),
+    "Refusing to overwrite"
+  )
+})
+
+test_that("repair git-state producer detects real source and runner drift", {
+  git <- Sys.which("git")
+  skip_if(!nzchar(git), "git is required")
+  repo <- tempfile("beta-phylo-provenance-git-")
+  dir.create(file.path(repo, "R"), recursive = TRUE)
+  dir.create(file.path(repo, "src"), recursive = TRUE)
+  dir.create(file.path(repo, "tools"), recursive = TRUE)
+  dir.create(file.path(repo, "design"), recursive = TRUE)
+  writeLines("source <- 1", file.path(repo, "R", "source.R"))
+  writeLines("// source", file.path(repo, "src", "source.cpp"))
+  writeLines("runner", file.path(repo, "tools", "runner.R"))
+  writeLines("design", file.path(repo, "design", "design.tsv"))
+  on.exit(unlink(repo, recursive = TRUE), add = TRUE)
+  expect_equal(system2(git, c("-C", repo, "init", "-q")), 0L)
+  expect_equal(system2(git, c("-C", repo, "add", ".")), 0L)
+  expect_equal(
+    system2(
+      git,
+      c(
+        "-C",
+        repo,
+        "-c",
+        "user.name=drmTMB-test",
+        "-c",
+        "user.email=drmtmb@example.test",
+        "commit",
+        "-qm",
+        "initial"
+      )
+    ),
+    0L
+  )
+  expected_tree <- vapply(
+    c("R", "src"),
+    function(path) {
+      system2(
+        git,
+        c("-C", repo, "rev-parse", paste0("HEAD:", path)),
+        stdout = TRUE
+      )
+    },
+    character(1)
+  )
+  protected <- c(
+    runner = "tools/runner.R",
+    frozen_design = "design/design.tsv"
+  )
+
+  clean <- runner_env$repair_git_state_audit(
+    repo,
+    expected_tree,
+    protected
+  )
+  expect_true(all(clean$pass))
+
+  writeLines("source <- 2", file.path(repo, "R", "source.R"))
+  source_drift <- runner_env$repair_git_state_audit(
+    repo,
+    expected_tree,
+    protected
+  )
+  expect_error(
+    runner_env$assert_repair_provenance(source_drift),
+    "worktree_R_src_clean"
+  )
+  writeLines("source <- 1", file.path(repo, "R", "source.R"))
+
+  writeLines("changed runner", file.path(repo, "tools", "runner.R"))
+  runner_drift <- runner_env$repair_git_state_audit(
+    repo,
+    expected_tree,
+    protected
+  )
+  expect_error(
+    runner_env$assert_repair_provenance(runner_drift),
+    "worktree_runner_design_clean"
+  )
 })
 
 test_that("repair promotion requires repair and pooled m4 gates", {

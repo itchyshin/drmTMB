@@ -380,11 +380,7 @@ assert_repair_provenance <- function(audit) {
   invisible(audit)
 }
 
-repair_provenance_audit <- function(repo_root) {
-  expected_tree <- c(
-    R = "6908d26231d0133020cdf71d11b022898b33bba3",
-    src = "5e385ee36b910f907c807c5d5c3767b34e22a373"
-  )
+repair_git_state_audit <- function(repo_root, expected_tree, protected_paths) {
   git <- Sys.which("git")
   if (!nzchar(git)) {
     stop("Git is required for the repair source-tree audit.", call. = FALSE)
@@ -398,22 +394,13 @@ repair_provenance_audit <- function(repo_root) {
       "--porcelain",
       "--untracked-files=all",
       "--",
-      "R",
-      "src"
+      names(expected_tree)
     ),
     stdout = TRUE,
     stderr = TRUE
   )
-  source_status_code <- attr(source_status, "status") %||% 0L
-  source_clean <- identical(source_status_code, 0L) && !length(source_status)
-  protected_paths <- c(
-    "tools/run-beta-phylo-q1-recovery.R",
-    file.path(
-      "docs/dev-log/simulation-designs",
-      "2026-07-16-beta-phylo-q1-pr1-disjoint-repair",
-      "design.tsv"
-    )
-  )
+  source_clean <- identical(attr(source_status, "status") %||% 0L, 0L) &&
+    !length(source_status)
   protected_status <- system2(
     git,
     c(
@@ -428,8 +415,10 @@ repair_provenance_audit <- function(repo_root) {
     stdout = TRUE,
     stderr = TRUE
   )
-  protected_status_code <- attr(protected_status, "status") %||% 0L
-  protected_clean <- identical(protected_status_code, 0L) &&
+  protected_clean <- identical(
+    attr(protected_status, "status") %||% 0L,
+    0L
+  ) &&
     !length(protected_status)
   protected_tracked <- vapply(
     protected_paths,
@@ -460,6 +449,83 @@ repair_provenance_audit <- function(repo_root) {
       trimws(output[[1L]])
     },
     character(1)
+  )
+  audit <- rbind(
+    data.frame(
+      check = "worktree_R_src_clean",
+      observed = if (source_clean) {
+        "clean"
+      } else {
+        paste(source_status, collapse = " | ")
+      },
+      expected = "clean",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      check = "worktree_runner_design_clean",
+      observed = if (protected_clean) {
+        "clean"
+      } else {
+        paste(protected_status, collapse = " | ")
+      },
+      expected = "clean",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      check = paste0("tracked_", names(protected_paths)),
+      observed = ifelse(protected_tracked, "tracked", "untracked"),
+      expected = "tracked",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      check = paste0("tree_", names(expected_tree)),
+      observed = unname(observed_tree),
+      expected = unname(expected_tree),
+      stringsAsFactors = FALSE
+    )
+  )
+  audit$pass <- !is.na(audit$observed) & audit$observed == audit$expected
+  audit
+}
+
+repair_hash_audit <- function(paths, expected_hash) {
+  observed_hash <- vapply(
+    paths,
+    function(path) {
+      if (!file.exists(path)) {
+        return(NA_character_)
+      }
+      sha256_file(path)
+    },
+    character(1)
+  )
+  audit <- data.frame(
+    check = paste0("sha256_", names(expected_hash)),
+    observed = unname(observed_hash),
+    expected = unname(expected_hash),
+    stringsAsFactors = FALSE
+  )
+  audit$pass <- !is.na(audit$observed) & audit$observed == audit$expected
+  audit
+}
+
+repair_provenance_audit <- function(repo_root) {
+  expected_tree <- c(
+    R = "6908d26231d0133020cdf71d11b022898b33bba3",
+    src = "5e385ee36b910f907c807c5d5c3767b34e22a373"
+  )
+  protected_paths <- c(
+    runner = "tools/run-beta-phylo-q1-recovery.R",
+    frozen_design = file.path(
+      "docs/dev-log/simulation-designs",
+      "2026-07-16-beta-phylo-q1-pr1-disjoint-repair",
+      "design.tsv"
+    )
+  )
+  git_audit <- repair_git_state_audit(
+    repo_root,
+    expected_tree,
+    protected_paths
   )
   artifact_root <- file.path(repo_root, "docs/dev-log/simulation-artifacts")
   original_root <- file.path(
@@ -498,55 +564,10 @@ repair_provenance_audit <- function(repo_root) {
     invalid_session = file.path(invalid_root, "session-info.txt"),
     invalid_summary = file.path(invalid_root, "summary.tsv")
   )
-  observed_hash <- vapply(
-    artifact_paths,
-    function(path) {
-      if (!file.exists(path)) {
-        return(NA_character_)
-      }
-      sha256_file(path)
-    },
-    character(1)
-  )
+  hash_audit <- repair_hash_audit(artifact_paths, expected_hash)
   audit <- rbind(
-    data.frame(
-      check = "worktree_R_src_clean",
-      observed = if (source_clean) {
-        "clean"
-      } else {
-        paste(source_status, collapse = " | ")
-      },
-      expected = "clean",
-      stringsAsFactors = FALSE
-    ),
-    data.frame(
-      check = "worktree_runner_design_clean",
-      observed = if (protected_clean) {
-        "clean"
-      } else {
-        paste(protected_status, collapse = " | ")
-      },
-      expected = "clean",
-      stringsAsFactors = FALSE
-    ),
-    data.frame(
-      check = paste0("tracked_", c("runner", "frozen_design")),
-      observed = ifelse(protected_tracked, "tracked", "untracked"),
-      expected = "tracked",
-      stringsAsFactors = FALSE
-    ),
-    data.frame(
-      check = paste0("tree_", names(expected_tree)),
-      observed = unname(observed_tree),
-      expected = unname(expected_tree),
-      stringsAsFactors = FALSE
-    ),
-    data.frame(
-      check = paste0("sha256_", names(expected_hash)),
-      observed = unname(observed_hash),
-      expected = unname(expected_hash),
-      stringsAsFactors = FALSE
-    ),
+    git_audit,
+    hash_audit,
     data.frame(
       check = "sha256_frozen_repair_design",
       observed = if (file.exists(frozen_repair_design_path(repo_root))) {
@@ -845,7 +866,10 @@ rmse_difference <- function(raw) {
 }
 
 assert_empty_output_dir <- function(path) {
-  if (dir.exists(path) && length(list.files(path, all.files = FALSE))) {
+  if (
+    dir.exists(path) &&
+      length(list.files(path, all.files = TRUE, no.. = TRUE))
+  ) {
     stop(
       "Refusing to overwrite nonempty output directory: ",
       path,
