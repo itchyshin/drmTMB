@@ -50,6 +50,15 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `sd(id, dpar = "mu", coef = "x1") ~ x_group` are parsed as reserved grammar
   but rejected by `drmTMB()` until random-slope SD regression has a covariance
   model and tests.
+- The narrow Beta q1 phylogenetic direct-SD route is an explicit exception to
+  the Gaussian-only generalization above: `sd(spp_id, level =
+  "phylogenetic") ~ x_tau` models the latent phylogenetic location SD `tau` in
+  `y ~ x_mu + phylo(1 | spp_id, tree = tree)`, not family `sigma` or Beta
+  precision `phi = sigma^-2`. Its recovery evidence is restricted to the
+  prospectively frozen interior-output DGP and the two `g = 1024, m = 4` arms.
+  Hierarchical/random RHS effects in `sd()`, family-`sigma` phylogeny, q>1,
+  labels/slopes, REML, missing routes, intervals, and coverage remain outside
+  this route.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented. Full-matrix `meta_V(V = V)` currently stores the retained
   covariance as a dense R matrix, with deprecated `meta_known_V(V = V)` retained

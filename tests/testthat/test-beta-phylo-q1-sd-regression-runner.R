@@ -5,7 +5,10 @@ runner_path <- testthat::test_path(
   "run-beta-phylo-q1-sd-regression-recovery.R"
 )
 
-expect_true(file.exists(runner_path), info = "The frozen PR2 runner must exist")
+testthat::skip_if_not(
+  file.exists(runner_path),
+  "requires the development-only frozen PR2 runner"
+)
 runner_env <- new.env(parent = globalenv())
 sys.source(runner_path, envir = runner_env)
 

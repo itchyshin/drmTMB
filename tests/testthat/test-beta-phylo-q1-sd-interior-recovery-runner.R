@@ -5,7 +5,10 @@ runner_path <- testthat::test_path(
   "run-beta-phylo-q1-sd-interior-recovery.R"
 )
 
-expect_true(file.exists(runner_path))
+testthat::skip_if_not(
+  file.exists(runner_path),
+  "requires the development-only interior-DGP runner"
+)
 runner_env <- new.env(parent = globalenv())
 old_runner_path <- getOption("drmTMB.successor.runner_path")
 options(drmTMB.successor.runner_path = runner_path)
