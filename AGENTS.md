@@ -3,6 +3,20 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-07-17, → CLAUDE, Beta phylogenetic q1 direct-SD successor MERGED).**
+> PR #787 is merged at `a9b2633c3f314db3a1ae88103a871403772053f1` after green
+> GitHub R-CMD-check CI. It grants only `point_fit_recovery` for the exact
+> finite-precision conditional-Beta, univariate ML q1 direct-latent-SD route:
+> both independent `g=1024,m=4` arms passed a fresh authenticated
+> 4,800-attempt Totoro contract. The stopped campaign remains immutable and
+> lower-information `shared_g256,m2` remains a retained stress-quality HOLD.
+> Family `sigma` (`phi=sigma^-2`) is distinct from latent phylogenetic
+> `tau = sd(spp_id, level="phylogenetic")`; hierarchical/random RHS `sd()`
+> effects remain out of scope. No successor implementation or compute is
+> authorized: the next Claude lane is planning-only until Shinichi approves a
+> new ultra-plan. START HERE:
+> [`docs/dev-log/handover/2026-07-17-claude-handover.md`](docs/dev-log/handover/2026-07-17-claude-handover.md)
+
 > **⚠ Compute & CI — D-50 (2026-07-12).** Simulation / recovery / power / coverage campaigns run on
 > **Totoro or DRAC**, **never GitHub Actions**, and their outputs are **never stored as GitHub
 > artifacts** (Actions storage is a hard 2 GB/month cap that this repo's `phase18-simulation-grid`-style
