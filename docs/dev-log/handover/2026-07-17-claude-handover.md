@@ -49,7 +49,7 @@ The standard gate was run as `~/shinichi-brain/tools/handoff_gate.sh .`. It repo
 | `main` `a9b2633c` | yes | yes | #787 merged | LANDED |
 | `codex/beta-phylo-q1-sd-interior-dgp` `515aba5e` | yes | yes | #787 merged | LANDED through merge commit |
 | `codex/beta-phylo-q1-sd-regression` `1c9bfd5f` | yes | historical | HOLD, no successor PR | CARRIED-OVER — immutable stopped campaign; do not resume or modify |
-| `codex/handover-2026-07-17-claude` | pending this handoff commit | pending push | handoff PR to open | CARRIED-OVER — handoff-only branch; resume with `git fetch origin && git switch codex/handover-2026-07-17-claude` if correction is needed |
+| `codex/handover-2026-07-17-claude` `0bbf2055` | yes | yes | #788 open | CARRIED-OVER — handoff-only PR awaiting human merge; resume with `git fetch origin && git switch codex/handover-2026-07-17-claude` if correction is needed |
 
 ## Files Created / Modified
 
