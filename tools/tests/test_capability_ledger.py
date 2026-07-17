@@ -105,7 +105,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            164,
+            163,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
@@ -246,10 +246,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(admitted["estimator"], "ML")
         self.assertEqual(admitted["capability_status"], "implemented")
         self.assertEqual(admitted["work_status"], "verified")
-        self.assertEqual(admitted["evidence_tier"], "point_fit_recovery")
+        # S5 (DRAFT, D-43 re-review pending): promoted from point_fit_recovery to
+        # inference_ready_with_caveats on the frozen g=1024,m=4 coverage campaign.
+        self.assertEqual(admitted["evidence_tier"], "inference_ready_with_caveats")
         self.assertEqual(
             evidence_by_id[admitted["primary_evidence_id"]]["evidence_class"],
-            "model_recovery",
+            "coverage_study",
         )
         for required in (
             "sd(spp_id, level = \"phylogenetic\") ~ x_tau",
@@ -258,10 +260,12 @@ class CapabilityLedgerTests(unittest.TestCase):
             "shared g=256,m=2",
             "Tau is latent location SD",
             "REML",
-            "Random RHS sd()",
+            "random/hierarchical RHS in sd()",
             "intervals",
             "coverage",
             "supported",
+            "mildly anti-conservative",
+            "D-43 re-review",
         ):
             self.assertIn(required, admitted["claim_boundary"])
 
