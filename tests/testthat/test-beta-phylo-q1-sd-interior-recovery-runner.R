@@ -142,3 +142,11 @@ test_that("successor design is frozen at its pinned hash", {
     runner_env$pr2_frozen_design_sha256()
   )
 })
+
+test_that("successor SHA-256 supports paths containing spaces", {
+  directory <- tempfile("beta phylo hash ")
+  dir.create(directory)
+  path <- file.path(directory, "attempt shard.tsv")
+  writeLines("strict interior", path)
+  expect_match(runner_env$pr2_sha256(path), "^[0-9a-f]{64}$")
+})

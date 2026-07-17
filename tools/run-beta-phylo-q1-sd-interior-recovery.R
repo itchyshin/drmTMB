@@ -28,6 +28,23 @@ stopped_pr2_recovery_gates <- pr2_recovery_gates
 stopped_pr2_preflight <- pr2_preflight
 stopped_authenticate_stage <- authenticate_pr2_stage_output
 
+# `system2()` requires explicit shell quoting for paths below a Dropbox root
+# containing spaces. This successor must authenticate local and Totoro outputs.
+pr2_sha256 <- function(path) {
+  command <- if (nzchar(Sys.which("sha256sum"))) "sha256sum" else "shasum"
+  quoted_path <- shQuote(path)
+  args <- if (identical(command, "shasum")) {
+    c("-a", "256", quoted_path)
+  } else {
+    quoted_path
+  }
+  output <- system2(command, args, stdout = TRUE, stderr = TRUE)
+  if (!identical(attr(output, "status") %||% 0L, 0L) || length(output) != 1L) {
+    stop("Could not calculate SHA-256 for ", path, call. = FALSE)
+  }
+  strsplit(trimws(output), "[[:space:]]+")[[1L]][[1L]]
+}
+
 pr2_context <- function() {
   list(
     script_path = successor_script_path(),
