@@ -1,6 +1,6 @@
 # drmTMB capability surface
 
-_Generated 2026-07-16 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
+_Generated 2026-07-17 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
 
 The model surface and missing-response execution axis answer different questions. The first records what a model cell fits and what inference evidence exists. The second records whether an exact user-visible route handles missing responses. A missing-response tick never promotes the model's inference tier.
 

@@ -5345,7 +5345,7 @@ mu_random_effect_dpars <- function(object) {
 }
 
 is_random_scale_dpar <- function(object, dpar) {
-  if (!object$model$model_type %in% c("gaussian", "biv_gaussian")) {
+  if (!object$model$model_type %in% c("gaussian", "biv_gaussian", "beta")) {
     return(FALSE)
   }
   if (

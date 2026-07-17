@@ -625,6 +625,6 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
       family = beta(),
       data = sim$data
     ),
-    "Unsupported parameter:.*sd_phylo\\(species\\)"
+    "varies within"
   )
 })

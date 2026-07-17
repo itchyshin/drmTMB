@@ -240,7 +240,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
 
         admitted = by_id["mc-0017"]
-        self.assertEqual(admitted["route_variant"], "beta_phylo_q1_constant_sd")
+        self.assertEqual(admitted["route_variant"], "beta_phylo_q1_direct_sd")
         self.assertEqual(admitted["structure_provider"], "phylo")
         self.assertEqual(admitted["q_gate"], "q1")
         self.assertEqual(admitted["estimator"], "ML")
@@ -252,13 +252,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             "model_recovery",
         )
         for required in (
-            "unlabelled intercept-only",
-            "fixed-effect-only family sigma",
-            "exact tested g = 1024, m = 4",
-            "g = 256 and g = 512",
-            "not establish g >= 1024",
+            "sd(spp_id, level = \"phylogenetic\") ~ x_tau",
+            "machine-strict conditional-Beta",
+            "g=1024,m=4",
+            "shared g=256,m=2",
+            "Tau is latent location SD",
             "REML",
-            "direct sd() regression",
+            "Random RHS sd()",
             "intervals",
             "coverage",
             "supported",
