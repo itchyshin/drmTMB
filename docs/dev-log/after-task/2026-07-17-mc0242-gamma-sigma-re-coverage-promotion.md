@@ -31,9 +31,10 @@ documented non-promotion. The direct sibling of lognormal `mc-0382` (Arc 4a) and
   4800/4800 eligible, profile_finite_rate 1.000 at every M.** Artifacts in
   `docs/dev-log/simulation-artifacts/2026-07-17-gamma-sigma-re-coverage/`.
 - **S4 — memo-blind D-43:** Fisher / Rose / **Noether** (Noether the fresh lens, not in the
-  plan-review). Noether **DONE** (full math contract verified + repro confirmed ≤5e-5); Fisher & Rose
-  **conditional NOT-DONE** — science and every number confirmed exact, fix-list before landing. Fixes
-  applied (below), so the claim promotes.
+  plan-review). Round 1: Noether **DONE** (full math contract verified + repro confirmed ≤5e-5);
+  Fisher & Rose **conditional NOT-DONE** — science and every number confirmed exact, fix-list before
+  landing. All fixes applied; a memo-blind **round 2** returned Fisher **DONE** + Rose **DONE**, so
+  the panel is **3 DONE / 0 NOT-DONE — D-43 passed.**
 - **S5 — promotion:** `mc-0242` → `inference_ready_with_caveats` over M ∈ {16,32,64} in the ledger,
   with `ev-mc-0242-arc4b` / `tr-mc-0242-arc4b` rows, `notes` mirrored, regenerated derived outputs.
 
@@ -123,9 +124,11 @@ to cell_id mc-0242, not line 246/mc-0243.
   `test_active_qseries_surfaces_keep_debug_only_routes_diagnostic` asserts a Poisson-spatial-slope
   string in `pkgdown-site/llms.txt`. That string is present in the generated README but absent from
   `llms.txt`; since `--check` passes (all 30 generated outputs in sync) yet llms.txt lacks a string
-  README has, `llms.txt` is a separate pkgdown-built artifact this arc never regenerated — the failure
-  is main's stale llms.txt, not a gamma regression (the point_fit_recovery count test itself passes).
-  Flagged for a separate pkgdown-llms rebuild task; out of scope here.
+  README has, `llms.txt` is a **git-ignored, pkgdown-generated** artifact this arc touches zero times
+  (the failing assertion at line 1349 is unchanged by the branch) — stale generated-artifact drift,
+  not a gamma regression. The point_fit_recovery count test itself passes; confirmed in the D-43
+  round-2 by Rose running both `--check` and the unittest. Flagged for a separate pkgdown-llms rebuild
+  task; out of scope here.
 - **Repro check covers M∈{16,32,64}** (the promoted range); M=8 was not in the local smoke's recorded
   rows and is excluded from promotion regardless.
 
