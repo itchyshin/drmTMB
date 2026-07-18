@@ -65,14 +65,16 @@ cross-repo map filed in the vault (`~/shinichi-brain/memory/Two-lever fix…map.
 
 ## Current working state
 
-- **Done / merged:** mc-0242 (PR #791), llms test-freshness (PR #792). `main` @ `55a8b626`+, suite green.
-- **Open, NOT merged:** PR #793 (`claude/aghq-reml-scoping`) — AGHQ/REML scoping evidence, **docs-only**.
+- **Done / merged:** mc-0242 (PR #791), llms test-freshness (PR #792), **AGHQ/REML scoping + this
+  handover (PR #793, merged `ff4fd145`)**. Suite green on `main`.
 - **Scoped, not built:** the AGHQ + non-Gaussian REML arc; the 4-cell mu-slope batch.
-- **Carried-over (from an earlier session's close-out, NOT resolved here):** the parked worktree
-  `drmTMB-wt-surface` on `claude/capability-surface-aghq-parity` holds an UNCOMMITTED AGHQ-generator
-  + `capability-status.md` change, blocked by a stale `.git/index.lock` in *that worktree's* git dir.
-  **Do NOT `git worktree prune drmTMB-wt-surface`** until it's landed — that change lives only there.
-  (The canonical checkout's own stale lock was cleared this session.)
+- **Landed this session (was carried-over):** the parked `drmTMB-wt-surface` payload — AGHQ
+  estimator-axis column in `tools/capability_ledger.py` + `docs/design/capability-status.md` — is now
+  committed + pushed on `claude/capability-surface-aghq-parity` → **draft PR #794**. Both stale locks
+  (canonical + worktree) cleared. **The worktree is now prune-safe**; its remaining uncommitted
+  `capability-surface.html/.md` are regenerable artifacts, not unique work. **PR #794 needs rebase onto
+  main + `capability_ledger.py --write` regenerate + ledger unittests before merge** (do NOT merge the
+  stale surface files). DRM.jl parity half is on `claude/capability-status-parity`.
 
 ## Key decisions & rationale
 
@@ -156,6 +158,7 @@ claude "Rehydrate from docs/dev-log/handover/2026-07-18-claude-handover.md + the
 |---|---|---|---|---|
 | Gamma σ-RE coverage (mc-0242) | `main` / **PR #791** merged | Done | mc-0242 → inference_ready_with_caveats; Totoro N=1200 coverage; D-43 3/3 | — (closed) |
 | Ledger test-freshness gate | `main` / **PR #792** merged | Done | git-tracked gate on stale pkgdown artifacts; suite 37/37 | — (closed) |
-| AGHQ + non-Gaussian REML | `claude/aghq-reml-scoping` / **PR #793** | Scoped, NOT built | two-lever diagnosis (Cox–Reid > AGHQ), oracle-validated | **Build — Cox–Reid leg first** (Shinichi's call vs batch) |
+| AGHQ + non-Gaussian REML | PR #793 **merged** | Scoped, NOT built | two-lever diagnosis (Cox–Reid > AGHQ), oracle-validated | **Build — Cox–Reid leg first** (Shinichi's call vs batch) |
 | 4-cell mu-slope coverage batch | — | Not started | pre-compute scout done (`wf_f9d4b5e4-983`) | Batch S0 gate → plan-review → compute approval |
+| Capability-surface tooling (parked) | `claude/capability-surface-aghq-parity` / **draft PR #794** | Landed, needs rebase | AGHQ display column + R↔Julia parity doc | Rebase onto main + `--write` regenerate + tests → un-draft |
 | Cross-repo (gllvmTMB, H2) | — | FYI notes left | gllvmTMB same arc; H2 has Cox–Reid, needs AGHQ+coverage | Each repo's own session decides |

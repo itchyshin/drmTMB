@@ -25,9 +25,11 @@ regression using Template Model Builder.
 > **4-cell mu-slope coverage batch** as near-term breadth — **neither built yet.**
 > Cross-repo: gllvmTMB = same arc; HSquared.jl already has the Cox-Reid lever
 > (`fit_laplace_reml`), needs only AGHQ + coverage. Scoping evidence on branch
-> `claude/aghq-reml-scoping` (PR #793, docs-only, NOT merged). Housekeeping debt:
-> the ▶ Prior stack below has accumulated stale snapshots (D-34) — a future
-> cleanup, not load-bearing.
+> `claude/aghq-reml-scoping` (PR #793, MERGED `ff4fd145`). The parked
+> capability-surface tooling (AGHQ display column + parity doc) landed as draft
+> PR #794 (rebase+regenerate before merge); `drmTMB-wt-surface` is now prune-safe.
+> Housekeeping debt: the ▶ Prior stack below has accumulated stale snapshots
+> (D-34) — a future cleanup, not load-bearing.
 > START HERE:
 > [`docs/dev-log/handover/2026-07-18-claude-handover.md`](docs/dev-log/handover/2026-07-18-claude-handover.md)
 >
