@@ -126,6 +126,20 @@ MISSING_PREDICTOR_RUNTIME_GATE = {
     "binomial": "binomial",
 }
 
+# Estimator axis (ML / REML / AGHQ). REML is a Gaussian-only tool: exact for
+# these two families, rejected_by_design for the other 16 (SR151-SR159; see
+# docs/dev-log/2026-07-12-0.6.0-candidate-arcs-plan.md, "Estimator-axis
+# decision"). AGHQ_CRITICAL_FAMILIES is the documented "5 logit/binary"
+# families from the same decision note and the Laplace-vs-AGHQ study
+# (docs/dev-log/simulation-artifacts/2026-07-12-laplace-vs-aghq/README.md):
+# their fitted mean has no closed form under a logit-type link, so Laplace
+# bias is worst at small per-cluster n. This is a documentation grouping, not
+# a ledger field — the ledger itself has zero AGHQ cells for every family.
+GAUSSIAN_FAMILIES = {"gaussian", "biv_gaussian"}
+AGHQ_CRITICAL_FAMILIES = {
+    "binomial", "cumulative_logit", "beta", "beta_binomial", "zero_one_beta",
+}
+
 
 def git_sha() -> str:
     return subprocess.check_output(
@@ -707,6 +721,45 @@ def ledger_updated_date(cells: list[dict[str, str]]) -> str:
     return max(dates)
 
 
+def runtime_dpar_links() -> dict[str, str]:
+    """Read each family's primary (mu / mu1) link from the R runtime SSOT.
+
+    `drm_dpar_link()` in R/methods.R is the canonical runtime link table
+    (issue #713.2); every runtime link query routes through it. This parses
+    its `switch()` block so the estimator-axis Link column never drifts from
+    the live link resolver.
+    """
+    source = (ROOT / "R/methods.R").read_text(encoding="utf-8")
+    marker = "drm_dpar_link <- function(object, dpar) {"
+    end_marker = "\nrho_response <- function"
+    if marker not in source or end_marker not in source:
+        raise SystemExit("Cannot locate drm_dpar_link() in R/methods.R")
+    start = source.index(marker)
+    end = source.index(end_marker, start)
+    body = "\n".join(
+        line for line in source[start:end].splitlines()
+        if not line.strip().startswith("#")
+    )
+    if "links <- switch(" not in body:
+        raise SystemExit("Cannot locate the drm_dpar_link() switch() block")
+    switch_body = body[body.index("links <- switch("):]
+    entries = re.findall(r"(\w+)\s*=\s*c\(([^()]*)\)", switch_body, flags=re.DOTALL)
+    links: dict[str, str] = {}
+    for model_type, fields in entries:
+        pairs = dict(re.findall(r'(\w+)\s*=\s*"([^"]+)"', fields))
+        primary = pairs.get("mu") or pairs.get("mu1")
+        if primary is None:
+            raise SystemExit(f"No mu/mu1 link entry for model type {model_type!r}")
+        links[model_type] = primary
+    missing = ADMITTED - links.keys()
+    if missing:
+        raise SystemExit(
+            "drm_dpar_link() runtime switch is missing link entries for: "
+            + ", ".join(sorted(missing))
+        )
+    return links
+
+
 def runtime_missing_predictor_families() -> set[str]:
     """Read the fitted-family allow-list from the R runtime's SSOT helper."""
     source = (ROOT / "R/missing-data.R").read_text(encoding="utf-8")
@@ -896,6 +949,69 @@ def family_map_rows(cells: list[dict[str, str]]) -> list[dict[str, str]]:
     return rows
 
 
+def estimator_axis_rows(cells: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Project the ML / REML / AGHQ estimator axis, one row per family.
+
+    ML and REML are aggregated over every live model-surface cell for the
+    family (all dpars, all effect types) via `_aggregate_state`, the same
+    helper the per-family reference uses — so the labels here are the
+    ledger's own `implemented` / `rejected` / `scope-limited (...)` vocabulary,
+    never invented text. AGHQ is `planned` for all 18 families because the
+    ledger has zero AGHQ cells; only the accompanying "why" note is templated
+    prose, and it is grounded in GAUSSIAN_FAMILIES / AGHQ_CRITICAL_FAMILIES
+    (see their definitions for provenance).
+    """
+    links = runtime_dpar_links()
+    model = [row for row in cells if row["axis"] == "model_surface"]
+    by_route: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in model:
+        by_route[row["family_route"]].append(row)
+
+    rows = []
+    for _, route, _, _, _ in ROUTES:
+        route_rows = by_route.get(route, [])
+        if not route_rows:
+            raise SystemExit(f"No live model-surface cells for route {route}")
+        ml_state = _aggregate_state(
+            [row for row in route_rows if row["estimator"] == "ML"]
+        )
+        reml_state = _aggregate_state(
+            [row for row in route_rows if row["estimator"] == "REML"]
+        )
+        is_gaussian = route in GAUSSIAN_FAMILIES
+        reml_display = (
+            reml_state if is_gaussian
+            else f"n/a — {reml_state} (Gaussian-only tool, SR159)"
+        )
+        if is_gaussian:
+            aghq_why = (
+                "n/a — the Gaussian marginal likelihood is exact under "
+                "Laplace; AGHQ adds no correction here."
+            )
+        elif route in AGHQ_CRITICAL_FAMILIES:
+            aghq_why = (
+                "critical — logit-linked mean has no closed form, so "
+                "Laplace bias is worst at small per-cluster n (Laplace-vs-AGHQ "
+                "study: docs/dev-log/simulation-artifacts/"
+                "2026-07-12-laplace-vs-aghq/)."
+            )
+        else:
+            aghq_why = (
+                "lower priority — Laplace is comparatively robust here "
+                "(log/identity-linked mean); AGHQ remains the eventual honest "
+                "lever for exactness."
+            )
+        rows.append({
+            "family_route": route,
+            "link": links[route],
+            "ml": ml_state,
+            "reml": reml_display,
+            "aghq": "planned",
+            "aghq_why": aghq_why,
+        })
+    return rows
+
+
 def corrected_family_map_markdown(
     missing: list[dict[str, str]], family_rows: list[dict[str, str]]
 ) -> str:
@@ -932,6 +1048,30 @@ def inline_markdown(value: str) -> str:
     value = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", value)
     value = re.sub(r"`(.+?)`", r"<code>\1</code>", value)
     return value
+
+
+def estimator_axis_markdown(estimator_rows: list[dict[str, str]]) -> str:
+    lines = [
+        "A separate axis from the evidence tiers above: which of the three "
+        "variance-component estimators applies to each family. **ML "
+        "(Laplace) is the shipping engine for all 18 families.** **REML is a "
+        "Gaussian-only tool** — well-defined only when the residual variance "
+        "does not depend on the mean — so it is exact only for `gaussian` and "
+        "`biv_gaussian`; every REML cell for the other 16 families is "
+        "`rejected_by_design` in the live ledger (SR151-SR159). **AGHQ** "
+        "(adaptive Gauss-Hermite quadrature) is the honest non-Gaussian lever "
+        "for the small-cluster Laplace bias, but the ledger has zero AGHQ "
+        "cells: it is **planned, not implemented**, for every family.",
+        "",
+        "| Family | Link | ML | REML | AGHQ | AGHQ priority · why |",
+        "|---|---|---|---|---|---|",
+    ]
+    for row in estimator_rows:
+        lines.append(
+            f"| `{row['family_route']}` | `{row['link']}` | {row['ml']} | "
+            f"{row['reml']} | {row['aghq']} | {row['aghq_why']} |"
+        )
+    return "\n".join(lines) + "\n"
 
 
 def family_map_html(
@@ -988,12 +1128,32 @@ def family_map_html(
     return "".join(body)
 
 
+def estimator_axis_html(estimator_rows: list[dict[str, str]]) -> str:
+    body = []
+    for row in estimator_rows:
+        why_class = " critical" if row["aghq_why"].startswith("critical") else ""
+        body.append(
+            "<tr>"
+            f"<th scope=\"row\"><code>{html.escape(row['family_route'])}</code></th>"
+            f"<td><code>{html.escape(row['link'])}</code></td>"
+            f"<td>{inline_markdown(row['ml'])}</td>"
+            f"<td>{inline_markdown(row['reml'])}</td>"
+            f'<td><span class="tier planned">{html.escape(row["aghq"])}</span></td>'
+            f'<td class="why{why_class}">{html.escape(row["aghq_why"])}</td>'
+            "</tr>"
+        )
+    return "".join(body)
+
+
 def surface_markdown(
     cells: list[dict[str, str]], evidence: list[dict[str, str]],
     family_rows: list[dict[str, str]] | None = None,
+    estimator_rows: list[dict[str, str]] | None = None,
 ) -> str:
     if family_rows is None:
         family_rows = family_map_rows(cells)
+    if estimator_rows is None:
+        estimator_rows = estimator_axis_rows(cells)
     model = [row for row in cells if row["axis"] == "model_surface"]
     missing = sorted(
         (row for row in cells if row["axis"] == "missing_response"),
@@ -1085,6 +1245,10 @@ def surface_markdown(
         "",
         corrected_family_map_markdown(missing, family_rows).rstrip(),
         "",
+        "## Estimator axis — ML · REML · AGHQ",
+        "",
+        estimator_axis_markdown(estimator_rows).rstrip(),
+        "",
     ])
     return "\n".join(lines)
 
@@ -1092,9 +1256,12 @@ def surface_markdown(
 def surface_html(
     cells: list[dict[str, str]], evidence: list[dict[str, str]],
     family_rows: list[dict[str, str]] | None = None,
+    estimator_rows: list[dict[str, str]] | None = None,
 ) -> str:
     if family_rows is None:
         family_rows = family_map_rows(cells)
+    if estimator_rows is None:
+        estimator_rows = estimator_axis_rows(cells)
     generated_date = ledger_updated_date(cells)
     model = sorted(
         (row for row in cells if row["axis"] == "model_surface"),
@@ -1159,12 +1326,12 @@ def surface_html(
 @media(prefers-color-scheme:dark){{:root{{--bg:#10181b;--panel:#182328;--text:#e8f0f2;--muted:#a3b2b7;--line:#304147;--teal:#48bdc8;--green:#4bc78b;--amber:#e4b45e;--red:#f07b6a;--blue:#78afe8;--shadow:none}}}}
 :root[data-theme="light"]{{--bg:#eef3f4;--panel:#fff;--text:#162326;--muted:#617176;--line:#d4dfe2;--teal:#087d89;--green:#188653;--amber:#b77a13;--red:#b84436;--blue:#2f6fad;--shadow:0 8px 24px #17333a12}}
 :root[data-theme="dark"]{{--bg:#10181b;--panel:#182328;--text:#e8f0f2;--muted:#a3b2b7;--line:#304147;--teal:#48bdc8;--green:#4bc78b;--amber:#e4b45e;--red:#f07b6a;--blue:#78afe8;--shadow:none}}
-*{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}} a{{color:var(--teal)}} code{{font-family:var(--mono)}} .skip{{position:absolute;left:-9999px;top:8px;background:var(--panel);padding:8px 12px;z-index:10}} .skip:focus{{left:8px}} .page{{max-width:1440px;margin:auto;padding:34px 28px 80px}} .topline{{display:flex;justify-content:space-between;gap:16px;align-items:center}} .eyebrow{{font:700 13px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}} h1{{font-size:clamp(2.1rem,5vw,4.4rem);line-height:1.02;margin:.35rem 0 1rem}} h2{{font-size:1.55rem;margin:3rem 0 1rem;scroll-margin-top:18px}} .lede{{font-size:1.2rem;color:var(--muted);max-width:980px}} .jump{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0 1.5rem}} .jump a{{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 11px;text-decoration:none}} .scope{{border-left:4px solid var(--teal);padding:.8rem 1rem;background:var(--panel);box-shadow:var(--shadow)}} .stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:28px 0}} .stat{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--shadow)}} .stat b{{display:block;font:750 1.8rem var(--mono)}} .stat span{{color:var(--muted)}} .legend{{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:.6rem 0 1.4rem}} .legend i{{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}} .routes{{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px}} .route-card{{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--amber);border-radius:13px;padding:16px;box-shadow:var(--shadow);scroll-margin-top:20px}} .route-card.g0{{border-top-color:var(--red)}} .route-card.g2{{border-top-color:var(--blue)}} .route-card.g3,.route-card.g4,.route-card.g5{{border-top-color:var(--green)}} .route-head{{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:1.06rem;font-weight:750}} .gate{{font:750 .85rem var(--mono);border:1px solid currentColor;border-radius:99px;padding:2px 8px;color:var(--amber)}} .g0 .gate{{color:var(--red)}} .g2 .gate{{color:var(--blue)}} .g3 .gate,.g4 .gate,.g5 .gate{{color:var(--green)}} .route-state{{color:var(--muted);margin:.45rem 0}} .gate-track{{height:6px;border-radius:6px;background:var(--line);overflow:hidden}} .gate-track span{{display:block;height:100%;background:var(--amber)}} .g0 .gate-track span{{background:var(--red)}} .g2 .gate-track span{{background:var(--blue)}} .g3 .gate-track span,.g4 .gate-track span,.g5 .gate-track span{{background:var(--green)}} .route-card p{{font-size:.92rem}} .route-card .next{{min-height:4.1em}} .route-card a{{font-size:.82rem;overflow-wrap:anywhere}} .verified{{color:var(--green);font-weight:700}} .filters{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0}} input,select,button{{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}} button{{cursor:pointer}} .table-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;max-height:720px}} table{{border-collapse:collapse;width:100%;font-size:.84rem}} caption{{text-align:left;padding:12px;color:var(--muted)}} th,td{{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}} thead th{{position:sticky;top:0;background:var(--panel);z-index:1}} tbody tr:hover{{background:color-mix(in srgb,var(--teal) 7%,transparent)}} .pill{{display:inline-block;border-radius:99px;padding:2px 7px;background:var(--bg);white-space:nowrap}} .family-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}} .family-map{{min-width:1620px;font-size:.92rem}} .family-map th,.family-map td{{padding:18px 16px}} .family-map tbody th{{position:sticky;left:0;background:var(--panel);z-index:1;min-width:175px}} .family-map tbody th code{{font-size:1rem;font-weight:800}} .family-map small{{display:block;color:var(--muted);font-weight:400;margin-top:4px}} .family-map .fixed{{color:var(--green);font-weight:700;text-align:center;font-size:1.05rem}} .tier{{display:inline-block;border-radius:8px;padding:5px 7px}} .tier.inference{{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}} .tier.feasible{{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}} .mr-state{{font-weight:750;white-space:nowrap}} .mr-g1{{color:var(--amber)}} .mr-g0{{color:var(--red)}} .mr-g2{{color:var(--blue)}} .mr-verified{{color:var(--green)}} .muted{{color:var(--muted)}} footer{{margin-top:3rem;color:var(--muted)}} @media(max-width:650px){{.page{{padding:24px 14px 60px}} .route-card .next{{min-height:0}}}} @media(prefers-reduced-motion:reduce){{*{{scroll-behavior:auto!important}}}}
+*{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}} a{{color:var(--teal)}} code{{font-family:var(--mono)}} .skip{{position:absolute;left:-9999px;top:8px;background:var(--panel);padding:8px 12px;z-index:10}} .skip:focus{{left:8px}} .page{{max-width:1440px;margin:auto;padding:34px 28px 80px}} .topline{{display:flex;justify-content:space-between;gap:16px;align-items:center}} .eyebrow{{font:700 13px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}} h1{{font-size:clamp(2.1rem,5vw,4.4rem);line-height:1.02;margin:.35rem 0 1rem}} h2{{font-size:1.55rem;margin:3rem 0 1rem;scroll-margin-top:18px}} .lede{{font-size:1.2rem;color:var(--muted);max-width:980px}} .jump{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0 1.5rem}} .jump a{{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 11px;text-decoration:none}} .scope{{border-left:4px solid var(--teal);padding:.8rem 1rem;background:var(--panel);box-shadow:var(--shadow)}} .stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:28px 0}} .stat{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--shadow)}} .stat b{{display:block;font:750 1.8rem var(--mono)}} .stat span{{color:var(--muted)}} .legend{{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:.6rem 0 1.4rem}} .legend i{{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}} .routes{{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px}} .route-card{{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--amber);border-radius:13px;padding:16px;box-shadow:var(--shadow);scroll-margin-top:20px}} .route-card.g0{{border-top-color:var(--red)}} .route-card.g2{{border-top-color:var(--blue)}} .route-card.g3,.route-card.g4,.route-card.g5{{border-top-color:var(--green)}} .route-head{{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:1.06rem;font-weight:750}} .gate{{font:750 .85rem var(--mono);border:1px solid currentColor;border-radius:99px;padding:2px 8px;color:var(--amber)}} .g0 .gate{{color:var(--red)}} .g2 .gate{{color:var(--blue)}} .g3 .gate,.g4 .gate,.g5 .gate{{color:var(--green)}} .route-state{{color:var(--muted);margin:.45rem 0}} .gate-track{{height:6px;border-radius:6px;background:var(--line);overflow:hidden}} .gate-track span{{display:block;height:100%;background:var(--amber)}} .g0 .gate-track span{{background:var(--red)}} .g2 .gate-track span{{background:var(--blue)}} .g3 .gate-track span,.g4 .gate-track span,.g5 .gate-track span{{background:var(--green)}} .route-card p{{font-size:.92rem}} .route-card .next{{min-height:4.1em}} .route-card a{{font-size:.82rem;overflow-wrap:anywhere}} .verified{{color:var(--green);font-weight:700}} .filters{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0}} input,select,button{{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}} button{{cursor:pointer}} .table-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;max-height:720px}} table{{border-collapse:collapse;width:100%;font-size:.84rem}} caption{{text-align:left;padding:12px;color:var(--muted)}} th,td{{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}} thead th{{position:sticky;top:0;background:var(--panel);z-index:1}} tbody tr:hover{{background:color-mix(in srgb,var(--teal) 7%,transparent)}} .pill{{display:inline-block;border-radius:99px;padding:2px 7px;background:var(--bg);white-space:nowrap}} .family-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}} .family-map{{min-width:1620px;font-size:.92rem}} .family-map th,.family-map td{{padding:18px 16px}} .family-map tbody th{{position:sticky;left:0;background:var(--panel);z-index:1;min-width:175px}} .family-map tbody th code{{font-size:1rem;font-weight:800}} .family-map small{{display:block;color:var(--muted);font-weight:400;margin-top:4px}} .family-map .fixed{{color:var(--green);font-weight:700;text-align:center;font-size:1.05rem}} .tier{{display:inline-block;border-radius:8px;padding:5px 7px}} .tier.inference{{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}} .tier.feasible{{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}} .tier.planned{{background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue)}} .estimator-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}} .estimator-map{{min-width:900px}} .estimator-map .why.critical{{color:var(--red);font-weight:600}} .mr-state{{font-weight:750;white-space:nowrap}} .mr-g1{{color:var(--amber)}} .mr-g0{{color:var(--red)}} .mr-g2{{color:var(--blue)}} .mr-verified{{color:var(--green)}} .muted{{color:var(--muted)}} footer{{margin-top:3rem;color:var(--muted)}} @media(max-width:650px){{.page{{padding:24px 14px 60px}} .route-card .next{{min-height:0}}}} @media(prefers-reduced-motion:reduce){{*{{scroll-behavior:auto!important}}}}
 </style></head><body><a class="skip" href="#missing-response">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
 <p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
-<nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
+<nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a><a href="#estimator-axis">Estimator axis</a></nav>
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
@@ -1183,6 +1350,9 @@ def surface_html(
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
+<h2 id="estimator-axis">Estimator axis — ML · REML · AGHQ</h2>
+<p class="muted">A separate axis from the evidence tiers above: which of the three variance-component estimators applies to each family. ML (Laplace) is the shipping engine for all 18 families. REML is a Gaussian-only tool — exact only for <code>gaussian</code> and <code>biv_gaussian</code>; every REML cell for the other 16 families is <code>rejected_by_design</code> in the live ledger (SR151-SR159). AGHQ is the honest non-Gaussian lever for the small-cluster Laplace bias, but the ledger has zero AGHQ cells: it is planned, not implemented, for every family.</p>
+<div class="estimator-wrap"><table class="estimator-map"><caption>Live estimator axis, one row per family</caption><thead><tr><th scope="col">Family</th><th scope="col">Link</th><th scope="col">ML</th><th scope="col">REML</th><th scope="col">AGHQ</th><th scope="col">AGHQ priority · why</th></tr></thead><tbody>{estimator_axis_html(estimator_rows)}</tbody></table></div>
 <footer>Generated {generated_date} by <code>tools/capability_ledger.py</code> from <code>docs/dev-log/dashboard/capability-ledger/</code>. Do not hand-edit generated outputs.</footer>
 </main><script>const DATA={model_data};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));
@@ -1227,6 +1397,7 @@ def outputs(
     model = model_projection(cells, evidence)
     generated_date = ledger_updated_date(cells)
     family_rows = family_map_rows(cells)
+    estimator_rows = estimator_axis_rows(cells)
     missing = sorted(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
@@ -1237,10 +1408,10 @@ def outputs(
             widget_value(model, generated_date)
         ),
         ROOT / "docs/dev-log/dashboard/capability-surface.md": surface_markdown(
-            cells, evidence, family_rows
+            cells, evidence, family_rows, estimator_rows
         ).encode("utf-8"),
         ROOT / "docs/dev-log/dashboard/capability-surface.html": surface_html(
-            cells, evidence, family_rows
+            cells, evidence, family_rows, estimator_rows
         ).encode("utf-8"),
         ROOT / "vignettes/includes/capability-ledger-missing-response.md": missing_markdown(missing, compact=True).encode("utf-8"),
         ROOT / "vignettes/includes/capability-ledger-family-map.md": corrected_family_map_markdown(
