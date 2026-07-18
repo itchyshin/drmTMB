@@ -10,7 +10,22 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
+> **▶ Latest — start here (2026-07-17, → Claude, Beta-phylo q1 COVERAGE PROMOTION + capability surface).**
+> `main` = `a9b2633c`. **`mc-0017` (Beta phylo q1 direct-SD regression) promoted
+> `point_fit_recovery` → `inference_ready_with_caveats`** via a DRAC/fir profile+Wald coverage
+> campaign (full 12-cell grid, N=1200, 0 failures; fir reproduced local fits to 1e-4). Both
+> `g=1024,m=4` arms clear the pre-registered `[0.925,0.975]` CI-overlap gate: the latent-SD
+> **slope is nominal in both arms**, worst = shared intercept 0.9333 (mildly anti-conservative);
+> Wald≈profile. Passed a D-43 re-review (Fisher/Rose DONE, Noether hygiene fix). **PR #789 open,
+> NOT merged.** Separately, the capability surface was repaired (a dead `repo_root` pointer) and
+> regained the **AGHQ estimator-axis** (honest "planned") + **R↔Julia parity** (drmTMB + DRM.jl),
+> live on the mission-control board but uncommitted. Keep family sigma (`phi=sigma^-2`) distinct
+> from latent `tau`. Next big arc candidate = **Gamma sigma-RE coverage (`mc-0242`)** — ultra-plan
+> it, plan-review the gate BEFORE compute, get approval. `1c9bfd5f` + PR #788 + the g256,m2 HOLD untouched.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-17-post-coverage-claude-handover.md`](docs/dev-log/handover/2026-07-17-post-coverage-claude-handover.md)
+>
+> **▶ Prior (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
 > Shinichi explicitly restarted the original two-PR Beta phylogenetic LSS goal.
 > PR 1 remains branch-only while closeout checks and final review finish. The
 > authenticated successor campaign retained 800/800 clean fits. Exact
