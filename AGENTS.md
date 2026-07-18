@@ -10,23 +10,26 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-16, BETA PHYLOGENETIC q1 PR 1 CLOSEOUT).**
-> Shinichi explicitly restarted the original two-PR Beta phylogenetic LSS goal.
-> PR 1 remains branch-only while closeout checks and final review finish. The
-> authenticated successor campaign retained 800/800 clean fits. Exact
-> `g = 512, m = 4` HOLDS: mean log-latent-SD bias was `-0.10129`, with MC
-> interval `[-0.12589, -0.07668]`. Exact `g = 1024, m = 4` PASSES at `-0.04645`,
-> with interval `[-0.06420, -0.02870]`; this supports only
-> `point_fit_recovery` in that exact tested cell, not `g >= 1024`. Every prior
-> `g = 256` HOLD remains visible practical-boundary evidence. The bounded D0
-> importance screen was INCONCLUSIVE (2/5 sign-stability passes), D1 did not
-> run, and no approximation-versus-information mechanism may be claimed.
-> Documentation-transfer PR #785 merged at `7eddc481`; reconcile PR 1 onto that
-> base before opening it. Do not start PR 2 before PR 1 is reviewed, merged, and
-> its exact post-merge CI is green. Keep family `sigma`
-> (`phi = sigma^(-2)`) distinct from latent phylogenetic SD.
+> **▶ Latest — start here (2026-07-18, mc-0242 GAMMA σ-RE PROMOTED + AGHQ/REML ARC SCOPED).**
+> Gamma sigma random-intercept coverage cell `mc-0242` promoted to
+> `inference_ready_with_caveats` and MERGED to `main` (PR #791; test-freshness
+> follow-up PR #792). Totoro N=1200/cell iid-uncentered profile campaign, zero
+> failures; certified floor **M>=32** (nominal within MC error), M=16 disclosed
+> borderline, M=8 excluded. Ledger unittest 37/37 green on `main`. (Sibling
+> beta-phylo `mc-0017` was promoted earlier via PR #789.) Then a DIAGNOSTIC arc:
+> the small-cluster non-Gaussian RE-SD bias is **TWO orthogonal levers** — AGHQ
+> (integral error, ~2pt) + **Cox-Reid non-Gaussian REML** (ML variance bias,
+> ~4pt, the BIGGER lever); together → nominal (measured on cumulative_logit,
+> validated vs glmmTMB/glmer/lme4; NOT a bug). Shinichi APPROVED a combined
+> **AGHQ + non-Gaussian REML arc (Cox-Reid first)** as the next big arc, and the
+> **4-cell mu-slope coverage batch** as near-term breadth — **neither built yet.**
+> Cross-repo: gllvmTMB = same arc; HSquared.jl already has the Cox-Reid lever
+> (`fit_laplace_reml`), needs only AGHQ + coverage. Scoping evidence on branch
+> `claude/aghq-reml-scoping` (PR #793, docs-only, NOT merged). Housekeeping debt:
+> the ▶ Prior stack below has accumulated stale snapshots (D-34) — a future
+> cleanup, not load-bearing.
 > START HERE:
-> [`docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md`](docs/dev-log/2026-07-16-beta-phylo-q1-pr1-successor-evidence-contract.md)
+> [`docs/dev-log/handover/2026-07-18-claude-handover.md`](docs/dev-log/handover/2026-07-18-claude-handover.md)
 >
 > **▶ Prior (2026-07-16, BETA PHYLOGENETIC q1 STOPPED).**
 > The approved two-PR Beta phylogenetic LSS goal stopped at PR 1's recovery
