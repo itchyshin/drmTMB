@@ -99,7 +99,7 @@ path.
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
 | 10 | `bivariate-coscale` | 3. Interpretation tutorials | tutorial | `rho12` residual-coupling worked tutorial — the coscale interpretation case named in the target order. |
 | 11 | `missing-data` | 3. Interpretation tutorials | guide | Documents `miss_control()` response/predictor routes; a reader needs this while writing the formula for their chosen family, not after fitting, so it sits with the family/formula-writing stage rather than stage 5. |
-| 12 | `meta-analysis` | Specialist branch (adjacent to 3) | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
+| 12 | `meta-analysis` | Specialist branch | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
 | 13 | `structural-dependence` | 4. Random & structured effects | route-chooser | Overview and router across `animal()`, `phylo()`, `spatial()`, `relmat()` before the reader picks a specific structured-effect tutorial. |
 | 14 | `animal-models` | 4. Random & structured effects | tutorial | Worked `animal()` / additive-relatedness tutorial. |
 | 15 | `phylogenetic-models` | 4. Random & structured effects | tutorial | Worked `phylo()` tutorial for phylogenetic mixed models. |
