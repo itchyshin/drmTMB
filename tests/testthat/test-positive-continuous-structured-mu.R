@@ -684,7 +684,7 @@ test_that("Arc 3a routes reject REML and bivariate positive responses", {
     accepted <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
     expect_error(
       drmTMB(accepted, family = family, data = sim$data, REML = TRUE),
-      "REML.*only.*Gaussian"
+      "REML.*Gaussian and binomial"
     )
     expect_error(
       drmTMB(
