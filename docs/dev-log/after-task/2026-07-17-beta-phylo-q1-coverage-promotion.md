@@ -152,8 +152,9 @@ inference promise. The natural sibling follow-on is **Gamma sigma-random-interce
 
 ## 13. Next Actions
 
-1. Open one successor PR for this arc (do NOT merge).
+1. PR #789 was maintainer-ratified during the 2026-07-19 open-PR cleanup;
+   its D-43-reviewed promotion is ready to merge after ledger reconciliation.
 2. Broader coverage/bias evidence (other predictor designs, g/m away from the exact arms, or a
    bias-corrected interval) before any expansion beyond the tested domain or tier.
-3. `reviewed_by`/`review_date` on `ev-mc-0017-arc-coverage` remain "pending" until the PR review
-   ratifies the promotion.
+3. `reviewed_by`/`review_date` on `ev-mc-0017-arc-coverage` now record the D-43 round-2 panel
+   and Shinichi's 2026-07-19 PR ratification.

@@ -492,6 +492,6 @@ test_that("Arc 1a REML provider admission remains bounded", {
       data = transform(dat, y = stats::rpois(nrow(dat), 2)),
       REML = TRUE
     ),
-    "only for univariate and bivariate Gaussian"
+    "univariate/bivariate Gaussian and binomial"
   )
 })

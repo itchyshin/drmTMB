@@ -1,0 +1,13 @@
+key	value
+git_sha	1ed90599b10731c17f10bce07a4d53144cdea36e
+pkg_version	0.1.4
+host	totoro
+openblas_threads	1
+ncores	150
+nsim	1200
+ms	320
+neach	15
+nodes	25
+truth_sigma	0.5
+seed_base	20260718
+estimator	aghq_cr(AGHQ+CoxReid)

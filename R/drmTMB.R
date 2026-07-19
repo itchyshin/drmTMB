@@ -231,10 +231,15 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
-  if (isTRUE(REML) && !family_type %in% c("gaussian", "biv_gaussian")) {
+  # Non-Gaussian REML (doc 224, object O2): `binomial` is admitted. Marginalising
+  # `beta_mu` via the existing Laplace fold IS the joint-Laplace restricted likelihood,
+  # which equals glmmTMB(REML = TRUE) (identical fixed-effect-into-random construction).
+  # Other non-Gaussian families remain gated: their nominal object is the external
+  # nested AGHQ + Cox-Reid estimator, not this fold.
+  if (isTRUE(REML) && !family_type %in% c("gaussian", "biv_gaussian", "binomial")) {
     cli::cli_abort(c(
-      "{.arg REML} is implemented only for univariate and bivariate Gaussian models.",
-      "i" = "Use {.code family = gaussian()} or {.code family = biv_gaussian()}, or set {.code REML = FALSE}."
+      "{.arg REML} is implemented for univariate/bivariate Gaussian and binomial models.",
+      "i" = "Use {.code family = gaussian()}, {.code biv_gaussian()}, or {.code binomial()}, or set {.code REML = FALSE}."
     ))
   }
   if (
@@ -2141,9 +2146,10 @@ drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
   }
-  if (!identical(spec$model_type, "gaussian")) {
+  # Non-Gaussian REML (doc 224, object O2): binomial admitted alongside gaussian.
+  if (!spec$model_type %in% c("gaussian", "binomial")) {
     cli::cli_abort(
-      "{.arg REML} is implemented only for univariate and bivariate Gaussian models."
+      "{.arg REML} is implemented for univariate/bivariate Gaussian and binomial models."
     )
   }
   if (isTRUE(spec$sparse_fixed$mu)) {

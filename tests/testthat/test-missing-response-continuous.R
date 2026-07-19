@@ -346,7 +346,7 @@ test_that("MR-T2 response masks do not relax neighbouring model gates", {
         missing = miss_control(response = "include"),
         REML = TRUE
       ),
-      "only for.*Gaussian",
+      "Gaussian and binomial",
       info = route
     )
   }

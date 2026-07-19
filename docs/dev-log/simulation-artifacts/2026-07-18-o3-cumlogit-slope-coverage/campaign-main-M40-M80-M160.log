@@ -1,0 +1,4 @@
+O3 coverage: NSIM=1200 MS=40,80,160,320 NEACH=15 NODES=25 NCORES=90 SMOKE=FALSE
+  M=40: cov=0.9515 [0.9378,0.9630] fin=0.998 1sided=186 above=28 below=30 relbias=+0.0% (2811s)
+  M=80: cov=0.9457 [0.9313,0.9578] fin=0.997 1sided=26 above=35 below=30 relbias=-0.0% (5276s)
+  M=160: cov=0.9596 [0.9467,0.9700] fin=0.989 1sided=1 above=21 below=27 relbias=+0.1% (15787s)

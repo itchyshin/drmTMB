@@ -1,0 +1,5 @@
+"spec"	"M"	"nsim"	"n_eligible"	"n_fit_error"	"n_nonconverged"	"n_pdHess_bad"	"sd_true"	"neach"	"sd_hat_mean"	"rel_bias_mean"	"wald_coverage"	"wald_hi_inf_rate"	"profile_coverage"	"n_cover"	"n_truth_below_interval"	"n_truth_above_interval"	"n_profile_finite"	"n_profile_failed"	"coverage_mcse"	"coverage_exact_ci_low"	"coverage_exact_ci_high"	"profile_finite_rate"	"profile_width"	"wald_width"
+"gamma_sigma"	8	1	1	0	0	0	0.4	12	0.270679104922295	-0.323302237694262	1	0	1	1	0	0	1	0	0	0.025	1	1	0.489402381119122	0.454840989426046
+"gamma_sigma"	16	1	1	0	0	0	0.4	12	0.300626631556129	-0.248433421109678	1	0	1	1	0	0	1	0	0	0.025	1	1	0.307241433108049	0.298085708615703
+"gamma_sigma"	32	1	1	0	0	0	0.4	12	0.433263347605294	0.083158369013235	1	0	1	1	0	0	1	0	0	0.025	1	1	0.266112891199317	0.260965057377676
+"gamma_sigma"	64	1	1	0	0	0	0.4	12	0.465036649491703	0.162591623729257	1	0	1	1	0	0	1	0	0	0.025	1	1	0.193514413321398	0.191551043449872
