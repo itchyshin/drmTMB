@@ -10,7 +10,17 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-19, AGHQ + non-Gaussian REML ARC DONE; mc-0227 PROMOTED).**
+> **▶ Latest — start here (2026-07-19, ARC 4c PR-A INFRASTRUCTURE COMPLETE; COMPUTE NOT AUTHORIZED).**
+> Branch `codex/arc4c-mu-slope-coverage-infra` is pushed at `2de2ba67` with the frozen and tested
+> three-family ML-Laplace coverage runner, retained-attempt aggregator, deterministic smoke/array
+> manifests, Fir provenance/dispatch package, and 242 focused expectations. Final local
+> `devtools::check()` is 0 errors / 0 warnings / 0 actionable notes; pkgdown, ledger 37/37, Mission
+> Control, and after-task validation are green. **No Arc 4c fit, Fir compile, smoke, array, ledger
+> mutation, or promotion has run.** Draft PR **#797** is open. Next: pass CI, let the maintainer merge it, verify the
+> exact `origin/main` merge SHA, then STOP for Shinichi's separate Gate A compute approval. START HERE:
+> [`docs/dev-log/handover/2026-07-19-arc4c-pr-a-compute-gate.md`](docs/dev-log/handover/2026-07-19-arc4c-pr-a-compute-gate.md)
+>
+> **▶ Prior (2026-07-19, AGHQ + non-Gaussian REML ARC DONE; mc-0227 PROMOTED).**
 > The AGHQ + non-Gaussian REML arc is BUILT + validated + landed on branch
 > `claude/handover-freshness-0718` (`1ed90599` + `4956c754`, pushed; **no PR yet — open one**).
 > **mc-0227** (cumulative_logit `mu` random-SLOPE RE-SD) PROMOTED `point_fit_recovery →

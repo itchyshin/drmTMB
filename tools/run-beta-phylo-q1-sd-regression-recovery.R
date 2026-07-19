@@ -155,7 +155,8 @@ pr2_frozen_seed_audit_sha256 <- function() {
 
 pr2_sha256 <- function(path) {
   command <- if (nzchar(Sys.which("sha256sum"))) "sha256sum" else "shasum"
-  args <- if (identical(command, "shasum")) c("-a", "256", path) else path
+  quoted_path <- shQuote(path)
+  args <- if (identical(command, "shasum")) c("-a", "256", quoted_path) else quoted_path
   output <- system2(command, args, stdout = TRUE, stderr = TRUE)
   if (!identical(attr(output, "status") %||% 0L, 0L) || length(output) != 1L) {
     stop("Could not calculate SHA-256 for ", path, call. = FALSE)
