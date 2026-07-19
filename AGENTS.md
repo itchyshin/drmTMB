@@ -1,5 +1,13 @@
 # drmTMB Agent Instructions
 
+## LOAD-FIRST manifest
+<!-- Brain dossier manifest (refresh: python3 ~/shinichi-brain/tools/route.py drmTMB). Top = salience; drift-checked by route.py. -->
+- Compute is a default condition — before any gated recovery/coverage/type-I run ask *"Totoro or DRAC?"* (fast CPU ≤100 cores → Totoro; replicated grids / GPU → DRAC arrays); scale out, never laptop-scale. Playbook: `~/shinichi-brain/projects/COMPUTE-PLAYBOOK.md`.
+- Trust recovery-to-truth; inspect the populated object before a `pdHess` verdict and run an n-ladder.
+- Diff main before building; write symbolic alignment before changing a model or estimand.
+- Load `r-package-engineer`, `validation-harness`, and the repo instructions below.
+- Method boundary: residual log-SD may carry `phylo()` random effects; needs repo-grounded alignment + recovery evidence.
+
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
