@@ -23,7 +23,10 @@ This gallery shows the kinds of figures `drmTMB` users can build for model
 interpretation, uncertainty display, fitted interactions, fitted correlation
 summaries, and later simulation diagnostics. It is different from the internal
 count-pilot diagnostics used while developing the first Poisson/NB2 simulation
-plumbing.
+plumbing. The panels apply the same location-scale reading pattern taught in
+the family tutorials, such as [When variance carries
+signal](location-scale.html); read one of those first for the modelling
+context behind a given figure.
 
 The examples here use small simulated data so the page can build quickly. They
 are meant to show figure patterns, not biological conclusions. The interaction

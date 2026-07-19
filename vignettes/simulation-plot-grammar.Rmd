@@ -21,8 +21,11 @@ knitr::opts_chunk$set(
 
 This article shows the plot grammar that Phase 18 simulation reports should use
 before broad simulation grids are advertised as evidence. It is a display
-contract, not a final result report. The small tables below are illustrative
-fixtures that mimic the columns a real simulation summary should carry.
+contract, not a final result report. It assumes you are already tracking a
+slice in the [implementation map](implementation-map.html) and need its
+recovery evidence plotted before closing that slice out. The small tables
+below are illustrative fixtures that mimic the columns a real simulation
+summary should carry.
 
 Simulation figures should answer the same reader questions across continuous,
 proportion, count, and meta-analysis examples:

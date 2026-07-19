@@ -21,7 +21,9 @@ library(drmTMB)
 Missing data in `drmTMB` has two different meanings. A response can be missing,
 so the observation has no measured outcome for one response cell. A predictor
 can be missing, so the model needs a value of a covariate that was not observed.
-The current implementation treats those cases differently.
+The current implementation treats those cases differently. Decide this while
+writing the formula for the family chosen in [Choosing response
+families](distribution-families.html), before fitting.
 
 For missing responses, `drmTMB` can keep the original rows and evaluate the
 observed-response likelihood. Missing response cells contribute no direct

@@ -18,7 +18,9 @@ A random-effects meta-analysis pools effect sizes from several studies while
 acknowledging that the studies differ. Each study reports an effect size
 together with its sampling variance, which is treated as **known**. The model
 estimates two things on top of that known uncertainty: a pooled mean effect and
-the between-study heterogeneity.
+the between-study heterogeneity. This is a specialist route for data that
+already are effect sizes with known sampling variances; for raw observations,
+start with [Distributional regression with drmTMB](drmTMB.html) instead.
 
 In `drmTMB` this is ordinary Gaussian distributional regression with a known
 sampling covariance. There is no separate meta-analysis family. You fit

@@ -49,7 +49,9 @@ Large data changes the workflow. A model that is statistically reasonable can
 still fail because R builds large model frames, dense model matrices, fitted
 objects, predictions, and residual vectors before the scientific question is
 answered. This article is for users fitting ecological, evolutionary, or
-environmental-science models with many observation rows, many species, or both.
+environmental-science models with many observation rows, many species, or
+both, once the standard post-fit workflow in [Checking and using fitted
+models](model-workflow.html) starts choking on size.
 
 The short version is: fit the smallest model that answers the question, keep
 only the fitted-object pieces you need, and benchmark on a smaller version of

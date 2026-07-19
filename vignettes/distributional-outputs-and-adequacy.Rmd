@@ -26,7 +26,9 @@ needs: *"did I model the whole conditional distribution, not just its
 average?"* and *"how extreme, or how likely to exceed a threshold, is this
 observation for its covariates?"* A model can have a perfectly reasonable
 mean structure and still misrepresent the spread, tails, or boundary
-behaviour of the response -- and coefficients alone never reveal that.
+behaviour of the response -- and coefficients alone never reveal that. This
+article follows the `check_drm()` step in the post-fit workflow described in
+[Checking and using fitted models](model-workflow.html).
 
 This article covers `drmTMB`'s distributional-output and adequacy layer,
 built on one shared foundation: every fitted family exposes its own density,

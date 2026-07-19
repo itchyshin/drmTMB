@@ -131,7 +131,9 @@ Use `animal()` when individuals have known additive relatedness and the
 scientific question is about among-individual location deviations after the
 fixed effects have been included. The fitted first slices are Gaussian
 location models. They are useful for animal-model and quantitative-genetic
-workflows, but they are not yet full parity with every `phylo()` route.
+workflows, but they are not yet full parity with every `phylo()` route. If you
+are still choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`,
+read the [structural-dependence overview](structural-dependence.html) first.
 
 ## What is fitted today
 

@@ -15,9 +15,11 @@ if (!"package:drmTMB" %in% search()) {
 ```
 
 This tutorial introduces bivariate location-scale regression with
-predictor-dependent residual correlation. The scientific idea is that two
-responses can change in mean, change in residual variance, and change in
-residual coupling.
+predictor-dependent residual correlation. It assumes the univariate
+location-scale reading pattern from [When variance carries
+signal](location-scale.html) and extends it to two responses. The scientific
+idea is that two responses can change in mean, change in residual variance,
+and change in residual coupling.
 
 Current fixed-effect syntax uses one formula per distributional parameter:
 

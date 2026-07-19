@@ -14,7 +14,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 This article helps users choose response families for distributional regression
 data: continuous outcomes, counts, proportions, percentages, positive
 measurements, shape-sensitive outcomes, and ordinal scores. Examples emphasize
-ecological, evolutionary, and environmental applications.
+ecological, evolutionary, and environmental applications. If your open
+question is about which scale, weights, or known variance you are modelling
+rather than which family, read [Which scale are you
+modelling?](which-scale.html) first.
 
 The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
 

@@ -67,6 +67,12 @@ That residual scale is not just a nuisance parameter; it can be the scientific
 answer when the question is about individual variability, predictability, or
 remaining heterogeneity after the mean model is accounted for.
 
+Read this after you have fit a first model in
+[Distributional regression with drmTMB](drmTMB.html) and confirmed Gaussian is
+the right family in [Choosing response families](distribution-families.html);
+this tutorial goes deeper into interpreting `mu` and `sigma` once that choice
+is made.
+
 If you are fitting your first model, start with the
 [worked growth example](#worked-example-growth-mean-and-predictability), then
 return to the syntax overview below when you want to adapt the formula.
@@ -970,6 +976,10 @@ For example, `(temperature + moisture + canopy)^2` expands to all three main
 effects and all pairwise interactions. That formula is often easier to read
 than writing every interaction by hand, but it should still be tied to a clear
 biological question.
+
+With mean and residual-scale effects fitted and interpreted, the next stage in
+the reader path covers grouped, related, and spatially structured data:
+continue with [Structural dependence overview](structural-dependence.html).
 
 If the `sigma` formula is omitted, `drmTMB` fits an intercept-only residual
 standard deviation:

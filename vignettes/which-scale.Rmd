@@ -52,6 +52,11 @@ That pairing is the guardrail: before adding a feature to the package, the R
 syntax, equations, TMB parameters, tests, and documentation should describe the
 same model.
 
+Read this after you have fit a first model in
+[Distributional regression with drmTMB](drmTMB.html); this guide settles which
+scale each formula changes before you pick a family in
+[Choosing response families](distribution-families.html).
+
 Throughout this article, `Normal(a, b)` uses variance as the second argument.
 Thus `Normal(mu_i, sigma_i^2)` means a Gaussian distribution with mean `mu_i`
 and standard deviation `sigma_i`.
@@ -854,3 +859,8 @@ Current planned but not implemented syntax includes:
   intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
   spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
   fixed-`zi` NB2 spatial `mu` gates.
+
+With the scale vocabulary settled, move on to
+[Choosing response families](distribution-families.html) to pick a family,
+then to a matching interpretation tutorial such as
+[When variance carries signal](location-scale.html).

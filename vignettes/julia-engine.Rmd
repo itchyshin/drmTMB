@@ -15,6 +15,8 @@ This article is for R users, contributors, and early testers who want to run a
 `drmTMB` formula through the experimental DRM.jl engine. The purpose is not to
 replace the default TMB backend. The purpose is to make the R-to-Julia boundary
 small, testable, and honest before wider family and post-fit parity work begins.
+It assumes a first default-engine fit already succeeded; this article is about
+adding the Julia bridge as a second engine, not about fitting a first model.
 
 The current bridge is a first slice. It supports Gaussian one-response and
 two-response models that use fixed-effect distributional formulas. It also
@@ -405,6 +407,11 @@ bridge should not ask applied users to choose among them before the parity
 contract is settled. The public story is simpler: the R bridge chooses the
 current DRM.jl default for each admitted model cell, reports the result on
 `drmTMB` scales, and rejects neighbouring syntax until it has tests.
+
+Once one of these admitted cells runs, see
+[Cross-family bivariate models with the Julia engine](cross-family.html) for
+the mixed-family route the bridge also supports: two responses from different
+distribution families sharing one latent-scale correlation.
 
 ## Plot Julia-engine fits with ggplot2
 

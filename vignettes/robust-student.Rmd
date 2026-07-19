@@ -20,7 +20,9 @@ question: are the location and scale patterns stable when the likelihood allows
 heavier tails?
 
 This article introduces the first implemented robust continuous family in
-`drmTMB`: fixed-effect Student-t location-scale-shape regression.
+`drmTMB`: fixed-effect Student-t location-scale-shape regression. It builds on
+the location-scale reading pattern from [When variance carries
+signal](location-scale.html) and adds a third parameter.
 Here location means the expected response parameter `mu`, scale means the
 positive Student-t core scale `sigma`, and shape means the tail parameter
 `nu`. This one-response model has no coscale term; in `drmTMB`, coscale means
