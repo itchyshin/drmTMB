@@ -17,7 +17,9 @@ insects in a trap, or soil invertebrates in a quadrat. A Poisson model is the
 natural baseline, but it fixes the variance equal to the mean. The
 location-scale count question is sharper: do predictors change the expected
 abundance, the extra-Poisson variation around that abundance, or the chance of
-a separate structural zero?
+a separate structural zero? This tutorial assumes the location-scale reading
+pattern from [When variance carries signal](location-scale.html) and extends
+it to a count mean and dispersion.
 
 This article stays inside the currently implemented `drmTMB` count surface:
 univariate NB2 models, fixed-effect zero-inflated NB2 models, ordinary Poisson
@@ -464,5 +466,5 @@ Do not teach the following as fitted count examples yet:
 - COM-Poisson underdispersion models.
 
 Those are useful future routes, but each needs its own likelihood path,
-simulation recovery, diagnostics, and source-map update before it becomes
-tutorial syntax.
+simulation recovery, diagnostics, and a [source-map](source-map.html) update
+before it becomes tutorial syntax.

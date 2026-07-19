@@ -83,10 +83,11 @@ distributional parameters, predicts to meaningful covariate values, examines
 residuals, and simulates from the fitted model.
 
 This article uses a small growth example, but the same workflow applies to
-other Gaussian location-scale models in `drmTMB`. In the `Start Here` path,
-read it after the getting-started fit and the model-status map: this page is
-where estimates become checked tables, predictions, intervals, residuals, and
-simulation checks.
+other Gaussian location-scale models in `drmTMB`. Read it after the
+getting-started fit in [Distributional regression with drmTMB](drmTMB.html)
+and the model-status map in [What can I fit today?](model-map.html): this
+page is where estimates become checked tables, predictions, intervals,
+residuals, and simulation checks.
 
 ## Fit the model
 
@@ -151,6 +152,16 @@ close to Gaussian behaviour, known sampling covariance summaries, random-effect
 standard deviations near zero, and random-effect design issues when random
 effects are present.
 
+If `check_drm()` flags `optimizer_convergence` or `fixed_gradient`, read
+[Improving convergence](convergence.html) for the full diagnostic table before
+trusting any estimate from that fit.
+
+`check_drm()` only checks that the optimizer behaved; it does not ask whether
+the fitted distribution itself fits the data. For that question, read
+[Distributional outputs and adequacy](distributional-outputs-and-adequacy.html)
+for worm plots, QQ plots, and centile checks once the optimizer diagnostics are
+clean.
+
 ## Read the ordinary summary first
 
 The ordinary R habit is still the right first habit in `drmTMB`:
@@ -180,6 +191,12 @@ The printed summary is meant to answer "what did this fitted model estimate?"
 For workflows that need the full object behind a row, use `fixef()`, `sigma()`,
 `rho12()`, `ranef()`, `corpairs()`, or `profile_targets()` after reading the
 summary.
+
+The rest of this article turns from ordinary fixed-effect post-fit checks to
+models with `(1 | site)` random intercepts, `sd(site) ~ reef_cover` random-effect
+scale formulas, and `emmeans` marginal means. That is random-effects-stage
+material: if you have not yet fit a model with a grouping factor, you can skip
+ahead to a later worked tutorial and come back to this section once you have.
 
 For models with random effects, `summary()` is also the first place to look for
 variance components. This compact example adds a site random intercept to the
@@ -222,6 +239,11 @@ standard deviation on the response scale. Squaring it gives the corresponding
 random-effect variance component. When the ingredients are unambiguous, the
 `derived` component also reports repeatability and shows both the
 random-effect variance and the residual variance used in that ratio.
+
+Once you have more than one candidate model fitted to the same data — for
+example this random-intercept model against a simpler fixed-effect version —
+read [Model selection with AIC and BIC](model-selection.html) to choose
+between them rather than reporting whichever one was fit last.
 
 When `TMB::sdreport()` succeeds, direct response-scale parameter rows such as
 constant `sigma` and `sd:mu:(1 | site)` also include delta-method standard
@@ -1000,3 +1022,12 @@ For routine fitted models, the post-fit loop is:
 The same loop will extend as more families arrive. The parameter names change,
 but the discipline stays the same: check the fit, then interpret each
 distributional parameter on its own scale.
+
+If any step in this loop becomes slow or memory-heavy as your data grow, read
+[Working with large data](large-data.html) for options such as `keep_data`,
+`keep_model_frame`, and `se = FALSE` before abandoning the workflow above.
+
+With a checked fit in hand, the next stage in the reader path is choosing a
+response family for your own data: continue with
+[Which scale are you modelling?](which-scale.html) and
+[Choosing response families](distribution-families.html).

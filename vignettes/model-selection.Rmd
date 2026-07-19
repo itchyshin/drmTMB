@@ -12,9 +12,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 Model selection comes after candidate models have been chosen, fitted, and
-checked. In `drmTMB`, AIC and BIC can compare fitted distributional-regression
-models, but they do not decide whether a candidate set is biologically sensible
-or whether a weak fit should be interpreted.
+checked with the post-fit workflow in [Checking and using fitted
+models](model-workflow.html). In `drmTMB`, AIC and BIC can compare fitted
+distributional-regression models, but they do not decide whether a candidate
+set is biologically sensible or whether a weak fit should be interpreted.
 
 AIC and BIC both use the fitted log likelihood and the number of estimated
 parameters:

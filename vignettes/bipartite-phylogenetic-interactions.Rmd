@@ -18,8 +18,10 @@ belongs to the pair. In bipartite ecological network data this could be a plant
 and a pollinator, a host and a parasite, or any two partner clades where related
 partners may have similar pair-level deviations.
 
-Use `phylo_interaction()` when the pair itself should carry a phylogenetic
-random effect. The fitted first slice is:
+This tutorial assumes the single-tree case in [Phylogenetic mixed
+models](phylogenetic-models.html) and extends `phylo()` to two coupled trees
+at once. Use `phylo_interaction()` when the pair itself should carry a
+phylogenetic random effect. The fitted first slice is:
 
 ```text
 eta_i = X_i beta + z[a_i, b_i]

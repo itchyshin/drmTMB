@@ -161,7 +161,9 @@ matrix belongs to the meta-analysis route with `meta_V(V = V)`.
 ## When is `relmat()` the right tool?
 
 Use `relmat()` only after the named biological or spatial route is not the
-better description.
+better description. It is the general fallback for a matrix you already have,
+so reach for it once the [structural-dependence
+overview](structural-dependence.html) has ruled out the named routes.
 
 | Situation | Use | Why |
 | --- | --- | --- |
@@ -590,11 +592,11 @@ fit/extractor feasibility; it does not establish point-estimate recovery.
 The `beta()` family and the families with no structured layer still
 reject `relmat()`.
 
-Known sampling covariance is a different model layer. If the matrix describes
-known observation-level uncertainty for effect-size estimates, use
-`meta_V(V = V)` and the [meta-analysis documentation](meta-analysis.html)
-instead of `relmat()`. The older `meta_known_V(V = V)` spelling is deprecated
-but remains a compatibility alias, not a separate relatedness route.
+Known sampling covariance is a different model layer, not a separate
+relatedness route. If the matrix describes known observation-level
+uncertainty for effect-size estimates, use `meta_V(V = V)` -- deprecated
+`meta_known_V(V = V)` remains a compatibility alias -- and the
+[meta-analysis documentation](meta-analysis.html) instead of `relmat()`.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the

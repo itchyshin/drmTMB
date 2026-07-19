@@ -17,6 +17,10 @@ single constructor in `R/family.R`; it is a contract across symbolic equations,
 formula grammar, R builders, TMB likelihood code, simulation, tests,
 documentation, pkgdown, and after-task notes.
 
+Read [Formula grammar](formula-grammar.html) first for the current parser
+vocabulary; this article is about adding a family the grammar does not yet
+support.
+
 The planning references are `docs/design/02-family-registry.md`,
 `docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`, and
 `docs/design/19-family-link-contract.md`, plus
@@ -303,6 +307,10 @@ expect_equal(
   tolerance = 1e-8
 )
 ```
+
+See [Testing likelihoods](testing-likelihoods.html) for how to check a new
+density against a reference implementation before treating a family as
+shipped.
 
 Third, test methods such as prediction, simulation, residuals, summaries, and
 diagnostics.

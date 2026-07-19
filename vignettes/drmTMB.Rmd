@@ -25,6 +25,11 @@ in mind. The broader implemented map lives in
 [What can I fit today?](model-map.html), and family choice lives in
 [Choosing response families](distribution-families.html).
 
+For example, an applied user might ask: do mean trait values and residual
+variability change with an environmental predictor, after accounting for
+repeated measures from the same site or species? In `drmTMB`, that question is
+written as one formula for the mean and one formula for the residual scale.
+
 ## Install the preview
 
 `drmTMB` is not on CRAN yet. Install the tagged preview from GitHub with
@@ -51,11 +56,6 @@ The core runtime dependencies are installed automatically by `pak`: `cli`,
 articles and development checks also use optional packages such as `glmmTMB`,
 `lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`, `testthat`, `withr`, and
 `pkgdown`.
-
-For example, an applied user might ask: do mean trait values and residual
-variability change with an environmental predictor, after accounting for
-repeated measures from the same site or species? In `drmTMB`, that question is
-written as one formula for the mean and one formula for the residual scale.
 
 ## Fit your first model
 
@@ -109,19 +109,29 @@ Start with the question you want to answer, not with the full list of features.
 The tutorials are arranged so that each article pairs symbolic equations, R
 syntax, fitted output, and interpretation.
 
+The table below follows the same order as the rest of the site: check the
+first fit, choose a family, work through the matching interpretation
+tutorial, add structured dependence if you need it, then handle uncertainty,
+diagnostics, and honest limits.
+
 | If your question is... | Read this first | Main parameter |
 | --- | --- | --- |
-| Do predictors change the mean and residual variability of one response? | [When variance carries signal](location-scale.html) | `mu`, `sigma` |
+| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
 | Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
-| Which continuous, count, proportion, or robust family should I use? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
+| Which family fits my response — continuous, count, proportion, or robust? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
+| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd1(group, level = "phylogenetic")`, `sd2(group, level = "phylogenetic")` |
+| Do predictors change the mean and residual variability of one response? | [When variance carries signal](location-scale.html) | `mu`, `sigma` |
 | Do counts show extra-Poisson variation or structural zeros? | [Count abundance and extra zeros](count-nbinom2.html) | NB2 `mu`, `sigma`, `zi` |
 | Are proportions successes out of trials, continuous rates inside `(0, 1)`, or continuous rates with structural exact boundaries? | [Proportions and success rates](proportion-beta-binomial.html) | beta-binomial, beta, and zero-one beta `mu`, `sigma`, `zoi`, `coi` |
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
 | Do repeated individuals have correlated average responses after accounting for residual coupling? | [Changing residual coupling with rho12](bivariate-coscale.html) | `corpairs(level = "group")` |
-| Do effect sizes have known sampling variances or covariance? | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` |
-| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd1(group, level = "phylogenetic")`, `sd2(group, level = "phylogenetic")` |
+| Do effect sizes have known sampling variances or covariance? (a specialist route, not a family choice for raw response data) | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` |
 | Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
-| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
+| I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
+| Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
+| The optimizer did not converge cleanly — what do I check? | [Improving convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
+| My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE` |
+| What does `drmTMB` not support yet, and where is the line between fitted, first-slice, and planned syntax? | [What drmTMB can and can't do](capability-and-limits.html) | fitted, first-slice, and planned status |
 
 Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and
 `sd(group)` refers to a group-level random-effect standard deviation rather than
@@ -190,3 +200,6 @@ block is also fitted when matching labelled spatial terms appear in all four
 `mu1`/`mu2`/`sigma1`/`sigma2` endpoints. Predictor-dependent spatial
 `corpair()` rows remain planned. Those layers should not be reported as if they
 were the same estimand.
+
+Once this first fit is checked, follow the Learning path table above in the
+order given, starting with [Checking and using fitted models](model-workflow.html).

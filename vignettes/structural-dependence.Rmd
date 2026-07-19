@@ -16,6 +16,12 @@ not independent after the fixed effects have been included. The goal is to
 choose the structural layer that matches the scientific question before fitting
 a model.
 
+This overview assumes you have already fit and interpreted a plain
+location-scale model, for example the Gaussian tutorial in
+[When variance carries signal](location-scale.html), and now need one of the
+structured layers below because your observations are grouped, related, or
+spatially structured.
+
 In `drmTMB`, a structural-dependence term is a latent random effect with a known
 relationship structure. It is separate from residual coscale `rho12`, which is
 the within-observation residual correlation between two responses. Use
@@ -81,3 +87,7 @@ Known sampling covariance belongs to the meta-analysis route, not `relmat()`.
 Use `relmat()` for latent random-effect relatedness matrices; use
 `meta_V(V = V)` and the [meta-analysis documentation](meta-analysis.html)
 when the covariance matrix describes known observation-level sampling error.
+
+With one or more structured fits in hand, the next stage in the reader path is
+checking whether they are trustworthy and comparing candidates: continue with
+[Model selection with AIC and BIC](model-selection.html).

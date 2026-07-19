@@ -17,7 +17,9 @@ process matters. Some proportions are counts of successes out of known trials:
 germinated seeds out of seeds planted, infected hosts out of hosts checked, or
 occupied quadrats out of quadrats surveyed. Other proportions are continuous
 rates already measured on the unit interval, such as leaf damage, vegetation
-cover, or the fraction of time an animal spends foraging.
+cover, or the fraction of time an animal spends foraging. This tutorial
+assumes the location-scale reading pattern from [When variance carries
+signal](location-scale.html) and extends it to a bounded response.
 
 This article stays inside the currently implemented `drmTMB` bounded-response
 surface:
@@ -568,5 +570,5 @@ Do not teach the following as fitted proportion examples yet:
   `cbind(successes, failures)`.
 
 Most of those are useful future routes that still need likelihood code,
-simulation recovery, diagnostics, and source-map evidence before they become
-tutorial syntax.
+simulation recovery, diagnostics, and [source-map](source-map.html) evidence
+before they become tutorial syntax.

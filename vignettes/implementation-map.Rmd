@@ -40,10 +40,15 @@ correlation layer, currently `rho12` in bivariate Gaussian models.
 
 The public site has three maps with different jobs. Use `model-map` when the
 question is "what should I fit?". Use this implementation map when the question
-is "is this surface fitted or planned?". Use `source-map` when the question is
-"where are the code, tests, and docs?". The validation-debt register is the
-evidence ledger behind these pages. The roadmap records sequence and future
-work; it is not the current-status authority.
+is "is this surface fitted or planned?". Use the
+[source map](source-map.html) when the question is "where are the code, tests,
+and docs?". The validation-debt register is the evidence ledger behind these
+pages. The roadmap records sequence and future work; it is not the
+current-status authority.
+
+When you are closing out a slice from this ledger and need to plot its
+recovery evidence, see [Simulation plot grammar](simulation-plot-grammar.html)
+for the shared bias/RMSE/coverage display contract.
 
 Every status row should be read across the same dimensions:
 

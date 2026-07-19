@@ -13,7 +13,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 This developer article documents the supported `drm_formula()` grammar,
 including response blocks, distributional-parameter formulae, and validation
-rules. `bf()` remains a short alias.
+rules. `bf()` remains a short alias. It assumes you have already written a
+first formula from a family tutorial and now need the complete grammar and
+status table, not another worked example.
 
 The design reference is `docs/design/01-formula-grammar.md`.
 
@@ -34,6 +36,10 @@ should currently give a clear unsupported-feature error rather than a fit.
 
 In this table, "coscale" means a model for residual correlation, currently
 `rho12` in two-response Gaussian models.
+
+If the family itself is missing from this table, the gap is not a formula
+question -- see [Adding distribution families](adding-families.html) for how a
+new distribution enters the package.
 
 | Syntax | Current status | Notes |
 |---|---|---|

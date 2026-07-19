@@ -48,7 +48,9 @@ theme_convergence <- function() {
 Complex distributional models sometimes need more care than the default fit.
 This article gives a practical workflow for `drmTMB` users when the optimizer
 does not converge, gradients look large, `TMB::sdreport()` reports a
-non-positive-definite Hessian, or Wald standard errors are unavailable.
+non-positive-definite Hessian, or Wald standard errors are unavailable. It
+picks up where the `check_drm()` step in [Checking and using fitted
+models](model-workflow.html) flags a problem.
 
 The default optimizer settings are chosen for ordinary models to fit quickly
 and reproducibly. They are not meant to be the best possible settings for every

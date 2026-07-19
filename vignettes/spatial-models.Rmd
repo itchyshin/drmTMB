@@ -123,7 +123,10 @@ simulate_spatial_q2_guide_data <- function(seed = 20260501) {
 Use `spatial()` when named sites have coordinates and nearby sites may have
 similar location deviations after fixed effects have been included. The fitted
 route uses a coordinate table supplied as `coords = coords`. Mesh and SPDE
-inputs remain planned.
+inputs remain planned. If distance between sites is not what couples your
+observations, the [structural-dependence
+overview](structural-dependence.html) compares this route against the
+relatedness- and tree-based ones.
 
 ## What is fitted today
 
