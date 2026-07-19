@@ -231,7 +231,7 @@ test_that("MR-T3 response masks do not relax neighbouring gates", {
         case$formula, case$family, case$data,
         missing = include, REML = TRUE
       ),
-      "only for.*Gaussian"
+      "Gaussian and binomial"
     )
   }
 

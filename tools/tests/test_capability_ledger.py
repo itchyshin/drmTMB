@@ -106,7 +106,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            163,
+            162,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):

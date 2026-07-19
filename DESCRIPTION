@@ -57,6 +57,7 @@ Suggests:
     pkgload,
     rmarkdown,
     spelling,
+    statmod,
     testthat (>= 3.0.0),
     tweedie,
     withr

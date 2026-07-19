@@ -440,6 +440,6 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
       ),
       family = beta(), data = dat, REML = TRUE
     ),
-    "REML.*only"
+    "REML.*Gaussian and binomial"
   )
 })

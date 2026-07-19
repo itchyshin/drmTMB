@@ -163,7 +163,7 @@ test_that("MR-T5 retains neighbouring REML and mi gates", {
       bf(count ~ x, sigma ~ z), truncated_nbinom2(), dat,
       missing = include, REML = TRUE
     ),
-    "only for.*Gaussian"
+    "Gaussian and binomial"
   )
 
   dat$q <- rbinom(nrow(dat), 1, 0.5)

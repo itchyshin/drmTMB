@@ -205,7 +205,7 @@ test_that("MR-T6 ZIP keeps malformed and neighbouring gates closed", {
       bf(count ~ x + habitat, zi ~ z + habitat), poisson(), dat,
       missing = include, REML = TRUE
     ),
-    "only for.*Gaussian"
+    "Gaussian and binomial"
   )
   dat$q <- rbinom(nrow(dat), 1, 0.5)
   dat$q[[3L]] <- NA_integer_
@@ -310,7 +310,7 @@ test_that("MR-T6 ZINB2 keeps malformed and neighbouring gates closed", {
       bf(count ~ x + habitat, sigma ~ z, zi ~ w + habitat), nbinom2(), dat,
       missing = include, REML = TRUE
     ),
-    "only for.*Gaussian"
+    "Gaussian and binomial"
   )
   dat$q <- rbinom(nrow(dat), 1, 0.5)
   dat$q[[3L]] <- NA_integer_
@@ -424,7 +424,7 @@ test_that("MR-T6 hurdle keeps malformed and neighbouring gates closed", {
       bf(count ~ x + habitat, sigma ~ z, hu ~ w + habitat),
       truncated_nbinom2(), dat, missing = include, REML = TRUE
     ),
-    "only for.*Gaussian"
+    "Gaussian and binomial"
   )
   dat$q <- rbinom(nrow(dat), 1, 0.5)
   dat$q[[3L]] <- NA_integer_
