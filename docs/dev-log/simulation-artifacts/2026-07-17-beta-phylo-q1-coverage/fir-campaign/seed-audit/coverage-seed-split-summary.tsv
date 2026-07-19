@@ -1,0 +1,13 @@
+cell_id	n_frozen	n_extra
+distinct_g0256_m02	400	800
+distinct_g0256_m04	400	800
+distinct_g0512_m02	400	800
+distinct_g0512_m04	400	800
+distinct_g1024_m02	400	800
+distinct_g1024_m04	400	800
+shared_g0256_m02	400	800
+shared_g0256_m04	400	800
+shared_g0512_m02	400	800
+shared_g0512_m04	400	800
+shared_g1024_m02	400	800
+shared_g1024_m04	400	800
