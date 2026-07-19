@@ -1,0 +1,8 @@
+# Keep only the committed summary CSVs + README. A local/Totoro grid run writes
+# per-measure subdirs with ~28k RDS replicate artifacts — never commit those (D-50).
+*/
+*.rds
+!README.md
+!grid-coverage-summary.csv
+!grid-coverage-bycell.csv
+!.gitignore
