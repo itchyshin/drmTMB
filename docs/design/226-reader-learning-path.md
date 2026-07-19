@@ -57,23 +57,25 @@ at that point in the workflow.
    dependence?" Structured random-effect syntax across `animal()`,
    `phylo()`, `spatial()`, `relmat()`, and the two-tree interaction case.
 5. **Uncertainty, diagnostics, and inference boundaries** — "Is this fit
-   trustworthy, is the distribution adequate, which comparisons and
-   intervals can I make, and what should I do if it does not converge or the
-   data are large or incomplete?" Model selection, missing data,
-   convergence, large-data practice, the Julia engine and cross-family
-   bivariate route, and the adequacy/figure diagnostics.
+   trustworthy, is the distribution adequate, which comparisons can I make,
+   and what should I do if it does not converge or the data are large?"
+   Model selection, distributional adequacy, convergence, and large-data
+   practice. Four pages, one question. Per §9.2 the Julia engine and
+   cross-family routes do **not** belong here — they are an alternative
+   compute backend, not a trustworthiness question.
 6. **Honest limitations** — "What does this package NOT support yet, and
    where is the line between fitted, first-slice, and planned syntax?"
    `capability-and-limits` closes the arc; it is deliberately last, not
    first, because it opens with sobering material that would discourage a
    reader who has not yet fit anything.
 
-A **Specialist branch** sits alongside stage 3 for `meta-analysis`, which
-uses known sampling variances and no raw response data — a different task
-from picking a family for raw data, so it must not sit inside "Choose your
-family." A **Developer track** sits outside the reader path entirely, for
-the four pages that document the package's own internals rather than how to
-use it.
+A **Specialist branch** sits alongside stage 3 for three pages that are
+deliberately off the main line: `meta-analysis`, which uses known sampling
+variances and no raw response data — a different task from picking a family
+for raw data — and, per §9.2, `julia-engine` and `cross-family`, which choose
+a different compute backend rather than answering a modelling question. A
+**Developer track** sits outside the reader path entirely, for the five pages
+that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
