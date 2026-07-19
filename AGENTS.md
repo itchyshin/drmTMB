@@ -10,28 +10,32 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-18, mc-0242 GAMMA σ-RE PROMOTED + AGHQ/REML ARC SCOPED).**
-> Gamma sigma random-intercept coverage cell `mc-0242` promoted to
-> `inference_ready_with_caveats` and MERGED to `main` (PR #791; test-freshness
-> follow-up PR #792). Totoro N=1200/cell iid-uncentered profile campaign, zero
-> failures; certified floor **M>=32** (nominal within MC error), M=16 disclosed
-> borderline, M=8 excluded. Ledger unittest 37/37 green on `main`. (Sibling
-> beta-phylo `mc-0017` was promoted earlier via PR #789.) Then a DIAGNOSTIC arc:
-> the small-cluster non-Gaussian RE-SD bias is **TWO orthogonal levers** — AGHQ
-> (integral error, ~2pt) + **Cox-Reid non-Gaussian REML** (ML variance bias,
-> ~4pt, the BIGGER lever); together → nominal (measured on cumulative_logit,
-> validated vs glmmTMB/glmer/lme4; NOT a bug). Shinichi APPROVED a combined
-> **AGHQ + non-Gaussian REML arc (Cox-Reid first)** as the next big arc, and the
-> **4-cell mu-slope coverage batch** as near-term breadth — **neither built yet.**
-> Cross-repo: gllvmTMB = same arc; HSquared.jl already has the Cox-Reid lever
-> (`fit_laplace_reml`), needs only AGHQ + coverage. Scoping evidence on branch
-> `claude/aghq-reml-scoping` (PR #793, MERGED `ff4fd145`). The parked
-> capability-surface tooling (AGHQ display column + parity doc) landed as draft
-> PR #794 (rebase+regenerate before merge); `drmTMB-wt-surface` is now prune-safe.
-> Housekeeping debt: the ▶ Prior stack below has accumulated stale snapshots
-> (D-34) — a future cleanup, not load-bearing.
+> **▶ Latest — start here (2026-07-19, AGHQ + non-Gaussian REML ARC DONE; mc-0227 PROMOTED).**
+> The AGHQ + non-Gaussian REML arc is BUILT + validated + landed on branch
+> `claude/handover-freshness-0718` (`1ed90599` + `4956c754`, pushed; **no PR yet — open one**).
+> **mc-0227** (cumulative_logit `mu` random-SLOPE RE-SD) PROMOTED `point_fit_recovery →
+> inference_ready_with_caveats`: Totoro N=1200/cell coverage nominal at every M{40,80,160,320}
+> (0.9515 / 0.9457 / 0.9596 / 0.9508, all CIs overlap `[0.925,0.975]`), memo-blind D-43 **3/3
+> PROMOTE**, certified floor **M=80** (M=40 exploratory/boundary-heavy). Two levers in-package +
+> oracle-validated: **O2** binomial Cox-Reid REML == `glmmTMB(REML=TRUE)` 7.3e-9 (relaxed 2 gates in
+> `R/drmTMB.R`); **O3** nested AGHQ+Cox-Reid (`R/aghq-coxreid.R`, **pure R**) == glmer 3.6e-5 /
+> brute-force 6.4e-9. Architecture: the recombination is **nested + external**, NOT a joint TMB
+> `random=` fold (design doc `docs/design/224`). Ledger regenerated, unittest **37/37**, estimator
+> KEPT `ML` (a new token would flip the family-map slope to "absent"). **NEXT = the 3-cell mu-slope
+> batch** (skew_normal `mc-0464`, tweedie `mc-0539`, zero_one_beta `mc-0575`) as a **DRAC job array**
+> (mc-0242 ML-Laplace coverage machinery; only the 3 DGPs are new) — plan-review then STOP for compute
+> approval. Cross-repo FYI left in gllvmTMB. **Handover TO CODEX** (live toolchain runs the PR + campaign).
 > START HERE:
-> [`docs/dev-log/handover/2026-07-18-claude-handover.md`](docs/dev-log/handover/2026-07-18-claude-handover.md)
+> [`docs/dev-log/handover/2026-07-19-codex-handover.md`](docs/dev-log/handover/2026-07-19-codex-handover.md)
+>
+> **▶ Prior (2026-07-18, mc-0242 GAMMA σ-RE PROMOTED + AGHQ/REML ARC SCOPED).**
+> Gamma sigma random-intercept cell `mc-0242` promoted to `inference_ready_with_caveats` and MERGED to
+> `main` (PR #791; test-freshness follow-up PR #792); certified floor M>=32, M=16 borderline, M=8
+> excluded. (Sibling beta-phylo `mc-0017` promoted via PR #789.) Then the DIAGNOSTIC scoping that framed
+> the arc above: the small-cluster non-Gaussian RE-SD bias is TWO orthogonal levers — AGHQ (integral,
+> ~2pt) + Cox-Reid non-Gaussian REML (ML variance bias, ~4pt, the bigger lever), measured on
+> cumulative_logit vs glmmTMB/glmer/lme4. Scoping on `claude/aghq-reml-scoping` (PR #793, MERGED
+> `ff4fd145`). Parked capability-surface tooling → draft PR #794 (rebase+regenerate before merge).
 >
 > **▶ Prior (2026-07-16, BETA PHYLOGENETIC q1 STOPPED).**
 > The approved two-PR Beta phylogenetic LSS goal stopped at PR 1's recovery
