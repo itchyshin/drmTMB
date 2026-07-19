@@ -233,7 +233,7 @@ test_that("MR-T4 rejects all-missing, malformed, and neighbouring routes", {
   expect_error(
     drmTMB(bf(score ~ x), cumulative_logit(), ord2,
            missing = include, REML = TRUE),
-    "only for.*Gaussian"
+    "Gaussian and binomial"
   )
   bb2 <- mr_t4_beta_binomial_data(n_id = 8L, n_each = 8L, seed = 2026071445L)$data
   bb2$success[[1L]] <- NA

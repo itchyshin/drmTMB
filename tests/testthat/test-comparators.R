@@ -604,7 +604,7 @@ test_that("REML rejects unsupported first-slice neighbours", {
       data = dat,
       REML = TRUE
     ),
-    "univariate and bivariate Gaussian"
+    "univariate/bivariate Gaussian and binomial"
   )
   # A fixed-effect sigma ~ x is now supported under REML (validated in
   # test-reml-heteroscedastic.R); the rejected scale-side neighbour is a scale
