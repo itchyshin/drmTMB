@@ -109,22 +109,23 @@ path.
 | 21 | `distributional-outputs-and-adequacy` | 5. Uncertainty & inference boundaries | tutorial | Promoted per F1: only vignette demonstrating `worm_plot()`, `qq_plot()`, `centile_chart()` — three of the package's six public plotting functions. Belongs in the diagnostics/adequacy stage, well linked, not left disconnected. |
 | 22 | `convergence` | 5. Uncertainty & inference boundaries | guide | Optimizer diagnostic table (`optimizer_convergence`, `optimizer_budget`, `fixed_gradient`) — a trustworthiness question, read once the reader has fits worth diagnosing. |
 | 23 | `large-data` | 5. Uncertainty & inference boundaries | guide | `keep_data`, `keep_model_frame`, `se = FALSE` practice for scaling up — an inference-boundary/practical-limits question. |
-| 24 | `julia-engine` | 5. Uncertainty & inference boundaries | guide | `engine = "julia"` bridge documentation; an infrastructure choice the reader makes once they need capability beyond the default engine. |
-| 25 | `cross-family` | 5. Uncertainty & inference boundaries | tutorial | Cross-family bivariate Julia-engine worked example; depends on `julia-engine` being read first, so it sits immediately after it in the same stage. |
-| 26 | `figure-gallery` | 5. Uncertainty & inference boundaries | tutorial | Worked figure recipes (fitted mean + CI band, etc.) built on `predict_parameters()`; a diagnostics/communication tutorial. |
+| 24 | `julia-engine` | Specialist branch | guide | **Corrected in §9.** An alternative compute backend, not a trustworthiness question. Self-described "for R users, contributors, and early testers"; a count-data reader has no reason to pass through it. |
+| 25 | `cross-family` | Specialist branch | tutorial | **Corrected in §9.** Experimental Julia-engine route needing a DRM.jl checkout; follows `julia-engine`, both outside the main line. |
+| 26 | `figure-gallery` | 3. Interpretation tutorials | tutorial | **Corrected in §9.** Family-agnostic plotting recipes answering "how do I show my result?" — a question the reader has while interpreting coefficients, not after diagnostics. Was stranded behind two experimental-engine pages. |
 | 27 | `capability-and-limits` | 6. Honest limitations | route-chooser | Per P7, stays LAST. Opens with sobering multi-seed-evidence and boundary material that would discourage a reader who has not yet fit anything; correct as the closing "what this package will not yet do" page. |
 | 28 | `formula-grammar` | Developer track | developer | Formula-parsing internals for contributors adding syntax, not for the applied reader path. |
 | 29 | `adding-families` | Developer track | developer | Contributor guide for adding a new distribution family to the C++/R engine. |
 | 30 | `source-map` | Developer track | developer | Maps R builders to TMB `model_type` integers and C++ density blocks — internals reference for contributors. |
 | 31 | `testing-likelihoods` | Developer track | developer | Documents the likelihood-comparator test harness used to validate new families against reference implementations. |
-| 32 | `implementation-map` | Developer track | developer | Slice-by-slice implementation ledger (implemented vs. planned syntax, by slice number); contributor/maintainer bookkeeping, not applied reader material. |
+| 32 | `implementation-map` | 2. Choose your family | guide | **Corrected in §9 — reverted to the applied path.** It opens "This map answers one practical question: what model surface can an applied user…", and `model-map` links to it from four places (`model-map.Rmd:38,53,152,157`). Reclassifying it developer-only would break live cross-links from an applied guide and hide the page readers are explicitly sent to. |
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 
-Total: 33 placed. Stage counts: **1. First fit** = 2 · **2. Choose your
-family** = 3 · **3. Interpretation tutorials** = 6 · **Specialist branch** =
-1 · **4. Random & structured effects** = 7 · **5. Uncertainty & inference
-boundaries** = 7 · **6. Honest limitations** = 1 · **Developer track** = 6.
-2 + 3 + 6 + 1 + 7 + 7 + 1 + 6 = 33.
+Total: 33 placed. Stage counts **after the §9 corrections**: **1. First fit**
+= 2 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 7 ·
+**Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
+**5. Uncertainty & inference boundaries** = 4 · **6. Honest limitations** = 1
+· **Developer track** = 5.
+2 + 4 + 7 + 3 + 7 + 4 + 1 + 5 = 33.
 
 Two rows deserve a placement note beyond the reason column:
 
@@ -286,3 +287,106 @@ stage 3 because the decision happens before fitting, not after — but a
 future editor with stronger evidence about where readers actually get stuck
 should feel free to move it to stage 5 without re-litigating the rest of
 this table.
+
+## 9. Sequence-review corrections (binding)
+
+Pat (applied reader) and Darwin (ecology/evolution audience) reviewed §2–§8
+before any prose was written. Both returned blocking findings. The claims
+below were verified directly against the repository before being adopted; the
+placement table above already reflects them.
+
+### 9.1 `implementation-map` returns to the applied path — REVERTED
+
+The original table moved it to the Developer track. That was wrong on two
+checked counts:
+
+- it opens *"This map answers one practical question: what model surface can
+  an applied user…"* — it self-describes as applied-reader material;
+- `model-map` — a stage-2 page firmly on the applied path — links to it from
+  **four** places (`model-map.Rmd:38,53,152,157`), including two rows of its
+  own routing table.
+
+Reclassifying it developer-only would have broken live cross-links from an
+applied guide and hidden the page a reader building a structured model is
+explicitly told to consult next. It is placed in stage 2 beside `model-map`.
+
+`simulation-plot-grammar` stays in the Developer track: it is fully
+disconnected (zero inbound and zero outbound links), so nothing breaks, and
+its content — bias/RMSE/coverage plotting conventions for recovery studies —
+is written for someone auditing a simulation, not applying the package.
+
+### 9.2 Stage 5 was a dumping ground — split
+
+Both reviewers independently reached this. `julia-engine` and `cross-family`
+are an alternative compute backend, not a trustworthiness question;
+`julia-engine` addresses "R users, contributors, and early testers" and
+`cross-family` needs a DRM.jl checkout. A reader with count data was being
+routed through both between core diagnostics and the closing pages, which
+reads as required and is not.
+
+They join the specialist branch. Stage 5 keeps the four pages that answer one
+question — *is this fit trustworthy?* — `model-selection`,
+`distributional-outputs-and-adequacy`, `convergence`, `large-data`.
+
+### 9.3 `figure-gallery` moves to stage 3
+
+"How do I show my result?" is a question the reader has while interpreting
+coefficients, not after diagnostics. It was stranded behind two experimental-
+engine pages. Moving it also puts it beside the tutorials whose examples the
+companion figure PR will reuse.
+
+### 9.4 `model-workflow` stays in stage 1 — with a signpost, not a split
+
+Pat is right that it is not a checklist: at ~1,000 lines it fits
+`(1 | site)` early and later builds `sd(site) ~ reef_cover` surfaces and
+`emmeans` marginal means — stage-3/4 material under a stage-1 label.
+
+Splitting it is **out of scope** (§7 non-goals: no article splits in this
+arc). The prose pass instead adds an explicit internal signpost where the
+article turns from post-fit basics to random-effect material, telling the
+reader that section assumes stage-4 content and can be deferred. Recorded as
+a follow-up candidate for a later arc, not silently left as-is.
+
+### 9.5 Organism identity is inconsistent — recorded, not fixed here
+
+Darwin found that the "one recurring growth scenario" does not exist. The
+spine articles split by organism:
+
+| Article | Implied organism |
+|---|---|
+| `drmTMB` | plants — forest / grassland |
+| `location-scale` | plants — forest / grassland |
+| `which-scale` | fish — population |
+| `model-workflow` | fish — reef / kelp |
+
+Unifying them onto one organism would mean renaming variables inside fitted
+chunks, which changes the figures the companion figure PR depends on and
+conflicts with the standing decision to **freeze** the example set to what
+existing figures already use. This arc therefore does **not** rename
+organisms. The prose pass instead states each article's scenario explicitly
+and honestly as a distinct simulated scenario. Unification is recorded here
+as a named follow-up.
+
+Darwin's recommended target set, if that follow-up is taken: springtail
+counts (`count-nbinom2`), germination trays (`proportion-beta-binomial`),
+seedling growth under drought (`robust-student`, absorbing the spine growth
+examples), behavioural-syndrome coupling (`bivariate-coscale`).
+
+### 9.6 Two content gaps recorded, both out of scope here
+
+- **Heritability is never computed in `animal-models`.** A single weak string
+  match exists; no worked Va/Vp result. For an evolutionary biologist that is
+  the entire point of an animal model. Adding it is a content change to a
+  tutorial's statistical output, which needs its own evidence check — filed,
+  not done here.
+- **`distribution-families` leads with implementation status**, not
+  biological reasoning, at exactly the moment the reader is choosing a
+  family. The prose pass may reorder its opening so the response-type
+  question comes first, but must not restate capability by hand — status
+  stays sourced from `model-map` / `capability-and-limits`.
+
+### 9.7 Settled
+
+`missing-data` stays in stage 3. Both reviewers agreed: it is decided while
+writing the formula for a chosen family, not diagnosed after fitting. §8's
+open question is closed.
