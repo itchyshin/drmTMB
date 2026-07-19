@@ -117,6 +117,9 @@ test_that("workers pin native libraries, stage scratch safely, copy back, and ag
     expect_true(any(grepl("MKL_NUM_THREADS=1", x, fixed = TRUE)))
     expect_true(any(grepl("TMB_NTHREADS=1", x, fixed = TRUE)))
     expect_true(any(grepl("Refusing login-node execution", x, fixed = TRUE)))
+    library_export <- which(grepl("^export R_LIBS=", x))
+    receipt_setup <- which(grepl("^PREFLIGHT_DIR=", x))[1L]
+    expect_true(any(library_export < receipt_setup), info = "R_LIBS must be visible while validating the preflight receipt")
   }
   for (x in text[c("coverage", "smoke")]) {
     expect_true(any(grepl("--cpus-per-task=1", x, fixed = TRUE)))
