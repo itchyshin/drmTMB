@@ -20,6 +20,7 @@ REPO="${DRMTMB_ARC4C_REPO:?DRMTMB_ARC4C_REPO must be the verified project clone}
 MERGE_SHA="${DRMTMB_ARC4C_MERGE_SHA:?DRMTMB_ARC4C_MERGE_SHA must be the verified PR-A merge SHA}"
 SHARED_RLIB="${DRMTMB_ARC4C_RLIB:?DRMTMB_ARC4C_RLIB must be the single preflight project library}"
 BASE_RLIB="${DRMTMB_BASE_RLIB:-/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4}"
+export R_LIBS="$SHARED_RLIB:$BASE_RLIB" DRMTMB_RLIB="$SHARED_RLIB"
 PREFLIGHT_DIR="$RUN_ROOT/preflight"; RECEIPT="$PREFLIGHT_DIR/receipt.tsv"
 source_tree_sha256() { (cd "$REPO" && git ls-files -z | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}'); }
 receipt_value() { awk -F '\t' -v key="$1" '$1 == key { print $2; exit }' "$RECEIPT"; }
