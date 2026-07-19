@@ -56,10 +56,11 @@ parse_args <- function(args) {
 
 sha256_file <- function(path) {
   command <- if (nzchar(Sys.which("sha256sum"))) "sha256sum" else "shasum"
+  quoted_path <- shQuote(path)
   command_args <- if (identical(command, "shasum")) {
-    c("-a", "256", path)
+    c("-a", "256", quoted_path)
   } else {
-    path
+    quoted_path
   }
   out <- system2(command, command_args, stdout = TRUE, stderr = TRUE)
   token <- strsplit(out[[1L]], "[[:space:]]+")[[1L]][[1L]]

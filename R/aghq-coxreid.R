@@ -41,7 +41,7 @@ drm_o3_cluster_ll <- function(u, beta, theta, family, Xm, zm, ym, trials) {
   } else {
     cut <- c(theta[1L], theta[1L] + cumsum(exp(theta[-1L])))
     cutx <- c(-Inf, cut, Inf)
-    p <- plogis(cutx[ym + 1L] - lin) - plogis(cutx[ym] - lin)
+    p <- stats::plogis(cutx[ym + 1L] - lin) - stats::plogis(cutx[ym] - lin)
     sum(log(pmax(p, 1e-300)))
   }
 }
@@ -64,7 +64,7 @@ drm_o3_mode <- function(beta, theta, sd, family, Xm, zm, ym, trials, u0 = 0) {
     if (abs(step) < 1e-9) break
   }
   if (!ok) {
-    f <- function(uu) -(cll(uu) + dnorm(uu, 0, sd, log = TRUE))
+    f <- function(uu) -(cll(uu) + stats::dnorm(uu, 0, sd, log = TRUE))
     u <- stats::optimize(f, c(-8 * sd, 8 * sd), tol = 1e-9)$minimum
   }
   f0 <- cll(u); fp <- cll(u + h); fm <- cll(u - h)
@@ -85,7 +85,7 @@ drm_o3_marginal_ll <- function(beta, theta, sd, family, X, z, y, group_idx, tria
     zz <- m$uhat + sqrt(2) * m$tau * nodes$x
     logh <- vapply(zz, function(uu)
       drm_o3_cluster_ll(uu, beta, theta, family, X[idx, , drop = FALSE], z[idx], y[idx], trials[idx]) +
-        dnorm(uu, 0, sd, log = TRUE), numeric(1))
+        stats::dnorm(uu, 0, sd, log = TRUE), numeric(1))
     a <- log(nodes$w) + nodes$x^2 + logh
     Mx <- max(a)
     tot <- tot + log(sqrt(2) * m$tau) + Mx + log(sum(exp(a - Mx)))

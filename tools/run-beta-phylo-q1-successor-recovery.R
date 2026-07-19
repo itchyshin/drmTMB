@@ -63,10 +63,11 @@ successor_rng_kind <- function() {
 successor_sha256 <- function(path) {
   sha256sum <- Sys.which("sha256sum")
   shasum <- Sys.which("shasum")
+  quoted_path <- shQuote(path)
   output <- if (nzchar(sha256sum)) {
-    system2(sha256sum, path, stdout = TRUE, stderr = TRUE)
+    system2(sha256sum, quoted_path, stdout = TRUE, stderr = TRUE)
   } else if (nzchar(shasum)) {
-    system2(shasum, c("-a", "256", path), stdout = TRUE, stderr = TRUE)
+    system2(shasum, c("-a", "256", quoted_path), stdout = TRUE, stderr = TRUE)
   } else {
     stop(
       "A SHA-256 command is required for frozen-design authentication.",

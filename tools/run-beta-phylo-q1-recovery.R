@@ -333,9 +333,10 @@ repair_seed_audit <- function(grid, repo_root, mode) {
 }
 
 sha256_file <- function(path) {
+  quoted_path <- shQuote(path)
   sha256sum <- Sys.which("sha256sum")
   if (nzchar(sha256sum)) {
-    output <- system2(sha256sum, path, stdout = TRUE, stderr = TRUE)
+    output <- system2(sha256sum, quoted_path, stdout = TRUE, stderr = TRUE)
     status <- attr(output, "status") %||% 0L
     if (identical(status, 0L) && length(output)) {
       return(strsplit(output[[1L]], "[[:space:]]+")[[1L]][[1L]])
@@ -345,7 +346,7 @@ sha256_file <- function(path) {
   if (nzchar(shasum)) {
     output <- system2(
       shasum,
-      c("-a", "256", path),
+      c("-a", "256", quoted_path),
       stdout = TRUE,
       stderr = TRUE
     )
