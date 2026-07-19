@@ -410,8 +410,11 @@ current DRM.jl default for each admitted model cell, reports the result on
 
 Once one of these admitted cells runs, see
 [Cross-family bivariate models with the Julia engine](cross-family.html) for
-the mixed-family route the bridge also supports: two responses from different
-distribution families sharing one latent-scale correlation.
+the mixed-family route the bridge can also reach: two responses from different
+distribution families sharing one latent-scale correlation. That route is
+experimental at recovery grade and needs a separate DRM.jl checkout the default
+install does not provide, so read its opening status note before relying on a
+fit from it.
 
 ## Plot Julia-engine fits with ggplot2
 

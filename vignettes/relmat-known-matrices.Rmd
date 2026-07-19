@@ -161,9 +161,9 @@ matrix belongs to the meta-analysis route with `meta_V(V = V)`.
 ## When is `relmat()` the right tool?
 
 Use `relmat()` only after the named biological or spatial route is not the
-better description. Read the [structural-dependence
-overview](structural-dependence.html) first if you are still choosing among
-`animal()`, `phylo()`, `spatial()`, and `relmat()`.
+better description. It is the general fallback for a matrix you already have,
+so reach for it once the [structural-dependence
+overview](structural-dependence.html) has ruled out the named routes.
 
 | Situation | Use | Why |
 | --- | --- | --- |
