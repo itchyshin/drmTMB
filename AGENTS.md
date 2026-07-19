@@ -16,7 +16,7 @@ regression using Template Model Builder.
 > manifests, Fir provenance/dispatch package, and 242 focused expectations. Final local
 > `devtools::check()` is 0 errors / 0 warnings / 0 actionable notes; pkgdown, ledger 37/37, Mission
 > Control, and after-task validation are green. **No Arc 4c fit, Fir compile, smoke, array, ledger
-> mutation, or promotion has run.** Next: approve/open PR A, let the maintainer merge it, verify the
+> mutation, or promotion has run.** Draft PR **#797** is open. Next: pass CI, let the maintainer merge it, verify the
 > exact `origin/main` merge SHA, then STOP for Shinichi's separate Gate A compute approval. START HERE:
 > [`docs/dev-log/handover/2026-07-19-arc4c-pr-a-compute-gate.md`](docs/dev-log/handover/2026-07-19-arc4c-pr-a-compute-gate.md)
 >

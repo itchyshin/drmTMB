@@ -1,10 +1,10 @@
-# Session Handoff: Arc 4c PR A complete; draft PR and compute gate pending
+# Session Handoff: Arc 4c PR A open; CI, merge, and compute gate pending
 
 Meta: 2026-07-19 · from Codex · PR-A infrastructure closeout
 
 ## Critical Context
 
-Arc 4c PR-A infrastructure is implemented, locally verified, committed, and pushed on `codex/arc4c-mu-slope-coverage-infra` at `2de2ba67`. No Arc 4c model fit, Fir compile, smoke, array, campaign result, or ledger promotion has run. The next two gates are distinct: first create/review/merge PR A and verify its exact `origin/main` merge SHA; then obtain Shinichi's explicit Gate A compute approval.
+Arc 4c PR-A infrastructure is implemented, locally verified, and open as draft PR #797 from `codex/arc4c-mu-slope-coverage-infra`. No Arc 4c model fit, Fir compile, smoke, array, campaign result, or ledger promotion has run. The next two gates are distinct: first pass CI, let the maintainer merge PR A, and verify its exact `origin/main` merge SHA; then obtain Shinichi's explicit Gate A compute approval.
 
 ## What Was Accomplished
 
@@ -16,8 +16,8 @@ Arc 4c PR-A infrastructure is implemented, locally verified, committed, and push
 
 ## Current Working State
 
-- Working: branch `codex/arc4c-mu-slope-coverage-infra`, pushed at `2de2ba67`; clean isolated worktree.
-- In progress: draft-PR title/body preview and maintainer approval to publish the PR.
+- Working: branch `codex/arc4c-mu-slope-coverage-infra`; draft PR #797 is open from the clean isolated worktree.
+- In progress: ordinary package/docs CI and maintainer review.
 - Not working / blocked: every fit-based Arc 4c action is blocked until PR A merges and Shinichi separately approves Gate A.
 
 ## Key Decisions & Rationale
@@ -34,21 +34,20 @@ The handoff gate found the active branch clean and pushed, but also reported 360
 
 | Artifact / branch | Committed | Pushed | PR | State |
 |---|---|---|---|---|
-| `drmTMB` `codex/arc4c-mu-slope-coverage-infra` `2de2ba67` | yes | yes | none; preview approval pending | CARRIED-OVER |
+| `drmTMB` `codex/arc4c-mu-slope-coverage-infra` | yes | yes | #797 draft | CARRIED-OVER |
 
-`CARRIED-OVER` because PR publication requires the maintainer-approved preview and compute requires a later, separate approval. Resume with `cd '/Users/z3437171/Dropbox/Github Local/drmTMB-wt-arc4c-infra' && git fetch origin --prune && git status --short --branch`.
+`CARRIED-OVER` because PR #797 still needs green CI and maintainer merge, while compute requires a later, separate approval. Resume with `cd '/Users/z3437171/Dropbox/Github Local/drmTMB-wt-arc4c-infra' && git fetch origin --prune && git status --short --branch`.
 
 ## Next Immediate Steps
 
-1. Approve or revise the proposed draft-PR title and body.
-2. Open the draft PR to `main`, monitor ordinary package/docs CI, repair any genuine failures, then mark it ready for maintainer review. Do not merge it as Codex.
-3. After the maintainer merges, fetch and verify the exact merge SHA on `origin/main` and use a fresh `/project` clone at that SHA.
-4. Stop and request explicit Gate A compute approval for the frozen twelve N=1 smokes and mechanically selected full array.
-5. Only after approval, run preflight and smoke; apply the frozen selection rule without judgment calls.
+1. Monitor PR #797's ordinary package/docs CI and repair any genuine failures, then mark it ready for maintainer review. Do not merge it as Codex.
+2. After the maintainer merges, fetch and verify the exact merge SHA on `origin/main` and use a fresh `/project` clone at that SHA.
+3. Stop and request explicit Gate A compute approval for the frozen twelve N=1 smokes and mechanically selected full array.
+4. Only after approval, run preflight and smoke; apply the frozen selection rule without judgment calls.
 
 ## Blockers / Open Questions
 
-- PR A has not yet been created because its publication preview awaits explicit approval.
+- PR #797 is open but not yet merged.
 - Compute approval has not been granted and cannot be inferred from PR-A implementation approval.
 - Fir runtime/RSS and family-specific profile behavior remain unknown until the approved smoke.
 
