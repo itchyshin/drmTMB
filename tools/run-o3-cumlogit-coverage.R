@@ -74,6 +74,7 @@ for (M in MS) {
   summ[[as.character(M)]] <- data.frame(
     M = M, n = nrow(raw), n_scored = nsc, n_fail = sum(raw$fail),
     profile_finite_rate = fin_rate, one_sided = sum(sc$one_sided),
+    one_sided_hit = sum(sc$one_sided & sc$hit),   # gate-spec S4.1 pre-registered audit quantity
     coverage = cov, ci_lo = ci[1], ci_hi = ci[2], mcse = mcse,
     truth_above = sum(sc$above), truth_below = sum(sc$below),
     mean_sd = mean(raw$sd, na.rm = TRUE), rel_bias = mean(raw$sd, na.rm = TRUE) / TRUTH - 1,
