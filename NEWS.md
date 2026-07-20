@@ -1,4 +1,4 @@
-# drmTMB 0.6.0 (development)
+# drmTMB 0.6.0
 
 ## Reader-facing plotting surface complete (issue #58)
 
