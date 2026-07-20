@@ -1,4 +1,4 @@
-# Handover (2026-07-20): drmTMB 0.6.0 CRAN RC gate — S1–S5 DONE (through G3), resume at S6
+# Handover (2026-07-20): drmTMB 0.6.0 CRAN RC gate — S1–S7 DONE, gate GREEN at tarball-clean, resume at S8
 
 > **⏩ UPDATE (this handover superseded its own S3→G3 scope — read this block first).**
 > **S1, S2, S3, S4, S5 are all DONE and pushed** to `origin/claude/release-0.6.0-cran-rc` (9 commits ahead
@@ -24,12 +24,18 @@
 > `afd4600a86830451ea87971012929c7219b19fa9577c07c59485efc6c0a921f7` · 6,979,868 bytes · 825 entries ·
 > forbidden-path scan CLEAN (no .git/scratchpad/docs/dev-log). Check log: `~/worktrees/drmTMB-rc-check.log`;
 > UBSAN log: `~/worktrees/drmTMB-rc-ubsan.log`; build/tarball in `~/worktrees/drmTMB-final/`.
-> **RESUME AT S7:** copy the tarball to an immutable hash-dir; author the ledger JSON (template at
-> `~/shinichi-brain/protocols/cran-release-ledger.template.json`; set profile compiled_code=true,
-> system_or_external_services=true [JuliaCall], first_submission; status_claim="tarball-clean"; the platform
-> matrix stays NOT_APPLICABLE/next-gate); run `python3 ~/shinichi-brain/tools/cran_release_gate.py <ledger>`;
-> temp-lib install smoke. Then S8 D-43 panel (Grace/Rose/Pat on the frozen artifact) → S9 rung report +
-> manifest 7-field self-check + after-task → S10 RC PR (PAUSE at G4). The S3→G3 checklist below is HISTORY.
+> **S7 DONE (2026-07-20).** Tarball frozen to the immutable hash-dir
+> `~/worktrees/drmTMB-rc-frozen/afd4600a86830451/` (tarball + tarball-inventory.txt + local-as-cran-check.log
+> + local-ubsan.log + install-smoke.log). Ledger authored:
+> `docs/dev-log/release-audits/2026-07-20-0.6.0-cran-rc-ledger.json` (profile compiled_code=true,
+> system_or_external_services=true, large_data_or_vignettes=true; status_claim=`tarball-clean`;
+> `current_cran_policy` → dated consult note `2026-07-20-cran-policy-consult.md`). **`cran_release_gate.py`
+> = READY FOR CLAIMED RUNG (tarball-clean).** Install smoke PASSED. `panel.*`=PENDING until S8.
+> **RESUME AT S8:** the D-43 panel (Grace/Rose/Pat on the frozen artifact; default NOT-READY, two NOT-READY
+> withhold; fill the ledger panel votes) → S9 rung report + manifest 7-field self-check + after-task →
+> S10 RC PR (PAUSE at G4). The S3→G3 checklist below, and the S7 recipe just above, are HISTORY.
+> **Live resume pointer:** `~/shinichi-brain/docs/release/drmTMB_final-LOOP/checkpoint.md`
+> (read GOAL.md → checkpoint.md → ultra-plan.md; loop-context-hygiene skill).
 >
 > **G2 follow-up issues to file (Shinichi APPROVED the "→ issues" disposition; file at the GitHub-edit gate):**
 > (1) function-level figure-accessibility defaults (viridis in `centile_chart()`, subtitle wrapping in
