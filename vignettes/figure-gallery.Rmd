@@ -628,13 +628,16 @@ location-scale model can produce a convincing `mu` surface while getting the
 shape of the residual distribution wrong, and no amount of looking at fitted
 means will reveal it.
 
-`worm_plot()` and `qq_plot()` both work from randomised quantile residuals, so
-they apply to any family the package fits, not only Gaussian ones. A worm plot
-is a detrended QQ plot: it draws the deviation of each ordered residual from
-its theoretical quantile, a dotted zero reference, and a smoothed trend through
-the points. Under an adequate model that trend stays close to zero, so
-departures read as shape rather than as a diagonal line. The plot draws no
-pointwise envelope, so read the trend qualitatively rather than as a test.
+`worm_plot()` and `qq_plot()` both work from randomised quantile residuals
+(Dunn & Smyth, 1996), which are standard normal under a correctly specified
+model of any family, so these diagnostics apply beyond the Gaussian case — see
+[Distributional outputs and adequacy](distributional-outputs-and-adequacy.html)
+for the residual definition. A worm plot is a detrended QQ plot: it draws the
+deviation of each ordered residual from its theoretical quantile, a dotted zero
+reference, and a smoothed trend through the points. Under an adequate model that
+trend stays close to zero, so departures read as shape rather than as a diagonal
+line. The plot draws no pointwise envelope, so read the trend qualitatively
+rather than as a test.
 
 A diagnostic figure is only informative when the reader can see what a failure
 looks like, so this pair uses the same data twice. The first fit is the
@@ -674,20 +677,24 @@ sit. A tail excursion in a plot of this size is weak evidence, and neither
 panel draws an envelope that would tell you how weak.
 
 `qq_plot()` shows the same residuals without detrending. It is the more
-familiar display and the less sensitive one: departures that the worm plot
-makes obvious can look milder against a straight reference line.
+familiar display and the less sensitive one: the same mild upper-tail departure
+that the worm plot draws as a downward drift appears here only as a gentle bow
+above the identity line, easy to miss against a straight reference.
 
-```{r qq-plot-adequate, fig.width=7.4, fig.height=4.4, fig.cap="QQ plot of randomised quantile residuals for the correctly specified model; the reference is the identity line, not a fitted line.", fig.alt="Quantile-quantile plot of randomised quantile residuals for the correctly specified growth model, with points following the identity reference line across the range."}
+```{r qq-plot-adequate, fig.width=7.4, fig.height=4.4, fig.cap="QQ plot of randomised quantile residuals for the correctly specified model; points sit close to the identity reference through the bulk and bow mildly above it in the upper tail. The reference is the identity line, not a fitted line.", fig.alt="Quantile-quantile plot of randomised quantile residuals for the correctly specified growth model, with points close to the identity reference line through the centre and a mild bow above the line in the upper-right tail."}
 wrap_subtitle(qq_plot(fit_growth)) +
   theme_drmtmb_gallery()
 ```
 
 `centile_chart()` answers a different question again. Rather than asking
 whether the distribution is adequate, it shows what the fitted distribution
-implies for an individual observation: conditional centiles across a covariate,
-in the units the reader measured. For a location-scale model the centiles fan
-out where `sigma` is larger, which is the feature a mean-only model cannot
-represent.
+implies for an individual observation: conditional centiles (percentiles)
+across a covariate, in the units the reader measured. For a location-scale
+model the centiles fan out where `sigma` is larger, which is the feature a
+mean-only model cannot represent. Read biologically, the plot says an
+individual fish's plausible growth range is wider at high temperature even
+though the average trend rises smoothly — the spread, not just the mean,
+carries signal.
 
 ```{r centile-chart-growth, fig.width=7.4, fig.height=4.4, fig.cap="Fitted conditional centiles of growth across temperature; the spread between centiles widens where the fitted residual SD is larger.", fig.alt="Centile chart showing fitted conditional growth centiles across temperature, where the centile lines separate more widely towards higher temperatures because the fitted residual standard deviation increases."}
 wrap_subtitle(centile_chart(fit_growth, covariate = "temperature")) +
@@ -714,9 +721,21 @@ is doubtful — small samples, variance and correlation parameters, anything nea
 a boundary — the honest move is to look at the likelihood itself rather than at
 a quadratic stand-in.
 
-`profile()` computes the curve and `plot()` draws it. The target below is the
-temperature effect on the log residual SD: a scale-side parameter, where the
-quadratic assumption is least comfortable.
+`profile()` computes the curve and `plot()` draws it. First ask the fit which
+parameters can be profiled and under what names, because a distributional model
+has several parameters that could each be called "the temperature effect":
+
+```{r profile-targets-list}
+head(profile_targets(fit_growth), 8)
+```
+
+The target strings are explicit, such as `fixef:sigma:temperature`. The one
+below is the temperature effect on the log residual SD: a scale-side parameter,
+where the quadratic Wald assumption is least comfortable. `profile_precision =
+"fast"` coarsens the step controls of the underlying `TMB::tmbprofile()` curve;
+it is fine for a figure like this, but drop it for a publication interval where
+the exact endpoint matters (see
+[Model workflow](model-workflow.html) for the precision trade-off).
 
 ```{r profile-curve-sigma-slope, fig.width=7.4, fig.height=4.4, fig.cap="Profile-likelihood curve for the temperature effect on log residual SD, with the 95% profile interval marked; the limits are read from the curve rather than assumed symmetric.", fig.alt="Profile likelihood curve for the sigma temperature slope showing the objective rising away from the maximum, with the lower and upper limits of the 95 percent profile confidence interval marked."}
 prof_sigma_slope <- profile(
@@ -729,12 +748,8 @@ wrap_subtitle(plot(prof_sigma_slope)) +
   theme_drmtmb_gallery()
 ```
 
-Use `profile_targets()` to see which parameters can be profiled and under what
-names. The target strings are explicit, such as `fixef:sigma:temperature`,
-because a distributional model has several parameters that could each be called
-"the temperature effect". A near-symmetric curve is the reassuring case: it
-means the Wald interval for that parameter was not misleading. Asymmetry is the
-finding worth reporting.
+A near-symmetric curve is the reassuring case: it means the Wald interval for
+that parameter was not misleading. Asymmetry is the finding worth reporting.
 
 ## Random-effect and variance-component figures
 
@@ -1820,8 +1835,9 @@ interval below is a profile-likelihood interval, so `conf.status` and
 The fit uses a constant residual correlation, `rho12 ~ 1`. That is deliberate:
 when `rho12` is modelled as a regression, `corpairs(conf.int = TRUE)` reports
 `conf.status = "newdata_required"` and returns no bounds, because there is no
-single scalar correlation to profile. A constant-correlation model is currently
-the route to a fitted correlation interval.
+single scalar correlation to profile. If you need a computed interval for a
+residual correlation, refit with `rho12 ~ 1`; a regression on `rho12` gives a
+point estimate per covariate value but no interval in this release.
 
 ```{r corpairs-fitted, fig.width=7.4, fig.height=2.1, fig.cap="Fitted residual correlation from `corpairs()` with its profile-likelihood interval, drawn by `plot_corpairs()`; this row is computed from a model in this document.", fig.alt="Confidence Eye row for the fitted residual rho12 correlation from a constant-correlation bivariate model, showing the point estimate as a hollow circle inside a pale profile confidence region that excludes zero."}
 fit_pair_const <- drmTMB(
@@ -2474,8 +2490,8 @@ gallery_source_map <- data.frame(
     "No intervals; observed magnitudes against a fitted curve",
     "Wald regions on the fitted parameter scale",
     "Wald intervals from each fitted parameter table",
-    "No intervals; simulated envelope only",
-    "No intervals; simulated envelope only",
+    "No intervals; qualitative trend only",
+    "No intervals; qualitative trend only",
     "No intervals; identity reference line",
     "No intervals; fitted conditional quantiles only",
     "Profile-likelihood interval read from the curve",
