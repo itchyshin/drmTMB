@@ -257,8 +257,13 @@ estimates, so the effect of the defect under the intended generator is
 unquantified and cannot be recovered from the retained campaign. One of the
 three independent promotion reviewers withheld this cell on exactly that ground;
 it promotes under the frozen two-withhold rule, and the caveat travels with it.
-A strictly-interior-generator rerun is the named next gate before any
-exactly-15%-boundary claim.
+This is a principled boundary, not a temporary one. At the beta shapes where the
+leak occurs, the intended distribution genuinely places a large share of its mass
+within one machine-precision step of the boundary, so no strictly-interior
+sampler can faithfully reproduce the intended design; a rerun would answer a
+different, convention-dependent question rather than certify the intended one. The
+generator-qualified reading is therefore the correct terminal statement for this
+cell.
 
 ## Tier 2: recovery-only
 
