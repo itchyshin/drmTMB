@@ -1,5 +1,18 @@
 # drmTMB 0.6.0 (development)
 
+## Reader-facing plotting surface complete (issue #58)
+
+* The figure gallery now demonstrates all six public plotting functions.
+  Alongside the existing `plot_parameter_surface()`, it adds worked examples of
+  `worm_plot()` and `qq_plot()` (on a correctly specified fit paired with a
+  deliberately mis-specified one, so a reader can see what misfit looks like),
+  `centile_chart()`, `plot.profile.drmTMB()` via `profile()`, and a fitted
+  `plot_corpairs()` correlation row with a computed profile interval.
+* The gallery's hand-typed illustrative figures now declare themselves as
+  fixtures in their own titles, not only in captions, so a screenshot cannot be
+  mistaken for a fitted result. A long-standing inverted axis label on the
+  simulation bias panel is corrected. Documentation only; no code change.
+
 ## Arc 4c ordinary `mu` random-slope profile coverage
 
 * The exact independent `mu` random-slope cells for `skew_normal()`

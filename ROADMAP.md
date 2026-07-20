@@ -106,9 +106,14 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version and release status
 
-- Current version: **`0.5.0`** — the **first CRAN release**, tagged `v0.5.0` and
-  merged to `main` (DESCRIPTION `Version: 0.5.0`). CRAN upload is the maintainer's
-  call; `1.0` is the later maturity milestone, not this release.
+- Current development version: **`0.6.0.9000`** (DESCRIPTION `Version:
+  0.6.0.9000`; NEWS heads `drmTMB 0.6.0 (development)`). The pkgdown site is built
+  from this line.
+- Latest tagged release: **`v0.5.0`** — the first CRAN-numbered release, tagged
+  and merged to `main`. It remains the recommended stable install (`v0.6.0` is
+  not yet tagged). CRAN upload is the maintainer's call; `1.0` is the later
+  maturity milestone, not this release. The in-development line targets a
+  `0.6.0`-class cut, per the versioning decision above.
 - Meaning of `0.1.3`: a preview that keeps the `0.1.2` profile-inference,
   tutorial, and roadmap hardening, then adds the current structured Gaussian
   first slices, `meta_V(V = V)` known-covariance syntax, non-Gaussian first
@@ -1384,8 +1389,13 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 17: Visualization, Marginal Effects, and Reader-Facing Inference
 
-- Status: planned; initial long-format prediction surfaces exist through
-  `prediction_grid()`, `predict_parameters()`, and `marginal_parameters()`.
+- Status: reader-facing plotting delivered (issue #58 closed by PR #801). The
+  figure gallery now demonstrates all six public plotting functions
+  (`plot_parameter_surface`, `worm_plot`, `qq_plot`, `centile_chart`,
+  `plot_corpairs`, `plot.profile.drmTMB`), and long-format prediction surfaces
+  exist through `prediction_grid()`, `predict_parameters()`, and
+  `marginal_parameters()`. Simulation-output plotting contracts remain tracked
+  under Phase 18 (issue #59).
 - Slice 100 research note:
   `docs/design/39-visualization-grammar.md` records the external lessons from
   `ggplot2`, `tidybayes`, `ggdist`, `emmeans`, `ggeffects`,
@@ -2624,7 +2634,12 @@ as the whole comprehensive simulation programme.
 
 ## Phase 20: CRAN Release and Paper Preparation
 
-- Status: planned.
+- Status: planned. The 0.6.0 capability truth-freeze (this arc) reconciles the
+  public claim surfaces and produces the durable release-scope manifest at
+  `docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md`, which
+  enumerates what 0.6.0 promises, what is implemented-but-not-certified, and what
+  is deferred with its owning issue. Issue #61 tracks the Phase 20 gate list
+  populated from that manifest.
 - Harden the package for CRAN with platform checks, dependency review, examples,
   vignettes, pkgdown, NEWS, reverse-dependency awareness where relevant, and a
   final implemented-versus-planned audit.
