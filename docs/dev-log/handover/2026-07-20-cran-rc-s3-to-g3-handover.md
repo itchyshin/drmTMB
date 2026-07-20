@@ -1,4 +1,26 @@
-# Handover (2026-07-20): drmTMB 0.6.0 CRAN RC gate — S1+S2 DONE, resume at S3 → pause at G3
+# Handover (2026-07-20): drmTMB 0.6.0 CRAN RC gate — S1–S5 DONE (through G3), resume at S6
+
+> **⏩ UPDATE (this handover superseded its own S3→G3 scope — read this block first).**
+> **S1, S2, S3, S4, S5 are all DONE and pushed** to `origin/claude/release-0.6.0-cran-rc` (9 commits ahead
+> of `origin/main`). **G3 was approved by Shinichi and the version is bumped to `0.6.0`** (commit
+> `091d0a13`: DESCRIPTION `0.6.0.9000`→`0.6.0`, NEWS heading, `_pkgdown` banner, README preview-status).
+> **S3 is complete**: doc-edits (`@seealso`, `\examples` verified), `check_pkgdown` clean, `urlcheck`
+> (1 confirmed-false-positive DOI), **`build_site` clean**, and a **4-lens rendered inspection** (report:
+> `docs/dev-log/figure-audits/2026-07-20-0.6.0-rc/rc-inspection-report.md`) that found **NO CRAN blocker**.
+> Shinichi's decision was "small fixes now, rest → issues": **DONE** — the adequacy vignette got a
+> colour-blind-safe viridis centile palette, a hedged worm-plot alt-text (honesty), and `fig.width` 6.4→7.4
+> (re-rendered + PNG-verified: viridis correct, centile subtitle now wraps; the worm/qq single-line subtitle
+> still clips at the tail — cosmetic, → the function-level follow-up issue).
+> **RESUME AT S6** (the `--as-cran` + local-UBSAN build; details in the S5→S10 section below). The S3→G3
+> checklist further down is now HISTORY.
+>
+> **G2 follow-up issues to file (Shinichi APPROVED the "→ issues" disposition; file at the GitHub-edit gate):**
+> (1) function-level figure-accessibility defaults (viridis in `centile_chart()`, subtitle wrapping in
+> `worm_plot()`/`qq_plot()`) — the root cause of F1/F4; (2) `coef.drmTMB` documentation/reference page;
+> (3) `animal-models` vignette heritability h² + table-after-example; (4) the **Julia xfam** extractor gap —
+> **draft ready at `scratchpad/xfam-extractor-issue-draft.md`**; (5) the README "Stable-core matrix"
+> plain-language trim (the top reader-quality finding, deferred by decision). Plus the pre-existing G2 items:
+> the `phase18-simulation-grid.yaml` D-50 workflow, #59 body edit, #61 populate, #710.2 documentation.
 
 You are the continuing **drmTMB_final** Claude lane running the Phase-20 CRAN release-**candidate** gate.
 This doc stands alone. Read `AGENTS.md`, then this, then the full ultra-plan at
@@ -61,6 +83,34 @@ platform matrix (win-builder/R-hub/valgrind/rchk) + CRAN submission are the decl
   ML, no point-bias/Wald claim). **Carry the mc-0575 2-1 promotion split (Noether WITHHELD) into S9's rung
   report.** One pre-existing cosmetic nit: manifest §6 "Remaining" sub-list restarts at `4.`/`5.` (dup of the
   `4.` at line 207) — optional S9 cleanup, non-blocking. **S4 need not be re-run.**
+
+## S3 PROGRESS (this session — much is already DONE + committed)
+
+Committed + pushed on the RC branch (4 commits ahead of `origin/main`, HEAD `52007f50`):
+- **`@seealso`** from `confint()`/`summary()` → the capability-and-limits tier table (`document()` regenerated
+  the 2 Rd; diff was exactly those two).
+- **`\examples`** added to `imputed()`, `drm_phylo_penalty()`, `drm_phylo_penalty_sweep()` — the only three
+  exports lacking them. **Verified running** (imputed 0.1s; penalty ~0s; sweep `\donttest` real-fits 0.2s,
+  both `convergence=0`/`pdHess=TRUE`). `checkRd` = **0 problems** on all three.
+- Package **reinstalled** (`0.6.0.9000`) so the built site reflects the new Rd.
+
+Checks run this session:
+- `pkgdown::check_pkgdown()` → **✔ No problems.**
+- `urlchecker::url_check()` → 28/29 clean; ONE flag: `vignettes/figure-gallery.Rmd:382` DOI
+  `10.1198/0003130032369` returns **403** — the standard doi.org bot-block false-positive (record it in the
+  rung report as a known 403-DOI, not a broken link; a valid DOI is the canonical citation).
+- The 22 `drmTMB_julia`/`_xfam` S3 methods with no Rd are **legal** (S3method-registered, not exported → no
+  R CMD check NOTE); scope = report only, no action.
+- **`docs/` plain-text refs** = 107 across 10 vignettes, but they are **contributor pointers in code spans**
+  (`docs/design/…`, `docs/dev-log/…`) in developer vignettes, not clickable 404s — assessed **acceptable**,
+  no blanket rewrite (a future cleanup could convert applied-user-facing ones to GitHub URLs).
+
+**IN FLIGHT:** `pkgdown::build_site(install = FALSE, preview = FALSE)` is RUNNING →
+`~/worktrees/drmTMB-rc-buildsite.log`. **REMAINING S3:** (1) READ that build log (never trust exit code);
+(2) inspect the rendered pages/figures + rendered home (README) + the figure uncertainty/colour-blind/caption
+checks + audience-readability + per-vignette timing (Windows multiplier) — best fanned out as a Workflow
+(Florence/Emmy/Pat/Darwin); (3) save a dated RC figure-audit under
+`docs/dev-log/figure-audits/2026-07-20-0.6.0-rc/`. Then S5 (G3).
 
 ## Resume at S3 — Documentation + pkgdown CAREFUL check (the review-derived checklist)
 
@@ -135,8 +185,11 @@ rung discipline — never "ready").
 ## Resume command
 
 ```
-Rehydrate from docs/dev-log/handover/2026-07-20-cran-rc-s3-to-g3-handover.md + the plan at
-~/.claude/plans/hidden-soaring-fern.md. Workspace ~/worktrees/drmTMB-final @ claude/release-0.6.0-cran-rc
-(pushed). S1+S2 done; land the carried-over R/ @seealso via devtools::document(), then run S3 (docs+pkgdown
-careful check per the checklist above), then PAUSE at G3 before the version bump.
+Rehydrate from docs/dev-log/handover/2026-07-20-cran-rc-s3-to-g3-handover.md (READ the ⏩ UPDATE block at
+the top) + the plan at ~/.claude/plans/hidden-soaring-fern.md. Workspace ~/worktrees/drmTMB-final @
+claude/release-0.6.0-cran-rc (pushed, 9 commits ahead; version already bumped to 0.6.0). S1–S5 done
+through G3. RESUME AT S6: R CMD INSTALL . (prove namespace==HEAD), then the --as-cran build with NOT_CRAN
+unset/false + the lane-proof (exact invert-filter test count + heavy-test presence/absence) + cran-extrachecks
++ the LOCAL clang-UBSAN probe of the six src/drmTMB.cpp casts (see the S6 line below); then S7 freeze → S8
+D-43 panel → S9 rung report → S10 RC PR. PAUSE at G4 before merging the PR.
 ```
