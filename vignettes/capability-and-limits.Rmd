@@ -72,7 +72,7 @@ fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 | binomial / Poisson / beta / nbinom2 unstructured `mu` | Inference-ready | Point estimate and Wald interval from `n` &gt;= 50 |
 | nbinom2 unstructured location-scale (`mu` and `sigma ~ x`) | Inference-ready | Point estimate and Wald interval on both formulas |
 | beta unstructured location-scale, interior proportions | Inference-ready | Point estimate and Wald interval; exact 0 or 1 needs `zero_one_beta()` instead |
-| Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, cumulative-logit, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | ML-Laplace profile interval for the natural-scale slope SD at the certified deployment floor `M >= 16` per family, each under its own recorded design; ML only, not `supported`, and no Wald or point-bias claim. Zero-one-beta is generator-qualified: its executed generator leaked rare machine-exact boundary values, so its coverage holds only for that generator (see the zero-one-beta caveat below), and cumulative-logit uses adaptive Gauss-Hermite with a Cox-Reid restricted likelihood |
+| Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, cumulative-logit, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | Profile interval for the natural-scale slope SD, ML only, not `supported`, no Wald or point-bias claim. The tested floor differs by family, so do not generalize one number: skew-normal / Tweedie / zero-one-beta at `M >= 16` (true SD 0.50, ML-Laplace); binomial at `M >= 32` (true SD 0.6, ML-Laplace); cumulative-logit at `M >= 40` (true SD 0.50, adaptive Gauss-Hermite + Cox-Reid). Zero-one-beta is generator-qualified (see the caveat below) |
 | Poisson / nbinom2 structured `mu` q1 -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only |
 | nbinom2 structured `sigma` -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only; scale-targeting bug fixed in 0.4.0 |
 | Row-specific recovery slices: beta `animal()` on `mu`/`sigma`, Student-t `mu ~ spatial(1 + x | ...)`, and Gamma `mu ~ relmat()` | Recovery-only | Point estimate only; no interval or coverage promotion |
@@ -233,13 +233,15 @@ around. If your proportions can legitimately sit at the boundary, fit
 Five non-Gaussian families now carry an inference-ready-with-caveats interval
 for the standard deviation of a single ordinary independent `mu` random slope,
 `(0 + x | id)`: binomial, cumulative-logit, skew-normal, Tweedie, and
-zero-one-beta. The claim is narrow and identical in shape across them: the
-ML-Laplace profile interval for the *natural-scale* slope SD, at a certified
-deployment floor of `M >= 16` groups, each family under its own recorded
-simulation design. These are ML only -- not REML -- and make no Wald-interval or
-point-bias claim. The cumulative-logit cell reaches this tier through adaptive
-Gauss-Hermite quadrature with a Cox-Reid restricted likelihood; the other four
-use the standard Laplace approximation.
+zero-one-beta. The claim is narrow and the same in shape across them -- a profile interval for
+the *natural-scale* slope SD, ML only, no Wald-interval or point-bias claim --
+but the tested floor and design differ by family and should not be generalized
+to a single number. Skew-normal, Tweedie, and zero-one-beta are certified at
+`M >= 16` groups (true slope SD 0.50) with the standard ML-Laplace profile.
+Binomial is certified at `M >= 32` (true SD 0.6). Cumulative-logit is certified
+at `M >= 40` (true SD 0.50) and reaches this tier through adaptive Gauss-Hermite
+quadrature with a Cox-Reid restricted likelihood rather than the Laplace
+approximation.
 
 Zero-one-beta carries an extra caveat and is **generator-qualified**. Its
 coverage campaign was designed with a fixed 15% structural boundary mass and
