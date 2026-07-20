@@ -1,0 +1,54 @@
+{
+  "package": "drmTMB",
+  "version": "0.6.0",
+  "release_type": "first_submission",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/drmTMB_0.6.0.tar.gz",
+    "sha256": "afd4600a86830451ea87971012929c7219b19fa9577c07c59485efc6c0a921f7",
+    "size_bytes": 6979868,
+    "source_commit": "091d0a134d0fd7e5af65119b10d81f1e4105e23e",
+    "clean_worktree": true,
+    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/tarball-inventory.txt"},
+    "forbidden_entries": []
+  },
+  "evidence": {
+    "product_contract": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md"},
+    "rights_and_consent": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/inst/COPYRIGHTS"},
+    "current_cran_policy": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-cran-policy-consult.md"},
+    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-as-cran-check.log"},
+    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-as-cran-check.log"},
+    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/install-smoke.log"},
+    "platform_matrix": {"kind": "rationale", "value": "NOT reached at the tarball-clean rung: the REMOTE platform matrix (win-builder R-release/R-devel; R-hub UBSAN/valgrind/rchk; 3-OS GH matrix) is the declared NEXT gate, out of this lane. A LOCAL clang-UBSAN probe WAS run (see compiled_diagnostics)."},
+    "external_logs": {"kind": "rationale", "value": "NOT_APPLICABLE at tarball-clean: no win-builder/R-hub submitted (next gate)."},
+    "rendered_site": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/figure-audits/2026-07-20-0.6.0-rc/rc-inspection-report.md"},
+    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-as-cran-check.log"},
+    "size_and_vignette_budget": {"kind": "rationale", "value": "Installed size 27.8Mb (libs 13.4Mb compiled TMB, doc 9.4Mb, sim 1.7Mb) -> expected size INFO/NOTE on CRAN machines, explained in cran-comments.md (intrinsic to TMB, cf. glmmTMB). Vignettes re-built locally in 78s; Windows timing to be confirmed at the platform-matrix gate."},
+    "reverse_dependencies": {"kind": "rationale", "value": "NOT_APPLICABLE: first submission, no reverse dependencies."},
+    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-ubsan.log"},
+    "external_service_behaviour": {"kind": "rationale", "value": "JuliaCall is Suggests-only, powering an optional engine='julia' back end; all invoking tests use skip_if_not_installed() and additionally require a local dev checkout of the not-yet-registered Julia package, so they skip on CRAN. Default/only required engine is the bundled TMB code."}
+  },
+  "panel": {
+    "grace": "PENDING",
+    "rose": "PENDING",
+    "pat": "PENDING"
+  },
+  "status_claim": "tarball-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  }
+}
