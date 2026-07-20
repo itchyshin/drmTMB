@@ -50,15 +50,18 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Preview status
 
-This site is built from the `0.5.0` development version. The package is still
-pre-CRAN and intentionally bounded: use it for the implemented one-response and
-two-response workflows listed below, and treat unsupported model classes as
-roadmap work rather than hidden features.
+This site is built from the `0.6.0` development version (`DESCRIPTION` reads
+`0.6.0.9000`). The latest tagged release is `v0.5.0`; `0.6.0` is the current
+development line and is not yet tagged or released. The package is still
+intentionally bounded: use it for the implemented one-response and two-response
+workflows listed below, and treat unsupported model classes as roadmap work
+rather than hidden features.
 
-The first CRAN release is numbered **0.5.0**, not 1.0 — an honest reflection
-that much of the family and inference surface is still scaffolded or
-recovery-grade. "v1.0" throughout the dev-log denotes the later
-complete-capability maturity milestone. The contributor-facing
+Release numbers stay deliberately conservative — `0.x`, not `1.0` — an honest
+reflection that much of the family and inference surface is still scaffolded or
+recovery-grade. The first tagged release was numbered **0.5.0**; the
+in-development line targets a `0.6.0`-class cut. "v1.0" throughout the dev-log
+denotes the later complete-capability maturity milestone. The contributor-facing
 [Q-Series release status](https://github.com/itchyshin/drmTMB/blob/main/docs/dev-log/release-audits/q-series-v1-release-status.md)
 ledger tracks that milestone: it separates implemented/basic-working Gaussian
 structured-effect rows and basic-distribution recovery rows from post-v1.0

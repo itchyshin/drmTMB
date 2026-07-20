@@ -72,6 +72,7 @@ fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 | binomial / Poisson / beta / nbinom2 unstructured `mu` | Inference-ready | Point estimate and Wald interval from `n` &gt;= 50 |
 | nbinom2 unstructured location-scale (`mu` and `sigma ~ x`) | Inference-ready | Point estimate and Wald interval on both formulas |
 | beta unstructured location-scale, interior proportions | Inference-ready | Point estimate and Wald interval; exact 0 or 1 needs `zero_one_beta()` instead |
+| Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, cumulative-logit, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | ML-Laplace profile interval for the natural-scale slope SD at the certified deployment floor `M >= 16` per family, each under its own recorded design; ML only, not `supported`, and no Wald or point-bias claim. Zero-one-beta is generator-qualified: its executed generator leaked rare machine-exact boundary values, so its coverage holds only for that generator (see the zero-one-beta caveat below), and cumulative-logit uses adaptive Gauss-Hermite with a Cox-Reid restricted likelihood |
 | Poisson / nbinom2 structured `mu` q1 -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only |
 | nbinom2 structured `sigma` -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only; scale-targeting bug fixed in 0.4.0 |
 | Row-specific recovery slices: beta `animal()` on `mu`/`sigma`, Student-t `mu ~ spatial(1 + x | ...)`, and Gamma `mu ~ relmat()` | Recovery-only | Point estimate only; no interval or coverage promotion |
@@ -226,6 +227,35 @@ proportion that arises naturally from rounding at extreme covariate
 values -- produces a non-finite result by design, not a bug to route
 around. If your proportions can legitimately sit at the boundary, fit
 `zero_one_beta()` instead of `beta()`.
+
+### Ordinary non-Gaussian random slopes: profile intervals with caveats
+
+Five non-Gaussian families now carry an inference-ready-with-caveats interval
+for the standard deviation of a single ordinary independent `mu` random slope,
+`(0 + x | id)`: binomial, cumulative-logit, skew-normal, Tweedie, and
+zero-one-beta. The claim is narrow and identical in shape across them: the
+ML-Laplace profile interval for the *natural-scale* slope SD, at a certified
+deployment floor of `M >= 16` groups, each family under its own recorded
+simulation design. These are ML only -- not REML -- and make no Wald-interval or
+point-bias claim. The cumulative-logit cell reaches this tier through adaptive
+Gauss-Hermite quadrature with a Cox-Reid restricted likelihood; the other four
+use the standard Laplace approximation.
+
+Zero-one-beta carries an extra caveat and is **generator-qualified**. Its
+coverage campaign was designed with a fixed 15% structural boundary mass and
+interior draws from a beta density, but the interior draws leaked rare
+machine-exact ones -- 50, 87, and 193 of them across the `M = 16`, `32`, and
+`64` replicate banks -- because the sampler's precision parameter pushes the
+beta shape toward a boundary in the upper tail. The reported coverage (0.929,
+0.940, 0.952 at `M = 16 / 32 / 64`) therefore describes *the generator as
+executed*, not an exactly-15%-boundary design. The leak is not independent of
+the estimand: affected replicates carry systematically larger slope-SD
+estimates, so the effect of the defect under the intended generator is
+unquantified and cannot be recovered from the retained campaign. One of the
+three independent promotion reviewers withheld this cell on exactly that ground;
+it promotes under the frozen two-withhold rule, and the caveat travels with it.
+A strictly-interior-generator rerun is the named next gate before any
+exactly-15%-boundary claim.
 
 ## Tier 2: recovery-only
 
