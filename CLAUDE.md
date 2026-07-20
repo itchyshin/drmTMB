@@ -66,13 +66,20 @@ bf(
 the same team Codex uses. The job-function agents are `tmb_engineer`/Gauss,
 `simulation_tester`/Curie, `systems_auditor`/Rose,
 `reproducibility_engineer`/Grace, `landscape_scout`/Jason, `user_tester`/Pat,
-`reviewer`, `documentation_writer`, `pkgdown_editor`, and `literature_curator`.
+`figure_design_engineer`/Tufte, `reviewer`, `documentation_writer`,
+`pkgdown_editor`, and `literature_curator`.
 The review-only standing perspectives also have files: `integration_reviewer`/Ada,
 `formula_reviewer`/Boole, `math_consistency_reviewer`/Noether,
 `audience_reviewer`/Darwin, `figure_reviewer`/Florence,
 `architecture_reviewer`/Emmy, and `inference_reviewer`/Fisher. The instruction
 bodies are copied verbatim from the Codex TOMLs. When you add an agent or change
 its instructions, update both directories so the two runtimes stay in sync.
+
+Figures use both roles, not one. `figure_design_engineer`/Tufte **makes** the
+figure and self-checks it by rendering, opening the PNG, and fixing what only
+shows after rendering. `figure_reviewer`/Florence is the **independent QA** on
+the finished render. Tufte is the agent chartered to actually look at the image;
+do not assign the render-and-inspect loop to Florence alone.
 
 ## Reusing gllvmTMB Code
 
