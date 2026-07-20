@@ -11,8 +11,25 @@
 > colour-blind-safe viridis centile palette, a hedged worm-plot alt-text (honesty), and `fig.width` 6.4→7.4
 > (re-rendered + PNG-verified: viridis correct, centile subtitle now wraps; the worm/qq single-line subtitle
 > still clips at the tail — cosmetic, → the function-level follow-up issue).
-> **RESUME AT S6** (the `--as-cran` + local-UBSAN build; details in the S5→S10 section below). The S3→G3
-> checklist further down is now HISTORY.
+> **S6 DONE (2026-07-20, CLEAN).** `--as-cran` on `drmTMB_0.6.0.tar.gz` = **0 errors / 0 warnings / 1 NOTE**
+> (new-submission only; + a 27.8 Mb installed-size INFO — mostly `libs` 13.4 Mb compiled TMB, `doc` 9.4 Mb,
+> `sim` 1.7 Mb; explained in cran-comments). **CRAN lane PROVEN**: `drmTMB.Rcheck/tests/testthat.Rout` ran the
+> `phase18|structured-re-conversion-contracts` filter (invert) → **`FAIL 0 | WARN 52 | SKIP 122 | PASS 12011`**,
+> well below the 39,466 full-run baseline (heavy tests excluded). Examples OK; vignettes rebuilt 78s (no timing
+> risk). **Local clang-UBSAN probe CLEAN**: **0 runtime errors, 0 on `drmTMB.cpp`** — the six `(int)asDouble()`
+> casts (1197/1301/1648/3241/3784/3856) do NOT trigger the NaN→int UB that blocked 0.5.0, across MI/ordinal/
+> count/beta-binomial tests. (One testthat `E` under the *instrumented* build only; the same tests pass FAIL-0
+> in the normal `--as-cran` run → sanitizer-build artifact, not a defect.)
+> **FROZEN CANDIDATE TARBALL:** `drmTMB_0.6.0.tar.gz` · SHA-256
+> `afd4600a86830451ea87971012929c7219b19fa9577c07c59485efc6c0a921f7` · 6,979,868 bytes · 825 entries ·
+> forbidden-path scan CLEAN (no .git/scratchpad/docs/dev-log). Check log: `~/worktrees/drmTMB-rc-check.log`;
+> UBSAN log: `~/worktrees/drmTMB-rc-ubsan.log`; build/tarball in `~/worktrees/drmTMB-final/`.
+> **RESUME AT S7:** copy the tarball to an immutable hash-dir; author the ledger JSON (template at
+> `~/shinichi-brain/protocols/cran-release-ledger.template.json`; set profile compiled_code=true,
+> system_or_external_services=true [JuliaCall], first_submission; status_claim="tarball-clean"; the platform
+> matrix stays NOT_APPLICABLE/next-gate); run `python3 ~/shinichi-brain/tools/cran_release_gate.py <ledger>`;
+> temp-lib install smoke. Then S8 D-43 panel (Grace/Rose/Pat on the frozen artifact) → S9 rung report +
+> manifest 7-field self-check + after-task → S10 RC PR (PAUSE at G4). The S3→G3 checklist below is HISTORY.
 >
 > **G2 follow-up issues to file (Shinichi APPROVED the "→ issues" disposition; file at the GitHub-edit gate):**
 > (1) function-level figure-accessibility defaults (viridis in `centile_chart()`, subtitle wrapping in
