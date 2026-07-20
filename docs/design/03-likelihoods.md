@@ -74,16 +74,16 @@ is the current routing contract:
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, one q=1 `phylo_interaction()` pair field in `mu`, the first opt-in fixed-effect Gaussian aggregation path, the MD1 observed-response mask for missing Gaussian responses with complete predictors, MD3a/MD3b/MD4 `mi()` missing-predictor routes with fixed-effect, grouped, or explicit intercept-only structured Gaussian covariate models, the MD6a fixed-effect Bernoulli/logit route for one binary missing predictor, the MD6b fixed-effect cumulative-logit route for one ordered categorical missing predictor, the MD6c fixed-effect baseline-category softmax route for one unordered categorical missing predictor, the MD7a fixed-effect beta/quadrature route for one strict proportion missing predictor, the MD7b fixed-effect Poisson finite-sum route for one count missing predictor, the MD7c fixed-effect NB2 finite-sum route for one overdispersed count missing predictor, the MD7d fixed-effect zero-one beta route for one boundary-proportion missing predictor, the MD7e fixed-effect zero-truncated NB2 route for one positive-count missing predictor, the MD7f fixed-effect beta-binomial finite-sum route for one denominator-aware proportion missing predictor, the MD8a fixed-effect lognormal quadrature route for one positive continuous missing predictor, the MD8b fixed-effect Gamma quadrature route for one positive continuous missing predictor, and the MD8c fixed-effect Tweedie route for one non-negative semi-continuous missing predictor with exact zeros in a Gaussian location model. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching slope-only `sigma1`/`sigma2` scale covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept or matching slope-only covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, ordinary q=8 location-scale endpoint covariance blocks with diagnostic smoke, recovery, and staged-start artifact routing, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. The q=8 route is fitted and diagnostic-artifact-ready only; q8 recovery accuracy, intervals, coverage, power, speed, bridge parity, and release claims remain separate evidence gates. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, ordinary `mu` random intercepts or independent numeric slopes, one recovery-grade `mu ~ spatial(1 + x | ...)` route, and exact diagnostic-grade intercept-only `mu ~ spatial(1 | ...)` and `nu ~ phylo(1 | id, tree = tree)` gates. |
-| `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, fixed-effect residual slant `nu`, and ordinary recovery-grade `mu` random intercepts or independent numeric slopes; `sigma`/`nu` random effects, correlated/labelled `mu` slopes, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are rejected. |
+| `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, fixed-effect residual slant `nu`, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16; `sigma`/`nu` random effects, correlated/labelled `mu` slopes, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are rejected. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, ordinary `mu` random intercepts or independent numeric slopes, and one Arc 3a q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, ordinary `mu` random intercepts or independent numeric slopes, the existing `relmat()` intercept/one-slope route, and one Arc 3a q1 `phylo()` intercept in `mu`. |
-| `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, intercept-only `nu = 1 + plogis(eta_nu)`, and ordinary recovery-grade `mu` random intercepts or independent numeric slopes. |
+| `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, intercept-only `nu = 1 + plogis(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()`, and the MD9a first non-Gaussian response missing-predictor route for one fixed-effect binary `mi()` predictor. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The narrow q1 phylogenetic successor route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. |
-| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary recovery-grade `mu` random intercepts or independent numeric slopes. |
+| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, fixed latent logistic scale, ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
@@ -1741,19 +1741,17 @@ drmTMB(
 )
 ```
 
-The first implementation is fixed-effect and univariate. It supports
-intercept-only and ordinary fixed-effect `nu` formulas and rejects random
-effects in `mu`, `sigma`, or `nu`; `sd(group)` scale models; bivariate
-responses; `rho12`; `meta_V(V = V)`; deprecated `meta_known_V(V = V)`;
-`phylo()`, `spatial()`, `animal()`, and `relmat()` structured terms; aliases
-such as `skew ~ x`; and latent `skew(id)` syntax. Focused tests cover the
-density normalization, native-density comparison, normal limit, positive and
-negative skew recovery, weak-skew recovery, predictor-dependent `nu`, Gaussian
-false-positive behaviour, simulation output, residuals, fixed-effect interval
-visibility, `check_drm()` diagnostics, and malformed neighbours. Formal
-multi-replicate operating-characteristic grids and external fitted-model
-comparators remain future evidence, so this route should be described as a
-first slice rather than a mature general-purpose family.
+The implementation is univariate and admits one ordinary unlabelled random
+intercept or one independent numeric slope in `mu`, in addition to fixed
+effects. Correlated or labelled `mu` slopes, random effects in `sigma` or `nu`,
+`sd(group)` scale models, bivariate responses, `rho12`, `meta_V(V = V)`,
+deprecated `meta_known_V(V = V)`, `phylo()`, `spatial()`, `animal()`, and
+`relmat()` structured terms, aliases such as `skew ~ x`, and latent `skew(id)`
+syntax remain unsupported. The Arc 4c campaign supports
+`inference_ready_with_caveats` profile intervals only for the independent
+`(0 + x | id)` slope SD under its frozen DGP at true SD 0.50 and M >= 16; it
+does not make the family generally inference-ready. See
+`docs/dev-log/simulation-artifacts/2026-07-19-arc4c-mu-slope-coverage/README.md`.
 
 ## Planned Skew-T Shape Gate
 
@@ -1942,12 +1940,16 @@ drmTMB(
 )
 ```
 
-The first implementation is fixed-effect and univariate, with intercept-only
-`nu ~ 1` before predictor-dependent power models. It rejects negative
-responses, random effects in `mu`, `sigma`, or `nu`, bivariate Tweedie
-families, mixed-response routes, `rho12`, `meta_V(V = V)`, zero-inflation or
-hurdle aliases, and phylogenetic or spatial terms until separate recovery and
-comparator tests exist.
+The implementation is univariate, with intercept-only `nu ~ 1` before
+predictor-dependent power models. It admits one ordinary unlabelled random
+intercept or one independent numeric slope in `mu`. Negative responses,
+correlated or labelled `mu` slopes, random effects in `sigma` or `nu`,
+bivariate Tweedie families, mixed-response routes, `rho12`, `meta_V(V = V)`,
+zero-inflation or hurdle aliases, and structured effects remain unsupported.
+The Arc 4c campaign supports `inference_ready_with_caveats` profile intervals
+only for the independent `(0 + x | id)` slope SD under its frozen DGP at true
+SD 0.50, Tweedie dispersion 1.4, power 1.5, and M >= 16. See
+`docs/dev-log/simulation-artifacts/2026-07-19-arc4c-mu-slope-coverage/README.md`.
 
 ## Implemented Beta Mean-Scale
 
@@ -2070,7 +2072,13 @@ mean, `predict(fit, dpar = "zoi")` returns the exact-boundary probability, and
 on being at the boundary. `fitted(fit)` returns the unconditional response mean
 including boundary mass, `(1 - zoi) * mu + zoi * coi`. `sigma(fit)` returns the
 public beta scale parameter for the interior component. Ordinary unlabelled
-`mu` random intercepts and independent numeric slopes are recovery-grade.
+`mu` random intercepts and independent numeric slopes are implemented. The
+Arc 4c campaign supports `inference_ready_with_caveats` profile intervals only
+for the independent `(0 + x | id)` slope SD under its frozen DGP at true SD
+0.50, interior precision 6.25, 15% labelled structural-boundary allocation,
+and M >= 16. Rare beta-labelled draws rounded to exactly one in that campaign,
+so this evidence does not establish an exactly 15% observed-boundary design.
+See `docs/dev-log/simulation-artifacts/2026-07-19-arc4c-mu-slope-coverage/README.md`.
 Correlated or labelled `mu` slopes, `sigma`/`zoi`/`coi` random effects,
 structured effects, covariance blocks, known sampling covariance, denominator
 syntax, bivariate bounded responses, and mixed-response bounded models remain
@@ -2141,7 +2149,9 @@ are later phases.
 ## Implemented Cumulative-Logit Ordinal Location
 
 The ordinal path is univariate and location-only, with fixed effects plus
-ordinary recovery-grade `mu` random intercepts and independent numeric slopes:
+ordinary `mu` random intercepts and independent numeric slopes. The exact
+`mc-0227` slope cell is inference-ready with caveats under its recorded M>=80
+design:
 
 ```text
 Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)

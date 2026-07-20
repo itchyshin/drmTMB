@@ -1,0 +1,13 @@
+array_index	logical_task_id	cell_id	family	M	shard	replicate_start	replicate_end
+1	1	mc-0464	skew_normal	8	0	1	1
+2	2	mc-0464	skew_normal	16	0	1	1
+3	3	mc-0464	skew_normal	32	0	1	1
+4	4	mc-0464	skew_normal	64	0	1	1
+5	5	mc-0539	tweedie	8	0	1	1
+6	6	mc-0539	tweedie	16	0	1	1
+7	7	mc-0539	tweedie	32	0	1	1
+8	8	mc-0539	tweedie	64	0	1	1
+9	9	mc-0575	zero_one_beta	8	0	1	1
+10	10	mc-0575	zero_one_beta	16	0	1	1
+11	11	mc-0575	zero_one_beta	32	0	1	1
+12	12	mc-0575	zero_one_beta	64	0	1	1

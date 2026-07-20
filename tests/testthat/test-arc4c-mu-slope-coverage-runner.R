@@ -144,16 +144,23 @@ test_that("execution writes every attempted fit error atomically without loading
 })
 
 summary.arc4c_mock_sdr <- function(object, ...) {
-  matrix(c(log(0.5), 0.1, 1, 1), nrow = 1L,
-    dimnames = list("log_sd_mu", c("Estimate", "Std. Error", "z value", "Pr(>|z|)")))
+  matrix(rep(c(log(0.5), 0.1), 2L), nrow = 2L, byrow = TRUE,
+    dimnames = list(c("log_sd_mu", "log_sd_mu"), c("Estimate", "Std. Error")))
 }
 
-test_that("eligible mocked fits extract the sole log_sd_mu row and frozen Wald interval", {
+test_that("eligible mocked fits use the unique fixed log_sd_mu parameter despite duplicate report rows", {
   assign("summary.arc4c_mock_sdr", summary.arc4c_mock_sdr, envir = .GlobalEnv)
   on.exit(rm("summary.arc4c_mock_sdr", envir = .GlobalEnv), add = TRUE)
   task <- arc4c_task("mc-0464", 16L, 1L, "full")[1, ]
   fake_dgp <- function(...) data.frame(y = 1, x = 0, z = 0, id = factor(1))
-  fake_fit <- function(...) list(opt = list(convergence = 0L), sdr = structure(list(pdHess = TRUE), class = "arc4c_mock_sdr"))
+  fake_fit <- function(...) list(
+    opt = list(convergence = 0L),
+    sdr = structure(list(
+      pdHess = TRUE,
+      par.fixed = c(beta_mu = 0, log_sd_mu = log(0.5)),
+      cov.fixed = diag(c(0.01, 0.01))
+    ), class = "arc4c_mock_sdr")
+  )
   fake_profile <- function(...) data.frame(lower = 0.25, upper = 0.75, conf.status = "profile")
   out <- arc4c_one_attempt(task, fake_fit, fake_profile, fake_dgp)
   expect_equal(out$sd_hat, 0.5); expect_true(out$wald_lower < 0.5); expect_true(out$wald_upper > 0.5)

@@ -30,10 +30,21 @@ arc4c_default_profile <- function(fit) {
 }
 
 arc4c_extract_sd_estimate_se <- function(fit) {
-  sm <- summary(fit$sdr)
-  row <- which(rownames(sm) == "log_sd_mu")
-  if (length(row) != 1L) return(c(estimate = NA_real_, se = NA_real_))
-  c(estimate = as.numeric(sm[row[[1L]], "Estimate"]), se = as.numeric(sm[row[[1L]], "Std. Error"]))
+  fixed <- fit$sdr$par.fixed
+  row <- which(names(fixed) == "log_sd_mu")
+  covariance <- fit$sdr$cov.fixed
+  if (length(row) != 1L || !is.matrix(covariance)) {
+    return(c(estimate = NA_real_, se = NA_real_))
+  }
+  row <- row[[1L]]
+  if (nrow(covariance) < row || ncol(covariance) < row) {
+    return(c(estimate = NA_real_, se = NA_real_))
+  }
+  variance <- as.numeric(covariance[row, row])
+  if (!is.finite(variance) || variance < 0) {
+    return(c(estimate = NA_real_, se = NA_real_))
+  }
+  c(estimate = as.numeric(fixed[[row]]), se = sqrt(variance))
 }
 
 arc4c_extract_named_estimate <- function(fit, name) {

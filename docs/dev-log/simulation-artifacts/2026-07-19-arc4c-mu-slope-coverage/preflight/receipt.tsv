@@ -1,0 +1,15 @@
+key	value
+merge_sha	46affaeea8eca55d31bb8411812a5621e1379f53
+head_sha	46affaeea8eca55d31bb8411812a5621e1379f53
+tree_sha	a55b2e8b318eb86a831906862d9f1fbffe3cdd52
+git_status	clean
+source_tree_sha256	743916720ef6be5eb4993a84b6c555c336b2023bee56a5671339cc64f5980f83
+dll_sha256	4ad38053318b110c7e5887e140d6d27394291a683b5c6ec908676116a08a05e6
+R_LIBS	/project/def-snakagaw/snakagaw/drmTMB-arc4c/46affaeea8eca55d31bb8411812a5621e1379f53/rlib:/project/def-snakagaw/snakagaw/drmTMB-arc4c/46affaeea8eca55d31bb8411812a5621e1379f53/base-empty
+R_version	R version 4.4.0 (2024-04-24) -- "Puppy Cup"
+gcc_version	gcc (Gentoo 12.3.1_p20230526 p2) 12.3.1 20230526
+TMB_version	1.9.21
+module_list	/project/def-snakagaw/snakagaw/drmTMB-arc4c/46affaeea8eca55d31bb8411812a5621e1379f53/preflight/module-list.txt
+session_info	/project/def-snakagaw/snakagaw/drmTMB-arc4c/46affaeea8eca55d31bb8411812a5621e1379f53/preflight/sessionInfo.txt
+module_list_sha256	abcf2c7a3fa22b190ebd124cf97c2ba5b881101d0ee393c6c22c3b7d3510b4e1
+session_info_sha256	5135729a56853926b54cd883a68aeb693d4eeb5057ee0ed7099315cfe724c36b

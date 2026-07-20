@@ -1,0 +1,4 @@
+cell_id	family	promote	deployment_floor	verdict_reason
+mc-0464	skew_normal	TRUE	16	contiguous_suffix
+mc-0539	tweedie	TRUE	16	contiguous_suffix
+mc-0575	zero_one_beta	TRUE	16	contiguous_suffix

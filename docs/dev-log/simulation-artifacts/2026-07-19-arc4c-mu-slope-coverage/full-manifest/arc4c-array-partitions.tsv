@@ -1,0 +1,2 @@
+partition_id	array_start	array_end	n_tasks	concurrency_cap	logical_task_min	logical_task_max
+1	1	1320	1320	96	1	1440

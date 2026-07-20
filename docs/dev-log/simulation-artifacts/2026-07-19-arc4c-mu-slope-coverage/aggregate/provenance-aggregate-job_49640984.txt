@@ -1,0 +1,9 @@
+aggregate_mode=full
+hostname=fc30565
+slurm_job_id=49640984
+slurm_array_job_id=none
+slurm_array_task_id=none
+slurm_job_dependency=afterok:49629827
+merge_sha=46affaeea8eca55d31bb8411812a5621e1379f53
+preflight_receipt=/project/def-snakagaw/snakagaw/drmTMB-arc4c/46affaeea8eca55d31bb8411812a5621e1379f53/preflight/receipt.tsv
+aggregate_exit_code=0

@@ -15,7 +15,7 @@ formulas for location \code{mu}, residual standard deviation \code{sigma}, and
 residual slant \code{nu}.
 }
 \details{
-The first implementation is fixed-effect and univariate:
+The implemented family is univariate:
 \code{mu = eta_mu}, \code{log(sigma) = eta_sigma}, and \code{nu = eta_nu}. The likelihood
 transforms internally to the native Azzalini location \code{xi}, scale \code{omega},
 and slant \code{alpha = nu}, but user-facing methods keep the public moment
@@ -24,10 +24,11 @@ parameterization: \code{\link[=fitted]{fitted()}} returns \code{E[y] = mu}, \cod
 Positive \code{nu} gives right-skewed residuals, negative \code{nu} gives left-skewed
 residuals, and \code{nu = 0} reduces to the Gaussian location-scale likelihood.
 
-Random effects, \code{sigma} or \code{nu} random effects, \code{sd(group)} scale formulas,
-structured effects, known sampling covariance, bivariate skew-normal models,
-residual \code{rho12}, and latent \code{skew(id)} syntax remain planned but
-unsupported in this first slice.
+Ordinary unlabelled random intercepts and independent numeric slopes such as
+\code{(1 | id)} and \code{(0 + x | id)} may enter \code{mu}. Correlated or labelled \code{mu}
+slopes, \code{sigma} or \code{nu} random effects, \code{sd(group)} scale formulas, structured
+effects, known sampling covariance, bivariate skew-normal models, residual
+\code{rho12}, and latent \code{skew(id)} syntax remain unsupported.
 }
 \examples{
 skew_normal()

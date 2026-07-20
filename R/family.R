@@ -91,7 +91,7 @@ student <- function() {
 #' formulas for location `mu`, residual standard deviation `sigma`, and
 #' residual slant `nu`.
 #'
-#' The first implementation is fixed-effect and univariate:
+#' The implemented family is univariate:
 #' `mu = eta_mu`, `log(sigma) = eta_sigma`, and `nu = eta_nu`. The likelihood
 #' transforms internally to the native Azzalini location `xi`, scale `omega`,
 #' and slant `alpha = nu`, but user-facing methods keep the public moment
@@ -100,10 +100,11 @@ student <- function() {
 #' Positive `nu` gives right-skewed residuals, negative `nu` gives left-skewed
 #' residuals, and `nu = 0` reduces to the Gaussian location-scale likelihood.
 #'
-#' Random effects, `sigma` or `nu` random effects, `sd(group)` scale formulas,
-#' structured effects, known sampling covariance, bivariate skew-normal models,
-#' residual `rho12`, and latent `skew(id)` syntax remain planned but
-#' unsupported in this first slice.
+#' Ordinary unlabelled random intercepts and independent numeric slopes such as
+#' `(1 | id)` and `(0 + x | id)` may enter `mu`. Correlated or labelled `mu`
+#' slopes, `sigma` or `nu` random effects, `sd(group)` scale formulas, structured
+#' effects, known sampling covariance, bivariate skew-normal models, residual
+#' `rho12`, and latent `skew(id)` syntax remain unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -159,14 +160,16 @@ lognormal <- function() {
 #' `tweedie()` defines a one-response Tweedie compound Poisson-Gamma
 #' distribution for non-negative continuous responses with exact zeros.
 #'
-#' The first implemented contract is fixed-effect and univariate:
+#' The implemented contract is univariate:
 #' `log(mu) = eta_mu`, `log(sigma) = eta_sigma`,
 #' `nu = 1 + plogis(eta_nu)`, `phi = sigma^2`, `E[y] = mu`, and
 #' `Var(y) = sigma^2 * mu^nu`, with `1 < nu < 2`. The public `sigma`
 #' parameter is therefore the square root of the usual Tweedie dispersion
-#' `phi`. Random effects, predictor-dependent `nu`, bivariate Tweedie models,
-#' structured effects, zero-inflation aliases, and hurdle aliases remain
-#' planned but unsupported in this first slice.
+#' `phi`. Ordinary unlabelled random intercepts and independent numeric slopes
+#' such as `(1 | id)` and `(0 + x | id)` may enter `mu`. Correlated or labelled
+#' `mu` slopes, `sigma` or `nu` random effects, predictor-dependent `nu`,
+#' bivariate Tweedie models, structured effects, zero-inflation aliases, and
+#' hurdle aliases remain unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -235,9 +238,11 @@ beta <- function() {
 #' `phi = 1 / sigma^2`.
 #'
 #' `fitted()` returns the unconditional response mean
-#' `(1 - zoi) * mu + zoi * coi`. Random effects, structured effects, covariance
-#' blocks, and denominator syntax are not implemented for this first fixed-
-#' effect slice.
+#' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
+#' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
+#' `mu`. Correlated or labelled `mu` slopes, `sigma`, `zoi`, or `coi` random
+#' effects, structured effects, covariance blocks, and denominator syntax remain
+#' unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export

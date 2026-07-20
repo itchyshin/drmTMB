@@ -24,9 +24,11 @@ the same beta mean-scale contract as \code{\link[=beta]{beta()}}, with internal 
 \code{phi = 1 / sigma^2}.
 
 \code{fitted()} returns the unconditional response mean
-\code{(1 - zoi) * mu + zoi * coi}. Random effects, structured effects, covariance
-blocks, and denominator syntax are not implemented for this first fixed-
-effect slice.
+\code{(1 - zoi) * mu + zoi * coi}. Ordinary unlabelled random intercepts and
+independent numeric slopes such as \code{(1 | id)} and \code{(0 + x | id)} may enter
+\code{mu}. Correlated or labelled \code{mu} slopes, \code{sigma}, \code{zoi}, or \code{coi} random
+effects, structured effects, covariance blocks, and denominator syntax remain
+unsupported.
 }
 \examples{
 zero_one_beta()
