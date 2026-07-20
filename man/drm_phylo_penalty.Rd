@@ -45,6 +45,16 @@ AIC across penalized fits are not standard. \code{\link[=logLik]{logLik()}} retu
 unpenalized data log-likelihood; the penalty contribution is stored
 separately on the fit as \code{fit$phylo_penalty}.
 }
+\examples{
+# Penalised-complexity prior: a priori P(phylogenetic SD > 1) = 0.05.
+pen <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05)
+pen$rate
+
+# Also penalize the phylogenetic correlation in a coupled location-scale or
+# bivariate phylogenetic model.
+pen_cor <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = 0.5)
+pen_cor$cor_sd
+}
 \references{
 Simpson, D., Rue, H., Riebler, A., Martins, T. G., & Sorbye, S. H. (2017).
 Penalising model component complexity: a principled, practical approach to

@@ -4794,6 +4794,29 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
 #' @return A data frame with `variable`, `original_row`, `model_row`,
 #'   `observed`, `estimate`, `std_error`, `source`, and `uncertainty_status`.
 #' @export
+#'
+#' @examples
+#' set.seed(20260532)
+#' n <- 48
+#' dat <- data.frame(
+#'   moisture = seq(-1.5, 1.5, length.out = n),
+#'   canopy = cos(seq_len(n) / 5)
+#' )
+#' dat$body_mass_full <- 0.2 + 0.7 * dat$moisture - 0.2 * dat$canopy +
+#'   rnorm(n, sd = 0.08)
+#' dat$growth <- 0.6 + 1.1 * dat$body_mass_full - 0.3 * dat$moisture +
+#'   rnorm(n, sd = 0.20)
+#' dat$body_mass <- dat$body_mass_full
+#' dat$body_mass[c(7, 19, 34, 43)] <- NA_real_
+#'
+#' fit <- drmTMB(
+#'   bf(growth ~ moisture + mi(body_mass), sigma ~ 1),
+#'   family = gaussian(),
+#'   data = dat,
+#'   impute = list(body_mass = body_mass ~ moisture + canopy),
+#'   missing = miss_control(predictor = "model")
+#' )
+#' imputed(fit)
 imputed <- function(object, ...) {
   UseMethod("imputed")
 }

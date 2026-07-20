@@ -41,6 +41,16 @@
 #' nondegenerate penalized likelihood estimator for variance parameters in
 #' multilevel models. Psychometrika, 78(4), 685-709.
 #' @export
+#'
+#' @examples
+#' # Penalised-complexity prior: a priori P(phylogenetic SD > 1) = 0.05.
+#' pen <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05)
+#' pen$rate
+#'
+#' # Also penalize the phylogenetic correlation in a coupled location-scale or
+#' # bivariate phylogenetic model.
+#' pen_cor <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = 0.5)
+#' pen_cor$cor_sd
 drm_phylo_penalty <- function(sd_u = 1, sd_alpha = 0.05, cor_sd = NULL) {
   if (
     !is.numeric(sd_u) || length(sd_u) != 1L || !is.finite(sd_u) || sd_u <= 0
@@ -160,6 +170,39 @@ drm_apply_phylo_penalty_spec <- function(spec, penalty) {
 #'   -- the fitted objects, named by `cor_sd`, for extracting `corpars()`,
 #'   `coef()`, and other couplings.
 #' @export
+#'
+#' @examples
+#' \donttest{
+#' if (requireNamespace("ape", quietly = TRUE)) {
+#'   set.seed(20260601)
+#'   n_tip <- 10
+#'   tree <- ape::rcoal(n_tip)
+#'   tree$tip.label <- paste0("sp_", seq_len(n_tip))
+#'   A <- ape::vcv(tree, corr = TRUE)
+#'   u <- as.vector(t(chol(A)) %*% rnorm(n_tip)) * 0.6
+#'   species <- factor(rep(tree$tip.label, each = 2), levels = tree$tip.label)
+#'   x <- rnorm(length(species))
+#'   dat <- data.frame(
+#'     y = 0.3 + 0.5 * x + u[rep(seq_len(n_tip), each = 2)] +
+#'       rnorm(length(species), sd = 0.5),
+#'     x = x,
+#'     species = species
+#'   )
+#'
+#'   # A coupled location-scale phylo model has two phylogenetic SDs, so the
+#'   # cor_sd sweep is informative (see drm_phylo_penalty()).
+#'   out <- drm_phylo_penalty_sweep(
+#'     bf(
+#'       y ~ x + phylo(1 | species, tree = tree),
+#'       sigma ~ phylo(1 | species, tree = tree)
+#'     ),
+#'     data = dat,
+#'     family = gaussian(),
+#'     cor_sd = c(0.5, 1)
+#'   )
+#'   out$summary
+#' }
+#' }
 drm_phylo_penalty_sweep <- function(
   formula,
   data,
