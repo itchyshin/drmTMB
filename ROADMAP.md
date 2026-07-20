@@ -106,14 +106,14 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version and release status
 
-- Current development version: **`0.6.0.9000`** (DESCRIPTION `Version:
-  0.6.0.9000`; NEWS heads `drmTMB 0.6.0 (development)`). The pkgdown site is built
-  from this line.
-- Latest tagged release: **`v0.5.0`** — the first CRAN-numbered release, tagged
-  and merged to `main`. It remains the recommended stable install (`v0.6.0` is
-  not yet tagged). CRAN upload is the maintainer's call; `1.0` is the later
-  maturity milestone, not this release. The in-development line targets a
-  `0.6.0`-class cut, per the versioning decision above.
+- Current version: **`0.6.0`** (DESCRIPTION `Version: 0.6.0`; NEWS heads
+  `drmTMB 0.6.0`). This is the release-candidate identity; the pkgdown site is
+  built from this line.
+- The earlier **`v0.5.0`** tag predates the current line and is **not a
+  supported install target** (it was never accepted on CRAN); install the
+  current `0.6.0` line instead. A `0.6.0` release will be tagged when it reaches
+  CRAN — the upload is the maintainer's call and has not yet happened. `1.0` is
+  the later maturity milestone, not this release.
 - Meaning of `0.1.3`: a preview that keeps the `0.1.2` profile-inference,
   tutorial, and roadmap hardening, then adds the current structured Gaussian
   first slices, `meta_V(V = V)` known-covariance syntax, non-Gaussian first

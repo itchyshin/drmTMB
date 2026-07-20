@@ -274,9 +274,10 @@ surface advises.
 
 ## What the cross-family bridge returns
 
-When the route is live, the familiar R extractors work on the returned
+When the route is live, most of the familiar R extractors work on the returned
 `drmTMB_julia` object, each reading the cross-family payload that DRM.jl sends
-back:
+back (the exceptions are noted in the table and in
+`vignette("capability-and-limits")`):
 
 | R method | Cross-family behaviour |
 | --- | --- |
@@ -285,7 +286,7 @@ back:
 | `confint(method = "profile")` | profile-likelihood interval for `rho_latent` (preferred) |
 | `confint(method = "wald")` | symmetric Wald interval for `rho_latent` when its Hessian block is available |
 | `logLik()`, `nobs()`, `df.residual()` | likelihood and dimension summaries |
-| `fitted()` / `predict(dpar = ...)` | in-sample `mu1`, `mu2` on each response scale; no `newdata` yet |
+| `fitted()` / `predict(dpar = ...)` | **not wired yet** for the cross-family (`drmTMB_julia_xfam`) object -- these currently return `NULL` rather than in-sample means; use the native `engine = "tmb"` path for fitted values (see `vignette("capability-and-limits")`) |
 | `is_converged()` | convergence flag returned by DRM.jl |
 
 This is enough to fit a cross-family pair, read the latent correlation with its
@@ -330,3 +331,7 @@ different scales and are coupled by a single interpretable latent correlation.
   the native Gaussian bivariate engine.
 - `vignette("distribution-families")` -- the response families available in
   `drmTMB`.
+- `vignette("capability-and-limits")` -- known 0.6.0 limitations, including the
+  not-yet-wired Julia cross-family extractors (`fitted()`, `predict()`,
+  `vcov()`, `residuals()`, and the `summary()` coefficient table return `NULL`
+  on a `drmTMB_julia_xfam` fit).

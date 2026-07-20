@@ -36,11 +36,12 @@ removing functionality.
   (0 errors | 0 warnings | 1 note, the new-submission note only), plus a local
   clang UBSAN compile of the compiled TMB C++.
 
-Cross-platform confirmation is a separate step completed immediately before
-upload and is not yet reflected above: the GitHub Actions ubuntu/macOS/windows
-matrix, win-builder (R-release and R-devel), and R-hub v2 (including the
-gcc/clang UBSAN and valgrind/rchk configurations relevant to the compiled TMB
-C++) are run and their logs recorded here before submission.
+Cross-platform confirmation is a separate step that has **not yet been run** and
+is not reflected above; it will be completed immediately before upload. The
+GitHub Actions ubuntu/macOS/windows matrix, win-builder (R-release and R-devel),
+and R-hub v2 (including the gcc/clang UBSAN and valgrind/rchk configurations
+relevant to the compiled TMB C++) will be run, and their logs recorded here,
+before submission.
 
 ## Reverse dependencies
 

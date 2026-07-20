@@ -30,7 +30,13 @@
 > `docs/dev-log/release-audits/2026-07-20-0.6.0-cran-rc-ledger.json` (profile compiled_code=true,
 > system_or_external_services=true, large_data_or_vignettes=true; status_claim=`tarball-clean`;
 > `current_cran_policy` → dated consult note `2026-07-20-cran-policy-consult.md`). **`cran_release_gate.py`
-> = READY FOR CLAIMED RUNG (tarball-clean).** Install smoke PASSED. `panel.*`=PENDING until S8.
+> = READY FOR CLAIMED RUNG (tarball-clean).** `panel.*`=PENDING until S8.
+> **[Correction, 2026-07-20 S8]:** the S7 `install-smoke.log` in that hash-dir actually ended
+> `SMOKE_EXIT=1` — an **ad-hoc** `round(coef(fit)[1], 3)` verification line threw (`coef.drmTMB()`
+> returns a named list, not a flat vector; the canonical `tools/install-smoke.R` has no such call).
+> The package itself installed and loaded cleanly; this was a smoke-*script* bug, not a package fault.
+> The "Install smoke PASSED" claim was therefore wrong for the round-1 artifact. The S8 D-43 panel caught
+> it (3× NOT-READY); the S8-remediation re-freeze re-runs install-smoke via the canonical script.
 > **RESUME AT S8:** the D-43 panel (Grace/Rose/Pat on the frozen artifact; default NOT-READY, two NOT-READY
 > withhold; fill the ledger panel votes) → S9 rung report + manifest 7-field self-check + after-task →
 > S10 RC PR (PAUSE at G4). The S3→G3 checklist below, and the S7 recipe just above, are HISTORY.
