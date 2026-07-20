@@ -9,29 +9,29 @@
     "large_data_or_vignettes": true
   },
   "artifact": {
-    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/drmTMB_0.6.0.tar.gz",
-    "sha256": "e818e1651dc188f90acfb30564940aafd1d2adb6fff476d84f0243e119e02be8",
-    "size_bytes": 6980731,
-    "source_commit": "00ec391450488d7ef2ead4323dee517940049d41",
+    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/drmTMB_0.6.0.tar.gz",
+    "sha256": "9ca4d07ca403b6c20d21b00759af1231ffaca988f3f8170467f68da485662602",
+    "size_bytes": 6980912,
+    "source_commit": "74bdb37cb1d2f70c13e67495438d0a9ba3183331",
     "clean_worktree": true,
-    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/tarball-inventory.txt"},
+    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/tarball-inventory.txt"},
     "forbidden_entries": [],
-    "refreeze_note": "Round 2 (S8-remediation). Supersedes afd4600a86830451 (withheld by the round-1 D-43 panel). Only tarball-affecting change vs round 1 = cross-family.Rmd prose (commit 00ec3914); src/ byte-identical to round-1 source 091d0a13, so the local-UBSAN result carries forward."
+    "refreeze_note": "Round 3 (S8-remediation, final). Supersedes e818e1651dc188f9 (round 2: Pat NOT-READY — the round-1 cross-family fix patched only the table cell, leaving two prose over-promises), which superseded afd4600a86830451 (round 1: 3x NOT-READY). Only tarball-affecting change vs round 2 = cross-family.Rmd prose (commit 74bdb37c completes the fix); src/ byte-identical to round-1 source 091d0a13 (git diff 091d0a13 74bdb37c -- src/ empty), so the local-UBSAN result carries forward. CRAN-lane 12011 reproduced identically across all three rounds."
   },
   "evidence": {
     "product_contract": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md"},
     "rights_and_consent": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/inst/COPYRIGHTS"},
     "current_cran_policy": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-cran-policy-consult.md"},
-    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-as-cran-check.log"},
-    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-as-cran-check.log"},
-    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/install-smoke.log"},
+    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-as-cran-check.log"},
+    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-as-cran-check.log"},
+    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/install-smoke.log"},
     "platform_matrix": {"kind": "rationale", "value": "NOT reached at the tarball-clean rung: the REMOTE platform matrix (win-builder R-release/R-devel; R-hub UBSAN/valgrind/rchk; 3-OS GH matrix) is the declared NEXT gate, out of this lane. A LOCAL clang-UBSAN probe WAS run (see compiled_diagnostics)."},
     "external_logs": {"kind": "rationale", "value": "NOT_APPLICABLE at tarball-clean: no win-builder/R-hub submitted (next gate)."},
     "rendered_site": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/figure-audits/2026-07-20-0.6.0-rc/rc-inspection-report.md"},
-    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-as-cran-check.log"},
+    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-as-cran-check.log"},
     "size_and_vignette_budget": {"kind": "rationale", "value": "Installed size 27.8Mb (libs 13.4Mb compiled TMB, doc 9.4Mb, sim 1.7Mb) -> expected size INFO/NOTE on CRAN machines, explained in cran-comments.md (intrinsic to TMB, cf. glmmTMB). Vignettes re-built locally in 78s; Windows timing to be confirmed at the platform-matrix gate."},
     "reverse_dependencies": {"kind": "rationale", "value": "NOT_APPLICABLE: first submission, no reverse dependencies."},
-    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-ubsan.log"},
+    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-ubsan.log"},
     "external_service_behaviour": {"kind": "rationale", "value": "JuliaCall is Suggests-only, powering an optional engine='julia' back end; all invoking tests use skip_if_not_installed() and additionally require a local dev checkout of the not-yet-registered Julia package, so they skip on CRAN. Default/only required engine is the bundled TMB code."}
   },
   "panel_round1": {
@@ -39,7 +39,14 @@
     "grace": "NOT-READY — hash/size/inventory/--as-cran-lane/UBSAN all clean, but install-smoke.log ended SMOKE_EXIT=1 (ad-hoc round(coef(fit)[1],3); coef.drmTMB returns a named list). Evidence-vs-claim gap.",
     "rose": "NOT-READY — (1) handover 'Install smoke PASSED' cited a crashed log; (2) ROADMAP.md still recommended v0.5.0 + showed 0.6.0.9000. Manifest capability ceiling NOT exceeded.",
     "pat": "NOT-READY — (1) same install-smoke gap; (2) cross-family.Rmd:288 over-promised fitted()/predict() for the xfam route vs capability-and-limits.Rmd:398-406 (they return NULL). Other three limitations honest.",
-    "resolution": "All three fixed in commit 00ec3914; re-frozen as e818e1651dc188f9; panel re-run below (round 2)."
+    "resolution": "All three fixed in commit 00ec3914; re-frozen as e818e1651dc188f9; panel re-run (round 2)."
+  },
+  "panel_round2": {
+    "verdict": "2 READY (Grace, Rose) + 1 NOT-READY (Pat) on artifact e818e1651dc188f9. Below the 2-vote withhold threshold, but the rung was NOT taken: Pat's single dissent was correct and the lane holds honesty over vote math.",
+    "grace": "READY — hash/size/825-inventory verified; --as-cran 0/0/1 + CRAN-lane PASS 12011; install-smoke now SMOKE_EXIT=0; UBSAN carry-forward valid (src byte-identical); dev-invert 13476 correctly explained (NOT_CRAN=true mode).",
+    "rose": "READY — all three round-1 fixes confirmed landed; manifest ceiling not exceeded; 2 minor CONCERNS (stale afd4600a pointer in cran-policy-consult.md; stale mission-control dashboard).",
+    "pat": "NOT-READY — the round-1 cross-family fix patched only the table cell (cross-family.Rmd:289); two prose passages (:199-203 'fitted values', :292-295 'bring the fitted means back to R') still over-promised the xfam extractors.",
+    "resolution": "Pat's finding fixed exhaustively in commit 74bdb37c (both prose over-promises removed + honest hedges); Rose's two concerns addressed (policy-consult pointer -> e818e165 then 9ca4d07c; dashboard updated). Re-frozen as 9ca4d07ca403b6c2; full-trio re-run (round 3) below."
   },
   "panel": {
     "grace": "PENDING",
