@@ -9,34 +9,42 @@
     "large_data_or_vignettes": true
   },
   "artifact": {
-    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/drmTMB_0.6.0.tar.gz",
-    "sha256": "afd4600a86830451ea87971012929c7219b19fa9577c07c59485efc6c0a921f7",
-    "size_bytes": 6979868,
-    "source_commit": "091d0a134d0fd7e5af65119b10d81f1e4105e23e",
+    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/drmTMB_0.6.0.tar.gz",
+    "sha256": "e818e1651dc188f90acfb30564940aafd1d2adb6fff476d84f0243e119e02be8",
+    "size_bytes": 6980731,
+    "source_commit": "00ec391450488d7ef2ead4323dee517940049d41",
     "clean_worktree": true,
-    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/tarball-inventory.txt"},
-    "forbidden_entries": []
+    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/tarball-inventory.txt"},
+    "forbidden_entries": [],
+    "refreeze_note": "Round 2 (S8-remediation). Supersedes afd4600a86830451 (withheld by the round-1 D-43 panel). Only tarball-affecting change vs round 1 = cross-family.Rmd prose (commit 00ec3914); src/ byte-identical to round-1 source 091d0a13, so the local-UBSAN result carries forward."
   },
   "evidence": {
     "product_contract": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md"},
     "rights_and_consent": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/inst/COPYRIGHTS"},
     "current_cran_policy": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-cran-policy-consult.md"},
-    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-as-cran-check.log"},
-    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-as-cran-check.log"},
-    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/install-smoke.log"},
+    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-as-cran-check.log"},
+    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-as-cran-check.log"},
+    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/install-smoke.log"},
     "platform_matrix": {"kind": "rationale", "value": "NOT reached at the tarball-clean rung: the REMOTE platform matrix (win-builder R-release/R-devel; R-hub UBSAN/valgrind/rchk; 3-OS GH matrix) is the declared NEXT gate, out of this lane. A LOCAL clang-UBSAN probe WAS run (see compiled_diagnostics)."},
     "external_logs": {"kind": "rationale", "value": "NOT_APPLICABLE at tarball-clean: no win-builder/R-hub submitted (next gate)."},
     "rendered_site": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/figure-audits/2026-07-20-0.6.0-rc/rc-inspection-report.md"},
-    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-as-cran-check.log"},
+    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-as-cran-check.log"},
     "size_and_vignette_budget": {"kind": "rationale", "value": "Installed size 27.8Mb (libs 13.4Mb compiled TMB, doc 9.4Mb, sim 1.7Mb) -> expected size INFO/NOTE on CRAN machines, explained in cran-comments.md (intrinsic to TMB, cf. glmmTMB). Vignettes re-built locally in 78s; Windows timing to be confirmed at the platform-matrix gate."},
     "reverse_dependencies": {"kind": "rationale", "value": "NOT_APPLICABLE: first submission, no reverse dependencies."},
-    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/afd4600a86830451/local-ubsan.log"},
+    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/local-ubsan.log"},
     "external_service_behaviour": {"kind": "rationale", "value": "JuliaCall is Suggests-only, powering an optional engine='julia' back end; all invoking tests use skip_if_not_installed() and additionally require a local dev checkout of the not-yet-registered Julia package, so they skip on CRAN. Default/only required engine is the bundled TMB code."}
   },
+  "panel_round1": {
+    "verdict": "3x NOT-READY -> tarball-clean rung WITHHELD (2026-07-20) on artifact afd4600a86830451; all three findings were release-surface honesty defects, none a package/C++ regression.",
+    "grace": "NOT-READY — hash/size/inventory/--as-cran-lane/UBSAN all clean, but install-smoke.log ended SMOKE_EXIT=1 (ad-hoc round(coef(fit)[1],3); coef.drmTMB returns a named list). Evidence-vs-claim gap.",
+    "rose": "NOT-READY — (1) handover 'Install smoke PASSED' cited a crashed log; (2) ROADMAP.md still recommended v0.5.0 + showed 0.6.0.9000. Manifest capability ceiling NOT exceeded.",
+    "pat": "NOT-READY — (1) same install-smoke gap; (2) cross-family.Rmd:288 over-promised fitted()/predict() for the xfam route vs capability-and-limits.Rmd:398-406 (they return NULL). Other three limitations honest.",
+    "resolution": "All three fixed in commit 00ec3914; re-frozen as e818e1651dc188f9; panel re-run below (round 2)."
+  },
   "panel": {
-    "grace": "NOT-READY (2026-07-20, round 1) — hash/size/inventory/--as-cran-lane/UBSAN all verified clean, but evidence.installed_package (install-smoke.log) ends SMOKE_EXIT=1: an ad-hoc round(coef(fit)[1],3) one-liner threw (coef.drmTMB returns a named list, not a flat vector); package itself installed+loaded cleanly. Evidence-vs-claim gap, not a package fault.",
-    "rose": "NOT-READY (2026-07-20, round 1) — (1) handover 'Install smoke PASSED' + this ledger's evidence.installed_package cite install-smoke.log, which crashed (SMOKE_EXIT=1); undisclosed. (2) ROADMAP.md:109-116 still shows Version 0.6.0.9000 and recommends v0.5.0 as the stable install on a pkgdown/README-linked surface, contradicting README/NEWS/vignette and the manifest's own reconciliation claim. Manifest capability ceiling NOT exceeded.",
-    "pat": "NOT-READY (2026-07-20, round 1) — (1) same install-smoke evidence-vs-claim gap. (2) cross-family.Rmd:288 lists fitted()/predict(dpar=) as returning mu1,mu2 for the cross-family (drmTMB_julia_xfam) route, contradicting capability-and-limits.Rmd:398-406 which correctly documents those extractors returning NULL; no See-also cross-ref. Other three known limitations (rho12 #802, sd_hat-NA, #710 status) discoverable and honest."
+    "grace": "PENDING",
+    "rose": "PENDING",
+    "pat": "PENDING"
   },
   "status_claim": "tarball-clean",
   "submission": {
