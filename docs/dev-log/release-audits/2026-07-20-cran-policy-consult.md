@@ -29,4 +29,5 @@ reaches `tarball-clean` plus a *local* clang-UBSAN probe only; the remote saniti
 timing are the next gate.
 
 Cross-refs: `2026-07-20-0.6.0-cran-rc-ledger.json` · `2026-07-20-0.6.0-release-scope-manifest.md` ·
-`cran-comments.md` · frozen evidence at `~/worktrees/drmTMB-rc-frozen/afd4600a86830451/`.
+`cran-comments.md` · frozen evidence at `~/worktrees/drmTMB-rc-frozen/e818e1651dc188f9/` (the current
+candidate; the earlier `afd4600a86830451/` was withheld by the S8 D-43 panel and is marked SUPERSEDED).

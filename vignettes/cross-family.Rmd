@@ -198,9 +198,10 @@ fit_xf
 
 A successful cross-family fit prints as a lightweight `<drmTMB Julia-engine
 cross-family fit>`: the bridge returns plain pieces from DRM.jl and `drmTMB`
-reconstructs the
-coefficients, likelihood summary, fitted values, and the latent correlation
-payload, rather than pretending to be a full native fit.
+reconstructs the coefficients, likelihood summary, and the latent correlation
+payload, rather than pretending to be a full native fit. (In-sample fitted
+values are *not* wired for this object yet -- see the extractor table below and
+`vignette("capability-and-limits")`.)
 
 Note the parameter set. The Gaussian response keeps a `sigma1` scale formula;
 the Poisson response has no separate dispersion parameter, so there is no
@@ -289,10 +290,11 @@ back (the exceptions are noted in the table and in
 | `fitted()` / `predict(dpar = ...)` | **not wired yet** for the cross-family (`drmTMB_julia_xfam`) object -- these currently return `NULL` rather than in-sample means; use the native `engine = "tmb"` path for fitted values (see `vignette("capability-and-limits")`) |
 | `is_converged()` | convergence flag returned by DRM.jl |
 
-This is enough to fit a cross-family pair, read the latent correlation with its
-profile interval, and bring the fitted means back to R for plotting and
-reporting -- the same workflow the Gaussian bridge already supports, extended to
-the case where the two responses do not share a scale.
+This is enough to fit a cross-family pair and read the latent correlation with
+its profile interval -- the same latent-correlation workflow the Gaussian bridge
+already supports, extended to the case where the two responses do not share a
+scale. (In-sample fitted means are not yet wired for this object; use the native
+`engine = "tmb"` path if you need fitted values for plotting or reporting.)
 
 ## Current status and boundaries
 
