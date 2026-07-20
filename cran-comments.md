@@ -19,29 +19,28 @@ package's speed depends on; the size is intrinsic to TMB-based packages (the sam
 pattern as the existing CRAN package `glmmTMB`) and cannot be reduced without
 removing functionality.
 
-## Resubmission
+## Submission notes
 
-This is a resubmission of drmTMB 0.5.0 after the CRAN incoming pre-tests.
-
-* I quoted the method name 'Tweedie' and hyphenated "semi-continuous" in
-  DESCRIPTION to resolve the two possible-spelling flags.
-* I reduced routine CRAN check time by moving the exhaustive Phase 18
-  simulation/reporting harness, its generated 22,000-assertion conversion
-  audit, and two measured high-dimensional diagnostics to the package's
-  existing non-CRAN test lane. Fast unit, likelihood, API, malformed-input,
-  extractor, and representative recovery tests remain in the routine CRAN
-  suite. The full validation suite continues to run in repository CI with
-  `NOT_CRAN=true`.
+* DESCRIPTION quotes the method name 'Tweedie' and hyphenates "semi-continuous"
+  to resolve the two possible-spelling flags.
+* Routine CRAN check time is bounded by keeping the exhaustive Phase 18
+  simulation/reporting harness, its generated ~22,000-assertion conversion
+  audit, and two high-dimensional diagnostics in the package's non-CRAN test
+  lane (run in repository CI with `NOT_CRAN=true`). Fast unit, likelihood, API,
+  malformed-input, extractor, and representative recovery tests run in the
+  routine CRAN suite.
 
 ## Test environments
 
-* local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`, clean
-  (0 errors | 0 warnings | 1 note, the new-submission note only).
-* GitHub Actions R-CMD-check (R release) — ubuntu-latest, macOS-latest, and
-  windows-latest full matrix, all clean.
-* win-builder — R-release and R-devel (submitted).
-* R-hub v2 — Linux containers including the gcc/UBSAN sanitizer configuration
-  relevant to the compiled TMB C++ (submitted).
+* local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`
+  (0 errors | 0 warnings | 1 note, the new-submission note only), plus a local
+  clang UBSAN compile of the compiled TMB C++.
+
+Cross-platform confirmation is a separate step completed immediately before
+upload and is not yet reflected above: the GitHub Actions ubuntu/macOS/windows
+matrix, win-builder (R-release and R-devel), and R-hub v2 (including the
+gcc/clang UBSAN and valgrind/rchk configurations relevant to the compiled TMB
+C++) are run and their logs recorded here before submission.
 
 ## Reverse dependencies
 

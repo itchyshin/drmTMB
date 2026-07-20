@@ -70,19 +70,16 @@ not a broader support claim.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `v0.5.0` release from GitHub
-with `pak`:
+`drmTMB` is not on CRAN yet. Install the current development version (the
+`0.6.0` line) from GitHub with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.5.0")
-```
-
-If you want the newest development build from `main`, use:
-
-```r
 pak::pak("itchyshin/drmTMB")
 ```
+
+The earlier `v0.5.0` tag predates the current line and is not a supported
+install target; a `0.6.0` release will be tagged when it reaches CRAN.
 
 Then load the package and run a small smoke test:
 
