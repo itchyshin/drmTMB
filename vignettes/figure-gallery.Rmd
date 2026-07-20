@@ -20,8 +20,12 @@ knitr::opts_chunk$set(
 ```
 
 This gallery shows the kinds of figures `drmTMB` users can build for model
-interpretation, uncertainty display, fitted interactions, fitted correlation
-summaries, and later simulation diagnostics. It is different from the internal
+interpretation, uncertainty display, distributional adequacy checking, fitted
+interactions, correlation summaries, and later simulation diagnostics. Between
+them the panels exercise all six public plotting functions:
+`plot_parameter_surface()`, `worm_plot()`, `qq_plot()`, `centile_chart()`,
+`plot_corpairs()`, and the `plot()` method for profile objects. It is different
+from the internal
 count-pilot diagnostics used while developing the first Poisson/NB2 simulation
 plumbing. The panels apply the same location-scale reading pattern taught in
 the family tutorials, such as [When variance carries
@@ -168,6 +172,14 @@ response_scale_se_to_log_se <- function(estimate, std_error) {
 response_scale_se_to_z_se <- function(estimate, std_error) {
   rho <- guard_rho(estimate)
   std_error / pmax(1 - rho^2, .Machine$double.eps)
+}
+
+wrap_subtitle <- function(p, width = 78) {
+  subtitle <- p$labels$subtitle
+  if (is.null(subtitle)) {
+    return(p)
+  }
+  p + labs(subtitle = paste(strwrap(subtitle, width = width), collapse = "\n"))
 }
 
 scale_drmtmb_colour <- scale_colour_manual(
@@ -607,6 +619,122 @@ heavier tails, and here the fitted model estimates a changing tail shape
 through `nu ~ tail_pressure`. The `zi` panel is a structural-zero probability,
 not a mean count. The `rho12` panel is residual coupling between two responses
 after their own means and scales have been modelled.
+
+## Distributional adequacy diagnostics
+
+The surfaces above answer "what did the model fit?". This section answers the
+question that should come next: "is that distribution actually right?" A
+location-scale model can produce a convincing `mu` surface while getting the
+shape of the residual distribution wrong, and no amount of looking at fitted
+means will reveal it.
+
+`worm_plot()` and `qq_plot()` both work from randomised quantile residuals, so
+they apply to any family the package fits, not only Gaussian ones. A worm plot
+is a detrended QQ plot: it draws the deviation of each ordered residual from
+its theoretical quantile, a dotted zero reference, and a smoothed trend through
+the points. Under an adequate model that trend stays close to zero, so
+departures read as shape rather than as a diagonal line. The plot draws no
+pointwise envelope, so read the trend qualitatively rather than as a test.
+
+A diagnostic figure is only informative when the reader can see what a failure
+looks like, so this pair uses the same data twice. The first fit is the
+correctly specified location-scale model from the previous section, where
+`sigma ~ temperature` matches the heteroscedastic truth.
+
+```{r worm-plot-adequate, fig.width=7.4, fig.height=4.4, fig.cap="Worm plot of randomised quantile residuals for the correctly specified location-scale model; the smoothed trend holds near the zero reference across the bulk of the distribution, drifting only in the sparse right tail.", fig.alt="Worm plot for the correctly specified growth model, showing detrended quantile residuals scattered about a dotted zero line, with a smoothed trend that stays near zero from the left tail through to about the eighty-fifth centile and then drifts downward where only a few points remain."}
+wrap_subtitle(worm_plot(fit_growth)) +
+  theme_drmtmb_gallery()
+```
+
+The second fit deliberately holds the residual SD constant while the truth is
+heteroscedastic. It is the same response, the same predictors, and the same
+rows; only the `sigma` formula changes.
+
+```{r worm-plot-misspecified, fig.width=7.4, fig.height=4.4, fig.cap="Worm plot for a deliberately mis-specified model that holds `sigma` constant while the generating process is heteroscedastic; the pronounced S-shaped trend is the diagnostic signal.", fig.alt="Worm plot for the mis-specified constant-sigma growth model, showing a pronounced S-shaped smoothed trend that rises, falls and rises again across the quantile range, unlike the nearly flat trend of the correctly specified model above."}
+fit_mis <- drmTMB(
+  bf(growth ~ temperature * habitat, sigma ~ 1),
+  family = gaussian(),
+  data = fish
+)
+
+wrap_subtitle(worm_plot(fit_mis)) +
+  theme_drmtmb_gallery()
+```
+
+Read the two together. The scale misfit does not show up as a bad mean
+structure, because the mean structure is not what is wrong. It shows up in the
+residual shape, which is what the worm plot is built to expose. This is the
+practical argument for modelling `sigma` rather than assuming it.
+
+Read the bulk, not the extremes. Both panels wander at the far left and right,
+where a handful of order statistics carry the smoother and it has little to
+learn from. The adequate model drifts only there; the mis-specified model
+sweeps a full S across the middle of the distribution, where most of the data
+sit. A tail excursion in a plot of this size is weak evidence, and neither
+panel draws an envelope that would tell you how weak.
+
+`qq_plot()` shows the same residuals without detrending. It is the more
+familiar display and the less sensitive one: departures that the worm plot
+makes obvious can look milder against a straight reference line.
+
+```{r qq-plot-adequate, fig.width=7.4, fig.height=4.4, fig.cap="QQ plot of randomised quantile residuals for the correctly specified model; the reference is the identity line, not a fitted line.", fig.alt="Quantile-quantile plot of randomised quantile residuals for the correctly specified growth model, with points following the identity reference line across the range."}
+wrap_subtitle(qq_plot(fit_growth)) +
+  theme_drmtmb_gallery()
+```
+
+`centile_chart()` answers a different question again. Rather than asking
+whether the distribution is adequate, it shows what the fitted distribution
+implies for an individual observation: conditional centiles across a covariate,
+in the units the reader measured. For a location-scale model the centiles fan
+out where `sigma` is larger, which is the feature a mean-only model cannot
+represent.
+
+```{r centile-chart-growth, fig.width=7.4, fig.height=4.4, fig.cap="Fitted conditional centiles of growth across temperature; the spread between centiles widens where the fitted residual SD is larger.", fig.alt="Centile chart showing fitted conditional growth centiles across temperature, where the centile lines separate more widely towards higher temperatures because the fitted residual standard deviation increases."}
+wrap_subtitle(centile_chart(fit_growth, covariate = "temperature")) +
+  scale_colour_viridis_d(option = "viridis", end = 0.9) +
+  theme_drmtmb_gallery()
+```
+
+Two display choices are worth copying. Centiles are an *ordered* sequence, so
+they get an ordered, perceptually uniform palette rather than a categorical
+one: with a rainbow scale the reader cannot tell from colour alone that 15%
+lies between 3% and 50%. That palette is also colour-blind-safe, which a
+red-and-green categorical scale is not.
+
+Centile charts are a distributional-output display, not a diagnostic. They
+carry no interval for the centile itself: the lines are fitted conditional
+quantiles, and uncertainty in those quantiles is a separate question this
+figure does not answer.
+
+## Profile-likelihood curves
+
+The Confidence Eye displays earlier in this gallery use Wald intervals, which
+assume the log-likelihood is quadratic near the estimate. When that assumption
+is doubtful — small samples, variance and correlation parameters, anything near
+a boundary — the honest move is to look at the likelihood itself rather than at
+a quadratic stand-in.
+
+`profile()` computes the curve and `plot()` draws it. The target below is the
+temperature effect on the log residual SD: a scale-side parameter, where the
+quadratic assumption is least comfortable.
+
+```{r profile-curve-sigma-slope, fig.width=7.4, fig.height=4.4, fig.cap="Profile-likelihood curve for the temperature effect on log residual SD, with the 95% profile interval marked; the limits are read from the curve rather than assumed symmetric.", fig.alt="Profile likelihood curve for the sigma temperature slope showing the objective rising away from the maximum, with the lower and upper limits of the 95 percent profile confidence interval marked."}
+prof_sigma_slope <- profile(
+  fit_growth,
+  parm = "fixef:sigma:temperature",
+  profile_precision = "fast"
+)
+
+wrap_subtitle(plot(prof_sigma_slope)) +
+  theme_drmtmb_gallery()
+```
+
+Use `profile_targets()` to see which parameters can be profiled and under what
+names. The target strings are explicit, such as `fixef:sigma:temperature`,
+because a distributional model has several parameters that could each be called
+"the temperature effect". A near-symmetric curve is the reassuring case: it
+means the Wald interval for that parameter was not misleading. Asymmetry is the
+finding worth reporting.
 
 ## Random-effect and variance-component figures
 
@@ -1477,7 +1605,7 @@ ggplot(empirical_habitat_rowwise, aes(habitat, estimate, fill = habitat)) +
     colour = "Habitat",
     fill = "Habitat"
   ) +
-  guides(fill = "none") +
+  guides(colour = "none", fill = "none") +
   theme_drmtmb_gallery()
 ```
 
@@ -1666,7 +1794,7 @@ lines are conditional displays, not clusters in the data. This keeps the
 visual message honest: the model is being read at three moisture values, while
 the observations span the whole moisture gradient.
 
-## Fitted correlation summaries
+## Correlation summaries
 
 Correlation displays should keep layers separate. Residual `rho12`,
 ordinary-group correlations, phylogenetic correlations, coordinate-spatial
@@ -1675,14 +1803,68 @@ correlations are not the same parameter even when all are correlations. A
 fitted workflow should start from `corpairs(fit)` and keep the interval
 provenance columns.
 
-A Confidence Eye should appear only when finite interval bounds exist. The
-compact example below mimics a `corpairs()`-style result for fitted correlation
-layers. The pale eye is the finite 95% confidence region, transformed on
-Fisher's `z` scale for correlations. The hollow circle marks the estimate.
-Rows without finite bounds should remain point-only diagnostics; the plot
-should not invent an eye.
+This section has two figures and they are not the same kind of object. The
+first is fitted: it comes from a model in this document, and its interval was
+computed. The second is an illustrative layout fixture with typed numbers,
+included to show a multi-layer arrangement the package cannot yet produce from
+a single fit. The distinction is stated in each caption; do not read the second
+as a result.
 
-```{r correlation-display, fig.width=7.6, fig.height=5.4, fig.cap="Correlation-row Confidence Eye display; finite 95% regions are shaped on Fisher's z scale and shown on the correlation scale.", fig.alt="Correlation-row Confidence Eye plot for residual rho12, group intercept-slope, phylogenetic, spatial, animal, and relmat location-location rows, with pale finite confidence regions and hollow point-estimate circles."}
+### Fitted correlation summary
+
+`corpairs()` returns one row per correlation with the provenance columns
+attached, and `plot_corpairs()` draws the Confidence Eye from that table. The
+interval below is a profile-likelihood interval, so `conf.status` and
+`interval_source` both read `profile`.
+
+The fit uses a constant residual correlation, `rho12 ~ 1`. That is deliberate:
+when `rho12` is modelled as a regression, `corpairs(conf.int = TRUE)` reports
+`conf.status = "newdata_required"` and returns no bounds, because there is no
+single scalar correlation to profile. A constant-correlation model is currently
+the route to a fitted correlation interval.
+
+```{r corpairs-fitted, fig.width=7.4, fig.height=2.1, fig.cap="Fitted residual correlation from `corpairs()` with its profile-likelihood interval, drawn by `plot_corpairs()`; this row is computed from a model in this document.", fig.alt="Confidence Eye row for the fitted residual rho12 correlation from a constant-correlation bivariate model, showing the point estimate as a hollow circle inside a pale profile confidence region that excludes zero."}
+fit_pair_const <- drmTMB(
+  bf(
+    mu1 = activity ~ disturbance,
+    mu2 = boldness ~ disturbance,
+    sigma1 ~ 1,
+    sigma2 ~ 1,
+    rho12 ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = pair_dat
+)
+
+pair_fitted <- corpairs(fit_pair_const, conf.int = TRUE)
+pair_fitted[, c(
+  "level", "parameter", "estimate",
+  "conf.low", "conf.high", "conf.status", "interval_source"
+)]
+
+plot_corpairs(pair_fitted) +
+  theme_drmtmb_gallery() +
+  theme(legend.position = "none")
+```
+
+One fitted row, one computed interval. Compare the `interval_source` column
+here with the figure that follows.
+
+### Illustrative multi-layer layout (fixture, not fitted)
+
+A Confidence Eye should appear only when finite interval bounds exist. The
+compact example below is a **hand-specified fixture**: the estimates and bounds
+are typed constants, not model output. It exists to show how several
+correlation layers would be arranged in one display, which no single `drmTMB`
+fit currently produces. The pale eye is a 95% region shaped on Fisher's `z`
+scale; the hollow circle marks the estimate. Rows without finite bounds should
+remain point-only diagnostics, and the plot should not invent an eye.
+
+Its `interval_source` column reads `illustrative_profile` rather than
+`profile`, which is the tell that separates it from the fitted figure above.
+Treat every number in it as a layout placeholder.
+
+```{r correlation-display, fig.width=7.6, fig.height=5.4, fig.cap="FIXTURE, NOT FITTED: illustrative multi-layer correlation layout with hand-typed estimates and bounds; shown to demonstrate arrangement only, and no value here is a model result.", fig.alt="Fixture Confidence Eye layout with hand-typed values for residual rho12, group intercept-slope, phylogenetic, spatial, animal, and relmat location-location rows, included to show multi-layer arrangement rather than fitted results."}
 pair_table <- data.frame(
   level = c("residual", "group", "phylogenetic", "spatial", "animal", "relmat"),
   class = c(
@@ -1705,7 +1887,7 @@ pair_table <- data.frame(
   modelled = rep(TRUE, 6),
   conf.low = c(-0.54, 0.12, 0.32, 0.05, 0.18, -0.58),
   conf.high = c(-0.05, 0.68, 0.80, 0.63, 0.75, 0.10),
-  conf.status = rep("profile", 6),
+  conf.status = rep("illustrative", 6),
   interval_source = rep("illustrative_profile", 6),
   display = c(
     "Residual\nrho12",
@@ -1802,8 +1984,11 @@ ggplot() +
     expand = expansion(add = 0.42)
   ) +
   labs(
-    title = NULL,
-    subtitle = NULL,
+    title = "ILLUSTRATIVE FIXTURE - not a fitted result",
+    subtitle = paste(
+      "Estimates and bounds are typed constants showing layout only.",
+      "No drmTMB fit produces these six rows together."
+    ),
     x = "Correlation estimate",
     y = NULL,
     colour = NULL
@@ -2084,13 +2269,17 @@ ggplot(sim_rain, aes(bias_error, estimand_label)) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
-    title = "Bias by estimand",
-    subtitle = "Faint dots are fixture replicate errors; large points and bars show mean bias with 95% MCSE intervals",
-    x = NULL,
-    y = "Estimate minus truth",
+    title = "ILLUSTRATIVE FIXTURE - not a simulation result",
+    subtitle = paste(
+      "Bias by estimand. Every value is a typed constant, not a fitted or",
+      "simulated estimate.\nLarge points and bars show mean bias with 95% MCSE",
+      "intervals over the fixture replicates."
+    ),
+    x = "Estimate minus truth",
+    y = NULL,
     colour = "Surface"
   ) +
-  guides(fill = "none") +
+  guides(fill = "none", colour = "none") +
   theme_drmtmb_gallery()
 
 sim_coverage_present <- sim_summary[!is.na(sim_summary$coverage), , drop = FALSE]
@@ -2155,13 +2344,17 @@ ggplot(sim_coverage_present, aes(coverage, estimand_label, colour = surface)) +
   ) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
   labs(
-    title = "Interval coverage",
-    subtitle = "Faint block dots sample replicate-block coverage; large points and bars show 95% binomial MCSE",
+    title = "ILLUSTRATIVE FIXTURE - not a simulation result",
+    subtitle = paste(
+      "Interval coverage. Every value is a typed constant, not a fitted or",
+      "simulated estimate.\nLarge points and bars show 95% binomial MCSE over",
+      "the fixture replicate blocks."
+    ),
     x = "Empirical coverage",
     y = NULL,
     colour = "Surface"
   ) +
-  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 2.5))) +
+  guides(colour = "none") +
   theme_drmtmb_gallery()
 ```
 
@@ -2194,8 +2387,16 @@ gallery_source_map <- data.frame(
   figure = c(
     "Mean with confidence band",
     "mu and sigma surfaces",
+    "Observed vs implied residual scale",
+    "Fixed-effect slope Confidence Eye",
     "nu, zi, and rho12 panels",
+    "Worm plot, adequate model",
+    "Worm plot, mis-specified sigma",
+    "QQ plot, adequate model",
+    "Conditional centile chart",
+    "Profile-likelihood curve",
     "Variance-component Confidence Eye",
+    "Mixed-parameter Confidence Eye",
     "Conditional random-slope modes",
     "sd(site) surface",
     "Discrete habitat comparison",
@@ -2206,14 +2407,23 @@ gallery_source_map <- data.frame(
     "Empirical marginal mu summary",
     "emmeans support boundary",
     "Continuous interaction",
-    "Correlation estimate rows",
+    "Fitted correlation row",
+    "Correlation layout FIXTURE (not fitted)",
     "Correlation support boundary",
-    "Simulation bias and coverage"
+    "Simulation bias and coverage FIXTURE"
   ),
   source = c(
     "fit_growth",
     "fit_growth",
+    "fit_growth",
+    "fit_growth",
     "fit_tail, fit_zi, fit_pair",
+    "fit_growth",
+    "fit_mis",
+    "fit_growth",
+    "fit_growth",
+    "fit_growth",
+    "fit_re_slopes",
     "fit_re_slopes",
     "fit_re_slopes",
     "fit_site_sd",
@@ -2225,15 +2435,24 @@ gallery_source_map <- data.frame(
     "fit_growth",
     "emmeans_boundary",
     "fit_cont_cont",
-    "pair_table",
+    "fit_pair_const",
+    "pair_table (typed constants)",
     "layer_boundary",
-    "sim_summary"
+    "sim_summary (typed constants)"
   ),
   extractor_or_plotter = c(
     "predict_parameters(dpar = \"mu\") + ggplot2",
     "predict_parameters() + plot_parameter_surface()",
+    "residuals() + predict_parameters(dpar = c(\"mu\", \"sigma\")) + ggplot2",
+    "summary(fit)$coefficients + ggplot2",
     "predict_parameters() + plot_parameter_surface()",
+    "worm_plot()",
+    "worm_plot()",
+    "qq_plot()",
+    "centile_chart()",
+    "profile() + plot()",
     "summary(fit)$parameters + ggplot2",
+    "summary(fit)$coefficients + summary(fit)$parameters + ggplot2",
     "ranef() + ggplot2",
     "prediction_grid() + predict_parameters() + plot_parameter_surface()",
     "predict_parameters(dpar = \"mu\") + plot_parameter_surface()",
@@ -2244,15 +2463,24 @@ gallery_source_map <- data.frame(
     "prediction_grid(margin = \"empirical\") + marginal_parameters() + predict_parameters()",
     "ggplot2 status strip",
     "predict_parameters(dpar = \"mu\") + ggplot2",
-    "corpairs-compatible table + ggplot2",
+    "corpairs(conf.int = TRUE) + plot_corpairs()",
+    "typed corpairs-shaped fixture + ggplot2",
     "ggplot2 status strip",
     "ggplot2 fixture display"
   ),
   interval_source = c(
     "Wald intervals from predict_parameters()",
     "Wald bands from predict_parameters()",
+    "No intervals; observed magnitudes against a fitted curve",
+    "Wald regions on the fitted parameter scale",
     "Wald intervals from each fitted parameter table",
+    "No intervals; simulated envelope only",
+    "No intervals; simulated envelope only",
+    "No intervals; identity reference line",
+    "No intervals; fitted conditional quantiles only",
+    "Profile-likelihood interval read from the curve",
     "Wald regions shaped on log-SD scale",
+    "Wald regions shaped per parameter class (identity, log-SD, Fisher-z)",
     "No intervals; conditional modes only",
     "conf.status = \"wald_unavailable\"; no band",
     "Wald intervals from predict_parameters()",
@@ -2263,14 +2491,23 @@ gallery_source_map <- data.frame(
     "Plug-in mean; bars average row-wise Wald limits",
     "No intervals; status only",
     "Wald intervals from predict_parameters()",
-    "Finite bounds supplied in compatible pair table",
+    "conf.status = \"profile\"; computed profile interval",
+    "Typed constants; interval_source = \"illustrative_profile\"",
     "No intervals; status only",
-    "Illustrative summaries, not final evidence"
+    "Typed constants, not simulation evidence"
   ),
   support_boundary = c(
     "fixed-effect univariate mu",
     "fixed-effect mu and sigma",
+    "fixed-effect sigma surface; a display check, not a formal test",
+    "fixed-effect mu and sigma slopes",
     "fixed-effect shape, inflation, and residual rho12",
+    "randomised quantile residuals; any fitted family",
+    "randomised quantile residuals; any fitted family",
+    "randomised quantile residuals; any fitted family",
+    "fitted conditional quantiles; no centile uncertainty",
+    "direct profile targets only; see profile_targets()",
+    "ordinary Gaussian random-slope fit",
     "ordinary Gaussian random-slope fit",
     "shrunken deviations, not variance intervals",
     "modelled random-effect SD surface without Wald bands",
@@ -2282,7 +2519,8 @@ gallery_source_map <- data.frame(
     "empirical marginalisation, not emmeans",
     "unsupported targets remain unsupported",
     "fixed-effect univariate mu",
-    "implemented residual, group, phylogenetic, spatial, animal, and relmat q2 rows",
+    "constant residual rho12 only; a rho12 regression returns conf.status = \"newdata_required\"",
+    "layout fixture; no fit produces all six rows together",
     "partial q4 location-scale blocks for spatial, animal, and relmat (recovery-grade); regression and remaining richer paths planned",
     "display grammar for later result articles"
   ),
