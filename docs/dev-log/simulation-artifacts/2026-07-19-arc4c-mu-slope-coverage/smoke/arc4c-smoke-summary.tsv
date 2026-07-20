@@ -1,0 +1,13 @@
+cell_id	family	M	n_attempted	n_simulation_error	n_fit_error	n_nonconverged	n_pdHess_bad	n_eligible	n_profile_finite	n_profile_in_range	n_profile_failed	n_hits	n_truth_below	n_truth_above	primary_coverage	conditional_coverage	availability	primary_mcse	conditional_mcse	primary_ci_low	primary_ci_high	conditional_ci_low	conditional_ci_high	sd_hat_mean	relative_sd_bias_mean	wald_coverage	profile_width_mean	nu_hat_mean	near_zero_slant_rate	zero_count_mean	all_zero_cluster_count_mean	interior_count_mean	one_count_mean	invalid_interior_rate	invalid_interior_count_total	smoke_pass
+mc-0464	skew_normal	8	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.53343692234195	2.34997045852588	0	NA	NA	NA	NA	NA	0	TRUE
+mc-0539	tweedie	8	1	0	0	0	0	1	1	0	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.686475050374928	NA	NA	21	0	NA	NA	NA	0	FALSE
+mc-0575	zero_one_beta	8	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.733107611925739	NA	NA	9	NA	102	9	0	0	TRUE
+mc-0464	skew_normal	16	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.420918573041704	-0.00157072939290256	1	NA	NA	NA	NA	NA	0	TRUE
+mc-0539	tweedie	16	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.559450228452517	NA	NA	40	0	NA	NA	NA	0	TRUE
+mc-0575	zero_one_beta	16	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.385334622596984	NA	NA	18	NA	204	18	0	0	TRUE
+mc-0464	skew_normal	32	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.331503108967861	1.97390584178955	0	NA	NA	NA	NA	NA	0	TRUE
+mc-0539	tweedie	32	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.362495947204524	NA	NA	84	0	NA	NA	NA	0	TRUE
+mc-0575	zero_one_beta	32	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.318183406203163	NA	NA	36	NA	408	36	0	0	TRUE
+mc-0464	skew_normal	64	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.181857370516277	2.00498736314434	0	NA	NA	NA	NA	NA	0	TRUE
+mc-0539	tweedie	64	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.246765622198374	NA	NA	165	0	NA	NA	NA	0	TRUE
+mc-0575	zero_one_beta	64	1	0	0	0	0	1	1	1	0	1	0	0	1	1	1	0	0	0.025	1	0.025	1	NA	NA	NA	0.202200191219162	NA	NA	72	NA	816	72	0	0	TRUE

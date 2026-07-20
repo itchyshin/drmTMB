@@ -10,15 +10,20 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-19, ARC 4c PR-A INFRASTRUCTURE COMPLETE; COMPUTE NOT AUTHORIZED).**
-> Branch `codex/arc4c-mu-slope-coverage-infra` is pushed at `2de2ba67` with the frozen and tested
-> three-family ML-Laplace coverage runner, retained-attempt aggregator, deterministic smoke/array
-> manifests, Fir provenance/dispatch package, and 242 focused expectations. Final local
-> `devtools::check()` is 0 errors / 0 warnings / 0 actionable notes; pkgdown, ledger 37/37, Mission
-> Control, and after-task validation are green. **No Arc 4c fit, Fir compile, smoke, array, ledger
-> mutation, or promotion has run.** Draft PR **#797** is open. Next: pass CI, let the maintainer merge it, verify the
-> exact `origin/main` merge SHA, then STOP for Shinichi's separate Gate A compute approval. START HERE:
-> [`docs/dev-log/handover/2026-07-19-arc4c-pr-a-compute-gate.md`](docs/dev-log/handover/2026-07-19-arc4c-pr-a-compute-gate.md)
+> **▶ Latest — start here (2026-07-19, ARC 4c THREE-FAMILY MU-SLOPE COVERAGE COMPLETE).**
+> Fir retained all 13,200 certification attempts for skew-normal `mc-0464`, Tweedie `mc-0539`,
+> and zero-one beta `mc-0575`. Standard **ML-Laplace** profile intervals met the frozen
+> `inference_ready_with_caveats` gate for every family at M=16, 32, and 64; the certified floor is
+> **M=16** for all three. Coverage at M{16,32,64}: skew-normal 0.9275/0.9317/0.9575; Tweedie
+> 0.9267/0.9425/0.9475; zero-one beta 0.9292/0.9400/0.9517. All cells keep `estimator=ML`; none
+> earns `supported`. Fresh D-43 review was 3/3 PROMOTE for skew-normal and Tweedie and 2 PROMOTE / 1
+> WITHHOLD for zero-one beta. Noether's objection is preserved: rare machine-exact ones leaked from
+> the nominally interior beta sampler, so a deterministic strictly-interior rerun is required before
+> claiming exactly 15% observed boundary mass. The immutable campaign also lacks point/Wald
+> diagnostics because duplicate TMB report names defeated their extractor; profile evidence is
+> unaffected, and the prospective extractor is repaired and regression-tested. Campaign source was
+> verified repair merge `46affaee`; PR-A #797 and repair #798 are merged. START HERE:
+> [`docs/dev-log/handover/2026-07-19-arc4c-coverage-closeout.md`](docs/dev-log/handover/2026-07-19-arc4c-coverage-closeout.md)
 >
 > **▶ Prior (2026-07-19, AGHQ + non-Gaussian REML ARC DONE; mc-0227 PROMOTED).**
 > The AGHQ + non-Gaussian REML arc is BUILT + validated + landed on branch

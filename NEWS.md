@@ -1,5 +1,22 @@
 # drmTMB 0.6.0 (development)
 
+## Arc 4c ordinary `mu` random-slope profile coverage
+
+* The exact independent `mu` random-slope cells for `skew_normal()`
+  (`mc-0464`), `tweedie()` (`mc-0539`), and `zero_one_beta()` (`mc-0575`) are
+  now `inference_ready_with_caveats` for the standard ML-Laplace profile
+  interval. A retained 1,200-attempt-per-M Fir campaign supports a deployment
+  floor of M=16 for each family at true slope SD 0.50. The ledger estimator
+  remains `ML`; no cell earns `supported` status.
+* This narrow result does not cover other SDs, observation counts, group grids,
+  correlated or labelled slopes, scale/shape random effects, structured
+  effects, REML, or AGHQ. Skew-normal retains slant-identification risk,
+  Tweedie retains small-M zero-boundary profiles, and zero-one beta needs a
+  deterministic strictly-interior-generator rerun before claiming exactly 15%
+  observed boundary mass. Campaign point-bias and Wald coverage are unavailable
+  because of a disclosed reporting defect; profile coverage is unaffected and
+  the prospective extractor is repaired.
+
 ## Beta q1 phylogenetic location intercept
 
 * Native univariate ML `beta()` now admits one unlabelled intercept-only
@@ -139,15 +156,17 @@
   likelihood with the Laplace approximation and can be biased downward when the
   number of groups or the per-group replication is small. All five have point
   recovery from a 60-seed sweep (per-family relative slope-SD bias of -2% to
-  -9% at 40 groups). A separate Arc 4a iid campaign promotes only the binomial
+  -9% at 40 groups). A separate Arc 4a iid campaign promoted the binomial
   route to `inference_ready_with_caveats` at true SD 0.6, 12 observations and
   12 trials per observation, and exactly `M={32,64}`; it is coverage-backed but
   mildly anti-conservative rather than certified nominal. Point-recovery
   evidence is in
   `docs/dev-log/simulation-artifacts/2026-07-12-arc2b-slope-recovery/`, with
   single-seed DG2 sentinels in `tests/testthat/test-arc2b-mu-random-slope.R`;
-  corrected coverage evidence is in
+  corrected binomial coverage evidence is in
   `docs/dev-log/simulation-artifacts/2026-07-12-dg3-re-sd-coverage/README-profile-iid-v2.md`.
+  Later campaigns promoted cumulative-logit (`mc-0227`) and the three Arc 4c
+  cells above under their own exact design-specific caveats.
 * Scope: one independent `mu` slope only. Correlated intercept-slope blocks
   `(1 + x | id)`, labelled covariance blocks `(0 + x | p | id)`, and
   `sigma`/shape/inflation-dpar random effects remain rejected for these families.

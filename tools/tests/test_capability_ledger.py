@@ -106,7 +106,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            161,
+            158,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
@@ -784,11 +784,15 @@ class CapabilityLedgerTests(unittest.TestCase):
             "eligible cumulative-logit, Student-t, beta, Tweedie, skew-normal, and zero-one-beta routes",
             surfaces["implementation-map.Rmd"],
         )
+        self.assertIn("exact `mc-0539` is inference-ready with caveats", surfaces["implementation-map.Rmd"])
+        self.assertIn("exact `mc-0575` is inference-ready with caveats", surfaces["implementation-map.Rmd"])
         self.assertIn(
             "zero_one_beta()` | `mu` logit",
             surfaces["02-family-registry.md"],
         )
-        self.assertIn(
+        for cell in ("mc-0227", "mc-0464", "mc-0539", "mc-0575"):
+            self.assertIn(cell, surfaces["02-family-registry.md"])
+        self.assertNotIn(
             "ordinary unlabelled `mu` random intercepts and independent numeric slopes at recovery grade",
             surfaces["02-family-registry.md"],
         )
@@ -880,18 +884,20 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn(stale, ordinal_combined)
         self.assertNotIn("skew-normal is a fixed-effect first slice", surfaces["README.md"])
         self.assertIn(
-            "Every fitted univariate\nnon-Gaussian family has an ordinary recovery-grade `mu` random intercept and\nindependent numeric slope",
+            "Every fitted univariate\nnon-Gaussian family has at least recovery-grade ordinary `mu` random-intercept\nand independent numeric-slope evidence",
             surfaces["README.md"],
         )
         self.assertIn(
-            "zero-one beta fixed effects plus ordinary recovery-grade `mu` random intercepts",
+            "zero-one beta fixed effects plus ordinary `mu` random intercepts",
             surfaces["drmTMB.Rmd"],
         )
+        self.assertIn("exact slope cell is inference-ready with caveats", surfaces["drmTMB.Rmd"])
         self.assertNotIn("fixed-effect zero-one beta", surfaces["drmTMB.Rmd"])
         self.assertIn(
-            "each has ordinary recovery-grade `mu` random intercepts and independent numeric slopes",
+            "each has ordinary `mu` random intercepts and independent numeric slopes",
             surfaces["model-map.Rmd"],
         )
+        self.assertIn("design-specific inference-ready-with-caveats evidence", surfaces["model-map.Rmd"])
         self.assertNotIn("fixed-effect `zero_one_beta()`", surfaces["model-map.Rmd"])
         self.assertIn(
             "non-Gaussian paths outside the exact ordinary Poisson/NB2 q1 spatial `mu`",

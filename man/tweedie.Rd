@@ -14,14 +14,16 @@ A \code{drm_family} object.
 distribution for non-negative continuous responses with exact zeros.
 }
 \details{
-The first implemented contract is fixed-effect and univariate:
+The implemented contract is univariate:
 \code{log(mu) = eta_mu}, \code{log(sigma) = eta_sigma},
 \code{nu = 1 + plogis(eta_nu)}, \code{phi = sigma^2}, \code{E[y] = mu}, and
 \code{Var(y) = sigma^2 * mu^nu}, with \verb{1 < nu < 2}. The public \code{sigma}
 parameter is therefore the square root of the usual Tweedie dispersion
-\code{phi}. Random effects, predictor-dependent \code{nu}, bivariate Tweedie models,
-structured effects, zero-inflation aliases, and hurdle aliases remain
-planned but unsupported in this first slice.
+\code{phi}. Ordinary unlabelled random intercepts and independent numeric slopes
+such as \code{(1 | id)} and \code{(0 + x | id)} may enter \code{mu}. Correlated or labelled
+\code{mu} slopes, \code{sigma} or \code{nu} random effects, predictor-dependent \code{nu},
+bivariate Tweedie models, structured effects, zero-inflation aliases, and
+hurdle aliases remain unsupported.
 }
 \examples{
 tweedie()

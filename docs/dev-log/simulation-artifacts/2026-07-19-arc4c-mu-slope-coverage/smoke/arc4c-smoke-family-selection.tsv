@@ -1,0 +1,4 @@
+cell_id	family	M8_smoke_pass	nonexploratory_smoke_pass	family_status
+mc-0464	skew_normal	TRUE	TRUE	eligible_for_full_array
+mc-0539	tweedie	FALSE	TRUE	eligible_for_full_array
+mc-0575	zero_one_beta	TRUE	TRUE	eligible_for_full_array

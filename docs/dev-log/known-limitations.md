@@ -369,16 +369,19 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   remains a fixed-effect tail-shape parameter; random effects in `sigma` or
   `nu`, skew-t shape random effects, correlated Student-t slopes, and latent
   ID-level skewness syntax such as `skew(id) ~ x` are not yet implemented.
-- Univariate skew-normal location-scale-shape models are implemented as a
-  fixed-effect first slice for residual asymmetry with `family = skew_normal()`.
+- Univariate skew-normal location-scale-shape models are implemented for
+  residual asymmetry with `family = skew_normal()`.
   Public `mu` is the response mean, public `sigma` is the response standard
-  deviation, and `nu` is residual slant on the identity scale. Random effects in
-  `mu`, `sigma`, or `nu`, `sd(group)` scale formulae, known sampling covariance,
-  structured effects, bivariate skew-normal models, residual `rho12`, latent
-  `skew(id)` syntax, and `skew` aliases are not yet implemented. The current
-  evidence is focused source tests plus a repeatable Phase 18 smoke/grid
-  artifact lane; it is not a formal 500- or 1000-replicate operating
-  characteristics result.
+  deviation, and `nu` is residual slant on the identity scale. Ordinary
+  unlabelled `mu` random intercepts and independent numeric slopes are fitted.
+  Arc 4c promotes the exact independent-slope ledger cell to
+  `inference_ready_with_caveats` for true SD 0.50 and M>=16 from a retained
+  1,200-attempt-per-M profile-coverage campaign; this is not `supported` and
+  does not generalise beyond that design. Random effects in `sigma` or `nu`,
+  correlated or labelled `mu` slopes, `sd(group)` scale formulae, known
+  sampling covariance, structured effects, bivariate skew-normal models,
+  residual `rho12`, latent `skew(id)` syntax, and `skew` aliases are not yet
+  implemented.
 - Univariate Gamma mean-CV models are implemented for positive finite responses
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts
@@ -450,8 +453,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate cumulative-logit ordinal models are implemented for ordered
   responses with `family = cumulative_logit()`. The routine path supports a
   `mu` location formula, ordered cutpoints, a fixed latent logistic scale, and
-  ordinary recovery-grade `mu` random intercepts or independent numeric
-  slopes. One row-specific q=1 `mu ~ phylo(1 | id, tree = tree)` intercept is
+  ordinary `mu` random intercepts or independent numeric slopes. The exact
+  `mc-0227` independent-slope cell is inference-ready with caveats under its
+  recorded M>=80 design. One row-specific q=1
+  `mu ~ phylo(1 | id, tree = tree)` intercept is
   also fitted at local point-fit/extractor grade. Correlated or labelled
   ordinary slopes, other structured providers, interval/coverage promotion for
   the phylogenetic gate, ordinal `sigma` or discrimination formulas, known

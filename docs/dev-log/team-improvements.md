@@ -675,3 +675,23 @@ scouting belongs to Jason).
   packaging defect by sourcing an `.Rbuildignore`d runner. The focused source
   test remains fail-closed; installed-package checks now respect the packaging
   boundary.
+
+## 2026-07-19 - Test Optional Diagnostics Against Real TMB Name Surfaces
+
+- Improvement implemented: coverage-runner extractor tests now reproduce
+  duplicate TMB report names and require a unique named fixed parameter plus
+  its covariance. Optional point/Wald diagnostics must be tested with the same
+  surface realism as the primary interval gate.
+- Trigger: Arc 4c's immutable profile evidence was complete, but every
+  `sd_hat` and Wald diagnostic was missing because a one-row mock did not expose
+  the two `log_sd_mu` report rows returned by a live fit.
+
+## 2026-07-19 - Verify The Executed DGP, Not Only Its Allocation Labels
+
+- Improvement implemented: bounded-response campaigns must count numerical
+  endpoint leakage from the continuous generator separately from intended
+  structural-boundary allocations. Exact boundary-mass claims require a
+  deterministic strictly-interior sampler.
+- Trigger: Arc 4c zero-one beta allocated exactly 15% labelled structural
+  boundaries, but rare machine-exact `rbeta()` ones made the observed boundary
+  mass slightly larger and predictor-dependent. D-43 caught the distinction.
