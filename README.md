@@ -27,6 +27,8 @@ with a precision parameter such as `phi` or `theta`.
 
 - New to the package? Read
   [Getting started](https://itchyshin.github.io/drmTMB/articles/drmTMB.html).
+- Need the smallest useful workflow and the matching function names? Use the
+  [function map and cheat sheet](https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.html).
 - Want the current status before choosing syntax? Use
   [What can I fit today?](https://itchyshin.github.io/drmTMB/articles/model-map.html)
   for the user-facing model map and the
