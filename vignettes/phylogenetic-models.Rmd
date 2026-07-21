@@ -163,7 +163,7 @@ A few accessors return the pieces of the fit:
 ```{r gaussian-pieces, eval = has_ape}
 coef(fit, "mu")              # fixed-effect mean coefficients
 fit$sdpars$mu                # phylogenetic location SD
-stats::sigma(fit)            # residual SD
+unique(stats::sigma(fit))    # residual SD (constant for this model)
 ```
 
 The recovered slope (`x`) is close to its true value of `-0.4`, and the
@@ -188,19 +188,22 @@ summary(fit)$derived[, c(
 
 `estimate` is $\lambda$. A value well above zero says that, after accounting for
 the covariate, related species really do resemble each other more than
-unrelated ones. The species-level deviations themselves are available with
-`ranef()`:
+unrelated ones. The fitted object also contains the augmented phylogenetic
+state used by the sparse-precision representation. To inspect only the
+species-tip deviations, match that state by the tree's tip labels:
 
 ```{r gaussian-ranef, eval = has_ape}
 phylo_dev <- ranef(fit, "phylo_mu")
-str(phylo_dev$values)
+tip_dev <- phylo_dev$values[tree$tip.label]
+head(tip_dev)
 ```
 
-### Confidence interval for the phylogenetic SD
+### Uncertainty for the two SDs
 
 Variance components have their own `confint()` target. The interval is on the
 response (SD) scale, obtained by transforming the Wald interval for the
-log-SD parameter.
+log-SD parameter. The table contains both the residual SD and the
+phylogenetic location SD.
 
 ```{r gaussian-confint, eval = has_ape}
 confint(fit, parm = "variance_components")[, c(
@@ -208,35 +211,65 @@ confint(fit, parm = "variance_components")[, c(
 )]
 ```
 
-A lower bound comfortably above zero is the interval-based counterpart of a
-non-trivial phylogenetic signal. A `check_drm(fit)` call (not shown) reports the
-same diagnostics for the recognised phylogenetic layer.
+A transformed log-SD interval is necessarily positive, so its lower bound
+should **not** be read as a test of a zero variance component. Use it to
+describe uncertainty in the magnitude of each SD. A `check_drm(fit)` call (not
+shown) reports diagnostics for the recognised phylogenetic layer.
 
-```{r gaussian-figure, eval = has_ape && has_ggplot2, fig.width = 6.6, fig.height = 3.2, fig.cap = "Fitted residual SD and phylogenetic location SD with 95% Wald intervals on the response scale. The two standard deviations answer different questions and are reported separately.", fig.alt = "Two horizontal interval bars. The phylogenetic location standard deviation and the residual standard deviation each have a point estimate and a 95 percent interval, with the phylogenetic interval bounded away from zero."}
+```{r gaussian-figure, eval = has_ape && has_ggplot2, fig.width = 5.2, fig.height = 2.1, fig.cap = "Points are fitted response-scale standard deviations; lines are the default 95% Wald intervals returned by `confint()`. The data-generating values were 0.8 for the phylogenetic SD and 0.3 for the residual SD.", fig.alt = "Two-row interval plot. The estimated phylogenetic location SD is 0.78 with a wide 95 percent interval from 0.50 to 1.37. The residual SD is 0.27 with a narrower interval from 0.23 to 0.31."}
 vc <- confint(fit, parm = "variance_components")
+
+phylo_sd_name <- names(fit$sdpars$mu)[
+  grepl("^phylo\\(", names(fit$sdpars$mu))
+]
+stopifnot(length(phylo_sd_name) == 1L)
+
+target <- c(paste0("sd:mu:", phylo_sd_name), "sigma")
+interval_row <- match(target, vc$parm)
+stopifnot(!anyNA(interval_row))
+
 sd_tab <- data.frame(
-  label = c("Phylogenetic\nlocation SD", "Residual\nsigma"),
-  estimate = c(
-    unname(fit$sdpars$mu[["phylo(1 | species)"]]),
-    unname(stats::sigma(fit)[[1L]])
+  label = factor(
+    c("Phylogenetic SD", "Residual SD"),
+    levels = c("Residual SD", "Phylogenetic SD")
   ),
-  lower = c(vc$lower[1L], NA),
-  upper = c(vc$upper[1L], NA)
+  estimate = c(
+    unname(fit$sdpars$mu[[phylo_sd_name]]),
+    unique(unname(stats::sigma(fit)))[1L]
+  ),
+  lower = vc$lower[interval_row],
+  upper = vc$upper[interval_row]
+)
+stopifnot(
+  all(sd_tab$lower <= sd_tab$estimate),
+  all(sd_tab$estimate <= sd_tab$upper)
 )
 
-ggplot2::ggplot(sd_tab, ggplot2::aes(x = estimate, y = label)) +
-  ggplot2::geom_errorbarh(
-    ggplot2::aes(xmin = lower, xmax = upper),
-    height = 0, linewidth = 1.1, colour = "#0072B2", na.rm = TRUE
+ggplot2::ggplot(sd_tab, ggplot2::aes(y = label)) +
+  ggplot2::geom_segment(
+    ggplot2::aes(x = lower, xend = upper, yend = label),
+    linewidth = 0.9,
+    colour = "grey45"
   ) +
-  ggplot2::geom_point(shape = 21, size = 3.4, stroke = 1,
-                      fill = "white", colour = "#0072B2") +
+  ggplot2::geom_point(
+    ggplot2::aes(x = estimate),
+    size = 2.8,
+    colour = "#0072B2"
+  ) +
+  ggplot2::scale_x_continuous(
+    limits = c(0, NA),
+    expand = ggplot2::expansion(mult = c(0, 0.04))
+  ) +
   ggplot2::labs(
-    title = "Phylogenetic SD is separate from residual sigma",
-    x = "Fitted standard deviation", y = NULL
+    x = "Standard deviation (response scale)",
+    y = NULL
   ) +
-  ggplot2::theme_minimal(base_size = 11) +
-  ggplot2::theme(panel.grid.minor = ggplot2::element_blank())
+  ggplot2::theme_minimal(base_size = 12.5) +
+  ggplot2::theme(
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    axis.text.y = ggplot2::element_text(colour = "grey15")
+  )
 ```
 
 ## Non-Gaussian responses
