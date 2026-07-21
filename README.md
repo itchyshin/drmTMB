@@ -124,6 +124,50 @@ multivariate models, richer unsupported random-effect structures, and the
 optional Julia engine are not hidden alternatives to the documented R/TMB
 workflows.
 
+## What has evidence today
+
+Tier and tested domain differ by family and by route, so treat this as an index,
+not a warranty. Every fitted univariate
+non-Gaussian family has at least recovery-grade ordinary `mu` random-intercept
+and independent numeric-slope evidence. Read
+[What can I trust?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
+for the row-specific tiers, floors, and caveats.
+
+- **Asymmetric and semicontinuous responses.** Tweedie and
+  skew-normal both fit ordinary unlabelled `mu` random intercepts and
+  independent numeric slopes. Their exact independent-slope cells are
+  `inference_ready_with_caveats` for true slope SD 0.50 and `M >= 16`; that is
+  not a `supported` or all-design claim.
+- **Bounded proportions.** For `zero_one_beta()`, `zoi` is the probability of an
+  exact boundary outcome and `coi` is the probability that a boundary outcome
+  is exactly 1. Ordinary
+  unlabelled `mu` random intercepts and independent numeric slopes are
+  recovery-grade, under generator-qualified evidence. Correlated or labelled
+  slopes and `sigma`/`zoi`/`coi` random effects remain planned.
+- **Structured counts.** Ordinary Poisson and NB2 fit q=1 `phylo()`,
+  `spatial()`, `animal()`, and `relmat()` `mu` intercept-plus-one-slope routes;
+  the exact q=1 NB2 structured `sigma` intercept-plus-one-slope routes are
+  fitted at recovery grade, with intervals and coverage planned.
+- **Diagnostic-only spatial gates.** Poisson slope-only `mu ~ spatial(0 + x | site, coords = coords)`,
+  Poisson labelled-scalar `mu ~ spatial(1 | p | site, coords = coords)`, and
+  Poisson `mu ~ spatial(1 | site, coords = coords) + (1 | id)` are single-smoke
+  diagnostic-only. Two fixed-zero-inflation spatial-`mu` routes are also exact
+  diagnostic-only gates: Poisson with
+  `bf(count ~ x + spatial(1 | site, coords = coords), zi ~ 1)` and NB2 with
+  `bf(count ~ x + spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1)`.
+  These gates keep zero inflation fixed; they confirm local fit/extractor
+  feasibility but do not establish point-estimate recovery, intervals, or
+  coverage.
+
+Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations, direct
+spatial SD surfaces, predictor-dependent spatial `corpair()` regression, and
+non-Gaussian spatial effects outside the
+exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope,
+recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial
+`zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates
+remain planned rather than landing-page workflows. The same applies to
+non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope gates.
+
 ## Project status
 
 The package is under active development. See the
