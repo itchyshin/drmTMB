@@ -9,29 +9,29 @@
     "large_data_or_vignettes": true
   },
   "artifact": {
-    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/drmTMB_0.6.0.tar.gz",
-    "sha256": "9ca4d07ca403b6c20d21b00759af1231ffaca988f3f8170467f68da485662602",
-    "size_bytes": 6980912,
-    "source_commit": "74bdb37cb1d2f70c13e67495438d0a9ba3183331",
+    "path": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/drmTMB_0.6.0.tar.gz",
+    "sha256": "323d820f0a0ca444659b3ec3c20bf162ff22e80916b47b05494fa0fd817e0fcb",
+    "size_bytes": 6981105,
+    "source_commit": "c3b9ad49118373d7e2a2481a4753c8a9a0c4db62",
     "clean_worktree": true,
-    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/tarball-inventory.txt"},
+    "inventory_evidence": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/tarball-inventory.txt"},
     "forbidden_entries": [],
-    "refreeze_note": "Round 3 (S8-remediation, final). Supersedes e818e1651dc188f9 (round 2: Pat NOT-READY — the round-1 cross-family fix patched only the table cell, leaving two prose over-promises), which superseded afd4600a86830451 (round 1: 3x NOT-READY). Only tarball-affecting change vs round 2 = cross-family.Rmd prose (commit 74bdb37c completes the fix); src/ byte-identical to round-1 source 091d0a13 (git diff 091d0a13 74bdb37c -- src/ empty), so the local-UBSAN result carries forward. CRAN-lane 12011 reproduced identically across all three rounds."
+    "refreeze_note": "Round 4 (CONSOLIDATION, current). Supersedes 9ca4d07ca403b6c2 (round 3), which a final 6-lens adversarial review found had gone STALE vs main: r3 was built at 74bdb37c, BEFORE PR #805 corrected shipped NEWS.md + vignettes/cross-family.Rmd, so it still carried the v0.5.0-as-milestone defects main had already fixed. This artifact is rebuilt from current main and VERIFIED to contain those fixes (old NEWS 'first CRAN release' claim absent; old cross-family 'ships in 0.5.0' absent; superseded historical note present). Note R CMD build is not bit-reproducible (built vignettes carry timestamps), so each rebuild yields a new hash and this artifact carries its OWN check/smoke logs. src/ remains byte-identical to round-1 source 091d0a13, so the local-UBSAN result still carries forward. CRAN-lane PASS 12011 reproduced identically across all four rounds. Earlier rounds: e818e1651dc188f9 (r2), afd4600a86830451 (r1) — all carry SUPERSEDED.txt."
   },
   "evidence": {
     "product_contract": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md"},
     "rights_and_consent": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/inst/COPYRIGHTS"},
     "current_cran_policy": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/release-audits/2026-07-20-cran-policy-consult.md"},
-    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-as-cran-check.log"},
-    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-as-cran-check.log"},
-    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/install-smoke.log"},
+    "local_as_cran": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/local-as-cran-check.log"},
+    "incoming_feasibility": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/local-as-cran-check.log"},
+    "installed_package": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/install-smoke.log"},
     "platform_matrix": {"kind": "rationale", "value": "NOT reached at the tarball-clean rung: the REMOTE platform matrix (win-builder R-release/R-devel; R-hub UBSAN/valgrind/rchk; 3-OS GH matrix) is the declared NEXT gate, out of this lane. A LOCAL clang-UBSAN probe WAS run (see compiled_diagnostics)."},
     "external_logs": {"kind": "rationale", "value": "NOT_APPLICABLE at tarball-clean: no win-builder/R-hub submitted (next gate)."},
     "rendered_site": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-final/docs/dev-log/figure-audits/2026-07-20-0.6.0-rc/rc-inspection-report.md"},
-    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-as-cran-check.log"},
+    "timing": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/local-as-cran-check.log"},
     "size_and_vignette_budget": {"kind": "rationale", "value": "Installed size 27.8Mb (libs 13.4Mb compiled TMB, doc 9.4Mb, sim 1.7Mb) -> expected size INFO/NOTE on CRAN machines, explained in cran-comments.md (intrinsic to TMB, cf. glmmTMB). Vignettes re-built locally in 78s; Windows timing to be confirmed at the platform-matrix gate."},
     "reverse_dependencies": {"kind": "rationale", "value": "NOT_APPLICABLE: first submission, no reverse dependencies."},
-    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/9ca4d07ca403b6c2/local-ubsan.log"},
+    "compiled_diagnostics": {"kind": "file", "value": "/Users/z3437171/worktrees/drmTMB-rc-frozen/323d820f0a0ca444/local-ubsan.log"},
     "external_service_behaviour": {"kind": "rationale", "value": "JuliaCall is Suggests-only, powering an optional engine='julia' back end; all invoking tests use skip_if_not_installed() and additionally require a local dev checkout of the not-yet-registered Julia package, so they skip on CRAN. Default/only required engine is the bundled TMB code."}
   },
   "panel_round1": {
@@ -48,11 +48,17 @@
     "pat": "NOT-READY — the round-1 cross-family fix patched only the table cell (cross-family.Rmd:289); two prose passages (:199-203 'fitted values', :292-295 'bring the fitted means back to R') still over-promised the xfam extractors.",
     "resolution": "Pat's finding fixed exhaustively in commit 74bdb37c (both prose over-promises removed + honest hedges). Rose's dashboard concern was addressed; her cran-policy-consult.md pointer concern was only PARTIALLY addressed (advanced afd4600a -> e818e165 in commit 74bdb37c, but NOT further advanced to the round-3 artifact 9ca4d07c — a gap the final 6-lens review caught and the consolidation fixes). Re-frozen as 9ca4d07ca403b6c2; round-3 re-run below."
   },
+  "panel_round3": {
+    "verdict": "3x READY on artifact 9ca4d07ca403b6c2 — but NOT a valid D-43 milestone panel: only Pat was a fresh sub-agent; Grace/Rose were round-2 verdicts plus orchestrator-verified deltas (re-dispatch skipped). A later 6-lens adversarial review showed exactly why the 3-fresh-agent standard exists (see rose entry).",
+    "grace": "READY — sha256 9ca4d07c + size 6980912 + 825-entry inventory + forbidden-scan-clean + --as-cran 0/0/1(new-submission)+size-INFO + CRAN-lane PASS 12011 + install-smoke pass + UBSAN carry-forward (src byte-identical 091d0a13->74bdb37c) + gate READY-FOR-CLAIMED-RUNG. NOT a fresh round-3 sub-agent (round-2 verdict + orchestrator-verified delta).",
+    "rose": "READY — NOT a fresh round-3 sub-agent (round-2 verdict + orchestrator-verified delta). **This verdict contained a FALSE claim**: it asserted 'cran-policy-consult.md pointer now 9ca4d07c'. The pointer had only been advanced afd4600a->e818e165 (commit 74bdb37c) and never reached 9ca4d07c. Caught by the final 6-lens review; corrected in the consolidation.",
+    "pat": "READY (fresh sub-agent) — both cross-family prose over-promises (:199-203, :292-295) removed; vignette internally consistent (NULL-return story throughout; code-checked against R/julia-bridge.R). 3 non-blocking follow-ups (NEWS xfam entry; predict.drmTMB_julia.Rd xfam caveat; README->capability-and-limits link) -> filed as #806.",
+    "resolution": "A 6-lens adversarial DONE/NOT-DONE review of merged main then found 4 further release-surface/ledger honesty defects (ROADMAP:41-49 4th v0.5.0 instance; this false rose claim + the stale cran-policy pointer; AGENTS.md stale handover pointer; and the frozen candidate 9ca4d07c gone STALE vs main after PR #805 fixed shipped NEWS.md + cross-family.Rmd). All are fixed in the consolidation, which re-freezes from current main and re-runs a proper 3-FRESH-agent panel below."
+  },
   "panel": {
-    "grace": "READY — round-2 fresh sub-agent verdict; round-3 delta orchestrator-verified (Shinichi opted to skip re-dispatch): sha256 9ca4d07c + size 6980912 + 825-entry inventory + forbidden-scan-clean + --as-cran 0/0/1(new-submission)+size-INFO + CRAN-lane PASS 12011 + install-smoke SMOKE_EXIT=0 + UBSAN carry-forward (src byte-identical 091d0a13->74bdb37c) + cran_release_gate.py READY-FOR-CLAIMED-RUNG all independently confirmed.",
-    "rose": "READY — round-2 fresh sub-agent verdict (manifest ceiling not exceeded); round-3 delta orchestrator-verified (re-dispatch skipped): both round-2 concerns resolved — cran-policy-consult.md pointer now 9ca4d07c (afd4600a marked superseded), mission-control dashboard updated to round-3 state. No new capability claims.",
-    "pat": "READY (round 3, fresh sub-agent) — both cross-family prose over-promises (:199-203, :292-295) removed and the whole vignette is internally consistent (NULL-return story top-to-bottom; code-checked against R/julia-bridge.R). 3 non-blocking follow-ups noted: (1) no NEWS.md entry for the xfam-doc fix; (2) man/predict.drmTMB_julia.Rd lacks an xfam-subclass caveat; (3) README 'Start here' does not link capability-and-limits directly. All four known limitations discoverable + honest.",
-    "note": "Round 3 outcome = 3x READY (Pat fresh; Grace/Rose round-2 fresh + round-3 deltas orchestrator-verified). Rung tarball-clean is MET. Pat's 3 items are logged follow-ups (fold into the xfam-extractor follow-up issue), not blockers."
+    "grace": "PENDING",
+    "rose": "PENDING",
+    "pat": "PENDING"
   },
   "status_claim": "tarball-clean",
   "submission": {
