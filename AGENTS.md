@@ -17,12 +17,17 @@ regression using Template Model Builder.
 > GitHub) and the CRAN submission (G6) are the declared **NEXT** gates (a separate future lane). 0.5.0 was
 > ditched and never accepted → **0.6.0 is a first/new submission.** Evidence: local `R CMD check --as-cran`
 > = 0 err / 0 warn / 1 NOTE (new-submission) + installed-size INFO; CRAN-lane `FAIL 0 | PASS 12011`; local
-> clang-UBSAN 0 runtime errors on the six `(int)asDouble()` casts. The D-43 panel iterated three rounds
-> (the panel + a 6-lens completeness review caught and fixed several release-surface honesty defects — none
-> a code regression). Capabilities + every deferred future-work item (with its owning issue) are catalogued
-> in the release manifest (`docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md`) and the
-> future-work register. Open follow-ups: Julia xfam extractors **#806**; sigma-slope start **#710.2**. START
-> HERE: [`docs/dev-log/after-task/2026-07-20-cran-rc-s8-s9-refreeze.md`](docs/dev-log/after-task/2026-07-20-cran-rc-s8-s9-refreeze.md)
+> clang-UBSAN 0 runtime errors on the six `(int)asDouble()` casts. The D-43 panel ran **four** rounds
+> (rounds 1–3 plus a 6-lens adversarial review caught and fixed several release-surface honesty defects —
+> **none a code regression**; round 4 = 3× READY from three genuinely fresh agents on the current frozen
+> artifact `323d820f0a0ca444`). PRs #804 → #805 → #807 all merged; `origin/main` = `78b89d3f`.
+> **NEXT, and handed to Codex: the pre-CRAN CODE + CONTENT review.** This lane changed **no executable
+> code** (`src/` 0 files, `tests/` 0 files, `R/` only 77 roxygen lines), so the code and the science are
+> genuinely unreviewed while the packaging is audited four times over. Do that review **before** the
+> platform matrix. Capabilities + every deferred future-work item (with its owning issue) are catalogued in
+> the release manifest (`docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md`). Open
+> follow-ups: Julia xfam extractors **#806**; sigma-slope start **#710.2**. START
+> HERE: [`docs/dev-log/handover/2026-07-21-codex-handover.md`](docs/dev-log/handover/2026-07-21-codex-handover.md)
 >
 > **▶ Prior (2026-07-19, AGHQ + non-Gaussian REML ARC DONE; mc-0227 PROMOTED).**
 > The AGHQ + non-Gaussian REML arc is BUILT + validated + landed on branch
