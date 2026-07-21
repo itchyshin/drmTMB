@@ -414,11 +414,12 @@ and residual SDs, the fitted residual activity-boldness correlation increased
 with disturbance." That sentence tells the reader which correlation has been
 modelled.
 
-The same response-scale result can be visualised as a `rho12` curve. Here the
-ribbon is a 95% Wald interval from `predict_parameters()`; if an interval
-column is unavailable, the plot should not silently imply uncertainty.
+The same response-scale result can be visualised as a `rho12` curve. For a
+predictor-dependent `rho12` formula, this release reports the fitted point curve
+only: it does not make a response-scale interval claim. Fit `rho12 ~ 1` when a
+constant residual-correlation profile interval is the reporting target.
 
-```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the ribbon is a 95% Wald confidence interval and the dotted line marks zero residual correlation.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon and a dotted zero line, increasing from negative to positive values and crossing zero near average disturbance."}
+```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the dotted line marks zero residual correlation. This predictor-dependent curve has no released interval claim.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a dotted zero line, increasing from negative to positive values and crossing zero near average disturbance; no confidence ribbon is shown."}
 rho_grid <- data.frame(
   food = 0,
   temperature = 0,
@@ -428,28 +429,20 @@ rho_pred <- predict_parameters(
   fit_biv,
   newdata = rho_grid,
   dpar = "rho12",
-  conf.int = TRUE
+  conf.int = FALSE
 )
 rho_grid$rho12 <- rho_pred$estimate
-rho_grid$conf.low <- rho_pred$conf.low
-rho_grid$conf.high <- rho_pred$conf.high
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggplot(rho_grid, ggplot2::aes(disturbance, rho12)) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dotted", colour = "grey60") +
-    ggplot2::geom_ribbon(
-      ggplot2::aes(ymin = conf.low, ymax = conf.high),
-      fill = "#006D77",
-      alpha = 0.18,
-      colour = NA
-    ) +
     ggplot2::geom_line(linewidth = 0.9, colour = "#006D77") +
     ggplot2::coord_cartesian(ylim = c(-1, 1)) +
     ggplot2::labs(
       x = "Disturbance",
       y = "Fitted residual correlation (rho12)",
       title = "Residual coupling changes with disturbance",
-      subtitle = "Ribbon is a 95% Wald interval; dotted line marks rho12 = 0"
+      subtitle = "Fitted point curve; dotted line marks rho12 = 0"
     ) +
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(

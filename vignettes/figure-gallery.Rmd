@@ -475,7 +475,7 @@ questions and often live on bounded response scales. The next panel set uses
 three fitted models and the same plotting helper, but each panel names the
 estimand explicitly.
 
-```{r shape-inflation-rho12-panels, fig.cap="Response-scale distributional-parameter panels for `nu`, `zi`, and residual `rho12`; ribbons are 95% Wald confidence bands.", fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter, a zero-inflation probability, and a residual rho12 correlation along a predictor gradient with 95 percent confidence bands."}
+```{r shape-inflation-rho12-panels, fig.cap="Response-scale distributional-parameter panels for `nu`, `zi`, and residual `rho12`; `nu` and `zi` have 95% Wald confidence bands, while the predictor-dependent `rho12` panel is point-only.", fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter and a zero-inflation probability with 95 percent confidence bands, plus a residual rho12 correlation point curve without a confidence band."}
 set.seed(2594)
 n_tail <- 2500
 tail_dat <- data.frame(tail_pressure = runif(n_tail, -1.5, 1.5))
@@ -552,16 +552,22 @@ pred_rho <- predict_parameters(
   fit_pair,
   newdata = rho_grid,
   dpar = "rho12",
-  conf.int = TRUE
+  conf.int = FALSE
 )
+pred_rho$conf.low <- NA_real_
+pred_rho$conf.high <- NA_real_
 pred_rho$gradient <- pred_rho$disturbance
 pred_rho$panel <- "Residual rho12"
 pred_rho$model <- "Residual correlation"
 
+common_prediction_columns <- intersect(names(pred_tail), names(pred_zi))
+rho_missing_columns <- setdiff(common_prediction_columns, names(pred_rho))
+pred_rho[rho_missing_columns] <- NA_real_
+
 pred_extra <- rbind(
-  pred_tail[intersect(names(pred_tail), names(pred_zi))],
-  pred_zi[intersect(names(pred_tail), names(pred_zi))],
-  pred_rho[intersect(names(pred_tail), names(pred_zi))]
+  pred_tail[common_prediction_columns],
+  pred_zi[common_prediction_columns],
+  pred_rho[common_prediction_columns]
 )
 pred_extra$panel <- factor(
   pred_extra$panel,

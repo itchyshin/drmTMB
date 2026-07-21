@@ -415,9 +415,12 @@ row.names(sigma_grid) <- c("cool_reef", "warm_reef")
 confint(fit, parm = "sigma", method = "profile", newdata = sigma_grid)
 ```
 
-The same row-specific rule applies to bivariate Gaussian scale and residual
-correlation models. In a two-response fit with `sigma1 ~ z1`, `sigma2 ~ z2`,
-and `rho12 ~ w`, profile the biologically meaningful rows directly:
+The row-specific rule applies to bivariate Gaussian scale models. In a
+two-response fit with `sigma1 ~ z1`, `sigma2 ~ z2`, and `rho12 ~ w`, profile
+the biologically meaningful scale rows directly. In this release, the
+predictor-dependent `rho12` curve is point-estimate-only; use a constant
+`rho12 ~ 1` fit when the residual-correlation profile interval itself is the
+reporting target.
 
 ```{r, eval = FALSE}
 biv_grid <- data.frame(
@@ -430,7 +433,6 @@ row.names(biv_grid) <- c("cool_low_coupling", "warm_high_coupling")
 
 confint(fit_biv, parm = "sigma1", method = "profile", newdata = biv_grid)
 confint(fit_biv, parm = "sigma2", method = "profile", newdata = biv_grid)
-confint(fit_biv, parm = "rho12", method = "profile", newdata = biv_grid)
 ```
 
 For diagnostic profiles of random-effect SDs and correlations, copy the exact

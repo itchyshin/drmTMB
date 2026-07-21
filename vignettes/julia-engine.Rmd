@@ -45,11 +45,10 @@ It additionally routes the bivariate **q = 4 phylogenetic location-scale model**
 exact-gradient sparse q = 4 engine. The bridge translates drmTMB's labelled
 covariance-block grammar `phylo(1 | p | species)` to DRM.jl's `phylo(1 | species)`
 (DRM.jl implies the 4x4 between-species covariance from the four shared axes).
-Round-trip parity against `engine = "tmb"` matches the log-likelihood and fixed
-effects on a seeded q = 4 fixture (verified locally; CI does not run Julia).
-Use the top-level `REML = TRUE` / `REML = FALSE` argument, as in native
-mixed-model workflows; the bridge converts that public switch to DRM.jl's
-internal `method = :REML` only for supported REML cells.
+This is a deferred bridge-development route, not a 0.6.0 parity or
+interval-reliability claim. Use the top-level `REML = TRUE` / `REML = FALSE`
+argument only when deliberately exercising a compatible DRM.jl development
+checkout; use the native TMB engine for release analysis and reporting.
 
 Beyond Gaussian, the bridge also routes a set of non-Gaussian **phylogenetic**
 cells: a `phylo(1 | group)` random intercept on Poisson, NB2, Gamma, Beta, or
