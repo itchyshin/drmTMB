@@ -145,3 +145,21 @@ is *correct* withholds the rung regardless of the vote count.
 
 Only `drmTMB` touched. No gllvmTMB, no `Github Local/`. No compute (G5). Vault (local-only, D-37) updated:
 LOOP checkpoint + Mission Control dashboard.
+
+**What this arc COVERS:** the release-surface honesty of the 0.6.0 candidate (the `cross-family.Rmd`
+xfam-extractor documentation, the version/install-target reconciliation, the install-smoke evidence, the
+manifest §0/#710 factual corrections), the frozen tarball identity + `--as-cran`/CRAN-lane/UBSAN/install
+evidence for the **tarball-clean + local-UBSAN** rung, and the D-43 panel sign-off on that artifact.
+
+**What this arc does NOT cover** (explicit negative space):
+- **Engine (Julia xfam):** documents that the cross-family `drmTMB_julia_xfam` extractors
+  (`fitted`/`predict`/`vcov`/`residuals`/`summary`-coef) return `NULL`; it does **NOT** fix that code gap
+  (a post-0.6.0 follow-up issue) and does **NOT** add the `man/predict.drmTMB_julia.Rd` xfam caveat.
+- **Platform / sanitizers:** proves only a LOCAL macOS `--as-cran` + a LOCAL clang-UBSAN; does **NOT**
+  cover the remote platform matrix (win-builder / R-hub UBSAN·valgrind·rchk / 3-OS GitHub) or Windows
+  vignette timing — the declared next gate.
+- **Submission:** does **NOT** cover the CRAN upload (G6, out of lane) or PR merge (G4, human).
+- **Model/estimator behaviour:** no `R/`, `src/`, or `tests/` change; does **NOT** cover REML,
+  penalty, missing-data, aggregation, or any inference-tier promotion — the manifest ceiling is
+  unchanged (zero-one-beta stays fenced generator-qualified; #710.2 stays deferred).
+- **Compiler warnings:** does **NOT** cover the pre-existing dead-store warnings in `drmTMB.cpp`.
