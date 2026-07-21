@@ -98,7 +98,10 @@ data.frame(
 ```
 
 For a fuller walkthrough of fitted means, residual SDs, and residual
-variances, read "When variance carries signal".
+variances, read [When variance carries signal, Part
+1](location-scale.html). Continue to [Part
+2](location-scale-scale.html) when predictors model a grouped or
+phylogenetic random-effect SD through `sd()`.
 
 ## Learning path
 
@@ -117,7 +120,8 @@ diagnostics, and honest limits.
 | Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
 | Which family fits my response — continuous, count, proportion, or robust? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
 | Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd1(group, level = "phylogenetic")`, `sd2(group, level = "phylogenetic")` |
-| Do predictors change the mean and residual variability of one response? | [When variance carries signal](location-scale.html) | `mu`, `sigma` |
+| Do predictors change the mean and residual variability of one response? | [When variance carries signal, Part 1](location-scale.html) | `mu`, `sigma` |
+| Do predictors change residual variability and the SD of a grouped or phylogenetic random effect? | [When variance carries signal, Part 2](location-scale-scale.html) | `mu`, `sigma`, `sd(group)` |
 | Do counts show extra-Poisson variation or structural zeros? | [Count abundance and extra zeros](count-nbinom2.html) | NB2 `mu`, `sigma`, `zi` |
 | Are proportions successes out of trials, continuous rates inside `(0, 1)`, or continuous rates with structural exact boundaries? | [Proportions and success rates](proportion-beta-binomial.html) | beta-binomial, beta, and zero-one beta `mu`, `sigma`, `zoi`, `coi` |
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
@@ -158,8 +162,8 @@ At a high level, the current public surface is:
 
 | Model family or component | Current status | Main article |
 | --- | --- | --- |
-| Gaussian location-scale fixed effects | stable | "When variance carries signal" |
-| Gaussian `mu` random intercepts and one-slope blocks | stable | "When variance carries signal" |
+| Gaussian location-scale fixed effects | stable | "When variance carries signal, Part 1" |
+| Gaussian `mu` random intercepts and one-slope blocks | stable | "When variance carries signal, Part 1" |
 | residual-scale random intercepts and independent slopes | stable or first slice, depending on term | "Which scale are you modelling?" |
 | unlabelled Gaussian `mu` random-intercept SD formulas | first slice | "Which scale are you modelling?" |
 | fixed-effect non-Gaussian families | stable for named fixed-effect paths | "Choosing response families" |

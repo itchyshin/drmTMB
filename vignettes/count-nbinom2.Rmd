@@ -18,7 +18,7 @@ natural baseline, but it fixes the variance equal to the mean. The
 location-scale count question is sharper: do predictors change the expected
 abundance, the extra-Poisson variation around that abundance, or the chance of
 a separate structural zero? This tutorial assumes the location-scale reading
-pattern from [When variance carries signal](location-scale.html) and extends
+pattern from [When variance carries signal, Part 1](location-scale.html) and extends
 it to a count mean and dispersion.
 
 This article stays inside the currently implemented `drmTMB` count surface:
