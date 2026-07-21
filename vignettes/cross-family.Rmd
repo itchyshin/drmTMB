@@ -20,7 +20,7 @@ Gaussian trait and a Poisson count -- move together once each trait's own mean
 and scale model is in place.
 
 The route is **experimental** (recovery grade -- trust the point estimate of the
-latent correlation, not the interval). Its R dispatch ships in `drmTMB` 0.5.0 and
+latent correlation, not the interval). Its R dispatch ships in `drmTMB` and
 routes admitted mixed-family pairs through the Julia bridge with no R-level
 decline gate; what is developed separately, and not bundled, is the DRM.jl
 cross-family latent engine it calls, so a working fit needs a DRM.jl checkout
@@ -305,7 +305,7 @@ To keep the article honest about what ships today:
   against the native TMB backend (see `vignette("julia-engine")`).
 - The cross-family route -- `family = c(famA(), famB())` with **different**
   families through `engine = "julia"` -- is experimental (recovery grade). Its R
-  dispatch ships in 0.5.0 and actively routes admitted mixed-family pairs
+  dispatch ships in `drmTMB` and actively routes admitted mixed-family pairs
   (gaussian / poisson / binomial / nbinom2 / beta / gamma axes) through the
   bridge to DRM.jl -- there is no R-level decline gate. What is developed
   separately is the DRM.jl cross-family latent engine: without a DRM.jl checkout

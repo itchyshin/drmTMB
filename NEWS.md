@@ -360,8 +360,11 @@
 
 # drmTMB 0.5.0
 
-`drmTMB` 0.5.0 is the **first CRAN release** (not 1.0). The honest version number
-reflects that much of the family and inference surface is still scaffolded or
+`drmTMB` 0.5.0 was numbered as the intended first CRAN release (not 1.0) —
+*historical note, superseded: 0.5.0 was never submitted to or accepted by CRAN
+and was retired in favour of a more capable 0.6.0-class cut, so **0.6.0** is the
+actual first CRAN submission.* The honest version number reflects that much of
+the family and inference surface is still scaffolded or
 recovery-grade. Throughout the dev-log and the "Q-Series v1.0" ledger, **"v1.0"
 is reserved for the later maturity milestone** that 0.5.0 deliberately does not
 yet claim. This entry accumulates the 0.4.x development cycle (docs/ledger
