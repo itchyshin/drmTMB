@@ -49,8 +49,10 @@ navbar:
     tutorials:
       text: Tutorials
       menu:
-        - text: When variance carries signal
+        - text: "When variance carries signal, Part 1: location-scale"
           href: articles/location-scale.html
+        - text: "When variance carries signal, Part 2: location-scale-scale"
+          href: articles/location-scale-scale.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
@@ -230,6 +232,7 @@ articles:
   - title: Tutorials
     contents:
       - location-scale
+      - location-scale-scale
       - robust-student
       - count-nbinom2
       - proportion-beta-binomial

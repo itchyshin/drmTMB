@@ -81,7 +81,7 @@ matches the question before choosing a plot:
 
 | If the scientific phrase is... | It usually maps to... | Start here |
 | --- | --- | --- |
-| average response, expected trait value, or treatment effect | `mu` or `mu1` / `mu2` | [When variance carries signal](location-scale.html) |
+| average response, expected trait value, or treatment effect | `mu` or `mu1` / `mu2` | [When variance carries signal, Part 1](location-scale.html) |
 | residual variability, predictability, extra heterogeneity, or dispersion | `sigma` or `sigma1` / `sigma2` | [Which scale are you modelling?](which-scale.html) |
 | among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
 | residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
@@ -143,8 +143,8 @@ Implemented one-response surfaces include:
 
 | Question | Implemented surface | Read next |
 |---|---|---|
-| Do predictors change the mean and residual SD? | `drm_formula(y ~ x, sigma ~ z)` | [When variance carries signal](location-scale.html) |
-| Do groups differ in expected response? | ordinary `mu` random intercepts and one-slope blocks | [When variance carries signal](location-scale.html) |
+| Do predictors change the mean and residual SD? | `drm_formula(y ~ x, sigma ~ z)` | [When variance carries signal, Part 1](location-scale.html) |
+| Do groups differ in expected response? | ordinary `mu` random intercepts and one-slope blocks | [When variance carries signal, Part 1](location-scale.html) |
 | Do groups differ in residual SD? | `sigma ~ x + (1 | group)` | [Which scale are you modelling?](which-scale.html) |
 | Do groups differ in residual-scale slopes? | `sigma ~ x + (0 + w | group)` for independent Gaussian residual-scale slopes | [Which scale are you modelling?](which-scale.html) |
 | Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
@@ -492,7 +492,7 @@ a larger covariance model than the mean-mean path.
 | If you need... | Start with... |
 |---|---|
 | a first fitted model | [Getting started](drmTMB.html) |
-| a worked Gaussian mean-variance analysis | [When variance carries signal](location-scale.html) |
+| a worked Gaussian mean-variance analysis | [When variance carries signal, Part 1](location-scale.html) |
 | a scale vocabulary check | [Which scale are you modelling?](which-scale.html) |
 | a robust continuous-response example | [Robust continuous responses](robust-student.html) |
 | a fixed-effect count example with overdispersion or structural zeros | [Count abundance and extra zeros](count-nbinom2.html) |

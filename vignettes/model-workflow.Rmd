@@ -417,7 +417,12 @@ confint(fit, parm = "sigma", method = "profile", newdata = sigma_grid)
 
 The same row-specific rule applies to bivariate Gaussian scale and residual
 correlation models. In a two-response fit with `sigma1 ~ z1`, `sigma2 ~ z2`,
-and `rho12 ~ w`, profile the biologically meaningful rows directly:
+and `rho12 ~ w`, profile the biologically meaningful rows directly. A
+predictor-dependent parameter has no single scalar target, which is why
+`newdata` is required: without it the summary reports
+`conf.status = "newdata_required"` rather than an interval. These row-specific
+intervals are computed but not coverage-certified; the certified
+residual-correlation target is the constant `rho12 ~ 1` profile interval.
 
 ```{r, eval = FALSE}
 biv_grid <- data.frame(

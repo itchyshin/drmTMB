@@ -1,10 +1,11 @@
-# 226 — One canonical reader learning path across 34 vignettes
+# 226 — One canonical reader learning path across 35 vignettes
 
 ## 1. The problem
 
-`_pkgdown.yml` carries two independent taxonomies over the same 34 vignettes:
-the navbar (`model_guides` 11 · `tutorials` 15 · `diagnostics` 4 · `developer`
-3) and the `articles:` index used to render the pkgdown homepage grid
+When this design review began, `_pkgdown.yml` carried two independent
+taxonomies over the then-current 34 vignettes: the navbar (`model_guides` 11
+· `tutorials` 15 · `diagnostics` 4 · `developer` 3) and the `articles:` index
+used to render the pkgdown homepage grid
 (`Getting Started` 1 · `Start Here` 4 · `Choose Your Model` 6 · `Applied
 Family Tutorials` 3 · `Structured Dependence` 7 · `Inference, Diagnostics,
 and Figures` 6 · `Simulation and Validation` 3 · `Developer Notes` 3). They
@@ -33,6 +34,9 @@ links from any other vignette (`adding-families`, `convergence`,
 `testing-likelihoods`); eight of those nine have no outbound links either,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
+
+The synchronized placement table below now contains 35 vignettes after the
+location-scale tutorial was split into two shorter parts.
 
 ## 2. The canonical sequence
 
@@ -79,7 +83,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-34 rows. Role legend: **tutorial** = worked biological example with fitted
+35 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -94,7 +98,8 @@ path.
 | 3 | `which-scale` | 2. Choose your family | route-chooser | Disambiguates residual `sigma`, `sd(group)`, likelihood weights, and known sampling variance before the reader picks a family — answers "which scale am I even modelling" ahead of "which family." |
 | 4 | `distribution-families` | 2. Choose your family | route-chooser | Direct family-selection guide: continuous, count, proportion, robust — the question stage 2 exists to answer. |
 | 5 | `model-map` | 2. Choose your family | route-chooser | "What can I fit today?" status map; the reader consults it while deciding which family/syntax combination is actually implemented. |
-| 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Flagship Gaussian location-scale worked tutorial: `mu` and `sigma` interpretation with a biological example. |
+| 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Part 1 of the Gaussian variance sequence: `mu` and residual `sigma` interpretation with a biological example. |
+| 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: ordinary `sd(group)` and phylogenetic `sd(group, level = "phylogenetic")` models, kept distinct from residual `sigma`. |
 | 7 | `robust-student` | 3. Interpretation tutorials | tutorial | Student-t shape-parameter (`nu`) worked tutorial for robust continuous responses. |
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
@@ -123,12 +128,12 @@ path.
 | 32 | `implementation-map` | 2. Choose your family | guide | **Corrected in §9 — reverted to the applied path.** It opens "This map answers one practical question: what model surface can an applied user…", and `model-map` links to it from four places (`model-map.Rmd:38,53,152,157`). Reclassifying it developer-only would break live cross-links from an applied guide and hide the page readers are explicitly sent to. |
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 
-Total: 34 placed. Stage counts **after the §9 corrections**: **1. First fit**
-= 3 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 7 ·
+Total: 35 placed. Stage counts **after the §9 corrections**: **1. First fit**
+= 3 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 8 ·
 **Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
 **5. Uncertainty & inference boundaries** = 4 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-3 + 4 + 7 + 3 + 7 + 4 + 1 + 5 = 34.
+3 + 4 + 8 + 3 + 7 + 4 + 1 + 5 = 35.
 
 Two rows deserve a placement note beyond the reason column:
 
@@ -359,6 +364,7 @@ spine articles split by organism:
 |---|---|
 | `drmTMB` | plants — forest / grassland |
 | `location-scale` | plants — forest / grassland |
+| `location-scale-scale` | populations and species — habitat / climate |
 | `which-scale` | fish — population |
 | `model-workflow` | fish — reef / kelp |
 

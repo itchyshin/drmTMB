@@ -863,4 +863,4 @@ Current planned but not implemented syntax includes:
 With the scale vocabulary settled, move on to
 [Choosing response families](distribution-families.html) to pick a family,
 then to a matching interpretation tutorial such as
-[When variance carries signal](location-scale.html).
+[When variance carries signal, Part 1](location-scale.html).

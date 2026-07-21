@@ -18,7 +18,7 @@ a model.
 
 This overview assumes you have already fit and interpreted a plain
 location-scale model, for example the Gaussian tutorial in
-[When variance carries signal](location-scale.html), and now need one of the
+[When variance carries signal, Part 1](location-scale.html), and now need one of the
 structured layers below because your observations are grouped, related, or
 spatially structured.
 
