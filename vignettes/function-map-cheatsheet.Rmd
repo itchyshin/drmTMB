@@ -32,6 +32,7 @@ knitr::include_graphics("function-map-cheatsheet.png")
 | Extract a parameter or make a prediction table | `coef()`, `fixef()`, `predict_parameters()` | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) |
 | Work with repeated, related, or spatially structured data | `ranef()`, `phylo()`, `spatial()`, `relmat()` | [Structural dependence overview](structural-dependence.html) |
 | Request an interval or profile a target | `confint()`, `profile_targets()`, `profile()` | [Checking and using fitted models](model-workflow.html) |
+| Fit when some values are missing | `miss_control()`, `mi()`, `imputed()` | [Handling missing data](missing-data.html) |
 | Confirm an unfamiliar route is supported | `model-map` and `capability-and-limits` | [What can I fit today?](model-map.html) |
 
 ## The shortest useful workflow

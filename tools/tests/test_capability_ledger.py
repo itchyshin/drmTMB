@@ -433,6 +433,42 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn("inference-ready with caveats", boundary)
             self.assertIn("not supported", boundary)
 
+    def test_missing_data_vignette_matrix_matches_the_ledger_routes(self):
+        # `missing-data.Rmd` restates the 18 response-missingness routes by hand.
+        # `--check` compares only the generated include, so without this guard a
+        # demotion would self-correct in `capability-and-limits.Rmd` while the
+        # vignette kept its tick -- drift in the over-claiming direction, on the
+        # largest single claim surface for this axis.
+        text = (ROOT / "vignettes/missing-data.Rmd").read_text()
+        marker = '| Response family | `response = "include"`'
+        block = text[text.index(marker):].split("\n\n", 1)[0].splitlines()
+        rows = [line for line in block if line.startswith("|")][2:]
+        labels = {line.split("|")[1].strip() for line in rows}
+        expected = {
+            "`gaussian()`",
+            "bivariate Gaussian",
+            "`binomial()`",
+            "`poisson()`",
+            "`nbinom2()`",
+            "`beta()`",
+            "`student()`",
+            "`lognormal()`",
+            '`Gamma(link = "log")`',
+            "`skew_normal()`",
+            "`tweedie()`",
+            "`zero_one_beta()`",
+            "`beta_binomial()`",
+            "`cumulative_logit()`",
+            "`truncated_nbinom2()`",
+            "zero-inflated Poisson",
+            "zero-inflated NB2",
+            "hurdle NB2",
+        }
+        self.assertEqual(labels, expected)
+        missing = [row for row in self.cells if row["axis"] == "missing_response"]
+        self.assertEqual(len(rows), len(missing))
+        self.assertEqual(len(rows), len(ledger.ADMITTED))
+
     def test_reader_surfaces_do_not_erase_structured_sigma_slope_support(self):
         surfaces = {
             name: (ROOT / "vignettes" / name).read_text()

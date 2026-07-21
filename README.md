@@ -109,6 +109,9 @@ For random or structured effects, use the [structural dependence overview](https
 before choosing `phylo()`, `spatial()`, `animal()`, or `relmat()`. For two
 Gaussian responses, use [the `rho12` tutorial](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html);
 for known sampling variance or covariance, use [the meta-analysis route](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
+When some values are missing, [handling missing data](https://itchyshin.github.io/drmTMB/articles/missing-data.html)
+covers the two separate axes: which response families marginalise a missing
+response, and which predictors can be modelled with `mi()`.
 
 ## Keep the boundary visible
 
