@@ -2872,7 +2872,7 @@ drm_build_gaussian_ls_spec <- function(
   unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "Univariate Gaussian models support only the {.code mu} and {.code sigma} distributional parameters.",
+      "Univariate Gaussian models only support {.code mu} and {.code sigma}.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
       "i" = "Name each parameter formula in {.fn bf}, such as {.code bf(y ~ x, sigma ~ x)}."
     ))
