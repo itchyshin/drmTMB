@@ -49,9 +49,10 @@
     "resolution": "Pat's finding fixed exhaustively in commit 74bdb37c (both prose over-promises removed + honest hedges); Rose's two concerns addressed (policy-consult pointer -> e818e165 then 9ca4d07c; dashboard updated). Re-frozen as 9ca4d07ca403b6c2; full-trio re-run (round 3) below."
   },
   "panel": {
-    "grace": "PENDING",
-    "rose": "PENDING",
-    "pat": "PENDING"
+    "grace": "READY — round-2 fresh sub-agent verdict; round-3 delta orchestrator-verified (Shinichi opted to skip re-dispatch): sha256 9ca4d07c + size 6980912 + 825-entry inventory + forbidden-scan-clean + --as-cran 0/0/1(new-submission)+size-INFO + CRAN-lane PASS 12011 + install-smoke SMOKE_EXIT=0 + UBSAN carry-forward (src byte-identical 091d0a13->74bdb37c) + cran_release_gate.py READY-FOR-CLAIMED-RUNG all independently confirmed.",
+    "rose": "READY — round-2 fresh sub-agent verdict (manifest ceiling not exceeded); round-3 delta orchestrator-verified (re-dispatch skipped): both round-2 concerns resolved — cran-policy-consult.md pointer now 9ca4d07c (afd4600a marked superseded), mission-control dashboard updated to round-3 state. No new capability claims.",
+    "pat": "READY (round 3, fresh sub-agent) — both cross-family prose over-promises (:199-203, :292-295) removed and the whole vignette is internally consistent (NULL-return story top-to-bottom; code-checked against R/julia-bridge.R). 3 non-blocking follow-ups noted: (1) no NEWS.md entry for the xfam-doc fix; (2) man/predict.drmTMB_julia.Rd lacks an xfam-subclass caveat; (3) README 'Start here' does not link capability-and-limits directly. All four known limitations discoverable + honest.",
+    "note": "Round 3 outcome = 3x READY (Pat fresh; Grace/Rose round-2 fresh + round-3 deltas orchestrator-verified). Rung tarball-clean is MET. Pat's 3 items are logged follow-ups (fold into the xfam-extractor follow-up issue), not blockers."
   },
   "status_claim": "tarball-clean",
   "submission": {
