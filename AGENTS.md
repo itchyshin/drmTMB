@@ -10,14 +10,28 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-21, → Claude, pre-CRAN content + reader-path PR).**
-> PR #810 (`codex/precran-review-20260721` @ `d78c7353`) carries manifest-aligned
-> content corrections and the Pat/Rose-approved compact pkgdown landing page;
-> it is pushed but unmerged and public Pages has not been deployed. The frozen
-> tarball-clean rung remains untouched. The next gate is Rose/PR review, then a
-> separate platform-clean lane; #806 Julia extractor repair and the external q2
-> diagnostic are post-0.6 unless Shinichi changes scope. START HERE:
-> [`docs/dev-log/handover/2026-07-21-claude-handover.md`](docs/dev-log/handover/2026-07-21-claude-handover.md)
+> **▶ Latest — start here (2026-07-21, → Claude, pre-CRAN review + `rho12` AUDIT REVERSAL).**
+> PR #810 (`codex/precran-review-20260721`) carries the compact Pat/Rose-approved
+> pkgdown landing page and three sound Julia/cross-family corrections — but **four of
+> its seven "blocker" fixes were FALSE POSITIVES and have been REVERTED.** A
+> predictor-dependent `rho12 ~ x` **does** yield row-specific intervals:
+> `conf.status = "newdata_required"` is an *instruction to supply `newdata`*
+> (`R/predict-parameters.R:238`), not a denial. Verified by fitting a real
+> `rho12 ~ x` model — profile and Wald routes both returned finite bounds and agreed
+> to 3 dp. The same `newdata` route serves `sigma`/`sigma1`/`sigma2`/`corpair()`
+> (`R/profile.R:3844`). **Manifest §3/§5 were wrong and are corrected**; the omitted
+> Gamma cell `mc-0242` was added as §1b-2; issue **#802 needs reframing** (the
+> interval exists — its *coverage* is what is deferred). Restored statements now say
+> *computed, not coverage-certified*. `julia-engine.Rmd` gained the up-front deferred
+> fence `cross-family.Rmd` already had.
+> **Release rung: `tarball-clean` is STALE** — the frozen candidate `323d820f` was
+> built at `c3b9ad49`, and PR #809 has since added a vignette + a 1.37 MB PNG, so a
+> **re-freeze + re-check** is required before the platform matrix, not after. Also
+> open: `cran-comments.md` understates installed size (27.8 Mb; `doc` = 9.4 Mb) and
+> justifies only `libs`; Windows vignette timing across 34 vignettes is unmeasured.
+> #806 Julia extractor repair stays post-0.6. START HERE:
+> [`docs/dev-log/after-task/2026-07-21-rho12-interval-audit-reversal.md`](docs/dev-log/after-task/2026-07-21-rho12-interval-audit-reversal.md)
+> then [`docs/dev-log/handover/2026-07-21-claude-handover.md`](docs/dev-log/handover/2026-07-21-claude-handover.md)
 >
 > **▶ Prior (2026-07-21, PHASE 20 CRAN RC — drmTMB 0.6.0 MERGED at the tarball-clean rung).**
 > The Phase-20 CRAN release-candidate lane is complete: drmTMB **0.6.0** is merged to `main` at the

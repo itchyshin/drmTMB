@@ -11,6 +11,14 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+The Julia engine is a development route for a later release, not a `drmTMB`
+0.6.0 analysis workflow. It is deferred under issue #499: this article makes no
+parity, point-estimate, or interval-reliability claim for `engine = "julia"`,
+and it requires a compatible DRM.jl development checkout that the default
+install does not provide. Use the native TMB engine for analysis and reporting.
+The worked output below is retained so contributors can see the intended shape
+of the bridge, not as evidence that a released capability produced it.
+
 This article is for R users, contributors, and early testers who want to run a
 `drmTMB` formula through the experimental DRM.jl engine. The purpose is not to
 replace the default TMB backend. The purpose is to make the R-to-Julia boundary
@@ -410,10 +418,10 @@ current DRM.jl default for each admitted model cell, reports the result on
 Once one of these admitted cells runs, see
 [Cross-family bivariate models with the Julia engine](cross-family.html) for
 the mixed-family route the bridge can also reach: two responses from different
-distribution families sharing one latent-scale correlation. That route is
-experimental at recovery grade and needs a separate DRM.jl checkout the default
-install does not provide, so read its opening status note before relying on a
-fit from it.
+distribution families sharing one latent-scale correlation. That route is a
+development specification for a later release, not a 0.6.0 workflow: it makes
+neither a point-estimate nor an interval-inference claim, and it needs a
+separate DRM.jl checkout the default install does not provide.
 
 ## Plot Julia-engine fits with ggplot2
 
