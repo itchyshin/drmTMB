@@ -28,8 +28,8 @@ them the panels exercise all six public plotting functions:
 from the internal
 count-pilot diagnostics used while developing the first Poisson/NB2 simulation
 plumbing. The panels apply the same location-scale reading pattern taught in
-the family tutorials, such as [When variance carries
-signal](location-scale.html); read one of those first for the modelling
+the family tutorials, such as [When variance carries signal, Part
+1](location-scale.html); read one of those first for the modelling
 context behind a given figure.
 
 The examples here use small simulated data so the page can build quickly. They

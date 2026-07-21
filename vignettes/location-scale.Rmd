@@ -1,8 +1,8 @@
 ---
-title: "When variance carries signal"
+title: "When variance carries signal, Part 1: location-scale models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{When variance carries signal}
+  %\VignetteIndexEntry{When variance carries signal, Part 1: location-scale models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -67,6 +67,12 @@ That residual scale is not just a nuisance parameter; it can be the scientific
 answer when the question is about individual variability, predictability, or
 remaining heterogeneity after the mean model is accounted for.
 
+This is Part 1 of a two-article sequence. It models the response mean `mu` and
+the residual standard deviation `sigma`. Continue to
+[Part 2: location-scale-scale models](location-scale-scale.html) when a
+predictor should model the standard deviation of a latent group or
+phylogenetic random effect through `sd()`.
+
 Read this after you have fit a first model in
 [Distributional regression with drmTMB](drmTMB.html) and confirmed Gaussian is
 the right family in [Choosing response families](distribution-families.html);
@@ -78,173 +84,24 @@ If you are fitting your first model, start with the
 return to the syntax overview below when you want to adapt the formula.
 
 The core Gaussian location-scale route supports fixed effects, optional random
-effects in the location formula, residual-scale random intercepts and
-independent random slopes in the `sigma` formula, and random-effect scale
-formulas such as `sd(id) ~ x_group`. The same pattern is used throughout the
-documentation: write the model symbolically first, show the matching R syntax,
-fit the model, and interpret the fitted output.
-
-Current syntax:
-
-```r
-drmTMB(
-  bf(y ~ x1, sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Random-intercept location syntax:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x1),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Simple random-slope location syntax:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (0 + x1 | id), sigma ~ x1),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Residual-scale random-effect syntax:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Residual-scale random effects live on `log(sigma)`. The independent
-residual-scale slope route `sigma ~ z + (0 + w | id)` fits a random slope SD
-for `w`, and the unlabelled correlated block `sigma ~ z + (1 + w | id)` is
-also implemented (recovery grade: trust the point estimate, not the
-interval). Only labelled residual-scale slope covariance such as
-`sigma ~ z + (1 + w | p | id)` or `sigma ~ z + (0 + w | p | id)` remains
-planned.
-
-The companion article "Which scale are you modelling?" gives a side-by-side
-guide to `sigma ~ x`, `sigma ~ x + (1 | id)`,
-`sigma ~ x + (0 + w | id)`, `sd(id) ~ x_group`,
-random-slope correlations, and bivariate residual `rho12`.
+effects in the location formula, and residual-scale random intercepts and
+independent random slopes in the `sigma` formula. The same pattern is used
+throughout the documentation: write the model symbolically first, show the
+matching R syntax, fit the model, and interpret the fitted output.
 
 ## Model equations and matching R syntax
 
-The basic discipline is simple: each estimated parameter gets its own linear
-predictor. For Gaussian location-scale regression those parameters are the
-mean, `mu`, and the residual standard deviation, `sigma`.
-
-Throughout this article, `Normal(a, b)` uses variance as the second argument.
-Thus `Normal(mu_i, sigma_i^2)` means a Gaussian distribution with mean `mu_i`
-and standard deviation `sigma_i`.
-
-For the fixed-effect Gaussian location-scale model, the symbolic model is:
+For Gaussian location-scale regression, each estimated parameter has its own
+linear predictor:
 
 \[
 \begin{aligned}
 y_i \mid \mu_i, \sigma_i
   &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
 \mu_i
-  &= \beta_0 + \beta_1 x_{1i},\\
+  &= \mathbf{x}_i^{\mathsf T}\boldsymbol\beta,\\
 \log(\sigma_i)
-  &= \gamma_0 + \gamma_1 x_{2i}.
-\end{aligned}
-\]
-
-The matching `drmTMB` syntax is:
-
-```r
-drmTMB(
-  bf(y ~ x1, sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-The location formula `y ~ x1` defines the design matrix for the `beta`
-coefficients. The scale formula `sigma ~ x2` defines the design matrix for the
-`gamma` coefficients. The log link makes `sigma_i` positive:
-
-\[
-\sigma_i = \exp(\gamma_0 + \gamma_1 x_{2i}).
-\]
-
-The same model can be written more compactly as:
-
-\[
-\begin{aligned}
-\eta_{\mu i} &= X_{\mu}[i, ]\beta_{\mu},\\
-\eta_{\sigma i} &= X_{\sigma}[i, ]\beta_{\sigma},\\
-\mu_i &= \eta_{\mu i},\\
-\sigma_i &= \exp(\eta_{\sigma i}).
-\end{aligned}
-\]
-
-The mapping is:
-
-| Symbol | Meaning | R syntax source |
-|---|---|---|
-| `y_i` | observed response | left-hand side of `y ~ x1` |
-| `X_mu` | design matrix for the mean | right-hand side of `y ~ x1` |
-| `beta_mu` | mean coefficients | `coef(fit, "mu")` |
-| `mu_i` | fitted mean | `fitted(fit)` or `predict(fit, dpar = "mu")` |
-| `X_sigma` | design matrix for the residual scale | right-hand side of `sigma ~ x2` |
-| `beta_sigma` | log-scale coefficients | `coef(fit, "sigma")` |
-| `sigma_i` | residual standard deviation | `sigma(fit)` or `predict(fit, dpar = "sigma")` |
-
-With a random intercept in the location part, the model becomes:
-
-\[
-\begin{aligned}
-y_{ij} \mid \mu_{ij}, \sigma_{ij}
-  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
-\mu_{ij}
-  &= \beta_0 + \beta_1 x_{1ij} + b_j,\\
-\log(\sigma_{ij})
-  &= \gamma_0 + \gamma_1 x_{2ij},\\
-b_j
-  &\sim \operatorname{Normal}(0, sd_{\mu,id}^2).
-\end{aligned}
-\]
-
-and the matching syntax is:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Here `sigma_ij` is the residual standard deviation. The random-intercept scale
-`sd_mu_id` is a separate group-level standard deviation. In implemented
-double-hierarchical scale models, `sd(id) ~ x_group` exposes this group-level
-scale component by name; it should not be confused with residual `sigma`.
-
-Residual-scale random intercepts enter a different part of the model:
-
-\[
-\begin{aligned}
-y_{ij} \mid \mu_{ij}, \sigma_{ij}
-  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
-\mu_{ij}
-  &= X_{\mu}[ij, ]\beta_{\mu} + b_j,\\
-\log(\sigma_{ij})
-  &= X_{\sigma}[ij, ]\beta_{\sigma} + a_j,\\
-b_j
-  &\sim \operatorname{Normal}(0, sd_{\mu,id}^2),\\
-a_j
-  &\sim \operatorname{Normal}(0, sd_{\sigma,id}^2).
+  &= \mathbf{z}_i^{\mathsf T}\boldsymbol\gamma.
 \end{aligned}
 \]
 
@@ -252,332 +109,79 @@ The matching syntax is:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + (1 | id), sigma ~ x2 + (1 | id) + (0 + w | id)),
+  bf(y ~ x, sigma ~ z),
   family = gaussian(),
   data = dat
 )
 ```
 
-Here `a_j` is residual-scale heterogeneity, or group-to-group variation in
-within-group variability. It is still not the same quantity as `sd_mu_id`, the
-standard deviation of the `mu` random intercepts.
+The location formula defines the design matrix for `beta`; the scale formula
+defines the design matrix for `gamma`. The log link keeps the fitted residual
+SD positive.
 
-A double-hierarchical scale formula targets the random-effect standard
-deviation itself. For example:
-
-\[
-\begin{aligned}
-y_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j
-  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
-\mu_{ij}
-  &= \beta_0 + \beta_1 x_{1ij} + b_j,\\
-\log(\sigma_{ij})
-  &= \gamma_0 + \gamma_1 x_{2ij},\\
-b_j
-  &= sd_{\mu,id,j} u_j,\\
-u_j
-  &\sim \operatorname{Normal}(0, 1),\\
-\log(sd_{\mu,id,j})
-  &= \alpha_0 + \alpha_1 x_{\text{group},j}.
-\end{aligned}
-\]
-
-The matching syntax is:
-
-```r
-drmTMB(
-  bf(
-    y ~ x1 + (1 | id),
-    sigma ~ x2,
-    sd(id) ~ x_group
-  ),
-  family = gaussian(),
-  data = dat
-)
-```
-
-This model has one residual scale, `sigma_ij`, and one group-level scale,
-`sd_mu_id,j`. They answer different questions. The `sigma` formula asks whether
-observations are more or less variable around their fitted mean. The `sd(id)`
-formula asks whether among-group differences in the mean are larger for some
-types of groups.
-
-With two additive random intercepts, the equation has two group-level scale
-components:
-
-\[
-\begin{aligned}
-y_i \mid \mu_i, \sigma_i
-  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
-\mu_i
-  &= X_{\mu}[i, ]\beta_{\mu}
-     + b_{\text{site}[i]}
-     + b_{\text{observer}[i]},\\
-\log(\sigma_i)
-  &= X_{\sigma}[i, ]\beta_{\sigma},\\
-b_{\text{site},k}
-  &\sim \operatorname{Normal}(0, sd_{\mu,site}^2),\\
-b_{\text{observer},l}
-  &\sim \operatorname{Normal}(0, sd_{\mu,observer}^2).
-\end{aligned}
-\]
-
-and the matching syntax is:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 | site) + (1 | observer), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-With a simple random slope, the random effect multiplies the predictor value:
-
-\[
-\begin{aligned}
-y_{ij} \mid \mu_{ij}, \sigma_{ij}
-  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
-\mu_{ij}
-  &= \beta_0 + \beta_1 x_{1ij} + x_{1ij} b_j,\\
-\log(\sigma_{ij})
-  &= \gamma_0 + \gamma_1 x_{2ij},\\
-b_j
-  &\sim \operatorname{Normal}(0, sd_{\mu,x,id}^2).
-\end{aligned}
-\]
-
-and the matching syntax is:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (0 + x1 | id), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-The current independent random-intercept and random-slope syntax writes the two
-group-level components separately:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-This is intentionally not the same as a correlated random intercept/slope block.
-The ordinary correlated block is also implemented:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 + x1 | id), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-The intercept-slope correlation from `(1 + x1 | id)` is a group-level
-correlation reported under `corpars$mu`. A labelled version is also
-implemented for univariate Gaussian `mu`:
-
-```r
-drmTMB(
-  bf(y ~ x1 + (1 + x1 | p | id), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Here `p` is retained as a group-level covariance-block label. Matching
-intercept-only `mu` and `sigma` terms can now use the same label for the first
-mean-scale covariance block; larger cross-formula and bivariate blocks remain
-future work.
-
-Ordinary Gaussian `mu` can also carry larger numeric grouped blocks, for
-example `(1 + x1 + moisture | id)`. These q > 2 blocks estimate one SD per
-coefficient and the constant correlations among those coefficients. Their SDs
-are direct profile targets, but the q > 2 correlations are derived rows rather
-than direct profile-interval targets. Treat them as advanced fits: they need
-enough groups, repeated observations, and covariate spread to avoid weak-slope
-or boundary diagnostics.
-
-This is where ordinary language can become slippery: the model may contain
-several scale quantities, but only one of them is the residual `sigma`. The
-others should be named by what they scale:
-
-- residual SD: `sigma_i`, from `sigma ~ x2`;
-- site random-intercept SD in `mu`: `sd_mu_site`, from the site random
-  intercept term in the location formula;
-- observer random-intercept SD in `mu`: `sd_mu_observer`, from the observer
-  random intercept term in the location formula;
-- ID random-slope SD in `mu`: `sd_mu_x_id`, from a random-slope term such as
-  `(0 + x1 | id)`;
-- ID random intercept-slope correlation in `mu`: `corpars$mu`, from a
-  correlated block such as `(1 + x1 | id)`;
-- random-effect scale model: `sd(site)_k`, from syntax such as
-  `sd(site) ~ x_group` when the target is an unlabelled Gaussian `mu` random
-  intercept.
-
-When the model includes a correlated block such as `(1 + x1 | p | id)`,
-`corpairs(fit, level = "group")` returns the ordinary group-level correlation
-row. For this one-slope block the row has class `mean-slope`: it asks whether
-groups with higher baseline `mu` also tend to have steeper or shallower
-mean-model slopes. It is not `rho12`, because `rho12` belongs only to
-bivariate residual response-response coupling.
-
-For a biological reaction-norm question, let `x1` be centred temperature and
-`id` be population. The fixed slope `beta_1` is the average temperature effect.
-The random-intercept SD asks how much populations differ at the centred
-temperature. The random-slope SD asks how much populations differ in thermal
-plasticity. The intercept-slope correlation asks whether populations with high
-baseline response tend to have steeper or shallower thermal slopes:
-
-\[
-\begin{aligned}
-\mu_{ij}
-  &= \beta_0 + \beta_1 temperature_{ij}
-     + b_{0j} + temperature_{ij} b_{1j},\\
-\begin{bmatrix}b_{0j}\\ b_{1j}\end{bmatrix}
-  &\sim \operatorname{Normal}\left(
-    \begin{bmatrix}0\\0\end{bmatrix},
-    \Sigma_{\text{population}}
-  \right).
-\end{aligned}
-\]
-
-The matching fitted ordinary syntax is:
-
-```r
-drmTMB(
-  bf(y ~ temperature + (1 + temperature | p | population), sigma ~ habitat),
-  family = gaussian(),
-  data = dat
-)
-```
-
-Read the fitted object as `sdpars$mu` for the baseline and slope SDs,
-`corpairs(fit, class = "mean-slope")` for the group-level intercept-slope
-correlation, and `profile_targets(fit)` for the direct interval target names.
-
-The location formula models the conditional mean, `mu`, on the identity scale.
-The scale formula models the residual standard deviation, `sigma`, on the log
-scale:
-
-\[
-\begin{aligned}
-y_i \mid \mu_i, \sigma_i
-  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
-\mu_i
-  &= X_{\mu}\beta_{\mu} + b_{group[i]},\\
-\log(\sigma_i)
-  &= X_{\sigma}\beta_{\sigma},\\
-b_{\text{group}}
-  &= sd_{\text{group}} u_{\text{group}},\\
-u_{\text{group}}
-  &\sim \operatorname{Normal}(0, 1).
-\end{aligned}
-\]
-
-This means coefficients returned by `coef(fit, "sigma")` are log-standard
-deviation effects. Exponentiating a `sigma` coefficient gives the multiplicative
-change in residual standard deviation for a one-unit change in that predictor.
-For example, a `sigma` coefficient of `0.3` means `exp(0.3) = 1.35`, or about a
-35% higher residual standard deviation.
-
-For biological interpretation, keep the slope-like quantities separate and
-translate each one to the scale on which it answers the biological question:
-
-| Model component | Example syntax | Response-scale reading | Biological sentence |
-|---|---|---|---|
-| fixed mean slope | `growth ~ temperature` | `beta_temperature` is an additive change in expected growth per temperature unit | average growth changes with temperature |
-| fixed residual-scale slope | `sigma ~ temperature` | `exp(gamma_temperature)` is the residual-SD ratio per temperature unit; `exp(2 * gamma_temperature)` is the residual-variance ratio | growth becomes more or less predictable along the temperature gradient |
-| mean random-slope SD | `(0 + temperature | population)` or `(1 + temperature | population)` | `sd_mu_temperature_population` is the SD of population-specific temperature slopes, in growth-per-temperature units | populations differ in thermal reaction norms |
-| residual-scale random-slope SD | `sigma ~ (0 + temperature | population)` | the SD is on the log-residual-SD slope scale; `exp(sd)` and `exp(-sd)` give a rough one-SD spread in residual-SD ratios per temperature unit | populations differ in how predictability changes with temperature |
-| random-effect scale slope | `sd(population) ~ habitat` | `exp(alpha_habitat)` is the ratio of among-population SDs; `exp(2 * alpha_habitat)` is the corresponding among-population variance ratio | among-population differences in expected growth are larger in one habitat |
-
-The first two rows are fixed-effect slopes. The next two rows are variance
-components for group-specific slopes. The last row is a direct model for a
-group-level SD. A single ecological phrase such as "temperature-dependent
-variability" can point to any of these, so name the model component before
-stating the biological conclusion. Current `sd(population) ~ habitat` syntax
-targets an unlabelled random intercept; coefficient-specific syntax such as
-`sd(population, dpar = "mu", coef = "temperature") ~ habitat` is reserved until
-random-slope SD regression has likelihood code and simulation tests.
-For residual-scale random slopes, keep the same boundary in mind here:
-independent `sigma` slopes fit on `log(sigma)` and the unlabelled correlated
-block `sigma ~ z + (1 + w | id)` is also fitted (recovery grade), while
-labelled univariate residual-scale slope covariance remains planned.
-
-### Name the biological response before the symbol
-
-When adapting the syntax, replace placeholders such as `y`, `x1`, and `x2`
-with trait names before writing the interpretation. A useful tutorial sentence
-defines the measured response, the covariates, the distributional parameters,
-and the biological meaning of each slope.
-
-For example, the parrot example in the phylogenetic location-scale paper asks
-whether forest habitat changes the average beak length of parrot species, the
-among-species heterogeneity in beak length, or both. Written in the
-non-phylogenetic Gaussian syntax used in this tutorial, the teaching version is:
-
-\[
-\begin{aligned}
-\text{beak\_length}_i
-  &\sim \operatorname{Normal}(\mu_i, \sigma_i^2),\\
-\mu_i
-  &= \beta_0^{(\mu)}
-     + \beta_{\text{mass}}^{(\mu)}\text{body\_mass}_i
-     + \beta_{\text{forest}}^{(\mu)}\text{forest}_i,\\
-\log(\sigma_i)
-  &= \beta_0^{(\sigma)}
-     + \beta_{\text{mass}}^{(\sigma)}\text{body\_mass}_i
-     + \beta_{\text{forest}}^{(\sigma)}\text{forest}_i .
-\end{aligned}
-\]
-
-```r
-drmTMB(
-  bf(beak_length ~ body_mass + forest, sigma ~ body_mass + forest),
-  family = gaussian(),
-  data = parrots
-)
-```
-
-| Quantity | Definition in the parrot example | Biological reading |
+| Quantity | R source | Interpretation |
 |---|---|---|
-| `beak_length_i` | measured, centred, or log-centred beak length for species `i` | the focal morphological trait |
-| `body_mass_i` | centred log body mass for species `i` | a size covariate, so the beak-length comparison is not just body-size allometry |
-| `forest_i` | habitat indicator for species `i`, commonly 1 for forest-living and 0 for non-forest species | the ecological contrast |
-| `mu_i` | expected beak length for species `i` after conditioning on body mass and habitat | the location, or mean trait value |
-| `sigma_i` | residual standard deviation of beak length for species `i` after conditioning on body mass and habitat | the scale, or remaining among-species heterogeneity |
-| `beta_forest^(mu)` | forest versus non-forest contrast in `mu` | whether forest species have longer or shorter expected beaks |
-| `beta_forest^(sigma)` | forest versus non-forest contrast in `log(sigma)` | whether forest species are more or less heterogeneous in beak length |
+| `mu_i` | `y ~ x` | expected response |
+| `beta` | `coef(fit, "mu")` | additive effects on the expected response |
+| `sigma_i` | `sigma ~ z` | residual SD around the fitted mean |
+| `gamma` | `coef(fit, "sigma")` | effects on log residual SD |
 
-Report the scale coefficient on the scale that matches the claim:
-`exp(beta_forest^(sigma))` is the residual-SD ratio for forest versus
-non-forest species, while `exp(2 * beta_forest^(sigma))` is the residual-variance
-ratio. A mean effect and a scale effect are different biological claims. The
-first says forest habitat shifts average beak length; the second says forest
-habitat changes beak-length predictability or evolvability after the mean model
-has been accounted for.
+### Grouped effects do not change the meaning of sigma
 
-The same naming rule works for behavioural or life-history examples. If the
-response is `aggressiveness` and the predictor is `life_history_pace`, then
-`beta_life_history_pace^(mu)` is the expected change in mean aggressiveness,
-whereas `beta_life_history_pace^(sigma)` is the change in residual
-predictability of aggressiveness. If the location formula also contains
-`(0 + life_history_pace | population)`, the random-slope SD is a third quantity:
-it measures how much populations differ in the life-history slope of
-aggressiveness.
+A random intercept in the location model adds among-group variation in expected
+responses:
 
-For effect-size synthesis, use the same habit of defining every symbol, but keep
-the teaching path in the separate
-[meta-analysis article](meta-analysis.html). There the known sampling variance
-or covariance is `V`, and the fitted `sigma` model describes extra
-heterogeneity after `V` has been included.
+\[
+\mu_{ij}
+  = \mathbf{x}_{ij}^{\mathsf T}\boldsymbol\beta + b_j,
+\qquad
+b_j \sim \operatorname{Normal}(0,sd_{\mu,group}^2).
+\]
+
+```r
+drmTMB(
+  bf(y ~ x + (1 | group), sigma ~ z),
+  family = gaussian(),
+  data = dat
+)
+```
+
+Here `sd_mu_group` is the SD of group-level mean deviations. It is not the
+residual SD `sigma`. A random effect inside the `sigma` formula asks a third
+question: do groups differ in their residual variability?
+
+```r
+drmTMB(
+  bf(y ~ x + (1 | group), sigma ~ z + (1 | group)),
+  family = gaussian(),
+  data = dat
+)
+```
+
+More elaborate ordinary intercept-slope blocks and their covariance output are
+documented in [Which scale are you modelling?](which-scale.html) and
+[Structural dependence](structural-dependence.html). To model predictors of
+the group-level SD itself, continue to
+[Part 2: location-scale-scale models](location-scale-scale.html).
+
+### Interpret sigma on the SD or variance scale
+
+Because `log(sigma_i) = z_i^T gamma`, exponentiating a scale coefficient gives
+an SD ratio. If `gamma_temperature = 0.3`, then a one-unit temperature
+increase multiplies residual SD by `exp(0.3) = 1.35`. Squaring the ratio gives
+the residual-variance ratio, `exp(2 * 0.3) = 1.82`.
+
+| Formula component | Report | Biological reading |
+|---|---|---|
+| `growth ~ temperature` | `beta_temperature` | additive change in expected growth |
+| `sigma ~ temperature` | `exp(gamma_temperature)` | residual-SD ratio per temperature unit |
+| `(0 + temperature | population)` in `mu` | random-slope SD | variation among population-specific mean slopes |
+| `sigma ~ (0 + temperature | population)` | residual-scale random-slope SD | variation among population-specific log-SD slopes |
+
+Name the measured response and model component before stating a biological
+conclusion. “Temperature-dependent variability” is ambiguous until the reader
+knows whether the model changed residual `sigma`, a mean random-slope SD, or a
+random effect inside `sigma`.
 
 ## Worked example: growth mean and predictability
 
@@ -877,220 +481,62 @@ models population-to-population differences in the mean slope. `sd(population)
 
 ## Curved responses and interactions
 
-Ecological responses are often curved rather than straight-line. Growth may
-increase from cold to moderate temperatures and then decline at high
-temperatures. A second-order term is usually enough for this kind of question;
-third-order polynomials are harder to explain and should be used only when the
-question and data justify them.
-
-The symbolic model below asks whether mean growth has a quadratic temperature
-response and whether the temperature slope differs between habitats. It also
-asks whether residual variability changes along the same temperature gradient:
-
-\[
-\begin{aligned}
-\text{growth}_i &\sim \operatorname{Normal}(\mu_i, \sigma_i^2), \\
-\mu_i &= \beta_0 + \beta_1 \text{temperature}_i +
-        \beta_2 \text{temperature}_i^2 +
-        \beta_3 \mathbb{1}(\text{habitat}_i = \text{grassland}) +
-        \beta_4 \text{temperature}_i
-          \mathbb{1}(\text{habitat}_i = \text{grassland}), \\
-\log(\sigma_i) &= \gamma_0 + \gamma_1 \text{temperature}_i^2.
-\end{aligned}
-\]
-
-The matching R formula uses ordinary R formula syntax:
+Quadratic terms and interactions can appear in either formula:
 
 ```r
-drmTMB(
-  drm_formula(
-    growth ~ habitat * temperature + I(temperature^2),
-    sigma ~ I(temperature^2)
-  ),
-  family = gaussian(),
-  data = dat_curve
-)
-```
-
-The term `habitat * temperature` expands to the two main effects plus their
-interaction. The term `I(temperature^2)` tells R to square `temperature`
-before building the design matrix. The alternative `poly(temperature, 2)` is
-also supported and can be numerically useful, but its coefficients are basis
-coefficients; for applied interpretation, predicted means and residual SDs are
-usually clearer than the raw polynomial coefficients.
-
-```{r location-scale-curved-simulate}
-set.seed(43)
-n_curve <- 260
-dat_curve <- data.frame(
-  habitat = factor(rep(c("forest", "grassland"), each = n_curve / 2)),
-  temperature = runif(n_curve, -2, 2)
-)
-
-mu_curve <- 8 +
-  0.6 * dat_curve$temperature -
-  0.45 * dat_curve$temperature^2 +
-  0.8 * (dat_curve$habitat == "grassland") +
-  0.35 * dat_curve$temperature * (dat_curve$habitat == "grassland")
-sigma_curve <- exp(log(0.55) + 0.18 * dat_curve$temperature^2)
-dat_curve$growth <- rnorm(n_curve, mean = mu_curve, sd = sigma_curve)
-```
-
-```{r location-scale-curved-fit}
 fit_curve <- drmTMB(
-  drm_formula(
+  bf(
     growth ~ habitat * temperature + I(temperature^2),
     sigma ~ I(temperature^2)
   ),
   family = gaussian(),
-  data = dat_curve
+  data = dat
 )
-
-summary(fit_curve)
 ```
 
-For a curved model, the most useful first output is often a prediction table.
-Here we compare cold, moderate, and warm temperatures in the two habitats:
+A linear coefficient is only a local slope when its model also contains a
+quadratic term or interaction. Interpret the fitted curve at biologically
+meaningful predictor values rather than reading that coefficient alone:
 
-```{r location-scale-curved-predictions}
+```r
 curve_grid <- expand.grid(
-  habitat = levels(dat_curve$habitat),
+  habitat = c("forest", "grassland"),
   temperature = c(-1.5, 0, 1.5)
 )
 
 data.frame(
   curve_grid,
-  fitted_mean_growth = predict(fit_curve, newdata = curve_grid, dpar = "mu"),
-  fitted_residual_sd = predict(fit_curve, newdata = curve_grid, dpar = "sigma")
+  mu = predict(fit_curve, newdata = curve_grid, dpar = "mu"),
+  sigma = predict(fit_curve, newdata = curve_grid, dpar = "sigma")
 )
 ```
 
-This table is easier to explain than the individual polynomial coefficients.
-The fitted mean column describes the location curve: expected growth is highest
-near the middle of the temperature range in this simulated example. The fitted
-residual SD column describes the scale curve: growth is less predictable at
-temperature extremes when the fitted residual SD is larger.
+If the `sigma` formula is omitted, `drmTMB` fits one intercept-only residual
+SD. Use that simpler model only when a common residual SD is scientifically
+and diagnostically adequate.
 
-For several predictors, base R interaction expansions work in the same way.
-For example, `(temperature + moisture + canopy)^2` expands to all three main
-effects and all pairwise interactions. That formula is often easier to read
-than writing every interaction by hand, but it should still be tied to a clear
-biological question.
+## Where to continue
 
-With mean and residual-scale effects fitted and interpreted, the next stage in
-the reader path covers grouped, related, and spatially structured data:
-continue with [Structural dependence overview](structural-dependence.html).
+- Use [Part 2: location-scale-scale models](location-scale-scale.html) when
+  predictors model a grouped or phylogenetic random-effect SD through `sd()`.
+- Use [Mean effects and residual heterogeneity](meta-analysis.html) for Gaussian
+  meta-analysis with known sampling covariance through `meta_V(V = V)`.
+- Use [Changing residual coupling with rho12](bivariate-coscale.html) for two
+  responses and predictor-dependent residual correlation.
+- Use [Structural dependence](structural-dependence.html) for `phylo()`,
+  `animal()`, `spatial()`, and `relmat()`.
 
-If the `sigma` formula is omitted, `drmTMB` fits an intercept-only residual
-standard deviation:
+## Current implementation boundaries
 
-```{r location-scale-intercept-only}
-fit0 <- drmTMB(
-  drm_formula(growth ~ habitat + temperature),
-  family = gaussian(),
-  data = dat
-)
-
-coef(fit0, "sigma")
-```
-
-That simpler model can still estimate habitat and temperature effects on mean
-growth, but it assumes one residual SD for all observations.
-
-## Meta-analysis as Gaussian regression
-
-Meta-analysis is the same Gaussian regression idea with known sampling
-covariance added to the likelihood. For diagonal known sampling variance:
-
-\[
-\begin{aligned}
-y_i \mid \mu_i, \sigma_i, v_i
-  &\sim \operatorname{Normal}(\mu_i, v_i + \sigma_i^2),\\
-\mu_i
-  &= X_{\mu}[i, ]\beta_{\mu},\\
-\sigma_i
-  &= \exp(X_{\sigma}[i, ]\beta_{\sigma}).
-\end{aligned}
-\]
-
-with matching syntax:
-
-```r
-drmTMB(
-  bf(yi ~ x1 + meta_V(V = vi), sigma ~ x1),
-  family = gaussian(),
-  data = dat
-)
-```
-
-The preferred marker is `meta_V(V = V)`; deprecated `meta_known_V(V = V)`
-remains a compatibility alias. In concrete code, `V` can be a vector such as
-`vi`. Here `vi` is known sampling variance. The estimated `sigma_i` is the
-additional heterogeneity standard deviation after known sampling error has been
-included. In meta-analysis prose this quantity is often called `tau`, but the
-`drmTMB` API keeps the name `sigma` because it is still the residual scale
-parameter of the Gaussian regression.
-
-When `V` is a full known covariance matrix, the same model is:
-
-\[
-y \mid \mu, \sigma, V
-  \sim \operatorname{MVN}\left(\mu, V + \operatorname{diag}(\sigma_i^2)\right).
-\]
-
-## Current implementation caveats
-
-- The current fitter supports `family = gaussian()` with fixed effects for
-  `mu` and `sigma`, plus random intercepts, independent numeric random slopes,
-  and labelled or unlabelled ordinary correlated intercept-slope blocks in
-  `mu`.
-- Residual-scale random intercepts and independent random slopes in `sigma`,
-  such as `sigma ~ x2 + (1 | id)` and `sigma ~ x2 + (0 + w | id)`, are
-  implemented for univariate Gaussian models, along with the unlabelled
-  correlated intercept-slope block `sigma ~ x2 + (1 + w | id)` (recovery
-  grade).
-- The `sigma` formula is the observation-level residual standard deviation. It
-  is not a random-effect scale component.
-- Missing rows are dropped when they are incomplete for variables used by
-  either the `mu` or `sigma` formula.
-- Diagonal and dense full known sampling covariance via `meta_V(V = V)` is
-  supported for Gaussian meta-analysis; deprecated `meta_known_V(V = V)`
-  remains a compatibility alias.
-- Fixed-effect bivariate Gaussian `rho12` models are implemented in the
-  bivariate coscale article.
-- `sd(group)` random-effect scale formulae are implemented for one or more
-  distinct unlabelled Gaussian `mu` random intercepts, with group-level
-  predictors that are constant within the named grouping variable.
-- Labelled univariate residual-scale slope covariance blocks, slope-specific
-  `sd()` targets, labelled-block `sd()` targets, same-response labelled
-  location-scale slope covariance beyond the first random-intercept slice,
-  multiple phylogenetic slopes,
-  phylogenetic slope correlations, standalone or partial phylogenetic scale
-  terms, mesh/SPDE spatial fields, multiple spatial slopes, spatial slope
-  correlations, spatial `corpair()` regression, and non-Gaussian random
-  effects are planned but not implemented in this Gaussian tutorial.
-- Phylogenetic random effects are implemented in univariate Gaussian `mu`
-  formulas as `phylo(1 | species, tree = tree)` and one numeric
-  `phylo(1 + x | species, tree = tree)` slope.
-- Coordinate-spatial random effects are implemented in univariate Gaussian `mu`
-  formulas as `spatial(1 | site, coords = coords)` and one numeric
-  `spatial(1 + x | site, coords = coords)` slope. Matching labelled
-  coordinate-spatial q=2 `mu1`/`mu2` and constant q=4 location-scale blocks are
-  fitted in bivariate Gaussian models; read the structural-dependence articles
-  before treating those first slices as routine coverage evidence.
-
-Multiple random-effect scale components use explicit `sd()` formulas, not
-extra residual `sigma` formulas:
-
-```r
-drmTMB(
-  bf(
-    y ~ x1 + (1 | study) + (1 | species),
-    sigma ~ x1,
-    sd(study) ~ x1,
-    sd(species) ~ 1
-  ),
-  family = gaussian(),
-  data = dat
-)
-```
+- This article documents the univariate Gaussian `mu` and `sigma` route.
+- Random intercepts, independent slopes, and ordinary correlated
+  intercept-slope blocks are available in `mu`; `sigma` supports its
+  documented random-intercept and random-slope slices.
+- Scale coefficients use a log-SD link. Exponentiate once for an SD ratio and
+  twice in the exponent for a variance ratio.
+- Missing rows are removed when variables used by either formula are missing.
+- A fitted optimizer code is not enough: run `check_drm()`, inspect gradient
+  and Hessian diagnostics, and use
+  [What can I trust?](capability-and-limits.html) before widening the claim.
+- `sigma` is not a group random-effect SD. Use Part 2 for the separate
+  `sd(group) ~ predictors` grammar.
