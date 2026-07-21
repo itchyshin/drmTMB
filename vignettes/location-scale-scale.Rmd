@@ -18,13 +18,12 @@ knitr::opts_chunk$set(
 if (!"package:drmTMB" %in% search()) {
   library(drmTMB)
 }
-has_ape <- requireNamespace("ape", quietly = TRUE)
 ```
 
 A location-scale model asks whether predictors change the expected response
 `mu` and the residual standard deviation `sigma`. A location-scale-scale model
-adds a second scale submodel: predictors can also change the standard
-deviation of a latent random effect. `drmTMB` writes that third submodel as
+adds a third submodel: predictors can also change the standard deviation of a
+latent random effect. `drmTMB` writes this third submodel as
 `sd(group) ~ predictors`.
 
 Read [Part 1: location-scale models](location-scale.html) first if `mu` and
@@ -32,158 +31,329 @@ Read [Part 1: location-scale models](location-scale.html) first if `mu` and
 modelling?](which-scale.html) when you need to distinguish residual SD,
 group-level SD, known sampling variance, and likelihood weights.
 
-## Three submodels, three questions
+## Personality, predictability, and repeatability
 
-For an ordinary grouped Gaussian model,
+Suppose an exploration score is recorded repeatedly for each individual. We
+want to ask whether sex predicts three different features of behaviour:
+
+1. the mean exploration score;
+2. between-individual variation in expected scores; and
+3. within-individual variation around each expected score.
+
+For observation $j$ from individual $i$, write
 
 \[
 \begin{aligned}
-y_{ij} \mid \mu_{ij}, \sigma_{ij}, b_j
-  &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{ij}^2),\\
-\mu_{ij}
-  &= \mathbf{x}_{ij}^{\mathsf T}\boldsymbol\beta + b_j,\\
-\log(\sigma_{ij})
-  &= \mathbf{z}_{ij}^{\mathsf T}\boldsymbol\gamma,\\
-b_j
-  &= sd_{\mu,j} u_j,\qquad u_j \sim \operatorname{Normal}(0,1),\\
-\log(sd_{\mu,j})
-  &= \mathbf{w}_{j}^{\mathsf T}\boldsymbol\alpha.
+y_{ij} &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{e,i}^2),\\
+\mu_{ij} &= \beta_0 + \beta_1\operatorname{sex}_i + b_i,\\
+b_i &\sim \operatorname{Normal}(0, \sigma_{b,i}^2),\\
+\log(\sigma_{e,i}) &= \gamma_0 + \gamma_1\operatorname{sex}_i,\\
+\log(\sigma_{b,i}) &= \alpha_0 + \alpha_1\operatorname{sex}_i.
 \end{aligned}
 \]
 
-The matching syntax is:
-
-```r
-drmTMB(
-  bf(
-    y ~ x + (1 | group),
-    sigma ~ z,
-    sd(group) ~ w_group
-  ),
-  family = gaussian(),
-  data = dat
-)
-```
-
-| Submodel | Quantity | Scientific question |
-|---|---|---|
-| `y ~ x + (1 | group)` | `mu` | How does `x` change the expected response, and how do groups deviate from it? |
-| `sigma ~ z` | residual SD | Does `z` change variation of observations around their fitted mean? |
-| `sd(group) ~ w_group` | group random-effect SD | Does `w_group` change the spread of group-level mean deviations? |
-
-`sigma` and `sd(group)` are not interchangeable names. They scale different
-parts of the model. The right-hand-side variables in `sd(group) ~ w_group`
-must be constant within each level of `group` after incomplete rows have been
-removed.
-
-## A grouped example
-
-Suppose growth is measured repeatedly in populations. Temperature may change
-mean growth and residual predictability, while habitat may change how widely
-population means differ.
-
-```{r ordinary-sd-simulate}
-set.seed(20260721)
-n_population <- 28L
-n_each <- 8L
-population_info <- data.frame(
-  population = factor(seq_len(n_population)),
-  habitat = rep(c("forest", "grassland"), length.out = n_population)
-)
-fish <- population_info[rep(seq_len(n_population), each = n_each), ]
-fish$temperature <- stats::rnorm(nrow(fish))
-
-sd_population <- exp(
-  -0.45 + 0.55 * (population_info$habitat == "grassland")
-)
-population_effect <- stats::rnorm(n_population, sd = sd_population)
-residual_sd <- exp(-0.7 + 0.20 * fish$temperature)
-fish$growth <- 0.8 + 0.6 * fish$temperature +
-  population_effect[as.integer(fish$population)] +
-  stats::rnorm(nrow(fish), sd = residual_sd)
-```
-
-```{r ordinary-sd-fit}
-fit_group_sd <- drmTMB(
-  bf(
-    growth ~ temperature + (1 | population),
-    sigma ~ temperature,
-    sd(population) ~ habitat
-  ),
-  family = gaussian(),
-  data = fish
-)
-
-round(coef(fit_group_sd, "sigma"), 3)
-round(coef(fit_group_sd, "sd(population)"), 3)
-```
-
-Both coefficient vectors use log-SD links. For example,
-`exp(alpha_habitat)` is the ratio of among-population SDs, and
-`exp(2 * alpha_habitat)` is the corresponding variance ratio. Those ratios do
-not describe residual variability among observations; that remains the job of
-`sigma`.
-
-Use the same grammar when the location model has several additive random
-intercepts:
+Here, $\operatorname{sex}_i=0$ denotes female and
+$\operatorname{sex}_i=1$ denotes male. $\sigma_{b,i}$ is the
+between-individual SD and $\sigma_{e,i}$ is the within-individual residual SD.
+The matching `drmTMB` formula is
 
 ```r
 bf(
-  y ~ x + (1 | study) + (1 | species),
-  sigma ~ z,
-  sd(study) ~ study_type,
-  sd(species) ~ habitat
+  exploration_score ~ sex + (1 | individual),
+  sigma ~ sex,
+  sd(individual) ~ sex
 )
 ```
 
-Each `sd()` formula targets its named random intercept. It does not create a
-new random effect by itself: the matching `(1 | group)` term must be present
-in the location formula.
+The same predictor appears in three formulas, but its coefficients answer
+three separate questions. Sex must be constant within each individual because
+it is used to model `sd(individual)`.
 
-## Phylogenetic location-scale-scale models
+## Simulate and fit the three submodels
 
-Species-level traits often contain two kinds of variation: a phylogenetic
-component shared according to ancestry and an independent component that does
-not follow the tree. Let $A$ be the phylogenetic covariance matrix, let
-$D_a = \operatorname{diag}(\sigma_{a,1},\ldots,\sigma_{a,n})$, and let
-$D_e = \operatorname{diag}(\sigma_{e,1},\ldots,\sigma_{e,n})$. A Gaussian
-phylogenetic location-scale-scale model is
+The example below gives females and males different means, between-individual
+SDs, and within-individual SDs. It is intentionally simple enough that the
+three sources of signal remain visible.
+
+```{r personality-simulate}
+set.seed(20260721)
+n_individual <- 80L
+n_each <- 6L
+
+individual_info <- data.frame(
+  individual = factor(seq_len(n_individual)),
+  sex = factor(
+    rep(c("female", "male"), each = n_individual / 2),
+    levels = c("female", "male")
+  )
+)
+
+mean_by_sex <- c(female = 0.35, male = 0.70)
+between_sd_by_sex <- c(female = 0.65, male = 0.40)
+within_sd_by_sex <- c(female = 0.35, male = 0.60)
+
+individual_effect <- stats::rnorm(
+  n_individual,
+  sd = between_sd_by_sex[individual_info$sex]
+)
+
+personality <- individual_info[rep(seq_len(n_individual), each = n_each), ]
+personality$exploration_score <-
+  mean_by_sex[personality$sex] +
+  individual_effect[as.integer(personality$individual)] +
+  stats::rnorm(
+    nrow(personality),
+    sd = within_sd_by_sex[personality$sex]
+  )
+```
+
+```{r personality-fit}
+fit_personality <- drmTMB(
+  bf(
+    exploration_score ~ sex + (1 | individual),
+    sigma ~ sex,
+    sd(individual) ~ sex
+  ),
+  family = gaussian(),
+  data = personality
+)
+
+round(coef(fit_personality, "mu"), 3)
+round(coef(fit_personality, "sigma"), 3)
+round(coef(fit_personality, "sd(individual)"), 3)
+```
+
+The `sigma` and `sd(individual)` coefficients use log-SD links. For example,
+exponentiating the male coefficient from `sigma` gives the male-to-female
+ratio of within-individual SDs. Exponentiating the corresponding
+`sd(individual)` coefficient gives the male-to-female ratio of
+between-individual SDs.
+
+```{r personality-data-figure, echo = FALSE, fig.width = 7, fig.height = 4.1, fig.cap = "Repeated exploration scores for females and males. Grey points are observations, blue ticks are individual means, and the vermillion line is the fitted sex-specific mean. The spread of individual means represents between-individual variation; scatter around each individual mean represents within-individual variation. Both panels use the same vertical scale.", fig.alt = "Two panels show repeated exploration scores for female and male individuals. Grey observations cluster around blue individual-mean ticks, while a vermillion horizontal line marks the fitted sex-specific mean. The female panel has wider spread among individual means, while the male panel has more scatter within individuals."}
+individual_summary <- stats::aggregate(
+  exploration_score ~ individual + sex,
+  data = personality,
+  FUN = mean
+)
+individual_summary <- individual_summary[
+  order(individual_summary$sex, individual_summary$exploration_score),
+]
+individual_summary$display_id <- ave(
+  individual_summary$exploration_score,
+  individual_summary$sex,
+  FUN = seq_along
+)
+
+plot_data <- merge(
+  personality,
+  individual_summary[c("individual", "sex", "display_id")],
+  by = c("individual", "sex"),
+  sort = FALSE
+)
+
+sex_grid <- data.frame(
+  sex = factor(c("female", "male"), levels = levels(personality$sex))
+)
+sex_grid$fitted_mean <- predict(
+  fit_personality,
+  newdata = sex_grid,
+  dpar = "mu"
+)
+
+ggplot2::ggplot(
+  plot_data,
+  ggplot2::aes(x = display_id, y = exploration_score)
+) +
+  ggplot2::geom_point(
+    position = ggplot2::position_jitter(width = 0.08, height = 0, seed = 1),
+    colour = "grey55",
+    alpha = 0.42,
+    size = 0.8
+  ) +
+  ggplot2::geom_segment(
+    data = individual_summary,
+    ggplot2::aes(
+      x = display_id - 0.26,
+      xend = display_id + 0.26,
+      y = exploration_score,
+      yend = exploration_score
+    ),
+    inherit.aes = FALSE,
+    colour = "#0072B2",
+    linewidth = 0.65
+  ) +
+  ggplot2::geom_hline(
+    data = sex_grid,
+    ggplot2::aes(yintercept = fitted_mean),
+    inherit.aes = FALSE,
+    colour = "#D55E00",
+    linewidth = 0.8
+  ) +
+  ggplot2::geom_text(
+    data = sex_grid,
+    ggplot2::aes(
+      x = Inf,
+      y = fitted_mean,
+      label = "fitted sex mean"
+    ),
+    inherit.aes = FALSE,
+    colour = "#D55E00",
+    hjust = 1.05,
+    vjust = -0.6,
+    size = 3
+  ) +
+  ggplot2::facet_wrap(
+    ~sex,
+    nrow = 1,
+    labeller = ggplot2::as_labeller(c(female = "Female", male = "Male"))
+  ) +
+  ggplot2::labs(
+    x = "Individuals, ordered within sex by their observed mean",
+    y = "Exploration score"
+  ) +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    axis.text.x = ggplot2::element_blank(),
+    axis.ticks.x = ggplot2::element_blank()
+  )
+```
+
+## Read the fitted scales and calculate repeatability
+
+Predictions with `newdata` are population-level values. They give the three
+fitted quantities for each sex directly on their natural scales.
+
+```{r personality-components}
+sex_grid$mean_score <- predict(
+  fit_personality, newdata = sex_grid, dpar = "mu"
+)
+sex_grid$between_individual_sd <- predict(
+  fit_personality, newdata = sex_grid, dpar = "sd(individual)"
+)
+sex_grid$within_individual_sd <- predict(
+  fit_personality, newdata = sex_grid, dpar = "sigma"
+)
+
+sex_grid$repeatability <- with(
+  sex_grid,
+  between_individual_sd^2 /
+    (between_individual_sd^2 + within_individual_sd^2)
+)
+
+repeatability_table <- sex_grid[c(
+  "sex",
+  "mean_score",
+  "between_individual_sd",
+  "within_individual_sd",
+  "repeatability"
+)]
+repeatability_table[-1] <- lapply(
+  repeatability_table[-1],
+  round,
+  digits = 3
+)
+repeatability_table
+```
+
+In behavioural ecology, this intraclass correlation is usually called
+**repeatability**. For sex $s$,
+
+\[
+R_s = \frac{\sigma_{b,s}^2}
+{\sigma_{b,s}^2 + \sigma_{e,s}^2}.
+\]
+
+Repeatability is derived from the two fitted scale submodels; it is not a
+fourth formula. The calculation above is a point estimate. It does not supply
+an uncertainty interval for this nonlinear ratio.
+
+```{r personality-component-figure, echo = FALSE, fig.width = 7, fig.height = 2.9, fig.cap = "Model-implied values for females and males. Panels show the expected exploration score, between-individual SD from `sd(individual)`, and within-individual residual SD from `sigma`. Lines aid comparison and are not uncertainty intervals.", fig.alt = "Three small panels compare fitted female and male values. The expected score and within-individual standard deviation are higher for males, while the between-individual standard deviation is higher for females. No uncertainty intervals are shown."}
+component_surface <- rbind(
+  data.frame(
+    sex = sex_grid$sex,
+    component = "Expected score",
+    estimate = sex_grid$mean_score
+  ),
+  data.frame(
+    sex = sex_grid$sex,
+    component = "Between-individual SD",
+    estimate = sex_grid$between_individual_sd
+  ),
+  data.frame(
+    sex = sex_grid$sex,
+    component = "Within-individual SD",
+    estimate = sex_grid$within_individual_sd
+  )
+)
+component_surface$component <- factor(
+  component_surface$component,
+  levels = c(
+    "Expected score",
+    "Between-individual SD",
+    "Within-individual SD"
+  )
+)
+
+ggplot2::ggplot(
+  component_surface,
+  ggplot2::aes(x = sex, y = estimate, group = 1)
+) +
+  ggplot2::geom_line(colour = "grey65", linewidth = 0.55) +
+  ggplot2::geom_point(colour = "#0072B2", size = 2.4) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = sprintf("%.2f", estimate)),
+    vjust = -0.8,
+    colour = "grey20",
+    size = 3.1
+  ) +
+  ggplot2::facet_wrap(~component, scales = "free_y", nrow = 1) +
+  ggplot2::expand_limits(y = 0) +
+  ggplot2::scale_y_continuous(
+    expand = ggplot2::expansion(mult = c(0.02, 0.18))
+  ) +
+  ggplot2::scale_x_discrete(labels = c(female = "Female", male = "Male")) +
+  ggplot2::labs(x = NULL, y = "Fitted value") +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major.x = ggplot2::element_blank(),
+    strip.text = ggplot2::element_text(face = "bold")
+  )
+```
+
+## A short phylogenetic extension
+
+The same three-part logic applies when the latent location effect follows a
+phylogeny. Start from the familiar constant-scale model
 
 \[
 \begin{aligned}
-\mathbf y
-  &= \boldsymbol\mu + \mathbf a + \mathbf e,\\
-\boldsymbol\mu
-  &= X_{\mu}\boldsymbol\beta,\\
-\log(\boldsymbol\sigma_e)
-  &= X_e\boldsymbol\gamma,\\
-\log(\boldsymbol\sigma_a)
-  &= X_a\boldsymbol\alpha,\\
-\mathbf a
-  &\sim \operatorname{MVN}(\mathbf 0,D_a A D_a),\\
-\mathbf e
-  &\sim \operatorname{MVN}(\mathbf 0,D_e I D_e).
+y_i &= \mu_i + a_i + e_i,\\
+\mu_i &= \beta_0 + \beta_1 T_i,\\
+\mathbf a &\sim \operatorname{MVN}(\mathbf 0, \sigma_a^2 A),\\
+e_i &\sim \operatorname{Normal}(0, \sigma_e^2),
 \end{aligned}
 \]
 
-After integrating over both deviations,
+where $A$ is the phylogenetic correlation matrix and $T_i$ is temperature. A
+location-scale-scale extension lets both SDs change linearly with temperature:
 
 \[
-\mathbf y \sim \operatorname{MVN}
-\left(
-  \boldsymbol\mu,
-  D_a A D_a + D_e I D_e
-\right).
+\log(\sigma_{e,i}) = \gamma_0 + \gamma_1 T_i,
+\qquad
+\log(\sigma_{a,i}) = \alpha_0 + \alpha_1 T_i.
 \]
 
-The three formula components map directly to these equations:
+The matching syntax is deliberately simple:
 
 ```r
-drmTMB(
+fit_phylo_lss <- drmTMB(
   bf(
-    trait ~ climate + phylo(1 | species, tree = tree),
-    sigma ~ climate,
-    sd(species, level = "phylogenetic") ~ climate
+    trait ~ temperature + phylo(1 | species, tree = tree),
+    sigma ~ temperature,
+    sd(species, level = "phylogenetic") ~ temperature
   ),
   family = gaussian(),
   data = dat
@@ -192,169 +362,42 @@ drmTMB(
 
 | Formula | Model quantity | Interpretation |
 |---|---|---|
-| `trait ~ climate + phylo(...)` | $\mu_i$ and $a_i$ | expected trait and phylogenetically correlated location deviation |
-| `sigma ~ climate` | $\sigma_{e,i}$ | independent, non-phylogenetic SD |
-| `sd(species, level = "phylogenetic") ~ climate` | $\sigma_{a,i}$ | SD of the phylogenetic location deviation |
+| `trait ~ temperature + phylo(...)` | $\mu_i$ and $a_i$ | expected trait and phylogenetically correlated location deviation |
+| `sigma ~ temperature` | $\sigma_{e,i}$ | independent SD |
+| `sd(species, level = "phylogenetic") ~ temperature` | $\sigma_{a,i}$ | SD of the phylogenetic location deviation |
+
+The scalar covariance $\sigma_a^2 A$ is the constant-SD starting point. The
+third formula generalizes it by allowing the phylogenetic-effect SD to vary
+among species with temperature. The older formula spelling
+`sd_phylo(species) ~ temperature` is soft-deprecated; fitted objects retain
+the output label `sd_phylo(species)` for extractor compatibility.
 
 With repeated observations within species, `sigma` is the within-species
-residual SD. With one response row per species, as in many comparative
-analyses, the same statistical component is the independent
+residual SD. With one response row per species, it is the independent
 non-phylogenetic species-level deviation. It should not automatically be
 described as measurement error.
-
-The generic formula spelling is `sd(species, level = "phylogenetic")`. Fitted
-objects currently retain the internal output label `sd_phylo(species)` for
-extractor compatibility. The older formula spelling
-`sd_phylo(species) ~ climate` is soft-deprecated and should not be used in new
-analyses.
-
-## A small phylogenetic example
-
-This small build-time example uses repeated observations within species so the
-two SD surfaces are easier to distinguish. We simulate climate-dependent
-within-species and phylogenetic SDs, then fit the three submodels together. The
-next section gives the corresponding one-row-per-species analysis syntax.
-
-```{r phylogenetic-sd-simulate, eval = has_ape}
-set.seed(20260722)
-n_species <- 32L
-n_each <- 10L
-tip <- paste0("sp", seq_len(n_species))
-tree <- ape::rcoal(n_species, tip.label = tip)
-A <- drmTMB:::drm_phylo_tip_covariance(tree)
-
-climate_species <- as.numeric(scale(seq(-1.5, 1.5, length.out = n_species)))
-sigma_a_species <- exp(-0.35 + 0.55 * climate_species)
-base_phylo <- as.vector(t(chol(A)) %*% stats::rnorm(n_species))
-phylo_effect <- stats::setNames(sigma_a_species * base_phylo, tip)
-
-species <- rep(tip, each = n_each)
-climate <- climate_species[match(species, tip)]
-within_species_x <- rep(seq(-1, 1, length.out = n_each), n_species)
-sigma_e <- exp(-0.90 - 0.20 * climate)
-mu <- 0.3 - 0.25 * climate + 0.40 * within_species_x
-trait <- mu + phylo_effect[species] + stats::rnorm(length(species), sd = sigma_e)
-bird <- data.frame(trait, climate, within_species_x, species)
-```
-
-```{r phylogenetic-sd-fit, eval = has_ape}
-fit_phylo_sd <- drmTMB(
-  bf(
-    trait ~ climate + within_species_x + phylo(1 | species, tree = tree),
-    sigma ~ climate,
-    sd(species, level = "phylogenetic") ~ climate
-  ),
-  family = gaussian(),
-  data = bird,
-  control = drm_control(
-    optimizer = list(eval.max = 1000L, iter.max = 1000L)
-  )
-)
-
-round(coef(fit_phylo_sd, "sigma"), 3)
-round(coef(fit_phylo_sd, "sd_phylo(species)"), 3)
-```
-
-The `sigma` coefficients describe changes in $\log(\sigma_e)$. The
-`sd_phylo(species)` output coefficients describe changes in
-$\log(\sigma_a)$. A predictor can therefore increase one source of variation
-while decreasing the other.
-
-## The same predictors in all three submodels
-
-An ecological analysis may use the same climate basis in all three submodels.
-For example, a linear-plus-quadratic temperature and precipitation model is:
-
-```r
-fit_climate <- drmTMB(
-  bf(
-    trait ~
-      1 + temp_z + I(temp_z^2) + precip_z + I(precip_z^2) +
-      phylo(1 | spp_id, tree = tree),
-
-    sigma ~
-      1 + temp_z + I(temp_z^2) + precip_z + I(precip_z^2),
-
-    sd(spp_id, level = "phylogenetic") ~
-      1 + temp_z + I(temp_z^2) + precip_z + I(precip_z^2)
-  ),
-  family = gaussian(),
-  data = dat
-)
-```
-
-The repeated predictor names create separate coefficient vectors; they do not
-force the three effects to be equal. A theory-motivated covariate can also
-belong to only one submodel. For example, body mass or a temperature-by-body-
-mass interaction may enter the location formula without being added to either
-scale formula.
-
-## Deriving the phylogenetic variance proportion
-
-At species $i$, the phylogenetic share of the modelled random-plus-independent
-variance is
-
-\[
-H^2_{\mathrm{phylo},i}
-  = \frac{\sigma_{a,i}^2}
-  {\sigma_{a,i}^2 + \sigma_{e,i}^2}.
-\]
-
-This is a derived quantity, not a fourth formula. The label describes a
-phylogenetic variance proportion; it should not automatically be interpreted
-as narrow-sense heritability.
-
-```{r phylogenetic-variance-proportion, eval = has_ape}
-sigma_e_hat <- predict(fit_phylo_sd, dpar = "sigma")
-sigma_a_hat <- predict(fit_phylo_sd, dpar = "sd_phylo(species)")
-species_order <- names(sigma_a_hat)
-sigma_e_by_species <- tapply(sigma_e_hat, bird$species, mean)
-climate_by_species <- tapply(bird$climate, bird$species, unique)
-
-variance_partition <- data.frame(
-  species = species_order,
-  climate = unname(climate_by_species[species_order]),
-  sigma_e = unname(sigma_e_by_species[species_order]),
-  sigma_a = unname(sigma_a_hat)
-)
-variance_partition$H2_phylo <- with(
-  variance_partition,
-  sigma_a^2 / (sigma_a^2 + sigma_e^2)
-)
-head(variance_partition[order(variance_partition$climate), ], 4)
-```
-
-Pointwise intervals for this ratio must propagate the joint covariance of the
-`sigma` and phylogenetic-`sd()` coefficients. Do not combine two separate
-coefficient intervals as though the scale surfaces were independent. When an
-analysis is repeated over posterior trees, tree-to-tree uncertainty adds
-another pooling layer beyond the single-tree model shown here.
 
 ## Current boundaries
 
 - Ordinary `sd(group) ~ predictors` is implemented for distinct unlabelled
-  Gaussian `mu` random intercepts. It does not yet target a named random slope
-  or labelled covariance block.
+  Gaussian `mu` random intercepts. The matching `(1 | group)` term must appear
+  in the location formula, and scale predictors must be constant within group.
 - `sd(group, level = "phylogenetic") ~ predictors` targets the location
-  phylogenetic effect introduced by `phylo()` in `mu`. Predictors must be
+  phylogenetic effect introduced by `phylo()` in `mu`; predictors must be
   constant within species.
-- This article teaches the Gaussian route. Narrow non-Gaussian evidence cells
-  should be checked in [What can I fit today?](model-map.html) rather than
-  generalized from this example.
-- A direct phylogenetic `sd()` surface combined with an additional
-  phylogenetic random effect inside `sigma` is a different model and is not
-  supported by this route.
+- This article teaches the Gaussian route. Check narrow non-Gaussian cells in
+  [What can I fit today?](model-map.html) rather than generalizing from it.
 - Random effects on the right-hand side of an `sd()` formula and generic
-  direct-SD levels for `spatial()`, `animal()`, and `relmat()` require separate
-  implementation and validation.
+  direct-SD levels for `spatial()`, `animal()`, and `relmat()` remain separate
+  implementation and validation questions.
 - Use `check_drm()`, inspect the terminal gradient and Hessian diagnostics,
   and retain failed fits. A clean optimizer code alone does not establish that
   every SD surface is well identified.
 
-For the broader phylogenetic syntax, continue to
-[Phylogenetic mixed models](phylogenetic-models.html). For prediction tables
-and the difference between `sigma` and ordinary `sd(group)`, return to
-[Which scale are you modelling?](which-scale.html).
+For broader phylogenetic syntax, continue to [Phylogenetic mixed
+models](phylogenetic-models.html). For prediction tables and the distinction
+between `sigma` and `sd(group)`, return to [Which scale are you
+modelling?](which-scale.html).
 
 ## Reference
 

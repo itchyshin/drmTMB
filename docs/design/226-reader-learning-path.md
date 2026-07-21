@@ -99,7 +99,7 @@ path.
 | 4 | `distribution-families` | 2. Choose your family | route-chooser | Direct family-selection guide: continuous, count, proportion, robust — the question stage 2 exists to answer. |
 | 5 | `model-map` | 2. Choose your family | route-chooser | "What can I fit today?" status map; the reader consults it while deciding which family/syntax combination is actually implemented. |
 | 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Part 1 of the Gaussian variance sequence: `mu` and residual `sigma` interpretation with a biological example. |
-| 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: ordinary `sd(group)` and phylogenetic `sd(group, level = "phylogenetic")` models, kept distinct from residual `sigma`. |
+| 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: personality and sex-specific repeatability from `sigma` plus `sd(individual)`, followed by a short phylogenetic `sd(group, level = "phylogenetic")` extension. |
 | 7 | `robust-student` | 3. Interpretation tutorials | tutorial | Student-t shape-parameter (`nu`) worked tutorial for robust continuous responses. |
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
@@ -364,7 +364,7 @@ spine articles split by organism:
 |---|---|
 | `drmTMB` | plants — forest / grassland |
 | `location-scale` | plants — forest / grassland |
-| `location-scale-scale` | populations and species — habitat / climate |
+| `location-scale-scale` | individuals and species — sex / temperature |
 | `which-scale` | fish — population |
 | `model-workflow` | fish — reef / kelp |
 
