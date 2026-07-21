@@ -60,6 +60,48 @@ test_that("`||` expands every numeric slope", {
   )
 })
 
+# R formula algebra is last-wins, so the intercept is decided by the LAST
+# explicit 0 or 1, not by whether a 0 appears anywhere. An order-insensitive
+# rule silently drops a variance component from `(0 + 1 + x || g)`; these cases
+# match `lme4::expandDoubleVerts()` term for term.
+test_that("`||` resolves the intercept last-wins, as R and lme4 do", {
+  data <- double_bar_fixture()
+  expect_equal(
+    double_bar_rhs(quote(x + (0 + 1 + x || g)), data),
+    quote(x + (1 | g) + (0 + x | g))
+  )
+  expect_equal(
+    double_bar_rhs(quote(x + (1 + 0 + x || g)), data),
+    quote(x + (0 + x | g))
+  )
+  expect_equal(
+    double_bar_rhs(quote(x + (x + 0 + 1 || g)), data),
+    quote(x + (1 | g) + (0 + x | g))
+  )
+  expect_equal(
+    double_bar_rhs(quote(x + (0 + x + 1 || g)), data),
+    quote(x + (1 | g) + (0 + x | g))
+  )
+  expect_equal(
+    double_bar_rhs(quote(x + (x + 1 || g)), data),
+    quote(x + (1 | g) + (0 + x | g))
+  )
+  expect_equal(
+    double_bar_rhs(quote(x + (x + 0 || g)), data),
+    quote(x + (0 + x | g))
+  )
+})
+
+# `-1` is not a `0` term to `flatten_plus_terms()`, so it must fail loudly
+# rather than be mistaken for a slope or silently keep the intercept.
+test_that("`||` rejects a negative intercept rather than guessing", {
+  data <- double_bar_fixture()
+  expect_error(
+    double_bar_rhs(quote(x + (-1 + x || g)), data),
+    "only simple numeric slopes"
+  )
+})
+
 test_that("a single-bar formula is left untouched", {
   data <- double_bar_fixture()
   rhs <- quote(x + (1 + x | g))

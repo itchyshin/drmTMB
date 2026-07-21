@@ -242,8 +242,21 @@ expand_double_bar_term <- function(expr, data) {
   # keeps these calls for printing, and `|` binds looser than `+`.
   bar_term <- function(lhs) call("(", call("|", lhs, group))
 
+  # R formula algebra is last-wins, not order-insensitive: `0 + 1 + x` keeps the
+  # intercept and `1 + 0 + x` drops it, which is also what lme4's
+  # `expandDoubleVerts()` produces. Testing `any(is_zero)` instead would drop a
+  # whole variance component from `(0 + 1 + x || g)` without saying so.
+  keep_intercept <- TRUE
+  for (i in seq_along(pieces)) {
+    if (is_zero[[i]]) {
+      keep_intercept <- FALSE
+    } else if (is_one[[i]]) {
+      keep_intercept <- TRUE
+    }
+  }
+
   out <- list()
-  if (!any(is_zero)) {
+  if (keep_intercept) {
     out <- c(out, list(bar_term(1)))
   }
   for (slope in slopes) {
