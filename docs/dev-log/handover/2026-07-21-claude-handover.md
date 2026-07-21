@@ -78,7 +78,7 @@ branches; they are outside this lane and must not be acted on here.
 |---|---:|---:|---|---|
 | `codex/precran-review-20260721` @ `d78c7353` | yes | yes | #810 open | LANDED; review/merge pending |
 | `origin/main` @ `99bf0974` | yes | yes | #809 merged | LANDED |
-| `docs/dev-log/release-audits/2026-07-21-pre-cran-code-content-review.md` | no | no | none | CARRIED-OVER; untracked review draft in this worktree, intentionally not staged; do not rely on it from a fresh checkout |
+| Local pre-CRAN code-review draft | no | no | none | DISCARDED after its useful findings were captured above; it was untracked, stale after the content correction, and must not be relied on from a fresh checkout |
 | This handover + `AGENTS.md` pointer | pending | pending | #810 open | to be committed and pushed with this handover |
 
 ## Files Created / Modified
@@ -110,7 +110,7 @@ refreshes the `AGENTS.md` latest pointer.
 - PR #810 is not merged. Its change is documentation and reader flow, not a
   release authorization.
 - Platform evidence is intentionally absent; do not call 0.6 CRAN-ready.
-- The local carried-over review draft is not on origin. If it becomes needed,
+- The discarded local review draft is not on origin. If it becomes needed,
   re-run/recreate an evidence-backed review rather than treating it as landed.
 
 ## Gotchas / Failed Approaches
