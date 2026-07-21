@@ -216,7 +216,12 @@ should **not** be read as a test of a zero variance component. Use it to
 describe uncertainty in the magnitude of each SD. A `check_drm(fit)` call (not
 shown) reports diagnostics for the recognised phylogenetic layer.
 
-```{r gaussian-figure, eval = has_ape && has_ggplot2, fig.width = 5.2, fig.height = 2.1, fig.cap = "Points are fitted response-scale standard deviations; lines are the default 95% Wald intervals returned by `confint()`. The data-generating values were 0.8 for the phylogenetic SD and 0.3 for the residual SD.", fig.alt = "Two-row interval plot. The estimated phylogenetic location SD is 0.78 with a wide 95 percent interval from 0.50 to 1.37. The residual SD is 0.27 with a narrower interval from 0.23 to 0.31."}
+The figure uses **Confidence Eyes** rather than flat interval bars. Each pale
+eye is the finite 95% Wald confidence region shaped on the log-SD scale:
+compatibility is greatest near its centre and tapers towards the endpoints.
+The eye is a frequentist compatibility display, not a posterior density.
+
+```{r gaussian-figure, eval = has_ape && has_ggplot2, fig.width = 5.2, fig.height = 2.2, fig.cap = "Confidence Eyes for the two response-scale SDs. Pale shapes are the default finite 95% Wald confidence regions, constructed on the log-SD scale; hollow circles are the raw fitted SDs. The default small-sample correction shifts the phylogenetic eye slightly relative to its raw estimate. The data-generating values were 0.8 and 0.3.", fig.alt = "Two Confidence Eye rows. The phylogenetic SD has a raw fitted value of 0.78 and a broad pale confidence region from 0.50 to 1.37. The residual SD has a fitted value of 0.27 and a narrow pale confidence region from 0.23 to 0.31. Hollow circles mark the fitted values."}
 vc <- confint(fit, parm = "variance_components")
 
 phylo_sd_name <- names(fit$sdpars$mu)[
@@ -241,20 +246,55 @@ sd_tab <- data.frame(
   upper = vc$upper[interval_row]
 )
 stopifnot(
+  all(is.finite(unlist(sd_tab[c("estimate", "lower", "upper")]))),
+  all(sd_tab$lower > 0),
   all(sd_tab$lower <= sd_tab$estimate),
   all(sd_tab$estimate <= sd_tab$upper)
 )
 
-ggplot2::ggplot(sd_tab, ggplot2::aes(y = label)) +
-  ggplot2::geom_segment(
-    ggplot2::aes(x = lower, xend = upper, yend = label),
-    linewidth = 0.9,
-    colour = "grey45"
+sd_eye <- do.call(rbind, lapply(seq_len(nrow(sd_tab)), function(i) {
+  log_lower <- log(sd_tab$lower[i])
+  log_upper <- log(sd_tab$upper[i])
+  log_centre <- 0.5 * (log_lower + log_upper)
+  log_value <- seq(log_lower, log_upper, length.out = 401L)
+  half_width <- 0.5 * (log_upper - log_lower)
+  height <- pmax(1 - ((log_value - log_centre) / half_width)^2, 0)
+  data.frame(
+    label = as.character(sd_tab$label[i]),
+    value = exp(log_value),
+    height = height
+  )
+}))
+sd_eye$label <- factor(sd_eye$label, levels = levels(sd_tab$label))
+sd_eye$y <- as.numeric(sd_eye$label)
+sd_tab$y <- as.numeric(sd_tab$label)
+
+ggplot2::ggplot() +
+  ggplot2::geom_ribbon(
+    data = sd_eye,
+    ggplot2::aes(
+      x = value,
+      ymin = y - 0.20 * height,
+      ymax = y + 0.20 * height,
+      group = label
+    ),
+    fill = "#0072B2",
+    alpha = 0.24,
+    colour = NA
   ) +
   ggplot2::geom_point(
-    ggplot2::aes(x = estimate),
-    size = 2.8,
-    colour = "#0072B2"
+    data = sd_tab,
+    ggplot2::aes(x = estimate, y = y),
+    shape = 21,
+    fill = "white",
+    colour = "#0072B2",
+    size = 3.0,
+    stroke = 1.0
+  ) +
+  ggplot2::scale_y_continuous(
+    breaks = seq_along(levels(sd_tab$label)),
+    labels = levels(sd_tab$label),
+    expand = ggplot2::expansion(add = 0.38)
   ) +
   ggplot2::scale_x_continuous(
     limits = c(0, NA),
@@ -266,6 +306,8 @@ ggplot2::ggplot(sd_tab, ggplot2::aes(y = label)) +
   ) +
   ggplot2::theme_minimal(base_size = 12.5) +
   ggplot2::theme(
+    axis.line.x = ggplot2::element_line(colour = "grey40", linewidth = 0.35),
+    axis.ticks.x = ggplot2::element_line(colour = "grey40", linewidth = 0.35),
     panel.grid.major.y = ggplot2::element_blank(),
     panel.grid.minor = ggplot2::element_blank(),
     axis.text.y = ggplot2::element_text(colour = "grey15")
@@ -372,30 +414,51 @@ fit_big$sdpars$mu
 
 ## What `phylo()` fits today
 
+This is a reader-level summary of the current capability ledger. The tier words
+matter: **diagnostic-only** means a fit/extractor smoke, **point-fit recovery**
+means simulation or oracle evidence for fitted values, and **inference-ready
+with caveats** means interval evidence exists only inside the stated design.
+The [model map](model-map.html) gives the wider package-level boundary.
+
+<style>
+.phylo-capability-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.phylo-capability-table table {
+  min-width: 760px;
+}
+</style>
+
+<div class="phylo-capability-table" markdown="1">
+
 | Question | Syntax | Status |
 | --- | --- | --- |
-| Phylogenetic location deviations in one Gaussian response | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
-| Phylogenetic location deviations in a Poisson or NB2 mean | `phylo(1 + x | species, tree = tree)` in `mu` | Fitted q=1 unlabelled intercept plus one independent slope at recovery grade. |
-| Phylogenetic NB2 overdispersion deviations | `phylo(1 + x | species, tree = tree)` in `sigma` | Fitted q=1 unlabelled intercept plus one independent slope at recovery grade; no interval or coverage promotion. |
-| Phylogenetic Student-t tail-weight deviations | `phylo(1 | species, tree = tree)` in `nu` | Exact q=1 intercept with diagnostic-only fit/extractor evidence; this does not establish point-estimate recovery. |
-| Phylogenetic cumulative-logit location deviations | `phylo(1 | species, tree = tree)` in `mu` | Exact q=1 intercept with diagnostic-only fit/extractor evidence; this does not establish point-estimate recovery. |
-| One phylogenetic location SD modelled by a species predictor | `sd(species, level = "phylogenetic") ~ z` | Fitted direct-SD route (not residual `sigma`); `sd_phylo(species)` is a soft-deprecated (0.3.0) alias. |
-| Two Gaussian means sharing a phylogenetic correlation | matching `phylo(1 | p | species, tree = tree)` in `mu1` and `mu2` | Fitted; read with `corpairs(level = "phylogenetic")`. |
-| Phylogenetic location and scale as one block | matching labelled `phylo(1 | p | species, tree = tree)` across `mu1`, `mu2`, `sigma1`, `sigma2` | Fitted first constant q=4 slice. |
+| Gaussian location SD | `phylo(1 | species, tree = tree)` or one independent slope in `mu` | ML intercept: inference-ready with caveats. ML intercept-plus-slope and REML intercept: point-fit recovery. |
+| Gaussian residual-scale phylogeny | `sigma ~ phylo(1 | species, tree = tree)` or one independent slope | ML intercept: point-fit recovery. ML intercept-plus-slope: inference-ready with caveats. REML pure scale route: point-fit recovery. |
+| Gaussian location and residual scale together | matching labelled `phylo()` terms in `mu` and `sigma` | Constant and first one-slope q=2 blocks have ML point-fit recovery; the constant REML q=2 block also has point-fit recovery. |
+| Gaussian predictor-dependent phylogenetic SD | `phylo(1 | species, tree = tree)` in `mu` plus `sd(species, level = "phylogenetic") ~ x` | Fitted direct-SD route; REML admission is included in the q=1 point-fit-recovery cell. This is not a blanket interval/coverage claim. |
+| Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope | `phylo(1 + x | species, tree = tree)` in `mu` | The exact unlabelled intercept plus one independent slope at recovery grade has point-fit recovery. |
+| NB2 overdispersion deviations | NB2 q1 phylogenetic `sigma` via `phylo(1 + x | species, tree = tree)` | The exact unlabelled intercept-plus-one-slope route has point-fit recovery; no interval or coverage promotion. |
+| Gamma or lognormal location SD | `phylo(1 | species, tree = tree)` in `mu` | Exact ML intercept routes have point-fit recovery; slopes, structured `sigma`, REML, and intervals are outside those cells. |
+| Beta phylogenetic location-SD regression | `phylo(1 | spp_id, tree = tree)` in `mu` plus `sd(spp_id, level = "phylogenetic") ~ x` | Exact unlabelled q=1 ML route is inference-ready with caveats only for the validated interior-response, 1,024-species, four-replicate designs. Family `sigma` remains fixed-effect and $\phi = \sigma^{-2}$. |
+| Student-t tail-weight deviations | Student-t q1 phylogenetic `nu` via `phylo(1 | species, tree = tree)` | Diagnostic-only fit/extractor evidence; not point-fit recovery. |
+| cumulative-logit location deviations | cumulative-logit q1 phylogenetic `mu` via `phylo(1 | species, tree = tree)` | Diagnostic-only fit/extractor evidence; not point-fit recovery. |
+| Two Gaussian means sharing phylogeny | matching `phylo(1 | p | species, tree = tree)` in `mu1` and `mu2` | Intercept q=2 has ML and REML point-fit recovery; the exact ML slope-only q=2 cell is inference-ready with caveats. Read correlations with `corpairs(level = "phylogenetic")`. |
+| Bivariate phylogenetic location-scale blocks | matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Exact q=2+q=2 and broader all-four cells are fitted, but their evidence ranges from diagnostic-only to point-fit recovery; they are not blanket interval/coverage claims. |
 
-These bivariate and location-scale routes, and the broader parity ladder, are
-covered with worked examples in the
+</div>
+
+When a predictor changes the phylogenetic SD itself, or when the model contains
+location plus two scale submodels, continue with [When variance carries signal,
+Part II: location-scale-scale models](location-scale-scale.html). For the
+bivariate covariance layouts and the broader parity ladder, use the
 [structural-dependence tutorial](phylogenetic-spatial.html).
 
-The following remain planned: additional multiple or labelled
-phylogenetic-slope layouts outside the exact fitted ledger cells and slope
-correlations; non-Gaussian phylogenetic effects outside the exact
-ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope,
-recovery-grade NB2 q1 phylogenetic `sigma`, Student-t q1 phylogenetic `nu`,
-and cumulative-logit q1 phylogenetic `mu` gates; public matrix
-inputs such as `phylo(1 | species, A = A)`; simultaneous `phylo()` and
-`spatial()` layers in one formula; and structured random effects inside
-residual `rho12`.
+Anything outside these exact rows remains unpromoted, including other
+non-Gaussian families, additional slope/label combinations, public matrix input
+such as `phylo(1 | species, A = A)`, simultaneous `phylo()` and `spatial()`
+layers, and structured random effects inside residual `rho12`.
 
 ## References
 
