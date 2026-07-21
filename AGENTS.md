@@ -10,7 +10,16 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-21, PHASE 20 CRAN RC — drmTMB 0.6.0 MERGED at the tarball-clean rung).**
+> **▶ Latest — start here (2026-07-21, → Claude, pre-CRAN content + reader-path PR).**
+> PR #810 (`codex/precran-review-20260721` @ `d78c7353`) carries manifest-aligned
+> content corrections and the Pat/Rose-approved compact pkgdown landing page;
+> it is pushed but unmerged and public Pages has not been deployed. The frozen
+> tarball-clean rung remains untouched. The next gate is Rose/PR review, then a
+> separate platform-clean lane; #806 Julia extractor repair and the external q2
+> diagnostic are post-0.6 unless Shinichi changes scope. START HERE:
+> [`docs/dev-log/handover/2026-07-21-claude-handover.md`](docs/dev-log/handover/2026-07-21-claude-handover.md)
+>
+> **▶ Prior (2026-07-21, PHASE 20 CRAN RC — drmTMB 0.6.0 MERGED at the tarball-clean rung).**
 > The Phase-20 CRAN release-candidate lane is complete: drmTMB **0.6.0** is merged to `main` at the
 > **tarball-clean + local clang-UBSAN** rung (RC PR #804 → honesty-sweep #805 → consolidation follow-up).
 > This is **NOT** "CRAN-ready": the REMOTE platform matrix (win-builder / R-hub UBSAN·valgrind·rchk / 3-OS
