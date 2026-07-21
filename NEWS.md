@@ -1,5 +1,35 @@
 # drmTMB 0.6.0
 
+## First-impression formula surface (issue #776)
+
+* `(1 + x || g)`, the `lme4`/`brms` spelling for uncorrelated random effects, is
+  now accepted and desugars to `(1 | g) + (0 + x | g)`. Previously R parsed `||`
+  as its own operator, the random-term parser recognised only `|`, and the term
+  survived into the fixed-effect design matrix, where it aborted with
+  `'length = N' in coercion to 'logical(1)'` — a message whose `N` is the row
+  count, so it read as a size problem and was not. The two spellings are now the
+  same model: on a 20-group fixture they agree in log-likelihood and in every
+  fixed-effect coefficient, while the correlated `(1 + x | g)` block stays
+  distinct.
+* This is a formula rewrite onto a route drmTMB already fits and has certified.
+  No likelihood, no TMB change, and no new capability claim: no ledger cell
+  changes tier, and the desugaring is inert on formulas that contain no `||`.
+* A categorical slope under `||` is rejected rather than silently accepted. In
+  `lme4` `||` splits by formula term rather than by design-matrix column, so a
+  factor slope keeps its within-factor correlations and is not in fact
+  uncorrelated; the error names the explicit two-term form instead of copying
+  that behaviour.
+* Smooth terms (`s()`, `te()`, `ti()`, `t2()`) are rejected by name before the
+  model frame is evaluated. A reader arriving from `mgcv` or `gamlss` previously
+  got R's own `could not find function "s"`; the message now points at `poly()`
+  and `splines::ns()` and states that penalised smooths are not implemented.
+* A user-facing error no longer leaks internal roadmap vocabulary: the
+  univariate Gaussian parameter check named "Phase 1" instead of naming the
+  supported distributional parameters.
+* The simple-grouping rule (`(1 | g1/g2)` and `(1 | g1:g2)` are not implemented)
+  is now locked by tests on both the `mu` and `sigma` parse paths, where the
+  guard is duplicated.
+
 ## Reader-facing plotting surface complete (issue #58)
 
 * The figure gallery now demonstrates all six public plotting functions.
