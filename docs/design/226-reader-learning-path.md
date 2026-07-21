@@ -1,14 +1,14 @@
-# 226 — One canonical reader learning path across 33 vignettes
+# 226 — One canonical reader learning path across 34 vignettes
 
 ## 1. The problem
 
-`_pkgdown.yml` carries two independent taxonomies over the same 33 vignettes:
+`_pkgdown.yml` carries two independent taxonomies over the same 34 vignettes:
 the navbar (`model_guides` 11 · `tutorials` 15 · `diagnostics` 4 · `developer`
 3) and the `articles:` index used to render the pkgdown homepage grid
 (`Getting Started` 1 · `Start Here` 4 · `Choose Your Model` 6 · `Applied
 Family Tutorials` 3 · `Structured Dependence` 7 · `Inference, Diagnostics,
 and Figures` 6 · `Simulation and Validation` 3 · `Developer Notes` 3). They
-disagree on where 26 of the 33 articles belong. `drmTMB` (the getting-started
+disagree on the placement of many articles. `drmTMB` (the getting-started
 vignette) is a navbar Tutorial but an articles-index Getting-Started page.
 `capability-and-limits` is a navbar Model Guide but an articles-index
 Start-Here page. `convergence`, `large-data`, `julia-engine`, and
@@ -79,7 +79,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-33 rows. Role legend: **tutorial** = worked biological example with fitted
+34 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -89,6 +89,7 @@ path.
 | # | Vignette | Stage | Role | Reason |
 |---|---|---|---|---|
 | 1 | `drmTMB` | 1. First fit | tutorial | Fits the first Gaussian location-scale model, runs `check_drm()`, is the front door every other stage is reached from. |
+| 1a | `function-map-cheatsheet` | 1. First fit | guide | A searchable function router and compact workflow for readers who know their question but need the smallest useful `drmTMB` sequence before the longer model-workflow guide. |
 | 2 | `model-workflow` | 1. First fit | guide | Post-fit checklist (`check_drm()`, `profile_targets()`, `conf.status`, prediction, residuals, simulation) a reader needs immediately after the first fit, before touching family choice. |
 | 3 | `which-scale` | 2. Choose your family | route-chooser | Disambiguates residual `sigma`, `sd(group)`, likelihood weights, and known sampling variance before the reader picks a family — answers "which scale am I even modelling" ahead of "which family." |
 | 4 | `distribution-families` | 2. Choose your family | route-chooser | Direct family-selection guide: continuous, count, proportion, robust — the question stage 2 exists to answer. |
@@ -122,12 +123,12 @@ path.
 | 32 | `implementation-map` | 2. Choose your family | guide | **Corrected in §9 — reverted to the applied path.** It opens "This map answers one practical question: what model surface can an applied user…", and `model-map` links to it from four places (`model-map.Rmd:38,53,152,157`). Reclassifying it developer-only would break live cross-links from an applied guide and hide the page readers are explicitly sent to. |
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 
-Total: 33 placed. Stage counts **after the §9 corrections**: **1. First fit**
-= 2 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 7 ·
+Total: 34 placed. Stage counts **after the §9 corrections**: **1. First fit**
+= 3 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 7 ·
 **Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
 **5. Uncertainty & inference boundaries** = 4 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-2 + 4 + 7 + 3 + 7 + 4 + 1 + 5 = 33.
+3 + 4 + 7 + 3 + 7 + 4 + 1 + 5 = 34.
 
 Two rows deserve a placement note beyond the reason column:
 

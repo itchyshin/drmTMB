@@ -31,6 +31,8 @@ navbar:
       menu:
         - text: Getting started
           href: articles/drmTMB.html
+        - text: Function map and cheat sheet
+          href: articles/function-map-cheatsheet.html
         - text: Checking and using fitted models
           href: articles/model-workflow.html
     choose_family:
@@ -217,6 +219,7 @@ articles:
   - title: Get Started
     contents:
       - drmTMB
+      - function-map-cheatsheet
       - model-workflow
   - title: Choose Your Family
     contents:
