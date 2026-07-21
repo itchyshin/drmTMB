@@ -10,20 +10,19 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-19, ARC 4c THREE-FAMILY MU-SLOPE COVERAGE COMPLETE).**
-> Fir retained all 13,200 certification attempts for skew-normal `mc-0464`, Tweedie `mc-0539`,
-> and zero-one beta `mc-0575`. Standard **ML-Laplace** profile intervals met the frozen
-> `inference_ready_with_caveats` gate for every family at M=16, 32, and 64; the certified floor is
-> **M=16** for all three. Coverage at M{16,32,64}: skew-normal 0.9275/0.9317/0.9575; Tweedie
-> 0.9267/0.9425/0.9475; zero-one beta 0.9292/0.9400/0.9517. All cells keep `estimator=ML`; none
-> earns `supported`. Fresh D-43 review was 3/3 PROMOTE for skew-normal and Tweedie and 2 PROMOTE / 1
-> WITHHOLD for zero-one beta. Noether's objection is preserved: rare machine-exact ones leaked from
-> the nominally interior beta sampler, so a deterministic strictly-interior rerun is required before
-> claiming exactly 15% observed boundary mass. The immutable campaign also lacks point/Wald
-> diagnostics because duplicate TMB report names defeated their extractor; profile evidence is
-> unaffected, and the prospective extractor is repaired and regression-tested. Campaign source was
-> verified repair merge `46affaee`; PR-A #797 and repair #798 are merged. START HERE:
-> [`docs/dev-log/handover/2026-07-19-arc4c-coverage-closeout.md`](docs/dev-log/handover/2026-07-19-arc4c-coverage-closeout.md)
+> **▶ Latest — start here (2026-07-21, PHASE 20 CRAN RC — drmTMB 0.6.0 MERGED at the tarball-clean rung).**
+> The Phase-20 CRAN release-candidate lane is complete: drmTMB **0.6.0** is merged to `main` at the
+> **tarball-clean + local clang-UBSAN** rung (RC PR #804 → honesty-sweep #805 → consolidation follow-up).
+> This is **NOT** "CRAN-ready": the REMOTE platform matrix (win-builder / R-hub UBSAN·valgrind·rchk / 3-OS
+> GitHub) and the CRAN submission (G6) are the declared **NEXT** gates (a separate future lane). 0.5.0 was
+> ditched and never accepted → **0.6.0 is a first/new submission.** Evidence: local `R CMD check --as-cran`
+> = 0 err / 0 warn / 1 NOTE (new-submission) + installed-size INFO; CRAN-lane `FAIL 0 | PASS 12011`; local
+> clang-UBSAN 0 runtime errors on the six `(int)asDouble()` casts. The D-43 panel iterated three rounds
+> (the panel + a 6-lens completeness review caught and fixed several release-surface honesty defects — none
+> a code regression). Capabilities + every deferred future-work item (with its owning issue) are catalogued
+> in the release manifest (`docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md`) and the
+> future-work register. Open follow-ups: Julia xfam extractors **#806**; sigma-slope start **#710.2**. START
+> HERE: [`docs/dev-log/after-task/2026-07-20-cran-rc-s8-s9-refreeze.md`](docs/dev-log/after-task/2026-07-20-cran-rc-s8-s9-refreeze.md)
 >
 > **▶ Prior (2026-07-19, AGHQ + non-Gaussian REML ARC DONE; mc-0227 PROMOTED).**
 > The AGHQ + non-Gaussian REML arc is BUILT + validated + landed on branch
