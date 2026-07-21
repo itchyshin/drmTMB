@@ -38,12 +38,18 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
    identifiability rule, not a universal mathematical theorem. Require symbolic
    alignment, explicit nesting checks, recovery, and rejected-neighbour tests.
 
-## Release versioning: 0.5.0 first, v1.0 as maturity milestone
+## Release versioning: conservative `0.x` numbering, v1.0 as maturity milestone
 
-- **The first CRAN release is numbered `0.5.0`, not `1.0.0`** (decision 2026-07-10).
-  A 1.0 on a first CRAN entry would over-claim: much of the family and inference
-  surface is still scaffolded or recovery-grade, and the public grammar is still
-  growing. `0.5.0` is the honest number and leaves a clean runway.
+> **Updated — the specific number below was superseded.** The 2026-07-12 ratification (next
+> section) retired the thin `0.5.0` plan, and the `v0.5.0` tag was **never accepted on CRAN**
+> (it was ditched). **`0.6.0` is the actual first CRAN submission** (a first/new submission). The
+> conservative-`0.x`-not-`1.0` *principle* stands; the `0.5.0` *number* does not.
+
+- **The first CRAN release is numbered conservatively in the `0.x` line, not `1.0.0`** (principle,
+  decision 2026-07-10; the specific `0.5.0` number was later superseded — see the note above and
+  the 2026-07-12 strategy section). A 1.0 on a first CRAN entry would over-claim: much of the family
+  and inference surface is still scaffolded or recovery-grade, and the public grammar is still
+  growing.
 - **`1.0` is reserved as the capability *maturity milestone*** — the complete
   "Q-Series v1.0" surface (below) plus the full distributional-regression story
   (location + scale + shape + adequacy diagnostics + quantile/exceedance outputs)
