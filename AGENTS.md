@@ -10,7 +10,30 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-21, → Claude, pre-CRAN review + `rho12` AUDIT REVERSAL).**
+> **▶ Latest — start here (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
+> **Shinichi decided 2026-07-21: drmTMB 0.6 will NOT be submitted to CRAN.** It needs
+> substantially more work first. The CRAN release gate is **PARKED, not failed** — the
+> tarball re-freeze, platform matrix (win-builder / R-hub / 3-OS), `cran-comments.md`
+> rewrite and submission are all **out of scope**. Do not restart them.
+> PR #810 **MERGED** (squash `e7ac5896`) and pkgdown auto-deployed, so
+> `codex/precran-review-20260721` is a **squash-merge orphan** — do not open a PR from it.
+> An approved, **plan-reviewed** ultra-plan (Fisher / Rose / Ada) now governs, in three
+> tracks: **A** quality/API · **B** capability breadth (the headline) · **C** reader depth.
+> **NEXT = Track A at A0, then A1 — the `||` desugaring** (`(1 + x || g)` currently falls
+> through to the *fixed-effect* design matrix and aborts with a raw
+> `'length = N' in coercion to 'logical(1)'`; desugaring to `(1|g) + (0+x|g)` closes #776
+> and carries **no evidence burden**, since it lands on an already-certified route).
+> **Track B is compute-gated:** no campaign fit until its pre-registered spec is
+> plan-reviewed AND Shinichi approves (B3); Totoro for the rho12 study, DRAC array for the
+> multi-cell batch, **never GitHub Actions** (D-50). Honest ceiling: coverage certification
+> **cannot** produce a `supported` cell — the deliverable is "+N `inference_ready_with_caveats`".
+> Two traps recorded: **squash merges break `git merge-base --is-ancestor`** (verify landed
+> work by CONTENT), and **row-specific coverage denominators are FITS, not fits × rows**.
+> START HERE:
+> [`docs/dev-log/2026-07-21-0.6-dev-arc-ultra-plan.md`](docs/dev-log/2026-07-21-0.6-dev-arc-ultra-plan.md)
+> then [`docs/dev-log/handover/2026-07-21-0.6-dev-arc-claude-handover.md`](docs/dev-log/handover/2026-07-21-0.6-dev-arc-claude-handover.md)
+>
+> **▶ Prior (2026-07-21, → Claude, pre-CRAN review + `rho12` AUDIT REVERSAL).**
 > PR #810 (`codex/precran-review-20260721`) carries the compact Pat/Rose-approved
 > pkgdown landing page and three sound Julia/cross-family corrections — but **four of
 > its seven "blocker" fixes were FALSE POSITIVES and have been REVERTED.** A
