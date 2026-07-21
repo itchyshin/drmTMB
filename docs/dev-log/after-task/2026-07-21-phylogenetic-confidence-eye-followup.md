@@ -48,6 +48,7 @@ horizontal scrolling preserves precise boundaries on mobile.
   to merge commit `50e56b1a` before this change.
 - `python3 tools/capability_ledger.py --check`: PASS; 30 generated outputs are
   synchronized.
+- `python3 -m unittest tools/tests/test_capability_ledger.py`: PASS, 37 tests.
 - `pkgdown::build_article("phylogenetic-models", new_process = FALSE)`: PASS.
 - Desktop and 390-pixel headless-browser inspection: PASS for the Confidence
   Eye; the table reports a 366-pixel viewport and 760-pixel scroll width.
@@ -88,7 +89,10 @@ article moves from a constant phylogenetic SD to an SD regression.
 The first browser run was sandbox-blocked by macOS Mach-port permissions and
 was rerun with approved local-only access. The first mobile render showed the
 expanded table compressing three dense columns and breaking technical words;
-the responsive scroll container was added and rechecked.
+the responsive scroll container was added and rechecked. The first CI run then
+caught two exact-phrase capability guards removed during the table rewrite.
+The guarded canonical gate names were restored in the reader-facing rows, and
+the full 37-test ledger unit suite was added to the local pre-push checks.
 
 ## 10. Known Residuals
 
