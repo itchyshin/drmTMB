@@ -32,19 +32,16 @@ written as one formula for the mean and one formula for the residual scale.
 
 ## Install the preview
 
-`drmTMB` is not on CRAN yet. Install the tagged preview from GitHub with
-`pak`:
+`drmTMB` is not on CRAN yet. Install the current development version (the
+`0.6.0` line) from GitHub with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.5.0")
-```
-
-For the newest development build from `main`, use:
-
-```r
 pak::pak("itchyshin/drmTMB")
 ```
+
+The earlier `v0.5.0` tag predates the current line and is not a supported
+install target; a `0.6.0` release will be tagged when it reaches CRAN.
 
 You need R 4.1.0 or newer and a working compiler toolchain because TMB models
 are compiled during installation. If installation fails while compiling C++,

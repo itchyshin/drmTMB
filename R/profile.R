@@ -251,6 +251,11 @@
 #' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
 #' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 #' \doi{10.1111/j.2041-210X.2011.00125.x}
+#' @seealso The tier definitions and per-cell evidence behind these interval
+#'   targets, including random-effect standard-deviation rows, are curated in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `confint()`
+#'   computes generically for any target, and the tier a given cell belongs to
+#'   is a documentation-level curation, not a runtime guard.
 #' @export
 confint.drmTMB <- function(
   object,

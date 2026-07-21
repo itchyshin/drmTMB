@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.width = 6.4,
+  fig.width = 7.4,
   fig.height = 4.2,
   dpi = 130
 )
@@ -80,7 +80,7 @@ and `qq_plot()` show the same thing visually -- a flat scatter around the
 reference line is "no detectable departure from N(0,1)," never proof the
 model is correct.
 
-```{r worm-true, fig.cap="Worm plot of quantile residuals for the correctly specified location-scale fit; a flat scatter is no detectable departure from N(0,1).", fig.alt="Worm plot with points scattered flat around the zero reference line, showing no systematic bend for the correctly specified fit."}
+```{r worm-true, fig.cap="Worm plot of quantile residuals for the correctly specified location-scale fit; the smooth stays near the zero reference across the bulk, with only sparse-tail drift (the KS test does not reject).", fig.alt="Worm plot for the correctly specified fit: points scatter around the zero reference and the smooth holds near zero across the bulk, drifting only in the sparse tails -- no systematic misfit."}
 worm_plot(fit_true)
 ```
 
@@ -150,7 +150,8 @@ exceedance(fit_true, threshold = 2, newdata = newdata)
 holding every other predictor at a reference value.
 
 ```{r centile-chart, fig.cap="Model-conditional centile chart for the correctly specified location-scale fit; centiles fan out with x because sigma grows with x.", fig.alt="Centile chart with five fitted centile curves fanning out as x increases, reflecting the fitted heteroscedasticity."}
-centile_chart(fit_true, covariate = "x")
+centile_chart(fit_true, covariate = "x") +
+  ggplot2::scale_colour_viridis_d()
 ```
 
 The centiles fan out as `x` increases -- a direct visual reading of the

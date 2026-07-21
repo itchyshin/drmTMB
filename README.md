@@ -50,9 +50,9 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Preview status
 
-This site is built from the `0.6.0` development version (`DESCRIPTION` reads
-`0.6.0.9000`). The latest tagged release is `v0.5.0`; `0.6.0` is the current
-development line and is not yet tagged or released. The package is still
+This site is built from the `0.6.0` release candidate (`DESCRIPTION` reads
+`0.6.0`), the version being prepared for a first CRAN submission. It is not yet
+on CRAN or tagged. The package is still
 intentionally bounded: use it for the implemented one-response and two-response
 workflows listed below, and treat unsupported model classes as roadmap work
 rather than hidden features.
@@ -70,19 +70,16 @@ not a broader support claim.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `v0.5.0` release from GitHub
-with `pak`:
+`drmTMB` is not on CRAN yet. Install the current development version (the
+`0.6.0` line) from GitHub with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.5.0")
-```
-
-If you want the newest development build from `main`, use:
-
-```r
 pak::pak("itchyshin/drmTMB")
 ```
+
+The earlier `v0.5.0` tag predates the current line and is not a supported
+install target; a `0.6.0` release will be tagged when it reaches CRAN.
 
 Then load the package and run a small smoke test:
 

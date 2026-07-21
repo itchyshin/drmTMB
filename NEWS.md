@@ -1,4 +1,4 @@
-# drmTMB 0.6.0 (development)
+# drmTMB 0.6.0
 
 ## Reader-facing plotting surface complete (issue #58)
 
@@ -24,9 +24,11 @@
 * This narrow result does not cover other SDs, observation counts, group grids,
   correlated or labelled slopes, scale/shape random effects, structured
   effects, REML, or AGHQ. Skew-normal retains slant-identification risk,
-  Tweedie retains small-M zero-boundary profiles, and zero-one beta needs a
-  deterministic strictly-interior-generator rerun before claiming exactly 15%
-  observed boundary mass. Campaign point-bias and Wald coverage are unavailable
+  Tweedie retains small-M zero-boundary profiles, and zero-one beta's coverage
+  is generator-qualified — a disclosed leak of machine-exact ones from the nominally-interior sampler
+  means the interval claim holds only under the generator as executed; a strictly-interior rerun was
+  specified, reviewed, and decided against (no faithful strictly-interior rendering of the intended
+  generator exists), so this is the adjudicated terminal characterization, not a pending fix. Campaign point-bias and Wald coverage are unavailable
   because of a disclosed reporting defect; profile coverage is unaffected and
   the prospective extractor is repaired.
 

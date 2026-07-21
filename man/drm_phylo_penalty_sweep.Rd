@@ -39,3 +39,36 @@ This is the sweep the penalized/MAP workflow asks you to run; it is most
 informative for coupled location-scale or bivariate phylogenetic models that
 actually estimate a phylogenetic correlation.
 }
+\examples{
+\donttest{
+if (requireNamespace("ape", quietly = TRUE)) {
+  set.seed(20260601)
+  n_tip <- 10
+  tree <- ape::rcoal(n_tip)
+  tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE)
+  u <- as.vector(t(chol(A)) \%*\% rnorm(n_tip)) * 0.6
+  species <- factor(rep(tree$tip.label, each = 2), levels = tree$tip.label)
+  x <- rnorm(length(species))
+  dat <- data.frame(
+    y = 0.3 + 0.5 * x + u[rep(seq_len(n_tip), each = 2)] +
+      rnorm(length(species), sd = 0.5),
+    x = x,
+    species = species
+  )
+
+  # A coupled location-scale phylo model has two phylogenetic SDs, so the
+  # cor_sd sweep is informative (see drm_phylo_penalty()).
+  out <- drm_phylo_penalty_sweep(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ phylo(1 | species, tree = tree)
+    ),
+    data = dat,
+    family = gaussian(),
+    cor_sd = c(0.5, 1)
+  )
+  out$summary
+}
+}
+}

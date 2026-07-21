@@ -91,3 +91,10 @@ summary(
   profile_precision = "fast"
 )
 }
+\seealso{
+The tier definitions and per-cell evidence behind these interval
+targets, including random-effect standard-deviation rows, are curated in
+\code{vignette("capability-and-limits", package = "drmTMB")}: \code{summary()}
+computes intervals generically for any target, and the tier a given cell
+belongs to is a documentation-level curation, not a runtime guard.
+}

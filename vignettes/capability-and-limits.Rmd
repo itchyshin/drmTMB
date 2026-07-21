@@ -357,6 +357,54 @@ covariance or correlation summary you need, and check
 `profile_targets(fit)` for any direct target that already has an interval
 route before assuming none exists.
 
+## Known limitations for 0.6.0
+
+If you are deciding whether a specific `drmTMB` output belongs in a
+manuscript, read this section next. It names four gaps between what an
+extractor currently returns and what the underlying fit actually supports,
+and what to do about each one.
+
+**Regression-parameterised coscale has no interval yet.** If your `rho12`
+formula depends on a covariate (`rho12 ~ x`), `corpairs(fit, conf.int =
+TRUE)` reports `conf.status = "newdata_required"` and `NA` bounds for every
+row, and supplying `newdata` does not change that outcome. What to try
+next: if you need an interval on the coscale term, refit with the constant
+form `rho12 ~ 1`, which does yield a profile interval; `rho12 ~ x` still
+gives you a valid point estimate at each covariate value, just no interval.
+Tracked as issue #802.
+
+**The three certified Arc 4c `mu`-slope cells make no point-bias or Wald
+claim.** The skew-normal (mc-0464), Tweedie (mc-0539), and zero-one-beta
+(mc-0575) cells described under "Ordinary non-Gaussian random slopes" above
+come from a coverage campaign whose reporting extractor had a disclosed
+defect: it recorded `NA` for the point estimate (`sd_hat`) and every Wald
+column, across the whole campaign. The defect is repaired going forward,
+but the immutable campaign artifact was not backfilled, so these three
+cells carry only the certified ML-Laplace profile interval described above
+-- not a point-bias number and not a Wald interval. What to try next: read
+and report the profile interval for these three cells, and treat any
+point-bias or Wald claim about them as unavailable, not merely uncertain.
+
+**Profile-interval endpoints no longer depend on your `iter.max` budget
+(issue #710.5).** A previously reported numerical-stability issue -- a
+tight `iter.max`/`eval.max` on the profile-endpoint refit could bias a
+profile CI inward -- is fixed: the endpoint refit now floors its own
+inner-iteration budget regardless of what you pass in, so tightening your
+fit's control settings no longer distorts a profile interval. One related
+item stays open post-0.6.0, a `sigma`-slope start-value correction (issue
+#710.2), but it does not touch the certified profile-CI cells described
+above.
+
+**Julia cross-family extractors are not wired yet.** If you fit a
+bivariate model with `engine = "julia"` across two different families (a
+`drmTMB_julia_xfam` object), `vcov()`, `fitted()`, `residuals()`,
+`predict(dpar = ...)`, and the coefficient table inside `summary()`
+currently return an empty or `NULL` result instead of an error or a value.
+What to try next: use the native TMB engine, `drmTMB`'s default, for these
+extractors, or fit the same-family Julia route instead; `confint()` and
+`predict()` on native fits are unaffected. This is a known code gap
+awaiting a post-0.6.0 fix, not a supported behaviour.
+
 ## Missing data
 
 Missing-data support is a separate axis from the tiers above: it is likelihood

@@ -1,5 +1,11 @@
 # CRAN-readiness checklist — drmTMB
 
+> **⚠ SUPERSEDED (2026-07-20).** This 2026-06-10 lightweight pre-`--as-cran` audit is retained for history
+> only. The authoritative 0.6.0 release-scope truth is
+> `docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.md`, and the current
+> release-candidate gate runs the real `R CMD check --as-cran` + a local UBSAN probe. Do not use this file
+> for release decisions.
+
 First CRAN submission. Audit date: 2026-06-10. Branch: `shannon/cran-audit`.
 
 This is a **lightweight** audit (cran-extrachecks style). A full
