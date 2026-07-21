@@ -65,8 +65,6 @@ Corrected: `docs/dev-log/release-audits/2026-07-20-0.6.0-release-scope-manifest.
 `docs/dev-log/release-audits/2026-07-21-pre-cran-pkgdown-rd-audit.md`;
 `docs/dev-log/after-task/2026-07-21-pre-cran-content-audit.md`.
 Fenced: `vignettes/julia-engine.Rmd` (opener, and the cross-family pointer).
-Restored: `docs/dev-log/release-audits/2026-07-21-pre-cran-code-content-review.md`
-(the carried-over draft went missing mid-session; recovered verbatim).
 Unchanged and correct: `README.md`, `vignettes/model-map.Rmd`,
 `vignettes/implementation-map.Rmd`, `R/profile.R` roxygen and the generated
 `man/confint.drmTMB.Rd`.
@@ -105,9 +103,17 @@ shipped reference manual.
 
 The handover's stated premise — that the four `rho12` corrections were sound —
 was wrong, so the recommended plan changed mid-task after the maintainer
-questioned it. Separately, the carried-over code-content review disappeared from
-the worktree mid-session; it was the only copy, was never on `origin`, and was
-recovered only because it had been read earlier in the same session.
+questioned it.
+
+Separately, this session read the handover at `7692a32b`, where the untracked
+code-content review draft was listed `CARRIED-OVER`. Commit `1d2a0d31`
+relabelled it *discarded* and the file was removed. Because this worktree's HEAD
+advanced mid-session, two readers of "the same" handover reached opposite and
+individually correct conclusions about that file's status, and the draft was
+briefly restored here before the relabelling was found and the restoration
+undone. **Lesson: re-read `git log` before trusting a handover fact, and treat a
+worktree whose HEAD moves under you as a concurrency signal** — the house rule
+is one tool at a time per repo.
 
 ## 10. Known Residuals
 
