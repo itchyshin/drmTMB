@@ -46,6 +46,16 @@ which_scale_theme <- function() {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 `drmTMB` deliberately separates residual scale from group-level scale. This
 article pairs each piece of R syntax with the symbolic model it represents.
 That pairing is the guardrail: before adding a feature to the package, the R
