@@ -23,6 +23,22 @@ has_ape <- requireNamespace("ape", quietly = TRUE)
 has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Closely related species are not independent observations. They share ancestry,
 so a trait value carried by one species is partly inherited from the same
 nodes that shaped its relatives. A phylogenetic mixed model encodes that shared
