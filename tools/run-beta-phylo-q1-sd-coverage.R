@@ -21,14 +21,19 @@
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
 pr2c_here <- function() {
+  # An explicit option wins over `--file=`. When this runner is `sys.source()`d
+  # by a test, `commandArgs()` still reports the *driver* script, so `--file=`
+  # resolves the sibling lookup below into the driver's directory and the
+  # top-level `sys.source()` aborts at file level. Launched normally the option
+  # is unset and `--file=` is used exactly as before.
+  option_path <- getOption("drmTMB.coverage.runner_path")
   script_arg <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-  path <- if (length(script_arg)) {
+  path <- if (!is.null(option_path)) {
+    option_path
+  } else if (length(script_arg)) {
     sub("^--file=", "", script_arg[[1L]])
   } else {
-    getOption(
-      "drmTMB.coverage.runner_path",
-      "tools/run-beta-phylo-q1-sd-coverage.R"
-    )
+    "tools/run-beta-phylo-q1-sd-coverage.R"
   }
   normalizePath(path, mustWork = TRUE)
 }

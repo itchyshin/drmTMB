@@ -40,16 +40,25 @@ The current condition helper uses the following design:
 
 | Factor | Initial levels | Reason |
 | --- | --- | --- |
-| `n_study` | 36, 72 | Small and moderate evidence collections. |
+| `n_study` | 8, 12, 16, 36, 72 | AMENDED 2026-07-21. The original 36/72 grid samples past the regime this sheet most needs to characterise. At K=12 with true `sigma = 0.10` the fitted heterogeneity pins at approximately 1e-6 and `confint()` returns the interval as `[0, Inf]` (reproduced, seeds 4 and 10). A design that never visits small K would run clean and certify a channel that is degenerate exactly where applied meta-analyses live. The small rungs are the point, not an extension. |
 | `known_v_type` | vector, dense | Diagonal known variances versus dense known sampling covariance. |
 | `sigma` | 0.15, 0.35 | Lower and higher residual heterogeneity on the public `sigma` scale. |
 | `sampling_sd` | 0.12, 0.22 | Lower and higher known sampling-error scale. |
 | `sampling_rho` | 0, 0.25 | Dense known covariance sensitivity; vector cells use only 0. |
 | `beta0`, `beta1` | 0.20, 0.45 | Existing helper defaults for the mean model. |
 
-Use 20 replicates per cell for local smoke checks. Use 500 replicates per cell
-for a formal coverage table, giving MCSE about 1 percentage point for 95%
-coverage before failed-fit uncertainty is considered.
+Use 20 replicates per cell for local smoke checks. Use **1200** replicates per
+cell for a formal coverage table.
+
+AMENDED 2026-07-21, replacing 500. MCSE at nominal 0.95 is `sqrt(0.95*0.05/N)`:
+0.00975 at N=500 against 0.00629 at N=1200, so 500 is 55% noisier. The decisive
+argument is that 500 cannot reproduce this project's own label discrimination —
+the precedent labels differ by 0.0058 (mc-0464 at 0.9275 certified, mc-0242 at
+0.9333 borderline), which is smaller than one MCSE even at 1200. A decision rule
+already operating below its noise floor must not be run on a noisier estimate.
+Pay for the increase by cutting cells, not by cutting replicates: the amended
+design is cheaper than the original because fewer, better-chosen cells at 1200
+beat a broad grid at 500.
 
 ## E - Estimands
 
@@ -57,7 +66,8 @@ coverage before failed-fit uncertainty is considered.
 | --- | --- | --- |
 | Mean intercept | `beta0` | `coef(fit, dpar = "mu")["(Intercept)"]` |
 | Mean slope | `beta1` | `coef(fit, dpar = "mu")["x"]` |
-| Residual heterogeneity | public `sigma` used in the DGP | `unique(as.numeric(sigma(fit)))` |
+| Residual heterogeneity, POINT | public `sigma` used in the DGP | `unique(as.numeric(sigma(fit)))` |
+| Residual heterogeneity, INTERVAL | public `sigma` used in the DGP | `confint(fit, parm = "sigma")` — AMENDED 2026-07-21. `sigma(fit)` is a POINT extractor and cannot support a coverage row; the original sheet named it in an estimand table whose aims include Wald interval coverage. Any coverage claim for heterogeneity must come from `confint()`, and must record the degenerate `[0, Inf]` returns at small K rather than dropping them — an exclusion correlated with the estimand poisons the clean subset. |
 | Known sampling covariance | supplied `V` | no estimator; `V` is input data and must not receive interval coverage |
 
 The existing summariser stores `mu` coefficients and public residual `sigma`.

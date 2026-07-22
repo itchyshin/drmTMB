@@ -77,9 +77,16 @@ print.drmTMB <- function(x, ...) {
 #'   x = seq(-1, 1, length.out = 24)
 #' )
 #' fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
-#' fixef(fit)
+#'
+#' # One distributional parameter at a time: a named numeric vector.
 #' fixef(fit, "mu")
 #' coef(fit, "sigma")
+#'
+#' # Omit `dpar` for every block at once: a named list, one element per
+#' # distributional parameter. `coef()` and `fixef()` return the same structure.
+#' coef(fit)
+#' names(coef(fit))
+#' identical(coef(fit), fixef(fit))
 fixef <- function(object, ...) {
   UseMethod("fixef")
 }
@@ -2256,6 +2263,7 @@ fitted.drmTMB <- function(object, ...) {
   drm_fitted_response(object)
 }
 
+#' @rdname fixef
 #' @export
 coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {

@@ -198,6 +198,8 @@ drmTMB <- function(
     cli::cli_abort("{.arg data} must be a data frame.")
   }
   engine <- match.arg(engine)
+  drm_reject_smooth_terms(formula)
+  formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia")) {
     if (!is.null(penalty)) {
@@ -2870,8 +2872,9 @@ drm_build_gaussian_ls_spec <- function(
   unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "Phase 1 Gaussian models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "Univariate Gaussian models only support {.code mu} and {.code sigma}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "Name each parameter formula in {.fn bf}, such as {.code bf(y ~ x, sigma ~ x)}."
     ))
   }
 

@@ -10,7 +10,32 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
+> **▶ Latest — start here (2026-07-22, → CODEX, 0.6 DEV ARC TRACK A **MERGED** to `main`).**
+> `claude/0.6-dev-arc` is **MERGED** (was +15 / −6, tree clean). Track A is verified: newcomer sweep
+> **17/17 FITS or CLEAN**, full suite **264 files / 39,320 passing**, **zero added failures** — proved
+> by re-running every failing file at `aa237a28` for byte-identical counts. Landed: `||` desugaring
+> (#776), `||` intercept resolving last-wins to match lme4, `coef()` documented, `impute_model()`
+> formula guard, phase18 D-50 guard inversion, task-to-seed registry, beta-phylo runner path fix,
+> meta_V ADEMP amendment. The session-2 blocker *"sequence the merges — pkgdown owner first"* had
+> already CLEARED (`1a972b8e` = pkgdown reader-surface repair #816), and the Codex `julia-bridge`
+> roxygen lane landed with that same PR.
+> **KNOWN RED — pre-existing on `main`, NOT introduced by this merge:**
+> `tools/qseries_v1_claim_guard.py` exits 1 because README lost its q-series status link and its
+> `q=12` mention while four q12 cells stay admitted (22 failures in
+> `test-structured-re-conversion-contracts.R`). **Do NOT clear it by retargeting the guard** — the fix
+> is the README q-series restore, which takes the cluster to 0. **That is now the top item.**
+> CRAN stays **PARKED, not failed** — no re-freeze, no platform matrix, no submission.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-22-codex-handover.md`](docs/dev-log/handover/2026-07-22-codex-handover.md)
+> **Open lanes:** (a) 0.6 dev arc → **MERGED**; (b) pkgdown reader surface → **LANDED** (#816);
+> (c) Codex `julia-bridge` → **landed with #816**; (d) **`claude/handover-freshness-0718`** (AGHQ +
+> non-Gaussian REML) → 1 commit unpushed, **foreign lane, still open**.
+> The 11-item maintainer action list is NOT duplicated — it stays in
+> [`docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md`](docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md).
+> **Housekeeping:** a stale `.git/index.lock` sits in the main checkout — Shinichi must remove it; the
+> agent harness blocks `.git` deletions. Also ~60 legacy `codex/*` branches carry unpushed commits.
+>
+> **▶ Prior (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
 > **Shinichi decided 2026-07-21: drmTMB 0.6 will NOT be submitted to CRAN.** It needs
 > substantially more work first. The CRAN release gate is **PARKED, not failed** — the
 > tarball re-freeze, platform matrix (win-builder / R-hub / 3-OS), `cran-comments.md`

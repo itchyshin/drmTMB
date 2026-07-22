@@ -3,11 +3,14 @@
 \name{fixef}
 \alias{fixef}
 \alias{fixef.drmTMB}
+\alias{coef.drmTMB}
 \title{Extract fixed-effect coefficients}
 \usage{
 fixef(object, ...)
 
 \method{fixef}{drmTMB}(object, dpar = NULL, ...)
+
+\method{coef}{drmTMB}(object, dpar = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -34,7 +37,14 @@ dat <- data.frame(
   x = seq(-1, 1, length.out = 24)
 )
 fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
-fixef(fit)
+
+# One distributional parameter at a time: a named numeric vector.
 fixef(fit, "mu")
 coef(fit, "sigma")
+
+# Omit `dpar` for every block at once: a named list, one element per
+# distributional parameter. `coef()` and `fixef()` return the same structure.
+coef(fit)
+names(coef(fit))
+identical(coef(fit), fixef(fit))
 }
