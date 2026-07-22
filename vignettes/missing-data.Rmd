@@ -18,6 +18,22 @@ knitr::opts_chunk$set(
 library(drmTMB)
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Missing data in `drmTMB` has two different meanings. A response can be missing,
 so the observation has no measured outcome for one response cell. A predictor
 can be missing, so the model needs a value of a covariate that was not observed.
