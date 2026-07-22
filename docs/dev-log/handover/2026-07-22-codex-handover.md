@@ -4,6 +4,20 @@
 **Worktree** `/private/tmp/drmtmb-precran-review-7abdd7e9` · **Branch head** `77bcd959`
 **Predecessor** [`2026-07-21-0.6-dev-arc-session2-handover.md`](2026-07-21-0.6-dev-arc-session2-handover.md)
 
+> ## ✅ STATUS UPDATE — this branch is MERGED (appended 2026-07-22, after the body below was written)
+> Shinichi approved the merge. `claude/0.6-dev-arc` landed on `main` as merge commit **`6761acc7`**,
+> pushed (`1a972b8e..6761acc7`); the branch itself is pushed at `e9d11c08`.
+> **Everything below that reads "unmerged", "push refused", or "merge decision pending" is
+> SUPERSEDED** — kept as the reasoning that produced the decision, not as current state.
+> One conflict occurred, in `AGENTS.md`, and it was self-inflicted: this handover's own pointer block
+> collided with #816's edit to the same file. Resolved by keeping both, new block on top. The earlier
+> conflict-free `merge-tree` dry run had simply expired — it predated that pointer commit. *(Lesson,
+> filed in the vault: a clean dry run is void the moment you add another commit.)*
+> **Re-verified on merged `main`:** `tools/qseries_v1_claim_guard.py` still exits 1 with the same two
+> messages, unchanged by the merge. **The README q-series restore is now the single top item.**
+> Still outstanding for the maintainer: the stale `.git/index.lock` in the main checkout (the agent
+> harness blocks `.git` deletions), and `claude/handover-freshness-0718` with 1 unpushed commit.
+
 You are Codex, picking up the drmTMB 0.6 dev arc. This session changed **no executable code**.
 It was an adjudication session: it answered the question "can we commit and merge this branch?"
 and the answer moved, so read §1 before you do anything else.
