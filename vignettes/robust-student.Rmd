@@ -11,6 +11,22 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Continuous biological and environmental measurements, such as seedling height
 growth in centimetres, often contain a few large residuals. They may be real
 rare events, short-term stress responses, field measurement problems, or
