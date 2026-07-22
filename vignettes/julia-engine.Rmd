@@ -29,7 +29,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 </style>
 
 `drmTMB` currently supports analysis and reporting through its native Template
-Model Builder (TMB) engine. The experimental Julia bridge is **halted and
+Model Builder (TMB) engine. The Julia bridge is **halted and
 deferred** for this release. It is not part of the current supported model
 surface, and users should not rely on `engine = "julia"` for an analysis,
 confidence interval, benchmark, or reproducible report.
