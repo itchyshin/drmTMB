@@ -161,6 +161,11 @@ for the row-specific tiers, floors, and caveats.
   These gates keep zero inflation fixed; they confirm local fit/extractor
   feasibility but do not establish point-estimate recovery, intervals, or
   coverage.
+- **Structured Gaussian covariance.** The Q-Series includes exact q=12
+  all-four two-slope covariance cells for `phylo()`, `spatial()`, `animal()`,
+  and `relmat()` at point-fit/recovery grade. This Q-Series statement does not authorize
+  interval or coverage claims; see the row-level
+  [Q-Series release-status ledger](docs/dev-log/release-audits/q-series-v1-release-status.md).
 
 Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations, direct
 spatial SD surfaces, predictor-dependent spatial `corpair()` regression, and
