@@ -3,14 +3,18 @@
 # Successor evidence runner. The stopped PR2 runner remains immutable and is
 # sourced only to reuse its tested likelihood, manifest, shard, and stage code.
 successor_script_path <- function() {
+  # An explicit option wins over `--file=`, for the same reason as in
+  # run-beta-phylo-q1-sd-coverage.R: under `sys.source()` from a test driver,
+  # `--file=` names the driver and the sibling lookup below resolves into the
+  # wrong directory.
+  option_path <- getOption("drmTMB.successor.runner_path")
   script_arg <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-  path <- if (length(script_arg)) {
+  path <- if (!is.null(option_path)) {
+    option_path
+  } else if (length(script_arg)) {
     sub("^--file=", "", script_arg[[1L]])
   } else {
-    getOption(
-      "drmTMB.successor.runner_path",
-      "tools/run-beta-phylo-q1-sd-interior-recovery.R"
-    )
+    "tools/run-beta-phylo-q1-sd-interior-recovery.R"
   }
   normalizePath(path, mustWork = TRUE)
 }
