@@ -12,6 +12,22 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Many ecological responses are counts: fledglings per nest, parasites per host,
 insects in a trap, or soil invertebrates in a quadrat. A Poisson model is the
 natural baseline, but it fixes the variance equal to the mean. The
