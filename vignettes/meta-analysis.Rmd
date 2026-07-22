@@ -14,6 +14,22 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 A random-effects meta-analysis pools effect sizes from several studies while
 acknowledging that the studies differ. Each study reports an effect size
 together with its sampling variance, which is treated as **known**. The model
