@@ -45,6 +45,23 @@ theme_convergence <- function() {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Complex distributional models sometimes need more care than the default fit.
 This article gives a practical workflow for `drmTMB` users when the optimizer
 does not converge, gradients look large, `TMB::sdreport()` reports a
