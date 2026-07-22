@@ -12,6 +12,22 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Proportion data are common in ecology and evolution, but the measurement
 process matters. Some proportions are counts of successes out of known trials:
 germinated seeds out of seeds planted, infected hosts out of hosts checked, or
