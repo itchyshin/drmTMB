@@ -12,6 +12,22 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 A tale of two phylogenies starts with a row in a paired data set. One partner
 comes from one tree, the other partner comes from another tree, and the response
 belongs to the pair. In bipartite ecological network data this could be a plant

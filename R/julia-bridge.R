@@ -2014,9 +2014,13 @@ vcov.drmTMB_julia <- function(object, ...) {
   object$vcov
 }
 
-#' Confidence intervals for a Julia-engine `drmTMB` fit
+#' Inspect legacy interval output from a halted Julia bridge
 #'
-#' `confint()` on a `engine = "julia"` fit exposes two interval families:
+#' The Julia bridge is halted/deferred future work and is not a current fitting
+#' or inference route. This method is retained only for inspecting existing
+#' `drmTMB_julia` objects; use native TMB fits for new analyses.
+#'
+#' For a legacy `engine = "julia"` fit, `confint()` exposes two interval families:
 #'
 #' * `method = "wald"` (the default) builds symmetric Wald intervals for the
 #'   fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
@@ -2481,7 +2485,11 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   out
 }
 
-#' Summarise a Julia-engine `drmTMB` fit
+#' Summarise a legacy Julia-bridge `drmTMB` fit
+#'
+#' The Julia bridge is halted/deferred future work. This compatibility method
+#' inspects an existing `drmTMB_julia` object; it does not make Julia a current
+#' fitting or inference option. For new analyses, use native TMB fits.
 #'
 #' Builds a fixed-effect coefficient table (estimate, standard error, z value,
 #' and two-sided p value, all on the linear-predictor / link scale) from the
@@ -3104,7 +3112,11 @@ drm_julia_tag_linkinv <- function(tag) {
   )
 }
 
-#' Predict from a Julia-engine `drmTMB` fit
+#' Predict from a legacy Julia-bridge `drmTMB` fit
+#'
+#' The Julia bridge is halted/deferred future work. This compatibility method
+#' is for inspecting an existing `drmTMB_julia` object, not for a new Julia
+#' analysis. Use native TMB fits for new prediction work.
 #'
 #' With `newdata = NULL`, `predict()` returns the stored fitted values for the
 #' requested distributional parameter. With `newdata` supplied, it returns a
@@ -4286,35 +4298,18 @@ is_converged.drmTMB_julia_xfam <- function(
   isTRUE(object$opt$convergence == 0L)
 }
 
-#' Latent-scale correlation from a cross-family Julia fit
+#' Extract a latent-scale correlation from a legacy Julia-bridge fit
 #'
-#' @param object A `drmTMB_julia_xfam` cross-family fit.
+#' The cross-family Julia bridge is halted/deferred future work. This
+#' compatibility extractor is retained only for an existing
+#' `drmTMB_julia_xfam` object; it does not establish a current cross-family
+#' fitting or inference capability.
+#'
+#' @param object A legacy `drmTMB_julia_xfam` cross-family fit.
 #' @param ... Unused.
 #' @return The latent / link-scale correlation between the two responses.
 #' @export
 #'
-#' @examples
-#' \dontrun{
-#' # Requires the DRM.jl engine (engine = "julia").
-#' set.seed(20260610)
-#' n <- 150
-#' x <- rnorm(n)
-#' u <- rnorm(n)
-#' dat <- data.frame(
-#'   y1 = 0.5 + 0.8 * x + 0.7 * u + rnorm(n, sd = 0.5),
-#'   y2 = rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
-#'   x = x
-#' )
-#'
-#' fit <- drmTMB(
-#'   bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
-#'   family = c(gaussian(), poisson()),
-#'   data = dat,
-#'   engine = "julia"
-#' )
-#'
-#' rho_latent(fit)
-#' }
 rho_latent <- function(object, ...) {
   UseMethod("rho_latent")
 }

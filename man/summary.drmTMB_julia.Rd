@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{summary.drmTMB_julia}
 \alias{summary.drmTMB_julia}
-\title{Summarise a Julia-engine \code{drmTMB} fit}
+\title{Summarise a legacy Julia-bridge \code{drmTMB} fit}
 \usage{
 \method{summary}{drmTMB_julia}(
   object,
@@ -29,6 +29,11 @@ An object of class \code{summary.drmTMB_julia} with \code{coefficients},
 \code{random} (random-effect SDs), and fit-summary scalars.
 }
 \description{
+The Julia bridge is halted/deferred future work. This compatibility method
+inspects an existing \code{drmTMB_julia} object; it does not make Julia a current
+fitting or inference option. For new analyses, use native TMB fits.
+}
+\details{
 Builds a fixed-effect coefficient table (estimate, standard error, z value,
 and two-sided p value, all on the linear-predictor / link scale) from the
 coefficients and fixed-effect covariance DRM.jl marshals back through the
@@ -37,8 +42,7 @@ bridge. Standard errors are the square roots of the diagonal of
 the SE / z / p columns are \code{NA} and \code{uncertainty$status} records why. The
 random-effect SD block (e.g. a phylogenetic SD) is reported on its positive
 response scale.
-}
-\details{
+
 Set \code{conf.int = TRUE} to append Wald (default) or profile confidence-interval
 columns. Profile / bootstrap intervals are available only for the Gaussian
 phylogenetic SD target; see \code{\link[=confint.drmTMB_julia]{confint.drmTMB_julia()}}.

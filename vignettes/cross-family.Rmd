@@ -7,13 +7,29 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Cross-family bivariate models are a development route for a later release, not
 a `drmTMB` 0.6.0 analysis workflow. The native TMB engine supports the released
 one-response families and bivariate Gaussian models; use it for analysis and
 reporting.
 
-The experimental Julia bridge is optional and does not make Julia, JuliaCall,
-or DRM.jl a package dependency. A future bridge may fit two unequal response
+The Julia bridge is halted/deferred and does not make Julia, JuliaCall, or
+DRM.jl a package dependency. A future bridge may fit two unequal response
 families through a shared latent-scale correlation. That quantity is
 `rho_latent`, not the native bivariate-Gaussian residual correlation `rho12`.
 Neither a point-estimate nor an interval-inference claim for cross-family
@@ -21,9 +37,8 @@ Neither a point-estimate nor an interval-inference claim for cross-family
 
 For the released bivariate workflow, see
 [Changing residual coupling with `rho12`](bivariate-coscale.html). For the
-optional bridge boundary and contributor setup, see
-[Running models with the Julia engine](julia-engine.html); treat it as
-development material and keep `engine = "tmb"` as the default.
+future bridge boundary, see [Julia engine: future support](julia-engine.html);
+keep `engine = "tmb"` as the default.
 
 ## Development boundary
 

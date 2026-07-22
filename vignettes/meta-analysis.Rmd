@@ -14,6 +14,22 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 A random-effects meta-analysis pools effect sizes from several studies while
 acknowledging that the studies differ. Each study reports an effect size
 together with its sampling variance, which is treated as **known**. The model
@@ -82,6 +98,13 @@ same distributional grammar as every other Gaussian model in the package; you
 recover the familiar `tau^2` simply by squaring `sigma`. The marker
 `meta_V()` puts the *known* variance into the likelihood; `sigma` estimates the
 *unknown* variance that is left over.
+
+This is an implemented, source-tested interface and the example below checks
+its ML fit against `metafor`. It does **not** currently have a registered
+`meta_V()` capability-ledger cell, so this tutorial does not assign it an
+evidence tier or make an interval-coverage claim. Treat fitted-model intervals
+as the methods returned by the current fit, and state their source when
+reporting them.
 
 ## A simulated dataset
 

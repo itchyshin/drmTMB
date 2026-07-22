@@ -20,6 +20,22 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 A fitted `mu` formula answers "what is the expected response, given the
 covariates?" It does not answer two other questions an applied paper usually
 needs: *"did I model the whole conditional distribution, not just its
@@ -81,7 +97,10 @@ reference line is "no detectable departure from N(0,1)," never proof the
 model is correct.
 
 ```{r worm-true, fig.cap="Worm plot of quantile residuals for the correctly specified location-scale fit; the smooth stays near the zero reference across the bulk, with only sparse-tail drift (the KS test does not reject).", fig.alt="Worm plot for the correctly specified fit: points scatter around the zero reference and the smooth holds near zero across the bulk, drifting only in the sparse tails -- no systematic misfit."}
-worm_plot(fit_true)
+worm_plot(fit_true) +
+  ggplot2::labs(
+    subtitle = "Fixed-effect adequacy: no detectable departure from N(0,1)"
+  )
 ```
 
 ```{r qq-true, fig.cap="Normal QQ plot of quantile residuals for the correctly specified fit; points on the diagonal are no detectable departure from N(0,1).", fig.alt="Normal QQ plot with points tracking the diagonal reference line for the correctly specified fit."}
@@ -105,7 +124,10 @@ values the observations are consistently too close to (or too far from)
 `mu`, because the constant `sigma` cannot track the true variance growth.
 
 ```{r worm-mis, fig.cap="Worm plot of quantile residuals for the location-only fit to heteroscedastic data; the systematic bend flags a mis-specified distributional shape.", fig.alt="Worm plot showing a clear curved departure from the zero reference line for the location-only fit, in contrast to the flat scatter under the correctly specified fit."}
-worm_plot(fit_mis)
+worm_plot(fit_mis) +
+  ggplot2::labs(
+    subtitle = "Fixed-effect adequacy: bend flags a detectable departure from N(0,1)"
+  )
 ```
 
 Both `worm_plot()` and `qq_plot()` apply this package's Confidence-Eye

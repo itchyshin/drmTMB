@@ -11,16 +11,34 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-This article describes how `drmTMB` likelihoods should be checked before they
-are treated as implemented. It is written for package contributors: the goal is
-to make each model defensible by matching the symbolic model, the R syntax, the
-TMB likelihood, and the tests. It assumes you are validating a family already
-underway from [Adding distribution families](adding-families.html), not
-writing formula grammar from scratch.
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
+This article describes how `drmTMB` likelihoods should be checked before a
+candidate model is presented as a fitted package capability. It is written for
+package contributors: the goal is to make each model defensible by matching the
+symbolic model, the R syntax, the TMB likelihood, and the tests. It assumes you
+are validating a family already underway from [Adding distribution
+families](adding-families.html), not writing formula grammar from scratch.
 
 The planning reference is `docs/design/05-testing-strategy.md`. This article is
 the practical version: what to put in a pull request or phase before asking
-users to trust a model.
+users to rely on a model. `drm_formula()` is the canonical long form used in
+the examples; `bf()` is its short alias.
 
 In this guide, location means a mean-like parameter such as `mu`; scale means a
 residual spread or dispersion-like parameter such as `sigma`; shape means a
@@ -35,6 +53,18 @@ Every fitted model should have the same four-part contract:
 2. the `drmTMB` syntax that represents that model;
 3. an independent likelihood, simulation, or comparator check;
 4. a clear statement of what is still unsupported.
+
+Those checks establish a code-path and parameterization contract; they do not,
+by themselves, establish interval calibration, coverage, broad performance, or
+support for a neighbouring formula. The release manifest and capability ledger
+remain the claim ceiling.
+
+| Evidence layer | Establishes | Does not establish |
+| --- | --- | --- |
+| Symbolic and independent likelihood check | The implemented objective matches a declared parameterization at tested inputs. | Optimizer reliability, finite-sample recovery, or interval coverage. |
+| Comparator check | Agreement with an overlapping external model and convention. | Agreement outside the overlap, or correctness of package-specific extensions. |
+| Small recovery simulation | Basic recovery and failure behaviour in the declared simulation cell. | Broad support, coverage, power, or robustness over untested designs. |
+| Coverage or operating-characteristic campaign | The stated interval or estimator behaviour over its declared design. | A blanket claim beyond that design or a neighbouring model cell. |
 
 For example, the fixed-effect Gaussian location-scale model is:
 

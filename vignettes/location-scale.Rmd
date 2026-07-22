@@ -59,6 +59,22 @@ location_scale_habitat_scales <- function() {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This tutorial starts with a biological question: do two habitats differ only in
 mean growth, or does one habitat also make growth less predictable? In a
 Gaussian location-scale model, the location part models the expected response

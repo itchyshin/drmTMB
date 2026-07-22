@@ -120,6 +120,23 @@ simulate_spatial_q2_guide_data <- function(seed = 20260501) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Use `spatial()` when named sites have coordinates and nearby sites may have
 similar location deviations after fixed effects have been included. The fitted
 route uses a coordinate table supplied as `coords = coords`. Mesh and SPDE

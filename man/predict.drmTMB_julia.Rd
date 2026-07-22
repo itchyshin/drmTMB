@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{predict.drmTMB_julia}
 \alias{predict.drmTMB_julia}
-\title{Predict from a Julia-engine \code{drmTMB} fit}
+\title{Predict from a legacy Julia-bridge \code{drmTMB} fit}
 \usage{
 \method{predict}{drmTMB_julia}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
 }
@@ -25,6 +25,11 @@ A numeric vector of predictions, length \code{nrow(newdata)} when
 \code{newdata} is supplied.
 }
 \description{
+The Julia bridge is halted/deferred future work. This compatibility method
+is for inspecting an existing \code{drmTMB_julia} object, not for a new Julia
+analysis. Use native TMB fits for new prediction work.
+}
+\details{
 With \code{newdata = NULL}, \code{predict()} returns the stored fitted values for the
 requested distributional parameter. With \code{newdata} supplied, it returns a
 \strong{population-level, fixed-effect} prediction for the location parameter
@@ -36,8 +41,7 @@ not belong to any fitted group -- so the result is the marginal mean at the
 population level, matching the native \code{\link[=predict.drmTMB]{predict.drmTMB()}} contract for
 \code{newdata}. \code{type = "link"} returns the linear predictor; \code{type = "response"}
 applies the model's inverse link.
-}
-\details{
+
 Predicting \code{sigma} / \code{rho12} for fresh \code{newdata} is not implemented; refit
 with \code{engine = "tmb"} for those.
 }

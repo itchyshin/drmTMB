@@ -127,6 +127,23 @@ simulate_animal_q2_guide_data <- function(seed = 20260525) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Use `animal()` when individuals have known additive relatedness and the
 scientific question is about among-individual location deviations after the
 fixed effects have been included. The fitted first slices are Gaussian

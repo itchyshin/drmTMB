@@ -77,6 +77,16 @@ workflow_distributional_scales <- function() {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 After fitting a distributional model, the next question is not only "what are
 the coefficients?" A useful workflow checks the fit, extracts the fitted
 distributional parameters, predicts to meaningful covariate values, examines
@@ -421,8 +431,10 @@ and `rho12 ~ w`, profile the biologically meaningful rows directly. A
 predictor-dependent parameter has no single scalar target, which is why
 `newdata` is required: without it the summary reports
 `conf.status = "newdata_required"` rather than an interval. These row-specific
-intervals are computed but not coverage-certified; the certified
-residual-correlation target is the constant `rho12 ~ 1` profile interval.
+intervals are computed but not coverage-certified. The constant `rho12 ~ 1`
+profile interval is likewise interval-feasible rather than coverage-certified:
+the current ledger records no committed bivariate fixed-effect CI-coverage
+simulation for either form.
 
 ```{r, eval = FALSE}
 biv_grid <- data.frame(

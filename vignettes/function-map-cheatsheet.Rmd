@@ -19,7 +19,7 @@ smallest useful `drmTMB` workflow. It is a map, not a capability ledger: use
 [What can I fit today?](model-map.html) before relying on an unfamiliar
 random-effect or inference route.
 
-```{r function-map, echo = FALSE, out.width = "100%", fig.alt = "Six-step drmTMB function map. Specify a model with bf(), family(), and formulas; fit with drmTMB() using the TMB engine; inspect with summary(), coef(), fixef(), and vcov(); predict and diagnose with predict(), fitted(), residuals(), and check_drm(); use confint(), profile(), and simulate() for inference; and add structured effects with ranef(), sd(), phylo(), spatial(), and relmat(). The R/TMB workflow is primary and Julia is optional after version 0.6."}
+```{r function-map, echo = FALSE, out.width = "100%", fig.alt = "Six-step drmTMB function map. Specify a model with bf(), family(), and formulas; fit with drmTMB() using the native TMB engine; inspect with summary(), coef(), fixef(), and vcov(); predict and diagnose with predict(), fitted(), residuals(), and check_drm(); use confint(), profile(), and simulate() for inference; and add structured effects with ranef(), sd(), phylo(), spatial(), and relmat(). The Julia bridge is halted/deferred future work, so this map uses the native R/TMB workflow only."}
 knitr::include_graphics("function-map-cheatsheet.png")
 ```
 
@@ -149,10 +149,9 @@ parameter, and evidence boundary.
 
 ## Keep the boundaries visible
 
-`engine = "tmb"` is the default and primary workflow. Julia is optional,
-post-0.6 maintenance: it is not required to fit, diagnose, or report the R/TMB
-models shown here. For the currently implemented surface, use the native
-engine unless an article explicitly documents a Julia route.
+`engine = "tmb"` is the current workflow. The Julia bridge is halted/deferred
+future work: it is not required to fit, diagnose, or report the R/TMB models
+shown here, and it is not an alternate engine for a new analysis.
 
 This sheet helps you choose a first function, not a claim tier. Before a
 substantive analysis, confirm the supported syntax and inference boundary in

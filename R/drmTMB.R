@@ -124,8 +124,9 @@
 #'   Bernoulli/logit `impute_model()`, complete count responses, and no
 #'   zero-inflation, random, or structured response terms.
 #' @param engine Computational engine. The default `"tmb"` uses the native
-#'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
-#'   through JuliaCall for the supported bridge slice.
+#'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
+#'   deferred for future work; it is retained only so existing objects and code
+#'   can be inspected, not as a current fitting route.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` keeps REML Gaussian-only and
 #'   restricts the likelihood by marginalising the admitted fixed-effect mean
@@ -147,12 +148,11 @@
 #'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
 #'   Aggregation and ordinary direct `sd()` scale formulae also
 #'   remain unsupported under REML.
-#'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
-#'   Gaussian bridge cells, including fixed-effect location-scale models,
-#'   Gaussian `sigma`-phylo location-scale models, and the bivariate q = 4
-#'   phylogenetic location-scale route. Use the default `REML = FALSE` for
-#'   likelihood-ratio tests, AIC/BIC comparisons across different fixed-effect
-#'   formulas, non-Gaussian models, and currently unsupported extensions.
+#'   The halted `engine = "julia"` compatibility bridge is not a supported
+#'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
+#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
+#'   different fixed-effect formulas, non-Gaussian models, and currently
+#'   unsupported extensions.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that

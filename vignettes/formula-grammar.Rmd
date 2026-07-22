@@ -11,6 +11,23 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This developer article documents the supported `drm_formula()` grammar,
 including response blocks, distributional-parameter formulae, and validation
 rules. `bf()` remains a short alias. It assumes you have already written a
@@ -58,7 +75,7 @@ new distribution enters the package.
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = beta()` | Implemented | Fixed-effect beta mean-scale model for strict continuous proportions in `(0, 1)`; public `sigma` maps internally to `phi = 1 / sigma^2`. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = beta()` | Implemented first slice | Ordinary beta `mu` random intercepts and independent numeric slopes enter the logit-mean predictor for strict `(0, 1)` responses. Row-specific structured exceptions are the recovery-grade `animal()` routes and the exact unlabelled q1 `phylo(1 | species, tree = tree)` intercept in `mu` documented below; family `sigma` remains fixed-effect-only for the phylogenetic cell. Correlated slopes, labelled covariance blocks, ordinary `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, `spatial()`/`relmat()`, phylogenetic slopes or scale-side structure, labelled q2/q4 or joint `mu`+`sigma` structured blocks, known covariance, beta-binomial denominators, and bivariate or mixed bounded-response models remain planned. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `zoi ~ x3`, `coi ~ x4`, `family = zero_one_beta()` | Implemented first slice | Zero-one beta model for continuous proportions on `[0, 1]` with exact structural boundary mass and ordinary `mu` random intercepts or independent numeric slopes. The exact independent-slope ledger cell is inference-ready with caveats for true SD 0.50 and M>=16 under its generator-qualified evidence; it does not establish a general boundary-mass calibration claim. `mu` and `sigma` describe the interior beta component, `zoi` is exact-boundary probability, `coi` is the probability of an exact one conditional on the boundary, and `fitted()` includes boundary mass. Random effects in `sigma`, `zoi`, or `coi`, correlated or labelled covariance, structured effects, denominators, and bivariate or mixed bounded-response models remain planned. |
-| `y01 ~ x1 + x2 + (1 | id) + (0 + x1 | id)`, `family = stats::binomial(link = "logit")` | Implemented first slice | Plain Bernoulli response model for explicit 0/1 event data. `mu` is the event probability and there is no public `sigma`; ordinary `mu` random intercepts and independent numeric slopes are fitted. Only the exact ledger domain for the independent slope is inference-ready with caveats. Non-logit links, factor responses, proportions with trial weights, correlated or labelled slopes, structured effects, bivariate responses, and `engine = "julia"` remain unsupported. |
+| `y01 ~ x1 + x2 + (1 | id) + (0 + x1 | id)`, `family = stats::binomial(link = "logit")` | Implemented first slice | Plain Bernoulli response model for explicit 0/1 event data. `mu` is the event probability and there is no public `sigma`; ordinary `mu` random intercepts and independent numeric slopes are fitted. Only the exact ledger domain for the independent slope is inference-ready with caveats. Non-logit links, factor responses, proportions with trial weights, correlated or labelled slopes, structured effects, bivariate responses, and the halted `engine = "julia"` bridge remain unavailable; Julia support is future work. |
 | `cbind(success, failure) ~ x1 + x2 + (1 | id) + (0 + x1 | id)`, `family = stats::binomial(link = "logit")` | Implemented first slice | Plain binomial response model for counted events out of known trials, with `trials = success + failure`, fixed effects plus ordinary `mu` random intercepts and independent slopes, and ordinary binomial sampling variation. Use `beta_binomial()` instead when extra-binomial variation is part of the scientific model. |
 | `cbind(success, failure) ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = beta_binomial()` | Implemented first slice | Ordinary beta-binomial `mu` random intercepts and independent numeric slopes enter the logit success-probability predictor for counted successes out of known trials. Correlated slopes, labelled covariance blocks, `sigma` random effects, `zoi`/`coi`, structured effects, known covariance, and bivariate or mixed bounded-response models remain planned. |
 | `y ~ x1 + x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |

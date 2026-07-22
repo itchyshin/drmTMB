@@ -63,16 +63,19 @@ fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 
 ## At a glance
 
+::: {.table-responsive}
+
 | Model / effect | Tier | What you can trust |
 | --- | --- | --- |
-| Ordinary (unstructured) Gaussian / bivariate-Gaussian random effects (intercepts, slopes) | Point-trustworthy (census "supported", coverage planned) | Point estimate -- the everyday random-intercept/slope mixed model; its interval is not yet coverage-verified |
+| Census-supported ordinary Gaussian `mu` random effects and matching bivariate-Gaussian `mu1`/`mu2` intercepts | Point-trustworthy (census "supported", coverage planned) | Point estimate for the exact supported rows; their intervals are not yet coverage-verified |
 | Gaussian `mu` q1 intercept -- `phylo()`, `spatial()`, `relmat()` | Inference-ready | Point estimate and the default location-axis bias-corrected, small-sample-t Wald interval; coverage is mildly conservative in the tested campaigns |
 | Gaussian `sigma` q1 one-slope -- `phylo()`, `animal()`, `relmat()` | Inference-ready | Point estimate and raw uncorrected log-SD Wald-z interval; profile is diagnostic-only at `g = 8` |
 | Bivariate Gaussian slope-only `mu1:x`/`mu2:x` q2 mean-mean -- `phylo()`, `relmat()` | Inference-ready (default-corrected channel only) | Point estimate and interval from plain `confint(fit)`; intercept-only and explicitly uncorrected Wald intervals are not promoted by this evidence |
-| binomial / Poisson / beta / nbinom2 unstructured `mu` | Inference-ready | Point estimate and Wald interval from `n` &gt;= 50 |
+| binomial / Poisson / beta / nbinom2 unstructured `mu` | Inference-ready | Point estimate and Wald interval in the tested designs (`n = 50`, `150`, or `500`); this is not a universal sample-size threshold |
 | nbinom2 unstructured location-scale (`mu` and `sigma ~ x`) | Inference-ready | Point estimate and Wald interval on both formulas |
 | beta unstructured location-scale, interior proportions | Inference-ready | Point estimate and Wald interval; exact 0 or 1 needs `zero_one_beta()` instead |
 | Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, cumulative-logit, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | Profile interval for the natural-scale slope SD, ML only, not `supported`, no Wald or point-bias claim. The tested floor differs by family, so do not generalize one number: skew-normal / Tweedie / zero-one-beta at `M >= 16` (true SD 0.50, ML-Laplace); binomial at `M >= 32` (true SD 0.6, ML-Laplace); cumulative-logit at `M >= 80` (true SD 0.50, adaptive Gauss-Hermite + Cox-Reid; its `M = 40` rung is exploratory, not the floor). Zero-one-beta is generator-qualified (see the caveat below) |
+| Gamma `sigma` ordinary random intercept `(1 \| id)` | Inference-ready with caveats | ML-Laplace profile interval only for the exact iid, uncentred coverage fixture (true SD 0.40, 12 observations/group, `M = 32` or `64`); `M = 16` is borderline and `M = 8` is excluded |
 | Poisson / nbinom2 structured `mu` q1 -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only |
 | nbinom2 structured `sigma` -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only; scale-targeting bug fixed in 0.4.0 |
 | Row-specific recovery slices: beta `animal()` on `mu`/`sigma`, Student-t `mu ~ spatial(1 + x | ...)`, and Gamma `mu ~ relmat()` | Recovery-only | Point estimate only; no interval or coverage promotion |
@@ -83,6 +86,8 @@ fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 | Gaussian pure-`mu` univariate REML -- `spatial()`, `animal()`, `relmat()` | Inference-ready with caveats | Unlabelled intercept or independent intercept plus one numeric slope, with `sigma ~ 1`; report a direct structured-SD profile interval only inside the tested discrete domains below |
 | REML for non-Gaussian families; non-phylogenetic mean-side REML outside the pure-`mu` Arc 1a boundary and the exact bivariate spatial and supplied-`K` relmat q2 intercepts above; all other bivariate non-phylogenetic structured REML | Not available (rejected by design) | Use `REML = FALSE` (maximum likelihood) |
 | `q4`/`q6`/`q8`/`q12` covariance interval promotion; derived-correlation intervals | Not available (planned) | Use the fitted point estimate; try `profile_targets()` for a direct target |
+
+:::
 
 The rest of this page expands each row with the caveat that changes how you
 should read it.
@@ -193,15 +198,16 @@ as a fully mature fixed-effect-grade interval.
 ### Ordinary (unstructured) random effects: point-trustworthy, coverage pending
 
 One group of cells deserves explicit mention even though its interval does
-not yet meet the coverage bar for this tier. Ordinary random intercepts and
-slopes on Gaussian `mu` -- the everyday `(1 | id)` and `(0 + x | id)` mixed
-model -- and their bivariate-Gaussian `mu1`/`mu2` counterpart are the only
-cells the capability census marks `fit_status = supported`, the package's
-highest fit maturity, so their point estimates are the most trustworthy
-random-effect estimates `drmTMB` produces. Their interval coverage, however,
-is still planned rather than simulation-verified: until that coverage
-campaign lands, read any interval on these rows the way you would a
-recovery-only row below, and report the point estimate with confidence.
+not yet meet the coverage bar for this tier. The census-supported rows are
+the Gaussian `mu` random intercept, its independent `(0 + x | id)` slope,
+and the matching bivariate-Gaussian `mu1`/`mu2` intercept block. They are
+the package's highest fit-maturity random-effect rows, so their point
+estimates are the most trustworthy ordinary random-effect estimates
+`drmTMB` produces. This does not extend to other bivariate blocks or to an
+arbitrary intercept-plus-slope formula. Their interval coverage is still
+planned rather than simulation-verified: until that campaign lands, read
+any interval on these rows the way you would a recovery-only row below, and
+report the point estimate with confidence.
 
 ### Unstructured non-Gaussian fixed effects
 
@@ -264,6 +270,16 @@ sampler can faithfully reproduce the intended design; a rerun would answer a
 different, convention-dependent question rather than certify the intended one. The
 generator-qualified reading is therefore the correct terminal statement for this
 cell.
+
+### Gamma `sigma` random intercept: narrow coverage-backed interval
+
+The Gamma `sigma ~ (1 | id)` random-intercept standard deviation has a separate,
+narrower result. Its ML-Laplace profile interval was assessed only in an iid,
+uncentred fixture with true SD 0.40 and 12 observations per group. `M = 32` and
+`64` groups met the retained coverage rule; `M = 16` is borderline and `M = 8`
+is excluded because boundary behaviour made that arm unsuitable for reporting.
+This is not evidence for Gamma `sigma` slopes, labelled blocks, joint `mu` and
+`sigma` random effects, REML, or other sampling designs.
 
 ## Tier 2: recovery-only
 
@@ -364,14 +380,18 @@ manuscript, read this section next. It names four gaps between what an
 extractor currently returns and what the underlying fit actually supports,
 and what to do about each one.
 
-**Regression-parameterised coscale has no interval yet.** If your `rho12`
-formula depends on a covariate (`rho12 ~ x`), `corpairs(fit, conf.int =
-TRUE)` reports `conf.status = "newdata_required"` and `NA` bounds for every
-row, and supplying `newdata` does not change that outcome. What to try
-next: if you need an interval on the coscale term, refit with the constant
-form `rho12 ~ 1`, which does yield a profile interval; `rho12 ~ x` still
-gives you a valid point estimate at each covariate value, just no interval.
-Tracked as issue #802.
+**Regression-parameterised coscale intervals are computable, but not
+coverage-certified.** If your `rho12` formula depends on a covariate
+(`rho12 ~ x`), `corpairs(fit, conf.int = TRUE)` reports
+`conf.status = "newdata_required"` and no bounds until you supply the
+covariate values. Use `confint(fit, parm = "rho12", newdata = grid,
+method = "profile")` for row-specific profile intervals, or
+`predict_parameters(fit, newdata = grid, dpar = "rho12", conf.int = TRUE)`
+for the corresponding Wald intervals. The same evidence boundary applies to
+the constant `rho12 ~ 1` profile interval: it is available, but the current
+ledger records no committed bivariate fixed-effect CI-coverage simulation.
+Treat either result as an interval-feasibility output, not a calibrated
+reporting guarantee. Tracked as issue #802.
 
 **The three certified Arc 4c `mu`-slope cells make no point-bias or Wald
 claim.** The skew-normal (mc-0464), Tweedie (mc-0539), and zero-one-beta

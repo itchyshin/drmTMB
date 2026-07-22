@@ -45,6 +45,23 @@ theme_large_data <- function() {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Large data changes the workflow. A model that is statistically reasonable can
 still fail because R builds large model frames, dense model matrices, fitted
 objects, predictions, and residual vectors before the scientific question is

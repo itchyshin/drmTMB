@@ -11,6 +11,22 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Use this overview when observations, species, individuals, sites, or lines are
 not independent after the fixed effects have been included. The goal is to
 choose the structural layer that matches the scientific question before fitting

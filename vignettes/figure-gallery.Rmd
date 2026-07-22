@@ -19,6 +19,23 @@ knitr::opts_chunk$set(
 )
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This gallery shows the kinds of figures `drmTMB` users can build for model
 interpretation, uncertainty display, distributional adequacy checking, fitted
 interactions, correlation summaries, and later simulation diagnostics. Between
@@ -1842,9 +1859,9 @@ dead end. Supply the covariate values you want and the interval is computed per
 row, either as a profile interval from
 `confint(fit, parm = "rho12", newdata = grid, method = "profile")` or as a Wald
 interval from `predict_parameters(fit, newdata = grid, dpar = "rho12",
-conf.int = TRUE)`. Only the constant `rho12 ~ 1` profile interval is a
-certified reporting target; the row-specific intervals are computed but their
-coverage has not been established.
+conf.int = TRUE)`. The constant `rho12 ~ 1` profile interval is a finite
+computed reporting interval, but its coverage has not been certified; the
+row-specific intervals are likewise computed without established coverage.
 
 ```{r corpairs-fitted, fig.width=7.4, fig.height=2.1, fig.cap="Fitted residual correlation from `corpairs()` with its profile-likelihood interval, drawn by `plot_corpairs()`; this row is computed from a model in this document.", fig.alt="Confidence Eye row for the fitted residual rho12 correlation from a constant-correlation bivariate model, showing the point estimate as a hollow circle inside a pale profile confidence region that excludes zero."}
 fit_pair_const <- drmTMB(
