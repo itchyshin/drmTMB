@@ -138,6 +138,23 @@ simulate_relmat_q2_guide_data <- function(seed = 1) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 Use `relmat()` when the dependence is among latent group-level deviations and
 the matrix is already known. The matrix can be a covariance, a correlation, or
 an inverse covariance/precision matrix. The common case is a correlation-like
