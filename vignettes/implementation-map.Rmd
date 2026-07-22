@@ -11,6 +11,23 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This map answers one practical question: what model surface can an applied user
 fit today, and which neighbouring syntax is still planned? It is a status
 ledger rather than a tutorial. Start here when a model combines random effects,
