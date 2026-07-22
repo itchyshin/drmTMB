@@ -1,7 +1,7 @@
 # Model-map audit: open P1
 
-**Page:** `vignettes/model-map.Rmd`  
-**Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`  
+**Page:** `vignettes/model-map.Rmd`
+**Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`
 **Status:** repaired and ready for closeout
 
 ## P1: `meta_V()` status has no ledger authority
