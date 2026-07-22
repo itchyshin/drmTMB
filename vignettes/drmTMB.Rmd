@@ -14,6 +14,22 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 `drmTMB` fits distributional regression models for one or two responses. Start
 here when you want to fit a first model, check that the fitted object matches
 your scientific question, and find the next article without reading the whole
@@ -169,8 +185,8 @@ At a high level, the current public surface is:
 | fixed-effect non-Gaussian families | stable for named fixed-effect paths | "Choosing response families" |
 | fixed-effect NB2 and zero-inflated NB2 count examples | stable for fixed effects | "Count abundance and extra zeros" |
 | bounded-response proportion examples | beta, beta-binomial, and zero-one beta fixed effects plus ordinary `mu` random intercepts and independent numeric slopes; its exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; zero-one beta handles structural exact boundaries | "Proportions and success rates" |
-| Gaussian meta-analysis with known sampling covariance | stable | "Mean effects and residual heterogeneity in meta-analysis" |
-| fixed-effect bivariate Gaussian `rho12` | stable | "Changing residual coupling with rho12" |
+| Gaussian meta-analysis with known sampling covariance | implemented, source-tested; ledger tier unregistered | "Mean effects and residual heterogeneity in meta-analysis" |
+| fixed-effect bivariate Gaussian `rho12` | implemented; interval-feasible, but CI coverage unregistered | "Changing residual coupling with rho12" |
 | ordinary bivariate covariance and `corpairs()` rows | first slice | "What can I fit today?" |
 | phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | first slices | "Structural dependence" |
 | coordinate spatial Gaussian `mu` intercept, one numeric slope, and bivariate q=2 location covariance | first slices | "Structural dependence" |
