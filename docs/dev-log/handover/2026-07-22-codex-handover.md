@@ -19,12 +19,24 @@
 > and relinking the row-level ledger. **`tools/qseries_v1_claim_guard.py` now exits 0**, and
 > `test-structured-re-conversion-contracts.R` passes 237 tests / 0 failures. So §1(2) and §5 item 4
 > below are **DONE** — do not redo them. The stale `.git/index.lock` was also **cleared**.
-> `claude/handover-freshness-0718` (AGHQ + non-Gaussian REML) is now **pushed** at `85e78223`.
-> **Genuinely still open:** ~60 legacy `codex/*` / `drmtmb/*` branches holding **~360 unpushed
-> commits** — local only, so to anyone cloning `origin` they do not exist; Shinichi can preserve them
-> with `git push origin --all` (no CI cost — no workflow here triggers on a feature-branch push). Plus
-> the 11-item maintainer list in the predecessor. **Next substantive work = meta_V**, reconciling the
-> existing `docs/design/48-phase-18-meta-v-ademp.md` rather than authoring a new spec.
+> **THE WHOLE BRANCH ESTATE IS NOW ON `origin` — zero unpushed commits anywhere in the repo**
+> (verified: `git log --branches --not --remotes` returns 0). `claude/handover-freshness-0718` is
+> pushed at `85e78223`, and Shinichi's `git push origin --all` landed the ~60 legacy branches.
+> **⚠ THREE BRANCHES HAVE DIVERGED HISTORY — DO NOT FORCE-PUSH THEM.** Each has local-only commits
+> *and* remote-only commits, so `--force` would destroy remote work. The local tips were rescued to
+> **new** refs on `origin`; the original remote branches are untouched. Note the rescue names are
+> **not** uniformly prefixed:
+>
+> | Branch | local-only | remote-only | local tip rescued to |
+> |---|---:|---:|---|
+> | `codex/q8-endpoint-precode-gate` | 4 | 2 | `codex/q8-endpoint-precode-gate-local-20260722` |
+> | `codex/nb2-poisson-structured-gates-actions` | 10 | 13 | `nb2-poisson-gates-local-20260722` |
+> | `codex/truncated-nb2-mu-ri-artifacts-2026-05-26` | 1 | 2 | `truncated-nb2-mu-ri-artifacts-local-20260722` |
+>
+> Reconciling each (which side wins, or a merge) is a **maintainer decision**, not cleanup. Nothing is
+> lost while both sides exist on `origin`. **Next substantive work = meta_V**, reconciling the existing
+> `docs/design/48-phase-18-meta-v-ademp.md` rather than authoring a new spec. Plus the 11-item
+> maintainer list in the predecessor handover.
 
 You are Codex, picking up the drmTMB 0.6 dev arc. This session changed **no executable code**.
 It was an adjudication session: it answered the question "can we commit and merge this branch?"
