@@ -222,6 +222,23 @@ simulate_animal_marker_data <- function(seed = 20260519) {
 }
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This page assumes you have already used the [structural-dependence
 overview](structural-dependence.html) or one of the worked tutorials
 (`animal-models`, `phylogenetic-models`, `spatial-models`,
