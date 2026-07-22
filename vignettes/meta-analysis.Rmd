@@ -99,6 +99,13 @@ recover the familiar `tau^2` simply by squaring `sigma`. The marker
 `meta_V()` puts the *known* variance into the likelihood; `sigma` estimates the
 *unknown* variance that is left over.
 
+This is an implemented, source-tested interface and the example below checks
+its ML fit against `metafor`. It does **not** currently have a registered
+`meta_V()` capability-ledger cell, so this tutorial does not assign it an
+evidence tier or make an interval-coverage claim. Treat fitted-model intervals
+as the methods returned by the current fit, and state their source when
+reporting them.
+
 ## A simulated dataset
 
 We simulate `K = 30` studies. Each study has a true effect drawn around a
