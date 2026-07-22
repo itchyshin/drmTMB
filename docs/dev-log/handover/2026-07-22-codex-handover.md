@@ -54,11 +54,19 @@ against the repo rather than taken from the predecessor doc:
 | Is the pkgdown lane still open? | **No.** Its worktree is on `main`, clean, in sync with `origin/main` | `git -C /private/tmp/drmtmb-site-audit-83d48549 status -b` |
 | Is the q-series red branch-specific? | **No — `main` is red too** | guard run in the `main` worktree, exit 1 (§1) |
 
-**Not verified — you must close this:** whether the Codex lane declared in the predecessor's §0
-("live until ~tomorrow morning", scoped to `R/julia-bridge.R` roxygen, `man/`, `_pkgdown.yml`,
-branched from `0b48b94b`) has finished. "Tomorrow" was today. Three attempts to check its
-worktree state were blocked by an environmental tool outage (§7). **Confirm this before merging** —
-it is the only substantive unknown left, and it overlaps `man/` and `_pkgdown.yml`.
+**The Codex `julia-bridge` lane appears CLOSED — evidence, with its limit.** The predecessor's §0
+declared a Codex lane live "until ~tomorrow morning" (i.e. today), scoped to `R/julia-bridge.R`
+roxygen, `man/`, and `_pkgdown.yml`, branched from `0b48b94b`. Two checks:
+
+- `git branch --contains 0b48b94b` returns **only `claude/0.6-dev-arc`** — no other local branch
+  was ever built on that fork point.
+- `git log --all --since=2026-07-20 -- R/julia-bridge.R` returns **exactly one commit: `1a972b8e`**,
+  which is #816, already merged to `main`.
+
+#816's diff touches `R/julia-bridge.R`, `_pkgdown.yml`, and `man/` — precisely that lane's declared
+scope. The reasonable reading is that the work landed with #816. **Limit of this evidence:** it
+cannot see a lane living only in an unregistered worktree or an unpushed remote branch. If you know
+that session is still running, confirm with Shinichi before merging; otherwise treat it as closed.
 
 ---
 
@@ -69,8 +77,8 @@ Every failure is declared below; none is left invisible.
 
 | Artifact / branch | Committed | Pushed | PR | State |
 |---|---|---|---|---|
-| `drmTMB` `claude/0.6-dev-arc` `77bcd959` | y | y | none | **CARRIED-OVER** — unmerged by design |
-| `drmTMB` `claude/0.6-dev-arc` (this handover doc) | y | y | none | **LANDED** on the branch |
+| `drmTMB` `claude/0.6-dev-arc` `77bcd959` (the 15-commit arc) | y | y | none | **CARRIED-OVER** — unmerged by design |
+| `drmTMB` `claude/0.6-dev-arc` `d36e7609` (this handover + `AGENTS.md`) | y | **n — PUSH REFUSED** | none | **CARRIED-OVER — ⚠ NOT ON `origin`** |
 | `drmTMB` `claude/handover-freshness-0718` | y | **n — 1 unpushed** | none | **CARRIED-OVER** |
 | `drmTMB` main checkout — ~50 untracked files | **n** | n | — | **CARRIED-OVER — DO NOT COMMIT** |
 | `drmTMB` ~60 legacy `codex/*`, `drmtmb/*` branches, 1–3 unpushed each | y | **n** | none | **CARRIED-OVER** — pre-existing estate debt |
@@ -78,6 +86,11 @@ Every failure is declared below; none is left invisible.
 
 **Why each is carried over, and how to resume it:**
 
+- **⚠ THIS HANDOVER IS COMMITTED BUT NOT PUSHED.** Commit `d36e7609` exists only in the local
+  worktree `/private/tmp/drmtmb-precran-review-7abdd7e9`. Shinichi declined the push, so **to a
+  Codex session that clones `origin`, this document does not exist.** If you are reading it from
+  `origin`, someone has since pushed it. If you are reading it from disk, the branch head on
+  `origin` is still `77bcd959`. Resume: `git push origin claude/0.6-dev-arc` — **maintainer's call.**
 - **`claude/0.6-dev-arc` unmerged.** Not a defect — the merge is Shinichi's decision under the
   predecessor's §3b, whose header states every row "needs a human… a decision or an edit only the
   maintainer should make." He has not given it. Mechanically the merge is ready and conflict-free.
@@ -121,9 +134,9 @@ Every failure is declared below; none is left invisible.
 **Codex owns the live toolchain here** (real R/TMB fits, `R CMD check` with compilation, sims,
 vignette rendering). Claude owns planning, prose, and pure-logic work.
 
-1. **[Codex, cheap] Confirm the `julia-bridge` Codex lane is finished.** Check its worktree state
-   and whether its work landed. This is the last unknown gating the merge.
-2. **[Shinichi] Get the merge decision.** Present it as: precondition #10 has cleared, merge is
+1. **[Codex, cheap] Sanity-check the `julia-bridge` lane one last time.** The git evidence in §2 says
+   it landed with #816; all that remains is Shinichi confirming no unregistered session is still live.
+2. **[Shinichi] Get the merge decision — this is now the only real gate.** Present it as: precondition #10 has cleared, merge is
    conflict-free, branch red is a pre-existing `main` defect. If he says go:
    `git checkout main && git merge --no-ff claude/0.6-dev-arc && git push origin main`.
 3. **[Codex, live] Re-measure the suite honestly.** A plain `devtools::test()` **lies** — see §7.
