@@ -19,6 +19,23 @@ knitr::opts_chunk$set(
 )
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    min-width: 720px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This article shows the plot grammar that Phase 18 simulation reports should use
 before broad simulation grids are advertised as evidence. It is a display
 contract, not a final result report. It assumes you are already tracking a
