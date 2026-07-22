@@ -11,6 +11,22 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
+<style>
+@media (max-width: 575.98px) {
+  main h1 {
+    hyphens: none;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+</style>
+
 This article helps users choose response families for distributional regression
 data: continuous outcomes, counts, proportions, percentages, positive
 measurements, shape-sensitive outcomes, and ordinal scores. Examples emphasize
