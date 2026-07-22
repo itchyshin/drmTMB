@@ -39,8 +39,12 @@ regression using Template Model Builder.
 > priority (Shinichi, 2026-07-21): reconcile the existing `docs/design/48-phase-18-meta-v-ademp.md`,
 > do **not** author a new spec. Track B stays compute-gated behind B3 approval.
 > **Housekeeping:** the stale `.git/index.lock` was **cleared 2026-07-22**; index operations work
-> again. Still open: `claude/handover-freshness-0718` has 1 unpushed commit (AGHQ + non-Gaussian REML,
-> foreign lane) and ~60 legacy `codex/*` branches carry unpushed commits.
+> again. `claude/handover-freshness-0718` (AGHQ + non-Gaussian REML) is now **pushed** at `85e78223`.
+> Remaining: ~60 legacy `codex/*` / `drmtmb/*` branches still hold **~360 unpushed commits** — local
+> only, invisible to anyone cloning `origin`. Preserving them is a one-liner in Shinichi's own
+> terminal (`git push origin --all`); the agent harness blocks bulk pushes. Pushing them costs **no**
+> CI: `R-CMD-check` fires only on `main`/`master` and tags, `pkgdown` only via `workflow_run` on those,
+> and `rhub` + `phase18-simulation-grid` are `workflow_dispatch`-only (D-50 compliant).
 >
 > **▶ Prior (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
 > **Shinichi decided 2026-07-21: drmTMB 0.6 will NOT be submitted to CRAN.** It needs

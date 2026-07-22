@@ -19,9 +19,12 @@
 > and relinking the row-level ledger. **`tools/qseries_v1_claim_guard.py` now exits 0**, and
 > `test-structured-re-conversion-contracts.R` passes 237 tests / 0 failures. So §1(2) and §5 item 4
 > below are **DONE** — do not redo them. The stale `.git/index.lock` was also **cleared**.
-> **Genuinely still open:** `claude/handover-freshness-0718` (1 unpushed commit, AGHQ + non-Gaussian
-> REML, foreign lane), ~60 legacy `codex/*` branches with unpushed commits, and the 11-item maintainer
-> list in the predecessor. **Next substantive work = meta_V**, reconciling the existing ADEMP.
+> `claude/handover-freshness-0718` (AGHQ + non-Gaussian REML) is now **pushed** at `85e78223`.
+> **Genuinely still open:** ~60 legacy `codex/*` / `drmtmb/*` branches holding **~360 unpushed
+> commits** — local only, so to anyone cloning `origin` they do not exist; Shinichi can preserve them
+> with `git push origin --all` (no CI cost — no workflow here triggers on a feature-branch push). Plus
+> the 11-item maintainer list in the predecessor. **Next substantive work = meta_V**, reconciling the
+> existing `docs/design/48-phase-18-meta-v-ademp.md` rather than authoring a new spec.
 
 You are Codex, picking up the drmTMB 0.6 dev arc. This session changed **no executable code**.
 It was an adjudication session: it answered the question "can we commit and merge this branch?"
