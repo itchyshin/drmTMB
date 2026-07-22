@@ -13,10 +13,15 @@
 > collided with #816's edit to the same file. Resolved by keeping both, new block on top. The earlier
 > conflict-free `merge-tree` dry run had simply expired — it predated that pointer commit. *(Lesson,
 > filed in the vault: a clean dry run is void the moment you add another commit.)*
-> **Re-verified on merged `main`:** `tools/qseries_v1_claim_guard.py` still exits 1 with the same two
-> messages, unchanged by the merge. **The README q-series restore is now the single top item.**
-> Still outstanding for the maintainer: the stale `.git/index.lock` in the main checkout (the agent
-> harness blocks `.git` deletions), and `claude/handover-freshness-0718` with 1 unpushed commit.
+> **✅ AND THE Q-SERIES RED IS NOW FIXED TOO** (Shinichi, `e46ba36d`, merged `2cdff9b4`). He restored
+> the README catalog — naming the Gaussian `q=12` all-four two-slope `phylo()`/`spatial()`/`animal()`/
+> `relmat()` cells at point-fit/recovery grade, explicitly withholding interval and coverage claims,
+> and relinking the row-level ledger. **`tools/qseries_v1_claim_guard.py` now exits 0**, and
+> `test-structured-re-conversion-contracts.R` passes 237 tests / 0 failures. So §1(2) and §5 item 4
+> below are **DONE** — do not redo them. The stale `.git/index.lock` was also **cleared**.
+> **Genuinely still open:** `claude/handover-freshness-0718` (1 unpushed commit, AGHQ + non-Gaussian
+> REML, foreign lane), ~60 legacy `codex/*` branches with unpushed commits, and the 11-item maintainer
+> list in the predecessor. **Next substantive work = meta_V**, reconciling the existing ADEMP.
 
 You are Codex, picking up the drmTMB 0.6 dev arc. This session changed **no executable code**.
 It was an adjudication session: it answered the question "can we commit and merge this branch?"
@@ -91,12 +96,12 @@ Every failure is declared below; none is left invisible.
 
 | Artifact / branch | Committed | Pushed | PR | State |
 |---|---|---|---|---|
-| `drmTMB` `claude/0.6-dev-arc` `77bcd959` (the 15-commit arc) | y | y | none | **CARRIED-OVER** — unmerged by design |
-| `drmTMB` `claude/0.6-dev-arc` `d36e7609` (this handover + `AGENTS.md`) | y | **n — PUSH REFUSED** | none | **CARRIED-OVER — ⚠ NOT ON `origin`** |
+| `drmTMB` `claude/0.6-dev-arc` (the 15-commit arc) | y | y | none | ✅ **MERGED** as `6761acc7`, pushed |
+| `drmTMB` `claude/0.6-dev-arc` `e9d11c08` (this handover + `AGENTS.md`) | y | y | none | ✅ **LANDED** — on `origin` |
 | `drmTMB` `claude/handover-freshness-0718` | y | **n — 1 unpushed** | none | **CARRIED-OVER** |
 | `drmTMB` main checkout — ~50 untracked files | **n** | n | — | **CARRIED-OVER — DO NOT COMMIT** |
 | `drmTMB` ~60 legacy `codex/*`, `drmtmb/*` branches, 1–3 unpushed each | y | **n** | none | **CARRIED-OVER** — pre-existing estate debt |
-| `drmTMB` `.git/index.lock` | — | — | — | **STALE LOCK — report, never remove** |
+| `drmTMB` `.git/index.lock` | — | — | — | ✅ **RESOLVED 2026-07-22** — Shinichi removed it |
 
 **Why each is carried over, and how to resume it:**
 

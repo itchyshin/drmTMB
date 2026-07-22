@@ -19,11 +19,14 @@ regression using Template Model Builder.
 > meta_V ADEMP amendment. The session-2 blocker *"sequence the merges — pkgdown owner first"* had
 > already CLEARED (`1a972b8e` = pkgdown reader-surface repair #816), and the Codex `julia-bridge`
 > roxygen lane landed with that same PR.
-> **KNOWN RED — pre-existing on `main`, NOT introduced by this merge:**
-> `tools/qseries_v1_claim_guard.py` exits 1 because README lost its q-series status link and its
-> `q=12` mention while four q12 cells stay admitted (22 failures in
-> `test-structured-re-conversion-contracts.R`). **Do NOT clear it by retargeting the guard** — the fix
-> is the README q-series restore, which takes the cluster to 0. **That is now the top item.**
+> **✅ THE Q-SERIES RED IS FIXED (Shinichi, 2026-07-22, `e46ba36d`).** It was never
+> branch-introduced — `tools/qseries_v1_claim_guard.py` exited 1 on `main` itself because README had
+> lost its q-series status link and its `q=12` mention while four q12 cells stayed admitted (22
+> failures in `test-structured-re-conversion-contracts.R`). Repaired the right way — by restoring the
+> README catalog, **not** by retargeting the guard: the landing page now names the exact Gaussian
+> `q=12` all-four two-slope `phylo()` / `spatial()` / `animal()` / `relmat()` cells **at
+> point-fit/recovery grade and explicitly withholds interval and coverage claims**, and links the
+> row-level ledger. Guard now **exits 0**; that test file passes 237 tests, 0 failures.
 > CRAN stays **PARKED, not failed** — no re-freeze, no platform matrix, no submission.
 > START HERE:
 > [`docs/dev-log/handover/2026-07-22-codex-handover.md`](docs/dev-log/handover/2026-07-22-codex-handover.md)
@@ -32,8 +35,12 @@ regression using Template Model Builder.
 > non-Gaussian REML) → 1 commit unpushed, **foreign lane, still open**.
 > The 11-item maintainer action list is NOT duplicated — it stays in
 > [`docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md`](docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md).
-> **Housekeeping:** a stale `.git/index.lock` sits in the main checkout — Shinichi must remove it; the
-> agent harness blocks `.git` deletions. Also ~60 legacy `codex/*` branches carry unpushed commits.
+> **NEXT:** with the q-series red closed, the queue reverts to the ultra-plan — **meta_V** is the
+> priority (Shinichi, 2026-07-21): reconcile the existing `docs/design/48-phase-18-meta-v-ademp.md`,
+> do **not** author a new spec. Track B stays compute-gated behind B3 approval.
+> **Housekeeping:** the stale `.git/index.lock` was **cleared 2026-07-22**; index operations work
+> again. Still open: `claude/handover-freshness-0718` has 1 unpushed commit (AGHQ + non-Gaussian REML,
+> foreign lane) and ~60 legacy `codex/*` branches carry unpushed commits.
 >
 > **▶ Prior (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
 > **Shinichi decided 2026-07-21: drmTMB 0.6 will NOT be submitted to CRAN.** It needs
