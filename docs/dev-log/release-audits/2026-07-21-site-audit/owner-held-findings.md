@@ -1,8 +1,8 @@
 # Owner-held findings
 
-## `bivariate-coscale`
+## `bivariate-coscale` — resolved after ownership transfer
 
-- **Owner:** Shinichi
+- **Owner:** Codex (transferred by Shinichi on 2026-07-21)
 - **Source:** `vignettes/bivariate-coscale.Rmd:422-425`
 - **Severity:** P1 public-claim defect
 - **Finding:** the page correctly says that predictor-dependent `rho12`
@@ -11,8 +11,8 @@
   ledger has no committed CI-coverage simulation for the constant fixed-effect
   `rho12` cell. The referent must be repaired without removing the correct
   regression-interval hedge.
-- **Required disposition:** change “certified reporting target” to language
-  such as “a finite computed reporting interval whose coverage is not
-  certified”; preserve the distinction from row-specific `newdata` intervals.
+- **Disposition:** repaired in `vignettes/bivariate-coscale.Rmd`. The constant
+  interval is now described as finite and reportable but not coverage-certified;
+  the distinct predictor-dependent `newdata` caveat remains unchanged.
 
-This audit does not edit the owner-held source file.
+The page is no longer owner-held.

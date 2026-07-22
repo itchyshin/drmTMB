@@ -422,7 +422,9 @@ interval is computed for each supplied row;
 profile counterpart. Treat both as computed but not coverage-certified: no
 simulation study yet establishes their nominal coverage for a regression
 `rho12`. Fit `rho12 ~ 1` when you want the constant residual-correlation profile
-interval, which is the certified reporting target.
+interval. That interval is finite and can be reported, but its coverage is not
+certified either: the current ledger has no committed bivariate fixed-effect
+CI-coverage study for this constant `rho12` cell.
 
 ```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the ribbon is a 95% Wald confidence interval computed for each supplied row (coverage not certified) and the dotted line marks zero residual correlation.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon and a dotted zero line, increasing from negative to positive values and crossing zero near average disturbance."}
 rho_grid <- data.frame(
