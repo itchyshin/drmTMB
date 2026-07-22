@@ -10,7 +10,25 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
+> **▶ Latest — start here (2026-07-22, → CODEX, 0.6 DEV ARC — branch READY, MERGE DECISION PENDING).**
+> `claude/0.6-dev-arc` (`77bcd959`) is **clean, pushed, conflict-free against `main`, and UNMERGED**
+> (+15 / −6). The session-2 blocker *"sequence the merges — pkgdown owner first"* is **STALE and has
+> CLEARED**: `main`'s tip `1a972b8e` **is** the pkgdown reader-surface repair (#816). The branch's
+> **22 q-series failures are NOT branch-introduced** — `tools/qseries_v1_claim_guard.py` exits 1 on
+> `main` too, with the same two README messages, so merging is **neutral** on that red. **Do NOT
+> clear the guard by retargeting it**; the fix is the README q-series repair, which clears both trees.
+> **The merge is Shinichi's call and has not been given.** One unknown remains: whether the Codex
+> `julia-bridge` roxygen lane (`man/`, `_pkgdown.yml`) has closed. CRAN stays **PARKED, not failed**.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-22-codex-handover.md`](docs/dev-log/handover/2026-07-22-codex-handover.md)
+> **Open lanes — multi-lane, do not narrow the pointer to one:**
+> (a) **0.6 dev arc** → this handover; (b) **pkgdown reader surface** → **LANDED** as #816 on `main`;
+> (c) **Codex `julia-bridge` roxygen lane** → status unconfirmed, branched from `0b48b94b`;
+> (d) **`claude/handover-freshness-0718`** (AGHQ + non-Gaussian REML) → 1 commit unpushed, foreign lane.
+> The full 11-item maintainer action list is NOT duplicated — it stays in
+> [`docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md`](docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md).
+>
+> **▶ Prior (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
 > **Shinichi decided 2026-07-21: drmTMB 0.6 will NOT be submitted to CRAN.** It needs
 > substantially more work first. The CRAN release gate is **PARKED, not failed** — the
 > tarball re-freeze, platform matrix (win-builder / R-hub / 3-OS), `cran-comments.md`
