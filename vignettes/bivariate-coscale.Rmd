@@ -103,21 +103,6 @@ Component meanings:
 | `rho12` | residual response-response correlation within observation `i` |
 | `Omega_i` | residual covariance matrix after means and residual SDs are modelled |
 
-For implementation cross-checking, the same model can also be written in a
-compact code-like form:
-
-```text
-mu1_i = X_mu1[i, ] beta_mu1
-mu2_i = X_mu2[i, ] beta_mu2
-log(sigma1_i) = X_sigma1[i, ] beta_sigma1
-log(sigma2_i) = X_sigma2[i, ] beta_sigma2
-eta_rho12_i = X_rho12[i, ] beta_rho12
-rho12_i = tanh(eta_rho12_i)
-Omega_i[1, 1] = sigma1_i^2
-Omega_i[2, 2] = sigma2_i^2
-Omega_i[1, 2] = Omega_i[2, 1] = rho12_i * sigma1_i * sigma2_i
-```
-
 Implementation note: `drmTMB` internally evaluates residual correlations as
 `0.999999 * tanh(eta_rho12_i)`. The tiny multiplier keeps covariance
 matrices strictly positive definite near the boundaries. It is not a
@@ -421,8 +406,9 @@ interval is computed for each supplied row;
 `confint(..., parm = "rho12", newdata = ..., method = "profile")` gives the
 profile counterpart. Treat both as computed but not coverage-certified: no
 simulation study yet establishes their nominal coverage for a regression
-`rho12`. Fit `rho12 ~ 1` when you want the constant residual-correlation profile
-interval, which is the certified reporting target.
+`rho12`. Fit `rho12 ~ 1` when you want a scalar residual-correlation profile
+target. That interval is available for reporting, but its nominal coverage has
+not been simulation-certified.
 
 ```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the ribbon is a 95% Wald confidence interval computed for each supplied row (coverage not certified) and the dotted line marks zero residual correlation.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon and a dotted zero line, increasing from negative to positive values and crossing zero near average disturbance."}
 rho_grid <- data.frame(
@@ -634,18 +620,23 @@ group_checks[
 
 `corpairs()` keeps residual and group-level correlations in the same long table
 without giving them the same meaning. The ordinary intercept-only q2 group row
-is interval-feasible but not coverage-backed, so this article keeps both rows
-point-only rather than presenting an unvalidated reporting interval:
+is interval-feasible but not coverage-backed. Here `corpairs(conf.int = TRUE)`
+returns a profile interval for residual `rho12`, while the modelled group row
+remains point-only because its diagnostic response-scale interval requires an
+explicit `newdata` request:
 
 ```{r bivariate-coscale-group-corpairs}
 pair_table <- corpairs(
-  fit_group
+  fit_group,
+  conf.int = TRUE,
+  trace = FALSE
 )
 pair_table[
   ,
   c(
     "level", "group", "block", "from_dpar", "to_dpar", "class",
-    "parameter", "estimate", "conf.status", "interval_source", "modelled"
+    "parameter", "estimate", "conf.low", "conf.high", "conf.status",
+    "interval_source", "modelled"
   )
 ]
 ```
@@ -654,25 +645,32 @@ The optional plotting helper consumes that explicit table. Faceting by `level`
 keeps the residual `rho12` row visually separate from the group-level
 random-intercept correlation:
 
-```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.6, fig.height = 3.4, fig.cap = "Point display separating residual `rho12` from the individual-level mean-mean random-intercept correlation; the dotted line marks zero correlation. The group row is not shown with an interval because coverage-backed validation remains planned.", fig.alt = "Point plot comparing residual rho12 correlation with the individual-level mean-mean random-intercept correlation, with hollow point estimates and a dotted zero line on a correlation scale from minus one to one."}
+```{r bivariate-coscale-group-corpairs-plot, fig.width = 6.2, fig.height = 2.7, fig.cap = "Residual `rho12` and the individual mean-mean correlation answer different questions. The residual eye is a 95% profile-likelihood interval (coverage not simulation-certified); hollow circles are estimates. The group row is point-only because no coverage-backed reporting interval is available. The dotted line marks zero correlation.", fig.alt = "Correlation plot with two rows. Residual rho12 has a pale Confidence Eye from about 0.07 to 0.28 and a hollow estimate circle near 0.17. The individual mean-mean correlation has a hollow point near 0.48 and no interval. A dotted vertical line marks zero correlation."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   pair_plot_table <- pair_table
+  pair_colours <- c(group = "#D55E5D", residual = "#007C91")
   pair_plot_table$display_label <- ifelse(
     pair_plot_table$level == "residual",
     "Residual\nrho12",
     "Individual\nmean-mean"
   )
   plot_corpairs(pair_plot_table, label = "display_label", facet = NULL) +
+    ggplot2::scale_colour_manual(values = pair_colours) +
+    ggplot2::scale_fill_manual(values = pair_colours) +
     ggplot2::labs(
-      title = "Residual and individual-level correlations are separate",
-      subtitle = "Point estimates only; dotted line marks zero correlation",
+      title = "Two correlation levels",
+      subtitle = "Residual: profile interval; group: estimate only",
       colour = NULL
     ) +
-    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme_minimal(base_size = 14) +
     ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
-      plot.title = ggplot2::element_text(face = "bold"),
-      plot.subtitle = ggplot2::element_text(colour = "grey30"),
+      plot.title = ggplot2::element_text(face = "bold", size = 16),
+      plot.subtitle = ggplot2::element_text(colour = "grey30", size = 12.5),
+      axis.text.x = ggplot2::element_text(size = 11),
+      axis.text.y = ggplot2::element_text(size = 12, lineheight = 0.9),
+      axis.title.x = ggplot2::element_text(size = 13),
       legend.position = "none"
     )
 }
@@ -682,149 +680,29 @@ The residual row is `rho12`: within-observation activity-boldness coupling.
 The group row is the `mu1`/`mu2` random-intercept correlation: among-individual
 covariation in average activity and average boldness.
 
-`summary(fit_group)$covariance` gives the same group-level row with the
-component SDs and covariance on the interpretation scale:
+`summary(fit_group)$covariance` supplies the component SDs, correlation, and
+covariance for the same group-level block. Run `check_drm(fit_group)` before
+interpreting them: weak group replication or a near-zero component SD can make
+the correlation poorly identified.
 
-```{r bivariate-coscale-group-covariance-table}
-group_covariance <- summary(fit_group)$covariance
-report_group_covariance <- group_covariance[
-  ,
-  c(
-    "level", "group", "block", "from_response", "to_response", "class",
-    "correlation", "from_sd", "to_sd", "covariance", "from_scale",
-    "to_scale", "covariance_conf.status"
-  )
-]
-numeric_columns <- vapply(report_group_covariance, is.numeric, logical(1))
-report_group_covariance[numeric_columns] <- lapply(
-  report_group_covariance[numeric_columns],
-  round,
-  3
-)
-report_group_covariance
-```
+`profile_targets(fit_group)` lists the direct SD and correlation targets. A
+`confint(..., newdata = ...)` call can diagnose the modelled group
+correlation's response-scale profile geometry, but a callable target is not
+coverage-backed evidence. The plot therefore shows that group estimate without
+an interval. Returned diagnostic rows include `profile.boundary` and
+`profile.message`; inspect any non-`"ok"` result alongside `check_drm(fit_group)`.
 
-For this mean-mean block, `from_sd` is the among-individual SD in average
-activity and `to_sd` is the among-individual SD in average boldness. The
-`correlation` column is the individual-level activity-boldness correlation,
-and `covariance` is `correlation * from_sd * to_sd`. The `identity` scale
-columns tell you these quantities are on the response-location scale, not on a
-log residual-SD scale.
+## Where to go next
 
-For this fitted block, `check_drm()` reports whether group levels are
-replicated and whether either group-level SD is tiny relative to the matching
-residual scale. A note there is not a proof that the model is wrong; it tells
-you to inspect whether the group-level SDs and correlation are supported by the
-data before treating them as biological conclusions.
+This tutorial stops with one residual-correlation model and one ordinary
+group-level random-intercept correlation. Matching random-slope blocks and
+larger covariance structures answer further biological questions, but their
+evidence differs by model cell and changes faster than this tutorial should.
+Use [What can I fit today?](model-map.html) for the current capability boundary
+and [Formula grammar](formula-grammar.html) for exact syntax. For phylogenetic,
+spatial, animal-model, or supplied-relatedness correlations, continue with
+[Structural dependence](structural-dependence.html).
 
-Use `profile_targets(fit_group)` before requesting profile intervals for this
-block. The SDs are direct random-effect targets, while the modelled
-`corpair()` row is a fixed-effect target on the correlation-link scale:
-
-```{r bivariate-coscale-group-targets}
-group_targets <- profile_targets(fit_group)
-group_cor_dpar <- 'corpair(ID, level = "group", block = "p", from = "mu1", to = "mu2")'
-group_target_names <- c(
-  "sd:mu:mu1:(1 | p | ID)",
-  "sd:mu:mu2:(1 | p | ID)",
-  paste0("fixef:", group_cor_dpar, ":(Intercept)")
-)
-group_targets[
-  match(group_target_names, group_targets$parm),
-  c("parm", "profile_ready", "profile_note")
-]
-```
-
-The group-level SD targets are named like `sd:mu:mu1:(1 | p | id)` and
-`sd:mu:mu2:(1 | p | id)`. The modelled group-level correlation target begins
-with `fixef:corpair(...)`. A `confint(..., newdata = ...)` call can diagnose its
-response-scale profile geometry, but that callable target is not
-coverage-backed interval evidence and was not used in the point-only plot.
-These targets are separate from residual `rho12`. Returned diagnostic profile
-rows include `profile.boundary` and `profile.message`; a non-`"ok"` message is a
-prompt to inspect `check_drm(fit)` and the profile path.
-
-## First slope-slope covariance slice
-
-The first ordinary bivariate random-slope route asks a narrower
-plasticity-syndrome question: do individuals with steeper response-1 slopes
-also tend to have steeper response-2 slopes for the same predictor? It is a
-group-level covariance question, not residual `rho12`.
-
-For a shared predictor `x`, the fitted mean layer is:
-
-\[
-\begin{aligned}
-\mu_{1ij}
-  &= X_{\mu 1}[ij, ]\beta_{\mu 1} + x_{ij}b_{1j},\\
-\mu_{2ij}
-  &= X_{\mu 2}[ij, ]\beta_{\mu 2} + x_{ij}b_{2j},\\
-\begin{bmatrix}
-b_{1j}\\
-b_{2j}
-\end{bmatrix}
-  &\sim \operatorname{MVN}(\mathbf{0}, \Sigma_{\mu,x,ID}).
-\end{aligned}
-\]
-
-The matching first-slice syntax uses slope-only labelled blocks in both
-location formulas:
-
-```r
-drmTMB(
-  bf(
-    mu1 = y1 ~ x + (0 + x | p | id),
-    mu2 = y2 ~ x + (0 + x | p | id),
-    sigma1 = ~1,
-    sigma2 = ~1,
-    rho12 = ~1
-  ),
-  family = biv_gaussian(),
-  data = dat
-)
-```
-
-Read this model through `sdpars$mu` for the two response-specific slope SDs,
-`corpairs(fit, class = "slope-slope")` for the group-level slope-slope
-correlation, `summary(fit)$covariance` for the covariance table, and
-`profile_targets(fit)` for the direct SD and correlation target names. Run
-`check_drm(fit)` before interpreting the row; the relevant diagnostic is the
-bivariate `mu` random-effect covariance check, plus the ordinary convergence,
-Hessian, and boundary checks.
-
-This slope-only route deliberately excludes random intercepts from the same
-labelled bivariate block. If the scientific question needs baseline
-individual differences and slope differences in the same two-response block,
-matching q4 and q6 location blocks are now source-tested with syntax such as
-`(1 + x | p | id)` or `(1 + x + z | p | id)` in both location formulas. Treat
-those routes as fitted extractor/profile-target slices rather than a full
-tutorial or broad simulation claim. Matching q2 `sigma1`/`sigma2` scale-slope
-blocks and same-response q2 `mu`/`sigma` slope covariance are now fitted as
-their own routes. The first ordinary q8 all-endpoint block has opt-in
-smoke/recovery artifact tasks; broader p8/q8 variants and coverage or power
-claims remain planned.
-
-## Boundaries for this covariance layer
-
-The middle `p` in `(1 | p | ID)` follows grouped covariance-block syntax for
-correlated group-level effects. This syntax is distinct from residual `rho12`.
-Use `rho12(fit)` for within-observation residual coupling and
-`corpairs(fit, level = "group")` for fitted ordinary group-level covariance
-rows.
-
-This example teaches only the `mu1`/`mu2` random-intercept covariance row.
-Other implemented ordinary bivariate random-intercept rows include
-`sigma1`/`sigma2`, one same-response `mu`/`sigma` pair, and the all-four
-`mu1`/`mu2`/`sigma1`/`sigma2` block. Read the all-four block as six rows: one
-`mu1`-`mu2` row, four mean-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`,
-`mu2`-`sigma1`, and `mu2`-`sigma2`), and one `sigma1`-`sigma2` row.
-
-The first ordinary bivariate slope-slope route is now the matching
-`(0 + x | p | id)` block in both `mu1` and `mu2`. The first ordinary q8
-all-endpoint block is available as a diagnostic artifact lane, not a tutorial
-or coverage claim. Broader p8/q8 location-scale slope variants, random effects
-in `rho12`, bivariate `meta_V()` plus random effects,
-mixed-response families, and ordinary spatial group-level covariance remain
-future work unless a later status map says otherwise. For phylogenetic
-covariance, use the structural-dependence tutorial and keep those rows
-separate from both ordinary group-level covariance and residual `rho12`.
+The interpretation rule does not change: `rho12` is residual coupling within
+an observation, whereas `corpairs()` reports latent group or structured
+correlations. Do not substitute one for the other.
