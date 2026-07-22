@@ -101,9 +101,9 @@ navbar:
       menu:
         - text: Mean effects and residual heterogeneity
           href: articles/meta-analysis.html
-        - text: Running models with the Julia engine
+        - text: Julia support (future work)
           href: articles/julia-engine.html
-        - text: Cross-family bivariate (Julia)
+        - text: Cross-family bivariate (deferred)
           href: articles/cross-family.html
     developer:
       text: Developer Notes
@@ -200,8 +200,8 @@ reference:
       - centile_chart
       - worm_plot
       - qq_plot
-  - title: Julia engine
-    desc: Experimental Julia-engine methods and extractors for cross-family bivariate fits.
+  - title: Future Julia support
+    desc: Deprecated bridge methods retained for compatibility; the Julia engine and cross-family bivariate fitting are halted/deferred future work.
     contents:
       - confint.drmTMB_julia
       - predict.drmTMB_julia

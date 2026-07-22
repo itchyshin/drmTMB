@@ -120,9 +120,9 @@ explains which fitted routes have recovery or interval evidence. Do not infer
 support for a neighbouring formula from syntax that happens to parse.
 
 `drmTMB` supports one-response and two-response models. Higher-dimensional
-multivariate models, richer unsupported random-effect structures, and the
-optional Julia engine are not hidden alternatives to the documented R/TMB
-workflows.
+multivariate models and richer unsupported random-effect structures are not
+hidden alternatives to the documented R/TMB workflows. The Julia bridge is
+halted/deferred future work, not an installable alternate engine.
 
 ## What has evidence today
 
