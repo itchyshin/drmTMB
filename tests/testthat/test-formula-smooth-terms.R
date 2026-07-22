@@ -53,6 +53,32 @@ test_that("a smooth marker on a non-location parameter is rejected too", {
   )
 })
 
+# `impute_model()` takes a plain formula and never reaches the drmTMB() hooks, so
+# it needs its own guards. Before these, an imputation model with s() failed with
+# R's `could not find function "s"` and one with `||` with
+# `'length = N' in coercion to 'logical(1)'` -- the same raw errors the main
+# formula hooks remove, on the one route those hooks cannot see.
+test_that("imputation models reject smooth terms", {
+  expect_error(
+    impute_model(x ~ s(z)),
+    "Smooth terms are not supported in imputation models"
+  )
+})
+
+test_that("imputation models reject `||` and name the explicit form", {
+  err <- tryCatch(
+    impute_model(x ~ z + (1 + z || g)),
+    error = function(e) conditionMessage(e)
+  )
+  expect_match(err, "not supported in imputation models")
+  expect_match(err, "0 \\+ z \\| g")
+})
+
+test_that("ordinary imputation formulas are untouched", {
+  expect_no_error(impute_model(x ~ z))
+  expect_no_error(impute_model(x ~ z + (1 | g)))
+})
+
 test_that("ordinary bases still fit", {
   skip_on_cran()
   data <- smooth_term_fixture()
