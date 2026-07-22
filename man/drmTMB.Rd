@@ -96,8 +96,9 @@ Bernoulli/logit \code{impute_model()}, complete count responses, and no
 zero-inflation, random, or structured response terms.}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
-\code{drmTMB} TMB backend. The experimental \code{"julia"} route calls DRM.jl
-through JuliaCall for the supported bridge slice.}
+\code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and
+deferred for future work; it is retained only so existing objects and code
+can be inspected, not as a current fitting route.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} keeps REML Gaussian-only and
@@ -120,12 +121,11 @@ direct-SD formula, or \code{corpair()} regression. Both have point-fit-recovery
 evidence only; bivariate \code{relmat(..., Q = Q)} REML remains deferred.
 Aggregation and ordinary direct \code{sd()} scale formulae also
 remain unsupported under REML.
-Experimental \code{engine = "julia"} forwards \code{REML = TRUE} only for supported
-Gaussian bridge cells, including fixed-effect location-scale models,
-Gaussian \code{sigma}-phylo location-scale models, and the bivariate q = 4
-phylogenetic location-scale route. Use the default \code{REML = FALSE} for
-likelihood-ratio tests, AIC/BIC comparisons across different fixed-effect
-formulas, non-Gaussian models, and currently unsupported extensions.}
+The halted \code{engine = "julia"} compatibility bridge is not a supported
+estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
+\code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
+different fixed-effect formulas, non-Gaussian models, and currently
+unsupported extensions.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty

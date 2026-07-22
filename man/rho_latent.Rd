@@ -2,12 +2,12 @@
 % Please edit documentation in R/julia-bridge.R
 \name{rho_latent}
 \alias{rho_latent}
-\title{Latent-scale correlation from a cross-family Julia fit}
+\title{Extract a latent-scale correlation from a legacy Julia-bridge fit}
 \usage{
 rho_latent(object, ...)
 }
 \arguments{
-\item{object}{A \code{drmTMB_julia_xfam} cross-family fit.}
+\item{object}{A legacy \code{drmTMB_julia_xfam} cross-family fit.}
 
 \item{...}{Unused.}
 }
@@ -15,28 +15,8 @@ rho_latent(object, ...)
 The latent / link-scale correlation between the two responses.
 }
 \description{
-Latent-scale correlation from a cross-family Julia fit
-}
-\examples{
-\dontrun{
-# Requires the DRM.jl engine (engine = "julia").
-set.seed(20260610)
-n <- 150
-x <- rnorm(n)
-u <- rnorm(n)
-dat <- data.frame(
-  y1 = 0.5 + 0.8 * x + 0.7 * u + rnorm(n, sd = 0.5),
-  y2 = rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
-  x = x
-)
-
-fit <- drmTMB(
-  bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
-  family = c(gaussian(), poisson()),
-  data = dat,
-  engine = "julia"
-)
-
-rho_latent(fit)
-}
+The cross-family Julia bridge is halted/deferred future work. This
+compatibility extractor is retained only for an existing
+\code{drmTMB_julia_xfam} object; it does not establish a current cross-family
+fitting or inference capability.
 }
