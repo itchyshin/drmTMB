@@ -81,13 +81,18 @@ coverage, tier, CRAN, or public-support claim.
 Initial review found that a structural completion check and a registry-only
 sentinel were insufficient. The repair binds completion to retained status and
 interval fields, authenticates the installed source at launch, and adds the
-actual smoke/reducer paths.
+actual smoke/reducer paths. The first approved Totoro smoke then failed closed
+before fitting: both retained attempts record `could not find function
+"drmTMB"`, because the standalone tools checked the namespace but did not
+attach it for sourced simulation code. The runner repair is tested, but it has
+not been re-executed.
 
 ## 10. Known Residuals
 
-No Totoro/DRAC smoke, timing measurement, campaign, capability promotion,
-coverage certification, or CRAN action has occurred. Formal compute remains
-blocked on the cleared Fisher/Rose review record and Shinichi's explicit
+The first two-attempt Totoro smoke is retained as failed infrastructure, not
+model evidence: neither attempt reached a fit or interval. There is therefore
+no timing measurement, campaign, capability promotion, coverage certification,
+or CRAN action. A repeat smoke requires a fresh exact-SHA review and explicit
 smoke-only approval.
 
 ## 11. Team Learning

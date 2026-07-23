@@ -222,6 +222,13 @@ test_that("Phase 18 meta_V B3 contract freezes the formal grid and sentinel", {
 
 test_that("Phase 18 meta_V B3 contract writes and checks complete artifacts", {
   source_phase18_meta_v_grid_writer()
+  for (runner in c("tools/run-meta-v-b3-smoke.R", "tools/run-meta-v-b3-shard.R")) {
+    runner_path <- testthat::test_path("..", "..", runner)
+    expect_match(
+      paste(readLines(runner_path, warn = FALSE), collapse = "\n"),
+      "suppressPackageStartupMessages\\(library\\(drmTMB\\)\\)"
+    )
+  }
   contract <- phase18_meta_v_b3_contract("test-sha")
   output_dir <- tempfile("phase18-meta-v-b3-contract-")
   withr::defer(unlink(output_dir, recursive = TRUE))

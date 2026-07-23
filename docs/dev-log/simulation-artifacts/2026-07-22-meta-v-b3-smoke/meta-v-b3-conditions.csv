@@ -1,0 +1,15 @@
+"cell_id","surface","n_study","known_v_type","sigma","sampling_sd","sampling_rho","design_role","beta_mu_intercept","beta_mu_x"
+"meta_v_b3_001","meta_v_b3",8,"vector",0.1,0.12,0,"boundary_ladder",0.2,0.45
+"meta_v_b3_002","meta_v_b3",12,"vector",0.1,0.12,0,"boundary_ladder",0.2,0.45
+"meta_v_b3_003","meta_v_b3",16,"vector",0.1,0.12,0,"boundary_ladder",0.2,0.45
+"meta_v_b3_004","meta_v_b3",36,"vector",0.1,0.12,0,"boundary_ladder",0.2,0.45
+"meta_v_b3_005","meta_v_b3",72,"vector",0.1,0.12,0,"boundary_ladder",0.2,0.45
+"meta_v_b3_006","meta_v_b3",12,"vector",0.1,0.22,0,"known_v_stress",0.2,0.45
+"meta_v_b3_007","meta_v_b3",12,"dense",0.1,0.12,0,"known_v_stress",0.2,0.45
+"meta_v_b3_008","meta_v_b3",12,"dense",0.1,0.22,0,"known_v_stress",0.2,0.45
+"meta_v_b3_009","meta_v_b3",12,"dense",0.1,0.12,0.25,"known_v_stress",0.2,0.45
+"meta_v_b3_010","meta_v_b3",12,"dense",0.1,0.22,0.25,"known_v_stress",0.2,0.45
+"meta_v_b3_011","meta_v_b3",12,"vector",0.35,0.12,0,"interior_control",0.2,0.45
+"meta_v_b3_012","meta_v_b3",36,"vector",0.35,0.12,0,"interior_control",0.2,0.45
+"meta_v_b3_013","meta_v_b3",12,"dense",0.35,0.12,0.25,"interior_control",0.2,0.45
+"meta_v_b3_014","meta_v_b3",36,"dense",0.35,0.12,0.25,"interior_control",0.2,0.45

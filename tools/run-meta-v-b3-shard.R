@@ -14,6 +14,7 @@ if (length(args) != 3L) {
 if (!requireNamespace("drmTMB", quietly = TRUE)) {
   stop("The installed drmTMB package is required.", call. = FALSE)
 }
+suppressPackageStartupMessages(library(drmTMB))
 
 for (path in c(
   "sim/R/sim_utils.R",
