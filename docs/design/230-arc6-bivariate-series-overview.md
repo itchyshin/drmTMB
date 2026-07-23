@@ -1,11 +1,12 @@
 # Arc 6 bivariate series — mixed-family implementation overview
 
 > **Implementation authority 2 of 2 (roadmap only).** This document governs
-> the order and boundaries of Arc 6's two-response programme. The executable
-> first-slice contract is
-> [`2026-07-23-arc6-margin-first-latent-normal-ultra-plan.md`](../dev-log/2026-07-23-arc6-margin-first-latent-normal-ultra-plan.md).
-> It does not authorize package code, smoke tests, campaigns, capability
-> promotion, Julia, `meta_V()`, or CRAN work.
+> the order and boundaries of Arc 6's two-response programme. The linked
+> Arc 6.1 Ultra Plan is historical planning provenance; Arc 6.2's implemented
+> [contract](232-arc6-2-gaussian-nbinom2-contract.md) and 2026-07-23 after-task
+> report record the current development evidence.
+> Neither document authorizes recovery, capability promotion, Julia,
+> `meta_V()`, or CRAN work.
 
 ## Purpose
 
@@ -77,11 +78,10 @@ contract, review, and owner stop. This keeps a new likelihood or CDF adapter
 inside one workable context window and stops a difficult pair from consuming
 the next pair's validation budget.
 
-Only **Arc 6.1** is ready to open now. **Arc 6.2** is the next queued decision
-after 6.1 is reviewed. Arcs 6.3--6.8 are a visible order of work, not standing
-authorization to implement them. Arc 6 is reconsidered after Arc 6.2; direct
-kernels and research-gated classes receive a number only when the owner opens
-them.
+Arcs **6.1** and **6.2** are the only implemented development slices. Arcs
+6.3--6.8 are a visible order of work, not standing authorization to implement
+them. Arc 6 is reconsidered after Arc 6.2; direct kernels and research-gated
+classes receive a number only when the owner opens them.
 
 ## The eight proposed implementation subarcs
 
@@ -91,8 +91,8 @@ and owner gate. “Later” means unimplemented and unsupported.
 | Arc | Pair class | First representative | Association form | Principal risk | Status |
 | --- | --- | --- | --- | --- | --- |
 | Comparator | Gaussian × Gaussian | existing model | exact Gaussian `rho12` | compatibility only | existing comparator; never replaced |
-| 6.1 | continuous × binary | Gaussian × Bernoulli | density × conditional-normal Bernoulli probability | prevalence, separation, boundary `eta` | **current first arc** |
-| 6.2 | continuous × overdispersed count | Gaussian × NB2 | density × conditional-normal count-CDF interval | count tails and CDF cancellation | queued after 6.1 owner gate |
+| 6.1 | continuous × binary | Gaussian × Bernoulli | density × conditional-normal Bernoulli probability | prevalence, separation, boundary `eta` | implemented; regression smoke recorded separately |
+| 6.2 | continuous × overdispersed count | Gaussian × NB2 | density × conditional-normal count-CDF interval | count tails and CDF cancellation | implemented; point-estimate-only, smoke recorded separately |
 | 6.3 | lognormal × lognormal | two lognormal margins | exact bivariate normal on log response scale | scale interpretation | demand review after 6.2 |
 | 6.4 | Student-t × Student-t | two compatible Student-t margins | exact bivariate t with a shared degrees-of-freedom contract | common-`nu` identification and tails | demand review after 6.2 |
 | 6.5 | binary × binary | paired Bernoulli | bivariate-normal rectangle | rare cells and near separation | later |
@@ -210,10 +210,10 @@ bootstrap that refits both stages.
 
 ## Decision and compute gates
 
-1. Review and owner approval of the first Ultra Plan authorizes only contract
-   reconciliation and code planning—not a smoke or recovery study.
-2. After first-pair implementation review, the owner separately decides
-   whether to run a small smoke.
+1. Arc 6.2 owner approval authorized the two named development smokes only:
+   Arc 6.1 regression and Arc 6.2 new-pair, each with a separate ledger.
+2. Smoke evidence does not authorize recovery, inference, or capability
+   promotion.
 3. Only after smoke evidence and a separate owner decision may a retained
    all-attempt campaign run on Totoro or DRAC; never GitHub Actions.
 4. Each next representative pair or exact-special batch has its own symbolic,

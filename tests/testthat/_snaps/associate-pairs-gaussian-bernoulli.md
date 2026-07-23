@@ -5,7 +5,7 @@
     Condition
       Error in `rho12()`:
       ! `rho12()` is defined for `biv_gaussian()` fits, not mixed pair associations.
-      i Use `association()` for the Arc 6.1 latent-normal estimand.
+      i Use `association()` for the Arc 6 latent-normal estimand.
 
 ---
 
@@ -13,7 +13,7 @@
       vcov(association_fit)
     Condition
       Error in `vcov()`:
-      ! `vcov()` is unavailable for Arc 6.1 frozen-margin association estimates.
+      ! `vcov()` is unavailable for Arc 6 frozen-margin association estimates.
       i A later Arc must validate two-stage sandwich or bootstrap uncertainty.
 
 ---
@@ -22,7 +22,7 @@
       confint(association_fit)
     Condition
       Error in `confint()`:
-      ! Confidence intervals are unavailable for Arc 6.1 frozen-margin association estimates.
+      ! Confidence intervals are unavailable for Arc 6 frozen-margin association estimates.
       i A later Arc must validate two-stage uncertainty before `confint()` is available.
 
 ---
@@ -31,7 +31,7 @@
       quantile(association_fit)
     Condition
       Error in `quantile()`:
-      ! Quantiles are unavailable for Arc 6.1 frozen-margin association estimates.
+      ! Quantiles are unavailable for Arc 6 frozen-margin association estimates.
 
 ---
 
@@ -48,7 +48,7 @@
       emmeans::recover_data(association_fit)
     Condition
       Error in `mth()`:
-      ! emmeans is unavailable for Arc 6.1 frozen-margin association estimates.
+      ! emmeans is unavailable for Arc 6 frozen-margin association estimates.
 
 ---
 
@@ -56,7 +56,7 @@
       predict(association_fit, newdata = data.frame(x = 0))
     Condition
       Error in `predict()`:
-      ! Arc 6.1 association predictions are defined only for frozen analysis rows.
+      ! Arc 6 association predictions are defined only for frozen analysis rows.
       i New-data association prediction needs a separate validated Arc.
 
 ---
@@ -66,7 +66,7 @@
       association = ~x)
     Condition
       Error in `drm_pair_validate_intercept_only()`:
-      ! Arc 6.1 supports only `association = ~ 1`.
+      ! Arc 6 supports only `association = ~ 1`.
       i Association slopes require a later Arc and separate identification review.
 
 ---
@@ -83,7 +83,7 @@
       associate_pairs(fits$gaussian, fits$binary, kernel = latent_normal())
     Condition
       Error in `associate_pairs()`:
-      ! Supply `association = ~ 1`; Arc 6.1 has no implicit association model.
+      ! Supply `association = ~ 1`; Arc 6 has no implicit association model.
 
 # Gaussian x Bernoulli association rejects different rows and trials
 

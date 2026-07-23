@@ -10,10 +10,10 @@ associate_pairs(fit_1, fit_2, kernel, association)
 \item{fit_1, fit_2}{Two fitted \code{drmTMB} marginal models. They must use the
 identical complete analysis data, in the same order.}
 
-\item{kernel}{A named association kernel. Arc 6.1 accepts only
+\item{kernel}{A named association kernel. Arc 6.2 accepts only
 \code{latent_normal()}.}
 
-\item{association}{Association formula. Arc 6.1 accepts only \code{~ 1}.}
+\item{association}{Association formula. Arc 6.2 accepts only \code{~ 1}.}
 }
 \value{
 An object of class \code{drm_pair_association}.
@@ -21,9 +21,9 @@ An object of class \code{drm_pair_association}.
 \description{
 \code{associate_pairs()} estimates a named within-row association after fitting
 two marginal models. It never refits, updates, profiles, or otherwise alters
-either margin. Arc 6.1 implements only a fixed-effect Gaussian margin paired
-with a fixed-effect literal Bernoulli \code{binomial(link = "logit")} margin on
-the same complete analysis rows.
+either margin. The first two Arc 6 slices implement fixed-effect Gaussian
+margins paired with either literal Bernoulli \code{binomial(link = "logit")} or
+ordinary \code{nbinom2()} margins on the same complete analysis rows.
 }
 \details{
 The fitted parameter \code{eta} is a Gaussian-copula latent-normal association.
