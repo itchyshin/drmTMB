@@ -2640,6 +2640,84 @@ The current dense-known-`V` implementation:
   either `cov12` or `cor12`;
 - documents sensitivity analysis when within-study correlations are unknown.
 
+## Implemented Post-Fit Gaussian × Bernoulli and Gaussian × NB2 Latent-Normal Association (Development)
+
+This implemented post-0.6 development route is a separate post-fit object, not
+a new TMB family or a joint `drmTMB()` likelihood. It starts from two
+fixed-effect marginal fits made on the same complete paired analysis rows: a Gaussian response
+`Y_G` and either a literal 0/1 Bernoulli response `Y_B` or ordinary NB2 count
+`Y_N`. Either supplied input order is accepted; the Gaussian-first display is
+conventional. Stage 1 is immutable in stage 2: it must not refit, profile,
+update, or reweight either margin.
+
+For frozen Gaussian location and scale `mu_i`, `sigma_i`, and frozen Bernoulli
+probability `p_i`, define
+
+```text
+z_i = (y_Gi - mu_i) / sigma_i
+c_i = qnorm(1 - p_i)
+eta = 0.999999 * tanh(alpha)
+```
+
+The implemented latent-normal model is
+
+```text
+[Z_Gi, Z_Bi]' ~ Normal([0, 0]', [[1, eta], [eta, 1]])
+Y_Bi = 1(Z_Bi > c_i)
+r_i = Pr(Y_Bi = 1 | Z_Gi = z_i)
+    = 1 - Phi((c_i - eta z_i) / sqrt(1 - eta^2))
+```
+
+so the stage-2 joint log likelihood is
+
+```text
+log L(alpha) = sum_i [
+  log NormalDensity(y_Gi | mu_i, sigma_i)
+  + y_Bi log(r_i) + (1 - y_Bi) log(1 - r_i)
+]
+```
+
+The Gaussian term is constant in `alpha`, but documenting it keeps the joint
+estimand explicit. Production evaluation must use stable log-normal-tail
+calculations rather than `log(1 - pnorm(...))` in the tail.
+
+For the ordinary-NB2 pair, freeze `mu_Ni` and `sigma_Ni`, where
+`size_i = 1 / sigma_Ni^2` and `Var(Y_Ni) = mu_Ni + sigma_Ni^2 * mu_Ni^2`.
+Define `F_i(k)` as the NB2 CDF, with `F_i(-1) = 0`, and
+
+```text
+a_i = qnorm(F_i(y_Ni - 1))
+b_i = qnorm(F_i(y_Ni))
+r_i = Phi((b_i - eta z_i) / sqrt(1 - eta^2))
+    - Phi((a_i - eta z_i) / sqrt(1 - eta^2))
+```
+
+Its contribution is
+
+```text
+log NormalDensity(y_Gi | mu_Gi, sigma_Gi) + log(r_i).
+```
+
+At `eta = 0`, `r_i = F_i(y_Ni) - F_i(y_Ni - 1)`, exactly the NB2 mass.
+Production constructs endpoints from log-CDF and log-survival values using the
+smaller tail, then evaluates the normal interval in log space. It never
+jitters, clips, floors, or replaces a collapsed CDF jump. Only the lower
+endpoint for `y_Ni = 0` is analytically infinite. The association predictor is
+intercept-only in these first slices.
+
+`eta` is a latent-normal association conditional on the frozen margins. It is
+not bivariate-Gaussian residual coscale `rho12`, observed-scale correlation,
+or a `corpairs()` random-effect extractor (the `corpair()` formula marker is a
+different interface). The first output is limited to a
+point estimate and diagnostics, including boundary and response-pattern
+checks. It exposes no standard errors, intervals, profiles, `vcov()`,
+residuals, quantiles, or `emmeans` method. These implementations exclude
+random, phylogenetic, structured, or association-slope effects, partial/missing
+pairs, offsets, weights, `mi()`, `meta_V()`, REML, binomial trial-count
+responses, and zero-inflated, hurdle, or truncated NB2 responses. They are not
+a released 0.6.0 feature. No recovery campaign, interval or coverage result, or
+capability promotion follows from these development implementations.
+
 ## Implemented Bivariate Gaussian Location-Coscale
 
 Bivariate Gaussian location-coscale:
