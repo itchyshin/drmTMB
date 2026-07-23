@@ -25,8 +25,10 @@ predictors when \code{type = "link"}.
 }
 \description{
 \code{rho12()} returns the residual response-response correlation from a
-bivariate Gaussian \code{drmTMB} fit. By default it returns the response-scale
-correlation. Use \code{type = "link"} for the Fisher-z-like linear predictor
+bivariate Gaussian or bivariate lognormal \code{drmTMB} fit. For a bivariate
+Gaussian fit this is a response-scale residual correlation; for
+\code{biv_lognormal()} it is correlation of the log-response residuals, not a
+raw-scale correlation. Use \code{type = "link"} for the Fisher-z-like linear predictor
 whose response transform is \code{0.999999 * tanh(eta)}.
 }
 \examples{

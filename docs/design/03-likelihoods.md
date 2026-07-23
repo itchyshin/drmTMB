@@ -2799,6 +2799,31 @@ still needs a phylogenetic scale-scale check.
 The TMB implementation uses tiny boundary guards around `tanh()` for numerical
 positive definiteness; the clean transforms above are the statistical model.
 
+## Implemented Bivariate Lognormal Location-Coscale
+
+`biv_lognormal()` is a separate exact-special likelihood, not a frozen-margin
+copula fit. For complete positive pairs it evaluates a bivariate normal density
+for the log responses and retains both Jacobians:
+
+```text
+[log(y1_i), log(y2_i)]' ~ MVN([mu1_i, mu2_i]', Omega)
+log(sigma1) = beta_sigma1
+log(sigma2) = beta_sigma2
+rho12 = 0.999999 * tanh(beta_rho12)
+log f(y1_i, y2_i) = log phi_2(log(y1_i), log(y2_i); mu_i, Omega)
+                     - log(y1_i) - log(y2_i)
+```
+
+`rho12` is the residual correlation on the log-response scale. It is not the
+raw-scale correlation and not `associate_pairs()`'s conditional latent-normal
+`eta`. `mu1` and `mu2` may have fixed-effect formulas; `sigma1`, `sigma2`, and
+`rho12` are intercept-only. The first slice rejects weights, offsets,
+incomplete pairs, non-positive/non-finite values, `meta_V`, random or
+structured effects, sigma/rho predictors, `mi()`, REML, Julia, profiles,
+intervals, coverage, and capability claims.
+
+## Bivariate Gaussian syntax and covariance extensions
+
 Location formulas for the two responses may differ. `rho12` is residual
 response-response correlation, not a group-level random-effect correlation.
 

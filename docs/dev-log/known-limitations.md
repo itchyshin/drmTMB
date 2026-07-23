@@ -371,7 +371,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   Arc 3a fits one recovery-grade unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`.
   Structured slopes, labels,
   `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers, spatial/animal,
-  REML, intervals/coverage, and bivariate lognormal models remain rejected.
+  REML, intervals/coverage, and bivariate lognormal extensions beyond the
+  separate fixed-effect complete-pair Arc 6.3 slice remain rejected.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric

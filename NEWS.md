@@ -1,5 +1,15 @@
 # drmTMB 0.6.0
 
+## Arc 6.3 exact bivariate lognormal development slice
+
+* `biv_lognormal()` now fits one bounded exact bivariate-lognormal likelihood:
+  fixed-effect `mu1`/`mu2`, constant log-response SDs, and a constant `rho12`.
+  `rho12` is the within-row residual correlation on the log-response scale, not
+  the frozen-margin `eta` or a raw-scale correlation. The route accepts only
+  complete, finite, positive pairs with unit weights; all random/structured
+  effects, sigma/rho predictors, offsets, `meta_V`, `mi()`, REML, Julia,
+  intervals, coverage, and capability claims remain deferred.
+
 ## Cross-family association first implementation
 
 * Post-0.6 development now implements the bounded post-fit

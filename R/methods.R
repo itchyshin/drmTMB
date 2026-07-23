@@ -19,6 +19,7 @@ print.drmTMB <- function(x, ...) {
     hurdle_nbinom2 = "hurdle negative binomial 2 mean-dispersion",
     zi_nbinom2 = "zero-inflated negative binomial 2 mean-dispersion",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
+    biv_lognormal = "bivariate lognormal location-scale-coscale",
     "distributional"
   )
   cli::cli_text("<drmTMB {label} fit>")
@@ -745,8 +746,10 @@ weights.drmTMB <- function(object, ...) {
 #' Extract residual correlation rho12
 #'
 #' `rho12()` returns the residual response-response correlation from a
-#' bivariate Gaussian `drmTMB` fit. By default it returns the response-scale
-#' correlation. Use `type = "link"` for the Fisher-z-like linear predictor
+#' bivariate Gaussian or bivariate lognormal `drmTMB` fit. For a bivariate
+#' Gaussian fit this is a response-scale residual correlation; for
+#' `biv_lognormal()` it is correlation of the log-response residuals, not a
+#' raw-scale correlation. Use `type = "link"` for the Fisher-z-like linear predictor
 #' whose response transform is `0.999999 * tanh(eta)`.
 #'
 #' @param object A `drmTMB` fit.
@@ -916,6 +919,11 @@ corpairs.drmTMB <- function(
 ) {
   validate_summary_conf_int(conf.int)
   method <- validate_interval_method(method, "profile", "corpairs()")
+  if (conf.int && identical(object$model$model_type, "biv_lognormal")) {
+    cli::cli_abort(
+      "{.fn corpairs} profile intervals are not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+    )
+  }
   if (!conf.int && length(list(...)) > 0L) {
     cli::cli_abort(
       "Additional arguments in {.arg ...} are only used when {.code conf.int = TRUE}."
@@ -2197,7 +2205,7 @@ univariate_response_name <- function(object, dpar) {
 }
 
 random_effect_response_name <- function(object, dpar) {
-  if (identical(object$model$model_type, "biv_gaussian")) {
+  if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
     response_names <- bivariate_response_names(object)
     if (dpar %in% c("mu1", "sigma1")) {
       return(response_names[[1L]])
@@ -2240,9 +2248,10 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' `(1 - hu) * mu / (1 - Pr_NB2(0))`.
 #' For zero-inflated Poisson and zero-inflated negative-binomial 2 fits this is
 #' the unconditional response mean `(1 - zi) * mu`, where `mu` is the
-#' conditional count mean. For bivariate Gaussian fits this is a
-#' two-column matrix with `mu1` and `mu2`. For lognormal fits this is the
-#' arithmetic response mean, `exp(mu + sigma^2 / 2)`.
+#' conditional count mean. For bivariate Gaussian fits this is a two-column
+#' matrix with `mu1` and `mu2`. For bivariate lognormal fits it is a two-column
+#' matrix of arithmetic marginal means. For lognormal fits this is the arithmetic
+#' response mean, `exp(mu + sigma^2 / 2)`.
 #'
 #' Fitted values are returned for the original fitted rows. Use [predict()] for
 #' new data or for non-location distributional parameters such as `sigma` or
@@ -2252,7 +2261,7 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' @param ... Reserved for future fitted-value options.
 #'
 #' @return A numeric vector for univariate fits, or a two-column matrix for
-#'   bivariate Gaussian fits.
+#'   bivariate Gaussian or bivariate lognormal fits.
 #' @export
 #'
 #' @examples
@@ -3120,8 +3129,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     z1 <- stats::rnorm(length(mu1))
     z2_ind <- stats::rnorm(length(mu1))
     z2 <- rho12 * z1 + sqrt(1 - rho12^2) * z2_ind
-    out[[paste0("sim_", j, "_y1")]] <- mu1 + sigma1 * z1
-    out[[paste0("sim_", j, "_y2")]] <- mu2 + sigma2 * z2
+    log_y1 <- mu1 + sigma1 * z1
+    log_y2 <- mu2 + sigma2 * z2
+    if (identical(object$model$model_type, "biv_lognormal")) {
+      out[[paste0("sim_", j, "_y1")]] <- exp(log_y1)
+      out[[paste0("sim_", j, "_y2")]] <- exp(log_y2)
+    } else {
+      out[[paste0("sim_", j, "_y1")]] <- log_y1
+      out[[paste0("sim_", j, "_y2")]] <- log_y2
+    }
   }
   as.data.frame(out)
 }
@@ -3552,8 +3568,9 @@ residuals.drmTMB <- function(
 #' negative-binomial 2, zero-truncated negative-binomial 2, hurdle
 #' negative-binomial 2, and zero-inflated negative-binomial 2 models this is
 #' the fitted overdispersion scale in the untruncated NB2 component
-#' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian models
-#' it returns a roundable list with fitted `sigma1` and `sigma2` vectors.
+#' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian and
+#' bivariate lognormal models it returns a roundable list with fitted `sigma1`
+#' and `sigma2` vectors (on the log-response scale for bivariate lognormal).
 #'
 #' In meta-analytic models fitted with `meta_V(V = V)`, this is the
 #' modelled residual heterogeneity scale, not the square root of the known
@@ -3564,7 +3581,7 @@ residuals.drmTMB <- function(
 #' @param ... Reserved for future scale-extractor options.
 #'
 #' @return A numeric vector for univariate models, or a named, roundable list
-#'   of numeric vectors for bivariate Gaussian models.
+#'   of numeric vectors for bivariate Gaussian or bivariate lognormal models.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -3597,7 +3614,7 @@ sigma.drmTMB <- function(object, ...) {
   ) {
     return(rep(1, length(object$model$y)))
   }
-  if (identical(object$model$model_type, "biv_gaussian")) {
+  if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
     return(new_biv_sigma(
       sigma1 = predict(object, dpar = "sigma1"),
       sigma2 = predict(object, dpar = "sigma2")
@@ -3707,6 +3724,11 @@ summary.drmTMB <- function(
 ) {
   profile_precision_missing <- missing(profile_precision)
   validate_summary_conf_int(conf.int)
+  if (conf.int && identical(object$model$model_type, "biv_lognormal")) {
+    cli::cli_abort(
+      "{.fn summary} confidence intervals are not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+    )
+  }
   validate_summary_trace(trace)
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
@@ -5107,6 +5129,16 @@ drm_fitted_response <- function(object) {
       mu2 = predict.drmTMB(object, dpar = "mu2")
     ))
   }
+  if (identical(object$model$model_type, "biv_lognormal")) {
+    mu1 <- predict.drmTMB(object, dpar = "mu1")
+    mu2 <- predict.drmTMB(object, dpar = "mu2")
+    sigma1 <- predict.drmTMB(object, dpar = "sigma1")
+    sigma2 <- predict.drmTMB(object, dpar = "sigma2")
+    return(cbind(
+      mu1 = exp(mu1 + sigma1^2 / 2),
+      mu2 = exp(mu2 + sigma2^2 / 2)
+    ))
+  }
   if (identical(object$model$model_type, "lognormal")) {
     return(lognormal_mean(object))
   }
@@ -5229,6 +5261,13 @@ drm_dpar_link <- function(object, dpar) {
     hurdle_nbinom2 = c(mu = "log", sigma = "log", hu = "logit"),
     zi_nbinom2 = c(mu = "log", sigma = "log", zi = "logit"),
     biv_gaussian = c(
+      mu1 = "identity",
+      mu2 = "identity",
+      sigma1 = "log",
+      sigma2 = "log",
+      rho12 = "atanh_guarded"
+    ),
+    biv_lognormal = c(
       mu1 = "identity",
       mu2 = "identity",
       sigma1 = "log",
