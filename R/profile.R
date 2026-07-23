@@ -279,6 +279,11 @@ confint.drmTMB <- function(
   bias_correct = c("location", "none", "group"),
   ...
 ) {
+  if (identical(object$model$model_type, "biv_lognormal")) {
+    cli::cli_abort(
+      "{.fn confint} is not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+    )
+  }
   profile_precision_missing <- missing(profile_precision)
   parallel_missing <- missing(parallel)
   method_missing <- missing(method)
@@ -506,6 +511,9 @@ confint.drmTMB <- function(
 #' profile_targets(fit, ready_only = TRUE)
 #' @export
 profile_targets <- function(object, ready_only = FALSE) {
+  if (identical(object$model$model_type, "biv_lognormal")) {
+    return(empty_profile_targets())
+  }
   if (!inherits(object, "drmTMB") && !inherits(object, "drmTMB_julia")) {
     cli::cli_abort("{.arg object} must be a {.cls drmTMB} fit.")
   }
@@ -594,6 +602,11 @@ profile.drmTMB <- function(
   first_pass_ytol = 2,
   ...
 ) {
+  if (identical(fitted$model$model_type, "biv_lognormal")) {
+    cli::cli_abort(
+      "{.fn profile} is not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+    )
+  }
   if (!inherits(fitted, "drmTMB")) {
     cli::cli_abort("{.arg fitted} must be a {.cls drmTMB} fit.")
   }

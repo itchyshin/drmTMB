@@ -13,7 +13,7 @@
 }
 \value{
 A numeric vector for univariate models, or a named, roundable list
-of numeric vectors for bivariate Gaussian models.
+of numeric vectors for bivariate Gaussian or bivariate lognormal models.
 }
 \description{
 \code{sigma()} returns the fitted scale-like parameter from a \code{drmTMB} model. For
@@ -34,8 +34,9 @@ for consistency with base-R \code{sigma()} conventions. For
 negative-binomial 2, zero-truncated negative-binomial 2, hurdle
 negative-binomial 2, and zero-inflated negative-binomial 2 models this is
 the fitted overdispersion scale in the untruncated NB2 component
-\code{Var(y | component) = mu + sigma^2 * mu^2}. For bivariate Gaussian models
-it returns a roundable list with fitted \code{sigma1} and \code{sigma2} vectors.
+\code{Var(y | component) = mu + sigma^2 * mu^2}. For bivariate Gaussian and
+bivariate lognormal models it returns a roundable list with fitted \code{sigma1}
+and \code{sigma2} vectors (on the log-response scale for bivariate lognormal).
 }
 \details{
 In meta-analytic models fitted with \code{meta_V(V = V)}, this is the

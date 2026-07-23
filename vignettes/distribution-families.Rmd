@@ -53,6 +53,7 @@ quantity each `sigma` formula models.
 | Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | ordinary `mu` random intercepts/slopes plus an exact recovery-grade q=1 `mu ~ spatial(1 + x | ...)` gate; the intercept-only spatial `mu` and `nu ~ phylo()` gates are diagnostic-only; other `sigma`/`nu` random effects and bivariate models are planned |
 | Continuous with asymmetric residuals | `skew_normal()` | `mu`, `sigma`, `nu` | response standard deviation; `nu` is residual slant | ordinary `mu` random intercepts and independent slopes are fitted; the exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; `sigma`/`nu` random effects and structured routes are planned |
 | Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | `mu` random intercepts/slopes and a `sigma` random intercept are fitted; only the exact ledger domain for the `sigma` intercept is inference-ready with caveats |
+| Two positive multiplicative responses | `biv_lognormal()` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | log-response SDs and log-residual correlation | exact fixed-effect complete-pair development slice; `rho12` is not raw-scale correlation or latent `eta`; no random effects, sigma/rho predictors, intervals, coverage, or capability claim |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | `mu` random intercepts/slopes and a `sigma` random intercept are fitted; its exact ordinary log-`sigma` intercept domain is inference-ready with caveats at true SD 0.40, `n_each=12`, and `M >= 32` (`M=16` borderline); `sigma` slopes and bivariate models are planned |
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | ordinary `mu` random intercepts and independent slopes are fitted; the exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; `nu ~ 1` remains intercept-only and other distributional random effects are planned |
 | Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | ordinary `mu` random intercepts/slopes and exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates are fitted; exact 0/1 boundary values use `zero_one_beta()` |
@@ -306,7 +307,8 @@ An ordinary log-`sigma` random intercept is also fitted; only the exact tested
 domain in capability cell `mc-0382` is inference-ready with caveats, with mildly
 anti-conservative rather than nominal coverage. Fit the `mu` and `sigma`
 random-effect routes separately; the package rejects their combination. Scale slopes, known sampling
-covariance, phylogenetic terms, and bivariate lognormal models are planned later.
+covariance, phylogenetic terms, and bivariate lognormal extensions beyond the
+separate fixed-effect complete-pair slice are planned later.
 
 Gamma mean-CV models are implemented for positive continuous responses where
 relative variability is the scale target:

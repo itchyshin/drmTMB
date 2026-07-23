@@ -3873,7 +3873,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_zi);
-  } else if (model_type == 2) {
+  } else if (model_type == 2 || model_type == 19) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;
     vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
@@ -4427,6 +4427,13 @@ Type objective_function<Type>::operator()()
       drm_bivariate_gaussian_diag_nll(
         nll, y1, y2, mu1, mu2, log_sigma1, log_sigma2,
         sigma1, sigma2, rho12, weights, observed_y1, observed_y2);
+      if (model_type == 19) {
+        for (int i = 0; i < y1.size(); ++i) {
+          if (observed_y1(i) == 1 && observed_y2(i) == 1) {
+            nll += weights(i) * (y1(i) + y2(i));
+          }
+        }
+      }
     }
 
     REPORT(mu1);

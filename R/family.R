@@ -38,6 +38,33 @@ biv_gaussian <- function() {
   )
 }
 
+#' Bivariate lognormal response family
+#'
+#' `biv_lognormal()` defines an exact two-response lognormal distribution.
+#' Its `rho12` is the residual correlation on the log-response scale, not a
+#' raw-response correlation and not the frozen-margin association `eta`.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' biv_lognormal()
+biv_lognormal <- function() {
+  structure(
+    list(
+      name = "biv_lognormal",
+      family = "biv_lognormal",
+      n_response = 2L,
+      dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
+      links = c(
+        mu1 = "identity", mu2 = "identity", sigma1 = "log",
+        sigma2 = "log", rho12 = "atanh_guarded"
+      )
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Student-t response family
 #'
 #' `student()` defines a one-response Student-t distribution with formulas for

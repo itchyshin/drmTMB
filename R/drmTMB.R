@@ -233,6 +233,11 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  if (identical(family_type, "biv_lognormal") && !is.null(weights_expr)) {
+    cli::cli_abort(
+      "{.fn biv_lognormal} does not support a {.arg weights} argument; implicit likelihood weights are one."
+    )
+  }
   # Non-Gaussian REML (doc 224, object O2): `binomial` is admitted. Marginalising
   # `beta_mu` via the existing Laplace fold IS the joint-Laplace restricted likelihood,
   # which equals glmmTMB(REML = TRUE) (identical fixed-effect-into-random construction).
@@ -417,6 +422,13 @@ drmTMB <- function(
       missing = missing_control
     ),
     biv_gaussian = drm_build_biv_gaussian_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full,
+      missing = missing_control
+    ),
+    biv_lognormal = drm_build_biv_lognormal_spec(
       formula,
       data,
       env = formula_env,
@@ -2691,7 +2703,7 @@ reject_corpair_formula_entries <- function(entries) {
 }
 
 drm_spec_response_names <- function(spec) {
-  response_dpars <- if (identical(spec$model_type, "biv_gaussian")) {
+  response_dpars <- if (spec$model_type %in% c("biv_gaussian", "biv_lognormal")) {
     c("mu1", "mu2")
   } else {
     "mu"
@@ -2774,6 +2786,11 @@ drm_family_type <- function(family) {
     return("cumulative_logit")
   }
   if (
+    inherits(family, "drm_family") && identical(family$name, "biv_lognormal")
+  ) {
+    return("biv_lognormal")
+  }
+  if (
     inherits(family, "drm_family") && identical(family$name, "biv_gaussian")
   ) {
     return("biv_gaussian")
@@ -2807,7 +2824,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -8217,6 +8234,87 @@ drm_build_biv_gaussian_spec <- function(
     spec
   )
   spec$nobs <- spec$missing_data$counts$likelihood_rows
+  spec
+}
+
+drm_build_biv_lognormal_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL,
+  missing = miss_control()
+) {
+  missing <- drm_parse_missing_control(missing)
+  if (!identical(missing$response, "drop")) {
+    cli::cli_abort(
+      "{.fn biv_lognormal} currently requires complete response pairs."
+    )
+  }
+  entries <- expand_biv_mvbind_entries(formula$entries)
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  unsupported <- setdiff(dpars, c("mu1", "mu2", "sigma1", "sigma2", "rho12"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn biv_lognormal} supports only {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, and {.code rho12} formulas.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  has_bar_term <- vapply(entries, function(entry) {
+    grepl("|", paste(deparse(entry$rhs), collapse = " "), fixed = TRUE)
+  }, logical(1L))
+  if (any(has_bar_term)) {
+    cli::cli_abort(
+      "{.fn biv_lognormal} currently allows fixed-effect formulas only; random and structured effects are deferred."
+    )
+  }
+  response_entries <- entries[match(c("mu1", "mu2"), dpars)]
+  response_names <- vapply(response_entries, `[[`, character(1), "response")
+  if (all(response_names %in% names(data))) {
+    responses <- lapply(response_names, function(name) data[[name]])
+    if (any(vapply(responses, function(y) any(!is.finite(y) | is.na(y)), logical(1L)))) {
+      cli::cli_abort(
+        "{.fn biv_lognormal} currently requires complete, finite response pairs."
+      )
+    }
+  }
+  spec <- drm_build_biv_gaussian_spec(
+    formula = formula, data = data, env = env, weights = weights, missing = missing
+  )
+  constant_dpars <- c("sigma1", "sigma2", "rho12")
+  has_offset <- vapply(spec$terms[c("mu1", "mu2", constant_dpars)], function(x) {
+    length(attr(x, "offset")) > 0L
+  }, logical(1L))
+  if (
+    any(vapply(spec$X[constant_dpars], ncol, integer(1L)) != 1L) ||
+      any(has_offset) || spec$random$mu$n_re > 0L ||
+      spec$random$sigma$n_re > 0L || spec$has_known_v ||
+      isTRUE(spec$structured$phylo_mu$has)
+  ) {
+    cli::cli_abort(c(
+      "{.fn biv_lognormal} currently allows fixed-effect {.code mu1}/{.code mu2} only, with intercept-only {.code sigma1}, {.code sigma2}, and {.code rho12}.",
+      "i" = "Random or structured effects, {.fn meta_V}, offsets, and sigma/rho predictors are deferred."
+    ))
+  }
+  if (any(!is.finite(spec$y1)) || any(!is.finite(spec$y2)) ||
+      any(spec$y1 <= 0) || any(spec$y2 <= 0)) {
+    cli::cli_abort(
+      "{.fn biv_lognormal} requires finite, strictly positive values in both responses."
+    )
+  }
+  spec$y1 <- log(spec$y1)
+  spec$y2 <- log(spec$y2)
+  spec$model_type <- "biv_lognormal"
+  spec$start <- biv_gaussian_start(
+    spec$y1, spec$y2, spec$X$mu1, spec$X$mu2, spec$X$sigma1,
+    spec$X$sigma2, spec$X$rho12, V_known_diag = numeric(2L * length(spec$y1)),
+    re_mu = spec$random$mu, re_sigma = spec$random$sigma,
+    re_mu_sigma = spec$random$mu_sigma, phylo_mu = spec$structured$phylo_mu,
+    sd_mu = spec$random_scale$mu, sd_phylo = spec$random_scale$phylo,
+    re_cov_blocks = spec$random$covariance_blocks,
+    observed_y1 = rep.int(1L, length(spec$y1)),
+    observed_y2 = rep.int(1L, length(spec$y2))
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(make_tmb_data(spec), spec)
   spec
 }
 
@@ -18847,10 +18945,10 @@ make_tmb_data <- function(spec) {
       }
     ))
   }
-  if (identical(spec$model_type, "biv_gaussian")) {
+  if (spec$model_type %in% c("biv_gaussian", "biv_lognormal")) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
-      model_type = 2L,
+      model_type = if (identical(spec$model_type, "biv_lognormal")) 19L else 2L,
       y = numeric(1),
       trials = numeric(1),
       weights = spec$weights,
