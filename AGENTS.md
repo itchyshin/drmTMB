@@ -10,6 +10,24 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
+> **▶ Latest — start here (2026-07-23, → CODEX, ARC 6.1–6.2 CLOSED ON FEATURE BRANCH).**
+> `codex/arc6-2-gaussian-nb2` contains `d9dc3116` (Gaussian × Bernoulli) and
+> `0e512b22` (Gaussian × ordinary NB2): two bounded, fixed-effect, ML,
+> complete-pair frozen-margin `associate_pairs()` slices. They estimate only
+> conditional latent-normal `eta`, never `rho12`, observed correlation,
+> joint-MLE inference, intervals, recovery, or a capability tier. Arc 6.2 uses
+> the exact NB2 CDF jump interval with tail-safe diagnostics; 32 new focused
+> NB2 tests and 26 Arc 6.1 regression tests (2 expected CRAN skips) passed;
+> separately retained Arc 6.1/6.2 smoke receipts matched on a final rerun.
+> No campaign, capability promotion, `meta_V`, Julia, or CRAN work occurred.
+> **NEXT IS A DECISION, NOT IMPLEMENTATION:** open a fresh plan-only Arc 6.3
+> lognormal × lognormal demand/API/oracle review only if Shinichi approves it;
+> otherwise choose a direct-kernel research branch or return to the Q-series.
+> **START HERE:**
+> [`docs/dev-log/handover/2026-07-23-codex-arc6-handover.md`](docs/dev-log/handover/2026-07-23-codex-arc6-handover.md).
+> The foreign `claude/handover-freshness-0718` AGHQ/non-Gaussian-REML lane
+> remains separate; do not attribute or modify it from this Arc 6 branch.
+
 > **▶ Latest — start here (2026-07-22, → CODEX, 0.6 DEV ARC TRACK A **MERGED** to `main`).**
 > `claude/0.6-dev-arc` is **MERGED** (was +15 / −6, tree clean). Track A is verified: newcomer sweep
 > **17/17 FITS or CLEAN**, full suite **264 files / 39,320 passing**, **zero added failures** — proved
