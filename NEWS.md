@@ -1,5 +1,16 @@
 # drmTMB 0.6.0
 
+## Cross-family association first implementation
+
+* Post-0.6 development now implements the bounded post-fit
+  `associate_pairs()` interface with `kernel = latent_normal()`. Its first
+  slice is fixed-effect Gaussian × literal-Bernoulli complete pairs:
+  it freezes two stage-1 marginal fits, then estimates an intercept-only
+  latent-normal association (`eta`) with point estimate and diagnostics only.
+  It is not a released 0.6.0 feature and does not add mixed-family `rho12`.
+  The implementation is un-smoked: no smoke, recovery campaign, intervals,
+  coverage, or capability claim is authorized.
+
 ## First-impression formula surface (issue #776)
 
 * `(1 + x || g)`, the `lme4`/`brms` spelling for uncorrelated random effects, is

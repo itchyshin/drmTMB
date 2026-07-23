@@ -10,6 +10,17 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   basic-distribution recovery rows from post-v1.0 `inference_ready` and
   `supported` validation. This boundary does not authorize coverage, q4/q8
   promotion, broad bridge support, REML, AI-REML, or public-support wording.
+- The post-0.6 `associate_pairs()` development object has one un-smoked
+  mixed-pair slice only: fixed-effect Gaussian × literal 0/1 Bernoulli margins
+  on exactly the same complete rows, with explicitly declared
+  `kernel = latent_normal()` and `association = ~ 1`. It freezes both marginal
+  fits and returns an intercept-only latent-normal `eta` point estimate only
+  when optimisation diagnostics are acceptable. It is neither `rho12` nor an
+  observed-scale correlation. Gaussian × NB2, other family pairs, association
+  covariates, random/structured effects, partial pairs, offsets, weights,
+  `mi()`, `meta_V()`, REML, new-data association prediction, standard errors,
+  intervals, profiles, coverage, smoke/recovery evidence, capability promotion,
+  Julia, and CRAN release use remain outside this first contract.
 - Gaussian location-scale models are implemented with fixed effects and
   ordinary `mu` random effects: random intercepts, independent random slopes,
   one-slope correlated random intercept-slope blocks such as `(1 + x | id)` or

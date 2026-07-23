@@ -42,6 +42,39 @@ Use three status words consistently across documentation:
 In this table, "coscale" means a model for residual correlation, currently
 `rho12` in two-response Gaussian models.
 
+### Implemented post-fit mixed-pair association (development worktree)
+
+`associate_pairs()` is an implemented post-fit interface in this post-0.6
+development worktree, not another `drmTMB()` formula or a `biv_*()` family.
+Its first slice is deliberately narrow:
+
+```r
+assoc <- associate_pairs(
+  fit_gaussian, fit_bernoulli,
+  kernel = latent_normal(),
+  association = ~ 1
+)
+```
+
+Both supplied fits must be fixed-effect models fitted on the same externally
+constructed, complete paired analysis rows. For the first slice, one margin
+must be Gaussian and the other a literal 0/1 Bernoulli response; either input
+order is accepted, while the displayed order is canonical. Binomial trial
+counts are not included. `associate_pairs()` freezes the stage-1 margins
+rather than refitting, profiling, updating, or reweighting them. The sole
+stage-2 predictor is the intercept-only association predictor `association = ~ 1`.
+
+The output is a point estimate of latent-normal association `eta`
+and numerical/data diagnostics. It is not `rho12`, an observed-scale Pearson
+correlation, or `corpairs()`. The formula marker `corpair()` remains distinct
+from the extractor. Association slopes, random, phylogenetic, and
+structured effects, missing or partial pairs, offsets, weights, `mi()`,
+`meta_V()`, REML, standard errors, intervals, profiles, `vcov()`, residuals,
+quantiles, and `emmeans` are all outside this first contract. It is not a
+released 0.6.0 analysis surface. This development implementation is un-smoked:
+targeted tests do not authorize a smoke, recovery campaign, interval or
+coverage claim, or capability promotion; each needs its own owner decision.
+
 Exported formula markers may be written unqualified after `library(drmTMB)` or
 namespace-qualified as `drmTMB::marker(...)`. The parser normalizes the marker
 call name before matching implemented markers such as `phylo()`, `spatial()`,
@@ -98,6 +131,7 @@ The parser reads each formula's left-hand side (LHS) as follows:
 | Syntax | Current status | Notes |
 | --- | --- | --- |
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
+| `associate_pairs(fit_gaussian, fit_bernoulli, kernel = latent_normal(), association = ~ 1)` | Implemented development slice; un-smoked | A post-fit, margin-first Gaussian × literal-Bernoulli association object for exactly matched complete rows and fixed-effect margins. Stage 1 is frozen; stage 2 estimates intercept-only latent-normal `eta` with point estimate and diagnostics only. It is neither a `drmTMB()` formula nor mixed-family `rho12`, and is not a released 0.6.0 surface. Inference, broader families, association slopes, random/structured effects, partial pairs, offsets, weights, `mi()`, `meta_V()`, and REML are outside the first slice; no recovery, interval, coverage, or capability claim follows before separate approval. |
 | `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. One exact q1 `nu ~ phylo()` intercept is diagnostic-only; the q1 `mu ~ spatial()` intercept is also diagnostic-only, while its intercept-plus-one-slope route is recovery-grade. Other shape random effects, known sampling covariance, structured providers, and bivariate Student-t models are later. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x1`, `nu ~ 1`, `family = student()` | Implemented first slice | Ordinary Student-t `mu` random intercepts and independent numeric slopes enter the identity-location predictor. The exact q1 `nu ~ phylo()` and intercept-only `mu ~ spatial()` gates are diagnostic-only; `mu ~ spatial(1 + x | ...)` is recovery-grade without interval or coverage promotion. Correlated slopes, labelled covariance blocks, `sigma` random effects, other `nu` random effects, other structured routes, known covariance, and bivariate Student-t models remain planned. |

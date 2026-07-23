@@ -2640,6 +2640,61 @@ The current dense-known-`V` implementation:
   either `cov12` or `cor12`;
 - documents sensitivity analysis when within-study correlations are unknown.
 
+## Implemented Post-Fit Gaussian × Bernoulli Latent-Normal Association (Development)
+
+This implemented post-0.6 development route is a separate post-fit object, not
+a new TMB family or a joint `drmTMB()` likelihood. It starts from two
+fixed-effect marginal fits made on the same complete paired analysis rows: a Gaussian response
+`Y_G` and a literal 0/1 Bernoulli response `Y_B`. Either supplied input order
+is accepted; the Gaussian-first display is conventional. Stage 1 is immutable in
+stage 2: it must not refit, profile, update, or reweight either margin.
+
+For frozen Gaussian location and scale `mu_i`, `sigma_i`, and frozen Bernoulli
+probability `p_i`, define
+
+```text
+z_i = (y_Gi - mu_i) / sigma_i
+c_i = qnorm(1 - p_i)
+eta = 0.999999 * tanh(alpha)
+```
+
+The implemented latent-normal model is
+
+```text
+[Z_Gi, Z_Bi]' ~ Normal([0, 0]', [[1, eta], [eta, 1]])
+Y_Bi = 1(Z_Bi > c_i)
+r_i = Pr(Y_Bi = 1 | Z_Gi = z_i)
+    = 1 - Phi((c_i - eta z_i) / sqrt(1 - eta^2))
+```
+
+so the stage-2 joint log likelihood is
+
+```text
+log L(alpha) = sum_i [
+  log NormalDensity(y_Gi | mu_i, sigma_i)
+  + y_Bi log(r_i) + (1 - y_Bi) log(1 - r_i)
+]
+```
+
+The Gaussian term is constant in `alpha`, but documenting it keeps the joint
+estimand explicit. Production evaluation must use stable log-normal-tail
+calculations rather than `log(1 - pnorm(...))` in the tail. The association
+predictor is intercept-only in this first slice.
+
+`eta` is a latent-normal association conditional on the frozen margins. It is
+not bivariate-Gaussian residual coscale `rho12`, observed-scale correlation,
+or a `corpairs()` random-effect extractor (the `corpair()` formula marker is a
+different interface). The first output is limited to a
+point estimate and diagnostics, including boundary and response-pattern
+checks. It exposes no standard errors, intervals, profiles, `vcov()`,
+residuals, quantiles, or `emmeans` method. The first implementation also
+excludes random, phylogenetic, structured, or association-slope effects,
+partial/missing pairs, offsets, weights, `mi()`, `meta_V()`, REML, and binomial
+trial-count responses. It is not a released 0.6.0 feature. This development
+implementation is un-smoked: no smoke, recovery campaign, interval or coverage
+result, or capability promotion follows from it without a separate owner
+decision.
+
 ## Implemented Bivariate Gaussian Location-Coscale
 
 Bivariate Gaussian location-coscale:
