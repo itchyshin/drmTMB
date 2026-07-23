@@ -13,7 +13,7 @@
 }
 \value{
 A numeric vector for univariate fits, or a two-column matrix for
-bivariate Gaussian or bivariate lognormal fits.
+bivariate Gaussian, bivariate lognormal, or bivariate Student-t fits.
 }
 \description{
 \code{fitted()} returns fitted response values from a \code{drmTMB} model. For
@@ -30,9 +30,11 @@ For hurdle negative-binomial 2 fits this is the unconditional response mean
 For zero-inflated Poisson and zero-inflated negative-binomial 2 fits this is
 the unconditional response mean \code{(1 - zi) * mu}, where \code{mu} is the
 conditional count mean. For bivariate Gaussian fits this is a two-column
-matrix with \code{mu1} and \code{mu2}. For bivariate lognormal fits it is a two-column
-matrix of arithmetic marginal means. For lognormal fits this is the arithmetic
-response mean, \code{exp(mu + sigma^2 / 2)}.
+matrix with \code{mu1} and \code{mu2}. The same two-column marginal-mean contract
+applies to bivariate Student-t fits because their shared \code{nu} is greater
+than 2. For bivariate lognormal fits it is a two-column matrix of arithmetic
+marginal means. For lognormal fits this is the arithmetic response mean,
+\code{exp(mu + sigma^2 / 2)}.
 }
 \details{
 Fitted values are returned for the original fitted rows. Use \code{\link[=predict]{predict()}} for

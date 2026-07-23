@@ -3873,13 +3873,22 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_zi);
-  } else if (model_type == 2 || model_type == 19) {
+  } else if (model_type == 2 || model_type == 19 || model_type == 20) {
     vector<Type> mu1 = X_mu1 * beta_mu1;
     vector<Type> mu2 = X_mu2 * beta_mu2;
     vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
     vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
     vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);
+    vector<Type> eta_nu(1);
+    vector<Type> nu(1);
+    if (model_type == 20) {
+      eta_nu = X_nu * beta_nu;
+      nu.resize(eta_nu.size());
+      for (int i = 0; i < eta_nu.size(); ++i) {
+        nu(i) = Type(2.0) + exp(eta_nu(i));
+      }
+    }
 
     if (n_re_cov_blocks > 0) {
       int n_re_cov_qgt2_blocks = 0;
@@ -4397,7 +4406,32 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma1 = exp(log_sigma1);
     vector<Type> sigma2 = exp(log_sigma2);
 
-    if (V_known_type == 2) {
+    if (model_type == 20) {
+      for (int i = 0; i < y1.size(); ++i) {
+        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+        Type one_minus_rho2 =
+          Type(1.0) - rho12(i) * rho12(i);
+        Type q =
+          (
+            z1 * z1 -
+            Type(2.0) * rho12(i) * z1 * z2 +
+            z2 * z2
+          ) / one_minus_rho2;
+        // In exactly two dimensions,
+        // lgamma((nu + 2) / 2) - lgamma(nu / 2) - log(nu * pi)
+        // simplifies to -log(2 * pi). This avoids catastrophic cancellation
+        // on the Gaussian (large-nu) boundary.
+        Type log_density =
+          -log(Type(2.0) * Type(M_PI)) -
+          log_sigma1(i) -
+          log_sigma2(i) -
+          Type(0.5) * log(one_minus_rho2) -
+          ((nu(i) + Type(2.0)) / Type(2.0)) *
+            drm_log1p_nonnegative(q / nu(i));
+        nll -= weights(i) * log_density;
+      }
+    } else if (V_known_type == 2) {
       int n = y1.size();
       int m = 2 * n;
       vector<Type> y_stack(m);
@@ -4444,6 +4478,11 @@ Type objective_function<Type>::operator()()
     REPORT(sigma2);
     REPORT(eta_rho12);
     REPORT(rho12);
+    if (model_type == 20) {
+      REPORT(eta_nu);
+      REPORT(nu);
+      ADREPORT(beta_nu);
+    }
     ADREPORT(beta_mu1);
     ADREPORT(beta_mu2);
     ADREPORT(beta_sigma1);

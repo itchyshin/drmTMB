@@ -100,9 +100,12 @@ predict_parameters.drmTMB <- function(
   validate_predict_parameters_newdata(newdata)
   validate_predict_parameters_include_newdata(include_newdata)
   validate_predict_parameters_conf_int(conf.int)
-  if (conf.int && identical(object$model$model_type, "biv_lognormal")) {
+  if (
+    conf.int &&
+      object$model$model_type %in% c("biv_lognormal", "biv_student")
+  ) {
     cli::cli_abort(
-      "{.fn predict_parameters} confidence intervals are not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+      "{.fn predict_parameters} confidence intervals are not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
     )
   }
   validate_predict_parameters_conf_level(conf.level)

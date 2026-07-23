@@ -894,7 +894,10 @@ check_random_effect_sd_boundary <- function(object, sd_boundary) {
 }
 
 check_rho12_boundary <- function(object, rho_boundary) {
-  if (!identical(object$model$model_type, "biv_gaussian")) {
+  if (
+    !object$model$model_type %in%
+      c("biv_gaussian", "biv_student")
+  ) {
     return(NULL)
   }
   rho <- rho12(object)
@@ -921,7 +924,7 @@ check_rho12_boundary <- function(object, rho_boundary) {
 }
 
 check_student_nu <- function(object) {
-  if (!identical(object$model$model_type, "student")) {
+  if (!object$model$model_type %in% c("student", "biv_student")) {
     return(NULL)
   }
   nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) e)

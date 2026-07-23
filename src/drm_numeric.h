@@ -12,6 +12,18 @@ Type drm_log1p_exp_stable(Type eta)
   return logspace_add(Type(0.0), eta);
 }
 
+// Stable log(1 + x) for non-negative x. The direct expression loses x when
+// x is tiny; the short alternating series is accurate in that region and
+// remains differentiable on the TMB tape.
+template<class Type>
+Type drm_log1p_nonnegative(Type x)
+{
+  Type series =
+    x - x * x / Type(2.0) + x * x * x / Type(3.0);
+  Type direct = log(Type(1.0) + x);
+  return CppAD::CondExpLt(x, Type(1e-5), series, direct);
+}
+
 template<class Type>
 Type drm_log1mexp(Type log_p)
 {

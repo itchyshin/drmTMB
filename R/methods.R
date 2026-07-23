@@ -20,6 +20,7 @@ print.drmTMB <- function(x, ...) {
     zi_nbinom2 = "zero-inflated negative binomial 2 mean-dispersion",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
     biv_lognormal = "bivariate lognormal location-scale-coscale",
+    biv_student = "bivariate Student-t location-scale-shape-coscale",
     "distributional"
   )
   cli::cli_text("<drmTMB {label} fit>")
@@ -727,7 +728,9 @@ structured_effects_integer <- function(x) {
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A numeric vector with one weight per modelled response row, or per
-#'   complete response pair for bivariate Gaussian models.
+#'   complete response pair for bivariate Gaussian, bivariate lognormal, and
+#'   bivariate Student-t models. The two exact-special development families
+#'   currently expose implicit unit weights only.
 #' @importFrom stats weights
 #' @export
 #'
@@ -746,11 +749,14 @@ weights.drmTMB <- function(object, ...) {
 #' Extract residual correlation rho12
 #'
 #' `rho12()` returns the residual response-response correlation from a
-#' bivariate Gaussian or bivariate lognormal `drmTMB` fit. For a bivariate
-#' Gaussian fit this is a response-scale residual correlation; for
-#' `biv_lognormal()` it is correlation of the log-response residuals, not a
-#' raw-scale correlation. Use `type = "link"` for the Fisher-z-like linear predictor
-#' whose response transform is `0.999999 * tanh(eta)`.
+#' bivariate Gaussian, bivariate lognormal, or bivariate Student-t `drmTMB`
+#' fit. For a bivariate Gaussian fit this is a response-scale residual
+#' correlation; for `biv_lognormal()` it is correlation of the log-response
+#' residuals, not a raw-scale correlation. For `biv_student()` it is the
+#' scatter/residual correlation; at finite shared `nu`, zero correlation does
+#' not imply independent margins. Use `type = "link"` for the Fisher-z-like
+#' linear predictor whose response transform is
+#' `0.999999 * tanh(eta)`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction.
@@ -919,9 +925,12 @@ corpairs.drmTMB <- function(
 ) {
   validate_summary_conf_int(conf.int)
   method <- validate_interval_method(method, "profile", "corpairs()")
-  if (conf.int && identical(object$model$model_type, "biv_lognormal")) {
+  if (
+    conf.int &&
+      object$model$model_type %in% c("biv_lognormal", "biv_student")
+  ) {
     cli::cli_abort(
-      "{.fn corpairs} profile intervals are not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+      "{.fn corpairs} profile intervals are not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
     )
   }
   if (!conf.int && length(list(...)) > 0L) {
@@ -2205,7 +2214,10 @@ univariate_response_name <- function(object, dpar) {
 }
 
 random_effect_response_name <- function(object, dpar) {
-  if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
+  if (
+    object$model$model_type %in%
+      c("biv_gaussian", "biv_lognormal", "biv_student")
+  ) {
     response_names <- bivariate_response_names(object)
     if (dpar %in% c("mu1", "sigma1")) {
       return(response_names[[1L]])
@@ -2249,9 +2261,11 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' For zero-inflated Poisson and zero-inflated negative-binomial 2 fits this is
 #' the unconditional response mean `(1 - zi) * mu`, where `mu` is the
 #' conditional count mean. For bivariate Gaussian fits this is a two-column
-#' matrix with `mu1` and `mu2`. For bivariate lognormal fits it is a two-column
-#' matrix of arithmetic marginal means. For lognormal fits this is the arithmetic
-#' response mean, `exp(mu + sigma^2 / 2)`.
+#' matrix with `mu1` and `mu2`. The same two-column marginal-mean contract
+#' applies to bivariate Student-t fits because their shared `nu` is greater
+#' than 2. For bivariate lognormal fits it is a two-column matrix of arithmetic
+#' marginal means. For lognormal fits this is the arithmetic response mean,
+#' `exp(mu + sigma^2 / 2)`.
 #'
 #' Fitted values are returned for the original fitted rows. Use [predict()] for
 #' new data or for non-location distributional parameters such as `sigma` or
@@ -2261,7 +2275,7 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' @param ... Reserved for future fitted-value options.
 #'
 #' @return A numeric vector for univariate fits, or a two-column matrix for
-#'   bivariate Gaussian or bivariate lognormal fits.
+#'   bivariate Gaussian, bivariate lognormal, or bivariate Student-t fits.
 #' @export
 #'
 #' @examples
@@ -2798,6 +2812,9 @@ predict.drmTMB <- function(
 #' sampling covariance, simulation uses the fitted `mu1`, `mu2`, `sigma1`,
 #' `sigma2`, and residual `rho12`. If a dense bivariate known `V` was supplied,
 #' simulation uses the full row-paired observation covariance `V + Omega`.
+#' For bivariate Student-t models, simulation instead uses one shared
+#' chi-squared scale-mixture draw per response pair together with the fitted
+#' shared `nu`; independent marginal t draws would be a different model.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
@@ -2845,6 +2862,31 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
+  }
+
+  if (identical(object$model$model_type, "biv_student")) {
+    mu1 <- predict(object, dpar = "mu1")
+    mu2 <- predict(object, dpar = "mu2")
+    sigma1 <- predict(object, dpar = "sigma1")
+    sigma2 <- predict(object, dpar = "sigma2")
+    nu <- predict(object, dpar = "nu")
+    rho12 <- predict(object, dpar = "rho12")
+    out <- vector("list", nsim * 2L)
+    names(out) <- as.vector(rbind(
+      paste0("sim_", seq_len(nsim), "_y1"),
+      paste0("sim_", seq_len(nsim), "_y2")
+    ))
+    for (j in seq_len(nsim)) {
+      z1 <- stats::rnorm(length(mu1))
+      z2 <- rho12 * z1 +
+        sqrt(1 - rho12^2) * stats::rnorm(length(mu1))
+      shared_scale <- sqrt(nu / stats::rchisq(length(mu1), df = nu))
+      out[[paste0("sim_", j, "_y1")]] <-
+        mu1 + sigma1 * z1 * shared_scale
+      out[[paste0("sim_", j, "_y2")]] <-
+        mu2 + sigma2 * z2 * shared_scale
+    }
+    return(as.data.frame(out))
   }
 
   if (identical(object$model$model_type, "skew_normal")) {
@@ -3301,6 +3343,13 @@ residuals.drmTMB <- function(
   ...
 ) {
   type <- match.arg(type)
+  if (
+    object$model$model_type %in% c("biv_lognormal", "biv_student")
+  ) {
+    cli::cli_abort(
+      "{.fn residuals} is not implemented for model type {.val {object$model$model_type}}; residual and adequacy claims are deferred."
+    )
+  }
   if (identical(type, "quantile")) {
     return(drm_quantile_residuals(object, ...))
   }
@@ -3568,9 +3617,11 @@ residuals.drmTMB <- function(
 #' negative-binomial 2, zero-truncated negative-binomial 2, hurdle
 #' negative-binomial 2, and zero-inflated negative-binomial 2 models this is
 #' the fitted overdispersion scale in the untruncated NB2 component
-#' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian and
-#' bivariate lognormal models it returns a roundable list with fitted `sigma1`
-#' and `sigma2` vectors (on the log-response scale for bivariate lognormal).
+#' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian,
+#' bivariate lognormal, and bivariate Student-t models it returns a roundable
+#' list with fitted `sigma1` and `sigma2` vectors. The bivariate-lognormal
+#' values are log-response SDs; the bivariate-Student values are Student-t
+#' scales, not marginal SDs.
 #'
 #' In meta-analytic models fitted with `meta_V(V = V)`, this is the
 #' modelled residual heterogeneity scale, not the square root of the known
@@ -3581,7 +3632,8 @@ residuals.drmTMB <- function(
 #' @param ... Reserved for future scale-extractor options.
 #'
 #' @return A numeric vector for univariate models, or a named, roundable list
-#'   of numeric vectors for bivariate Gaussian or bivariate lognormal models.
+#'   of numeric vectors for bivariate Gaussian, bivariate lognormal, or
+#'   bivariate Student-t models.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -3614,7 +3666,10 @@ sigma.drmTMB <- function(object, ...) {
   ) {
     return(rep(1, length(object$model$y)))
   }
-  if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
+  if (
+    object$model$model_type %in%
+      c("biv_gaussian", "biv_lognormal", "biv_student")
+  ) {
     return(new_biv_sigma(
       sigma1 = predict(object, dpar = "sigma1"),
       sigma2 = predict(object, dpar = "sigma2")
@@ -3724,9 +3779,12 @@ summary.drmTMB <- function(
 ) {
   profile_precision_missing <- missing(profile_precision)
   validate_summary_conf_int(conf.int)
-  if (conf.int && identical(object$model$model_type, "biv_lognormal")) {
+  if (
+    conf.int &&
+      object$model$model_type %in% c("biv_lognormal", "biv_student")
+  ) {
     cli::cli_abort(
-      "{.fn summary} confidence intervals are not implemented for {.fn biv_lognormal}; interval and profile claims are deferred."
+      "{.fn summary} confidence intervals are not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
     )
   }
   validate_summary_trace(trace)
@@ -4173,6 +4231,12 @@ drm_summary_direct_parameters <- function(object) {
   targets <- targets[keep, , drop = FALSE]
   if (nrow(targets) == 0L) {
     return(empty_summary_parameters())
+  }
+  if (
+    object$model$model_type %in% c("biv_lognormal", "biv_student")
+  ) {
+    targets$profile_ready <- FALSE
+    targets$profile_note <- "family_interval_deferred"
   }
   out <- data.frame(
     component = targets$target_class,
@@ -5129,6 +5193,12 @@ drm_fitted_response <- function(object) {
       mu2 = predict.drmTMB(object, dpar = "mu2")
     ))
   }
+  if (identical(object$model$model_type, "biv_student")) {
+    return(cbind(
+      mu1 = predict.drmTMB(object, dpar = "mu1"),
+      mu2 = predict.drmTMB(object, dpar = "mu2")
+    ))
+  }
   if (identical(object$model$model_type, "biv_lognormal")) {
     mu1 <- predict.drmTMB(object, dpar = "mu1")
     mu2 <- predict.drmTMB(object, dpar = "mu2")
@@ -5272,6 +5342,14 @@ drm_dpar_link <- function(object, dpar) {
       mu2 = "identity",
       sigma1 = "log",
       sigma2 = "log",
+      rho12 = "atanh_guarded"
+    ),
+    biv_student = c(
+      mu1 = "identity",
+      mu2 = "identity",
+      sigma1 = "log",
+      sigma2 = "log",
+      nu = "logm2",
       rho12 = "atanh_guarded"
     ),
     NULL

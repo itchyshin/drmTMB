@@ -2,9 +2,11 @@
 
 > **Implementation authority 2 of 2 (roadmap only).** This document governs
 > the order and boundaries of Arc 6's two-response programme. The linked
-> Arc 6.1 Ultra Plan is historical planning provenance; Arc 6.2's implemented
-> [contract](232-arc6-2-gaussian-nbinom2-contract.md) and 2026-07-23 after-task
-> report record the current development evidence.
+> Arc 6.1 Ultra Plan is historical planning provenance; the implemented
+> [Arc 6.2 contract](232-arc6-2-gaussian-nbinom2-contract.md), exact
+> [Arc 6.3 contract](233-arc6-3-bivariate-lognormal-contract.md), and
+> source-level [Arc 6.4 contract](234-arc6-4-bivariate-student-contract.md)
+> record the current development boundaries.
 > Neither document authorizes recovery, capability promotion, Julia,
 > `meta_V()`, or CRAN work.
 
@@ -78,9 +80,9 @@ contract, review, and owner stop. This keeps a new likelihood or CDF adapter
 inside one workable context window and stops a difficult pair from consuming
 the next pair's validation budget.
 
-Arcs **6.1** and **6.2** are the only implemented development slices. Arcs
-6.3--6.8 are a visible order of work, not standing authorization to implement
-them. Arc 6 is reconsidered after Arc 6.2; direct kernels and research-gated
+Arcs **6.1--6.4** are implemented development slices at their separately
+recorded evidence levels. Arcs 6.5--6.8 are a visible order of work, not
+standing authorization to implement them. Direct kernels and research-gated
 classes receive a number only when the owner opens them.
 
 ## The eight proposed implementation subarcs
@@ -93,8 +95,8 @@ and owner gate. “Later” means unimplemented and unsupported.
 | Comparator | Gaussian × Gaussian | existing model | exact Gaussian `rho12` | compatibility only | existing comparator; never replaced |
 | 6.1 | continuous × binary | Gaussian × Bernoulli | density × conditional-normal Bernoulli probability | prevalence, separation, boundary `eta` | implemented; regression smoke recorded separately |
 | 6.2 | continuous × overdispersed count | Gaussian × NB2 | density × conditional-normal count-CDF interval | count tails and CDF cancellation | implemented; point-estimate-only, smoke recorded separately |
-| 6.3 | lognormal × lognormal | two lognormal margins | exact bivariate normal on log response scale | scale interpretation | demand review after 6.2 |
-| 6.4 | Student-t × Student-t | two compatible Student-t margins | exact bivariate t with a shared degrees-of-freedom contract | common-`nu` identification and tails | demand review after 6.2 |
+| 6.3 | lognormal × lognormal | two lognormal margins | exact bivariate normal on log response scale | scale interpretation | implemented; source-tested only, no smoke/recovery/inference claim |
+| 6.4 | Student-t × Student-t | two compatible Student-t margins | exact bivariate t with a shared degrees-of-freedom contract | common-`nu` identification and tails | implemented; source-tested only, no smoke/recovery/inference claim |
 | 6.5 | binary × binary | paired Bernoulli | bivariate-normal rectangle | rare cells and near separation | later |
 | 6.6 | binary × count | Bernoulli × NB2 | bivariate-normal rectangle | rare rectangles and tails | later |
 | 6.7 | count × count | NB2 × NB2 | bivariate-normal rectangle | tail stability and latent-scale interpretation | later |
@@ -161,10 +163,12 @@ derived raw-scale correlation is
 {\sqrt{[\exp(\sigma_1^2)-1][\exp(\sigma_2^2)-1]}}.
 \]
 
-For Student-t × Student-t, a future exact special model may use a bivariate-t
-distribution with a **shared** degrees-of-freedom parameter and `rho12` on the
-elliptical latent residual scale. It must first establish that this shared-`nu`
-restriction matches the univariate family contract. A generic skew-normal ×
+For Student-t × Student-t, `biv_student()` uses a bivariate-t distribution
+with one **shared** degrees-of-freedom parameter and `rho12` as the
+scatter/residual correlation. Its `sigma1` and `sigma2` are Student-t scales,
+not standard deviations. At finite `nu`, `rho12 = 0` is uncorrelated but not
+independent because both responses share the same row-level mixing draw. A
+generic skew-normal ×
 skew-normal model is *not* in this batch: a joint skew-normal distribution has
 dependence and skewness parameters that interact, so a single Gaussian-style
 `rho12` would be misleading.
@@ -192,8 +196,10 @@ Each admitted pair or batch requires, before a public capability statement:
 1. a written likelihood and parameter constraints that agree with the R API
    and TMB implementation;
 2. an independent R oracle and exact joint simulator;
-3. `eta = 0` product-margin, response-swap, normalization, and boundary
-   checks; plus the relevant discrete-tail/cancellation checks;
+3. the kernel-appropriate zero-association check, response-swap,
+   normalization, and boundary checks; plus the relevant
+   discrete-tail/cancellation checks (for exact bivariate Student-t,
+   `rho12 = 0` must explicitly remain non-product at finite `nu`);
 4. marginal response-scale `fitted()` and `predict()` semantics, a joint-pair
    simulation contract, an association extractor, and explicit errors for
    unsupported Gaussian-only methods;

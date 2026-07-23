@@ -80,8 +80,10 @@ confounded.
 5. Treat the Student-t ordinary `mu` random-intercept artifact lane as
    completed by Slices 1379-1388, and the independent numeric slope path as
    source-tested, while keeping correlated Student-t slopes, `sigma` random
-   effects, `nu` random effects, structured effects, known covariance, and
-   bivariate Student-t models planned.
+   effects, `nu` random effects, structured effects, and known covariance
+   planned. Historical note: the later Arc 6.4 exact `biv_student()` source
+   slice remains outside this univariate artifact lane and has no recovery
+   claim.
 6. Treat the NB2 q1 formal shard audit as completed but held: the 16-shard
    500-replicate artifact set exists, but profile and fixed-`sigma` diagnostics
    block promotion.

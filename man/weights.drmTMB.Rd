@@ -13,7 +13,9 @@
 }
 \value{
 A numeric vector with one weight per modelled response row, or per
-complete response pair for bivariate Gaussian models.
+complete response pair for bivariate Gaussian, bivariate lognormal, and
+bivariate Student-t models. The two exact-special development families
+currently expose implicit unit weights only.
 }
 \description{
 \code{weights()} returns the row likelihood multipliers used by a fitted

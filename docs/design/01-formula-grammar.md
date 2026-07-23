@@ -76,6 +76,31 @@ quantiles, and `emmeans` are all outside this contract. It is not a released
 are recorded separately; they do not authorize recovery, interval or coverage
 claims, or capability promotion.
 
+### Exact bivariate Student-t development grammar
+
+The distinct direct family `biv_student()` uses
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x1,
+    mu2 = y2 ~ x2,
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    nu = ~ 1,
+    rho12 = ~ 1
+  ),
+  family = biv_student(),
+  data = dat
+)
+```
+
+Only `mu1` and `mu2` may contain fixed-effect predictors in this first slice.
+The two Student-t scales, one shared `nu`, and `rho12` are intercept-only.
+Separate `nu1`/`nu2`, bar or structured terms, offsets, partial pairs,
+explicit weights, `meta_V()`, and `mi()` are rejected. At finite shared `nu`,
+`rho12 = 0` means uncorrelated—not independent—responses.
+
 Exported formula markers may be written unqualified after `library(drmTMB)` or
 namespace-qualified as `drmTMB::marker(...)`. The parser normalizes the marker
 call name before matching implemented markers such as `phylo()`, `spatial()`,
@@ -134,12 +159,13 @@ The parser reads each formula's left-hand side (LHS) as follows:
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
 | `associate_pairs(fit_gaussian, fit_bernoulli_or_nbinom2, kernel = latent_normal(), association = ~ 1)` | Implemented development slice | A post-fit, margin-first Gaussian × literal-Bernoulli or ordinary-NB2 association object for exactly matched complete rows and fixed-effect ML margins. Stage 1 is frozen; stage 2 estimates intercept-only latent-normal `eta` with point estimate and diagnostics only. It is neither a `drmTMB()` formula nor mixed-family `rho12`, and is not a released 0.6.0 surface. Inference, broader families, association slopes, random/structured effects, partial pairs, offsets, weights, `mi()`, `meta_V()`, and REML are outside these slices; no recovery, interval, coverage, or capability claim follows. |
 | `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
-| `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. One exact q1 `nu ~ phylo()` intercept is diagnostic-only; the q1 `mu ~ spatial()` intercept is also diagnostic-only, while its intercept-plus-one-slope route is recovery-grade. Other shape random effects, known sampling covariance, structured providers, and bivariate Student-t models are later. |
-| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x1`, `nu ~ 1`, `family = student()` | Implemented first slice | Ordinary Student-t `mu` random intercepts and independent numeric slopes enter the identity-location predictor. The exact q1 `nu ~ phylo()` and intercept-only `mu ~ spatial()` gates are diagnostic-only; `mu ~ spatial(1 + x | ...)` is recovery-grade without interval or coverage promotion. Correlated slopes, labelled covariance blocks, `sigma` random effects, other `nu` random effects, other structured routes, known covariance, and bivariate Student-t models remain planned. |
+| `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. One exact q1 `nu ~ phylo()` intercept is diagnostic-only; the q1 `mu ~ spatial()` intercept is also diagnostic-only, while its intercept-plus-one-slope route is recovery-grade. Other shape random effects, known sampling covariance, and structured providers are later. The separate `biv_student()` row below is a narrower exact source slice. |
+| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x1`, `nu ~ 1`, `family = student()` | Implemented first slice | Ordinary Student-t `mu` random intercepts and independent numeric slopes enter the identity-location predictor. The exact q1 `nu ~ phylo()` and intercept-only `mu ~ spatial()` gates are diagnostic-only; `mu ~ spatial(1 + x | ...)` is recovery-grade without interval or coverage promotion. Correlated slopes, labelled covariance blocks, `sigma` random effects, other `nu` random effects, other structured routes, and known covariance remain planned. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `nu ~ x3`, `family = skew_normal()` | Implemented first slice | Skew-normal ordinary `mu` random intercepts and independent numeric slopes enter the response-mean predictor. The exact independent-slope ledger cell is inference-ready with caveats for true SD 0.50 and M>=16. Public `sigma` is response SD and `nu` is residual slant. Correlated or labelled slopes, random effects outside `mu`, structured effects, bivariate routes, and broader calibration remain planned. |
 | `y ~ x1`, `sigma ~ x1`, `family = lognormal()` | Implemented | Fixed-effect univariate lognormal model for positive responses; `mu` and `sigma` are on the log-response scale. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x1`, `family = lognormal()` | Implemented first slice | Ordinary lognormal `mu` random intercepts and independent numeric slopes enter the log-response location. Arc 3a separately admits one unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`. Correlated or labelled slopes, other structured routes, known covariance, and broader bivariate lognormal extensions remain planned. |
 | `bf(mu1 = y1 ~ x1, mu2 = y2 ~ x2, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1)`, `family = biv_lognormal()` | Implemented development slice | Exact bivariate lognormal model for complete finite positive pairs with implicit likelihood weights of one; a `weights` argument is not supported. `rho12` is residual correlation on the log-response scale, not `eta` or raw-scale correlation. Only fixed-effect locations and constant log-scale SD/correlation terms are admitted; all random/structured effects, sigma/rho predictors, offsets, `meta_V`, `mi()`, REML, intervals, coverage, and capability promotion are deferred. |
+| `bf(mu1 = y1 ~ x1, mu2 = y2 ~ x2, sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1)`, `family = biv_student()` | Implemented development slice | Exact shared-`nu` bivariate Student-t for complete finite pairs. `sigma1`/`sigma2` are scales and finite-`nu` zero `rho12` is uncorrelated but not independent. Only `mu1`/`mu2` may have predictors; random/structured effects, separate marginal `nu`, intervals, smoke, recovery, and capability claims are deferred. |
 | `y ~ x1`, `sigma ~ x1 + (1 | id)`, `family = lognormal()` | Implemented first slice | An ordinary lognormal `sigma` random intercept enters log-`sigma`; only its exact ledger domain is inference-ready with caveats. This scale route cannot be combined with a `mu` random effect, and `sigma` slopes or labels remain unsupported. |
 | `y ~ x1`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented first slice | Ordinary Gamma `mu` random intercepts and independent numeric slopes enter the log-mean predictor. The established `relmat()` intercept/one-slope route and the Arc 3a unlabelled q1 `phylo()` intercept are separate structured gates. Correlated or labelled slopes, other structured routes, known covariance, and bivariate or mixed Gamma models remain planned. |
