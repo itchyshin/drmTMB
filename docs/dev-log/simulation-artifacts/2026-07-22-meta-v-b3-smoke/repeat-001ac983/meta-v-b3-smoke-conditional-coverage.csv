@@ -1,0 +1,7 @@
+"cell_id","parameter","n_attempt","n_finite_interval","n_covered_finite_interval","conditional_finite_interval_set_coverage","conditional_finite_interval_set_coverage_mcse","rate_definition"
+"meta_v_b3_smoke_001","mu:(Intercept)",1,1,1,1,0,"set_coverage_given_finite_interval"
+"meta_v_b3_smoke_001","mu:x",1,1,1,1,0,"set_coverage_given_finite_interval"
+"meta_v_b3_smoke_001","sigma",1,0,0,NA,NA,"set_coverage_given_finite_interval"
+"meta_v_b3_smoke_002","mu:(Intercept)",1,1,1,1,0,"set_coverage_given_finite_interval"
+"meta_v_b3_smoke_002","mu:x",1,1,1,1,0,"set_coverage_given_finite_interval"
+"meta_v_b3_smoke_002","sigma",1,1,1,1,0,"set_coverage_given_finite_interval"

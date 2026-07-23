@@ -85,16 +85,20 @@ actual smoke/reducer paths. The first approved Totoro smoke then failed closed
 before fitting: both retained attempts record `could not find function
 "drmTMB"`, because the standalone tools checked the namespace but did not
 attach it for sourced simulation code. The runner repair is tested, but it has
-not been re-executed. Both execution entrypoints are now in the frozen source
-hash, so the pre-repair smoke receipt cannot authorize a repeat.
+been re-executed as exact contract `001ac983`. Both execution entrypoints are
+now in the frozen source hash, so the pre-repair smoke receipt could not
+authorize the repaired repeat.
 
 ## 10. Known Residuals
 
-The first two-attempt Totoro smoke is retained as failed infrastructure, not
-model evidence: neither attempt reached a fit or interval. There is therefore
-no timing measurement, campaign, capability promotion, coverage certification,
-or CRAN action. A repeat smoke requires a fresh exact-SHA review and explicit
-smoke-only approval.
+The first two-attempt Totoro smoke remains retained as failed infrastructure,
+not model evidence. The separately reviewed repaired repeat at `001ac983`
+completed its two intended diagnostics: K=12/vector seed 4 had the required
+`sigma` `[0, Inf]` degenerate interval and K=36/dense seed 20260722 was finite
+and positive. Its timings (0.232 and 1.185 seconds) select Totoro under the
+frozen policy. It is not recovery, coverage, or inference evidence. No formal
+campaign, capability promotion, coverage certification, or CRAN action has
+occurred; campaign scope needs separate explicit approval.
 
 ## 11. Team Learning
 
@@ -113,6 +117,6 @@ the resulting Totoro/DRAC compute evidence.
 
 ## Next Actions
 
-Run the approved two-attempt smoke only after the reviews and explicit compute
-approval. Inspect its retained artifacts before using its measured shard timing
-to choose Totoro or the whole-campaign DRAC fallback.
+Obtain separate campaign-scope approval, then run all 96 deterministic shards
+on Totoro only and reduce the retained evidence. Do not infer a tier or public
+claim from the smoke or campaign automatically.

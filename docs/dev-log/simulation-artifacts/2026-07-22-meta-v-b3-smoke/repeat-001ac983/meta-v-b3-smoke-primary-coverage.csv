@@ -1,0 +1,7 @@
+"cell_id","parameter","n_replicate","n_attempt","n_finite_interval","n_interval","n_finite_and_covering_interval","finite_interval_rate_all_attempt","finite_interval_rate_all_attempt_mcse","finite_and_covering_interval_rate_all_attempt","finite_and_covering_interval_rate_all_attempt_mcse","n_fit_error","n_nonconverged","n_pdHess_false","n_nonfinite_estimate","n_interval_failed","n_interval_degenerate","mean_interval_width","interval_width_mcse","rate_definition"
+"meta_v_b3_smoke_001","mu:(Intercept)",1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0.149890300983232,NA,"finite_and_covering_interval_over_all_attempts"
+"meta_v_b3_smoke_001","mu:x",1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0.149855934815098,NA,"finite_and_covering_interval_over_all_attempts"
+"meta_v_b3_smoke_001","sigma",1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,NA,NA,"finite_and_covering_interval_over_all_attempts"
+"meta_v_b3_smoke_002","mu:(Intercept)",1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0.256770677232727,NA,"finite_and_covering_interval_over_all_attempts"
+"meta_v_b3_smoke_002","mu:x",1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0.270253275425264,NA,"finite_and_covering_interval_over_all_attempts"
+"meta_v_b3_smoke_002","sigma",1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0.175155708947133,NA,"finite_and_covering_interval_over_all_attempts"
