@@ -135,7 +135,13 @@ phase18_meta_v_aggregate_all_attempts <- function(intervals, by) {
       bias_mcse_finite_estimate_only = phase18_meta_v_mcse_mean_or_na(x$error[estimated]),
       rmse_mcse_finite_estimate_only = phase18_meta_v_mcse_rmse_or_na(x$error[estimated]),
       convergence_rate_all_attempt = mean(x$result_status == "ok" & x$converged),
+      convergence_rate_all_attempt_mcse = phase18_meta_v_mcse_proportion_or_na(
+        x$result_status == "ok" & x$converged
+      ),
       pdHess_rate_all_attempt = mean(
+        x$result_status == "ok" & x$converged & x$pdHess
+      ),
+      pdHess_rate_all_attempt_mcse = phase18_meta_v_mcse_proportion_or_na(
         x$result_status == "ok" & x$converged & x$pdHess
       ),
       n_fit_error = sum(x$result_status != "ok"),
@@ -146,7 +152,12 @@ phase18_meta_v_aggregate_all_attempts <- function(intervals, by) {
           !is.finite(x$estimate)
       ),
       warning_rate_all_attempt = mean(x$warning_count > 0),
+      warning_rate_all_attempt_mcse = phase18_meta_v_mcse_proportion_or_na(
+        x$warning_count > 0
+      ),
       mean_elapsed_all_attempt = mean(x$elapsed),
+      median_elapsed_all_attempt = stats::median(x$elapsed),
+      p90_elapsed_all_attempt = as.numeric(stats::quantile(x$elapsed, 0.90)),
       stringsAsFactors = FALSE,
       check.names = FALSE
     )

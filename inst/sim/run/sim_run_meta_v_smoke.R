@@ -112,7 +112,7 @@ phase18_meta_v_all_attempt_summary <- function(
   }
   required_cell <- c(
     "cell_id", "surface", "known_v_type", "beta_mu_intercept",
-    "beta_mu_x", "sigma"
+    "beta_mu_x", "sigma", "n_study", "sampling_sd", "sampling_rho"
   )
   missing_cell <- setdiff(required_cell, names(cells))
   if (length(missing_cell) > 0L) {
@@ -188,9 +188,26 @@ phase18_meta_v_empty_attempt_rows <- function(result, cell) {
     cell$sigma[[1L]]
   )
   error <- if (is.null(result$error)) NA_character_ else result$error
+  known_v_diagnostics <- if (exists("phase18_make_meta_v", mode = "function")) {
+    V <- phase18_make_meta_v(
+      cell$n_study[[1L]], cell$known_v_type[[1L]], cell$sampling_sd[[1L]],
+      cell$sampling_rho[[1L]]
+    )
+    c(
+      rank = if (is.matrix(V)) qr(V)$rank else length(V),
+      condition = if (is.matrix(V)) kappa(V, exact = TRUE) else max(V) / min(V)
+    )
+  } else {
+    c(rank = NA_real_, condition = NA_real_)
+  }
   data.frame(
     surface = rep(cell$surface[[1L]], length(parameter)),
     known_v_type = rep(cell$known_v_type[[1L]], length(parameter)),
+    n_study = rep(cell$n_study[[1L]], length(parameter)),
+    sampling_sd = rep(cell$sampling_sd[[1L]], length(parameter)),
+    sampling_rho = rep(cell$sampling_rho[[1L]], length(parameter)),
+    known_v_rank = rep(known_v_diagnostics[["rank"]], length(parameter)),
+    known_v_condition = rep(known_v_diagnostics[["condition"]], length(parameter)),
     cell_id = rep(result$cell_id, length(parameter)),
     replicate = rep(result$replicate, length(parameter)),
     seed = rep(result$seed, length(parameter)),

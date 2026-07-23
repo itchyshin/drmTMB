@@ -59,7 +59,168 @@ source_phase18_meta_v_grid_writer <- function(env = parent.frame()) {
     ),
     local = env
   )
+  source(
+    system.file(
+      "sim/run/sim_meta_v_b3_contract.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = env
+  )
 }
+
+test_that("Phase 18 meta_V B3 contract freezes the formal grid and sentinel", {
+  source_phase18_meta_v_grid_writer()
+  contract <- phase18_meta_v_b3_contract("test-sha")
+  smoke <- phase18_meta_v_b3_smoke_registry()
+
+  expect_equal(nrow(contract$registry$cells), 14L)
+  expect_equal(nrow(contract$registry$seeds), 16800L)
+  expect_equal(contract$n_parameter_attempt, 50400L)
+  expect_equal(contract$n_shard, 96L)
+  expect_equal(contract$attempts_per_shard, 175L)
+  expect_equal(as.integer(table(contract$shards$shard_id)), rep(175L, 96L))
+  expect_equal(smoke$seeds$seed, c(4L, 20260722L))
+  expect_identical(smoke$cells$smoke_role[[1L]], "boundary_seed4_sentinel")
+  expect_error(
+    phase18_meta_v_b3_formal_registry(n_rep = 5L),
+    "exactly `n_rep = 1200`"
+  )
+  withr::local_envvar(c(
+    DRMTMB_META_V_B3_EXECUTION_APPROVED = "",
+    OPENBLAS_NUM_THREADS = ""
+  ))
+  expect_error(
+    phase18_assert_meta_v_b3_execution_approved(contract),
+    "explicit maintainer approval"
+  )
+  approval_path <- tempfile("meta-v-b3-approval-", fileext = ".rds")
+  withr::defer(unlink(approval_path))
+  phase18_write_meta_v_b3_approval_receipt(
+    contract, approval_path, approved_by = "Shinichi Nakagawa"
+  )
+  withr::local_envvar(c(
+    DRMTMB_META_V_B3_EXECUTION_APPROVED = "yes",
+    OPENBLAS_NUM_THREADS = "1",
+    DRMTMB_META_V_B3_APPROVAL_RECEIPT = approval_path
+  ))
+  approval <- phase18_assert_meta_v_b3_execution_approved(contract)
+  expect_identical(approval$path, normalizePath(approval_path, mustWork = TRUE))
+  expect_true(nzchar(approval$sha256))
+})
+
+test_that("Phase 18 meta_V B3 contract writes and checks complete artifacts", {
+  source_phase18_meta_v_grid_writer()
+  contract <- phase18_meta_v_b3_contract("test-sha")
+  output_dir <- tempfile("phase18-meta-v-b3-contract-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  paths <- phase18_write_meta_v_b3_contract(contract, output_dir)
+  expect_true(all(file.exists(paths)))
+  expect_true(all(nzchar(readRDS(paths[["contract_rds"]])$artifact_hashes$sha256)))
+  mismatched_contract <- contract
+  mismatched_contract$source_hashes$sha256[[1L]] <- "not-the-installed-source"
+  expect_error(
+    phase18_validate_meta_v_b3_source(mismatched_contract),
+    "do not match"
+  )
+
+  completion_contract <- contract
+  completion_contract$registry$seeds <- completion_contract$registry$seeds[1:2, , drop = FALSE]
+  completion_contract$n_attempt <- 2L
+  completion_contract$n_parameter_attempt <- 6L
+  replicates <- do.call(rbind, lapply(c("mu:(Intercept)", "mu:x", "sigma"), function(parameter) {
+    transform(
+      completion_contract$registry$seeds,
+      parameter = parameter,
+      truth = if (identical(parameter, "mu:(Intercept)")) 0.20 else if (identical(parameter, "mu:x")) 0.45 else 0.10,
+      result_status = "ok",
+      converged = TRUE,
+      pdHess = TRUE,
+      attempt_status = "ok",
+      interval_status = "ok",
+      conf.low = 0,
+      conf.high = 1,
+      warning_count = 0L,
+      result_error = NA_character_,
+      elapsed = 0.01,
+      finite_interval = TRUE
+    )
+  }))
+  manifest <- phase18_meta_v_attempt_manifest(replicates)
+  expect_true(phase18_validate_meta_v_b3_completion(manifest, replicates, completion_contract))
+  expect_equal(nrow(phase18_meta_v_b3_shard_seeds(contract, 1L)), 175L)
+  expect_error(
+    phase18_validate_meta_v_b3_completion(manifest[-1L, ], replicates, completion_contract),
+    "each and only each scheduled attempt"
+  )
+  wrong_parameter <- replicates
+  wrong_parameter$parameter[[1L]] <- "not-a-b3-parameter"
+  expect_error(
+    phase18_validate_meta_v_b3_completion(manifest, wrong_parameter, completion_contract),
+    "scheduled parameter map"
+  )
+  manifest$n_interval_degenerate[[1L]] <- 1L
+  expect_error(
+    phase18_validate_meta_v_b3_completion(manifest, replicates, completion_contract),
+    "status counts"
+  )
+})
+
+test_that("Phase 18 meta_V B3 smoke validator keeps the seed-4 boundary separate", {
+  source_phase18_meta_v_grid_writer()
+  registry <- phase18_meta_v_b3_smoke_registry()
+  intervals <- do.call(rbind, lapply(c("mu:(Intercept)", "mu:x", "sigma"), function(parameter) {
+    transform(
+      registry$seeds,
+      parameter = parameter,
+      truth = if (identical(parameter, "mu:(Intercept)")) 0.20 else if (identical(parameter, "mu:x")) 0.45 else 0.10,
+      result_status = "ok",
+      converged = TRUE,
+      pdHess = TRUE,
+      attempt_status = "ok",
+      interval_status = "ok",
+      conf.low = 0.01,
+      conf.high = 0.80,
+      warning_count = 0L,
+      result_error = NA_character_,
+      elapsed = 0.01,
+      finite_interval = TRUE
+    )
+  }))
+  boundary <- intervals$cell_id == "meta_v_b3_smoke_001" & intervals$parameter == "sigma"
+  intervals$conf.low[boundary] <- 0
+  intervals$conf.high[boundary] <- Inf
+  intervals$interval_status[boundary] <- "degenerate_zero_infinite"
+  intervals$attempt_status[boundary] <- "degenerate_interval"
+  intervals$finite_interval[boundary] <- FALSE
+  smoke <- list(
+    manifest = phase18_meta_v_attempt_manifest(intervals),
+    wald_intervals = intervals,
+    receipt = list(
+      campaign_id = "phase18_meta_v_b3",
+      source_hashes = data.frame(sha256 = "fixture"),
+      runtime = list(host = "fixture"),
+      approval_receipt = list(sha256 = "fixture")
+    ),
+    finite_and_covering_rate_all_attempt = phase18_meta_v_all_attempt_coverage(
+      intervals, by = c("cell_id", "parameter")
+    ),
+    conditional_finite_interval_coverage = phase18_meta_v_conditional_finite_coverage(
+      intervals, by = c("cell_id", "parameter")
+    )
+  )
+  expect_true(phase18_validate_meta_v_b3_smoke(smoke))
+  intervals$interval_status[boundary] <- "ok"
+  expect_error(
+    phase18_validate_meta_v_b3_smoke(list(
+      manifest = smoke$manifest, wald_intervals = intervals,
+      receipt = smoke$receipt,
+      finite_and_covering_rate_all_attempt = smoke$finite_and_covering_rate_all_attempt,
+      conditional_finite_interval_coverage = smoke$conditional_finite_interval_coverage
+    )),
+    "required degenerate interval"
+  )
+})
 
 test_that("Phase 18 meta_V grid writer creates table artifacts", {
   source_phase18_meta_v_grid_writer()

@@ -35,6 +35,25 @@ symmetric interval reconstructed from a standard error.
 5. Fisher and Rose must review the complete packet; Shinichi must explicitly
    approve compute.
 
+## Contract-hardening status
+
+The branch-local B3 contract now freezes the ordered 14-cell registry, a
+16,800-row formal seed map, the fixed Wald call, source-file hashes, runtime
+receipt, a 96-by-175 deterministic shard map, and a completion validator. The
+formal launcher rejects any replicate count other than 1,200. The two-attempt
+smoke is deliberately outside the formal denominator: its K=12 vector boundary
+uses fixed seed 4, while its K=36 dense interior control has a separately
+declared seed. This removes the earlier error of expecting a generic
+master-seed draw to reproduce the known boundary.
+
+This is still **not compute approval**. The smoke must first establish the
+retained boundary artifact and end-to-end timing; Fisher and Rose then review
+the concrete receipt before Shinichi decides whether to launch the campaign.
+Any later launch must also provide a pre-existing approval receipt naming
+Shinichi, recording CLEAR Fisher/Rose verdicts, and matching the frozen B3
+contract fingerprint; a self-asserted environment variable alone cannot start
+the smoke or a formal shard.
+
 ## Track B routing after approval
 
 **Primary host: Totoro.** It has no scheduler queue and is the shortest
