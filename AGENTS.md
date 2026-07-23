@@ -10,9 +10,9 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-23, → CODEX, ARC 6.1–6.2 CLOSED ON FEATURE BRANCH).**
-> `codex/arc6-2-gaussian-nb2` contains `d9dc3116` (Gaussian × Bernoulli) and
-> `0e512b22` (Gaussian × ordinary NB2): two bounded, fixed-effect, ML,
+> **▶ Latest — start here (2026-07-23, → CODEX, ARC 6.1–6.2 MERGED TO `main`).**
+> PR #817 merged as `85cff6fa`: `d9dc3116` (Gaussian × Bernoulli) and
+> `0e512b22` (Gaussian × ordinary NB2) provide two bounded, fixed-effect, ML,
 > complete-pair frozen-margin `associate_pairs()` slices. They estimate only
 > conditional latent-normal `eta`, never `rho12`, observed correlation,
 > joint-MLE inference, intervals, recovery, or a capability tier. Arc 6.2 uses

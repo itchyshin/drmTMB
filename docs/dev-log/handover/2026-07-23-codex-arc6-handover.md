@@ -1,7 +1,11 @@
 # Handover — Arc 6.1–6.2 closed; Arc 6.3 planning decision → Codex
 
-**From:** Codex · **To:** Codex · **Date:** 2026-07-23 · **Branch:**
-`codex/arc6-2-gaussian-nb2` · **Head at writing:** `0e512b22`
+**From:** Codex · **To:** Codex · **Date:** 2026-07-23 · **Landing:**
+PR #817 merged to `main` as `85cff6fa`
+
+> **Status update — landed 2026-07-23.** The complete Arc 6.1–6.2 branch,
+> including this handover, was pushed and merged through PR #817. The local
+> feature branch is retained as provenance; the next task starts from `main`.
 
 ## Critical context
 
@@ -92,23 +96,21 @@ handover changes after `0e512b22`.
 ## Landing state
 
 The shared handoff gate found two unpushed Arc 6 commits at the start of this
-handover. This handover and the `AGENTS.md` pointer are now committed locally
-on the same branch, but the remote push requires Shinichi's explicit approval
-in this session. A pre-existing, unrelated unpushed commit `c018908a`
+handover. Shinichi then approved the landing: the branch was pushed and merged
+through PR #817 as `85cff6fa`. A pre-existing, unrelated unpushed commit `c018908a`
 (`docs: close pkgdown reader-surface audit`) is on another branch: do not
 stage, push, amend, or otherwise attribute it from the Arc 6 lane.
 
 | Artifact / branch | Committed | Pushed at writing | PR | State |
 | --- | --- | --- | --- | --- |
-| `codex/arc6-2-gaussian-nb2` (`d9dc3116`, `0e512b22`, handover) | yes | no | none | CARRIED-OVER; remote push needs owner approval |
-| This handover + `AGENTS.md` pointer | yes | no | none | CARRIED-OVER with the Arc 6 branch |
+| PR #817 / `main` (`85cff6fa`) | yes | yes | merged | LANDED |
+| `codex/arc6-2-gaussian-nb2` (source branch) | yes | yes | #817 merged | LANDED; retained as provenance |
 | Other branch `c018908a` | yes | no | none | CARRIED-OVER, foreign lane; do not touch |
 
 ## Next immediate steps
 
-1. If Shinichi approves, push this handover branch, then confirm it is clean.
-   Do not force-push. Until then, resume from this local worktree/branch rather
-   than assuming a fresh clone can see it.
+1. Begin from current `main`; do not reopen or amend the completed Arc 6.1–6.2
+   feature branch.
 2. If Shinichi opens Arc 6.3, begin in a **new Codex task/lane** with an
    Ultra Plan, `/ask-brain`, and NotebookLM research. Decide demand, model
    contract, association scale, oracle, comparator, and claim ceiling before
