@@ -240,11 +240,15 @@ phase18_meta_v_b3_smoke_evidence <- function(contract, output_dir) {
     stop("B3 campaign approval smoke artifact does not match the frozen contract.", call. = FALSE)
   }
   smoke_approval <- smoke$receipt$approval_receipt
-  if (!is.list(smoke_approval) || !file.exists(smoke_approval$path) ||
-      !identical(phase18_meta_v_b3_sha256(smoke_approval$path), smoke_approval$sha256)) {
+  approval_path <- smoke_approval$path
+  if (!file.exists(approval_path)) {
+    approval_path <- file.path(output_dir, "meta-v-b3-smoke-approval.rds")
+  }
+  if (!is.list(smoke_approval) || !file.exists(approval_path) ||
+      !identical(phase18_meta_v_b3_sha256(approval_path), smoke_approval$sha256)) {
     stop("B3 campaign approval smoke artifact lacks an authenticated approval receipt.", call. = FALSE)
   }
-  phase18_validate_meta_v_b3_approval_data(contract, readRDS(smoke_approval$path), "smoke")
+  phase18_validate_meta_v_b3_approval_data(contract, readRDS(approval_path), "smoke")
   if (!identical(smoke$receipt$host_label, "Totoro")) {
     stop("B3 campaign approval requires smoke timing produced on Totoro.", call. = FALSE)
   }
@@ -568,13 +572,17 @@ phase18_write_meta_v_b3_smoke_outputs <- function(smoke, output_dir, overwrite =
     manifest_csv = file.path(output_dir, "meta-v-b3-smoke-manifest.csv"),
     intervals_csv = file.path(output_dir, "meta-v-b3-smoke-wald-intervals.csv"),
     primary_coverage_csv = file.path(output_dir, "meta-v-b3-smoke-primary-coverage.csv"),
-    conditional_coverage_csv = file.path(output_dir, "meta-v-b3-smoke-conditional-coverage.csv")
+    conditional_coverage_csv = file.path(output_dir, "meta-v-b3-smoke-conditional-coverage.csv"),
+    approval_rds = file.path(output_dir, "meta-v-b3-smoke-approval.rds")
   )
   if (!isTRUE(overwrite) && any(file.exists(paths))) {
     stop("B3 smoke output already exists.", call. = FALSE)
   }
   saveRDS(smoke, paths[["smoke_rds"]])
   saveRDS(smoke$receipt, paths[["receipt_rds"]])
+  if (!file.copy(smoke$receipt$approval_receipt$path, paths[["approval_rds"]], overwrite = overwrite)) {
+    stop("Could not retain the B3 smoke approval receipt beside the smoke artifact.", call. = FALSE)
+  }
   utils::write.csv(smoke$manifest, paths[["manifest_csv"]], row.names = FALSE)
   utils::write.csv(smoke$wald_intervals, paths[["intervals_csv"]], row.names = FALSE)
   utils::write.csv(smoke$finite_and_covering_rate_all_attempt, paths[["primary_coverage_csv"]], row.names = FALSE)

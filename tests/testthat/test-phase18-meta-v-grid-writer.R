@@ -164,6 +164,8 @@ test_that("Phase 18 meta_V B3 contract freezes the formal grid and sentinel", {
   )
   smoke_fixture <- make_smoke_fixture(contract, smoke_approval_path)
   phase18_write_meta_v_b3_smoke_outputs(smoke_fixture, smoke_output_dir)
+  expect_true(file.exists(file.path(smoke_output_dir, "meta-v-b3-smoke-approval.rds")))
+  unlink(smoke_approval_path)
   phase18_write_meta_v_b3_approval_receipt(
     contract, campaign_approval_path, approved_by = "Shinichi Nakagawa",
     scope = "campaign", smoke_output_dir = smoke_output_dir, totoro_load_one = 24

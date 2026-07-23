@@ -56,6 +56,8 @@ stores the reproducible host decision. The timing smoke itself must be
 explicitly labelled `Totoro`; every formal shard must carry the one approved
 host label. A self-asserted environment variable alone cannot start the smoke,
 a formal shard, or reduction.
+The smoke writer retains the hash-checked smoke approval receipt beside its RDS,
+so the evidence remains verifiable after transfer off Totoro or onto DRAC.
 
 ## Track B routing after approval
 

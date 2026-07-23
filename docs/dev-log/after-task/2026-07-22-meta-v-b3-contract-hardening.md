@@ -16,7 +16,9 @@ point authenticates installed sources, writes a host/runtime receipt, runs one
 sequential shard, and leaves aggregation to the retained-result reducer. The
 smoke and campaign are deliberately distinct approvals: a Totoro-labelled
 smoke authenticates the timing input, then a later campaign receipt chooses and
-binds every shard to either Totoro or DRAC.
+binds every shard to either Totoro or DRAC. The writer retains the hash-checked
+smoke approval receipt beside the smoke artifact so that the evidence is
+portable between those hosts.
 
 ## 3. Mathematical Contract
 
