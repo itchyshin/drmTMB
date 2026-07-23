@@ -106,6 +106,7 @@ phase18_meta_v_b3_contract_fingerprint <- function(contract) {
     interval_call = contract$interval_call,
     primary_denominator = contract$primary_denominator,
     amendment_policy = contract$amendment_policy,
+    host_policy = contract$host_policy,
     registry = contract$registry,
     shards = contract$shards
   ))
@@ -146,6 +147,120 @@ phase18_meta_v_b3_runtime_receipt <- function() {
   )
 }
 
+phase18_meta_v_b3_host_policy <- function() {
+  list(
+    totoro_load_one_max = 96,
+    smoke_multiplier = 1.25,
+    max_projected_shard_seconds = 6 * 60 * 60,
+    attempts_per_shard = 175L,
+    workers_max = 96L,
+    fallback_host = "DRAC"
+  )
+}
+
+phase18_meta_v_b3_select_host <- function(
+  smoke_elapsed_seconds,
+  totoro_load_one,
+  totoro_available = TRUE,
+  policy = phase18_meta_v_b3_host_policy()
+) {
+  if (!is.numeric(smoke_elapsed_seconds) || length(smoke_elapsed_seconds) == 0L ||
+      any(!is.finite(smoke_elapsed_seconds)) || any(smoke_elapsed_seconds <= 0)) {
+    stop("`smoke_elapsed_seconds` must contain positive finite timings.", call. = FALSE)
+  }
+  if (!is.numeric(totoro_load_one) || length(totoro_load_one) != 1L ||
+      !is.finite(totoro_load_one) || totoro_load_one < 0) {
+    stop("`totoro_load_one` must be one non-negative finite value.", call. = FALSE)
+  }
+  projected_shard_seconds <- policy$smoke_multiplier * max(smoke_elapsed_seconds) *
+    policy$attempts_per_shard
+  host <- if (isTRUE(totoro_available) &&
+      totoro_load_one < policy$totoro_load_one_max &&
+      projected_shard_seconds <= policy$max_projected_shard_seconds) {
+    "Totoro"
+  } else {
+    policy$fallback_host
+  }
+  list(
+    host = host,
+    smoke_elapsed_seconds = as.numeric(smoke_elapsed_seconds),
+    totoro_load_one = unname(totoro_load_one),
+    totoro_available = isTRUE(totoro_available),
+    projected_shard_seconds = projected_shard_seconds,
+    policy = policy
+  )
+}
+
+phase18_validate_meta_v_b3_campaign_host_selection <- function(contract, selection) {
+  if (!is.list(selection) || !identical(selection$policy, contract$host_policy)) {
+    stop("B3 campaign receipt must retain the frozen host policy.", call. = FALSE)
+  }
+  expected <- phase18_meta_v_b3_select_host(
+    smoke_elapsed_seconds = selection$smoke_elapsed_seconds,
+    totoro_load_one = selection$totoro_load_one,
+    totoro_available = selection$totoro_available,
+    policy = contract$host_policy
+  )
+  if (!identical(selection$host, expected$host) ||
+      !isTRUE(all.equal(selection$projected_shard_seconds, expected$projected_shard_seconds))) {
+    stop("B3 campaign host selection does not follow the frozen policy.", call. = FALSE)
+  }
+  invisible(expected)
+}
+
+phase18_validate_meta_v_b3_approval_data <- function(contract, receipt, scope) {
+  if (!is.list(receipt) || !identical(receipt$campaign_id, contract$campaign_id) ||
+      !identical(receipt$contract_fingerprint, phase18_meta_v_b3_contract_fingerprint(contract)) ||
+      !identical(receipt$approved_by, "Shinichi Nakagawa") ||
+      !identical(receipt$scope, scope) || !identical(receipt$fisher_verdict, "CLEAR") ||
+      !identical(receipt$rose_verdict, "CLEAR")) {
+    stop("B3 approval receipt does not authorize this frozen contract and scope.", call. = FALSE)
+  }
+  invisible(receipt)
+}
+
+phase18_meta_v_b3_smoke_evidence <- function(contract, output_dir) {
+  if (!is.character(output_dir) || length(output_dir) != 1L || !dir.exists(output_dir)) {
+    stop("B3 campaign approval requires retained smoke RDS and receipt artifacts.", call. = FALSE)
+  }
+  output_dir <- normalizePath(output_dir, mustWork = TRUE)
+  paths <- c(
+    smoke_rds = file.path(output_dir, "meta-v-b3-smoke.rds"),
+    receipt_rds = file.path(output_dir, "meta-v-b3-smoke-receipt.rds")
+  )
+  if (!all(file.exists(paths))) {
+    stop("B3 campaign approval requires retained smoke RDS and receipt artifacts.", call. = FALSE)
+  }
+  smoke <- readRDS(paths[["smoke_rds"]])
+  retained_receipt <- readRDS(paths[["receipt_rds"]])
+  phase18_validate_meta_v_b3_smoke(smoke)
+  if (!identical(smoke$receipt, retained_receipt) ||
+      !identical(smoke$receipt$contract_fingerprint, phase18_meta_v_b3_contract_fingerprint(contract)) ||
+      !identical(smoke$receipt$source_hashes$sha256, contract$source_hashes$sha256)) {
+    stop("B3 campaign approval smoke artifact does not match the frozen contract.", call. = FALSE)
+  }
+  smoke_approval <- smoke$receipt$approval_receipt
+  if (!is.list(smoke_approval) || !file.exists(smoke_approval$path) ||
+      !identical(phase18_meta_v_b3_sha256(smoke_approval$path), smoke_approval$sha256)) {
+    stop("B3 campaign approval smoke artifact lacks an authenticated approval receipt.", call. = FALSE)
+  }
+  phase18_validate_meta_v_b3_approval_data(contract, readRDS(smoke_approval$path), "smoke")
+  if (!identical(smoke$receipt$host_label, "Totoro")) {
+    stop("B3 campaign approval requires smoke timing produced on Totoro.", call. = FALSE)
+  }
+  timings <- unique(smoke$wald_intervals[c("cell_id", "seed", "elapsed")])
+  if (nrow(timings) != 2L || any(!is.finite(timings$elapsed)) || any(timings$elapsed <= 0)) {
+    stop("B3 campaign approval smoke artifact must retain two positive elapsed timings.", call. = FALSE)
+  }
+  list(
+    output_dir = output_dir,
+    smoke_sha256 = phase18_meta_v_b3_sha256(paths[["smoke_rds"]]),
+    receipt_sha256 = phase18_meta_v_b3_sha256(paths[["receipt_rds"]]),
+    approval_sha256 = smoke_approval$sha256,
+    elapsed_seconds = timings$elapsed
+  )
+}
+
 phase18_meta_v_b3_contract <- function(
   source_commit,
   source_files = phase18_meta_v_b3_source_files(),
@@ -175,6 +290,7 @@ phase18_meta_v_b3_contract <- function(
       "A plumbing change creates a new versioned contract; seeds, cells, estimator,",
       "estimand, interval definition, and denominator cannot change after smoke results."
     ),
+    host_policy = phase18_meta_v_b3_host_policy(),
     execution_approval_variable = "DRMTMB_META_V_B3_EXECUTION_APPROVED",
     execution_approval_value = "yes",
     approval_receipt_variable = "DRMTMB_META_V_B3_APPROVAL_RECEIPT",
@@ -191,6 +307,10 @@ phase18_write_meta_v_b3_approval_receipt <- function(
   contract,
   path,
   approved_by,
+  scope = c("smoke", "campaign"),
+  smoke_output_dir = NULL,
+  totoro_load_one = NULL,
+  totoro_available = TRUE,
   fisher_verdict = "CLEAR",
   rose_verdict = "CLEAR"
 ) {
@@ -203,18 +323,40 @@ phase18_write_meta_v_b3_approval_receipt <- function(
   if (!identical(fisher_verdict, "CLEAR") || !identical(rose_verdict, "CLEAR")) {
     stop("B3 approval receipt requires CLEAR Fisher and Rose verdicts.", call. = FALSE)
   }
+  scope <- match.arg(scope)
+  if (identical(scope, "campaign")) {
+    smoke_evidence <- phase18_meta_v_b3_smoke_evidence(contract, smoke_output_dir)
+    host_selection <- phase18_meta_v_b3_select_host(
+      smoke_elapsed_seconds = smoke_evidence$elapsed_seconds,
+      totoro_load_one = totoro_load_one,
+      totoro_available = totoro_available,
+      policy = contract$host_policy
+    )
+    phase18_validate_meta_v_b3_campaign_host_selection(contract, host_selection)
+  } else if (!is.null(smoke_output_dir) || !is.null(totoro_load_one) || !isTRUE(totoro_available)) {
+    stop("B3 smoke approval must not preselect a campaign host.", call. = FALSE)
+  } else {
+    smoke_evidence <- NULL
+    host_selection <- NULL
+  }
   saveRDS(list(
     campaign_id = contract$campaign_id,
     contract_fingerprint = phase18_meta_v_b3_contract_fingerprint(contract),
     approved_by = approved_by,
     approved_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    scope = scope,
+    host_selection = host_selection,
+    smoke_evidence = smoke_evidence,
     fisher_verdict = fisher_verdict,
     rose_verdict = rose_verdict
   ), path)
   invisible(normalizePath(path, mustWork = TRUE))
 }
 
-phase18_assert_meta_v_b3_execution_approved <- function(contract) {
+phase18_assert_meta_v_b3_execution_approved <- function(
+  contract,
+  scope = c("smoke", "campaign")
+) {
   variable <- contract$execution_approval_variable
   required <- contract$execution_approval_value
   if (!identical(Sys.getenv(variable, unset = ""), required)) {
@@ -226,22 +368,32 @@ phase18_assert_meta_v_b3_execution_approved <- function(contract) {
   if (!identical(Sys.getenv("OPENBLAS_NUM_THREADS", unset = ""), "1")) {
     stop("B3 execution requires OPENBLAS_NUM_THREADS=1.", call. = FALSE)
   }
-  phase18_meta_v_b3_approval_receipt(contract)
+  phase18_meta_v_b3_approval_receipt(contract, scope = match.arg(scope))
 }
 
-phase18_meta_v_b3_approval_receipt <- function(contract) {
+phase18_meta_v_b3_approval_receipt <- function(
+  contract,
+  scope = c("smoke", "campaign")
+) {
+  scope <- match.arg(scope)
   path <- Sys.getenv(contract$approval_receipt_variable, unset = "")
   if (!nzchar(path) || !file.exists(path)) {
     stop("B3 execution requires a pre-existing approval receipt.", call. = FALSE)
   }
   receipt <- readRDS(path)
-  if (!is.list(receipt) || !identical(receipt$campaign_id, contract$campaign_id) ||
-      !identical(receipt$contract_fingerprint, phase18_meta_v_b3_contract_fingerprint(contract)) ||
-      !identical(receipt$approved_by, "Shinichi Nakagawa") ||
-      !identical(receipt$fisher_verdict, "CLEAR") || !identical(receipt$rose_verdict, "CLEAR")) {
-    stop("B3 approval receipt does not authorize this frozen contract.", call. = FALSE)
+  phase18_validate_meta_v_b3_approval_data(contract, receipt, scope)
+  if (identical(scope, "campaign")) {
+    phase18_validate_meta_v_b3_campaign_host_selection(contract, receipt$host_selection)
+    smoke_evidence <- phase18_meta_v_b3_smoke_evidence(contract, receipt$smoke_evidence$output_dir)
+    if (!identical(receipt$smoke_evidence, smoke_evidence)) {
+      stop("B3 campaign approval is not bound to the retained smoke artifact.", call. = FALSE)
+    }
   }
-  list(path = normalizePath(path, mustWork = TRUE), sha256 = phase18_meta_v_b3_sha256(path))
+  list(
+    path = normalizePath(path, mustWork = TRUE),
+    sha256 = phase18_meta_v_b3_sha256(path),
+    receipt = receipt
+  )
 }
 
 phase18_validate_meta_v_b3_source <- function(
@@ -313,7 +465,11 @@ phase18_run_meta_v_b3_shard <- function(
   overwrite = FALSE
 ) {
   phase18_validate_meta_v_b3_source(contract)
-  approval <- phase18_assert_meta_v_b3_execution_approved(contract)
+  approval <- phase18_assert_meta_v_b3_execution_approved(contract, scope = "campaign")
+  host_label <- Sys.getenv("DRMTMB_META_V_B3_HOST_LABEL", unset = "")
+  if (!identical(host_label, approval$receipt$host_selection$host)) {
+    stop("B3 shard host label does not match the campaign approval.", call. = FALSE)
+  }
   seeds <- phase18_meta_v_b3_shard_seeds(contract, shard_id)
   dir.create(result_dir, recursive = TRUE, showWarnings = FALSE)
   receipt_path <- file.path(result_dir, sprintf("b3-shard-%03d-receipt.rds", shard_id))
@@ -328,6 +484,7 @@ phase18_run_meta_v_b3_shard <- function(
     source_hashes = phase18_meta_v_b3_source_hashes(phase18_meta_v_b3_source_files()),
     runtime = phase18_meta_v_b3_runtime_receipt(),
     approval_receipt = approval,
+    host_label = host_label,
     worker_policy = "one R worker; OPENBLAS_NUM_THREADS=1 required by launcher"
   ), receipt_path)
   phase18_run_replicates(
@@ -373,7 +530,11 @@ phase18_meta_v_b3_summarise_results <- function(results, cells) {
 
 phase18_run_meta_v_b3_smoke <- function(contract, result_dir = NULL, overwrite = FALSE) {
   phase18_validate_meta_v_b3_source(contract)
-  approval <- phase18_assert_meta_v_b3_execution_approved(contract)
+  approval <- phase18_assert_meta_v_b3_execution_approved(contract, scope = "smoke")
+  host_label <- Sys.getenv("DRMTMB_META_V_B3_HOST_LABEL", unset = "")
+  if (!identical(host_label, "Totoro")) {
+    stop("B3 smoke timing must be explicitly labelled Totoro.", call. = FALSE)
+  }
   registry <- phase18_meta_v_b3_smoke_registry()
   results <- phase18_run_replicates(
     cells = registry$cells, seeds = registry$seeds,
@@ -387,7 +548,9 @@ phase18_run_meta_v_b3_smoke <- function(contract, result_dir = NULL, overwrite =
       campaign_id = contract$campaign_id,
       contract_fingerprint = phase18_meta_v_b3_contract_fingerprint(contract),
       source_hashes = phase18_meta_v_b3_source_hashes(phase18_meta_v_b3_source_files()),
-      runtime = phase18_meta_v_b3_runtime_receipt(), approval_receipt = approval
+      runtime = phase18_meta_v_b3_runtime_receipt(),
+      host_label = host_label,
+      approval_receipt = approval
     )
   ),
            phase18_meta_v_b3_summarise_results(results, registry$cells))
@@ -450,7 +613,7 @@ phase18_reduce_meta_v_b3 <- function(contract, result_dir, output_dir, overwrite
 }
 
 phase18_validate_meta_v_b3_shard_receipts <- function(contract, result_dir) {
-  approval <- phase18_meta_v_b3_approval_receipt(contract)
+  approval <- phase18_meta_v_b3_approval_receipt(contract, scope = "campaign")
   paths <- sort(list.files(
     result_dir, pattern = "^b3-shard-[0-9]{3}-receipt[.]rds$",
     full.names = TRUE
@@ -469,7 +632,9 @@ phase18_validate_meta_v_b3_shard_receipts <- function(contract, result_dir) {
     is.list(receipt) && identical(receipt$campaign_id, contract$campaign_id) &&
       identical(receipt$contract_fingerprint, fingerprint) &&
       identical(receipt$approval_receipt$sha256, approval$sha256) &&
-      identical(receipt$source_hashes$sha256, expected_source)
+      identical(receipt$source_hashes$sha256, expected_source) &&
+      identical(receipt$host_label, approval$receipt$host_selection$host) &&
+      is.list(receipt$runtime) && nzchar(receipt$runtime$host)
   }, logical(1))
   if (!all(valid)) {
     stop("B3 shard receipt provenance does not match the frozen contract.", call. = FALSE)

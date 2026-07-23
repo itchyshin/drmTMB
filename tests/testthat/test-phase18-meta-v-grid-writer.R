@@ -71,6 +71,55 @@ source_phase18_meta_v_grid_writer <- function(env = parent.frame()) {
 
 test_that("Phase 18 meta_V B3 contract freezes the formal grid and sentinel", {
   source_phase18_meta_v_grid_writer()
+  make_smoke_fixture <- function(contract, smoke_approval_path) {
+    registry <- phase18_meta_v_b3_smoke_registry()
+    intervals <- do.call(rbind, lapply(c("mu:(Intercept)", "mu:x", "sigma"), function(parameter) {
+      transform(
+        registry$seeds,
+        parameter = parameter,
+        truth = if (identical(parameter, "mu:(Intercept)")) 0.20 else if (identical(parameter, "mu:x")) 0.45 else 0.10,
+        result_status = "ok",
+        converged = TRUE,
+        pdHess = TRUE,
+        attempt_status = "ok",
+        interval_status = "ok",
+        conf.low = 0.01,
+        conf.high = 0.80,
+        warning_count = 0L,
+        result_error = NA_character_,
+        elapsed = 0.01,
+        finite_interval = TRUE
+      )
+    }))
+    intervals$elapsed <- rep(c(0.01, 0.02), times = 3L)
+    boundary <- intervals$cell_id == "meta_v_b3_smoke_001" & intervals$parameter == "sigma"
+    intervals$conf.low[boundary] <- 0
+    intervals$conf.high[boundary] <- Inf
+    intervals$interval_status[boundary] <- "degenerate_zero_infinite"
+    intervals$attempt_status[boundary] <- "degenerate_interval"
+    intervals$finite_interval[boundary] <- FALSE
+    list(
+      manifest = phase18_meta_v_attempt_manifest(intervals),
+      wald_intervals = intervals,
+      receipt = list(
+        campaign_id = contract$campaign_id,
+        contract_fingerprint = phase18_meta_v_b3_contract_fingerprint(contract),
+        source_hashes = contract$source_hashes,
+        runtime = list(host = "fixture"),
+        host_label = "Totoro",
+        approval_receipt = list(
+          path = normalizePath(smoke_approval_path, mustWork = TRUE),
+          sha256 = phase18_meta_v_b3_sha256(smoke_approval_path)
+        )
+      ),
+      finite_and_covering_rate_all_attempt = phase18_meta_v_all_attempt_coverage(
+        intervals, by = c("cell_id", "parameter")
+      ),
+      conditional_finite_interval_coverage = phase18_meta_v_conditional_finite_coverage(
+        intervals, by = c("cell_id", "parameter")
+      )
+    )
+  }
   contract <- phase18_meta_v_b3_contract("test-sha")
   smoke <- phase18_meta_v_b3_smoke_registry()
 
@@ -94,19 +143,79 @@ test_that("Phase 18 meta_V B3 contract freezes the formal grid and sentinel", {
     phase18_assert_meta_v_b3_execution_approved(contract),
     "explicit maintainer approval"
   )
-  approval_path <- tempfile("meta-v-b3-approval-", fileext = ".rds")
-  withr::defer(unlink(approval_path))
+  smoke_approval_path <- tempfile("meta-v-b3-smoke-approval-", fileext = ".rds")
+  campaign_approval_path <- tempfile("meta-v-b3-campaign-approval-", fileext = ".rds")
+  smoke_output_dir <- tempfile("meta-v-b3-smoke-output-")
+  withr::defer(unlink(c(smoke_approval_path, campaign_approval_path, smoke_output_dir), recursive = TRUE))
   phase18_write_meta_v_b3_approval_receipt(
-    contract, approval_path, approved_by = "Shinichi Nakagawa"
+    contract, smoke_approval_path, approved_by = "Shinichi Nakagawa", scope = "smoke"
   )
   withr::local_envvar(c(
     DRMTMB_META_V_B3_EXECUTION_APPROVED = "yes",
     OPENBLAS_NUM_THREADS = "1",
-    DRMTMB_META_V_B3_APPROVAL_RECEIPT = approval_path
+    DRMTMB_META_V_B3_APPROVAL_RECEIPT = smoke_approval_path
   ))
-  approval <- phase18_assert_meta_v_b3_execution_approved(contract)
-  expect_identical(approval$path, normalizePath(approval_path, mustWork = TRUE))
+  approval <- phase18_assert_meta_v_b3_execution_approved(contract, scope = "smoke")
+  expect_identical(approval$path, normalizePath(smoke_approval_path, mustWork = TRUE))
   expect_true(nzchar(approval$sha256))
+  expect_error(
+    phase18_assert_meta_v_b3_execution_approved(contract, scope = "campaign"),
+    "scope"
+  )
+  smoke_fixture <- make_smoke_fixture(contract, smoke_approval_path)
+  phase18_write_meta_v_b3_smoke_outputs(smoke_fixture, smoke_output_dir)
+  phase18_write_meta_v_b3_approval_receipt(
+    contract, campaign_approval_path, approved_by = "Shinichi Nakagawa",
+    scope = "campaign", smoke_output_dir = smoke_output_dir, totoro_load_one = 24
+  )
+  Sys.setenv(DRMTMB_META_V_B3_APPROVAL_RECEIPT = campaign_approval_path)
+  campaign_approval <- phase18_assert_meta_v_b3_execution_approved(contract, scope = "campaign")
+  expect_identical(campaign_approval$path, normalizePath(campaign_approval_path, mustWork = TRUE))
+  expect_identical(
+    readRDS(campaign_approval_path)$host_selection$host,
+    "Totoro"
+  )
+  expect_identical(
+    phase18_meta_v_b3_select_host(c(1, 2), totoro_load_one = 96)$host,
+    "DRAC"
+  )
+  expect_identical(
+    phase18_meta_v_b3_select_host(c(1, 2), totoro_load_one = 24, totoro_available = FALSE)$host,
+    "DRAC"
+  )
+  expect_identical(
+    phase18_meta_v_b3_select_host(c(200, 1), totoro_load_one = 24)$host,
+    "DRAC"
+  )
+  receipt_dir <- tempfile("meta-v-b3-receipts-")
+  dir.create(receipt_dir)
+  withr::defer(unlink(receipt_dir, recursive = TRUE))
+  for (shard_id in seq_len(contract$n_shard)) {
+    saveRDS(list(
+      campaign_id = contract$campaign_id,
+      contract_fingerprint = phase18_meta_v_b3_contract_fingerprint(contract),
+      shard_id = shard_id,
+      source_hashes = contract$source_hashes,
+      runtime = list(host = "totoro-fixture"),
+      approval_receipt = campaign_approval,
+      host_label = "Totoro"
+    ), file.path(receipt_dir, sprintf("b3-shard-%03d-receipt.rds", shard_id)))
+  }
+  expect_silent(phase18_validate_meta_v_b3_shard_receipts(contract, receipt_dir))
+  bad_receipt <- readRDS(file.path(receipt_dir, "b3-shard-096-receipt.rds"))
+  bad_receipt$host_label <- "DRAC"
+  saveRDS(bad_receipt, file.path(receipt_dir, "b3-shard-096-receipt.rds"))
+  expect_error(
+    phase18_validate_meta_v_b3_shard_receipts(contract, receipt_dir),
+    "provenance"
+  )
+  expect_error(
+    phase18_write_meta_v_b3_approval_receipt(
+      contract, tempfile(fileext = ".rds"), approved_by = "Shinichi Nakagawa",
+      scope = "campaign", smoke_output_dir = tempfile(), totoro_load_one = 24
+    ),
+    "requires retained smoke"
+  )
 })
 
 test_that("Phase 18 meta_V B3 contract writes and checks complete artifacts", {

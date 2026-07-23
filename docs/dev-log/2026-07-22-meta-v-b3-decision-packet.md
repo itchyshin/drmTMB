@@ -32,8 +32,8 @@ symmetric interval reconstructed from a standard error.
    stated likelihood convention.
 4. The smoke must prove non-empty artifacts and retain the K=12 boundary status
    before scaling out.
-5. Fisher and Rose must review the complete packet; Shinichi must explicitly
-   approve compute.
+5. Fisher and Rose must review the exact-SHA contract. Shinichi then gives a
+   smoke-only approval; campaign approval is a separate post-smoke decision.
 
 ## Contract-hardening status
 
@@ -46,29 +46,35 @@ uses fixed seed 4, while its K=36 dense interior control has a separately
 declared seed. This removes the earlier error of expecting a generic
 master-seed draw to reproduce the known boundary.
 
-This is still **not compute approval**. The smoke must first establish the
-retained boundary artifact and end-to-end timing; Fisher and Rose then review
-the concrete receipt before Shinichi decides whether to launch the campaign.
-Any later launch must also provide a pre-existing approval receipt naming
-Shinichi, recording CLEAR Fisher/Rose verdicts, and matching the frozen B3
-contract fingerprint; a self-asserted environment variable alone cannot start
-the smoke or a formal shard.
+This is still **not compute approval**. The contract now has two non-
+interchangeable approval receipts. A `smoke` receipt authorizes only the two
+diagnostic attempts. A later `campaign` receipt is required for every formal
+shard and for reduction; it names Shinichi, records fresh CLEAR Fisher/Rose
+verdicts, matches the exact contract fingerprint and source hashes, hashes the
+validated retained smoke artifact from which its two timings are read, and
+stores the reproducible host decision. The timing smoke itself must be
+explicitly labelled `Totoro`; every formal shard must carry the one approved
+host label. A self-asserted environment variable alone cannot start the smoke,
+a formal shard, or reduction.
 
 ## Track B routing after approval
 
-**Primary host: Totoro.** It has no scheduler queue and is the shortest
-wall-clock route for this embarrassingly parallel, CPU-only grid. After the
-approved timing smoke, use at most 96 independent R workers with
-`OPENBLAS_NUM_THREADS=1`, deterministic replicate shards, and one retained
-result bundle per shard. Start with one boundary and one interior cell at one
-replicate; inspect the retained interval artifact and manifest before scaling
-to the frozen 16,800 attempts.
+**Primary host: Totoro, only when the frozen rule selects it.** It must be
+reachable through its ControlMaster route, have one-minute load below 96, and
+have conservative projected shard time at most six hours, calculated as
+`1.25 * max(two smoke elapsed seconds) * 175`. It then uses at most 96
+independent R workers with `OPENBLAS_NUM_THREADS=1`, deterministic replicate
+shards, and one retained result bundle per shard. Start with one boundary and
+one interior cell at one replicate; inspect the retained interval artifact and
+manifest before scaling to the frozen 16,800 attempts.
 
-**Fallback host: DRAC.** Use a SLURM array only if the Totoro load check or the
-timing smoke projects an unacceptable completion time. Do not pool Totoro and
-DRAC results in one denominator without a predeclared host-stratified merge
-rule. Results are diagnostic operating-characteristic evidence for the exact
-Gaussian ML, `sigma ~ 1`, known-`V` cells only.
+**Fallback host: DRAC.** Use a SLURM array if Totoro is unavailable, its load is
+96 or higher, or the frozen timing calculation exceeds six hours. Do not pool
+Totoro and DRAC results in one denominator. Reduction accepts only 96 unique
+formal shard receipts matching the campaign receipt, source hashes, and contract
+fingerprint, including the selected host label. Results are diagnostic
+operating-characteristic evidence for the exact Gaussian ML, `sigma ~ 1`,
+known-`V` cells only.
 
 ## Explicit exclusions
 

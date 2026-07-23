@@ -13,7 +13,10 @@ rule, and 96 deterministic shards of 175 attempts. A seed-4 K=12 boundary
 smoke and a separate K=36 dense interior smoke are executable only through the
 post-approval runner and are outside the formal denominator. The shard entry
 point authenticates installed sources, writes a host/runtime receipt, runs one
-sequential shard, and leaves aggregation to the retained-result reducer.
+sequential shard, and leaves aggregation to the retained-result reducer. The
+smoke and campaign are deliberately distinct approvals: a Totoro-labelled
+smoke authenticates the timing input, then a later campaign receipt chooses and
+binds every shard to either Totoro or DRAC.
 
 ## 3. Mathematical Contract
 
@@ -79,7 +82,8 @@ actual smoke/reducer paths.
 
 No Totoro/DRAC smoke, timing measurement, campaign, capability promotion,
 coverage certification, or CRAN action has occurred. Formal compute remains
-blocked on renewed Fisher/Rose review and Shinichi's explicit approval.
+blocked on the cleared Fisher/Rose review record and Shinichi's explicit
+smoke-only approval.
 
 ## 11. Team Learning
 
