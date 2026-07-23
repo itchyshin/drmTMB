@@ -68,11 +68,13 @@ existing Gaussian likelihood into a generic mixed-family wrapper.
 
 - **Working:** B3 records are complete and pushed; raw evidence remains ignored
   locally by design at `inst/sim/results/meta-v-b3-2026-07-23/`.
-- **In progress, non-gating:** a failure-collecting uncapped `test_local()`
-  rerun writes `/tmp/drmtmb-b3-full-suite-collecting.log`. The prior full run
-  stopped on two Phase-18 report-render tests, but both pass in isolation
-  (`failed=0`, `error=0`). Treat this as a sequence/environment audit finding,
-  not as B3 evidence, until the collecting rerun supplies exact totals.
+- **Regression-audit follow-up, non-gating:** the prior uncapped sequential
+  `test_local()` run stopped with test failures while rendering two Phase-18
+  report templates. Both implicated files pass in isolation (`failed=0`,
+  `error=0`). An attempted background failure-collecting rerun did not start:
+  its temporary log records `ERROR: option '-e' requires a non-empty argument`.
+  Re-run the collector in a clean foreground process before making any broad
+  regression or release claim; do not treat it as B3 evidence.
 - **Not started:** Arc 6 planning, implementation, smoke, compute, or any claim.
 
 ## Key Decisions & Rationale
@@ -109,7 +111,7 @@ unpublished branch. It is declared here rather than mixed into B3.
 | `codex/meta-v-b3-contract` at `4d367cad` plus this handoff commit | yes | yes after this handoff is pushed | none | LANDED on a fetchable feature branch; merge is a maintainer decision |
 | `codex/pkgdown-formal-closeout` at `c018908a` | yes | **no** | none | CARRIED-OVER separate audit-provenance lane; do not absorb it into Arc 6. Resume: `git switch codex/pkgdown-formal-closeout && git push origin codex/pkgdown-formal-closeout` only when its owner is ready. |
 | `inst/sim/results/meta-v-b3-2026-07-23/` | ignored by design | local only | none | retained raw B3 evidence; never stage |
-| `/tmp/drmtmb-b3-full-suite-collecting.log` | no | no | none | transient regression-audit log; read it if present, then record exact totals in a future documentation-only follow-up |
+| `/tmp/drmtmb-b3-full-suite-collecting.log` | no | no | none | failed-to-start transient attempt; do not use it as a census result. Resume with a clean foreground `test_local(..., stop_on_failure = FALSE)` collector. |
 
 ## Plans / Roadmap
 
@@ -157,8 +159,9 @@ ecology/evolution candidate but is not selected merely for familiarity; the
 new lane must test it against demand, comparator feasibility, and a defensible
 joint-likelihood interpretation.
 
-The B3 full-suite collecting rerun is not an Arc 6 blocker, but any reported
-failure count must be traced before a broad release or public readiness claim.
+The B3 sequential full-suite failure is not an Arc 6 blocker, but its exact
+failure/error census must be collected and traced before a broad release or
+public readiness claim.
 
 ## Gotchas / Failed Approaches
 
