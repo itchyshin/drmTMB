@@ -90,28 +90,43 @@ phase18_meta_v_b3_source_hashes <- function(source_files) {
   )
 }
 
-phase18_meta_v_b3_object_sha256 <- function(x) {
-  path <- tempfile("meta-v-b3-object-", fileext = ".rds")
-  on.exit(unlink(path), add = TRUE)
-  # Version 2 and no compression make the contract hash stable across the
-  # R 4.5 (Totoro/DRAC) and R 4.6 authoring runtimes.
-  saveRDS(x, path, version = 2, compress = FALSE)
-  phase18_meta_v_b3_sha256(path)
-}
-
 phase18_meta_v_b3_contract_fingerprint <- function(contract) {
-  phase18_meta_v_b3_object_sha256(list(
+  # Do not hash R serialization: R 4.5 and R 4.6 can reconstruct equivalent
+  # objects with different serialized bytes.  The explicit UTF-8 tabular form
+  # is the portable, inspectable contract identity used on every host.
+  path <- tempfile("meta-v-b3-contract-fingerprint-", fileext = ".txt")
+  on.exit(unlink(path), add = TRUE)
+  con <- file(path, open = "w", encoding = "UTF-8")
+  on.exit(try(close(con), silent = TRUE), add = TRUE)
+  scalar <- c(
     campaign_id = contract$campaign_id,
     source_commit = contract$source_commit,
-    source_hashes = contract$source_hashes,
     estimator = contract$estimator,
     interval_call = contract$interval_call,
     primary_denominator = contract$primary_denominator,
-    amendment_policy = contract$amendment_policy,
-    host_policy = contract$host_policy,
-    registry = contract$registry,
+    amendment_policy = contract$amendment_policy
+  )
+  writeLines(paste(names(scalar), enc2utf8(scalar), sep = "\t"), con, useBytes = TRUE)
+  policy <- unlist(contract$host_policy, use.names = TRUE)
+  writeLines(
+    paste(names(policy), format(policy, scientific = FALSE, trim = TRUE, digits = 17), sep = "\t"),
+    con, useBytes = TRUE
+  )
+  tables <- list(
+    source_hashes = contract$source_hashes,
+    registry_cells = contract$registry$cells,
+    registry_seeds = contract$registry$seeds,
     shards = contract$shards
-  ))
+  )
+  for (name in names(tables)) {
+    writeLines(paste0("[", name, "]"), con, useBytes = TRUE)
+    utils::write.table(
+      tables[[name]], file = con, sep = "\t", row.names = FALSE,
+      col.names = TRUE, quote = TRUE, na = "", eol = "\n"
+    )
+  }
+  close(con)
+  phase18_meta_v_b3_sha256(path)
 }
 
 phase18_meta_v_b3_sha256 <- function(path) {

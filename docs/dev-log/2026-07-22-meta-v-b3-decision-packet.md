@@ -58,8 +58,9 @@ host label. A self-asserted environment variable alone cannot start the smoke,
 a formal shard, or reduction.
 The smoke writer retains the hash-checked smoke approval receipt beside its RDS,
 so the evidence remains verifiable after transfer off Totoro or onto DRAC.
-Its contract fingerprint uses explicit uncompressed RDS version 2 serialization,
-which is stable across the local R 4.6 and compute-host R 4.5 runtimes.
+Its contract fingerprint hashes an explicit UTF-8 tabular canonical form rather
+than R serialization, which is stable across the local R 4.6 and compute-host
+R 4.5 runtimes.
 
 ## Track B routing after approval
 
