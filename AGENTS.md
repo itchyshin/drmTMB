@@ -10,6 +10,19 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
+> **▶ Latest — start here (2026-07-23, meta_V B3 campaign COMPLETE; promotion WITHHELD).**
+> Branch `codex/meta-v-b3-contract` has a source-hashed smoke/campaign contract,
+> host policy, and retained 96-shard Totoro reduction. All 16,800 fits / 50,400
+> parameter rows were `ok`; however, 3,712 `sigma` intervals were retained as
+> `degenerate_zero_infinite`. Primary all-attempt finite-and-covering rates are
+> not interchangeable with conditional-on-finite values. Fisher and Rose
+> **WITHHOLD** any inference, coverage, capability, public, or promotion claim:
+> `meta_V(V = V)` remains implemented/tested and tier-unregistered. CRAN remains
+> **PARKED**. Full raw evidence is local/ignored at
+> `inst/sim/results/meta-v-b3-2026-07-23/`; compact provenance is versioned.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-23-codex-handover.md`](docs/dev-log/handover/2026-07-23-codex-handover.md)
+
 > **▶ Latest — start here (2026-07-22, → CODEX, 0.6 DEV ARC TRACK A **MERGED** to `main`).**
 > `claude/0.6-dev-arc` is **MERGED** (was +15 / −6, tree clean). Track A is verified: newcomer sweep
 > **17/17 FITS or CLEAN**, full suite **264 files / 39,320 passing**, **zero added failures** — proved
