@@ -10,6 +10,18 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
+> **▶ Latest — start here (2026-07-23, next lane = Arc 6 bivariate-combinations ULTRA-PLAN).**
+> The B3 `meta_V()` evidence arc is complete on pushed branch
+> `codex/meta-v-b3-contract` (`4d367cad`): it **withheld** promotion because
+> 3,712 retained `sigma` intervals were `[0, Inf]`. The next substantive lane
+> is the post-0.6 **Arc 6** decision-and-design preflight for staged bivariate
+> combinations across response families. It is **plan-only**: enter Plan mode,
+> run the ultra-plan prior-work sweep, select/recommend a first pair and
+> likelihood/dependence contract, then stop for Shinichi's approval. Do not
+> implement a family pair, run compute, change the capability tier, or reopen
+> CRAN from that plan. START HERE:
+> [`docs/dev-log/handover/2026-07-23-codex-arc6-ultraplan-handover.md`](docs/dev-log/handover/2026-07-23-codex-arc6-ultraplan-handover.md)
+
 > **▶ Latest — start here (2026-07-23, meta_V B3 campaign COMPLETE; promotion WITHHELD).**
 > Branch `codex/meta-v-b3-contract` has a source-hashed smoke/campaign contract,
 > host policy, and retained 96-shard Totoro reduction. All 16,800 fits / 50,400
