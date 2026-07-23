@@ -93,7 +93,14 @@ test_that("Phase 18 meta_V grid writer creates table artifacts", {
   expect_equal(nrow(out$summary$aggregate), 9L)
   expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 9L)
   expect_equal(nrow(utils::read.csv(out$paths$wald_intervals_csv)), 9L)
-  expect_equal(nrow(utils::read.csv(out$paths$wald_coverage_csv)), 9L)
+  expect_equal(
+    nrow(utils::read.csv(out$paths$finite_and_covering_rate_all_attempt_csv)),
+    9L
+  )
+  expect_equal(
+    nrow(utils::read.csv(out$paths$conditional_finite_interval_coverage_csv)),
+    9L
+  )
   expect_setequal(
     unique(out$summary$replicates$known_v_type),
     c("vector", "dense")

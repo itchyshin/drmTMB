@@ -142,7 +142,7 @@ diagnostics, and honest limits.
 | Are proportions successes out of trials, continuous rates inside `(0, 1)`, or continuous rates with structural exact boundaries? | [Proportions and success rates](proportion-beta-binomial.html) | beta-binomial, beta, and zero-one beta `mu`, `sigma`, `zoi`, `coi` |
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
 | Do repeated individuals have correlated average responses after accounting for residual coupling? | [Changing residual coupling with rho12](bivariate-coscale.html) | `corpairs(level = "group")` |
-| Do effect sizes have known sampling variances or covariance? (a specialist route, not a family choice for raw response data) | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` |
+| Do effect sizes have known sampling variances or covariance? (a specialist route, not a family choice for raw response data) | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` (implemented/tested; tier unregistered, with no interval or coverage claim) |
 | Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
 | I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
 | Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
@@ -185,7 +185,7 @@ At a high level, the current public surface is:
 | fixed-effect non-Gaussian families | stable for named fixed-effect paths | "Choosing response families" |
 | fixed-effect NB2 and zero-inflated NB2 count examples | stable for fixed effects | "Count abundance and extra zeros" |
 | bounded-response proportion examples | beta, beta-binomial, and zero-one beta fixed effects plus ordinary `mu` random intercepts and independent numeric slopes; its exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; zero-one beta handles structural exact boundaries | "Proportions and success rates" |
-| Gaussian meta-analysis with known sampling covariance | implemented, source-tested; ledger tier unregistered | "Mean effects and residual heterogeneity in meta-analysis" |
+| Gaussian meta-analysis with known sampling covariance | implemented/tested; capability tier unregistered, with no interval or coverage claim | "Mean effects and residual heterogeneity in meta-analysis" |
 | fixed-effect bivariate Gaussian `rho12` | implemented; interval-feasible, but CI coverage unregistered | "Changing residual coupling with rho12" |
 | ordinary bivariate covariance and `corpairs()` rows | first slice | "What can I fit today?" |
 | phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | first slices | "Structural dependence" |

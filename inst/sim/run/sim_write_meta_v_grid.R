@@ -1,12 +1,6 @@
 phase18_write_meta_v_grid_outputs <- function(
   output_dir,
-  conditions = phase18_meta_v_conditions(
-    n_study = c(36L, 72L),
-    known_v_type = c("vector", "dense"),
-    sigma = c(0.15, 0.35),
-    sampling_sd = 0.14,
-    sampling_rho = c(0, 0.20)
-  ),
+  conditions = phase18_meta_v_b3_conditions(),
   n_rep = 5L,
   master_seed = 20260528L,
   overwrite = FALSE,
@@ -35,7 +29,14 @@ phase18_write_meta_v_grid_outputs <- function(
     manifest_csv = file.path(table_dir, "meta-v-manifest.csv"),
     failures_csv = file.path(table_dir, "meta-v-failures.csv"),
     wald_intervals_csv = file.path(table_dir, "meta-v-wald-intervals.csv"),
-    wald_coverage_csv = file.path(table_dir, "meta-v-wald-coverage.csv")
+    finite_and_covering_rate_all_attempt_csv = file.path(
+      table_dir,
+      "meta-v-finite-and-covering-interval-rate-all-attempts.csv"
+    ),
+    conditional_finite_interval_coverage_csv = file.path(
+      table_dir,
+      "meta-v-conditional-finite-interval-set-coverage.csv"
+    )
   )
   phase18_assert_meta_v_grid_overwrite(paths, overwrite)
 
@@ -59,8 +60,13 @@ phase18_write_meta_v_grid_outputs <- function(
     row.names = FALSE
   )
   utils::write.csv(
-    summary$wald_coverage,
-    paths$wald_coverage_csv,
+    summary$finite_and_covering_rate_all_attempt,
+    paths$finite_and_covering_rate_all_attempt_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    summary$conditional_finite_interval_coverage,
+    paths$conditional_finite_interval_coverage_csv,
     row.names = FALSE
   )
 

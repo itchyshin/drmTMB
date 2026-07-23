@@ -27,6 +27,67 @@ phase18_meta_v_conditions <- function(
   conditions
 }
 
+# Frozen B3 design for the known-V meta-analysis lane. This is deliberately an
+# explicit 14-cell design, not the broader factorial returned by
+# phase18_meta_v_conditions(): it retains the K = 12, sigma = 0.10 boundary
+# reproducer while keeping the formal 1,200-replicate campaign tractable.
+phase18_meta_v_b3_conditions <- function(
+  beta_mu_intercept = 0.20,
+  beta_mu_x = 0.45
+) {
+  boundary_ladder <- data.frame(
+    n_study = c(8L, 12L, 16L, 36L, 72L),
+    known_v_type = "vector",
+    sigma = 0.10,
+    sampling_sd = 0.12,
+    sampling_rho = 0,
+    design_role = "boundary_ladder",
+    stringsAsFactors = FALSE
+  )
+  known_v_stress <- expand.grid(
+    sampling_sd = c(0.12, 0.22),
+    known_v_type = c("vector", "dense"),
+    sampling_rho = c(0, 0.25),
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  known_v_stress <- known_v_stress[
+    known_v_stress$known_v_type == "dense" |
+      known_v_stress$sampling_rho == 0,
+    ,
+    drop = FALSE
+  ]
+  known_v_stress$n_study <- 12L
+  known_v_stress$sigma <- 0.10
+  known_v_stress$design_role <- "known_v_stress"
+  known_v_stress <- known_v_stress[
+    c("n_study", "known_v_type", "sigma", "sampling_sd", "sampling_rho", "design_role")
+  ]
+  interior_controls <- expand.grid(
+    n_study = c(12L, 36L),
+    known_v_type = c("vector", "dense"),
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  interior_controls$sigma <- 0.35
+  interior_controls$sampling_sd <- 0.12
+  interior_controls$sampling_rho <- ifelse(
+    interior_controls$known_v_type == "vector", 0, 0.25
+  )
+  interior_controls$design_role <- "interior_control"
+  out <- rbind(boundary_ladder, known_v_stress, interior_controls)
+  key <- paste(
+    out$n_study, out$known_v_type, out$sigma, out$sampling_sd,
+    out$sampling_rho, sep = "\r"
+  )
+  out <- out[!duplicated(key), , drop = FALSE]
+  out$beta_mu_intercept <- beta_mu_intercept
+  out$beta_mu_x <- beta_mu_x
+  row.names(out) <- NULL
+  stopifnot(nrow(out) == 14L)
+  out
+}
+
 phase18_dgp_meta_v <- function(
   n_study,
   known_v_type = c("vector", "dense"),
