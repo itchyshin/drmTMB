@@ -60,7 +60,8 @@ The smoke writer retains the hash-checked smoke approval receipt beside its RDS,
 so the evidence remains verifiable after transfer off Totoro or onto DRAC.
 Its contract fingerprint hashes an explicit UTF-8 tabular canonical form rather
 than R serialization, which is stable across the local R 4.6 and compute-host
-R 4.5 runtimes.
+R 4.5 runtimes. It includes the frozen completion counts that the reducer uses
+to require all 96 formal shard receipts.
 
 ## Track B routing after approval
 

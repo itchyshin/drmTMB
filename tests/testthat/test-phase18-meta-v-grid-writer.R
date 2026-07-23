@@ -232,6 +232,14 @@ test_that("Phase 18 meta_V B3 contract writes and checks complete artifacts", {
     phase18_meta_v_b3_contract_fingerprint(readRDS(paths[["contract_rds"]])),
     phase18_meta_v_b3_contract_fingerprint(contract)
   )
+  for (field in c("n_attempt", "n_parameter_attempt", "n_shard", "attempts_per_shard")) {
+    altered <- contract
+    altered[[field]] <- altered[[field]] - 1L
+    expect_false(identical(
+      phase18_meta_v_b3_contract_fingerprint(altered),
+      phase18_meta_v_b3_contract_fingerprint(contract)
+    ))
+  }
   mismatched_contract <- contract
   mismatched_contract$source_hashes$sha256[[1L]] <- "not-the-installed-source"
   expect_error(

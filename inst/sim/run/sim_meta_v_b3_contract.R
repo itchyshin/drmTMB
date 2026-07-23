@@ -104,7 +104,11 @@ phase18_meta_v_b3_contract_fingerprint <- function(contract) {
     estimator = contract$estimator,
     interval_call = contract$interval_call,
     primary_denominator = contract$primary_denominator,
-    amendment_policy = contract$amendment_policy
+    amendment_policy = contract$amendment_policy,
+    n_attempt = as.character(contract$n_attempt),
+    n_parameter_attempt = as.character(contract$n_parameter_attempt),
+    n_shard = as.character(contract$n_shard),
+    attempts_per_shard = as.character(contract$attempts_per_shard)
   )
   writeLines(paste(names(scalar), enc2utf8(scalar), sep = "\t"), con, useBytes = TRUE)
   policy <- unlist(contract$host_policy, use.names = TRUE)
