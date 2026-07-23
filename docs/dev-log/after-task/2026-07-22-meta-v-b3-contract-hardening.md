@@ -85,7 +85,8 @@ actual smoke/reducer paths. The first approved Totoro smoke then failed closed
 before fitting: both retained attempts record `could not find function
 "drmTMB"`, because the standalone tools checked the namespace but did not
 attach it for sourced simulation code. The runner repair is tested, but it has
-not been re-executed.
+not been re-executed. Both execution entrypoints are now in the frozen source
+hash, so the pre-repair smoke receipt cannot authorize a repeat.
 
 ## 10. Known Residuals
 

@@ -128,6 +128,8 @@ test_that("Phase 18 meta_V B3 contract freezes the formal grid and sentinel", {
   expect_equal(contract$n_parameter_attempt, 50400L)
   expect_equal(contract$n_shard, 96L)
   expect_equal(contract$attempts_per_shard, 175L)
+  expect_true(all(c("run-meta-v-b3-smoke.R", "run-meta-v-b3-shard.R") %in%
+    basename(contract$source_hashes$path)))
   expect_equal(as.integer(table(contract$shards$shard_id)), rep(175L, 96L))
   expect_equal(smoke$seeds$seed, c(4L, 20260722L))
   expect_identical(smoke$cells$smoke_role[[1L]], "boundary_seed4_sentinel")

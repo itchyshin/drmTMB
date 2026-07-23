@@ -11,10 +11,30 @@ phase18_meta_v_b3_source_relpaths <- function() {
   )
 }
 
+phase18_meta_v_b3_entrypoint_relpaths <- function() {
+  c("tools/run-meta-v-b3-smoke.R", "tools/run-meta-v-b3-shard.R")
+}
+
+phase18_meta_v_b3_entrypoint_files <- function() {
+  roots <- unique(normalizePath(
+    c(getwd(), file.path(getwd(), "..", "..")),
+    mustWork = FALSE
+  ))
+  vapply(phase18_meta_v_b3_entrypoint_relpaths(), function(path) {
+    candidates <- file.path(roots, path)
+    match <- candidates[file.exists(candidates)]
+    if (length(match) != 1L) {
+      stop("Could not locate B3 execution entry point `", path, "`.", call. = FALSE)
+    }
+    normalizePath(match, mustWork = TRUE)
+  }, character(1))
+}
+
 phase18_meta_v_b3_source_files <- function() {
-  vapply(phase18_meta_v_b3_source_relpaths(), function(path) {
+  package_files <- vapply(phase18_meta_v_b3_source_relpaths(), function(path) {
     system.file(path, package = "drmTMB", mustWork = TRUE)
   }, character(1))
+  c(package_files, phase18_meta_v_b3_entrypoint_files())
 }
 
 phase18_meta_v_b3_formal_registry <- function(
@@ -297,7 +317,10 @@ phase18_meta_v_b3_contract <- function(
       !nzchar(source_commit)) {
     stop("`source_commit` must be one non-empty commit identifier.", call. = FALSE)
   }
-  expected <- basename(phase18_meta_v_b3_source_relpaths())
+  expected <- c(
+    basename(phase18_meta_v_b3_source_relpaths()),
+    basename(phase18_meta_v_b3_entrypoint_relpaths())
+  )
   if (!setequal(basename(source_files), expected)) {
     stop("`source_files` must contain the complete B3 required-source list.", call. = FALSE)
   }
