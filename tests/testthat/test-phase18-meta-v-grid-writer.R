@@ -228,6 +228,10 @@ test_that("Phase 18 meta_V B3 contract writes and checks complete artifacts", {
   paths <- phase18_write_meta_v_b3_contract(contract, output_dir)
   expect_true(all(file.exists(paths)))
   expect_true(all(nzchar(readRDS(paths[["contract_rds"]])$artifact_hashes$sha256)))
+  expect_identical(
+    phase18_meta_v_b3_contract_fingerprint(readRDS(paths[["contract_rds"]])),
+    phase18_meta_v_b3_contract_fingerprint(contract)
+  )
   mismatched_contract <- contract
   mismatched_contract$source_hashes$sha256[[1L]] <- "not-the-installed-source"
   expect_error(

@@ -93,7 +93,9 @@ phase18_meta_v_b3_source_hashes <- function(source_files) {
 phase18_meta_v_b3_object_sha256 <- function(x) {
   path <- tempfile("meta-v-b3-object-", fileext = ".rds")
   on.exit(unlink(path), add = TRUE)
-  saveRDS(x, path)
+  # Version 2 and no compression make the contract hash stable across the
+  # R 4.5 (Totoro/DRAC) and R 4.6 authoring runtimes.
+  saveRDS(x, path, version = 2, compress = FALSE)
   phase18_meta_v_b3_sha256(path)
 }
 

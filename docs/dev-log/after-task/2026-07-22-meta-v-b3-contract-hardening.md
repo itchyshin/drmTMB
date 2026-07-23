@@ -19,6 +19,9 @@ smoke authenticates the timing input, then a later campaign receipt chooses and
 binds every shard to either Totoro or DRAC. The writer retains the hash-checked
 smoke approval receipt beside the smoke artifact so that the evidence is
 portable between those hosts.
+The contract fingerprint uses explicit uncompressed RDS version 2 serialization
+so the local R 4.6 authoring runtime and R 4.5 compute hosts authenticate the
+same frozen object.
 
 ## 3. Mathematical Contract
 
