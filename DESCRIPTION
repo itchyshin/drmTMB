@@ -54,6 +54,7 @@ Suggests:
     MASS,
     metafor,
     mvtnorm,
+    palmerpenguins,
     pkgload,
     rmarkdown,
     spelling,

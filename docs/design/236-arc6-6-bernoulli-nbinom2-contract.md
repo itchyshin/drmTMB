@@ -3,9 +3,11 @@
 Arc 6.6 extends `associate_pairs()` to one literal `binomial(link = "logit")`
 margin and one ordinary fixed-effect ML `nbinom2()` margin, on identical
 complete rows, in either input order. Both margins are frozen. The only fitted
-quantity is the intercept-only latent-normal association
-\(\eta=0.999999\tanh(\alpha)\). It is not `rho12`, an observed-scale
-correlation, joint-MLE association, or an inference estimand.
+quantity is a latent-normal association: normally intercept-only
+\(\eta=0.999999\tanh(\alpha_0)\), with one beta-only finite numeric
+`association = ~ x` slope that gives
+\(\eta_i=0.999999\tanh(\alpha_0+\alpha_1x_i)\). It is not `rho12`, an
+observed-scale correlation, joint-MLE association, or an inference estimand.
 
 For binary observation \(B_i\), define
 \(c_i=\Phi^{-1}(p_i;\mathrm{lower.tail}=FALSE)\), with interval
@@ -34,6 +36,9 @@ including zero-count, rare/high-tail, and response-order cases. The simulator
 draws correlated latent normals, thresholds the Bernoulli coordinate using the
 upper-tail threshold, and maps the other coordinate through a tail-stable NB2
 quantile. This is source-level construction evidence only: S0 recovery,
-intervals, coverage, random effects, association slopes, missingness, weights,
-offsets, REML, Julia, and generic binary–count claims remain outside the
-contract.
+intervals, coverage, random effects, missingness, weights, offsets, REML,
+Julia, and generic binary–count claims remain outside the contract. The one
+numeric association slope is beta point-estimate only; its full-refit bootstrap
+design is specified separately in
+`docs/design/240-arc6-staged-eta-uncertainty-followup.md` and does not make an
+interval available.

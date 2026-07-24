@@ -67,9 +67,13 @@ The model rejects incomplete pairs, non-positive or non-finite responses,
 weights, offsets, `meta_V`, `mi()`, random or structured effects, `sd()` and
 `corpair()` terms, sigma/rho predictors, REML, and Julia. Its constant direct
 `rho12` target now has callable link-scale Wald, likelihood-profile, and full
-joint parametric-bootstrap intervals. Those methods are implementation and
-smoke-tested only until the predeclared coverage ladder is complete; they are
-not yet a coverage or capability claim.
+joint parametric-bootstrap intervals. The retained Totoro coverage ladder
+calibrated those methods only for the fixed-effect, complete-pair,
+covariate-adjusted-location, constant-scale/constant-`rho12` DGP recorded in
+`docs/dev-log/simulation-artifacts/2026-07-24-biv-lognormal-rho12-totoro-coverage/`.
+Within that tested domain, profile is the primary interval and Wald/bootstrap
+are reported comparators; every neighbouring design still requires its own
+evidence.
 
 ## Constant-rho12 uncertainty contract
 

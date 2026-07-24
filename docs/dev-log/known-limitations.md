@@ -140,13 +140,18 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   response imputation, measurement-error models, and pigauto interoperability
   remain planned.
 - Exact `biv_lognormal()` and `biv_student()` are narrow direct complete-pair
-  development families. The Student-t route has fixed-effect `mu1`/`mu2`,
+  development families. For `biv_lognormal()` only, a retained direct
+  fixed-effect calibration ladder supports profile as the primary constant
+  `rho12` interval within the tested `n = 100, 300, 1000` and
+  `rho12 = 0, .5, .85` DGP; Wald/bootstrap coverage is reported only as a
+  grid-specific comparator. The Student-t route has fixed-effect `mu1`/`mu2`,
   intercept-only Student-t scales, one shared intercept-only `nu > 2`, and
   intercept-only scatter/residual `rho12`. At finite `nu`, `rho12 = 0` is
   uncorrelated but not independent. Neither exact-special route has random or
   structured effects, scale/shape/correlation predictors, missing pairs,
-  explicit weights, offsets, `meta_V`, `mi()`, REML, Julia, intervals, smoke,
-  recovery evidence, or a capability tier.
+  explicit weights, offsets, `meta_V`, `mi()`, REML, Julia, or a broad
+  capability tier; Student-t intervals/smoke/recovery and every direct-
+  lognormal neighbour outside the stated DGP remain deferred.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled

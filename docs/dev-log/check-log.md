@@ -2,6 +2,25 @@
 
 Record meaningful development checks here.
 
+## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` coverage gate
+
+- The predeclared Totoro campaign retained all 2,700 direct outer attempts
+  across `n = 100, 300, 1000` and true `rho12 = 0, 0.5, 0.85`, plus 537,300
+  joint-simulation/full-refit bootstrap attempts. The exact source was
+  `1e5bd429`; the manifest, compact summary, and local full ledgers are under
+  `docs/dev-log/simulation-artifacts/2026-07-24-biv-lognormal-rho12-totoro-coverage/`.
+- Profile meets the predeclared primary-method gate for every `n >= 300` cell:
+  99.3% or greater finite-profile availability at the difficult `n=1000`,
+  `rho12=0.85` cell, all PD Hessians, and exact conditional-coverage intervals
+  overlapping `[0.925, 0.975]`. Wald and bootstrap have measured coverage on
+  this grid, but remain comparators rather than substitutes for profile
+  diagnostics.
+- Boundary: this is exact direct fixed-effect lognormal `rho12` evidence only.
+  It does not grant a general non-Gaussian, Student-t, raw-scale, random-effect,
+  missing-data, predictor-varying, or staged-eta interval claim. The staged
+  Bernoulli x NB2 full-refit-bootstrap follow-up is separately specified in
+  `docs/design/240-arc6-staged-eta-uncertainty-followup.md`.
+
 ## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` interval mechanism
 
 - Enabled guarded link-scale Wald, direct-likelihood profile, and full joint
