@@ -91427,7 +91427,7 @@ Shinichi grants a separate Gate A compute approval.
   Arc 7B runner constructed a source path below `inst/sim`, and the generic
   power assembler treated `not_requested` `mu` intervals as complete merely
   because the summary also carried explicit `sigma` interval columns.
-- `test-phase18-meta-v-lss-runner.R` now sources the installed package's
+- The Arc 7B runner and DGP test helpers now source the installed package's
   `inst/sim` files, matching the other Phase 18 tests. `phase18_assemble_power_table()`
   now backfills Wald intervals only for rows with missing endpoints and
   `not_requested` (or absent) status; explicitly failed or non-finite interval

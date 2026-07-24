@@ -1,9 +1,13 @@
 source_phase18_meta_v_lss <- function(env = parent.frame()) {
-  source(testthat::test_path("..", "..", "inst", "sim", "R", "sim_registry.R"), local = env)
-  source(testthat::test_path("..", "..", "inst", "sim", "R", "sim_utils.R"), local = env)
-  source(testthat::test_path("..", "..", "inst", "sim", "dgp", "sim_dgp_meta_v.R"), local = env)
-  source(testthat::test_path("..", "..", "inst", "sim", "dgp", "sim_dgp_meta_v_lss.R"), local = env)
-  source(testthat::test_path("..", "..", "inst", "sim", "fit", "sim_summarise_meta_v_lss.R"), local = env)
+  for (path in c(
+    "sim/R/sim_registry.R",
+    "sim/R/sim_utils.R",
+    "sim/dgp/sim_dgp_meta_v.R",
+    "sim/dgp/sim_dgp_meta_v_lss.R",
+    "sim/fit/sim_summarise_meta_v_lss.R"
+  )) {
+    source(system.file(path, package = "drmTMB", mustWork = TRUE), local = env)
+  }
 }
 
 test_that("meta_V heterogeneity ladder has deterministic nested vector truth", {

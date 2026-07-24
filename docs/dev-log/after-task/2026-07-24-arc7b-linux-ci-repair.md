@@ -7,11 +7,11 @@ Repair the two Ubuntu R-CMD-check failures on PR #830 without changing the Arc
 
 ## 2. Implemented
 
-The Arc 7B runner test now sources simulation files through the installed
-`drmTMB` package. The generic power-table assembler backfills Wald intervals
-only for rows whose interval status is `not_requested` (or absent) and whose
-endpoints are missing. Explicitly failed or non-finite intervals remain
-unchanged.
+The Arc 7B runner and DGP tests now source simulation files through the
+installed `drmTMB` package. The generic power-table assembler backfills Wald
+intervals only for rows whose interval status is `not_requested` (or absent)
+and whose endpoints are missing. Explicitly failed or non-finite intervals
+remain unchanged.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -50,9 +50,9 @@ or a resolution of the Phase 18 or comparator trackers.
 
 ## 9. What Did Not Go Smoothly
 
-The original runner test happened to pass locally when its relative path was
-resolved from a source checkout, but failed in Linux package-check layout. The
-new package-relative sourcing removes that layout dependency.
+The original runner and DGP tests happened to pass locally when their relative
+paths were resolved from a source checkout, but failed in Linux package-check
+layout. The new package-relative sourcing removes that layout dependency.
 
 ## 11. Team Learning
 
