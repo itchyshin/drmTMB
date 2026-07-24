@@ -17,10 +17,10 @@ latent_normal <- function() {
 #'
 #' `associate_pairs()` estimates a named within-row association after fitting
 #' two marginal models. It never refits, updates, profiles, or otherwise alters
-#' either margin. Arc 6 implements fixed-effect Gaussian margins paired with
-#' literal Bernoulli `binomial(link = "logit")` or ordinary `nbinom2()` margins,
-#' plus the literal Bernoulli × Bernoulli rectangle route, on the same complete
-#' analysis rows.
+#' either margin. The reviewed Arc 6 slices implement fixed-effect Gaussian
+#' margins paired with literal Bernoulli `binomial(link = "logit")` or ordinary
+#' `nbinom2()` margins, literal Bernoulli paired with ordinary `nbinom2()`, and
+#' two literal Bernoulli margins, on the same complete analysis rows.
 #'
 #' The fitted parameter `eta` is a Gaussian-copula latent-normal association.
 #' It is neither [rho12()], an observed-scale correlation, nor [corpairs()].
@@ -32,7 +32,7 @@ latent_normal <- function() {
 #'   identical complete analysis data, in the same order.
 #' @param kernel A named association kernel. Arc 6 accepts only
 #'   `latent_normal()`.
-#' @param association Association formula. Arc 6.2 accepts only `~ 1`.
+#' @param association Association formula. Arc 6 accepts only `~ 1`.
 #'
 #' @return An object of class `drm_pair_association`.
 #' @export
