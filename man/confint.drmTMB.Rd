@@ -194,9 +194,10 @@ names such as \code{"fixef:mu:x"}, \code{"fixef:sigma:(Intercept)"}, or
 \code{"fixef:rho12:w"}. Compact coefficient labels from \code{summary(fit)}, such as
 \code{"mu:x"}, are also accepted. Random-effect SD intervals are reported on the
 SD scale, and random-effect correlation intervals are reported on the
-correlation scale. For bivariate Gaussian fits with constant residual
-correlation, \code{parm = "rho12"} profiles the residual correlation and reports
-the interval on the response correlation scale. For fits with constant
+correlation scale. For bivariate Gaussian and exact bivariate lognormal fits
+with constant residual correlation, \code{parm = "rho12"} profiles the residual
+correlation and reports the interval on the response correlation scale. For
+fits with constant
 \code{sigma}, \code{sigma1}, or \code{sigma2}, \code{parm = "sigma"} and friends report
 response-scale intervals.
 

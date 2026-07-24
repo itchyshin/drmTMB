@@ -2,6 +2,23 @@
 
 Record meaningful development checks here.
 
+## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` interval mechanism
+
+- Enabled guarded link-scale Wald, direct-likelihood profile, and full joint
+  parametric-bootstrap intervals for constant `rho12` in exact
+  `biv_lognormal()` fits. The direct target is log-residual association, not
+  raw-scale correlation and not staged frozen-margin `eta`.
+- Focused direct-lognormal and profile-target suites passed. A one-cell,
+  non-empty smoke (`n = 160`, true `rho12 = 0.5`, unequal log-SDs,
+  covariate-adjusted locations) converged with `pdHess = TRUE`, emitted Wald
+  and profile intervals, and retained all 9 bootstrap refits. Its first run
+  caught and repaired an exact-model bootstrap-refit weights bug.
+- Boundary: mechanism and smoke only. No coverage calibration, primary-method
+  recommendation, real-data tutorial, Student-t interval, prediction interval,
+  staged `eta` standard error/CI/profile, random effect, missing-data, or
+  generic cross-family claim is made. The direct coverage ladder is a fresh
+  Totoro lane with retained-all-attempts evidence.
+
 ## 2026-07-24: Arc 6.5 retained boundary-seed diagnostic
 
 - Replayed the retained `n = 120`, asymmetric-prevalence, `eta = 0.5`, seed

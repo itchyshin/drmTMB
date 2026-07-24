@@ -28,9 +28,10 @@
 #' `"fixef:rho12:w"`. Compact coefficient labels from `summary(fit)`, such as
 #' `"mu:x"`, are also accepted. Random-effect SD intervals are reported on the
 #' SD scale, and random-effect correlation intervals are reported on the
-#' correlation scale. For bivariate Gaussian fits with constant residual
-#' correlation, `parm = "rho12"` profiles the residual correlation and reports
-#' the interval on the response correlation scale. For fits with constant
+#' correlation scale. For bivariate Gaussian and exact bivariate lognormal fits
+#' with constant residual correlation, `parm = "rho12"` profiles the residual
+#' correlation and reports the interval on the response correlation scale. For
+#' fits with constant
 #' `sigma`, `sigma1`, or `sigma2`, `parm = "sigma"` and friends report
 #' response-scale intervals.
 #'
@@ -279,9 +280,7 @@ confint.drmTMB <- function(
   bias_correct = c("location", "none", "group"),
   ...
 ) {
-  if (
-    object$model$model_type %in% c("biv_lognormal", "biv_student")
-  ) {
+  if (identical(object$model$model_type, "biv_student")) {
     cli::cli_abort(
       "{.fn confint} is not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
     )
@@ -525,9 +524,7 @@ profile_targets <- function(object, ready_only = FALSE) {
       "{.arg ready_only} must be a single {.code TRUE} or {.code FALSE}."
     )
   }
-  if (
-    object$model$model_type %in% c("biv_lognormal", "biv_student")
-  ) {
+  if (identical(object$model$model_type, "biv_student")) {
     return(empty_profile_targets())
   }
 
@@ -606,9 +603,7 @@ profile.drmTMB <- function(
   first_pass_ytol = 2,
   ...
 ) {
-  if (
-    fitted$model$model_type %in% c("biv_lognormal", "biv_student")
-  ) {
+  if (identical(fitted$model$model_type, "biv_student")) {
     cli::cli_abort(
       "{.fn profile} is not implemented for model type {.val {fitted$model$model_type}}; interval and profile claims are deferred."
     )
@@ -2405,13 +2400,16 @@ bootstrap_refit_one <- function(
   refit <- tryCatch(
     {
       bootstrap_weights <- object$model$weights
-      drmTMB(
+      arguments <- list(
         formula = object$formula,
         family = object$family,
         data = data,
-        weights = bootstrap_weights,
         control = refit_control
       )
+      if (!object$model$model_type %in% c("biv_lognormal", "biv_student")) {
+        arguments$weights <- bootstrap_weights
+      }
+      do.call(drmTMB, arguments)
     },
     error = function(err) err
   )
@@ -2491,7 +2489,7 @@ bootstrap_uses_link_percentiles <- function(target) {
 
 bootstrap_response_data <- function(object, simulations, index) {
   data <- object$data
-  if (identical(object$model$model_type, "biv_gaussian")) {
+  if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
     response_names <- bivariate_response_names(object)
     sim_y1 <- paste0("sim_", index, "_y1")
     sim_y2 <- paste0("sim_", index, "_y2")

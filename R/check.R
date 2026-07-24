@@ -896,7 +896,7 @@ check_random_effect_sd_boundary <- function(object, sd_boundary) {
 check_rho12_boundary <- function(object, rho_boundary) {
   if (
     !object$model$model_type %in%
-      c("biv_gaussian", "biv_student")
+      c("biv_gaussian", "biv_lognormal", "biv_student")
   ) {
     return(NULL)
   }

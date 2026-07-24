@@ -111,6 +111,48 @@ test_that("biv_lognormal retains a finite guarded correlation near the boundary"
   rho <- rho12(fit)
   expect_true(all(is.finite(rho)))
   expect_true(all(abs(rho) < 1))
+  expect_warning(
+    ci <- confint(fit, parm = "rho12", method = "wald", rho_boundary = 0.8),
+    "boundary"
+  )
+  expect_equal(ci$conf.status, "wald_at_boundary")
+})
+
+test_that("biv_lognormal supports direct rho12 Wald, profile, and bootstrap intervals", {
+  skip_if_not_installed("drmTMB")
+  set.seed(6306)
+  dat <- simulate_biv_lognormal_truth(
+    n = 120, beta1 = c(0.2, 0.25), beta2 = c(-0.1, -0.2),
+    sigma1 = 0.4, sigma2 = 0.7, rho12 = 0.4
+  )
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+    family = biv_lognormal(), data = dat
+  )
+
+  targets <- profile_targets(fit)
+  rho_target <- targets[targets$parm == "rho12", , drop = FALSE]
+  expect_true(rho_target$profile_ready)
+  expect_equal(rho_target$transformation, "rho12_tanh")
+
+  wald <- confint(fit, parm = "rho12", method = "wald")
+  profile_ci <- confint(
+    fit, parm = "rho12", method = "profile", profile_precision = "fast"
+  )
+  bootstrap <- confint(
+    fit, parm = "rho12", method = "bootstrap", R = 2, seed = 6307
+  )
+
+  expect_equal(wald$method, "wald")
+  expect_equal(wald$conf.status, "wald")
+  rho_hat <- rho12(fit)[[1L]]
+  expect_true(wald$lower < rho_hat && rho_hat < wald$upper)
+  expect_equal(profile_ci$method, "profile")
+  expect_true(profile_ci$conf.status %in% c("profile", "profile_failed"))
+  expect_equal(bootstrap$method, "bootstrap")
+  expect_true(bootstrap$conf.status %in% c("bootstrap", "bootstrap_unavailable"))
+  expect_equal(bootstrap$bootstrap.n + bootstrap$bootstrap.failed, 2L)
+  expect_s3_class(attr(bootstrap, "bootstrap.diagnostics", exact = TRUE), "data.frame")
 })
 
 test_that("biv_lognormal rejects deferred syntax and invalid responses", {
@@ -125,12 +167,9 @@ test_that("biv_lognormal rejects deferred syntax and invalid responses", {
   expect_error(drmTMB(base_formula, family = biv_lognormal(), data = dat, weights = rep(1, 4)), "does not support")
   expect_error(drmTMB(bf(mu1 = y1 ~ offset(x), mu2 = y2 ~ x), family = biv_lognormal(), data = dat), "offset")
   fit <- drmTMB(base_formula, family = biv_lognormal(), data = dat)
-  expect_error(confint(fit), "not implemented")
-  expect_error(profile(fit), "not implemented")
-  expect_error(corpairs(fit, conf.int = TRUE), "not implemented")
-  expect_error(summary(fit, conf.int = TRUE), "not implemented")
+  expect_true("rho12" %in% profile_targets(fit)$parm)
   expect_error(predict_parameters(fit, conf.int = TRUE), "not implemented")
-  expect_equal(nrow(profile_targets(fit)), 0L)
+  expect_true("rho12" %in% profile_targets(fit)$parm)
   expect_error(drmTMB(bf(mu1 = y1 ~ x + (1 | id), mu2 = y2 ~ x), family = biv_lognormal(), data = dat), "fixed-effect")
   expect_error(drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~ x), family = biv_lognormal(), data = dat), "intercept-only")
 })

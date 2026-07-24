@@ -65,9 +65,23 @@ correlation. The fitted marginal response means are
 
 The model rejects incomplete pairs, non-positive or non-finite responses,
 weights, offsets, `meta_V`, `mi()`, random or structured effects, `sd()` and
-`corpair()` terms, sigma/rho predictors, REML, Julia, intervals, profiles,
-coverage, and capability claims. A finite Hessian or a focused test does not
-change that claim ceiling.
+`corpair()` terms, sigma/rho predictors, REML, and Julia. Its constant direct
+`rho12` target now has callable link-scale Wald, likelihood-profile, and full
+joint parametric-bootstrap intervals. Those methods are implementation and
+smoke-tested only until the predeclared coverage ladder is complete; they are
+not yet a coverage or capability claim.
+
+## Constant-rho12 uncertainty contract
+
+For the intercept-only `rho12` first slice, all three methods target the same
+guarded link coefficient \(\eta_{\rho}\), with
+\(\rho_{12}=0.999999\tanh(\eta_{\rho})\). `confint(..., method = "wald")`
+uses the observed-information covariance for \(\eta_{\rho}\) and transforms
+both endpoints to the correlation scale. `method = "profile"` reoptimizes the
+exact joint likelihood at constrained values of that same coefficient.
+`method = "bootstrap"` simulates both positive responses jointly from the
+fitted model and refits the entire direct model; its diagnostics retain every
+failed refit. No method applies to `associate_pairs()`'s staged `eta`.
 
 ## Symbolic-to-implementation alignment
 

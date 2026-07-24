@@ -18,8 +18,11 @@ two outcomes separately and then estimates a latent-normal association while
 holding the fitted margins fixed. These are different estimands.
 
 This article helps you choose a route for two outcomes measured on the same
-rows. The non-Gaussian and mixed-outcome routes are beta development interfaces:
-they do not provide interval, coverage, random-effect, or generic-pair claims.
+rows. The mixed-outcome route is a beta development interface: it does not
+provide interval, coverage, random-effect, or generic-pair claims. The exact
+direct lognormal route now has callable uncertainty methods for a constant
+`rho12`, but its coverage evidence is still being built; do not treat a finite
+interval as a validated general non-Gaussian claim.
 For a released direct Gaussian joint model, use `biv_gaussian()` and
 [Changing residual coupling with rho12](bivariate-coscale.html).
 
@@ -65,12 +68,20 @@ fit_log <- drmTMB(
 
 rho12(fit_log)
 fitted(fit_log)
+
+# All three target the log-residual rho12, not a raw-scale correlation.
+confint(fit_log, parm = "rho12", method = "wald")
+confint(fit_log, parm = "rho12", method = "profile")
+confint(fit_log, parm = "rho12", method = "bootstrap", R = 499)
 ```
 
 `fitted(fit_log)` returns arithmetic marginal means on the original response
 scale. The `mu1` and `mu2` predictors remain log-scale locations. These direct
 models estimate the two margins and `rho12` together; they are not staged
-frozen-margin fits.
+frozen-margin fits. Wald is a fast link-scale approximation; profile likelihood
+checks the exact likelihood geometry; the bootstrap refits both margins and
+`rho12`. Inspect `check_drm(fit_log)` and bootstrap diagnostics, especially
+near \(|\rho_{12}|=1\). Coverage calibration remains pending.
 
 ## Direct joint model: two heavy-tailed traits
 
@@ -141,7 +152,9 @@ constant across rows. The staged route usually keeps `eta` constant; its one
 beta exception is a single numeric association slope for literal-Bernoulli x
 ordinary-NB2. Its reviewed fixed-effect margins may include their explicitly
 supported covariates before they are frozen. Neither route currently adds random
-effects, general association-predictor grammar, missing-data support, two-stage standard errors, profiles,
-confidence intervals, coverage, or a general non-Gaussian bivariate claim.
+effects, general association-predictor grammar, missing-data support, or a
+general non-Gaussian bivariate claim. The staged route has no two-stage standard
+errors, profiles, confidence intervals, or coverage claim. The direct lognormal
+constant-`rho12` methods are callable but coverage-pending.
 Choose the route whose stated association scale matches the biological question,
 and treat every boundary as part of the model definition.

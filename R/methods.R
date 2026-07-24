@@ -927,7 +927,7 @@ corpairs.drmTMB <- function(
   method <- validate_interval_method(method, "profile", "corpairs()")
   if (
     conf.int &&
-      object$model$model_type %in% c("biv_lognormal", "biv_student")
+      identical(object$model$model_type, "biv_student")
   ) {
     cli::cli_abort(
       "{.fn corpairs} profile intervals are not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
@@ -3781,7 +3781,7 @@ summary.drmTMB <- function(
   validate_summary_conf_int(conf.int)
   if (
     conf.int &&
-      object$model$model_type %in% c("biv_lognormal", "biv_student")
+      identical(object$model$model_type, "biv_student")
   ) {
     cli::cli_abort(
       "{.fn summary} confidence intervals are not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
@@ -4232,9 +4232,7 @@ drm_summary_direct_parameters <- function(object) {
   if (nrow(targets) == 0L) {
     return(empty_summary_parameters())
   }
-  if (
-    object$model$model_type %in% c("biv_lognormal", "biv_student")
-  ) {
+  if (identical(object$model$model_type, "biv_student")) {
     targets$profile_ready <- FALSE
     targets$profile_note <- "family_interval_deferred"
   }
