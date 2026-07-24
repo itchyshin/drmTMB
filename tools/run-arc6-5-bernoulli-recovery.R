@@ -36,8 +36,15 @@ attempts <- do.call(rbind, lapply(split(conditions, seq_len(nrow(conditions))), 
 attempts$eta_error <- attempts$eta - attempts$eta_truth
 utils::write.csv(attempts, file.path(out_dir, "raw-attempts.csv"), row.names = FALSE)
 interior <- subset(attempts, gate == "interior")
-summary <- aggregate(cbind(attempts = rep.int(1L, nrow(interior)), returned = is.finite(eta), bias = eta_error) ~ n + prevalence + eta_truth, data = interior, FUN = function(x) c(sum = sum(x), mean = mean(x)))
-summary <- data.frame(n = summary$n, prevalence = summary$prevalence, eta_truth = summary$eta_truth, attempts = summary$attempts[, "sum"], returned = summary$returned[, "sum"], bias = summary$bias[, "mean"])
+groups <- split(interior, interaction(interior$n, interior$prevalence, interior$eta_truth, drop = TRUE))
+summary <- do.call(rbind, lapply(groups, function(cell) {
+  returned <- is.finite(cell$eta)
+  data.frame(
+    n = cell$n[[1L]], prevalence = cell$prevalence[[1L]], eta_truth = cell$eta_truth[[1L]],
+    attempts = nrow(cell), returned = sum(returned),
+    bias = if (any(returned)) mean(cell$eta_error[returned]) else NA_real_
+  )
+}))
 summary$pass <- summary$returned == summary$attempts & abs(summary$bias) <= 0.10
 utils::write.csv(summary, file.path(out_dir, "summary.csv"), row.names = FALSE)
 utils::write.csv(hold, file.path(out_dir, "hold-design.csv"), row.names = FALSE)
