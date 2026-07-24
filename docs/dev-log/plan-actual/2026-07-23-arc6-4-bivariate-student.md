@@ -65,7 +65,7 @@ boundary and error contract.
 ## Verification
 
 - `devtools::document()`: PASS.
-- Focused `test-biv-student.R`: PASS, 66 expectations.
+- Focused `test-biv-student.R`: PASS, 68 expectations.
 - Adjacent bivariate-lognormal, family-link, and Student location-scale tests:
   PASS; one pre-existing singular-convergence warning.
 - Direct bivariate-Gaussian tests: PASS; two pre-existing deprecation warnings.

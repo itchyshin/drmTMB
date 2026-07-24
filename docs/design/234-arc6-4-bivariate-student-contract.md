@@ -100,7 +100,7 @@ coverage.
 | \(\sigma_1\) | `sigma1` | positive scale | `sigma()` / `predict()` | intercept-only |
 | \(\sigma_2\) | `sigma2` | positive scale | `sigma()` / `predict()` | intercept-only |
 | \(\nu\) | `nu` | shared chi-square df | `predict(..., dpar="nu")` | shared, intercept-only |
-| \(\rho_{12}\) | `rho12` | Gaussian scatter correlation | `rho12()` | intercept-only |
+| \(\rho_{12}\) | `rho12` | Student-t scatter/residual correlation | `rho12()` | intercept-only |
 | \(Q_i\) | internal | one `rchisq()` per pair | simulator test | shared within pair |
 
 ## Validation ceiling

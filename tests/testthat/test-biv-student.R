@@ -425,6 +425,32 @@ test_that("biv_student rejects deferred first-slice syntax and intervals", {
     ),
     "fixed-effect"
   )
+  coords <- cbind(dat$x, rev(dat$x))
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + spatial(1 | id, coords = coords),
+        mu2 = y2 ~ x,
+        nu = ~ 1
+      ),
+      family = biv_student(),
+      data = dat
+    ),
+    "structured effects"
+  )
+  V <- rep(0.1, nrow(dat))
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + meta_V(V = V),
+        mu2 = y2 ~ x,
+        nu = ~ 1
+      ),
+      family = biv_student(),
+      data = dat
+    ),
+    "meta_V"
+  )
   expect_error(
     drmTMB(
       bf(mu1 = y1 ~ mi(x), mu2 = y2 ~ x, nu = ~ 1),

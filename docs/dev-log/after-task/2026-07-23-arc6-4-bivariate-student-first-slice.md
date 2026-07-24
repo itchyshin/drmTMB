@@ -41,7 +41,7 @@ same bounded scope.
 
 - `devtools::document(quiet = TRUE)`: PASS.
 - `devtools::test(filter = "biv-student", reporter = "summary")`: PASS,
-  66 expectations.
+  68 expectations.
 - Adjacent `biv-lognormal`, `family-link-contract`, and
   `student-location-scale` tests: PASS; one pre-existing singular-convergence
   warning.
@@ -82,8 +82,9 @@ simulation, and non-factorization when finite `nu` meets `rho12 = 0`.
 
 Negative tests exercise zero-intercept predictors in every constrained
 distributional parameter and reject missing/non-finite pairs, weights, offsets,
-random effects, `mi()`, `meta_V()`, REML, Julia, residuals, distribution-output
-helpers, and every interval/profile entry point.
+ordinary random effects, structured effects, `mi()`, `meta_V()`, REML, Julia,
+residuals, distribution-output helpers, and every interval/profile entry
+point.
 
 ## 9. What Did Not Go Smoothly
 
@@ -99,6 +100,12 @@ before the final verification rerun.
 The first full package check then exposed an inherited invalid-object ordering
 bug in `profile_targets()`. Moving class validation ahead of the exact-special
 family fence repaired it without widening this arc.
+
+The final requirement-by-requirement completion audit found one stale label in
+design 234's alignment table: it called `rho12` a Gaussian scatter correlation
+despite the surrounding Student-t contract. The label now says Student-t
+scatter/residual correlation; the equations, code, tests, and other
+documentation already used the intended estimand.
 
 ## 11. Team Learning
 
