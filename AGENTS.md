@@ -3,6 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-07-24, → CODEX, ARC 7 B0 CARRIED OVER).**
+> Arc 6 closed on `main` at `d7359df2` (PRs #826/#827; R-CMD-check and pkgdown
+> green). Arc 7 B0 is a clean-current-main, **negative-evidence integration**
+> lane for `meta_V`, on `codex/arc7-metav-b0`: it selectively carries the B3
+> small-K contract, not the stale branch wholesale. The staged core patch adds
+> K=12/dense-control fixtures, `confint()` interval recording, and all-attempt
+> accounting; focused `phase18-meta-v|comparators` tests passed. Do **not** run
+> remote compute, promote a tier, or claim interval validity/coverage. The next
+> session must inspect the staged patch, run the two-cell local sentinel, then
+> obtain Fisher/Rose review before committing a scoped PR. **START HERE:**
+> [`docs/dev-log/handover/2026-07-24-codex-handover.md`](docs/dev-log/handover/2026-07-24-codex-handover.md).
+> The dirty `claude/handover-freshness-0718` AGHQ/non-Gaussian-REML lane and
+> legacy unpushed `codex/arc6-6-bernoulli-nb2-plan` commits are foreign; do not
+> modify, merge, or clean them from this lane.
+
 > **⚠ Compute & CI — D-50 (2026-07-12).** Simulation / recovery / power / coverage campaigns run on
 > **Totoro or DRAC**, **never GitHub Actions**, and their outputs are **never stored as GitHub
 > artifacts** (Actions storage is a hard 2 GB/month cap that this repo's `phase18-simulation-grid`-style

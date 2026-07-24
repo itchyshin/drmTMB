@@ -149,7 +149,15 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
   expect_true(file.exists(out$report$status$paths$artifact_status_csv))
   expect_true(file.exists(out$report$tables$paths$aggregate_csv))
   expect_equal(nrow(out$report$tables$tables$aggregate_csv), 122L)
-  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 86L)
+  wald_coverage <- out$report$tables$tables$wald_coverage_csv
+  expect_equal(nrow(wald_coverage), 77L)
+  expect_false(any(wald_coverage$source_surface == "meta_v_grid"))
+  meta_wald_status <- subset(
+    out$report$tables$grain_status,
+    source_surface == "meta_v_grid" & source_artifact == "wald_coverage_csv"
+  )
+  expect_equal(nrow(meta_wald_status), 1L)
+  expect_identical(meta_wald_status$grain_status, "missing_artifact")
   expect_gt(nrow(out$report$tables$tables$profile_coverage_csv), 0L)
 })
 

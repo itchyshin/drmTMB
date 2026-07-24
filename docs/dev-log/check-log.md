@@ -177,6 +177,31 @@ Record meaningful development checks here.
 - Boundary: no smoke, recovery campaign, interval, coverage, capability-tier
   promotion, Julia, or CRAN claim was run or made. The generated ledger text
   was synchronized only to remove a stale absolute absence claim.
+## 2026-07-22: meta_V trust infrastructure and B3 gate
+
+Made the K=12 known-`V` evidence path auditable without making a capability
+claim. The B3 design now retains every scheduled fit, distinguishes a finite
+and truth-covering interval rate from conditional finite-interval set coverage,
+and keeps the public `[0, Inf]` sigma output as a degenerate interval rather
+than silently replacing it. Small-K diagonal and dense **ML** comparator
+fixtures now agree with their matching `metafor` routes. The meta-analysis
+reader surface adds a dense-`V` preflight and maintains the explicit
+implemented/tested, tier-unregistered boundary.
+
+- Focused Phase-18 meta_V tests: 122 passed, 0 failed/warned/skipped.
+- Focused comparator tests: 134 passed, 0 failed/warned/skipped.
+- Combined meta_V/comparator/known-V run: 340 passed, 0 failed/warned/skipped.
+- `pkgdown::build_article("meta-analysis", new_process = FALSE)`: rendered;
+  a local sass-cache permission warning did not affect the article output.
+- `git diff --check`: PASS.
+- The requested full uncapped `testthat::test_local()` measurement was started
+  but stopped while a pre-existing long Phase 18 q6 test was running; it did
+  not return a full-suite result and is not reported as one.
+
+Boundary: evidence infrastructure and documentation only. No campaign ran;
+Totoro remains the approved-route candidate after a separate B3 timing-smoke
+approval. No coverage certification, capability-tier promotion, CRAN action,
+or API/likelihood change occurred.
 
 ## 2026-07-21: Confidence Eye and current phylogenetic capability table
 
@@ -91394,3 +91419,84 @@ Shinichi grants a separate Gate A compute approval.
   skipped. The independent `mvtnorm` oracle covers product, zero-count,
   rare/high-tail, and response-order cases.
 - This is not recovery, inference, interval, coverage, or capability evidence.
+
+## 2026-07-24: Arc 7 B0 `meta_V` B3 retained-evidence integration
+
+- Retained the existing Gaussian ML `bf(yi ~ x + meta_V(V = V), sigma ~ 1)`
+  B3 contract on current main without importing the stale branch wholesale.
+  The compact reduction records the authenticated 16,800-attempt campaign and
+  its 3,712 `degenerate_zero_infinite` `sigma` intervals; raw results, shard
+  logs, seed maps, launchers, remote compute, tier promotion, and any interval
+  validity or coverage claim remain outside B0.
+- The direct local sentinel preserved K=12/vector/`sigma=0.10`/sampling
+  SD=0.12/seed=4 as `estimate=2.389998e-06`, Wald `[0, Inf]`,
+  `degenerate_zero_infinite`; K=36/dense/`sigma=0.35`/sampling SD=0.12/
+  `rho=0.25`/seed=4 returned `estimate=0.2556934`, Wald
+  `[0.1914417, 0.3415092]`, status `ok`. The two-cell harness manifest retained
+  the former as a degenerate, non-finite interval attempt rather than a usable
+  interval.
+- Focused files `test-phase18-meta-v-dgp.R`,
+  `test-phase18-meta-v-grid-writer.R`, `test-phase18-meta-v-summary-smoke.R`,
+  and `test-comparators.R` passed. Fisher and Rose required wording repairs so
+  clean optimization/`pdHess` is not presented as interval calibration, and so
+  the simulation README names the all-attempt primary denominator.
+- This is evidence integration only, not a recovery or coverage campaign. See
+  `docs/dev-log/after-task/2026-07-24-arc7-metav-b0-retained-evidence.md`.
+
+## 2026-07-24: Arc 7B known-`V` heterogeneity ladder local contract
+
+- Added a separate L/LS/LSS/LSSS/DH evidence harness on
+  `codex/arc7b-meta-v-heterogeneity-ladder`; it does not modify or merge B0
+  draft PR #828. The contract distinguishes residual `sigma`, direct-SD
+  `sd(study)`/`sd(effect)`, and a random effect in `sigma`.
+- Focused tests passed with `R_PROFILE_USER=/dev/null Rscript --no-init-file`:
+  `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
+  reporter = "stop")` and
+  `devtools::test(filter = "phase18-meta-v-lss-runner", reporter = "stop")`.
+  They include a direct dense-Gaussian oracle, a diagonal `metafor` ML
+  comparator with log-variance/log-SD conversion, malformed nesting, a
+  deliberately failed outer fit, and the retained dense-LSS non-finite-profile
+  fixture.
+- The source-pinned local six-cell sentinel at `f86fed0188ca14356bc098d962e2675e22c39593`
+  retained every fit. All fits converged with `pdHess = TRUE`, but the dense LSS
+  cell retained two `sd(study)` `nonfinite_interval` profiles. Fisher and Rose
+  therefore returned DRAC NO-GO; no remote compute, coverage claim, tier
+  update, or GitHub Actions simulation occurred. The meta-analysis vignette
+  now gives experimental syntax plus the same interval warning; it makes no
+  capability claim.
+- Status-inventory scans used:
+  `rg -n "meta_V\\(|meta_known_V|location-scale-scale|sd\\(study\\)|meta-analysis"
+  README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md
+  docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml
+  vignettes/meta-analysis.Rmd vignettes/location-scale-scale.Rmd`; and
+  `rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md
+  NEWS.md docs vignettes R tests || true`. Reader material remains intentionally
+  conditional: the new syntax is labelled experimental rather than certified.
+- Open-issue sweep found #59 (Phase 18 framework) and #60 (comparators) as the
+  relevant existing trackers. No issue was changed because this is a local
+  no-go and creates no new public capability.
+
+## 2026-07-24: Arc 7B Linux CI repair
+
+- The first Ubuntu check for PR #830 exposed two test-harness regressions: the
+  Arc 7B runner constructed a source path below `inst/sim`, and the generic
+  power assembler treated `not_requested` `mu` intervals as complete merely
+  because the summary also carried explicit `sigma` interval columns.
+- The Arc 7B runner and DGP test helpers now source the installed package's
+  `inst/sim` files, matching the other Phase 18 tests. `phase18_assemble_power_table()`
+  now backfills Wald intervals only for rows with missing endpoints and
+  `not_requested` (or absent) status; explicitly failed or non-finite interval
+  rows stay untouched.
+- Local checks passed with `R_PROFILE_USER=/dev/null Rscript --no-init-file`:
+  `devtools::test(filter = "phase18-(meta-v-lss-runner|power-grid-engine)",
+  reporter = "stop")` and
+  `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
+  reporter = "stop")`. `git diff --check` passed. The full Linux R-CMD-check
+  remains the merge gate.
+- The next Ubuntu run found one stale first-wave smoke assertion: the combined
+  legacy `wald_coverage_csv` now has 77 rows rather than 86 because the
+  `meta_v_grid` deliberately publishes its all-attempt and conditional-finite
+  interval artifacts instead of a legacy Wald-coverage artifact. The smoke
+  test now verifies the 77-row legacy bundle *and* the explicit missing-artifact
+  status for `meta_v_grid`, so a future accidental disappearance is distinct
+  from this intentional contract change.

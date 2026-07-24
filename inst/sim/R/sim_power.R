@@ -197,10 +197,31 @@ phase18_assemble_power_table <- function(
   join_key = "cell_id"
 ) {
   has_intervals <- all(c("conf.low", "conf.high") %in% names(summary))
-  intervals <- if (has_intervals) {
-    summary
-  } else {
+  intervals <- if (!has_intervals) {
     phase18_add_wald_intervals(summary, conf.level = conf.level)
+  } else {
+    status <- if ("interval_status" %in% names(summary)) {
+      as.character(summary$interval_status)
+    } else {
+      rep("not_requested", nrow(summary))
+    }
+    needs_wald <- (!is.finite(summary$conf.low) | !is.finite(summary$conf.high)) &
+      (is.na(status) | status == "not_requested")
+    if (!any(needs_wald)) {
+      summary
+    } else {
+      out <- summary
+      wald <- phase18_add_wald_intervals(summary[needs_wald, , drop = FALSE],
+        conf.level = conf.level
+      )
+      for (column in c(
+        "conf.low", "conf.high", "interval_method", "interval_status",
+        "interval_message"
+      )) {
+        out[[column]][needs_wald] <- wald[[column]]
+      }
+      out
+    }
   }
   power <- phase18_summarise_power(intervals, by = by, null_value = null_value)
   if (!is.null(conditions)) {
