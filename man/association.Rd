@@ -7,16 +7,23 @@
 \usage{
 association(object, ...)
 
-\method{association}{drm_pair_association}(object, ...)
+\method{association}{drm_pair_association}(object, type = c("coefficient", "fitted"), ...)
 }
 \arguments{
 \item{object}{A \code{drm_pair_association} object.}
 
 \item{...}{Reserved for future extractor options.}
+
+\item{type}{For a constant association, the default \code{"coefficient"} returns
+the usual single \code{eta}. For a covariate-varying beta association,
+\code{"coefficient"} returns the association-link coefficients and \code{"fitted"}
+returns the frozen-row latent-normal associations.}
 }
 \value{
-A one-row data frame with the latent-normal association and its
-diagnostic status. No standard error or interval is supplied.
+For a constant association, a one-row data frame with the
+latent-normal association and diagnostic status. For the beta association
+slope, a coefficient table or a frozen-row \code{eta} table according to
+\code{type}. No standard error or interval is supplied.
 }
 \description{
 Extract a pair association estimate

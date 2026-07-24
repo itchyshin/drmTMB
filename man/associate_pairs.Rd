@@ -13,7 +13,9 @@ identical complete analysis data, in the same order.}
 \item{kernel}{A named association kernel. Arc 6 accepts only
 \code{latent_normal()}.}
 
-\item{association}{Association formula. Arc 6 accepts only \code{~ 1}.}
+\item{association}{Association formula. Most Arc 6 pair classes accept only
+\code{~ 1}. The beta Bernoulli x ordinary-NB2 route also accepts \code{~ x} for one
+finite numeric fixed-effect covariate.}
 }
 \value{
 An object of class \code{drm_pair_association}.

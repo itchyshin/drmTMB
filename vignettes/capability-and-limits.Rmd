@@ -415,15 +415,12 @@ item stays open post-0.6.0, a `sigma`-slope start-value correction (issue
 #710.2), but it does not touch the certified profile-CI cells described
 above.
 
-**Julia cross-family extractors are not wired yet.** If you fit a
-bivariate model with `engine = "julia"` across two different families (a
-`drmTMB_julia_xfam` object), `vcov()`, `fitted()`, `residuals()`,
-`predict(dpar = ...)`, and the coefficient table inside `summary()`
-currently return an empty or `NULL` result instead of an error or a value.
-What to try next: use the native TMB engine, `drmTMB`'s default, for these
-extractors, or fit the same-family Julia route instead; `confint()` and
-`predict()` on native fits are unaffected. This is a known code gap
-awaiting a post-0.6.0 fix, not a supported behaviour.
+**Julia cross-family fitting is deferred.** Legacy Julia-bridge objects may
+still be readable for compatibility, but they are not a current analysis route
+and do not establish cross-family inference. What to try next: use the native
+TMB engine, `drmTMB`'s default, for current supported models. For the bounded
+post-0.6 development association route, see the frozen-margin article; it is a
+separate staged interface and is not a Julia fit.
 
 ## Missing data
 

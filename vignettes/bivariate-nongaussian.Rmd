@@ -1,30 +1,60 @@
 ---
-title: "Bivariate non-Gaussian models: choose the association scale"
+title: "Bivariate non-Gaussian models: choose a joint or staged association"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bivariate non-Gaussian models: choose the association scale}
+  %\VignetteIndexEntry{Bivariate non-Gaussian models: choose a joint or staged association}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(drmTMB)
 ```
 
-This article is for an applied researcher with two positive or heavy-tailed
-responses. The first decision is not which correlation command to use. It is
-which residual scale answers the biological question. `biv_lognormal()` and
-`biv_student()` are direct joint models: they retain `rho12` because its scale
-is defined by their likelihood. They are different from the post-fit
-mixed-family `associate_pairs()` route, which estimates latent-normal `eta`.
+With two non-Gaussian outcomes, first decide what kind of association answers
+the scientific question. A direct joint likelihood estimates both outcomes and
+their residual association together. A frozen-margin association first fits the
+two outcomes separately and then estimates a latent-normal association while
+holding the fitted margins fixed. These are different estimands.
 
-## Positive traits: exact bivariate lognormal
+This article helps you choose a route for two outcomes measured on the same
+rows. The non-Gaussian and mixed-outcome routes are beta development interfaces:
+they do not provide interval, coverage, random-effect, or generic-pair claims.
+For a released direct Gaussian joint model, use `biv_gaussian()` and
+[Changing residual coupling with rho12](bivariate-coscale.html).
 
-For positive lognormal outcomes,
-\((\log Y_1,\log Y_2)\) is bivariate normal. `sigma1` and `sigma2` are
-log-response SDs and `rho12` is their log-residual correlation; it is not
-automatically a raw-scale correlation.
+## Start by choosing the association scale
+
+| Your paired outcomes | Route | What the association means |
+| --- | --- | --- |
+| Two Gaussian traits | Direct `biv_gaussian()` model | Gaussian residual `rho12` |
+| Two positive traits plausibly lognormal | Post-0.6 direct `biv_lognormal()` model | Log-response residual `rho12` |
+| Two heavy-tailed real-valued traits | Post-0.6 direct `biv_student()` model | Shared-Student-t residual/scatter `rho12` |
+| A reviewed mixed or discrete pair | `biv_associate()` staged route | Latent-normal copula `eta` after frozen margins; one numeric association slope is beta-supported for Bernoulli x NB2 |
+
+Neither `rho12` nor `eta` is automatically the Pearson correlation of the two
+raw response columns. The scale is part of the scientific interpretation, not
+just a computational detail.
+
+## Direct joint model: two positive traits
+
+For two positive lognormal outcomes, the model is joint on the log-response
+scale:
+
+\[
+(\log Y_{1i}, \log Y_{2i}) \sim N_2\left(
+(\mu_{1i}, \mu_{2i}),
+\begin{bmatrix}
+\sigma_1^2 & \rho_{12}\sigma_1\sigma_2 \\
+\rho_{12}\sigma_1\sigma_2 & \sigma_2^2
+\end{bmatrix}
+\right).
+\]
+
+Here `rho12` is the correlation of the two log-response residuals. A positive
+value means that plants above their fitted log seed-mass expectation also tend
+to be above their fitted log root-mass expectation. It is not automatically the
+correlation of seed mass and root mass on their original scale.
 
 ```{r lognormal-example, eval = FALSE}
 fit_log <- drmTMB(
@@ -32,21 +62,20 @@ fit_log <- drmTMB(
      sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
   family = biv_lognormal(), data = plants
 )
+
 rho12(fit_log)
 fitted(fit_log)
 ```
 
-A positive value means that plants heavier than expected on the log seed-mass
-scale also tend to be heavier than expected on the log root-mass scale after
-the treatment means are fitted. `fitted(fit_log)` returns arithmetic marginal
-means on the original response scale, not the log-response locations shown by
-the `mu1` and `mu2` predictors. Replace the example names with two positive
-response columns in one complete paired data frame.
+`fitted(fit_log)` returns arithmetic marginal means on the original response
+scale. The `mu1` and `mu2` predictors remain log-scale locations. These direct
+models estimate the two margins and `rho12` together; they are not staged
+frozen-margin fits.
 
-## Heavy-tailed traits: exact bivariate Student-t
+## Direct joint model: two heavy-tailed traits
 
-For paired measurements with heavy tails, use the direct shared-degrees-of-
-freedom Student-t model.
+For two real-valued traits with occasional extreme observations, the bivariate
+Student-t model uses a shared degrees-of-freedom parameter, `nu`:
 
 ```{r student-example, eval = FALSE}
 fit_t <- drmTMB(
@@ -54,34 +83,65 @@ fit_t <- drmTMB(
      sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1),
   family = biv_student(), data = behaviour
 )
+
 rho12(fit_t)
 ```
 
-`sigma1` and `sigma2` are Student-t scales, not marginal SDs. The model has
-one shared `nu`; at finite `nu`, `rho12 = 0` means uncorrelated but not
-independent because both outcomes share the same row-level mixing draw.
+`sigma1` and `sigma2` are Student-t scales, not necessarily marginal standard
+deviations. The model has one shared `nu`, which controls tail heaviness. At a
+finite `nu`, `rho12 = 0` means zero residual correlation, but not necessarily
+complete independence because the two outcomes share the same row-level
+heavy-tail mechanism.
 
-## A practical choice
+## Staged association: different kinds of outcome
 
-Create the data once, retain rows with both outcomes and all predictors, and
-fit both response formulas to that same object. This avoids accidentally
-comparing fits with different row identities.
+If one response is binary and the other is a count, there is no shared direct
+Gaussian residual scale. The frozen-margin route instead fits a binary
+probability model and a count model, then estimates latent-normal `eta` from
+their fitted distributions.
 
-```{r compare-families, eval = FALSE}
-# For example: positive_pairs <- na.omit(data.frame(y1, y2, x))
-# Positive biomass traits: a log-response correlation is meaningful.
-fit_log <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
-                     sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
-                  family = biv_lognormal(), data = positive_pairs)
+```{r staged-example, eval = FALSE}
+paired_data <- na.omit(data.frame(
+  bred, offspring, habitat, habitat_score, season
+))
 
-# Heavy-tailed real-valued traits: use a shared-t residual scale.
-fit_t <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
-                   sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1),
-                family = biv_student(), data = real_pairs)
+assoc <- biv_associate(
+  bf(mu = bred ~ habitat),
+  bf(mu = offspring ~ habitat, sigma = ~ season),
+  family = list(binomial(), nbinom2()),
+  data = paired_data,
+  association = ~ 1
+)
+
+association(assoc)
 ```
 
-Both first slices require complete pairs and keep `sigma1`, `sigma2`, `rho12`,
-and (for Student-t) `nu` intercept-only. They do not currently add random
-effects, `rho12` predictors, intervals, coverage, or a general non-Gaussian
-bivariate claim. If the responses have different marginal families, read
-[Frozen-margin mixed-family association](cross-family.html) instead.
+This is one convenient R call, but not one jointly fitted model.
+`biv_associate()` fits the two margins, freezes them, and estimates only `eta`.
+The reported value is a latent-normal copula correlation conditional on those
+fitted margins. It is not `rho12`, a logit coefficient, an odds ratio, or an
+observed-scale correlation.
+
+For a binary response, the model observes whether a hidden tendency crossed a
+threshold. It does not observe an ordinary numeric residual. Read
+[Frozen-margin association for mixed outcome pairs](cross-family.html) for the
+binary-threshold explanation, the reviewed pair classes, and the rule for
+withheld estimates.
+
+For the literal-Bernoulli x ordinary-NB2 beta route, `association = ~ x` can
+also model one numeric association gradient. It estimates a row-specific
+latent-normal `eta_i`, after both margins have been fitted and frozen. See
+[Association between mixed outcome pairs](cross-family.html) for the exact
+syntax, output, and limits.
+
+## What is currently outside these routes
+
+The direct same-family first slices keep `sigma1`, `sigma2`, `rho12`, and `nu`
+constant across rows. The staged route usually keeps `eta` constant; its one
+beta exception is a single numeric association slope for literal-Bernoulli x
+ordinary-NB2. Its reviewed fixed-effect margins may include their explicitly
+supported covariates before they are frozen. Neither route currently adds random
+effects, general association-predictor grammar, missing-data support, two-stage standard errors, profiles,
+confidence intervals, coverage, or a general non-Gaussian bivariate claim.
+Choose the route whose stated association scale matches the biological question,
+and treat every boundary as part of the model definition.

@@ -181,3 +181,63 @@ test_that("Bernoulli x ordinary-NB2 endpoint failures remain diagnostic", {
   expect_true(is.na(rows$count_lower))
   expect_true(is.na(rows$count_upper))
 })
+
+test_that("Bernoulli x ordinary-NB2 beta slope uses a row-specific latent association", {
+  set.seed(20260724)
+  n <- 220L
+  dat <- data.frame(x = seq(-1.4, 1.4, length.out = n))
+  p <- stats::plogis(-0.2 + 0.3 * dat$x)
+  mu <- exp(0.7 + 0.2 * dat$x)
+  sigma <- rep(0.65, n)
+  association_link <- -0.15 + 0.65 * dat$x
+  eta <- 0.999999 * tanh(association_link)
+  z_binary <- stats::rnorm(n)
+  z_count <- eta * z_binary + sqrt(1 - eta^2) * stats::rnorm(n)
+  components <- list(
+    pair_class = "bernoulli_nbinom2",
+    descriptor = drmTMB:::drm_pair_descriptor("bernoulli_nbinom2"),
+    binary_y = as.integer(z_binary > stats::qnorm(p, lower.tail = FALSE)),
+    binary_p = p,
+    nbinom2_y = drmTMB:::drm_pair_nbinom2_quantile_from_normal(z_count, mu, sigma),
+    nbinom2_mu = mu,
+    nbinom2_sigma = sigma
+  )
+  design <- drmTMB:::drm_pair_association_design(
+    ~x, dat, "bernoulli_nbinom2"
+  )
+  fit <- drmTMB:::drm_pair_fit_eta(components, design)
+
+  expect_identical(fit$status, "interior")
+  expect_equal(fit$coefficients, c("(Intercept)" = -0.15, x = 0.65), tolerance = 0.35)
+  expect_length(fit$eta_internal, n)
+  expect_gt(diff(range(fit$eta_internal)), 0.5)
+
+  object <- structure(list(
+    status = fit$status, kernel = latent_normal(), eta = fit$eta,
+    eta_internal = fit$eta_internal, alpha = fit$alpha,
+    association_coefficients = fit$coefficients,
+    diagnostics = fit$diagnostics
+  ), class = "drm_pair_association")
+  coefficients <- association(object)
+  fitted_eta <- association(object, type = "fitted")
+  expect_named(coefficients, c("term", "association_link", "status", "boundary"))
+  expect_equal(coefficients$term, c("(Intercept)", "x"))
+  expect_named(fitted_eta, c("row", "association_link", "eta", "status"))
+  expect_equal(fitted_eta$eta, fit$eta_internal)
+})
+
+test_that("Bernoulli x ordinary-NB2 association slopes reject broad formula grammar", {
+  dat <- data.frame(x = c(-1, 0, 1), habitat = factor(c("a", "b", "a")))
+  expect_error(
+    drmTMB:::drm_pair_association_design(~habitat, dat, "bernoulli_nbinom2"),
+    "named numeric column"
+  )
+  expect_error(
+    drmTMB:::drm_pair_association_design(~x + I(x^2), dat, "bernoulli_nbinom2"),
+    "one numeric slope"
+  )
+  expect_error(
+    drmTMB:::drm_pair_association_design(~x, dat, "gaussian_bernoulli"),
+    "only for literal Bernoulli x ordinary-NB2"
+  )
+})
