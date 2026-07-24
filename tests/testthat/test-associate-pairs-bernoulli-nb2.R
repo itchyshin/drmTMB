@@ -159,3 +159,25 @@ test_that("Bernoulli x ordinary-NB2 fails closed and simulates coupled latent no
   )
   expect_equal(observed, expected)
 })
+
+test_that("Bernoulli x ordinary-NB2 endpoint failures remain diagnostic", {
+  components <- list(
+    pair_class = "bernoulli_nbinom2",
+    descriptor = drmTMB:::drm_pair_descriptor("bernoulli_nbinom2"),
+    binary_y = 0L,
+    binary_p = 0.2,
+    nbinom2_y = 0L,
+    nbinom2_mu = 1e-300,
+    nbinom2_sigma = 1e-150
+  )
+  fit <- drmTMB:::drm_pair_fit_eta(components)
+  rows <- fit$diagnostics$count_interval$row_numerics
+  expect_identical(fit$status, "boundary_unresolved")
+  expect_true(fit$diagnostics$endpoint_failure)
+  expect_true(fit$diagnostics$count_interval$endpoint_failure)
+  expect_match(fit$diagnostics$count_interval$endpoint_failure_message,
+    "endpoints are numerically unresolved")
+  expect_identical(rows$status, "endpoint_failure")
+  expect_true(is.na(rows$count_lower))
+  expect_true(is.na(rows$count_upper))
+})

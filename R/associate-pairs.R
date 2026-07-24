@@ -759,6 +759,9 @@ drm_pair_fit_eta <- function(components) {
     multistart_disagreement ||
     weak_curvature ||
     score_failure
+  interval_diagnostics <- drm_pair_interval_diagnostics(components, alpha)
+  endpoint_failure <- isTRUE(interval_diagnostics$endpoint_failure)
+  unresolved <- unresolved || endpoint_failure
   status <- if (unresolved) {
     "boundary_unresolved"
   } else if (near_boundary) {
@@ -766,7 +769,6 @@ drm_pair_fit_eta <- function(components) {
   } else {
     "interior"
   }
-  interval_diagnostics <- drm_pair_interval_diagnostics(components, alpha)
   list(
     status = status,
     eta = if (identical(status, "boundary_unresolved")) {
@@ -788,6 +790,7 @@ drm_pair_fit_eta <- function(components) {
       multistart_alpha = multistart_alpha,
       multistart_disagreement = multistart_disagreement,
       convergence_failure = convergence_failure,
+      endpoint_failure = endpoint_failure,
       weak_curvature = weak_curvature,
       score_failure = score_failure,
       score = score,
@@ -852,11 +855,39 @@ drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
       !components$pair_class %in% c("gaussian_nbinom2", "bernoulli_nbinom2")) {
     return(NULL)
   }
-  endpoints <- drm_pair_nbinom2_endpoints(
-    components$nbinom2_y,
-    components$nbinom2_mu,
-    components$nbinom2_sigma
+  endpoints <- tryCatch(
+    drm_pair_nbinom2_endpoints(
+      components$nbinom2_y,
+      components$nbinom2_mu,
+      components$nbinom2_sigma
+    ),
+    error = function(e) e
   )
+  if (inherits(endpoints, "error")) {
+    n <- length(components$nbinom2_y)
+    row_numerics <- if (identical(components$pair_class, "bernoulli_nbinom2")) {
+      data.frame(
+        row = seq_len(n), status = rep("endpoint_failure", n),
+        integration_error = rep(NA_real_, n),
+        relative_integration_error = rep(NA_real_, n),
+        binary_threshold = stats::qnorm(
+          components$binary_p, lower.tail = FALSE
+        ),
+        count_lower = rep(NA_real_, n), count_upper = rep(NA_real_, n),
+        count_lower_tail = rep(NA_character_, n),
+        count_upper_tail = rep(NA_character_, n),
+        conditional_branch = rep(NA_character_, n),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      NULL
+    }
+    return(list(
+      endpoint_failure = TRUE,
+      endpoint_failure_message = conditionMessage(endpoints),
+      row_numerics = row_numerics
+    ))
+  }
   interval <- if (is.null(alpha)) NULL else if (identical(components$pair_class, "gaussian_nbinom2")) {
     drm_pair_nbinom2_interval_log_prob(alpha, components)
   } else {
@@ -885,6 +916,8 @@ drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
     NULL
   }
   list(
+    endpoint_failure = FALSE,
+    endpoint_failure_message = NA_character_,
     nbinom2_size_range = range(drm_nbinom2_size(components$nbinom2_sigma)),
     nbinom2_mu_range = range(components$nbinom2_mu),
     nbinom2_sigma_range = range(components$nbinom2_sigma),
