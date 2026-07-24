@@ -94,15 +94,15 @@ abline(stats::lm(log(body_mass_g) ~ log(flipper_length_mm), data = penguins),
 ```
 
 ```{r penguin-direct-lognormal, eval = has_penguins}
-fit_log <- drmTMB(
-  bf(mu1 = flipper_length_mm ~ species + sex + year_c,
-     mu2 = body_mass_g ~ species + sex + year_c,
-     sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
-  family = biv_lognormal(), data = penguins
+fit_log <- drmTMB::drmTMB(
+  drmTMB::bf(mu1 = flipper_length_mm ~ species + sex + year_c,
+             mu2 = body_mass_g ~ species + sex + year_c,
+             sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  family = drmTMB::biv_lognormal(), data = penguins
 )
 
-rho12(fit_log)[1]
-check_drm(fit_log)
+drmTMB::rho12(fit_log)[1]
+drmTMB::check_drm(fit_log)
 
 # All three target the log-residual rho12, not a raw-scale correlation.
 ci_wald <- confint(fit_log, parm = "rho12", method = "wald")
@@ -115,7 +115,7 @@ ci_bootstrap <- confint(
 interval_row <- function(x, label) {
   data.frame(
     label = label,
-    estimate = unname(rho12(fit_log)[1]),
+    estimate = unname(drmTMB::rho12(fit_log)[1]),
     lower = x$lower,
     upper = x$upper,
     status = x$conf.status,

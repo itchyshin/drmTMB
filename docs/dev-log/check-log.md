@@ -15,6 +15,11 @@ Record meaningful development checks here.
   `R CMD check` cannot reach CRAN to obtain the optional `palmerpenguins`
   Suggests dependency, so the Linux CI is the authoritative installed-package
   confirmation for this repair.
+- The repaired Linux check then reached vignette rebuilding and exposed a
+  second installed-package boundary: the new executable penguin chunk had
+  unqualified `drmTMB` functions. Those calls are now explicitly namespaced.
+  A fresh temporary installation of this exact worktree rendered
+  `bivariate-nongaussian.Rmd` successfully without `devtools::load_all()`.
 
 ## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` coverage gate
 
