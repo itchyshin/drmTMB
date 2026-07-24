@@ -33,7 +33,8 @@ not a new joint TMB family and not a Julia bridge. It takes two already-fitted
 margins on the same externally constructed complete paired rows, freezes their
 stage-1 estimates, and then estimates a latent-normal association. The bounded
 pair classes are fixed-effect Gaussian × literal-Bernoulli, Gaussian ×
-ordinary-NB2, and literal Bernoulli × Bernoulli, with an intercept-only
+ordinary-NB2, literal-Bernoulli × ordinary-NB2, and literal Bernoulli ×
+Bernoulli, with an intercept-only
 association predictor and a point estimate plus diagnostics only. The NB2 margin may model both `mu` and `sigma` with
 fixed covariates; both resulting rowwise vectors are frozen. This
 association is `eta`, not the native bivariate-Gaussian residual correlation
@@ -70,6 +71,9 @@ and all stronger claims remain separately gated.
 #   fit_gaussian, fit_nbinom2,
 #   kernel = latent_normal(), association = ~ 1
 # )
+# Or pair a literal 0/1 Bernoulli fit with an ordinary NB2 fit. The binary ×
+# count route uses a fail-closed latent-normal rectangle calculation; it has no
+# recovery, interval, coverage, or capability claim.
 ```
 
 The object rejects binomial trial counts, non-literal binary values,
