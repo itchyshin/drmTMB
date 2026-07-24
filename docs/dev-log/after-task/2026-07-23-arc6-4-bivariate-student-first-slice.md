@@ -26,6 +26,11 @@ residual whitening, and early capability promotion were rejected. A
 general-purpose gamma-ratio implementation was replaced by the exact
 two-dimensional cancellation to protect the Gaussian limit.
 
+The cited prior-art report and design 234 were completed before package code
+was written. Noether reviewed the symbolic density, grammar, transforms,
+simulator, and independent-oracle alignment and returned GO without a required
+correction.
+
 ## 4. Files Touched
 
 The implementation changes the family constructor, model dispatch and builder,

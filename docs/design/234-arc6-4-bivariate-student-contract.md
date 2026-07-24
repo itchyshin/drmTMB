@@ -1,5 +1,10 @@
 # Arc 6.4 exact bivariate Student-t contract
 
+**Pre-implementation gate:** This contract and the cited prior-art report were
+completed before package code was written. Noether reviewed the symbolic
+density, R grammar, parameter transforms, simulator, and oracle alignment and
+returned **GO** with no required correction.
+
 ## Purpose and estimand
 
 `biv_student()` is a distinct direct two-response likelihood. It is not an

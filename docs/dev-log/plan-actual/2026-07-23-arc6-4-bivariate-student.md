@@ -83,6 +83,9 @@ boundary and error contract.
 
 ## Team reconciliation
 
+The cited prior-art report and design 234 were completed before implementation.
+Noether reviewed the symbolic density, R grammar, transforms, simulator, and
+oracle alignment at that gate and returned GO with no required correction.
 Gauss returned GO after the stable large-`nu` density and strict
 intercept-only gates were added. Fisher returned GO after `mi()`, residual,
 summary-profile, and finite-`nu` dependence boundaries were made explicit.
