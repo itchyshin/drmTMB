@@ -33,7 +33,8 @@ and generic pair-association formulas remain rejected.
 
 - `R/associate-pairs.R`, generated `NAMESPACE`, and Rd files.
 - `tests/testthat/test-associate-pairs-bernoulli-nb2.R`,
-  `tests/testthat/test-biv-associate.R`, and the ten-scenario matrix.
+  `tests/testthat/test-biv-associate.R`, the ten-scenario matrix, and the
+  Gaussian×Bernoulli expected-error snapshot.
 - Design 239; formula grammar, limitations, NEWS, and check-log updates.
 - The two reader articles, `cross-family.Rmd` and `bivariate-nongaussian.Rmd`.
 
@@ -41,8 +42,9 @@ and generic pair-association formulas remain rejected.
 
 - `devtools::document()` passed.
 - Focused Bernoulli x NB2, one-call, and ten-scenario tests passed.
-- The broader `associate-pairs|biv-associate` test selection passed, with only
-  pre-existing CRAN guards skipped.
+- The broader `associate-pairs|biv-associate` test selection passed with
+  `NOT_CRAN=true`, after synchronizing one expected error whose old text said
+  every association slope was unsupported.
 - Selected pkgdown article/reference builds and `pkgdown::check_pkgdown()`
   passed. `git diff --check` passed.
 - A full package test/check and a full site build were not used as a completion
@@ -52,9 +54,12 @@ and generic pair-association formulas remain rejected.
 
 The slope test simulates a known two-coefficient latent-normal Bernoulli x NB2
 fixture and recovers the association-link signal within a predeclared tolerant
-envelope. It checks fitted `eta_i` extraction. Formula tests reject a factor,
-two-term formula, and a slope applied to a different pair class. The ten-case
-matrix evaluates finite objectives at zero and nonzero association for all five
+envelope. It checks fitted `eta_i` extraction, both finite-difference beta
+scores, and both diagonal curvature diagnostics. A second test sums an
+independent `mvtnorm` oracle across rows with different `eta_i` values and
+matches the production likelihood. Formula tests reject a factor, two-term
+formula, and a slope applied to a different pair class. The ten-case matrix
+evaluates finite objectives at zero and nonzero association for all five
 admitted pair classes under ordinary and edge-like data configurations.
 
 ## 8. Consistency Audit
@@ -67,8 +72,8 @@ in the check log and updated where current documentation was stale.
 
 ## 7a. Issue Ledger
 
-No issue or remote state was changed: the user requested a local HTML review
-before any upload. No duplicate issue was opened.
+PR #826 contains the beta API and reader-first documentation. Its merge remains
+gated on review and green package CI. No issue was opened.
 
 ## 9. What Did Not Go Smoothly
 
@@ -102,6 +107,7 @@ families, inference, random effects, missingness, REML, or Julia.
 
 ## Next Actions
 
-Let the user inspect the local HTML. Before any wider public or capability
-claim, obtain explicit approval for a compute-backed multi-seed recovery study
-on Totoro or DRAC and separately review its all-attempt evidence.
+Follow the separately recorded Arc 6 clean-close ultra-plan. Before any wider
+public or capability claim, obtain explicit approval for the frozen,
+compute-backed Arc 6.5 recovery-repair campaign on Totoro or DRAC and
+separately review its all-attempt evidence.
