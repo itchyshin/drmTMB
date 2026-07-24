@@ -19,8 +19,9 @@ latent_normal <- function() {
 #' two marginal models. It never refits, updates, profiles, or otherwise alters
 #' either margin. The reviewed Arc 6 slices implement fixed-effect Gaussian
 #' margins paired with literal Bernoulli `binomial(link = "logit")` or ordinary
-#' `nbinom2()` margins, literal Bernoulli paired with ordinary `nbinom2()`, and
-#' two literal Bernoulli margins, on the same complete analysis rows.
+#' `nbinom2()` margins, literal Bernoulli paired with ordinary `nbinom2()`,
+#' two literal Bernoulli margins, and two ordinary `nbinom2()` margins, on the
+#' same complete analysis rows.
 #'
 #' The fitted parameter `eta` is a Gaussian-copula latent-normal association.
 #' It is neither [rho12()], an observed-scale correlation, nor [corpairs()].

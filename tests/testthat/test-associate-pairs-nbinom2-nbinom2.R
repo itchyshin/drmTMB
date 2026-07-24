@@ -31,6 +31,40 @@ test_that("ordinary-NB2 x ordinary-NB2 direct rectangles match mvtnorm and facto
       stats::dnbinom(8, size = drmTMB:::drm_nbinom2_size(.4), mu = 2.5), tolerance = 1e-14)
 })
 
+test_that("ordinary-NB2 x ordinary-NB2 rectangles normalize and retain tail accuracy", {
+  probabilities <- outer(0:40, 0:40, Vectorize(function(y_1, y_2) {
+    drmTMB:::drm_pair_nbinom2_nbinom2_rectangle_probability(
+      y_1, 3.6, .7, y_2, 2.1, .45, 0
+    )$probability
+  }))
+  remainder <- 1 - sum(probabilities)
+  expect_gte(remainder, -1e-8)
+  expect_lte(remainder,
+    stats::pnbinom(40, size = drmTMB:::drm_nbinom2_size(.7), mu = 3.6,
+      lower.tail = FALSE) +
+      stats::pnbinom(40, size = drmTMB:::drm_nbinom2_size(.45), mu = 2.1,
+        lower.tail = FALSE) + 1e-8)
+
+  skip_if_not_installed("mvtnorm")
+  rare_high <- drmTMB:::drm_pair_nbinom2_nbinom2_rectangle_probability(
+    35L, 24, .25, 42L, 30, .2, .9
+  )
+  expect_identical(rare_high$status, "ok")
+  expect_true(is.finite(rare_high$integration_error))
+  expect_true(rare_high$integration_error <= max(
+    rare_high$integration_abs_tol,
+    rare_high$integration_rel_tol * rare_high$probability
+  ))
+  expect_equal(rare_high$probability,
+    nbinom2_nbinom2_oracle(35L, 24, .25, 42L, 30, .2, .9),
+    tolerance = 2e-8)
+  rejected <- drmTMB:::drm_pair_nbinom2_nbinom2_rectangle_probability(
+    35L, 24, .25, 42L, 30, .2, .9,
+    integration_rel_tol = 1e-20, integration_abs_tol = 1e-30
+  )
+  expect_identical(rejected$status, "integration_error_exceeds_tolerance")
+})
+
 test_that("ordinary-NB2 x ordinary-NB2 association preserves pair order and deterministic simulation", {
   set.seed(20260723)
   n <- 40L

@@ -4,8 +4,9 @@
 > the order and boundaries of Arc 6's two-response programme. The linked
 > Arc 6.1 Ultra Plan is historical planning provenance; the implemented
 > [Arc 6.2 contract](232-arc6-2-gaussian-nbinom2-contract.md), exact
-> [Arc 6.3 contract](233-arc6-3-bivariate-lognormal-contract.md), and
-> source-level [Arc 6.4 contract](234-arc6-4-bivariate-student-contract.md)
+> [Arc 6.3 contract](233-arc6-3-bivariate-lognormal-contract.md),
+> source-level [Arc 6.4 contract](234-arc6-4-bivariate-student-contract.md),
+> and [Arc 6.7 contract](237-arc6-7-nbinom2-nbinom2-contract.md)
 > record the current development boundaries.
 > Neither document authorizes recovery, capability promotion, Julia,
 > `meta_V()`, or CRAN work.
@@ -99,7 +100,7 @@ and owner gate. “Later” means unimplemented and unsupported.
 | 6.4 | Student-t × Student-t | two compatible Student-t margins | exact bivariate t with a shared degrees-of-freedom contract | common-`nu` identification and tails | implemented; source-tested only, no smoke/recovery/inference claim |
 | 6.5 | binary × binary | paired Bernoulli | bivariate-normal rectangle | rare cells and near separation | source landed with recovery HOLD; no recovery/capability claim |
 | 6.6 | binary × count | Bernoulli × NB2 | bivariate-normal rectangle | rare rectangles and tails | implemented source slice; focused oracle tests only, no recovery/inference claim |
-| 6.7 | count × count | NB2 × NB2 | bivariate-normal rectangle | tail stability and latent-scale interpretation | later |
+| 6.7 | count × count | NB2 × NB2 | bivariate-normal rectangle | tail stability and latent-scale interpretation | implemented source slice; focused oracle tests only, no recovery/inference claim |
 | 6.8 | cross-pair integration | all previously admitted Arc 6 pair classes | common post-fit contract plus exact-special compatibility checks | accidental pair-specific drift | final series gate before new classes |
 
 Ordinal/categorical and zero-modified, bounded, or nonstandard-CDF margins
