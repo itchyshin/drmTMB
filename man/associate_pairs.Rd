@@ -23,8 +23,9 @@ An object of class \code{drm_pair_association}.
 two marginal models. It never refits, updates, profiles, or otherwise alters
 either margin. The reviewed Arc 6 slices implement fixed-effect Gaussian
 margins paired with literal Bernoulli \code{binomial(link = "logit")} or ordinary
-\code{nbinom2()} margins, literal Bernoulli paired with ordinary \code{nbinom2()}, and
-two literal Bernoulli margins, on the same complete analysis rows.
+\code{nbinom2()} margins, literal Bernoulli paired with ordinary \code{nbinom2()},
+two literal Bernoulli margins, and two ordinary \code{nbinom2()} margins, on the
+same complete analysis rows.
 }
 \details{
 The fitted parameter \code{eta} is a Gaussian-copula latent-normal association.

@@ -12,8 +12,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   promotion, broad bridge support, REML, AI-REML, or public-support wording.
 - The post-0.6 `associate_pairs()` development object has four reviewed-pair
   slices only: fixed-effect Gaussian × literal 0/1 Bernoulli, Gaussian ×
-  ordinary NB2, literal 0/1 Bernoulli × ordinary NB2, and literal Bernoulli ×
-  Bernoulli rectangle margins on exactly the same complete rows, with explicitly
+  ordinary NB2, literal 0/1 Bernoulli × ordinary NB2, and ordinary NB2 ×
+  ordinary NB2, plus literal Bernoulli × Bernoulli rectangle margins, on
+  exactly the same complete rows, with explicitly
   declared `kernel = latent_normal()` and `association = ~ 1`. It freezes all
   stage-1 margin vectors (including NB2 `mu` and `sigma`) and returns an
   intercept-only latent-normal `eta` point estimate only when optimisation and
