@@ -1,10 +1,19 @@
 bernoulli_nb2_oracle <- function(binary_y, binary_p, count_y, mu, sigma, eta) {
   size <- drmTMB:::drm_nbinom2_size(sigma)
+  stable_quantile <- function(y) {
+    log_cdf <- stats::pnbinom(y, size = size, mu = mu, log.p = TRUE)
+    log_survival <- stats::pnbinom(
+      y, size = size, mu = mu, lower.tail = FALSE, log.p = TRUE
+    )
+    if (log_cdf <= log(0.5)) {
+      stats::qnorm(log_cdf, log.p = TRUE)
+    } else {
+      stats::qnorm(log_survival, lower.tail = FALSE, log.p = TRUE)
+    }
+  }
   threshold <- stats::qnorm(binary_p, lower.tail = FALSE)
-  lower_count <- if (count_y == 0L) -Inf else stats::qnorm(stats::pnbinom(
-    count_y - 1L, size = size, mu = mu
-  ))
-  upper_count <- stats::qnorm(stats::pnbinom(count_y, size = size, mu = mu))
+  lower_count <- if (count_y == 0L) -Inf else stable_quantile(count_y - 1L)
+  upper_count <- stable_quantile(count_y)
   lower <- c(if (binary_y == 0L) -Inf else threshold, lower_count)
   upper <- c(if (binary_y == 0L) threshold else Inf, upper_count)
   as.numeric(mvtnorm::pmvnorm(lower = lower, upper = upper,
@@ -41,7 +50,19 @@ test_that("Bernoulli x ordinary-NB2 adapter freezes ML margins in either order",
   expect_equal(forward$components$binary_p, predict(binary_fit, dpar = "mu", type = "response"))
   expect_equal(forward$components$nbinom2_mu, predict(count_fit, dpar = "mu", type = "response"))
   expect_equal(forward$logLik, reverse$logLik, tolerance = 1e-7)
+  expect_equal(forward$eta, reverse$eta, tolerance = 1e-7)
+  expect_identical(forward$status, reverse$status)
   expect_identical(names(fitted(reverse)), c("count", "binary"))
+  forward$status <- reverse$status <- "interior"
+  forward$eta <- reverse$eta <- 0
+  forward$eta_internal <- reverse$eta_internal <- 0
+  forward_draw <- simulate(forward, seed = 71)
+  reverse_draw <- simulate(reverse, seed = 71)
+  expect_equal(forward_draw, reverse_draw[, names(forward_draw)])
+  expect_named(forward$diagnostics$count_interval$row_numerics,
+    c("row", "status", "integration_error", "relative_integration_error",
+      "binary_threshold", "count_lower", "count_upper", "count_lower_tail",
+      "count_upper_tail", "conditional_branch"))
 })
 
 test_that("Bernoulli x ordinary-NB2 rectangles factorize and match an independent oracle", {
@@ -62,6 +83,18 @@ test_that("Bernoulli x ordinary-NB2 rectangles factorize and match an independen
     stats::dbinom(1, 1, 0.23) * stats::dnbinom(7, size = drmTMB:::drm_nbinom2_size(0.55), mu = 4.1),
     tolerance = 1e-14)
   expect_identical(factorized$branch, "factorized")
+
+  for (case in list(
+    list(binary_y = 0L, binary_p = 0.23, count_y = 0L, mu = 4.1, sigma = 0.55, eta = -0.5),
+    list(binary_y = 1L, binary_p = 0.04, count_y = 35L, mu = 24, sigma = 0.25, eta = 0.95)
+  )) {
+    actual <- do.call(
+      drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability, unname(case)
+    )
+    oracle <- do.call(bernoulli_nb2_oracle, case)
+    expect_identical(actual$status, "ok")
+    expect_equal(actual$probability, oracle, tolerance = 2e-8)
+  }
 })
 
 test_that("Bernoulli x ordinary-NB2 rectangles normalize and retain tail diagnostics", {

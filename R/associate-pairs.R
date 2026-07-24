@@ -862,6 +862,28 @@ drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
   } else {
     drm_pair_bernoulli_nbinom2_probabilities(alpha, components)
   }
+  row_numerics <- if (identical(components$pair_class, "bernoulli_nbinom2") &&
+      !is.null(interval)) {
+    data.frame(
+      row = seq_along(components$binary_y),
+      status = interval$status,
+      integration_error = interval$integration_error,
+      relative_integration_error = vapply(
+        interval$results, `[[`, numeric(1L), "relative_integration_error"
+      ),
+      binary_threshold = stats::qnorm(
+        components$binary_p, lower.tail = FALSE
+      ),
+      count_lower = endpoints$lower,
+      count_upper = endpoints$upper,
+      count_lower_tail = endpoints$lower_representation,
+      count_upper_tail = endpoints$upper_representation,
+      conditional_branch = interval$branch,
+      stringsAsFactors = FALSE
+    )
+  } else {
+    NULL
+  }
   list(
     nbinom2_size_range = range(drm_nbinom2_size(components$nbinom2_sigma)),
     nbinom2_mu_range = range(components$nbinom2_mu),
@@ -873,7 +895,8 @@ drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
     conditional_interval_branches = if (is.null(interval) || is.null(interval$branch)) NULL else table(interval$branch),
     conditional_log_interval_range = if (is.null(interval) || is.null(interval$log_probability)) NULL else range(interval$log_probability),
     nonfinite_conditional_intervals = if (is.null(interval)) NULL else sum(!is.finite(interval$log_probability)),
-    endpoint_complement_error_max = endpoints$complement_error_max
+    endpoint_complement_error_max = endpoints$complement_error_max,
+    row_numerics = row_numerics
   )
 }
 
