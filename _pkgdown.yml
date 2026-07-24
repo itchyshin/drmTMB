@@ -61,6 +61,8 @@ navbar:
           href: articles/proportion-beta-binomial.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
+        - text: Bivariate non-Gaussian models
+          href: articles/bivariate-nongaussian.html
         - text: Handling missing data
           href: articles/missing-data.html
         - text: Figure gallery
@@ -237,6 +239,7 @@ articles:
       - count-nbinom2
       - proportion-beta-binomial
       - bivariate-coscale
+      - bivariate-nongaussian
       - missing-data
       - figure-gallery
   - title: Random & Structured Effects

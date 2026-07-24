@@ -34,8 +34,9 @@
 
 * Post-0.6 development now implements the bounded post-fit
   `associate_pairs()` interface with `kernel = latent_normal()` for
-  fixed-effect Gaussian × literal-Bernoulli and Gaussian × ordinary-NB2
-  complete pairs. It freezes stage-1 margins (including NB2 `mu` and `sigma`),
+  fixed-effect Gaussian × literal-Bernoulli, Gaussian × ordinary-NB2, and
+  literal-Bernoulli × ordinary-NB2 complete pairs. It freezes stage-1 margins
+  (including NB2 `mu` and `sigma`),
   then estimates intercept-only latent-normal association (`eta`) with point
   estimate and diagnostics only. It is not a released 0.6.0 feature and does
   not add mixed-family `rho12`, intervals, coverage, or capability claims.

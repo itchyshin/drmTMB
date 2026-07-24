@@ -10,10 +10,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   basic-distribution recovery rows from post-v1.0 `inference_ready` and
   `supported` validation. This boundary does not authorize coverage, q4/q8
   promotion, broad bridge support, REML, AI-REML, or public-support wording.
-- The post-0.6 `associate_pairs()` development object has three mixed-pair
-  slices only: fixed-effect Gaussian × literal 0/1 Bernoulli and Gaussian ×
-  ordinary NB2 margins, plus literal Bernoulli × Bernoulli rectangle margins,
-  on exactly the same complete rows, with explicitly
+- The post-0.6 `associate_pairs()` development object has four reviewed-pair
+  slices only: fixed-effect Gaussian × literal 0/1 Bernoulli, Gaussian ×
+  ordinary NB2, literal 0/1 Bernoulli × ordinary NB2, and literal Bernoulli ×
+  Bernoulli rectangle margins on exactly the same complete rows, with explicitly
   declared `kernel = latent_normal()` and `association = ~ 1`. It freezes all
   stage-1 margin vectors (including NB2 `mu` and `sigma`) and returns an
   intercept-only latent-normal `eta` point estimate only when optimisation and

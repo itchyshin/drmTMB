@@ -1,0 +1,87 @@
+---
+title: "Bivariate non-Gaussian models: choose the association scale"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bivariate non-Gaussian models: choose the association scale}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+```
+
+This article is for an applied researcher with two positive or heavy-tailed
+responses. The first decision is not which correlation command to use. It is
+which residual scale answers the biological question. `biv_lognormal()` and
+`biv_student()` are direct joint models: they retain `rho12` because its scale
+is defined by their likelihood. They are different from the post-fit
+mixed-family `associate_pairs()` route, which estimates latent-normal `eta`.
+
+## Positive traits: exact bivariate lognormal
+
+For positive lognormal outcomes,
+\((\log Y_1,\log Y_2)\) is bivariate normal. `sigma1` and `sigma2` are
+log-response SDs and `rho12` is their log-residual correlation; it is not
+automatically a raw-scale correlation.
+
+```{r lognormal-example, eval = FALSE}
+fit_log <- drmTMB(
+  bf(mu1 = seed_mass ~ treatment, mu2 = root_mass ~ treatment,
+     sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  family = biv_lognormal(), data = plants
+)
+rho12(fit_log)
+fitted(fit_log)
+```
+
+A positive value means that plants heavier than expected on the log seed-mass
+scale also tend to be heavier than expected on the log root-mass scale after
+the treatment means are fitted. `fitted(fit_log)` returns arithmetic marginal
+means on the original response scale, not the log-response locations shown by
+the `mu1` and `mu2` predictors. Replace the example names with two positive
+response columns in one complete paired data frame.
+
+## Heavy-tailed traits: exact bivariate Student-t
+
+For paired measurements with heavy tails, use the direct shared-degrees-of-
+freedom Student-t model.
+
+```{r student-example, eval = FALSE}
+fit_t <- drmTMB(
+  bf(mu1 = activity ~ habitat, mu2 = boldness ~ habitat,
+     sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1),
+  family = biv_student(), data = behaviour
+)
+rho12(fit_t)
+```
+
+`sigma1` and `sigma2` are Student-t scales, not marginal SDs. The model has
+one shared `nu`; at finite `nu`, `rho12 = 0` means uncorrelated but not
+independent because both outcomes share the same row-level mixing draw.
+
+## A practical choice
+
+Create the data once, retain rows with both outcomes and all predictors, and
+fit both response formulas to that same object. This avoids accidentally
+comparing fits with different row identities.
+
+```{r compare-families, eval = FALSE}
+# For example: positive_pairs <- na.omit(data.frame(y1, y2, x))
+# Positive biomass traits: a log-response correlation is meaningful.
+fit_log <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
+                     sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+                  family = biv_lognormal(), data = positive_pairs)
+
+# Heavy-tailed real-valued traits: use a shared-t residual scale.
+fit_t <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
+                   sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1),
+                family = biv_student(), data = real_pairs)
+```
+
+Both first slices require complete pairs and keep `sigma1`, `sigma2`, `rho12`,
+and (for Student-t) `nu` intercept-only. They do not currently add random
+effects, `rho12` predictors, intervals, coverage, or a general non-Gaussian
+bivariate claim. If the responses have different marginal families, read
+[Frozen-margin mixed-family association](cross-family.html) instead.

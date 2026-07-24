@@ -33,7 +33,8 @@ not a new joint TMB family and not a Julia bridge. It takes two already-fitted
 margins on the same externally constructed complete paired rows, freezes their
 stage-1 estimates, and then estimates a latent-normal association. The bounded
 pair classes are fixed-effect Gaussian × literal-Bernoulli, Gaussian ×
-ordinary-NB2, and literal Bernoulli × Bernoulli, with an intercept-only
+ordinary-NB2, literal-Bernoulli × ordinary-NB2, and literal Bernoulli ×
+Bernoulli, with an intercept-only
 association predictor and a point estimate plus diagnostics only. The NB2 margin may model both `mu` and `sigma` with
 fixed covariates; both resulting rowwise vectors are frozen. This
 association is `eta`, not the native bivariate-Gaussian residual correlation
@@ -70,6 +71,9 @@ and all stronger claims remain separately gated.
 #   fit_gaussian, fit_nbinom2,
 #   kernel = latent_normal(), association = ~ 1
 # )
+# Or pair a literal 0/1 Bernoulli fit with an ordinary NB2 fit. The binary ×
+# count route uses a fail-closed latent-normal rectangle calculation; it has no
+# recovery, interval, coverage, or capability claim.
 ```
 
 The object rejects binomial trial counts, non-literal binary values,
@@ -79,6 +83,54 @@ association slopes. It must not refit either margin. Standard errors, intervals,
 profiles, `vcov()`, residuals, quantiles, and `emmeans` are also outside these
 slices. Recovery, interval, coverage, and capability promotion remain separate
 work; none is implied by this development implementation.
+
+## Three frozen-margin examples
+
+The association object answers a narrower question than a joint bivariate
+family: after two margins have been fitted separately, is there residual
+co-occurrence on the latent-normal scale? `eta` is not `rho12` and is not an
+observed-scale correlation. A positive interior `eta` means positive residual
+co-occurrence in the Gaussian-copula latent variables conditional on the frozen
+margins; it is not inferential evidence about an observed-scale correlation.
+
+Construct `paired_data` once with both responses and every predictor, remove
+incomplete rows once, and use that exact object in both marginal fits. The row
+order must be identical.
+
+```{r gaussian-binary-example, eval = FALSE}
+# paired_data <- na.omit(data.frame(y_continuous, y_present, offspring,
+#                                    habitat, season))
+fit_continuous <- drmTMB(y_continuous ~ habitat,
+  family = gaussian(), data = paired_data)
+fit_binary <- drmTMB(bf(mu = y_present ~ habitat),
+  family = binomial(), data = paired_data)
+assoc_gb <- associate_pairs(fit_continuous, fit_binary,
+  kernel = latent_normal(), association = ~ 1)
+association(assoc_gb)
+```
+
+```{r gaussian-count-example, eval = FALSE}
+fit_count <- drmTMB(bf(mu = offspring ~ habitat, sigma = ~ season),
+  family = nbinom2(), data = paired_data)
+assoc_gn <- associate_pairs(fit_continuous, fit_count,
+  kernel = latent_normal(), association = ~ 1)
+association(assoc_gn)
+```
+
+```{r binary-count-example, eval = FALSE}
+assoc_bn <- associate_pairs(fit_binary, fit_count,
+  kernel = latent_normal(), association = ~ 1)
+association(assoc_bn)
+```
+
+The last example uses a bivariate-normal rectangle because both outcomes are
+discrete. `drmTMB` retains endpoint and integration diagnostics; if a tail
+rectangle is unresolved, `eta` is withheld rather than repaired by probability
+clipping. In that case inspect `assoc_bn$diagnostics`, report that no association
+estimate was returned, and do not try to clip or repair the probability. These
+are fixed-effect, complete-pair, intercept-only development routes, not
+standard-error, interval, coverage, random-effect, missing-data, or generic
+discrete-pair support.
 
 The 0.6.0 capability ledger and release scope manifest are the source of truth
 for any later promotion decision.
