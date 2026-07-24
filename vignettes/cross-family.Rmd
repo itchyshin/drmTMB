@@ -32,9 +32,9 @@ The implemented post-0.6 development route is a post-fit association object,
 not a new joint TMB family and not a Julia bridge. It takes two already-fitted
 margins on the same externally constructed complete paired rows, freezes their
 stage-1 estimates, and then estimates a latent-normal association. The bounded
-pair classes are fixed-effect Gaussian × literal-Bernoulli and Gaussian ×
-ordinary-NB2, with an intercept-only association predictor and a point estimate
-plus diagnostics only. The NB2 margin may model both `mu` and `sigma` with
+pair classes are fixed-effect Gaussian × literal-Bernoulli, Gaussian ×
+ordinary-NB2, and literal Bernoulli × Bernoulli, with an intercept-only
+association predictor and a point estimate plus diagnostics only. The NB2 margin may model both `mu` and `sigma` with
 fixed covariates; both resulting rowwise vectors are frozen. This
 association is `eta`, not the native bivariate-Gaussian residual correlation
 `rho12`, an observed-scale correlation, or the `corpairs()` extractor (which

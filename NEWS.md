@@ -1,5 +1,13 @@
 # drmTMB 0.6.0
 
+## Arc 6.5 Bernoulli × Bernoulli development slice
+
+* `associate_pairs()` now admits two frozen literal Bernoulli-logit margins and
+  estimates a latent-normal `eta` using deterministic bivariate-normal
+  rectangle probabilities. This post-0.6 development surface retains only a
+  point estimate and diagnostics; it is neither `rho12` nor an observed-scale
+  correlation, odds ratio, interval, coverage, or capability claim.
+
 ## Arc 6.4 exact bivariate Student-t development slice
 
 * `biv_student()` now fits one bounded exact bivariate Student-t likelihood:

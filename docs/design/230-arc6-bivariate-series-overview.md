@@ -97,7 +97,7 @@ and owner gate. “Later” means unimplemented and unsupported.
 | 6.2 | continuous × overdispersed count | Gaussian × NB2 | density × conditional-normal count-CDF interval | count tails and CDF cancellation | implemented; point-estimate-only, smoke recorded separately |
 | 6.3 | lognormal × lognormal | two lognormal margins | exact bivariate normal on log response scale | scale interpretation | implemented; source-tested only, no smoke/recovery/inference claim |
 | 6.4 | Student-t × Student-t | two compatible Student-t margins | exact bivariate t with a shared degrees-of-freedom contract | common-`nu` identification and tails | implemented; source-tested only, no smoke/recovery/inference claim |
-| 6.5 | binary × binary | paired Bernoulli | bivariate-normal rectangle | rare cells and near separation | later |
+| 6.5 | binary × binary | paired Bernoulli | bivariate-normal rectangle | rare cells and near separation | implemented source; recovery HOLD |
 | 6.6 | binary × count | Bernoulli × NB2 | bivariate-normal rectangle | rare rectangles and tails | later |
 | 6.7 | count × count | NB2 × NB2 | bivariate-normal rectangle | tail stability and latent-scale interpretation | later |
 | 6.8 | cross-pair integration | all previously admitted Arc 6 pair classes | common post-fit contract plus exact-special compatibility checks | accidental pair-specific drift | final series gate before new classes |
