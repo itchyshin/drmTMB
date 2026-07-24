@@ -101,7 +101,7 @@ and owner gate. “Later” means unimplemented and unsupported.
 | 6.5 | binary × binary | paired Bernoulli | bivariate-normal rectangle | rare cells and near separation | source landed with recovery HOLD; no recovery/capability claim |
 | 6.6 | binary × count | Bernoulli × NB2 | bivariate-normal rectangle | rare rectangles and tails | implemented source slice; focused oracle tests only, no recovery/inference claim |
 | 6.7 | count × count | NB2 × NB2 | bivariate-normal rectangle | tail stability and latent-scale interpretation | implemented source slice; focused oracle tests only, no recovery/inference claim |
-| 6.8 | cross-pair integration | all previously admitted Arc 6 pair classes | common post-fit contract plus exact-special compatibility checks | accidental pair-specific drift | final series gate before new classes |
+| 6.8 | cross-pair integration | all admitted Arc 6 pair classes | common post-fit contract plus exact-special compatibility checks | accidental pair-specific drift | implemented source integration gate; no recovery/inference claim |
 
 Ordinal/categorical and zero-modified, bounded, or nonstandard-CDF margins
 are **not yet implementation arcs**. They first need separate feasibility
