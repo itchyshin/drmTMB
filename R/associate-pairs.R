@@ -87,6 +87,8 @@ associate_pairs <- function(
     "gaussian_bernoulli"
   } else if (setequal(model_types, c("gaussian", "nbinom2"))) {
     "gaussian_nbinom2"
+  } else if (setequal(model_types, c("binomial", "nbinom2"))) {
+    "bernoulli_nbinom2"
   } else if (identical(model_types, c("binomial", "binomial"))) {
     "bernoulli_bernoulli"
   } else {
@@ -94,12 +96,15 @@ associate_pairs <- function(
   }
   if (is.null(pair_class)) {
     cli::cli_abort(c(
-      "Arc 6 requires one {.code gaussian()} fit paired with {.code binomial()} or ordinary {.code nbinom2()}, or two literal {.code binomial()} fits.",
+      "Arc 6 requires one reviewed pair class, including ordinary {.code nbinom2()} where applicable, or two literal {.code binomial()} fits.",
       i = "Other pair classes require their own Arc 6 review."
     ))
   }
 
   fits <- list(fit_1, fit_2)
+  descriptor <- if (identical(pair_class, "bernoulli_bernoulli")) NULL else {
+    drm_pair_descriptor(pair_class)
+  }
   components <- if (identical(pair_class, "bernoulli_bernoulli")) {
     binary_components <- lapply(fits, drm_pair_bernoulli_components)
     list(
@@ -109,25 +114,32 @@ associate_pairs <- function(
       binary_2_y = binary_components[[2L]]$y,
       binary_2_p = binary_components[[2L]]$p
     )
+  } else if (identical(pair_class, "bernoulli_nbinom2")) {
+    binary_fit <- fits[[which(model_types == "binomial")]]
+    nbinom2_fit <- fits[[which(model_types == "nbinom2")]]
+    drm_pair_validate_bernoulli(binary_fit)
+    drm_pair_validate_nbinom2(nbinom2_fit)
+    binary_p <- stats::predict(binary_fit, dpar = "mu", type = "response")
+    nbinom2_mu <- stats::predict(nbinom2_fit, dpar = "mu", type = "response")
+    nbinom2_sigma <- stats::predict(nbinom2_fit, dpar = "sigma", type = "response")
+    if (any(!is.finite(binary_p)) || any(binary_p <= 0 | binary_p >= 1)) {
+      cli::cli_abort("Frozen Bernoulli probabilities must be finite and strictly interior.")
+    }
+    drm_pair_validate_nbinom2_components(nbinom2_fit$model$y, nbinom2_mu, nbinom2_sigma)
+    list(pair_class = pair_class, descriptor = descriptor, binary_y = binary_fit$model$y,
+      binary_p = binary_p, nbinom2_y = nbinom2_fit$model$y,
+      nbinom2_mu = nbinom2_mu, nbinom2_sigma = nbinom2_sigma)
   } else {
     gaussian_pos <- which(model_types == "gaussian")
     gaussian_fit <- fits[[gaussian_pos]]
     drm_pair_validate_gaussian(gaussian_fit)
     gaussian_mu <- stats::predict(gaussian_fit, dpar = "mu", type = "response")
-    gaussian_sigma <- stats::predict(
-      gaussian_fit,
-      dpar = "sigma",
-      type = "response"
-    )
+    gaussian_sigma <- stats::predict(gaussian_fit, dpar = "sigma", type = "response")
     gaussian_y <- gaussian_fit$model$y
-    if (any(!is.finite(gaussian_mu)) || any(!is.finite(gaussian_sigma)) ||
-        any(gaussian_sigma <= 0)) {
-      cli::cli_abort(
-        "Frozen marginal predictions must be finite and strictly interior."
-      )
+    if (any(!is.finite(gaussian_mu)) || any(!is.finite(gaussian_sigma)) || any(gaussian_sigma <= 0)) {
+      cli::cli_abort("Frozen marginal predictions must be finite and strictly interior.")
     }
-    pair_pos <- which(model_types != "gaussian")
-    pair_fit <- fits[[pair_pos]]
+    pair_fit <- fits[[which(model_types != "gaussian")]]
     if (identical(pair_class, "gaussian_bernoulli")) {
     drm_pair_validate_bernoulli(pair_fit)
     binary_p <- stats::predict(pair_fit, dpar = "mu", type = "response")
@@ -135,7 +147,7 @@ associate_pairs <- function(
       cli::cli_abort("Frozen Bernoulli probabilities must be finite and strictly interior.")
     }
     list(
-      pair_class = pair_class,
+      pair_class = pair_class, descriptor = descriptor,
       gaussian_y = gaussian_y,
       binary_y = pair_fit$model$y,
       gaussian_mu = gaussian_mu,
@@ -150,7 +162,7 @@ associate_pairs <- function(
       pair_fit$model$y, nbinom2_mu, nbinom2_sigma
     )
     list(
-      pair_class = pair_class,
+      pair_class = pair_class, descriptor = descriptor,
       gaussian_y = gaussian_y,
       nbinom2_y = pair_fit$model$y,
       gaussian_mu = gaussian_mu,
@@ -170,12 +182,13 @@ associate_pairs <- function(
   )
   margin_order <- if (identical(pair_class, "bernoulli_bernoulli")) {
     c(fit_1 = "bernoulli_1", fit_2 = "bernoulli_2")
+  } else if (identical(pair_class, "bernoulli_nbinom2")) {
+    c(fit_1 = if (model_types[[1L]] == "binomial") "bernoulli" else "nbinom2",
+      fit_2 = if (model_types[[2L]] == "binomial") "bernoulli" else "nbinom2")
   } else {
     pair_role <- if (identical(pair_class, "gaussian_bernoulli")) "bernoulli" else "nbinom2"
-    c(
-      fit_1 = if (gaussian_pos == 1L) "gaussian" else pair_role,
-      fit_2 = if (gaussian_pos == 2L) "gaussian" else pair_role
-    )
+    c(fit_1 = if (model_types[[1L]] == "gaussian") "gaussian" else pair_role,
+      fit_2 = if (model_types[[2L]] == "gaussian") "gaussian" else pair_role)
   }
 
   structure(
@@ -190,6 +203,7 @@ associate_pairs <- function(
       logLik = fit_result$logLik,
       diagnostics = fit_result$diagnostics,
       components = components,
+      pair_descriptor = descriptor,
       response_names = response_names,
       margin_order = margin_order,
       margins = list(fit_1 = snapshot_1, fit_2 = snapshot_2),
@@ -293,10 +307,14 @@ fitted.drm_pair_association <- function(object, ...) {
     names(out) <- unname(object$response_names)
     return(out)
   }
-  by_role <- list(gaussian = object$components$gaussian_mu)
-  if (identical(object$components$pair_class, "gaussian_bernoulli")) {
+  by_role <- list()
+  if ("gaussian" %in% object$components$descriptor$roles) {
+    by_role$gaussian <- object$components$gaussian_mu
+  }
+  if ("bernoulli" %in% object$components$descriptor$roles) {
     by_role$bernoulli <- object$components$binary_p
-  } else {
+  }
+  if ("nbinom2" %in% object$components$descriptor$roles) {
     by_role$nbinom2 <- object$components$nbinom2_mu
   }
   out <- data.frame(
@@ -355,21 +373,30 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
       names(out) <- unname(object$response_names)
       return(out)
     }
-    n <- length(object$components$gaussian_mu)
-    z_g <- stats::rnorm(n)
-    z_pair <- eta * z_g + sqrt(1 - eta^2) * stats::rnorm(n)
-    y_g <- object$components$gaussian_mu +
-      object$components$gaussian_sigma * z_g
-    by_role <- list(gaussian = y_g)
-    if (identical(object$components$pair_class, "gaussian_bernoulli")) {
-      threshold <- stats::qnorm(object$components$binary_p, lower.tail = FALSE)
-      by_role$bernoulli <- as.integer(z_pair > threshold)
+    n <- if (!is.null(object$components$binary_y)) {
+      length(object$components$binary_y)
     } else {
-      by_role$nbinom2 <- drm_pair_nbinom2_quantile_from_normal(
-        z_pair,
+      length(object$components$gaussian_y)
+    }
+    z_1 <- stats::rnorm(n)
+    z_2 <- eta * z_1 + sqrt(1 - eta^2) * stats::rnorm(n)
+    by_role <- list()
+    if ("gaussian" %in% object$components$descriptor$roles) {
+      by_role$gaussian <- object$components$gaussian_mu + object$components$gaussian_sigma * z_1
+    }
+    if (identical(object$components$pair_class, "gaussian_bernoulli")) {
+      threshold <- stats::qnorm(1 - object$components$binary_p)
+      by_role$bernoulli <- as.integer(z_2 > threshold)
+    } else if (identical(object$components$pair_class, "gaussian_nbinom2")) {
+      by_role$nbinom2 <- drm_pair_nbinom2_quantile_from_normal(z_2,
         object$components$nbinom2_mu,
         object$components$nbinom2_sigma
       )
+    } else {
+      threshold <- stats::qnorm(1 - object$components$binary_p)
+      by_role$bernoulli <- as.integer(z_1 > threshold)
+      by_role$nbinom2 <- drm_pair_nbinom2_quantile_from_normal(z_2,
+        object$components$nbinom2_mu, object$components$nbinom2_sigma)
     }
     data.frame(
       by_role[[object$margin_order[["fit_1"]]]],
@@ -478,6 +505,23 @@ drm_pair_validate_kernel <- function(kernel) {
       "Arc 6 requires {.code kernel = latent_normal()}."
     )
   }
+}
+
+# Internal pair contract. The versioned descriptor is deliberately private: it
+# records the two margin roles used by adapters without widening the public S3
+# object API.
+drm_pair_descriptor <- function(pair_class) {
+  roles <- switch(pair_class,
+    gaussian_bernoulli = c("gaussian", "bernoulli"),
+    gaussian_nbinom2 = c("gaussian", "nbinom2"),
+    bernoulli_nbinom2 = c("bernoulli", "nbinom2"),
+    NULL
+  )
+  if (is.null(roles)) {
+    cli::cli_abort("Unsupported frozen-margin pair descriptor.")
+  }
+  structure(list(version = 1L, pair_class = pair_class, roles = roles),
+    class = "drm_pair_descriptor")
 }
 
 drm_pair_validate_intercept_only <- function(association) {
@@ -795,12 +839,14 @@ drm_pair_loglikelihood_function <- function(components) {
     gaussian_bernoulli = drm_pair_gaussian_bernoulli_loglik,
     gaussian_nbinom2 = drm_pair_gaussian_nbinom2_loglik,
     bernoulli_bernoulli = drm_pair_bernoulli_bernoulli_loglik,
+    bernoulli_nbinom2 = drm_pair_bernoulli_nbinom2_loglik,
     cli::cli_abort("Unsupported frozen-margin pair class.")
   )
 }
 
 drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
-  if (!identical(components$pair_class, "gaussian_nbinom2")) {
+  if (is.null(components$pair_class) ||
+      !components$pair_class %in% c("gaussian_nbinom2", "bernoulli_nbinom2")) {
     return(NULL)
   }
   endpoints <- drm_pair_nbinom2_endpoints(
@@ -808,9 +854,11 @@ drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
     components$nbinom2_mu,
     components$nbinom2_sigma
   )
-  interval <- if (is.null(alpha)) NULL else drm_pair_nbinom2_interval_log_prob(
-    alpha, components
-  )
+  interval <- if (is.null(alpha)) NULL else if (identical(components$pair_class, "gaussian_nbinom2")) {
+    drm_pair_nbinom2_interval_log_prob(alpha, components)
+  } else {
+    drm_pair_bernoulli_nbinom2_probabilities(alpha, components)
+  }
   list(
     nbinom2_size_range = range(drm_nbinom2_size(components$nbinom2_sigma)),
     nbinom2_mu_range = range(components$nbinom2_mu),
@@ -819,8 +867,8 @@ drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
     survival_tail_endpoints = sum(endpoints$upper_representation == "upper"),
     finite_endpoint_count = sum(is.finite(endpoints$upper)),
     strict_order = all(endpoints$lower < endpoints$upper),
-    conditional_interval_branches = if (is.null(interval)) NULL else table(interval$branch),
-    conditional_log_interval_range = if (is.null(interval)) NULL else range(interval$log_probability),
+    conditional_interval_branches = if (is.null(interval) || is.null(interval$branch)) NULL else table(interval$branch),
+    conditional_log_interval_range = if (is.null(interval) || is.null(interval$log_probability)) NULL else range(interval$log_probability),
     nonfinite_conditional_intervals = if (is.null(interval)) NULL else sum(!is.finite(interval$log_probability)),
     endpoint_complement_error_max = endpoints$complement_error_max
   )
@@ -1075,4 +1123,85 @@ drm_pair_gaussian_nbinom2_conditional_prob <- function(
     nbinom2_sigma = sigma
   )
   exp(drm_pair_nbinom2_interval_log_prob(atanh(eta / 0.999999), components)$log_probability)
+}
+
+drm_pair_bernoulli_nbinom2_rectangle_probability <- function(
+  binary_y, binary_p, nbinom2_y, nbinom2_mu, nbinom2_sigma, eta
+) {
+  fail <- function(reason, message = NA_character_) {
+    list(probability = NA_real_, log_probability = NA_real_, status = reason,
+      message = message, integration_error = NA_real_, branch = NA_character_)
+  }
+  if (length(binary_y) != 1L || !binary_y %in% c(0, 1) ||
+      !is.finite(binary_p) || binary_p <= 0 || binary_p >= 1 ||
+      !is.finite(eta) || abs(eta) >= 1) {
+    return(fail("invalid_input"))
+  }
+  endpoints <- tryCatch(
+    drm_pair_nbinom2_endpoints(nbinom2_y, nbinom2_mu, nbinom2_sigma),
+    error = function(e) e
+  )
+  if (inherits(endpoints, "error")) {
+    return(fail("endpoint_failure", conditionMessage(endpoints)))
+  }
+  if (identical(eta, 0)) {
+    probability <- stats::dbinom(binary_y, 1, binary_p) * stats::dnbinom(
+      nbinom2_y, size = drm_nbinom2_size(nbinom2_sigma), mu = nbinom2_mu
+    )
+    return(list(probability = probability, log_probability = log(probability),
+      status = "ok", message = NA_character_, integration_error = 0,
+      branch = "factorized", endpoints = endpoints))
+  }
+  threshold <- stats::qnorm(1 - binary_p)
+  limits <- if (binary_y == 0) c(-Inf, threshold) else c(threshold, Inf)
+  s <- sqrt(1 - eta^2)
+  integrand <- function(z) {
+    lower <- (endpoints$lower - eta * z) / s
+    upper <- (endpoints$upper - eta * z) / s
+    branch <- ifelse(upper <= 0, "lower", ifelse(lower >= 0, "upper", "straddle"))
+    log_mass <- ifelse(branch == "upper",
+      drm_pair_logdiffexp(stats::pnorm(lower, lower.tail = FALSE, log.p = TRUE),
+        stats::pnorm(upper, lower.tail = FALSE, log.p = TRUE)),
+      drm_pair_logdiffexp(stats::pnorm(upper, log.p = TRUE),
+        stats::pnorm(lower, log.p = TRUE)))
+    exp(stats::dnorm(z, log = TRUE) + log_mass)
+  }
+  integral <- tryCatch(stats::integrate(integrand, lower = limits[[1L]],
+    upper = limits[[2L]], subdivisions = 200L, rel.tol = 1e-9),
+    error = function(e) e)
+  if (inherits(integral, "error") || !is.finite(integral$value) ||
+      !is.finite(integral$abs.error) || integral$value <= 0) {
+    return(fail("integration_failure", if (inherits(integral, "error")) conditionMessage(integral) else NA_character_))
+  }
+  midpoint <- (endpoints$lower + endpoints$upper) / 2
+  branch <- if (midpoint <= 0) "lower" else if (midpoint >= 0) "upper" else "straddle"
+  list(probability = integral$value, log_probability = log(integral$value),
+    status = "ok", message = integral$message, integration_error = integral$abs.error,
+    branch = branch, endpoints = endpoints)
+}
+
+drm_pair_bernoulli_nbinom2_probabilities <- function(alpha, components) {
+  eta <- 0.999999 * tanh(alpha)
+  results <- lapply(seq_along(components$binary_y), function(i) {
+    drm_pair_bernoulli_nbinom2_rectangle_probability(
+      components$binary_y[[i]], components$binary_p[[i]],
+      components$nbinom2_y[[i]], components$nbinom2_mu[[i]],
+      components$nbinom2_sigma[[i]], eta
+    )
+  })
+  list(
+    log_probability = vapply(results, `[[`, numeric(1L), "log_probability"),
+    status = vapply(results, `[[`, character(1L), "status"),
+    integration_error = vapply(results, `[[`, numeric(1L), "integration_error"),
+    branch = vapply(results, `[[`, character(1L), "branch"),
+    results = results
+  )
+}
+
+drm_pair_bernoulli_nbinom2_loglik <- function(alpha, components) {
+  probabilities <- drm_pair_bernoulli_nbinom2_probabilities(alpha, components)
+  if (any(probabilities$status != "ok") || any(!is.finite(probabilities$log_probability))) {
+    return(-Inf)
+  }
+  sum(probabilities$log_probability)
 }
