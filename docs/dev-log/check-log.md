@@ -91364,3 +91364,26 @@ Shinichi grants a separate Gate A compute approval.
   skipped. The independent `mvtnorm` oracle covers product, zero-count,
   rare/high-tail, and response-order cases.
 - This is not recovery, inference, interval, coverage, or capability evidence.
+
+## 2026-07-24: Arc 7 B0 `meta_V` B3 retained-evidence integration
+
+- Retained the existing Gaussian ML `bf(yi ~ x + meta_V(V = V), sigma ~ 1)`
+  B3 contract on current main without importing the stale branch wholesale.
+  The compact reduction records the authenticated 16,800-attempt campaign and
+  its 3,712 `degenerate_zero_infinite` `sigma` intervals; raw results, shard
+  logs, seed maps, launchers, remote compute, tier promotion, and any interval
+  validity or coverage claim remain outside B0.
+- The direct local sentinel preserved K=12/vector/`sigma=0.10`/sampling
+  SD=0.12/seed=4 as `estimate=2.389998e-06`, Wald `[0, Inf]`,
+  `degenerate_zero_infinite`; K=36/dense/`sigma=0.35`/sampling SD=0.12/
+  `rho=0.25`/seed=4 returned `estimate=0.2556934`, Wald
+  `[0.1914417, 0.3415092]`, status `ok`. The two-cell harness manifest retained
+  the former as a degenerate, non-finite interval attempt rather than a usable
+  interval.
+- Focused files `test-phase18-meta-v-dgp.R`,
+  `test-phase18-meta-v-grid-writer.R`, `test-phase18-meta-v-summary-smoke.R`,
+  and `test-comparators.R` passed. Fisher and Rose required wording repairs so
+  clean optimization/`pdHess` is not presented as interval calibration, and so
+  the simulation README names the all-attempt primary denominator.
+- This is evidence integration only, not a recovery or coverage campaign. See
+  `docs/dev-log/after-task/2026-07-24-arc7-metav-b0-retained-evidence.md`.

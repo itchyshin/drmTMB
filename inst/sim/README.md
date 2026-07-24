@@ -914,8 +914,9 @@ Current pilot files:
 - `run/sim_render_count_mu_gallery_smoke.R` runs a tiny paired count pilot and
   renders the Florence-facing count-pilot gallery into a local output folder.
 - `run/sim_summary_meta_v_smoke.R` does the same for vector and dense
-  `meta_V(V = V)` smoke cells, including Wald interval and coverage outputs for
-  estimated targets.
+  `meta_V(V = V)` smoke cells. For `sigma`, it retains the actual public Wald
+  interval status and reports finite-and-covering intervals over all attempts;
+  a separate conditional-on-finite set-coverage table is diagnostic only.
 - `run/sim_summary_biv_rho12_smoke.R` does the same for the bivariate
   Gaussian residual `rho12` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence, and

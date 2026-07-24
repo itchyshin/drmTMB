@@ -147,8 +147,9 @@ summary(fit)
 ```
 
 Before reading the coefficients, confirm the fit is sound. A clean optimisation
-and a positive-definite Hessian are the gate for trusting the Wald standard
-errors and intervals.
+and a positive-definite Hessian are necessary diagnostics for routine Wald
+output, but they do not by themselves establish that a `sigma` interval is
+finite, usable, or coverage-valid.
 
 ```{r}
 fit$opt$convergence # 0 means the optimiser converged
