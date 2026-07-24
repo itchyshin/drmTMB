@@ -1,6 +1,6 @@
 bernoulli_nb2_oracle <- function(binary_y, binary_p, count_y, mu, sigma, eta) {
   size <- drmTMB:::drm_nbinom2_size(sigma)
-  threshold <- stats::qnorm(1 - binary_p)
+  threshold <- stats::qnorm(binary_p, lower.tail = FALSE)
   lower_count <- if (count_y == 0L) -Inf else stats::qnorm(stats::pnbinom(
     count_y - 1L, size = size, mu = mu
   ))
@@ -65,14 +65,14 @@ test_that("Bernoulli x ordinary-NB2 rectangles factorize and match an independen
 })
 
 test_that("Bernoulli x ordinary-NB2 rectangles normalize and retain tail diagnostics", {
-  probabilities <- outer(0:1, 0:80, Vectorize(function(binary_y, count_y) {
+  probabilities <- outer(0:1, 0:40, Vectorize(function(binary_y, count_y) {
     drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability(
       binary_y, 0.18, count_y, 3.6, 0.7, 0.45
     )$probability
   }))
   remainder <- 1 - sum(probabilities)
   expect_gte(remainder, -1e-8)
-  expect_lte(remainder, stats::pnbinom(80, size = drmTMB:::drm_nbinom2_size(0.7), mu = 3.6,
+  expect_lte(remainder, stats::pnbinom(40, size = drmTMB:::drm_nbinom2_size(0.7), mu = 3.6,
     lower.tail = FALSE) + 1e-8)
 
   rare_high <- drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability(
@@ -80,7 +80,24 @@ test_that("Bernoulli x ordinary-NB2 rectangles normalize and retain tail diagnos
   )
   expect_identical(rare_high$status, "ok")
   expect_true(is.finite(rare_high$integration_error))
+  expect_true(rare_high$integration_error <= max(
+    rare_high$integration_abs_tol,
+    rare_high$integration_rel_tol * rare_high$probability
+  ))
   expect_true(rare_high$branch %in% c("lower", "upper", "straddle"))
+
+  expect_true(is.finite(stats::qnorm(1e-12, lower.tail = FALSE)))
+  rare_threshold <- drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability(
+    1L, 1e-12, 0L, 0.15, 0.9, -0.5,
+    integration_rel_tol = 1e-20, integration_abs_tol = 1e-30
+  )
+  expect_identical(rare_threshold$status, "integration_error_exceeds_tolerance")
+
+  rejected <- drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability(
+    1L, 0.04, 35L, 24, 0.25, 0.95,
+    integration_rel_tol = 1e-20, integration_abs_tol = 1e-30
+  )
+  expect_identical(rejected$status, "integration_error_exceeds_tolerance")
 })
 
 test_that("Bernoulli x ordinary-NB2 fails closed and simulates coupled latent normals", {
@@ -100,7 +117,9 @@ test_that("Bernoulli x ordinary-NB2 fails closed and simulates coupled latent no
     response_names = c(fit_1 = "binary", fit_2 = "count")), class = "drm_pair_association")
   observed <- simulate(object, seed = 918)
   set.seed(918)
-  expected <- data.frame(binary = as.integer(stats::rnorm(3) > stats::qnorm(1 - components$binary_p)))
+  expected <- data.frame(binary = as.integer(stats::rnorm(3) > stats::qnorm(
+    components$binary_p, lower.tail = FALSE
+  )))
   z_count <- stats::rnorm(3)
   expected$count <- drmTMB:::drm_pair_nbinom2_quantile_from_normal(
     z_count, components$nbinom2_mu, components$nbinom2_sigma

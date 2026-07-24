@@ -393,7 +393,10 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
         object$components$nbinom2_sigma
       )
     } else {
-      threshold <- stats::qnorm(1 - object$components$binary_p)
+      threshold <- stats::qnorm(
+        object$components$binary_p,
+        lower.tail = FALSE
+      )
       by_role$bernoulli <- as.integer(z_1 > threshold)
       by_role$nbinom2 <- drm_pair_nbinom2_quantile_from_normal(z_2,
         object$components$nbinom2_mu, object$components$nbinom2_sigma)
@@ -1126,15 +1129,22 @@ drm_pair_gaussian_nbinom2_conditional_prob <- function(
 }
 
 drm_pair_bernoulli_nbinom2_rectangle_probability <- function(
-  binary_y, binary_p, nbinom2_y, nbinom2_mu, nbinom2_sigma, eta
+  binary_y, binary_p, nbinom2_y, nbinom2_mu, nbinom2_sigma, eta,
+  integration_rel_tol = 5e-3, integration_abs_tol = 1e-12
 ) {
-  fail <- function(reason, message = NA_character_) {
+  fail <- function(reason, message = NA_character_, integration_error = NA_real_,
+                   relative_integration_error = NA_real_) {
     list(probability = NA_real_, log_probability = NA_real_, status = reason,
-      message = message, integration_error = NA_real_, branch = NA_character_)
+      message = message, integration_error = integration_error,
+      relative_integration_error = relative_integration_error,
+      integration_rel_tol = integration_rel_tol,
+      integration_abs_tol = integration_abs_tol, branch = NA_character_)
   }
   if (length(binary_y) != 1L || !binary_y %in% c(0, 1) ||
       !is.finite(binary_p) || binary_p <= 0 || binary_p >= 1 ||
-      !is.finite(eta) || abs(eta) >= 1) {
+      !is.finite(eta) || abs(eta) >= 1 ||
+      !is.finite(integration_rel_tol) || integration_rel_tol <= 0 ||
+      !is.finite(integration_abs_tol) || integration_abs_tol <= 0) {
     return(fail("invalid_input"))
   }
   endpoints <- tryCatch(
@@ -1150,9 +1160,11 @@ drm_pair_bernoulli_nbinom2_rectangle_probability <- function(
     )
     return(list(probability = probability, log_probability = log(probability),
       status = "ok", message = NA_character_, integration_error = 0,
+      relative_integration_error = 0, integration_rel_tol = integration_rel_tol,
+      integration_abs_tol = integration_abs_tol,
       branch = "factorized", endpoints = endpoints))
   }
-  threshold <- stats::qnorm(1 - binary_p)
+  threshold <- stats::qnorm(binary_p, lower.tail = FALSE)
   limits <- if (binary_y == 0) c(-Inf, threshold) else c(threshold, Inf)
   s <- sqrt(1 - eta^2)
   integrand <- function(z) {
@@ -1173,10 +1185,20 @@ drm_pair_bernoulli_nbinom2_rectangle_probability <- function(
       !is.finite(integral$abs.error) || integral$value <= 0) {
     return(fail("integration_failure", if (inherits(integral, "error")) conditionMessage(integral) else NA_character_))
   }
+  if (integral$abs.error > max(
+    integration_abs_tol,
+    integration_rel_tol * integral$value
+  )) {
+    return(fail("integration_error_exceeds_tolerance",
+      integration_error = integral$abs.error,
+      relative_integration_error = integral$abs.error / integral$value))
+  }
   midpoint <- (endpoints$lower + endpoints$upper) / 2
   branch <- if (midpoint <= 0) "lower" else if (midpoint >= 0) "upper" else "straddle"
   list(probability = integral$value, log_probability = log(integral$value),
     status = "ok", message = integral$message, integration_error = integral$abs.error,
+    relative_integration_error = integral$abs.error / integral$value,
+    integration_rel_tol = integration_rel_tol, integration_abs_tol = integration_abs_tol,
     branch = branch, endpoints = endpoints)
 }
 
