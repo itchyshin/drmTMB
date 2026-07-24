@@ -91387,3 +91387,34 @@ Shinichi grants a separate Gate A compute approval.
   the simulation README names the all-attempt primary denominator.
 - This is evidence integration only, not a recovery or coverage campaign. See
   `docs/dev-log/after-task/2026-07-24-arc7-metav-b0-retained-evidence.md`.
+
+## 2026-07-24: Arc 7B known-`V` heterogeneity ladder local contract
+
+- Added a separate L/LS/LSS/LSSS/DH evidence harness on
+  `codex/arc7b-meta-v-heterogeneity-ladder`; it does not modify or merge B0
+  draft PR #828. The contract distinguishes residual `sigma`, direct-SD
+  `sd(study)`/`sd(effect)`, and a random effect in `sigma`.
+- Focused tests passed with `R_PROFILE_USER=/dev/null Rscript --no-init-file`:
+  `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
+  reporter = "stop")` and
+  `devtools::test(filter = "phase18-meta-v-lss-runner", reporter = "stop")`.
+  They include a direct dense-Gaussian oracle, a diagonal `metafor` ML
+  comparator with log-variance/log-SD conversion, malformed nesting, a
+  deliberately failed outer fit, and the retained dense-LSS non-finite-profile
+  fixture.
+- The source-pinned local six-cell sentinel at `f86fed0188ca14356bc098d962e2675e22c39593`
+  retained every fit. All fits converged with `pdHess = TRUE`, but the dense LSS
+  cell retained two `sd(study)` `nonfinite_interval` profiles. Fisher and Rose
+  therefore returned DRAC NO-GO; no remote compute, coverage claim, reader
+  expansion, tier update, or GitHub Actions simulation occurred.
+- Status-inventory scans used:
+  `rg -n "meta_V\\(|meta_known_V|location-scale-scale|sd\\(study\\)|meta-analysis"
+  README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md
+  docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml
+  vignettes/meta-analysis.Rmd vignettes/location-scale-scale.Rmd`; and
+  `rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md
+  NEWS.md docs vignettes R tests || true`. Existing reader material remains
+  intentionally conditional: no new tutorial syntax is advertised.
+- Open-issue sweep found #59 (Phase 18 framework) and #60 (comparators) as the
+  relevant existing trackers. No issue was changed because this is a local
+  no-go and creates no new public capability.

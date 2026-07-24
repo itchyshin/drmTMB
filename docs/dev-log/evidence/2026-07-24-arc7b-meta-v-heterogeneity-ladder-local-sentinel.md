@@ -8,6 +8,9 @@ interval calibration, coverage, or a capability tier.
 
 ## Frozen run
 
+Source snapshot: `f86fed0188ca14356bc098d962e2675e22c39593` (clean before
+the run); R 4.6.0; `drmTMB` 0.6.0.9000; TMB 1.9.21; macOS local serial backend.
+
 ```r
 phase18_run_meta_v_lss_smoke(
   n_rep = 1L,
