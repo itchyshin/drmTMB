@@ -28,7 +28,7 @@ records the exact contract.
 - `R/associate-pairs.R` and regenerated `man/associate_pairs.Rd`.
 - `tests/testthat/test-associate-pairs-bernoulli-nb2.R`.
 - Design 236, the series overview, formula grammar, cross-family vignette,
-  NEWS, limitations, and check log.
+  a new non-Gaussian same-family article, NEWS, limitations, and check log.
 
 ## Checks Run
 
@@ -52,9 +52,9 @@ Ran `rg -n -i 'associate_pairs|bernoulli.*nbinom2|nbinom2.*bernoulli|Arc 6\\.6'
 README.md ROADMAP.md NEWS.md docs vignettes _pkgdown.yml R tests` and
 `rg -n 'only Gaussian.*(Bernoulli|NB2)|6\\.6.*later|first two Arc 6|Gaussian × literal-Bernoulli'
 README.md ROADMAP.md NEWS.md docs vignettes _pkgdown.yml R tests`.
-NEWS, the cross-family vignette, limitations, grammar, overview, Roxygen, and
-the new design contract now state the third pair. Historical reports retain
-their then-correct two-pair wording.
+NEWS, the cross-family vignette, new same-family article, limitations, grammar,
+overview, Roxygen, and the new design contract now state the third pair.
+Historical reports retain their then-correct two-pair wording.
 
 ## GitHub Issue Maintenance
 

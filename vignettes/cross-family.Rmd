@@ -89,11 +89,21 @@ work; none is implied by this development implementation.
 The association object answers a narrower question than a joint bivariate
 family: after two margins have been fitted separately, is there residual
 co-occurrence on the latent-normal scale? `eta` is not `rho12` and is not an
-observed-scale correlation.
+observed-scale correlation. A positive interior `eta` means positive residual
+co-occurrence in the Gaussian-copula latent variables conditional on the frozen
+margins; it is not inferential evidence about an observed-scale correlation.
+
+Construct `paired_data` once with both responses and every predictor, remove
+incomplete rows once, and use that exact object in both marginal fits. The row
+order must be identical.
 
 ```{r gaussian-binary-example, eval = FALSE}
-fit_continuous <- drmTMB(y_continuous ~ habitat, gaussian(), paired_data)
-fit_binary <- drmTMB(bf(mu = y_present ~ habitat), binomial(), paired_data)
+# paired_data <- na.omit(data.frame(y_continuous, y_present, offspring,
+#                                    habitat, season))
+fit_continuous <- drmTMB(y_continuous ~ habitat,
+  family = gaussian(), data = paired_data)
+fit_binary <- drmTMB(bf(mu = y_present ~ habitat),
+  family = binomial(), data = paired_data)
 assoc_gb <- associate_pairs(fit_continuous, fit_binary,
   kernel = latent_normal(), association = ~ 1)
 association(assoc_gb)
@@ -101,7 +111,7 @@ association(assoc_gb)
 
 ```{r gaussian-count-example, eval = FALSE}
 fit_count <- drmTMB(bf(mu = offspring ~ habitat, sigma = ~ season),
-  nbinom2(), paired_data)
+  family = nbinom2(), data = paired_data)
 assoc_gn <- associate_pairs(fit_continuous, fit_count,
   kernel = latent_normal(), association = ~ 1)
 association(assoc_gn)
@@ -116,9 +126,11 @@ association(assoc_bn)
 The last example uses a bivariate-normal rectangle because both outcomes are
 discrete. `drmTMB` retains endpoint and integration diagnostics; if a tail
 rectangle is unresolved, `eta` is withheld rather than repaired by probability
-clipping. These are fixed-effect, complete-pair, intercept-only development
-routes, not standard-error, interval, coverage, random-effect, missing-data,
-or generic discrete-pair support.
+clipping. In that case inspect `assoc_bn$diagnostics`, report that no association
+estimate was returned, and do not try to clip or repair the probability. These
+are fixed-effect, complete-pair, intercept-only development routes, not
+standard-error, interval, coverage, random-effect, missing-data, or generic
+discrete-pair support.
 
 The 0.6.0 capability ledger and release scope manifest are the source of truth
 for any later promotion decision.

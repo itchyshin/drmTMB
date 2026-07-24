@@ -38,7 +38,10 @@ fitted(fit_log)
 
 A positive value means that plants heavier than expected on the log seed-mass
 scale also tend to be heavier than expected on the log root-mass scale after
-the treatment means are fitted.
+the treatment means are fitted. `fitted(fit_log)` returns arithmetic marginal
+means on the original response scale, not the log-response locations shown by
+the `mu1` and `mu2` predictors. Replace the example names with two positive
+response columns in one complete paired data frame.
 
 ## Heavy-tailed traits: exact bivariate Student-t
 
@@ -60,7 +63,12 @@ independent because both outcomes share the same row-level mixing draw.
 
 ## A practical choice
 
+Create the data once, retain rows with both outcomes and all predictors, and
+fit both response formulas to that same object. This avoids accidentally
+comparing fits with different row identities.
+
 ```{r compare-families, eval = FALSE}
+# For example: positive_pairs <- na.omit(data.frame(y1, y2, x))
 # Positive biomass traits: a log-response correlation is meaningful.
 fit_log <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
                      sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
