@@ -91,6 +91,8 @@ associate_pairs <- function(
     "bernoulli_nbinom2"
   } else if (identical(model_types, c("binomial", "binomial"))) {
     "bernoulli_bernoulli"
+  } else if (identical(model_types, c("nbinom2", "nbinom2"))) {
+    "nbinom2_nbinom2"
   } else {
     NULL
   }
@@ -114,6 +116,20 @@ associate_pairs <- function(
       binary_2_y = binary_components[[2L]]$y,
       binary_2_p = binary_components[[2L]]$p
     )
+  } else if (identical(pair_class, "nbinom2_nbinom2")) {
+    drm_pair_validate_nbinom2(fit_1)
+    drm_pair_validate_nbinom2(fit_2)
+    nbinom2_mu_1 <- stats::predict(fit_1, dpar = "mu", type = "response")
+    nbinom2_sigma_1 <- stats::predict(fit_1, dpar = "sigma", type = "response")
+    nbinom2_mu_2 <- stats::predict(fit_2, dpar = "mu", type = "response")
+    nbinom2_sigma_2 <- stats::predict(fit_2, dpar = "sigma", type = "response")
+    drm_pair_validate_nbinom2_components(fit_1$model$y, nbinom2_mu_1, nbinom2_sigma_1)
+    drm_pair_validate_nbinom2_components(fit_2$model$y, nbinom2_mu_2, nbinom2_sigma_2)
+    list(pair_class = pair_class, descriptor = descriptor,
+      nbinom2_y_1 = fit_1$model$y, nbinom2_mu_1 = nbinom2_mu_1,
+      nbinom2_sigma_1 = nbinom2_sigma_1,
+      nbinom2_y_2 = fit_2$model$y, nbinom2_mu_2 = nbinom2_mu_2,
+      nbinom2_sigma_2 = nbinom2_sigma_2)
   } else if (identical(pair_class, "bernoulli_nbinom2")) {
     binary_fit <- fits[[which(model_types == "binomial")]]
     nbinom2_fit <- fits[[which(model_types == "nbinom2")]]
@@ -182,6 +198,8 @@ associate_pairs <- function(
   )
   margin_order <- if (identical(pair_class, "bernoulli_bernoulli")) {
     c(fit_1 = "bernoulli_1", fit_2 = "bernoulli_2")
+  } else if (identical(pair_class, "nbinom2_nbinom2")) {
+    c(fit_1 = "nbinom2_1", fit_2 = "nbinom2_2")
   } else if (identical(pair_class, "bernoulli_nbinom2")) {
     c(fit_1 = if (model_types[[1L]] == "binomial") "bernoulli" else "nbinom2",
       fit_2 = if (model_types[[2L]] == "binomial") "bernoulli" else "nbinom2")
@@ -317,6 +335,12 @@ fitted.drm_pair_association <- function(object, ...) {
   if ("nbinom2" %in% object$components$descriptor$roles) {
     by_role$nbinom2 <- object$components$nbinom2_mu
   }
+  if ("nbinom2_1" %in% object$components$descriptor$roles) {
+    by_role$nbinom2_1 <- object$components$nbinom2_mu_1
+  }
+  if ("nbinom2_2" %in% object$components$descriptor$roles) {
+    by_role$nbinom2_2 <- object$components$nbinom2_mu_2
+  }
   out <- data.frame(
     by_role[[object$margin_order[["fit_1"]]]],
     by_role[[object$margin_order[["fit_2"]]]],
@@ -373,7 +397,9 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
       names(out) <- unname(object$response_names)
       return(out)
     }
-    n <- if (!is.null(object$components$binary_y)) {
+    n <- if (identical(object$components$pair_class, "nbinom2_nbinom2")) {
+      length(object$components$nbinom2_y_1)
+    } else if (!is.null(object$components$binary_y)) {
       length(object$components$binary_y)
     } else {
       length(object$components$gaussian_y)
@@ -392,6 +418,11 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
         object$components$nbinom2_mu,
         object$components$nbinom2_sigma
       )
+    } else if (identical(object$components$pair_class, "nbinom2_nbinom2")) {
+      by_role$nbinom2_1 <- drm_pair_nbinom2_quantile_from_normal(z_1,
+        object$components$nbinom2_mu_1, object$components$nbinom2_sigma_1)
+      by_role$nbinom2_2 <- drm_pair_nbinom2_quantile_from_normal(z_2,
+        object$components$nbinom2_mu_2, object$components$nbinom2_sigma_2)
     } else {
       threshold <- stats::qnorm(
         object$components$binary_p,
@@ -518,6 +549,7 @@ drm_pair_descriptor <- function(pair_class) {
     gaussian_bernoulli = c("gaussian", "bernoulli"),
     gaussian_nbinom2 = c("gaussian", "nbinom2"),
     bernoulli_nbinom2 = c("bernoulli", "nbinom2"),
+    nbinom2_nbinom2 = c("nbinom2_1", "nbinom2_2"),
     NULL
   )
   if (is.null(roles)) {
@@ -827,6 +859,17 @@ drm_pair_response_diagnostics <- function(components, alpha) {
   ) {
     return(table(components$binary_y))
   }
+  if (identical(pair_class, "nbinom2_nbinom2")) {
+    return(c(
+      n = length(components$nbinom2_y_1),
+      zeros_1 = sum(components$nbinom2_y_1 == 0),
+      zeros_2 = sum(components$nbinom2_y_2 == 0),
+      min_count_1 = min(components$nbinom2_y_1),
+      min_count_2 = min(components$nbinom2_y_2),
+      max_count_1 = max(components$nbinom2_y_1),
+      max_count_2 = max(components$nbinom2_y_2)
+    ))
+  }
   c(
     n = length(components$nbinom2_y),
     zeros = sum(components$nbinom2_y == 0),
@@ -846,11 +889,40 @@ drm_pair_loglikelihood_function <- function(components) {
     gaussian_nbinom2 = drm_pair_gaussian_nbinom2_loglik,
     bernoulli_bernoulli = drm_pair_bernoulli_bernoulli_loglik,
     bernoulli_nbinom2 = drm_pair_bernoulli_nbinom2_loglik,
+    nbinom2_nbinom2 = drm_pair_nbinom2_nbinom2_loglik,
     cli::cli_abort("Unsupported frozen-margin pair class.")
   )
 }
 
 drm_pair_interval_diagnostics <- function(components, alpha = NULL) {
+  if (identical(components$pair_class, "nbinom2_nbinom2")) {
+    endpoints_1 <- tryCatch(drm_pair_nbinom2_endpoints(components$nbinom2_y_1,
+      components$nbinom2_mu_1, components$nbinom2_sigma_1), error = function(e) e)
+    endpoints_2 <- tryCatch(drm_pair_nbinom2_endpoints(components$nbinom2_y_2,
+      components$nbinom2_mu_2, components$nbinom2_sigma_2), error = function(e) e)
+    if (inherits(endpoints_1, "error") || inherits(endpoints_2, "error")) {
+      error <- if (inherits(endpoints_1, "error")) endpoints_1 else endpoints_2
+      return(list(endpoint_failure = TRUE, endpoint_failure_message = conditionMessage(error),
+        row_numerics = data.frame(row = seq_along(components$nbinom2_y_1),
+          status = "endpoint_failure", integration_error = NA_real_,
+          relative_integration_error = NA_real_, count_1_lower = NA_real_,
+          count_1_upper = NA_real_, count_2_lower = NA_real_,
+          count_2_upper = NA_real_, stringsAsFactors = FALSE)))
+    }
+    interval <- if (is.null(alpha)) NULL else drm_pair_nbinom2_nbinom2_probabilities(alpha, components)
+    rows <- if (is.null(interval)) NULL else data.frame(row = seq_along(components$nbinom2_y_1),
+      status = interval$status, integration_error = interval$integration_error,
+      relative_integration_error = vapply(interval$results, `[[`, numeric(1L), "relative_integration_error"),
+      count_1_lower = endpoints_1$lower, count_1_upper = endpoints_1$upper,
+      count_2_lower = endpoints_2$lower, count_2_upper = endpoints_2$upper,
+      stringsAsFactors = FALSE)
+    return(list(endpoint_failure = FALSE, endpoint_failure_message = NA_character_,
+      nbinom2_1_size_range = range(drm_nbinom2_size(components$nbinom2_sigma_1)),
+      nbinom2_2_size_range = range(drm_nbinom2_size(components$nbinom2_sigma_2)),
+      strict_order = all(endpoints_1$lower < endpoints_1$upper) && all(endpoints_2$lower < endpoints_2$upper),
+      conditional_interval_branches = if (is.null(interval)) NULL else table(interval$branch),
+      row_numerics = rows))
+  }
   if (is.null(components$pair_class) ||
       !components$pair_class %in% c("gaussian_nbinom2", "bernoulli_nbinom2")) {
     return(NULL)
@@ -1281,5 +1353,88 @@ drm_pair_bernoulli_nbinom2_loglik <- function(alpha, components) {
   if (any(probabilities$status != "ok") || any(!is.finite(probabilities$log_probability))) {
     return(-Inf)
   }
+  sum(probabilities$log_probability)
+}
+
+# Direct conditional-normal rectangle probability for two frozen ordinary NB2
+# margins.  Both discrete CDF intervals are formed through log-tail endpoints;
+# quadrature error is part of the contract and is never silently ignored.
+drm_pair_nbinom2_nbinom2_rectangle_probability <- function(
+  y_1, mu_1, sigma_1, y_2, mu_2, sigma_2, eta,
+  integration_rel_tol = 5e-3, integration_abs_tol = 1e-12
+) {
+  fail <- function(reason, message = NA_character_, integration_error = NA_real_,
+                   relative_integration_error = NA_real_) {
+    list(probability = NA_real_, log_probability = NA_real_, status = reason,
+      message = message, integration_error = integration_error,
+      relative_integration_error = relative_integration_error,
+      integration_rel_tol = integration_rel_tol,
+      integration_abs_tol = integration_abs_tol, branch = NA_character_)
+  }
+  if (length(y_1) != 1L || length(y_2) != 1L ||
+      !is.finite(eta) || abs(eta) >= 1 ||
+      !is.finite(integration_rel_tol) || integration_rel_tol <= 0 ||
+      !is.finite(integration_abs_tol) || integration_abs_tol <= 0) {
+    return(fail("invalid_input"))
+  }
+  endpoints_1 <- tryCatch(drm_pair_nbinom2_endpoints(y_1, mu_1, sigma_1), error = function(e) e)
+  endpoints_2 <- tryCatch(drm_pair_nbinom2_endpoints(y_2, mu_2, sigma_2), error = function(e) e)
+  if (inherits(endpoints_1, "error") || inherits(endpoints_2, "error")) {
+    error <- if (inherits(endpoints_1, "error")) endpoints_1 else endpoints_2
+    return(fail("endpoint_failure", conditionMessage(error)))
+  }
+  if (identical(eta, 0)) {
+    probability <- stats::dnbinom(y_1, size = drm_nbinom2_size(sigma_1), mu = mu_1) *
+      stats::dnbinom(y_2, size = drm_nbinom2_size(sigma_2), mu = mu_2)
+    return(list(probability = probability, log_probability = log(probability),
+      status = "ok", message = NA_character_, integration_error = 0,
+      relative_integration_error = 0, integration_rel_tol = integration_rel_tol,
+      integration_abs_tol = integration_abs_tol, branch = "factorized",
+      endpoints_1 = endpoints_1, endpoints_2 = endpoints_2))
+  }
+  s <- sqrt(1 - eta^2)
+  integrand <- function(z_1) {
+    lower <- (endpoints_2$lower - eta * z_1) / s
+    upper <- (endpoints_2$upper - eta * z_1) / s
+    branch <- ifelse(upper <= 0, "lower", ifelse(lower >= 0, "upper", "straddle"))
+    log_mass <- ifelse(branch == "upper",
+      drm_pair_logdiffexp(stats::pnorm(lower, lower.tail = FALSE, log.p = TRUE),
+        stats::pnorm(upper, lower.tail = FALSE, log.p = TRUE)),
+      drm_pair_logdiffexp(stats::pnorm(upper, log.p = TRUE), stats::pnorm(lower, log.p = TRUE)))
+    exp(stats::dnorm(z_1, log = TRUE) + log_mass)
+  }
+  integral <- tryCatch(stats::integrate(integrand, lower = endpoints_1$lower,
+    upper = endpoints_1$upper, subdivisions = 200L, rel.tol = 1e-9), error = function(e) e)
+  if (inherits(integral, "error") || !is.finite(integral$value) ||
+      !is.finite(integral$abs.error) || integral$value <= 0) {
+    return(fail("integration_failure", if (inherits(integral, "error")) conditionMessage(integral) else NA_character_))
+  }
+  if (integral$abs.error > max(integration_abs_tol, integration_rel_tol * integral$value)) {
+    return(fail("integration_error_exceeds_tolerance", integration_error = integral$abs.error,
+      relative_integration_error = integral$abs.error / integral$value))
+  }
+  list(probability = integral$value, log_probability = log(integral$value), status = "ok",
+    message = integral$message, integration_error = integral$abs.error,
+    relative_integration_error = integral$abs.error / integral$value,
+    integration_rel_tol = integration_rel_tol, integration_abs_tol = integration_abs_tol,
+    branch = "conditional_normal", endpoints_1 = endpoints_1, endpoints_2 = endpoints_2)
+}
+
+drm_pair_nbinom2_nbinom2_probabilities <- function(alpha, components) {
+  eta <- 0.999999 * tanh(alpha)
+  results <- lapply(seq_along(components$nbinom2_y_1), function(i) {
+    drm_pair_nbinom2_nbinom2_rectangle_probability(
+      components$nbinom2_y_1[[i]], components$nbinom2_mu_1[[i]], components$nbinom2_sigma_1[[i]],
+      components$nbinom2_y_2[[i]], components$nbinom2_mu_2[[i]], components$nbinom2_sigma_2[[i]], eta)
+  })
+  list(log_probability = vapply(results, `[[`, numeric(1L), "log_probability"),
+    status = vapply(results, `[[`, character(1L), "status"),
+    integration_error = vapply(results, `[[`, numeric(1L), "integration_error"),
+    branch = vapply(results, `[[`, character(1L), "branch"), results = results)
+}
+
+drm_pair_nbinom2_nbinom2_loglik <- function(alpha, components) {
+  probabilities <- drm_pair_nbinom2_nbinom2_probabilities(alpha, components)
+  if (any(probabilities$status != "ok") || any(!is.finite(probabilities$log_probability))) return(-Inf)
   sum(probabilities$log_probability)
 }
