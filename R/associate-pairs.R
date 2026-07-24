@@ -926,17 +926,30 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
   eta_internal <- 0.999999 * tanh(alpha)
   logLik <- loglik(alpha, components)
   h <- 1e-4
-  score_and_curvature <- if (length(coefficients) == 1L &&
-      coefficients > -8 + h && coefficients < 8 - h) {
+  diagnostic_coordinate <- function(index) {
+    lower <- coefficients
+    upper <- coefficients
+    lower[[index]] <- lower[[index]] - h
+    upper[[index]] <- upper[[index]] + h
+    if (lower[[index]] <= -8 || upper[[index]] >= 8) {
+      return(c(score = NA_real_, curvature = NA_real_))
+    }
     c(
-      score = (objective(coefficients - h) - objective(coefficients + h)) / (2 * h),
-      curvature = -(objective(coefficients + h) - 2 * objective(coefficients) + objective(coefficients - h)) / h^2
+      score = (objective(lower) - objective(upper)) / (2 * h),
+      curvature = -(objective(upper) - 2 * objective(coefficients) + objective(lower)) / h^2
     )
-  } else {
-    c(score = NA_real_, curvature = NA_real_)
   }
-  score <- score_and_curvature[["score"]]
-  curvature <- score_and_curvature[["curvature"]]
+  score_and_curvature <- vapply(seq_along(coefficients), diagnostic_coordinate,
+    numeric(2L)
+  )
+  if (is.null(dim(score_and_curvature))) {
+    score_and_curvature <- matrix(score_and_curvature, nrow = 2L,
+      dimnames = list(c("score", "curvature"), names(coefficients)))
+  } else {
+    colnames(score_and_curvature) <- names(coefficients)
+  }
+  score <- score_and_curvature["score", ]
+  curvature <- score_and_curvature["curvature", ]
   near_boundary <- any(abs(eta_internal) >= 0.995)
   objective_tolerance <- 1e-7 * (1 + abs(min(objectives)))
   finite_starts <- is.finite(objectives) & objectives < .Machine$double.xmax
@@ -950,8 +963,8 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
       any(apply(multistart_coefficients, 1L, function(x) max(x) - min(x) > 1e-3))
   }
   convergence_failure <- !identical(best$convergence, 0L)
-  weak_curvature <- if (length(coefficients) == 1L) !is.finite(curvature) || curvature >= -1e-6 else FALSE
-  score_failure <- if (length(coefficients) == 1L) !is.finite(score) || abs(score) > 1e-3 else FALSE
+  weak_curvature <- any(!is.finite(curvature) | curvature >= -1e-6)
+  score_failure <- any(!is.finite(score) | abs(score) > 1e-3)
   unresolved <- any(abs(coefficients) >= 7.99) ||
     !is.finite(logLik) ||
     convergence_failure ||

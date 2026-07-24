@@ -224,6 +224,38 @@ test_that("Bernoulli x ordinary-NB2 beta slope uses a row-specific latent associ
   expect_equal(coefficients$term, c("(Intercept)", "x"))
   expect_named(fitted_eta, c("row", "association_link", "eta", "status"))
   expect_equal(fitted_eta$eta, fit$eta_internal)
+  expect_named(fit$diagnostics$score, c("(Intercept)", "x"))
+  expect_named(fit$diagnostics$curvature, c("(Intercept)", "x"))
+  expect_true(all(is.finite(fit$diagnostics$score)))
+  expect_lte(max(abs(fit$diagnostics$score)), 1e-3)
+  expect_true(all(is.finite(fit$diagnostics$curvature)))
+  expect_true(all(fit$diagnostics$curvature < -1e-6))
+})
+
+test_that("Bernoulli x ordinary-NB2 beta likelihood matches a row-specific independent oracle", {
+  skip_if_not_installed("mvtnorm")
+  x <- seq(-1, 1, length.out = 8L)
+  components <- list(
+    pair_class = "bernoulli_nbinom2",
+    binary_y = c(0L, 1L, 0L, 1L, 1L, 0L, 1L, 0L),
+    binary_p = stats::plogis(-0.25 + 0.4 * x),
+    nbinom2_y = c(0L, 1L, 3L, 2L, 7L, 1L, 5L, 4L),
+    nbinom2_mu = exp(0.4 + 0.3 * x),
+    nbinom2_sigma = rep(0.65, length(x))
+  )
+  alpha <- c("(Intercept)" = -0.2, x = 0.45)
+  eta <- 0.999999 * tanh(alpha[[1L]] + alpha[[2L]] * x)
+  actual <- drmTMB:::drm_pair_bernoulli_nbinom2_loglik(
+    alpha[[1L]] + alpha[[2L]] * x, components
+  )
+  oracle <- sum(vapply(seq_along(x), function(i) {
+    log(bernoulli_nb2_oracle(
+      components$binary_y[[i]], components$binary_p[[i]],
+      components$nbinom2_y[[i]], components$nbinom2_mu[[i]],
+      components$nbinom2_sigma[[i]], eta[[i]]
+    ))
+  }, numeric(1L)))
+  expect_equal(actual, oracle, tolerance = 2e-8)
 })
 
 test_that("Bernoulli x ordinary-NB2 association slopes reject broad formula grammar", {
