@@ -77,6 +77,16 @@ Record meaningful development checks here.
   staged `eta` standard error/CI/profile, random effect, missing-data, or
   generic cross-family claim is made. The direct coverage ladder is a fresh
   Totoro lane with retained-all-attempts evidence.
+## 2026-07-24: Pkgdown bivariate-article navigation repair
+
+- Removed the duplicate `bivariate-nongaussian` Tutorials-menu link. The article
+  remains once under Specialist Routes, matching its one `articles:` category.
+- YAML parsed successfully; an explicit assertion found one matching navbar URL
+  and one matching article-index slug. `pkgdown::check_pkgdown()` reported no
+  problems; `git diff --check` passed.
+- A full local `pkgdown::build_site()` began successfully but the runner ended
+  before it rendered the article page. The GitHub Pages workflow remains the
+  rendered-site gate for this navigation-only PR.
 
 ## 2026-07-24: Arc 6.5 retained boundary-seed diagnostic
 
