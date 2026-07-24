@@ -122,6 +122,31 @@ Record meaningful development checks here.
 - Boundary: no smoke, recovery campaign, interval, coverage, capability-tier
   promotion, Julia, or CRAN claim was run or made. The generated ledger text
   was synchronized only to remove a stale absolute absence claim.
+## 2026-07-22: meta_V trust infrastructure and B3 gate
+
+Made the K=12 known-`V` evidence path auditable without making a capability
+claim. The B3 design now retains every scheduled fit, distinguishes a finite
+and truth-covering interval rate from conditional finite-interval set coverage,
+and keeps the public `[0, Inf]` sigma output as a degenerate interval rather
+than silently replacing it. Small-K diagonal and dense **ML** comparator
+fixtures now agree with their matching `metafor` routes. The meta-analysis
+reader surface adds a dense-`V` preflight and maintains the explicit
+implemented/tested, tier-unregistered boundary.
+
+- Focused Phase-18 meta_V tests: 122 passed, 0 failed/warned/skipped.
+- Focused comparator tests: 134 passed, 0 failed/warned/skipped.
+- Combined meta_V/comparator/known-V run: 340 passed, 0 failed/warned/skipped.
+- `pkgdown::build_article("meta-analysis", new_process = FALSE)`: rendered;
+  a local sass-cache permission warning did not affect the article output.
+- `git diff --check`: PASS.
+- The requested full uncapped `testthat::test_local()` measurement was started
+  but stopped while a pre-existing long Phase 18 q6 test was running; it did
+  not return a full-suite result and is not reported as one.
+
+Boundary: evidence infrastructure and documentation only. No campaign ran;
+Totoro remains the approved-route candidate after a separate B3 timing-smoke
+approval. No coverage certification, capability-tier promotion, CRAN action,
+or API/likelihood change occurred.
 
 ## 2026-07-21: Confidence Eye and current phylogenetic capability table
 

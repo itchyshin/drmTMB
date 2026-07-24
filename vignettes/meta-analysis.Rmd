@@ -354,12 +354,71 @@ top of the known variances. For meta-analysis with known sampling variances,
 use `meta_V(V = vi)`. Reserve `weights =` for genuine likelihood weights such as
 externally defined case weights.
 
+## Correlated effect sizes: a small dense covariance example
+
+Use a dense `V` when the *sampling errors* of different effect sizes are known
+to be correlated, for example because they share participants or a control
+group. This remains an observation-level measurement-error input. It is not a
+weight, and it does not create a latent study, phylogenetic, spatial, or
+relatedness effect.
+
+For \(n\) effect sizes, the dense route fits
+
+\[
+\mathbf y \sim \operatorname{Normal}\!\left(X\boldsymbol\beta,
+  V + \sigma^2 I_n\right),
+\]
+
+where the supplied \(V\) is the known sampling covariance and `sigma` is the
+estimated residual heterogeneity. The following small example is executable;
+the off-diagonal entries say that nearby effect sizes have correlated sampling
+errors.
+
+```{r}
+set.seed(303)
+n_dense <- 8
+dat_dense <- data.frame(
+  yi = 0.25 + 0.10 * seq_len(n_dense) + stats::rnorm(n_dense, sd = 0.04),
+  x = seq_len(n_dense)
+)
+V_dense <- 0.012 * outer(
+  seq_len(n_dense), seq_len(n_dense),
+  function(i, j) 0.55^abs(i - j)
+)
+
+# A useful preflight: V is numeric, n by n, symmetric, and PSD.
+stopifnot(
+  is.numeric(V_dense),
+  identical(dim(V_dense), c(nrow(dat_dense), nrow(dat_dense))),
+  isTRUE(all.equal(V_dense, t(V_dense))),
+  min(eigen(V_dense, symmetric = TRUE, only.values = TRUE)$values) >= 0
+)
+
+fit_dense <- drmTMB(
+  bf(yi ~ x + meta_V(V = V_dense), sigma ~ 1),
+  family = gaussian(),
+  data = dat_dense
+)
+check_drm(fit_dense)
+```
+
+The order is part of the data contract: row and column `i` of `V_dense` must
+describe the sampling covariance for row `i` of `dat_dense`. Supply one row and
+one column per original data row; do not reorder the data after building `V`.
+For a dense matrix, `drmTMB` first applies the ordinary model-frame exclusions
+(for example a missing response or predictor), then removes the corresponding
+rows *and columns* of `V` together. Let the model frame make that exclusion and
+keep the original ordering rather than filtering the data and covariance matrix
+by separate rules. The retained matrix must have finite entries, be symmetric,
+have a non-negative diagonal, and be positive semidefinite.
+
 ## Notes on the function names
 
 * `meta_V(V = V)` is the current marker for known sampling variance or
-  covariance. The argument may be a column of variances (as above), a vector, a
-  diagonal matrix, or a dense covariance matrix when the effect sizes are
-  correlated.
+  covariance. The argument may be a column of **variances** (not standard
+  errors), a vector, a diagonal matrix, or a dense covariance matrix when the
+  effect sizes are correlated. A dense matrix must follow the row order and
+  validity contract in the preceding example.
 * `meta_known_V(V = V)` is a deprecated alias kept only for backward
   compatibility. It routes to the same additive known-variance likelihood but
   emits a deprecation warning; prefer `meta_V()` in new code.
