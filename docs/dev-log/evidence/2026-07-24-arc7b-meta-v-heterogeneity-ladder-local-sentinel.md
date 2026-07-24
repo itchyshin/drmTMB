@@ -25,7 +25,8 @@ profile endpoint, or failed Hessian. Its all-attempt reducer treats a failed
 outer fit or incomplete endpoint as zero in the eligible
 usable-and-covering denominator. Its six cells were run individually so the
 dense-profile calculation could not hide a slow or failed cell behind a batch
-timeout.
+timeout. The machine-readable [six-cell manifest](2026-07-24-arc7b-meta-v-lss-sentinel-manifest.csv)
+pins source, package versions, seed, and each retained interval state.
 
 | Cell | Layer | Design role | Fit status | `pdHess` | Profile result |
 | --- | --- | --- | --- | --- | --- |

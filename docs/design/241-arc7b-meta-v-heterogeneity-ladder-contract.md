@@ -39,6 +39,35 @@ Z_e\operatorname{diag}(\tau_{e,k}^2)Z_e^\mathsf{T}.
 All fitted scale coefficients use log-SD links. A comparator which reports a
 log-variance coefficient must therefore be divided by two before comparison.
 
+For the four additive-Gaussian ladder members, the parameter map is:
+
+\[
+\begin{aligned}
+\log \sigma_i &= z_i^\mathsf{T}\gamma,\\
+\log \tau_{s,j} &= z_{s,j}^\mathsf{T}\alpha_s,\\
+\log \tau_{e,k} &= z_{e,k}^\mathsf{T}\alpha_e.
+\end{aligned}
+\]
+
+L has no moderator-driven scale coefficient; LS estimates only \(\gamma\);
+LSS adds \(\alpha_s\); and LSSS adds the nested effect-level
+\(\alpha_e\). The formula grammar mirrors those equations directly: `sigma ~
+z`, `sd(study) ~ z_study`, and `sd(effect) ~ z_effect`. An effect label must be
+defined within its study (so labels are not shared across studies) and must have
+replication.
+
+DH has a different conditional model:
+
+\[
+\log \sigma_{ij} = z_{ij}^\mathsf{T}\gamma + u_j,
+\qquad u_j \sim N(0,\omega^2).
+\]
+
+Integrating \(u_j\) creates a residual scale mixture; it does **not** add a
+Gaussian covariance term of the form \(Z\operatorname{diag}(\tau^2)Z^\mathsf{T}\).
+Thus DH is a separately labelled sensitivity route, not LSS under another
+name and not an oracle-validated campaign target in this arc.
+
 ## The ladder
 
 | Layer | Formula | Estimand | Required replication |
@@ -77,3 +106,10 @@ This contract does not cover structured `phylo()`, `animal()`, `relmat()`, or
 known-`V` models; arbitrary additional nesting levels; or a capability-tier
 change. The existing B0 draft PR remains separate and must not be merged as a
 side effect of this work.
+
+The parameterization and comparator boundary follow Nakagawa et al. (2025,
+*Global Change Biology*, 31:e70204, doi:10.1111/gcb.70204), the supplied
+[location-scale meta-analysis guide](https://itchyshin.github.io/location-scale_meta-analysis/),
+and the local `location-scale-scale` article. They establish terminology and
+comparator scope; they are not evidence that this exact dense or layered
+`meta_V()` route has calibrated intervals.

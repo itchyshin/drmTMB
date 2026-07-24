@@ -331,6 +331,47 @@ least one study with repeated rows; a data set with exactly one row per study is
 the single-level model shown above, where `sigma` alone represents
 between-study heterogeneity.
 
+## Layered heterogeneity: an experimental contract
+
+When repeated effects are nested in studies, three SD layers answer different
+questions: known sampling uncertainty in `meta_V(V = V)`, residual
+heterogeneity in `sigma`, and the SD of a study- or effect-level location
+random effect in `sd(group)`. The following formulas are accepted by the
+current Gaussian implementation:
+
+```{r layered-meta-syntax, eval=FALSE}
+# Study-level location-SD regression (LSS): z_study is constant within study.
+drmTMB(
+  bf(
+    yi ~ x + (1 | study) + meta_V(V = V),
+    sigma ~ z,
+    sd(study) ~ z_study
+  ),
+  family = gaussian(), data = dat
+)
+
+# Nested effect-level location-SD regression (LSSS): effect is nested in study
+# and has repeated rows.
+drmTMB(
+  bf(
+    yi ~ x + (1 | study) + (1 | effect) + meta_V(V = V),
+    sigma ~ z,
+    sd(study) ~ z_study,
+    sd(effect) ~ z_effect
+  ),
+  family = gaussian(), data = dat
+)
+```
+
+These formulas are an **experimental local-contract surface**, not a claim of
+calibrated inference. In the Arc 7B local sentinel, the dense-`V` LSS study-SD
+profiles had non-finite endpoints despite a positive-definite Hessian. Before
+using these layered fits for interval-based conclusions, inspect every profile
+target and consult the current development evidence. A random term in `sigma`,
+such as `sigma ~ z + (1 | study)`, is a different double-hierarchical model: it
+models variation in residual SD, not variation in the SD of the location random
+effect.
+
 ## Known sampling variance is not a weight
 
 Inverse-variance weights and known sampling variances answer different

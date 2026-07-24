@@ -27,8 +27,9 @@ log-SD coefficients.
 
 The new contract is `docs/design/241-arc7b-meta-v-heterogeneity-ladder-contract.md`.
 The DGP/oracle/summariser/runner live under `inst/sim/`; the independent oracle,
-comparator, DGP, and all-attempt tests live under `tests/testthat/`. Local
-sentinel and comparator receipts are in `docs/dev-log/evidence/`.
+comparator, DGP, API, and all-attempt tests live under `tests/testthat/`. Local
+sentinel and comparator receipts are in `docs/dev-log/evidence/`; the
+meta-analysis vignette now supplies experimental syntax with an interval fence.
 
 ## Checks Run
 
@@ -50,10 +51,10 @@ dense fixture asserts both non-finite direct-SD profile states remain present.
 
 ## Consistency Audit
 
-The status inventory and stale-syntax scans recorded in `check-log.md` found no
-reason to widen user-facing `meta_V()` documentation. The existing
-meta-analysis and location-scale-scale articles remain conditional examples;
-they are not rewritten to imply calibrated layered inference.
+The status inventory and stale-syntax scans recorded in `check-log.md` support
+one narrow reader change: the meta-analysis article now labels LSS/LSSS syntax
+as experimental and explicitly withholds interval-based conclusions. It does
+not imply calibrated layered inference.
 
 ## GitHub Issue Maintenance
 

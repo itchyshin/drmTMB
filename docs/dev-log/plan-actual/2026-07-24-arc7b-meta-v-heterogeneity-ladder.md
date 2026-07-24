@@ -10,10 +10,11 @@ reviews, check log, after-task report, and handover were completed.
 ## Deliberately not delivered
 
 No DRAC launcher submission, 1,200-replicate campaign, bootstrap engineering
-run, public vignette addition, status promotion, or PR merge occurred. The
-plan made these conditional on local interval feasibility. The dense LSS
-sentinel has two incomplete direct-SD profiles, so proceeding would contradict
-the pre-registered stop rule.
+run, status promotion, or PR merge occurred. The meta-analysis vignette gained
+an experimental syntax-and-warning section, not a capability claim. The plan
+made campaign expansion conditional on local interval feasibility. The dense
+LSS sentinel has two incomplete direct-SD profiles, so proceeding would
+contradict the pre-registered stop rule.
 
 ## Deviations and reasons
 

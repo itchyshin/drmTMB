@@ -91405,16 +91405,18 @@ Shinichi grants a separate Gate A compute approval.
 - The source-pinned local six-cell sentinel at `f86fed0188ca14356bc098d962e2675e22c39593`
   retained every fit. All fits converged with `pdHess = TRUE`, but the dense LSS
   cell retained two `sd(study)` `nonfinite_interval` profiles. Fisher and Rose
-  therefore returned DRAC NO-GO; no remote compute, coverage claim, reader
-  expansion, tier update, or GitHub Actions simulation occurred.
+  therefore returned DRAC NO-GO; no remote compute, coverage claim, tier
+  update, or GitHub Actions simulation occurred. The meta-analysis vignette
+  now gives experimental syntax plus the same interval warning; it makes no
+  capability claim.
 - Status-inventory scans used:
   `rg -n "meta_V\\(|meta_known_V|location-scale-scale|sd\\(study\\)|meta-analysis"
   README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md
   docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml
   vignettes/meta-analysis.Rmd vignettes/location-scale-scale.Rmd`; and
   `rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md
-  NEWS.md docs vignettes R tests || true`. Existing reader material remains
-  intentionally conditional: no new tutorial syntax is advertised.
+  NEWS.md docs vignettes R tests || true`. Reader material remains intentionally
+  conditional: the new syntax is labelled experimental rather than certified.
 - Open-issue sweep found #59 (Phase 18 framework) and #60 (comparators) as the
   relevant existing trackers. No issue was changed because this is a local
   no-go and creates no new public capability.
