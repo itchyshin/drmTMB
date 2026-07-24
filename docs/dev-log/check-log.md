@@ -91438,3 +91438,10 @@ Shinichi grants a separate Gate A compute approval.
   `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
   reporter = "stop")`. `git diff --check` passed. The full Linux R-CMD-check
   remains the merge gate.
+- The next Ubuntu run found one stale first-wave smoke assertion: the combined
+  legacy `wald_coverage_csv` now has 77 rows rather than 86 because the
+  `meta_v_grid` deliberately publishes its all-attempt and conditional-finite
+  interval artifacts instead of a legacy Wald-coverage artifact. The smoke
+  test now verifies the 77-row legacy bundle *and* the explicit missing-artifact
+  status for `meta_v_grid`, so a future accidental disappearance is distinct
+  from this intentional contract change.

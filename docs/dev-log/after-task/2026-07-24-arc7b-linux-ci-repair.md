@@ -11,7 +11,10 @@ The Arc 7B runner and DGP tests now source simulation files through the
 installed `drmTMB` package. The generic power-table assembler backfills Wald
 intervals only for rows whose interval status is `not_requested` (or absent)
 and whose endpoints are missing. Explicitly failed or non-finite intervals
-remain unchanged.
+remain unchanged. The first-wave smoke test now records that the meta-V grid
+intentionally has no legacy Wald-coverage artifact: it contributes 77 legacy
+Wald rows rather than the former 86, and publishes its all-attempt and
+conditional-finite interval tables separately.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -22,21 +25,28 @@ interval failure evidence.
 
 ## 4. Files Touched
 
-Changed `inst/sim/R/sim_power.R`, the Arc 7B runner test, and the generic
-power-engine test. The latter now guards the distinction between missing,
-not-requested intervals and explicitly failed intervals.
+Changed `inst/sim/R/sim_power.R`, the Arc 7B runner/DGP and first-wave smoke
+tests, and the generic power-engine test. The tests now guard the distinction
+between missing, not-requested intervals and explicitly failed intervals, and
+between an intentionally absent legacy meta-V artifact and accidental loss.
 
 ## 5. Checks Run
 
-The Arc 7B runner test and the generic power-engine test passed locally. The
-Arc 7B oracle/comparator/DGP test group also passed. `git diff --check` passed.
-GitHub's Ubuntu R-CMD-check is pending after this repair is pushed.
+The Arc 7B runner/DGP tests and the generic power-engine test passed locally.
+The Arc 7B oracle/comparator/DGP test group also passed. The first-wave smoke
+test is exercised by the Ubuntu R-CMD-check; its repaired expectation matches
+the emitted 77-row legacy bundle and checks the meta-V missing-artifact
+receipt. `git diff --check` passed. GitHub's Ubuntu R-CMD-check is pending
+after this repair is pushed.
 
 ## 6. Tests of the Tests
 
 The new power-engine fixture supplies two valid fixed-effect rows with
 `not_requested` intervals and one explicitly failed row. It verifies that only
 the first two receive Wald intervals and that the failed row stays unavailable.
+The first-wave assertion separately verifies that meta-V no longer enters the
+legacy Wald bundle and that the table-bundle receipt labels that omission as
+`missing_artifact`.
 
 ## 8. Consistency Audit
 
@@ -52,7 +62,9 @@ or a resolution of the Phase 18 or comparator trackers.
 
 The original runner and DGP tests happened to pass locally when their relative
 paths were resolved from a source checkout, but failed in Linux package-check
-layout. The new package-relative sourcing removes that layout dependency.
+layout. The new package-relative sourcing removes that layout dependency. The
+next run also exposed a hard-coded legacy row count that predated the explicit
+meta-V interval-artifact split.
 
 ## 11. Team Learning
 
