@@ -10,17 +10,18 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   basic-distribution recovery rows from post-v1.0 `inference_ready` and
   `supported` validation. This boundary does not authorize coverage, q4/q8
   promotion, broad bridge support, REML, AI-REML, or public-support wording.
-- The post-0.6 `associate_pairs()` development object has four reviewed-pair
-  slices only: fixed-effect Gaussian × literal 0/1 Bernoulli, Gaussian ×
-  ordinary NB2, literal 0/1 Bernoulli × ordinary NB2, and ordinary NB2 ×
-  ordinary NB2, plus literal Bernoulli × Bernoulli rectangle margins, on
-  exactly the same complete rows, with explicitly
-  declared `kernel = latent_normal()` and `association = ~ 1`. It freezes all
-  stage-1 margin vectors (including NB2 `mu` and `sigma`) and returns an
-  intercept-only latent-normal `eta` point estimate only when optimisation and
-  count-interval diagnostics are acceptable. It is neither `rho12` nor an
-  observed-scale correlation. Other family pairs, association covariates,
-  random/structured effects, partial pairs, offsets, weights,
+- The beta `associate_pairs()` development object has five reviewed-pair
+  classes only: fixed-effect Gaussian × literal 0/1 Bernoulli, Gaussian ×
+  ordinary NB2, literal Bernoulli × literal Bernoulli, literal 0/1 Bernoulli ×
+  ordinary NB2, and ordinary NB2 × ordinary NB2, on exactly the same complete
+  rows with explicitly declared `kernel = latent_normal()`. All accept
+  `association = ~ 1`. The literal Bernoulli × ordinary NB2 beta route alone
+  accepts `association = ~ x` for one finite numeric column and returns
+  association-link coefficients plus fitted row-level latent-normal `eta_i`.
+  It freezes all stage-1 margin vectors (including NB2 `mu` and `sigma`) and
+  supplies point estimates only when optimisation and count-interval diagnostics
+  are acceptable. It is neither `rho12` nor an observed-scale correlation.
+  Other family pairs, association covariates, random/structured effects, partial pairs, offsets, weights,
   `mi()`, `meta_V()`, REML, new-data association prediction, standard errors,
   intervals, profiles, coverage, capability promotion, Julia, and CRAN release
   use remain outside this first contract. Arc 6.5 has retained Totoro recovery

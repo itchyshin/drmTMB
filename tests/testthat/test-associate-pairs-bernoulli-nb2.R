@@ -181,3 +181,95 @@ test_that("Bernoulli x ordinary-NB2 endpoint failures remain diagnostic", {
   expect_true(is.na(rows$count_lower))
   expect_true(is.na(rows$count_upper))
 })
+
+test_that("Bernoulli x ordinary-NB2 beta slope uses a row-specific latent association", {
+  set.seed(20260724)
+  n <- 220L
+  dat <- data.frame(x = seq(-1.4, 1.4, length.out = n))
+  p <- stats::plogis(-0.2 + 0.3 * dat$x)
+  mu <- exp(0.7 + 0.2 * dat$x)
+  sigma <- rep(0.65, n)
+  association_link <- -0.15 + 0.65 * dat$x
+  eta <- 0.999999 * tanh(association_link)
+  z_binary <- stats::rnorm(n)
+  z_count <- eta * z_binary + sqrt(1 - eta^2) * stats::rnorm(n)
+  components <- list(
+    pair_class = "bernoulli_nbinom2",
+    descriptor = drmTMB:::drm_pair_descriptor("bernoulli_nbinom2"),
+    binary_y = as.integer(z_binary > stats::qnorm(p, lower.tail = FALSE)),
+    binary_p = p,
+    nbinom2_y = drmTMB:::drm_pair_nbinom2_quantile_from_normal(z_count, mu, sigma),
+    nbinom2_mu = mu,
+    nbinom2_sigma = sigma
+  )
+  design <- drmTMB:::drm_pair_association_design(
+    ~x, dat, "bernoulli_nbinom2"
+  )
+  fit <- drmTMB:::drm_pair_fit_eta(components, design)
+
+  expect_identical(fit$status, "interior")
+  expect_equal(fit$coefficients, c("(Intercept)" = -0.15, x = 0.65), tolerance = 0.35)
+  expect_length(fit$eta_internal, n)
+  expect_gt(diff(range(fit$eta_internal)), 0.5)
+
+  object <- structure(list(
+    status = fit$status, kernel = latent_normal(), eta = fit$eta,
+    eta_internal = fit$eta_internal, alpha = fit$alpha,
+    association_coefficients = fit$coefficients,
+    diagnostics = fit$diagnostics
+  ), class = "drm_pair_association")
+  coefficients <- association(object)
+  fitted_eta <- association(object, type = "fitted")
+  expect_named(coefficients, c("term", "association_link", "status", "boundary"))
+  expect_equal(coefficients$term, c("(Intercept)", "x"))
+  expect_named(fitted_eta, c("row", "association_link", "eta", "status"))
+  expect_equal(fitted_eta$eta, fit$eta_internal)
+  expect_named(fit$diagnostics$score, c("(Intercept)", "x"))
+  expect_named(fit$diagnostics$curvature, c("(Intercept)", "x"))
+  expect_true(all(is.finite(fit$diagnostics$score)))
+  expect_lte(max(abs(fit$diagnostics$score)), 1e-3)
+  expect_true(all(is.finite(fit$diagnostics$curvature)))
+  expect_true(all(fit$diagnostics$curvature < -1e-6))
+})
+
+test_that("Bernoulli x ordinary-NB2 beta likelihood matches a row-specific independent oracle", {
+  skip_if_not_installed("mvtnorm")
+  x <- seq(-1, 1, length.out = 8L)
+  components <- list(
+    pair_class = "bernoulli_nbinom2",
+    binary_y = c(0L, 1L, 0L, 1L, 1L, 0L, 1L, 0L),
+    binary_p = stats::plogis(-0.25 + 0.4 * x),
+    nbinom2_y = c(0L, 1L, 3L, 2L, 7L, 1L, 5L, 4L),
+    nbinom2_mu = exp(0.4 + 0.3 * x),
+    nbinom2_sigma = rep(0.65, length(x))
+  )
+  alpha <- c("(Intercept)" = -0.2, x = 0.45)
+  eta <- 0.999999 * tanh(alpha[[1L]] + alpha[[2L]] * x)
+  actual <- drmTMB:::drm_pair_bernoulli_nbinom2_loglik(
+    alpha[[1L]] + alpha[[2L]] * x, components
+  )
+  oracle <- sum(vapply(seq_along(x), function(i) {
+    log(bernoulli_nb2_oracle(
+      components$binary_y[[i]], components$binary_p[[i]],
+      components$nbinom2_y[[i]], components$nbinom2_mu[[i]],
+      components$nbinom2_sigma[[i]], eta[[i]]
+    ))
+  }, numeric(1L)))
+  expect_equal(actual, oracle, tolerance = 2e-8)
+})
+
+test_that("Bernoulli x ordinary-NB2 association slopes reject broad formula grammar", {
+  dat <- data.frame(x = c(-1, 0, 1), habitat = factor(c("a", "b", "a")))
+  expect_error(
+    drmTMB:::drm_pair_association_design(~habitat, dat, "bernoulli_nbinom2"),
+    "named numeric column"
+  )
+  expect_error(
+    drmTMB:::drm_pair_association_design(~x + I(x^2), dat, "bernoulli_nbinom2"),
+    "one numeric slope"
+  )
+  expect_error(
+    drmTMB:::drm_pair_association_design(~x, dat, "gaussian_bernoulli"),
+    "only for literal Bernoulli x ordinary-NB2"
+  )
+})

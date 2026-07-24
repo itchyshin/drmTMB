@@ -1,136 +1,230 @@
 ---
-title: "Cross-family bivariate models: development note"
+title: "Association between mixed outcome pairs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Cross-family bivariate models: development note}
+  %\VignetteIndexEntry{Association between mixed outcome pairs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-<style>
-@media (max-width: 575.98px) {
-  main h1 {
-    hyphens: none;
-    overflow-wrap: normal;
-    word-break: normal;
-  }
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
 
-  main table {
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
-  }
+<style>
+h1.title {
+  hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 </style>
 
-Cross-family bivariate models are a development route for a later release, not
-a `drmTMB` 0.6.0 analysis workflow. The native TMB engine supports the released
-one-response families and bivariate Gaussian models; use it for analysis and
-reporting.
+Use this page when you have two outcomes measured on the same individual, site,
+or sampling occasion, but the outcomes need different models. For example, you
+might record whether an individual bred (`0` or `1`) and how many offspring it
+produced (a count). The question is: after accounting for predictors such as
+habitat, do rows that do better than expected for one outcome also tend to do
+better than expected for the other?
 
-The implemented post-0.6 development route is a post-fit association object,
-not a new joint TMB family and not a Julia bridge. It takes two already-fitted
-margins on the same externally constructed complete paired rows, freezes their
-stage-1 estimates, and then estimates a latent-normal association. The bounded
-pair classes are fixed-effect Gaussian × literal-Bernoulli, Gaussian ×
-ordinary-NB2, literal-Bernoulli × ordinary-NB2, and literal Bernoulli ×
-Bernoulli, with an intercept-only
-association predictor and a point estimate plus diagnostics only. The NB2 margin may model both `mu` and `sigma` with
-fixed covariates; both resulting rowwise vectors are frozen. This
-association is `eta`, not the native bivariate-Gaussian residual correlation
-`rho12`, an observed-scale correlation, or the `corpairs()` extractor (which
-is distinct from the `corpair()` formula marker).
+The one-call tool on this page returns that association and its numerical
+diagnostics. It is a beta tool: it gives a point estimate, not a standard error,
+confidence interval, profile, coverage claim, or a general bivariate-family
+interface. If both outcomes are Gaussian and you need a jointly fitted model,
+use `biv_gaussian()` and its residual correlation `rho12` instead.
 
-The Julia bridge remains halted/deferred and does not make Julia, JuliaCall, or
-DRM.jl a package dependency. The post-fit route is not a released 0.6.0
-analysis surface. Arc 6.1 regression and Arc 6.2 new-pair local smokes are
-recorded separately; neither supplies recovery, interval-inference, coverage,
-or capability evidence. The deferred bridge is also not available for 0.6.0
-analysis.
+Behind the scenes, the tool fits each outcome model first, holds those fitted
+margins fixed, and estimates a latent-normal association called `eta`. You do
+not need to understand that machinery before deciding whether the question and
+data requirements below match your study.
 
-For the released bivariate workflow, see
-[Changing residual coupling with `rho12`](bivariate-coscale.html). For the
-deferred Julia boundary, see [Julia engine: future support](julia-engine.html);
-keep `engine = "tmb"` as the default.
+## The question in an ecological example
 
-## Development boundary
+Suppose each individual has a breeding outcome (`0` or `1`) and an offspring
+count. Habitat may explain both outcomes. The question is not whether the raw
+zeroes and counts have a large Pearson correlation. It is:
 
-The following syntax shows the implemented development interface. It is not a
-supported 0.6.0 fitting or reporting recipe. Targeted tests exist, but a smoke
-and all stronger claims remain separately gated.
+> After habitat has been accounted for in each outcome, do individuals that are
+> more likely than expected to breed also tend to have more offspring than
+> expected?
 
-```r
-# Post-0.6 development interface: do not use for 0.6.0 release analysis.
-# paired_complete_data must be the same complete rows for both margins;
-# input order may be reversed.
-# fit_gaussian <- drmTMB(y_continuous ~ x, family = gaussian(),
-#                        data = paired_complete_data)
-# fit_nbinom2 <- drmTMB(bf(mu = y_count ~ x, sigma = ~ z),
-#                       family = nbinom2(), data = paired_complete_data)
-# assoc <- associate_pairs(
-#   fit_gaussian, fit_nbinom2,
-#   kernel = latent_normal(), association = ~ 1
-# )
-# Or pair a literal 0/1 Bernoulli fit with an ordinary NB2 fit. The binary ×
-# count route uses a fail-closed latent-normal rectangle calculation; it has no
-# recovery, interval, coverage, or capability claim.
+The answer is expressed on an unobserved common scale. A positive `eta` means
+that the same rows tend to be unexpectedly high for both fitted outcomes on that
+unobserved Gaussian scale. It does not mean that `eta` is an odds ratio, a logit
+coefficient, an observed-scale correlation, or native residual `rho12`.
+
+## One call, two stages
+
+`biv_associate()` is a convenience wrapper. It makes the workflow one R call,
+but it is still a two-stage estimator: it fits the two margins, freezes their
+estimated parameters, and estimates only `eta` in stage 2. Changing the stage-2
+association never refits the mean or scale parameters from either margin.
+
+```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. This is not a jointly fitted model and has no association interval in the current beta."}
+old_par <- par(mar = c(0, 0, 1, 0))
+plot.new()
+plot.window(xlim = c(0, 12), ylim = c(0, 4))
+boxes <- list(
+  c(0.3, 1.3, 2.7, 2.7), c(3.5, 2.2, 6.2, 3.5),
+  c(3.5, 0.5, 6.2, 1.8), c(8.2, 1.3, 11.6, 2.7)
+)
+cols <- c("#E7F3F5", "#F2E8C9", "#F2E8C9", "#DCEAD7")
+for (i in seq_along(boxes)) {
+  rect(boxes[[i]][1], boxes[[i]][2], boxes[[i]][3], boxes[[i]][4],
+       col = cols[i], border = "#112638", lwd = 1.2)
+}
+text(1.5, 2.35, "One complete\npaired data set", cex = 0.9)
+text(4.85, 3.05, "Stage 1\nBinary margin\nP(breeding = 1)", cex = 0.84)
+text(4.85, 1.15, "Stage 1\nCount margin\nE(offspring)", cex = 0.84)
+text(9.9, 2.35, "Stage 2\nFreeze both margins\nEstimate eta (or eta_i)", cex = 0.88)
+arrows(2.7, 2.35, 3.45, 2.85, length = 0.08, lwd = 1.2)
+arrows(2.7, 1.65, 3.45, 1.15, length = 0.08, lwd = 1.2)
+arrows(6.2, 2.85, 8.15, 2.45, length = 0.08, lwd = 1.2)
+arrows(6.2, 1.15, 8.15, 2.05, length = 0.08, lwd = 1.2)
+par(old_par)
 ```
 
-The object rejects binomial trial counts, non-literal binary values,
-zero-inflated/hurdle/truncated NB2, mismatched or partial rows, weights,
-offsets, `mi()`, `meta_V()`, REML, random/phylogenetic/structured effects, and
-association slopes. It must not refit either margin. Standard errors, intervals,
-profiles, `vcov()`, residuals, quantiles, and `emmeans` are also outside these
-slices. Recovery, interval, coverage, and capability promotion remain separate
-work; none is implied by this development implementation.
+In symbols, stage 1 produces two fitted marginal parameter sets,
+\(\widehat\theta_1\) and \(\widehat\theta_2\). Stage 2 estimates
 
-## Three frozen-margin examples
+\[
+\widehat\beta_A = \arg\max_{\beta_A} \sum_i
+\log f_{\eta_i}(y_{1i}, y_{2i} \mid \widehat\theta_1, \widehat\theta_2),
+\qquad a_i=X_{A,i}\beta_A,\quad \eta_i = \tanh(a_i).
+\]
 
-The association object answers a narrower question than a joint bivariate
-family: after two margins have been fitted separately, is there residual
-co-occurrence on the latent-normal scale? `eta` is not `rho12` and is not an
-observed-scale correlation. A positive interior `eta` means positive residual
-co-occurrence in the Gaussian-copula latent variables conditional on the frozen
-margins; it is not inferential evidence about an observed-scale correlation.
+For the usual constant association, \(X_A=1\), so every row has the same
+`eta`. The beta Bernoulli x ordinary-NB2 slope route uses
+\(X_{A,i}=(1,x_i)\). In computation, `drmTMB` keeps `eta` infinitesimally
+inside -1 and 1, because exact endpoints make the latent-normal probability
+calculation unstable. This is a plug-in association criterion, not a joint
+maximum-likelihood fit.
+The stage-2 Hessian therefore cannot give an ordinary valid standard error for
+`eta`, because it treats stage-1 uncertainty as fixed.
 
-Construct `paired_data` once with both responses and every predictor, remove
-incomplete rows once, and use that exact object in both marginal fits. The row
-order must be identical.
+## What a binary outcome contributes
 
-```{r gaussian-binary-example, eval = FALSE}
-# paired_data <- na.omit(data.frame(y_continuous, y_present, offspring,
-#                                    habitat, season))
-fit_continuous <- drmTMB(y_continuous ~ habitat,
-  family = gaussian(), data = paired_data)
-fit_binary <- drmTMB(bf(mu = y_present ~ habitat),
-  family = binomial(), data = paired_data)
-assoc_gb <- associate_pairs(fit_continuous, fit_binary,
-  kernel = latent_normal(), association = ~ 1)
-association(assoc_gb)
+A binary observation has no ordinary numeric residual. If the breeding margin
+predicts a probability \(p_i = 0.80\), we observe only whether breeding happened,
+not how far above or below its predicted tendency the individual lay.
+
+The association calculation uses an auxiliary latent variable \(U_{Bi}\):
+
+\[
+U_{Bi} \sim N(0, 1), \qquad
+B_i = 1\{U_{Bi} > \Phi^{-1}(1 - p_i)\}.
+\]
+
+This threshold gives \(P(B_i = 1) = p_i\). The latent variable is not an
+individual measurement and should not be reported as an individual binary
+residual. For a Gaussian outcome, the corresponding latent quantity is its
+standardized residual \((Y_i - \mu_i)/\sigma_i\). `eta` describes the
+correlation between these latent quantities after the margins are frozen.
+
+## Fit a reviewed pair in one call
+
+Create one data frame containing both responses and every predictor, then remove
+incomplete rows once. A binary response must contain exactly one literal `0` or
+`1` per row. It cannot be a proportion, a `cbind(successes, failures)` response,
+or a binomial count with multiple trials.
+
+```{r one-call-example, eval = FALSE}
+paired_data <- na.omit(data.frame(
+  bred, offspring, habitat, habitat_score, season
+))
+
+assoc <- biv_associate(
+  bf(mu = bred ~ habitat),
+  bf(mu = offspring ~ habitat, sigma = ~ season),
+  family = list(binomial(), nbinom2()),
+  data = paired_data,
+  association = ~ 1
+)
+
+association(assoc)
 ```
 
-```{r gaussian-count-example, eval = FALSE}
-fit_count <- drmTMB(bf(mu = offspring ~ habitat, sigma = ~ season),
-  family = nbinom2(), data = paired_data)
-assoc_gn <- associate_pairs(fit_continuous, fit_count,
-  kernel = latent_normal(), association = ~ 1)
-association(assoc_gn)
+The current reviewed classes are Gaussian x literal-Bernoulli, Gaussian x
+ordinary-NB2, literal-Bernoulli x literal-Bernoulli, literal-Bernoulli x
+ordinary-NB2, and ordinary-NB2 x ordinary-NB2. The last two show why
+"cross-family" is only a historical label for this page: the same
+frozen-margin machinery also has two reviewed same-family discrete classes.
+
+`association(assoc)` returns `eta` unless the numerical diagnostic is
+`boundary_unresolved`; a `near_boundary` status remains flagged. For the
+example, a positive value says that a greater latent tendency to breed is
+associated with a greater latent tendency for offspring after habitat and season
+have been accounted for. It is not a raw-data correlation.
+
+## Can the association itself be modelled?
+
+Usually start with `association = ~ 1`: it estimates one common `eta` after the
+predictors in the two margins have been accounted for. In the beta
+literal-Bernoulli x ordinary-NB2 route only, you can also ask whether the
+association changes along one numeric environmental gradient. For example,
+suppose `habitat_score` is a numeric measure rather than a habitat category:
+
+```{r association-slope-example, eval = FALSE}
+assoc_by_habitat <- biv_associate(
+  bf(mu = bred ~ habitat_score),
+  bf(mu = offspring ~ habitat_score, sigma = ~ season),
+  family = list(binomial(), nbinom2()),
+  data = paired_data,
+  association = ~ habitat_score
+)
+
+association(assoc_by_habitat)
+association(assoc_by_habitat, type = "fitted")
 ```
 
-```{r binary-count-example, eval = FALSE}
-assoc_bn <- associate_pairs(fit_binary, fit_count,
-  kernel = latent_normal(), association = ~ 1)
-association(assoc_bn)
+This fits \(a_i=\beta_0+\beta_1\,\texttt{habitat_score}_i\) and converts it
+to a row-specific latent association \(\eta_i=\tanh(a_i)\).
+`association()` first returns the two coefficients on the association-link
+scale; `type = "fitted"` returns the corresponding `eta_i` values for the
+rows used to fit the margins. These are point estimates only: no standard
+errors, intervals, profiles, or coverage claim is available.
+
+This is similar in spirit to allowing a predictor for a residual `rho12`, but
+it is not the same model or parameter. `rho12` belongs to a direct joint
+likelihood, whereas this beta route freezes two separately fitted margins before
+estimating its association link. A categorical habitat, multiple association
+predictors, interactions, random effects, new-data association prediction, and
+association regressions for the other pair classes remain unsupported.
+
+| Question | Current beta answer |
+| --- | --- |
+| Does habitat predict breeding? | Put `habitat` in the binary margin. |
+| Does season predict offspring variation? | Put `season` in the count `sigma` margin. |
+| Is there one remaining association after those effects? | Estimate `association = ~ 1`. |
+| Does association change along one numeric habitat score? | For beta Bernoulli x ordinary-NB2 only, use `association = ~ habitat_score`. |
+| Does association change among habitat categories or with several predictors? | Not yet supported. |
+
+## When the estimate is withheld
+
+For pairs with two discrete outcomes, the calculation evaluates a bivariate
+normal probability region that corresponds to the observed outcome pair. Some
+extreme tail regions can be numerically unresolved. In that case `drmTMB`
+withholds `eta` rather than clips a probability or reports a repaired estimate.
+
+```{r unresolved-example, eval = FALSE}
+if (identical(assoc$status, "boundary_unresolved")) {
+  assoc$diagnostics
+  # Report that no association estimate was returned. Do not clip or repair it.
+}
 ```
 
-The last example uses a bivariate-normal rectangle because both outcomes are
-discrete. `drmTMB` retains endpoint and integration diagnostics; if a tail
-rectangle is unresolved, `eta` is withheld rather than repaired by probability
-clipping. In that case inspect `assoc_bn$diagnostics`, report that no association
-estimate was returned, and do not try to clip or repair the probability. These
-are fixed-effect, complete-pair, intercept-only development routes, not
-standard-error, interval, coverage, random-effect, missing-data, or generic
-discrete-pair support.
+This is the correct development-boundary result. Inspect the diagnostics, report
+that no association estimate was available, and do not convert an unresolved
+tail calculation into a scientific conclusion.
 
-The 0.6.0 capability ledger and release scope manifest are the source of truth
-for any later promotion decision.
+## How this differs from rho12
+
+`rho12` belongs to a direct joint likelihood. In `biv_gaussian()` it is a
+Gaussian residual correlation; in `biv_lognormal()` it is a log-response
+residual correlation. `eta` is neither of those. It is a latent-normal
+association obtained after separate margins have been fitted and frozen. The
+new beta association slope changes the latent `eta_i`, not a direct `rho12`.
+
+Use [Changing residual coupling with rho12](bivariate-coscale.html) for the
+released Gaussian joint model. Use [Bivariate non-Gaussian models](bivariate-nongaussian.html)
+to choose between an exact same-family joint model and this staged association
+route.

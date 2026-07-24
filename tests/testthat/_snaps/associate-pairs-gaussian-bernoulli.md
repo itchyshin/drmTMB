@@ -65,9 +65,9 @@
       associate_pairs(fits$gaussian, fits$binary, kernel = latent_normal(),
       association = ~x)
     Condition
-      Error in `drm_pair_validate_intercept_only()`:
-      ! Arc 6 supports only `association = ~ 1`.
-      i Association slopes require a later Arc and separate identification review.
+      Error in `drm_pair_association_design()`:
+      ! This Arc 6 association regression is available only for literal Bernoulli x ordinary-NB2 pairs and one numeric slope.
+      i Use `association = ~ 1` for the other reviewed pair classes.
 
 ---
 

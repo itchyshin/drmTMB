@@ -105,7 +105,9 @@ navbar:
           href: articles/meta-analysis.html
         - text: Julia support (future work)
           href: articles/julia-engine.html
-        - text: Cross-family bivariate association
+        - text: Bivariate non-Gaussian (beta)
+          href: articles/bivariate-nongaussian.html
+        - text: Mixed-outcome association (beta)
           href: articles/cross-family.html
     developer:
       text: Developer Notes
@@ -149,6 +151,13 @@ reference:
       - biv_gaussian
       - biv_lognormal
       - biv_student
+  - title: Frozen-margin association helpers
+    desc: "Development only: explicitly reviewed paired margins, point estimate plus diagnostics, no uncertainty claim."
+    contents:
+      - biv_associate
+      - associate_pairs
+      - association
+      - latent_normal
   - title: Structured-effect markers
     desc: Status-marked random-effect scale, structured covariance, and latent-correlation syntax; each reference page separates fitted routes from planned neighbours.
     contents:
@@ -247,7 +256,6 @@ articles:
       - count-nbinom2
       - proportion-beta-binomial
       - bivariate-coscale
-      - bivariate-nongaussian
       - missing-data
       - figure-gallery
   - title: Random & Structured Effects
@@ -272,6 +280,7 @@ articles:
     contents:
       - meta-analysis
       - julia-engine
+      - bivariate-nongaussian
       - cross-family
   - title: Developer Notes
     contents:

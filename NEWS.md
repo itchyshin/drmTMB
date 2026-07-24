@@ -1,5 +1,14 @@
 # drmTMB 0.6.0
 
+## Unreleased beta association-gradient extension
+
+* The frozen-margin literal-Bernoulli × ordinary-NB2 beta route now also
+  accepts one numeric `association = ~ x` predictor. It fits a row-specific
+  latent-normal association after the two margins have been fitted and frozen.
+  The coefficients and fitted associations are point estimates only: this is
+  not a direct `rho12` model and supplies no standard errors, intervals,
+  profiles, coverage, random effects, or generic association grammar.
+
 ## Arc 6.5 Bernoulli × Bernoulli development slice
 
 * `associate_pairs()` now admits two frozen literal Bernoulli-logit margins and

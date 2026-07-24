@@ -33,7 +33,9 @@ latent_normal <- function() {
 #'   identical complete analysis data, in the same order.
 #' @param kernel A named association kernel. Arc 6 accepts only
 #'   `latent_normal()`.
-#' @param association Association formula. Arc 6 accepts only `~ 1`.
+#' @param association Association formula. Most Arc 6 pair classes accept only
+#'   `~ 1`. The beta Bernoulli x ordinary-NB2 route also accepts `~ x` for one
+#'   finite numeric fixed-effect covariate.
 #'
 #' @return An object of class `drm_pair_association`.
 #' @export
@@ -75,7 +77,6 @@ associate_pairs <- function(
     )
   }
   drm_pair_validate_kernel(kernel)
-  drm_pair_validate_intercept_only(association)
   drm_pair_validate_fit(fit_1, "fit_1")
   drm_pair_validate_fit(fit_2, "fit_2")
   drm_pair_validate_shared_data(fit_1, fit_2)
@@ -103,6 +104,9 @@ associate_pairs <- function(
       i = "Other pair classes require their own Arc 6 review."
     ))
   }
+  association_design <- drm_pair_association_design(
+    association, fit_1$data, pair_class
+  )
 
   fits <- list(fit_1, fit_2)
   descriptor <- if (identical(pair_class, "bernoulli_bernoulli")) NULL else {
@@ -189,7 +193,7 @@ associate_pairs <- function(
     )
     }
   }
-  fit_result <- drm_pair_fit_eta(components)
+  fit_result <- drm_pair_fit_eta(components, association_design)
   snapshot_1 <- drm_pair_margin_snapshot(fit_1)
   snapshot_2 <- drm_pair_margin_snapshot(fit_2)
 
@@ -219,6 +223,8 @@ associate_pairs <- function(
       eta = fit_result$eta,
       eta_internal = fit_result$eta_internal,
       alpha = fit_result$alpha,
+      association_coefficients = fit_result$coefficients,
+      association_design = association_design,
       logLik = fit_result$logLik,
       diagnostics = fit_result$diagnostics,
       components = components,
@@ -241,13 +247,108 @@ associate_pairs <- function(
   )
 }
 
+#' Fit two margins and construct a frozen-margin association in one call
+#'
+#' `biv_associate()` is the convenience front end for the reviewed Arc 6
+#' frozen-margin route. It fits two univariate margins to the supplied data and
+#' then calls [associate_pairs()] without refitting either margin. It is one R
+#' call, but it is not a jointly fitted bivariate model: stage 2 treats the fitted
+#' marginal parameters as fixed and estimates only the latent-normal
+#' association `eta`.
+#'
+#' The two formulas must be univariate [bf()] or [drm_formula()] objects, and
+#' `family` must be a two-element list. The supplied `data` must already be the
+#' same complete paired analysis data for both margins. If the two marginal fits
+#' retain different rows, the constructor fails rather than silently comparing
+#' different individuals.
+#'
+#' @param formula_1,formula_2 Univariate `drm_formula` objects for the first
+#'   and second response margins.
+#' @param family A two-element list of marginal family objects.
+#' @param data A data frame containing both responses and every predictor used
+#'   by either margin.
+#' @param kernel Association kernel. Arc 6 accepts only [latent_normal()].
+#' @param association Association formula. Most Arc 6 pair classes accept only
+#'   `~ 1`, which estimates one constant association parameter. The beta
+#'   Bernoulli x ordinary-NB2 route also accepts `~ x` for one finite numeric
+#'   covariate.
+#' @param control_1,control_2 Optional control lists passed to the corresponding
+#'   marginal [drmTMB()] fits.
+#'
+#' @return A `drm_pair_association` object that retains frozen snapshots of both
+#'   fitted margins. [association()] returns the point estimate unless the
+#'   numerical diagnostic is boundary-unresolved; a near-boundary status remains
+#'   flagged. No standard error, confidence interval,
+#'   or profile is available.
+#' @export
+#'
+#' @examples
+#' set.seed(20260725)
+#' dat <- data.frame(x = rnorm(80))
+#' z_continuous <- rnorm(80)
+#' z_binary <- 0.35 * z_continuous + sqrt(1 - 0.35^2) * rnorm(80)
+#' dat$trait_continuous <- 0.2 + 0.5 * dat$x + z_continuous
+#' dat$trait_binary <- as.integer(z_binary > qnorm(0.4))
+#'
+#' assoc <- biv_associate(
+#'   bf(mu = trait_continuous ~ x, sigma = ~ 1),
+#'   bf(mu = trait_binary ~ x),
+#'   family = list(gaussian(), binomial()), data = dat
+#' )
+#' association(assoc)
+biv_associate <- function(
+  formula_1,
+  formula_2,
+  family,
+  data,
+  kernel = latent_normal(),
+  association = ~1,
+  control_1 = list(),
+  control_2 = list()
+) {
+  if (!inherits(formula_1, "drm_formula") || !inherits(formula_2, "drm_formula")) {
+    cli::cli_abort(
+      "{.arg formula_1} and {.arg formula_2} must be created with {.fn bf} or {.fn drm_formula}."
+    )
+  }
+  if (!is.list(family) || length(family) != 2L) {
+    cli::cli_abort(
+      "{.arg family} must be a two-element list, for example {.code list(gaussian(), binomial())}."
+    )
+  }
+  if (!is.data.frame(data)) {
+    cli::cli_abort("{.arg data} must be a data frame.")
+  }
+
+  fit_1 <- drmTMB(
+    formula = formula_1, family = family[[1L]], data = data,
+    control = control_1
+  )
+  fit_2 <- drmTMB(
+    formula = formula_2, family = family[[2L]], data = data,
+    control = control_2
+  )
+  out <- associate_pairs(
+    fit_1, fit_2, kernel = kernel, association = association
+  )
+  out$call <- match.call()
+  out$stage <- "two-stage frozen margins"
+  out
+}
+
 #' Extract a pair association estimate
 #'
 #' @param object A `drm_pair_association` object.
+#' @param type For a constant association, the default `"coefficient"` returns
+#'   the usual single `eta`. For a covariate-varying beta association,
+#'   `"coefficient"` returns the association-link coefficients and `"fitted"`
+#'   returns the frozen-row latent-normal associations.
 #' @param ... Reserved for future extractor options.
 #'
-#' @return A one-row data frame with the latent-normal association and its
-#'   diagnostic status. No standard error or interval is supplied.
+#' @return For a constant association, a one-row data frame with the
+#'   latent-normal association and diagnostic status. For the beta association
+#'   slope, a coefficient table or a frozen-row `eta` table according to
+#'   `type`. No standard error or interval is supplied.
 #' @export
 association <- function(object, ...) {
   UseMethod("association")
@@ -255,21 +356,35 @@ association <- function(object, ...) {
 
 #' @rdname association
 #' @export
-association.drm_pair_association <- function(object, ...) {
+association.drm_pair_association <- function(object, type = c("coefficient", "fitted"), ...) {
+  type <- match.arg(type)
   if (identical(object$status, "boundary_unresolved")) {
     cli::cli_abort(c(
       "The association maximum is boundary-unresolved.",
       i = "Inspect {.code object$diagnostics}; Arc 6 does not return a public point estimate for this case."
     ))
   }
-  data.frame(
-    kernel = object$kernel$name,
-    estimand = "latent-normal association",
-    eta = object$eta,
-    status = object$status,
-    boundary = object$diagnostics$near_boundary,
-    stringsAsFactors = FALSE
-  )
+  if (identical(type, "fitted")) {
+    return(data.frame(
+      row = seq_along(object$eta_internal),
+      association_link = object$alpha,
+      eta = object$eta_internal,
+      status = object$status,
+      stringsAsFactors = FALSE
+    ))
+  }
+  if (length(object$association_coefficients) > 1L) {
+    return(data.frame(
+      term = names(object$association_coefficients),
+      association_link = unname(object$association_coefficients),
+      status = object$status,
+      boundary = object$diagnostics$near_boundary,
+      stringsAsFactors = FALSE
+    ))
+  }
+  data.frame(kernel = object$kernel$name, estimand = "latent-normal association",
+    eta = object$eta, status = object$status,
+    boundary = object$diagnostics$near_boundary, stringsAsFactors = FALSE)
 }
 
 #' @export
@@ -278,7 +393,11 @@ print.drm_pair_association <- function(x, ...) {
   cli::cli_text("  kernel: {x$kernel$name}")
   cli::cli_text("  status: {x$status}")
   if (!identical(x$status, "boundary_unresolved")) {
-    cli::cli_text("  eta: {format(x$eta, digits = 4)}")
+    if (length(x$association_coefficients) == 1L) {
+      cli::cli_text("  eta: {format(x$eta, digits = 4)}")
+    } else {
+      cli::cli_text("  association coefficients: {length(x$association_coefficients)}; fitted eta range: {format(range(x$eta_internal), digits = 4)}")
+    }
   }
   cli::cli_text(
     "  standard errors: unavailable; frozen-margin point estimate only"
@@ -307,10 +426,12 @@ print.summary.drm_pair_association <- function(x, ...) {
   cli::cli_text("<summary.drm_pair_association>")
   if (is.null(x$association)) {
     cli::cli_text("  association: boundary-unresolved")
-  } else {
+  } else if ("eta" %in% names(x$association)) {
     cli::cli_text("  eta: {format(x$association$eta, digits = 4)}")
-    cli::cli_text("  status: {x$association$status}")
+  } else {
+    cli::cli_text("  association coefficients: {nrow(x$association)}")
   }
+  cli::cli_text("  status: {x$association$status[[1L]]}")
   cli::cli_text("  standard errors and intervals: unavailable")
   invisible(x)
 }
@@ -560,20 +681,42 @@ drm_pair_descriptor <- function(pair_class) {
     class = "drm_pair_descriptor")
 }
 
-drm_pair_validate_intercept_only <- function(association) {
+drm_pair_association_design <- function(association, data, pair_class) {
   if (!inherits(association, "formula")) {
     cli::cli_abort("{.arg association} must be a formula.")
   }
   association_terms <- stats::terms(association)
-  if (
-    attr(association_terms, "intercept") != 1L ||
-      length(attr(association_terms, "term.labels")) != 0L
-  ) {
+  if (attr(association_terms, "intercept") != 1L) {
+    cli::cli_abort("{.arg association} must include an intercept.")
+  }
+  labels <- attr(association_terms, "term.labels")
+  if (!length(labels)) {
+    return(list(matrix = matrix(1, nrow(data), 1L, dimnames = list(NULL, "(Intercept)")),
+      terms = association_terms, varying = FALSE))
+  }
+  if (!identical(pair_class, "bernoulli_nbinom2") || length(labels) != 1L) {
     cli::cli_abort(c(
-      "Arc 6 supports only {.code association = ~ 1}.",
-      i = "Association slopes require a later Arc and separate identification review."
+      "This Arc 6 association regression is available only for literal Bernoulli x ordinary-NB2 pairs and one numeric slope.",
+      i = "Use {.code association = ~ 1} for the other reviewed pair classes."
     ))
   }
+  variables <- all.vars(association)
+  if (length(variables) != 1L || !identical(labels, variables) ||
+      !is.numeric(data[[variables]])) {
+    cli::cli_abort(c(
+      "The beta Bernoulli x ordinary-NB2 association model accepts one named numeric column.",
+      i = "Factors, transformations, interactions, and derived terms are not supported."
+    ))
+  }
+  matrix <- tryCatch(stats::model.matrix(association_terms, data = data),
+    error = function(error) cli::cli_abort("Cannot construct the association design: {conditionMessage(error)}"))
+  if (ncol(matrix) != 2L || !is.numeric(matrix[, 2L]) || any(!is.finite(matrix))) {
+    cli::cli_abort(c(
+      "The beta Bernoulli x ordinary-NB2 association model accepts one finite numeric fixed-effect covariate.",
+      i = "Factors, interactions, missing covariates, and transformed multi-column terms are not supported."
+    ))
+  }
+  list(matrix = matrix, terms = association_terms, varying = TRUE)
 }
 
 drm_pair_validate_fit <- function(fit, name) {
@@ -738,55 +881,91 @@ drm_pair_fingerprint <- function(x) {
   unname(tools::md5sum(path))
 }
 
-drm_pair_fit_eta <- function(components) {
+drm_pair_fit_eta <- function(components, association_design = NULL) {
+  if (is.null(association_design)) {
+    association_design <- list(
+      matrix = matrix(1, drm_pair_component_n(components), 1L,
+        dimnames = list(NULL, "(Intercept)")),
+      varying = FALSE
+    )
+  }
+  x_association <- association_design$matrix
   loglik <- drm_pair_loglikelihood_function(components)
-  objective <- function(alpha) {
+  linear_predictor <- function(coefficients) {
+    as.vector(x_association %*% coefficients)
+  }
+  objective <- function(coefficients) {
+    alpha <- linear_predictor(coefficients)
+    if (!isTRUE(association_design$varying)) alpha <- alpha[[1L]]
     value <- loglik(alpha, components)
     if (!is.finite(value)) {
       return(.Machine$double.xmax)
     }
     -value
   }
-  starts <- c(-1, 0, 1)
+  starts <- if (ncol(x_association) == 1L) {
+    list(-1, 0, 1)
+  } else {
+    list(rep(0, ncol(x_association)),
+      c(-0.25, rep(0, ncol(x_association) - 1L)),
+      c(0.25, rep(0, ncol(x_association) - 1L)))
+  }
   fits <- lapply(starts, function(start) {
-    stats::nlminb(start = start, objective = objective, lower = -8, upper = 8)
+    stats::nlminb(start = start, objective = objective,
+      lower = rep(-8, length(start)), upper = rep(8, length(start)))
   })
   objectives <- vapply(fits, `[[`, numeric(1L), "objective")
-  multistart_alpha <- vapply(
-    fits,
-    function(fit) unname(fit$par[[1L]]),
-    numeric(1L)
-  )
+  multistart_coefficients <- do.call(cbind, lapply(
+    fits, function(fit) unname(fit$par)
+  ))
   best <- fits[[which.min(objectives)]]
-  alpha <- unname(best$par[[1L]])
+  coefficients <- unname(best$par)
+  names(coefficients) <- colnames(x_association)
+  alpha <- linear_predictor(coefficients)
+  if (!isTRUE(association_design$varying)) alpha <- alpha[[1L]]
   eta_internal <- 0.999999 * tanh(alpha)
   logLik <- loglik(alpha, components)
   h <- 1e-4
-  curvature <- if (alpha > -8 + h && alpha < 8 - h) {
-    (loglik(alpha + h, components) -
-      2 * logLik +
-      loglik(alpha - h, components)) /
-      h^2
-  } else {
-    NA_real_
+  diagnostic_coordinate <- function(index) {
+    lower <- coefficients
+    upper <- coefficients
+    lower[[index]] <- lower[[index]] - h
+    upper[[index]] <- upper[[index]] + h
+    if (lower[[index]] <= -8 || upper[[index]] >= 8) {
+      return(c(score = NA_real_, curvature = NA_real_))
+    }
+    c(
+      score = (objective(lower) - objective(upper)) / (2 * h),
+      curvature = -(objective(upper) - 2 * objective(coefficients) + objective(lower)) / h^2
+    )
   }
-  score <- if (alpha > -8 + h && alpha < 8 - h) {
-    (loglik(alpha + h, components) -
-      loglik(alpha - h, components)) /
-      (2 * h)
+  score_and_curvature <- vapply(seq_along(coefficients), diagnostic_coordinate,
+    numeric(2L)
+  )
+  if (is.null(dim(score_and_curvature))) {
+    score_and_curvature <- matrix(score_and_curvature, nrow = 2L,
+      dimnames = list(c("score", "curvature"), names(coefficients)))
   } else {
-    NA_real_
+    colnames(score_and_curvature) <- names(coefficients)
   }
-  near_boundary <- abs(eta_internal) >= 0.995
+  score <- score_and_curvature["score", ]
+  curvature <- score_and_curvature["curvature", ]
+  near_boundary <- any(abs(eta_internal) >= 0.995)
   objective_tolerance <- 1e-7 * (1 + abs(min(objectives)))
-  multistart_disagreement <- any(
-    !is.finite(objectives) |
-      (objectives - min(objectives)) > objective_tolerance
-  ) || (max(multistart_alpha) - min(multistart_alpha) > 1e-3)
+  finite_starts <- is.finite(objectives) & objectives < .Machine$double.xmax
+  multistart_disagreement <- if (isTRUE(association_design$varying)) {
+    sum(finite_starts) < 2L ||
+      any((objectives[finite_starts] - min(objectives[finite_starts])) > objective_tolerance) ||
+      any(apply(multistart_coefficients[, finite_starts, drop = FALSE], 1L,
+        function(x) max(x) - min(x) > 1e-3))
+  } else {
+    any(!finite_starts | (objectives - min(objectives)) > objective_tolerance) ||
+      any(apply(multistart_coefficients, 1L, function(x) max(x) - min(x) > 1e-3))
+  }
   convergence_failure <- !identical(best$convergence, 0L)
-  weak_curvature <- !is.finite(curvature) || curvature >= -1e-6
-  score_failure <- !is.finite(score) || abs(score) > 1e-3
-  unresolved <- abs(alpha) >= 7.99 ||
+  weak_curvature <- any(!is.finite(curvature) | curvature >= -1e-6)
+  score_failure <- any(!is.finite(score) | abs(score) > 1e-3)
+  unresolved <- any(abs(coefficients) >= 7.99) ||
     !is.finite(logLik) ||
     convergence_failure ||
     multistart_disagreement ||
@@ -806,11 +985,14 @@ drm_pair_fit_eta <- function(components) {
     status = status,
     eta = if (identical(status, "boundary_unresolved")) {
       NA_real_
-    } else {
+    } else if (length(coefficients) == 1L) {
       eta_internal
+    } else {
+      NA_real_
     },
     eta_internal = eta_internal,
     alpha = alpha,
+    coefficients = coefficients,
     logLik = logLik,
     diagnostics = list(
       alpha = alpha,
@@ -820,7 +1002,7 @@ drm_pair_fit_eta <- function(components) {
       optimizer_convergence = best$convergence,
       optimizer_message = best$message,
       multistart_objectives = objectives,
-      multistart_alpha = multistart_alpha,
+      multistart_alpha = multistart_coefficients,
       multistart_disagreement = multistart_disagreement,
       convergence_failure = convergence_failure,
       endpoint_failure = endpoint_failure,
@@ -832,6 +1014,13 @@ drm_pair_fit_eta <- function(components) {
       count_interval = interval_diagnostics
     )
   )
+}
+
+drm_pair_component_n <- function(components) {
+  if (identical(components$pair_class, "bernoulli_bernoulli")) return(length(components$binary_1_y))
+  if (identical(components$pair_class, "nbinom2_nbinom2")) return(length(components$nbinom2_y_1))
+  if (!is.null(components$binary_y)) return(length(components$binary_y))
+  length(components$gaussian_y)
 }
 
 drm_pair_response_diagnostics <- function(components, alpha) {
@@ -1333,11 +1522,15 @@ drm_pair_bernoulli_nbinom2_rectangle_probability <- function(
 
 drm_pair_bernoulli_nbinom2_probabilities <- function(alpha, components) {
   eta <- 0.999999 * tanh(alpha)
+  if (length(eta) == 1L) eta <- rep(eta, length(components$binary_y))
+  if (length(eta) != length(components$binary_y)) {
+    cli::cli_abort("The Bernoulli x ordinary-NB2 association predictor has the wrong number of rows.")
+  }
   results <- lapply(seq_along(components$binary_y), function(i) {
     drm_pair_bernoulli_nbinom2_rectangle_probability(
       components$binary_y[[i]], components$binary_p[[i]],
       components$nbinom2_y[[i]], components$nbinom2_mu[[i]],
-      components$nbinom2_sigma[[i]], eta
+      components$nbinom2_sigma[[i]], eta[[i]]
     )
   })
   list(
