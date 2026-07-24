@@ -1,5 +1,10 @@
 test_that("direct lognormal rho12 coverage driver retains outer and bootstrap attempts", {
   skip_if_not_installed("drmTMB")
+  driver <- test_path("..", "..", "inst", "sim", "run", "sim_run_biv_lognormal_rho12_coverage.R")
+  skip_if_not(
+    file.exists(driver),
+    "The source-only coverage driver is unavailable in an installed-package check."
+  )
   outdir <- tempfile("biv-lognormal-rho12-coverage-")
   old <- Sys.getenv(c("OUTDIR", "SMOKE", "NCORES", "BOOTSTRAP_R", "QUIET"), unset = NA_character_)
   on.exit({
@@ -8,7 +13,7 @@ test_that("direct lognormal rho12 coverage driver retains outer and bootstrap at
     }
   }, add = TRUE)
   Sys.setenv(OUTDIR = outdir, SMOKE = "true", NCORES = "1", BOOTSTRAP_R = "9", QUIET = "true")
-  source(test_path("..", "..", "inst", "sim", "run", "sim_run_biv_lognormal_rho12_coverage.R"))
+  source(driver)
 
   outer <- utils::read.csv(file.path(outdir, "direct-biv-lognormal-rho12-attempts.csv"))
   bootstrap <- utils::read.csv(file.path(outdir, "direct-biv-lognormal-rho12-bootstrap-attempts.csv"))

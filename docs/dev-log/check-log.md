@@ -2,6 +2,20 @@
 
 Record meaningful development checks here.
 
+## 2026-07-24: Arc 6 installed-package test-path repair
+
+- The first merged Arc 6 main check failed only because two new tests assumed
+  source-tree-only paths: the coverage driver under `inst/sim/` and public
+  design/vignette sources. `R CMD check` executes tests from an installed
+  package where neither input is available. Both tests now exercise their
+  source inputs in a development checkout and explicitly skip only when those
+  inputs are absent from the installed check tree. The direct likelihood,
+  interval API, estimator, and campaign artifacts are unchanged.
+- The two focused tests pass from source. A local package build succeeds; local
+  `R CMD check` cannot reach CRAN to obtain the optional `palmerpenguins`
+  Suggests dependency, so the Linux CI is the authoritative installed-package
+  confirmation for this repair.
+
 ## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` coverage gate
 
 - The predeclared Totoro campaign retained all 2,700 direct outer attempts
