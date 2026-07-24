@@ -21,8 +21,11 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   observed-scale correlation. Other family pairs, association covariates,
   random/structured effects, partial pairs, offsets, weights,
   `mi()`, `meta_V()`, REML, new-data association prediction, standard errors,
-  intervals, profiles, coverage, smoke/recovery evidence, capability promotion,
-  Julia, and CRAN release use remain outside this first contract.
+  intervals, profiles, coverage, capability promotion, Julia, and CRAN release
+  use remain outside this first contract. Arc 6.5 has retained Totoro recovery
+  **HOLD** evidence, documented in
+  `docs/dev-log/simulation-artifacts/2026-07-24-arc6-5-bernoulli-recovery/`:
+  it is not a passing recovery result and makes no capability claim.
 - Gaussian location-scale models are implemented with fixed effects and
   ordinary `mu` random effects: random intercepts, independent random slopes,
   one-slope correlated random intercept-slope blocks such as `(1 + x | id)` or
