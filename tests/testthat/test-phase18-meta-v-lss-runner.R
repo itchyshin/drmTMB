@@ -1,12 +1,15 @@
 source_phase18_meta_v_lss_runner <- function(env = parent.frame()) {
-  root <- testthat::test_path("..", "..", "inst", "sim")
-  source(file.path(root, "R", "sim_registry.R"), local = env)
-  source(file.path(root, "R", "sim_utils.R"), local = env)
-  source(file.path(root, "R", "sim_runner.R"), local = env)
-  source(file.path(root, "dgp", "sim_dgp_meta_v.R"), local = env)
-  source(file.path(root, "dgp", "sim_dgp_meta_v_lss.R"), local = env)
-  source(file.path(root, "fit", "sim_summarise_meta_v_lss.R"), local = env)
-  source(file.path(root, "run", "sim_run_meta_v_lss_smoke.R"), local = env)
+  for (path in c(
+    "sim/R/sim_registry.R",
+    "sim/R/sim_utils.R",
+    "sim/R/sim_runner.R",
+    "sim/dgp/sim_dgp_meta_v.R",
+    "sim/dgp/sim_dgp_meta_v_lss.R",
+    "sim/fit/sim_summarise_meta_v_lss.R",
+    "sim/run/sim_run_meta_v_lss_smoke.R"
+  )) {
+    source(system.file(path, package = "drmTMB", mustWork = TRUE), local = env)
+  }
 }
 
 test_that("Arc 7B smoke registry retains every scheduled layer and attempt", {

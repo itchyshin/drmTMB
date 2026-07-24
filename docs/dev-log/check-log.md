@@ -91420,3 +91420,21 @@ Shinichi grants a separate Gate A compute approval.
 - Open-issue sweep found #59 (Phase 18 framework) and #60 (comparators) as the
   relevant existing trackers. No issue was changed because this is a local
   no-go and creates no new public capability.
+
+## 2026-07-24: Arc 7B Linux CI repair
+
+- The first Ubuntu check for PR #830 exposed two test-harness regressions: the
+  Arc 7B runner constructed a source path below `inst/sim`, and the generic
+  power assembler treated `not_requested` `mu` intervals as complete merely
+  because the summary also carried explicit `sigma` interval columns.
+- `test-phase18-meta-v-lss-runner.R` now sources the installed package's
+  `inst/sim` files, matching the other Phase 18 tests. `phase18_assemble_power_table()`
+  now backfills Wald intervals only for rows with missing endpoints and
+  `not_requested` (or absent) status; explicitly failed or non-finite interval
+  rows stay untouched.
+- Local checks passed with `R_PROFILE_USER=/dev/null Rscript --no-init-file`:
+  `devtools::test(filter = "phase18-(meta-v-lss-runner|power-grid-engine)",
+  reporter = "stop")` and
+  `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
+  reporter = "stop")`. `git diff --check` passed. The full Linux R-CMD-check
+  remains the merge gate.
