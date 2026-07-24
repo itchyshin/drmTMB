@@ -105,7 +105,7 @@ navbar:
           href: articles/meta-analysis.html
         - text: Julia support (future work)
           href: articles/julia-engine.html
-        - text: Cross-family bivariate (deferred)
+        - text: Cross-family bivariate association
           href: articles/cross-family.html
     developer:
       text: Developer Notes
@@ -147,6 +147,8 @@ reference:
       - nbinom2
       - truncated_nbinom2
       - biv_gaussian
+      - biv_lognormal
+      - biv_student
   - title: Structured-effect markers
     desc: Status-marked random-effect scale, structured covariance, and latent-correlation syntax; each reference page separates fitted routes from planned neighbours.
     contents:
@@ -192,6 +194,12 @@ reference:
       - structured_effects
       - summary.drmTMB
       - weights.drmTMB
+  - title: Frozen-margin bivariate association
+    desc: Post-fit latent-normal association for the individually reviewed complete-pair development slices.
+    contents:
+      - associate_pairs
+      - association
+      - latent_normal
   - title: Distributional outputs and adequacy
     desc: >
       A first-class fitted distribution for every family, plus the adequacy
