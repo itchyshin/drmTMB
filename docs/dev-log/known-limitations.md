@@ -133,6 +133,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   explicit missing-data routes, simulation-based imputation summaries,
   response imputation, measurement-error models, and pigauto interoperability
   remain planned.
+- Exact `biv_lognormal()` and `biv_student()` are narrow direct complete-pair
+  development families. The Student-t route has fixed-effect `mu1`/`mu2`,
+  intercept-only Student-t scales, one shared intercept-only `nu > 2`, and
+  intercept-only scatter/residual `rho12`. At finite `nu`, `rho12 = 0` is
+  uncorrelated but not independent. Neither exact-special route has random or
+  structured effects, scale/shape/correlation predictors, missing pairs,
+  explicit weights, offsets, `meta_V`, `mi()`, REML, Julia, intervals, smoke,
+  recovery evidence, or a capability tier.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
@@ -667,7 +675,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects beyond the exact
   row-specific phylo `nu` gate, Student-t known-covariance
-  models, broad Student-t phylogenetic models, bivariate Student-t models,
+  models, broad Student-t phylogenetic models, richer bivariate Student-t
+  models beyond the exact fixed-effect shared-`nu` source slice,
   correlated lognormal/Gamma/beta/beta-binomial random slopes,
   lognormal/Gamma `sigma` slopes, labelled or combined `sigma` random effects,
   beta/beta-binomial `sigma` random effects beyond the exact beta q1

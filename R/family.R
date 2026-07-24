@@ -65,6 +65,41 @@ biv_lognormal <- function() {
   )
 }
 
+#' Bivariate Student-t response family
+#'
+#' `biv_student()` defines an exact two-response elliptical Student-t
+#' distribution with one shared degrees-of-freedom parameter `nu`. Its
+#' `sigma1` and `sigma2` parameters are Student-t scales, and `rho12` is the
+#' residual scatter correlation. The response covariance exists because the
+#' fitted transform enforces `nu > 2`; its marginal standard deviations are
+#' `sigma_j * sqrt(nu / (nu - 2))`.
+#'
+#' The first implementation allows fixed effects in `mu1` and `mu2`, with
+#' intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. Random effects,
+#' parameter predictors outside the locations, missing response pairs, and
+#' interval inference are deferred.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' biv_student()
+biv_student <- function() {
+  structure(
+    list(
+      name = "biv_student",
+      family = "biv_student",
+      n_response = 2L,
+      dpars = c("mu1", "mu2", "sigma1", "sigma2", "nu", "rho12"),
+      links = c(
+        mu1 = "identity", mu2 = "identity", sigma1 = "log",
+        sigma2 = "log", nu = "logm2", rho12 = "atanh_guarded"
+      )
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Student-t response family
 #'
 #' `student()` defines a one-response Student-t distribution with formulas for

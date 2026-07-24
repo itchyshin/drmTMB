@@ -198,6 +198,15 @@ drmTMB <- function(
     cli::cli_abort("{.arg data} must be a data frame.")
   }
   engine <- match.arg(engine)
+  if (
+    identical(engine, "julia") &&
+      inherits(family, "drm_family") &&
+      identical(family$name, "biv_student")
+  ) {
+    cli::cli_abort(
+      "{.fn biv_student} is implemented only for {.code engine = \"tmb\"}; the Julia route is deferred."
+    )
+  }
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
@@ -233,9 +242,18 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
-  if (identical(family_type, "biv_lognormal") && !is.null(weights_expr)) {
+  if (
+    family_type %in% c("biv_lognormal", "biv_student") &&
+      !is.null(weights_expr)
+  ) {
+    family_label <- paste0(family_type, "()")
     cli::cli_abort(
-      "{.fn biv_lognormal} does not support a {.arg weights} argument; implicit likelihood weights are one."
+      "{.val {family_label}} does not support a {.arg weights} argument; implicit likelihood weights are one."
+    )
+  }
+  if (identical(family_type, "biv_student") && !is.null(penalty)) {
+    cli::cli_abort(
+      "{.fn biv_student} does not support {.arg penalty}; penalized fits are deferred."
     )
   }
   # Non-Gaussian REML (doc 224, object O2): `binomial` is admitted. Marginalising
@@ -429,6 +447,13 @@ drmTMB <- function(
       missing = missing_control
     ),
     biv_lognormal = drm_build_biv_lognormal_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full,
+      missing = missing_control
+    ),
+    biv_student = drm_build_biv_student_spec(
       formula,
       data,
       env = formula_env,
@@ -2703,7 +2728,9 @@ reject_corpair_formula_entries <- function(entries) {
 }
 
 drm_spec_response_names <- function(spec) {
-  response_dpars <- if (spec$model_type %in% c("biv_gaussian", "biv_lognormal")) {
+  response_dpars <- if (
+    spec$model_type %in% c("biv_gaussian", "biv_lognormal", "biv_student")
+  ) {
     c("mu1", "mu2")
   } else {
     "mu"
@@ -2791,6 +2818,11 @@ drm_family_type <- function(family) {
     return("biv_lognormal")
   }
   if (
+    inherits(family, "drm_family") && identical(family$name, "biv_student")
+  ) {
+    return("biv_student")
+  }
+  if (
     inherits(family, "drm_family") && identical(family$name, "biv_gaussian")
   ) {
     return("biv_gaussian")
@@ -2824,7 +2856,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -8314,6 +8346,159 @@ drm_build_biv_lognormal_spec <- function(
     observed_y1 = rep.int(1L, length(spec$y1)),
     observed_y2 = rep.int(1L, length(spec$y2))
   )
+  spec$tmb_data <- add_covariance_block_tmb_data(make_tmb_data(spec), spec)
+  spec
+}
+
+drm_build_biv_student_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL,
+  missing = miss_control()
+) {
+  missing <- drm_parse_missing_control(missing)
+  if (!identical(missing$response, "drop")) {
+    cli::cli_abort(
+      "{.fn biv_student} currently requires complete response pairs."
+    )
+  }
+
+  entries <- expand_biv_mvbind_entries(formula$entries)
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  allowed <- c("mu1", "mu2", "sigma1", "sigma2", "nu", "rho12")
+  unsupported <- setdiff(dpars, allowed)
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn biv_student} supports only {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, one shared {.code nu}, and {.code rho12} formulas.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "Separate {.code nu1}/{.code nu2} parameters are not part of the shared-nu bivariate Student-t contract."
+    ))
+  }
+  for (required in c("mu1", "mu2")) {
+    if (sum(dpars == required) != 1L) {
+      cli::cli_abort(
+        "{.fn biv_student} requires exactly one {.code {required}} formula."
+      )
+    }
+  }
+  for (optional in c("sigma1", "sigma2", "nu", "rho12")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort(
+        "{.fn biv_student} can have at most one {.code {optional}} formula."
+      )
+    }
+  }
+
+  has_bar_term <- vapply(entries, function(entry) {
+    grepl("|", paste(deparse(entry$rhs), collapse = " "), fixed = TRUE)
+  }, logical(1L))
+  if (any(has_bar_term)) {
+    cli::cli_abort(
+      "{.fn biv_student} currently allows fixed-effect formulas only; random and structured effects are deferred."
+    )
+  }
+  has_mi_term <- vapply(
+    entries,
+    function(entry) formula_contains_call(entry$rhs, "mi"),
+    logical(1L)
+  )
+  if (any(has_mi_term)) {
+    cli::cli_abort(
+      "{.fn biv_student} does not support {.fn mi}; missing-predictor models are deferred."
+    )
+  }
+
+  response_entries <- entries[match(c("mu1", "mu2"), dpars)]
+  response_names <- vapply(response_entries, `[[`, character(1L), "response")
+  if (all(response_names %in% names(data))) {
+    responses <- lapply(response_names, function(name) data[[name]])
+    if (
+      any(vapply(
+        responses,
+        function(y) any(is.na(y) | !is.finite(y)),
+        logical(1L)
+      ))
+    ) {
+      cli::cli_abort(
+        "{.fn biv_student} currently requires complete, finite response pairs."
+      )
+    }
+  }
+
+  nu_entry <- if (any(dpars == "nu")) {
+    entries[[which(dpars == "nu")]]
+  } else {
+    default_dpar_entry("nu", quote(1))
+  }
+  gaussian_formula <- formula
+  gaussian_formula$entries <- entries[dpars != "nu"]
+  spec <- drm_build_biv_gaussian_spec(
+    formula = gaussian_formula,
+    data = data,
+    env = env,
+    weights = weights,
+    missing = missing
+  )
+
+  drm_reject_phase1_terms(nu_entry$rhs, "nu")
+  f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+  mf_nu <- stats::model.frame(
+    f_nu,
+    data = spec$data,
+    na.action = stats::na.omit
+  )
+  X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  if (nrow(X_nu) != length(spec$y1)) {
+    cli::cli_abort(
+      "{.fn biv_student} requires complete predictors for its shared {.code nu} formula."
+    )
+  }
+
+  constant_dpars <- c("sigma1", "sigma2", "nu", "rho12")
+  term_list <- c(spec$terms[c("mu1", "mu2", "sigma1", "sigma2", "rho12")],
+    list(nu = stats::terms(mf_nu))
+  )
+  has_offset <- vapply(term_list, function(x) {
+    length(attr(x, "offset")) > 0L
+  }, logical(1L))
+  is_intercept_only <- vapply(
+    term_list[constant_dpars],
+    function(x) {
+      identical(attr(x, "intercept"), 1L) &&
+        length(attr(x, "term.labels")) == 0L
+    },
+    logical(1L)
+  )
+  if (
+    !all(is_intercept_only) ||
+      any(has_offset) ||
+      spec$random$mu$n_re > 0L ||
+      spec$random$sigma$n_re > 0L ||
+      spec$has_known_v ||
+      isTRUE(spec$structured$phylo_mu$has)
+  ) {
+    cli::cli_abort(c(
+      "{.fn biv_student} currently allows fixed-effect {.code mu1}/{.code mu2} only, with intercept-only {.code sigma1}, {.code sigma2}, shared {.code nu}, and {.code rho12}.",
+      "i" = "Random or structured effects, {.fn meta_V}, offsets, and sigma/nu/rho predictors are deferred."
+    ))
+  }
+  if (any(!is.finite(spec$y1)) || any(!is.finite(spec$y2))) {
+    cli::cli_abort(
+      "{.fn biv_student} currently requires complete, finite response pairs."
+    )
+  }
+
+  spec$model_type <- "biv_student"
+  spec$X$nu <- X_nu
+  spec$terms$nu <- stats::terms(mf_nu)
+  spec$model_frame$nu <- mf_nu
+  spec$dpars <- c("mu1", "mu2", "sigma1", "sigma2", "nu", "rho12")
+  beta_nu <- numeric(ncol(X_nu))
+  beta_nu[[1L]] <- log(8)
+  names(beta_nu) <- colnames(X_nu)
+  spec$start$beta_nu <- beta_nu
+  spec$map$beta_nu <- NULL
   spec$tmb_data <- add_covariance_block_tmb_data(make_tmb_data(spec), spec)
   spec
 }
@@ -18945,10 +19130,17 @@ make_tmb_data <- function(spec) {
       }
     ))
   }
-  if (spec$model_type %in% c("biv_gaussian", "biv_lognormal")) {
+  if (
+    spec$model_type %in% c("biv_gaussian", "biv_lognormal", "biv_student")
+  ) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
-      model_type = if (identical(spec$model_type, "biv_lognormal")) 19L else 2L,
+      model_type = switch(
+        spec$model_type,
+        biv_gaussian = 2L,
+        biv_lognormal = 19L,
+        biv_student = 20L
+      ),
       y = numeric(1),
       trials = numeric(1),
       weights = spec$weights,
@@ -18966,7 +19158,11 @@ make_tmb_data <- function(spec) {
       y2 = spec$y2,
       X_mu = dummy_matrix,
       X_sigma = dummy_matrix,
-      X_nu = dummy_matrix,
+      X_nu = if (identical(spec$model_type, "biv_student")) {
+        spec$X$nu
+      } else {
+        dummy_matrix
+      },
       X_zi = dummy_matrix,
       X_sd_mu = spec$random_scale$mu$X,
       has_sd_mu_model = as.integer(spec$random_scale$mu$n_models > 0L),
@@ -19260,6 +19456,13 @@ split_tmb_parameters <- function(par, spec) {
     sigma2 = beta_sigma2,
     rho12 = beta_rho12
   )
+  if (identical(spec$model_type, "biv_student")) {
+    beta_nu <- unname(par$beta_nu)
+    names(beta_nu) <- colnames(spec$X$nu)
+    out <- out[c("mu1", "mu2", "sigma1", "sigma2")]
+    out$nu <- beta_nu
+    out$rho12 <- beta_rho12
+  }
   if (has_modelled_corpair_model(spec)) {
     beta_cor_mu <- unname(par$beta_cor_mu[seq_len(ncol(
       spec$random$mu$cor_model$X

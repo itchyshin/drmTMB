@@ -25,11 +25,14 @@ predictors when \code{type = "link"}.
 }
 \description{
 \code{rho12()} returns the residual response-response correlation from a
-bivariate Gaussian or bivariate lognormal \code{drmTMB} fit. For a bivariate
-Gaussian fit this is a response-scale residual correlation; for
-\code{biv_lognormal()} it is correlation of the log-response residuals, not a
-raw-scale correlation. Use \code{type = "link"} for the Fisher-z-like linear predictor
-whose response transform is \code{0.999999 * tanh(eta)}.
+bivariate Gaussian, bivariate lognormal, or bivariate Student-t \code{drmTMB}
+fit. For a bivariate Gaussian fit this is a response-scale residual
+correlation; for \code{biv_lognormal()} it is correlation of the log-response
+residuals, not a raw-scale correlation. For \code{biv_student()} it is the
+scatter/residual correlation; at finite shared \code{nu}, zero correlation does
+not imply independent margins. Use \code{type = "link"} for the Fisher-z-like
+linear predictor whose response transform is
+\code{0.999999 * tanh(eta)}.
 }
 \examples{
 set.seed(20260525)

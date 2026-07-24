@@ -63,7 +63,8 @@ The corresponding R density call uses standard deviation, as in
 The R builders use descriptive model labels, such as `"gaussian"`,
 `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
 `"poisson"`, `"zi_poisson"`, `"cumulative_logit"`, `"nbinom2"`, `"truncated_nbinom2"`,
-`"hurdle_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling
+`"hurdle_nbinom2"`, `"zi_nbinom2"`, `"biv_gaussian"`,
+`"biv_lognormal"`, and `"biv_student"`. Before calling
 the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
 rejected before they can fall through to a wrong likelihood branch. This table
@@ -74,6 +75,8 @@ is the current routing contract:
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, one q=1 `phylo_interaction()` pair field in `mu`, the first opt-in fixed-effect Gaussian aggregation path, the MD1 observed-response mask for missing Gaussian responses with complete predictors, MD3a/MD3b/MD4 `mi()` missing-predictor routes with fixed-effect, grouped, or explicit intercept-only structured Gaussian covariate models, the MD6a fixed-effect Bernoulli/logit route for one binary missing predictor, the MD6b fixed-effect cumulative-logit route for one ordered categorical missing predictor, the MD6c fixed-effect baseline-category softmax route for one unordered categorical missing predictor, the MD7a fixed-effect beta/quadrature route for one strict proportion missing predictor, the MD7b fixed-effect Poisson finite-sum route for one count missing predictor, the MD7c fixed-effect NB2 finite-sum route for one overdispersed count missing predictor, the MD7d fixed-effect zero-one beta route for one boundary-proportion missing predictor, the MD7e fixed-effect zero-truncated NB2 route for one positive-count missing predictor, the MD7f fixed-effect beta-binomial finite-sum route for one denominator-aware proportion missing predictor, the MD8a fixed-effect lognormal quadrature route for one positive continuous missing predictor, the MD8b fixed-effect Gamma quadrature route for one positive continuous missing predictor, and the MD8c fixed-effect Tweedie route for one non-negative semi-continuous missing predictor with exact zeros in a Gaussian location model. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching slope-only `sigma1`/`sigma2` scale covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept or matching slope-only covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, ordinary q=8 location-scale endpoint covariance blocks with diagnostic smoke, recovery, and staged-start artifact routing, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. The q=8 route is fitted and diagnostic-artifact-ready only; q8 recovery accuracy, intervals, coverage, power, speed, bridge parity, and release claims remain separate evidence gates. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, ordinary `mu` random intercepts or independent numeric slopes, one recovery-grade `mu ~ spatial(1 + x | ...)` route, and exact diagnostic-grade intercept-only `mu ~ spatial(1 | ...)` and `nu ~ phylo(1 | id, tree = tree)` gates. |
+| `19` | `family = biv_lognormal()` | `drm_build_biv_lognormal_spec()` | Exact complete-pair bivariate lognormal models with fixed-effect log locations and intercept-only log-scale residual SDs and log-scale `rho12`; source-tested only. |
+| `20` | `family = biv_student()` | `drm_build_biv_student_spec()` | Exact complete-pair bivariate Student-t models with fixed-effect locations, intercept-only Student-t scales, one intercept-only shared `nu = 2 + exp(eta_nu)`, and intercept-only scatter/residual `rho12`; source-tested only. |
 | `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, fixed-effect residual slant `nu`, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16; `sigma`/`nu` random effects, correlated/labelled `mu` slopes, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are rejected. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale, ordinary `mu` random intercepts or independent numeric slopes, and one Arc 3a q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, ordinary `mu` random intercepts or independent numeric slopes, the existing `relmat()` intercept/one-slope route, and one Arc 3a q1 `phylo()` intercept in `mu`. |
@@ -1684,8 +1687,10 @@ grouped latent effects to `eta_mu_i`, with the same location-scale-shape
 likelihood. One unlabelled `spatial()` intercept or one-slope route on `mu` is
 recovery-grade, and the exact `nu ~ phylo(1 | id, tree = tree)` structured
 intercept is diagnostic-grade. Correlated or labelled `mu` slopes, `sigma`
-random effects, other `nu` random effects, other structured providers, known
-sampling covariance, and bivariate Student-t families remain planned.
+random effects, other `nu` random effects, other structured providers, and
+known sampling covariance remain planned. The separate exact
+`biv_student()` source slice has one shared intercept-only `nu` and does not
+inherit this univariate recovery evidence.
 
 For applied examples, the runnable Student-t question is a sensitivity question:
 do conclusions about the location `mu` and scale `sigma` change when the
@@ -2821,6 +2826,29 @@ raw-scale correlation and not `associate_pairs()`'s conditional latent-normal
 incomplete pairs, non-positive/non-finite values, `meta_V`, random or
 structured effects, sigma/rho predictors, `mi()`, REML, Julia, profiles,
 intervals, coverage, and capability claims.
+
+## Implemented Bivariate Student-t Location-Scale-Coscale
+
+`biv_student()` is an exact elliptical two-response Student-t likelihood with
+one shared degrees-of-freedom parameter:
+
+```text
+[y1_i, y2_i]' ~ t_2([mu1_i, mu2_i]', D R(rho12) D, nu)
+D = diag(sigma1, sigma2)
+nu = 2 + exp(beta_nu)
+rho12 = 0.999999 * tanh(beta_rho12)
+```
+
+`sigma1` and `sigma2` are Student-t scales; their marginal standard deviations
+are `sigma_j * sqrt(nu / (nu - 2))`. Because the two margins share one
+chi-squared scale-mixture draw, finite-`nu` responses remain dependent when
+`rho12 = 0`, although their correlation is zero. The first slice admits
+fixed-effect `mu1`/`mu2` and intercept-only `sigma1`, `sigma2`, `nu`, and
+`rho12`, with complete finite pairs and implicit unit weights. Every interval,
+random/structured, missing-pair, predictor-dependent scale/shape/correlation,
+`meta_V`, `mi()`, REML, Julia, smoke, recovery, and capability route remains
+deferred. The exact equation and symbolic alignment are in
+`234-arc6-4-bivariate-student-contract.md`.
 
 ## Bivariate Gaussian syntax and covariance extensions
 
