@@ -136,3 +136,34 @@ test_that("Bernoulli x Bernoulli diagnostics and fences are explicit", {
     fits$binary_1, fits$binary_1, kernel = latent_normal(), association = ~1
   ))
 })
+
+test_that("Arc 6.5 retained interior seed stays fail-closed at its flat boundary", {
+  set.seed(650016L)
+  n <- 120L
+  x <- stats::rnorm(n)
+  p_1 <- stats::plogis(stats::qlogis(0.2) + 0.35 * x)
+  p_2 <- stats::plogis(stats::qlogis(0.7) - 0.30 * x)
+  z_1 <- stats::rnorm(n)
+  z_2 <- 0.5 * z_1 + sqrt(1 - 0.5^2) * stats::rnorm(n)
+  data <- data.frame(
+    x = x,
+    y_1 = as.integer(z_1 > stats::qnorm(p_1, lower.tail = FALSE)),
+    y_2 = as.integer(z_2 > stats::qnorm(p_2, lower.tail = FALSE))
+  )
+  fit_1 <- drmTMB(bf(mu = y_1 ~ x), binomial(), data)
+  fit_2 <- drmTMB(bf(mu = y_2 ~ x), binomial(), data)
+  association_fit <- associate_pairs(
+    fit_1, fit_2, kernel = latent_normal(), association = ~1
+  )
+
+  expect_identical(association_fit$status, "boundary_unresolved")
+  expect_true(is.na(association_fit$eta))
+  expect_true(association_fit$diagnostics$multistart_disagreement)
+  expect_false(association_fit$diagnostics$convergence_failure)
+  expect_false(association_fit$diagnostics$weak_curvature)
+  expect_false(association_fit$diagnostics$score_failure)
+  expect_equal(
+    as.integer(association_fit$diagnostics$response_patterns$table),
+    c(36L, 0L, 59L, 25L)
+  )
+})
