@@ -106,10 +106,22 @@ class CapabilityLedgerTests(unittest.TestCase):
              for status in ("implemented", "rejected_by_design", "not_implemented")},
             {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
         )
-        # 159 = 158 + mc-0260m, which ENTERED at point_fit_recovery because that is the
-        # tier its existing metafor comparator evidence already supports. This count going
-        # up by one is an insert; the invariant that matters is that no pre-existing cell
-        # moved tier. Never raise this number to absorb a promotion.
+        # Two assertions, because one number cannot express both facts.
+        #
+        # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
+        # must contain exactly 158 point_fit_recovery cells, forever. This is the
+        # load-bearing anti-promotion guard and it is NOT allowed to move. Raising it is
+        # how a promotion gets laundered.
+        frozen = [row for row in model if int(row["source_order"]) <= 676]
+        self.assertEqual(len(frozen), 676)
+        self.assertEqual(
+            sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
+            158,
+        )
+        # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
+        # point_fit_recovery because that is the tier its metafor comparator evidence
+        # already supports. Checking both numbers catches a promotion hidden behind a
+        # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
             159,

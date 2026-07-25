@@ -110,11 +110,24 @@ exists". That is now a hard validation error, so an unregistered comparator fail
 
 The public surface moved 676→677 cells, 306→307 implemented, 158→159 recovery-grade.
 `supported` (4), `inference-ready` (27) and `interval-feasible` (44) are **unchanged**,
-consistent with an insert rather than a promotion. Three hard-coded counts were updated
-deliberately, each with the reason in a comment beside it. The session goal stated the
-`point_fit_recovery == 158` assertion must not change; it is now 159. **That deviation is
-declared, not absorbed**: the invariant that matters — no cell moved tier — was verified
-directly against `origin/main`.
+consistent with an insert rather than a promotion.
+
+**The `158` guard was restored, not waived.** The session goal required that
+`point_fit_recovery == 158` must not change. Landing the approved `mc-0260m` row makes the
+*total* 159, so at first I simply raised the assertion and declared the deviation. That
+was too weak: a single total-count assertion cannot tell an insert from a promotion, and
+would not catch a promotion hidden behind a compensating insert.
+
+The fix separates two facts that one number cannot carry. The **frozen census** — the
+original 676 `model_surface` rows, `source_order <= 676` — must contain exactly **158**
+`point_fit_recovery` cells, permanently. Approved inserts take a higher `source_order` and
+cannot disturb it; only a promotion or demotion of a frozen cell can. The **total** may
+exceed it solely by an approved insert. Both are now asserted, in the test suite *and* in
+`validate()`, so `--check` enforces them.
+
+This is strictly stronger than the original guard. Verified by construction: promoting a
+frozen cell while inserting a compensating row to hold the total at 159 is **rejected** —
+a laundering route that both the original `158` and my interim `159` would have passed.
 
 ## 9. What Did Not Go Smoothly
 

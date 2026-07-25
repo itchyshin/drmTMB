@@ -33,6 +33,11 @@ IMPORTED_MODEL_COUNT = 668
 # is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
 MODEL_SURFACE_COUNT = 677
+# The frozen 2026-07-09 census: the original 676 model_surface rows and the 158 of them
+# at point_fit_recovery. Both are permanent. Approved inserts get a higher source_order,
+# so they never touch these; only a promotion or demotion of a frozen cell can.
+FROZEN_CENSUS_COUNT = 676
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 158
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -568,6 +573,26 @@ def validate(
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
+
+    # The frozen census -- the original 676 model_surface rows -- must keep exactly 158
+    # point_fit_recovery cells. Approved inserts take a higher source_order and so cannot
+    # disturb this number; a PROMOTION of any frozen cell breaks it immediately. Checking
+    # the frozen baseline separately from the total is what stops a promotion being
+    # laundered behind a simultaneous insert. Do not raise 158 to make a failure go away.
+    frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
+    if len(frozen) != FROZEN_CENSUS_COUNT:
+        errors.append(
+            f"frozen census size changed: {len(frozen)} (expected {FROZEN_CENSUS_COUNT})"
+        )
+    frozen_recovery = sum(
+        row["evidence_tier"] == "point_fit_recovery" for row in frozen
+    )
+    if frozen_recovery != FROZEN_CENSUS_POINT_FIT_RECOVERY:
+        errors.append(
+            f"frozen census point_fit_recovery changed: {frozen_recovery} "
+            f"(expected {FROZEN_CENSUS_POINT_FIT_RECOVERY}); a frozen cell was promoted "
+            "or demoted"
+        )
 
     missing = {row["family_route"]: row for row in cells if row["axis"] == "missing_response"}
     for route, row in missing.items():
