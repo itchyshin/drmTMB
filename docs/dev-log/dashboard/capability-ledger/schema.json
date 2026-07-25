@@ -95,6 +95,18 @@
       "none",
       "point_fit_recovery",
       "supported"
+    ],
+    "evidence_class": [
+      "admission_test",
+      "contract_test",
+      "coverage_study",
+      "estimator_diagnostic",
+      "external_comparator",
+      "g2_contract_test",
+      "legacy_model_evidence",
+      "model_recovery",
+      "recovery_test",
+      "rejection_test"
     ]
   },
   "expected_counts": {

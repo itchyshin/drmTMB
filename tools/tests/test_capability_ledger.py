@@ -1944,12 +1944,30 @@ class CapabilityLedgerTests(unittest.TestCase):
         family_map = (
             ROOT / "vignettes/includes/capability-ledger-family-map.md"
         ).read_text(encoding="utf-8")
-        for package in ledger.COMPARATOR_PACKAGES:
+
+        # Forbid the hand-maintained tuple AND every badge actually rendered today. The
+        # tuple alone would miss a future comparator (nlme, coxme) that nobody remembered
+        # to add to it, so derive the second half from the evidence rows themselves.
+        forbidden = set(ledger.COMPARATOR_PACKAGES)
+        forbidden.update(by_cell.values())
+        for token in sorted(forbidden):
             self.assertNotIn(
-                package, family_map,
-                f"{package} leaked into the family map; comparator evidence must stay "
+                token, family_map,
+                f"{token!r} leaked into the family map; comparator evidence must stay "
                 "scoped to individual cells",
             )
+
+    def test_evidence_class_is_a_closed_vocabulary(self):
+        """A typo in evidence_class used to yield zero badges and a green --check."""
+        for row in self.evidence:
+            self.assertIn(
+                row["evidence_class"], ledger.EVIDENCE_CLASSES,
+                f"{row['evidence_id']}: unknown evidence_class",
+            )
+        broken = copy.deepcopy(self.evidence)
+        broken[0]["evidence_class"] = "external_comparitor"
+        with self.assertRaises(SystemExit):
+            ledger.validate(copy.deepcopy(self.cells), broken, copy.deepcopy(self.transitions))
 
 
 if __name__ == "__main__":

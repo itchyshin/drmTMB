@@ -92,6 +92,14 @@ CAPABILITY_STATUSES = {
     "rejected_by_design", "not_implemented", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
+# evidence_class was previously unconstrained, so a typo silently produced zero badges
+# and a green --check. external_comparator is the newest member: agreement with an
+# independent implementation. Adding a class here is deliberate; it is not a free-text field.
+EVIDENCE_CLASSES = {
+    "legacy_model_evidence", "model_recovery", "rejection_test", "recovery_test",
+    "g2_contract_test", "contract_test", "coverage_study", "admission_test",
+    "estimator_diagnostic", "external_comparator",
+}
 EVIDENCE_TIERS = {
     "supported", "inference_ready_with_caveats", "interval_feasible",
     "diagnostic_only", "point_fit_recovery", "none", "miswired", "na",
@@ -198,6 +206,7 @@ def schema_value() -> dict[str, object]:
             "work_status": sorted(WORK_STATUSES),
             "test_gate": sorted(TEST_GATES),
             "evidence_tier": sorted(EVIDENCE_TIERS),
+            "evidence_class": sorted(EVIDENCE_CLASSES),
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
@@ -508,6 +517,11 @@ def validate(
     for row in evidence:
         if row["cell_id"] not in cell_ids:
             errors.append(f"{row['evidence_id']}: unknown cell_id")
+        if row["evidence_class"] not in EVIDENCE_CLASSES:
+            errors.append(
+                f"{row['evidence_id']}: invalid evidence_class "
+                f"{row['evidence_class']!r}"
+            )
         # The frozen 2026-07-09 census contains historical cell names and
         # semicolon-packed provenance as well as paths. Preserve those verbatim
         # during MR-T0; require resolvable paths for every new evidence record.
@@ -1113,13 +1127,32 @@ def external_comparator_by_cell(
     which no external implementation exists at all -- which is exactly the
     credibility-laundering this evidence class is meant to avoid. Agreement with an
     established package licenses the OVERLAP region only, never the frontier.
+
+    Each entry reads "package (strong)" or "package (weak)". The strength is NOT
+    decoration: lme4 and metafor are separate estimation engines, so agreement is a real
+    cross-implementation check, whereas glmmTMB is built on the same TMB/AD stack and
+    outer optimizer as drmTMB, so agreement there is a consistency check between related
+    implementations. Rendering the package name alone made all three look equivalent.
+
+    Package names are matched against run_id and result only, never claim_boundary. The
+    boundary is where a row says what it does NOT cover, so a phrase like "does not extend
+    to glmmTMB" would otherwise badge glmmTMB as a comparator.
     """
     found: dict[str, set[str]] = {}
     for row in evidence:
         if row["evidence_class"] != "external_comparator":
             continue
-        haystack = f"{row['run_id']} {row['result']} {row['claim_boundary']}"
-        names = {pkg for pkg in COMPARATOR_PACKAGES if pkg in haystack}
+        haystack = f"{row['run_id']} {row['result']}"
+        boundary = row["claim_boundary"].upper()
+        if "STRONG INDEPENDENCE" in boundary:
+            strength = "strong"
+        elif "WEAK INDEPENDENCE" in boundary:
+            strength = "weak"
+        else:
+            strength = "unclassified"
+        names = {
+            f"{pkg} ({strength})" for pkg in COMPARATOR_PACKAGES if pkg in haystack
+        }
         found.setdefault(row["cell_id"], set()).update(names)
     return {
         cell_id: ", ".join(sorted(names, key=str.lower))
@@ -1221,6 +1254,7 @@ def surface_html(
 <section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
 <div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
