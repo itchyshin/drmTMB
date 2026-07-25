@@ -93,7 +93,7 @@ not assume it passed.** Re-run and read it yourself (commands below).
 | `tests/testthat/test-simulate-re-form.R` | **new** — the `re.form` contract |
 | `tests/testthat/test-score-consistency.R` | **the proof flip** (see below) |
 | `tests/testthat/test-{biv-gaussian,phylo-gaussian,spatial-gaussian,profile-targets}.R` | `re.form = NA` at unsupported-structure sites |
-| `NEWS.md` | BREAKING entry |
+| `NEWS.md` | entry under `0.6.0` — corrected before first release, NOT a post-release break |
 | `docs/design/243-marginal-simulation-and-re-form.md` | **new** — design record |
 | `docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md` | this doc |
 
@@ -161,8 +161,13 @@ not assume it passed.** Re-run and read it yourself (commands below).
 
 ## Blockers / open questions
 
-- **Version bump?** A1 is a breaking change to a public method against a
-  CRAN-facing 0.6.0. NEWS documents it; the version decision is the owner's.
+- **Version: DECIDED — stays `0.6.0`, no bump.** 0.6.0 was never released or
+  tagged, so it is a release *candidate*; correcting `simulate()` inside the RC
+  is what an RC is for, and the first CRAN submission then ships correct from
+  day one. A 0.7.0 bump was made and then reverted on the owner's call. NEWS
+  frames this as *corrected before first release*, not a post-release break,
+  and warns that bootstrap intervals from an earlier GitHub development build
+  are anticonservative and should be recomputed.
 - **#710.2** still open; the sign-error correction is posted but not applied.
 
 ---

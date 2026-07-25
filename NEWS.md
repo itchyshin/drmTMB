@@ -1,25 +1,28 @@
 # drmTMB 0.6.0
 
-## BREAKING: `simulate()` now redraws random effects (`re.form`)
+## `simulate()` redraws random effects (`re.form`) — corrected before first release
 
-* **`simulate()` previously held random effects frozen at their fitted values.**
-  Every replicate reused the same `û`; only residual noise varied. Simulated
-  data therefore under-represented between-group variability, and — because
-  `confint(method = "bootstrap")` is driven by `simulate()` — **parametric
-  bootstrap intervals for models with random effects were anticonservative
-  (too narrow).**
+* **Earlier `0.6.0` development builds held random effects frozen at their
+  fitted values in `simulate()`.** Every replicate reused the same `û`; only
+  residual noise varied. Simulated data therefore under-represented
+  between-group variability, and — because `confint(method = "bootstrap")` is
+  driven by `simulate()` — **parametric bootstrap intervals for models with
+  random effects were anticonservative (too narrow).** This is corrected here,
+  within `0.6.0`, before the first release: no released version ever shipped
+  the frozen behaviour.
 
-* **`simulate()` gains `re.form`.** `re.form = NULL` (the **new default**) draws
-  a fresh random-effect realisation for every replicate; `re.form = NA`
-  reproduces the previous conditional behaviour exactly. `confint()` exposes the
-  same choice for the parametric bootstrap as `bootstrap_re_form`, also
-  defaulting to marginal.
+* **`simulate()` gains `re.form`.** `re.form = NULL` (the default) draws a fresh
+  random-effect realisation for every replicate; `re.form = NA` reproduces the
+  earlier conditional behaviour. `confint()` exposes the same choice for the
+  parametric bootstrap as `bootstrap_re_form`, also defaulting to marginal.
 
-* **This changes results.** Any code depending on the old behaviour needs
-  `re.form = NA` — and should first ask whether it *wanted* frozen random
-  effects. Reproducing a fitted dataset is a legitimate use; a parametric
-  bootstrap or a posterior predictive check is not, which is why the default
-  changed rather than the argument merely being added.
+* **If you installed a `0.6.0` development build from GitHub, your results
+  change.** Any code depending on the earlier behaviour needs `re.form = NA` —
+  and should first ask whether it *wanted* frozen random effects. Reproducing a
+  fitted dataset is a legitimate use; a parametric bootstrap or a posterior
+  predictive check is not, which is why the default is marginal rather than the
+  argument merely being added. **Bootstrap intervals computed on an earlier
+  development build are anticonservative and should be recomputed.**
 
 * Marginal draws support ordinary grouped intercepts and slopes, intra-block
   correlation (`(1 + x | g)`), labelled cross-parameter correlation
