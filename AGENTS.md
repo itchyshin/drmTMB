@@ -27,6 +27,30 @@ regression using Template Model Builder.
 > `codex/pkgdown-formal-closeout` (1 unpushed, **still needs an owner**), the dirty root
 > checkout on `claude/handover-freshness-0718`, PR #829, PR #836. **Never merge #828.**
 
+> **▶ Prior (2026-07-25, → CLAUDE, CLEANUP LANE CLOSED — SUPERSEDED BY ARC A's CLOSE).**
+> `main` = `eabca4fd`, **green** (`os-matrix` + `ubuntu-latest (release)`). Merged this lane:
+> #832 Arc 8 meta-`V` (`d8888cfa`), #835 next-days overview (`247611c6`), #838 Arc A brief
+> (`1e572197`), #837 anchor hygiene (`eabca4fd`). **Baseline test signal restored:** the seven
+> `test-estimator-surface-conformance.R` failures were *drifted line anchors, none semantic* —
+> every cited `cli_abort()` message still existed verbatim; now 147 expectations / 0 failures
+> with `NOT_CRAN=true`. **NEXT = ultra-plan Arc A: cross-package parity as a new
+> `parity_validated` evidence tier.** Driving finding: `test-comparators.R` is 1,245 lines of
+> lme4/glmmTMB agreement tests, yet only **2 of 306** implemented cells cite comparator
+> evidence — the validation exists and is invisible to the ledger. Load-bearing constraint:
+> **parity licenses the OVERLAP region, not the FRONTIER** (scale-side REs, `sd()` regression,
+> bivariate LSS, phylo residual log-SD have no external comparator and are where mc-0242 /
+> mc-0227 found real bias). metafor 5.0.1 is installed, so `rma.mv` known-`V` parity for
+> `meta_V(V = V)` is the first target with no install. Plan only; Fisher + Rose before anything
+> runs. **START HERE:**
+> [`docs/dev-log/handover/2026-07-25-cleanup-close-arc-a-claude-handover.md`](docs/dev-log/handover/2026-07-25-cleanup-close-arc-a-claude-handover.md).
+> **MULTI-LANE — these are foreign; do not modify, merge, resolve, or clean them from the Arc A
+> lane:** #829 eta/bivariate (conflict is *solely* `docs/dev-log/check-log.md`; its one-line
+> `_pkgdown.yml` change merges clean); #836 the inbound Codex handover (still DRAFT);
+> `codex/arc6-6-bernoulli-nb2-plan` (2 unpushed); `codex/pkgdown-formal-closeout` (1 unpushed,
+> **undeclared by any prior handover — needs an owner**); the dirty root checkout on
+> `claude/handover-freshness-0718` (65 uncommitted AGHQ/REML files, ~170 commits behind `main` —
+> **work from a fresh worktree, never the root checkout**). **Never merge #828.**
+
 > **▶ Prior (2026-07-24, → CODEX, ARC 7 B0 CARRIED OVER).**
 > Arc 6 closed on `main` at `d7359df2` (PRs #826/#827; R-CMD-check and pkgdown
 > green). Arc 7 B0 is a clean-current-main, **negative-evidence integration**
