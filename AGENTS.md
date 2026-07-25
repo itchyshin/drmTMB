@@ -17,12 +17,18 @@ regression using Template Model Builder.
 > gains `bootstrap_re_form`. Marginal draws cover ordinary/correlated/labelled REs and
 > `phylo`/`spatial`/`relmat`/`animal` at `q = 1`; `phylo_interaction`, cross-trait `q > 1`,
 > covariance blocks, `corpair`, and modelled RE scale **abort rather than silently falling back**.
-> **A1 is VERIFIED** (PR #843): CI `ubuntu-latest (release)` **pass** (`R CMD check`,
-> clean checkout, 31m24s) and the local full suite **39722 / 1 / 124** against a 39708/1/124
-> baseline — **no new skips**. The one failure was A1's own: editing `R/profile.R` shifted a
-> conformance anchor (`R/profile.R:867 → :878`), caught by `test-estimator-surface-conformance.R`
-> and repaired here. **CI could not see it** — that test resolves `R/profile.R` from a source
-> checkout — which is exactly why both gates are run, never just one.
+> **A1's evidence, stated against the commit it was measured on** (PR #843). On `5c7b9574`:
+> CI `ubuntu-latest (release)` **pass** (`R CMD check`, clean checkout, 31m24s) and the local
+> full suite **39722 pass / 1 fail / 0 error / 124 skip** against a 39708/1/124 baseline —
+> **no new skips**. That one failure was A1's own: editing `R/profile.R` shifted conformance
+> anchors, caught by `test-estimator-surface-conformance.R`. **Six anchors drifted, not one**
+> (`R/profile.R` `:867→:878`, `:848→:860` ×4, `:3054→:3078`); only the `:867` row was
+> *enforced* (the test checks detail strings solely for `expected == "error"` rows), so the
+> other five were silent. All six are repaired, and **both gates must be re-read on the
+> repaired tip before any merge claim** — the green above does NOT cover it.
+> **CI could not see any of this**: that test resolves `R/profile.R` from a source checkout, so
+> under `R CMD check` it does not evaluate. Arc B was green under `test_dir` and ERRORed under
+> `R CMD check`; A1 is the exact mirror. **Run both gates, always, and on the commit you gate.**
 > Design: `docs/design/243-marginal-simulation-and-re-form.md`. **NEXT = Arc C** (owner-chosen
 > 2026-07-25, defects before capability): **A5** beta `mi()` unclamped `log_sigma`
 > (`drmTMB.cpp:2766` vs `:2888`) · **F5** `sd()` regression `exp()`s an unbounded predicted

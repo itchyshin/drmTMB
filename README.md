@@ -32,9 +32,9 @@ before translating a family-specific precision or dispersion parameter.
 
 ## Experimental release preview
 
-This site is built from the `0.6.0` release candidate (`DESCRIPTION` reads
-`0.6.0`), the version being prepared for a first CRAN submission. It is not yet
-on CRAN or tagged. The package is still
+This site is built from the `0.6.0` development cycle (`DESCRIPTION` reads
+`0.6.0`). **`0.6` is not the CRAN submission — the first CRAN submission is
+`0.7.0`** (decided 2026-07-25). It is not yet on CRAN or tagged. The package is still
 intentionally bounded: use it for the documented one-response and two-response
 workflows, and treat unsupported model classes as roadmap work
 rather than hidden features.

@@ -71,7 +71,9 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   the bounded families) across the *structures that actually work* (fixed
   effects, supported random/structured cases, missing responses, and the new
   distributional-output + adequacy layer, #747/#748). Target a more-capable cut
-  (a `0.6.0`-class release), not the frozen minimal `0.5.0`.
+  (a `0.6.0`-class release), not the frozen minimal `0.5.0`. *(Number superseded
+  2026-07-25: the "more-capable cut" **intent** stands, but `0.6` is the dev cycle
+  and the submission is `0.7.0` — see the note at the top of this section.)*
 - **The frozen `v0.5.0` tag (`095409c0`) and its incoming-pretest-fixed
   resubmission tarball are a FALLBACK, not the plan.** They stay ready (Windows
   win-builder preflight clean; Uwe Ligges confirmed the `NOT_CRAN` test-time
