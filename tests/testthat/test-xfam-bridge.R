@@ -140,6 +140,119 @@ test_that("cross-family sigma on a dispersionless axis is rejected", {
   )
 })
 
+make_xfam_mock_fit <- function(
+  families = c("gaussian", "poisson"),
+  with_sigma1 = FALSE
+) {
+  set.seed(20260724)
+  n <- 12L
+  x <- seq(-1, 1, length.out = n)
+  dat <- data.frame(
+    y1 = 0.4 + 0.7 * x + stats::rnorm(n, sd = 0.1),
+    y2 = stats::rpois(n, exp(0.2 - 0.3 * x)),
+    x = x,
+    z = rev(x)
+  )
+  form <- if (with_sigma1) {
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~z)
+  } else {
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x)
+  }
+  axes <- drmTMB:::drm_julia_xfam_axes(
+    formula = form,
+    data = dat,
+    env = environment(),
+    tags = families
+  )
+  result <- list(
+    rho_latent = 0.2,
+    rho_ci_wald_lower = -0.1,
+    rho_ci_wald_upper = 0.45,
+    rho_ci_prof_lower = -0.08,
+    rho_ci_prof_upper = 0.42,
+    beta1 = c(0.4, 0.7),
+    beta2 = c(0.2, -0.3),
+    sigma_coef1 = if (with_sigma1) c(-0.5, 0.15) else c(-0.5),
+    sigma_coef2 = numeric(),
+    lambda1 = 0.35,
+    lambda2 = -0.25,
+    sigma1 = 0.6,
+    sigma2 = NaN,
+    loglik = -23.75,
+    converged = TRUE
+  )
+  list(
+    fit = drmTMB:::new_drmTMB_julia_xfam(
+      result = result,
+      call = quote(drmTMB()),
+      formula = form,
+      family = c(gaussian(), poisson()),
+      families = families,
+      axes = axes,
+      data = dat
+    ),
+    data = dat
+  )
+}
+
+test_that("legacy cross-family extractors are typed or fail loudly", {
+  mock <- make_xfam_mock_fit()
+  fit <- mock$fit
+
+  expect_s3_class(fit, "drmTMB_julia_xfam")
+  expect_equal(names(fitted(fit)), c("mu1", "mu2"))
+  expect_length(fitted(fit)$mu1, nrow(mock$data))
+  expect_length(fitted(fit)$mu2, nrow(mock$data))
+  expect_equal(
+    residuals(fit)$mu1,
+    mock$data$y1 - fitted(fit)$mu1
+  )
+  expect_equal(
+    residuals(fit)$mu2,
+    mock$data$y2 - fitted(fit)$mu2
+  )
+  expect_equal(predict(fit, dpar = "mu1"), fitted(fit)$mu1)
+  expect_equal(
+    predict(fit, dpar = "mu2", type = "link"),
+    0.2 - 0.3 * mock$data$x
+  )
+  expect_equal(
+    predict(fit, newdata = mock$data, dpar = "mu1"),
+    fitted(fit)$mu1
+  )
+  expect_error(vcov(fit), "did not retain a named coefficient covariance")
+  expect_error(summary(fit, conf.int = TRUE), "did not retain a named coefficient covariance")
+
+  s <- summary(fit)
+  expect_s3_class(s, "summary.drmTMB_julia")
+  expect_equal(s$coefficients$dpar, c("mu1", "mu1", "mu2", "mu2", "sigma1"))
+  expect_true(all(is.na(s$coefficients$std.error)))
+  expect_identical(s$uncertainty$status, "unavailable")
+
+  ll <- logLik(fit)
+  expect_equal(attr(ll, "df"), 7L)
+  expect_equal(AIC(fit), -2 * as.numeric(ll) + 2 * attr(ll, "df"))
+  expect_equal(BIC(fit), -2 * as.numeric(ll) + log(nobs(fit)) * attr(ll, "df"))
+  expect_equal(df.residual(fit), nobs(fit) - attr(ll, "df"))
+  expect_equal(rho_latent(fit), 0.2)
+})
+
+test_that("legacy cross-family extractor contract includes dispersion covariates", {
+  mock <- make_xfam_mock_fit(with_sigma1 = TRUE)
+  fit <- mock$fit
+
+  expect_equal(names(coef(fit, dpar = "sigma1")), c("(Intercept)", "z"))
+  expect_equal(
+    summary(fit)$coefficients$dpar,
+    c("mu1", "mu1", "mu2", "mu2", "sigma1", "sigma1")
+  )
+  expect_equal(attr(logLik(fit), "df"), 8L)
+  expect_error(
+    predict(fit, dpar = "sigma1"),
+    "should be one of"
+  )
+})
+
 test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI", {
   skip_if_not_installed("JuliaCall")
 

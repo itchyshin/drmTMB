@@ -225,6 +225,8 @@ reference:
       - confint.drmTMB_julia
       - predict.drmTMB_julia
       - summary.drmTMB_julia
+      - summary.drmTMB_julia_xfam
+      - vcov.drmTMB_julia_xfam
       - rho_latent
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.

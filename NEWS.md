@@ -1,5 +1,16 @@
 # drmTMB 0.6.0
 
+## Legacy Julia cross-family extractor repair
+
+* Legacy `drmTMB_julia_xfam` objects no longer let `vcov()`, `fitted()`,
+  `residuals()`, stored `predict()`, or `summary()` fall through to absent
+  fields and silently return `NULL` or an empty coefficient table. The bridge
+  now reconstructs per-axis `u = 0` response means and response residuals,
+  reports point-only coefficients plus ML information criteria, and clearly
+  errors for unavailable covariance/Wald inference. This is a compatibility
+  repair only: Julia cross-family fitting remains deferred, `rho_latent` is
+  not `rho12`, and no cross-family inference claim is added.
+
 ## Unreleased beta association-gradient extension
 
 * The frozen-margin literal-Bernoulli × ordinary-NB2 beta route now also

@@ -28,6 +28,7 @@ before translating a family-specific precision or dispersion parameter.
   [bivariate Gaussian models with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html),
   [meta-analysis](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html), and
   [`check_drm()`](https://itchyshin.github.io/drmTMB/reference/check_drm.html).
+- **Check a boundary before relying on it:** [Capabilities and limits](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
 
 ## Experimental release preview
 

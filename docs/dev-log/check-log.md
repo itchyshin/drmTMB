@@ -2,6 +2,27 @@
 
 Record meaningful development checks here.
 
+## 2026-07-24: Arc 9 legacy Julia cross-family extractor repair
+
+- `drmTMB_julia_xfam` no longer inherits extractors that read absent fields and
+  quietly yield `NULL`. It now reconstructs response-scale `mu1`/`mu2` means at
+  latent `u = 0`, response residuals, ML `df`/AIC/BIC, and a point-only summary;
+  `vcov()` and Wald-summary requests error explicitly because no named
+  covariance payload is available. `rho_latent` remains distinct from `rho12`.
+- `devtools::document()` and focused `test-xfam-bridge.R`: PASS (the four live
+  Julia tests skip when no compatible cross-family engine is configured).
+  `R CMD INSTALL --no-multiarch --with-keep.source .`: PASS. `pkgdown::check_pkgdown()`:
+  PASS after adding the two xfam-specific generated topics to `_pkgdown.yml`.
+- `devtools::test(reporter = "summary")`: the Arc 9 xfam tests pass; the suite
+  has seven unrelated baseline failures in `test-estimator-surface-conformance.R`.
+  They reproduce at untouched `origin/main` `988b2b38` and are stale line
+  anchors in the REML conformance TSV, not this branch's code.
+- Live legacy bridge attempt used disposable DRM.jl checkout `66514a0`. Julia
+  project instantiation completed, but JuliaCall then hit an external
+  `LogExpFunctions` / `InverseFunctions` extension incompatibility. This is not
+  counted as live extractor evidence; pure-R constructor tests are the retained
+  evidence for this compatibility repair.
+
 ## 2026-07-24: Arc 6 installed-package test-path repair
 
 - The first merged Arc 6 main check failed only because two new tests assumed
