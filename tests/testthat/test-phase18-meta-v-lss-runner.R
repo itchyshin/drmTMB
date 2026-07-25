@@ -29,8 +29,19 @@ test_that("Arc 8 dense ladder retains the historical failure fixture", {
   historical <- conditions[conditions$design_role == "dense_k12_historical_failure_control", ]
   expect_equal(historical$n_study, 12L)
   expect_equal(historical$sampling_rho, 0.25)
+  expect_equal(historical$source_seed, 1592943833L)
   expect_true(all(conditions$layer == "LSS"))
   expect_true(all(conditions$known_v_type == "dense"))
+})
+
+test_that("Arc 8 registry restores the historical dense-control seed", {
+  source_phase18_meta_v_lss_runner()
+  registry <- phase18_cell_registry(
+    "meta_v_lss_arc8", phase18_meta_v_lss_arc8_conditions()[1L, , drop = FALSE],
+    1L, 2026072508L
+  )
+  out <- phase18_meta_v_lss_apply_source_seed(registry, 1L)
+  expect_equal(out$seeds$seed, 1592943833L)
 })
 
 test_that("Arc 7B all-attempt summary keeps failed fits in its denominator", {
@@ -84,4 +95,19 @@ test_that("Arc 8 bootstrap completion is target-wise and fail-closed", {
   expect_equal(out$bootstrap_completion_rate, c(190 / 199, 188 / 199))
   expect_identical(out$bootstrap_complete, c(TRUE, FALSE))
   expect_error(phase18_meta_v_lss_bootstrap_completion(interval, 0), "minimum_rate")
+})
+
+test_that("Arc 8 runner exposes bootstrap accounting for both direct-SD targets", {
+  source_phase18_meta_v_lss_runner()
+  conditions <- phase18_meta_v_lss_arc8_conditions()[2L, , drop = FALSE]
+  run <- phase18_run_meta_v_lss_arc8(
+    conditions = conditions, n_rep = 1L, master_seed = 2026072508L,
+    bootstrap_R = 2L
+  )
+  direct <- run$summary[grepl("^sd:study:", run$summary$parameter), , drop = FALSE]
+  expect_equal(nrow(direct), 2L)
+  expect_true(all(direct$bootstrap_requested == 2L))
+  expect_true(all(direct$bootstrap_finite_success +
+    (direct$bootstrap_requested - direct$bootstrap_finite_success) == 2L))
+  expect_true(all(!is.na(direct$bootstrap_status)))
 })

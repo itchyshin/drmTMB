@@ -33,6 +33,7 @@ phase18_meta_v_lss_arc8_conditions <- function() {
     n_rep_per_effect = 2L,
     known_v_type = "dense",
     sampling_rho = c(0.25, 0.20, 0.20, 0.20),
+    source_seed = c(1592943833L, NA_integer_, NA_integer_, NA_integer_),
     stringsAsFactors = FALSE
   )
 }
@@ -164,6 +165,66 @@ phase18_meta_v_lss_add_profile_intervals <- function(summary, fit) {
   summary
 }
 
+phase18_summarise_meta_v_lss_arc8_fit <- function(
+  fit, truth, cell_id, replicate, elapsed, warnings,
+  bootstrap_R = 199L, bootstrap_seed = NULL,
+  bootstrap_parallel = "none", bootstrap_workers = NULL
+) {
+  layer <- attr(truth, "truth", exact = TRUE)$layer
+  out <- phase18_summarise_meta_v_lss_fit(
+    fit, truth, cell_id, replicate, elapsed, warnings,
+    layer_estimates = phase18_meta_v_lss_layer_estimates(fit, layer)
+  )
+  out$bootstrap_requested <- NA_integer_
+  out$bootstrap_finite_success <- NA_integer_
+  out$bootstrap_completion_rate <- NA_real_
+  out$bootstrap_status <- NA_character_
+  out$bootstrap_complete <- NA
+  targets <- c(
+    "fixef:sd(study):(Intercept)", "fixef:sd(study):z_study"
+  )
+  rows <- match(c("sd:study:(Intercept)", "sd:study:z_study"), out$parameter)
+  for (i in seq_along(targets)) {
+    profile <- tryCatch(
+      stats::confint(
+        fit, parm = targets[[i]], method = "profile",
+        profile_engine = "tmbprofile", profile_precision = "fast"
+      ), error = function(e) e
+    )
+    out$interval_method[rows[[i]]] <- "profile_lr"
+    if (inherits(profile, "error") || nrow(profile) != 1L) {
+      out$interval_status[rows[[i]]] <- "failed"
+      next
+    }
+    out$conf.low[rows[[i]]] <- profile$lower[[1L]]
+    out$conf.high[rows[[i]]] <- profile$upper[[1L]]
+    out$conf.status[rows[[i]]] <- profile$conf.status[[1L]]
+    out$interval_status[rows[[i]]] <- if (
+      identical(profile$conf.status[[1L]], "profile") &&
+      is.finite(profile$lower[[1L]]) && is.finite(profile$upper[[1L]])) "ok" else "incomplete"
+  }
+  interval <- tryCatch(
+    stats::confint(
+      fit, parm = targets, method = "bootstrap", R = bootstrap_R,
+      seed = bootstrap_seed, parallel = bootstrap_parallel,
+      workers = bootstrap_workers
+    ),
+    error = function(e) e
+  )
+  if (inherits(interval, "error")) {
+    out$bootstrap_status[rows] <- "bootstrap_error"
+    return(out)
+  }
+  completion <- phase18_meta_v_lss_bootstrap_completion(interval)
+  matched <- match(targets, completion$parm)
+  out$bootstrap_requested[rows] <- completion$bootstrap_requested[matched]
+  out$bootstrap_finite_success[rows] <- completion$bootstrap_finite_success[matched]
+  out$bootstrap_completion_rate[rows] <- completion$bootstrap_completion_rate[matched]
+  out$bootstrap_status[rows] <- completion$bootstrap_status[matched]
+  out$bootstrap_complete[rows] <- completion$bootstrap_complete[matched]
+  out
+}
+
 phase18_meta_v_lss_bootstrap_completion <- function(
   interval,
   minimum_rate = 0.95
@@ -224,6 +285,54 @@ phase18_run_meta_v_lss_smoke <- function(
   )
 }
 
+phase18_run_meta_v_lss_arc8 <- function(
+  conditions = phase18_meta_v_lss_arc8_conditions(), n_rep = 1L,
+  master_seed = 2026072508L, bootstrap_R = 199L,
+  bootstrap_parallel = "none", bootstrap_workers = NULL,
+  result_dir = NULL, overwrite = FALSE, cores = 1L, backend = "none"
+) {
+  assert_positive_whole_number(n_rep, "n_rep")
+  assert_positive_whole_number(bootstrap_R, "bootstrap_R")
+  registry <- phase18_cell_registry(
+    surface = "meta_v_lss_arc8", conditions = conditions, n_rep = n_rep,
+    master_seed = master_seed
+  )
+  registry <- phase18_meta_v_lss_apply_source_seed(registry, n_rep)
+  results <- phase18_run_replicates(
+    cells = registry$cells, seeds = registry$seeds,
+    dgp_fun = phase18_dgp_meta_v_lss_cell, fit_fun = phase18_fit_meta_v_lss,
+    summarise_fun_factory = function(cell, seed_row) {
+      function(fit, truth, cell_id, replicate, elapsed, warnings) {
+        phase18_summarise_meta_v_lss_arc8_fit(
+          fit, truth, cell_id, replicate, elapsed, warnings,
+          bootstrap_R = bootstrap_R,
+          bootstrap_seed = seed_row$seed[[1L]] + 100000L,
+          bootstrap_parallel = bootstrap_parallel,
+          bootstrap_workers = bootstrap_workers
+        )
+      }
+    },
+    result_dir = result_dir, overwrite = overwrite, cores = cores, backend = backend
+  )
+  summaries <- phase18_result_summaries(results)
+  all_attempt <- phase18_meta_v_lss_all_attempt_summary(results, registry$cells, summaries)
+  list(surface = "meta_v_lss_arc8", registry = registry, results = results,
+    manifest = phase18_result_manifest(results), summary = all_attempt,
+    profile_reduction = phase18_meta_v_lss_all_attempt_profile_reduction(all_attempt))
+}
+
+phase18_meta_v_lss_apply_source_seed <- function(registry, n_rep) {
+  if ("source_seed" %in% names(registry$cells)) {
+    if (n_rep != 1L && any(!is.na(registry$cells$source_seed))) {
+      stop("A source-pinned Arc 8 control requires `n_rep = 1`.", call. = FALSE)
+    }
+    source_seed <- registry$cells$source_seed[registry$seeds$cell_index]
+    replace <- !is.na(source_seed)
+    registry$seeds$seed[replace] <- source_seed[replace]
+  }
+  registry
+}
+
 phase18_meta_v_lss_all_attempt_summary <- function(results, cells, summaries) {
   if (!is.list(results) || !is.data.frame(cells)) {
     stop("`results` and `cells` must be simulation objects.", call. = FALSE)
@@ -249,6 +358,9 @@ phase18_meta_v_lss_all_attempt_summary <- function(results, cells, summaries) {
       conf.low = NA_real_, conf.high = NA_real_, interval_method = NA_character_,
       interval_status = ifelse(profile_eligible, "outer_fit_failed", "not_requested"),
       conf.status = NA_character_,
+      bootstrap_requested = NA_integer_, bootstrap_finite_success = NA_integer_,
+      bootstrap_completion_rate = NA_real_, bootstrap_status = NA_character_,
+      bootstrap_complete = NA,
       interval_message = ifelse(
         profile_eligible, "outer fit did not produce a profile interval", NA_character_
       ), result_status = result$status,
