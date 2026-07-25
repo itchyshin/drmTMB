@@ -91522,3 +91522,20 @@ Shinichi grants a separate Gate A compute approval.
   each target. These are engineering-feasibility fixtures with different seeds
   from the retained Arc 7B failure control; they do not replace that failure,
   establish calibration, or authorize remote compute.
+
+## 2026-07-24: Arc 8 target-wise gate and local HOLD
+
+- The Arc 8 runner now source-pins the historical dense K = 12 failure control,
+  labels its all-attempt rows `meta_v_lss_arc8`, and returns a target-wise gate.
+  Each direct-SD coefficient must have a finite estimate-containing full-profile
+  interval and complete bootstrap refits; a cell passes only if both do.
+- Bootstrap output now retains every target/refit diagnostic row alongside the
+  aggregate completion fields. Focused runner tests passed, including the
+  source-seed override, four diagnostic rows for a two-refit/two-target smoke,
+  and the fail-closed combined gate.
+- Fisher's task review and Rose's audit both withhold a compute request. The finite engineering
+  ladder remains manual pre-integration evidence, while the historical control
+  has not been freshly run through the committed Arc 8 runner. No Totoro/DRAC,
+  recovery, coverage, tier promotion, public documentation change, or work on
+  PR #828 occurred. See
+  `docs/dev-log/after-task/2026-07-24-arc8-meta-v-finite-intervals.md`.

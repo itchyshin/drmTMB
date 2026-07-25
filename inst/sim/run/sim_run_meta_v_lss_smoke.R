@@ -1,5 +1,5 @@
-# Local and DRAC-ready smoke runner for the Arc 7B known-V heterogeneity
-# ladder. This is evidence plumbing, not a status promoter. The caller must
+# Local smoke runner for the Arc 7B/Arc 8 known-V heterogeneity ladder. This
+# is evidence plumbing, not a status promoter. The caller must
 # preserve every result object and use `phase18_meta_v_lss_all_attempt_summary()`
 # rather than filtering to converged fits.
 
@@ -199,9 +199,13 @@ phase18_summarise_meta_v_lss_arc8_fit <- function(
     out$conf.low[rows[[i]]] <- profile$lower[[1L]]
     out$conf.high[rows[[i]]] <- profile$upper[[1L]]
     out$conf.status[rows[[i]]] <- profile$conf.status[[1L]]
+    contains_estimate <- is.finite(out$estimate[rows[[i]]]) &&
+      profile$lower[[1L]] <= out$estimate[rows[[i]]] &&
+      out$estimate[rows[[i]]] <= profile$upper[[1L]]
     out$interval_status[rows[[i]]] <- if (
       identical(profile$conf.status[[1L]], "profile") &&
-      is.finite(profile$lower[[1L]]) && is.finite(profile$upper[[1L]])) "ok" else "incomplete"
+      is.finite(profile$lower[[1L]]) && is.finite(profile$upper[[1L]]) &&
+      contains_estimate) "ok" else "incomplete"
   }
   interval <- tryCatch(
     stats::confint(
@@ -222,6 +226,9 @@ phase18_summarise_meta_v_lss_arc8_fit <- function(
   out$bootstrap_completion_rate[rows] <- completion$bootstrap_completion_rate[matched]
   out$bootstrap_status[rows] <- completion$bootstrap_status[matched]
   out$bootstrap_complete[rows] <- completion$bootstrap_complete[matched]
+  attr(out, "arc8_bootstrap_diagnostics") <- attr(
+    interval, "bootstrap.diagnostics", exact = TRUE
+  )
   out
 }
 
@@ -275,7 +282,9 @@ phase18_run_meta_v_lss_smoke <- function(
     cores = cores, backend = backend
   )
   summaries <- phase18_result_summaries(results)
-  all_attempt <- phase18_meta_v_lss_all_attempt_summary(results, registry$cells, summaries)
+  all_attempt <- phase18_meta_v_lss_all_attempt_summary(
+    results, registry$cells, summaries, surface = "meta_v_lss"
+  )
   list(
     surface = "meta_v_lss", registry = registry,
     parallel = attr(results, "phase18_parallel", exact = TRUE),
@@ -315,10 +324,15 @@ phase18_run_meta_v_lss_arc8 <- function(
     result_dir = result_dir, overwrite = overwrite, cores = cores, backend = backend
   )
   summaries <- phase18_result_summaries(results)
-  all_attempt <- phase18_meta_v_lss_all_attempt_summary(results, registry$cells, summaries)
+  all_attempt <- phase18_meta_v_lss_all_attempt_summary(
+    results, registry$cells, summaries, surface = "meta_v_lss_arc8"
+  )
+  gate <- phase18_meta_v_lss_arc8_gate(all_attempt)
   list(surface = "meta_v_lss_arc8", registry = registry, results = results,
     manifest = phase18_result_manifest(results), summary = all_attempt,
-    profile_reduction = phase18_meta_v_lss_all_attempt_profile_reduction(all_attempt))
+    profile_reduction = phase18_meta_v_lss_all_attempt_profile_reduction(all_attempt),
+    bootstrap_diagnostics = phase18_meta_v_lss_arc8_bootstrap_diagnostics(results),
+    gate = gate)
 }
 
 phase18_meta_v_lss_apply_source_seed <- function(registry, n_rep) {
@@ -333,7 +347,9 @@ phase18_meta_v_lss_apply_source_seed <- function(registry, n_rep) {
   registry
 }
 
-phase18_meta_v_lss_all_attempt_summary <- function(results, cells, summaries) {
+phase18_meta_v_lss_all_attempt_summary <- function(
+  results, cells, summaries, surface = "meta_v_lss"
+) {
   if (!is.list(results) || !is.data.frame(cells)) {
     stop("`results` and `cells` must be simulation objects.", call. = FALSE)
   }
@@ -346,7 +362,7 @@ phase18_meta_v_lss_all_attempt_summary <- function(results, cells, summaries) {
     profile_eligible <- template$estimable_by_formula &
       template$parameter != "sd:sigma_study"
     data.frame(
-      surface = "meta_v_lss", layer = cell$layer[[1L]],
+      surface = surface, layer = cell$layer[[1L]],
       known_v_type = cell$known_v_type[[1L]], design_role = cell$design_role[[1L]],
       cell_id = result$cell_id, replicate = result$replicate, seed = result$seed,
       parameter = template$parameter, component = template$component,
@@ -376,6 +392,56 @@ phase18_meta_v_lss_all_attempt_summary <- function(results, cells, summaries) {
   replace <- which(!is.na(matched))
   shared <- setdiff(intersect(names(out), names(summaries)), c("cell_id", "replicate", "parameter", "seed"))
   for (name in shared) out[[name]][replace] <- summaries[[name]][matched[replace]]
+  out
+}
+
+phase18_meta_v_lss_arc8_bootstrap_diagnostics <- function(results) {
+  rows <- lapply(results, function(result) {
+    draws <- attr(result$summary, "arc8_bootstrap_diagnostics", exact = TRUE)
+    if (!is.data.frame(draws) || nrow(draws) == 0L) return(NULL)
+    draws$cell_id <- result$cell_id
+    draws$replicate <- result$replicate
+    draws$outer_seed <- result$seed
+    draws
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (length(rows) == 0L) return(data.frame())
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_meta_v_lss_arc8_gate <- function(summary) {
+  required <- c(
+    "surface", "cell_id", "replicate", "parameter", "estimate", "conf.low",
+    "conf.high", "interval_status", "bootstrap_complete", "result_status",
+    "design_role"
+  )
+  missing <- setdiff(required, names(summary))
+  if (length(missing) > 0L) {
+    stop("`summary` is missing ", paste(missing, collapse = ", "), ".", call. = FALSE)
+  }
+  targets <- c("sd:study:(Intercept)", "sd:study:z_study")
+  out <- summary[summary$parameter %in% targets, , drop = FALSE]
+  complete_profile <- out$result_status == "ok" & out$interval_status == "ok" &
+    is.finite(out$estimate) & is.finite(out$conf.low) & is.finite(out$conf.high) &
+    out$conf.low <= out$estimate & out$estimate <= out$conf.high
+  out$profile_complete <- complete_profile
+  out$target_complete <- complete_profile & !is.na(out$bootstrap_complete) &
+    out$bootstrap_complete
+  group <- interaction(out$cell_id, out$replicate, drop = TRUE, lex.order = TRUE)
+  is_historical_control <- out$design_role == "dense_k12_historical_failure_control"
+  out$arc8_complete <- as.logical(ave(
+    out$target_complete, group, FUN = function(x) all(x) && length(x) == length(targets)
+  ))
+  out$expected_control_reproduced <- as.logical(ave(
+    out$result_status == "ok" & out$interval_status == "incomplete",
+    group, FUN = function(x) all(x) && length(x) == length(targets)
+  ))
+  out$gate_role <- ifelse(is_historical_control, "negative_control", "interior_feasibility")
+  out$gate_pass <- ifelse(
+    is_historical_control, out$expected_control_reproduced, out$arc8_complete
+  )
   out
 }
 

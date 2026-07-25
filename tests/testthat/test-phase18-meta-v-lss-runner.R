@@ -110,4 +110,49 @@ test_that("Arc 8 runner exposes bootstrap accounting for both direct-SD targets"
   expect_true(all(direct$bootstrap_finite_success +
     (direct$bootstrap_requested - direct$bootstrap_finite_success) == 2L))
   expect_true(all(!is.na(direct$bootstrap_status)))
+  expect_true(all(run$summary$surface == "meta_v_lss_arc8"))
+  expect_equal(nrow(run$bootstrap_diagnostics), 4L)
+  expect_true(all(c("outer_seed", "refit_status", "draw_used") %in%
+    names(run$bootstrap_diagnostics)))
+  expect_equal(nrow(run$gate), 2L)
+  expect_true(all(run$gate$profile_complete ==
+    (run$gate$interval_status == "ok")))
+})
+
+test_that("Arc 8 gate requires both target-wise profile containment and bootstrap completion", {
+  source_phase18_meta_v_lss_runner()
+  summary <- data.frame(
+    surface = "meta_v_lss_arc8", cell_id = "cell", replicate = 1L,
+    design_role = "dense_k36_interior",
+    parameter = c("sd:study:(Intercept)", "sd:study:z_study"),
+    estimate = c(-0.6, 0.2), conf.low = c(-1, -0.1), conf.high = c(-0.2, 0.5),
+    interval_status = "ok", bootstrap_complete = c(TRUE, FALSE),
+    result_status = "ok", stringsAsFactors = FALSE
+  )
+  gate <- phase18_meta_v_lss_arc8_gate(summary)
+  expect_true(all(gate$profile_complete))
+  expect_identical(gate$target_complete, c(TRUE, FALSE))
+  expect_false(any(gate$arc8_complete))
+  expect_true(all(gate$gate_role == "interior_feasibility"))
+  expect_false(any(gate$gate_pass))
+  summary$estimate[[2L]] <- 0.8
+  gate <- phase18_meta_v_lss_arc8_gate(summary)
+  expect_false(gate$profile_complete[[2L]])
+})
+
+test_that("Arc 8 historical control passes only by retaining the expected failure", {
+  source_phase18_meta_v_lss_runner()
+  summary <- data.frame(
+    surface = "meta_v_lss_arc8", cell_id = "control", replicate = 1L,
+    design_role = "dense_k12_historical_failure_control",
+    parameter = c("sd:study:(Intercept)", "sd:study:z_study"),
+    estimate = c(-0.6, 0.2), conf.low = NA_real_, conf.high = NA_real_,
+    interval_status = "incomplete", bootstrap_complete = FALSE,
+    result_status = "ok", stringsAsFactors = FALSE
+  )
+  gate <- phase18_meta_v_lss_arc8_gate(summary)
+  expect_false(any(gate$arc8_complete))
+  expect_true(all(gate$expected_control_reproduced))
+  expect_true(all(gate$gate_role == "negative_control"))
+  expect_true(all(gate$gate_pass))
 })
