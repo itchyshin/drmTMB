@@ -131,6 +131,19 @@ regression using Template Model Builder.
 > `claude/handover-freshness-0718` (65 uncommitted AGHQ/REML files, ~170 commits behind `main` —
 > **work from a fresh worktree, never the root checkout**). **Never merge #828.**
 
+> **▶ Prior (2026-07-25, → CLAUDE, MULTI-LANE CLEANUP TRANSFER — SUPERSEDED).**
+> `main` is `e4f392f3` after documentation-only eta handoff PR #831; Julia
+> xfam extractor PR #833 is also merged at `2e5e224a`. The active carried-over
+> work is deliberately split: Arc 8 meta-`V` gate PR #832 has its focused
+> surface-label repair pushed (`a19911fe`) and awaits only the running Ubuntu
+> release check; the next-days overview is draft PR #835 and also awaits its
+> Ubuntu check; PR #829 is conflict-dirty and belongs to the separate bivariate
+> lane. PR #828 must not be merged. Two foreign local lanes are declared, not
+> repaired: dirty `claude/handover-freshness-0718` and the two unpushed
+> `codex/arc6-6-bernoulli-nb2-plan` commits. **START HERE:**
+> [`docs/dev-log/handover/2026-07-25-claude-handover.md`](docs/dev-log/handover/2026-07-25-claude-handover.md),
+> which carries every lane, exact merge conditions, and the next-days sequence.
+
 > **▶ Prior (2026-07-24, → CODEX, ARC 7 B0 CARRIED OVER).**
 > Arc 6 closed on `main` at `d7359df2` (PRs #826/#827; R-CMD-check and pkgdown
 > green). Arc 7 B0 is a clean-current-main, **negative-evidence integration**
