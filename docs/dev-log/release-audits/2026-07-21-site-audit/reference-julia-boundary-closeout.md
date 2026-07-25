@@ -32,4 +32,6 @@ cross-family capability. The cross-family runnable example was removed.
 
 This documentation repair does not remove the compatibility implementation,
 test a Julia fit, validate a legacy interval, or claim current Julia parity.
-The remaining Rd batches still require their topic-by-topic content audit.
+At this batch's initial closeout the remaining Rd batches still required their
+topic-by-topic audit. That audit is now complete; see
+`reference-batches-ledger.md` for the full eight-batch disposition.

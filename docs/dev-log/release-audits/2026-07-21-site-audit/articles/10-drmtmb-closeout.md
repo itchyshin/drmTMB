@@ -1,8 +1,8 @@
 # Core drmTMB article audit closeout
 
-**Status:** repaired and rendered 2026-07-21  
-**Source:** `vignettes/drmTMB.Rmd`  
-**Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`  
+**Status:** repaired and rendered 2026-07-21
+**Source:** `vignettes/drmTMB.Rmd`
+**Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`
 **Claim authority:** `docs/dev-log/dashboard/capability-ledger/cells.tsv`,
 including `mc-0181` and the ledger’s explicit absence of a `meta_V()` cell.
 

@@ -91367,6 +91367,18 @@ Shinichi grants a separate Gate A compute approval.
   constant `rho12` profile interval certified despite no coverage evidence.
   It is registered in the audit findings and was not edited.
 
+## 2026-07-22: pkgdown reader-surface formal closeout
+
+- Reconciled the transferred and repaired bivariate-coscale P1, the initial
+  35-source inventory, the eight explicit Rd batches, and the 98 generated
+  reference pages as 69 canonical routes plus 29 alias redirects.
+- Fresh clean-worktree gates: `tools::checkRd()` for 68 topics passed;
+  `pkgdown::check_pkgdown()` passed before and after `pkgdown::build_site()`;
+  the full render produced 36 article HTML routes, 98 reference HTML files,
+  sitemap, and search index; `git diff --check` passed.
+- Fresh Fisher, Rose, and independent-verifier D-43 review returned 3/3 READY.
+  This is reader-surface assurance only: no CRAN, deployment, platform,
+  simulation, Julia-fit, or capability-promotion claim is made.
 ## 2026-07-23: Arc 6.1 Gaussian × Bernoulli frozen-margin association
 
 - Added the post-fit `associate_pairs()` development object with explicit

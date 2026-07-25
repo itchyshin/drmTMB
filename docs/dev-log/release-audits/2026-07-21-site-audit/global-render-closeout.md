@@ -15,7 +15,9 @@ state halted/deferred future support after one final wording repair in
 `julia-engine`. Historical NEWS entries are retained as historical changelog
 records, not rewritten as current availability claims.
 
-The sole remaining current-page false certification is owner-held:
-`vignettes/bivariate-coscale.Rmd:425` and its generated route call a constant
-`rho12` profile interval “certified.” It is recorded in
-`owner-held-findings.md` for Shinichi and is excluded from this Codex lane.
+At the first-pass render this record identified an owner-held false
+certification in `bivariate-coscale`. Ownership subsequently transferred to
+Codex, and the second pass repaired the source: constant and predictor-dependent
+`rho12` intervals are computed/reportable but not coverage-certified. The final
+disposition is recorded in `owner-held-findings.md` and
+`second-pass-closeout.md`.

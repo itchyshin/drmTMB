@@ -21,5 +21,9 @@ the index; it labels the retained Julia group “Future Julia support.” The
 global render and `pkgdown::check_pkgdown()` are recorded in
 `global-render-closeout.md`.
 
+The topic-by-topic eight-batch route ledger and final canonical-versus-alias
+route reconciliation are recorded in `reference-batches-ledger.md` and
+`final-validation-receipt.md`.
+
 This batch closure does not certify interval coverage, add an export, alter an
 estimator, or modify the owner-held `bivariate-coscale` page.

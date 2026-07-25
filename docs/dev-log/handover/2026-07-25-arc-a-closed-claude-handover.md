@@ -54,7 +54,7 @@ pattern but cannot tell you what is hot. Do not let it emit performance claims w
 | --- | --- | --- | --- | --- |
 | `claude/arc-a-external-comparator-evidence` (11 commits) | yes | **yes** | opened | **LANDED to origin**; merge after CI is green |
 | `codex/arc6-6-bernoulli-nb2-plan` | yes | **no (2 commits)** | none | **CARRIED-OVER FOREIGN.** Not this lane's work. Resume only on that branch with explicit scope confirmation: `git checkout codex/arc6-6-bernoulli-nb2-plan` |
-| `codex/pkgdown-formal-closeout` | yes | **no (1 commit)** | none | **CARRIED-OVER FOREIGN.** `c018908a` "docs: close pkgdown reader-surface audit". Undeclared by any prior handover and still **needs an owner decision**: `git checkout codex/pkgdown-formal-closeout` |
+| `codex/pkgdown-formal-closeout` | yes | **yes** | **#841 open** | **LANDED — no longer orphaned.** `c018908a` "docs: close pkgdown reader-surface audit", pushed 2026-07-25 with `origin/main` merged in. Its one conflict was `docs/dev-log/check-log.md`, resolved as a **union** with no log content dropped from either side. Touches `docs/dev-log/` only. Merge when CI is green. |
 | root checkout `claude/handover-freshness-0718` | partial | no | none | **CARRIED-OVER FOREIGN.** ~65 uncommitted AGHQ/REML files, far behind `main`. **Do not touch.** Resume only in its own checkout. |
 | PR #829, PR #836 (draft) | — | — | open | **FOREIGN.** Other owners. |
 | PR #828 | — | — | open | **NEVER MERGE.** Standing instruction. |
@@ -113,7 +113,7 @@ Rose's first pass was NOT-DONE with six blocking findings; all were fixed.
 1. Merge the Arc A PR once CI is green.
 2. **Start the C++ / numerical audit**, correctness-first, profiler required for any
    efficiency claim.
-3. Decide an owner for `codex/pkgdown-formal-closeout` (1 unpushed commit, still orphaned).
+3. Merge PR #841 (the pkgdown closeout) once CI is green. It is no longer orphaned.
 4. Backlog, not urgent: 14 parity-eligible cells with no comparator evidence; `mc-0262`'s
    M=64 objection; whether the 12-column census should carry `route_modifier` (46
    duplicate structural keys, 45 of them pre-dating this branch).

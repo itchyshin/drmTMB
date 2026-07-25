@@ -80,11 +80,13 @@ detached during rendering; a second session was monitored to successful exit.
 
 ## 10. Known Residuals
 
-`vignettes/bivariate-coscale.Rmd:425` still calls a constant `rho12` profile
-interval certified. It is not part of this Codex lane and must be repaired by
-Shinichi; its correct replacement preserves computability while removing the
-unsupported coverage certification. No deployment, push, merge, CRAN check,
-or simulation campaign was performed.
+At the initial audit closeout, `vignettes/bivariate-coscale.Rmd:425` still
+called a constant `rho12` profile interval certified. Ownership subsequently
+transferred to Codex and the second pass repaired that P1: both constant and
+predictor-dependent intervals remain computed/reportable but are not
+coverage-certified. See `owner-held-findings.md` and `second-pass-closeout.md`.
+No deployment, push, merge, CRAN check, or simulation campaign was performed by
+the initial repair pass.
 
 ## 11. Team Learning
 
@@ -96,12 +98,11 @@ targeted status scan must therefore be the final documentation gate.
 
 This work covers the current drmTMB reader surface only. It does not cover a
 Julia implementation decision, capability expansion, cross-platform release
-validation, or the owner-held bivariate tutorial repair.
+validation, or coverage certification for the bivariate tutorial's intervals.
 
 ## 13. Next Actions
 
-1. Shinichi repairs the owner-held `bivariate-coscale` P1 and rebuilds that
-   route.
-2. Review this local branch and its audit evidence before any merge decision.
-3. Run a fresh independent D-43 reader-claim verdict before claiming the whole
-   site is complete.
+1. Completed later in the second pass: the transferred `bivariate-coscale` P1
+   was repaired and rebuilt.
+2. Run a fresh independent D-43 reader-claim verdict and a final clean-worktree
+   documentation gate before claiming the whole site is complete.

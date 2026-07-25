@@ -1,8 +1,8 @@
 # pkgdown reader-surface audit epoch receipt
 
-**Date:** 2026-07-21  
-**Audit worktree:** `/private/tmp/drmtmb-site-audit-83d48549`  
-**Branch:** `codex/site-audit-capability-limits-20260721`  
+**Date:** 2026-07-21
+**Audit worktree:** `/private/tmp/drmtmb-site-audit-83d48549`
+**Branch:** `codex/site-audit-capability-limits-20260721`
 **Mode:** audit and repair one Codex-owned page at a time; stop for P1 findings,
 claim-boundary changes, or material design decisions.
 
@@ -25,8 +25,10 @@ capability-promotion claim.
 
 ## Inventory baseline
 
-- 33 vignette sources; 32 Codex-owned articles plus the owner-held
-  `bivariate-coscale` article.
+- 35 vignette sources: the 32 Codex-owned main articles, two legacy articles,
+  and the initially owner-held `bivariate-coscale` article. The latter
+  transferred to Codex and was repaired during the second pass; see
+  `owner-held-findings.md` and `second-pass-closeout.md`.
 - 68 Rd topics, 98 generated reference URLs, and 51 exported functions.
 - Historical reader audits are leads only. Every finding must be checked against
   this audit epoch's source and claim-ceiling blobs.

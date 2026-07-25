@@ -1,7 +1,7 @@
 # Structural-dependence details audit closeout
 
-**Status:** repaired and rendered 2026-07-21  
-**Source:** `vignettes/phylogenetic-spatial.Rmd`  
+**Status:** repaired and rendered 2026-07-21
+**Source:** `vignettes/phylogenetic-spatial.Rmd`
 **Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`
 
 ## Findings and disposition

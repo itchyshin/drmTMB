@@ -1,8 +1,8 @@
 # Model-workflow audit closeout
 
-**Status:** repaired and rendered 2026-07-21  
-**Source:** `vignettes/model-workflow.Rmd`  
-**Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`  
+**Status:** repaired and rendered 2026-07-21
+**Source:** `vignettes/model-workflow.Rmd`
+**Audit base:** `origin/main` `83d48549e8925a97aa2c156941a97a9bf9b785c4`
 **Claim authority:** `docs/dev-log/dashboard/capability-ledger/cells.tsv`, `mc-0181`
 
 ## Findings and disposition

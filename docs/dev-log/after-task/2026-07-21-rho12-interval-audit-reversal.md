@@ -51,8 +51,8 @@ smaller change.
 
 **Rejected: "available" as an unqualified claim.** Every restored statement
 carries the distinction the original text lacked: these intervals are
-*computed*, not *coverage-certified*. Only the constant `rho12 ~ 1` profile
-interval is a certified reporting target.
+*computed*, not *coverage-certified*. Neither the constant nor
+predictor-dependent `rho12` interval is a coverage-certified reporting target.
 
 ## 4. Files Touched
 
