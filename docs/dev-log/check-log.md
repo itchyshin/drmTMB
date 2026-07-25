@@ -91611,3 +91611,19 @@ Shinichi grants a separate Gate A compute approval.
 - No fit, interval, bootstrap, gate, recovery, coverage, or tier promotion result changed.
   No Totoro/DRAC compute and no work on PR #828 occurred. See
   `docs/dev-log/after-task/2026-07-25-arc-a-external-comparator-evidence.md`.
+
+## 2026-07-25: staged eta candidate Godambe SE build
+
+- Added a private stacked-score/Godambe candidate for the fixed-effect
+  Bernoulli × ordinary-NB2 association-link estimator. It uses analytic margin
+  scores, a checked five-point rectangle derivative ladder, lower-triangular
+  bread, and complete paired-row score meat; it does not reuse conditional
+  stage-2 curvature.
+- Focused local checks passed with `R_PROFILE_USER=/dev/null Rscript
+  --no-init-file`: `test-associate-pairs-staged-sandwich.R` (29 expectations)
+  and `test-associate-pairs-bernoulli-nb2.R` (69 expectations). `git diff
+  --check` passed.
+- No bootstrap comparison, campaign, recovery, coverage, Totoro/DRAC work,
+  public SE/Wald/profile/CI interface, or direct `biv_lognormal()` rho12 work
+  occurred. See
+  `docs/dev-log/after-task/2026-07-25-staged-eta-godambe-se-build.md`.
