@@ -28,7 +28,16 @@ CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
-MODEL_SURFACE_COUNT = 676
+# 676 frozen census rows + mc-0260m, the meta_V route row landed 2026-07-25 from the
+# approved draft docs/dev-log/handover/2026-07-21-mc-0260m-ledger-cell-draft.md. The row
+# is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
+# promoted. Bump this guard only for an approved row insert, never to silence drift.
+MODEL_SURFACE_COUNT = 677
+# The frozen 2026-07-09 census: the original 676 model_surface rows and the 158 of them
+# at point_fit_recovery. Both are permanent. Approved inserts get a higher source_order,
+# so they never touch these; only a promotion or demotion of a frozen cell can.
+FROZEN_CENSUS_COUNT = 676
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 158
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -88,6 +97,14 @@ CAPABILITY_STATUSES = {
     "rejected_by_design", "not_implemented", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
+# evidence_class was previously unconstrained, so a typo silently produced zero badges
+# and a green --check. external_comparator is the newest member: agreement with an
+# independent implementation. Adding a class here is deliberate; it is not a free-text field.
+EVIDENCE_CLASSES = {
+    "legacy_model_evidence", "model_recovery", "rejection_test", "recovery_test",
+    "g2_contract_test", "contract_test", "coverage_study", "admission_test",
+    "estimator_diagnostic", "external_comparator",
+}
 EVIDENCE_TIERS = {
     "supported", "inference_ready_with_caveats", "interval_feasible",
     "diagnostic_only", "point_fit_recovery", "none", "miswired", "na",
@@ -194,6 +211,7 @@ def schema_value() -> dict[str, object]:
             "work_status": sorted(WORK_STATUSES),
             "test_gate": sorted(TEST_GATES),
             "evidence_tier": sorted(EVIDENCE_TIERS),
+            "evidence_class": sorted(EVIDENCE_CLASSES),
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
@@ -504,6 +522,30 @@ def validate(
     for row in evidence:
         if row["cell_id"] not in cell_ids:
             errors.append(f"{row['evidence_id']}: unknown cell_id")
+        if row["evidence_class"] not in EVIDENCE_CLASSES:
+            errors.append(
+                f"{row['evidence_id']}: invalid evidence_class "
+                f"{row['evidence_class']!r}"
+            )
+        if row["evidence_class"] == "external_comparator":
+            # Rendering matches package names against a fixed tuple, so a comparator
+            # nobody registered there would silently render a BLANK badge -- the row
+            # would look like no comparator exists. Fail loudly instead: an
+            # unregistered package must be added to COMPARATOR_PACKAGES to be recorded.
+            named = f"{row['run_id']} {row['result']}"
+            if not any(pkg in named for pkg in COMPARATOR_PACKAGES):
+                errors.append(
+                    f"{row['evidence_id']}: run_id/result names no package from "
+                    "COMPARATOR_PACKAGES; register it there or the badge renders blank"
+                )
+            boundary = row["claim_boundary"].upper()
+            if not (
+                "STRONG INDEPENDENCE" in boundary or "WEAK INDEPENDENCE" in boundary
+            ):
+                errors.append(
+                    f"{row['evidence_id']}: claim_boundary must declare STRONG "
+                    "INDEPENDENCE or WEAK INDEPENDENCE"
+                )
         # The frozen 2026-07-09 census contains historical cell names and
         # semicolon-packed provenance as well as paths. Preserve those verbatim
         # during MR-T0; require resolvable paths for every new evidence record.
@@ -523,11 +565,34 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
+    # implemented is 307, not the frozen census's 306, because mc-0260m (the meta_V route
+    # row) was inserted on 2026-07-25. It entered at point_fit_recovery, the tier its
+    # existing metafor comparator evidence already supports; no cell changed tier.
     expected = Counter(
-        {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40}
+        {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40}
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
+
+    # The frozen census -- the original 676 model_surface rows -- must keep exactly 158
+    # point_fit_recovery cells. Approved inserts take a higher source_order and so cannot
+    # disturb this number; a PROMOTION of any frozen cell breaks it immediately. Checking
+    # the frozen baseline separately from the total is what stops a promotion being
+    # laundered behind a simultaneous insert. Do not raise 158 to make a failure go away.
+    frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
+    if len(frozen) != FROZEN_CENSUS_COUNT:
+        errors.append(
+            f"frozen census size changed: {len(frozen)} (expected {FROZEN_CENSUS_COUNT})"
+        )
+    frozen_recovery = sum(
+        row["evidence_tier"] == "point_fit_recovery" for row in frozen
+    )
+    if frozen_recovery != FROZEN_CENSUS_POINT_FIT_RECOVERY:
+        errors.append(
+            f"frozen census point_fit_recovery changed: {frozen_recovery} "
+            f"(expected {FROZEN_CENSUS_POINT_FIT_RECOVERY}); a frozen cell was promoted "
+            "or demoted"
+        )
 
     missing = {row["family_route"]: row for row in cells if row["axis"] == "missing_response"}
     for route, row in missing.items():
@@ -1089,6 +1154,57 @@ def surface_markdown(
     return "\n".join(lines)
 
 
+COMPARATOR_PACKAGES = (
+    "metafor", "glmmTMB", "lme4", "MASS", "ordinal", "VGAM", "mgcv", "betareg",
+    "gamlss", "brms", "stats::glm",
+)
+
+
+def external_comparator_by_cell(
+    evidence: list[dict[str, str]]
+) -> dict[str, str]:
+    """Name the external comparators recorded for each cell, keyed by cell_id.
+
+    DELIBERATELY PER CELL, and it must stay that way. A family_route bucket mixes
+    fixed, random, structured, phylogenetic, spatial and bivariate cells together. A
+    family-level comparator badge would therefore read as covering frontier routes for
+    which no external implementation exists at all -- which is exactly the
+    credibility-laundering this evidence class is meant to avoid. Agreement with an
+    established package licenses the OVERLAP region only, never the frontier.
+
+    Each entry reads "package (strong)" or "package (weak)". The strength is NOT
+    decoration: lme4 and metafor are separate estimation engines, so agreement is a real
+    cross-implementation check, whereas glmmTMB is built on the same TMB/AD stack and
+    outer optimizer as drmTMB, so agreement there is a consistency check between related
+    implementations. Rendering the package name alone made all three look equivalent.
+
+    Package names are matched against run_id and result only, never claim_boundary. The
+    boundary is where a row says what it does NOT cover, so a phrase like "does not extend
+    to glmmTMB" would otherwise badge glmmTMB as a comparator.
+    """
+    found: dict[str, set[str]] = {}
+    for row in evidence:
+        if row["evidence_class"] != "external_comparator":
+            continue
+        haystack = f"{row['run_id']} {row['result']}"
+        boundary = row["claim_boundary"].upper()
+        if "STRONG INDEPENDENCE" in boundary:
+            strength = "strong"
+        elif "WEAK INDEPENDENCE" in boundary:
+            strength = "weak"
+        else:
+            strength = "unclassified"
+        names = {
+            f"{pkg} ({strength})" for pkg in COMPARATOR_PACKAGES if pkg in haystack
+        }
+        found.setdefault(row["cell_id"], set()).update(names)
+    return {
+        cell_id: ", ".join(sorted(names, key=str.lower))
+        for cell_id, names in found.items()
+        if names
+    }
+
+
 def surface_html(
     cells: list[dict[str, str]], evidence: list[dict[str, str]],
     family_rows: list[dict[str, str]] | None = None,
@@ -1127,13 +1243,17 @@ def surface_html(
   <p class="next"><strong>Next:</strong> {html.escape(row['next_gate'])}</p>
   <a href="{html.escape(link)}">Evidence: {html.escape(evidence_row['path_or_url'])}</a>
 </article>""")
+    comparators = external_comparator_by_cell(evidence)
     model_data = json.dumps([
-        {key: row[key] for key in (
-            "cell_id", "family_route", "route_variant", "dpar", "effect_type",
-            "structure_provider", "dimension", "q_gate", "estimator",
-            "capability_status", "evidence_tier", "claim_boundary",
-            "primary_evidence_id",
-        )}
+        {
+            **{key: row[key] for key in (
+                "cell_id", "family_route", "route_variant", "dpar", "effect_type",
+                "structure_provider", "dimension", "q_gate", "estimator",
+                "capability_status", "evidence_tier", "claim_boundary",
+                "primary_evidence_id",
+            )},
+            "external_comparator": comparators.get(row["cell_id"], ""),
+        }
         for row in model
     ], ensure_ascii=False).replace("</", "<\\/")
     initial_model_rows = "".join(
@@ -1147,6 +1267,7 @@ def surface_html(
         f"<td>{html.escape(row['estimator'])}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
+        f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
         f"<td>{html.escape(row['claim_boundary'])}</td>"
         "</tr>"
         for row in model
@@ -1177,9 +1298,10 @@ def surface_html(
 <section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
@@ -1189,7 +1311,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
 for(const v of [...new Set(DATA.map(r=>r.family_route))].sort()) fam.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
 for(const v of [...new Set(DATA.map(r=>r.capability_status))].sort()) status.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
-function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
+function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 

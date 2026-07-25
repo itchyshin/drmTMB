@@ -3,7 +3,31 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-24, → CODEX, ARC 7 B0 CARRIED OVER).**
+> **▶ Latest — start here (2026-07-25, ARC A CLOSED PARTIAL; NEXT = C++ / NUMERICAL AUDIT).**
+> Arc A built the instrument, not the sweep. **Two of its four slices shipped; two were
+> deliberately dropped** — no overlap sweep, no vignette. **Do not call Arc A complete.**
+> Shipped: `evidence_class = "external_comparator"` in `capability-ledger/evidence.tsv`
+> (4 rows — metafor, lme4 ×2, glmmTMB), the `mc-0260m` `meta_V` route row landed from its
+> approved draft, a per-cell External-comparator surface column carrying independence
+> strength, `docs/design/242` recording the policy, a correction to doc 158's Gaussian
+> scale-conversion row, and a 177-cell triage. Fisher and Rose both signed off (Rose after
+> a NOT-DONE first pass). **Why it closed early: the brief's arithmetic was false.** Of the
+> 176-cell pool, 122 are `structured`, 18 `response_missingness` and 7 non-structured
+> bivariate — **none has any external comparator in existence**; parity can reach ~15 cells
+> ever, and 4 are wired. **NEXT = the C++ / numerical audit**, correctness-first
+> (log-sum-exp and overflow paths, link edge cases, boundary parameterizations,
+> finite-difference vs AD gradients); **no efficiency claim without a profiler**. It is the
+> only instrument aimed at the frontier, which is 80% of the stuck pool. **Guard, do not
+> "fix":** the frozen census (`source_order <= 676`) must hold exactly **158**
+> `point_fit_recovery` cells permanently; the total (159) grows only by an approved insert.
+> Raising 158 is how a promotion gets laundered. **`schema.json` is a source file, not a
+> generated output** — `--write` never touches it. **START HERE:**
+> [`docs/dev-log/handover/2026-07-25-arc-a-closed-claude-handover.md`](docs/dev-log/handover/2026-07-25-arc-a-closed-claude-handover.md).
+> **FOREIGN, do not touch:** `codex/arc6-6-bernoulli-nb2-plan` (2 unpushed),
+> `codex/pkgdown-formal-closeout` (1 unpushed, **still needs an owner**), the dirty root
+> checkout on `claude/handover-freshness-0718`, PR #829, PR #836. **Never merge #828.**
+
+> **▶ Prior (2026-07-24, → CODEX, ARC 7 B0 CARRIED OVER).**
 > Arc 6 closed on `main` at `d7359df2` (PRs #826/#827; R-CMD-check and pkgdown
 > green). Arc 7 B0 is a clean-current-main, **negative-evidence integration**
 > lane for `meta_V`, on `codex/arc7-metav-b0`: it selectively carries the B3
