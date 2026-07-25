@@ -3,7 +3,7 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-25, ARC B MERGED; ARC A1 IN FLIGHT — MARGINAL SIMULATION).**
+> **▶ Latest — start here (2026-07-25, ARC B MERGED; ARC A1 VERIFIED — MARGINAL SIMULATION; NEXT = ARC C).**
 > **Arc B — the C++/numerical audit — is MERGED** (PR #842, `main` `12d971f1`): five standing
 > conformance suites (kernel oracle · FD-vs-AD gradient · score consistency · `CondExp`
 > branch continuity · link/boundary), **58 blocks, 516 assertions, zero skips**, full suite
@@ -17,10 +17,23 @@ regression using Template Model Builder.
 > gains `bootstrap_re_form`. Marginal draws cover ordinary/correlated/labelled REs and
 > `phylo`/`spatial`/`relmat`/`animal` at `q = 1`; `phylo_interaction`, cross-trait `q > 1`,
 > covariance blocks, `corpair`, and modelled RE scale **abort rather than silently falling back**.
-> **A1 was UNPUSHED and its final verification still running at handoff — verify before claiming.**
-> Design: `docs/design/243-marginal-simulation-and-re-form.md`. Next lanes (both owner-approved):
-> **A2** marginal draws for the aborting structures · **C** the Arc B hardening bundle
-> (A5 clamp ordering, F5 unguarded `sd()` log-SD, 12 dead `sigma_i`, A7 rotted anchors).
+> **A1 is VERIFIED** (PR #843): CI `ubuntu-latest (release)` **pass** (`R CMD check`,
+> clean checkout, 31m24s) and the local full suite **39722 / 1 / 124** against a 39708/1/124
+> baseline — **no new skips**. The one failure was A1's own: editing `R/profile.R` shifted a
+> conformance anchor (`R/profile.R:867 → :878`), caught by `test-estimator-surface-conformance.R`
+> and repaired here. **CI could not see it** — that test resolves `R/profile.R` from a source
+> checkout — which is exactly why both gates are run, never just one.
+> Design: `docs/design/243-marginal-simulation-and-re-form.md`. **NEXT = Arc C** (owner-chosen
+> 2026-07-25, defects before capability): **A5** beta `mi()` unclamped `log_sigma`
+> (`drmTMB.cpp:2766` vs `:2888`) · **F5** `sd()` regression `exp()`s an unbounded predicted
+> log-SD at `drmTMB.cpp:831, 921, 2279, 2815, 4107` — reuse `drm_softclamp_log_sigma()` and the
+> existing `logsigma_clamp`, do not invent a second bound · **A7** six rotted anchors in
+> `R/family-dpq.R`. **F9 is DROPPED** — the audit calls the 12 dead `sigma_i` locals evidence
+> *against* drift, so deleting them destroys a signal. **DEFERRED, scheduled before 0.7:**
+> Arc A2 capability (the five aborting structures; `phylo_interaction` is the cheapest — its
+> Kronecker precision is already assembled) and audit A2/tweedie + A3/A4/ridge.
+> **Release: `0.6` is the DEV CYCLE; the first CRAN submission is `0.7`** (owner, 2026-07-25;
+> brain `D-86`, mirroring gllvmTMB's `D-66`).
 > START HERE:
 > [`docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md`](docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md)
 >

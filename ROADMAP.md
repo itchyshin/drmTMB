@@ -40,10 +40,16 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Release versioning: conservative `0.x` numbering, v1.0 as maturity milestone
 
-> **Updated — the specific number below was superseded.** The 2026-07-12 ratification (next
-> section) retired the thin `0.5.0` plan, and the `v0.5.0` tag was **never accepted on CRAN**
-> (it was ditched). **`0.6.0` is the actual first CRAN submission** (a first/new submission). The
-> conservative-`0.x`-not-`1.0` *principle* stands; the `0.5.0` *number* does not.
+> **Updated 2026-07-25 — the number has moved twice; `0.7.0` is current.** The 2026-07-12
+> ratification (next section) retired the thin `0.5.0` plan, and the `v0.5.0` tag was **never
+> accepted on CRAN** (it was ditched). This note then read "`0.6.0` is the actual first CRAN
+> submission" — **that is now superseded too.** Shinichi, 2026-07-25: **`0.6` is the dev cycle
+> and is never submitted; the first CRAN submission is `0.7.0`.** Recorded as brain decision
+> `D-86`, mirroring gllvmTMB's `D-66` — in both packages the `DESCRIPTION` version drifted ahead
+> of the release commitment while really being just the dev-cycle number. `DESCRIPTION`/`NEWS`
+> bump `0.6.0 → 0.7.0` **as part of the release slice, not before**: bumping early strands the
+> version against a tarball that does not exist. The conservative-`0.x`-not-`1.0` *principle*
+> stands throughout; only the *number* has moved.
 
 - **The first CRAN release is numbered conservatively in the `0.x` line, not `1.0.0`** (principle,
   decision 2026-07-10; the specific `0.5.0` number was later superseded — see the note above and
