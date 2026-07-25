@@ -91570,3 +91570,22 @@ Shinichi grants a separate Gate A compute approval.
   interval, bootstrap, gate, or evidence result.
 - Focused `test-phase18-meta-v-lss-runner.R` passed locally with
   `R_PROFILE_USER=/dev/null Rscript --no-init-file`.
+
+## 2026-07-25: Arc A external-comparator evidence class
+
+- `python3 tools/capability_ledger.py --check` returned `OK (30 generated outputs)` on an
+  untouched tree before any edit, and again after the change.
+- `python3 -m unittest tools.tests.test_capability_ledger` passed 41 tests (38 at base);
+  the three new ones guard the closed `evidence_class` vocabulary, the mandatory
+  not-covered wording, and the rule that comparator evidence never reaches the family map.
+- `Rscript tools/check-capability-runtime.R` returned `OK (18 routes; verified=18)`.
+- `NOT_CRAN=true Rscript -e 'devtools::test(filter="comparators")'` passed 126 assertions
+  with zero failures and **zero skips**, confirming metafor, lme4 and glmmTMB were present
+  and the comparator tests really ran rather than being skipped by
+  `skip_if_not_installed()`.
+- Tier invariant verified directly against `origin/main`: no pre-existing cell changed
+  tier, none was removed, one was added (`mc-0260m`). Counts moved 676->677, 306->307,
+  158->159 by insertion, not promotion.
+- No fit, interval, bootstrap, gate, recovery, coverage, or tier promotion result changed.
+  No Totoro/DRAC compute and no work on PR #828 occurred. See
+  `docs/dev-log/after-task/2026-07-25-arc-a-external-comparator-evidence.md`.
