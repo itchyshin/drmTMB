@@ -522,6 +522,25 @@ def validate(
                 f"{row['evidence_id']}: invalid evidence_class "
                 f"{row['evidence_class']!r}"
             )
+        if row["evidence_class"] == "external_comparator":
+            # Rendering matches package names against a fixed tuple, so a comparator
+            # nobody registered there would silently render a BLANK badge -- the row
+            # would look like no comparator exists. Fail loudly instead: an
+            # unregistered package must be added to COMPARATOR_PACKAGES to be recorded.
+            named = f"{row['run_id']} {row['result']}"
+            if not any(pkg in named for pkg in COMPARATOR_PACKAGES):
+                errors.append(
+                    f"{row['evidence_id']}: run_id/result names no package from "
+                    "COMPARATOR_PACKAGES; register it there or the badge renders blank"
+                )
+            boundary = row["claim_boundary"].upper()
+            if not (
+                "STRONG INDEPENDENCE" in boundary or "WEAK INDEPENDENCE" in boundary
+            ):
+                errors.append(
+                    f"{row['evidence_id']}: claim_boundary must declare STRONG "
+                    "INDEPENDENCE or WEAK INDEPENDENCE"
+                )
         # The frozen 2026-07-09 census contains historical cell names and
         # semicolon-packed provenance as well as paths. Preserve those verbatim
         # during MR-T0; require resolvable paths for every new evidence record.

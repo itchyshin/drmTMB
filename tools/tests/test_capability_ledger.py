@@ -1921,6 +1921,14 @@ class CapabilityLedgerTests(unittest.TestCase):
                     token, boundary,
                     f"{row['evidence_id']}: claim_boundary must state {token!r}",
                 )
+            # Without an independence token the surface renders "pkg (unclassified)",
+            # which tells a reader nothing about whether the comparator shares drmTMB's
+            # estimation engine. Require the row to declare it.
+            self.assertTrue(
+                "strong independence" in boundary or "weak independence" in boundary,
+                f"{row['evidence_id']}: claim_boundary must declare STRONG or WEAK "
+                "INDEPENDENCE",
+            )
             self.assertTrue(
                 ledger.source_path_exists(row["path_or_url"]),
                 f"{row['evidence_id']}: unresolved path {row['path_or_url']}",
