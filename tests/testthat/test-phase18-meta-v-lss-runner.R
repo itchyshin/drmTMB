@@ -58,3 +58,19 @@ test_that("Arc 7B dense LSS sentinel retains incomplete direct-SD profiles", {
   expect_true(all(direct_sd_reduction$complete_profile == 0L))
   expect_true(all(direct_sd_reduction$usable_and_covering == 0L))
 })
+
+test_that("Arc 8 bootstrap completion is target-wise and fail-closed", {
+  source_phase18_meta_v_lss_runner()
+  interval <- data.frame(
+    parm = c("fixef:sd(study):(Intercept)", "fixef:sd(study):z_study"),
+    bootstrap.n = c(190L, 188L),
+    bootstrap.failed = c(9L, 11L),
+    conf.status = c("bootstrap", "bootstrap_unavailable"),
+    stringsAsFactors = FALSE
+  )
+  out <- phase18_meta_v_lss_bootstrap_completion(interval)
+  expect_equal(out$bootstrap_requested, c(199L, 199L))
+  expect_equal(out$bootstrap_completion_rate, c(190 / 199, 188 / 199))
+  expect_identical(out$bootstrap_complete, c(TRUE, FALSE))
+  expect_error(phase18_meta_v_lss_bootstrap_completion(interval, 0), "minimum_rate")
+})

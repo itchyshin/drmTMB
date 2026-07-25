@@ -91500,3 +91500,19 @@ Shinichi grants a separate Gate A compute approval.
   test now verifies the 77-row legacy bundle *and* the explicit missing-artifact
   status for `meta_v_grid`, so a future accidental disappearance is distinct
   from this intentional contract change.
+
+## 2026-07-24: Arc 8 dense meta-`V` interval feasibility start
+
+- Arc 8 starts from merged `main` `988b2b38` on
+  `codex/arc8-meta-v-finite-intervals`. It retains both dense LSS direct-SD
+  coefficients, `sd(study):(Intercept)` and `sd(study):z_study`, as separate
+  gates; a pass for one cannot support an LSS-wide feasibility claim.
+- The profile call now explicitly selects `profile_engine = "tmbprofile"`.
+  Scalar endpoint profiling is not applicable to these fixed-effect
+  coefficients. A new pure completion reducer records requested, finite
+  successful, and failed bootstrap refits per target and marks a target
+  complete only when its `bootstrap` status and completion rate meet the 95%
+  threshold.
+- Focused runner tests and `git diff --check` passed locally. This is plumbing
+  for a later source-pinned local K ladder; no bootstrap campaign, recovery,
+  coverage, capability claim, Totoro, or DRAC work has run.

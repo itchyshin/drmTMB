@@ -119,7 +119,7 @@ phase18_meta_v_lss_add_profile_intervals <- function(summary, fit) {
     ci <- tryCatch(
       stats::confint(
         fit, parm = profile_target[[parameter]], method = "profile",
-        profile_precision = "fast"
+        profile_engine = "tmbprofile", profile_precision = "fast"
       ),
       error = function(e) e
     )
@@ -144,6 +144,33 @@ phase18_meta_v_lss_add_profile_intervals <- function(summary, fit) {
   summary$interval_status[dh] <- "not_requested_random_sigma"
   summary$interval_message[dh] <- "random sigma SD has no pre-registered profile target"
   summary
+}
+
+phase18_meta_v_lss_bootstrap_completion <- function(
+  interval,
+  minimum_rate = 0.95
+) {
+  required <- c("parm", "bootstrap.n", "bootstrap.failed", "conf.status")
+  if (!is.data.frame(interval) || !all(required %in% names(interval))) {
+    stop("`interval` must be a bootstrap interval table.", call. = FALSE)
+  }
+  if (!is.numeric(minimum_rate) || length(minimum_rate) != 1L ||
+      !is.finite(minimum_rate) || minimum_rate <= 0 || minimum_rate > 1) {
+    stop("`minimum_rate` must lie in (0, 1].", call. = FALSE)
+  }
+  requested <- interval$bootstrap.n + interval$bootstrap.failed
+  finite_success <- interval$bootstrap.n
+  rate <- ifelse(requested > 0L, finite_success / requested, NA_real_)
+  data.frame(
+    parm = interval$parm,
+    bootstrap_requested = requested,
+    bootstrap_finite_success = finite_success,
+    bootstrap_completion_rate = rate,
+    bootstrap_status = as.character(interval$conf.status),
+    bootstrap_complete = is.finite(rate) & rate >= minimum_rate &
+      interval$conf.status == "bootstrap",
+    stringsAsFactors = FALSE
+  )
 }
 
 phase18_run_meta_v_lss_smoke <- function(
