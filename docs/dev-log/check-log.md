@@ -91516,3 +91516,9 @@ Shinichi grants a separate Gate A compute approval.
 - Focused runner tests and `git diff --check` passed locally. This is plumbing
   for a later source-pinned local K ladder; no bootstrap campaign, recovery,
   coverage, capability claim, Totoro, or DRAC work has run.
+- The deterministic dense K ladder then produced finite full `tmbprofile`
+  intervals for both direct-SD targets at K = 12, 36, and 72. A K = 36
+  completion sidecar retained 199/199 finite successful bootstrap refits for
+  each target. These are engineering-feasibility fixtures with different seeds
+  from the retained Arc 7B failure control; they do not replace that failure,
+  establish calibration, or authorize remote compute.
