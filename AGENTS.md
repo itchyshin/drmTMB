@@ -3,16 +3,18 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Active local carry-over (2026-07-25, → CODEX, staged-eta bootstrap
-> HOLD).** The staged Bernoulli × NB2 full-refit-bootstrap campaign is
-> **STOPPED**: all Fir/Totoro work and its monitor are terminated; partial
-> shards are provenance only, not evidence. The developer infrastructure is on
-> a local, unmerged `codex/staged-eta-bootstrap-hold` branch. Do not merge,
-> publish, aggregate, or resume it. Staged eta remains point-estimation/
-> diagnostic only, with no SE/Wald/profile/`confint()`/interval/recovery/
-> coverage claim. Direct `biv_lognormal()` rho12 evidence is complete and
-> separate. Other lanes below remain independently active. **START HERE:**
-> [`docs/dev-log/handover/2026-07-25-codex-staged-eta-hold-handover.md`](docs/dev-log/handover/2026-07-25-codex-staged-eta-hold-handover.md).
+> **▶ Active local carry-over (2026-07-25, → CODEX, staged-eta SE build).**
+> The staged Bernoulli × NB2 full-refit-bootstrap campaign remains **STOPPED**:
+> its partial shards are provenance only. The owner now requests a principled
+> SE for the two-stage association estimator. Build the whole stacked-score /
+> Godambe route with small deterministic tests first; freeze its equations and
+> implementation, then request approval for one large validation study. Do
+> not call conditional stage-2 curvature an SE, resume the old campaign, or
+> expose Wald/profile/`confint()` claims early. The developer infrastructure is
+> local and unmerged on `codex/staged-eta-bootstrap-hold`. Direct
+> `biv_lognormal()` rho12 evidence is complete and separate. Other lanes below
+> remain independently active. **START HERE:**
+> [`docs/dev-log/handover/2026-07-25-codex-staged-eta-se-build-handover.md`](docs/dev-log/handover/2026-07-25-codex-staged-eta-se-build-handover.md).
 
 > **⚠ Compute & CI — D-50 (2026-07-12).** Simulation / recovery / power / coverage campaigns run on
 > **Totoro or DRAC**, **never GitHub Actions**, and their outputs are **never stored as GitHub
