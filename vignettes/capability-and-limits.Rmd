@@ -417,8 +417,11 @@ above.
 
 **Julia cross-family fitting is deferred.** Legacy Julia-bridge objects may
 still be readable for compatibility, but they are not a current analysis route
-and do not establish cross-family inference. What to try next: use the native
-TMB engine, `drmTMB`'s default, for current supported models. For the bounded
+and do not establish cross-family inference. Their compatibility extractors
+return only `u = 0` response-scale means and response residuals for `mu1` /
+`mu2`; `vcov()` and fixed-effect Wald intervals explicitly report unavailable
+rather than returning an empty value. What to try next: use the native TMB
+engine, `drmTMB`'s default, for current supported models. For the bounded
 post-0.6 development association route, see the frozen-margin article; it is a
 separate staged interface and is not a Julia fit.
 

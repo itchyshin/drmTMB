@@ -2,9 +2,12 @@
 % Please edit documentation in R/julia-bridge.R
 \name{predict.drmTMB_julia}
 \alias{predict.drmTMB_julia}
+\alias{predict.drmTMB_julia_xfam}
 \title{Predict from a legacy Julia-bridge \code{drmTMB} fit}
 \usage{
 \method{predict}{drmTMB_julia}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
+
+\method{predict}{drmTMB_julia_xfam}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB_julia} fit.}
@@ -44,4 +47,11 @@ applies the model's inverse link.
 
 Predicting \code{sigma} / \code{rho12} for fresh \code{newdata} is not implemented; refit
 with \code{engine = "tmb"} for those.
+
+A legacy cross-family object (\code{drmTMB_julia_xfam}) is narrower still: only
+\code{mu1} and \code{mu2} are available. Stored and new-data predictions are response
+means with the shared latent effect fixed at \code{u = 0}; they are not marginal
+means. Cross-family covariance, fixed-effect Wald inference, and scale-axis
+prediction are unavailable because that legacy bridge did not retain the
+required payload.
 }
