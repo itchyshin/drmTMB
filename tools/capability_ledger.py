@@ -1096,6 +1096,38 @@ def surface_markdown(
     return "\n".join(lines)
 
 
+COMPARATOR_PACKAGES = (
+    "metafor", "glmmTMB", "lme4", "MASS", "ordinal", "VGAM", "mgcv", "betareg",
+    "gamlss", "brms", "stats::glm",
+)
+
+
+def external_comparator_by_cell(
+    evidence: list[dict[str, str]]
+) -> dict[str, str]:
+    """Name the external comparators recorded for each cell, keyed by cell_id.
+
+    DELIBERATELY PER CELL, and it must stay that way. A family_route bucket mixes
+    fixed, random, structured, phylogenetic, spatial and bivariate cells together. A
+    family-level comparator badge would therefore read as covering frontier routes for
+    which no external implementation exists at all -- which is exactly the
+    credibility-laundering this evidence class is meant to avoid. Agreement with an
+    established package licenses the OVERLAP region only, never the frontier.
+    """
+    found: dict[str, set[str]] = {}
+    for row in evidence:
+        if row["evidence_class"] != "external_comparator":
+            continue
+        haystack = f"{row['run_id']} {row['result']} {row['claim_boundary']}"
+        names = {pkg for pkg in COMPARATOR_PACKAGES if pkg in haystack}
+        found.setdefault(row["cell_id"], set()).update(names)
+    return {
+        cell_id: ", ".join(sorted(names, key=str.lower))
+        for cell_id, names in found.items()
+        if names
+    }
+
+
 def surface_html(
     cells: list[dict[str, str]], evidence: list[dict[str, str]],
     family_rows: list[dict[str, str]] | None = None,
@@ -1134,13 +1166,17 @@ def surface_html(
   <p class="next"><strong>Next:</strong> {html.escape(row['next_gate'])}</p>
   <a href="{html.escape(link)}">Evidence: {html.escape(evidence_row['path_or_url'])}</a>
 </article>""")
+    comparators = external_comparator_by_cell(evidence)
     model_data = json.dumps([
-        {key: row[key] for key in (
-            "cell_id", "family_route", "route_variant", "dpar", "effect_type",
-            "structure_provider", "dimension", "q_gate", "estimator",
-            "capability_status", "evidence_tier", "claim_boundary",
-            "primary_evidence_id",
-        )}
+        {
+            **{key: row[key] for key in (
+                "cell_id", "family_route", "route_variant", "dpar", "effect_type",
+                "structure_provider", "dimension", "q_gate", "estimator",
+                "capability_status", "evidence_tier", "claim_boundary",
+                "primary_evidence_id",
+            )},
+            "external_comparator": comparators.get(row["cell_id"], ""),
+        }
         for row in model
     ], ensure_ascii=False).replace("</", "<\\/")
     initial_model_rows = "".join(
@@ -1154,6 +1190,7 @@ def surface_html(
         f"<td>{html.escape(row['estimator'])}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
+        f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
         f"<td>{html.escape(row['claim_boundary'])}</td>"
         "</tr>"
         for row in model
@@ -1186,7 +1223,7 @@ def surface_html(
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
@@ -1196,7 +1233,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
 for(const v of [...new Set(DATA.map(r=>r.family_route))].sort()) fam.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
 for(const v of [...new Set(DATA.map(r=>r.capability_status))].sort()) status.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
-function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
+function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 

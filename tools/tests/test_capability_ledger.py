@@ -1903,6 +1903,54 @@ class CapabilityLedgerTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "missing"):
                 ledger.check_outputs({path: b"expected\n"})
 
+    def test_external_comparator_evidence_states_what_it_does_not_cover(self):
+        """Agreement with another package is not an interval or coverage claim.
+
+        Every external_comparator record must say so in its own claim_boundary, so the
+        limit travels with the evidence instead of living only in a reviewer's head.
+        """
+        rows = [
+            row for row in self.evidence
+            if row["evidence_class"] == "external_comparator"
+        ]
+        self.assertTrue(rows, "expected at least one external_comparator record")
+        for row in rows:
+            boundary = row["claim_boundary"].lower()
+            for token in ("interval", "coverage", "single-seed"):
+                self.assertIn(
+                    token, boundary,
+                    f"{row['evidence_id']}: claim_boundary must state {token!r}",
+                )
+            self.assertTrue(
+                ledger.source_path_exists(row["path_or_url"]),
+                f"{row['evidence_id']}: unresolved path {row['path_or_url']}",
+            )
+
+    def test_external_comparator_never_becomes_a_family_level_badge(self):
+        """Comparator evidence is per cell and must never be aggregated to a family.
+
+        family_map_rows() buckets every row sharing a family_route -- fixed, random,
+        structured, phylogenetic, spatial and bivariate together -- and reports one
+        highest-evidence string per family. A comparator name surfacing there would read
+        as covering frontier routes that have no external comparator at all. Parity
+        licenses the overlap region only.
+        """
+        by_cell = ledger.external_comparator_by_cell(self.evidence)
+        self.assertTrue(by_cell, "expected comparator annotations for some cells")
+        cell_ids = {row["cell_id"] for row in self.cells}
+        for cell_id in by_cell:
+            self.assertIn(cell_id, cell_ids)
+
+        family_map = (
+            ROOT / "vignettes/includes/capability-ledger-family-map.md"
+        ).read_text(encoding="utf-8")
+        for package in ledger.COMPARATOR_PACKAGES:
+            self.assertNotIn(
+                package, family_map,
+                f"{package} leaked into the family map; comparator evidence must stay "
+                "scoped to individual cells",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
