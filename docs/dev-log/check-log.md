@@ -91521,3 +91521,52 @@ Shinichi grants a separate Gate A compute approval.
   test now verifies the 77-row legacy bundle *and* the explicit missing-artifact
   status for `meta_v_grid`, so a future accidental disappearance is distinct
   from this intentional contract change.
+
+## 2026-07-24: Arc 8 dense meta-`V` interval feasibility start
+
+- Arc 8 starts from merged `main` `988b2b38` on
+  `codex/arc8-meta-v-finite-intervals`. It retains both dense LSS direct-SD
+  coefficients, `sd(study):(Intercept)` and `sd(study):z_study`, as separate
+  gates; a pass for one cannot support an LSS-wide feasibility claim.
+- The profile call now explicitly selects `profile_engine = "tmbprofile"`.
+  Scalar endpoint profiling is not applicable to these fixed-effect
+  coefficients. A new pure completion reducer records requested, finite
+  successful, and failed bootstrap refits per target and marks a target
+  complete only when its `bootstrap` status and completion rate meet the 95%
+  threshold.
+- Focused runner tests and `git diff --check` passed locally. This is plumbing
+  for a later source-pinned local K ladder; no bootstrap campaign, recovery,
+  coverage, capability claim, Totoro, or DRAC work has run.
+- The deterministic dense K ladder then produced finite full `tmbprofile`
+  intervals for both direct-SD targets at K = 12, 36, and 72. A K = 36
+  completion sidecar retained 199/199 finite successful bootstrap refits for
+  each target. These are engineering-feasibility fixtures with different seeds
+  from the retained Arc 7B failure control; they do not replace that failure,
+  establish calibration, or authorize remote compute.
+
+## 2026-07-24: Arc 8 target-wise gate and local HOLD
+
+- The Arc 8 runner now source-pins the historical dense K = 12 failure control,
+  labels its all-attempt rows `meta_v_lss_arc8`, and returns a target-wise gate.
+  Each direct-SD coefficient must have a finite estimate-containing full-profile
+  interval and complete bootstrap refits; a cell passes only if both do.
+- Bootstrap output now retains every target/refit diagnostic row alongside the
+  aggregate completion fields. Focused runner tests passed, including the
+  source-seed override, four diagnostic rows for a two-refit/two-target smoke,
+  and the fail-closed combined gate.
+- Fisher's task review and Rose's audit both withhold a compute request. The finite engineering
+  ladder remains manual pre-integration evidence, while the historical control
+  has not been freshly run through the committed Arc 8 runner. No Totoro/DRAC,
+  recovery, coverage, tier promotion, public documentation change, or work on
+  PR #828 occurred. See
+  `docs/dev-log/after-task/2026-07-24-arc8-meta-v-finite-intervals.md`.
+
+## 2026-07-25: Arc 8 CI surface-label repair
+
+- The Ubuntu release job exposed that the generic all-attempt merge was
+  overwriting Arc 8's caller-supplied `meta_v_lss_arc8` surface label with the
+  inherited `meta_v_lss` label from the fitted-summary rows. The repair keeps
+  surface identity owned by the all-attempt constructor; it changes no fit,
+  interval, bootstrap, gate, or evidence result.
+- Focused `test-phase18-meta-v-lss-runner.R` passed locally with
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`.
