@@ -19,6 +19,24 @@ phase18_meta_v_lss_smoke_conditions <- function() {
   )
 }
 
+phase18_meta_v_lss_arc8_conditions <- function() {
+  data.frame(
+    layer = "LSS",
+    design_role = c(
+      "dense_k12_historical_failure_control",
+      "dense_k12_engineering_control",
+      "dense_k36_interior",
+      "dense_k72_interior"
+    ),
+    n_study = c(12L, 12L, 36L, 72L),
+    n_effect_per_study = 2L,
+    n_rep_per_effect = 2L,
+    known_v_type = "dense",
+    sampling_rho = c(0.25, 0.20, 0.20, 0.20),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_dgp_meta_v_lss_cell <- function(cell, seed, cell_id, replicate) {
   phase18_assert_one_row_data_frame(cell, "cell")
   required <- c(

@@ -22,6 +22,17 @@ test_that("Arc 7B smoke registry retains every scheduled layer and attempt", {
   expect_equal(nrow(registry$seeds), 2L * nrow(conditions))
 })
 
+test_that("Arc 8 dense ladder retains the historical failure fixture", {
+  source_phase18_meta_v_lss_runner()
+  conditions <- phase18_meta_v_lss_arc8_conditions()
+  expect_equal(nrow(conditions), 4L)
+  historical <- conditions[conditions$design_role == "dense_k12_historical_failure_control", ]
+  expect_equal(historical$n_study, 12L)
+  expect_equal(historical$sampling_rho, 0.25)
+  expect_true(all(conditions$layer == "LSS"))
+  expect_true(all(conditions$known_v_type == "dense"))
+})
+
 test_that("Arc 7B all-attempt summary keeps failed fits in its denominator", {
   source_phase18_meta_v_lss_runner()
   conditions <- phase18_meta_v_lss_smoke_conditions()[1L, , drop = FALSE]
