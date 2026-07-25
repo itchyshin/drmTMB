@@ -1,4 +1,4 @@
-# drmTMB 0.7.0
+# drmTMB 0.6.0
 
 ## BREAKING: `simulate()` now redraws random effects (`re.form`)
 
@@ -41,8 +41,6 @@
   `10.59` (200), and now measures `z = -0.205`. No certified capability-ledger
   cell relied on bootstrap intervals, so no evidence was retracted. See
   `docs/design/243-marginal-simulation-and-re-form.md`.
-
-# drmTMB 0.6.0
 
 ## Legacy Julia cross-family extractor repair
 

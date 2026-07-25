@@ -32,12 +32,9 @@ before translating a family-specific precision or dispersion parameter.
 
 ## Experimental release preview
 
-This site is built from the `0.7.0` line (`DESCRIPTION` reads `0.7.0`), the
-version being prepared for a first CRAN submission. It is not yet
-on CRAN or tagged. `0.7.0` supersedes the earlier `0.6.0` release candidate
-because `simulate()` changed behaviour in a breaking way — it now redraws
-random effects rather than holding them at their fitted values; see `NEWS.md`.
-The package is still
+This site is built from the `0.6.0` release candidate (`DESCRIPTION` reads
+`0.6.0`), the version being prepared for a first CRAN submission. It is not yet
+on CRAN or tagged. The package is still
 intentionally bounded: use it for the documented one-response and two-response
 workflows, and treat unsupported model classes as roadmap work
 rather than hidden features.
@@ -51,7 +48,7 @@ fitted, recovery-grade, and planned work.
 ## Install
 
 `drmTMB` is not on CRAN yet. Install the current development version (the
-`0.7.0` line) from GitHub with `pak`:
+`0.6.0` line) from GitHub with `pak`:
 
 ```r
 install.packages("pak")
@@ -59,7 +56,7 @@ pak::pak("itchyshin/drmTMB")
 ```
 
 The earlier `v0.5.0` tag predates the current line and is not a supported
-install target; a `0.7.0` release will be tagged when it reaches CRAN.
+install target; a `0.6.0` release will be tagged when it reaches CRAN.
 
 You need R 4.1.0 or newer and a working compiler toolchain because TMB models
 are compiled during installation. If installation fails while compiling C++,
