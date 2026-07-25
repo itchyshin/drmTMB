@@ -91627,3 +91627,15 @@ Shinichi grants a separate Gate A compute approval.
   public SE/Wald/profile/CI interface, or direct `biv_lognormal()` rho12 work
   occurred. See
   `docs/dev-log/after-task/2026-07-25-staged-eta-godambe-se-build.md`.
+
+## 2026-07-25: staged eta candidate reference rebase
+
+- After PR #843 merged to `main` as `ac0d3e55`, rebased the narrow PR #844
+  candidate on that head and renumbered its design record from 243 to 244;
+  the follow-up design link and current staged-eta coordination snapshot now
+  point to `244-arc6-staged-eta-godambe-se.md`.
+- Focused deterministic checks passed with `R_PROFILE_USER=/dev/null` and no
+  user-facing inference path was added: `test-associate-pairs-bernoulli-nb2.R`
+  and `test-associate-pairs-staged-sandwich.R`. The candidate remains draft,
+  developer-only, and pending narrow review; no bootstrap, campaign, recovery,
+  coverage, Totoro/DRAC work, or direct `biv_lognormal()` rho12 work occurred.

@@ -93,9 +93,9 @@ regression using Template Model Builder.
 > PR #844 (`codex/staged-eta-godambe-se`) contains the developer-only, fixed-effect
 > Bernoulli × ordinary-NB2 candidate two-stage Godambe diagnostic. It is **not** a
 > public SE, `vcov()`, Wald/profile/`confint()` route, or validation claim. PR #843
-> is an independent active main-lane change and currently owns `docs/design/243-*`;
-> do not rebase or renumber #844 until #843 lands. Then rebase #844 on current main,
-> rename its design record to `244`, rerun its focused tests, and obtain review. A
+> merged to `main` as `ac0d3e55` and owns `docs/design/243-*`; #844 is rebased on
+> that `main` and its design record is now `244`. Rerun the focused tests and obtain
+> narrow review before treating #844 as a resolved reference. A
 > later general latent-normal engine is a **separate fresh lane**: common sandwich
 > assembly plus explicit pair adapters, with pair-specific validation still required.
 > The former 24 × 200 × 399 staged bootstrap campaign remains stopped; direct

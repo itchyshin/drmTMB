@@ -27,7 +27,7 @@ unresolved-boundary rule remain in force.
 - `R/associate-pairs-sandwich.R`
 - `tests/testthat/test-associate-pairs-staged-sandwich.R`
 - `docs/design/240-arc6-staged-eta-uncertainty-followup.md`
-- `docs/design/243-arc6-staged-eta-godambe-se.md`
+- `docs/design/244-arc6-staged-eta-godambe-se.md`
 
 ## 5. Checks Run
 
