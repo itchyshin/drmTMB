@@ -28,7 +28,11 @@ CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
-MODEL_SURFACE_COUNT = 676
+# 676 frozen census rows + mc-0260m, the meta_V route row landed 2026-07-25 from the
+# approved draft docs/dev-log/handover/2026-07-21-mc-0260m-ledger-cell-draft.md. The row
+# is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
+# promoted. Bump this guard only for an approved row insert, never to silence drift.
+MODEL_SURFACE_COUNT = 677
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -523,8 +527,11 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
+    # implemented is 307, not the frozen census's 306, because mc-0260m (the meta_V route
+    # row) was inserted on 2026-07-25. It entered at point_fit_recovery, the tier its
+    # existing metafor comparator evidence already supports; no cell changed tier.
     expected = Counter(
-        {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40}
+        {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40}
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")

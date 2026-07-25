@@ -28,7 +28,9 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        self.assertEqual(len(model), 676)
+        # 677 = the 676 frozen census rows + mc-0260m, the meta_V route row inserted
+        # 2026-07-25. An insert, not a promotion: no pre-existing cell changed tier.
+        self.assertEqual(len(model), 677)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -59,7 +61,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -102,11 +104,15 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
         )
+        # 159 = 158 + mc-0260m, which ENTERED at point_fit_recovery because that is the
+        # tier its existing metafor comparator evidence already supports. This count going
+        # up by one is an insert; the invariant that matters is that no pre-existing cell
+        # moved tier. Never raise this number to absorb a promotion.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            158,
+            159,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
