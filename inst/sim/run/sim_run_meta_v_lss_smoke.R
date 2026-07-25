@@ -390,7 +390,10 @@ phase18_meta_v_lss_all_attempt_summary <- function(
   source_key <- paste(summaries$cell_id, summaries$replicate, summaries$parameter, sep = "\r")
   matched <- match(key, source_key)
   replace <- which(!is.na(matched))
-  shared <- setdiff(intersect(names(out), names(summaries)), c("cell_id", "replicate", "parameter", "seed"))
+  shared <- setdiff(
+    intersect(names(out), names(summaries)),
+    c("surface", "cell_id", "replicate", "parameter", "seed")
+  )
   for (name in shared) out[[name]][replace] <- summaries[[name]][matched[replace]]
   out
 }

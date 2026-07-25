@@ -91539,3 +91539,13 @@ Shinichi grants a separate Gate A compute approval.
   recovery, coverage, tier promotion, public documentation change, or work on
   PR #828 occurred. See
   `docs/dev-log/after-task/2026-07-24-arc8-meta-v-finite-intervals.md`.
+
+## 2026-07-25: Arc 8 CI surface-label repair
+
+- The Ubuntu release job exposed that the generic all-attempt merge was
+  overwriting Arc 8's caller-supplied `meta_v_lss_arc8` surface label with the
+  inherited `meta_v_lss` label from the fitted-summary rows. The repair keeps
+  surface identity owned by the all-attempt constructor; it changes no fit,
+  interval, bootstrap, gate, or evidence result.
+- Focused `test-phase18-meta-v-lss-runner.R` passed locally with
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`.
