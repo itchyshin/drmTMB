@@ -91611,3 +91611,31 @@ Shinichi grants a separate Gate A compute approval.
 - No fit, interval, bootstrap, gate, recovery, coverage, or tier promotion result changed.
   No Totoro/DRAC compute and no work on PR #828 occurred. See
   `docs/dev-log/after-task/2026-07-25-arc-a-external-comparator-evidence.md`.
+
+## 2026-07-25: staged eta candidate Godambe SE build
+
+- Added a private stacked-score/Godambe candidate for the fixed-effect
+  Bernoulli × ordinary-NB2 association-link estimator. It uses analytic margin
+  scores, a checked five-point rectangle derivative ladder, lower-triangular
+  bread, and complete paired-row score meat; it does not reuse conditional
+  stage-2 curvature.
+- Focused local checks passed with `R_PROFILE_USER=/dev/null Rscript
+  --no-init-file`: `test-associate-pairs-staged-sandwich.R` (32 expectations)
+  and `test-associate-pairs-bernoulli-nb2.R` (69 expectations). `git diff
+  --check` passed.
+- No bootstrap comparison, campaign, recovery, coverage, Totoro/DRAC work,
+  public SE/Wald/profile/CI interface, or direct `biv_lognormal()` rho12 work
+  occurred. See
+  `docs/dev-log/after-task/2026-07-25-staged-eta-godambe-se-build.md`.
+
+## 2026-07-25: staged eta candidate reference rebase
+
+- After PR #843 merged to `main` as `ac0d3e55`, rebased the narrow PR #844
+  candidate on that head and renumbered its design record from 243 to 244;
+  the follow-up design link and current staged-eta coordination snapshot now
+  point to `244-arc6-staged-eta-godambe-se.md`.
+- Focused deterministic checks passed with `R_PROFILE_USER=/dev/null` and no
+  user-facing inference path was added: `test-associate-pairs-bernoulli-nb2.R`
+  and `test-associate-pairs-staged-sandwich.R`. The candidate remains draft,
+  developer-only, and pending narrow review; no bootstrap, campaign, recovery,
+  coverage, Totoro/DRAC work, or direct `biv_lognormal()` rho12 work occurred.
