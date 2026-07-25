@@ -54,6 +54,7 @@ Suggests:
     MASS,
     metafor,
     mvtnorm,
+    numDeriv,
     palmerpenguins,
     pkgload,
     rmarkdown,
