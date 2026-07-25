@@ -10,6 +10,11 @@ __pycache__/
 .RData
 .RDataTmp
 
+# testthat debug byproducts, written by test_dir()/devtools::test() when a
+# test fails. Never source; would otherwise be swept in by a broad `git add`.
+tests/testthat/_problems/
+tests/testthat/testthat-problems.rds
+
 # User-specific files
 .Ruserdata
 .DS_Store
