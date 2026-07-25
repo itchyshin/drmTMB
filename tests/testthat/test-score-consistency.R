@@ -193,16 +193,20 @@ test_that("Bartlett identities for a Gaussian random-intercept (Laplace) route",
   # posterior of u given data and theta is exactly Gaussian), so a deviation
   # here needs a different explanation than "Laplace error".
   #
-  # Investigation (see dev-log / handoff report): a hand-rolled analytic
-  # Gaussian-LMM score (using the true marginal Sigma = sigma^2*I +
-  # sd_mu^2*Z Z', with u properly re-drawn from N(0, sd_mu^2) for every
-  # replicate) satisfies the first-Bartlett identity cleanly. The deviation
-  # traced below is reproduced when using drmTMB's own simulate() as the
-  # data source, and disappears when random effects are properly
-  # re-marginalised -- implicating simulate.drmTMB()'s *conditional* (fixed
-  # at the fitted MAP u_hat) simulation of random effects, not the compiled
-  # density or the Laplace machinery. This test pins that known, current
-  # behaviour rather than hiding it.
+  # HISTORY: this test used to PIN a known defect. simulate.drmTMB() used to
+  # simulate random effects *conditionally* (fixed at the fitted MAP u_hat)
+  # for every replicate, which starved the variance-component (log_sd_mu)
+  # score of the between-group variability the Bartlett identity needs --
+  # z climbed from 5.36 (nsim = 60) to 10.59 (nsim = 200) as evidence
+  # accumulated against a fixed u_hat, and the old expectation
+  # (`expect_gt(abs(z_re), 3)`) said so explicitly. That defect is now FIXED:
+  # simulate.drmTMB() gained `re.form`, and the default (`re.form = NULL`)
+  # draws a fresh random effect per replicate (marginal simulation; see
+  # R/methods.R). This test now asserts the identity actually HOLDS.
+  #
+  # Guard: confirm theta0 is at the optimum (a converged fit), not the TMB
+  # start vector -- evaluating the score anywhere off the optimum can bias
+  # z away from 0 for reasons that have nothing to do with simulate().
   set.seed(20260725)
   n_id <- 10
   n_each <- 6
@@ -216,17 +220,26 @@ test_that("Bartlett identities for a Gaussian random-intercept (Laplace) route",
   dat <- data.frame(y = y, x = x, id = id)
   fit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), family = gaussian(), data = dat)
 
-  res <- score_consistency(fit, nsim = 60, seed = 44, tight_inner = TRUE)
+  expect_lt(max(abs(fit$obj$gr(fit$opt$par))), 1e-3)
+
+  # nsim = 150 (larger than the fixed-effect routes above) because the
+  # variance-component score is the noisiest component; at this nsim, under
+  # marginal simulation, z[log_sd_mu] measured -0.607 in the qualifying run
+  # (this run: -0.21, still well inside the Monte Carlo noise band). A fixed
+  # |z| < 3 bound is standard first-Bartlett practice and honest about that
+  # noise -- it is neither so tight it flags ordinary Monte Carlo variation
+  # nor so loose it would have missed the old defect (which registered
+  # 5.36-10.59).
+  res <- score_consistency(fit, nsim = 150, seed = 44, tight_inner = TRUE)
 
   # Fixed-effect / residual-scale components: first Bartlett holds.
   fe_idx <- which(names(res$theta0) %in% c("beta_mu", "beta_sigma"))
   expect_true(all(abs(res$z[fe_idx]) < 4))
 
-  # Variance-component score (log_sd_mu): documents the known, reproducible
-  # deviation attributable to simulate.drmTMB()'s conditional random-effect
-  # draw (see comment above), not to a density/Laplace error.
+  # Variance-component score (log_sd_mu): first Bartlett now holds too, now
+  # that random effects are properly re-marginalised across replicates.
   re_idx <- which(names(res$theta0) == "log_sd_mu")
-  expect_gt(abs(res$z[re_idx]), 3)
+  expect_lt(abs(res$z[re_idx]), 3)
 
   expect_lt(res$rel_frob, 0.6)
 })

@@ -4,7 +4,7 @@
 \alias{simulate.drmTMB}
 \title{Simulate from a fitted model}
 \usage{
-\method{simulate}{drmTMB}(object, nsim = 1, seed = NULL, ...)
+\method{simulate}{drmTMB}(object, nsim = 1, seed = NULL, re.form = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -13,6 +13,10 @@
 
 \item{seed}{Optional random-number seed. The previous \code{.Random.seed} state
 is restored after simulation.}
+
+\item{re.form}{\code{NULL} (the default) draws fresh random effects for every
+replicate (marginal simulation). \code{NA} holds every random effect fixed at
+its fitted conditional-mode estimate (conditional simulation).}
 
 \item{...}{Reserved for future simulation options.}
 }
@@ -56,6 +60,26 @@ simulation uses the full row-paired observation covariance \code{V + Omega}.
 For bivariate Student-t models, simulation instead uses one shared
 chi-squared scale-mixture draw per response pair together with the fitted
 shared \code{nu}; independent marginal t draws would be a different model.
+}
+\details{
+By default (\code{re.form = NULL}), models with ordinary grouped random effects
+draw a \strong{fresh} random-effect realization for every replicate, so
+replicate-to-replicate variability reflects both the between-group and the
+residual sources of variance (matching the lme4/glmmTMB \code{re.form}
+convention). Pass \code{re.form = NA} to simulate conditionally on the fitted
+random effects instead (holding every random effect fixed at its
+conditional-mode estimate, the behaviour this function had before
+\code{re.form} was added). Marginal simulation also redraws a single-endpoint
+(\code{q == 1}) phylogenetic, spatial, relatedness-matrix (\code{relmat}), or
+animal-model structured \code{mu} random effect from its fitted covariance
+\code{sd^2 * Q^-1}. It does not yet support a structured mu random effect
+correlated across more than one trait or distributional parameter
+(\code{q > 1}), \code{phylo_interaction} structured terms, correlated
+covariance-block random effects, predictor-dependent random-effect
+correlation (\code{corpair}) regression, or a modelled (heteroscedastic)
+random-effect scale; \code{simulate()} throws an informative error naming the
+unsupported structure for those models and directs the user to
+\code{re.form = NA}. Models without random effects are unaffected by \code{re.form}.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

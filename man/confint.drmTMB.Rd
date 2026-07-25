@@ -24,6 +24,7 @@
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
+  bootstrap_re_form = NULL,
   ...
 )
 }
@@ -146,6 +147,16 @@ and dispersion axis alike. The default deliberately excludes the dispersion
 axis (\code{sigma} SD intervals already over-cover, so the upward shift would
 push them further conservative) and plain labelled covariance blocks (whose
 correction magnitude is not yet simulation-calibrated).}
+
+\item{bootstrap_re_form}{\code{re.form} passed through to \code{\link[stats:simulate]{stats::simulate()}}
+when \code{method = "bootstrap"}. The default, \code{NULL}, redraws random effects
+for every replicate (marginal simulation), matching what a parametric
+bootstrap of the fitted data-generating process requires. Passing \code{NA}
+instead holds random effects fixed at their conditional-mode estimate;
+this is a documented escape hatch for random-effect structures whose
+marginal draw is not yet implemented, and it makes the resulting
+intervals \strong{anticonservative} because between-group variability is
+never resampled -- it is not a neutral alternative to the default.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.

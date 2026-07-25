@@ -1,5 +1,50 @@
 # drmTMB 0.6.0
 
+## `simulate()` redraws random effects (`re.form`) — corrected before first release
+
+* **Earlier `0.6.0` development builds held random effects frozen at their
+  fitted values in `simulate()`.** Every replicate reused the same `û`; only
+  residual noise varied. Simulated data therefore under-represented
+  between-group variability, and — because `confint(method = "bootstrap")` is
+  driven by `simulate()` — **parametric bootstrap intervals for models with
+  random effects were anticonservative (too narrow).** This is corrected here,
+  within `0.6.0`, before the first release: no released version ever shipped
+  the frozen behaviour.
+
+* **`simulate()` gains `re.form`.** `re.form = NULL` (the default) draws a fresh
+  random-effect realisation for every replicate; `re.form = NA` reproduces the
+  earlier conditional behaviour. `confint()` exposes the same choice for the
+  parametric bootstrap as `bootstrap_re_form`, also defaulting to marginal.
+
+* **If you installed a `0.6.0` development build from GitHub, your results
+  change.** Any code depending on the earlier behaviour needs `re.form = NA` —
+  and should first ask whether it *wanted* frozen random effects. Reproducing a
+  fitted dataset is a legitimate use; a parametric bootstrap or a posterior
+  predictive check is not, which is why the default is marginal rather than the
+  argument merely being added. **Bootstrap intervals computed on an earlier
+  development build are anticonservative and should be recomputed.**
+
+* Marginal draws support ordinary grouped intercepts and slopes, intra-block
+  correlation (`(1 + x | g)`), labelled cross-parameter correlation
+  (`(1 | p | id)`), and `phylo()`/`spatial()`/`relmat()`/`animal()` structured
+  `mu` effects at `q = 1`. `phylo_interaction()`, cross-trait `q > 1` structured
+  effects, correlated covariance blocks, `corpair()` regression, and modelled
+  random-effect scale **abort with an informative message** rather than silently
+  falling back to conditional simulation — a silent fallback would reproduce the
+  defect this change fixes. Those structures can still be simulated with
+  `re.form = NA`, and any bootstrap interval obtained that way is
+  anticonservative and must not be used as coverage evidence.
+
+* `predict()` is deliberately unchanged: conditional prediction at the original
+  data is correct, and was not the defect.
+
+* Found by the Arc B numerical audit's score-consistency check, not by reading
+  the code — the first Bartlett identity `E[score] = 0` failed on the
+  random-effect variance component at `z = 5.36` (60 replicates) growing to
+  `10.59` (200), and now measures `z = -0.205`. No certified capability-ledger
+  cell relied on bootstrap intervals, so no evidence was retracted. See
+  `docs/design/243-marginal-simulation-and-re-form.md`.
+
 ## Legacy Julia cross-family extractor repair
 
 * Legacy `drmTMB_julia_xfam` objects no longer let `vcov()`, `fitted()`,
@@ -453,9 +498,10 @@
 # drmTMB 0.5.0
 
 `drmTMB` 0.5.0 was numbered as the intended first CRAN release (not 1.0) —
-*historical note, superseded: 0.5.0 was never submitted to or accepted by CRAN
-and was retired in favour of a more capable 0.6.0-class cut, so **0.6.0** is the
-actual first CRAN submission.* The honest version number reflects that much of
+*historical note, superseded twice: 0.5.0 was never submitted to or accepted by
+CRAN and was retired in favour of a more capable 0.6.0-class cut; and `0.6` in
+turn is the **development cycle**, never submitted. **The first CRAN submission
+is `0.7.0`** (decided 2026-07-25).* The honest version number reflects that much of
 the family and inference surface is still scaffolded or
 recovery-grade. Throughout the dev-log and the "Q-Series v1.0" ledger, **"v1.0"
 is reserved for the later maturity milestone** that 0.5.0 deliberately does not

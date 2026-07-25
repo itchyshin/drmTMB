@@ -207,11 +207,19 @@ phase18_summarise_meta_v_lss_arc8_fit <- function(
       is.finite(profile$lower[[1L]]) && is.finite(profile$upper[[1L]]) &&
       contains_estimate) "ok" else "incomplete"
   }
+  # bootstrap_re_form = NA requests CONDITIONAL simulation: this LSS layer has
+  # a modelled (heteroscedastic) `(1|study)` random-effect SD, which marginal
+  # simulation does not yet support, so the default would abort. Conditional
+  # bootstrap intervals are ANTICONSERVATIVE (between-group variability is not
+  # resampled) -- acceptable here ONLY because this runner is smoke-tested for
+  # bootstrap accounting/plumbing (requested/finite-success counts, diagnostic
+  # columns), not interval coverage. Revisit once marginal draws support a
+  # modelled random-effect scale.
   interval <- tryCatch(
     stats::confint(
       fit, parm = targets, method = "bootstrap", R = bootstrap_R,
       seed = bootstrap_seed, parallel = bootstrap_parallel,
-      workers = bootstrap_workers
+      workers = bootstrap_workers, bootstrap_re_form = NA
     ),
     error = function(e) e
   )

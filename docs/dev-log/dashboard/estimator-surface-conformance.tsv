@@ -4,9 +4,9 @@ reml_off_base_sdreport	REML	FALSE	base_gaussian_phylo	sdreport	ok	status=ok		tes
 reml_off_base_vcov	REML	FALSE	base_gaussian_phylo	vcov	ok		reads sdr$cov.fixed	R/methods.R:2350
 reml_off_base_summary_coef_se	REML	FALSE	base_gaussian_phylo	summary_coef_se	ok		all finite	tests/testthat/test-estimator-surface-conformance.R
 reml_off_base_confint_wald	REML	FALSE	base_gaussian_phylo	confint_wald	ok			tests/testthat/test-estimator-surface-conformance.R
-reml_off_base_confint_profile_fixef	REML	FALSE	base_gaussian_phylo	confint_profile_fixef	ok		beta_mu is a free fixed parameter	R/profile.R:848
-reml_off_base_confint_profile_sd	REML	FALSE	base_gaussian_phylo	confint_profile_sd	ok			R/profile.R:848
-reml_off_base_profile_targets	REML	FALSE	base_gaussian_phylo	profile_targets	ok	any_ready		R/profile.R:848
+reml_off_base_confint_profile_fixef	REML	FALSE	base_gaussian_phylo	confint_profile_fixef	ok		beta_mu is a free fixed parameter	R/profile.R:860
+reml_off_base_confint_profile_sd	REML	FALSE	base_gaussian_phylo	confint_profile_sd	ok			R/profile.R:860
+reml_off_base_profile_targets	REML	FALSE	base_gaussian_phylo	profile_targets	ok	any_ready		R/profile.R:860
 reml_off_base_check_drm	REML	FALSE	base_gaussian_phylo	check_drm	ok	attr_ok		R/check.R:1
 reml_off_base_ranef	REML	FALSE	base_gaussian_phylo	ranef	ok			R/methods.R:2342
 reml_off_base_predict	REML	FALSE	base_gaussian_phylo	predict	ok			R/methods.R:2342
@@ -17,9 +17,9 @@ reml_on_base_sdreport	REML	TRUE	base_gaussian_phylo	sdreport	ok	status=ok	small 
 reml_on_base_vcov	REML	TRUE	base_gaussian_phylo	vcov	ok		reads the JOINT sdr$cov, not cov.fixed: beta_mu/beta_sigma are in the Laplace random block	R/methods.R:2342-2349
 reml_on_base_summary_coef_se	REML	TRUE	base_gaussian_phylo	summary_coef_se	ok		all finite	tests/testthat/test-estimator-surface-conformance.R
 reml_on_base_confint_wald	REML	TRUE	base_gaussian_phylo	confint_wald	ok			tests/testthat/test-estimator-surface-conformance.R
-reml_on_base_confint_profile_fixef	REML	TRUE	base_gaussian_phylo	confint_profile_fixef	error	not ready for direct profiling	CAPABILITY LOSS: beta_mu is integrated into the Laplace random block, so there is no free parameter to profile. Take fixed-effect intervals from an ML fit.	R/profile.R:867
-reml_on_base_confint_profile_sd	REML	TRUE	base_gaussian_phylo	confint_profile_sd	ok		endpoint solver handles the empty free-parameter vector	R/profile.R:3054
-reml_on_base_profile_targets	REML	TRUE	base_gaussian_phylo	profile_targets	ok	any_ready		R/profile.R:848
+reml_on_base_confint_profile_fixef	REML	TRUE	base_gaussian_phylo	confint_profile_fixef	error	not ready for direct profiling	CAPABILITY LOSS: beta_mu is integrated into the Laplace random block, so there is no free parameter to profile. Take fixed-effect intervals from an ML fit.	R/profile.R:878
+reml_on_base_confint_profile_sd	REML	TRUE	base_gaussian_phylo	confint_profile_sd	ok		endpoint solver handles the empty free-parameter vector	R/profile.R:3078
+reml_on_base_profile_targets	REML	TRUE	base_gaussian_phylo	profile_targets	ok	any_ready		R/profile.R:860
 reml_on_base_check_drm	REML	TRUE	base_gaussian_phylo	check_drm	ok	attr_ok		R/check.R:1
 reml_on_base_ranef	REML	TRUE	base_gaussian_phylo	ranef	ok			R/methods.R:2342
 reml_on_base_predict	REML	TRUE	base_gaussian_phylo	predict	ok			R/methods.R:2342

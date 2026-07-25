@@ -3,7 +3,47 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-25, ARC A CLOSED PARTIAL; NEXT = C++ / NUMERICAL AUDIT).**
+> **▶ Latest — start here (2026-07-25, ARC B MERGED; ARC A1 VERIFIED — MARGINAL SIMULATION; NEXT = ARC C).**
+> **Arc B — the C++/numerical audit — is MERGED** (PR #842, `main` `12d971f1`): five standing
+> conformance suites (kernel oracle · FD-vs-AD gradient · score consistency · `CondExp`
+> branch continuity · link/boundary), **58 blocks, 516 assertions, zero skips**, full suite
+> 39708/1/124 against a 39192/1/124 baseline, `R CMD check` **OK**. Eight findings were
+> **reported, none repaired** — the audit observes. Headline: **`simulate.drmTMB()` simulated
+> CONDITIONALLY on the fitted MAP `û`**, so `confint(method = "bootstrap")` produced
+> **anticonservative** intervals for every RE model. **No certified ledger cell was affected**
+> (`bootstrap_R = 0` across 151 evidence artifacts; `mc-0227` profile, `mc-0242` Wald+profile).
+> **Arc A1 fixes it** on branch `claude/a1-simulate-marginal-re`: `simulate()` gains
+> **`re.form`** (`NULL` = marginal, the **new default**; `NA` = old conditional), `confint()`
+> gains `bootstrap_re_form`. Marginal draws cover ordinary/correlated/labelled REs and
+> `phylo`/`spatial`/`relmat`/`animal` at `q = 1`; `phylo_interaction`, cross-trait `q > 1`,
+> covariance blocks, `corpair`, and modelled RE scale **abort rather than silently falling back**.
+> **A1's evidence, stated against the commit it was measured on** (PR #843). On `5c7b9574`:
+> CI `ubuntu-latest (release)` **pass** (`R CMD check`, clean checkout, 31m24s) and the local
+> full suite **39722 pass / 1 fail / 0 error / 124 skip** against a 39708/1/124 baseline —
+> **no new skips**. That one failure was A1's own: editing `R/profile.R` shifted conformance
+> anchors, caught by `test-estimator-surface-conformance.R`. **Six anchors drifted, not one**
+> (`R/profile.R` `:867→:878`, `:848→:860` ×4, `:3054→:3078`); only the `:867` row was
+> *enforced* (the test checks detail strings solely for `expected == "error"` rows), so the
+> other five were silent. All six are repaired, and **both gates must be re-read on the
+> repaired tip before any merge claim** — the green above does NOT cover it.
+> **CI could not see any of this**: that test resolves `R/profile.R` from a source checkout, so
+> under `R CMD check` it does not evaluate. Arc B was green under `test_dir` and ERRORed under
+> `R CMD check`; A1 is the exact mirror. **Run both gates, always, and on the commit you gate.**
+> Design: `docs/design/243-marginal-simulation-and-re-form.md`. **NEXT = Arc C** (owner-chosen
+> 2026-07-25, defects before capability): **A5** beta `mi()` unclamped `log_sigma`
+> (`drmTMB.cpp:2766` vs `:2888`) · **F5** `sd()` regression `exp()`s an unbounded predicted
+> log-SD at `drmTMB.cpp:831, 921, 2279, 2815, 4107` — reuse `drm_softclamp_log_sigma()` and the
+> existing `logsigma_clamp`, do not invent a second bound · **A7** six rotted anchors in
+> `R/family-dpq.R`. **F9 is DROPPED** — the audit calls the 12 dead `sigma_i` locals evidence
+> *against* drift, so deleting them destroys a signal. **DEFERRED, scheduled before 0.7:**
+> Arc A2 capability (the five aborting structures; `phylo_interaction` is the cheapest — its
+> Kronecker precision is already assembled) and audit A2/tweedie + A3/A4/ridge.
+> **Release: `0.6` is the DEV CYCLE; the first CRAN submission is `0.7`** (owner, 2026-07-25;
+> brain `D-86`, mirroring gllvmTMB's `D-66`).
+> START HERE:
+> [`docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md`](docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md)
+>
+> **▶ Prior (2026-07-25, ARC A CLOSED PARTIAL; NEXT = C++ / NUMERICAL AUDIT).**
 > Arc A built the instrument, not the sweep. **Two of its four slices shipped; two were
 > deliberately dropped** — no overlap sweep, no vignette. **Do not call Arc A complete.**
 > Shipped: `evidence_class = "external_comparator"` in `capability-ledger/evidence.tsv`
