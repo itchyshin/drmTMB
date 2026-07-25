@@ -2,10 +2,10 @@
 # (issues #747/#748; see docs/dev-log/2026-07-12-distributional-output-adequacy-layer-ultra-plan.md).
 #
 # `drm_family_dpq()` is a model_type-keyed switch() that MIRRORS
-# `drm_dpar_link()` (methods.R:5057-5097), for the same reason: only 11/18
+# `drm_dpar_link()` (methods.R), for the same reason: only 11/18
 # routes carry a `drm_family()` constructor object, so the per-family
 # density/CDF/quantile registry cannot attach to that object either
-# (methods.R:5057-5069 explains why the link table itself is a switch, not a
+# (the `drm_dpar_link()` link table explains why the link table itself is a switch, not a
 # field on `drm_family`). Add a case here in the SAME model_type order as
 # `drm_dpar_link()` when a family is promoted; keep the two switches
 # side-by-side in a reviewer's diff.
@@ -54,7 +54,7 @@
 # Weights caveat (Noether, CP1): the d/p/q closures give the UNWEIGHTED
 # per-observation distribution -- the correct object for quantile residuals,
 # CDF, exceedance and quantiles. The compiled nll additionally multiplies by
-# prior `weights(i)` (src/drmTMB.cpp:636), so `-sum(log(d(y)))` matches the
+# prior `weights(i)` (src/drmTMB.cpp, model_type == 1), so `-sum(log(d(y)))` matches the
 # compiled nll only for unit-weight fits; that is expected, not a discrepancy.
 
 #' Per-family density/CDF/quantile registry (internal)
@@ -245,7 +245,7 @@ drm_tweedie_dpq <- function(fun) {
 # `stats::uniroot()` -- this is unavoidable regardless of package, since even
 # `sn::qsn()` numerically inverts `psn()`. The (xi, omega, alpha) native
 # parameters are the SAME moment-inversion the compiled density
-# (src/drmTMB.cpp:2441-2447, model_type == 17) and `rskew_normal_public()`
+# (src/drmTMB.cpp, model_type == 17) and `rskew_normal_public()`
 # (methods.R) use, via the single shared helper `drm_skew_normal_moments()`
 # (Emmy's dedup, DO-T3 batch B prelude) -- both routes call it rather than
 # each re-deriving delta/omega/xi.
@@ -383,7 +383,7 @@ drm_skew_normal_cdf_native <- function(y, xi, omega, alpha) {
 # ---- student (reference) ---------------------------------------------------
 #
 # Location-scale Student-t: sigma is a SCALE, NOT the response SD (Noether's
-# trap). Compiled density (src/drmTMB.cpp:2404-2418, model_type == 3):
+# trap). Compiled density (src/drmTMB.cpp, model_type == 3):
 # z = (y - mu) / sigma, log_density = log(dt(z, df = nu)) - log(sigma). This
 # is exactly `stats::dt(z, df = nu) / sigma` (the location-scale-t density),
 # so F(y) = pt((y - mu) / sigma, df = nu) with no further transform. The same
@@ -413,7 +413,7 @@ drm_family_dpq_student <- function() {
 
 # ---- lognormal (reference) -------------------------------------------------
 #
-# Compiled density (src/drmTMB.cpp:2494-2499, model_type == 4):
+# Compiled density (src/drmTMB.cpp, model_type == 4):
 # `log_density = dnorm(log(y), mu, sigma, log = TRUE) - log(y)`, i.e. the
 # lognormal density INCLUDING the `-log(y)` Jacobian of the log transform.
 # `stats::dlnorm(y, meanlog, sdlog)` already applies this Jacobian internally,
@@ -447,7 +447,7 @@ drm_family_dpq_lognormal <- function() {
 #
 # Public (mu, sigma) -> native (shape, scale): shape = 1 / sigma^2,
 # scale = mu * sigma^2, matching the compiled density
-# (src/drmTMB.cpp:2576-2578, model_type == 5). `drm_gamma_shape_scale()` is
+# (src/drmTMB.cpp, model_type == 5). `drm_gamma_shape_scale()` is
 # the SAME conversion `simulate.drmTMB()`'s gamma branch calls (methods.R,
 # `simulate.drmTMB` gamma case) -- both routes call this one helper rather
 # than each re-deriving `1 / sigma^2` / `mu * sigma^2`.
@@ -482,7 +482,7 @@ drm_family_dpq_gamma <- function() {
 #
 # Public (mu, sigma) -> native (shape1, shape2): phi = 1 / sigma^2,
 # shape1 = mu * phi, shape2 = (1 - mu) * phi, matching the compiled density
-# (src/drmTMB.cpp:2740-2769, model_type == 10 -- the "beta" family; NOT
+# (src/drmTMB.cpp, model_type == 10 -- the "beta" family; NOT
 # model_type == 15, which is "zero_one_beta"). `drm_beta_shapes()` is the SAME
 # conversion `simulate.drmTMB()`'s "beta" branch calls (methods.R). The
 # compiled density additionally floors alpha/beta_shape at 1e-8
@@ -529,7 +529,7 @@ drm_family_dpq_beta <- function() {
 # Zero-one-inflated beta: atoms at BOTH boundaries (y = 0, y = 1) plus an
 # interior beta component. Public dpars `(mu, sigma, zoi, coi)`; `zoi` is
 # `P(boundary) = P(Y in {0, 1})`, `coi` is `P(Y = 1 | boundary)`, matching the
-# compiled kernel exactly (src/drmTMB.cpp:2782-2858, model_type == 15):
+# compiled kernel exactly (src/drmTMB.cpp, model_type == 15):
 # `P(Y = 0) = zoi * (1 - coi)`, `P(Y = 1) = zoi * coi`, and the interior
 # density for `0 < y < 1` is `(1 - zoi) * dbeta(y, shape1, shape2)` with
 # `(shape1, shape2)` the SAME `drm_beta_shapes(mu, sigma)` conversion the
@@ -615,7 +615,7 @@ drm_family_dpq_zero_one_beta <- function() {
 # SAME `drm_beta_shapes()` conversion the "beta" family above uses (phi =
 # 1 / sigma^2, alpha = mu * phi, beta_shape = (1 - mu) * phi); phi is also
 # the compiled kernel's `phi(i) = exp(-2 * log_sigma(i))`
-# (src/drmTMB.cpp:2886-2892, model_type == 14). `drm_beta_binomial_dpmf()`
+# (src/drmTMB.cpp, model_type == 14). `drm_beta_binomial_dpmf()`
 # below reproduces that block's exact lgamma pmf formula (no external
 # dependency at runtime -- `extraDistr::dbbinom`/`pbbinom` are used only as
 # the independent DG2 external reference in
@@ -716,7 +716,7 @@ drm_family_dpq_beta_binomial <- function() {
 # ---- binomial (reference, discrete) -----------------------------------------
 #
 # Native map is the identity: mu IS the success probability (compiled density
-# at src/drmTMB.cpp:2963-2980, model_type == 18); `d()`/`p()`/`q()` need only
+# at src/drmTMB.cpp, model_type == 18); `d()`/`p()`/`q()` need only
 # `mu` and the per-row `trials` denominator. `trials` is not a distributional
 # parameter with a link (it has no entry in `drm_dpar_link()`), so it cannot
 # be listed in `dpars`; it is attached as an extra `params` column inside
@@ -754,7 +754,7 @@ drm_family_dpq_binomial <- function() {
 # K-1 cutpoints -- not a dpar with a link -- are attached as extra `params`
 # columns `CP1`..`CP(K-1)` inside [fitted_distribution_params()] (the
 # CP1-sanctioned column-attachment pattern, same shape as binomial `trials`).
-# Matches the compiled density exactly (src/drmTMB.cpp:2984-3048,
+# Matches the compiled density exactly (src/drmTMB.cpp,
 # model_type == 13): `logit(P(Y <= k)) = cutpoints[k] - mu`, i.e.
 # `F(k) = plogis(cutpoints[k] - mu)` for `k = 1..K-1`, `F(K) = 1`, `F(0) = 0`;
 # `d(k) = F(k) - F(k - 1)`. `drm_cumulative_logit_cutpoints()` reads the CPk
@@ -814,7 +814,7 @@ drm_family_dpq_cumulative_logit <- function() {
 # ---- poisson (reference, discrete) -------------------------------------------
 #
 # Native map is the identity: mu IS the Poisson rate (compiled density at
-# src/drmTMB.cpp:3184-3195, model_type == 6, `dpois(y, mu)`). Matches
+# src/drmTMB.cpp, model_type == 6, `dpois(y, mu)`). Matches
 # `simulate.drmTMB()`'s poisson branch (methods.R:
 # `stats::rpois(lambda = mu)`).
 
@@ -835,7 +835,7 @@ drm_family_dpq_poisson <- function() {
 #
 # Zero-inflated Poisson: `mu` is the identity-map Poisson rate (same as
 # "poisson"), `zi` is the structural-zero probability, matching the compiled
-# kernel exactly (src/drmTMB.cpp:3196-3258, model_type == 8):
+# kernel exactly (src/drmTMB.cpp, model_type == 8):
 # `P(Y = 0) = zi + (1 - zi) * dpois(0, mu)`, `P(Y = k) = (1 - zi) *
 # dpois(k, mu)` for `k >= 1`. Fully discrete over the SAME non-negative-
 # integer lattice "poisson" uses (the zero-inflation adds mass AT an existing
@@ -927,7 +927,7 @@ drm_family_dpq_nbinom2 <- function() {
 # Zero-truncated NB2: support `{1, 2, ...}`, built on the SAME nbinom2 kernel
 # ("mu"/"sigma" -> `size = drm_nbinom2_size(sigma)`) renormalized by the
 # untruncated zero-mass `p0 = dnbinom(0, size, mu)`, matching the compiled
-# kernel exactly (src/drmTMB.cpp:3463-3510, model_type == 11):
+# kernel exactly (src/drmTMB.cpp, model_type == 11):
 # `log_density(y) - log(1 - p0)` for `y >= 1`, via the SAME
 # `drm_nbinom2_log_density()`/`drm_nbinom2_log_p0()` C++ helpers
 # (src/drm_count_kernels.h) "nbinom2" itself uses. No isolated atom (the
@@ -977,7 +977,7 @@ drm_family_dpq_truncated_nbinom2 <- function() {
 # Hurdle NB2: `P(Y = 0) = hu`, `P(Y = k) = (1 - hu) * truncated_nb2_pmf(k)`
 # for `k >= 1`, built directly on the SAME zero-truncated-NB2 route
 # "truncated_nbinom2" above uses, matching the compiled kernel exactly
-# (src/drmTMB.cpp:3511-3597, model_type == 12): `log_hu` for `y == 0`,
+# (src/drmTMB.cpp, model_type == 12): `log_hu` for `y == 0`,
 # `log(1 - hu) + log_density(y) - log(1 - p0)` for `y >= 1`. Fully discrete
 # over the non-negative-integer lattice (the hurdle mechanism REPLACES, not
 # adds to, the y = 0 mass, unlike zero-inflation's additive mixture), so
@@ -1031,7 +1031,7 @@ drm_family_dpq_hurdle_nbinom2 <- function() {
 #
 # Zero-inflated NB2: the SAME additive zero-inflation mixture as "zi_poisson"
 # above, over the NB2 base instead of Poisson, matching the compiled kernel
-# exactly (src/drmTMB.cpp:3598-3668, model_type == 9):
+# exactly (src/drmTMB.cpp, model_type == 9):
 # `P(Y = 0) = zi + (1 - zi) * dnbinom(0, size, mu)`, `P(Y = k) = (1 - zi) *
 # dnbinom(k, size, mu)` for `k >= 1`. `atoms = c(0)` for DG2 bookkeeping only
 # (same convention as "zi_poisson"); the ordinary discrete `F(y - 1)`
@@ -1232,7 +1232,7 @@ drm_validate_fitted_distribution_response <- function(object, response) {
 # predict_parameters()'s long format. Also attaches `V_known` (the gaussian
 # meta-analysis known sampling variance per row; 0 for ordinary fits and for
 # any newdata rows) so gaussian's {d,p,q} can reconstruct the same total
-# observation SD the compiled density uses (src/drmTMB.cpp:634) without a
+# observation SD the compiled density uses (src/drmTMB.cpp, model_type == 1) without a
 # second V_known-handling code path.
 #
 # biv_gaussian (DO-T3 batch D): `dpars` is drm_family_dpq_biv_gaussian()'s
@@ -1385,7 +1385,7 @@ drm_newdata_trials <- function(object, newdata, n) {
 # `F(y - 1)` for count families). `drm_dunn_smyth_u()` is the seed-contract
 # primitive: it draws one uniform per row in the supplied [lower, upper]
 # band, using the SAME `.Random.seed` save/restore idiom as
-# `simulate.drmTMB()` (methods.R:2770-2792), so a `seed` argument is
+# `simulate.drmTMB()` (methods.R), so a `seed` argument is
 # reproducible without permanently disturbing the caller's random state. This
 # is the shared primitive DO-T1's `residuals(type = "quantile")` is expected
 # to call for atom/discrete families; DO-T0a does not yet wire it into
