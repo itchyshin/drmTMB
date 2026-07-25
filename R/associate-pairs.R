@@ -569,6 +569,31 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
   draws
 }
 
+drm_pair_simulate_bernoulli_nbinom2 <- function(
+    binary_p, nbinom2_mu, nbinom2_sigma, eta) {
+  n <- length(binary_p)
+  if (
+    n < 1L ||
+      length(nbinom2_mu) != n || length(nbinom2_sigma) != n || length(eta) != n ||
+      any(!is.finite(binary_p) | binary_p <= 0 | binary_p >= 1) ||
+      any(!is.finite(nbinom2_mu) | nbinom2_mu <= 0) ||
+      any(!is.finite(nbinom2_sigma) | nbinom2_sigma <= 0) ||
+      any(!is.finite(eta) | abs(eta) >= 1)
+  ) {
+    cli::cli_abort("Bernoulli x ordinary-NB2 simulation needs matching interior margins and associations.")
+  }
+  z_binary <- stats::rnorm(n)
+  z_nbinom2 <- eta * z_binary + sqrt(1 - eta^2) * stats::rnorm(n)
+  list(
+    bernoulli = as.integer(z_binary > stats::qnorm(binary_p, lower.tail = FALSE)),
+    nbinom2 = drm_pair_nbinom2_quantile_from_normal(
+      z_nbinom2, nbinom2_mu, nbinom2_sigma
+    ),
+    latent_binary = z_binary,
+    latent_nbinom2 = z_nbinom2
+  )
+}
+
 #' @export
 rho12.drm_pair_association <- function(object, ...) {
   cli::cli_abort(c(
@@ -910,9 +935,11 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
       c(-0.25, rep(0, ncol(x_association) - 1L)),
       c(0.25, rep(0, ncol(x_association) - 1L)))
   }
+  bounds <- drm_pair_association_bounds()
   fits <- lapply(starts, function(start) {
     stats::nlminb(start = start, objective = objective,
-      lower = rep(-8, length(start)), upper = rep(8, length(start)))
+      lower = rep(bounds$lower, length(start)),
+      upper = rep(bounds$upper, length(start)))
   })
   objectives <- vapply(fits, `[[`, numeric(1L), "objective")
   multistart_coefficients <- do.call(cbind, lapply(
@@ -931,7 +958,7 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
     upper <- coefficients
     lower[[index]] <- lower[[index]] - h
     upper[[index]] <- upper[[index]] + h
-    if (lower[[index]] <= -8 || upper[[index]] >= 8) {
+    if (lower[[index]] <= bounds$lower || upper[[index]] >= bounds$upper) {
       return(c(score = NA_real_, curvature = NA_real_))
     }
     c(
@@ -965,7 +992,11 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
   convergence_failure <- !identical(best$convergence, 0L)
   weak_curvature <- any(!is.finite(curvature) | curvature >= -1e-6)
   score_failure <- any(!is.finite(score) | abs(score) > 1e-3)
-  unresolved <- any(abs(coefficients) >= 7.99) ||
+  bound_hit <- any(
+    coefficients <= bounds$lower + bounds$hit_tolerance |
+      coefficients >= bounds$upper - bounds$hit_tolerance
+  )
+  unresolved <- bound_hit ||
     !is.finite(logLik) ||
     convergence_failure ||
     multistart_disagreement ||
@@ -997,6 +1028,12 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
     diagnostics = list(
       alpha = alpha,
       eta_internal = eta_internal,
+      optimization_domain = c(
+        lower = bounds$lower,
+        upper = bounds$upper,
+        hit_tolerance = bounds$hit_tolerance,
+        bound_hit = as.numeric(bound_hit)
+      ),
       near_boundary = near_boundary,
       boundary_unresolved = unresolved,
       optimizer_convergence = best$convergence,
@@ -1014,6 +1051,13 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
       count_interval = interval_diagnostics
     )
   )
+}
+
+drm_pair_association_bounds <- function() {
+  # This finite domain is part of the staged estimator definition. A maximum
+  # within 0.01 of either bound is unresolved, rather than evidence for an
+  # arbitrarily strong association or for a valid bootstrap draw.
+  list(lower = -8, upper = 8, hit_tolerance = 0.01)
 }
 
 drm_pair_component_n <- function(components) {

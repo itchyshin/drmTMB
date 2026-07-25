@@ -37,7 +37,10 @@ by the constant Bernoulli x NB2 adapter; only its row-specific correlation
 changes. The `tanh` transform defines the scientific association on
 \((-1,1)\). The implementation multiplies it by `0.999999` only as a numerical
 safeguard, so that finite arithmetic never supplies an exact endpoint to a
-latent-normal probability calculation.
+latent-normal probability calculation. Optimisation is deliberately confined
+to the finite link domain \([-8,8]\). A coefficient within `0.01` of either
+bound is `boundary_unresolved`; it is not a fitted extreme association and is
+not eligible as a resolved full-refit bootstrap draw.
 
 ## Public boundary
 
@@ -55,11 +58,13 @@ and fitted \(\eta_i\) values are point estimates only; they are not joint-MLE
 ## Validation contract
 
 The implementation must retain the existing independent rectangle oracle,
-fail closed on unresolved numerical rectangles, use unconstrained optimization
-on the association-link coefficients, and test ten ordinary/edge combinations
+fail closed on unresolved numerical rectangles, use the declared finite
+optimization domain on the association-link coefficients, and test ten ordinary/edge combinations
 across the admitted pair classes. The new slope route additionally requires a
 deterministic simulated Bernoulli x NB2 fixture with a known two-coefficient
 association signal, a constant-association backward-compatibility check, and
 rejection tests for unsupported association formulas. A larger multi-seed
 recovery study is a separate compute-gated evidence task; it is not implied by
-this beta implementation.
+this beta implementation. Any future staged-eta bootstrap must resimulate the
+complete paired response and refit both margins, using this same finite
+optimization domain in the DGP/refit/diagnostic contract.

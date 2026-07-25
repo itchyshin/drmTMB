@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-07-25: staged-eta full-refit bootstrap campaign stopped
+
+- Stopped the active Totoro staged-eta dispatchers and cancelled the pending
+  Fir recovery array. Verification after termination found zero active Totoro
+  staged-eta runners and zero dispatchers. The recurring campaign monitor was
+  deleted.
+- Preserved, without aggregation or interpretation, the partial campaign
+  ledgers: 284 Totoro and 513 Fir outer-result CSV shards. They are an
+  incomplete operational pilot, not feasibility, recovery, interval, or
+  coverage evidence; no all-attempt denominator is complete.
+- The 24-cell × 200 outer × 399 bootstrap design would require roughly 1.9
+  million bootstrap refits. Its observed operational cost was judged
+  disproportionate to the uncommitted developer-only staged-eta inference
+  feature. The runner, source snapshot, and estimator were not changed.
+- Staged eta remains a fixed-effect frozen-margin point-estimation/diagnostic
+  route. It has no SE, Wald, profile, `confint()`, interval, recovery, or
+  coverage claim. A future restart requires a product-level decision, a
+  cost-calibrated plan, and fresh compute approval.
+
+## 2026-07-24: staged Bernoulli × NB2 full-refit bootstrap infrastructure
+
+- Locked the staged association-link optimizer to its existing finite
+  `[-8, 8]` domain: a coefficient within `0.01` of a bound is now explicitly
+  `boundary_unresolved`, including for a future bootstrap draw. This changes no
+  current point-estimate or public uncertainty API.
+- Added a developer-only paired latent-normal simulator, independent NB2
+  DGP-oracle test, full-refit bootstrap helper, dormant 24-cell DRAC driver,
+  and all-attempt/conditional-coverage ledger contract. Every bootstrap draw
+  resimulates both responses, refits both margins, and retains margin and
+  association diagnostics. The driver refuses execution unless explicitly
+  enabled after a separate smoke approval.
+- Focused staged-bootstrap test = 19 pass; existing Bernoulli × NB2 contract
+  test = 69 pass; `git diff --check` passed. No smoke, simulation campaign,
+  compute request, public interval API, or capability claim occurred.
+- A subsequently owner-approved local smoke passed for one regular 2-outer ×
+  5-bootstrap-refit cell in an isolated installed library. All 10 refits were
+  interior and every required CSV/RDS ledger was non-empty. The first invocation
+  omitted `R_PROFILE_USER=/dev/null` and wrote no output; it is retained as an
+  environment diagnostic. The valid rerun used the required profile isolation.
+  This is an executable schema check only, not recovery or coverage evidence.
+
 ## 2026-07-24: Arc 6 installed-package test-path repair
 
 - The first merged Arc 6 main check failed only because two new tests assumed

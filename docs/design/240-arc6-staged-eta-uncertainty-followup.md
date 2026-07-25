@@ -2,7 +2,7 @@
 
 ## Status and boundary
 
-This is a design handoff, not an implemented uncertainty method. It applies
+This is a stopped design handoff, not an implemented uncertainty method. It applies
 only to the reviewed fixed-effect literal-Bernoulli × ordinary-NB2
 `associate_pairs()` route, including its one numeric `association = ~ x` beta
 extension. It does not grant `vcov()`, Wald standard errors, likelihood
@@ -24,9 +24,12 @@ not the sampling variance of the two-stage estimator. It omits margin
 uncertainty and cross-stage covariance. Profiling that same conditional
 objective has the same defect: it is not a profile of a joint likelihood.
 
-Until a validated stacked-score Godambe estimator exists, the admissible route
-is a full-refit parametric bootstrap. The package must keep conditional
-Hessian, `profile()`, and `confint()` unavailable in the meantime.
+Until a validated stacked-score Godambe estimator exists, a full-refit
+parametric bootstrap is a possible future route. It is not an active
+development commitment: the initially approved 24-cell campaign was stopped
+after its pilot operational cost proved disproportionate to an uncommitted,
+developer-only inference feature. The package must keep conditional Hessian,
+`profile()`, and `confint()` unavailable in the meantime.
 
 ## Later full-refit bootstrap contract
 
@@ -50,6 +53,12 @@ Hessian, `profile()`, and `confint()` unavailable in the meantime.
    resolved associations; report availability over all outer attempts and both
    conservative all-attempt and conditional coverage.
 
+The association optimization domain is \([-8,8]\) on every coefficient. A
+maximum within `0.01` of either numerical bound is unresolved and cannot count
+as an available association/bootstrap draw. The 200 outer attempts in each
+cell mean all generated datasets, not a post-hoc successful subset; unavailable
+intervals count as non-covering for conservative all-attempt coverage.
+
 ## First simulation ladder
 
 Before implementing an interval API, establish point recovery and bootstrap
@@ -60,9 +69,11 @@ feasibility over this immutable grid:
 - NB2 `mu = exp(0.7 + 0.2 x)` and `sigma = 0.25` or `0.65`;
 - association coefficients `(alpha0, alpha1) = (0, 0)` or `(-0.15, 0.65)`.
 
-This 24-cell grid uses 200 retained outer attempts per cell and 399 full-refit
-bootstrap attempts per outer fit. It is DRAC-scale, not a GitHub Actions job,
-and requires a fresh compute approval after a non-empty smoke.
+This 24-cell grid uses 200 all-attempt outer datasets per cell and 399 full-refit
+bootstrap attempts per outer fit. It is a future DRAC-scale design, not a
+GitHub Actions job. It must not resume without a fresh product-level decision
+that staged eta should gain a public inferential interface, a revised
+cost-calibrated plan, and a fresh compute approval.
 
 ## References to the implemented boundary
 
