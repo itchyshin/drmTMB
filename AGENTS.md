@@ -25,6 +25,27 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
+> **▶ Latest — start here (2026-07-24, → CODEX, ARC 6 DIRECT ASSOCIATION EVIDENCE LANDED; NEXT = STAGED-ETA PLAN ONLY).**
+> `main` = `d0ac907f`; GitHub Actions R-CMD-check run
+> [30126489352](https://github.com/itchyshin/drmTMB/actions/runs/30126489352)
+> is green. Exact direct fixed-effect `biv_lognormal()` constant log-residual
+> `rho12` now has guarded Wald, direct-likelihood profile, and joint
+> parametric-bootstrap intervals, calibrated in the retained-all-attempts
+> Totoro n-ladder (2,700 outer fits; 537,300 bootstrap refits). Profile is the
+> primary interval only at the tested `n >= 300`, `rho12 = 0, 0.5, 0.85`
+> domain; Wald/bootstrap remain calibrated comparators. The Palmer Penguins
+> tutorial is live in source and names its limited 43/99 real-data bootstrap
+> diagnostic. **Do not transfer this claim to staged `eta`:** its current
+> two-stage curvature conditions on fitted margins, so `vcov()`, Wald/profile
+> CIs and `confint()` remain unavailable. **NEXT:** a fresh `$ultra-plan`,
+> then approval, for the reviewed Bernoulli x ordinary-NB2 full-refit bootstrap
+> lane; DRAC only after smoke + fresh compute approval. Student-t, generic
+> cross-family, random-effect, missingness, and association-predictor expansion
+> remain deferred. **START HERE:**
+> [`docs/dev-log/handover/2026-07-24-codex-staged-eta-handover.md`](docs/dev-log/handover/2026-07-24-codex-staged-eta-handover.md).
+> The foreign `claude/handover-freshness-0718`, `codex/arc6-6-bernoulli-nb2-plan`,
+> and pkgdown audit lanes remain separate; do not modify them from this lane.
+
 > **▶ Latest — start here (2026-07-23, → CODEX, ARC 6.1–6.2 MERGED TO `main`).**
 > PR #817 merged as `85cff6fa`: `d9dc3116` (Gaussian × Bernoulli) and
 > `0e512b22` (Gaussian × ordinary NB2) provide two bounded, fixed-effect, ML,
