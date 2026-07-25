@@ -89,6 +89,19 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
+> **▶ Current staged-eta coordination (2026-07-25, → CODEX, PR #844 DRAFT).**
+> PR #844 (`codex/staged-eta-godambe-se`) contains the developer-only, fixed-effect
+> Bernoulli × ordinary-NB2 candidate two-stage Godambe diagnostic. It is **not** a
+> public SE, `vcov()`, Wald/profile/`confint()` route, or validation claim. PR #843
+> is an independent active main-lane change and currently owns `docs/design/243-*`;
+> do not rebase or renumber #844 until #843 lands. Then rebase #844 on current main,
+> rename its design record to `244`, rerun its focused tests, and obtain review. A
+> later general latent-normal engine is a **separate fresh lane**: common sandwich
+> assembly plus explicit pair adapters, with pair-specific validation still required.
+> The former 24 × 200 × 399 staged bootstrap campaign remains stopped; direct
+> `biv_lognormal()` `rho12` evidence remains separate. **START HERE:**
+> [`docs/dev-log/handover/2026-07-25-codex-general-association-sandwich-handover.md`](docs/dev-log/handover/2026-07-25-codex-general-association-sandwich-handover.md).
+
 > **▶ Latest — start here (2026-07-24, → CODEX, ARC 6 DIRECT ASSOCIATION EVIDENCE LANDED; NEXT = STAGED-ETA PLAN ONLY).**
 > `main` = `d0ac907f`; GitHub Actions R-CMD-check run
 > [30126489352](https://github.com/itchyshin/drmTMB/actions/runs/30126489352)
