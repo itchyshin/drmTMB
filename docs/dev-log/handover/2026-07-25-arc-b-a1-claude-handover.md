@@ -27,7 +27,7 @@ not more comparators.
 | Item | State | Notes |
 | --- | --- | --- |
 | **Arc B — C++/numerical audit** | **MERGED** (PR #842, `main` @ `12d971f1`) | 5 suites, 58 blocks, 516 assertions, 0 skips. `R CMD check` OK. CI green. |
-| **Arc A1 — marginal simulation** | **IN FLIGHT**, branch `claude/a1-simulate-marginal-re` | Implemented + documented; final full-suite/`R CMD check` verification was RUNNING at handoff. **UNPUSHED.** |
+| **Arc A1 — marginal simulation** | **PR #843 OPEN**, pushed, mergeable, **not merged** | Implemented + documented. **Verification PENDING at handoff — no green has been seen.** Version stays 0.6.0 (bump made then reverted). |
 | Issue #710 | correction posted | comment `5080196319`; #710.2 still open |
 | Arc B findings A2–A8, F3/F5/F6/F9/F10 | **reported, none fixed** | next natural lane |
 | Aborting RE structures | known gap | owner approved a **separate arc** |
@@ -67,11 +67,12 @@ Design record: `docs/design/243-marginal-simulation-and-re-form.md`.
 **Working:** everything on `main` (Arc B). A1's implementation, docs, NEWS, and
 design doc are complete on the branch.
 
-**In progress at handoff:** the A1 close-out agent was running the full suite +
-`R CMD check`. **Its result was not seen before this handover was written — do
-not assume it passed.** Re-run and read it yourself (commands below).
+**In progress at handoff:** verification of PR #843 — both the local full suite
+and CI were still pending. **No result was seen before this handover was
+written; do not assume it passed.** Read `gh pr checks 843` yourself.
 
-**Blocked:** nothing.
+**Blocked:** nothing. A1 is complete work awaiting evidence, not awaiting a
+decision. The version question is settled (stays 0.6.0).
 
 ---
 
@@ -206,9 +207,31 @@ claude "Rehydrate from docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover
 
 ---
 
-## ⚠ Landing state
+## ⚠ Landing state — READ THIS FIRST
 
-**At the time this doc was written, the A1 branch was UNPUSHED and its work
-UNCOMMITTED.** If the authoring session did not complete the commit/push, the
-work exists only in the local worktree `/private/tmp/drmtmb-a1` — check before
-assuming it is safe, and push it first thing.
+**A1 is COMMITTED and PUSHED. [PR #843](https://github.com/itchyshin/drmTMB/pull/843)
+is OPEN against `main`, MERGEABLE, and NOT merged.** Four commits on
+`claude/a1-simulate-marginal-re`: the fix · a 0.7.0 bump · its revert · the RC
+reframing. Nothing is at risk.
+
+**What is NOT done: verification.** At handoff, both the local full suite and
+PR #843's CI (`ubuntu-latest (release)`) were still **pending**. **No one has
+seen a green.** Do not merge on the strength of this document.
+
+**Do this first:**
+
+1. `gh pr checks 843` — CI is the stronger signal; it runs `R CMD check` from a
+   clean checkout. Arc B's suite was green under `test_dir` and **ERRORed under
+   `R CMD check`**, so `test_dir` alone is not sufficient evidence.
+2. Re-run the local suite (commands above) if CI is ambiguous.
+3. **Baseline: 39708 pass / 1 fail / 124 skip. No new skips.** The 1 failure is
+   the pre-existing worktree-only `test-phase18-structured-workflow-registry.R`
+   — it passes on CI; do not fix it.
+4. Spawn **Fisher** and **Rose** for the completion gate; default NOT-DONE.
+5. Merge only then.
+
+**Unverified detail worth checking:** the close-out agent that edited the three
+bootstrap-plumbing sites (`test-profile-targets.R` ×2,
+`inst/sim/run/sim_run_meta_v_lss_smoke.R`) **returned without reporting its
+suite result** — it stopped while waiting on its own background run. Those
+three edits have not been confirmed green by anything. Check them specifically.
