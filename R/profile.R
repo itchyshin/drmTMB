@@ -146,6 +146,15 @@
 #'   axis (`sigma` SD intervals already over-cover, so the upward shift would
 #'   push them further conservative) and plain labelled covariance blocks (whose
 #'   correction magnitude is not yet simulation-calibrated).
+#' @param bootstrap_re_form `re.form` passed through to [stats::simulate()]
+#'   when `method = "bootstrap"`. The default, `NULL`, redraws random effects
+#'   for every replicate (marginal simulation), matching what a parametric
+#'   bootstrap of the fitted data-generating process requires. Passing `NA`
+#'   instead holds random effects fixed at their conditional-mode estimate;
+#'   this is a documented escape hatch for random-effect structures whose
+#'   marginal draw is not yet implemented, and it makes the resulting
+#'   intervals **anticonservative** because between-group variability is
+#'   never resampled -- it is not a neutral alternative to the default.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -278,6 +287,7 @@ confint.drmTMB <- function(
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
+  bootstrap_re_form = NULL,
   ...
 ) {
   if (identical(object$model$model_type, "biv_student")) {
@@ -368,7 +378,8 @@ confint.drmTMB <- function(
       seed = seed,
       parallel = bootstrap_parallel,
       workers = workers,
-      refit_control = refit_control
+      refit_control = refit_control,
+      re_form = bootstrap_re_form
     ))
   }
 
@@ -2185,7 +2196,8 @@ drm_bootstrap_confint <- function(
   seed,
   parallel,
   workers,
-  refit_control
+  refit_control,
+  re_form = NULL
 ) {
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
@@ -2201,7 +2213,19 @@ drm_bootstrap_confint <- function(
     ))
   }
 
-  simulations <- stats::simulate(object, nsim = R, seed = seed)
+  # Parametric bootstrap resamples the DATA-GENERATING process, so random
+  # effects must be redrawn per replicate (`re.form = NULL`, the simulate()
+  # default). Holding them at the fitted MAP would leave between-group
+  # variability unresampled and the resulting intervals anticonservative --
+  # which is precisely the defect this argument exists to avoid. `re_form = NA`
+  # is offered as a documented escape hatch for structures whose marginal draw
+  # is not yet implemented; it is NOT a neutral choice.
+  simulations <- stats::simulate(
+    object,
+    nsim = R,
+    seed = seed,
+    re.form = re_form
+  )
   target_names <- targets$parm
   worker <- function(index) {
     bootstrap_refit_one(

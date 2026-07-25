@@ -3,7 +3,28 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-25, ARC A CLOSED PARTIAL; NEXT = C++ / NUMERICAL AUDIT).**
+> **▶ Latest — start here (2026-07-25, ARC B MERGED; ARC A1 IN FLIGHT — MARGINAL SIMULATION).**
+> **Arc B — the C++/numerical audit — is MERGED** (PR #842, `main` `12d971f1`): five standing
+> conformance suites (kernel oracle · FD-vs-AD gradient · score consistency · `CondExp`
+> branch continuity · link/boundary), **58 blocks, 516 assertions, zero skips**, full suite
+> 39708/1/124 against a 39192/1/124 baseline, `R CMD check` **OK**. Eight findings were
+> **reported, none repaired** — the audit observes. Headline: **`simulate.drmTMB()` simulated
+> CONDITIONALLY on the fitted MAP `û`**, so `confint(method = "bootstrap")` produced
+> **anticonservative** intervals for every RE model. **No certified ledger cell was affected**
+> (`bootstrap_R = 0` across 151 evidence artifacts; `mc-0227` profile, `mc-0242` Wald+profile).
+> **Arc A1 fixes it** on branch `claude/a1-simulate-marginal-re`: `simulate()` gains
+> **`re.form`** (`NULL` = marginal, the **new default**; `NA` = old conditional), `confint()`
+> gains `bootstrap_re_form`. Marginal draws cover ordinary/correlated/labelled REs and
+> `phylo`/`spatial`/`relmat`/`animal` at `q = 1`; `phylo_interaction`, cross-trait `q > 1`,
+> covariance blocks, `corpair`, and modelled RE scale **abort rather than silently falling back**.
+> **A1 was UNPUSHED and its final verification still running at handoff — verify before claiming.**
+> Design: `docs/design/243-marginal-simulation-and-re-form.md`. Next lanes (both owner-approved):
+> **A2** marginal draws for the aborting structures · **C** the Arc B hardening bundle
+> (A5 clamp ordering, F5 unguarded `sd()` log-SD, 12 dead `sigma_i`, A7 rotted anchors).
+> START HERE:
+> [`docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md`](docs/dev-log/handover/2026-07-25-arc-b-a1-claude-handover.md)
+>
+> **▶ Prior (2026-07-25, ARC A CLOSED PARTIAL; NEXT = C++ / NUMERICAL AUDIT).**
 > Arc A built the instrument, not the sweep. **Two of its four slices shipped; two were
 > deliberately dropped** — no overlap sweep, no vignette. **Do not call Arc A complete.**
 > Shipped: `evidence_class = "external_comparator"` in `capability-ledger/evidence.tsv`

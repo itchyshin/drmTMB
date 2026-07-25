@@ -1,5 +1,47 @@
 # drmTMB 0.6.0
 
+## BREAKING: `simulate()` now redraws random effects (`re.form`)
+
+* **`simulate()` previously held random effects frozen at their fitted values.**
+  Every replicate reused the same `û`; only residual noise varied. Simulated
+  data therefore under-represented between-group variability, and — because
+  `confint(method = "bootstrap")` is driven by `simulate()` — **parametric
+  bootstrap intervals for models with random effects were anticonservative
+  (too narrow).**
+
+* **`simulate()` gains `re.form`.** `re.form = NULL` (the **new default**) draws
+  a fresh random-effect realisation for every replicate; `re.form = NA`
+  reproduces the previous conditional behaviour exactly. `confint()` exposes the
+  same choice for the parametric bootstrap as `bootstrap_re_form`, also
+  defaulting to marginal.
+
+* **This changes results.** Any code depending on the old behaviour needs
+  `re.form = NA` — and should first ask whether it *wanted* frozen random
+  effects. Reproducing a fitted dataset is a legitimate use; a parametric
+  bootstrap or a posterior predictive check is not, which is why the default
+  changed rather than the argument merely being added.
+
+* Marginal draws support ordinary grouped intercepts and slopes, intra-block
+  correlation (`(1 + x | g)`), labelled cross-parameter correlation
+  (`(1 | p | id)`), and `phylo()`/`spatial()`/`relmat()`/`animal()` structured
+  `mu` effects at `q = 1`. `phylo_interaction()`, cross-trait `q > 1` structured
+  effects, correlated covariance blocks, `corpair()` regression, and modelled
+  random-effect scale **abort with an informative message** rather than silently
+  falling back to conditional simulation — a silent fallback would reproduce the
+  defect this change fixes. Those structures can still be simulated with
+  `re.form = NA`, and any bootstrap interval obtained that way is
+  anticonservative and must not be used as coverage evidence.
+
+* `predict()` is deliberately unchanged: conditional prediction at the original
+  data is correct, and was not the defect.
+
+* Found by the Arc B numerical audit's score-consistency check, not by reading
+  the code — the first Bartlett identity `E[score] = 0` failed on the
+  random-effect variance component at `z = 5.36` (60 replicates) growing to
+  `10.59` (200), and now measures `z = -0.205`. No certified capability-ledger
+  cell relied on bootstrap intervals, so no evidence was retracted. See
+  `docs/design/243-marginal-simulation-and-re-form.md`.
+
 ## Legacy Julia cross-family extractor repair
 
 * Legacy `drmTMB_julia_xfam` objects no longer let `vcov()`, `fitted()`,

@@ -2816,10 +2816,32 @@ predict.drmTMB <- function(
 #' chi-squared scale-mixture draw per response pair together with the fitted
 #' shared `nu`; independent marginal t draws would be a different model.
 #'
+#' By default (`re.form = NULL`), models with ordinary grouped random effects
+#' draw a **fresh** random-effect realization for every replicate, so
+#' replicate-to-replicate variability reflects both the between-group and the
+#' residual sources of variance (matching the lme4/glmmTMB `re.form`
+#' convention). Pass `re.form = NA` to simulate conditionally on the fitted
+#' random effects instead (holding every random effect fixed at its
+#' conditional-mode estimate, the behaviour this function had before
+#' `re.form` was added). Marginal simulation also redraws a single-endpoint
+#' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`), or
+#' animal-model structured `mu` random effect from its fitted covariance
+#' `sd^2 * Q^-1`. It does not yet support a structured mu random effect
+#' correlated across more than one trait or distributional parameter
+#' (`q > 1`), `phylo_interaction` structured terms, correlated
+#' covariance-block random effects, predictor-dependent random-effect
+#' correlation (`corpair`) regression, or a modelled (heteroscedastic)
+#' random-effect scale; `simulate()` throws an informative error naming the
+#' unsupported structure for those models and directs the user to
+#' `re.form = NA`. Models without random effects are unaffected by `re.form`.
+#'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
 #' @param seed Optional random-number seed. The previous `.Random.seed` state
 #'   is restored after simulation.
+#' @param re.form `NULL` (the default) draws fresh random effects for every
+#'   replicate (marginal simulation). `NA` holds every random effect fixed at
+#'   its fitted conditional-mode estimate (conditional simulation).
 #' @param ... Reserved for future simulation options.
 #'
 #' @return A data frame. Univariate models return one column per simulation.
@@ -2831,7 +2853,24 @@ predict.drmTMB <- function(
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
-simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
+simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) {
+  if (!is.null(re.form) && !identical(re.form, NA)) {
+    cli::cli_abort(c(
+      "{.arg re.form} must be {.code NULL} or {.code NA}.",
+      "i" = "{.code NULL} (the default) draws fresh random effects for every replicate (marginal simulation).",
+      "i" = "{.code NA} holds every random effect fixed at its fitted conditional-mode estimate (conditional simulation)."
+    ))
+  }
+  marginal <- is.null(re.form)
+  if (marginal) {
+    unsupported <- drm_simulate_marginal_unsupported(object)
+    if (!is.null(unsupported)) {
+      cli::cli_abort(c(
+        "Marginal simulation ({.code re.form = NULL}) does not yet support {unsupported}.",
+        "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      ))
+    }
+  }
   if (!is.null(seed)) {
     had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
     old_seed <- if (had_seed) {
@@ -2855,10 +2894,19 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   }
 
   if (identical(object$model$model_type, "student")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
     nu <- predict(object, dpar = "nu")
-    sims <- replicate(nsim, mu + sigma * stats::rt(length(mu), df = nu))
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        mu + sigma * stats::rt(length(mu), df = nu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      sims <- replicate(nsim, mu + sigma * stats::rt(length(mu), df = nu))
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -2890,111 +2938,189 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   }
 
   if (identical(object$model$model_type, "skew_normal")) {
-    mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     nu <- predict(object, dpar = "nu")
-    sims <- replicate(
-      nsim,
-      rskew_normal_public(length(mu), mu = mu, sigma = sigma, nu = nu)
-    )
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        rskew_normal_public(length(mu), mu = mu, sigma = sigma, nu = nu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(
+        nsim,
+        rskew_normal_public(length(mu), mu = mu, sigma = sigma, nu = nu)
+      )
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "lognormal")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
-    sims <- replicate(
-      nsim,
-      stats::rlnorm(length(mu), meanlog = mu, sdlog = sigma)
-    )
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        stats::rlnorm(length(mu), meanlog = mu, sdlog = sigma)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      sims <- replicate(
+        nsim,
+        stats::rlnorm(length(mu), meanlog = mu, sdlog = sigma)
+      )
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "gamma")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
-    native <- drm_gamma_shape_scale(mu, sigma)
-    sims <- replicate(
-      nsim,
-      stats::rgamma(length(mu), shape = native$shape, scale = native$scale)
-    )
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        native <- drm_gamma_shape_scale(mu, sigma)
+        stats::rgamma(length(mu), shape = native$shape, scale = native$scale)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      native <- drm_gamma_shape_scale(mu, sigma)
+      sims <- replicate(
+        nsim,
+        stats::rgamma(length(mu), shape = native$shape, scale = native$scale)
+      )
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "tweedie")) {
-    mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     nu <- predict(object, dpar = "nu")
-    sims <- replicate(
-      nsim,
-      rtweedie_compound(length(mu), mu = mu, phi = sigma^2, power = nu)
-    )
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        rtweedie_compound(length(mu), mu = mu, phi = sigma^2, power = nu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(
+        nsim,
+        rtweedie_compound(length(mu), mu = mu, phi = sigma^2, power = nu)
+      )
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "beta")) {
-    mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
-    native <- drm_beta_shapes(mu, sigma)
-    sims <- replicate(
-      nsim,
-      stats::rbeta(
-        length(mu),
-        shape1 = native$shape1,
-        shape2 = native$shape2
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        native <- drm_beta_shapes(mu, sigma)
+        stats::rbeta(
+          length(mu),
+          shape1 = native$shape1,
+          shape2 = native$shape2
+        )
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      native <- drm_beta_shapes(mu, sigma)
+      sims <- replicate(
+        nsim,
+        stats::rbeta(
+          length(mu),
+          shape1 = native$shape1,
+          shape2 = native$shape2
+        )
       )
-    )
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "zero_one_beta")) {
-    mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     zoi <- predict(object, dpar = "zoi")
     coi <- predict(object, dpar = "coi")
     # SAME conversion drm_family_dpq_zero_one_beta() (R/family-dpq.R) uses --
     # closed in DO-T3 batch C (Emmy's dedup; batch A/B left this inline).
-    native <- drm_beta_shapes(mu, sigma)
-    sims <- replicate(nsim, {
-      boundary <- stats::runif(length(mu)) < zoi
-      one <- stats::runif(length(mu)) < coi
-      interior <- stats::rbeta(
-        length(mu),
-        shape1 = native$shape1,
-        shape2 = native$shape2
-      )
-      ifelse(boundary, as.numeric(one), interior)
-    })
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        native <- drm_beta_shapes(mu, sigma)
+        boundary <- stats::runif(length(mu)) < zoi
+        one <- stats::runif(length(mu)) < coi
+        interior <- stats::rbeta(
+          length(mu),
+          shape1 = native$shape1,
+          shape2 = native$shape2
+        )
+        ifelse(boundary, as.numeric(one), interior)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      native <- drm_beta_shapes(mu, sigma)
+      sims <- replicate(nsim, {
+        boundary <- stats::runif(length(mu)) < zoi
+        one <- stats::runif(length(mu)) < coi
+        interior <- stats::rbeta(
+          length(mu),
+          shape1 = native$shape1,
+          shape2 = native$shape2
+        )
+        ifelse(boundary, as.numeric(one), interior)
+      })
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "beta_binomial")) {
-    mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
     # SAME conversion drm_family_dpq_beta_binomial() (R/family-dpq.R) uses --
     # closed in DO-T3 batch B (Emmy's dedup; batch A left this inline).
-    native <- drm_beta_shapes(mu, sigma)
     trials <- object$model$trials
-    sims <- replicate(nsim, {
-      p <- stats::rbeta(
-        length(mu),
-        shape1 = native$shape1,
-        shape2 = native$shape2
-      )
-      stats::rbinom(length(mu), size = trials, prob = p)
-    })
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        native <- drm_beta_shapes(mu, sigma)
+        p <- stats::rbeta(
+          length(mu),
+          shape1 = native$shape1,
+          shape2 = native$shape2
+        )
+        stats::rbinom(length(mu), size = trials, prob = p)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      native <- drm_beta_shapes(mu, sigma)
+      sims <- replicate(nsim, {
+        p <- stats::rbeta(
+          length(mu),
+          shape1 = native$shape1,
+          shape2 = native$shape2
+        )
+        stats::rbinom(length(mu), size = trials, prob = p)
+      })
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     if (
@@ -3007,18 +3133,25 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   }
 
   if (identical(object$model$model_type, "binomial")) {
-    mu <- predict(object, dpar = "mu")
     trials <- object$model$trials
-    sims <- replicate(nsim, stats::rbinom(length(mu), size = trials, prob = mu))
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        stats::rbinom(length(mu), size = trials, prob = mu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(nsim, stats::rbinom(length(mu), size = trials, prob = mu))
+    }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
   if (identical(object$model$model_type, "cumulative_logit")) {
-    prob <- ordinal_category_probabilities(object)
     levels <- object$ordinal$levels
-    sims <- lapply(seq_len(nsim), function(j) {
+    draw_categories <- function(prob) {
       draw <- vapply(
         seq_len(nrow(prob)),
         function(i) {
@@ -3027,129 +3160,249 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
         integer(1)
       )
       ordered(levels[draw], levels = levels)
-    })
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "poisson")) {
-    mu <- predict(object, dpar = "mu")
-    sims <- replicate(nsim, stats::rpois(length(mu), lambda = mu))
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "zi_poisson")) {
-    mu <- predict(object, dpar = "mu")
-    zi <- predict(object, dpar = "zi")
-    sims <- replicate(nsim, {
-      structural_zero <- stats::runif(length(mu)) < zi
-      ifelse(structural_zero, 0L, stats::rpois(length(mu), lambda = mu))
-    })
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "nbinom2")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
-    sims <- replicate(
-      nsim,
-      stats::rnbinom(length(mu), size = drm_nbinom2_size(sigma), mu = mu)
-    )
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "truncated_nbinom2")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
-    # SAME conversion drm_nbinom2_size() (R/family-dpq.R) uses -- closed in
-    # DO-T3 batch C (Emmy's dedup; batch A left this inline).
-    size <- drm_nbinom2_size(sigma)
-    p0 <- truncated_nbinom2_p0(mu, sigma)
-    sims <- replicate(nsim, {
-      u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-      stats::qnbinom(u, size = size, mu = mu)
-    })
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "hurdle_nbinom2")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
-    hu <- predict(object, dpar = "hu")
-    size <- drm_nbinom2_size(sigma)
-    p0 <- truncated_nbinom2_p0(mu, sigma)
-    sims <- replicate(nsim, {
-      hurdle_zero <- stats::runif(length(mu)) < hu
-      u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-      ifelse(
-        hurdle_zero,
-        0L,
-        stats::qnbinom(u, size = size, mu = mu)
-      )
-    })
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "zi_nbinom2")) {
-    mu <- predict(object, dpar = "mu")
-    sigma <- predict(object, dpar = "sigma")
-    zi <- predict(object, dpar = "zi")
-    size <- drm_nbinom2_size(sigma)
-    sims <- replicate(nsim, {
-      structural_zero <- stats::runif(length(mu)) < zi
-      ifelse(
-        structural_zero,
-        0L,
-        stats::rnbinom(length(mu), size = size, mu = mu)
-      )
-    })
-    sims <- as.data.frame(sims)
-    names(sims) <- paste0("sim_", seq_len(nsim))
-    return(sims)
-  }
-
-  if (identical(object$model$model_type, "gaussian")) {
-    mu <- predict(object, dpar = "mu")
-    if (identical(object$model$V_known_type, "matrix")) {
-      Sigma <- observation_covariance(object)
-      chol_Sigma <- chol(Sigma)
-      sims <- replicate(
-        nsim,
-        as.vector(mu + t(chol_Sigma) %*% stats::rnorm(length(mu)))
-      )
+    }
+    if (marginal) {
+      sims <- lapply(seq_len(nsim), function(j) {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        eta <- drm_marginal_predict(object, "mu", re_draws, type = "link")
+        draw_categories(ordinal_category_probabilities(object, eta = eta))
+      })
     } else {
-      sigma <- observation_sigma(object)
-      sims <- replicate(nsim, stats::rnorm(length(mu), mean = mu, sd = sigma))
+      prob <- ordinal_category_probabilities(object)
+      sims <- lapply(seq_len(nsim), function(j) draw_categories(prob))
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
   }
 
-  mu1 <- predict(object, dpar = "mu1")
-  mu2 <- predict(object, dpar = "mu2")
-  sigma1 <- predict(object, dpar = "sigma1")
-  sigma2 <- predict(object, dpar = "sigma2")
+  if (identical(object$model$model_type, "poisson")) {
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        stats::rpois(length(mu), lambda = mu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(nsim, stats::rpois(length(mu), lambda = mu))
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "zi_poisson")) {
+    zi <- predict(object, dpar = "zi")
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        structural_zero <- stats::runif(length(mu)) < zi
+        ifelse(structural_zero, 0L, stats::rpois(length(mu), lambda = mu))
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(nsim, {
+        structural_zero <- stats::runif(length(mu)) < zi
+        ifelse(structural_zero, 0L, stats::rpois(length(mu), lambda = mu))
+      })
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "nbinom2")) {
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        stats::rnbinom(length(mu), size = drm_nbinom2_size(sigma), mu = mu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      sims <- replicate(
+        nsim,
+        stats::rnbinom(length(mu), size = drm_nbinom2_size(sigma), mu = mu)
+      )
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "truncated_nbinom2")) {
+    # SAME conversion drm_nbinom2_size() (R/family-dpq.R) uses -- closed in
+    # DO-T3 batch C (Emmy's dedup; batch A left this inline).
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        size <- drm_nbinom2_size(sigma)
+        p0 <- truncated_nbinom2_p0(mu, sigma)
+        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        stats::qnbinom(u, size = size, mu = mu)
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      size <- drm_nbinom2_size(sigma)
+      p0 <- truncated_nbinom2_p0(mu, sigma)
+      sims <- replicate(nsim, {
+        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        stats::qnbinom(u, size = size, mu = mu)
+      })
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "hurdle_nbinom2")) {
+    hu <- predict(object, dpar = "hu")
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        size <- drm_nbinom2_size(sigma)
+        p0 <- truncated_nbinom2_p0(mu, sigma)
+        hurdle_zero <- stats::runif(length(mu)) < hu
+        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        ifelse(
+          hurdle_zero,
+          0L,
+          stats::qnbinom(u, size = size, mu = mu)
+        )
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      size <- drm_nbinom2_size(sigma)
+      p0 <- truncated_nbinom2_p0(mu, sigma)
+      sims <- replicate(nsim, {
+        hurdle_zero <- stats::runif(length(mu)) < hu
+        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        ifelse(
+          hurdle_zero,
+          0L,
+          stats::qnbinom(u, size = size, mu = mu)
+        )
+      })
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "zi_nbinom2")) {
+    zi <- predict(object, dpar = "zi")
+    if (marginal) {
+      sims <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu <- drm_marginal_predict(object, "mu", re_draws)
+        sigma <- drm_marginal_predict(object, "sigma", re_draws)
+        size <- drm_nbinom2_size(sigma)
+        structural_zero <- stats::runif(length(mu)) < zi
+        ifelse(
+          structural_zero,
+          0L,
+          stats::rnbinom(length(mu), size = size, mu = mu)
+        )
+      })
+    } else {
+      mu <- predict(object, dpar = "mu")
+      sigma <- predict(object, dpar = "sigma")
+      size <- drm_nbinom2_size(sigma)
+      sims <- replicate(nsim, {
+        structural_zero <- stats::runif(length(mu)) < zi
+        ifelse(
+          structural_zero,
+          0L,
+          stats::rnbinom(length(mu), size = size, mu = mu)
+        )
+      })
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "gaussian")) {
+    if (marginal) {
+      if (identical(object$model$V_known_type, "matrix")) {
+        sims <- replicate(nsim, {
+          re_draws <- drm_ordinary_random_effect_draws(object)
+          mu <- drm_marginal_predict(object, "mu", re_draws)
+          sigma <- drm_marginal_predict(object, "sigma", re_draws)
+          Sigma <- observation_covariance(object, sigma = sigma)
+          chol_Sigma <- chol(Sigma)
+          as.vector(mu + t(chol_Sigma) %*% stats::rnorm(length(mu)))
+        })
+      } else {
+        sims <- replicate(nsim, {
+          re_draws <- drm_ordinary_random_effect_draws(object)
+          mu <- drm_marginal_predict(object, "mu", re_draws)
+          sigma <- drm_marginal_predict(object, "sigma", re_draws)
+          stats::rnorm(
+            length(mu),
+            mean = mu,
+            sd = observation_sigma(object, sigma = sigma)
+          )
+        })
+      }
+    } else {
+      mu <- predict(object, dpar = "mu")
+      if (identical(object$model$V_known_type, "matrix")) {
+        Sigma <- observation_covariance(object)
+        chol_Sigma <- chol(Sigma)
+        sims <- replicate(
+          nsim,
+          as.vector(mu + t(chol_Sigma) %*% stats::rnorm(length(mu)))
+        )
+      } else {
+        sigma <- observation_sigma(object)
+        sims <- replicate(nsim, stats::rnorm(length(mu), mean = mu, sd = sigma))
+      }
+    }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
   rho12 <- predict(object, dpar = "rho12")
   if (identical(object$model$V_known_type, "matrix")) {
-    mu_stack <- stack_biv_response(mu1, mu2)
-    Sigma <- bivariate_observation_covariance(object)
-    chol_Sigma <- chol(Sigma)
-    sims_stack <- replicate(
-      nsim,
-      as.vector(mu_stack + t(chol_Sigma) %*% stats::rnorm(length(mu_stack)))
-    )
+    if (marginal) {
+      sims_stack <- replicate(nsim, {
+        re_draws <- drm_ordinary_random_effect_draws(object)
+        mu1 <- drm_marginal_predict(object, "mu1", re_draws)
+        mu2 <- drm_marginal_predict(object, "mu2", re_draws)
+        sigma1 <- drm_marginal_predict(object, "sigma1", re_draws)
+        sigma2 <- drm_marginal_predict(object, "sigma2", re_draws)
+        mu_stack <- stack_biv_response(mu1, mu2)
+        Sigma <- bivariate_observation_covariance(
+          object,
+          sigma1 = sigma1,
+          sigma2 = sigma2
+        )
+        chol_Sigma <- chol(Sigma)
+        as.vector(mu_stack + t(chol_Sigma) %*% stats::rnorm(length(mu_stack)))
+      })
+    } else {
+      mu1 <- predict(object, dpar = "mu1")
+      mu2 <- predict(object, dpar = "mu2")
+      mu_stack <- stack_biv_response(mu1, mu2)
+      Sigma <- bivariate_observation_covariance(object)
+      chol_Sigma <- chol(Sigma)
+      sims_stack <- replicate(
+        nsim,
+        as.vector(mu_stack + t(chol_Sigma) %*% stats::rnorm(length(mu_stack)))
+      )
+    }
     out <- vector("list", nsim * 2L)
     names(out) <- as.vector(rbind(
       paste0("sim_", seq_len(nsim), "_y1"),
@@ -3167,7 +3420,20 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     paste0("sim_", seq_len(nsim), "_y1"),
     paste0("sim_", seq_len(nsim), "_y2")
   ))
+  if (!marginal) {
+    mu1 <- predict(object, dpar = "mu1")
+    mu2 <- predict(object, dpar = "mu2")
+    sigma1 <- predict(object, dpar = "sigma1")
+    sigma2 <- predict(object, dpar = "sigma2")
+  }
   for (j in seq_len(nsim)) {
+    if (marginal) {
+      re_draws <- drm_ordinary_random_effect_draws(object)
+      mu1 <- drm_marginal_predict(object, "mu1", re_draws)
+      mu2 <- drm_marginal_predict(object, "mu2", re_draws)
+      sigma1 <- drm_marginal_predict(object, "sigma1", re_draws)
+      sigma2 <- drm_marginal_predict(object, "sigma2", re_draws)
+    }
     z1 <- stats::rnorm(length(mu1))
     z2_ind <- stats::rnorm(length(mu1))
     z2 <- rho12 * z1 + sqrt(1 - rho12^2) * z2_ind
@@ -5007,12 +5273,18 @@ drm_total_obs_sd <- function(v_known, sigma) {
   sqrt(v_known + sigma^2)
 }
 
-observation_sigma <- function(object) {
-  drm_total_obs_sd(known_v_diag(object), predict(object, dpar = "sigma"))
+observation_sigma <- function(object, sigma = NULL) {
+  if (is.null(sigma)) {
+    sigma <- predict(object, dpar = "sigma")
+  }
+  drm_total_obs_sd(known_v_diag(object), sigma)
 }
 
-observation_covariance <- function(object) {
-  sigma2 <- predict(object, dpar = "sigma")^2
+observation_covariance <- function(object, sigma = NULL) {
+  if (is.null(sigma)) {
+    sigma <- predict(object, dpar = "sigma")
+  }
+  sigma2 <- sigma^2
   if (identical(object$model$V_known_type, "matrix")) {
     out <- object$model$V_known
     diag(out) <- diag(out) + sigma2
@@ -5021,15 +5293,19 @@ observation_covariance <- function(object) {
   diag(known_v_diag(object) + sigma2, nrow = length(sigma2))
 }
 
-bivariate_observation_covariance <- function(object) {
+bivariate_observation_covariance <- function(object, sigma1 = NULL, sigma2 = NULL) {
   n <- length(object$model$y1)
   out <- if (identical(object$model$V_known_type, "matrix")) {
     object$model$V_known
   } else {
     matrix(0, nrow = 2L * n, ncol = 2L * n)
   }
-  sigma1 <- predict(object, dpar = "sigma1")
-  sigma2 <- predict(object, dpar = "sigma2")
+  if (is.null(sigma1)) {
+    sigma1 <- predict(object, dpar = "sigma1")
+  }
+  if (is.null(sigma2)) {
+    sigma2 <- predict(object, dpar = "sigma2")
+  }
   rho12 <- predict(object, dpar = "rho12")
   i1 <- seq.int(1L, by = 2L, length.out = n)
   i2 <- i1 + 1L
@@ -5119,8 +5395,10 @@ zero_one_beta_variance <- function(mu, sigma, zoi, coi) {
   pmax(second_moment - zero_one_beta_mean(mu, zoi, coi)^2, .Machine$double.eps)
 }
 
-ordinal_category_probabilities <- function(object, newdata = NULL) {
-  eta <- predict(object, newdata = newdata, dpar = "mu", type = "link")
+ordinal_category_probabilities <- function(object, newdata = NULL, eta = NULL) {
+  if (is.null(eta)) {
+    eta <- predict(object, newdata = newdata, dpar = "mu", type = "link")
+  }
   cutpoints <- unname(object$ordinal$cutpoints)
   n <- length(eta)
   n_categories <- length(cutpoints) + 1L
@@ -5606,4 +5884,297 @@ covariance_block_random_effect_contribution <- function(object, dpar) {
     return(rep(0, object$nobs))
   }
   rowSums(block_re$contribution[, cols, drop = FALSE])
+}
+
+# ---- Marginal (re.form = NULL) random-effect redraw helpers ---------------
+#
+# `simulate.drmTMB(..., re.form = NULL)` draws a FRESH random-effect
+# realization for every replicate instead of reusing the fitted conditional-
+# mode random effects that `mu_random_effect_contribution()` /
+# `sigma_random_effect_contribution()` add to `predict()` when `newdata` is
+# NULL. `drm_fresh_ordinary_random_effect_values()` mirrors the TMB-side
+# transforms `transform_mu_random_effects()` / `transform_sigma_random_effects()`
+# (drmTMB.R) exactly, substituting a fresh standard-normal latent draw for the
+# fitted latent vector, so the intra-block (random-slope/intercept) and
+# cross-dpar (labelled `(1 | p | id)` mu/sigma) correlation structure of the
+# fit is preserved in every replicate.
+
+drm_simulate_marginal_unsupported <- function(object) {
+  structured_reason <- drm_structured_mu_marginal_unsupported(object)
+  if (!is.null(structured_reason)) {
+    return(structured_reason)
+  }
+  if (has_covariance_block_random_effects(object)) {
+    return("correlated covariance-block random effects")
+  }
+  if (isTRUE(object$model$random$mu$cor_model$n_models > 0L)) {
+    return("predictor-dependent random-effect correlation (corpair) regression")
+  }
+  if (
+    isTRUE(object$model$random_scale$mu$n_models > 0L) ||
+      (
+        is.list(object$model$random_scale$phylo) &&
+          isTRUE(object$model$random_scale$phylo$n_models > 0L)
+      )
+  ) {
+    return("modelled (heteroscedastic) random-effect scale")
+  }
+  NULL
+}
+
+# Draws a fresh realization of one ordinary (mu or sigma) random-effect
+# registry `re` (an `object$model$random$mu` / `$sigma` list). `sd_lookup` is
+# the matching named `object$sdpars$mu` / `$sigma` vector; `rho_lookup` is the
+# matching named `object$corpars$mu` / `$sigma` vector for any intra-block
+# (random-slope/intercept) correlation. `cross_latent` / `cross_rho_lookup` /
+# `cross_re` carry a fresh mu latent draw plus `object$corpars$mu_sigma` and
+# `object$model$random$mu_sigma` into the sigma draw, for labelled
+# `(1 | p | id)` mu/sigma cross-correlated random effects.
+drm_fresh_ordinary_random_effect_values <- function(
+  re,
+  sd_lookup,
+  rho_lookup,
+  cross_latent = NULL,
+  cross_rho_lookup = NULL,
+  cross_re = NULL
+) {
+  if (re$n_re == 0L) {
+    return(list(latent = numeric(0), values = numeric(0)))
+  }
+  sd_by_term <- if (is.null(sd_lookup)) {
+    rep(NA_real_, length(re$labels))
+  } else {
+    unname(sd_lookup[re$labels])
+  }
+  if (anyNA(sd_by_term)) {
+    cli::cli_abort(c(
+      "Marginal simulation could not find a fitted random-effect SD for every {.field {re$labels}} term.",
+      "i" = "This usually means the random-effect scale is itself modelled (heteroscedastic).",
+      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+    ))
+  }
+  rho <- rep(NA_real_, re$n_cors)
+  if (re$n_cors > 0L && !is.null(rho_lookup)) {
+    rho <- unname(rho_lookup[re$cor_labels])
+  }
+  if (re$n_cors > 0L && anyNA(rho)) {
+    cli::cli_abort(c(
+      "Marginal simulation could not find a fitted correlation for every {.field {re$cor_labels}} random-effect block.",
+      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+    ))
+  }
+  has_cross <- !is.null(cross_re) && isTRUE(cross_re$n_cors > 0L)
+  latent <- stats::rnorm(re$n_re)
+  values <- numeric(re$n_re)
+  for (idx in seq_len(re$n_re)) {
+    term <- re$term_id0[[idx]] + 1L
+    cor_id <- re$re_cor_id0[[idx]] + 1L
+    is_cor_slope <- cor_id > 0L && re$re_pos0[[idx]] == 1L
+    u <- latent[[idx]]
+    if (is_cor_slope) {
+      pair <- re$re_pair_index0[[idx]] + 1L
+      rho_i <- rho[[cor_id]]
+      u <- rho_i * latent[[pair]] + sqrt(1 - rho_i^2) * latent[[idx]]
+    }
+    if (has_cross) {
+      cross_cor_id <- cross_re$sigma_cross_cor_id0[[idx]] + 1L
+      if (cross_cor_id > 0L) {
+        cross_label <- cross_re$cor_labels[[cross_cor_id]]
+        rho_i <- if (is.null(cross_rho_lookup)) {
+          NA_real_
+        } else {
+          unname(cross_rho_lookup[[cross_label]])
+        }
+        if (is.null(rho_i) || is.na(rho_i)) {
+          cli::cli_abort(c(
+            "Marginal simulation could not find a fitted mu/sigma cross-correlation for {.field {cross_label}}.",
+            "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+          ))
+        }
+        mu_idx <- cross_re$sigma_cross_mu_index0[[idx]] + 1L
+        u <- rho_i * cross_latent[[mu_idx]] + sqrt(1 - rho_i^2) * u
+      }
+    }
+    values[[idx]] <- sd_by_term[[term]] * u
+  }
+  list(latent = latent, values = values)
+}
+
+# Reduces a flat vector of fresh random-effect values (in the same layout as
+# `re$index`/`re$value`) to a per-observation contribution for one dpar,
+# mirroring `mu_random_effect_contribution()` / `sigma_random_effect_contribution()`.
+drm_random_effect_contribution_from_values <- function(values, re, dpar) {
+  terms <- which(re$dpars %in% dpar)
+  if (length(terms) == 0L) {
+    return(NULL)
+  }
+  index <- re$index[, terms, drop = FALSE]
+  design_value <- re$value[, terms, drop = FALSE]
+  rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
+}
+
+# Returns a reason string when marginal simulation cannot yet redraw this
+# object's structured (phylo/spatial/relatedness-matrix/animal-model) mu
+# random effect, or NULL when it can. Supported: a single structured mu term
+# with exactly one trait/distributional-parameter endpoint (`structured_mu_q()
+# == 1`) of type phylo, spatial, relmat, or animal -- the covariance is then a
+# plain `sd^2 * Q^-1` and the fitted SD is a single scalar. Left unsupported:
+# `phylo_interaction` (a Kronecker precision this slice did not verify) and any
+# term with `q > 1` (a trait/dpar correlation this slice did not reconstruct).
+drm_structured_mu_marginal_unsupported <- function(object) {
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!isTRUE(phylo_mu$has)) {
+    return(NULL)
+  }
+  type <- structured_mu_type(phylo_mu)
+  if (!type %in% c("phylo", "spatial", "relmat", "animal")) {
+    return("phylogenetic-interaction structured mu random effects")
+  }
+  if (structured_mu_q(phylo_mu) > 1L) {
+    return(
+      "structured mu random effects correlated across more than one trait or distributional parameter"
+    )
+  }
+  NULL
+}
+
+# Draws a fresh realization of one structured (phylo/spatial/relatedness-
+# matrix/animal-model) mu random-effect term, given its fitted precision `Q`
+# and fitted SD `sd`: `u ~ N(0, sd^2 * Q^-1)`. Uses a dense Cholesky factor `R`
+# of `Q` (`t(R) %*% R == Q`) and a triangular solve rather than an explicit
+# inverse: if `z ~ N(0, I)` and `R %*% u = z`, then `u = R^-1 %*% z` has
+# covariance `R^-1 %*% t(R^-1) == (t(R) %*% R)^-1 == Q^-1`.
+drm_fresh_structured_mu_values <- function(phylo_mu, sd) {
+  root <- chol(as.matrix(phylo_mu$precision$precision))
+  z <- stats::rnorm(phylo_mu$n_re)
+  backsolve(root, z) * sd
+}
+
+# Draws ONE fresh realization of the (single-endpoint) structured mu random
+# effect this object has, returning a named list keyed by dpar of
+# per-observation link-scale contributions -- mirroring
+# `drm_ordinary_random_effect_draws()` below. Reuses `phylo_mu_contribution()`
+# for the observation mapping (design multiply and node index) by substituting
+# the fresh draw for the fitted values in a shallow copy of `object`, so
+# conditional and marginal differ only in whether the values are the fitted
+# BLUPs or a fresh draw. Returns an empty list when there is no structured mu
+# term (callers must use `drm_structured_mu_marginal_unsupported()` first to
+# rule out unsupported structured terms).
+drm_structured_mu_random_effect_draws <- function(object) {
+  phylo_mu <- object$model$structured$phylo_mu
+  if (!isTRUE(phylo_mu$has)) {
+    return(list())
+  }
+  model_type <- object$model$model_type
+  dpar <- unique(phylo_mu_endpoint_dpars(phylo_mu))
+  sd_key <- if (identical(model_type, "biv_gaussian")) "mu" else dpar
+  label <- phylo_mu_sd_labels(phylo_mu, model_type)
+  sd_val <- unname(object$sdpars[[sd_key]][label])
+  if (anyNA(sd_val)) {
+    cli::cli_abort(c(
+      "Marginal simulation could not find a fitted structured-effect SD for {.field {label}}.",
+      "i" = "This usually means the structured random-effect scale is itself modelled (heteroscedastic).",
+      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+    ))
+  }
+  key <- structured_mu_random_effect_key(phylo_mu, model_type)
+  draw_object <- object
+  draw_object$random_effects[[key]]$values <- drm_fresh_structured_mu_values(
+    phylo_mu,
+    sd_val
+  )
+  stats::setNames(
+    lapply(dpar, function(d) phylo_mu_contribution(draw_object, dpar = d)),
+    dpar
+  )
+}
+
+# Draws ONE fresh realization of every ordinary mu/sigma random effect this
+# object has, returning a named list keyed by dpar (e.g. `mu`/`sigma`, or
+# `mu1`/`mu2`/`sigma1`/`sigma2` for bivariate Gaussian fits) of per-observation
+# link-scale contributions. Must be called once per simulation replicate (not
+# once per dpar) so a labelled mu/sigma cross-correlation shares the same
+# fresh mu latent draw within that replicate. Also merges in a fresh
+# structured mu draw (see `drm_structured_mu_random_effect_draws()`) when
+# present. Returns an empty list for models with no ordinary or structured
+# random effects.
+drm_ordinary_random_effect_draws <- function(object) {
+  out <- list()
+  has_mu <- has_ordinary_mu_random_effects(object)
+  has_sig <- has_sigma_random_effects(object)
+  has_structured <- isTRUE(object$model$structured$phylo_mu$has)
+  if (!has_mu && !has_sig && !has_structured) {
+    return(out)
+  }
+  mu_latent <- NULL
+  if (has_mu) {
+    re_mu <- object$model$random$mu
+    draw <- drm_fresh_ordinary_random_effect_values(
+      re_mu,
+      object$sdpars$mu,
+      object$corpars$mu
+    )
+    mu_latent <- draw$latent
+    for (dpar in unique(re_mu$dpars)) {
+      out[[dpar]] <- drm_random_effect_contribution_from_values(
+        draw$values,
+        re_mu,
+        dpar
+      )
+    }
+  }
+  if (has_sig) {
+    re_sigma <- object$model$random$sigma
+    draw <- drm_fresh_ordinary_random_effect_values(
+      re_sigma,
+      object$sdpars$sigma,
+      object$corpars$sigma,
+      cross_latent = mu_latent,
+      cross_rho_lookup = object$corpars$mu_sigma,
+      cross_re = object$model$random$mu_sigma
+    )
+    for (dpar in unique(re_sigma$dpars)) {
+      contrib <- drm_random_effect_contribution_from_values(
+        draw$values,
+        re_sigma,
+        dpar
+      )
+      out[[dpar]] <- if (is.null(out[[dpar]])) {
+        contrib
+      } else {
+        out[[dpar]] + contrib
+      }
+    }
+  }
+  if (has_structured) {
+    structured_draws <- drm_structured_mu_random_effect_draws(object)
+    for (dpar in names(structured_draws)) {
+      out[[dpar]] <- if (is.null(out[[dpar]])) {
+        structured_draws[[dpar]]
+      } else {
+        out[[dpar]] + structured_draws[[dpar]]
+      }
+    }
+  }
+  out
+}
+
+# Response- or link-scale prediction for one dpar under marginal simulation:
+# fixed effects only, plus this replicate's fresh random-effect draw (if any).
+drm_marginal_predict <- function(
+  object,
+  dpar,
+  re_draws,
+  type = c("response", "link")
+) {
+  type <- match.arg(type)
+  eta <- drm_fixed_effect_basis(object, newdata = NULL, dpar = dpar)$eta
+  contrib <- re_draws[[dpar]]
+  if (!is.null(contrib)) {
+    eta <- eta + contrib
+  }
+  if (identical(type, "link")) {
+    return(eta)
+  }
+  drm_inverse_link(object, dpar, eta)
 }
