@@ -91620,7 +91620,7 @@ Shinichi grants a separate Gate A compute approval.
   bread, and complete paired-row score meat; it does not reuse conditional
   stage-2 curvature.
 - Focused local checks passed with `R_PROFILE_USER=/dev/null Rscript
-  --no-init-file`: `test-associate-pairs-staged-sandwich.R` (29 expectations)
+  --no-init-file`: `test-associate-pairs-staged-sandwich.R` (32 expectations)
   and `test-associate-pairs-bernoulli-nb2.R` (69 expectations). `git diff
   --check` passed.
 - No bootstrap comparison, campaign, recovery, coverage, Totoro/DRAC work,

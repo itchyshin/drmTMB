@@ -31,15 +31,16 @@ unresolved-boundary rule remain in force.
 
 ## 5. Checks Run
 
-Focused staged-sandwich tests passed 29 expectations. The existing Bernoulli ×
+Focused staged-sandwich tests passed 32 expectations. The existing Bernoulli ×
 NB2 contract tests passed 69 expectations. `git diff --check` passed.
 
 ## 6. Tests of the Tests
 
 The tests compare analytic NB2 scores and bread with independent numerical
-derivatives; assert sandwich scaling, all meat cross-products, lower
-block-triangular bread, response-order invariance, derivative-step stability,
-and every implemented unavailable path.
+derivatives and compare the complete rectangle score/Hessian with an
+independent `mvtnorm` oracle. They also assert sandwich scaling, all meat
+cross-products, lower block-triangular bread, response-order invariance,
+derivative-step stability, and every implemented unavailable path.
 
 ## 7a. Issue Ledger
 
