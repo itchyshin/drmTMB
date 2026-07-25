@@ -1,0 +1,2 @@
+"n","rho_truth","rho_estimate","convergence","pdHess","wald_status","profile_status","bootstrap_status","bootstrap_success","bootstrap_failed"
+160,0.5,0.557750084375507,0,TRUE,"wald","profile","bootstrap",9,0

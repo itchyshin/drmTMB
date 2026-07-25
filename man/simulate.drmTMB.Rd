@@ -53,6 +53,9 @@ Gaussian models without known
 sampling covariance, simulation uses the fitted \code{mu1}, \code{mu2}, \code{sigma1},
 \code{sigma2}, and residual \code{rho12}. If a dense bivariate known \code{V} was supplied,
 simulation uses the full row-paired observation covariance \code{V + Omega}.
+For bivariate Student-t models, simulation instead uses one shared
+chi-squared scale-mixture draw per response pair together with the fitted
+shared \code{nu}; independent marginal t draws would be a different model.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

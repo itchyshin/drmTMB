@@ -28,7 +28,9 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        self.assertEqual(len(model), 676)
+        # 677 = the 676 frozen census rows + mc-0260m, the meta_V route row inserted
+        # 2026-07-25. An insert, not a promotion: no pre-existing cell changed tier.
+        self.assertEqual(len(model), 677)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -59,7 +61,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -102,11 +104,27 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 306, "rejected_by_design": 330, "not_implemented": 40},
+            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
         )
+        # Two assertions, because one number cannot express both facts.
+        #
+        # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
+        # must contain exactly 158 point_fit_recovery cells, forever. This is the
+        # load-bearing anti-promotion guard and it is NOT allowed to move. Raising it is
+        # how a promotion gets laundered.
+        frozen = [row for row in model if int(row["source_order"]) <= 676]
+        self.assertEqual(len(frozen), 676)
+        self.assertEqual(
+            sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
+            158,
+        )
+        # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
+        # point_fit_recovery because that is the tier its metafor comparator evidence
+        # already supports. Checking both numbers catches a promotion hidden behind a
+        # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            158,
+            159,
         )
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
@@ -432,6 +450,42 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn("profile is diagnostic-only at g=8", boundary)
             self.assertIn("inference-ready with caveats", boundary)
             self.assertIn("not supported", boundary)
+
+    def test_missing_data_vignette_matrix_matches_the_ledger_routes(self):
+        # `missing-data.Rmd` restates the 18 response-missingness routes by hand.
+        # `--check` compares only the generated include, so without this guard a
+        # demotion would self-correct in `capability-and-limits.Rmd` while the
+        # vignette kept its tick -- drift in the over-claiming direction, on the
+        # largest single claim surface for this axis.
+        text = (ROOT / "vignettes/missing-data.Rmd").read_text()
+        marker = '| Response family | `response = "include"`'
+        block = text[text.index(marker):].split("\n\n", 1)[0].splitlines()
+        rows = [line for line in block if line.startswith("|")][2:]
+        labels = {line.split("|")[1].strip() for line in rows}
+        expected = {
+            "`gaussian()`",
+            "bivariate Gaussian",
+            "`binomial()`",
+            "`poisson()`",
+            "`nbinom2()`",
+            "`beta()`",
+            "`student()`",
+            "`lognormal()`",
+            '`Gamma(link = "log")`',
+            "`skew_normal()`",
+            "`tweedie()`",
+            "`zero_one_beta()`",
+            "`beta_binomial()`",
+            "`cumulative_logit()`",
+            "`truncated_nbinom2()`",
+            "zero-inflated Poisson",
+            "zero-inflated NB2",
+            "hurdle NB2",
+        }
+        self.assertEqual(labels, expected)
+        missing = [row for row in self.cells if row["axis"] == "missing_response"]
+        self.assertEqual(len(rows), len(missing))
+        self.assertEqual(len(rows), len(ledger.ADMITTED))
 
     def test_reader_surfaces_do_not_erase_structured_sigma_slope_support(self):
         surfaces = {
@@ -1860,6 +1914,80 @@ class CapabilityLedgerTests(unittest.TestCase):
             path = Path(directory) / "missing.txt"
             with self.assertRaisesRegex(SystemExit, "missing"):
                 ledger.check_outputs({path: b"expected\n"})
+
+    def test_external_comparator_evidence_states_what_it_does_not_cover(self):
+        """Agreement with another package is not an interval or coverage claim.
+
+        Every external_comparator record must say so in its own claim_boundary, so the
+        limit travels with the evidence instead of living only in a reviewer's head.
+        """
+        rows = [
+            row for row in self.evidence
+            if row["evidence_class"] == "external_comparator"
+        ]
+        self.assertTrue(rows, "expected at least one external_comparator record")
+        for row in rows:
+            boundary = row["claim_boundary"].lower()
+            for token in ("interval", "coverage", "single-seed"):
+                self.assertIn(
+                    token, boundary,
+                    f"{row['evidence_id']}: claim_boundary must state {token!r}",
+                )
+            # Without an independence token the surface renders "pkg (unclassified)",
+            # which tells a reader nothing about whether the comparator shares drmTMB's
+            # estimation engine. Require the row to declare it.
+            self.assertTrue(
+                "strong independence" in boundary or "weak independence" in boundary,
+                f"{row['evidence_id']}: claim_boundary must declare STRONG or WEAK "
+                "INDEPENDENCE",
+            )
+            self.assertTrue(
+                ledger.source_path_exists(row["path_or_url"]),
+                f"{row['evidence_id']}: unresolved path {row['path_or_url']}",
+            )
+
+    def test_external_comparator_never_becomes_a_family_level_badge(self):
+        """Comparator evidence is per cell and must never be aggregated to a family.
+
+        family_map_rows() buckets every row sharing a family_route -- fixed, random,
+        structured, phylogenetic, spatial and bivariate together -- and reports one
+        highest-evidence string per family. A comparator name surfacing there would read
+        as covering frontier routes that have no external comparator at all. Parity
+        licenses the overlap region only.
+        """
+        by_cell = ledger.external_comparator_by_cell(self.evidence)
+        self.assertTrue(by_cell, "expected comparator annotations for some cells")
+        cell_ids = {row["cell_id"] for row in self.cells}
+        for cell_id in by_cell:
+            self.assertIn(cell_id, cell_ids)
+
+        family_map = (
+            ROOT / "vignettes/includes/capability-ledger-family-map.md"
+        ).read_text(encoding="utf-8")
+
+        # Forbid the hand-maintained tuple AND every badge actually rendered today. The
+        # tuple alone would miss a future comparator (nlme, coxme) that nobody remembered
+        # to add to it, so derive the second half from the evidence rows themselves.
+        forbidden = set(ledger.COMPARATOR_PACKAGES)
+        forbidden.update(by_cell.values())
+        for token in sorted(forbidden):
+            self.assertNotIn(
+                token, family_map,
+                f"{token!r} leaked into the family map; comparator evidence must stay "
+                "scoped to individual cells",
+            )
+
+    def test_evidence_class_is_a_closed_vocabulary(self):
+        """A typo in evidence_class used to yield zero badges and a green --check."""
+        for row in self.evidence:
+            self.assertIn(
+                row["evidence_class"], ledger.EVIDENCE_CLASSES,
+                f"{row['evidence_id']}: unknown evidence_class",
+            )
+        broken = copy.deepcopy(self.evidence)
+        broken[0]["evidence_class"] = "external_comparitor"
+        with self.assertRaises(SystemExit):
+            ledger.validate(copy.deepcopy(self.cells), broken, copy.deepcopy(self.transitions))
 
 
 if __name__ == "__main__":

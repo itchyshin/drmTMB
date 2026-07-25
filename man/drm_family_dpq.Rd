@@ -21,7 +21,8 @@ residuals, \code{predict(type = "quantile")}, \code{exceedance()}) route through
 the public-to-native parameter conversion is not re-derived in each caller.
 }
 \details{
-As of DO-T3 batch D, all 18 fitted \code{model_type} values are promoted
+As of DO-T3 batch D, these 18 established fitted \code{model_type} values are
+promoted
 (\code{status = "reference"}): \code{"gaussian"}, \code{"student"}, \code{"skew_normal"},
 \code{"lognormal"}, \code{"gamma"}, \code{"tweedie"}, \code{"beta"}, \code{"zero_one_beta"},
 \code{"beta_binomial"}, \code{"binomial"}, \code{"cumulative_logit"}, \code{"poisson"},
@@ -35,7 +36,10 @@ which is a separate axis and is unchanged -- see the firewall note beside
 \verb{\{d,p,q\}} describe one response's marginal \code{N(mu_k, sigma_k)} (exact,
 independent of \code{rho12}), never the joint bivariate distribution -- see
 \code{drm_family_dpq_biv_gaussian()} and \code{\link[=fitted_distribution]{fitted_distribution()}}'s \code{response}
-argument, which selects \code{k}.
+argument, which selects \code{k}. The later exact-special development families
+\code{"biv_lognormal"} and \code{"biv_student"} are deliberately excluded from this
+marginal distribution-output registry; their density/CDF/quantile,
+residual, and adequacy surfaces require separate validation.
 
 The \code{d}/\code{p}/\code{q} closures take \verb{(y_or_u, params)}, where \code{params} is a wide,
 one-row-per-observation data frame. This signature is \strong{frozen} (CP1): a

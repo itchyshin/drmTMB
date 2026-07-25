@@ -82,13 +82,139 @@ phase18_run_meta_v_smoke <- function(
     backend = backend
   )
 
-  summary <- phase18_result_summaries(results)
+  successful_summary <- phase18_result_summaries(results)
+  summary <- phase18_meta_v_all_attempt_summary(
+    results = results,
+    cells = registry$cells,
+    successful_summary = successful_summary
+  )
 
   list(
     surface = "meta_v",
     registry = registry,
     parallel = attr(results, "phase18_parallel", exact = TRUE),
     results = results,
+    successful_summary = successful_summary,
     summary = summary
+  )
+}
+
+phase18_meta_v_all_attempt_summary <- function(
+  results,
+  cells,
+  successful_summary = phase18_result_summaries(results)
+) {
+  if (!is.list(results) || length(results) == 0L) {
+    stop("`results` must be a non-empty list of replicate results.", call. = FALSE)
+  }
+  if (!is.data.frame(cells) || nrow(cells) == 0L) {
+    stop("`cells` must be a non-empty data frame.", call. = FALSE)
+  }
+  required_cell <- c(
+    "cell_id", "surface", "known_v_type", "beta_mu_intercept",
+    "beta_mu_x", "sigma"
+  )
+  missing_cell <- setdiff(required_cell, names(cells))
+  if (length(missing_cell) > 0L) {
+    stop(
+      "`cells` must contain ",
+      paste(missing_cell, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  rows <- lapply(results, function(result) {
+    cell <- cells[cells$cell_id == result$cell_id, , drop = FALSE]
+    if (nrow(cell) != 1L) {
+      stop(
+        "Every result must match exactly one meta_V cell.",
+        call. = FALSE
+      )
+    }
+    phase18_meta_v_empty_attempt_rows(result, cell)
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+
+  if (!is.data.frame(successful_summary) || nrow(successful_summary) == 0L) {
+    return(out)
+  }
+  required_summary <- c("cell_id", "replicate", "parameter")
+  missing_summary <- setdiff(required_summary, names(successful_summary))
+  if (length(missing_summary) > 0L) {
+    stop(
+      "`successful_summary` must contain ",
+      paste(missing_summary, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  key <- paste(out$cell_id, out$replicate, out$parameter, sep = "\r")
+  summary_key <- paste(
+    successful_summary$cell_id,
+    successful_summary$replicate,
+    successful_summary$parameter,
+    sep = "\r"
+  )
+  matched <- match(key, summary_key)
+  replace <- which(!is.na(matched))
+  columns <- intersect(names(successful_summary), names(out))
+  columns <- setdiff(columns, c("cell_id", "replicate", "parameter", "seed"))
+  for (column in columns) {
+    out[[column]][replace] <- successful_summary[[column]][matched[replace]]
+  }
+  out
+}
+
+phase18_meta_v_empty_attempt_rows <- function(result, cell) {
+  required_result <- c(
+    "cell_id", "replicate", "seed", "status", "warnings", "elapsed"
+  )
+  missing_result <- setdiff(required_result, names(result))
+  if (length(missing_result) > 0L) {
+    stop(
+      "Each result must contain ",
+      paste(missing_result, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  parameter <- c("mu:(Intercept)", "mu:x", "sigma")
+  truth <- c(
+    cell$beta_mu_intercept[[1L]],
+    cell$beta_mu_x[[1L]],
+    cell$sigma[[1L]]
+  )
+  error <- if (is.null(result$error)) NA_character_ else result$error
+  data.frame(
+    surface = rep(cell$surface[[1L]], length(parameter)),
+    known_v_type = rep(cell$known_v_type[[1L]], length(parameter)),
+    cell_id = rep(result$cell_id, length(parameter)),
+    replicate = rep(result$replicate, length(parameter)),
+    seed = rep(result$seed, length(parameter)),
+    parameter = parameter,
+    truth = truth,
+    estimate = NA_real_,
+    std.error = NA_real_,
+    error = NA_real_,
+    converged = FALSE,
+    pdHess = FALSE,
+    nobs = NA_real_,
+    elapsed = rep(result$elapsed, length(parameter)),
+    warning_count = rep(length(result$warnings), length(parameter)),
+    warnings = rep(paste(result$warnings, collapse = " | "), length(parameter)),
+    conf.low = NA_real_,
+    conf.high = NA_real_,
+    interval_method = NA_character_,
+    interval_status = "failed",
+    conf.status = NA_character_,
+    interval_message = "fit did not produce an interval",
+    result_status = rep(result$status, length(parameter)),
+    result_error = rep(error, length(parameter)),
+    artifact_grain = "replicate",
+    stringsAsFactors = FALSE,
+    check.names = FALSE
   )
 }

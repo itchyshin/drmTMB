@@ -118,6 +118,178 @@ is_formula_call <- function(expr) {
   is.call(expr) && identical(expr[[1L]], as.name("~"))
 }
 
+# `(1 + x || g)` is the lme4/brms spelling for uncorrelated random effects. R
+# parses `||` as its own operator, so `is_random_bar_call()` never recognises it
+# and the term survives into the fixed-effect design matrix, where evaluating
+# `1 + x || g` over length-N vectors aborts with
+# `'length = N' in coercion to 'logical(1)'` (#776). For a numeric slope lme4
+# defines `(1 + x || g)` as exactly `(1 | g) + (0 + x | g)` -- a form drmTMB
+# already fits and has certified -- so this is a pure formula desugaring onto an
+# existing route, not new capability.
+#
+# Rewriting happens once in `drmTMB()`, before any dpar entry is consumed, so
+# every family route and both engines see the expanded form.
+is_double_bar_call <- function(expr) {
+  expr <- strip_parens(expr)
+  is.call(expr) && identical(expr[[1L]], as.name("||"))
+}
+
+# A reader arriving from mgcv or gamlss types `s(x)` and, because drmTMB neither
+# exports nor imports `s`, gets R's own `could not find function "s"` -- an error
+# that names nothing they can act on. Reject the smooth markers by name, before
+# the model frame is evaluated, and point at the bases drmTMB does fit.
+drm_smooth_marker_names <- function() {
+  c("s", "te", "ti", "t2")
+}
+
+drm_reject_smooth_terms <- function(formula) {
+  markers <- drm_smooth_marker_names()
+  hits <- markers[vapply(
+    markers,
+    function(name) {
+      any(vapply(
+        formula$entries,
+        function(entry) formula_contains_call(entry$rhs, name),
+        logical(1)
+      ))
+    },
+    logical(1)
+  )]
+  if (length(hits) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "Smooth terms are not supported.",
+    "x" = "The model formula uses {.fn {hits}}.",
+    "i" = "Use {.fn poly} for a polynomial, or a fixed basis such as {.code splines::ns(x, df = 3)}.",
+    "i" = "Penalised smooths are not implemented; {.pkg mgcv} and {.pkg gamlss} fit those."
+  ))
+}
+
+drm_desugar_double_bars <- function(formula, data) {
+  calls <- lapply(formula$calls, desugar_double_bars_in_call, data = data)
+  if (identical(calls, formula$calls)) {
+    return(formula)
+  }
+  formula$calls <- calls
+  formula$entries <- parse_drm_formula_entries(calls, formula$names)
+  formula
+}
+
+desugar_double_bars_in_call <- function(expr, data) {
+  if (!is_formula_call(expr)) {
+    return(expr)
+  }
+  rhs <- formula_rhs(expr)
+  new_rhs <- desugar_double_bars_in_rhs(rhs, data)
+  if (identical(new_rhs, rhs)) {
+    return(expr)
+  }
+  expr[[length(expr)]] <- new_rhs
+  expr
+}
+
+desugar_double_bars_in_rhs <- function(rhs, data) {
+  terms <- flatten_plus_terms(rhs)
+  if (!any(vapply(terms, is_double_bar_call, logical(1)))) {
+    return(rhs)
+  }
+  expanded <- unlist(
+    lapply(terms, expand_double_bar_term, data = data),
+    recursive = FALSE
+  )
+  rebuild_plus_terms(expanded)
+}
+
+expand_double_bar_term <- function(expr, data) {
+  if (!is_double_bar_call(expr)) {
+    return(list(expr))
+  }
+  bar <- strip_parens(expr)
+  label <- deparse1(bar)
+  group <- bar[[3L]]
+  if (!is.symbol(group)) {
+    cli::cli_abort(c(
+      "Random-effect grouping terms must be simple variables.",
+      "x" = "Grouping term in {.code ({label})} is not a simple variable.",
+      "i" = "Use syntax like {.code (1 + x || id)}."
+    ))
+  }
+
+  pieces <- flatten_plus_terms(bar[[2L]])
+  is_zero <- vapply(pieces, is_zero_term, logical(1))
+  is_one <- vapply(pieces, is_intercept_one, logical(1))
+  slopes <- pieces[!is_zero & !is_one]
+
+  for (slope in slopes) {
+    if (!is.symbol(slope)) {
+      cli::cli_abort(c(
+        "{.code ||} supports only simple numeric slopes.",
+        "x" = "{.code ({label})} contains the slope expression {.code {deparse1(slope)}}.",
+        "i" = "Write the terms explicitly, such as {.code (1 | {as.character(group)}) + (0 + x | {as.character(group)})}."
+      ))
+    }
+    check_double_bar_slope_is_numeric(
+      as.character(slope),
+      group = as.character(group),
+      label = label,
+      data = data
+    )
+  }
+
+  # Wrap each term in `(` so the rewritten formula matches the shape a user
+  # would have typed. The parser strips parentheses anyway, but `drm_formula`
+  # keeps these calls for printing, and `|` binds looser than `+`.
+  bar_term <- function(lhs) call("(", call("|", lhs, group))
+
+  # R formula algebra is last-wins, not order-insensitive: `0 + 1 + x` keeps the
+  # intercept and `1 + 0 + x` drops it, which is also what lme4's
+  # `expandDoubleVerts()` produces. Testing `any(is_zero)` instead would drop a
+  # whole variance component from `(0 + 1 + x || g)` without saying so.
+  keep_intercept <- TRUE
+  for (i in seq_along(pieces)) {
+    if (is_zero[[i]]) {
+      keep_intercept <- FALSE
+    } else if (is_one[[i]]) {
+      keep_intercept <- TRUE
+    }
+  }
+
+  out <- list()
+  if (keep_intercept) {
+    out <- c(out, list(bar_term(1)))
+  }
+  for (slope in slopes) {
+    out <- c(out, list(bar_term(call("+", 0, slope))))
+  }
+  if (length(out) == 0L) {
+    cli::cli_abort(c(
+      "{.code ||} requires at least one random term.",
+      "x" = "{.code ({label})} has no intercept and no slope."
+    ))
+  }
+  out
+}
+
+# lme4's `||` splits by formula term, not by design-matrix column, so a factor
+# slope keeps its within-factor correlations and is NOT fully uncorrelated. That
+# is a known lme4 wart; rejecting it is better than silently copying it.
+check_double_bar_slope_is_numeric <- function(variable, group, label, data) {
+  if (!is.data.frame(data) || !variable %in% names(data)) {
+    return(invisible(NULL))
+  }
+  value <- data[[variable]]
+  if (!is.factor(value) && !is.character(value)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code ||} does not uncorrelate categorical random slopes.",
+    "x" = "Slope {.code {variable}} in {.code ({label})} is a {.cls {class(value)[[1L]]}}.",
+    "i" = "In {.pkg lme4} {.code ||} splits by term, not by column, so a factor slope keeps its within-factor correlations.",
+    "i" = "Write the structure you want explicitly, such as {.code (1 | {group}) + (0 + {variable} | {group})}."
+  ))
+}
+
 formula_lhs <- function(expr) {
   if (length(expr) < 3L) {
     return(NULL)

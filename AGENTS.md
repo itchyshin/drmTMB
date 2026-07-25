@@ -3,6 +3,45 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-07-25, ARC A CLOSED PARTIAL; NEXT = C++ / NUMERICAL AUDIT).**
+> Arc A built the instrument, not the sweep. **Two of its four slices shipped; two were
+> deliberately dropped** — no overlap sweep, no vignette. **Do not call Arc A complete.**
+> Shipped: `evidence_class = "external_comparator"` in `capability-ledger/evidence.tsv`
+> (4 rows — metafor, lme4 ×2, glmmTMB), the `mc-0260m` `meta_V` route row landed from its
+> approved draft, a per-cell External-comparator surface column carrying independence
+> strength, `docs/design/242` recording the policy, a correction to doc 158's Gaussian
+> scale-conversion row, and a 177-cell triage. Fisher and Rose both signed off (Rose after
+> a NOT-DONE first pass). **Why it closed early: the brief's arithmetic was false.** Of the
+> 176-cell pool, 122 are `structured`, 18 `response_missingness` and 7 non-structured
+> bivariate — **none has any external comparator in existence**; parity can reach ~15 cells
+> ever, and 4 are wired. **NEXT = the C++ / numerical audit**, correctness-first
+> (log-sum-exp and overflow paths, link edge cases, boundary parameterizations,
+> finite-difference vs AD gradients); **no efficiency claim without a profiler**. It is the
+> only instrument aimed at the frontier, which is 80% of the stuck pool. **Guard, do not
+> "fix":** the frozen census (`source_order <= 676`) must hold exactly **158**
+> `point_fit_recovery` cells permanently; the total (159) grows only by an approved insert.
+> Raising 158 is how a promotion gets laundered. **`schema.json` is a source file, not a
+> generated output** — `--write` never touches it. **START HERE:**
+> [`docs/dev-log/handover/2026-07-25-arc-a-closed-claude-handover.md`](docs/dev-log/handover/2026-07-25-arc-a-closed-claude-handover.md).
+> **FOREIGN, do not touch:** `codex/arc6-6-bernoulli-nb2-plan` (2 unpushed),
+> `codex/pkgdown-formal-closeout` (1 unpushed, **still needs an owner**), the dirty root
+> checkout on `claude/handover-freshness-0718`, PR #829, PR #836. **Never merge #828.**
+
+> **▶ Prior (2026-07-24, → CODEX, ARC 7 B0 CARRIED OVER).**
+> Arc 6 closed on `main` at `d7359df2` (PRs #826/#827; R-CMD-check and pkgdown
+> green). Arc 7 B0 is a clean-current-main, **negative-evidence integration**
+> lane for `meta_V`, on `codex/arc7-metav-b0`: it selectively carries the B3
+> small-K contract, not the stale branch wholesale. The staged core patch adds
+> K=12/dense-control fixtures, `confint()` interval recording, and all-attempt
+> accounting; focused `phase18-meta-v|comparators` tests passed. Do **not** run
+> remote compute, promote a tier, or claim interval validity/coverage. The next
+> session must inspect the staged patch, run the two-cell local sentinel, then
+> obtain Fisher/Rose review before committing a scoped PR. **START HERE:**
+> [`docs/dev-log/handover/2026-07-24-codex-handover.md`](docs/dev-log/handover/2026-07-24-codex-handover.md).
+> The dirty `claude/handover-freshness-0718` AGHQ/non-Gaussian-REML lane and
+> legacy unpushed `codex/arc6-6-bernoulli-nb2-plan` commits are foreign; do not
+> modify, merge, or clean them from this lane.
+
 > **⚠ Compute & CI — D-50 (2026-07-12).** Simulation / recovery / power / coverage campaigns run on
 > **Totoro or DRAC**, **never GitHub Actions**, and their outputs are **never stored as GitHub
 > artifacts** (Actions storage is a hard 2 GB/month cap that this repo's `phase18-simulation-grid`-style
@@ -10,7 +49,88 @@ regression using Template Model Builder.
 > is for **package checks + docs only**, with **short artifact retention**. (Hub `AGENTS.md` Compute
 > section · shinichi-brain `DECISIONS.md` D-50.)
 
-> **▶ Latest — start here (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
+> **▶ Latest — start here (2026-07-24, → CODEX, ARC 6 DIRECT ASSOCIATION EVIDENCE LANDED; NEXT = STAGED-ETA PLAN ONLY).**
+> `main` = `d0ac907f`; GitHub Actions R-CMD-check run
+> [30126489352](https://github.com/itchyshin/drmTMB/actions/runs/30126489352)
+> is green. Exact direct fixed-effect `biv_lognormal()` constant log-residual
+> `rho12` now has guarded Wald, direct-likelihood profile, and joint
+> parametric-bootstrap intervals, calibrated in the retained-all-attempts
+> Totoro n-ladder (2,700 outer fits; 537,300 bootstrap refits). Profile is the
+> primary interval only at the tested `n >= 300`, `rho12 = 0, 0.5, 0.85`
+> domain; Wald/bootstrap remain calibrated comparators. The Palmer Penguins
+> tutorial is live in source and names its limited 43/99 real-data bootstrap
+> diagnostic. **Do not transfer this claim to staged `eta`:** its current
+> two-stage curvature conditions on fitted margins, so `vcov()`, Wald/profile
+> CIs and `confint()` remain unavailable. **NEXT:** a fresh `$ultra-plan`,
+> then approval, for the reviewed Bernoulli x ordinary-NB2 full-refit bootstrap
+> lane; DRAC only after smoke + fresh compute approval. Student-t, generic
+> cross-family, random-effect, missingness, and association-predictor expansion
+> remain deferred. **START HERE:**
+> [`docs/dev-log/handover/2026-07-24-codex-staged-eta-handover.md`](docs/dev-log/handover/2026-07-24-codex-staged-eta-handover.md).
+> The foreign `claude/handover-freshness-0718`, `codex/arc6-6-bernoulli-nb2-plan`,
+> and pkgdown audit lanes remain separate; do not modify them from this lane.
+
+> **▶ Latest — start here (2026-07-23, → CODEX, ARC 6.1–6.2 MERGED TO `main`).**
+> PR #817 merged as `85cff6fa`: `d9dc3116` (Gaussian × Bernoulli) and
+> `0e512b22` (Gaussian × ordinary NB2) provide two bounded, fixed-effect, ML,
+> complete-pair frozen-margin `associate_pairs()` slices. They estimate only
+> conditional latent-normal `eta`, never `rho12`, observed correlation,
+> joint-MLE inference, intervals, recovery, or a capability tier. Arc 6.2 uses
+> the exact NB2 CDF jump interval with tail-safe diagnostics; 32 new focused
+> NB2 tests and 26 Arc 6.1 regression tests (2 expected CRAN skips) passed;
+> separately retained Arc 6.1/6.2 smoke receipts matched on a final rerun.
+> No campaign, capability promotion, `meta_V`, Julia, or CRAN work occurred.
+> **NEXT IS A DECISION, NOT IMPLEMENTATION:** open a fresh plan-only Arc 6.3
+> lognormal × lognormal demand/API/oracle review only if Shinichi approves it;
+> otherwise choose a direct-kernel research branch or return to the Q-series.
+> **START HERE:**
+> [`docs/dev-log/handover/2026-07-23-codex-arc6-handover.md`](docs/dev-log/handover/2026-07-23-codex-arc6-handover.md).
+> The foreign `claude/handover-freshness-0718` AGHQ/non-Gaussian-REML lane
+> remains separate; do not attribute or modify it from this Arc 6 branch.
+
+> **▶ Latest — start here (2026-07-22, → CODEX, 0.6 DEV ARC TRACK A **MERGED** to `main`).**
+> `claude/0.6-dev-arc` is **MERGED** (was +15 / −6, tree clean). Track A is verified: newcomer sweep
+> **17/17 FITS or CLEAN**, full suite **264 files / 39,320 passing**, **zero added failures** — proved
+> by re-running every failing file at `aa237a28` for byte-identical counts. Landed: `||` desugaring
+> (#776), `||` intercept resolving last-wins to match lme4, `coef()` documented, `impute_model()`
+> formula guard, phase18 D-50 guard inversion, task-to-seed registry, beta-phylo runner path fix,
+> meta_V ADEMP amendment. The session-2 blocker *"sequence the merges — pkgdown owner first"* had
+> already CLEARED (`1a972b8e` = pkgdown reader-surface repair #816), and the Codex `julia-bridge`
+> roxygen lane landed with that same PR.
+> **✅ THE Q-SERIES RED IS FIXED (Shinichi, 2026-07-22, `e46ba36d`).** It was never
+> branch-introduced — `tools/qseries_v1_claim_guard.py` exited 1 on `main` itself because README had
+> lost its q-series status link and its `q=12` mention while four q12 cells stayed admitted (22
+> failures in `test-structured-re-conversion-contracts.R`). Repaired the right way — by restoring the
+> README catalog, **not** by retargeting the guard: the landing page now names the exact Gaussian
+> `q=12` all-four two-slope `phylo()` / `spatial()` / `animal()` / `relmat()` cells **at
+> point-fit/recovery grade and explicitly withholds interval and coverage claims**, and links the
+> row-level ledger. Guard now **exits 0**; that test file passes 237 tests, 0 failures.
+> CRAN stays **PARKED, not failed** — no re-freeze, no platform matrix, no submission.
+> START HERE:
+> [`docs/dev-log/handover/2026-07-22-codex-handover.md`](docs/dev-log/handover/2026-07-22-codex-handover.md)
+> **Open lanes:** (a) 0.6 dev arc → **MERGED**; (b) pkgdown reader surface → **LANDED** (#816);
+> (c) Codex `julia-bridge` → **landed with #816**; (d) **`claude/handover-freshness-0718`** (AGHQ +
+> non-Gaussian REML) → 1 commit unpushed, **foreign lane, still open**.
+> The 11-item maintainer action list is NOT duplicated — it stays in
+> [`docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md`](docs/dev-log/handover/2026-07-21-0.6-dev-arc-session2-handover.md).
+> **NEXT:** with the q-series red closed, the queue reverts to the ultra-plan — **meta_V** is the
+> priority (Shinichi, 2026-07-21): reconcile the existing `docs/design/48-phase-18-meta-v-ademp.md`,
+> do **not** author a new spec. Track B stays compute-gated behind B3 approval.
+> **Housekeeping:** the stale `.git/index.lock` was **cleared 2026-07-22**. The entire branch estate
+> is now on `origin` — **zero unpushed commits anywhere** (`git log --branches --not --remotes` = 0),
+> including `claude/handover-freshness-0718` at `85e78223`.
+> **⚠ THREE BRANCHES HAVE DIVERGED HISTORY — NEVER `--force` THEM.** Each holds local-only *and*
+> remote-only commits, so forcing destroys remote work. Local tips were rescued to new refs (originals
+> untouched): `codex/q8-endpoint-precode-gate` (4 local / 2 remote) →
+> `codex/q8-endpoint-precode-gate-local-20260722`; `codex/nb2-poisson-structured-gates-actions`
+> (10 / 13) → `nb2-poisson-gates-local-20260722`;
+> `codex/truncated-nb2-mu-ri-artifacts-2026-05-26` (1 / 2) →
+> `truncated-nb2-mu-ri-artifacts-local-20260722`. Reconciling them is a maintainer decision.
+> FYI for future pushes: no workflow here triggers on a feature-branch push — `R-CMD-check` fires only
+> on `main`/`master` and tags, `pkgdown` only via `workflow_run` on those, and `rhub` +
+> `phase18-simulation-grid` are `workflow_dispatch`-only (D-50 compliant).
+>
+> **▶ Prior (2026-07-21, → Claude, 0.6 DEV ARC — CRAN SUBMISSION PARKED).**
 > **Shinichi decided 2026-07-21: drmTMB 0.6 will NOT be submitted to CRAN.** It needs
 > substantially more work first. The CRAN release gate is **PARKED, not failed** — the
 > tarball re-freeze, platform matrix (win-builder / R-hub / 3-OS), `cran-comments.md`

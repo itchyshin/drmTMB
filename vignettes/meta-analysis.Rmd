@@ -147,8 +147,9 @@ summary(fit)
 ```
 
 Before reading the coefficients, confirm the fit is sound. A clean optimisation
-and a positive-definite Hessian are the gate for trusting the Wald standard
-errors and intervals.
+and a positive-definite Hessian are necessary diagnostics for routine Wald
+output, but they do not by themselves establish that a `sigma` interval is
+finite, usable, or coverage-valid.
 
 ```{r}
 fit$opt$convergence # 0 means the optimiser converged
@@ -330,6 +331,47 @@ least one study with repeated rows; a data set with exactly one row per study is
 the single-level model shown above, where `sigma` alone represents
 between-study heterogeneity.
 
+## Layered heterogeneity: an experimental contract
+
+When repeated effects are nested in studies, three SD layers answer different
+questions: known sampling uncertainty in `meta_V(V = V)`, residual
+heterogeneity in `sigma`, and the SD of a study- or effect-level location
+random effect in `sd(group)`. The following formulas are accepted by the
+current Gaussian implementation:
+
+```{r layered-meta-syntax, eval=FALSE}
+# Study-level location-SD regression (LSS): z_study is constant within study.
+drmTMB(
+  bf(
+    yi ~ x + (1 | study) + meta_V(V = V),
+    sigma ~ z,
+    sd(study) ~ z_study
+  ),
+  family = gaussian(), data = dat
+)
+
+# Nested effect-level location-SD regression (LSSS): effect is nested in study
+# and has repeated rows.
+drmTMB(
+  bf(
+    yi ~ x + (1 | study) + (1 | effect) + meta_V(V = V),
+    sigma ~ z,
+    sd(study) ~ z_study,
+    sd(effect) ~ z_effect
+  ),
+  family = gaussian(), data = dat
+)
+```
+
+These formulas are an **experimental local-contract surface**, not a claim of
+calibrated inference. In the Arc 7B local sentinel, the dense-`V` LSS study-SD
+profiles had non-finite endpoints despite a positive-definite Hessian. Before
+using these layered fits for interval-based conclusions, inspect every profile
+target and consult the current development evidence. A random term in `sigma`,
+such as `sigma ~ z + (1 | study)`, is a different double-hierarchical model: it
+models variation in residual SD, not variation in the SD of the location random
+effect.
+
 ## Known sampling variance is not a weight
 
 Inverse-variance weights and known sampling variances answer different
@@ -354,12 +396,71 @@ top of the known variances. For meta-analysis with known sampling variances,
 use `meta_V(V = vi)`. Reserve `weights =` for genuine likelihood weights such as
 externally defined case weights.
 
+## Correlated effect sizes: a small dense covariance example
+
+Use a dense `V` when the *sampling errors* of different effect sizes are known
+to be correlated, for example because they share participants or a control
+group. This remains an observation-level measurement-error input. It is not a
+weight, and it does not create a latent study, phylogenetic, spatial, or
+relatedness effect.
+
+For \(n\) effect sizes, the dense route fits
+
+\[
+\mathbf y \sim \operatorname{Normal}\!\left(X\boldsymbol\beta,
+  V + \sigma^2 I_n\right),
+\]
+
+where the supplied \(V\) is the known sampling covariance and `sigma` is the
+estimated residual heterogeneity. The following small example is executable;
+the off-diagonal entries say that nearby effect sizes have correlated sampling
+errors.
+
+```{r}
+set.seed(303)
+n_dense <- 8
+dat_dense <- data.frame(
+  yi = 0.25 + 0.10 * seq_len(n_dense) + stats::rnorm(n_dense, sd = 0.04),
+  x = seq_len(n_dense)
+)
+V_dense <- 0.012 * outer(
+  seq_len(n_dense), seq_len(n_dense),
+  function(i, j) 0.55^abs(i - j)
+)
+
+# A useful preflight: V is numeric, n by n, symmetric, and PSD.
+stopifnot(
+  is.numeric(V_dense),
+  identical(dim(V_dense), c(nrow(dat_dense), nrow(dat_dense))),
+  isTRUE(all.equal(V_dense, t(V_dense))),
+  min(eigen(V_dense, symmetric = TRUE, only.values = TRUE)$values) >= 0
+)
+
+fit_dense <- drmTMB(
+  bf(yi ~ x + meta_V(V = V_dense), sigma ~ 1),
+  family = gaussian(),
+  data = dat_dense
+)
+check_drm(fit_dense)
+```
+
+The order is part of the data contract: row and column `i` of `V_dense` must
+describe the sampling covariance for row `i` of `dat_dense`. Supply one row and
+one column per original data row; do not reorder the data after building `V`.
+For a dense matrix, `drmTMB` first applies the ordinary model-frame exclusions
+(for example a missing response or predictor), then removes the corresponding
+rows *and columns* of `V` together. Let the model frame make that exclusion and
+keep the original ordering rather than filtering the data and covariance matrix
+by separate rules. The retained matrix must have finite entries, be symmetric,
+have a non-negative diagonal, and be positive semidefinite.
+
 ## Notes on the function names
 
 * `meta_V(V = V)` is the current marker for known sampling variance or
-  covariance. The argument may be a column of variances (as above), a vector, a
-  diagonal matrix, or a dense covariance matrix when the effect sizes are
-  correlated.
+  covariance. The argument may be a column of **variances** (not standard
+  errors), a vector, a diagonal matrix, or a dense covariance matrix when the
+  effect sizes are correlated. A dense matrix must follow the row order and
+  validity contract in the preceding example.
 * `meta_known_V(V = V)` is a deprecated alias kept only for backward
   compatibility. It routes to the same additive known-variance likelihood but
   emits a deprecation warning; prefer `meta_V()` in new code.

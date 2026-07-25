@@ -1380,274 +1380,127 @@ test_that("Phase 18 Actions runner restricts count condition sets", {
   )
 })
 
-test_that("Phase 18 workflow concurrency is shard-aware", {
-  workflow <- testthat::test_path(
+# The campaign matrix these tests used to assert was removed by commit e159959b
+# under decision D-50: simulation / recovery / power / coverage campaigns run on
+# Totoro or the DRAC clusters, never on GitHub Actions, and campaign outputs are
+# never stored as Actions artifacts. The workflow was deliberately kept as a
+# documented stub rather than deleted, so `skip_if_not(file.exists())` never
+# fires and the old content assertions could not pass.
+#
+# They are INVERTED rather than deleted: each guard below fails if campaign
+# compute returns to Actions. Substrings are ASCII-only on purpose -- the stub
+# contains U+2014 em dashes, and asserting on those would couple the suite to
+# locale and encoding under R CMD check.
+
+phase18_workflow_path <- function() {
+  testthat::test_path(
     "..",
     "..",
     ".github",
     "workflows",
     "phase18-simulation-grid.yaml"
   )
+}
+
+test_that("Phase 18 simulation workflow remains a disabled stub (D-50)", {
+  workflow <- phase18_workflow_path()
   testthat::skip_if_not(file.exists(workflow))
   text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
 
-  expect_match(
-    text,
+  # The stub still declares itself.
+  for (marker in c(
+    "DISABLED STUB",
+    "D-50",
+    "name: phase18-simulation-grid (disabled",
+    "Totoro",
+    "DRAC",
+    "workflow_dispatch:"
+  )) {
+    expect_true(grepl(marker, text, fixed = TRUE), info = marker)
+  }
+
+  # The campaign dispatch surface is gone.
+  for (needle in c(
     "inputs.condition_shard",
-    fixed = TRUE
-  )
-  expect_match(
-    text,
     "inputs.condition_shards",
-    fixed = TRUE
-  )
-  expect_match(
-    text,
     "inputs.condition_set",
-    fixed = TRUE
-  )
-})
+    "inputs.profile_level",
+    "inputs.require_complete",
+    "--condition-set=",
+    "--profile-level=",
+    "--require-complete=",
+    "condition_set:",
+    "profile_level:",
+    "require_complete:",
+    "n_reps:",
+    "include_in_all:"
+  )) {
+    expect_false(grepl(needle, text, fixed = TRUE), info = needle)
+  }
 
-test_that("Phase 18 workflow exposes Tweedie fixed-effect task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+  # No compute and no artifact storage -- the substantive half of D-50.
+  for (needle in c(
+    "strategy:",
+    "matrix:",
+    "actions/upload-artifact",
+    "Rscript",
+    "sim_run_actions_cell.R",
+    "inst/sim/results"
+  )) {
+    expect_false(grepl(needle, text, fixed = TRUE), info = needle)
+  }
 
-  expect_match(text, "tweedie_fixed_effect", fixed = TRUE)
-  expect_match(text, "20260542", fixed = TRUE)
-})
+  # The pinned campaign seeds are gone from Actions. Note this asserts only
+  # their ABSENCE here; the authoritative task-to-seed bindings live in
+  # inst/sim/registry/ and are guarded separately.
+  for (seed in c(
+    "20260542",
+    "20260543",
+    "20260603",
+    "20260604",
+    "20260605",
+    "20260606",
+    "20260607",
+    "20260608",
+    "20260609",
+    "20260624",
+    "20260625",
+    "20260627"
+  )) {
+    expect_false(grepl(seed, text, fixed = TRUE), info = seed)
+  }
 
-test_that("Phase 18 workflow exposes count structured q1 task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expect_match(text, "count_structured_q1", fixed = TRUE)
-  expect_match(text, "20260543", fixed = TRUE)
-  expect_match(text, "condition_set:", fixed = TRUE)
-  expect_match(text, "--condition-set=", fixed = TRUE)
-  expect_match(text, "profile_level:", fixed = TRUE)
-  expect_match(text, "--profile-level=", fixed = TRUE)
-  expect_match(text, "inputs.profile_level", fixed = TRUE)
-  expect_match(text, "require_complete:", fixed = TRUE)
-  expect_match(text, "--require-complete=", fixed = TRUE)
-  expect_match(text, "inputs.require_complete", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: count_structured_q1",
-      "seed: 20260543",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-})
-
-test_that("Phase 18 workflow exposes bivariate Gaussian mu-slope task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expect_match(text, "biv_gaussian_mu_slope", fixed = TRUE)
-  expect_match(text, "20260603", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: biv_gaussian_mu_slope",
-      "seed: 20260603",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-})
-
-test_that("Phase 18 workflow exposes bivariate Gaussian q4 location task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expect_match(text, "biv_gaussian_q4_location", fixed = TRUE)
-  expect_match(text, "20260609", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: biv_gaussian_q4_location",
-      "seed: 20260609",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-})
-
-test_that("Phase 18 workflow exposes bivariate Gaussian q6 location task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expect_match(text, "biv_gaussian_q6_location", fixed = TRUE)
-  expect_match(text, "20260624", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: biv_gaussian_q6_location",
-      "seed: 20260624",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-})
-
-test_that("Phase 18 workflow exposes bivariate Gaussian q2 scale task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expect_match(text, "biv_gaussian_q2_scale", fixed = TRUE)
-  expect_match(text, "20260625", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: biv_gaussian_q2_scale",
-      "seed: 20260625",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-  expect_match(text, "biv_gaussian_q2_scale_slope", fixed = TRUE)
-  expect_match(text, "20260627", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: biv_gaussian_q2_scale_slope",
-      "seed: 20260627",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-})
-
-test_that("Phase 18 workflow exposes spatial mu-slope task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expect_match(text, "spatial_mu_slope", fixed = TRUE)
-  expect_match(text, "20260604", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: spatial_mu_slope",
-      "seed: 20260604",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
-})
-
-test_that("Phase 18 workflow exposes non-spatial structured mu-slope tasks", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
-
-  expected <- c(
-    phylo_mu_slope = "20260605",
-    animal_mu_slope = "20260606",
-    relmat_mu_slope = "20260607"
-  )
-  for (task in names(expected)) {
-    expect_match(text, task, fixed = TRUE)
-    expect_match(text, expected[[task]], fixed = TRUE)
-    expect_match(
-      text,
-      paste(
-        paste0("task: ", task),
-        paste0("seed: ", expected[[task]]),
-        "include_in_all: false",
-        sep = "\n            "
-      ),
-      fixed = TRUE
-    )
+  # No task is dispatchable. Driven off the runner rather than hardcoded, so a
+  # task added to the runner later is covered automatically -- unlike the ten
+  # per-task blocks this replaces.
+  env <- new.env(parent = globalenv())
+  source(phase18_actions_runner_script(), local = env)
+  for (task in env$phase18_actions_task_choices()) {
+    expect_false(grepl(paste0("task: ", task), text, fixed = TRUE), info = task)
   }
 })
 
-test_that("Phase 18 workflow exposes correlation-block status task", {
-  workflow <- testthat::test_path(
-    "..",
-    "..",
-    ".github",
-    "workflows",
-    "phase18-simulation-grid.yaml"
-  )
-  testthat::skip_if_not(file.exists(workflow))
-  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+test_that("No GitHub Actions workflow runs simulation campaigns (D-50)", {
+  # Filename-independent. A well-meaning restoration would most likely arrive as
+  # a NEW workflow file, which a guard keyed to one filename would never see.
+  dir <- testthat::test_path("..", "..", ".github", "workflows")
+  testthat::skip_if_not(dir.exists(dir))
+  files <- list.files(dir, pattern = "\\.ya?ml$", full.names = TRUE)
+  expect_gt(length(files), 0L)
 
-  expect_match(text, "correlation_block_status", fixed = TRUE)
-  expect_match(text, "20260608", fixed = TRUE)
-  expect_match(
-    text,
-    paste(
-      "task: correlation_block_status",
-      "seed: 20260608",
-      "include_in_all: false",
-      sep = "\n            "
-    ),
-    fixed = TRUE
-  )
+  for (f in files) {
+    text <- paste(readLines(f, warn = FALSE), collapse = "\n")
+    for (needle in c(
+      "sim_run_actions_cell.R",
+      "inst/sim/run/",
+      "inst/sim/results"
+    )) {
+      expect_false(
+        grepl(needle, text, fixed = TRUE),
+        info = paste(basename(f), needle)
+      )
+    }
+  }
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {
@@ -1688,6 +1541,16 @@ test_that("Phase 18 workflow dispatch options match the runner task choices", {
   )
   testthat::skip_if_not(file.exists(workflow))
   lines <- readLines(workflow, warn = FALSE)
+
+  # Dormant, not wrong. While the workflow is a D-50 disabled stub there is no
+  # dispatch surface to couple to the runner, so this guard has nothing to
+  # check. It is preserved rather than inverted or deleted: it re-arms by
+  # itself the day the stub marker goes away, which is exactly when the
+  # coupling matters again.
+  testthat::skip_if(
+    any(grepl("DISABLED STUB", lines, fixed = TRUE)),
+    "phase18 workflow is a D-50 disabled stub; no dispatch surface to couple"
+  )
 
   # Extract the `task:` choice input's options block (the indented list items
   # immediately under the first `options:` after the `task:` input key).

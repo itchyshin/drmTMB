@@ -1,5 +1,97 @@
 # drmTMB 0.6.0
 
+## Legacy Julia cross-family extractor repair
+
+* Legacy `drmTMB_julia_xfam` objects no longer let `vcov()`, `fitted()`,
+  `residuals()`, stored `predict()`, or `summary()` fall through to absent
+  fields and silently return `NULL` or an empty coefficient table. The bridge
+  now reconstructs per-axis `u = 0` response means and response residuals,
+  reports point-only coefficients plus ML information criteria, and clearly
+  errors for unavailable covariance/Wald inference. This is a compatibility
+  repair only: Julia cross-family fitting remains deferred, `rho_latent` is
+  not `rho12`, and no cross-family inference claim is added.
+
+## Unreleased beta association-gradient extension
+
+* The frozen-margin literal-Bernoulli × ordinary-NB2 beta route now also
+  accepts one numeric `association = ~ x` predictor. It fits a row-specific
+  latent-normal association after the two margins have been fitted and frozen.
+  The coefficients and fitted associations are point estimates only: this is
+  not a direct `rho12` model and supplies no standard errors, intervals,
+  profiles, coverage, random effects, or generic association grammar.
+
+## Arc 6.5 Bernoulli × Bernoulli development slice
+
+* `associate_pairs()` now admits two frozen literal Bernoulli-logit margins and
+  estimates a latent-normal `eta` using deterministic bivariate-normal
+  rectangle probabilities. This post-0.6 development surface retains only a
+  point estimate and diagnostics; it is neither `rho12` nor an observed-scale
+  correlation, odds ratio, interval, coverage, or capability claim.
+
+## Arc 6.4 exact bivariate Student-t development slice
+
+* `biv_student()` now fits one bounded exact bivariate Student-t likelihood:
+  fixed-effect `mu1`/`mu2`, constant Student-t scales `sigma1`/`sigma2`, one
+  shared constant `nu > 2`, and constant scatter/residual correlation `rho12`.
+  At finite `nu`, `rho12 = 0` means uncorrelated residuals, not independent
+  margins, because each pair shares the same scale-mixture draw. The route is
+  source-tested only; random/structured effects, scale/shape/correlation
+  predictors, partial pairs, offsets, weights, `meta_V`, `mi()`, REML, Julia,
+  intervals, coverage, smoke, recovery, and capability promotion remain
+  deferred.
+
+## Arc 6.3 exact bivariate lognormal development slice
+
+* `biv_lognormal()` now fits one bounded exact bivariate-lognormal likelihood:
+  fixed-effect `mu1`/`mu2`, constant log-response SDs, and a constant `rho12`.
+  `rho12` is the within-row residual correlation on the log-response scale, not
+  the frozen-margin `eta` or a raw-scale correlation. The route accepts only
+  complete, finite, positive pairs with unit weights; all random/structured
+  effects, sigma/rho predictors, offsets, `meta_V`, `mi()`, REML, Julia,
+  intervals, coverage, and capability claims remain deferred.
+
+## Cross-family association first implementation
+
+* Post-0.6 development now implements the bounded post-fit
+  `associate_pairs()` interface with `kernel = latent_normal()` for
+  fixed-effect Gaussian × literal-Bernoulli, Gaussian × ordinary-NB2,
+  literal-Bernoulli × ordinary-NB2, and ordinary-NB2 × ordinary-NB2 complete
+  pairs. It freezes stage-1 margins
+  (including NB2 `mu` and `sigma`),
+  then estimates intercept-only latent-normal association (`eta`) with point
+  estimate and diagnostics only. It is not a released 0.6.0 feature and does
+  not add mixed-family `rho12`, intervals, coverage, or capability claims.
+
+## First-impression formula surface (issue #776)
+
+* `(1 + x || g)`, the `lme4`/`brms` spelling for uncorrelated random effects, is
+  now accepted and desugars to `(1 | g) + (0 + x | g)`. Previously R parsed `||`
+  as its own operator, the random-term parser recognised only `|`, and the term
+  survived into the fixed-effect design matrix, where it aborted with
+  `'length = N' in coercion to 'logical(1)'` — a message whose `N` is the row
+  count, so it read as a size problem and was not. The two spellings are now the
+  same model: on a 20-group fixture they agree in log-likelihood and in every
+  fixed-effect coefficient, while the correlated `(1 + x | g)` block stays
+  distinct.
+* This is a formula rewrite onto a route drmTMB already fits and has certified.
+  No likelihood, no TMB change, and no new capability claim: no ledger cell
+  changes tier, and the desugaring is inert on formulas that contain no `||`.
+* A categorical slope under `||` is rejected rather than silently accepted. In
+  `lme4` `||` splits by formula term rather than by design-matrix column, so a
+  factor slope keeps its within-factor correlations and is not in fact
+  uncorrelated; the error names the explicit two-term form instead of copying
+  that behaviour.
+* Smooth terms (`s()`, `te()`, `ti()`, `t2()`) are rejected by name before the
+  model frame is evaluated. A reader arriving from `mgcv` or `gamlss` previously
+  got R's own `could not find function "s"`; the message now points at `poly()`
+  and `splines::ns()` and states that penalised smooths are not implemented.
+* A user-facing error no longer leaks internal roadmap vocabulary: the
+  univariate Gaussian parameter check named "Phase 1" instead of naming the
+  supported distributional parameters.
+* The simple-grouping rule (`(1 | g1/g2)` and `(1 | g1:g2)` are not implemented)
+  is now locked by tests on both the `mu` and `sigma` parse paths, where the
+  guard is duplicated.
+
 ## Reader-facing plotting surface complete (issue #58)
 
 * The figure gallery now demonstrates all six public plotting functions.
@@ -861,7 +953,7 @@ than that matrix.
 * Phase 18 now has an opt-in count structured q1 artifact lane for ordinary Poisson/NB2 `spatial()`, `animal()`, and `relmat()` `mu` intercepts. The new DGP, summariser, smoke runner, summary helper, grid writer, manual `count_structured_q1` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct `log_sd_phylo` profile-target, optional profile-interval, interval-evidence, interval-diagnostic, and interval-failure artifacts without adding zero-inflated structure, structured slopes, labelled count covariance, structured NB2 `sigma`, `task = "all"` inclusion, or formal recovery claims.
 * `nbinom2()` now fits the first ordinary log-`sigma` random-intercept gate for non-zero-inflated models, with syntax such as `bf(count ~ x, sigma ~ z + (1 | id))`. The fitted effect models grouped overdispersion on the log-`sigma` scale and is exposed through `sdpars$sigma`, `random_effects$sigma`, `sigma()`, `predict(dpar = "sigma")`, direct `log_sd_sigma` profile targets, and `check_drm()` replication diagnostics. Historical note, superseded by current recovery evidence: exact q1 structured NB2 `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Ordinary NB2 `sigma` slopes, labelled covariance blocks, joint `mu`/`sigma` random effects, zero-inflated/truncated/hurdle NB2 scale random effects, richer structured sigma blocks, structured-sigma intervals/coverage, and Poisson scale random effects remain planned or inapplicable.
 * `beta()` and `beta_binomial()` now support ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)` for strict `(0, 1)` responses and `bf(cbind(success, failure) ~ x + (1 | id) + (0 + x | id), sigma ~ z)` for counted successes out of known trials. The fitted logit-mean or logit-success-probability SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics; correlated bounded-response random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, known covariance, and bivariate or mixed bounded-response models remain planned.
-* `student()` now supports ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)`. The fitted location SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics; correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, known covariance, and bivariate Student-t models remain planned.
+* `student()` now supports ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)`. The fitted location SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics. Historical note: correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, and known covariance remain planned; the later Arc 6.4 exact `biv_student()` source slice is deliberately narrower and carries no recovery claim.
 * `lognormal()` and `Gamma(link = "log")` now support ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. The fitted SDs appear in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics. This historical ordinary-effect entry is superseded in part by the exact Arc 3a q1 Gamma-phylo and lognormal-phylo/relmat intercept gates; correlated positive-continuous random slopes, labelled covariance blocks, `sigma` slopes, labelled or combined `sigma` random effects, other structured positive-continuous effects, known covariance, and bivariate or mixed positive-continuous models remain planned.
 * Phase 18 now has a Student-t `mu` random-intercept artifact lane for `student()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `student_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu` with fixed-effect `sigma` and `nu`, while keeping correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, known covariance, and bivariate Student-t models out of scope.
 * Phase 18 now has a zero-truncated NB2 `mu` random-intercept artifact lane for `truncated_nbinom2()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `truncated_nbinom2_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`, while keeping correlated zero-truncated NB2 random slopes, labelled covariance blocks, `sigma` random effects, hurdle random effects, zero-inflated zero-truncated models, structured effects, and bivariate count models out of scope.

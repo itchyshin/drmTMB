@@ -89,6 +89,34 @@ test_that("generic power engine assembles power, curve, and target sample size",
   expect_true(all(c("n_target", "status") %in% names(result$sample_size)))
 })
 
+test_that("power assembly backfills only intervals that were not requested", {
+  phase18_source_power_engine()
+
+  summary <- data.frame(
+    surface = "mock",
+    cell_id = c("null", "alternative", "failed"),
+    parameter = "mu:x",
+    truth = c(0, 0.4, 0.4),
+    estimate = c(0.01, 0.45, 0.45),
+    std.error = c(0.08, 0.08, 0.08),
+    conf.low = c(NA_real_, NA_real_, NA_real_),
+    conf.high = c(NA_real_, NA_real_, NA_real_),
+    interval_status = c("not_requested", "not_requested", "failed"),
+    stringsAsFactors = FALSE
+  )
+  conditions <- data.frame(
+    cell_id = c("null", "alternative", "failed"),
+    effect_size = c(0, 0.4, 0.4),
+    is_null = c(TRUE, FALSE, FALSE),
+    stringsAsFactors = FALSE
+  )
+
+  power <- phase18_assemble_power_table(summary, conditions = conditions)
+  power <- power[order(power$cell_id), , drop = FALSE]
+  expect_identical(power$inference, c("power", NA_character_, "type_i_error"))
+  expect_identical(power$n_interval, c(1L, 0L, 1L))
+})
+
 test_that("engine threads a non-default sample_size column (e.g. n_group)", {
   phase18_source_power_engine()
 

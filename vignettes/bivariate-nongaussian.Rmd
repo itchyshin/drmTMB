@@ -1,0 +1,242 @@
+---
+title: "Bivariate non-Gaussian models: choose a joint or staged association"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bivariate non-Gaussian models: choose a joint or staged association}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+has_penguins <- requireNamespace("palmerpenguins", quietly = TRUE)
+```
+
+With two non-Gaussian outcomes, first decide what kind of association answers
+the scientific question. A direct joint likelihood estimates both outcomes and
+their residual association together. A frozen-margin association first fits the
+two outcomes separately and then estimates a latent-normal association while
+holding the fitted margins fixed. These are different estimands.
+
+This article helps you choose a route for two outcomes measured on the same
+rows. The mixed-outcome route is a beta development interface: it does not
+provide interval, coverage, random-effect, or generic-pair claims. The exact
+direct lognormal route now has callable uncertainty methods for a constant
+`rho12`, with a retained fixed-effect calibration ladder for its tested domain;
+do not treat a finite interval as a validated general non-Gaussian claim.
+For a released direct Gaussian joint model, use `biv_gaussian()` and
+[Changing residual coupling with rho12](bivariate-coscale.html).
+
+## Start by choosing the association scale
+
+| Your paired outcomes | Route | What the association means |
+| --- | --- | --- |
+| Two Gaussian traits | Direct `biv_gaussian()` model | Gaussian residual `rho12` |
+| Two positive traits plausibly lognormal | Post-0.6 direct `biv_lognormal()` model | Log-response residual `rho12` |
+| Two heavy-tailed real-valued traits | Post-0.6 direct `biv_student()` model | Shared-Student-t residual/scatter `rho12` |
+| A reviewed mixed or discrete pair | `biv_associate()` staged route | Latent-normal copula `eta` after frozen margins; one numeric association slope is beta-supported for Bernoulli x NB2 |
+
+Neither `rho12` nor `eta` is automatically the Pearson correlation of the two
+raw response columns. The scale is part of the scientific interpretation, not
+just a computational detail.
+
+## Direct joint model: two positive traits
+
+For two positive lognormal outcomes, the model is joint on the log-response
+scale:
+
+\[
+(\log Y_{1i}, \log Y_{2i}) \sim N_2\left(
+(\mu_{1i}, \mu_{2i}),
+\begin{bmatrix}
+\sigma_1^2 & \rho_{12}\sigma_1\sigma_2 \\
+\rho_{12}\sigma_1\sigma_2 & \sigma_2^2
+\end{bmatrix}
+\right).
+\]
+
+Here `rho12` is the correlation of the two log-response residuals. A positive
+value means that units above their fitted log-response expectation on one trait
+also tend to be above it on the other. It is not automatically the correlation
+of the two traits on their original scale.
+
+### Real example: penguin size after measured composition differences
+
+The openly licensed `palmerpenguins` data set records body size in three Palmer
+Archipelago penguin species. It is distributed under CC0 and collates data from
+the Palmer Station LTER study ([data policy](https://allisonhorst.github.io/palmerpenguins/);
+[Gorman et al. 2014](https://doi.org/10.1371/journal.pone.0090081)).
+
+Our question is conditional: after allowing both margins to vary by species,
+sex, and centred year, do birds with longer-than-expected flippers also have
+greater-than-expected body mass? This is not a causal claim that flippers
+determine mass, nor a replacement for a raw scatterplot.
+
+```{r penguin-data, eval = has_penguins}
+penguins <- subset(
+  palmerpenguins::penguins,
+  complete.cases(species, sex, year, flipper_length_mm, body_mass_g) &
+    flipper_length_mm > 0 & body_mass_g > 0
+)
+penguins$year_c <- penguins$year - mean(penguins$year)
+nrow(penguins)
+```
+
+```{r penguin-raw-scale, eval = has_penguins, fig.width = 6, fig.height = 4, fig.cap = "Raw log-scale flipper length and body mass for analysed complete rows. This descriptive relationship is not the fitted residual association."}
+plot(
+  log(body_mass_g) ~ log(flipper_length_mm), data = penguins,
+  pch = 16, col = grDevices::adjustcolor("#087f8c", alpha.f = 0.45),
+  xlab = "log flipper length (mm)", ylab = "log body mass (g)"
+)
+abline(stats::lm(log(body_mass_g) ~ log(flipper_length_mm), data = penguins),
+  col = "#14344a", lwd = 2
+)
+```
+
+```{r penguin-direct-lognormal, eval = has_penguins}
+fit_log <- drmTMB::drmTMB(
+  drmTMB::bf(mu1 = flipper_length_mm ~ species + sex + year_c,
+             mu2 = body_mass_g ~ species + sex + year_c,
+             sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  family = drmTMB::biv_lognormal(), data = penguins
+)
+
+drmTMB::rho12(fit_log)[1]
+drmTMB::check_drm(fit_log)
+
+# All three target the log-residual rho12, not a raw-scale correlation.
+ci_wald <- confint(fit_log, parm = "rho12", method = "wald")
+ci_profile <- confint(
+  fit_log, parm = "rho12", method = "profile", profile_engine = "endpoint"
+)
+ci_bootstrap <- confint(
+  fit_log, parm = "rho12", method = "bootstrap", R = 99, seed = 20260724
+)
+interval_row <- function(x, label) {
+  data.frame(
+    label = label,
+    estimate = unname(drmTMB::rho12(fit_log)[1]),
+    lower = x$lower,
+    upper = x$upper,
+    status = x$conf.status,
+    note = x$profile.message,
+    stringsAsFactors = FALSE
+  )
+}
+intervals <- rbind(
+  interval_row(ci_wald, "Wald"),
+  interval_row(ci_profile, "Profile"),
+  interval_row(
+    ci_bootstrap,
+    sprintf(
+      "Bootstrap (%d/%d retained)",
+      ci_bootstrap$bootstrap.n,
+      ci_bootstrap$bootstrap.n + ci_bootstrap$bootstrap.failed
+    )
+  )
+)
+intervals
+```
+
+```{r penguin-intervals, eval = has_penguins, fig.width = 6, fig.height = 3.5, fig.cap = "Intervals and the fitted direct log-residual association in the penguin model. The plot shows calculation output, not a generic calibration guarantee. The bootstrap label gives retained refits; a low retained fraction is a diagnostic rather than hidden precision."}
+at <- rev(seq_len(nrow(intervals)))
+plot(
+  intervals$lower, at, xlim = c(-1, 1), ylim = c(0.5, 3.5), yaxt = "n",
+  pch = 16, xlab = expression(rho[12]), ylab = "", col = "#14344a"
+)
+segments(intervals$lower, at, intervals$upper, at, lwd = 3, col = "#087f8c")
+points(intervals$estimate, at, pch = 16, col = "#14344a")
+axis(2, at = at, labels = intervals$label, las = 1)
+abline(v = 0, lty = 2, col = "grey50")
+```
+
+`fitted(fit_log)` returns arithmetic marginal means on the original response
+scale. The `mu1` and `mu2` predictors remain log-scale locations. These direct
+models estimate the two margins and `rho12` together; they are not staged
+frozen-margin fits. Wald is a fast link-scale approximation; profile likelihood
+checks the exact likelihood geometry; the bootstrap refits both margins and
+`rho12`. Inspect `check_drm(fit_log)` and bootstrap diagnostics, especially
+near \(|\rho_{12}|=1\). In this data set, do not hide failed bootstrap refits:
+the printed `bootstrap.n` and `bootstrap.failed` fields are part of the result.
+The external data example illustrates interpretation and diagnostics; it does
+not itself establish coverage calibration or prove lognormal adequacy. Inspect
+residual diagnostics and compare scientifically defensible alternatives before
+reporting a substantive association.
+
+## Direct joint model: two heavy-tailed traits
+
+For two real-valued traits with occasional extreme observations, the bivariate
+Student-t model uses a shared degrees-of-freedom parameter, `nu`:
+
+```{r student-example, eval = FALSE}
+fit_t <- drmTMB(
+  bf(mu1 = activity ~ habitat, mu2 = boldness ~ habitat,
+     sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1),
+  family = biv_student(), data = behaviour
+)
+
+rho12(fit_t)
+```
+
+`sigma1` and `sigma2` are Student-t scales, not necessarily marginal standard
+deviations. The model has one shared `nu`, which controls tail heaviness. At a
+finite `nu`, `rho12 = 0` means zero residual correlation, but not necessarily
+complete independence because the two outcomes share the same row-level
+heavy-tail mechanism.
+
+## Staged association: different kinds of outcome
+
+If one response is binary and the other is a count, there is no shared direct
+Gaussian residual scale. The frozen-margin route instead fits a binary
+probability model and a count model, then estimates latent-normal `eta` from
+their fitted distributions.
+
+```{r staged-example, eval = FALSE}
+paired_data <- na.omit(data.frame(
+  bred, offspring, habitat, habitat_score, season
+))
+
+assoc <- biv_associate(
+  bf(mu = bred ~ habitat),
+  bf(mu = offspring ~ habitat, sigma = ~ season),
+  family = list(binomial(), nbinom2()),
+  data = paired_data,
+  association = ~ 1
+)
+
+association(assoc)
+```
+
+This is one convenient R call, but not one jointly fitted model.
+`biv_associate()` fits the two margins, freezes them, and estimates only `eta`.
+The reported value is a latent-normal copula correlation conditional on those
+fitted margins. It is not `rho12`, a logit coefficient, an odds ratio, or an
+observed-scale correlation.
+
+For a binary response, the model observes whether a hidden tendency crossed a
+threshold. It does not observe an ordinary numeric residual. Read
+[Frozen-margin association for mixed outcome pairs](cross-family.html) for the
+binary-threshold explanation, the reviewed pair classes, and the rule for
+withheld estimates.
+
+For the literal-Bernoulli x ordinary-NB2 beta route, `association = ~ x` can
+also model one numeric association gradient. It estimates a row-specific
+latent-normal `eta_i`, after both margins have been fitted and frozen. See
+[Association between mixed outcome pairs](cross-family.html) for the exact
+syntax, output, and limits.
+
+## What is currently outside these routes
+
+The direct same-family first slices keep `sigma1`, `sigma2`, `rho12`, and `nu`
+constant across rows. The staged route usually keeps `eta` constant; its one
+beta exception is a single numeric association slope for literal-Bernoulli x
+ordinary-NB2. Its reviewed fixed-effect margins may include their explicitly
+supported covariates before they are frozen. Neither route currently adds random
+effects, general association-predictor grammar, missing-data support, or a
+general non-Gaussian bivariate claim. The staged route has no two-stage standard
+errors, profiles, confidence intervals, or coverage claim. The direct lognormal
+constant-`rho12` profile, Wald, and bootstrap methods have direct calibration
+evidence only for the fixed-effect DGP in the Arc 6 coverage artifact; they do
+not validate the staged route or a general non-Gaussian association claim.
+Choose the route whose stated association scale matches the biological question,
+and treat every boundary as part of the model definition.

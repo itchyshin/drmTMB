@@ -65,7 +65,8 @@
 #' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch D, all 18 fitted `model_type` values are promoted
+#' As of DO-T3 batch D, these 18 established fitted `model_type` values are
+#' promoted
 #' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
 #' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
 #' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
@@ -79,7 +80,10 @@
 #' `{d,p,q}` describe one response's marginal `N(mu_k, sigma_k)` (exact,
 #' independent of `rho12`), never the joint bivariate distribution -- see
 #' `drm_family_dpq_biv_gaussian()` and [fitted_distribution()]'s `response`
-#' argument, which selects `k`.
+#' argument, which selects `k`. The later exact-special development families
+#' `"biv_lognormal"` and `"biv_student"` are deliberately excluded from this
+#' marginal distribution-output registry; their density/CDF/quantile,
+#' residual, and adequacy surfaces require separate validation.
 #'
 #' The `d`/`p`/`q` closures take `(y_or_u, params)`, where `params` is a wide,
 #' one-row-per-observation data frame. This signature is **frozen** (CP1): a

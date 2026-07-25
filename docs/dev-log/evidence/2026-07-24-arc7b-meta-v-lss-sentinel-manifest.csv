@@ -1,0 +1,7 @@
+source_sha,r_version,drmTMB_version,TMB_version,master_seed,cell,layer,design_role,known_v_type,n_study,n_effect_per_study,n_rep_per_effect,result_status,pdHess,profile_ok,profile_incomplete,notes
+f86fed0188ca14356bc098d962e2675e22c39593,R-4.6.0,0.6.0.9000,1.9.21,2026072407,1,LS,one_effect_per_study,vector,36,1,1,ok,TRUE,4,0,all direct profiles finite
+f86fed0188ca14356bc098d962e2675e22c39593,R-4.6.0,0.6.0.9000,1.9.21,2026072407,2,LSS,weak_boundary,vector,12,3,2,ok,TRUE,6,0,all direct profiles finite
+f86fed0188ca14356bc098d962e2675e22c39593,R-4.6.0,0.6.0.9000,1.9.21,2026072407,3,LSS,interior_control,vector,48,4,2,ok,TRUE,6,0,all direct profiles finite
+f86fed0188ca14356bc098d962e2675e22c39593,R-4.6.0,0.6.0.9000,1.9.21,2026072407,4,LSSS,nested_effect_control,vector,36,3,2,ok,TRUE,8,0,all direct profiles finite
+f86fed0188ca14356bc098d962e2675e22c39593,R-4.6.0,0.6.0.9000,1.9.21,2026072407,5,LSS,dense_known_v_control,dense,12,2,2,ok,TRUE,4,2,sd(study) profiles nonfinite_interval
+f86fed0188ca14356bc098d962e2675e22c39593,R-4.6.0,0.6.0.9000,1.9.21,2026072407,6,DH,dh_sensitivity,vector,36,4,2,ok,TRUE,4,0,random sigma SD profile not requested

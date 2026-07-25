@@ -10,6 +10,24 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   basic-distribution recovery rows from post-v1.0 `inference_ready` and
   `supported` validation. This boundary does not authorize coverage, q4/q8
   promotion, broad bridge support, REML, AI-REML, or public-support wording.
+- The beta `associate_pairs()` development object has five reviewed-pair
+  classes only: fixed-effect Gaussian × literal 0/1 Bernoulli, Gaussian ×
+  ordinary NB2, literal Bernoulli × literal Bernoulli, literal 0/1 Bernoulli ×
+  ordinary NB2, and ordinary NB2 × ordinary NB2, on exactly the same complete
+  rows with explicitly declared `kernel = latent_normal()`. All accept
+  `association = ~ 1`. The literal Bernoulli × ordinary NB2 beta route alone
+  accepts `association = ~ x` for one finite numeric column and returns
+  association-link coefficients plus fitted row-level latent-normal `eta_i`.
+  It freezes all stage-1 margin vectors (including NB2 `mu` and `sigma`) and
+  supplies point estimates only when optimisation and count-interval diagnostics
+  are acceptable. It is neither `rho12` nor an observed-scale correlation.
+  Other family pairs, association covariates, random/structured effects, partial pairs, offsets, weights,
+  `mi()`, `meta_V()`, REML, new-data association prediction, standard errors,
+  intervals, profiles, coverage, capability promotion, Julia, and CRAN release
+  use remain outside this first contract. Arc 6.5 has retained Totoro recovery
+  **HOLD** evidence, documented in
+  `docs/dev-log/simulation-artifacts/2026-07-24-arc6-5-bernoulli-recovery/`:
+  it is not a passing recovery result and makes no capability claim.
 - Gaussian location-scale models are implemented with fixed effects and
   ordinary `mu` random effects: random intercepts, independent random slopes,
   one-slope correlated random intercept-slope blocks such as `(1 + x | id)` or
@@ -121,6 +139,19 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   explicit missing-data routes, simulation-based imputation summaries,
   response imputation, measurement-error models, and pigauto interoperability
   remain planned.
+- Exact `biv_lognormal()` and `biv_student()` are narrow direct complete-pair
+  development families. For `biv_lognormal()` only, a retained direct
+  fixed-effect calibration ladder supports profile as the primary constant
+  `rho12` interval within the tested `n = 100, 300, 1000` and
+  `rho12 = 0, .5, .85` DGP; Wald/bootstrap coverage is reported only as a
+  grid-specific comparator. The Student-t route has fixed-effect `mu1`/`mu2`,
+  intercept-only Student-t scales, one shared intercept-only `nu > 2`, and
+  intercept-only scatter/residual `rho12`. At finite `nu`, `rho12 = 0` is
+  uncorrelated but not independent. Neither exact-special route has random or
+  structured effects, scale/shape/correlation predictors, missing pairs,
+  explicit weights, offsets, `meta_V`, `mi()`, REML, Julia, or a broad
+  capability tier; Student-t intervals/smoke/recovery and every direct-
+  lognormal neighbour outside the stated DGP remain deferred.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
@@ -359,7 +390,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   Arc 3a fits one recovery-grade unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`.
   Structured slopes, labels,
   `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers, spatial/animal,
-  REML, intervals/coverage, and bivariate lognormal models remain rejected.
+  REML, intervals/coverage, and bivariate lognormal extensions beyond the
+  separate fixed-effect complete-pair Arc 6.3 slice remain rejected.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric
@@ -654,7 +686,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects beyond the exact
   row-specific phylo `nu` gate, Student-t known-covariance
-  models, broad Student-t phylogenetic models, bivariate Student-t models,
+  models, broad Student-t phylogenetic models, richer bivariate Student-t
+  models beyond the exact fixed-effect shared-`nu` source slice,
   correlated lognormal/Gamma/beta/beta-binomial random slopes,
   lognormal/Gamma `sigma` slopes, labelled or combined `sigma` random effects,
   beta/beta-binomial `sigma` random effects beyond the exact beta q1

@@ -28,6 +28,7 @@ before translating a family-specific precision or dispersion parameter.
   [bivariate Gaussian models with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html),
   [meta-analysis](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html), and
   [`check_drm()`](https://itchyshin.github.io/drmTMB/reference/check_drm.html).
+- **Check a boundary before relying on it:** [Capabilities and limits](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
 
 ## Experimental release preview
 
@@ -109,6 +110,9 @@ For random or structured effects, use the [structural dependence overview](https
 before choosing `phylo()`, `spatial()`, `animal()`, or `relmat()`. For two
 Gaussian responses, use [the `rho12` tutorial](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html);
 for known sampling variance or covariance, use [the meta-analysis route](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
+When some values are missing, [handling missing data](https://itchyshin.github.io/drmTMB/articles/missing-data.html)
+covers the two separate axes: which response families marginalise a missing
+response, and which predictors can be modelled with `mi()`.
 
 ## Keep the boundary visible
 
@@ -158,6 +162,11 @@ for the row-specific tiers, floors, and caveats.
   These gates keep zero inflation fixed; they confirm local fit/extractor
   feasibility but do not establish point-estimate recovery, intervals, or
   coverage.
+- **Structured Gaussian covariance.** The Q-Series includes exact q=12
+  all-four two-slope covariance cells for `phylo()`, `spatial()`, `animal()`,
+  and `relmat()` at point-fit/recovery grade. This Q-Series statement does not authorize
+  interval or coverage claims; see the row-level
+  [Q-Series release-status ledger](docs/dev-log/release-audits/q-series-v1-release-status.md).
 
 Mesh/SPDE fields, multiple spatial slopes, spatial slope correlations, direct
 spatial SD surfaces, predictor-dependent spatial `corpair()` regression, and

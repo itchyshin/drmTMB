@@ -37,7 +37,7 @@ Internal-to-comparator conversions:
 
 | Family | `drmTMB` public | Internal mapping | Typical comparator scale | Conversion to compare |
 | --- | --- | --- | --- | --- |
-| `gaussian()` | residual SD `sigma` | `log(sigma)` linear predictor | `glmmTMB` dispersion / `gamlss` `sigma` | `gamlss` `sigma` is the SD directly; `glmmTMB` reports residual variance — compare `sigma^2` |
+| `gaussian()` | residual SD `sigma` | `log(sigma)` linear predictor | `glmmTMB` dispersion / `gamlss` `sigma` | `gamlss` `sigma` is the SD directly; `glmmTMB`'s `dispformula` coefficients are also `log(sigma)` (SD scale, not `log(sigma^2)`) — compare `coef(fit, "sigma")` to `glmmTMB::fixef(fit)$disp` directly, no squaring (corrected 2026-07-25, see note below) |
 | `student()` | `sigma`, `nu` | `nu = 2 + exp(eta_nu)` (df) | `gamlss` `TF`, `brms` `student` | match `nu` to df; `sigma` to scale |
 | `lognormal()` | `sigma` on `log(y)` | identity `mu` on `log(y)` | `glmmTMB`/`lm` on `log(y)` | compare on the log scale; `sigma` is the log-scale SD |
 | `Gamma(link="log")` | `sigma` | shape `= 1 / sigma^2` | `glmmTMB`/`glm` Gamma shape or dispersion | `shape = 1/sigma^2`; `glm` dispersion `= sigma^2` |
@@ -47,6 +47,27 @@ Internal-to-comparator conversions:
 | `stats::binomial()` | event probability `mu` | logit-mean only; row trials from 0/1 or `cbind(success, failure)` | base `stats::glm()` binomial | compare coefficients, standard errors, `logLik`, AIC, and BIC directly |
 | `nbinom2()` | `sigma` | size `= 1 / sigma^2` | `glmmTMB::nbinom2` / `MASS::glm.nb` theta | `theta (size) = 1/sigma^2` |
 | `meta_V(V=V)` | fixed/random means, heterogeneity | known `V` added to residual | `metafor::rma.mv` with `V` | `V` is input data in both; compare heterogeneity `tau^2` notation explicitly |
+
+**Correction, 2026-07-25.** The `gaussian()` row previously read: "`gamlss`
+`sigma` is the SD directly; `glmmTMB` reports residual variance — compare
+`sigma^2`". That was wrong for the coefficient-level comparison the test suite
+runs: `glmmTMB`'s `dispformula` coefficients for `family = gaussian()` are on
+the `log(sigma)` SD scale, the same scale `drmTMB` uses, not `log(sigma^2)`.
+`tests/testthat/test-comparators.R:780-784` fits both packages on identical
+simulated data and asserts `coef(fit, "sigma")` equals
+`glmmTMB::fixef(fit_glmmTMB)$disp` with no squaring, at tolerance `1e-4`; the
+random-intercept variant at `test-comparators.R:831-835` repeats the same
+unsquared check. The `gamlss` half of the sentence is unchanged because no
+test in this repository exercises `gamlss`; treat it as unverified rather than
+re-confirmed. `glmmTMB::sigma()` — the accessor, as opposed to
+`fixef()$disp` — also returns a residual SD, so it is a different object from
+the `disp` coefficient vector, but no test here compares against the
+accessor; do not extend this correction to it without a test. Contrast the
+`tweedie()` row directly below: `test-tweedie-location-scale.R:204-208` shows
+`glmmTMB`'s tweedie `dispformula` coefficients equal `2 * coef(fit, "sigma")`
+(i.e. `log(phi) = log(sigma^2)`), so `glmmTMB` puts gaussian and tweedie
+dispersion on different log scales — always check the family, not just the
+package.
 
 ## Comparator Matrix
 

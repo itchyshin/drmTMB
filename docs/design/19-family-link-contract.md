@@ -56,6 +56,9 @@ The implemented families use these parameter meanings:
 | Bivariate Gaussian | `mu1`, `mu2` | identity | arithmetic means of `y1` and `y2` |
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
+| Bivariate lognormal | `mu1`, `mu2` | identity | means of `log(y1)` and `log(y2)` |
+| Bivariate lognormal | `sigma1`, `sigma2` | log | standard deviations of `log(y1)` and `log(y2)` |
+| Bivariate lognormal | `rho12` | guarded atanh | within-row residual correlation on the log-response scale |
 
 ## Implemented Plain Binomial Response Contract
 

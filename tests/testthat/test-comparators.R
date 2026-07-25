@@ -1043,6 +1043,50 @@ test_that("Gaussian REML meta-analysis with diagonal known V agrees with metafor
   expect_equal(attr(stats::logLik(fit), "df"), 3L)
 })
 
+test_that("small-K diagonal meta-analysis matches metafor ML conventions", {
+  testthat::skip_if_not_installed("metafor")
+
+  # Fixed values make this K = 12 comparator fixture stable across runs while
+  # retaining a non-zero between-study variance component.
+  dat <- data.frame(
+    x = seq(-1.1, 1.1, length.out = 12),
+    vi = c(0.018, 0.024, 0.031, 0.021, 0.027, 0.035,
+           0.019, 0.029, 0.023, 0.033, 0.025, 0.030),
+    yi = c(-0.052, 0.583, 0.037, 0.691, 0.122, 0.809,
+           0.180, 0.965, 0.284, 1.074, 0.366, 1.198)
+  )
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = vi)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_metafor <- metafor::rma.uni(
+    yi = yi,
+    vi = vi,
+    mods = ~x,
+    data = dat,
+    method = "ML"
+  )
+
+  sigma_hat <- stats::sigma(fit)[[1L]]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$V_known_type, "diagonal")
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_metafor)),
+    tolerance = 1e-4
+  )
+  expect_equal(sigma_hat^2, fit_metafor$tau2, tolerance = 1e-4)
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_metafor)),
+    tolerance = 1e-4
+  )
+  expect_equal(attr(stats::logLik(fit), "df"), 3L)
+})
+
 test_that("dense known-V Gaussian meta-analysis agrees with metafor rma.mv", {
   testthat::skip_if_not_installed("metafor")
 
@@ -1150,6 +1194,52 @@ test_that("Gaussian REML meta-analysis with dense known V agrees with metafor es
     as.numeric(stats::logLik(fit)),
     as.numeric(stats::logLik(fit_metafor)) - metafor_shift,
     tolerance = 1e-6
+  )
+  expect_equal(attr(stats::logLik(fit), "df"), 3L)
+})
+
+test_that("small-K dense meta-analysis matches metafor ML conventions", {
+  testthat::skip_if_not_installed("metafor")
+
+  # The covariance is fixed and positive definite, so this fixture exercises
+  # the dense-V path without stochastic simulation noise.
+  n <- 12
+  dat <- data.frame(
+    x = seq(-1.1, 1.1, length.out = n),
+    obs = factor(seq_len(n)),
+    yi = c(-0.052, 0.583, 0.037, 0.691, 0.122, 0.809,
+           0.180, 0.965, 0.284, 1.074, 0.366, 1.198)
+  )
+  V <- 0.016 * outer(seq_len(n), seq_len(n), function(i, j) 0.4^abs(i - j))
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = V)),
+    family = gaussian(),
+    data = dat
+  )
+  fit_metafor <- metafor::rma.mv(
+    yi = yi,
+    V = V,
+    mods = ~x,
+    random = ~ 1 | obs,
+    data = dat,
+    method = "ML"
+  )
+
+  sigma_hat <- stats::sigma(fit)[[1L]]
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$V_known_type, "matrix")
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_metafor)),
+    tolerance = 1e-4
+  )
+  expect_equal(sigma_hat^2, fit_metafor$sigma2[[1L]], tolerance = 1e-4)
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_metafor)),
+    tolerance = 1e-4
   )
   expect_equal(attr(stats::logLik(fit), "df"), 3L)
 })

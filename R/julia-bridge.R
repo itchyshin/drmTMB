@@ -3133,6 +3133,13 @@ drm_julia_tag_linkinv <- function(tag) {
 #' Predicting `sigma` / `rho12` for fresh `newdata` is not implemented; refit
 #' with `engine = "tmb"` for those.
 #'
+#' A legacy cross-family object (`drmTMB_julia_xfam`) is narrower still: only
+#' `mu1` and `mu2` are available. Stored and new-data predictions are response
+#' means with the shared latent effect fixed at `u = 0`; they are not marginal
+#' means. Cross-family covariance, fixed-effect Wald inference, and scale-axis
+#' prediction are unavailable because that legacy bridge did not retain the
+#' required payload.
+#'
 #' @param object A `drmTMB_julia` fit.
 #' @param newdata Optional data frame. When supplied, predictions are
 #'   population-level (random effects set to zero).
@@ -4208,6 +4215,41 @@ new_drmTMB_julia_xfam <- function(
     sigma1 = sigma_coef_axis(result$sigma_coef1, axes$sigma1$coef_names),
     sigma2 = sigma_coef_axis(result$sigma_coef2, axes$sigma2$coef_names)
   )
+  fitted_link <- list(
+    mu1 = as.numeric(axes$mu1$X %*% coefficients$mu1),
+    mu2 = as.numeric(axes$mu2$X %*% coefficients$mu2)
+  )
+  fitted <- list(
+    mu1 = drm_julia_tag_linkinv(families[[1L]])(fitted_link$mu1),
+    mu2 = drm_julia_tag_linkinv(families[[2L]])(fitted_link$mu2)
+  )
+  residuals <- list(
+    mu1 = as.numeric(axes$mu1$y) - fitted$mu1,
+    mu2 = as.numeric(axes$mu2$y) - fitted$mu2
+  )
+  coefficient_blocks <- c(coefficients, sigma_coef)
+  coefficient_blocks <- coefficient_blocks[vapply(
+    coefficient_blocks,
+    length,
+    integer(1L)
+  ) > 0L]
+  coef_vector <- unlist(
+    unname(Map(
+      function(dpar, values) {
+        stats::setNames(values, paste(dpar, names(values), sep = "_"))
+      },
+      names(coefficient_blocks),
+      coefficient_blocks
+    )),
+    use.names = TRUE
+  )
+  # `fit_mixed_family()` estimates two latent loadings in addition to the
+  # linear-predictor coefficients. rho_latent is derived from those loadings
+  # and the fitted dispersion, so it is not an additional free parameter.
+  df <- length(coef_vector) + 2L
+  logLik <- scalar(result$loglik)
+  aic <- -2 * logLik + 2 * df
+  bic <- -2 * logLik + log(length(axes$mu1$y)) * df
 
   out <- list(
     call = call,
@@ -4226,9 +4268,14 @@ new_drmTMB_julia_xfam <- function(
       responses = c(axes$mu1$response, axes$mu2$response),
       dpars = c("mu1", "mu2")
     ),
+    axes = axes,
     bridge = result,
     coefficients = coefficients,
     sigma_coef = sigma_coef,
+    coef_vector = coef_vector,
+    fitted_link = fitted_link,
+    fitted = fitted,
+    residuals = residuals,
     loadings = c(
       lambda1 = scalar(result$lambda1),
       lambda2 = scalar(result$lambda2)
@@ -4240,9 +4287,21 @@ new_drmTMB_julia_xfam <- function(
     rho_latent = rho_latent,
     rho_ci_wald = rho_ci_wald,
     rho_ci_profile = rho_ci_profile,
-    logLik = scalar(result$loglik),
+    logLik = logLik,
+    aic = aic,
+    bic = bic,
+    df = df,
     nobs = length(axes$mu1$y),
-    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L)
+    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L),
+    uncertainty = list(
+      status = "unavailable",
+      se = FALSE,
+      message = paste(
+        "The legacy cross-family Julia bridge does not return a named",
+        "coefficient covariance matrix; fixed-effect standard errors and",
+        "Wald intervals are unavailable."
+      )
+    )
   )
   class(out) <- c("drmTMB_julia_xfam", "drmTMB_julia")
   out
@@ -4277,9 +4336,33 @@ coef.drmTMB_julia_xfam <- function(object, dpar = NULL, ...) {
 }
 
 #' @export
+fixef.drmTMB_julia_xfam <- function(object, ...) {
+  coef.drmTMB_julia_xfam(object, ...)
+}
+
+#' Extractor unavailable for a legacy cross-family Julia fit
+#'
+#' The cross-family Julia bridge is retained only to inspect legacy fitted
+#' objects. It does not marshal a named coefficient covariance matrix, so
+#' covariance-based fixed-effect inference cannot be reconstructed safely.
+#'
+#' @param object A `drmTMB_julia_xfam` cross-family fit.
+#' @param ... Unused.
+#' @return This method always errors with an explanation.
+#' @export
+vcov.drmTMB_julia_xfam <- function(object, ...) {
+  cli::cli_abort(c(
+    "{.fn vcov} is unavailable for a legacy Julia cross-family fit.",
+    i = "The bridge did not retain a named coefficient covariance matrix.",
+    i = "Use a native {.code engine = \"tmb\"} fit for covariance-based inference."
+  ))
+}
+
+#' @export
 logLik.drmTMB_julia_xfam <- function(object, ...) {
   out <- object$logLik
   attr(out, "nobs") <- object$nobs
+  attr(out, "df") <- object$df
   class(out) <- "logLik"
   out
 }
@@ -4287,6 +4370,108 @@ logLik.drmTMB_julia_xfam <- function(object, ...) {
 #' @export
 nobs.drmTMB_julia_xfam <- function(object, ...) {
   object$nobs
+}
+
+#' @export
+df.residual.drmTMB_julia_xfam <- function(object, ...) {
+  object$nobs - object$df
+}
+
+#' Summary for a legacy Julia cross-family fit
+#'
+#' The cross-family Julia bridge is halted/deferred future work. This
+#' compatibility summary reports point estimates only: the bridge does not
+#' retain a named covariance matrix, so standard errors and Wald intervals are
+#' deliberately unavailable.
+#'
+#' @param object A `drmTMB_julia_xfam` cross-family fit.
+#' @param conf.int Logical; requesting intervals errors because the bridge did
+#'   not return fixed-effect covariance.
+#' @param ... Unused.
+#' @return An object of class `summary.drmTMB_julia` containing point estimates
+#'   and an explicit unavailable-uncertainty status.
+#' @export
+summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort("Additional arguments in {.arg ...} are not used by this legacy summary.")
+  }
+  if (!is.logical(conf.int) || length(conf.int) != 1L || is.na(conf.int)) {
+    cli::cli_abort("{.arg conf.int} must be a single {.code TRUE} or {.code FALSE}.")
+  }
+  if (isTRUE(conf.int)) {
+    vcov.drmTMB_julia_xfam(object)
+  }
+  beta <- object$coef_vector
+  coefficients <- data.frame(
+    dpar = sub("_.*$", "", names(beta)),
+    term = sub("^[^_]+_", "", names(beta)),
+    estimate = unname(beta),
+    std.error = NA_real_,
+    statistic = NA_real_,
+    p.value = NA_real_,
+    stringsAsFactors = FALSE
+  )
+  out <- list(
+    call = object$call,
+    family = object$family,
+    engine = "julia",
+    coefficients = coefficients,
+    random = data.frame(
+      dpar = character(), term = character(), sd = numeric(),
+      stringsAsFactors = FALSE
+    ),
+    sigma = object$sigma,
+    logLik = object$logLik,
+    aic = object$aic,
+    bic = object$bic,
+    df = object$df,
+    nobs = object$nobs,
+    converged = isTRUE(object$opt$convergence == 0L),
+    uncertainty = object$uncertainty
+  )
+  class(out) <- "summary.drmTMB_julia"
+  out
+}
+
+#' @export
+fitted.drmTMB_julia_xfam <- function(object, ...) {
+  object$fitted
+}
+
+#' @export
+residuals.drmTMB_julia_xfam <- function(object, type = c("response"), ...) {
+  match.arg(type)
+  object$residuals
+}
+
+#' @rdname predict.drmTMB_julia
+#' @export
+predict.drmTMB_julia_xfam <- function(
+  object,
+  newdata = NULL,
+  dpar = NULL,
+  type = c("response", "link"),
+  ...
+) {
+  type <- match.arg(type)
+  if (is.null(dpar)) {
+    dpar <- "mu1"
+  }
+  dpar <- match.arg(dpar, c("mu1", "mu2"))
+  if (is.null(newdata)) {
+    if (identical(type, "link")) {
+      return(object$fitted_link[[dpar]])
+    }
+    return(object$fitted[[dpar]])
+  }
+  predict.drmTMB_julia(
+    object = object,
+    newdata = newdata,
+    dpar = dpar,
+    type = type,
+    ...
+  )
 }
 
 #' @export

@@ -2,6 +2,228 @@
 
 Record meaningful development checks here.
 
+## 2026-07-24: Arc 9 legacy Julia cross-family extractor repair
+
+- `drmTMB_julia_xfam` no longer inherits extractors that read absent fields and
+  quietly yield `NULL`. It now reconstructs response-scale `mu1`/`mu2` means at
+  latent `u = 0`, response residuals, ML `df`/AIC/BIC, and a point-only summary;
+  `vcov()` and Wald-summary requests error explicitly because no named
+  covariance payload is available. `rho_latent` remains distinct from `rho12`.
+- `devtools::document()` and focused `test-xfam-bridge.R`: PASS (the four live
+  Julia tests skip when no compatible cross-family engine is configured).
+  `R CMD INSTALL --no-multiarch --with-keep.source .`: PASS. `pkgdown::check_pkgdown()`:
+  PASS after adding the two xfam-specific generated topics to `_pkgdown.yml`.
+- `devtools::test(reporter = "summary")`: the Arc 9 xfam tests pass; the suite
+  has seven unrelated baseline failures in `test-estimator-surface-conformance.R`.
+  They reproduce at untouched `origin/main` `988b2b38` and are stale line
+  anchors in the REML conformance TSV, not this branch's code.
+- Live legacy bridge attempt used disposable DRM.jl checkout `66514a0`. Julia
+  project instantiation completed, but JuliaCall then hit an external
+  `LogExpFunctions` / `InverseFunctions` extension incompatibility. This is not
+  counted as live extractor evidence; pure-R constructor tests are the retained
+  evidence for this compatibility repair.
+
+## 2026-07-24: Arc 6 installed-package test-path repair
+
+- The first merged Arc 6 main check failed only because two new tests assumed
+  source-tree-only paths: the coverage driver under `inst/sim/` and public
+  design/vignette sources. `R CMD check` executes tests from an installed
+  package where neither input is available. Both tests now exercise their
+  source inputs in a development checkout and explicitly skip only when those
+  inputs are absent from the installed check tree. The direct likelihood,
+  interval API, estimator, and campaign artifacts are unchanged.
+- The two focused tests pass from source. A local package build succeeds; local
+  `R CMD check` cannot reach CRAN to obtain the optional `palmerpenguins`
+  Suggests dependency, so the Linux CI is the authoritative installed-package
+  confirmation for this repair.
+- The repaired Linux check then reached vignette rebuilding and exposed a
+  second installed-package boundary: the new executable penguin chunk had
+  unqualified `drmTMB` functions. Those calls are now explicitly namespaced.
+  A fresh temporary installation of this exact worktree rendered
+  `bivariate-nongaussian.Rmd` successfully without `devtools::load_all()`.
+
+## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` coverage gate
+
+- The predeclared Totoro campaign retained all 2,700 direct outer attempts
+  across `n = 100, 300, 1000` and true `rho12 = 0, 0.5, 0.85`, plus 537,300
+  joint-simulation/full-refit bootstrap attempts. The exact source was
+  `1e5bd429`; the manifest, compact summary, and local full ledgers are under
+  `docs/dev-log/simulation-artifacts/2026-07-24-biv-lognormal-rho12-totoro-coverage/`.
+- Profile meets the predeclared primary-method gate for every `n >= 300` cell:
+  99.3% or greater finite-profile availability at the difficult `n=1000`,
+  `rho12=0.85` cell, all PD Hessians, and exact conditional-coverage intervals
+  overlapping `[0.925, 0.975]`. Wald and bootstrap have measured coverage on
+  this grid, but remain comparators rather than substitutes for profile
+  diagnostics.
+- Boundary: this is exact direct fixed-effect lognormal `rho12` evidence only.
+  It does not grant a general non-Gaussian, Student-t, raw-scale, random-effect,
+  missing-data, predictor-varying, or staged-eta interval claim. The staged
+  Bernoulli x NB2 full-refit-bootstrap follow-up is separately specified in
+  `docs/design/240-arc6-staged-eta-uncertainty-followup.md`.
+
+## 2026-07-24: Arc 6 direct bivariate-lognormal `rho12` interval mechanism
+
+- Enabled guarded link-scale Wald, direct-likelihood profile, and full joint
+  parametric-bootstrap intervals for constant `rho12` in exact
+  `biv_lognormal()` fits. The direct target is log-residual association, not
+  raw-scale correlation and not staged frozen-margin `eta`.
+- Focused direct-lognormal and profile-target suites passed. A one-cell,
+  non-empty smoke (`n = 160`, true `rho12 = 0.5`, unequal log-SDs,
+  covariate-adjusted locations) converged with `pdHess = TRUE`, emitted Wald
+  and profile intervals, and retained all 9 bootstrap refits. Its first run
+  caught and repaired an exact-model bootstrap-refit weights bug.
+- Boundary: mechanism and smoke only. No coverage calibration, primary-method
+  recommendation, real-data tutorial, Student-t interval, prediction interval,
+  staged `eta` standard error/CI/profile, random effect, missing-data, or
+  generic cross-family claim is made. The direct coverage ladder is a fresh
+  Totoro lane with retained-all-attempts evidence.
+
+## 2026-07-24: Arc 6.5 retained boundary-seed diagnostic
+
+- Replayed the retained `n = 120`, asymmetric-prevalence, `eta = 0.5`, seed
+  650016 at both the frozen Arc 6.5 source and current `main`. Both reproduce
+  the same `boundary_unresolved` result, link, likelihood, convergence code,
+  score, curvature, and multistart disagreement.
+- An independent `mvtnorm::pmvnorm()` profile agrees with the production
+  likelihood throughout the fitted near-boundary plateau. The observed binary
+  table has no `(y_1 = 1, y_2 = 0)` observations, so the data do not identify a
+  stable finite interior association link. This classifies the HOLD as
+  weak/boundary identification, not a numerical defect.
+- Added an exact-seed regression test that expects withholding. No historic
+  attempt, denominator, recovery gate, capability claim, or source estimator
+  was changed. No remote recovery campaign was run or proposed.
+
+## 2026-07-24: Arc 6 pkgdown reference-index repair
+
+- Added the five Arc 6 exported topics (`associate_pairs`, `association`,
+  `latent_normal`, `biv_lognormal`, and `biv_student`) to `_pkgdown.yml` so
+  the reference index matches the source surface.
+- Renamed the specialist menu item from “Cross-family bivariate (deferred)” to
+  “Cross-family bivariate association”; the linked article remains explicitly
+  development-slice and no-inference guidance.
+- `pkgdown::check_pkgdown()`: PASS, no problems found.
+
+## 2026-07-24: Beta Bernoulli × ordinary-NB2 association gradient
+
+- Added the bounded `association = ~ x` route for exactly one finite numeric
+  covariate after frozen literal-Bernoulli and ordinary-NB2 margins. The staged
+  model estimates `eta_i = tanh(beta_0 + beta_1 x_i)`; implementation keeps
+  numerical values infinitesimally inside the open correlation interval.
+- Checks: targeted Bernoulli×NB2, one-call `biv_associate()`, and ten admitted
+  family/data combinations passed. The varying-`eta` likelihood agrees
+  row-by-row with an independent `mvtnorm` rectangle oracle, and numerical
+  score/curvature diagnostics now cover both beta coefficients; the affected
+  Gaussian×Bernoulli expected-error snapshot was synchronized. `devtools::document()`,
+  selected pkgdown article/reference builds, `pkgdown::check_pkgdown()`, and
+  `git diff --check` passed. The exact searches were `rg "associate_pairs|association =|latent_normal|frozen-margin|biv_associate" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml docs/dev-log/check-log.md` and `rg "0.999999|1-10\\^\\{-6\\}|tanh" vignettes/cross-family.Rmd docs/design/239-bernoulli-nbinom2-association-regression.md R/associate-pairs.R`.
+- Boundary: beta point estimates and row-level fitted `eta_i` only. No generic
+  pair grammar, factors, interactions, random effects, new-data association
+  prediction, standard errors, profiles, intervals, coverage, recovery-tier
+  promotion, Julia, CRAN, or change to the Arc 6.5 HOLD is claimed.
+
+## 2026-07-24: Arc 6.8 cross-pair integration gate
+
+- Added one integration matrix spanning Gaussian × Bernoulli, Gaussian × NB2,
+  Bernoulli × Bernoulli, Bernoulli × NB2, and NB2 × NB2 post-fit
+  latent-normal associations.
+- The matrix verifies frozen margin snapshots, pair-order likelihood/`eta`
+  symmetry, response-label-preserving `fitted()`/`predict()`, deterministic
+  simulation, and the common unavailable-method fences. It separately checks
+  that exact `biv_lognormal()` retains `rho12` and no `association()` method.
+- Boundary: source-contract integration only. Arc 6.5 recovery remains HOLD;
+  no recovery, uncertainty, coverage, capability promotion, random effects,
+  association slopes, Julia, or CRAN claim was added.
+
+## 2026-07-24: Arc 6.7 ordinary NB2 × ordinary NB2 frozen-margin association
+
+- Added the two-count `associate_pairs()` adapter for exactly matched,
+  fixed-effect ML ordinary-NB2 fits. It freezes both `mu` and `sigma` vectors
+  and estimates intercept-only latent-normal `eta`; it does not add a
+  mixed-family `rho12` or any inference surface.
+- The production likelihood uses a direct conditional-normal rectangle
+  integral with tail-stable NB2 CDF endpoints, log-space normal differences,
+  and fail-closed mixed absolute/relative quadrature acceptance. Unresolved
+  endpoints remain structured `boundary_unresolved` diagnostics rather than
+  aborting a fit.
+- Focused Arc 6.1/6.2/6.6/6.7 tests and regenerated reference documentation
+  are recorded in the Arc 6.7 after-task report. The tests include an
+  independent `mvtnorm` oracle, finite-grid normalization, rare-tail,
+  response-order, simulation, and intentional failure checks.
+- Boundary: source construction only. No recovery or S0 campaign, intervals,
+  coverage, capability promotion, random effects, association slopes, Julia,
+  or CRAN claim is made.
+
+## 2026-07-23: Arc 6.4 exact bivariate Student-t first slice
+
+- Added `biv_student()` as a separate exact-special likelihood with fixed-effect
+  `mu1` and `mu2`, intercept-only Student-t scales, one shared `nu > 2`, and
+  intercept-only scatter/residual correlation `rho12`.
+- `docs/design/234-arc6-4-bivariate-student-contract.md` aligns the symbolic
+  density, R formula surface, parameter transforms, simulator, and first-slice
+  exclusions. The cited prior-art report and contract preceded implementation;
+  Noether returned GO on their symbolic/API/oracle alignment. The report
+  records the multivariate-t parameterization and comparator choices.
+- `devtools::test(filter = "biv-student", reporter = "summary")`: PASS,
+  68 expectations. The independent oracle, `mvtnorm` comparator, shared-mixture
+  simulator, response swap, Gaussian limit, and finite-`nu` zero-correlation
+  dependence checks all pass.
+- Adjacent bivariate-lognormal, bivariate-Gaussian, family-link, univariate
+  Student, and profile-target tests: PASS with their recorded pre-existing
+  warnings/skips only.
+- `devtools::document(quiet = TRUE)`, capability-ledger check, and
+  `git diff --check`: PASS.
+- Final `devtools::check(error_on = "warning", document = FALSE, manual =
+  FALSE)`: PASS in 15m57s with 0 errors, 0 warnings, and one benign macOS
+  temporary-directory note for `xcrun_db`.
+- The after-task structure validator: PASS.
+- The final completion audit corrected one stale design-234 table label from
+  “Gaussian scatter correlation” to “Student-t scatter/residual correlation”;
+  a repository-wide exact-phrase scan found no sibling occurrence.
+- Boundary: no smoke, recovery campaign, interval, coverage, capability-tier
+  promotion, Julia, or CRAN claim was run or made.
+
+## 2026-07-23: Arc 6.3 exact bivariate lognormal first slice
+
+- Added `biv_lognormal()` as a separate exact-special likelihood, with a
+  log-response residual `rho12`, a guarded correlation transform, and both
+  original-scale Jacobian terms. It is not the frozen-margin `eta` route.
+- `docs/design/233-arc6-3-bivariate-lognormal-contract.md` records the
+  symbolic/API/simulator/oracle alignment and the first-slice exclusions.
+- `devtools::test(filter = "biv-lognormal", reporter = "summary")`: PASS,
+  covering an independent transformed-scale likelihood oracle, zero-rho
+  product identity, response swap, original-scale fitted means, simulation,
+  boundary guard, and excluded grammar/data.
+- `devtools::test(filter = "biv-gaussian", reporter = "summary")`: PASS with
+  its pre-existing warnings only.
+- Boundary: no smoke, recovery campaign, interval, coverage, capability-tier
+  promotion, Julia, or CRAN claim was run or made. The generated ledger text
+  was synchronized only to remove a stale absolute absence claim.
+## 2026-07-22: meta_V trust infrastructure and B3 gate
+
+Made the K=12 known-`V` evidence path auditable without making a capability
+claim. The B3 design now retains every scheduled fit, distinguishes a finite
+and truth-covering interval rate from conditional finite-interval set coverage,
+and keeps the public `[0, Inf]` sigma output as a degenerate interval rather
+than silently replacing it. Small-K diagonal and dense **ML** comparator
+fixtures now agree with their matching `metafor` routes. The meta-analysis
+reader surface adds a dense-`V` preflight and maintains the explicit
+implemented/tested, tier-unregistered boundary.
+
+- Focused Phase-18 meta_V tests: 122 passed, 0 failed/warned/skipped.
+- Focused comparator tests: 134 passed, 0 failed/warned/skipped.
+- Combined meta_V/comparator/known-V run: 340 passed, 0 failed/warned/skipped.
+- `pkgdown::build_article("meta-analysis", new_process = FALSE)`: rendered;
+  a local sass-cache permission warning did not affect the article output.
+- `git diff --check`: PASS.
+- The requested full uncapped `testthat::test_local()` measurement was started
+  but stopped while a pre-existing long Phase 18 q6 test was running; it did
+  not return a full-suite result and is not reported as one.
+
+Boundary: evidence infrastructure and documentation only. No campaign ran;
+Totoro remains the approved-route candidate after a separate B3 timing-smoke
+approval. No coverage certification, capability-tier promotion, CRAN action,
+or API/likelihood change occurred.
+
 ## 2026-07-21: Confidence Eye and current phylogenetic capability table
 
 Followed the interval-row repair with the project-standard uncertainty display.
@@ -93,6 +315,17 @@ matrices, quadratic temperature/precipitation syntax, and the phylogenetic
 Boundary: documentation and figures only. No likelihood, parser, C++, formula
 grammar, estimator, capability tier, or interval claim changed. Repeatability
 is a point estimate; its calibrated interval remains outside this slice.
+## 2026-07-22: Q-Series README catalog repair
+
+Restored the landing-page link to the row-level Q-Series release-status ledger
+and named the exact Gaussian q=12 all-four two-slope `phylo()`, `spatial()`,
+`animal()`, and `relmat()` cells at their point-fit/recovery tier. The text
+explicitly withholds interval and coverage claims.
+
+- `python3 tools/qseries_v1_claim_guard.py --summary`: PASS, including the
+  README q=12 capability-catalog check.
+- `testthat::test_file("tests/testthat/test-structured-re-conversion-contracts.R")`:
+  PASS, 237 tests, 0 failures, 0 errors.
 
 ## 2026-07-21: Short location-scale and location-scale-scale tutorials
 
@@ -91146,3 +91379,225 @@ Shinichi grants a separate Gate A compute approval.
 - Fresh Fisher, Rose, and independent-verifier D-43 review returned 3/3 READY.
   This is reader-surface assurance only: no CRAN, deployment, platform,
   simulation, Julia-fit, or capability-promotion claim is made.
+## 2026-07-23: Arc 6.1 Gaussian × Bernoulli frozen-margin association
+
+- Added the post-fit `associate_pairs()` development object with explicit
+  `kernel = latent_normal()` and `association = ~ 1`, frozen fixed-effect
+  Gaussian and literal-Bernoulli margins, and an intercept-only latent-normal
+  association estimate. It is not `rho12`, an observed-scale correlation, or a
+  new `biv_*` family.
+- Focused verification: `devtools::document()` plus
+  `devtools::test(filter = "^associate-pairs-gaussian-bernoulli$")` = 38 pass,
+  0 fail, 0 warn, 0 skip. The suite includes an independent direct
+  bivariate-normal-density integration oracle, deterministic simulator check,
+  malformed-input matrix, and extractor/boundary fences. `git diff --check`
+  passed.
+- Package check reached successful build, install, namespace, S3, Rd, code,
+  and example stages after adding missing `stats::quantile()` and
+  `stats::fitted()` imports. It was deliberately stopped before the existing
+  long simulation-oriented suite: a full suite is not authorization for an Arc
+  6.1 smoke or recovery campaign. `--no-build-vignettes` also surfaced existing
+  spelling/vignette comparison artifacts unrelated to this slice.
+- Fisher and Rose review repairs were applied: no hidden association defaults,
+  an independent likelihood oracle, multistart parameter as well as objective
+  agreement, explicit unsupported-method errors, input-order/`corpair()` versus
+  `corpairs()` terminology alignment, and rejection coverage. Fisher's final
+  targeted verdict was PASS; Rose's final terminology finding was repaired.
+- No smoke, recovery, capability promotion, tier update, Julia, `meta_V`, or
+  CRAN work occurred. See
+  `docs/dev-log/after-task/2026-07-23-arc6-1-gaussian-bernoulli-frozen-margin.md`.
+
+## 2026-07-23: Arc 6.2 Gaussian × ordinary NB2 frozen-margin association
+
+- Added fixed-effect Gaussian × ordinary-NB2 support to the existing post-fit
+  `associate_pairs()` object. It freezes Gaussian and NB2 `mu`/`sigma` vectors,
+  evaluates the exact conditional-normal NB2 CDF interval, and reports only
+  point-estimate latent-normal `eta` plus diagnostics.
+- NotebookLM prior-art gate: scoped notebook
+  `243afe20-7571-4642-aa28-bc7fc85f97ce`; readable third-party sources were
+  verified and blocked/captcha imports excluded. The cited synthesis is
+  `docs/dev-log/2026-07-23-arc6-2-gaussian-nb2-research-report.md`.
+- Focused checks: `devtools::document()`; Arc 6.2 test file = 32 pass,
+  0 fail/warn/skip; Arc 6.1 regression test file = 26 pass, 0 fail/warn,
+  2 expected CRAN skips; `git diff --check` passed.
+- Gauss and Noether passed the symbolic contract. Fisher found and the team
+  repaired the upper-tail `qnbinom(1)` simulator defect; Rose required neutral
+  Arc 6 wording, lane-separated no-clobber smoke receipts, and closeout.
+- Owner-approved local smoke evidence is retained separately for Arc 6.1
+  regression and Arc 6.2 new-pair. Both fixtures were interior and exactly
+  input-order symmetric; the runner refused a deliberate overwrite. This is
+  not recovery, inference, coverage, or capability evidence. See the two
+  reports under `docs/dev-log/smoke/` and the Arc 6.2 after-task report.
+- No recovery campaign, capability promotion, tier update, Julia, `meta_V`, or
+  CRAN work occurred.
+## 2026-07-24 — Arc 6.5 Bernoulli × Bernoulli source gate
+
+- Added the frozen-margin literal-Bernoulli rectangle route, tail-stable
+  upper-tail thresholds, a deterministic conditional-normal evaluator, and an
+  independent `mvtnorm::pmvnorm()` oracle test. Focused Arc 6.1, 6.2, and 6.5
+  tests are green; recovery remains a separately recorded point-estimate gate.
+- Totoro retained all 220 Arc 6.5 attempts from `51647467`. The declared gate
+  is HOLD because one interior small-sample asymmetric `eta=0.5` cell returned
+  9/10 estimates; no capability surface changed.
+
+## 2026-07-23: Arc 6.6 Bernoulli × ordinary NB2 frozen-margin association
+
+- Added the fixed-effect, complete-pair `bernoulli_nbinom2` adapter to
+  `associate_pairs()`, with frozen margins and intercept-only latent-normal
+  `eta` only.
+- Production uses a conditional-normal rectangle integral with tail-stable
+  Bernoulli/NB2 endpoints, log-space interval differences, an explicit mixed
+  integration-error acceptance rule, and fail-closed row diagnostics.
+- Focused Arc 6.1/6.2/6.6 tests: 114 expectations passed, 0 failed/warned/
+  skipped. The independent `mvtnorm` oracle covers product, zero-count,
+  rare/high-tail, and response-order cases.
+- This is not recovery, inference, interval, coverage, or capability evidence.
+
+## 2026-07-24: Arc 7 B0 `meta_V` B3 retained-evidence integration
+
+- Retained the existing Gaussian ML `bf(yi ~ x + meta_V(V = V), sigma ~ 1)`
+  B3 contract on current main without importing the stale branch wholesale.
+  The compact reduction records the authenticated 16,800-attempt campaign and
+  its 3,712 `degenerate_zero_infinite` `sigma` intervals; raw results, shard
+  logs, seed maps, launchers, remote compute, tier promotion, and any interval
+  validity or coverage claim remain outside B0.
+- The direct local sentinel preserved K=12/vector/`sigma=0.10`/sampling
+  SD=0.12/seed=4 as `estimate=2.389998e-06`, Wald `[0, Inf]`,
+  `degenerate_zero_infinite`; K=36/dense/`sigma=0.35`/sampling SD=0.12/
+  `rho=0.25`/seed=4 returned `estimate=0.2556934`, Wald
+  `[0.1914417, 0.3415092]`, status `ok`. The two-cell harness manifest retained
+  the former as a degenerate, non-finite interval attempt rather than a usable
+  interval.
+- Focused files `test-phase18-meta-v-dgp.R`,
+  `test-phase18-meta-v-grid-writer.R`, `test-phase18-meta-v-summary-smoke.R`,
+  and `test-comparators.R` passed. Fisher and Rose required wording repairs so
+  clean optimization/`pdHess` is not presented as interval calibration, and so
+  the simulation README names the all-attempt primary denominator.
+- This is evidence integration only, not a recovery or coverage campaign. See
+  `docs/dev-log/after-task/2026-07-24-arc7-metav-b0-retained-evidence.md`.
+
+## 2026-07-24: Arc 7B known-`V` heterogeneity ladder local contract
+
+- Added a separate L/LS/LSS/LSSS/DH evidence harness on
+  `codex/arc7b-meta-v-heterogeneity-ladder`; it does not modify or merge B0
+  draft PR #828. The contract distinguishes residual `sigma`, direct-SD
+  `sd(study)`/`sd(effect)`, and a random effect in `sigma`.
+- Focused tests passed with `R_PROFILE_USER=/dev/null Rscript --no-init-file`:
+  `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
+  reporter = "stop")` and
+  `devtools::test(filter = "phase18-meta-v-lss-runner", reporter = "stop")`.
+  They include a direct dense-Gaussian oracle, a diagonal `metafor` ML
+  comparator with log-variance/log-SD conversion, malformed nesting, a
+  deliberately failed outer fit, and the retained dense-LSS non-finite-profile
+  fixture.
+- The source-pinned local six-cell sentinel at `f86fed0188ca14356bc098d962e2675e22c39593`
+  retained every fit. All fits converged with `pdHess = TRUE`, but the dense LSS
+  cell retained two `sd(study)` `nonfinite_interval` profiles. Fisher and Rose
+  therefore returned DRAC NO-GO; no remote compute, coverage claim, tier
+  update, or GitHub Actions simulation occurred. The meta-analysis vignette
+  now gives experimental syntax plus the same interval warning; it makes no
+  capability claim.
+- Status-inventory scans used:
+  `rg -n "meta_V\\(|meta_known_V|location-scale-scale|sd\\(study\\)|meta-analysis"
+  README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md
+  docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml
+  vignettes/meta-analysis.Rmd vignettes/location-scale-scale.Rmd`; and
+  `rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md
+  NEWS.md docs vignettes R tests || true`. Reader material remains intentionally
+  conditional: the new syntax is labelled experimental rather than certified.
+- Open-issue sweep found #59 (Phase 18 framework) and #60 (comparators) as the
+  relevant existing trackers. No issue was changed because this is a local
+  no-go and creates no new public capability.
+
+## 2026-07-24: Arc 7B Linux CI repair
+
+- The first Ubuntu check for PR #830 exposed two test-harness regressions: the
+  Arc 7B runner constructed a source path below `inst/sim`, and the generic
+  power assembler treated `not_requested` `mu` intervals as complete merely
+  because the summary also carried explicit `sigma` interval columns.
+- The Arc 7B runner and DGP test helpers now source the installed package's
+  `inst/sim` files, matching the other Phase 18 tests. `phase18_assemble_power_table()`
+  now backfills Wald intervals only for rows with missing endpoints and
+  `not_requested` (or absent) status; explicitly failed or non-finite interval
+  rows stay untouched.
+- Local checks passed with `R_PROFILE_USER=/dev/null Rscript --no-init-file`:
+  `devtools::test(filter = "phase18-(meta-v-lss-runner|power-grid-engine)",
+  reporter = "stop")` and
+  `devtools::test(filter = "meta-v-lss-(oracle|comparator|dgp)",
+  reporter = "stop")`. `git diff --check` passed. The full Linux R-CMD-check
+  remains the merge gate.
+- The next Ubuntu run found one stale first-wave smoke assertion: the combined
+  legacy `wald_coverage_csv` now has 77 rows rather than 86 because the
+  `meta_v_grid` deliberately publishes its all-attempt and conditional-finite
+  interval artifacts instead of a legacy Wald-coverage artifact. The smoke
+  test now verifies the 77-row legacy bundle *and* the explicit missing-artifact
+  status for `meta_v_grid`, so a future accidental disappearance is distinct
+  from this intentional contract change.
+
+## 2026-07-24: Arc 8 dense meta-`V` interval feasibility start
+
+- Arc 8 starts from merged `main` `988b2b38` on
+  `codex/arc8-meta-v-finite-intervals`. It retains both dense LSS direct-SD
+  coefficients, `sd(study):(Intercept)` and `sd(study):z_study`, as separate
+  gates; a pass for one cannot support an LSS-wide feasibility claim.
+- The profile call now explicitly selects `profile_engine = "tmbprofile"`.
+  Scalar endpoint profiling is not applicable to these fixed-effect
+  coefficients. A new pure completion reducer records requested, finite
+  successful, and failed bootstrap refits per target and marks a target
+  complete only when its `bootstrap` status and completion rate meet the 95%
+  threshold.
+- Focused runner tests and `git diff --check` passed locally. This is plumbing
+  for a later source-pinned local K ladder; no bootstrap campaign, recovery,
+  coverage, capability claim, Totoro, or DRAC work has run.
+- The deterministic dense K ladder then produced finite full `tmbprofile`
+  intervals for both direct-SD targets at K = 12, 36, and 72. A K = 36
+  completion sidecar retained 199/199 finite successful bootstrap refits for
+  each target. These are engineering-feasibility fixtures with different seeds
+  from the retained Arc 7B failure control; they do not replace that failure,
+  establish calibration, or authorize remote compute.
+
+## 2026-07-24: Arc 8 target-wise gate and local HOLD
+
+- The Arc 8 runner now source-pins the historical dense K = 12 failure control,
+  labels its all-attempt rows `meta_v_lss_arc8`, and returns a target-wise gate.
+  Each direct-SD coefficient must have a finite estimate-containing full-profile
+  interval and complete bootstrap refits; a cell passes only if both do.
+- Bootstrap output now retains every target/refit diagnostic row alongside the
+  aggregate completion fields. Focused runner tests passed, including the
+  source-seed override, four diagnostic rows for a two-refit/two-target smoke,
+  and the fail-closed combined gate.
+- Fisher's task review and Rose's audit both withhold a compute request. The finite engineering
+  ladder remains manual pre-integration evidence, while the historical control
+  has not been freshly run through the committed Arc 8 runner. No Totoro/DRAC,
+  recovery, coverage, tier promotion, public documentation change, or work on
+  PR #828 occurred. See
+  `docs/dev-log/after-task/2026-07-24-arc8-meta-v-finite-intervals.md`.
+
+## 2026-07-25: Arc 8 CI surface-label repair
+
+- The Ubuntu release job exposed that the generic all-attempt merge was
+  overwriting Arc 8's caller-supplied `meta_v_lss_arc8` surface label with the
+  inherited `meta_v_lss` label from the fitted-summary rows. The repair keeps
+  surface identity owned by the all-attempt constructor; it changes no fit,
+  interval, bootstrap, gate, or evidence result.
+- Focused `test-phase18-meta-v-lss-runner.R` passed locally with
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`.
+
+## 2026-07-25: Arc A external-comparator evidence class
+
+- `python3 tools/capability_ledger.py --check` returned `OK (30 generated outputs)` on an
+  untouched tree before any edit, and again after the change.
+- `python3 -m unittest tools.tests.test_capability_ledger` passed 41 tests (38 at base);
+  the three new ones guard the closed `evidence_class` vocabulary, the mandatory
+  not-covered wording, and the rule that comparator evidence never reaches the family map.
+- `Rscript tools/check-capability-runtime.R` returned `OK (18 routes; verified=18)`.
+- `NOT_CRAN=true Rscript -e 'devtools::test(filter="comparators")'` passed 126 assertions
+  with zero failures and **zero skips**, confirming metafor, lme4 and glmmTMB were present
+  and the comparator tests really ran rather than being skipped by
+  `skip_if_not_installed()`.
+- Tier invariant verified directly against `origin/main`: no pre-existing cell changed
+  tier, none was removed, one was added (`mc-0260m`). Counts moved 676->677, 306->307,
+  158->159 by insertion, not promotion.
+- No fit, interval, bootstrap, gate, recovery, coverage, or tier promotion result changed.
+  No Totoro/DRAC compute and no work on PR #828 occurred. See
+  `docs/dev-log/after-task/2026-07-25-arc-a-external-comparator-evidence.md`.

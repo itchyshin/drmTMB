@@ -126,6 +126,41 @@ impute_model <- function(formula, family = stats::gaussian(), trials = NULL) {
       "{.arg formula} must be a two-sided formula such as {.code x ~ z}."
     )
   }
+  # `impute_model()` takes a plain formula, so it never passes through the
+  # `drm_formula` hooks in `drmTMB()`. Without these two checks a smooth term
+  # here still fails with R's own `could not find function "s"`, and a `||` term
+  # with `'length = N' in coercion to 'logical(1)'` -- the exact raw errors those
+  # hooks exist to remove, surfacing on the one route they cannot see.
+  imputation_rhs <- formula[[3L]]
+  smooth_markers <- drm_smooth_marker_names()
+  smooth_hits <- smooth_markers[vapply(
+    smooth_markers,
+    function(name) formula_contains_call(imputation_rhs, name),
+    logical(1)
+  )]
+  if (length(smooth_hits) > 0L) {
+    cli::cli_abort(c(
+      "Smooth terms are not supported in imputation models.",
+      "x" = "The imputation {.arg formula} uses {.fn {smooth_hits}}.",
+      "i" = "Use {.fn poly} or a fixed basis such as {.code splines::ns(z, df = 3)}."
+    ))
+  }
+  if (
+    any(vapply(
+      flatten_plus_terms(imputation_rhs),
+      is_double_bar_call,
+      logical(1)
+    ))
+  ) {
+    # Rejected rather than desugared: `impute_model()` has no `data`, so the
+    # numeric-vs-factor slope test that makes desugaring safe cannot run here.
+    cli::cli_abort(c(
+      "{.code ||} is not supported in imputation models.",
+      "i" = "Write the uncorrelated terms explicitly, such as {.code (1 | g) + (0 + z | g)}.",
+      "i" = "{.code ||} is accepted in the main model formula; imputation models are parsed separately."
+    ))
+  }
+
   family_type <- drm_impute_family_type(family)
   trials_expr <- if (missing(trials)) {
     NULL
