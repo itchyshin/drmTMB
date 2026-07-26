@@ -91639,3 +91639,27 @@ Shinichi grants a separate Gate A compute approval.
   and `test-associate-pairs-staged-sandwich.R`. The candidate remains draft,
   developer-only, and pending narrow review; no bootstrap, campaign, recovery,
   coverage, Totoro/DRAC work, or direct `biv_lognormal()` rho12 work occurred.
+
+## 2026-07-25: private general latent-normal association sandwich engine
+
+- **Supersedes the prior draft-status receipt above:** PR #844 subsequently
+  merged. Its Bernoulli × ordinary-NB2 helper is now the numerical regression
+  reference, refactored through a private common two-margin assembler.
+- Added four explicit private adapters (Gaussian × Bernoulli, Gaussian ×
+  ordinary-NB2, Bernoulli × Bernoulli, and ordinary-NB2 × ordinary-NB2) plus
+  an unexported five-class router. Every adapter retains full frozen
+  provenance/snapshot checks, analytic margin scores and bread, checked
+  association derivatives, uncentred paired-row meat, and the alpha-scale
+  eta delta calculation. Nothing attaches a covariance or SE to a public
+  association object.
+- Focused deterministic test files for the five pair classes and router passed
+  under `R_PROFILE_USER=/dev/null Rscript --no-init-file`; the tests cover
+  independent row-kernel oracles, link-scale derivatives, eta signs and zero
+  factorization, mixed-role/repeated-side swaps, tails, frozen snapshots,
+  unresolved/boundary/malformed inputs, derivative instability, bread rank,
+  public-inference absence, and the real router path. `git diff --check`
+  passed.
+- No full-refit comparison, simulation, recovery, calibration, coverage,
+  Totoro/DRAC work, capability-ledger change, public SE/Wald/profile/CI path,
+  or direct `biv_lognormal()` rho12 work occurred. See
+  `docs/dev-log/after-task/2026-07-25-general-latent-normal-association-sandwich-private-build.md`.

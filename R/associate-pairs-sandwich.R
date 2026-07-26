@@ -1,5 +1,33 @@
+# Developer-only router for the admitted fixed-effect, frozen-margin
+# latent-normal association classes. This is intentionally internal: it
+# supplies a diagnostic calculation for development, not `vcov()`, intervals,
+# or any public inference surface.
+drm_pair_general_eta_sandwich <- function(
+  fit_1,
+  fit_2,
+  association_fit,
+  control = drm_pair_sandwich_control()
+) {
+  if (!inherits(association_fit, "drm_pair_association")) {
+    cli::cli_abort("The private staged sandwich needs a {.cls drm_pair_association} object.")
+  }
+  adapter <- switch(
+    association_fit$components$pair_class,
+    gaussian_bernoulli = drm_pair_gaussian_bernoulli_eta_sandwich,
+    gaussian_nbinom2 = drm_pair_gaussian_nbinom2_eta_sandwich,
+    bernoulli_bernoulli = drm_pair_bernoulli_bernoulli_sandwich,
+    bernoulli_nbinom2 = drm_pair_staged_eta_sandwich,
+    nbinom2_nbinom2 = drm_pair_nbinom2_nbinom2_sandwich,
+    NULL
+  )
+  if (is.null(adapter)) {
+    cli::cli_abort("No private staged-sandwich adapter exists for this association pair class.")
+  }
+  adapter(fit_1, fit_2, association_fit, control = control)
+}
+
 # Developer-only candidate sandwich variance for the staged Bernoulli x NB2
-# association estimator.  This file deliberately has no exported entry point:
+# association estimator. This file deliberately has no exported entry point:
 # public inference remains unavailable until a separately approved validation.
 
 drm_pair_staged_eta_sandwich <- function(
@@ -33,6 +61,11 @@ drm_pair_staged_eta_sandwich <- function(
   drm_pair_validate_shared_data(binary_fit, nbinom2_fit)
   drm_pair_validate_bernoulli(binary_fit)
   drm_pair_validate_nbinom2(nbinom2_fit)
+  if (!isTRUE(drm_pair_bernoulli_nbinom2_sandwich_provenance(
+    fit_1, fit_2, association_fit
+  ))) {
+    return(drm_pair_sandwich_unavailable("provenance_mismatch"))
+  }
 
   x_b <- as.matrix(binary_fit$model$X$mu)
   x_n <- as.matrix(nbinom2_fit$model$X$mu)
@@ -64,6 +97,8 @@ drm_pair_staged_eta_sandwich <- function(
   sigma <- exp(tau_n)
   components <- association_fit$components
   if (
+    !identical(binary_fit$model$y, components$binary_y) ||
+      !identical(nbinom2_fit$model$y, components$nbinom2_y) ||
     !isTRUE(all.equal(p, components$binary_p, tolerance = 1e-8)) ||
       !isTRUE(all.equal(mu, components$nbinom2_mu, tolerance = 1e-8)) ||
       !isTRUE(all.equal(sigma, components$nbinom2_sigma, tolerance = 1e-8))
@@ -101,42 +136,135 @@ drm_pair_staged_eta_sandwich <- function(
     return(association)
   }
 
-  p_b <- ncol(x_b)
-  p_n <- ncol(x_n)
-  p_s <- ncol(z_n)
-  p_a <- ncol(x_a)
-  p_total <- p_b + p_n + p_s + p_a
-  bread <- matrix(0, p_total, p_total)
-  ib <- seq_len(p_b)
-  in_mu <- p_b + seq_len(p_n)
-  in_sigma <- p_b + p_n + seq_len(p_s)
-  ia <- p_b + p_n + p_s + seq_len(p_a)
-  bread[ib, ib] <- marginal$bread_b
-  bread[in_mu, in_mu] <- marginal$bread_nn
-  bread[in_mu, in_sigma] <- marginal$bread_ns
-  bread[in_sigma, in_mu] <- marginal$bread_ns
-  bread[in_sigma, in_sigma] <- marginal$bread_ss
-  bread[ia, ib] <- association$bread_ab
-  bread[ia, in_mu] <- association$bread_an
-  bread[ia, in_sigma] <- association$bread_as
-  bread[ia, ia] <- association$bread_aa
-
-  scores <- cbind(
-    marginal$score_b,
-    marginal$score_n,
-    marginal$score_s,
-    association$score_a
-  )
-  colnames(scores) <- c(
-    colnames(x_b),
+  nbinom2_score <- cbind(marginal$score_n, marginal$score_s)
+  colnames(marginal$score_b) <- paste0("bernoulli_mu:", colnames(x_b))
+  colnames(nbinom2_score) <- c(
     paste0("nbinom2_mu:", colnames(x_n)),
-    paste0("nbinom2_sigma:", colnames(z_n)),
-    paste0("association:", colnames(x_a))
+    paste0("nbinom2_sigma:", colnames(z_n))
   )
+  colnames(association$score_a) <- paste0("association:", colnames(x_a))
+  assembled <- drm_pair_sandwich_assemble(
+    margin_scores = list(marginal$score_b, nbinom2_score),
+    margin_bread = list(
+      marginal$bread_b,
+      rbind(
+        cbind(marginal$bread_nn, marginal$bread_ns),
+        cbind(t(marginal$bread_ns), marginal$bread_ss)
+      )
+    ),
+    association_score = association$score_a,
+    association_bread = list(
+      association$bread_ab,
+      cbind(association$bread_an, association$bread_as),
+      association$bread_aa
+    ),
+    association_design = x_a,
+    association_linear_predictor = a,
+    control = control
+  )
+  if (!identical(assembled$status, "ok")) {
+    return(assembled)
+  }
+  assembled$derivative_diagnostics <- association$derivative_diagnostics
+  assembled
+}
+
+# Verify the immutable association snapshot before any numerical derivative is
+# evaluated. Mixed-family roles remain canonical for the calculation, while
+# provenance retains the original caller-side fit order.
+drm_pair_bernoulli_nbinom2_sandwich_provenance <- function(
+  fit_1,
+  fit_2,
+  association_fit
+) {
+  expected_design <- tryCatch(
+    drm_pair_association_design(
+      association_fit$association, fit_1$data, "bernoulli_nbinom2"
+    ),
+    error = function(...) NULL
+  )
+  expected_hashes <- c(
+    fit_1 = drm_pair_fingerprint(drm_pair_margin_snapshot(fit_1)),
+    fit_2 = drm_pair_fingerprint(drm_pair_margin_snapshot(fit_2))
+  )
+  expected_names <- c(
+    fit_1 = drm_pair_response_name(fit_1),
+    fit_2 = drm_pair_response_name(fit_2)
+  )
+  expected_snapshots <- list(
+    fit_1 = drm_pair_margin_snapshot(fit_1),
+    fit_2 = drm_pair_margin_snapshot(fit_2)
+  )
+  expected_roles <- c(
+    fit_1 = if (identical(fit_1$model$model_type, "binomial")) {
+      "bernoulli"
+    } else {
+      "nbinom2"
+    },
+    fit_2 = if (identical(fit_2$model$model_type, "binomial")) {
+      "bernoulli"
+    } else {
+      "nbinom2"
+    }
+  )
+  !is.null(expected_design) &&
+    identical(association_fit$provenance$row_id, seq_len(nrow(fit_1$data))) &&
+    identical(
+      association_fit$provenance$original_row,
+      drm_pair_analysis_rows(fit_1)
+    ) &&
+    identical(
+      association_fit$provenance$data_hash,
+      drm_pair_fingerprint(fit_1$data)
+    ) &&
+    identical(association_fit$provenance$fit_hashes, expected_hashes) &&
+    identical(association_fit$margins, expected_snapshots) &&
+    identical(association_fit$response_names, expected_names) &&
+    identical(association_fit$margin_order, expected_roles) &&
+    identical(
+      association_fit$association_design$matrix,
+      expected_design$matrix
+    ) &&
+    identical(
+      colnames(association_fit$association_design$matrix),
+      colnames(expected_design$matrix)
+    ) &&
+    identical(association_fit$association_design$varying, expected_design$varying) &&
+    identical(association_fit$association_design$terms, expected_design$terms)
+}
+
+# Assemble the private Godambe estimate for a two-margin staged association
+# estimator.  The adapters supply score and derivative blocks in the canonical
+# family-role order.  Here theta = (psi_1, psi_2, alpha): its row-average bread
+# is lower block triangular, but its meat retains every paired-row score cross
+# product without centring.
+drm_pair_sandwich_assemble <- function(
+  margin_scores,
+  margin_bread,
+  association_score,
+  association_bread,
+  association_design,
+  association_linear_predictor,
+  control
+) {
+  n <- nrow(association_score)
+  score_blocks <- c(margin_scores, list(association_score))
+  scores <- do.call(cbind, score_blocks)
+  block_sizes <- vapply(score_blocks, ncol, integer(1L))
+  block_ends <- cumsum(block_sizes)
+  block_starts <- c(1L, head(block_ends, -1L) + 1L)
+  block_indices <- Map(seq.int, block_starts, block_ends)
+  p_total <- sum(block_sizes)
+  bread <- matrix(0, p_total, p_total)
+  bread[block_indices[[1L]], block_indices[[1L]]] <- margin_bread[[1L]]
+  bread[block_indices[[2L]], block_indices[[2L]]] <- margin_bread[[2L]]
+  bread[block_indices[[3L]], block_indices[[1L]]] <- association_bread[[1L]]
+  bread[block_indices[[3L]], block_indices[[2L]]] <- association_bread[[2L]]
+  bread[block_indices[[3L]], block_indices[[3L]]] <- association_bread[[3L]]
   dimnames(bread) <- list(colnames(scores), colnames(scores))
   meat <- crossprod(scores) / n
-  # The stacked estimating-equation bread is intentionally lower triangular:
-  # only the association equation depends on the fitted margin parameters.
+  # The margin equations do not depend on alpha.  Only the association score
+  # differentiates with respect to fitted margin parameters.
   if (
     any(!is.finite(bread)) ||
       any(!is.finite(meat)) ||
@@ -159,9 +287,12 @@ drm_pair_staged_eta_sandwich <- function(
   ) {
     return(drm_pair_sandwich_unavailable("covariance_unstable"))
   }
-  alpha_covariance <- covariance[ia, ia, drop = FALSE]
-  eta_gradient <- 0.999999 / cosh(a)^2
-  eta_variance <- eta_gradient^2 * rowSums((x_a %*% alpha_covariance) * x_a)
+  association_index <- block_indices[[3L]]
+  alpha_covariance <- covariance[association_index, association_index, drop = FALSE]
+  eta_gradient <- 0.999999 / cosh(association_linear_predictor)^2
+  eta_variance <- eta_gradient^2 * rowSums(
+    (association_design %*% alpha_covariance) * association_design
+  )
   if (any(!is.finite(eta_variance)) || any(eta_variance <= 0)) {
     return(drm_pair_sandwich_unavailable("eta_delta_unstable"))
   }
@@ -170,12 +301,11 @@ drm_pair_staged_eta_sandwich <- function(
     covariance = covariance,
     alpha_covariance = alpha_covariance,
     alpha_se = sqrt(diag(alpha_covariance)),
-    eta = 0.999999 * tanh(a),
+    eta = 0.999999 * tanh(association_linear_predictor),
     eta_se = sqrt(eta_variance),
     scores = scores,
     bread = bread,
     meat = meat,
-    derivative_diagnostics = association$derivative_diagnostics,
     control = control
   )
 }

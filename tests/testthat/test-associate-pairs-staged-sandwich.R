@@ -134,6 +134,106 @@ test_that("staged rectangle score and every mixed derivative match an independen
   expect_gt(max(abs(production_derivatives$hessian[1L, 2:4])), 1e-5)
 })
 
+test_that("Bernoulli x NB2 adapter matches the original stacked-score assembly", {
+  fixture <- staged_sandwich_fixture()
+  result <- drmTMB:::drm_pair_staged_eta_sandwich(
+    fixture$binary_fit,
+    fixture$nbinom2_fit,
+    fixture$association_fit
+  )
+  routed <- drmTMB:::drm_pair_general_eta_sandwich(
+    fixture$binary_fit,
+    fixture$nbinom2_fit,
+    fixture$association_fit
+  )
+  binary_fit <- fixture$binary_fit
+  nbinom2_fit <- fixture$nbinom2_fit
+  association_fit <- fixture$association_fit
+  x_b <- as.matrix(binary_fit$model$X$mu)
+  x_n <- as.matrix(nbinom2_fit$model$X$mu)
+  z_n <- as.matrix(nbinom2_fit$model$X$sigma)
+  x_a <- as.matrix(association_fit$association_design$matrix)
+  beta_b <- unname(binary_fit$coefficients$mu)
+  beta_n <- unname(nbinom2_fit$coefficients$mu)
+  gamma_n <- unname(nbinom2_fit$coefficients$sigma)
+  alpha <- unname(association_fit$association_coefficients)
+  lambda_b <- as.vector(x_b %*% beta_b)
+  xi_n <- as.vector(x_n %*% beta_n)
+  tau_n <- as.vector(z_n %*% gamma_n)
+  a <- as.vector(x_a %*% alpha)
+  components <- association_fit$components
+  marginal <- drmTMB:::drm_pair_sandwich_margin_blocks(
+    binary_y = components$binary_y,
+    nbinom2_y = components$nbinom2_y,
+    p = stats::plogis(lambda_b),
+    mu = exp(xi_n),
+    sigma = exp(tau_n),
+    x_b = x_b,
+    x_n = x_n,
+    z_n = z_n
+  )
+  association <- drmTMB:::drm_pair_sandwich_association_blocks(
+    binary_y = components$binary_y,
+    nbinom2_y = components$nbinom2_y,
+    lambda_b = lambda_b,
+    xi_n = xi_n,
+    tau_n = tau_n,
+    a = a,
+    x_b = x_b,
+    x_n = x_n,
+    z_n = z_n,
+    x_a = x_a,
+    control = drmTMB:::drm_pair_sandwich_control()
+  )
+  p_b <- ncol(x_b)
+  p_n <- ncol(x_n)
+  p_s <- ncol(z_n)
+  p_a <- ncol(x_a)
+  ib <- seq_len(p_b)
+  in_mu <- p_b + seq_len(p_n)
+  in_sigma <- p_b + p_n + seq_len(p_s)
+  ia <- p_b + p_n + p_s + seq_len(p_a)
+  bread <- matrix(0, p_b + p_n + p_s + p_a, p_b + p_n + p_s + p_a)
+  bread[ib, ib] <- marginal$bread_b
+  bread[in_mu, in_mu] <- marginal$bread_nn
+  bread[in_mu, in_sigma] <- marginal$bread_ns
+  bread[in_sigma, in_mu] <- marginal$bread_ns
+  bread[in_sigma, in_sigma] <- marginal$bread_ss
+  bread[ia, ib] <- association$bread_ab
+  bread[ia, in_mu] <- association$bread_an
+  bread[ia, in_sigma] <- association$bread_as
+  bread[ia, ia] <- association$bread_aa
+  scores <- cbind(
+    marginal$score_b,
+    marginal$score_n,
+    marginal$score_s,
+    association$score_a
+  )
+  colnames(scores) <- c(
+    paste0("bernoulli_mu:", colnames(x_b)),
+    paste0("nbinom2_mu:", colnames(x_n)),
+    paste0("nbinom2_sigma:", colnames(z_n)),
+    paste0("association:", colnames(x_a))
+  )
+  dimnames(bread) <- list(colnames(scores), colnames(scores))
+  meat <- crossprod(scores) / nrow(scores)
+  covariance <- solve(bread) %*% meat %*% t(solve(bread)) / nrow(scores)
+  covariance <- (covariance + t(covariance)) / 2
+  dimnames(covariance) <- list(colnames(scores), colnames(scores))
+  alpha_covariance <- covariance[ia, ia, drop = FALSE]
+  eta_variance <- (0.999999 / cosh(a)^2)^2 * rowSums(
+    (x_a %*% alpha_covariance) * x_a
+  )
+  expect_identical(result$status, "ok")
+  expect_equal(routed$covariance, result$covariance, tolerance = 1e-12)
+  expect_equal(result$scores, scores, tolerance = 1e-12)
+  expect_equal(result$bread, bread, tolerance = 1e-12)
+  expect_equal(result$meat, meat, tolerance = 1e-12)
+  expect_equal(result$covariance, covariance, tolerance = 1e-12)
+  expect_equal(result$alpha_covariance, alpha_covariance, tolerance = 1e-12)
+  expect_equal(result$eta_se, sqrt(eta_variance), tolerance = 1e-12)
+})
+
 test_that("staged sandwich uses stable row derivatives and retains all score blocks", {
   fixture <- staged_sandwich_fixture()
   result <- drmTMB:::drm_pair_staged_eta_sandwich(
@@ -228,6 +328,27 @@ test_that("staged sandwich fails closed before any public uncertainty interface"
 
 test_that("staged sandwich guards frozen margins, bounds, derivative stability, and bread rank", {
   fixture <- staged_sandwich_fixture()
+  tampered_provenance <- fixture$association_fit
+  tampered_provenance$provenance$data_hash <- "not-the-frozen-data-hash"
+  expect_identical(
+    drmTMB:::drm_pair_staged_eta_sandwich(
+      fixture$binary_fit,
+      fixture$nbinom2_fit,
+      tampered_provenance
+    ),
+    list(status = "unavailable", reason = "provenance_mismatch")
+  )
+  tampered_snapshot <- fixture$association_fit
+  tampered_snapshot$margins$fit_1$fitted$mu[[1L]] <-
+    tampered_snapshot$margins$fit_1$fitted$mu[[1L]] + 0.01
+  expect_identical(
+    drmTMB:::drm_pair_staged_eta_sandwich(
+      fixture$binary_fit,
+      fixture$nbinom2_fit,
+      tampered_snapshot
+    ),
+    list(status = "unavailable", reason = "provenance_mismatch")
+  )
   mismatched <- fixture$association_fit
   mismatched$components$binary_p[[1L]] <- mismatched$components$binary_p[[1L]] +
     0.01

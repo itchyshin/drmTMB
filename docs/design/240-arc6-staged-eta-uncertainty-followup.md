@@ -2,7 +2,7 @@
 
 > **Supersession (2026-07-25).** The former full-refit-bootstrap proposal is
 > still stopped; its partial outputs remain non-evidential provenance. A
-> developer-only stacked-score/Godambe candidate is now being built under
+> developer-only stacked-score/Godambe diagnostic now exists under
 > [`244-arc6-staged-eta-godambe-se.md`](244-arc6-staged-eta-godambe-se.md).
 > This does not make a public SE, Wald interval, profile, `confint()`, or
 > coverage claim available. Any small full-refit comparison requires the
