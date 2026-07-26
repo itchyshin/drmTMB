@@ -1,0 +1,51 @@
+shards: 240  rows: 72000 
+
+=== ATTRITION (full denominator) ===
+
+   ok 
+72000 
+
+rows with a non-finite interval: 0 / 72000 
+bootstrap refit failures: total 0 | replicates with any failure: 0 
+
+
+================  sd:mu:(1 | g)  ================
+--- overall, by re_form ---
+  marginal     n=12000  coverage=0.8714  [0.8653, 0.8774]  med width=0.4812
+  conditional  n=12000  coverage=0.5092  [0.5002, 0.5181]  med width=0.2561
+--- by n_groups (the predicted gradient) ---
+  n_groups=10   marg=0.8103 (n=4000)  cond=0.5168 (n=4000) 
+  n_groups=25   marg=0.8888 (n=4000)  cond=0.5125 (n=4000) 
+  n_groups=50   marg=0.9153 (n=4000)  cond=0.4983 (n=4000) 
+
+
+================  sigma  ================
+--- overall, by re_form ---
+  marginal     n=12000  coverage=0.9319  [0.9273, 0.9364]  med width=0.1763
+  conditional  n=12000  coverage=0.9320  [0.9273, 0.9364]  med width=0.1759
+--- by n_groups (the predicted gradient) ---
+  n_groups=10   marg=0.9135 (n=4000)  cond=0.9150 (n=4000) 
+  n_groups=25   marg=0.9403 (n=4000)  cond=0.9393 (n=4000) 
+  n_groups=50   marg=0.9420 (n=4000)  cond=0.9417 (n=4000) 
+
+
+================  fixef:mu:x  ================
+--- overall, by re_form ---
+  marginal     n=12000  coverage=0.9437  [0.9395, 0.9478]  med width=0.2432
+  conditional  n=12000  coverage=0.9356  [0.9310, 0.9399]  med width=0.2379
+--- by n_groups (the predicted gradient) ---
+  n_groups=10   marg=0.9370 (n=4000)  cond=0.9320 (n=4000) 
+  n_groups=25   marg=0.9447 (n=4000)  cond=0.9360 (n=4000) 
+  n_groups=50   marg=0.9495 (n=4000)  cond=0.9387 (n=4000) 
+
+
+=== VERDICT AGAINST THE PRE-REGISTERED PREDICTION ===
+RE SD      marginal 0.8714 [0.8653,0.8774] vs conditional 0.5092 [0.5002,0.5181]  gap=+0.3622
+fixef mu:x marginal 0.9437 [0.9395,0.9478] vs conditional 0.9356 [0.9310,0.9399]  gap=+0.0082
+
+(1) marginal RE SD attains ~0.95 :  NOT SUPPORTED 
+(2) conditional UNDER-covers RE SD:  SUPPORTED 
+(3) fixed effect is a CONTROL      :  SUPPORTED (smaller gap) 
+
+If (2) is NOT SUPPORTED, or (3) is NOT SUPPORTED, the mechanism claimed in
+ PR #843 is wrong and must be reported as such.
