@@ -12,6 +12,11 @@ one, local, immutable `attempt-001` provenance smoke.  F3 is provenance only;
 it cannot establish a valid SE, interval, recovery, coverage, calibration, or
 public-ready claim.
 
+The branch tip also contains this later handover commit. The runner's strict
+`HEAD == --expected-sha` guard is intentional: if F3 is approved, create a
+**clean detached worktree at `66752968`** for the one invocation. Do not run
+the runner from the later handover branch tip.
+
 This is the **association lane only**.  Claude owns Arc D/F5.  Keep direct
 `biv_lognormal()` `rho12` inference separate.  Do not expose the private
 sandwich through `vcov()`, `confint()`, profile methods, public documentation,
@@ -59,8 +64,9 @@ receipt and plan the smallest repair; do not retry, tune, or proceed to F4.
 
 ## Current Working State
 
-- **Working:** clean branch `codex/arc6-association-public-prep-f0f2` at
-  `66752968a719d5a178bb4095b194e7ccb45f767e`.
+- **Working:** clean handover branch `codex/arc6-association-public-prep-f0f2`
+  at its current later handover commit; the frozen F3 execution source is the
+  reachable ancestor `66752968a719d5a178bb4095b194e7ccb45f767e`.
 - **In progress:** none. F3R is complete; the next action requires owner input.
 - **Blocked / gated:** F3 execution awaits the exact approval below. F4 awaits
   both a provenance-correct F3 receipt and its own pre-registered compute
@@ -89,7 +95,8 @@ assume a new checkout sees them until push state is verified.
 
 | Artifact / branch | Committed | Pushed | PR | State |
 | --- | --- | --- | --- | --- |
-| `codex/arc6-association-public-prep-f0f2` at `66752968` | yes | verify | none | CARRIED-OVER — current association work; push before relying on a fresh remote checkout. |
+| `codex/arc6-association-public-prep-f0f2` handover branch | yes | verify | none | CARRIED-OVER — current association work; push before relying on a fresh remote checkout. |
+| detached F3 execution worktree at `66752968` | source committed | n/a | none | FUTURE/APPROVAL-GATED — create only after the owner approves one F3 attempt. |
 | Claude Arc D/F5 | foreign | n/a | PR #851 is foreign | PROTECTED — do not modify, merge, or restage. |
 | Legacy `codex/arc6-6-bernoulli-nb2-plan` | yes | no | none | PROTECTED — unrelated old unpushed branch; never clean or reuse. |
 
@@ -115,9 +122,9 @@ assume a new checkout sees them until push state is verified.
 
 1. Run `tools/lane_preflight.sh . --hours 36`, inspect `git status --short
    --branch`, and classify this handover against current state.
-2. Verify `HEAD` is exactly `66752968a719d5a178bb4095b194e7ccb45f767e` and
-   the worktree is clean. If the branch was unpushed, push it before relying on
-   a fresh checkout.
+2. Verify the handover branch is clean and `66752968a719d5a178bb4095b194e7ccb45f767e`
+   is a reachable ancestor. If the branch was unpushed, push it before relying
+   on a fresh checkout.
 3. Stop unless the owner supplies this exact approval:
 
    > I approve exactly one local Arc 6 F3 Bernoulli × ordinary-NB2 provenance
@@ -126,10 +133,12 @@ assume a new checkout sees them until push state is verified.
    > output directory. This approves no retry, F4, public inference, or API
    > exposure.
 
-4. If approved, run the frozen CLI from
-   `docs/dev-log/2026-07-26-arc6-f3-approval-packet.md` exactly once. Inspect
-   only the immutable receipt, rerun the focused tests, then convene the narrow
-   D-43 panel for the claim “one full-refit provenance smoke completed.”
+4. If approved, create a clean detached worktree at `66752968`, verify that
+   worktree's `HEAD` and cleanliness, then run the frozen CLI from
+   `docs/dev-log/2026-07-26-arc6-f3-approval-packet.md` exactly once there.
+   Inspect only the immutable receipt, rerun the focused tests, then convene
+   the narrow D-43 panel for the claim “one full-refit provenance smoke
+   completed.”
 5. If F3 succeeds, prepare—but do not run—the F4 approval packet. If it fails,
    write a negative receipt and stop for a new repair decision.
 
