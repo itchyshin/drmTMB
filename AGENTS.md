@@ -29,15 +29,33 @@ regression using Template Model Builder.
 > **CI could not see any of this**: that test resolves `R/profile.R` from a source checkout, so
 > under `R CMD check` it does not evaluate. Arc B was green under `test_dir` and ERRORed under
 > `R CMD check`; A1 is the exact mirror. **Run both gates, always, and on the commit you gate.**
-> Design: `docs/design/243-marginal-simulation-and-re-form.md`. **NEXT = Arc C** (owner-chosen
-> 2026-07-25, defects before capability): **A5** beta `mi()` unclamped `log_sigma`
-> (`drmTMB.cpp:2766` vs `:2888`) · **F5** `sd()` regression `exp()`s an unbounded predicted
-> log-SD at `drmTMB.cpp:831, 921, 2279, 2815, 4107` — reuse `drm_softclamp_log_sigma()` and the
-> existing `logsigma_clamp`, do not invent a second bound · **A7** six rotted anchors in
-> `R/family-dpq.R`. **F9 is DROPPED** — the audit calls the 12 dead `sigma_i` locals evidence
-> *against* drift, so deleting them destroys a signal. **DEFERRED, scheduled before 0.7:**
-> Arc A2 capability (the five aborting structures; `phylo_interaction` is the cheapest — its
-> Kronecker precision is already assembled) and audit A2/tweedie + A3/A4/ridge.
+> Design: `docs/design/243-marginal-simulation-and-re-form.md`.
+>
+> **ARC C IS DONE — and read this before touching F5.** **A5** shipped: beta was the sole
+> outlier of the three `mi()`-capable families (`model_type` 1 and 7 already clamped before
+> `mi()`), so the clamp moved to the top of the `model_type == 10` branch and the old site was
+> removed — the soft clamp saturates outside the band, so applying it twice compresses an
+> already-clamped value. **A7** shipped, and it was **19 rotted citations, not six**; rather
+> than re-pin numbers that rotted *three times in one session*, every citation dropped its
+> fragile line range and kept its durable `model_type == N` label (19 line-numbered citations
+> → 0). **F9** was never in scope — the audit calls the 12 dead `sigma_i` locals evidence
+> *against* drift.
+>
+> **⚠ F5 WAS ATTEMPTED AND REVERTED. Do NOT retry "reuse `drm_softclamp_log_sigma()` and the
+> existing `logsigma_clamp`" — that exact approach is falsified.** It is 9 sites, not the 5 the
+> audit listed, and clamping them made the Arc 7B dense-LSS **negative control** go green for
+> the wrong reason: at the K=12 cell it turned a genuinely non-identified heterogeneity slope
+> into a finite, vacuous profile interval `[-4.14, 27.79]`, and widening the band to
+> `c(-200, 200)` restored `profile_failed`. The endpoint was the **bound**, not the data — worse
+> than the `[0, Inf]` it replaced, because it passes any "is the interval finite" gate. Fisher's
+> framing: the real defect is that `interval_status` cannot distinguish *ok because identified*
+> from *ok because clamped*. **NEXT = Arc D**, which decides that contract before any code:
+> `docs/design/245-f5-sd-regression-clamp-and-identifiability.md` (three candidate designs).
+> **DEFERRED, scheduled before 0.7:** the interval-grade campaign (177 `point_fit_recovery`
+> cells — the real prize, but it BLOCKS on Arc D, since coverage gathered while clamps may
+> shape endpoints measures the clamp), Arc A2 capability (the five aborting structures;
+> `phylo_interaction` is the cheapest — its Kronecker precision is already assembled), and
+> audit A2/tweedie + A3/A4/ridge.
 > **Release: `0.6` is the DEV CYCLE; the first CRAN submission is `0.7`** (owner, 2026-07-25;
 > brain `D-86`, mirroring gllvmTMB's `D-66`).
 > START HERE:
