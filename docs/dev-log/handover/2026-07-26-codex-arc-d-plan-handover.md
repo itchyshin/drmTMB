@@ -17,6 +17,15 @@
 - This planning branch is `codex/arc-d-inference-contract-plan`, based on the
   Arc C tip. It adds only the Arc D ultra-plan; it has no F5 implementation.
 
+## Landing state
+
+- **LANDED:** `codex/arc-d-inference-contract-plan` at `491604f4` is committed
+  and pushed to `origin`.
+- **CARRIED-OVER, foreign:** the handoff gate also reports 17 unpushed commits
+  on other branch(es), including `claude/arc-a-external-comparator-evidence`
+  and `codex/arc6-6-bernoulli-nb2-plan`. They pre-date this handover and are
+  outside Arc C/Arc D; do not clean, merge, rebase, or push them from this lane.
+
 ## First read
 
 1. `docs/dev-log/2026-07-26-arc-d-scale-clamp-profile-contract-ultra-plan.md`
