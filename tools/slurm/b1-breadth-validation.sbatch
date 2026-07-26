@@ -28,7 +28,8 @@ PREFLIGHT="$RUN_ROOT/preflight/receipt.tsv"
 [[ -z "$(git -C "$REPO" status --porcelain)" ]] || { echo "Source clone is dirty." >&2; exit 2; }
 if [[ "${DRMTMB_B1_PREFLIGHT_ONLY:-false}" == "true" ]]; then
   mkdir -p "$RUN_ROOT/preflight" "$SHARED_RLIB"
-  Rscript --no-init-file -e 'pkgload::load_all(Sys.getenv("DRMTMB_B1_REPO"), recompile = TRUE); invisible(TMB::MakeADFun)'
+  R CMD INSTALL --library="$SHARED_RLIB" "$REPO" > "$RUN_ROOT/preflight/install.stdout" 2> "$RUN_ROOT/preflight/install.stderr"
+  Rscript --no-init-file -e 'library(drmTMB); invisible(TMB::MakeADFun)'
   {
     printf 'key\tvalue\n'
     printf 'source_sha\t%s\nhead_sha\t%s\ntree_sha\t%s\ngit_status\tclean\n' "$SOURCE_SHA" "$(git -C "$REPO" rev-parse HEAD)" "$(git -C "$REPO" rev-parse HEAD^{tree})"
