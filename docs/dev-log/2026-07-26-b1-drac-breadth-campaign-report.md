@@ -42,14 +42,14 @@ verdict.  Raw local smoke files are retained outside git at
 
 ## DRAC receipt state
 
-Fir was reachable through the existing authenticated ControlMaster.  The
+Fir was reachable through the existing authenticated ControlMaster. The
 campaign directory is isolated at
 `/project/def-snakagaw/snakagaw/drmTMB-b1-breadth-399cba13/`.  A standalone
-source checkout is being materialized from a git bundle before the
-compute-node preflight.  No `sbatch` job has been submitted as of this receipt.
-The preflight must certify the standalone source SHA, clean tree, R/TMB
-environment, and compiled package before the smoke array or full array is
-eligible for submission.
+source checkout was materialized from a git bundle and verified clean at the
+frozen source SHA. Compute-node preflight job `51289136` was submitted and is
+pending scheduler priority. It performs no simulation task. The preflight must
+certify the standalone source SHA, clean tree, R/TMB environment, and compiled
+package before the smoke array or full array is eligible for submission.
 
 ## Next gate
 
