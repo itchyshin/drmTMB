@@ -131,6 +131,52 @@ The nine sites: `src/drmTMB.cpp` `:831 :921 :2279 :2826 :3282 :3490 :4017 :4119 
 
 ---
 
+## 0.7.0 scope — Shinichi, 2026-07-26
+
+**0.7.0 is NOT imminent.** He wants substantially more in it and will add agenda items as he
+goes. Treat the release as further out than the earlier "next submission" framing implies —
+which matters for the item below, because it means there may be time to *fix* the problem
+rather than only to *document* it.
+
+**Agenda item 1 — the bootstrap coverage that did not reach nominal.** The measured facts
+(`docs/design/246`): for random-effect SDs the bootstrap interval covers ~**87%** when it
+claims 95%, and worst where it matters most — **81% at 10 groups**. The pre-A1 conditional
+version was 51%, so the fix was a large genuine improvement that nonetheless did not land
+where predicted.
+
+The options on the table, and this is **Shinichi's call, not the lane's**:
+
+- **Ship 0.7.0 with the interval honestly labelled** — marginal stays the default; the
+  measured undercoverage goes in the help page and `NEWS` *with the actual numbers*; and
+  `confint()` warns when asked for a random-effect SD with few groups. Rationale: closing the
+  gap is a research problem, not a release blocker, and an honestly-labelled interval serves
+  users better than a delayed release.
+- **Hold 0.7.0 until coverage is nominal** — defensible if drmTMB's first public appearance
+  should carry no known-weak inference at all.
+
+**Three things this lane should put to him before he decides:**
+
+1. **Our evidence is narrower than "87%" sounds.** It is a **Gaussian random intercept,
+   complete data, percentile intervals, `R = 199`** — nothing about non-Gaussian families,
+   structured REs, `sd() ~ x`, bivariate, or missing data. A help page quoting 87% as a
+   general figure would **overclaim from a single design**. Whatever is documented must carry
+   its scope fence.
+2. **A warning may be the wrong instrument — we may have a better method to point at.**
+   `mc-0017`'s *profile* coverage for `sd_phylo(...) ~ x_tau` measured **0.933–0.951**. If
+   profile intervals are better calibrated for variance components than the bootstrap, the
+   guidance should be *"prefer `method = "profile"` for random-effect SDs"* rather than
+   merely warning about the bootstrap. **That comparison has not been run** — it is a
+   different estimand and a different design, so it is a hypothesis, not a result. Running it
+   is cheap and would materially change the advice.
+3. **A warning threshold must be evidence-based.** We have 0.810 / 0.889 / 0.915 at 10 / 25 /
+   50 groups. Any cutoff should cite those numbers rather than pick a round one.
+
+Because 0.7 is not imminent, the ship-vs-delay dilemma may not need resolving now: the
+0.871 diagnosis below could close the gap inside the existing timeline. **Diagnose first,
+then decide.**
+
+---
+
 ## Next immediate steps
 
 **1. Do NOT implement Arc D.** Read `docs/design/247-...` and #851; if Shinichi has since
