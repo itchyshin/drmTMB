@@ -34,7 +34,7 @@ See `r999-authentication-receipt.md` and `r999-diagnosis-report.md`. This is
 not evidence that percentile-boundary behavior or low-group Laplace refit bias
 is absent.
 
-## Profile comparator: smoke passed, full campaign held
+## Profile comparator: completed evidence, no recommendation
 
 `profile_vs_bootstrap.R` is a fresh paired scalar-A1 harness for the frozen
 three-cell design: 10, 25, and 50 groups; 10 observations per group; true RE
@@ -46,6 +46,9 @@ helpers with a testthat contract test.
 The one-attempt-per-cell Totoro smoke passed under Totoro's installed `drmTMB`
 0.6.0 build: all three fits converged with `pdHess = TRUE`, and profile (`endpoint`),
 marginal bootstrap (`R = 19`), and Wald returned valid scalar SD endpoints.
-This proves runner plumbing only. The 3,000-attempt / `R = 999` full campaign
-is explicitly held pending Shinichi's separate compute approval packet in
-`profile-vs-bootstrap-protocol.md`.
+The 3,000-attempt / `R = 999` campaign then completed and is reported in
+`profile-vs-bootstrap-report.md`. Its data table passes all-attempt integrity
+checks, but a transient duplicate launcher exceeded the approved worker cap;
+the result is therefore diagnostic evidence pending Shinichi's ratification or
+a clean rerun. Fisher also withheld a profile-first recommendation because the
+profile intervals retain material upper-tail miss asymmetry.

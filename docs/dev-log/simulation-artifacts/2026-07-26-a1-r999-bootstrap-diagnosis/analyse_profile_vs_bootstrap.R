@@ -12,7 +12,7 @@ source(file.path(script_dir, "a1_profile_common.R"))
 
 files <- list.files(
   result_dir,
-  pattern = "^g(10|25|50)_n10_sd05_o[0-9]{4}\\.csv$",
+  pattern = a1_shard_file_pattern(),
   full.names = TRUE
 )
 if (!length(files)) stop("No campaign CSV files found.", call. = FALSE)

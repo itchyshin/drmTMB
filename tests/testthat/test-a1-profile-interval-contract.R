@@ -8,6 +8,17 @@ test_that("A1 interval accounting preserves paired and failed-interval semantics
   }
   source(helper, local = TRUE)
 
+  output_dir <- tempfile("a1-shards-")
+  dir.create(output_dir)
+  file.create(file.path(output_dir, c(
+    "g10_n10_sd05_o0000.csv", "g25_n10_sd05_o0990.csv",
+    "profile_vs_bootstrap_summary.csv", "profile_vs_bootstrap_paired.csv"
+  )))
+  expect_equal(
+    basename(list.files(output_dir, pattern = a1_shard_file_pattern())),
+    c("g10_n10_sd05_o0000.csv", "g25_n10_sd05_o0990.csv")
+  )
+
   paired <- a1_paired_difference(
     c(FALSE, FALSE, TRUE, TRUE),
     c(FALSE, TRUE, FALSE, TRUE)

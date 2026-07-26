@@ -41,4 +41,9 @@ surviving launcher completes and the analysis script verifies exactly 3,000
 rows, 1,000 unique seeds per cell, and unique aligned source provenance.
 
 This containment is recorded because it prevents a duplicate-launch accident
-from becoming an unreported denominator or provenance error.
+from becoming an unreported denominator or provenance error. It nevertheless
+briefly violated the explicit 100-worker authorisation. The eventual table
+passes its row-level integrity checks, but neither this receipt nor its
+matching hashes can prove that every retained overlapping shard was written
+only by the surviving launcher. Shinichi must ratify this exception or approve
+a clean rerun before strict protocol compliance can be claimed.

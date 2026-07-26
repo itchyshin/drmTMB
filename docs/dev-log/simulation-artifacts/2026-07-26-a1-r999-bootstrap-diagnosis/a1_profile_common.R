@@ -2,6 +2,10 @@
 # test.  They intentionally contain no drmTMB/TMB calls, so the interval
 # accounting contract can be checked without compiling the package.
 
+a1_shard_file_pattern <- function() {
+  "^g(10|25|50)_n10_sd05_o[0-9]{4}\\.csv$"
+}
+
 a1_exact_binomial <- function(covered) {
   if (!is.logical(covered)) {
     stop("`covered` must be a logical vector.", call. = FALSE)

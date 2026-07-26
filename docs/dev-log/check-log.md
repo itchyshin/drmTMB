@@ -91714,3 +91714,32 @@ Shinichi grants a separate Gate A compute approval.
   CSVs are provisional until the complete 3,000-attempt all-row validation
   passes. No Arc D implementation, endpoint-contract change, public API/docs
   change, ledger promotion, or association work occurred.
+
+## 2026-07-26: Full scalar-A1 profile campaign completed and authenticated
+
+- Totoro completed all 300 deterministic ten-attempt shards (3,000 retained
+  outer attempts) at `2026-07-26T14:17:21Z`, with zero matching error logs.
+  The analysis verified the completed manifest, exact `1,000` attempts per
+  cell, unique `(cell_id, seed)` keys, and manifest-matching package/runner/
+  helper provenance before calculating any result.
+- Marginal R=999 bootstrap coverage was 0.829/0.890/0.916 for 10/25/50 groups.
+  Profile coverage was 0.937/0.942/0.941, with all 3,000 profile intervals
+  present. Paired profile-minus-bootstrap coverage differences were
+  +0.108/+0.052/+0.025 (paired 95% CIs 0.087–0.129, 0.035–0.069, and
+  0.012–0.038). This supports profile as the leading candidate for this exact
+  scalar A1 design, but does not change the public interval hierarchy.
+- Wald was near nominal at 25/50 groups but overcovered at 10 groups (0.988)
+  and had 3 unavailable intervals. Profile had 63 recorded boundary flags at
+  10 groups and retained upper-tail-miss asymmetry, so the result does not
+  settle Arc D endpoint semantics or justify an unconditional public rule.
+- Fisher's independent review found the directional-miss fence fails: profile
+  upper-minus-lower misses were 4.3, 2.8, and 3.3 percentage points at 10, 25,
+  and 50 groups, respectively. The profile result is therefore a promising
+  diagnostic only, not eligible for a profile-first recommendation under its
+  own predeclared gate.
+- Rose verified data integrity but recorded a protocol breach: two 100-worker
+  launchers briefly overlapped during restart. The eventual table is internally
+  consistent, but strict compliance with the approved 100-worker cap requires
+  Shinichi's ratification or a clean rerun. The recorded package commit is an
+  environment label rather than a retained installed-tarball hash. Do not call
+  this execution fully protocol-compliant.

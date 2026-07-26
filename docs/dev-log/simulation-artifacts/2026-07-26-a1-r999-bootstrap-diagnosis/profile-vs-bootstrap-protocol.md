@@ -1,6 +1,10 @@
-# Fresh A1 profile-versus-bootstrap campaign protocol — HELD
+# Fresh A1 profile-versus-bootstrap campaign protocol — completed, exception under review
 
-Status: implementation and smoke complete; full campaign not authorized.
+Status: the authorised full campaign completed and its row-level integrity
+checks pass. A transient duplicate-launch breach reached 200 workers before
+the older group was stopped, so strict protocol compliance awaits Shinichi's
+ratification or a clean rerun. Fisher's review also withholds a profile-first
+recommendation because of material directional misses.
 
 ## Frozen estimand and design
 
@@ -25,7 +29,7 @@ same outer fitted datasets:
 | Bootstrap | marginal percentile; `R = 999`; `bootstrap_re_form = NULL` |
 | Profile | `method = "profile"`, `profile_engine = "auto"` |
 | Comparator | Wald interval, recorded but not promoted |
-| Unit of parallelism | one deterministic outer attempt per shard |
+| Unit of parallelism | 10 deterministic outer attempts per shard; 300 shards total |
 
 The runner writes one wide row per attempt, including convergence, `pdHess`,
 all endpoints, availability/failure status, profile engine/boundary status,
@@ -47,9 +51,9 @@ This is a plumbing check, not coverage evidence. The authenticated Totoro
 script SHA-256 is
 `7dc63ca348c5df42519aa30e58066a8387b3bdfa9f62b2a8d2d4fd69aaf45cfc`.
 
-## Full-campaign approval packet
+## Approval and execution receipt
 
-Before launch, present Shinichi:
+Before launch, Shinichi was presented:
 
 1. this frozen protocol and the passed smoke receipt;
 2. the R=999 conclusion that `R=199` is not dominant;
@@ -59,7 +63,11 @@ Before launch, present Shinichi:
 6. the statement that this remains a scalar-A1 method comparison, not a
    capability promotion or public default change.
 
-Do not construct or execute the full launcher until this approval is received.
+Approval was received. The completed run used the specified 300-shard layout,
+but a restart error briefly left two 100-worker launchers alive. The older
+group was stopped. The data table passes row-level integrity checks, but this
+execution breach requires ratification or a clean rerun before strict protocol
+compliance can be claimed.
 
 ## Predeclared interpretation
 
