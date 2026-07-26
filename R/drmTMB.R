@@ -256,11 +256,11 @@ drmTMB <- function(
       "{.fn biv_student} does not support {.arg penalty}; penalized fits are deferred."
     )
   }
-  # Non-Gaussian REML (doc 224, object O2): `binomial` is admitted. Marginalising
+  # Binomial O2 joint-Laplace restricted likelihood (doc 224): `binomial` is admitted. Marginalising
   # `beta_mu` via the existing Laplace fold IS the joint-Laplace restricted likelihood,
   # which equals glmmTMB(REML = TRUE) (identical fixed-effect-into-random construction).
   # Other non-Gaussian families remain gated: their nominal object is the external
-  # nested AGHQ + Cox-Reid estimator, not this fold.
+  # nested AGHQ + Cox-Reid-style observed-information profile, not this fold.
   if (isTRUE(REML) && !family_type %in% c("gaussian", "biv_gaussian", "binomial")) {
     cli::cli_abort(c(
       "{.arg REML} is implemented for univariate/bivariate Gaussian and binomial models.",
@@ -911,7 +911,7 @@ drm_apply_estimator_spec <- function(spec, REML = FALSE) {
   # Scale-side REML (first slice, intercept-validated): when a sigma variance
   # component is present, also marginalize the sigma fixed effect(s) so TMB's
   # Laplace step restricts the likelihood for the scale coefficients too. This
-  # is the Cox-Reid / adjusted-profile REML that debiases the downward-biased
+  # is a Gaussian joint-Laplace restricted likelihood that debiases the downward-biased
   # sigma random-effect SD at small group counts (Noether math review,
   # 2026-07-06: the log-link Jacobian is captured by AD, so no analytic term is
   # missing). Gated on a sigma effect so mean-only REML is byte-identical.
@@ -2185,7 +2185,7 @@ drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
   }
-  # Non-Gaussian REML (doc 224, object O2): binomial admitted alongside gaussian.
+  # Binomial O2 joint-Laplace restricted likelihood (doc 224): admitted alongside Gaussian.
   if (!spec$model_type %in% c("gaussian", "binomial")) {
     cli::cli_abort(
       "{.arg REML} is implemented for univariate/bivariate Gaussian and binomial models."
@@ -2279,8 +2279,8 @@ drm_validate_reml_spec <- function(spec) {
     # MATCHED mean-and-scale phylo effect (both endpoints -- the q2 2x2 block, e.g.
     # `1 | p | species`) are both admitted under REML. `beta_sigma` is marginalized
     # in drm_apply_estimator_spec, so the restricted likelihood already adjusts for
-    # the coupled scale coefficients (Cox-Reid / adjusted-profile REML; Noether
-    # 2026-07-06) -- no separate Cox-Reid term is needed. The earlier N=120 "REML
+    # the coupled scale coefficients (Gaussian joint-Laplace restricted likelihood;
+    # Noether 2026-07-06) -- no separate adjustment term is needed. The earlier N=120 "REML
     # degrades the mean-side SD" arbiter (2026-07-06) was BELOW q2's N>=250
     # identifiability floor and is SUPERSEDED (2026-07-07): the sample-size ladder
     # (N=250..2000, 30 seeds, doc 221) shows REML is LESS biased than ML on sd_mu at

@@ -22,7 +22,7 @@ scale_fixed = "beta_sigma"(uni)  | c("beta_sigma1","beta_sigma2")(biv)   # only 
 
 Marginalising `beta` via Laplace **is** the restricted likelihood: for a Gaussian it is
 exact (`log|X'V⁻¹X|` appears as the Laplace correction); with a modelled `sigma` it is the
-Laplace / adjusted-profile (Cox-Reid) generalisation, and AD captures the `−log σ_i`
+Laplace / observed-information-profile (Cox-Reid-style) generalisation, and AD captures the `−log σ_i`
 Jacobian so no analytic term is missing (Noether, 2026-07-06, doc 220-native-scale-side).
 
 **Consequence:** the machinery is model-agnostic. The gates in

@@ -1,5 +1,6 @@
 # Nested O3 estimator (doc 224 S2): adaptive Gauss-Hermite quadrature (AGHQ) inner
-# marginalization over a SCALAR random effect per cluster + Cox-Reid outer adjustment
+# marginalization over a SCALAR random effect per cluster + Cox-Reid-style outer
+# observed-information adjustment
 # over the fixed effects, for non-Gaussian families where TMB's joint Laplace `random=`
 # fold is insufficient for nominal small-cluster RE-SD coverage (cumulative_logit) or as
 # the AGHQ counterpart of the binomial O2 REML path. Scalar RE per cluster: random
@@ -9,7 +10,7 @@
 # Two levers (both validated deterministically before any Monte-Carlo, doc 224 S7a):
 #   * AGHQ marginal over u (adaptive: recentre at the per-cluster Laplace mode, rescale by
 #     curvature; nq=1 collapses EXACTLY to Laplace; nq large -> exact marginal).
-#   * Cox-Reid: profile the fixed effects (beta, and for cumulative_logit the cutpoints
+#   * O3 adjustment: profile the fixed effects (beta, and for cumulative_logit the cutpoints
 #     theta on the pinned theta0+log-gap scale) and add 0.5*log|I| of the AGHQ-marginal
 #     information w.r.t. those fixed effects.
 # Internal; not exported. Validated in tests/testthat/test-aghq-coxreid.R.
@@ -33,7 +34,7 @@ drm_o3_gh <- function(nq) {
 
 # Conditional log-likelihood of one cluster given scalar u. Family-specific leaf; drops
 # terms constant in the parameters (log-choose) -- irrelevant to argmax and to the
-# Cox-Reid information. `theta` is used only for cumulative_logit.
+# O3 observed information. `theta` is used only for cumulative_logit.
 drm_o3_cluster_ll <- function(u, beta, theta, family, Xm, zm, ym, trials) {
   lin <- as.numeric(Xm %*% beta) + zm * u
   if (family == "binomial") {
@@ -100,7 +101,7 @@ drm_o3_split <- function(psi, family, p) {
   else list(beta = psi[seq_len(p)], theta = psi[-seq_len(p)])
 }
 
-# The Cox-Reid restricted negative log-likelihood at a given sd: profile (beta,theta) out
+# The O3 adjusted negative log-likelihood at a given sd: profile (beta,theta) out
 # of the AGHQ marginal, then add 0.5*log|I_{psi psi}| (Hessian of the profiled negative
 # AGHQ marginal). Returns -ell_R(sd) and the profiled psi.
 drm_o3_cr_negll <- function(sd, family, X, z, y, group_idx, trials, K, nodes, psi_start, cache = NULL) {
@@ -118,7 +119,7 @@ drm_o3_cr_negll <- function(sd, family, X, z, y, group_idx, trials, K, nodes, ps
 # Fit the nested O3 estimator. Returns sd_hat, the fixed effects, and the restricted
 # log-likelihood function of log-sd (for the profile CI). `estimator`:
 #   "aghq"      -> AGHQ marginal ML (no Cox-Reid; oracle = glmer nAGQ)
-#   "aghq_cr"   -> AGHQ + Cox-Reid (the O3 nominal object)
+#   "aghq_cr"   -> AGHQ + Cox-Reid-style profile (the O3 nominal object)
 drm_o3_fit <- function(y, X, z, group, family = c("binomial", "cumulative_logit"),
                        nodes = 25L, estimator = c("aghq_cr", "aghq"),
                        trials = NULL, sd_bounds = c(1e-3, 5), n_categories = NULL) {
@@ -156,7 +157,8 @@ drm_o3_fit <- function(y, X, z, group, family = c("binomial", "cumulative_logit"
                 estimator = estimator, nodes = nodes, family = family))
   }
 
-  # aghq_cr: outer optimize over log-sd of the Cox-Reid restricted negative loglik,
+  # aghq_cr: outer optimize over log-sd of the Cox-Reid-style observed-information
+  # adjusted negative log-likelihood,
   # warm-starting psi from the previous evaluation.
   psi_env <- new.env(); psi_env$psi <- psi0
   llR <- function(logsd) {
@@ -172,7 +174,7 @@ drm_o3_fit <- function(y, X, z, group, family = c("binomial", "cumulative_logit"
        logsd_hat = o$minimum, sd_bounds = sd_bounds)
 }
 
-# Profile-likelihood CI for the RE-SD from the Cox-Reid restricted objective, on the
+# Profile-likelihood CI for the RE-SD from the O3 adjusted objective, on the
 # NATURAL RE-SD scale (doc 224 S4.7). Root-find D(sd)=2[ellR(hat)-ellR(sd)] = qchisq(level,1).
 # Flags a non-finite endpoint (boundary pile-up) rather than inventing one. NOTE: the chi^2_1
 # pivot is the interior reference; near sd=0 the 50:50 chi^2_0:chi^2_1 mixture applies -- the
