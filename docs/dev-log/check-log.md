@@ -91663,3 +91663,21 @@ Shinichi grants a separate Gate A compute approval.
   Totoro/DRAC work, capability-ledger change, public SE/Wald/profile/CI path,
   or direct `biv_lognormal()` rho12 work occurred. See
   `docs/dev-log/after-task/2026-07-25-general-latent-normal-association-sandwich-private-build.md`.
+
+## 2026-07-26: A1 marginal-bootstrap `R = 999` diagnosis launched
+
+- The `sd()` / scale-and-intervals lane launched a two-cell, paired-seed Totoro
+  diagnostic to distinguish percentile-endpoint Monte Carlo error (`R = 199`
+  versus `999`) from the remaining explanation for A1's marginal RE-SD
+  coverage shortfall. It preserves the original Gaussian random-intercept DGP,
+  1,000 outer fits per cell, all-attempt denominator, and package source; only
+  `R_boot` changes. Cells `c01` (10 groups) and `c03` (50 groups) provide the
+  observed group-count extremes at the same residual layout and SD truth.
+- `launch_r999_subset.sh` authenticates Totoro's harness source by SHA-256,
+  limits numerical-library threads, and retains raw output on Totoro under
+  D-50. `analyse_r999_subset.R` will require all 2,000 paired outer fits and
+  report coverage, interval width, and paired coverage switches.
+- This is diagnostic compute only: no Arc D implementation, interval-API
+  change, capability-ledger promotion, or association-lane work. Profile
+  remains the preferred interval route where stable; bootstrap is being
+  diagnosed as the broad fallback.
