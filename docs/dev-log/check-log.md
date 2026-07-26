@@ -91748,3 +91748,23 @@ Shinichi grants a separate Gate A compute approval.
   100-worker Totoro run completed 100 shards / 1,000 rows with zero matching
   errors, a manifest-recorded package-tarball SHA-256, and exact agreement with
   the retained g=10 output on every non-runtime inference/status field.
+
+## 2026-07-26: Scalar A1 ML-versus-REML attribution stopped at oracle gate
+
+- Added a paired ML/REML all-attempt smoke harness, pure accounting helpers,
+  deterministic lme4 oracle, and a prepare-only Totoro packet.  The smoke kept
+  all six estimator-by-cell rows and produced finite profile intervals, but is
+  plumbing evidence only.
+- The oracle matched lme4 likelihoods and RE-SD estimates under both ML and
+  REML.  ML profile endpoints passed in all three cells; REML profile endpoints
+  failed the predeclared gate at g=10 and g=25 (largest upper-endpoint delta
+  0.0798 versus tolerance 0.0112).  The protocol therefore blocks any full
+  campaign and makes no interval/default/capability claim.
+- No Totoro job, GitHub Actions campaign, Arc D implementation, association
+  work, bootstrap correction, or public documentation change occurred.
+- Validation receipt: `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'devtools::test(filter = "a1-ml-reml-(paired|oracle)-contract",
+  stop_on_failure = TRUE)'` passed 14 expectations (4 oracle, 10 paired).
+  `a1_ml_reml_oracle.R` exited non-zero at its intended fail-closed gate, with
+  the complete six-row table, package versions, and script SHA-256 values
+  retained in `a1-ml-reml-oracle-receipt.md`.
