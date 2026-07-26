@@ -9,6 +9,23 @@ Claude counterpart, implementation is fenced until a design is selected **in wri
 
 ---
 
+## Hard fences (carried forward verbatim from the Codex Arc D plan, #847)
+
+These are binding on this arc regardless of which design is selected. They originate in
+`docs/dev-log/2026-07-26-arc-d-scale-clamp-profile-contract-ultra-plan.md` (#847) and are
+reproduced here so this document is self-sufficient — #847 may be closed without losing them.
+
+- **Do not edit the nine `sd()` predictor sites** during the plan phase.
+- **Do not change `interval_status`, the capability ledger, or public inference** until the
+  owner approves a selected design.
+- **Do not launch the 177-cell interval campaign**, or any simulation, recovery, coverage,
+  bootstrap, or full-refit study, on the strength of this arc.
+- **Do not expose PR #846's private association sandwich engine** through `vcov()`,
+  confidence intervals, profiles, `confint()`, or public documentation. That is the
+  *association* lane's property; this is the `sd()`/scale/intervals lane.
+- **Do not treat a finite interval as identified** merely because a clamp bound was reached.
+  This is the whole point of the arc.
+
 ## The question
 
 Arc B finding **F5**: nine sites in `src/drmTMB.cpp` take `exp()` of a
