@@ -3,6 +3,17 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Association lane (2026-07-26, → CODEX, CARRIED-OVER — check push state).**
+> On `codex/arc6-association-public-prep-f0f2`, F1 is a private deterministic
+> pass and F3R is committed at `66752968`: a SHA-pinned, developer-only,
+> one-attempt Bernoulli × ordinary-NB2 provenance runner and receipt contract.
+> **No F3 smoke has run.** A fresh written approval naming that exact SHA is
+> required before the runner can generate data or refit; F4 calibration/compute
+> and F5/public inference remain separately gated. This is association-only:
+> do not touch Claude's Arc D/F5 lane or transfer direct `biv_lognormal()`
+> `rho12` evidence. START HERE:
+> [`docs/dev-log/handover/2026-07-26-codex-association-f3r-handover.md`](docs/dev-log/handover/2026-07-26-codex-association-f3r-handover.md).
+
 > **▶ Latest — start here (2026-07-25, ARC B MERGED; ARC A1 VERIFIED — MARGINAL SIMULATION; NEXT = ARC C).**
 > **Arc B — the C++/numerical audit — is MERGED** (PR #842, `main` `12d971f1`): five standing
 > conformance suites (kernel oracle · FD-vs-AD gradient · score consistency · `CondExp`
