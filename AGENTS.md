@@ -8,7 +8,9 @@ regression using Template Model Builder.
 > pass and F3R is committed at `66752968`: a SHA-pinned, developer-only,
 > one-attempt Bernoulli × ordinary-NB2 provenance runner and receipt contract.
 > **No F3 smoke has run.** A fresh written approval naming that exact SHA is
-> required before the runner can generate data or refit; F4 calibration/compute
+> required before the runner can generate data or refit; because this handover
+> is a later commit, an approved F3 run uses a clean detached worktree at
+> `66752968`, not this branch tip. F4 calibration/compute
 > and F5/public inference remain separately gated. This is association-only:
 > do not touch Claude's Arc D/F5 lane or transfer direct `biv_lognormal()`
 > `rho12` evidence. START HERE:
