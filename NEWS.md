@@ -26,9 +26,10 @@
 
 * Marginal draws support ordinary grouped intercepts and slopes, intra-block
   correlation (`(1 + x | g)`), labelled cross-parameter correlation
-  (`(1 | p | id)`), and `phylo()`/`spatial()`/`relmat()`/`animal()` structured
-  `mu` effects at `q = 1`. `phylo_interaction()`, cross-trait `q > 1` structured
-  effects, correlated covariance blocks, `corpair()` regression, and modelled
+  (`(1 | p | id)`), and `phylo()`/`spatial()`/`relmat()`/`animal()`/
+  `phylo_interaction()` structured `mu` effects at `q = 1`. Cross-trait `q > 1`
+  structured effects (including a multi-endpoint `phylo_interaction()`),
+  correlated covariance blocks, `corpair()` regression, and modelled
   random-effect scale **abort with an informative message** rather than silently
   falling back to conditional simulation — a silent fallback would reproduce the
   defect this change fixes. Those structures can still be simulated with

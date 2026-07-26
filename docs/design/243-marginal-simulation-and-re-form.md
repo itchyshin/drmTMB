@@ -72,9 +72,8 @@ not `predict()` producing it.
 | ordinary grouped intercepts / slopes on `mu`, `sigma` (and bivariate dpars) | supported |
 | intra-block correlation, `(1 + x \| g)` | supported |
 | labelled cross-parameter correlation, `(1 \| p \| id)` | supported |
-| `phylo()`, `spatial()`, `relmat()`, `animal()` structured `mu`, `q == 1` | supported |
-| `phylo_interaction()` | **aborts** |
-| structured `mu` correlated across traits, `q > 1` | **aborts** |
+| `phylo()`, `spatial()`, `relmat()`, `animal()`, `phylo_interaction()` structured `mu`, `q == 1` | supported |
+| structured `mu` correlated across traits, `q > 1` (including multi-endpoint `phylo_interaction()`) | **aborts** |
 | correlated covariance-block REs (q4 / qgt2) | **aborts** |
 | `corpair()` regression | **aborts** |
 | modelled / heteroscedastic RE scale | **aborts** |
@@ -84,9 +83,13 @@ A silent fallback would recreate the exact defect this change exists to fix —
 the user would believe they had marginal draws and receive frozen ones. The
 abort names the structure and points at `re.form = NA`.
 
-`phylo_interaction()` is structurally identical to the supported cases
-(Kronecker `Q`, same node-index route) but was **not empirically verified**, so
-it stays behind an honest abort rather than an untested claim of support.
+`phylo_interaction()` at `q == 1` is now supported: its Kronecker precision is
+already fully assembled at fit time in the same
+`object$model$structured$phylo_mu$precision$precision` slot the other
+structured types use, so it takes the identical `drm_fresh_structured_mu_values()`
+draw with no new plumbing. A multi-endpoint (`q > 1`) `phylo_interaction()` term
+still aborts, for the same untested cross-trait-correlation reason as the other
+structured types.
 
 ## How structured draws are constructed
 
@@ -111,6 +114,13 @@ Covariance recovery was measured rather than assumed:
 | spatial | 0.0113 | −0.014 |
 | relmat | 0.0199 | −0.517 |
 | animal | 0.0207 | −0.459 |
+| phylo_interaction | 0.0225-0.0237 (two seeds) | not measured |
+
+`phylo_interaction`'s relative Frobenius error is measured, not assumed, in
+`tests/testthat/test-simulate-re-form-phylo-interaction.R` (asserted `< 0.05`
+there for CI runtime; 0.0225-0.0237 across two independent seeds at
+`R = 20000` in ad hoc verification is the same order of magnitude as the four
+already-supported structures above).
 
 ## Verification
 
@@ -130,6 +140,11 @@ is marginal; `re.form = NA` reproduces conditional; a fixed-effects-only model i
 identical under both; unsupported structures abort with a matching message;
 same-seed reproducibility holds.
 
+`tests/testthat/test-simulate-re-form-phylo-interaction.R` covers
+`phylo_interaction()` specifically: marginal simulation no longer aborts;
+between-group (pair) variance across replicates is materially larger under
+`re.form = NULL` than `re.form = NA`; and the covariance-recovery check above.
+
 ## Migration
 
 Code that relied on the old behaviour needs `re.form = NA` — and should ask
@@ -145,8 +160,8 @@ anticonservative and that this is not an endorsement.
 
 ## Open follow-ups
 
-Marginal draws for the aborting structures — `phylo_interaction`, cross-trait
-`q > 1`, covariance blocks, `corpair`, and modelled RE scale — are a separate
-arc. Until then those models can be simulated only with `re.form = NA`, and any
-bootstrap interval obtained that way is anticonservative and must not be used as
-coverage evidence.
+Marginal draws for the remaining aborting structures — cross-trait `q > 1`
+(including a multi-endpoint `phylo_interaction`), covariance blocks, `corpair`,
+and modelled RE scale — are a separate arc. Until then those models can be
+simulated only with `re.form = NA`, and any bootstrap interval obtained that
+way is anticonservative and must not be used as coverage evidence.

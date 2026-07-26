@@ -2824,16 +2824,17 @@ predict.drmTMB <- function(
 #' random effects instead (holding every random effect fixed at its
 #' conditional-mode estimate, the behaviour this function had before
 #' `re.form` was added). Marginal simulation also redraws a single-endpoint
-#' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`), or
-#' animal-model structured `mu` random effect from its fitted covariance
-#' `sd^2 * Q^-1`. It does not yet support a structured mu random effect
-#' correlated across more than one trait or distributional parameter
-#' (`q > 1`), `phylo_interaction` structured terms, correlated
-#' covariance-block random effects, predictor-dependent random-effect
-#' correlation (`corpair`) regression, or a modelled (heteroscedastic)
-#' random-effect scale; `simulate()` throws an informative error naming the
-#' unsupported structure for those models and directs the user to
-#' `re.form = NA`. Models without random effects are unaffected by `re.form`.
+#' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
+#' animal-model, or `phylo_interaction` structured `mu` random effect from its
+#' fitted covariance `sd^2 * Q^-1`. It does not yet support a structured mu
+#' random effect correlated across more than one trait or distributional
+#' parameter (`q > 1`, including a multi-endpoint `phylo_interaction` term),
+#' correlated covariance-block random effects, predictor-dependent
+#' random-effect correlation (`corpair`) regression, or a modelled
+#' (heteroscedastic) random-effect scale; `simulate()` throws an informative
+#' error naming the unsupported structure for those models and directs the
+#' user to `re.form = NA`. Models without random effects are unaffected by
+#' `re.form`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
@@ -6014,20 +6015,24 @@ drm_random_effect_contribution_from_values <- function(values, re, dpar) {
 }
 
 # Returns a reason string when marginal simulation cannot yet redraw this
-# object's structured (phylo/spatial/relatedness-matrix/animal-model) mu
-# random effect, or NULL when it can. Supported: a single structured mu term
-# with exactly one trait/distributional-parameter endpoint (`structured_mu_q()
-# == 1`) of type phylo, spatial, relmat, or animal -- the covariance is then a
-# plain `sd^2 * Q^-1` and the fitted SD is a single scalar. Left unsupported:
-# `phylo_interaction` (a Kronecker precision this slice did not verify) and any
-# term with `q > 1` (a trait/dpar correlation this slice did not reconstruct).
+# object's structured (phylo/spatial/relatedness-matrix/animal-model/phylo-
+# interaction) mu random effect, or NULL when it can. Supported: a single
+# structured mu term with exactly one trait/distributional-parameter endpoint
+# (`structured_mu_q() == 1`) of type phylo, spatial, relmat, animal, or
+# phylo_interaction -- the covariance is then a plain `sd^2 * Q^-1` (for
+# phylo_interaction, `Q` is the already-assembled Kronecker precision at
+# `phylo_mu$precision$precision`, the same slot the q == 1 draw below reads
+# for every other type) and the fitted SD is a single scalar. Left
+# unsupported: any term with `q > 1` (a trait/dpar correlation this slice did
+# not reconstruct), including a `phylo_interaction` term with more than one
+# endpoint.
 drm_structured_mu_marginal_unsupported <- function(object) {
   phylo_mu <- object$model$structured$phylo_mu
   if (!isTRUE(phylo_mu$has)) {
     return(NULL)
   }
   type <- structured_mu_type(phylo_mu)
-  if (!type %in% c("phylo", "spatial", "relmat", "animal")) {
+  if (!type %in% c("phylo", "spatial", "relmat", "animal", "phylo_interaction")) {
     return("phylogenetic-interaction structured mu random effects")
   }
   if (structured_mu_q(phylo_mu) > 1L) {
