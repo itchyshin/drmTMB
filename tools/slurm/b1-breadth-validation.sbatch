@@ -25,7 +25,9 @@ export DRMTMB_B1_REPO="$REPO"
 PREFLIGHT="$RUN_ROOT/preflight/receipt.tsv"
 
 source_tree_sha256() {
-  (cd "$REPO" && git ls-files -z | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')
+  # The verified Git tree SHA fixes file content.  Hash its deterministic index
+  # representation too, avoiding a slow shared-filesystem sweep after compile.
+  (cd "$REPO" && git ls-files -s | LC_ALL=C sort | sha256sum | awk '{print $1}')
 }
 
 [[ "$(git -C "$REPO" rev-parse HEAD)" == "$SOURCE_SHA" ]] || { echo "Source SHA mismatch." >&2; exit 2; }
