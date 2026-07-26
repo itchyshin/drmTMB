@@ -4,8 +4,10 @@
 
 ## Scope and provenance
 
-- F1M implementation base: `d271faa3` (`test(arc6): add independent staged derivative oracle`).
-- Changed implementation surface: only `tests/testthat/test-associate-pairs-staged-sandwich.R`; the production kernel and public surface were not changed.
+- F1M validation SHA: `e0af91fc610a751880dba22a1b342cfb50cb757b` (`test(arc6): complete private F1 deterministic matrix`).
+- Validated engine source: `R/associate-pairs-sandwich.R` blob `d090f67b74bf5dfee6baa4396a8f45a3c977d6fd`.
+- Validated deterministic fixture: `tests/testthat/test-associate-pairs-staged-sandwich.R` blob `d36b02b2ad470e641843d4f751ee1c998e6922bf`.
+- The validation SHA changes only the deterministic fixture relative to the engine blob above; the production kernel and public surface were not changed.
 - R runtime: 4.6.0; `mvtnorm` 1.4.1; `numDeriv` 2016.8.1.1; `statmod` 1.5.2; `testthat` 3.3.2.
 - F1D remains retained negative evidence.  F1E's independent analytic oracle remains the reference route; F1M extends its fixture coverage and does not relabel F1D as a pass.
 
@@ -46,4 +48,4 @@ devtools::test(filter = "associate-pairs-(staged-sandwich|bernoulli-nb2)$", repo
 
 ## Exact next approval fence
 
-The attached F3 packet is documentation only.  Before one local F3 provenance smoke, the owner must give a **fresh written approval** naming the final post-F1M source SHA and authorizing exactly one attempt under that packet.  It does not authorize a retry, a refit beyond that one smoke, an F4 campaign, remote compute, public API exposure, or a public inference claim.
+The attached F3 packet is documentation only.  Before one local F3 provenance smoke, the owner must give a **fresh written approval** naming the final post-F3R runner source SHA and authorizing exactly one attempt under that packet.  It does not authorize a retry, a refit beyond that one smoke, an F4 campaign, remote compute, public API exposure, or a public inference claim.
