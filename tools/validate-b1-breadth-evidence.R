@@ -64,7 +64,7 @@ b1_ev_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   out <- data.frame(key = c("canonical_manifest_sha256", "raw_rows", "fit_completed", "fit_error", "replay_task_id", "permitted_replay_difference", "original_source_sha", "replay_source_sha"),
     value = c(b1_ev_sha256(a[["manifest"]]), nrow(raw), sum(raw$attempt_status == "fit_completed"), sum(raw$attempt_status == "fit_error"), replay_id,
       "task_41_tsv_error_newline_normalization_only", a[["original-source-sha"]], a[["replay-source-sha"]]), stringsAsFactors = FALSE)
-  utils::write.table(out, a$out, sep = "\t", quote = FALSE, row.names = FALSE)
+  utils::write.table(out, a[["out"]], sep = "\t", quote = FALSE, row.names = FALSE)
   print(out)
 }
 if (sys.nframe() == 0L) b1_ev_main()
