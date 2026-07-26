@@ -21,7 +21,7 @@ sequencing **defects before capability** this session.
 | **PR #843 — Arc A1, marginal simulation** | **MERGED** (`ac0d3e55`). Verified tip `9c09ec10` is an ancestor of main. |
 | **PR #841, #829, #839** | merged (pkgdown closeout, duplicate nav link, Arc A handover) |
 | **PR #844 — staged-eta Godambe** | opened as draft to stop 2 local-only commits rotting; **the eta lane took it, merged it, renumbered its design doc 243→244** |
-| **PR #845 — Arc C** | pushed, CI running at handover-write time. **Check before assuming.** |
+| **PR #845 — Arc C** | **MERGED** (`08c02003`). CI green on the exact tip `5a80fa5a`; all three D-43 lenses' flip conditions met. |
 | **brain `D-86`** | written + committed (`5b56974`) |
 | **Mission Control** | drmTMB board refreshed (`a958d2f`); `do_not_repeat` 30 → 38, appended not rewritten |
 
@@ -127,6 +127,24 @@ Plan: `~/.claude/plans/arc-d-clamp-identifiability.md`. Three candidate designs 
   are hardcoded to residual REPORT names and have **no notion of an interval endpoint**.
 
 ---
+
+## ⚠ A CODEX LANE RAN CONCURRENTLY TONIGHT — reconcile ownership
+
+`AGENTS.md` says the two tools run **sequentially, never concurrently, per repo**. That
+did not hold tonight. While this Claude session worked, a Codex lane merged **#846**
+(`codex/general-latent-normal-association-sandwich`) and opened **#847**
+(`codex/arc-d-inference-contract-plan`) — an **Arc D plan written independently of mine**,
+within about an hour of it.
+
+Nothing collided and both plans are sound, but **two lanes planned the same arc**. Decide
+which owns Arc D before either implements. The two artifacts:
+- Codex: `docs/dev-log/2026-07-26-arc-d-scale-clamp-profile-contract-ultra-plan.md` (#847,
+  draft, plan-only, stacked on #845, well-fenced)
+- Claude: `~/.claude/plans/arc-d-clamp-identifiability.md`
+
+**Codex's plan does not carry the `mc-0017` blast-radius constraint** (verified: 136 lines,
+no mention). I posted it as a comment on #847 rather than duplicating their work —
+`pull/847#issuecomment-5081790699`.
 
 ## Also in flight at handover-write time
 
