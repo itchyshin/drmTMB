@@ -24,15 +24,22 @@ export R_LIBS="$SHARED_RLIB:$BASE_RLIB"
 export DRMTMB_B1_REPO="$REPO"
 PREFLIGHT="$RUN_ROOT/preflight/receipt.tsv"
 
+source_tree_sha256() {
+  (cd "$REPO" && git ls-files -z | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')
+}
+
 [[ "$(git -C "$REPO" rev-parse HEAD)" == "$SOURCE_SHA" ]] || { echo "Source SHA mismatch." >&2; exit 2; }
 [[ -z "$(git -C "$REPO" status --porcelain)" ]] || { echo "Source clone is dirty." >&2; exit 2; }
 if [[ "${DRMTMB_B1_PREFLIGHT_ONLY:-false}" == "true" ]]; then
   mkdir -p "$RUN_ROOT/preflight" "$SHARED_RLIB"
   R CMD INSTALL --library="$SHARED_RLIB" "$REPO" > "$RUN_ROOT/preflight/install.stdout" 2> "$RUN_ROOT/preflight/install.stderr"
   Rscript --no-init-file -e 'library(drmTMB); invisible(TMB::MakeADFun)'
+  DLL=$(Rscript --no-init-file -e 'cat(file.path(system.file("libs", package = "drmTMB"), "drmTMB.so"))')
+  [[ -f "$DLL" ]] || { echo "Installed drmTMB DLL was not found." >&2; exit 2; }
   {
     printf 'key\tvalue\n'
     printf 'source_sha\t%s\nhead_sha\t%s\ntree_sha\t%s\ngit_status\tclean\n' "$SOURCE_SHA" "$(git -C "$REPO" rev-parse HEAD)" "$(git -C "$REPO" rev-parse HEAD^{tree})"
+    printf 'source_tree_sha256\t%s\ndll_sha256\t%s\nR_LIBS\t%s\n' "$(source_tree_sha256)" "$(sha256sum "$DLL" | awk '{print $1}')" "$R_LIBS"
     printf 'R_version\t%s\nTMB_version\t%s\n' "$(R --version | head -1)" "$(Rscript --no-init-file -e 'cat(as.character(packageVersion("TMB")))')"
   } > "$RUN_ROOT/preflight/receipt.tsv"
   sha256sum "$RUN_ROOT/preflight/receipt.tsv" > "$RUN_ROOT/preflight/receipt.tsv.sha256"
