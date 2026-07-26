@@ -12,6 +12,25 @@ source(file.path(script_dir, "a1_profile_common.R"))
 
 files <- list.files(result_dir, pattern = "\\.csv$", full.names = TRUE)
 if (!length(files)) stop("No campaign CSV files found.", call. = FALSE)
+manifest_path <- file.path(result_dir, "campaign-manifest.txt")
+if (!file.exists(manifest_path)) {
+  stop("Campaign manifest is missing; refusing to analyse unauthenticated shards.", call. = FALSE)
+}
+manifest_lines <- readLines(manifest_path, warn = FALSE)
+manifest <- stats::setNames(
+  sub("^[^=]+=", "", manifest_lines[grepl("=", manifest_lines)]),
+  sub("=.*$", "", manifest_lines[grepl("=", manifest_lines)])
+)
+required_manifest <- c(
+  "package_commit", "runner_sha256", "helper_sha256", "launcher_sha256",
+  "R_boot", "outer_attempts_per_cell", "workers", "started_utc", "completed_utc"
+)
+if (!all(required_manifest %in% names(manifest)) ||
+    !identical(manifest[["R_boot"]], "999") ||
+    !identical(manifest[["outer_attempts_per_cell"]], "1000") ||
+    !identical(manifest[["workers"]], "100")) {
+  stop("Campaign manifest is incomplete or violates the frozen full-run contract.", call. = FALSE)
+}
 x <- do.call(rbind, lapply(files, read.csv, stringsAsFactors = FALSE))
 cells <- c("g10_n10_sd05", "g25_n10_sd05", "g50_n10_sd05")
 if (nrow(x) != 3000L || !identical(sort(unique(x$cell_id)), cells) ||
@@ -22,6 +41,11 @@ if (anyNA(x$source_hash) || anyNA(x$helper_hash) ||
     length(unique(x$source_hash)) != 1L || length(unique(x$helper_hash)) != 1L ||
     anyNA(x$package_commit) || length(unique(x$package_commit)) != 1L) {
   stop("Campaign provenance is incomplete or inconsistent.", call. = FALSE)
+}
+if (!identical(unique(x$source_hash), unname(manifest[["runner_sha256"]])) ||
+    !identical(unique(x$helper_hash), unname(manifest[["helper_sha256"]])) ||
+    !identical(unique(x$package_commit), unname(manifest[["package_commit"]]))) {
+  stop("Campaign-row provenance does not match the completed launch manifest.", call. = FALSE)
 }
 
 summarise_method <- function(one, method) {
