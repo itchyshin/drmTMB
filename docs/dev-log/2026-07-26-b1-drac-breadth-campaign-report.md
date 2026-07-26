@@ -45,11 +45,15 @@ verdict.  Raw local smoke files are retained outside git at
 Fir was reachable through the existing authenticated ControlMaster. The
 campaign directory is isolated at
 `/project/def-snakagaw/snakagaw/drmTMB-b1-breadth-399cba13/`.  A standalone
-source checkout was materialized from a git bundle and verified clean at the
-frozen source SHA. Compute-node preflight job `51289136` was submitted and is
-pending scheduler priority. It performs no simulation task. The preflight must
-certify the standalone source SHA, clean tree, R/TMB environment, and compiled
-package before the smoke array or full array is eligible for submission.
+source checkout was materialized from a git bundle. The initial compute-node
+preflight `51289136` failed after three seconds because the preflight-only
+branch incorrectly required a task manifest; it ran neither compilation nor
+simulation. The corrected template was applied as a clean Fir-local patch
+series, recorded at source SHA `3ab4f88e8efdbb0c482c83c5855f3abdf5544ace`, and
+replacement preflight `51289296` is pending scheduler priority. It performs no
+simulation task. The preflight must certify that exact standalone source SHA,
+clean tree, R/TMB environment, and compiled package before the smoke array or
+full array is eligible for submission.
 
 ## Next gate
 
