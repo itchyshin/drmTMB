@@ -155,3 +155,29 @@ test_that("phylo_interaction marginal draws recover the fitted Kronecker covaria
   # the identical draw code, so the same order of magnitude is expected.
   expect_lt(rel_frob, 0.05)
 })
+
+test_that("marginal bootstrap intervals work for a q1 phylo_interaction fit", {
+  skip_on_cran()
+  # Arc A2 closed the simulate() gate, but `confint(method = "bootstrap")` is
+  # DRIVEN by simulate() -- that is the whole reason A1 existed. Widening the
+  # gate without exercising the bootstrap path would leave the user-facing
+  # consequence of the change untested.
+  built <- new_phylo_interaction_reform_fit()
+  ci <- stats::confint(
+    built$fit,
+    parm = "variance_components",
+    method = "bootstrap",
+    R = 25L,
+    seed = 42L,
+    bootstrap_re_form = NULL,   # marginal: the new default
+    refit_control = drm_control(se = FALSE)
+  )
+  expect_s3_class(ci, "data.frame")
+  expect_gte(nrow(ci), 2L)
+  expect_true(all(ci$conf.status == "bootstrap"))
+  expect_true(all(is.finite(ci$lower)) && all(is.finite(ci$upper)))
+  expect_true(all(ci$lower <= ci$upper))
+  # No silent refit attrition: every requested replicate must land.
+  expect_true(all(ci$bootstrap.failed == 0L))
+  expect_true(any(grepl("phylo_interaction", ci$parm, fixed = TRUE)))
+})
