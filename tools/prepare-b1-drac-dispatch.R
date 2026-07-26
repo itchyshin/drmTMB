@@ -3,7 +3,11 @@
 # layout, but deliberately never calls sbatch or loads drmTMB.
 
 script_arg <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-script <- if (length(script_arg)) sub("^--file=", "", script_arg[[1L]]) else "tools/prepare-b1-drac-dispatch.R"
+script <- if (length(script_arg)) sub("^--file=", "", script_arg[[1L]]) else {
+  candidates <- c("tools/prepare-b1-drac-dispatch.R", "../../tools/prepare-b1-drac-dispatch.R")
+  hits <- candidates[file.exists(candidates)]
+  if (length(hits)) hits[[1L]] else "tools/prepare-b1-drac-dispatch.R"
+}
 source(file.path(dirname(normalizePath(script, mustWork = FALSE)), "b1-breadth-contract.R"))
 
 b1_dispatch_stop <- function(...) stop(..., call. = FALSE)
