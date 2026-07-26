@@ -22,9 +22,10 @@ Totoro/DRAC, never GitHub Actions.
 `associate_pairs()` already supplies five fixed-effect, complete-pair
 latent-normal association point-estimation classes: Gaussian × Bernoulli,
 Gaussian × ordinary-NB2, Bernoulli × Bernoulli, Bernoulli × ordinary-NB2, and
-ordinary-NB2 × ordinary-NB2.  All remain public point-estimation routes.  A
-private Bernoulli × ordinary-NB2 candidate sandwich is now on draft PR #844;
-it is a reference implementation, not a general or validated SE facility.
+ordinary-NB2 × ordinary-NB2. All remain public point-estimation routes. The
+private Bernoulli × ordinary-NB2 candidate sandwich landed through PR #844
+after the #843 coordination repair; it is a reference implementation, not a
+general or validated SE facility.
 
 The common latent-normal construction makes a reusable internal engine
 appropriate:
@@ -47,8 +48,8 @@ coordinates and numerical risks.
 
 | Surface | Evidence | Finding | Forced call |
 | --- | --- | --- | --- |
-| Repository state | `git status -sb`; `git log --oneline -8`; worktree/stash inventory; `branch_drift_check.sh` | `codex/staged-eta-godambe-se` is a clean draft-PR branch with two candidate commits; it must not silently become the general lane. | Preserve #844 as the narrow reference. |
-| Open-PR coordination | GitHub PR #843 and #844 metadata, 2026-07-25 | Both lanes use a `docs/design/243-*` record. #843 is active and not yet mergeable; #844 is draft. | Wait for #843; then rebase #844, renumber its record to `244`, rerun focused tests, and review. |
+| Repository state | `git status -sb`; `git log --oneline -8`; worktree/stash inventory; `branch_drift_check.sh` | PR #844 is landed on `main` as the narrow reference; a fresh `codex/general-latent-normal-association-sandwich` branch starts from current `main`. | Preserve the landed B×NB2 result as a regression reference, not as the general lane. |
+| Open-PR coordination | GitHub PR #843 and #844 metadata, 2026-07-25 | #843 merged, #844 rebased with `243` → `244`, focused tests passed, and #844 merged. | Start the separately approved private implementation lane; preserve every public-inference fence. |
 | Existing implementation | `R/associate-pairs.R`; `R/associate-pairs-sandwich.R`; staged sandwich tests | Five point-estimation pair classes exist; only Bernoulli × NB2 has a candidate sandwich. | Build one assembler with explicit adapters. |
 | Sisters | Targeted `rg` across DRM.jl, GLLVM.jl, and gllvmTMB | No reusable frozen-margin Gaussian-copula sandwich implementation found. | Build the genuine gap; do not copy unrelated covariance machinery. |
 | Brain | `search_notes(search_all_projects = TRUE, query = "staged eta association sandwich normal copula general uncertainty Arc 6")` | No contrary decision or existing general implementation found. | Continue as a bounded architecture arc. |
@@ -126,7 +127,20 @@ session plus a handover.  Validation is a later, separately approved campaign.
 
 ## Approval boundary
 
-Approval authorizes PR #844 coordination, a fresh general-engine lane, private
-implementation, documentation, and deterministic/unit/integration tests only.
-It does not authorize resampling, a pilot, Totoro/DRAC work, coverage, public
-SEs, intervals, or a merge of either PR.
+Owner approval authorizes the fresh general-engine lane, private implementation,
+documentation, and deterministic/unit/integration tests only. It does not
+authorize resampling, a pilot, Totoro/DRAC work, coverage, public SEs, or
+intervals.
+
+## Execution receipt — private implementation only
+
+S1–S5 completed locally on the isolated
+`codex/general-latent-normal-association-sandwich` branch. The implementation
+refactors the Bernoulli × ordinary-NB2 reference through a common assembler,
+adds the four remaining admitted pair adapters and an unexported router, and
+adds deterministic analytic-margin, independent row-oracle, eta-sign/zero,
+swap, repeated-side, tail, boundary, provenance, and router-failure checks.
+The focused five-class matrix passed. No public association object changes,
+full-refit comparison, simulation, campaign, Totoro/DRAC work, capability
+ledger movement, or direct `biv_lognormal()` work occurred. The review/freeze
+receipt and plan-versus-actual record are the remaining closeout artefacts.
