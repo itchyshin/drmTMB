@@ -22,6 +22,8 @@ sequencing **defects before capability** this session.
 | **PR #841, #829, #839** | merged (pkgdown closeout, duplicate nav link, Arc A handover) |
 | **PR #844 — staged-eta Godambe** | opened as draft to stop 2 local-only commits rotting; **the eta lane took it, merged it, renumbered its design doc 243→244** |
 | **PR #845 — Arc C** | **MERGED** (`08c02003`). CI green on the exact tip `5a80fa5a`; all three D-43 lenses' flip conditions met. |
+| **PR #848 — coverage evidence + this handover** | **MERGED** (`33266bac`). Every headline figure re-derived from the committed CSV before merge. |
+| **PR #849 — Arc A2 `phylo_interaction` marginal draws** | **MERGED** (`12553ff2`). Fisher DONE. |
 | **brain `D-86`** | written + committed (`5b56974`) |
 | **Mission Control** | drmTMB board refreshed (`a958d2f`); `do_not_repeat` 30 → 38, appended not rewritten |
 
@@ -148,17 +150,35 @@ no mention). I posted it as a comment on #847 rather than duplicating their work
 
 ## Also in flight at handover-write time
 
-- **Arc A2 `phylo_interaction` marginal draws** — dispatched to Gauss, branch
-  `claude/a2-phylo-interaction-marginal`, worktree `/private/tmp/drmtmb-a2`, committed but
-  **not pushed, no PR**. Premise to verify: the Kronecker precision is already assembled in
-  the same slot the supported `q = 1` path reads. Agent was told to stop if that is false,
-  and to demonstrate the draw is genuinely marginal via covariance recovery (relative
-  Frobenius, target order 0.011–0.021), not merely non-aborting. **Check what it actually
-  reported before trusting it.**
+- **Arc A2 — MERGED** (#849). The Frobenius concern I raised is **resolved by
+  measurement**, not argument. Fisher re-ran the recovery across R: **0.0225/0.0237 at
+  R = 2e4 → 0.0112/0.0117 at 8e4 → 0.0059/0.0052 at 3.2e5** — ~2× per 4× R, textbook
+  `1/sqrt(R)`. The elevation above the 0.011–0.021 band at fixed R was finite-sample noise
+  on a larger 36×36 matrix, not bias. Fisher also confirmed the premise *structurally*: the
+  same object is passed as TMB's `Q_phylo` and `src/drmTMB.cpp:672-682` shows the fit-side
+  density is `u ~ N(0, sd² Q⁻¹)`.
 - **PR #836** — `MERGEABLE/CLEAN`, green CI, but flagged **draft** by its author. Left
   alone deliberately; content is now purely historical. Needs an owner decision.
 
 ---
+
+## Open follow-ups worth an arc
+
+1. **Why does the marginal bootstrap stop at ~0.87?** Separable candidates: percentile
+   intervals near a variance boundary · `R = 199` too small for a tail quantile · Laplace
+   refit bias at low group counts. Would BCa or bootstrap-t close it?
+2. **The covariance-recovery figures in `docs/design/243` are still ad-hoc.** All five
+   structures' relative-Frobenius numbers (phylo 0.0204, spatial 0.0113, relmat 0.0199,
+   animal 0.0207, phylo_interaction 0.0225) come from one-off scripts and are **not
+   reproducible from anything committed**. Raised by Fisher at the #849 gate; predates
+   tonight (true of #843 too). Worth a committed harness that regenerates all five at
+   **matched R and matched dimension** — and any such figure must carry its `R` and its
+   matrix size, because the statistic shrinks as `1/sqrt(R)` and grows with dimension.
+   *I started this at 22:35 and deliberately discarded it*: what I had printed the numbers
+   rather than reproducing them, which is worse than nothing.
+3. **A5 still has no falsifying test** (see Arc C's after-task report).
+4. **Does the RE-SD coverage shortfall extend to structured REs**, now that
+   `phylo_interaction` has marginal support?
 
 ## Gotchas paid for tonight — do not re-learn these
 
