@@ -1612,40 +1612,80 @@ drm_pair_bernoulli_nbinom2_rectangle_probability <- function(
       integration_abs_tol = integration_abs_tol,
       branch = "factorized", endpoints = endpoints))
   }
-  threshold <- stats::qnorm(binary_p, lower.tail = FALSE)
-  limits <- if (binary_y == 0) c(-Inf, threshold) else c(threshold, Inf)
-  s <- sqrt(1 - eta^2)
-  integrand <- function(z) {
-    lower <- (endpoints$lower - eta * z) / s
-    upper <- (endpoints$upper - eta * z) / s
-    branch <- ifelse(upper <= 0, "lower", ifelse(lower >= 0, "upper", "straddle"))
-    log_mass <- ifelse(branch == "upper",
-      drm_pair_logdiffexp(stats::pnorm(lower, lower.tail = FALSE, log.p = TRUE),
-        stats::pnorm(upper, lower.tail = FALSE, log.p = TRUE)),
-      drm_pair_logdiffexp(stats::pnorm(upper, log.p = TRUE),
-        stats::pnorm(lower, log.p = TRUE)))
-    exp(stats::dnorm(z, log = TRUE) + log_mass)
+  # Integrate over the NB2 CDF interval instead of an unbounded Bernoulli
+  # half-line.  If U = Phi(Z_N), then dU = phi(Z_N) dZ_N, so this is the
+  # same rectangle probability while retaining a bounded integration domain
+  # even for count zero (where the latent lower endpoint is -Inf).
+  size <- drm_nbinom2_size(nbinom2_sigma)
+  lower_u <- if (nbinom2_y == 0L) {
+    0
+  } else {
+    stats::pnbinom(nbinom2_y - 1L, size = size, mu = nbinom2_mu)
   }
-  integral <- tryCatch(stats::integrate(integrand, lower = limits[[1L]],
-    upper = limits[[2L]], subdivisions = 200L, rel.tol = 1e-9),
+  upper_u <- stats::pnbinom(nbinom2_y, size = size, mu = nbinom2_mu)
+  if (!is.finite(lower_u) || !is.finite(upper_u) || lower_u < 0 ||
+      upper_u > 1 || lower_u >= upper_u) {
+    return(fail("endpoint_failure", "NB2 CDF interval is numerically unresolved."))
+  }
+  threshold <- stats::qnorm(binary_p, lower.tail = FALSE)
+  s <- sqrt(1 - eta^2)
+  log_conditional_probability <- function(u) {
+    z <- stats::qnorm(u)
+    if (binary_y == 1L) {
+      stats::pnorm((eta * z - threshold) / s, log.p = TRUE)
+    } else {
+      stats::pnorm((threshold - eta * z) / s, log.p = TRUE)
+    }
+  }
+  # The conditional probability is monotone in U.  Rescaling by its endpoint
+  # maximum keeps the adaptive quadrature on a probability scale even when
+  # the final rectangle probability is far below the absolute-error floor.
+  maximum_u <- if ((binary_y == 1L && eta > 0) ||
+      (binary_y == 0L && eta < 0)) upper_u else lower_u
+  log_scale <- log_conditional_probability(maximum_u)
+  if (!is.finite(log_scale)) {
+    return(fail("integration_failure", "Conditional Bernoulli probability is numerically unresolved."))
+  }
+  integrand <- function(u) {
+    exp(log_conditional_probability(u) - log_scale)
+  }
+  probability_scale <- exp(log_scale)
+  quadrature_abs_tol <- integration_abs_tol / probability_scale
+  if (!is.finite(quadrature_abs_tol)) {
+    quadrature_abs_tol <- .Machine$double.xmax
+  }
+  # Do not let a probability-scale absolute tolerance become a loose scaled
+  # tolerance in a rare-event integral: relative accuracy remains load-bearing.
+  quadrature_abs_tol <- max(
+    .Machine$double.xmin,
+    min(quadrature_abs_tol, 1e-12)
+  )
+  integral <- tryCatch(stats::integrate(integrand, lower = lower_u,
+    upper = upper_u, subdivisions = 200L, rel.tol = 1e-9,
+    abs.tol = quadrature_abs_tol),
     error = function(e) e)
   if (inherits(integral, "error") || !is.finite(integral$value) ||
       !is.finite(integral$abs.error) || integral$value <= 0) {
     return(fail("integration_failure", if (inherits(integral, "error")) conditionMessage(integral) else NA_character_))
   }
-  if (integral$abs.error > max(
-    integration_abs_tol,
-    integration_rel_tol * integral$value
-  )) {
+  relative_integration_error <- integral$abs.error / integral$value
+  integration_error <- probability_scale * integral$abs.error
+  if (!is.finite(relative_integration_error) ||
+      relative_integration_error > integration_rel_tol) {
     return(fail("integration_error_exceeds_tolerance",
-      integration_error = integral$abs.error,
-      relative_integration_error = integral$abs.error / integral$value))
+      integration_error = integration_error,
+      relative_integration_error = relative_integration_error))
+  }
+  log_probability <- log_scale + log(integral$value)
+  probability <- exp(log_probability)
+  if (!is.finite(log_probability) || !is.finite(probability) || probability <= 0) {
+    return(fail("integration_failure", "Rectangle probability is numerically unresolved."))
   }
   midpoint <- (endpoints$lower + endpoints$upper) / 2
   branch <- if (midpoint <= 0) "lower" else if (midpoint >= 0) "upper" else "straddle"
-  list(probability = integral$value, log_probability = log(integral$value),
-    status = "ok", message = integral$message, integration_error = integral$abs.error,
-    relative_integration_error = integral$abs.error / integral$value,
+  list(probability = probability, log_probability = log_probability,
+    status = "ok", message = integral$message, integration_error = integration_error,
+    relative_integration_error = relative_integration_error,
     integration_rel_tol = integration_rel_tol, integration_abs_tol = integration_abs_tol,
     branch = branch, endpoints = endpoints)
 }
