@@ -3,7 +3,29 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-07-25, ARC B MERGED; ARC A1 VERIFIED — MARGINAL SIMULATION; NEXT = ARC C).**
+> **▶ ACTIVE LANE SPLIT — start here (2026-07-26). TWO independent lanes; read YOUR lane's handover.**
+> Shinichi split these on 2026-07-26 because they kept bleeding into each other
+> (brain **`D-87`**: the "one platform at a time per repo" rule was already written down and
+> was violated anyway on 2026-07-25/26 — **at orient, check `gh pr list` and recent
+> `origin/main` commits for the other lane's activity; nothing warns you**).
+>
+> | Lane | Subject | Current handover |
+> | --- | --- | --- |
+> | **A — ASSOCIATION** | bivariate `y1`/`y2` dependence, Arc 6, staged-eta, the private sandwich engine (#846, #844) | [`2026-07-25-codex-general-association-sandwich-handover.md`](docs/dev-log/handover/2026-07-25-codex-general-association-sandwich-handover.md) |
+> | **B — `sd()` SCALE & INTERVALS** | `sd(group) ~ x`, scale clamps, profile endpoints, RE coverage (#842/#843/#845/#848/#849, open #851) | [`2026-07-26-codex-handover.md`](docs/dev-log/handover/2026-07-26-codex-handover.md) |
+>
+> **Do not merge the lanes.** Association must not touch `sd()` clamps or Arc D; this lane
+> must not expose #846's engine through `vcov()`/`confint()`/profiles/docs.
+>
+> **Lane B status:** Arc B, A1, Arc C, A2 and the coverage campaign are all **MERGED**.
+> **Arc D is BLOCKED on Shinichi's written contract decision** — PR **#851** delivers D0+D1
+> and stops. Headline evidence: the pre-A1 bootstrap covered a nominal 95% random-effect-SD
+> interval **50.9%** of the time; the fix reaches **87.1%** — necessary, **not sufficient**,
+> so `confint(method = "bootstrap")` is **not** inference-ready for RE SDs
+> (`docs/design/246`). `mc-0017`'s profile sits **9.371** from the clamp band and the clamp is
+> exactly identity inside it, so **no certified cell is at risk from any Arc D design**.
+>
+> **▶ Prior (2026-07-25, ARC B MERGED; ARC A1 VERIFIED — MARGINAL SIMULATION; ARC C NOW DONE).**
 > **Arc B — the C++/numerical audit — is MERGED** (PR #842, `main` `12d971f1`): five standing
 > conformance suites (kernel oracle · FD-vs-AD gradient · score consistency · `CondExp`
 > branch continuity · link/boundary), **58 blocks, 516 assertions, zero skips**, full suite
