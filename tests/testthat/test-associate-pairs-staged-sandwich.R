@@ -134,6 +134,106 @@ test_that("staged rectangle score and every mixed derivative match an independen
   expect_gt(max(abs(production_derivatives$hessian[1L, 2:4])), 1e-5)
 })
 
+test_that("staged rectangle validated deterministic cases match the pinned numerical oracle", {
+  skip_if_not_installed("mvtnorm")
+  cases <- list(
+    zero = 0,
+    sign_negative = -0.35,
+    sign_positive = 0.35,
+    tail_positive = 4,
+    near_boundary_positive = 7
+  )
+  for (name in names(cases)) {
+    q <- c(a = cases[[name]], lambda_b = -0.35, xi_n = 0.5, tau_n = log(0.62))
+    production <- function(x) {
+      drmTMB:::drm_pair_sandwich_row_logprob(
+        binary_y = 1L,
+        nbinom2_y = 3L,
+        lambda_b = x[[2L]],
+        xi_n = x[[3L]],
+        tau_n = x[[4L]],
+        a = x[[1L]]
+      )
+    }
+    oracle <- function(x) {
+      staged_sandwich_oracle_logprob(
+        binary_y = 1L,
+        count_y = 3L,
+        lambda_b = x[[2L]],
+        xi_n = x[[3L]],
+        tau_n = x[[4L]],
+        a = x[[1L]]
+      )
+    }
+    production_derivatives <- drmTMB:::drm_pair_sandwich_stable_derivatives(
+      production,
+      q,
+      drmTMB:::drm_pair_sandwich_control()
+    )
+    expect_identical(production_derivatives$status, "ok", info = name)
+    expect_equal(production(q), oracle(q), tolerance = 1e-12, info = name)
+    expect_equal(
+      production_derivatives$gradient,
+      numDeriv::grad(oracle, q),
+      tolerance = 2e-3,
+      info = name
+    )
+    expect_equal(
+      production_derivatives$hessian,
+      numDeriv::hessian(oracle, q),
+      tolerance = 3e-3,
+      info = name
+    )
+  }
+})
+
+test_that("pinned numerical oracle blocks negative-tail validation without a false pass", {
+  skip_if_not_installed("mvtnorm")
+  make_case <- function(a) {
+    q <- c(a = a, lambda_b = -0.35, xi_n = 0.5, tau_n = log(0.62))
+    production <- function(x) {
+      drmTMB:::drm_pair_sandwich_row_logprob(
+        binary_y = 1L,
+        nbinom2_y = 3L,
+        lambda_b = x[[2L]],
+        xi_n = x[[3L]],
+        tau_n = x[[4L]],
+        a = x[[1L]]
+      )
+    }
+    oracle <- function(x) {
+      staged_sandwich_oracle_logprob(
+        binary_y = 1L,
+        count_y = 3L,
+        lambda_b = x[[2L]],
+        xi_n = x[[3L]],
+        tau_n = x[[4L]],
+        a = x[[1L]]
+      )
+    }
+    list(q = q, production = production, oracle = oracle)
+  }
+  tail <- make_case(-4)
+  tail_derivatives <- drmTMB:::drm_pair_sandwich_stable_derivatives(
+    tail$production,
+    tail$q,
+    drmTMB:::drm_pair_sandwich_control()
+  )
+  expect_identical(tail_derivatives$status, "ok")
+  expect_gt(abs(tail$production(tail$q) - tail$oracle(tail$q)), 1e-3)
+  expect_true(any(!is.finite(numDeriv::hessian(tail$oracle, tail$q))))
+
+  boundary <- make_case(-7)
+  boundary_derivatives <- drmTMB:::drm_pair_sandwich_stable_derivatives(
+    boundary$production,
+    boundary$q,
+    drmTMB:::drm_pair_sandwich_control()
+  )
+  expect_identical(boundary_derivatives$status, "unavailable")
+  expect_true(is.na(boundary$production(boundary$q)))
+  expect_identical(boundary$oracle(boundary$q), -Inf)
+})
+
 test_that("Bernoulli x NB2 adapter matches the original stacked-score assembly", {
   fixture <- staged_sandwich_fixture()
   result <- drmTMB:::drm_pair_staged_eta_sandwich(

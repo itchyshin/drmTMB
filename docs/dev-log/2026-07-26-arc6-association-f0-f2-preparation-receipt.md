@@ -7,6 +7,14 @@ that F1's full deterministic matrix has been executed or passed. It neither
 changes code nor authorizes F3, F4, F5, a capability claim, or public
 inference.
 
+> **F3 execution update (2026-07-26).** The locked F1 matrix was subsequently
+> implemented and run. Its validated zero, sign, positive-tail, and
+> positive-near-boundary rows passed, but the full matrix did **not** pass:
+> at `alpha = -4` the production kernel was finite/stable while the numerical
+> oracle disagreed and had a non-finite Hessian. F3 stopped before any smoke.
+> See `docs/dev-log/2026-07-26-arc6-f3-f1-tail-stop-receipt.md`; this original
+> F0–F2 status paragraph remains the pre-execution record.
+
 ## F0 — frozen method contract
 
 The estimand is the single staged association coefficient `alpha` on the
