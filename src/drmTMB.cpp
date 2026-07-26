@@ -2739,6 +2739,17 @@ Type objective_function<Type>::operator()()
   } else if (model_type == 10) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
+    // Arc B finding A5: this clamp MUST precede the mi() 2-point sum below. The
+    // mi() leaf evaluates the same response density as the main loop, so if the
+    // main loop sees clamped log_sigma while the leaf sees raw log_sigma, the
+    // two halves of one likelihood disagree about the dispersion. Every other
+    // mi()-capable family already clamps first (model_type 1 at :690, 7 at
+    // :3606); beta was the sole outlier, clamping only at the main loop.
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     // Missing-predictor mi() 2-point sum for a binary predictor (fixed-effect
     // slice, so this runs before any RE); response density via the shared leaf
     // carrying the dispersion log_sigma.
@@ -2885,10 +2896,11 @@ Type objective_function<Type>::operator()()
       mu(i) = beta_mu_eps +
         (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
     }
-    if (use_logsigma_clamp == 1) {
-      drm_softclamp_log_sigma(
-        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
-    }
+    // A5: the clamp now runs ONCE, at the top of this branch, before mi().
+    // It is deliberately NOT repeated here: drm_softclamp_log_sigma is exactly
+    // identity inside the band but saturating outside it, so applying it a
+    // second time would compress an already-clamped value again rather than
+    // acting as a no-op.
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
     vector<Type> alpha(y.size());
