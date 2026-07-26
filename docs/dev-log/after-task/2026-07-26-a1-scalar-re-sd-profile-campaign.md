@@ -70,9 +70,10 @@ changed.
 
 A launcher-manifest ordering repair led to a restart while the initial launcher
 was still alive. Two 100-worker launchers overlapped briefly, breaching the
-approved 100-worker cap. The eventual data table passes its internal integrity
-checks, but non-atomic overlapping shard paths mean strict protocol compliance
-cannot be claimed without Shinichi's ratification or a clean rerun.
+approved 100-worker cap. Shinichi ratified that table as diagnostic-only and
+authorised a clean `g = 10` rerun. The clean 100-worker locked run reproduced
+all non-runtime inference/status fields exactly across 1,000 matched seeds and
+records the installed package tarball hash.
 
 ## 10. Known Residuals
 
@@ -102,9 +103,7 @@ keeps those downstream surfaces out of scope.
 
 ## Next Actions
 
-Ask Shinichi to choose one of two explicit paths: ratify the contained cap
-breach as diagnostic-only evidence, or authorize a clean cap-compliant rerun
-before any further use of the full-campaign table. Either path leaves the
-profile-first recommendation withheld under Fisher's directional-miss fence;
-the next scientific work is a separately approved study of the remaining
-one-sided profile and bootstrap failures, not an Arc D implementation.
+Shinichi ratified the diagnostic table and the clean `g = 10` rerun completed.
+Profile-first remains withheld under Fisher's directional-miss fence. Any study
+of the remaining one-sided profile and bootstrap failures requires a fresh,
+separately approved plan; it is not an Arc D implementation.

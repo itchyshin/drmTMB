@@ -1,10 +1,10 @@
 # Fresh A1 profile-versus-bootstrap campaign protocol — completed, exception under review
 
 Status: the authorised full campaign completed and its row-level integrity
-checks pass. A transient duplicate-launch breach reached 200 workers before
-the older group was stopped, so strict protocol compliance awaits Shinichi's
-ratification or a clean rerun. Fisher's review also withholds a profile-first
-recommendation because of material directional misses.
+checks pass. Shinichi ratified its transient duplicate-launch breach as
+diagnostic-only, and a clean cap-compliant `g = 10` rerun reproduced the
+affected inference fields exactly. Fisher's review still withholds a
+profile-first recommendation because of material directional misses.
 
 ## Frozen estimand and design
 

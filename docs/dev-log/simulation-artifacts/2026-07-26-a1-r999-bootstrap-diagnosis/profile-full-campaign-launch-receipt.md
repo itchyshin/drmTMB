@@ -47,3 +47,12 @@ passes its row-level integrity checks, but neither this receipt nor its
 matching hashes can prove that every retained overlapping shard was written
 only by the surviving launcher. Shinichi must ratify this exception or approve
 a clean rerun before strict protocol compliance can be claimed.
+
+## Maintainer disposition
+
+On 2026-07-26, Shinichi ratified the contained overlap as **diagnostic-only**
+evidence and separately authorised a clean, lock-protected, at-most-100-worker
+rerun of the affected `g = 10` cell. The original table therefore remains an
+honest diagnostic record; the clean rerun is the strict provenance repair. This
+does not waive Fisher's independent directional-miss fence or promote profile
+intervals to a public/default route.

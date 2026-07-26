@@ -48,7 +48,8 @@ The one-attempt-per-cell Totoro smoke passed under Totoro's installed `drmTMB`
 marginal bootstrap (`R = 19`), and Wald returned valid scalar SD endpoints.
 The 3,000-attempt / `R = 999` campaign then completed and is reported in
 `profile-vs-bootstrap-report.md`. Its data table passes all-attempt integrity
-checks, but a transient duplicate launcher exceeded the approved worker cap;
-the result is therefore diagnostic evidence pending Shinichi's ratification or
-a clean rerun. Fisher also withheld a profile-first recommendation because the
-profile intervals retain material upper-tail miss asymmetry.
+checks. Shinichi ratified the transient duplicate-launch breach as
+diagnostic-only, and a clean, cap-compliant `g = 10` rerun reproduced its
+inference fields exactly; see `clean-g10-rerun-receipt.md`. Fisher nevertheless
+withheld a profile-first recommendation because the profile intervals retain
+material upper-tail miss asymmetry.

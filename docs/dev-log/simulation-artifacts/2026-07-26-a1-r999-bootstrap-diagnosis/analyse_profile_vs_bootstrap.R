@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Summarise the held full scalar-A1 profile-versus-bootstrap campaign. The
+# Summarise the completed full scalar-A1 profile-versus-bootstrap campaign. The
 # primary coverage estimand is all attempted outer fits: unavailable intervals
 # count as noncoverage while their frequency is reported separately.
 

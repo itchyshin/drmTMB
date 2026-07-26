@@ -29,6 +29,13 @@ only by that launcher. The two concurrent 100-worker launchers briefly
 violated the approved cap; Shinichi must ratify that exception or authorise a
 clean rerun before strict protocol compliance can be claimed.
 
+Shinichi subsequently ratified the original output as diagnostic-only and
+authorised a clean `g = 10` provenance rerun. That separate at-most-100-worker
+run completed with a manifest-recorded package tarball SHA-256 and reproduced
+every non-runtime inference/status field across all 1,000 matched seeds exactly.
+The `g = 10` result in this report is therefore independently cap-compliant;
+the original 3-cell table remains retained as the transparent diagnostic record.
+
 ## All-attempt calibration
 
 | Groups | Method | Coverage (95% exact CI) | Valid intervals | Lower / upper misses | Median width |

@@ -91743,3 +91743,8 @@ Shinichi grants a separate Gate A compute approval.
   Shinichi's ratification or a clean rerun. The recorded package commit is an
   environment label rather than a retained installed-tarball hash. Do not call
   this execution fully protocol-compliant.
+- Shinichi ratified the overlapping original table as diagnostic-only and
+  authorised a clean g=10 provenance rerun. That separate single-lock,
+  100-worker Totoro run completed 100 shards / 1,000 rows with zero matching
+  errors, a manifest-recorded package-tarball SHA-256, and exact agreement with
+  the retained g=10 output on every non-runtime inference/status field.
