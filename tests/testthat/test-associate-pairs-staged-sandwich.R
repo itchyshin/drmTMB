@@ -187,7 +187,7 @@ test_that("staged rectangle validated deterministic cases match the pinned numer
   }
 })
 
-test_that("pinned numerical oracle blocks negative-tail validation without a false pass", {
+test_that("repaired negative-tail point probability remains derivative-blocked", {
   skip_if_not_installed("mvtnorm")
   make_case <- function(a) {
     q <- c(a = a, lambda_b = -0.35, xi_n = 0.5, tau_n = log(0.62))
@@ -220,7 +220,7 @@ test_that("pinned numerical oracle blocks negative-tail validation without a fal
     drmTMB:::drm_pair_sandwich_control()
   )
   expect_identical(tail_derivatives$status, "ok")
-  expect_gt(abs(tail$production(tail$q) - tail$oracle(tail$q)), 1e-3)
+  expect_equal(tail$production(tail$q), tail$oracle(tail$q), tolerance = 1e-10)
   expect_true(any(!is.finite(numDeriv::hessian(tail$oracle, tail$q))))
 
   boundary <- make_case(-7)
