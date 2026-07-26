@@ -18,7 +18,6 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 FLEXIBLAS_NUM_THREADS=1 BLIS_NUM
 RUN_ROOT="${DRMTMB_B1_RUN_ROOT:?B1 run root under /project is required}"
 REPO="${DRMTMB_B1_REPO:?verified clean drmTMB clone is required}"
 SOURCE_SHA="${DRMTMB_B1_SOURCE_SHA:?frozen source SHA is required}"
-MANIFEST="${DRMTMB_B1_MANIFEST:?partition manifest is required}"
 SHARED_RLIB="${DRMTMB_B1_RLIB:?preflight R library is required}"
 BASE_RLIB="${DRMTMB_BASE_RLIB:-/project/def-snakagaw/snakagaw/R/x86_64-pc-linux-gnu-library/4.4}"
 export R_LIBS="$SHARED_RLIB:$BASE_RLIB"
@@ -41,6 +40,7 @@ fi
 [[ -f "$PREFLIGHT" ]] || { echo "Missing compute-node preflight receipt." >&2; exit 2; }
 grep -Fqx "$(printf 'source_sha\t%s' "$SOURCE_SHA")" "$PREFLIGHT" || { echo "Receipt/source mismatch." >&2; exit 2; }
 
+MANIFEST="${DRMTMB_B1_MANIFEST:?partition manifest is required}"
 TASK_INDEX="${SLURM_ARRAY_TASK_ID:?array task ID is required}"
 ROW=$(awk -F '\t' -v n="$TASK_INDEX" 'NR == n + 1 { print; exit }' "$MANIFEST")
 [[ -n "$ROW" ]] || { echo "No manifest row for task." >&2; exit 2; }
