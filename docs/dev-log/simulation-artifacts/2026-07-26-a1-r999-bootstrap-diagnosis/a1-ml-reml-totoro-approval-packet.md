@@ -36,6 +36,7 @@ turn that readiness evidence into compute authority.
 | --- | --- |
 | `a1_ml_reml_smoke.R` (proposed campaign runner) | `cb4ff4020be5ade71c500c5fb85a3dab190ec0ece3a53a318393306814010076` |
 | `analyse_a1_ml_reml_smoke.R` (merge checker) | `b84f717b276f17d5af3ebef7686417b6d3b11f995c84b2f38b98a988cbe456c2` |
+| `launch_a1_ml_reml_full.sh` (lock-protected launcher) | `8dafbc8c53054577742287fcf54efd3ce7cedff79f579324d81059aaf8720cd3` |
 | `a1_ml_reml_common.R` | `f23ee237b00c93f4b5ac20355679b86384278f051ee05dd4e980739eaf2f7178` |
 | `a1_ml_reml_oracle.R` | `557cfcab8edec40f9a0f1c3f0b2229369d50a5bcd99f71387013672a8fb9fafc` |
 | built `drmTMB_0.6.0.tar.gz` | `9fc6ad979ce0fcdffe83134e27352bb3af8efb4470c63ec4a5f303ffe731237c` |

@@ -91790,3 +91790,26 @@ Shinichi grants a separate Gate A compute approval.
 - The merger now validates the full scheduled 3-cell key grid before any
   all-attempt denominator is calculated, so a wholly missing shard cannot
   disappear from coverage or paired contrasts.
+
+## 2026-07-26: Scalar A1 ML-versus-REML Totoro attribution campaign
+
+- Shinichi authorised the paired 3,000-outer-attempt campaign.  Totoro ran
+  300 deterministic ten-attempt shards (1,000 paired ML/REML datasets per
+  cell) from `2026-07-26T20:19:42Z` to `20:19:59Z`, with the pinned tarball,
+  an atomic launcher lock, `xargs -P 100`, and single-threaded numerical
+  libraries.  The configured worker ceiling is enforced by that mechanism;
+  the run completed before a direct peak-worker poll, so no observed peak is
+  claimed.
+- The first launcher stopped before creating results because Totoro loaded an
+  old user-library package.  The corrected launcher uses `R_LIBS` and
+  `Rscript --vanilla`; a clean pinned-library three-cell smoke passed before
+  the successful run.  Final audit: 300 raw shards, 0 matching error logs,
+  full scheduled-key accounting, and no remaining campaign lock or workers.
+- By the frozen paired rule, REML materially reduced profile directional-miss
+  asymmetry at `g=10` (0.034, 95% bootstrap CI 0.023–0.046) and `g=25`
+  (0.021, 0.013–0.030), but not at `g=50` (0.016, 0.009–0.024).  All three
+  coverage changes favoured REML.  The raw-shard checksum manifest and final
+  analyser/decision sidecar are recorded in `a1-ml-reml-campaign-receipt.md`.
+- Fisher and Rose independently approved a diagnostic-only closeout.  No
+  public/default/capability claim, Arc D work, association work, or bootstrap
+  correction followed.
