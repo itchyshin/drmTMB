@@ -15,7 +15,6 @@ public interface was used.
 
 ## Reconciliation
 
-**Adaptive:** formatter-induced broad churn was immediately reverted.  
+**Adaptive:** formatter-induced broad churn was immediately reverted.
 **No drift:** the final patch is limited to the planned runner, test, and packet
 contract. A new SHA is required before any replacement F3 authorization.
-
