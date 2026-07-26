@@ -38,7 +38,9 @@ Rscript --vanilla tools/run-arc6-bernoulli-nbinom2-f3-provenance-smoke.R --expec
 
 No other argument, environment override, wrapper, seed override, start value,
 or output directory is permitted. The runner must reject a nonempty output
-directory. It must set `RNGkind("Mersenne-Twister", "Inversion", "Rejection")`
+directory. A relative `--out-dir` is interpreted from the drmTMB package root
+before it is compared to the frozen SHA-specific `attempt-001` path. It must
+set `RNGkind("Mersenne-Twister", "Inversion", "Rejection")`
 before `set.seed(2026072603L)` and record both the resulting `RNGkind()` and
 the generated `.Random.seed`; its frozen DGP is therefore not configurable.
 

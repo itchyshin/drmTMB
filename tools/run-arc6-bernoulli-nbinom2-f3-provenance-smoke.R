@@ -26,8 +26,12 @@ f3r_terminal_statuses <- list(
 
 f3r_abort <- function(message) stop(message, call. = FALSE)
 f3r_expected_out_dir <- function(root, sha) file.path(normalizePath(root), "docs", "dev-log", "smoke", paste0("2026-07-26-arc6-f3-", substr(sha, 1L, 12L)), "attempt-001")
+f3r_canonical_out_dir <- function(out_dir, root) {
+  if (!startsWith(out_dir, "/")) out_dir <- file.path(normalizePath(root), out_dir)
+  normalizePath(out_dir, mustWork = FALSE)
+}
 f3r_check_out_dir <- function(out_dir, root, sha) {
-  if (!identical(normalizePath(out_dir, mustWork = FALSE), f3r_expected_out_dir(root, sha))) f3r_abort("--out-dir must be the frozen F3R attempt-001 path for --expected-sha.")
+  if (!identical(f3r_canonical_out_dir(out_dir, root), f3r_expected_out_dir(root, sha))) f3r_abort("--out-dir must be the frozen F3R attempt-001 path for --expected-sha.")
   invisible(out_dir)
 }
 f3r_parse_args <- function(args = commandArgs(trailingOnly = TRUE)) {

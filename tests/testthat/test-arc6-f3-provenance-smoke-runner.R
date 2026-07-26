@@ -50,6 +50,8 @@ test_that("F3R rejects an output directory other than the frozen SHA-specific at
   root <- tempfile("f3r-root-"); dir.create(root)
   expected <- f3r_expected_out_dir(root, sha)
   expect_silent(f3r_check_out_dir(expected, root, sha))
+  relative <- file.path("docs", "dev-log", "smoke", paste0("2026-07-26-arc6-f3-", substr(sha, 1L, 12L)), "attempt-001")
+  expect_silent(f3r_check_out_dir(relative, root, sha))
   expect_error(f3r_check_out_dir(file.path(root, "attempt-002"), root, sha), "frozen F3R")
 })
 
