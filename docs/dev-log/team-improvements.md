@@ -695,3 +695,16 @@ scouting belongs to Jason).
 - Trigger: Arc 4c zero-one beta allocated exactly 15% labelled structural
   boundaries, but rare machine-exact `rbeta()` ones made the observed boundary
   mass slightly larger and predictor-dependent. D-43 caught the distinction.
+
+## 2026-07-26 - Bind A Distributed Replay To Its Canonical Campaign
+
+- Improvement implemented: a post-hoc campaign gate must compare every replay
+  shard against its original counterpart, bind the task/seed map to the
+  canonical manifest, and require a narrow, named exception for every permitted
+  difference. Retain an incremental source bundle whenever the remote execution
+  source is not a local Git commit.
+- Trigger: B1's task-41 replay correctly repaired multiline TSV serialization,
+  but a closeout review showed that the original runner did not itself prove
+  canonical-map equality or record a local source object for the remote source.
+  The final gate and bundle made that provenance auditable without concealing
+  the original failed serialization.

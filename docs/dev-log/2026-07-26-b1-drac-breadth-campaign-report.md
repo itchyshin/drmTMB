@@ -1,6 +1,7 @@
 # B1 DRAC breadth validation — campaign report and receipt
 
-**Status:** execution in progress; no capability, ledger, public, or default claim is authorized by this report.
+**Status:** execution-only campaign complete; independent review withholds all
+capability, ledger, public, default, recovery, and inference claims.
 
 ## Scope and boundaries
 
@@ -40,26 +41,42 @@ and fixture viability only; it is not a recovery, interval, or promotion
 verdict.  Raw local smoke files are retained outside git at
 `/tmp/b1-local-smoke-run/`.
 
-## DRAC receipt state
+## DRAC receipt state and execution result
 
 Fir was reachable through the existing authenticated ControlMaster. The
 campaign directory is isolated at
-`/project/def-snakagaw/snakagaw/drmTMB-b1-breadth-399cba13/`.  A standalone
-source checkout was materialized from a git bundle. The initial compute-node
-preflight `51289136` failed after three seconds because the preflight-only
-branch incorrectly required a task manifest; it ran neither compilation nor
-simulation. The corrected template was applied as a clean Fir-local patch
-series, recorded at source SHA `3ab4f88e8efdbb0c482c83c5855f3abdf5544ace`, and
-replacement preflight `51289296` is pending scheduler priority. It performs no
-simulation task. The preflight must certify that exact standalone source SHA,
-clean tree, R/TMB environment, and compiled package before the smoke array or
-full array is eligible for submission.
+`/project/def-snakagaw/snakagaw/drmTMB-b1-breadth-399cba13/`. Several
+contained preflight repairs were retained in job logs. The final
+preflight passed for source `061c2891cdc617113334d128425228f4b4145753`, a
+clean source tree, installed-DLL SHA
+`fe8af02215b4f96491dbe0b0675659f778e48fdf84635502782ae09e8d4abc03`, R 4.4.0,
+and TMB 1.9.21. A B1-local R-4.4 `ape` 5.8.1 install repaired four
+phylogenetic fixture routes without modifying the read-only dependency base.
+
+The final array used 960 single-CPU tasks (`51292149`) after a 16-shard
+benchmark observed 7--15 seconds and about 198--269 MB RSS per full-size task.
+All 960 tasks completed with exit code zero. The original full result root is
+retained. A multiline Beta error in task 41 was caught by the structural audit,
+then a repaired worker replayed only that task in a complete copied
+`full-replay` root. The final replay has 960 shards of ten rows each:
+9,600 attempts = 9,599 completed fits + one retained Beta response-boundary
+fit error. Aggregated raw and per-cell/rung evidence live at
+`/project/def-snakagaw/snakagaw/drmTMB-b1-breadth-399cba13/full-replay/summary/`.
+
+The exact Fir source is also banked locally as the incremental bundle
+`/private/tmp/b1-fir-061c2891.bundle` (SHA-256
+`96cf716801512b2cb24493e741fa32b137862e6a555b11e69e6badf306ae89ff`). It
+requires the recorded `origin/main` base `03e19ba54801bbc0d9aa611f81a66800fb77c062`
+and contains the final source tag `061c2891cdc617113334d128425228f4b4145753`.
 
 ## Next gate
 
-When the standalone checkout is clean at `399cba13`, submit exactly one
-compute-node preflight job.  Only after its receipt and the full B1 smoke
-aggregation are verified should the resource benchmark determine the live
-array throttle.  The subsequent full-array aggregator runs only after all
-expected shard rows are present; individual task failures remain retained
-evidence rather than being deleted or rerun silently.
+Independent inference review found no truth, bias, interval, coverage,
+comparator, or Monte Carlo uncertainty quantity in B1, so it withholds every
+recovery or inference claim. Systems review initially identified missing
+canonical-map and replay provenance checks. The final post-hoc gate passed:
+manifest SHA
+`08d92b25c03b58afbfe0281e9ab125c82f642cb812df430b7160bdeb5ac5b972`,
+9,600 bound rows, 960 task provenance files, and exactly one permitted replay
+difference—task 41's newline-normalization-only error serialization. The
+campaign is therefore closed as execution evidence only.
