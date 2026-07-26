@@ -245,6 +245,16 @@ the same `use_logsigma_clamp` switch, so one control governs every predicted
 log-scale. That keeps the existing "exactly identity inside the band" property, so
 well-posed fits are bit-unchanged.
 
+> **⚠ SUPERSEDED 2026-07-25 — this safeguard was implemented and then REVERTED.**
+> The paragraph above is left exactly as written because this is a dated primary
+> source, but **do not act on it.** Applying that clamp turned a genuinely
+> non-identified K=12 heterogeneity slope into a finite, vacuous profile interval
+> (`[-4.14, 27.79]`; widening the band to `c(-200, 200)` restored `profile_failed`)
+> — the endpoint became the bound rather than the data. It also undercounts: there
+> are **nine** such sites, not five. Read
+> `docs/design/245-f5-sd-regression-clamp-and-identifiability.md` before attempting
+> F5 again.
+
 ## F6 (PLAUSIBLE, low) — `mu = exp(eta_mu)`: four live sites, not eight
 
 The brief listed eight count/positive-family sites. Reading each, **only four feed

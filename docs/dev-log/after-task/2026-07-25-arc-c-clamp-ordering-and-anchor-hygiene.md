@@ -68,11 +68,23 @@ because clamped*. That is Arc D's question.
 
 ## 5. Verification
 
-- Full suite on the rebased tree: **39755 pass / 0 fail / 0 error / 125 skip**.
-- The negative control F5 broke: **47/47**, restored.
-- Arc B's own conformance suites unaffected: numeric-kernel oracle **376**, FD-vs-AD
-  gradient conformance **36**.
-- CI `ubuntu-latest (release)`: **pass, 31m55s**.
+**Every figure below names the commit it was measured on.** Omitting that is the defect
+this session hit three separate times, and it recurred here — the first draft of this
+section stated these numbers with no hash at all, and was caught at the completion gate.
+
+- **Local full suite — measured on the Arc C code tree, i.e. `a7caf7ab` (identical code
+  content to its pre-rebase commit `742a1c43`):** **39755 pass / 0 fail / 0 error /
+  125 skip**. `0209351d` changes only `AGENTS.md` and this report, so it does not move
+  these numbers; the code diff between `a7caf7ab` and `0209351d` is empty.
+- **The negative control F5 broke** (`test-phase18-meta-v-lss-runner.R`), same tree:
+  **47/47**, restored.
+- **Arc B's own conformance suites**, same tree: numeric-kernel oracle **376**, FD-vs-AD
+  gradient conformance **36** — unaffected.
+- **CI `ubuntu-latest (release)`:** **pass, 34m56s on the tip `0209351d`**
+  (run `30183930665`, `conclusion=success`, head sha matching the PR exactly). An earlier
+  green — pass, 31m55s, run `30181477078` — was on `7b50aec2`, i.e. **before** the banner
+  and this report existed; it is not evidence for the tip and is recorded here only so the
+  two runs are not confused.
 - The `+1` skip vs baseline is exactly the new test (`skip_on_cran()`); under
   `NOT_CRAN=true` it runs **9 assertions**.
 
