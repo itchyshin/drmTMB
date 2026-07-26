@@ -70,16 +70,17 @@ convention). Pass \code{re.form = NA} to simulate conditionally on the fitted
 random effects instead (holding every random effect fixed at its
 conditional-mode estimate, the behaviour this function had before
 \code{re.form} was added). Marginal simulation also redraws a single-endpoint
-(\code{q == 1}) phylogenetic, spatial, relatedness-matrix (\code{relmat}), or
-animal-model structured \code{mu} random effect from its fitted covariance
-\code{sd^2 * Q^-1}. It does not yet support a structured mu random effect
-correlated across more than one trait or distributional parameter
-(\code{q > 1}), \code{phylo_interaction} structured terms, correlated
-covariance-block random effects, predictor-dependent random-effect
-correlation (\code{corpair}) regression, or a modelled (heteroscedastic)
-random-effect scale; \code{simulate()} throws an informative error naming the
-unsupported structure for those models and directs the user to
-\code{re.form = NA}. Models without random effects are unaffected by \code{re.form}.
+(\code{q == 1}) phylogenetic, spatial, relatedness-matrix (\code{relmat}),
+animal-model, or \code{phylo_interaction} structured \code{mu} random effect from its
+fitted covariance \code{sd^2 * Q^-1}. It does not yet support a structured mu
+random effect correlated across more than one trait or distributional
+parameter (\code{q > 1}, including a multi-endpoint \code{phylo_interaction} term),
+correlated covariance-block random effects, predictor-dependent
+random-effect correlation (\code{corpair}) regression, or a modelled
+(heteroscedastic) random-effect scale; \code{simulate()} throws an informative
+error naming the unsupported structure for those models and directs the
+user to \code{re.form = NA}. Models without random effects are unaffected by
+\code{re.form}.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
