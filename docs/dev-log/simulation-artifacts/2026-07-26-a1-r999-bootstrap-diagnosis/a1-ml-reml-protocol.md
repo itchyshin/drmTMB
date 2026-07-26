@@ -25,15 +25,40 @@ paired failure, not removed from a contrast.
 Profile and Wald endpoints are recorded.  Wald calls specify
 `small_sample_df = "none"` and `bias_correct = "none"` in both arms.
 
-## Oracle gate
+## Oracle gate and symbolic alignment
 
-Before remote campaign preparation or compute, one deterministic fixture at each group count must
-match `lme4::lmer()` under both ML and REML.  Absolute random-effect SD and log
-likelihood deltas must not exceed `1e-5`; each profile endpoint delta must not
-exceed `max(0.01, 0.02 * lme4_interval_width)`.  A target mismatch, non-finite
-profile, or failed tolerance stops this protocol before campaign preparation.
-One local one-attempt-per-arm plumbing smoke may run before the oracle; it is
-not coverage evidence and cannot advance the compute path.
+For the fixed fixture, both implementations fit
+
+\[
+y = X\beta + Zu + \epsilon,\qquad
+u \sim N(0,\tau^2 I),\quad \epsilon \sim N(0,\sigma^2 I),
+\]
+
+with `X = [1, x]`, a random-intercept incidence matrix `Z`, and target
+\(\tau = \texttt{sd:mu:(1 | g)}\).  The ML reference profiles the ordinary
+Gaussian likelihood.  The REML endpoint reference profiles the restricted
+likelihood
+
+\[
+\ell_R(\tau,\sigma) = -\tfrac12\{\log|V| + \log|X^\top V^{-1}X|
++ y^\top P_Vy\}+C,
+\quad V=\tau^2ZZ^\top+\sigma^2I,
+\]
+
+where \(P_V=V^{-1}-V^{-1}X(X^\top V^{-1}X)^{-1}X^\top V^{-1}\).
+
+At every group count, `lme4::lmer()` must match the `drmTMB` ML and REML
+point estimate and log likelihood within `1e-5`.  `lme4`'s ordinary ML profile
+is the ML endpoint reference, with tolerance
+`max(0.01, 0.02 * lme4_interval_width)`.  In lme4 2.0.1 its REML `profile()`
+path reproduces the ML variance-component curve, so it is deliberately not a
+REML endpoint oracle.  The direct restricted-likelihood profile above is used
+for REML endpoint checks, with absolute endpoint tolerance `2e-4`.
+
+A target mismatch, non-finite profile, or failed tolerance stops this protocol
+before campaign preparation.  One local one-attempt-per-arm plumbing smoke may
+run only after this oracle passes; it is not coverage evidence and cannot
+advance the compute path.
 
 ## Future campaign interpretation
 

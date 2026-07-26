@@ -20,6 +20,12 @@ test_that("A1 ML-REML helpers retain exactly paired estimator outcomes", {
   expect_equal(unavailable$n_profile_unavailable[unavailable$estimator == "ML"], 1)
   expect_equal(unavailable$upper_miss_probability_all_attempts[unavailable$estimator == "ML"], 0)
   expect_error(a1_ml_reml_validate_pairs(x[-1, ]), "exactly one ML and one REML")
+  expected <- a1_ml_reml_expected_grid(2L)
+  expected <- expected[expected$cell_id == "g10_n10_sd05", ]
+  x_expected <- x
+  x_expected$seed <- expected$seed[match(x_expected$attempt_id, expected$attempt_id)]
+  expect_invisible(a1_ml_reml_validate_expected_grid(x_expected, expected))
+  expect_error(a1_ml_reml_validate_expected_grid(x_expected[x_expected$attempt_id != 2L, ], expected), "missing or unexpected")
   expect_true(a1_ml_reml_oracle_gate_pass(c("pass", "pass")))
   expect_false(a1_ml_reml_oracle_gate_pass(c("pass", "fail")))
 

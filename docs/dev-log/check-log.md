@@ -91768,3 +91768,25 @@ Shinichi grants a separate Gate A compute approval.
   `a1_ml_reml_oracle.R` exited non-zero at its intended fail-closed gate, with
   the complete six-row table, package versions, and script SHA-256 values
   retained in `a1-ml-reml-oracle-receipt.md`.
+
+## 2026-07-26: Scalar A1 ML-versus-REML endpoint oracle corrected and passed
+
+- The previous REML endpoint disagreement was traced to the comparator, not a
+  drmTMB likelihood mismatch: in the installed lme4 2.0.1, the REML
+  `profile()` path follows the ML variance-component curve.  ML endpoint checks
+  remain against lme4; REML endpoint checks now use the matched direct dense
+  restricted-likelihood profile.  No tolerance was reduced.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file
+  docs/dev-log/simulation-artifacts/2026-07-26-a1-r999-bootstrap-diagnosis/a1_ml_reml_oracle.R`
+  exited zero with all six ML/REML fixture rows passing.  lme4 ML/REML
+  log-likelihood and SD deltas were at most `8.7e-06`; direct REML endpoint
+  deltas were at most `1.5e-05` against a `2e-04` tolerance.
+- The six-arm local smoke was repeated after that gate, retaining all rows and
+  finite profiles.  It is plumbing evidence only.  Focused contracts passed
+  `19` expectations (`0` failures, warnings, or skips).  The prepare-only
+  Totoro packet records runner, helper, oracle, and built-tarball SHA-256
+  values and still requires fresh written compute approval; no job was
+  launched.
+- The merger now validates the full scheduled 3-cell key grid before any
+  all-attempt denominator is calculated, so a wholly missing shard cannot
+  disappear from coverage or paired contrasts.

@@ -14,7 +14,7 @@ cell under both estimators, then analysed the six retained rows:
 for cell in 1 2 3; do
   R_PROFILE_USER=/dev/null Rscript --no-init-file a1_ml_reml_smoke.R "$cell" 1 <temporary-output-root>
 done
-R_PROFILE_USER=/dev/null Rscript --no-init-file analyse_a1_ml_reml_smoke.R <temporary-output-root>
+R_PROFILE_USER=/dev/null Rscript --no-init-file analyse_a1_ml_reml_smoke.R <temporary-output-root> 1
 ```
 
 All six fits produced a valid finite profile row and retained one ML plus one
@@ -25,9 +25,8 @@ calibration.
 
 ## Oracle gate outcome
 
-The external lme4 oracle passed all ML fixture rows and the REML `g = 50` row.
-The REML profile endpoint comparisons failed at `g = 10` and `g = 25`, despite
-matching likelihoods and point estimates.  The largest upper-endpoint delta was
-0.0798 at `g = 10`, exceeding its 0.0112 tolerance.  Per the frozen protocol,
-this blocks a full campaign and requires a separate REML-profile geometry or
-oracle investigation before the packet can be approved.
+This smoke was re-run after the six-row oracle passed.  `lme4` validates
+drmTMB's ML endpoint profiles and ML/REML point-estimate/likelihood parity;
+the matched direct restricted-likelihood profile validates the REML endpoints.
+All six deterministic oracle rows pass.  The remaining full-campaign gate is
+written compute approval, not an unresolved local oracle discrepancy.

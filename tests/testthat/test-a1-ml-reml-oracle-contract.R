@@ -11,8 +11,11 @@ test_that("A1 ML-REML oracle covers every frozen estimator-cell fixture", {
   expect_equal(nrow(result), 6L)
   expect_identical(sort(unique(result$estimator)), c("ML", "REML"))
   expect_identical(sort(unique(result$cell_id)), c("g10_n10_sd05", "g25_n10_sd05", "g50_n10_sd05"))
-  # The script itself fails closed when an oracle row is not "pass".  This
-  # contract test protects fixture coverage and schema without re-pinning a
-  # presently failing numerical comparison as an accepted negative control.
-  expect_true(all(result$oracle_status %in% c("pass", "fail", "fit_error")))
+  expect_true(all(result$oracle_status == "pass"))
+  expect_identical(
+    result$endpoint_reference[result$estimator == "REML"],
+    rep("direct_reml", 3L)
+  )
+  expect_true(all(result$lme4_reml_profile_incompatible[result$estimator == "REML"]))
+  expect_true(all(result$lme4_reml_profile_ml_endpoint_delta[result$estimator == "REML"] <= 1e-8))
 })

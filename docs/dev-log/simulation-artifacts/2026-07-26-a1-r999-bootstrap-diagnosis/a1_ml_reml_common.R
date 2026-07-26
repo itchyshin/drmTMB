@@ -62,11 +62,47 @@ a1_ml_reml_interval_row <- function(ci, target, truth, method) {
 a1_ml_reml_validate_pairs <- function(x) {
   required <- c("cell_id", "seed", "attempt_id", "estimator")
   if (!all(required %in% names(x))) stop("Missing paired-estimator key columns.", call. = FALSE)
+  if (!nrow(x) || anyNA(x[required]) || any(x$cell_id == "") || any(x$estimator == "")) {
+    stop("Paired-estimator keys must be non-missing and non-empty.", call. = FALSE)
+  }
   if (anyDuplicated(x[required])) stop("Duplicate paired-estimator rows are not allowed.", call. = FALSE)
   keys <- interaction(x$cell_id, x$seed, x$attempt_id, drop = TRUE)
   arms <- split(as.character(x$estimator), keys)
   if (!all(vapply(arms, function(one) identical(sort(one), c("ML", "REML")), logical(1)))) {
     stop("Every paired dataset must retain exactly one ML and one REML row.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+a1_ml_reml_expected_grid <- function(n_attempts) {
+  if (length(n_attempts) != 1L || is.na(n_attempts) || n_attempts < 1L || n_attempts != as.integer(n_attempts)) {
+    stop("n_attempts must be one positive integer.", call. = FALSE)
+  }
+  cells <- a1_ml_reml_cells()
+  do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {
+    attempt_id <- seq_len(as.integer(n_attempts))
+    data.frame(
+      cell_id = cells$cell_id[[i]],
+      seed = 20260728L + 100000L * cells$cell_index[[i]] + attempt_id,
+      attempt_id = attempt_id,
+      stringsAsFactors = FALSE
+    )
+  }))
+}
+
+a1_ml_reml_validate_expected_grid <- function(x, expected) {
+  a1_ml_reml_validate_pairs(x)
+  needed <- c("cell_id", "seed", "attempt_id")
+  if (!is.data.frame(expected) || !all(needed %in% names(expected)) || !nrow(expected) ||
+      anyNA(expected[needed]) || anyDuplicated(expected[needed])) {
+    stop("Expected attempt grid is malformed.", call. = FALSE)
+  }
+  observed <- unique(x[needed])
+  make_key <- function(one) do.call(paste, c(one[needed], sep = "\r"))
+  expected_key <- make_key(expected)
+  observed_key <- make_key(observed)
+  if (length(setdiff(expected_key, observed_key)) || length(setdiff(observed_key, expected_key))) {
+    stop("Observed attempt grid has missing or unexpected keys.", call. = FALSE)
   }
   invisible(TRUE)
 }
