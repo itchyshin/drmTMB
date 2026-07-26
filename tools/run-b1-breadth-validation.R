@@ -127,7 +127,8 @@ b1_one_attempt <- function(task, replicate, seed) {
     row
   }, error = function(e) {
     row$attempt_status <- "fit_error"
-    row$attempt_error <- conditionMessage(e)
+    # TSV is the retained attempt format: errors must remain one physical row.
+    row$attempt_error <- gsub("[\r\n\t]+", " ", conditionMessage(e))
     row
   })
   result$elapsed_seconds <- proc.time()[["elapsed"]] - started
