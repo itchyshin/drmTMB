@@ -31,6 +31,36 @@ not license public exposure now: a reusable architecture and deterministic
 derivative checks are necessary but not sufficient evidence for a standard error
 or interval.
 
+## What “complete Arc 6 association” can honestly mean
+
+Arc 6 is an umbrella two-response programme, so it cannot honestly be marked
+complete merely because all currently admitted source routes compile. There are
+three different finish lines:
+
+| Finish line | Status now | What remains |
+| --- | --- | --- |
+| **Association development foundation** — five fixed-effect, complete-pair latent-normal `eta` classes share a private router, pair-specific oracle tests, and integration fences | **Built** | Maintain regression coverage; this is not inference validation. |
+| **First public association-inference route (v1)** — one explicitly named pair has validated uncertainty and a fail-closed public API | **Not started** | Complete F0–F5 below for Bernoulli × ordinary-NB2 intercept-only. |
+| **All five admitted pairs public for inference** — every pair earns its own recovery and interval-calibration evidence | **Not started** | Four additional pair-specific evidence programmes; Bernoulli × Bernoulli first needs a fresh response-geometry/recovery decision because its retained campaign is HOLD. |
+
+The recommended completion target for the current association sub-arc is the
+second row: a single, well-validated public Bernoulli × ordinary-NB2
+intercept-only route, plus an explicit private/deferred status for every other
+pair. Calling the full Arc 6 umbrella complete would additionally require
+separate decisions for direct/exact special models, future family classes, and
+their evidence; that is deliberately not an automatic backlog.
+
+### Current association inventory
+
+| Pair / route | Source and oracle state | Recovery / inference state | Arc 6 association action |
+| --- | --- | --- | --- |
+| Gaussian × Bernoulli | Post-fit `eta` route, independent oracle, integration coverage | Regression smoke only; no recovery or inference claim | Keep private until a later pair-specific admission. |
+| Gaussian × NB2 | Post-fit `eta` route, tail-safe oracle, integration coverage | Point-estimate smoke only | Keep private until a later continuous–count admission. |
+| Bernoulli × Bernoulli | Post-fit rectangle route and oracle landed | Retained recovery **HOLD** at one interior asymmetric-prevalence cell; no inference | Do not promote or rerun; require a fresh geometry/recovery design before further work. |
+| Bernoulli × NB2 | Post-fit rectangle route, private sandwich reference, one private slope diagnostic | No recovery or interval calibration | **Current candidate v1 public route**, intercept-only first. |
+| NB2 × NB2 | Post-fit rectangle route, tail oracle, private sandwich adapter | Source tests only; no recovery or inference | Keep private until its own discrete–discrete admission. |
+| Exact `biv_lognormal()` / `biv_student()` | Separate exact `rho12` models | Their evidence does not transfer to staged `eta` | Retain as distinct models, not association evidence. |
+
 ## What already exists
 
 - PR #844, merged as `6a19dd27`, supplied the private Bernoulli × ordinary-NB2
