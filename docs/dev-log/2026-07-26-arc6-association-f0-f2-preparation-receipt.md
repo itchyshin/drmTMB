@@ -1,19 +1,17 @@
 # Arc 6 association F0–F2 preparation receipt
 
-**Status:** planning evidence only (2026-07-26). This receipt records the
-F0–F2 preparation for one candidate only: fixed-effect ML, complete-pair,
-literal Bernoulli × ordinary-NB2, `association = ~ 1`. It does **not** claim
-that F1's full deterministic matrix has been executed or passed. It neither
-changes code nor authorizes F3, F4, F5, a capability claim, or public
-inference.
+**Status:** F0–F2 planning evidence only (2026-07-26). This receipt records
+the preparation for one candidate only: fixed-effect ML, complete-pair,
+literal Bernoulli × ordinary-NB2, `association = ~ 1`. It neither authorizes
+F3, F4, F5, a capability claim, nor public inference.
 
-> **F3 execution update (2026-07-26).** The locked F1 matrix was subsequently
-> implemented and run. Its validated zero, sign, positive-tail, and
-> positive-near-boundary rows passed, but the full matrix did **not** pass:
-> at `alpha = -4` the production kernel was finite/stable while the numerical
-> oracle disagreed and had a non-finite Hessian. F3 stopped before any smoke.
-> See `docs/dev-log/2026-07-26-arc6-f3-f1-tail-stop-receipt.md`; this original
-> F0–F2 status paragraph remains the pre-execution record.
+> **Later deterministic update (2026-07-26).** The initial F1D `alpha = -4`
+> stop was retained as negative evidence. The subsequent independent-oracle
+> F1E/F1M work repaired the private tail orientation and completed the full
+> deterministic matrix as `F1_PASS`; see
+> `docs/dev-log/2026-07-26-arc6-f1m-deterministic-qualification-receipt.md`.
+> No F3 smoke has run. This original F0–F2 receipt remains the preparation
+> record, while the F1M receipt is the authoritative deterministic disposition.
 
 ## F0 — frozen method contract
 
@@ -216,11 +214,10 @@ No novelty or finite-sample-validity claim follows from this review.
 **F3 requires Shinichi's fresh written approval of all of the following:** the
 SHA-pinned F0 contract; Noether's equation/derivative-order review; Fisher's
 approval of this estimand, comparator, and failure taxonomy; Rose's agreement
-that all public methods and claims remain unavailable; permission to implement
-and execute the locked F1 fixture matrix, which must pass; and only then a
-one-cell, all-attempt local full-refit smoke protocol that names its
-data-generating parameters, seed policy, status schema, stopping rule, and
-retained output.
+that all public methods and claims remain unavailable; the completed F1M
+deterministic receipt; and a one-cell, all-attempt local full-refit smoke
+protocol that names its data-generating parameters, seed policy, status schema,
+stopping rule, and retained output.
 
 That approval authorizes only F3's local smoke. It does **not** authorize F4
 simulation, bootstrap calibration, Totoro/DRAC work, a ledger change, or public

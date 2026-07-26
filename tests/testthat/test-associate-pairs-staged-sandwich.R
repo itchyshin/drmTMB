@@ -341,6 +341,115 @@ staged_sandwich_f1e_endpoint_derivatives <- function(y, q) {
   list(value = value, gradient = gradient, hessian = hessian, finite = TRUE)
 }
 
+# For the zero-count NB2 cell the latent lower endpoint is exactly -Inf.  The
+# independent oracle therefore changes integration variable to the bounded NB2
+# CDF scale, u = Phi(z), rather than replacing -Inf by a finite truncation.
+staged_sandwich_f1e_cdf_bound_derivatives <- function(y, q) {
+  if (y < 0L) {
+    return(list(
+      value = 0, gradient = rep(0, 4L), hessian = matrix(0, 4L, 4L)
+    ))
+  }
+  cdf <- staged_sandwich_f1e_nbinom2_cdf_derivatives(y, q[[3L]], q[[4L]])
+  if (is.null(cdf) || !is.finite(cdf$value) || cdf$value <= 0 || cdf$value >= 1) {
+    return(NULL)
+  }
+  gradient <- rep(0, 4L)
+  gradient[3:4] <- cdf$gradient
+  hessian <- matrix(0, 4L, 4L)
+  hessian[3:4, 3:4] <- cdf$hessian
+  list(value = cdf$value, gradient = gradient, hessian = hessian)
+}
+
+staged_sandwich_f1e_cdf_integrand <- function(u, q, binary_y) {
+  z <- stats::qnorm(u)
+  eta <- 0.999999 * tanh(q[[1L]])
+  eta_a <- 0.999999 / cosh(q[[1L]])^2
+  eta_aa <- -2 * eta_a * tanh(q[[1L]])
+  p <- stats::plogis(q[[2L]])
+  upper_p <- 1 - p
+  threshold <- stats::qnorm(upper_p)
+  threshold_lambda <- -p * upper_p / stats::dnorm(threshold)
+  threshold_lambdalambda <- p * upper_p * (p - upper_p) /
+    stats::dnorm(threshold) + threshold * threshold_lambda^2
+  s <- sqrt(1 - eta^2)
+  sign <- if (binary_y == 1L) 1 else -1
+  h_eta <- (z - eta * threshold) / s^3
+  h_etaeta <- -threshold / s^3 + 3 * eta * (z - eta * threshold) / s^5
+  h_t <- -1 / s
+  h_et <- -eta / s^3
+  w <- sign * (eta * z - threshold) / s
+  w_a <- sign * h_eta * eta_a
+  w_lambda <- sign * h_t * threshold_lambda
+  w_aa <- sign * (h_etaeta * eta_a^2 + h_eta * eta_aa)
+  w_alambda <- sign * h_et * eta_a * threshold_lambda
+  w_lambdalambda <- sign * h_t * threshold_lambdalambda
+  value <- stats::pnorm(w)
+  density_w <- stats::dnorm(w)
+  gradient <- c(density_w * w_a, density_w * w_lambda, 0, 0)
+  hessian <- matrix(0, 4L, 4L)
+  hessian[1L, 1L] <- density_w * (w_aa - w * w_a^2)
+  hessian[1L, 2L] <- hessian[2L, 1L] <- density_w * (w_alambda - w * w_a * w_lambda)
+  hessian[2L, 2L] <- density_w * (w_lambdalambda - w * w_lambda^2)
+  list(
+    value = value,
+    gradient = gradient,
+    hessian = hessian,
+    u_derivative = density_w * sign * eta / (s * stats::dnorm(z))
+  )
+}
+
+staged_sandwich_f1e_zero_count_derivatives <- function(q, binary_y, nodes) {
+  lower <- staged_sandwich_f1e_cdf_bound_derivatives(-1L, q)
+  upper <- staged_sandwich_f1e_cdf_bound_derivatives(0L, q)
+  if (is.null(lower) || is.null(upper) || lower$value >= upper$value) {
+    return(list(status = "endpoint_oracle_unresolved"))
+  }
+  # u = U * t^2 regularizes the integrable qnorm(u) endpoint singularity at
+  # u = 0.  This changes quadrature nodes only; all derivatives remain the
+  # analytic Leibniz derivatives on the original CDF scale.
+  t <- (nodes$nodes + 1) / 2
+  weights <- nodes$weights / 2
+  u <- upper$value * t^2
+  at_nodes <- lapply(u, staged_sandwich_f1e_cdf_integrand,
+    q = q, binary_y = binary_y
+  )
+  integrate_component <- function(extract) {
+    sum(
+      weights * 2 * upper$value * t *
+        vapply(at_nodes, extract, numeric(1))
+    )
+  }
+  integral <- integrate_component(function(x) x$value)
+  integral_gradient <- vapply(seq_len(4L), function(j) {
+    integrate_component(function(x) x$gradient[[j]])
+  }, numeric(1))
+  integral_hessian <- outer(seq_len(4L), seq_len(4L), Vectorize(function(j, k) {
+    integrate_component(function(x) x$hessian[j, k])
+  }))
+  f_lower <- NULL
+  f_upper <- staged_sandwich_f1e_cdf_integrand(upper$value, q, binary_y)
+  gradient <- f_upper$value * upper$gradient + integral_gradient
+  hessian <- integral_hessian
+  for (j in seq_len(4L)) for (k in seq_len(4L)) {
+    hessian[j, k] <- hessian[j, k] +
+      f_upper$value * upper$hessian[j, k] +
+      (f_upper$u_derivative * upper$gradient[[k]] + f_upper$gradient[[k]]) * upper$gradient[[j]] +
+      f_upper$gradient[[j]] * upper$gradient[[k]]
+  }
+  if (!is.finite(integral) || integral <= 0 || any(!is.finite(gradient)) ||
+      any(!is.finite(hessian))) {
+    return(list(status = "independent_derivative_unresolved"))
+  }
+  list(
+    status = "ok",
+    point = log(integral),
+    gradient = gradient / integral,
+    hessian = hessian / integral - tcrossprod(gradient) / integral^2,
+    endpoints = list(lower = lower, upper = upper)
+  )
+}
+
 staged_sandwich_f1e_integrand <- function(z, q, binary_y, log_scale) {
   eta <- 0.999999 * tanh(q[[1L]])
   eta_a <- 0.999999 / cosh(q[[1L]])^2
@@ -384,6 +493,9 @@ staged_sandwich_f1e_integrand <- function(z, q, binary_y, log_scale) {
 }
 
 staged_sandwich_f1e_analytic_derivatives <- function(q, binary_y, count_y, nodes) {
+  if (identical(count_y, 0L)) {
+    return(staged_sandwich_f1e_zero_count_derivatives(q, binary_y, nodes))
+  }
   lower <- staged_sandwich_f1e_endpoint_derivatives(count_y - 1L, q)
   upper <- staged_sandwich_f1e_endpoint_derivatives(count_y, q)
   if (is.null(lower) || is.null(upper) || !lower$finite || !upper$finite ||
@@ -509,6 +621,101 @@ staged_sandwich_f1e_status <- function(
   if (identical(independent, "unstable")) return("independent_step_unstable")
   if (!routes_agree) return("independent_route_disagreement")
   "F1E_READY_FOR_FRESH_F1_REVIEW"
+}
+
+staged_sandwich_f1m_status <- function(
+  protocol_ok = TRUE,
+  fixture_results = list()
+) {
+  if (!protocol_ok) return("protocol_or_input_mismatch")
+  required <- c(
+    "interior", "zero_b0_y0", "zero_b1_y0", "zero_b0_y3", "zero_b1_y3",
+    "sign_negative", "sign_positive", "tail_negative", "tail_positive",
+    "swap", "near_boundary_negative", "near_boundary_positive", "structural"
+  )
+  if (!setequal(names(fixture_results), required)) return("missing_fixture_evidence")
+  if (!identical(fixture_results[["near_boundary_negative"]], "expected_unavailable_control")) {
+    return("unexpected_boundary_disposition")
+  }
+  finite_required <- setdiff(required, c("near_boundary_negative", "structural"))
+  finite_status <- unname(unlist(fixture_results[finite_required]))
+  if (any(finite_status == "production_nonfinite_derivative")) return("production_nonfinite_derivative")
+  if (any(finite_status == "production_step_unstable")) return("production_step_unstable")
+  if (any(finite_status == "endpoint_oracle_unresolved")) return("endpoint_oracle_unresolved")
+  if (any(finite_status == "independent_derivative_unresolved")) return("independent_derivative_unresolved")
+  if (any(finite_status == "independent_step_unstable")) return("independent_step_unstable")
+  if (any(finite_status == "independent_route_disagreement")) return("independent_route_disagreement")
+  if (any(finite_status == "point_oracle_mismatch")) return("point_oracle_mismatch")
+  if (!all(finite_status == "finite_validated")) return("row_kernel_or_derivative_failure")
+  if (!identical(fixture_results[["structural"]], "fail_closed_preserved")) {
+    return("structural_failure_regression")
+  }
+  "F1_deterministic_gate_passed"
+}
+
+staged_sandwich_f1m_finite_case <- function(
+  a, binary_y, count_y, require_pinned_oracle = FALSE
+) {
+  q <- c(a = a, lambda_b = -0.35, xi_n = 0.5, tau_n = log(0.62))
+  production <- function(x) {
+    drmTMB:::drm_pair_sandwich_row_logprob(
+      binary_y = binary_y, nbinom2_y = count_y,
+      lambda_b = x[[2L]], xi_n = x[[3L]], tau_n = x[[4L]], a = x[[1L]]
+    )
+  }
+  production_derivatives <- drmTMB:::drm_pair_sandwich_stable_derivatives(
+    production, q, drmTMB:::drm_pair_sandwich_control()
+  )
+  analytic <- staged_sandwich_f1e_node_ladder(q, binary_y, count_y)
+  oracle <- staged_sandwich_oracle_rectangle(
+    binary_y = binary_y, count_y = count_y,
+    lambda_b = q[[2L]], xi_n = q[[3L]], tau_n = q[[4L]], a = q[[1L]]
+  )
+  routes_agree <- FALSE
+  if (identical(production_derivatives$status, "ok") && identical(analytic$status, "ok")) {
+    gradient_tolerance <- 1e-6 + 2e-3 * pmax(
+      1, abs(analytic$gradient), abs(production_derivatives$gradient)
+    )
+    hessian_tolerance <- 1e-6 + 3e-3 * pmax(
+      1, abs(analytic$hessian), abs(production_derivatives$hessian)
+    )
+    routes_agree <- isTRUE(all(abs(
+      analytic$gradient - production_derivatives$gradient
+    ) <= gradient_tolerance)) && isTRUE(all(abs(
+      analytic$hessian - production_derivatives$hessian
+    ) <= hessian_tolerance))
+  }
+  point_agrees <- identical(analytic$status, "ok") &&
+    isTRUE(all.equal(production(q), analytic$point, tolerance = 1e-10))
+  if (require_pinned_oracle) {
+    point_agrees <- point_agrees && is.finite(oracle$log_probability) &&
+      is.finite(oracle$integration_error) && oracle$integration_error <= 1e-12 &&
+      identical(oracle$message, "Normal Completion") &&
+      isTRUE(all.equal(analytic$point, oracle$log_probability, tolerance = 1e-10))
+  }
+  status <- if (identical(production_derivatives$reason, "nonfinite_derivative")) {
+    "production_nonfinite_derivative"
+  } else if (!identical(production_derivatives$status, "ok")) {
+    "production_step_unstable"
+  } else if (identical(analytic$status, "endpoint_oracle_unresolved")) {
+    "endpoint_oracle_unresolved"
+  } else if (identical(analytic$status, "independent_derivative_unresolved")) {
+    "independent_derivative_unresolved"
+  } else if (identical(analytic$status, "independent_step_unstable")) {
+    "independent_step_unstable"
+  } else if (!routes_agree) {
+    "independent_route_disagreement"
+  } else if (!point_agrees) {
+    "point_oracle_mismatch"
+  } else {
+    "finite_validated"
+  }
+  list(
+    status = status,
+    q = q, production = production, production_derivatives = production_derivatives,
+    analytic = analytic, oracle = oracle, routes_agree = routes_agree,
+    point_agrees = point_agrees
+  )
 }
 
 test_that("analytic staged-margin scores and bread agree with numerical derivatives", {
@@ -921,6 +1128,136 @@ test_that("F1E status taxonomy is exhaustive and fail closed", {
   expect_identical(staged_sandwich_f1e_status(independent = "unstable"), "independent_step_unstable")
   expect_identical(staged_sandwich_f1e_status(routes_agree = FALSE), "independent_route_disagreement")
   expect_identical(staged_sandwich_f1e_status(), "F1E_READY_FOR_FRESH_F1_REVIEW")
+})
+
+test_that("F1M completes the locked deterministic Bernoulli x NB2 matrix", {
+  skip_if_not_installed("mvtnorm")
+  expect_true(requireNamespace("statmod", quietly = TRUE))
+  cases <- list(
+    interior = list(0.22, 1L, 3L),
+    zero_b0_y0 = list(0, 0L, 0L),
+    zero_b1_y0 = list(0, 1L, 0L),
+    zero_b0_y3 = list(0, 0L, 3L),
+    zero_b1_y3 = list(0, 1L, 3L),
+    sign_negative = list(-0.35, 1L, 3L),
+    sign_positive = list(0.35, 1L, 3L),
+    tail_negative = list(-4, 1L, 3L, require_pinned_oracle = TRUE),
+    tail_positive = list(4, 0L, 3L),
+    near_boundary_positive = list(7, 1L, 3L)
+  )
+  results <- lapply(cases, function(spec) do.call(staged_sandwich_f1m_finite_case, spec))
+  for (name in names(results)) {
+    result <- results[[name]]
+    expect_identical(result$status, "finite_validated", info = name)
+    expect_true(result$routes_agree, info = name)
+    expect_true(result$point_agrees, info = name)
+  }
+
+  # Caller order is (NB2 mu, NB2 sigma, Bernoulli, association), whereas the
+  # private row kernel is canonical (association, Bernoulli, NB2 mu, NB2 sigma).
+  canonical <- results[["interior"]]
+  reverse_to_canonical <- c(4L, 3L, 1L, 2L)
+  reverse_q <- canonical$q[c(3L, 4L, 2L, 1L)]
+  reverse_production <- function(x) {
+    q <- x[reverse_to_canonical]
+    drmTMB:::drm_pair_sandwich_row_logprob(
+      binary_y = 1L, nbinom2_y = 3L,
+      lambda_b = q[[2L]], xi_n = q[[3L]], tau_n = q[[4L]], a = q[[1L]]
+    )
+  }
+  reverse_production_derivatives <- drmTMB:::drm_pair_sandwich_stable_derivatives(
+    reverse_production, reverse_q, drmTMB:::drm_pair_sandwich_control()
+  )
+  permutation <- diag(4L)[reverse_to_canonical, , drop = FALSE]
+  reverse_gradient <- t(permutation) %*% canonical$analytic$gradient
+  reverse_hessian <- t(permutation) %*% canonical$analytic$hessian %*% permutation
+  expect_identical(reverse_production_derivatives$status, "ok")
+  expect_equal(reverse_production(reverse_q), canonical$analytic$point, tolerance = 1e-10)
+  expect_equal(as.vector(reverse_production_derivatives$gradient), as.vector(reverse_gradient), tolerance = 2e-3)
+  expect_equal(reverse_production_derivatives$hessian, reverse_hessian, tolerance = 3e-3)
+  swap_status <- if (identical(reverse_production_derivatives$reason, "nonfinite_derivative")) {
+    "production_nonfinite_derivative"
+  } else if (!identical(reverse_production_derivatives$status, "ok")) {
+    "production_step_unstable"
+  } else if (!isTRUE(all.equal(
+    reverse_production(reverse_q), canonical$analytic$point, tolerance = 1e-10
+  ))) {
+    "point_oracle_mismatch"
+  } else if (!isTRUE(all.equal(
+    as.vector(reverse_production_derivatives$gradient), as.vector(reverse_gradient), tolerance = 2e-3
+  )) || !isTRUE(all.equal(
+    reverse_production_derivatives$hessian, reverse_hessian, tolerance = 3e-3
+  ))) {
+    "independent_route_disagreement"
+  } else {
+    "finite_validated"
+  }
+
+  boundary_q <- c(a = -7, lambda_b = -0.35, xi_n = 0.5, tau_n = log(0.62))
+  boundary_production <- function(x) {
+    drmTMB:::drm_pair_sandwich_row_logprob(1L, 3L, x[[2L]], x[[3L]], x[[4L]], x[[1L]])
+  }
+  boundary_derivatives <- drmTMB:::drm_pair_sandwich_stable_derivatives(
+    boundary_production, boundary_q, drmTMB:::drm_pair_sandwich_control()
+  )
+  boundary_oracle <- staged_sandwich_oracle_logprob(1L, 3L,
+    boundary_q[[2L]], boundary_q[[3L]], boundary_q[[4L]], boundary_q[[1L]]
+  )
+  expect_identical(boundary_derivatives$status, "unavailable")
+  expect_true(is.na(boundary_production(boundary_q)))
+  expect_identical(boundary_oracle, -Inf)
+
+  bad_q <- c(a = 0.22, lambda_b = -0.35, xi_n = 1000, tau_n = log(0.62))
+  structural <- staged_sandwich_f1e_node_ladder(bad_q, 1L, 3L)
+  expect_identical(structural$status, "endpoint_oracle_unresolved")
+
+  fixture_results <- c(
+    vapply(results[c(
+      "interior", "zero_b0_y0", "zero_b1_y0", "zero_b0_y3", "zero_b1_y3",
+      "sign_negative", "sign_positive", "tail_negative", "tail_positive",
+      "near_boundary_positive"
+    )], `[[`, character(1), "status"),
+    swap = swap_status,
+    near_boundary_negative = "expected_unavailable_control",
+    structural = "fail_closed_preserved"
+  )
+  expect_identical(
+    staged_sandwich_f1m_status(fixture_results = as.list(fixture_results)),
+    "F1_deterministic_gate_passed"
+  )
+})
+
+test_that("F1M aggregation retains fixture failure taxonomy", {
+  observed_nonfinite <- staged_sandwich_f1m_finite_case(-7, 1L, 3L)
+  expect_identical(observed_nonfinite$production_derivatives$status, "unavailable")
+  expect_identical(observed_nonfinite$production_derivatives$reason, "nonfinite_derivative")
+  expect_identical(observed_nonfinite$status, "production_nonfinite_derivative")
+  complete <- as.list(setNames(rep("finite_validated", 13L), c(
+    "interior", "zero_b0_y0", "zero_b1_y0", "zero_b0_y3", "zero_b1_y3",
+    "sign_negative", "sign_positive", "tail_negative", "tail_positive",
+    "swap", "near_boundary_positive", "near_boundary_negative", "structural"
+  )))
+  complete[["near_boundary_negative"]] <- "expected_unavailable_control"
+  complete[["structural"]] <- "fail_closed_preserved"
+  expect_identical(staged_sandwich_f1m_status(fixture_results = complete), "F1_deterministic_gate_passed")
+  for (status in c(
+    "production_nonfinite_derivative", "production_step_unstable",
+    "endpoint_oracle_unresolved", "independent_derivative_unresolved",
+    "independent_step_unstable", "independent_route_disagreement",
+    "point_oracle_mismatch"
+  )) {
+    failed <- complete
+    failed[["swap"]] <- status
+    expect_identical(staged_sandwich_f1m_status(fixture_results = failed), status)
+  }
+  missing <- complete[-1L]
+  expect_identical(staged_sandwich_f1m_status(fixture_results = missing), "missing_fixture_evidence")
+  unexpected_boundary <- complete
+  unexpected_boundary[["near_boundary_negative"]] <- "finite_validated"
+  expect_identical(
+    staged_sandwich_f1m_status(fixture_results = unexpected_boundary),
+    "unexpected_boundary_disposition"
+  )
 })
 
 test_that("Bernoulli x NB2 adapter matches the original stacked-score assembly", {
