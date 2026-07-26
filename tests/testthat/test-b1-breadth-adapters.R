@@ -27,9 +27,21 @@ if (!file.exists(adapter_path)) {
     expect_equal(zi_mu$truth$target, "sd:mu:spatial(1 | site)")
     zi <- b1_zi_spatial(107L, "low", "poisson", "zi")
     expect_equal(zi$truth$target, "sd:zi:spatial(1 | id)")
+    gamma <- b1_gamma_phylo_mu(109L, "low")
+    expect_true(all(gamma$data$y > 0))
+    lognormal <- b1_lognormal_relmat_mu(110L, "low")
+    expect_equal(dim(lognormal$truth$Q), c(30L, 30L))
+    sigma_slope <- b1_gaussian_sigma_slope(111L, "low")
+    expect_equal(sigma_slope$truth$target, "sd:sigma:(0 + w | id)")
+    animal <- b1_nbinom2_sigma_animal(112L, "low")
+    expect_equal(dim(animal$truth$Q), c(45L, 45L))
   })
 
-  test_that("B1 fixture dispatcher rejects an unregistered cell", {
-    expect_error(b1_adapter_fixture("mc-0438", 1L, "low"), "No fixture")
+  test_that("B1 fixture dispatcher covers the registered breadth panel", {
+    biv <- b1_adapter_fixture("mc-0074", 1L, "low")
+    expect_equal(biv$truth$target, "sd:sigma:sigma1:(0 + x | p | id)")
+    interaction <- b1_adapter_fixture("mc-0438", 1L, "low")
+    expect_equal(interaction$truth$target, "sd:mu:phylo_interaction(1 | plant:pollinator)")
+    expect_error(b1_adapter_fixture("mc-9999", 1L, "low"), "No fixture")
   })
 }

@@ -22,7 +22,7 @@ b1_cells <- data.frame(
   effect = c(
     "ordinary_re_intercept", "ordinary_re_slope", "ordinary_re_intercept", "ordinary_re_slope",
     "structured_phylo_q1", "structured_phylo_q1", "ordinary_re_slope", "structured_relmat_q1",
-    "structured_relmat_q1", "structured_animal_q1", "structured_phylo_interaction_q1", "fixed",
+    "structured_relmat_q1", "structured_animal_q1_slope", "structured_phylo_interaction_q1", "fixed",
     "structured_phylo_q1", "ordinary_re_slope", "structured_spatial_q1", "structured_spatial_q1"
   ),
   adapter = c(
@@ -42,7 +42,7 @@ b1_cells <- data.frame(
     "sd:mu:(1 | id)", "sd:mu:(0 + x | id)", "sd:mu:(1 | id)",
     "sd:sigma:sigma1:(0 + x | p | id)", "sd:mu:phylo(1 | species)", "sd:mu:phylo(1 | id)",
     "sd:sigma:(0 + w | id)", "sd:hu:relmat(1 | id)", "sd:mu:relmat(1 | id)",
-    "sd:sigma:animal(1 | id)", "sd:mu:phylo_interaction(1 | plant:pollinator)", "fixef:nu:(Intercept)",
+    "sd:sigma:animal(0 + x | id)", "sd:mu:phylo_interaction(1 | plant:pollinator)", "fixef:nu:(Intercept)",
     "sd:nu:phylo(1 | id)", "sd:mu:(0 + x | id)", "sd:mu:spatial(1 | site)", "sd:zi:spatial(1 | id)"
   ),
   stringsAsFactors = FALSE

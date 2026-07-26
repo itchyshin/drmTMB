@@ -61,9 +61,18 @@ b1_atomic_write <- function(x, path) {
 }
 
 b1_target_estimate <- function(fit, task) {
+  target <- task$target[[1L]]
+  if (startsWith(target, "fixef:")) {
+    pieces <- strsplit(target, ":", fixed = TRUE)[[1L]]
+    block <- pieces[[2L]]
+    name <- pieces[[3L]]
+    values <- fit$coefficients[[block]]
+    if (is.null(values) || !name %in% names(values)) return(NA_real_)
+    return(unname(values[[name]]))
+  }
   block <- task$dpar[[1L]]
   if (identical(block, "sigma1")) block <- "sigma"
-  label <- sub("^sd:[^:]+:", "", task$target[[1L]])
+  label <- sub("^sd:[^:]+:", "", target)
   values <- fit$sdpars[[block]]
   if (is.null(values) || !label %in% names(values)) return(NA_real_)
   unname(values[[label]])
@@ -73,9 +82,15 @@ b1_field_correlation <- function(fit, task, truth) {
   type <- switch(task$cell_id[[1L]],
     "mc-0005" = list(block = "mu", name = "(1 | id)", values = "terms"),
     "mc-0031" = list(block = "mu", name = "(0 + x | id)", values = "terms"),
+    "mc-0074" = list(block = "sigma", name = "sigma1:(0 + x | p | id)", values = "terms"),
     "mc-0059" = list(block = "mu", name = "(1 | id)", values = "terms"),
     "mc-0364" = list(block = "relmat_hu", name = "", values = "values"),
     "mc-0511" = list(block = "mu", name = "(0 + x | id)", values = "terms"),
+    "mc-0251" = list(block = "phylo_mu", name = "", values = "values"),
+    "mc-0270" = list(block = "sigma", name = "(0 + w | id)", values = "terms"),
+    "mc-0388" = list(block = "relmat_mu", name = "", values = "values"),
+    "mc-0423" = list(block = "animal_sigma", name = "", values = "values"),
+    "mc-0438" = list(block = "phylo_interaction_mu", name = "", values = "values"),
     "mc-0229" = list(block = "phylo_mu", name = "", values = "values"),
     "mc-0495" = list(block = "phylo_nu", name = "", values = "values"),
     "mc-0641" = list(block = "spatial_mu", name = "", values = "values"),
@@ -97,7 +112,10 @@ b1_one_attempt <- function(task, replicate, seed) {
   for (name in intersect(names(task), names(row))) row[[name]] <- task[[name]][[1L]]
   row$replicate <- as.integer(replicate); row$seed <- as.integer(seed); row$attempt_status <- "not_attempted"
   result <- tryCatch({
-    adapter <- b1_adapter_fixture(task$cell_id[[1L]], seed, task$information_rung[[1L]])
+    # A smoke row exercises the lowest predeclared information design.  It is
+    # deliberately not a fourth scientific rung.
+    adapter_rung <- if (identical(task$information_rung[[1L]], "smoke")) "low" else task$information_rung[[1L]]
+    adapter <- b1_adapter_fixture(task$cell_id[[1L]], seed, adapter_rung)
     fit <- adapter$fit(adapter$data)
     row$attempt_status <- "fit_completed"
     row$convergence <- fit$opt$convergence

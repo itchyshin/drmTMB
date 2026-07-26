@@ -220,13 +220,128 @@ b1_skew_normal_nu <- function(seed, rung) {
   )
 }
 
+b1_gamma_phylo_mu <- function(seed, rung) {
+  b1_require_drmTMB()
+  set.seed(seed)
+  n_id <- c(low = 24L, medium = 48L, high = 96L)[[as.character(rung)]]
+  levels_id <- paste0("gp", seq_len(n_id)); n_each <- 15L
+  id <- factor(rep(levels_id, each = n_each), levels = levels_id)
+  x <- stats::rnorm(length(id)); truth_sd <- 0.45
+  field <- stats::rnorm(n_id, sd = truth_sd); names(field) <- levels_id
+  eta <- 0.25 + 0.35 * x + field[as.character(id)]
+  sigma <- 0.32
+  tree <- b1_star_tree(levels_id)
+  list(
+    data = data.frame(y = stats::rgamma(length(id), shape = sigma^(-2), scale = exp(eta) * sigma^2), x, id),
+    truth = list(sd = truth_sd, field = field, target = "sd:mu:phylo(1 | id)", tree = tree),
+    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(y ~ x + drmTMB::phylo(1 | id, tree = tree), sigma ~ 1), family = stats::Gamma(link = "log"), data = dat, control = drmTMB::drm_control(se = FALSE))
+  )
+}
+
+b1_lognormal_relmat_mu <- function(seed, rung) {
+  b1_require_drmTMB()
+  set.seed(seed)
+  n_id <- c(low = 30L, medium = 60L, high = 90L)[[as.character(rung)]]
+  levels_id <- paste0("lr", seq_len(n_id)); n_each <- 12L
+  id <- factor(rep(levels_id, each = n_each), levels = levels_id)
+  x <- stats::rnorm(length(id)); truth_sd <- 0.40
+  field <- stats::rnorm(n_id, sd = truth_sd); names(field) <- levels_id
+  Q <- diag(n_id); dimnames(Q) <- list(levels_id, levels_id)
+  list(
+    data = data.frame(y = stats::rlnorm(length(id), meanlog = 0.2 + 0.45 * x + field[as.character(id)], sdlog = 0.28), x, id),
+    truth = list(sd = truth_sd, field = field, target = "sd:mu:relmat(1 | id)", Q = Q),
+    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(y ~ x + drmTMB::relmat(1 | id, Q = Q), sigma ~ 1), family = drmTMB::lognormal(), data = dat, control = drmTMB::drm_control(se = FALSE))
+  )
+}
+
+b1_gaussian_sigma_slope <- function(seed, rung) {
+  b1_require_drmTMB()
+  set.seed(seed)
+  n_id <- b1_rung_size(rung); n_each <- 12L
+  id <- factor(rep(seq_len(n_id), each = n_each)); n <- length(id)
+  x <- stats::rnorm(n); z <- stats::rnorm(n); w <- stats::rnorm(n)
+  truth_sd <- 0.35
+  slope <- stats::rnorm(n_id, sd = truth_sd); names(slope) <- levels(id)
+  sigma <- exp(-0.5 + 0.15 * z + slope[as.character(id)] * w)
+  list(
+    data = data.frame(y = 0.3 + 0.5 * x + stats::rnorm(n, sd = sigma), x, z, w, id),
+    truth = list(sd = truth_sd, field = slope, target = "sd:sigma:(0 + w | id)"),
+    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(y ~ x, sigma ~ z + (0 + w | id)), family = stats::gaussian(), data = dat)
+  )
+}
+
+b1_nbinom2_sigma_animal <- function(seed, rung) {
+  b1_require_drmTMB()
+  set.seed(seed)
+  n_id <- c(low = 45L, medium = 75L, high = 105L)[[as.character(rung)]]
+  levels_id <- paste0("an", seq_len(n_id)); n_each <- 18L
+  id <- factor(rep(levels_id, each = n_each), levels = levels_id)
+  x <- stats::rnorm(length(id)); truth_sd <- 0.55
+  field_intercept <- stats::rnorm(n_id, sd = truth_sd); names(field_intercept) <- levels_id
+  field_slope <- stats::rnorm(n_id, sd = truth_sd); names(field_slope) <- levels_id
+  # The count sigma gate admits the unlabelled intercept-plus-one-slope route.
+  Q <- diag(n_id); dimnames(Q) <- list(levels_id, levels_id)
+  size <- exp(0.4 + field_intercept[as.character(id)] + field_slope[as.character(id)] * x)
+  list(
+    data = data.frame(y = stats::rnbinom(length(id), mu = exp(1.0 + 0.25 * x), size = size), x, id),
+    truth = list(sd = truth_sd, field = field_slope, target = "sd:sigma:animal(1 + x | id)", Q = Q),
+    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(y ~ x, sigma ~ drmTMB::animal(1 + x | id, Ainv = Q)), family = drmTMB::nbinom2(), data = dat, control = drmTMB::drm_control(se = FALSE))
+  )
+}
+
+b1_biv_gaussian_mu_sigma_slope <- function(seed, rung) {
+  b1_require_drmTMB()
+  set.seed(seed)
+  n_id <- c(low = 36L, medium = 72L, high = 108L)[[as.character(rung)]]
+  n_each <- 10L; id <- factor(rep(seq_len(n_id), each = n_each)); n <- length(id)
+  x <- rep(seq(-1.25, 1.25, length.out = n_each), n_id)
+  truth_sd <- 0.26
+  random_pair <- matrix(stats::rnorm(n_id * 2L), n_id, 2L) %*% chol(matrix(c(1, .38, .38, 1), 2L))
+  mu_effect <- 0.42 * random_pair[, 1L]; sigma_effect <- truth_sd * random_pair[, 2L]
+  names(mu_effect) <- names(sigma_effect) <- levels(id)
+  e1 <- stats::rnorm(n); e2 <- .18 * e1 + sqrt(1 - .18^2) * stats::rnorm(n)
+  sigma1 <- exp(log(.45) + .10 * x + sigma_effect[as.character(id)] * x)
+  sigma2 <- exp(log(.55) - .05 * x)
+  list(
+    data = data.frame(y1 = .15 + .42 * x + mu_effect[as.character(id)] * x + sigma1 * e1, y2 = -.12 - .28 * x + sigma2 * e2, x, id),
+    truth = list(sd = truth_sd, field = sigma_effect, target = "sd:sigma:sigma1:(0 + x | p | id)"),
+    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(mu1 = y1 ~ x + (0 + x | p | id), mu2 = y2 ~ x, sigma1 = ~x + (0 + x | p | id), sigma2 = ~x, rho12 = ~1), family = drmTMB::biv_gaussian(), data = dat)
+  )
+}
+
+b1_phylo_interaction_poisson <- function(seed, rung) {
+  b1_require_drmTMB()
+  if (!requireNamespace("ape", quietly = TRUE)) b1_adapter_stop("ape is required for B1 phylo-interaction.")
+  set.seed(seed)
+  n_tip <- c(low = 4L, medium = 6L, high = 8L)[[as.character(rung)]]
+  plant_tree <- b1_star_tree(paste0("plant", seq_len(n_tip)))
+  pollinator_tree <- b1_star_tree(paste0("poll", seq_len(n_tip)))
+  grid <- expand.grid(plant = plant_tree$tip.label, pollinator = pollinator_tree$tip.label, stringsAsFactors = FALSE)
+  pair <- paste(grid$plant, grid$pollinator, sep = ":")
+  truth_sd <- .45; field <- stats::rnorm(length(pair), sd = truth_sd); names(field) <- pair
+  n_each <- 8L; row <- rep(seq_len(nrow(grid)), each = n_each)
+  dat <- grid[row, , drop = FALSE]; dat$x <- stats::rnorm(nrow(dat))
+  dat$count <- stats::rpois(nrow(dat), lambda = exp(.45 - .20 * dat$x + field[paste(dat$plant, dat$pollinator, sep = ":")]))
+  list(
+    data = dat,
+    truth = list(sd = truth_sd, field = field, target = "sd:mu:phylo_interaction(1 | plant:pollinator)", tree1 = plant_tree, tree2 = pollinator_tree),
+    fit = function(data) drmTMB::drmTMB(drmTMB::bf(count ~ x + drmTMB::phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)), family = stats::poisson(link = "log"), data = data, control = drmTMB::drm_control(se = FALSE))
+  )
+}
+
 b1_adapter_fixture <- function(cell_id, seed, rung) {
   switch(cell_id,
     "mc-0005" = b1_beta_mu_intercept(seed, rung),
     "mc-0031" = b1_nongaussian_mu_slope(seed, rung, "beta_binomial"),
     "mc-0059" = b1_binomial_mu_intercept(seed, rung),
+    "mc-0074" = b1_biv_gaussian_mu_sigma_slope(seed, rung),
     "mc-0229" = b1_cumulative_logit_phylo(seed, rung),
+    "mc-0251" = b1_gamma_phylo_mu(seed, rung),
+    "mc-0270" = b1_gaussian_sigma_slope(seed, rung),
     "mc-0364" = b1_hurdle_relmat(seed, rung),
+    "mc-0388" = b1_lognormal_relmat_mu(seed, rung),
+    "mc-0423" = b1_nbinom2_sigma_animal(seed, rung),
+    "mc-0438" = b1_phylo_interaction_poisson(seed, rung),
     "mc-0460" = b1_skew_normal_nu(seed, rung),
     "mc-0495" = b1_student_nu_phylo(seed, rung),
     "mc-0511" = b1_nongaussian_mu_slope(seed, rung, "truncated_nbinom2"),
