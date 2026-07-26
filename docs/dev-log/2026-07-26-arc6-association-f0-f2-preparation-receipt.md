@@ -163,13 +163,16 @@ finite-sample evidence.
 | --- | --- | --- | --- |
 | Numerical oracle | `mvtnorm::pmvnorm()` independent numerical rectangle used by the frozen fixture | F1 row log-probability, score, and Hessian agreement | Sampling-validity, SE, or interval calibration. |
 | Negative inferential comparator | `copula::fitCopula()` IFM-style parametric pseudo-observation workflow | Demonstrate why a conditional margin-ignored variance is not the target | Fit B×NB2 rectangles, validate this estimator, or supply public SEs. |
-| Required F3/F4 comparator | Outer-simulation empirical SD, then a separately named full-two-stage interval procedure | First calibrate the private Godambe `alpha` SE against empirical SD; only then assess the chosen interval method | Conditional association-only refits, the stopped shards, or any `rho12` result. |
+| F3 provenance comparator | None: F3 is one attempt and has no empirical sampling comparator | Verify only fresh-full-refit provenance and all-attempt status accounting | SE calibration, empirical SD, recovery, coverage, or any interval assessment. |
+| Required F4 comparator | Outer-simulation empirical SD, then a separately named full-two-stage interval procedure | Calibrate the private Godambe `alpha` SE against outer empirical SD before assessing the chosen interval method | Conditional association-only refits, the stopped shards, or any `rho12` result. |
 
 The first F3 protocol must be one small B×NB2 association-intercept-only
 all-attempt prototype, with fixed covariates, explicitly named margin formulas,
 generated margins and latent-normal rectangles, and a log containing every
 margin and association status. Its purpose is to verify full-refit provenance
-and availability accounting only. It may not report recovery or coverage.
+and availability accounting only. It may not report empirical SD, SE
+calibration, recovery, coverage, or interval behaviour; outer empirical-SD
+calibration is F4-only.
 
 F4 must choose the public target and interval experiment before execution:
 `alpha` is the primary estimand; `eta` is optional and derived by delta method.
