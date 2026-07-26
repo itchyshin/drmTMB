@@ -91702,7 +91702,15 @@ Shinichi grants a separate Gate A compute approval.
   bootstrap, profile (`endpoint`, non-boundary), and Wald intervals on all
   three fits with `pdHess = TRUE`. This is a runner/target extraction receipt,
   not coverage evidence.
-- The 3,000-attempt, R=999 paired profile campaign is **HELD** for explicit
-  Shinichi compute approval. No Arc D implementation, endpoint-contract
-  change, public API/docs change, ledger promotion, or association work
-  occurred.
+- Shinichi approved the 3,000-attempt, R=999 paired profile campaign on Totoro
+  with a hard cap of 100 workers, all failures retained, and no GitHub Actions.
+  The authenticated launcher started at `2026-07-26T13:53:56Z`, with package
+  commit `37091153b4bdd55a48a6de758d893d75eb9888dc`, runner SHA-256
+  `7dc63ca348c5df42519aa30e58066a8387b3bdfa9f62b2a8d2d4fd69aaf45cfc`, and
+  helper SHA-256
+  `083949bf1868d32a771b7124443f05f44a354b70598cd1703b2c2007a7731435`.
+  A duplicate launcher was discovered before authentication, stopped, and the
+  remaining launcher was verified at exactly 100 live R workers. Its partial
+  CSVs are provisional until the complete 3,000-attempt all-row validation
+  passes. No Arc D implementation, endpoint-contract change, public API/docs
+  change, ledger promotion, or association work occurred.
