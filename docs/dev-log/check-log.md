@@ -91681,3 +91681,28 @@ Shinichi grants a separate Gate A compute approval.
   change, capability-ledger promotion, or association-lane work. Profile
   remains the preferred interval route where stable; bootstrap is being
   diagnosed as the broad fallback.
+
+## 2026-07-26: A1 `R = 999` diagnosis completed; profile comparator smoke passed
+
+- Totoro returned all 200 expected diagnostic shard CSVs with no detected error
+  logs. The frozen `a1_coverage.R` SHA-256 matched
+  `18439f2d90b0cf31a905f401fa0ba4626b41c8415d8f8fab8b12264711abce1b`.
+  The paired merge retained 2,000 historical R=199 and 2,000 R=999 target
+  rows, with zero incomplete pairs and zero duplicate `(cell_id, seed)` keys.
+- At 10 groups x 4, coverage was 0.835 (R=199) versus 0.836 (R=999): paired
+  difference +0.001, 95% CI (-0.0080, 0.0100). At 50 groups x 4 it was 0.928
+  versus 0.931: +0.003, 95% CI (-0.0051, 0.0111). Neither clears the
+  predeclared +0.020 practical threshold or excludes zero. R=199 tail
+  resolution is therefore not the dominant source of A1 undercoverage in these
+  matched cells; percentile-boundary behavior and low-group Laplace refit bias
+  remain unresolved.
+- Added a fresh scalar-A1 profile-vs-bootstrap runner, engine-free interval
+  accounting helpers, and a testthat contract test. Its Totoro smoke (one
+  attempt each at 10/25/50 groups, `n_per = 10`, R=19) returned valid marginal
+  bootstrap, profile (`endpoint`, non-boundary), and Wald intervals on all
+  three fits with `pdHess = TRUE`. This is a runner/target extraction receipt,
+  not coverage evidence.
+- The 3,000-attempt, R=999 paired profile campaign is **HELD** for explicit
+  Shinichi compute approval. No Arc D implementation, endpoint-contract
+  change, public API/docs change, ledger promotion, or association work
+  occurred.

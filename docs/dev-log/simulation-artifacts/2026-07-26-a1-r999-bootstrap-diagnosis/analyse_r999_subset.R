@@ -10,6 +10,10 @@ read_rows <- function(path, pattern) {
   do.call(rbind, lapply(files, read.csv, stringsAsFactors = FALSE))
 }
 
+file_arg <- grep("^--file=", commandArgs(), value = TRUE)
+script_dir <- if (length(file_arg)) dirname(normalizePath(sub("^--file=", "", file_arg[[1L]]))) else getwd()
+source(file.path(script_dir, "a1_profile_common.R"))
+
 root <- file.path(Sys.getenv("HOME"), "drm_work")
 old <- read_rows(file.path(root, "results"), "^c0[13]_s[0-9]+\\.csv$")
 new <- read_rows(file.path(root, "results_r999_subset"), "^c0[13]_r999_o[0-9]+\\.csv$")
@@ -23,6 +27,8 @@ keep <- function(x) {
 }
 old <- keep(old)
 new <- keep(new)
+expected_counts <- c(c01 = 1000L, c03 = 1000L)
+a1_validate_r999_inputs(old, new, expected_counts = expected_counts)
 names(old)[names(old) %in% c("covered", "width", "lo", "hi", "R_boot")] <-
   paste0(names(old)[names(old) %in% c("covered", "width", "lo", "hi", "R_boot")], "_199")
 names(new)[names(new) %in% c("covered", "width", "lo", "hi", "R_boot")] <-
@@ -37,13 +43,16 @@ if (nrow(d) != 2000L || any(!complete.cases(d))) {
 summary_one <- function(x, suffix) {
   covered <- x[[paste0("covered_", suffix)]]
   width <- x[[paste0("width_", suffix)]]
+  exact <- a1_exact_binomial(covered)
   data.frame(
     cell_id = unique(x$cell_id),
     R_boot = unique(x[[paste0("R_boot_", suffix)]]),
     n = nrow(x),
-    coverage = mean(covered),
-    coverage_lo = binom.test(sum(covered), nrow(x))$conf.int[[1L]],
-    coverage_hi = binom.test(sum(covered), nrow(x))$conf.int[[2L]],
+    n_valid_interval = exact$n_valid_interval,
+    n_unavailable_interval = exact$n_unavailable_interval,
+    coverage = exact$coverage,
+    coverage_lo = exact$coverage_lo,
+    coverage_hi = exact$coverage_hi,
     median_width = median(width),
     stringsAsFactors = FALSE
   )
@@ -62,8 +71,12 @@ for (cell in sort(unique(d$cell_id))) {
   print(rbind(old_s, new_s), row.names = FALSE)
   cat("paired coverage changes (same outer seeds):\n")
   print(paired)
-  cat(sprintf("coverage difference R999 - R199: %+0.4f\n",
-              mean(x$covered_999) - mean(x$covered_199)))
+  paired_ci <- a1_paired_difference(x$covered_199, x$covered_999)
+  print(paired_ci, row.names = FALSE)
+  material <- paired_ci$difference >= 0.02 && paired_ci$difference_lo > 0
+  cat(sprintf("coverage difference R999 - R199: %+0.4f (%s)\n",
+              paired_ci$difference,
+              if (material) "material contributor" else "not a material contributor"))
   cat(sprintf("median width difference R999 - R199: %+0.4f\n",
               median(x$width_999) - median(x$width_199)))
 }
