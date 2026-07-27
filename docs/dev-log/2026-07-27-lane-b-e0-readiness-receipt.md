@@ -57,6 +57,11 @@ recorded in the ledger notes, without treating that hint as an executable DGP
 binding. On the frozen cohort, 46 rows have such a hint and 112 must be
 reconstructed from their cited source records.
 
+It also writes a full-cohort binding inventory. Each recovered target remains
+a separate row, while every other frozen cell is present once as
+`needs_exact_binding`; therefore a reviewer can see both target cardinality and
+unresolved work without treating a partial table as a schedule.
+
 ## All-attempt accounting
 
 The seed schedule is deterministic but is unavailable unless every exact

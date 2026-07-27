@@ -236,6 +236,61 @@ phase18_read_interval_campaign_bindings <- function(
   bindings
 }
 
+phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindings) {
+  phase18_assert_interval_campaign_census(contracts)
+  if (!is.data.frame(partial_bindings)) {
+    stop("`partial_bindings` must be a data frame.", call. = FALSE)
+  }
+  required <- c(
+    "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
+    "profile_parameter", "information_rung"
+  )
+  missing <- setdiff(required, names(partial_bindings))
+  if (length(missing) > 0L) {
+    stop("`partial_bindings` is missing: ", paste(missing, collapse = ", "), ".", call. = FALSE)
+  }
+  active <- contracts[contracts$lane_b_target, , drop = FALSE]
+  if (any(!partial_bindings$cell_id %in% active$cell_id)) {
+    stop("`partial_bindings` contains a foreign or out-of-cohort cell.", call. = FALSE)
+  }
+  key <- paste(partial_bindings$cell_id, partial_bindings$target_id, sep = "\r")
+  if (anyDuplicated(key)) {
+    stop("`partial_bindings` must have unique cell/target pairs.", call. = FALSE)
+  }
+  bound <- merge(
+    partial_bindings,
+    active[c("cell_id", "negative_control", "estimand_stratum")],
+    by = "cell_id", all.x = TRUE, sort = FALSE
+  )
+  bound$binding_status <- ifelse(
+    bound$negative_control,
+    "partial_negative_control_binding",
+    "partial_exact_binding"
+  )
+  unresolved <- active[!active$cell_id %in% unique(bound$cell_id),
+    c("cell_id", "negative_control", "estimand_stratum"), drop = FALSE]
+  unresolved$target_id <- NA_character_
+  unresolved$dgp_id <- NA_character_
+  unresolved$formula <- NA_character_
+  unresolved$true_parameter_scale <- NA_character_
+  unresolved$profile_parameter <- NA_character_
+  unresolved$information_rung <- NA_character_
+  unresolved$binding_status <- "needs_exact_binding"
+  fields <- c(
+    "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
+    "profile_parameter", "information_rung", "negative_control",
+    "estimand_stratum", "binding_status"
+  )
+  out <- rbind(bound[fields], unresolved[fields])
+  out <- out[order(out$cell_id, is.na(out$target_id), out$target_id), , drop = FALSE]
+  rownames(out) <- NULL
+  if (length(unique(out$cell_id)) != 158L ||
+      !identical(sort(unique(out$cell_id)), phase18_interval_campaign_manifest_ids(active))) {
+    stop("Binding inventory must retain every frozen Lane-B cell exactly once or more.", call. = FALSE)
+  }
+  out
+}
+
 phase18_interval_campaign_binding_worklist <- function(contracts, evidence_path) {
   phase18_assert_interval_campaign_census(contracts)
   if (!is.character(evidence_path) || length(evidence_path) != 1L || !file.exists(evidence_path)) {
@@ -313,7 +368,8 @@ phase18_write_interval_campaign_readiness_packet <- function(
   evidence_path,
   output_dir,
   source_sha,
-  source_root = getwd()
+  source_root = getwd(),
+  partial_bindings = NULL
 ) {
   phase18_assert_interval_campaign_census(contracts)
   if (!is.character(output_dir) || length(output_dir) != 1L || !nzchar(output_dir)) {
@@ -328,7 +384,16 @@ phase18_write_interval_campaign_readiness_packet <- function(
   manifest_path <- file.path(output_dir, "lane-b-model-surface-manifest.tsv")
   contracts_path <- file.path(output_dir, "lane-b-profile-contracts.tsv")
   worklist_path <- file.path(output_dir, "lane-b-binding-worklist.tsv")
+  inventory_path <- file.path(output_dir, "lane-b-binding-inventory.tsv")
   receipt_path <- file.path(output_dir, "lane-b-runtime-receipt.rds")
+  if (is.null(partial_bindings)) {
+    partial_bindings <- data.frame(
+      cell_id = character(), target_id = character(), dgp_id = character(),
+      formula = character(), true_parameter_scale = character(),
+      profile_parameter = character(), information_rung = character(),
+      stringsAsFactors = FALSE
+    )
+  }
   utils::write.table(
     contracts[manifest_fields], manifest_path, sep = "\t", row.names = FALSE,
     quote = FALSE, na = ""
@@ -345,11 +410,20 @@ phase18_write_interval_campaign_readiness_packet <- function(
     quote = FALSE,
     na = ""
   )
+  utils::write.table(
+    phase18_interval_campaign_binding_inventory(contracts, partial_bindings),
+    inventory_path,
+    sep = "\t",
+    row.names = FALSE,
+    quote = FALSE,
+    na = ""
+  )
   saveRDS(phase18_interval_campaign_runtime_receipt(source_sha, source_root), receipt_path)
   list(
     manifest = manifest_path,
     contracts = contracts_path,
     binding_worklist = worklist_path,
+    binding_inventory = inventory_path,
     runtime_receipt = receipt_path,
     source_md5 = attr(contracts, "source_md5"),
     manifest_md5 = attr(contracts, "manifest_md5"),

@@ -120,6 +120,27 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
   )
 })
 
+test_that("binding inventory retains every Lane-B cell while exposing recovery state", {
+  env <- new.env(parent = globalenv())
+  sys.source(interval_campaign_readiness_script(), envir = env)
+  root <- testthat::test_path("..", "..")
+  manifest <- env$phase18_interval_campaign_manifest(
+    file.path(root, "docs", "dev-log", "dashboard", "capability-ledger", "cells.tsv")
+  )
+  contracts <- env$phase18_interval_campaign_contracts(manifest)
+  partial <- env$phase18_read_interval_campaign_bindings(
+    file.path(root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-recovered-subset.tsv"),
+    contracts, allow_partial = TRUE
+  )
+  inventory <- env$phase18_interval_campaign_binding_inventory(contracts, partial)
+
+  expect_equal(length(unique(inventory$cell_id)), 158L)
+  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 12L)
+  expect_equal(sum(inventory$binding_status == "partial_negative_control_binding"), 2L)
+  expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 145L)
+  expect_true(all(inventory$binding_status[inventory$cell_id == "mc-0260m"] == "partial_negative_control_binding"))
+})
+
 test_that("all-attempt reducer retains unavailable and not-run attempts", {
   env <- new.env(parent = globalenv())
   sys.source(interval_campaign_readiness_script(), envir = env)
@@ -259,8 +280,10 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   expect_true(file.exists(packet$manifest))
   expect_true(file.exists(packet$contracts))
   expect_true(file.exists(packet$binding_worklist))
+  expect_true(file.exists(packet$binding_inventory))
   expect_true(file.exists(packet$runtime_receipt))
   expect_equal(nrow(utils::read.delim(packet$manifest)), 159L)
+  expect_equal(nrow(utils::read.delim(packet$binding_inventory)), 158L)
   expect_identical(readRDS(packet$runtime_receipt)$source_sha, source_sha)
   expect_false(packet$pregrid_authorized)
 })
