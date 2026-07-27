@@ -153,6 +153,16 @@ profiles returned `[0.7815568, 1.6685350]` and `[0.4983490, 1.2947650]`, both
 with `conf.status = "profile"`. They add two direct target rows to the partial
 table (12 total); again this is technical routing evidence, not coverage.
 
+### Block-diagonal q4 REML target boundary
+
+The exact block-diagonal q4 fixture confirms direct, profile-ready mean-side
+targets for `mc-0212` / `sd:mu:mu1:phylo(1 | p | sp)` and `mc-0213` /
+`sd:mu:mu2:phylo(1 | p | sp)`. It does **not** expose the corresponding
+scale-side terms for `mc-0214` or `mc-0215` as confidence-interval targets:
+attempting `sd:sigma:sigma1:phylo(1 | ps | sp)` and its sigma2 analogue
+returns `Unknown confidence-interval targets`. Those two cells therefore stay
+unbound; no scale-side target was fabricated from the formula or summary.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
