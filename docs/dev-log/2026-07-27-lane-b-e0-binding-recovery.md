@@ -162,7 +162,13 @@ evidence, not coverage.
 
 The exact block-diagonal q4 fixture confirms direct, profile-ready mean-side
 targets for `mc-0212` / `sd:mu:mu1:phylo(1 | p | sp)` and `mc-0213` /
-`sd:mu:mu2:phylo(1 | p | sp)`. It does **not** expose the corresponding
+`sd:mu:mu2:phylo(1 | p | sp)`. At `n_tip = 100`, five observations per tip,
+and seed 3, their local profiles returned `[0.5219659, 1.1660620]` and
+`[0.2863490, 0.7168340]`, respectively, with direct/ready target metadata and
+`conf.status = "profile"`. The truth is 0.60 and 0.50 on the response scale.
+They therefore add two exact mean-side routing bindings (16 recovered target
+rows, including the two K=12 control targets). This is still one local routing
+smoke, not campaign coverage evidence. It does **not** expose the corresponding
 scale-side terms for `mc-0214` or `mc-0215` as confidence-interval targets:
 attempting `sd:sigma:sigma1:phylo(1 | ps | sp)` and its sigma2 analogue
 returns `Unknown confidence-interval targets`. Those two cells therefore stay
