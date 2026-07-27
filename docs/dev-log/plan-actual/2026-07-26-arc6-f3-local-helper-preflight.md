@@ -13,8 +13,7 @@ No layout or receipt was created; no retry occurred.
 
 ## Reconciliation
 
-**Adaptive:** receipt audit became a pre-layout lifecycle-failure audit.  
-**No drift:** the runner was not rerun or modified, and F4 stayed locked.  
+**Adaptive:** receipt audit became a pre-layout lifecycle-failure audit.
+**No drift:** the runner was not rerun or modified, and F4 stayed locked.
 **Next decision owner:** Shinichi must approve a narrow local-helper lifecycle
 repair and a later replacement F3 authorization.
-

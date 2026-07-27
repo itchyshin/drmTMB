@@ -71,4 +71,3 @@ neither sufficient nor operational.
 This covers only the private F3 local-helper preflight failure. It does NOT cover
 F3 success, interval or SE validity, recovery, coverage, F4, public inference,
 other pair classes, or Arc D/F5.
-

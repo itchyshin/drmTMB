@@ -1,6 +1,6 @@
 # Arc 6 F3 — negative disposition: local helper preflight
 
-**Date:** 2026-07-26  
+**Date:** 2026-07-26
 **Disposition:** `F3_PRELAYOUT_FAILURE_NO_RETRY`
 
 ## Authorization and source
@@ -51,4 +51,3 @@ This covers only a negative private F3 pre-layout provenance disposition for
 the fixed-effect complete-pair Bernoulli × ordinary-NB2 route. It does NOT
 cover successful F3 provenance, uncertainty validity, F4, public inference,
 other pairs, or Arc D/F5.
-
