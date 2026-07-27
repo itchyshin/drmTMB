@@ -38,6 +38,10 @@ non-foreign cell, rejects duplicates or partial tables, and fingerprints the
 completed table to catch accidental drift. That fingerprint is not a substitute
 for the required human review. Consequently no
 helper can silently turn the current 159-row census into a runnable pregrid.
+Bindings are `cell × target`, rather than a silent one-target choice for a
+route-level ledger cell: a cell may carry several direct profile estimands,
+but each target must have a unique namespaced `cell_id::target` identity and
+the distinct-cell set must still exactly equal the frozen 158 Lane-B cells.
 K=12 must remain incomplete or unavailable; a finite K=12 profile is a
 fail-closed reducer error, not a finite-profile success.  The reducer uses the
 actual profile-success label (`conf.status = "profile"`), rather than the

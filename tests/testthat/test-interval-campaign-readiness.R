@@ -6,6 +6,7 @@ interval_campaign_test_bindings <- function(contracts) {
   ids <- contracts$cell_id[contracts$lane_b_target]
   data.frame(
     cell_id = ids,
+    target_id = paste(ids, paste0("sd:mu:group:", ids), sep = "::"),
     dgp_id = paste0("fixture-", ids),
     formula = "response ~ 1 + (1 | group)",
     true_parameter_scale = "natural_sd",
@@ -130,6 +131,32 @@ test_that("seed schedules are deterministic and cover every frozen candidate", {
     env$phase18_interval_campaign_seed_schedule(tampered, n_rep = 1L),
     "integrity-checked binding"
   )
+})
+
+test_that("bindings retain multiple direct targets for one route-level cell", {
+  env <- new.env(parent = globalenv())
+  sys.source(testthat::test_path("..", "..", "inst", "sim", "R", "sim_registry.R"), envir = env)
+  sys.source(interval_campaign_readiness_script(), envir = env)
+  manifest <- env$phase18_interval_campaign_manifest(
+    testthat::test_path("..", "..", "docs", "dev-log", "dashboard", "capability-ledger", "cells.tsv")
+  )
+  contracts <- env$phase18_interval_campaign_contracts(manifest)
+  bindings <- interval_campaign_test_bindings(contracts)
+  extra <- bindings[1L, , drop = FALSE]
+  extra$target_id <- paste(extra$cell_id, "fixef:mu:x", sep = "::")
+  extra$profile_parameter <- "fixef:mu:x"
+  target_contracts <- env$phase18_bind_interval_campaign_contracts(
+    contracts,
+    rbind(bindings, extra)
+  )
+  schedule <- env$phase18_interval_campaign_seed_schedule(
+    target_contracts, n_rep = 1L, master_seed = 17L
+  )
+
+  expect_equal(nrow(target_contracts), 159L)
+  expect_equal(sum(target_contracts$cell_id == extra$cell_id), 2L)
+  expect_equal(nrow(schedule), 159L)
+  expect_equal(length(unique(schedule$target_id)), 159L)
 })
 
 test_that("a finite K=12 profile is a fail-closed reducer error", {

@@ -6,6 +6,7 @@
 # binding to be supplied before a pregrid can be requested.
 
 phase18_lane_b_expected_cell_id_md5 <- "2db50a43be1a5416e10c9e61a334757e"
+phase18_lane_b_expected_target_cell_id_md5 <- "b52b28635fde70db0fac72002d4d97de"
 
 phase18_interval_campaign_manifest <- function(cells_path) {
   if (!is.character(cells_path) || length(cells_path) != 1L ||
@@ -149,21 +150,23 @@ phase18_bind_interval_campaign_contracts <- function(contracts, bindings) {
     stop("`bindings` must be a data frame.", call. = FALSE)
   }
   required <- c(
-    "cell_id", "dgp_id", "formula", "true_parameter_scale",
+    "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
     "profile_parameter", "information_rung"
   )
   missing <- setdiff(required, names(bindings))
   if (length(missing) > 0L) {
     stop("`bindings` is missing: ", paste(missing, collapse = ", "), ".", call. = FALSE)
   }
-  if (anyDuplicated(bindings$cell_id)) {
-    stop("`bindings` must contain no duplicate cell IDs.", call. = FALSE)
+  binding_key <- paste(bindings$cell_id, bindings$target_id, sep = "\r")
+  if (anyDuplicated(binding_key)) {
+    stop("`bindings` must contain no duplicate cell/target pairs.", call. = FALSE)
   }
   required_ids <- contracts$cell_id[contracts$lane_b_target]
-  if (!setequal(bindings$cell_id, required_ids)) {
-    stop("`bindings` must cover every and only Lane-B target candidate.", call. = FALSE)
+  if (!all(bindings$cell_id %in% required_ids) ||
+      !setequal(unique(bindings$cell_id), required_ids)) {
+    stop("`bindings` must cover every and only Lane-B target candidate at least once.", call. = FALSE)
   }
-  bindings <- bindings[match(required_ids, bindings$cell_id), required, drop = FALSE]
+  bindings <- bindings[order(match(bindings$cell_id, required_ids), bindings$target_id), required, drop = FALSE]
   incomplete <- vapply(bindings[required[-1L]], function(x) {
     any(is.na(x) | !nzchar(x))
   }, logical(1))
@@ -175,20 +178,24 @@ phase18_bind_interval_campaign_contracts <- function(contracts, bindings) {
     )
   }
 
-  out <- contracts
-  index <- match(bindings$cell_id, out$cell_id)
+  base <- contracts[match(bindings$cell_id, contracts$cell_id), , drop = FALSE]
+  rownames(base) <- NULL
   for (field in required[-1L]) {
-    out[[field]][index] <- bindings[[field]]
+    base[[field]] <- bindings[[field]]
   }
-  out$profile_channel[index] <- "profile_likelihood"
-  out$contract_status[index] <- ifelse(
-    out$negative_control[index],
+  base$profile_channel <- "profile_likelihood"
+  base$contract_status <- ifelse(
+    base$negative_control,
     "negative_control_bound",
     "bound"
   )
-  out$target_id[index] <- paste(out$cell_id[index], out$profile_parameter[index], sep = "::")
-  attr(out, "contract_md5") <- phase18_interval_campaign_hash(out)
-  out
+  if (any(!startsWith(base$target_id, paste0(base$cell_id, "::")))) {
+    stop("Every target ID must be namespaced by its cell ID.", call. = FALSE)
+  }
+  attr(base, "source_md5") <- attr(contracts, "source_md5")
+  attr(base, "manifest_md5") <- attr(contracts, "manifest_md5")
+  attr(base, "contract_md5") <- phase18_interval_campaign_hash(base)
+  base
 }
 
 phase18_interval_campaign_binding_worklist <- function(contracts, evidence_path) {
@@ -313,7 +320,6 @@ phase18_write_interval_campaign_readiness_packet <- function(
 }
 
 phase18_interval_campaign_seed_schedule <- function(contracts, n_rep = 150L, master_seed = 20260727L) {
-  phase18_assert_interval_campaign_census(contracts)
   if (!exists("phase18_seed_table", mode = "function")) {
     stop("Source sim/R/sim_registry.R before requesting a campaign seed schedule.", call. = FALSE)
   }
@@ -337,7 +343,17 @@ phase18_interval_campaign_seed_schedule <- function(contracts, n_rep = 150L, mas
 }
 
 phase18_assert_bound_interval_contracts <- function(contracts) {
-  active <- contracts[contracts$lane_b_target, , drop = FALSE]
+  if (!is.data.frame(contracts) || nrow(contracts) < 158L) {
+    stop("Every Lane-B target needs an exact integrity-checked binding before a schedule can be made.", call. = FALSE)
+  }
+  active <- contracts
+  if (any(!active$lane_b_target)) {
+    stop("Every Lane-B target needs an exact integrity-checked binding before a schedule can be made.", call. = FALSE)
+  }
+  expected_ids <- phase18_interval_campaign_manifest_ids(contracts)
+  if (!identical(sort(unique(active$cell_id)), expected_ids)) {
+    stop("Every Lane-B target needs an exact integrity-checked binding before a schedule can be made.", call. = FALSE)
+  }
   required <- c(
     "dgp_id", "formula", "true_parameter_scale", "profile_parameter",
     "information_rung", "profile_channel", "target_id"
@@ -359,6 +375,21 @@ phase18_assert_bound_interval_contracts <- function(contracts) {
     stop("Every Lane-B target needs an exact integrity-checked binding before a schedule can be made.", call. = FALSE)
   }
   active
+}
+
+phase18_interval_campaign_manifest_ids <- function(contracts) {
+  # The target table is intentionally one-or-more rows per frozen cell.  Its
+  # distinct IDs must still be the exact 158 Lane-B rows (the 159th frozen row
+  # is rho12 and remains foreign to this lane).
+  ids <- sort(unique(contracts$cell_id))
+  path <- tempfile("lane-b-interval-target-cell-ids-", fileext = ".txt")
+  on.exit(unlink(path), add = TRUE)
+  writeLines(ids, path)
+  if (length(ids) != 158L ||
+      !identical(unname(tools::md5sum(path)), phase18_lane_b_expected_target_cell_id_md5)) {
+    stop("Bound target contracts differ from the frozen 158-row Lane-B cohort.", call. = FALSE)
+  }
+  ids
 }
 
 phase18_reduce_interval_campaign_attempts <- function(schedule, attempts) {
