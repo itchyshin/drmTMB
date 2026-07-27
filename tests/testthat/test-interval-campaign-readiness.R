@@ -136,6 +136,15 @@ test_that("local-smoke receipts preserve failures alongside finite profiles", {
   expect_equal(sum(receipts$conf_status == "profile_failed"), 2L)
   expect_true(all(is.na(receipts$lower[receipts$conf_status != "profile"])))
   expect_true(all(nzchar(receipts$failure_reason[receipts$conf_status != "profile"])))
+  malformed <- receipts
+  malformed$failure_reason[[1L]] <- "invented_failure"
+  expect_error(
+    env$phase18_validate_interval_campaign_smoke_receipts(
+      malformed,
+      env$phase18_interval_campaign_contracts(manifest)
+    ),
+    "Finite non-boundary"
+  )
 })
 
 test_that("binding inventory retains every Lane-B cell while exposing recovery state", {

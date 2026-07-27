@@ -236,12 +236,11 @@ phase18_read_interval_campaign_bindings <- function(
   bindings
 }
 
-phase18_read_interval_campaign_smoke_receipts <- function(receipts_path, contracts) {
+phase18_validate_interval_campaign_smoke_receipts <- function(receipts, contracts) {
   phase18_assert_interval_campaign_census(contracts)
-  if (!is.character(receipts_path) || length(receipts_path) != 1L || !file.exists(receipts_path)) {
-    stop("`receipts_path` must name an existing local-smoke receipts TSV.", call. = FALSE)
+  if (!is.data.frame(receipts)) {
+    stop("`receipts` must be a data frame.", call. = FALSE)
   }
-  receipts <- utils::read.delim(receipts_path, check.names = FALSE, stringsAsFactors = FALSE)
   required <- c(
     "cell_id", "target_id", "dgp_id", "seed", "conf_status", "lower", "upper",
     "convergence", "pdHess", "profile_boundary", "failure_reason", "source"
@@ -269,6 +268,16 @@ phase18_read_interval_campaign_smoke_receipts <- function(receipts_path, contrac
     stop("Failed local-smoke receipts must retain no endpoints and a failure reason.", call. = FALSE)
   }
   receipts
+}
+
+phase18_read_interval_campaign_smoke_receipts <- function(receipts_path, contracts) {
+  if (!is.character(receipts_path) || length(receipts_path) != 1L || !file.exists(receipts_path)) {
+    stop("`receipts_path` must name an existing local-smoke receipts TSV.", call. = FALSE)
+  }
+  phase18_validate_interval_campaign_smoke_receipts(
+    utils::read.delim(receipts_path, check.names = FALSE, stringsAsFactors = FALSE),
+    contracts
+  )
 }
 
 phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindings) {
@@ -470,13 +479,9 @@ phase18_write_interval_campaign_readiness_packet <- function(
       failure_reason = character(), source = character(), stringsAsFactors = FALSE
     )
   }
-  smoke_required <- c(
-    "cell_id", "target_id", "dgp_id", "seed", "conf_status", "lower", "upper",
-    "convergence", "pdHess", "profile_boundary", "failure_reason", "source"
+  smoke_receipts <- phase18_validate_interval_campaign_smoke_receipts(
+    smoke_receipts, contracts
   )
-  if (!is.data.frame(smoke_receipts) || !all(smoke_required %in% names(smoke_receipts))) {
-    stop("`smoke_receipts` must be a validated local-smoke receipt table.", call. = FALSE)
-  }
   utils::write.table(
     contracts[manifest_fields], manifest_path, sep = "\t", row.names = FALSE,
     quote = FALSE, na = ""
