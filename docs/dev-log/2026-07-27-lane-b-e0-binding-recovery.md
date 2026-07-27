@@ -334,6 +334,15 @@ convergence 0, and `pdHess = TRUE`. The formula grammar requires named
 `coords` and `Q` fixture objects. These are routing bindings only, not coverage
 evidence.
 
+### Recovered NB2 q1 spatial, animal, and relatedness intercepts
+
+The companion NB2 exact fixture adds `mc-0406` spatial, `mc-0407` animal, and
+`mc-0408` relatedness mu-intercept targets at ten groups × 12, seed
+`2026052802`, each with truth 0.45. Their direct profiles were
+`[0.2973313, 1.0948530]`, `[0.3094870, 0.9996575]`, and
+`[0.3094870, 0.9996575]`; all returned `conf.status = "profile"`, convergence
+0, and `pdHess = TRUE`. These are routing bindings only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
