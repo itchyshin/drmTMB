@@ -414,6 +414,15 @@ profile returned `[0.3980353, 0.6642229]`, converged with code zero, and had
 a non-boundary `conf.status = "profile"`. This is a local routing binding
 only; it does not alter the Arc 3a recovery evidence or establish coverage.
 
+### Recovered Beta animal q1 mu intercept
+
+The archived beta-animal fixture sets eight pedigree levels × ten observations,
+seed `2026070401`, and latent/logit-mu animal SD truth 0.35. Its exact
+`sd:mu:animal(1 | id)` profile returned `[0.2371351, 0.7135851]` with
+convergence zero and non-boundary `conf.status = "profile"`. It is retained as
+a single local routing binding, not coverage evidence and not a broader beta
+animal claim.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
