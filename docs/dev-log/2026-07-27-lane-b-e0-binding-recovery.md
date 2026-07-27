@@ -212,6 +212,19 @@ profile smokes returned `[0, 0.3056272]`, `[0, 0.2791434]`, and
 bound for route identity while their lower-bound contact remains negative,
 non-covering technical evidence.
 
+### Recovered NB2 q1 spatial, animal, and relatedness slopes
+
+The NB2 companion runners provide exact contracts for `mc-0411` (spatial),
+`mc-0412` (animal), and `mc-0413` (relatedness): the same eight-level,
+20-per-level, seed-`760001` structure and log-mu/SD truths as their Poisson
+counterparts, plus fixed NB2 `sigma = 0.55`. Their direct slope targets are
+`sd:mu:spatial(0 + x | site)`, `sd:mu:animal(0 + x | id)`, and
+`sd:mu:relmat(0 + x | id)`. Exact-DGP local profiles were respectively
+`[0, 0.3236126]`, `[0, 0.3634323]`, and `[0, 0.3634323]`; each was direct and
+ready, converged with `pdHess = TRUE`, and reported `near_sd_boundary`.
+They are exact routing bindings only. Their boundary contact is retained as
+non-covering technical evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
