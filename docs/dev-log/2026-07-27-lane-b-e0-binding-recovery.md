@@ -405,6 +405,15 @@ convergence zero and non-boundary `conf.status = "profile"`. This is an exact
 local routing binding only, not the prior Arc 3a recovery result, a coverage
 claim, or a promotion.
 
+### Recovered Arc 3a Gamma relatedness q1 intercept
+
+The same Arc 3a generator supplies the established Gamma–relatedness
+comparator for `mc-0248`: `y ~ x + relmat(1 | id, K = K)`, true log-mu SD
+0.50, and fixed sigma 0.35. At M32 × 20 and seed `20260727`, its direct
+profile returned `[0.3980353, 0.6642229]`, converged with code zero, and had
+a non-boundary `conf.status = "profile"`. This is a local routing binding
+only; it does not alter the Arc 3a recovery evidence or establish coverage.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
