@@ -343,6 +343,14 @@ The companion NB2 exact fixture adds `mc-0406` spatial, `mc-0407` animal, and
 `[0.3094870, 0.9996575]`; all returned `conf.status = "profile"`, convergence
 0, and `pdHess = TRUE`. These are routing bindings only, not coverage evidence.
 
+### Recovered NB2 phylogenetic q1 intercept
+
+The exact `mc-0405` fixture supplies a balanced eight-tip phylogeny, 24
+observations per tip, seed `20260641`, and NB2 phylogenetic mu-intercept SD
+truth 0.45. Its direct `sd:mu:phylo(1 | species)` profile returned
+`[0.1494333, 0.6527877]`, `conf.status = "profile"`, convergence 0, and
+`pdHess = TRUE`. This is a routing binding only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
