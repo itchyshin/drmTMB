@@ -244,6 +244,18 @@ link-scale mu slope SD 0.48 in `(0 + x | id)`. Its direct profile target is
 `conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. It is an exact
 routing binding only, not coverage evidence.
 
+### Recovered Poisson and NB2 ordinary mu slopes
+
+The Poisson `mc-0431` fixture has 42 groups of 11 observations, seed
+`20260621`, and an independent log-mu slope SD of 0.45. Its direct profile
+returned `[0.1932162, 0.4389299]`, with `conf.status = "profile"`, convergence
+0, and `pdHess = TRUE`. The NB2 `mc-0402` fixture has 44 groups of 10,
+seed `20260628`, fixed-effect log-sigma `-0.70 + 0.20 z`, an independent
+mu intercept SD 0.45, and the direct mu slope-SD truth 0.30. Its direct
+profile returned `[0.1686393, 0.4514289]`, again with `conf.status = "profile"`,
+convergence 0, and `pdHess = TRUE`. Both are exact routing bindings only;
+neither is coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
