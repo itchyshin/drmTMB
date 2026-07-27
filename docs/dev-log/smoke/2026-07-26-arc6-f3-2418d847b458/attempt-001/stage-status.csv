@@ -1,0 +1,10 @@
+"stage","status","reason"
+"dgp_harness","ok",
+"bernoulli_margin","ok",
+"nb2_mean","ok",
+"nb2_dispersion","ok",
+"association","ok",
+"rectangle","ok",
+"sandwich","ok",
+"delta","ok",
+"interval","not_attempted",

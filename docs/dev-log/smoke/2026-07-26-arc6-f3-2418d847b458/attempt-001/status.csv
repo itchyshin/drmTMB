@@ -1,0 +1,2 @@
+"source_sha","seed","dataset_sha256","terminal_stage","terminal_status","bernoulli_margin_id","nb2_mean_margin_id","nb2_dispersion_margin_id","association_id","private_result_available","alpha_godambe_available","eta_delta_available","interval_status"
+"2418d847b45891b09f719932e75985101be50116",2026072603,"e05ceb6cb67b7e152c9d8f0aef0837d63db543ca96ce01a0f20ece2916b47bd1","complete","success","1d672958ca5c399bff3165ed92fd1c0a","a86581c60135de91054cb11226554563","a86581c60135de91054cb11226554563","95a88bc9083e24227cbb0df8c81bf754",TRUE,TRUE,TRUE,"not_attempted"
