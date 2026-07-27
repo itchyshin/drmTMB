@@ -264,6 +264,17 @@ Poisson log-mu intercept DGP (seed `20260619`, true SD 0.55). Its direct
 `conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. This is an
 exact routing binding only, not coverage evidence.
 
+### Recovered Arc-2a ordinary mu intercepts
+
+Three exact Arc-2a fixtures add direct interior profile routes. `mc-0463`
+(skew-normal, 40 groups × 14, seed `20260712`, true location SD 0.70) returned
+`[0.5091854, 0.8209202]`; `mc-0567` (zero-one-beta, 45 × 16, seed 7, true
+latent-logit SD 0.60) returned `[0.4644101, 0.7520640]`; and `mc-0225`
+(cumulative logit, 45 × 18, seed 9, true latent-logit SD 0.70) returned
+`[0.4972216, 0.9334606]`. Each target is `sd:mu:(1 | id)`, direct and
+profile-ready, with `conf.status = "profile"`, convergence 0, and
+`pdHess = TRUE`. These are routing bindings only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
