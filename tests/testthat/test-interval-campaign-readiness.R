@@ -353,6 +353,20 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
     contracts,
     partial
   )
+  blank_partial_source <- partial
+  blank_partial_source$binding_source[[1L]] <- ""
+  expect_error(
+    env$phase18_write_interval_campaign_readiness_packet(
+      contracts,
+      evidence_path = file.path(repo_root, "docs", "dev-log", "dashboard", "capability-ledger", "evidence.tsv"),
+      output_dir = tempfile("lane-b-readiness-invalid-"),
+      source_sha = source_sha,
+      source_root = repo_root,
+      partial_bindings = blank_partial_source,
+      smoke_receipts = smoke_receipts
+    ),
+    "binding_source"
+  )
   packet <- env$phase18_write_interval_campaign_readiness_packet(
     contracts,
     evidence_path = file.path(repo_root, "docs", "dev-log", "dashboard", "capability-ledger", "evidence.tsv"),

@@ -200,20 +200,18 @@ phase18_bind_interval_campaign_contracts <- function(contracts, bindings) {
   base
 }
 
-phase18_read_interval_campaign_bindings <- function(
-  bindings_path,
+phase18_validate_interval_campaign_bindings <- function(
+  bindings,
   contracts,
   allow_partial = FALSE
 ) {
   phase18_assert_interval_campaign_census(contracts)
-  if (!is.character(bindings_path) || length(bindings_path) != 1L ||
-      !file.exists(bindings_path)) {
-    stop("`bindings_path` must name an existing bindings TSV.", call. = FALSE)
+  if (!is.data.frame(bindings)) {
+    stop("`bindings` must be a data frame.", call. = FALSE)
   }
   if (!is.logical(allow_partial) || length(allow_partial) != 1L || is.na(allow_partial)) {
     stop("`allow_partial` must be one non-missing logical value.", call. = FALSE)
   }
-  bindings <- utils::read.delim(bindings_path, check.names = FALSE, stringsAsFactors = FALSE)
   required <- c(
     "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
     "profile_parameter", "information_rung", "binding_source"
@@ -234,6 +232,22 @@ phase18_read_interval_campaign_bindings <- function(
     stop("Bindings TSV has incomplete ", paste(names(incomplete)[incomplete], collapse = ", "), ".", call. = FALSE)
   }
   bindings
+}
+
+phase18_read_interval_campaign_bindings <- function(
+  bindings_path,
+  contracts,
+  allow_partial = FALSE
+) {
+  if (!is.character(bindings_path) || length(bindings_path) != 1L ||
+      !file.exists(bindings_path)) {
+    stop("`bindings_path` must name an existing bindings TSV.", call. = FALSE)
+  }
+  phase18_validate_interval_campaign_bindings(
+    utils::read.delim(bindings_path, check.names = FALSE, stringsAsFactors = FALSE),
+    contracts,
+    allow_partial = allow_partial
+  )
 }
 
 phase18_validate_interval_campaign_smoke_receipts <- function(receipts, contracts, bindings) {
@@ -498,6 +512,11 @@ phase18_write_interval_campaign_readiness_packet <- function(
       trace_complete = logical(), failure_reason = character(), source = character(), stringsAsFactors = FALSE
     )
   }
+  partial_bindings <- phase18_validate_interval_campaign_bindings(
+    partial_bindings,
+    contracts,
+    allow_partial = TRUE
+  )
   smoke_receipts <- phase18_validate_interval_campaign_smoke_receipts(
     smoke_receipts, contracts, partial_bindings
   )
