@@ -72,6 +72,10 @@ now supplies the stored full state with fixed parameters replaced. The local
 `R CMD check` metadata gate also prevents a package-check verdict in this R
 installation.
 
+The hub closeout wrapper hard-codes the brain-vault root and could not locate
+this repository report. The direct `check-after-task.R` invocation passed; this
+repository has no `tools/evidence_gate.py` for that wrapper to call.
+
 ## 10. Known Residuals
 
 This establishes no empirical reachability of `eta > 700`, no stability gain,
