@@ -174,6 +174,30 @@ attempting `sd:sigma:sigma1:phylo(1 | ps | sp)` and its sigma2 analogue
 returns `Unknown confidence-interval targets`. Those two cells therefore stay
 unbound; no scale-side target was fabricated from the formula or summary.
 
+### Recovered Poisson phylogenetic q1 slope
+
+The archived `count_slope_phylo_poisson_q1_mu_one_slope` runner gives the exact
+`mc-0435` DGP: a balanced eight-tip tree, 20 observations per tip, seed
+`760001`, Poisson log-mean `0.55 - 0.15 x`, independent phylogenetic intercept
+and slope SDs of 0.25 and 0.45, and
+`phylo(1 + x | site, tree = tree)`. The direct slope target is
+`sd:mu:phylo(0 + x | site)`. A local exact-DGP profile smoke returned
+`[0, 0.2509684]`, `conf.status = "profile"`, and `near_sd_boundary` with
+`pdHess = TRUE`. This is an exact routing binding, but the boundary contact is
+retained as negative technical evidence: it does not count as a finite-profile
+success, coverage result, or permission to relax later all-attempt rules.
+
+### Recovered NB2 phylogenetic q1 slope
+
+The parallel `count_slope_phylo_nbinom2_q1_mu_one_slope` runner supplies the
+exact `mc-0410` DGP: the same eight-tip/20-per-tip design and seed `760001`,
+with NB2 `sigma = 0.55`, and the same log-mu coefficients and phylogenetic SD
+truths (0.25 intercept, 0.45 slope). Its direct target is likewise
+`sd:mu:phylo(0 + x | site)`. The local exact-DGP smoke returned
+`[0, 0.3120354]`, `conf.status = "profile"`, `near_sd_boundary`, and
+`pdHess = TRUE`. It is bound as an exact routing target, while retaining the
+boundary contact as non-covering technical evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
