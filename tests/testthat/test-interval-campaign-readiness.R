@@ -104,10 +104,10 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
     subset_path, contracts, allow_partial = TRUE
   )
 
-  expect_equal(nrow(recovered), 8L)
+  expect_equal(nrow(recovered), 10L)
   expect_setequal(
     recovered$cell_id,
-    c("mc-0005", "mc-0059", "mc-0251", "mc-0270", "mc-0388", "mc-0423", "mc-0438", "mc-0511")
+    c("mc-0005", "mc-0059", "mc-0184", "mc-0185", "mc-0251", "mc-0270", "mc-0388", "mc-0423", "mc-0438", "mc-0511")
   )
   expect_error(
     env$phase18_read_interval_campaign_bindings(subset_path, contracts),

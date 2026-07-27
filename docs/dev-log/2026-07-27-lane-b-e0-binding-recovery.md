@@ -84,10 +84,10 @@ canonical-binding inputs, but only for route/DGP/target/rung definition: the
 B1 worker checks `profile_targets()` readiness and does not provide profile
 interval or coverage evidence.
 
-The exact rows are stored in the checked partial table
+The recovered rows are stored in the checked partial table
 [`interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv`](interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv).
 The readiness helper validates its schema and cohort membership, but refuses to
-turn it into a schedule because it deliberately lacks the other 150 cells.
+turn it into a schedule because it deliberately lacks the other 148 cells.
 
 | Cell | DGP ID | Exact profile target | Truth/reporting scale | Rungs |
 | --- | --- | --- | --- | --- |
@@ -131,6 +131,18 @@ relax the later campaign's all-attempt availability rule.
 | `mc-0388` | 2026077401 | `[0.3124686, 0.5310761]` | `FALSE` |
 | `mc-0423` | 2026078001 | `[0, 0.3387393]` (`near_sd_boundary`) | `FALSE` |
 | `mc-0438` | 2026078601 | `[0.1926422, 0.6244484]` | `FALSE` |
+
+### Recovered fixed-REML residual-scale subset
+
+The bivariate fixed-REML fixture provides two more exact, direct targets:
+`mc-0184` / `sigma1` (truth 0.80) and `mc-0185` / `sigma2` (truth 0.90), at
+`n = 150`, seed 3. A local profile routing smoke returned response-scale
+intervals `[0.7688046, 0.9658607]` and `[0.8450240, 1.0616163]`, respectively,
+both with `conf.status = "profile"`. The fixed mean cells `mc-0182` and
+`mc-0183` remain unbound: under this REML route their `mu1`/`mu2` coefficients
+are marginalised and `profile_targets()` reports `missing_tmb_parameter`.
+The partial table now has ten rows; these are still routing smokes, not
+coverage evidence or a schedule.
 
 ### Gaussian recovery boundary
 
