@@ -59,3 +59,18 @@ It must name an exact DGP function/version, formula, truth on its reporting
 scale, one or more namespaced direct profile targets, information rung, and
 source receipt. Any cell lacking all of those remains unavailable. K=12 keeps
 its dedicated negative-control target and must remain incomplete/unavailable.
+
+### Exact K=12 negative-control contract
+
+The sole E0 K=12 control is `mc-0260m`, not any structured `q12` cell. Its
+canonical source is `inst/sim/run/sim_run_meta_v_lss_smoke.R`:
+`dense_k12_historical_failure_control`, layer `LSS`, `n_study = 12`, two
+effects and two replications per study, dense known `V`, `sampling_rho = .25`,
+and restored source seed `1592943833`. The target rows are
+`sd:study:(Intercept)` / `fixef:sd(study):(Intercept)` and
+`sd:study:z_study` / `fixef:sd(study):z_study`, with truth values supplied by
+`phase18_meta_v_lss_targets()`. Both must be retained as negative-control
+attempts: a finite `conf.status = "profile"` is an error, while
+`nonfinite_interval`, `clamp_limited`, or `trace_incomplete` stays unavailable
+and non-covering. This is a binding specification only; it does not authorize
+or launch a pregrid.
