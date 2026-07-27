@@ -2,6 +2,20 @@
 
 Record meaningful development checks here.
 
+## 2026-07-27: Arc 6 F4b private Bernoulli x ordinary-NB2 runner
+
+- On the owner-approved base `095f51b3b`, added the private F4 preparation
+  runner and focused contract suite.  It freezes the 24-cell / 24,000-attempt
+  seed schedule, source/blob guards, alpha-only Godambe extraction, all-attempt
+  status schema, unavailable/boundary retention, and terminal-stage precedence.
+- `git diff --check`: PASS.  Focused F4 runner-contract suite: PASS (31
+  expectations).  Existing F3 provenance runner-contract suite: PASS (57
+  expectations).  Neither suite invokes the F4 CLI or a model fit.
+- Boundary: the F4 CLI admits `--mode=prepare` only.  No output preparation was
+  invoked, no remote host or scheduler was contacted, no F4 outer refit ran,
+  and `vcov()` / `confint()` remain fail-closed pending a later exact-SHA DRAC
+  execution receipt and F4 review.
+
 ## 2026-07-24: Arc 9 legacy Julia cross-family extractor repair
 
 - `drmTMB_julia_xfam` no longer inherits extractors that read absent fields and
