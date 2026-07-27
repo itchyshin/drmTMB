@@ -104,10 +104,10 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
     subset_path, contracts, allow_partial = TRUE
   )
 
-  expect_equal(nrow(recovered), 35L)
+  expect_equal(nrow(recovered), 36L)
   expect_setequal(
     recovered$cell_id,
-    c("mc-0005", "mc-0007", "mc-0059", "mc-0184", "mc-0185", "mc-0208", "mc-0209", "mc-0212", "mc-0213", "mc-0225", "mc-0251", "mc-0260m", "mc-0270", "mc-0380", "mc-0388", "mc-0401", "mc-0402", "mc-0403", "mc-0410", "mc-0411", "mc-0412", "mc-0413", "mc-0423", "mc-0429", "mc-0431", "mc-0435", "mc-0438", "mc-0441", "mc-0448", "mc-0452", "mc-0463", "mc-0511", "mc-0538", "mc-0567")
+    c("mc-0005", "mc-0007", "mc-0059", "mc-0184", "mc-0185", "mc-0208", "mc-0209", "mc-0212", "mc-0213", "mc-0225", "mc-0251", "mc-0260m", "mc-0270", "mc-0271", "mc-0380", "mc-0388", "mc-0401", "mc-0402", "mc-0403", "mc-0410", "mc-0411", "mc-0412", "mc-0413", "mc-0423", "mc-0429", "mc-0431", "mc-0435", "mc-0438", "mc-0441", "mc-0448", "mc-0452", "mc-0463", "mc-0511", "mc-0538", "mc-0567")
   )
   expect_equal(sum(recovered$cell_id == "mc-0260m"), 2L)
   expect_error(
@@ -135,9 +135,9 @@ test_that("binding inventory retains every Lane-B cell while exposing recovery s
   inventory <- env$phase18_interval_campaign_binding_inventory(contracts, partial)
 
   expect_equal(length(unique(inventory$cell_id)), 158L)
-  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 33L)
+  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 34L)
   expect_equal(sum(inventory$binding_status == "partial_negative_control_binding"), 2L)
-  expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 124L)
+  expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 123L)
   expect_true(all(inventory$binding_status[inventory$cell_id == "mc-0260m"] == "partial_negative_control_binding"))
 })
 

@@ -293,6 +293,16 @@ seed-`20260642` sigma-intercept DGP has log-sigma SD truth 0.42;
 profile-ready and returned `conf.status = "profile"` with convergence 0 and
 `pdHess = TRUE`. They are routing bindings only, not coverage evidence.
 
+### Recovered Gaussian sigma random slope
+
+The self-describing Phase-18 Gaussian `mc-0271` DGP fixes 32 groups × eight
+observations, seed 238, and true log-sigma slope SD 0.34 in `(0 + w | id)`.
+The direct `sd:sigma:(0 + w | id)` profile returned `[0.2850093, 0.7264350]`,
+`conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. The DGP required
+the declared Phase-18 registry helper when sourced locally; after loading it,
+the smoke was reproducible. This is an exact routing binding only, not coverage
+evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
