@@ -20180,7 +20180,7 @@ mu_sd_by_random_effect <- function(par, re_mu, sd_mu) {
 
 sd_mu_group_values <- function(par, sd_mu, dpar = NULL) {
   eta <- as.vector(sd_mu$X %*% unname(par$beta_sd_mu[seq_len(ncol(sd_mu$X))]))
-  out <- exp(eta)
+  out <- drm_exp_sd_logscale_guarded(eta)
   names(out) <- sd_mu$group_levels
   if (!is.null(dpar)) {
     row_index <- sd_mu$row_index[[dpar]]
@@ -20197,7 +20197,7 @@ sd_phylo_group_values <- function(par, spec, dpar = NULL) {
     offset + seq_len(ncol(sd_phylo$X))
   ])
   eta <- as.vector(sd_phylo$X %*% beta)
-  out <- exp(eta)
+  out <- drm_exp_sd_logscale_guarded(eta)
   names(out) <- sd_phylo$group_levels
   if (!is.null(dpar)) {
     row_index <- sd_phylo$row_index[[dpar]]
@@ -20205,6 +20205,14 @@ sd_phylo_group_values <- function(par, spec, dpar = NULL) {
     names(out) <- sd_phylo$group_levels_list[[dpar]]
   }
   out
+}
+
+# Keep the R extraction/simulation surfaces numerically aligned with the TMB
+# overflow guard. This is not the configurable residual log-sigma clamp.
+DRM_SD_LOGSCALE_OVERFLOW_LIMIT <- 700
+
+drm_exp_sd_logscale_guarded <- function(eta) {
+  exp(pmin(as.numeric(eta), DRM_SD_LOGSCALE_OVERFLOW_LIMIT))
 }
 
 biv_phylo_node_sd_values <- function(par, spec) {

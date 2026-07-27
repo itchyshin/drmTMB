@@ -70,7 +70,11 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   n_count <- sum(grepl("CppAD::CondExp", read_src("drm_count_kernels.h")))
   n_response <- sum(grepl("CppAD::CondExp", read_src("drm_response_kernels.h")))
 
-  expect_equal(n_cpp, 21L)
+  # Arc D Design 1 adds three overflow-only direct-SD guards: two CondExpGt
+  # calls in the shared helper and one CondExpGt fail-closed objective gate.
+  # They are intentionally C0/C1-unclassified here because their separate
+  # overflow and AD behavior is exercised in test-arc-d-sd-overflow-guard.R.
+  expect_equal(n_cpp, 24L)
   expect_equal(n_numeric, 2L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 2L)

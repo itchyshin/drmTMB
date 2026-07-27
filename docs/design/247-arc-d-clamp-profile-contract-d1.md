@@ -1,8 +1,9 @@
 # 247 — Arc D / D1: what a scale clamp may do to a profile endpoint
 
-**Status:** **DECISION REQUIRED FROM SHINICHI.** D0 inventory and the decisive
-measurement are complete; no code has been changed. Per the Arc D plan (#847) and its
-Claude counterpart, implementation is fenced until a design is selected **in writing**.
+**Status:** **Design 1 approved and implemented 2026-07-26.** D0 inventory and
+the decisive measurement selected a narrow overflow-only guard. Design 2 remains
+deferred pending a separately approved status-contract arc; Design 3 remains
+rejected for objective mismatch.
 
 **Owners:** Fisher (contract), Gauss (numerics), Rose (closeout).
 **Reads:** `docs/design/245-f5-sd-regression-clamp-and-identifiability.md` first.
@@ -174,6 +175,23 @@ useful and can be built without committing to a clamp.
 C++ and R will disagree about the same quantity.
 
 **Not recommended:** Design 3, on the objective-mismatch objection above.
+
+## Executed Design 1 (2026-07-26)
+
+Shinichi selected Design 1 in writing. The implementation applies an internal
+overflow-only guard at the nine C++ `sd()`-predictor exponentiation sites and
+the two matching R re-derivation surfaces. It is exactly the ordinary
+exponential through `eta <= 700`; it is not the configurable residual
+`logsigma_clamp` and makes no stability or identifiability claim.
+
+An overflow-guard hit makes the C++ objective non-finite. Thus existing profile
+failure handling returns missing endpoints rather than a guard-shaped finite
+interval; no `interval_status` vocabulary was added or changed. Focused checks
+exercise ordinary C++/R agreement, the deliberate guard-hit failure path,
+finite-difference versus AD gradients, and the retained K=12
+`incomplete/nonfinite_interval` sentinel. No bootstrap, simulation, recovery,
+coverage, ledger, association, missing-response, or public-surface work forms
+part of this implementation.
 
 ---
 
