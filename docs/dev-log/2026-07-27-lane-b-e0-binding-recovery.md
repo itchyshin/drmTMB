@@ -326,6 +326,18 @@ truth 0.42; convergence was zero and both targets were profile-ready. This is
 an exact local routing binding only, not interval calibration or coverage
 evidence.
 
+### Recovered Arc 1b-S2R bivariate relatedness q2 REML intercepts
+
+The self-describing relatedness-q2 DGP supplies the matching labelled
+`relmat(1 | p | id, K = K)` location block in both mean endpoints for the two
+Arc 1b-S2R cells: `mc-0201` / `sd:mu:mu1:relmat(1 | p | id)` and `mc-0674` /
+`sd:mu:mu2:relmat(1 | p | id)`. At 24 levels × six observations, covariance
+`K`, and seed `20260727`, the `biv_gaussian(REML)` profiles returned
+`[0.5050604, 0.9164290]` for the mu1 truth 0.60 and `[0.4078618, 0.7430743]`
+for the mu2 truth 0.50. Both were direct/profile-ready, converged with code
+zero, and had non-boundary profile endpoints. This is a local routing binding
+only, not interval calibration or coverage evidence.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
