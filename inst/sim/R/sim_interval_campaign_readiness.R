@@ -267,6 +267,11 @@ phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindi
     "partial_negative_control_binding",
     "partial_exact_binding"
   )
+  bound$binding_blocker <- ifelse(
+    bound$negative_control,
+    "negative_control_retained_fail_closed",
+    "exact_dgp_and_profile_smoke_recovered"
+  )
   unresolved <- active[!active$cell_id %in% unique(bound$cell_id),
     c("cell_id", "negative_control", "estimand_stratum"), drop = FALSE]
   unresolved$target_id <- NA_character_
@@ -276,10 +281,11 @@ phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindi
   unresolved$profile_parameter <- NA_character_
   unresolved$information_rung <- NA_character_
   unresolved$binding_status <- "needs_exact_binding"
+  unresolved$binding_blocker <- "exact_dgp_and_direct_target_not_recovered"
   fields <- c(
     "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
     "profile_parameter", "information_rung", "negative_control",
-    "estimand_stratum", "binding_status"
+    "estimand_stratum", "binding_status", "binding_blocker"
   )
   out <- rbind(bound[fields], unresolved[fields])
   out <- out[order(out$cell_id, is.na(out$target_id), out$target_id), , drop = FALSE]

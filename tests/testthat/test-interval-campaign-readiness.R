@@ -138,6 +138,18 @@ test_that("binding inventory retains every Lane-B cell while exposing recovery s
   expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 44L)
   expect_equal(sum(inventory$binding_status == "partial_negative_control_binding"), 2L)
   expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 113L)
+  expect_equal(
+    sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"),
+    44L
+  )
+  expect_equal(
+    sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"),
+    113L
+  )
+  expect_true(all(
+    inventory$binding_blocker[inventory$cell_id == "mc-0260m"] ==
+      "negative_control_retained_fail_closed"
+  ))
   expect_true(all(inventory$binding_status[inventory$cell_id == "mc-0260m"] == "partial_negative_control_binding"))
 })
 

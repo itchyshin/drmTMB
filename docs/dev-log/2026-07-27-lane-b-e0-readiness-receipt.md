@@ -21,6 +21,15 @@ reproducibility receipt, not an edit to the ledger.
 The exact sorted cell-ID set is also pinned by MD5, so a same-size substitution
 cannot silently alter the cohort.
 
+## Binding recovery state
+
+The binding inventory keeps every active cell visible while separating three
+states: `exact_dgp_and_profile_smoke_recovered`, the retained fail-closed K=12
+negative control, and `exact_dgp_and_direct_target_not_recovered`. The last is
+a recovery boundary, not an interval failure, exclusion, or permission to
+schedule a substitute target. It prevents legacy evidence labels from being
+mistaken for an exact replayable DGP contract.
+
 ## Fail-closed target contract
 
 The contract table stratifies fixed coefficients and ordinary RE-SD intercepts
