@@ -109,7 +109,12 @@ f3r_require_private_helpers <- function(namespace) {
   if (length(missing)) f3r_abort(paste("Required private helper(s) unavailable from the loaded local namespace:", paste(missing, collapse = ", ")))
   invisible(namespace)
 }
-f3r_layout <- function(out_dir) { dirs <- file.path(out_dir, c("input", "fit", "private", "metadata", "logs")); dir.create(out_dir); vapply(dirs, dir.create, logical(1L)); invisible(dirs) }
+f3r_layout <- function(out_dir) {
+  dirs <- file.path(out_dir, c("input", "fit", "private", "metadata", "logs"))
+  if (!dir.create(out_dir, recursive = TRUE)) f3r_abort("F3R could not create the approved output directory.")
+  if (!all(vapply(dirs, dir.create, logical(1L)))) f3r_abort("F3R could not create an approved output subdirectory.")
+  invisible(dirs)
+}
 f3r_hash_file <- function(path, command, runner = system2) { out <- f3r_command(command[[1L]], c(command[-1L], path), runner); strsplit(out, "[[:space:]]+")[[1L]][1L] }
 f3r_fit_id <- function(fit, namespace) get("drm_pair_fingerprint", envir = namespace)(fit)
 f3r_rectangle_available <- function(association_fit) {

@@ -43,6 +43,9 @@ before it is compared to the frozen SHA-specific `attempt-001` path. It must
 load the preflighted local package source and validate both required private
 helpers from that namespace before creating the output layout; an installed
 `drmTMB` namespace is never an acceptable helper substitute. It must
+recursively create the absent parents of that already-approved canonical output
+path, then create its five immutable subdirectories; it must not substitute or
+pre-create any other output path. It must
 set `RNGkind("Mersenne-Twister", "Inversion", "Rejection")`
 before `set.seed(2026072603L)` and record both the resulting `RNGkind()` and
 the generated `.Random.seed`; its frozen DGP is therefore not configurable.

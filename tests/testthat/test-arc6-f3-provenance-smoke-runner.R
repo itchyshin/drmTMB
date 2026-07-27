@@ -55,6 +55,19 @@ test_that("F3R rejects an output directory other than the frozen SHA-specific at
   expect_error(f3r_check_out_dir(file.path(root, "attempt-002"), root, sha), "frozen F3R")
 })
 
+test_that("F3R creates absent parents only for the literal approved output path", {
+  sha <- paste(rep("a", 40), collapse = "")
+  root <- tempfile("f3r-root-"); dir.create(root)
+  literal_out_dir <- file.path("docs", "dev-log", "smoke", paste0("2026-07-26-arc6-f3-", substr(sha, 1L, 12L)), "attempt-001")
+  opts <- f3r_parse_args(c(paste0("--expected-sha=", sha), paste0("--out-dir=", literal_out_dir)))
+  expect_silent(f3r_check_out_dir(opts$out_dir, root, opts$expected_sha))
+  canonical_out_dir <- f3r_canonical_out_dir(opts$out_dir, root)
+  expect_false(dir.exists(canonical_out_dir))
+  expect_silent(f3r_layout(canonical_out_dir))
+  expect_true(dir.exists(canonical_out_dir))
+  expect_true(all(dir.exists(file.path(canonical_out_dir, c("input", "fit", "private", "metadata", "logs")))))
+})
+
 test_that("F3R stage ledger has nine ordered rows and retains a DGP-like terminal", {
   ledger <- f3r_stage_ledger("dgp_harness", "serialization error")
   expect_identical(ledger$stage, f3r_stages)
