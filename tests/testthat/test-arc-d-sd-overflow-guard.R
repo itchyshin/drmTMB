@@ -39,7 +39,39 @@ test_that("ordinary direct-SD values agree between C++ and R", {
       unname(par[names(par) == "beta_sd_mu"])
   )
   expect_equal(report$sd_logscale_overflow_guard_hit, 0)
-  expect_equal(report$sd_mu_group, drmTMB:::drm_exp_sd_logscale_guarded(eta))
+  expect_equal(
+    report$sd_mu_group,
+    drmTMB:::drm_exp_sd_logscale_guarded(
+      drmTMB:::drm_softclamp_log_sd(eta, fit$model$tmb_data)
+    )
+  )
+})
+
+test_that("direct-SD clamp preserves raw log scale and aligns C++ with R", {
+  fit <- drmTMB(
+    bf(y ~ w + (1 | id), sigma ~ 1, sd(id) ~ w),
+    family = gaussian(),
+    data = arc_d_overflow_fixture(),
+    control = drm_control(se = FALSE, keep_tmb_object = TRUE)
+  )
+  par <- fit$opt$par
+  position <- which(names(par) == "beta_sd_mu")
+  clamped_par <- par
+  clamped_par[position] <- c(0, 20)
+  full_par <- fit$tmb_state$last.par.best
+  full_par[fit$obj$env$lfixed()] <- clamped_par
+  par_list <- fit$obj$env$parList(clamped_par)
+  raw <- drmTMB:::drm_direct_sd_logscale_values(par_list, fit$model)$mu
+  report <- fit$obj$report(full_par)
+
+  expect_gt(max(raw), fit$model$tmb_data$logsigma_clamp[[2L]])
+  expect_equal(report$log_sd_mu_group, unname(raw))
+  expect_equal(
+    report$sd_mu_group,
+    drmTMB:::drm_exp_sd_logscale_guarded(
+      drmTMB:::drm_softclamp_log_sd(raw, fit$model$tmb_data)
+    )
+  )
 })
 
 test_that("a direct-SD overflow guard hit is non-finite and cannot profile", {
@@ -47,7 +79,11 @@ test_that("a direct-SD overflow guard hit is non-finite and cannot profile", {
     bf(y ~ w + (1 | id), sigma ~ 1, sd(id) ~ w),
     family = gaussian(),
     data = arc_d_overflow_fixture(),
-    control = drm_control(se = FALSE, keep_tmb_object = TRUE)
+    control = drm_control(
+      se = FALSE,
+      keep_tmb_object = TRUE,
+      logsigma_clamp = NULL
+    )
   )
   par <- fit$opt$par
   position <- which(names(par) == "beta_sd_mu")
