@@ -37,6 +37,21 @@ target names such as `sd:mu:mu1:phylo(1 | p | sp)` but not a completed profile
 attempt for the exact REML campaign DGP. No source supports treating a finite
 generic profile test as coverage evidence.
 
+## Local technical smoke (route validation only)
+
+On the then-current Lane-B readiness source, the recovered count fixture was
+run locally at its archived first seed (`760001`) with the required named
+`tree` object and exact q1 Poisson phylogeny formula
+`poisson_phylo ~ x + phylo(1 + x | site, tree = tree)`. Both direct targets
+were profile-ready and returned endpoint profiles: `sd:mu:phylo(1 | site)`
+returned `[0, 0.4095412]`, and `sd:mu:phylo(0 + x | site)` returned
+`[0, 0.3115247]` (both `conf.status = "profile"`). This is a local
+formula/target-routing smoke only: one seed, no coverage denominator, no
+historical-cell reclassification, no target-selection decision, and no remote
+compute. It also caught and resolved the required grammar detail that the
+marker must receive a named `tree` object rather than an inline `sim$tree`
+expression.
+
 ## Binding rule carried forward
 
 Only a canonical binding table may turn either recovery result into a schedule.
