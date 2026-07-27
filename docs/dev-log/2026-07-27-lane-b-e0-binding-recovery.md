@@ -77,8 +77,9 @@ or launch a pregrid.
 
 ### Recovered B1 ordinary-RE binding subset
 
-Six of the 27 ordinary-RE candidates have an existing **B1 cell × target**
-source contract in `tools/b1-breadth-contract.R:10-57`. They are legitimate
+Eight frozen E0 candidates have an existing **B1 cell × target** source
+contract in `tools/b1-breadth-contract.R:10-57`: four ordinary REs and four
+structured routes. They are legitimate
 canonical-binding inputs, but only for route/DGP/target/rung definition: the
 B1 worker checks `profile_targets()` readiness and does not provide profile
 interval or coverage evidence.
@@ -86,32 +87,45 @@ interval or coverage evidence.
 | Cell | DGP ID | Exact profile target | Truth/reporting scale | Rungs |
 | --- | --- | --- | --- | --- |
 | `mc-0005` | `b1_beta_mu_intercept` | `sd:mu:(1 | id)` | 0.55, beta latent/link-scale mu SD | 24/48/96 groups; 10/group |
-| `mc-0031` | `b1_beta_binomial_mu_slope` | `sd:mu:(0 + x | id)` | 0.48, beta-binomial latent/link-scale mu slope SD | 24/48/96; 8/group |
 | `mc-0059` | `b1_binomial_mu_intercept` | `sd:mu:(1 | id)` | 0.80, binomial logit-scale mu SD | 24/48/96; 12/group |
-| `mc-0074` | `b1_biv_gaussian_sigma1_slope` | `sd:sigma:sigma1:(0 + x | p | id)` | 0.26, log-sigma1 slope SD | 36/72/108; 10/group |
 | `mc-0270` | `b1_gaussian_sigma_slope` | `sd:sigma:(0 + w | id)` | 0.35, log-sigma slope SD | 24/48/96; 12/group |
 | `mc-0511` | `b1_truncated_nbinom2_mu_slope` | `sd:mu:(0 + x | id)` | 0.48, log-mu latent slope SD | 24/48/96; 8/group |
+| `mc-0251` | `arc3a_positive_continuous` | `sd:mu:phylo(1 | id)` | adapter-owned Gamma phylo mu SD | 24/48/96 adapter rungs |
+| `mc-0388` | `arc3a_positive_continuous` | `sd:mu:relmat(1 | id)` | adapter-owned lognormal relmat mu SD | 24/48/96 adapter rungs |
+| `mc-0423` | `new_nbinom2_sigma_animal` | `sd:sigma:animal(0 + x | id)` | adapter-owned NB2 log-sigma slope SD | 24/48/96 adapter rungs |
+| `mc-0438` | `count_phylo_interaction` | `sd:mu:phylo_interaction(1 | plant:pollinator)` | adapter-owned Poisson phylo-interaction mu SD | 24/48/96 adapter rungs |
 
-These are not a permission to schedule a six-cell pregrid: the full E0 cohort
+These are not a permission to schedule a partial pregrid: the full E0 cohort
 still requires exact binding coverage, and each B1 target needs the planned
 local profile smoke before it can participate in the no-compute packet.
 
-The first fixed-seed local smoke has now been run for all six at their low-rung
-seed (`b1_seed(cell, low, 1)`). Every fit converged with `pdHess = TRUE`, and
-every selected direct target returned `conf.status = "profile"`:
+The first fixed-seed local smoke has been run for the four ordinary in-cohort
+B1 targets at their low-rung seed (`b1_seed(cell, low, 1)`). Every fit
+converged with `pdHess = TRUE`, and every selected direct target returned
+`conf.status = "profile"`:
 
 | Cell | Seed | Profile interval |
 | --- | ---: | --- |
 | `mc-0005` | 2026072601 | `[0.2731837, 0.6211540]` |
-| `mc-0031` | 2026073201 | `[0.3470272, 0.7357922]` |
 | `mc-0059` | 2026073801 | `[0.4296265, 0.8129648]` |
-| `mc-0074` | 2026074401 | `[0.1426531, 0.3967293]` |
 | `mc-0270` | 2026076201 | `[0.3090095, 0.6343688]` |
 | `mc-0511` | 2026080401 | `[0.3793644, 0.9316135]` |
 
-This is a six-attempt route-validation receipt, not interval calibration: no
+This is a four-attempt route-validation receipt, not interval calibration: no
 attempt was discarded, but it supplies neither an all-seed denominator nor a
 coverage estimate and changes no capability status.
+
+The four structured B1 intersection routes were then run the same way. All
+four converged and returned `conf.status = "profile"`, but all four had
+`pdHess = FALSE`; these are retained route-validation outcomes, not a basis to
+relax the later campaign's all-attempt availability rule.
+
+| Cell | Seed | Profile interval | `pdHess` |
+| --- | ---: | --- | --- |
+| `mc-0251` | 2026075601 | `[0.3000979, 0.5442037]` | `FALSE` |
+| `mc-0388` | 2026077401 | `[0.3124686, 0.5310761]` | `FALSE` |
+| `mc-0423` | 2026078001 | `[0, 0.3387393]` (`near_sd_boundary`) | `FALSE` |
+| `mc-0438` | 2026078601 | `[0.1926422, 0.6244484]` | `FALSE` |
 
 ### Gaussian recovery boundary
 

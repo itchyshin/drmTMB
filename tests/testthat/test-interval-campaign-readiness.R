@@ -71,6 +71,23 @@ test_that("binding worklist gives every Lane-B target an evidence source", {
   expect_true(all(worklist$required_profile_parameter))
 })
 
+test_that("B1 source recovery is limited to the frozen E0 intersection", {
+  root <- testthat::test_path("..", "..")
+  source(file.path(root, "tools", "b1-breadth-contract.R"), local = TRUE)
+  env <- new.env(parent = globalenv())
+  sys.source(interval_campaign_readiness_script(), envir = env)
+  manifest <- env$phase18_interval_campaign_manifest(
+    file.path(root, "docs", "dev-log", "dashboard", "capability-ledger", "cells.tsv")
+  )
+  recovered <- b1_cells$cell_id[b1_cells$cell_id %in% manifest$cell_id]
+
+  expect_setequal(
+    recovered,
+    c("mc-0005", "mc-0059", "mc-0251", "mc-0270", "mc-0388", "mc-0423", "mc-0438", "mc-0511")
+  )
+  expect_false(any(c("mc-0031", "mc-0074") %in% recovered))
+})
+
 test_that("all-attempt reducer retains unavailable and not-run attempts", {
   env <- new.env(parent = globalenv())
   sys.source(interval_campaign_readiness_script(), envir = env)
