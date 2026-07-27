@@ -100,7 +100,9 @@ phase18_interval_campaign_contracts <- function(manifest) {
     row <- out[i, , drop = FALSE]
     phase18_interval_campaign_stratum(row)
   }, character(1))
-  out$negative_control <- out$q_gate == "q12"
+  # `q12` is a structured-block dimension, not the K = 12 meta-analysis
+  # negative control.  The latter is the approved meta_V insert, mc-0260m.
+  out$negative_control <- out$cell_id == "mc-0260m"
   out$lane_b_target <- out$dpar != "rho12"
   out$contract_status <- ifelse(
     !out$lane_b_target,

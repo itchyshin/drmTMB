@@ -44,7 +44,9 @@ test_that("contracts stratify targets and fail closed until exact bindings exist
 
   expect_true(all(c("fixed_coefficient", "ordinary_re_sd_intercept", "ordinary_re_sd_slope") %in% contracts$estimand_stratum))
   expect_true(any(grepl("^structured_candidate:.*:component_unbound:", contracts$estimand_stratum)))
-  expect_true(any(contracts$negative_control))
+  expect_equal(sum(contracts$negative_control), 1L)
+  expect_true(contracts$negative_control[contracts$cell_id == "mc-0260m"])
+  expect_false(any(contracts$negative_control & contracts$q_gate == "q12"))
   expect_true(all(contracts$contract_status[contracts$lane_b_target] == "needs_exact_dgp_binding"))
   expect_true(all(contracts$contract_status[!contracts$lane_b_target] == "excluded_foreign_association"))
   expect_true(all(is.na(contracts$profile_parameter)))

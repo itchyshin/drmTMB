@@ -31,6 +31,10 @@ The reviewed exact binding, rather than a heuristic, must supply that identity.
 `rho12` is labelled `excluded_foreign_association` and never enters a Lane-B
 campaign route.  K=12 targets are explicitly marked negative controls.
 
+Here K=12 means only the approved `mc-0260m` meta-V small-study-count
+condition. It does **not** mean every structured `q12` covariance block:
+`q12` names a twelve-dimensional block and is not negative evidence by itself.
+
 Each Lane-B row begins as `needs_exact_dgp_binding`: `dgp_id`, formula, true
 parameter scale, profile parameter, and information rung are deliberately `NA`
 until an exact route binding is reviewed. The binding API requires every
