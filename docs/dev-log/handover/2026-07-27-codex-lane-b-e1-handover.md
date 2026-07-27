@@ -13,13 +13,13 @@ missing-response route changed.
 was this seven-file staged packet; it also reported protected foreign unpushed
 branches, which this lane did not modify:
 
-| Branch | Status | Action |
+| Branch | Why carried over | Owner-safe resume command |
 | --- | --- | --- |
-| `claude/arc-a-external-comparator-evidence` | 12 unpushed | CARRIED-OVER, foreign; do not touch |
-| `codex/arc-d-design1-overflow-guard` | 3 unpushed | CARRIED-OVER, foreign historical lane; do not touch |
-| `codex/arc6-6-bernoulli-nb2-plan` | 2 unpushed | CARRIED-OVER, foreign association plan; do not touch |
-| `codex/sd-bootstrap-r999-diagnosis` | 11 unpushed | CARRIED-OVER, foreign diagnostic; do not touch |
-| `codex/staged-eta-godambe-se` | 3 unpushed | CARRIED-OVER, foreign association lane; do not touch |
+| `claude/arc-a-external-comparator-evidence` | 12 unpushed; foreign external-comparator lane | `git -C '/Users/z3437171/Dropbox/Github Local/drmTMB' switch claude/arc-a-external-comparator-evidence` |
+| `codex/arc-d-design1-overflow-guard` | 3 unpushed; foreign historical Design-1 lane | `git -C '/Users/z3437171/Dropbox/Github Local/drmTMB' switch codex/arc-d-design1-overflow-guard` |
+| `codex/arc6-6-bernoulli-nb2-plan` | 2 unpushed; foreign association plan | `git -C '/Users/z3437171/Dropbox/Github Local/drmTMB' switch codex/arc6-6-bernoulli-nb2-plan` |
+| `codex/sd-bootstrap-r999-diagnosis` | 11 unpushed; foreign diagnostic | `git -C '/Users/z3437171/Dropbox/Github Local/drmTMB' switch codex/sd-bootstrap-r999-diagnosis` |
+| `codex/staged-eta-godambe-se` | 3 unpushed; foreign association lane | `git -C '/Users/z3437171/Dropbox/Github Local/drmTMB' switch codex/staged-eta-godambe-se` |
 
 ## Result
 
