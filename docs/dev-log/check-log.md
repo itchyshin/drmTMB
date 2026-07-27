@@ -91724,3 +91724,12 @@ Shinichi grants a separate Gate A compute approval.
   movement, or public inference claim occurred.  F4 evidence and a separate
   F5 approval remain mandatory. See
   `docs/dev-log/after-task/2026-07-27-arc6-f5-public-s3-design.md`.
+
+## 2026-07-27: Arc 6 F4 completion-review template
+
+- Documentation-only review template fixes the evidence and independent-panel
+  checks to apply after all retained F4 shards complete.  It repeats the
+  preregistered criteria and distinguishes PASS-for-F5-consideration from F5
+  approval.
+- No campaign input, runner, result, API, capability, ledger, or public claim
+  changed.
