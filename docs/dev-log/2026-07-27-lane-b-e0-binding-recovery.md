@@ -313,6 +313,19 @@ ordinary-sigma fixture (40 × eight, seed 1, log-sigma SD truth 0.40) yielded
 with `conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. These are
 local routing bindings, not coverage evidence.
 
+### Recovered Arc 1b-S1 bivariate spatial q2 REML intercepts
+
+The self-describing Arc 1b-S1 spatial-q2 DGP exactly matches the two admitted
+matched-location cells: `mc-0199` / `sd:mu:mu1:spatial(1 | p | site)` and
+`mc-0672` / `sd:mu:mu2:spatial(1 | p | site)`. It fixes the labelled spatial
+block in both mean endpoints, keeps `sigma1`, `sigma2`, and `rho12` intercept
+only, and uses `biv_gaussian(REML)`. At 24 sites × six observations, ring
+geometry, and seed `20260727`, the direct profiles returned `[0.3679984,
+0.7172404]` for the mu1 truth 0.50 and `[0.3385775, 0.6624328]` for the mu2
+truth 0.42; convergence was zero and both targets were profile-ready. This is
+an exact local routing binding only, not interval calibration or coverage
+evidence.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
