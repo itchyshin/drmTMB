@@ -372,6 +372,16 @@ were `[0.4965167, 0.8899039]` around the mu1 truth 0.60 and
 non-boundary, and converged with code zero. They are local routing bindings
 only, not interval calibration or coverage evidence.
 
+### Recovered ML bivariate phylogenetic q2 intercepts
+
+The ML phylogenetic q2 pair uses the exact archived fixture behind `mc-0083` /
+`sd:mu:mu1:phylo(1 | p | sp)` and `mc-0084` /
+`sd:mu:mu2:phylo(1 | p | sp)`: 150 tips, seed 4, and true SDs 1.00 and 0.80.
+The independent ML profiles returned `[0.7520582, 1.6009320]` and
+`[0.4748516, 1.1950660]`, respectively, with convergence zero and
+non-boundary `conf.status = "profile"`. These remain routing bindings only,
+not interval calibration or coverage evidence.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
