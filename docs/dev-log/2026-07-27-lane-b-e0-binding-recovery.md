@@ -75,6 +75,10 @@ attempts: a finite `conf.status = "profile"` is an error, while
 and non-covering. This is a binding specification only; it does not authorize
 or launch a pregrid.
 
+Both K=12 targets are now explicit rows in the checked partial binding table,
+with link-scale truths `-1.00` and `0.20`. They are the only partial-table rows
+whose future bound contracts carry `negative_control = TRUE`.
+
 ### Recovered B1 ordinary-RE binding subset
 
 Eight frozen E0 candidates have an existing **B1 cell × target** source
@@ -151,7 +155,8 @@ The matched q2 phylogenetic REML fixture supplies direct structured targets for
 `sd:mu:mu2:phylo(1 | p | sp)` (truth 0.80), at `n_tip = 150`, seed 4. Local
 profiles returned `[0.7815568, 1.6685350]` and `[0.4983490, 1.2947650]`, both
 with `conf.status = "profile"`. They add two direct target rows to the partial
-table (12 total); again this is technical routing evidence, not coverage.
+table (14 total after the explicit K=12 pair); again this is technical routing
+evidence, not coverage.
 
 ### Block-diagonal q4 REML target boundary
 
