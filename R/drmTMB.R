@@ -19565,7 +19565,12 @@ split_tmb_sdpars <- function(par, spec) {
         unname(spec$random_scale$mu$target_coef)
       )
       for (dpar in spec$random_scale$mu$dpars) {
-        sd_group <- sd_mu_group_values(par, spec$random_scale$mu, dpar = dpar)
+        sd_group <- sd_mu_group_values(
+          par,
+          spec$random_scale$mu,
+          dpar = dpar,
+          tmb_data = spec$tmb_data
+        )
         names(sd_group) <- paste0(
           dpar,
           ":",
@@ -19929,7 +19934,8 @@ split_tmb_random_effects <- function(par, spec) {
       latent,
       par,
       spec$random$mu,
-      spec$random_scale$mu
+      spec$random_scale$mu,
+      tmb_data = spec$tmb_data
     )
     out$mu <- format_random_effect_values(latent, values, spec$random$mu)
   }
@@ -20142,9 +20148,10 @@ transform_mu_random_effects <- function(
   latent,
   par,
   re_mu,
-  sd_mu = empty_sd_mu_structure(re_mu$n_re)
+  sd_mu = empty_sd_mu_structure(re_mu$n_re),
+  tmb_data = NULL
 ) {
-  sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu)
+  sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu, tmb_data)
   rho <- if (re_mu$n_cors > 0L) {
     0.999999 * tanh(unname(par$eta_cor_mu[seq_len(re_mu$n_cors)]))
   } else {
@@ -20167,43 +20174,98 @@ transform_mu_random_effects <- function(
   values
 }
 
-mu_sd_by_random_effect <- function(par, re_mu, sd_mu) {
+mu_sd_by_random_effect <- function(par, re_mu, sd_mu, tmb_data = NULL) {
   scalar_sd <- exp(unname(par$log_sd_mu[seq_len(re_mu$n_terms)]))
   out <- scalar_sd[re_mu$term_id0 + 1L]
   if (sd_mu$n_models > 0L) {
-    group_sd <- sd_mu_group_values(par, sd_mu)
+    group_sd <- sd_mu_group_values(par, sd_mu, tmb_data = tmb_data)
     target <- which(sd_mu$re_sd_row0 >= 0L)
     out[target] <- group_sd[sd_mu$re_sd_row0[target] + 1L]
   }
   out
 }
 
-sd_mu_group_values <- function(par, sd_mu, dpar = NULL) {
+sd_mu_group_log_values <- function(par, sd_mu, dpar = NULL) {
   eta <- as.vector(sd_mu$X %*% unname(par$beta_sd_mu[seq_len(ncol(sd_mu$X))]))
-  out <- drm_exp_sd_logscale_guarded(eta)
-  names(out) <- sd_mu$group_levels
+  names(eta) <- sd_mu$group_levels
   if (!is.null(dpar)) {
     row_index <- sd_mu$row_index[[dpar]]
-    out <- out[row_index]
-    names(out) <- sd_mu$group_levels_list[[dpar]]
+    eta <- eta[row_index]
+    names(eta) <- sd_mu$group_levels_list[[dpar]]
+  }
+  eta
+}
+
+# Raw direct-SD log-scale predictors for profile tracing. This deliberately
+# does not apply a clamp or exponentiate: callers classify the objective's
+# unmodified linear predictor, not a rendered scale.
+drm_direct_sd_logscale_values <- function(par, spec) {
+  out <- list()
+  if (spec$random_scale$mu$n_models > 0L) {
+    out$mu <- sd_mu_group_log_values(par, spec$random_scale$mu)
+  }
+  if (
+    is.list(spec$random_scale$phylo) &&
+      spec$random_scale$phylo$n_models > 0L
+  ) {
+    out$phylo <- sd_phylo_group_log_values(par, spec)
   }
   out
 }
 
-sd_phylo_group_values <- function(par, spec, dpar = NULL) {
+drm_softclamp_log_sd <- function(eta, tmb_data = NULL) {
+  if (is.null(tmb_data)) {
+    return(as.numeric(eta))
+  }
+  enabled <- tmb_data$use_logsigma_clamp
+  band <- tmb_data$logsigma_clamp
+  if (
+    length(enabled) != 1L || !identical(as.integer(enabled), 1L) ||
+      length(band) < 3L || any(!is.finite(band[seq_len(3L)]))
+  ) {
+    return(as.numeric(eta))
+  }
+  x <- as.numeric(eta)
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  margin <- band[[3L]]
+  out <- x
+  above <- x > hi
+  below <- x < lo
+  out[above] <- hi + margin * tanh((x[above] - hi) / margin)
+  out[below] <- lo - margin * tanh((lo - x[below]) / margin)
+  out
+}
+
+sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
+  eta <- sd_mu_group_log_values(par, sd_mu, dpar = dpar)
+  out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
+  names(out) <- names(eta)
+  out
+}
+
+sd_phylo_group_log_values <- function(par, spec, dpar = NULL) {
   sd_phylo <- spec$random_scale$phylo
   offset <- sd_phylo_beta_offset(spec)
   beta <- unname(par$beta_sd_mu[
     offset + seq_len(ncol(sd_phylo$X))
   ])
   eta <- as.vector(sd_phylo$X %*% beta)
-  out <- drm_exp_sd_logscale_guarded(eta)
-  names(out) <- sd_phylo$group_levels
+  names(eta) <- sd_phylo$group_levels
   if (!is.null(dpar)) {
     row_index <- sd_phylo$row_index[[dpar]]
-    out <- out[row_index]
-    names(out) <- sd_phylo$group_levels_list[[dpar]]
+    eta <- eta[row_index]
+    names(eta) <- sd_phylo$group_levels_list[[dpar]]
   }
+  eta
+}
+
+sd_phylo_group_values <- function(par, spec, dpar = NULL) {
+  eta <- sd_phylo_group_log_values(par, spec, dpar = dpar)
+  out <- drm_exp_sd_logscale_guarded(
+    drm_softclamp_log_sd(eta, spec$tmb_data)
+  )
+  names(out) <- names(eta)
   out
 }
 

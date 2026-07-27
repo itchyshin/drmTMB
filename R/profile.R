@@ -906,6 +906,7 @@ drm_profile_curve <- function(
   profile_value_link <- profile_data[[value_column]]
   objective <- profile_data$value
   delta_objective <- objective - min(objective, na.rm = TRUE)
+  clamp_trace <- drm_profile_direct_sd_clamp_trace(object, prof)
   ci <- tryCatch(
     drm_tmbprofile_confint(prof, target_name = target$parm, level = level),
     error = function(err) err
@@ -913,7 +914,11 @@ drm_profile_curve <- function(
   interval <- c(NA_real_, NA_real_)
   conf_status <- "profile_interval_unavailable"
   profile_message <- "interval_unavailable"
-  if (!inherits(ci, "error")) {
+  if (!identical(clamp_trace$status, "not_applicable") &&
+      !identical(clamp_trace$status, "ok")) {
+    conf_status <- "clamp_limited"
+    profile_message <- clamp_trace$status
+  } else if (!inherits(ci, "error")) {
     interval <- profile_transform_interval(
       c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
       target
@@ -1234,6 +1239,7 @@ interval_status_levels <- function() {
     "wald",
     "profile",
     "bootstrap",
+    "clamp_limited",
     "profile_ready",
     "newdata_required",
     "derived_interval_unavailable",
@@ -2837,6 +2843,16 @@ drm_profile_target_tmbprofile_confint <- function(
     trace = trace,
     ...
   )
+  clamp_trace <- drm_profile_direct_sd_clamp_trace(object, prof)
+  if (!identical(clamp_trace$status, "not_applicable")) {
+    if (!identical(clamp_trace$status, "ok")) {
+      return(drm_profile_clamp_limited_confint_row(
+        target = target,
+        level = level,
+        message = clamp_trace$status
+      ))
+    }
+  }
   ci <- drm_tmbprofile_confint(prof, target_name = target$parm, level = level)
   interval <- profile_transform_interval(
     c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
@@ -2866,6 +2882,25 @@ drm_profile_target_tmbprofile_confint <- function(
     conf.status = conf_status,
     profile.boundary = diagnostics$boundary,
     profile.message = diagnostics$message,
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_profile_clamp_limited_confint_row <- function(target, level, message) {
+  data.frame(
+    parm = target$parm,
+    level = level,
+    lower = NA_real_,
+    upper = NA_real_,
+    scale = target$scale,
+    transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter,
+    index = target$index,
+    method = "profile",
+    profile.engine = "tmbprofile",
+    conf.status = "clamp_limited",
+    profile.boundary = TRUE,
+    profile.message = message,
     stringsAsFactors = FALSE
   )
 }
@@ -3363,13 +3398,17 @@ profile_check_tmbprofile_dots_list <- function(dots) {
 
 drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
+  trace_state <- drm_profile_trace_object(object, target_name, lincomb)
   tryCatch(
-    TMB::tmbprofile(
-      obj = object$obj,
-      name = target_name,
-      lincomb = lincomb,
-      trace = trace,
-      ...
+    structure(
+      TMB::tmbprofile(
+        obj = trace_state$obj,
+        name = target_name,
+        lincomb = lincomb,
+        trace = trace,
+        ...
+      ),
+      drmTMB_profile_trace = trace_state$snapshot()
     ),
     error = function(err) {
       cli::cli_abort(
@@ -3384,6 +3423,118 @@ drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
       )
     }
   )
+}
+
+drm_profile_trace_object <- function(object, target_name, lincomb) {
+  evaluations <- new.env(parent = emptyenv())
+  evaluations$entries <- list()
+  obj <- object$obj
+  original_fn <- obj$fn
+
+  record_evaluation <- function(par) {
+    index <- length(evaluations$entries) + 1L
+    evaluations$entries[[index]] <- list(
+      par = stats::setNames(as.numeric(par), names(par)),
+      objective = NA_real_,
+      error = NULL
+    )
+    index
+  }
+
+  obj$fn <- function(par) {
+    index <- record_evaluation(par)
+    value <- tryCatch(
+      original_fn(par),
+      error = function(err) {
+        evaluations$entries[[index]]$error <- conditionMessage(err)
+        stop(err)
+      }
+    )
+    evaluations$entries[[index]]$objective <- as.numeric(value)
+    value
+  }
+
+  snapshot <- function() {
+    list(
+      target_name = target_name,
+      lincomb = as.numeric(lincomb),
+      baseline = list(
+        par = stats::setNames(
+          as.numeric(object$opt$par),
+          names(object$opt$par)
+        ),
+        objective = as.numeric(object$opt$objective)
+      ),
+      evaluations = evaluations$entries
+    )
+  }
+
+  list(obj = obj, snapshot = snapshot)
+}
+
+# A direct-SD clamp changes the likelihood whenever its raw group-level
+# log-scale predictor is outside the identity band.  The full TMB profile API
+# does not return every constrained optimizer state, but it does call obj$fn()
+# for every fixed parameter vector it evaluates.  Direct-SD predictors depend
+# only on that fixed vector, so tracing those calls is sufficient here.  Any
+# reconstruction failure is deliberately unavailable rather than treated as no
+# clamp contact.
+drm_profile_direct_sd_clamp_trace <- function(object, profile) {
+  tmb_data <- object$model$tmb_data
+  if (
+    length(tmb_data$use_logsigma_clamp) != 1L ||
+      !identical(as.integer(tmb_data$use_logsigma_clamp), 1L)
+  ) {
+    return(list(status = "not_applicable"))
+  }
+  band <- tmb_data$logsigma_clamp
+  if (
+    length(band) < 2L ||
+      any(!is.finite(band[seq_len(2L)])) ||
+      band[[1L]] >= band[[2L]]
+  ) {
+    return(list(status = "trace_incomplete"))
+  }
+  trace <- attr(profile, "drmTMB_profile_trace", exact = TRUE)
+  if (!is.list(trace) || !is.list(trace$baseline) || !is.list(trace$evaluations)) {
+    return(list(status = "trace_incomplete"))
+  }
+  entries <- c(list(trace$baseline), trace$evaluations)
+  if (!length(entries)) {
+    return(list(status = "trace_incomplete"))
+  }
+  active <- vapply(entries, function(entry) {
+    par <- entry$par
+    if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
+      return(NA)
+    }
+    par_list <- tryCatch(
+      object$obj$env$parList(par),
+      error = function(err) NULL
+    )
+    if (is.null(par_list)) {
+      return(NA)
+    }
+    eta <- tryCatch(
+      drm_direct_sd_logscale_values(par_list, object$model),
+      error = function(err) NULL
+    )
+    if (is.null(eta) || !length(eta)) {
+      return(FALSE)
+    }
+    values <- unlist(eta, use.names = FALSE)
+    if (!length(values) || any(!is.finite(values))) {
+      return(NA)
+    }
+    any(values < band[[1L]] | values > band[[2L]])
+  }, logical(1L))
+  if (anyNA(active)) {
+    return(list(status = "trace_incomplete"))
+  }
+  if (any(active)) {
+    return(list(status = "clamp_limited"))
+  }
+  list(status = "ok")
 }
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
