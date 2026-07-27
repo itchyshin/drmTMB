@@ -323,6 +323,17 @@ truth 0.55. Its direct `sd:mu:phylo(1 | species)` profile returned
 named `tree` object, which is now recorded as part of the exact route. This is
 a routing binding only, not coverage evidence.
 
+### Recovered Poisson q1 spatial, animal, and relatedness intercepts
+
+The shared exact count fixture supplies three direct Poisson q1 intercept
+targets at ten groups × 12 observations and seed `2026052801`, all with truth
+0.45: `mc-0440` spatial, `mc-0447` animal, and `mc-0451` relatedness. Their
+profiles returned `[0.3402096, 1.2249990]`, `[0.2357913, 0.7030618]`, and
+`[0.2357913, 0.7030618]`, respectively; all had `conf.status = "profile"`,
+convergence 0, and `pdHess = TRUE`. The formula grammar requires named
+`coords` and `Q` fixture objects. These are routing bindings only, not coverage
+evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
