@@ -275,6 +275,14 @@ latent-logit SD 0.60) returned `[0.4644101, 0.7520640]`; and `mc-0225`
 profile-ready, with `conf.status = "profile"`, convergence 0, and
 `pdHess = TRUE`. These are routing bindings only, not coverage evidence.
 
+### Recovered Tweedie ordinary mu intercept
+
+The exact `mc-0538` fixture has 40 groups of 12 observations, seed
+`20260712`, Tweedie power 1.5 and dispersion 0.6, and a log-mu intercept SD
+truth of 0.50. Its direct `sd:mu:(1 | id)` profile returned
+`[0.4887596, 0.8098379]`, `conf.status = "profile"`, convergence 0, and
+`pdHess = TRUE`. This is an exact routing binding only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
