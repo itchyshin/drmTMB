@@ -488,6 +488,20 @@ truth 0.45. Its direct `sd:mu:phylo(1 | species)` profile returned
 `[0.1494333, 0.6527877]`, `conf.status = "profile"`, convergence 0, and
 `pdHess = TRUE`. This is a routing binding only, not coverage evidence.
 
+### Recovered Student spatial q1 intercept and slope targets
+
+The exact `mc-0494` one-slope Student fixture has eight spatial levels × 20
+observations, seed `2026070602`, with distinct response-location spatial SD
+truths 0.25 (intercept) and 0.20 (slope). Both direct targets are explicit in
+`profile_targets()`, so the collapsed model-surface row is represented by two
+target-specific bindings rather than silently choosing one estimand. The
+trace-backed local profiles returned `[0.07847734, 0.3410286]` for
+`sd:mu:spatial(1 | id)` and `[0.1776946, 0.5470922]` for
+`sd:mu:spatial(0 + x | id)`. Both had convergence 0, `pdHess = TRUE`,
+`conf.status = "profile"`, and no profile-boundary flag. These are two local
+routing receipts only, not coverage evidence or a broader Student-spatial
+claim.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
