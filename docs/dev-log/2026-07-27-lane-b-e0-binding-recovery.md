@@ -313,6 +313,16 @@ ordinary-sigma fixture (40 × eight, seed 1, log-sigma SD truth 0.40) yielded
 with `conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. These are
 local routing bindings, not coverage evidence.
 
+### Recovered Poisson phylogenetic q1 intercept
+
+The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
+observations per tip, seed `20260641`, and phylogenetic log-mu intercept SD
+truth 0.55. Its direct `sd:mu:phylo(1 | species)` profile returned
+`[0.1586605, 0.5865768]`, `conf.status = "profile"`, convergence 0, and
+`pdHess = TRUE`. Formula construction requires binding the fixture tree to a
+named `tree` object, which is now recorded as part of the exact route. This is
+a routing binding only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
