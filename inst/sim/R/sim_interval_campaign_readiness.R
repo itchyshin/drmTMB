@@ -470,6 +470,13 @@ phase18_write_interval_campaign_readiness_packet <- function(
       failure_reason = character(), source = character(), stringsAsFactors = FALSE
     )
   }
+  smoke_required <- c(
+    "cell_id", "target_id", "dgp_id", "seed", "conf_status", "lower", "upper",
+    "convergence", "pdHess", "profile_boundary", "failure_reason", "source"
+  )
+  if (!is.data.frame(smoke_receipts) || !all(smoke_required %in% names(smoke_receipts))) {
+    stop("`smoke_receipts` must be a validated local-smoke receipt table.", call. = FALSE)
+  }
   utils::write.table(
     contracts[manifest_fields], manifest_path, sep = "\t", row.names = FALSE,
     quote = FALSE, na = ""

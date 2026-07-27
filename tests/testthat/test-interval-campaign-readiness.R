@@ -305,13 +305,18 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
     contracts,
     allow_partial = TRUE
   )
+  smoke_receipts <- env$phase18_read_interval_campaign_smoke_receipts(
+    file.path(repo_root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-local-smoke-receipts.tsv"),
+    contracts
+  )
   packet <- env$phase18_write_interval_campaign_readiness_packet(
     contracts,
     evidence_path = file.path(repo_root, "docs", "dev-log", "dashboard", "capability-ledger", "evidence.tsv"),
     output_dir = tempfile("lane-b-readiness-"),
     source_sha = source_sha,
     source_root = repo_root,
-    partial_bindings = partial
+    partial_bindings = partial,
+    smoke_receipts = smoke_receipts
   )
 
   expect_true(file.exists(packet$manifest))
@@ -323,6 +328,9 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   expect_true(file.exists(packet$runtime_receipt))
   expect_equal(nrow(utils::read.delim(packet$manifest)), 159L)
   inventory <- utils::read.delim(packet$binding_inventory, check.names = FALSE)
+  packet_smokes <- utils::read.delim(packet$local_smoke_receipts, check.names = FALSE)
+  expect_equal(nrow(packet_smokes), 3L)
+  expect_equal(sum(packet_smokes$conf_status == "profile_failed"), 2L)
   expect_equal(nrow(inventory), 159L)
   expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"), 59L)
   expect_equal(sum(inventory$binding_blocker == "negative_control_retained_fail_closed"), 2L)
