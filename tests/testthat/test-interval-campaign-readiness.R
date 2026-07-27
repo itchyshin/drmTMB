@@ -104,7 +104,7 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
     subset_path, contracts, allow_partial = TRUE
   )
 
-  expect_equal(nrow(recovered), 63L)
+  expect_equal(nrow(recovered), 64L)
   expect_setequal(
     recovered$cell_id,
     c("mc-0005", "mc-0007", "mc-0012", "mc-0059", "mc-0083", "mc-0084", "mc-0107", "mc-0108", "mc-0129", "mc-0130", "mc-0151", "mc-0152", "mc-0184", "mc-0185", "mc-0199", "mc-0201", "mc-0208", "mc-0209", "mc-0212", "mc-0213", "mc-0225", "mc-0248", "mc-0251", "mc-0260m", "mc-0265", "mc-0267", "mc-0270", "mc-0271", "mc-0380", "mc-0386", "mc-0388", "mc-0401", "mc-0402", "mc-0403", "mc-0405", "mc-0406", "mc-0407", "mc-0408", "mc-0410", "mc-0411", "mc-0412", "mc-0413", "mc-0423", "mc-0429", "mc-0431", "mc-0434", "mc-0435", "mc-0438", "mc-0440", "mc-0441", "mc-0447", "mc-0448", "mc-0451", "mc-0452", "mc-0463", "mc-0494", "mc-0511", "mc-0538", "mc-0567", "mc-0672", "mc-0674")
@@ -131,8 +131,8 @@ test_that("local-smoke receipts preserve failures alongside finite profiles", {
     file.path(root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-local-smoke-receipts.tsv"),
     env$phase18_interval_campaign_contracts(manifest)
   )
-  expect_equal(nrow(receipts), 5L)
-  expect_equal(sum(receipts$conf_status == "profile"), 3L)
+  expect_equal(nrow(receipts), 6L)
+  expect_equal(sum(receipts$conf_status == "profile"), 4L)
   expect_equal(sum(receipts$conf_status == "profile_failed"), 2L)
   expect_true(all(is.na(receipts$lower[receipts$conf_status != "profile"])))
   expect_true(all(nzchar(receipts$failure_reason[receipts$conf_status != "profile"])))
@@ -162,12 +162,12 @@ test_that("binding inventory retains every Lane-B cell while exposing recovery s
   inventory <- env$phase18_interval_campaign_binding_inventory(contracts, partial)
 
   expect_equal(length(unique(inventory$cell_id)), 158L)
-  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 61L)
+  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 62L)
   expect_equal(sum(inventory$binding_status == "partial_negative_control_binding"), 2L)
   expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 97L)
   expect_equal(
     sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"),
-    61L
+    62L
   )
   expect_equal(
     sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"),
@@ -338,10 +338,10 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   expect_equal(nrow(utils::read.delim(packet$manifest)), 159L)
   inventory <- utils::read.delim(packet$binding_inventory, check.names = FALSE)
   packet_smokes <- utils::read.delim(packet$local_smoke_receipts, check.names = FALSE)
-  expect_equal(nrow(packet_smokes), 5L)
+  expect_equal(nrow(packet_smokes), 6L)
   expect_equal(sum(packet_smokes$conf_status == "profile_failed"), 2L)
-  expect_equal(nrow(inventory), 160L)
-  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"), 61L)
+  expect_equal(nrow(inventory), 161L)
+  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"), 62L)
   expect_equal(sum(inventory$binding_blocker == "negative_control_retained_fail_closed"), 2L)
   expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"), 97L)
   recovery_summary <- utils::read.delim(packet$binding_recovery_summary, check.names = FALSE)

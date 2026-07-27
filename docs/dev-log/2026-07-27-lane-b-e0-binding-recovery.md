@@ -502,6 +502,17 @@ trace-backed local profiles returned `[0.07847734, 0.3410286]` for
 routing receipts only, not coverage evidence or a broader Student-spatial
 claim.
 
+### Recovered Gamma relatedness q1 slope target
+
+`mc-0248` already retained the independent Arc 3a intercept contract. Its
+one-slope recovery fixture separately identifies the direct
+`sd:mu:relmat(0 + x | id)` target, with truth 0.20 at eight groups × 12
+observations and seed `2026070601`. The trace-backed local profile returned
+`[0.07582362, 0.2454064]`, with convergence 0, `pdHess = TRUE`,
+`conf.status = "profile"`, and no boundary flag. It is recorded as a second,
+target-specific `mc-0248` routing binding only; this does not broaden Gamma
+relatedness support or supply coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
