@@ -56,9 +56,12 @@ For a group-level predicted log-SD
 define `clamp_active` exactly when at least one evaluated \(\eta_g\) is outside
 the clamp identity interval \([l,u]\). “Near the clamp” is not a valid rule.
 
-If `clamp_active` occurs at the **unconstrained fitted optimum** or in **any
-accepted constrained evaluation** used to establish either LR endpoint, return
-exactly:
+For the initial implementation, if `clamp_active` occurs at the
+**unconstrained fitted optimum** or in **any profile objective evaluation** on
+either LR branch, return exactly. This is deliberately conservative: TMB 1.9.21
+does not expose accepted inner-optimizer parameter vectors. It may withhold an
+interval after a transient trial evaluation, but it cannot certify a
+clamp-shaped endpoint.
 
 | Field | Required value |
 | --- | --- |
@@ -83,7 +86,7 @@ evaluation activated the clamp. A Design-2 implementation must therefore do
 one of two things before enabling the clamp:
 
 1. implement a trace-capable evaluator that records clamp activation for every
-   accepted constrained evaluation, plus the fitted optimum baseline; or
+   objective evaluation, plus the fitted optimum baseline; or
 2. refuse the uninstrumented SD-regression profile route fail-closed.
 
 Without one of these, Design 2 must not be implemented.
@@ -93,7 +96,7 @@ Without one of these, Design 2 must not be implemented.
 | Phase | Owner / route | Output | Dependencies and acceptance gate |
 | --- | --- | --- | --- |
 | 1. Observability map | Terra-high, native explicit — Gauss | Equation-to-source map for all nine C++ sites, two R re-derivations, and model types 1, 10, 6, 7, 2, 19, 20 | Name the precise `eta_g`, identity interval, and how Poisson/NB2 obtain equivalent observation. No clamp enabled. |
-| 2. Profile trace design | Sol-high, native explicit — Fisher/Noether | Design note specifying the fitted-optimum baseline plus accepted-evaluation trace and its lifetime | Must cover the full `tmbprofile` route and both LR sides. Failure to trace means explicit fail-closed refusal, not endpoint-only inference. |
+| 2. Profile trace design | Sol-high, native explicit — Fisher/Noether | Design note specifying the fitted-optimum baseline plus objective-evaluation trace and its lifetime | Must cover the full `tmbprofile` route and both LR sides. Failure to trace means explicit fail-closed refusal, not endpoint-only inference. |
 | 3. Consumer contract | Terra-high, native explicit — Rose | Table mapping `clamp_limited` through `confint()`, summary, prediction tables, parameter/corpair plots, and meta-V reducers | Every reader either renders no interval or marks it unavailable. The ledger is read-only. |
 | 4. Observability PR | Terra-high, native explicit — TMB engineer | Internal reports/reconstruction and trace tests, without a tight clamp | All 11 surfaces agree; trace contains every accepted profile evaluation; standard interior paths unchanged. |
 | 5. Atomic clamp/status PR | Terra-high, native explicit — TMB engineer | Tight clamp plus the approved public four-field contract | Cannot merge unless phases 1–4 pass. No bootstrap, association, missing-response, ledger, or public capability wording. |
@@ -119,7 +122,7 @@ memo.
 4. **Eleven-surface coherence:** C++/R agreement across all direct-SD routes,
    including missing Poisson/NB2 observability.
 5. **Trace completeness:** `tmbprofile` records both profile sides and every
-   accepted constrained evaluation, plus the fitted optimum; uninstrumented
+   objective evaluation, plus the fitted optimum; uninstrumented
    paths fail closed. The endpoint engine remains unsupported and unchanged for
    `linear_predictor` targets, and cannot emit a finite ordinary interval for
    this Design-2 target.
