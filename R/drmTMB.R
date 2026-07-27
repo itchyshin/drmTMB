@@ -20214,11 +20214,13 @@ drm_direct_sd_logscale_values <- function(par, spec) {
 }
 
 drm_softclamp_log_sd <- function(eta, tmb_data = NULL) {
+  if (is.null(tmb_data)) {
+    return(as.numeric(eta))
+  }
   enabled <- tmb_data$use_logsigma_clamp
   band <- tmb_data$logsigma_clamp
   if (
-    is.null(tmb_data) ||
-      length(enabled) != 1L || !identical(as.integer(enabled), 1L) ||
+    length(enabled) != 1L || !identical(as.integer(enabled), 1L) ||
       length(band) < 3L || any(!is.finite(band[seq_len(3L)]))
   ) {
     return(as.numeric(eta))
@@ -20238,10 +20240,7 @@ drm_softclamp_log_sd <- function(eta, tmb_data = NULL) {
 sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
   eta <- sd_mu_group_log_values(par, sd_mu, dpar = dpar)
   out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
-  names(out) <- sd_mu$group_levels
-  if (!is.null(dpar)) {
-    names(out) <- sd_mu$group_levels_list[[dpar]]
-  }
+  names(out) <- names(eta)
   out
 }
 
