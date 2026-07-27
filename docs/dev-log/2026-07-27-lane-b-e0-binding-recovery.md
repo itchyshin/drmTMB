@@ -349,6 +349,18 @@ the Arc 1b-S1 REML pair. At the declared 24 sites × six ring fixture and seed
 zero and non-boundary `conf.status = "profile"`. These are local routing
 bindings only, not interval calibration or coverage evidence.
 
+### Recovered ML bivariate relatedness q2 intercepts
+
+The matching ML relatedness q2 pair is `mc-0151` /
+`sd:mu:mu1:relmat(1 | p | id)` and `mc-0152` /
+`sd:mu:mu2:relmat(1 | p | id)`. The self-describing DGP fixes the common
+labelled `K` block in both mean endpoints. At 24 levels × six observations
+and seed `20260727`, profiles returned `[0.4965167, 0.8899039]` for the mu1
+truth 0.60 and `[0.4008383, 0.7214585]` for the mu2 truth 0.50. Both direct
+targets had convergence zero and non-boundary `conf.status = "profile"`.
+They are local routing bindings only, not interval calibration or coverage
+evidence.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
