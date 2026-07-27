@@ -35,6 +35,20 @@ void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
   }
 }
 
+// Overflow-only guard for regression-predicted random-effect log-SDs. This is
+// deliberately NOT the residual log-sigma soft clamp: it is exactly identity
+// until exp() approaches double overflow. A guard hit makes the likelihood
+// non-finite below, so a profile cannot turn this artificial boundary into a
+// finite endpoint.
+template<class Type>
+Type drm_exp_sd_logscale_guarded(Type eta, Type& guard_hit) {
+  const Type log_double_max = Type(700.0);
+  Type hit = CppAD::CondExpGt(eta, log_double_max, Type(1.0), Type(0.0));
+  guard_hit += hit;
+  Type safe_eta = CppAD::CondExpGt(eta, log_double_max, log_double_max, eta);
+  return exp(safe_eta);
+}
+
 // PC-prior penalty (negative log-prior) for an optional penalized/MAP fit: an
 // exponential prior on each phylogenetic SD = exp(log_sd_phylo) with the
 // log-Jacobian, plus an optional mean-zero normal on the live phylogenetic
@@ -426,6 +440,7 @@ Type objective_function<Type>::operator()()
 
   Type nll = 0;
   Type phylo_penalty = Type(0.0);
+  Type sd_logscale_overflow_guard_hit = Type(0.0);
   (void)mi_observed;
   (void)n_re_cov_blocks;
   (void)re_cov_block_size;
@@ -828,7 +843,8 @@ Type objective_function<Type>::operator()()
             for (int k = 0; k < X_sd_mu.cols(); ++k) {
               eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
             }
-            sd_mu_group(g) = exp(eta_sd);
+            sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+              eta_sd, sd_logscale_overflow_guard_hit);
           }
         }
         vector<Type> rho_mu_re(n_mu_re_cors);
@@ -918,7 +934,8 @@ Type objective_function<Type>::operator()()
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
           log_sd_phylo_group(g) = eta_sd;
-          sd_phylo_group(g) = exp(eta_sd);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       int n_phylo = Q_phylo.rows();
@@ -2276,7 +2293,8 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
           }
           log_sd_mu_group(g) = eta_sd;
-          sd_mu_group(g) = exp(eta_sd);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
@@ -2823,7 +2841,8 @@ Type objective_function<Type>::operator()()
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
           log_sd_phylo_group(g) = eta_sd;
-          sd_phylo_group(g) = exp(eta_sd);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       int n_phylo = Q_phylo.rows();
@@ -3279,7 +3298,8 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_mu.cols(); ++k) {
             eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
           }
-          sd_mu_group(g) = exp(eta_sd);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
@@ -3487,7 +3507,8 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_mu.cols(); ++k) {
             eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
           }
-          sd_mu_group(g) = exp(eta_sd);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
@@ -4014,7 +4035,8 @@ Type objective_function<Type>::operator()()
           for (int k = 0; k < X_sd_mu.cols(); ++k) {
             eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
           }
-          sd_mu_group(g) = exp(eta_sd);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
@@ -4116,7 +4138,8 @@ Type objective_function<Type>::operator()()
               beta_sd_mu(sd_phylo_beta_offset + k);
           }
           log_sd_phylo_group(g) = eta_sd;
-          sd_phylo_group(g) = exp(eta_sd);
+          sd_phylo_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       for (int i = 0; i < y1.size(); ++i) {
@@ -4511,7 +4534,8 @@ Type objective_function<Type>::operator()()
             eta_sd += X_sd_mu(g, k) * beta_sd_mu(k);
           }
           log_sd_mu_group(g) = eta_sd;
-          sd_mu_group(g) = exp(eta_sd);
+          sd_mu_group(g) = drm_exp_sd_logscale_guarded(
+            eta_sd, sd_logscale_overflow_guard_hit);
         }
       }
       vector<Type> rho_mu_re(n_mu_re_cors);
@@ -4584,5 +4608,8 @@ Type objective_function<Type>::operator()()
     }
   }
 
+  REPORT(sd_logscale_overflow_guard_hit);
+  nll = CppAD::CondExpGt(
+    sd_logscale_overflow_guard_hit, Type(0.0), Type(R_PosInf), nll);
   return nll;
 }
