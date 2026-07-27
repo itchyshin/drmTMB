@@ -91733,3 +91733,18 @@ Shinichi grants a separate Gate A compute approval.
   approval.
 - No campaign input, runner, result, API, capability, ledger, or public claim
   changed.
+
+## 2026-07-27: Arc 6 F4 DRAC campaign completion review
+
+- The approved Rorqual array completed all 24 fixed cells and 24,000 retained
+  attempts. Every receipt pins source
+  `a97aa0930cbfe635886f483cb32baf4e75f74227` and the frozen sandwich/fixture
+  blobs; all rows are protocol-valid, with no quarantine or omitted attempt.
+- The frozen all-valid-protocol alpha-Wald coverage gate **FAILED** in
+  `f4-c01`, `f4-c02`, `f4-c05`, `f4-c06`, and `f4-c10`. Alpha bias,
+  alpha-Godambe availability, interval availability, and available-SE versus
+  empirical-SD checks pass in all cells, but five coverage failures withhold
+  the campaign-wide PASS. Public association `vcov()` and `confint()` remain
+  unavailable; no F5 implementation, retry, capability move, or public
+  inference claim occurred. See
+  `docs/dev-log/2026-07-27-arc6-f4-completion-review.md`.

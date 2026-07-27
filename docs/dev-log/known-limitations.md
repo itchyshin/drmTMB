@@ -24,7 +24,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   Other family pairs, association covariates, random/structured effects, partial pairs, offsets, weights,
   `mi()`, `meta_V()`, REML, new-data association prediction, standard errors,
   intervals, profiles, coverage, capability promotion, Julia, and CRAN release
-  use remain outside this first contract. Arc 6.5 has retained Totoro recovery
+  use remain outside this first contract. The approved Arc 6 F4 24-cell DRAC
+  alpha Godambe-Wald screen also **FAILED** its all-valid-protocol coverage
+  gate in five cells, despite acceptable alpha bias, available-SE calibration,
+  and interval availability. It therefore supplies no public `vcov()` or
+  `confint()` claim; see
+  `docs/dev-log/2026-07-27-arc6-f4-completion-review.md`. Arc 6.5 has retained Totoro recovery
   **HOLD** evidence, documented in
   `docs/dev-log/simulation-artifacts/2026-07-24-arc6-5-bernoulli-recovery/`:
   it is not a passing recovery result and makes no capability claim.
