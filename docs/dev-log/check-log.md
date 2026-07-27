@@ -91748,3 +91748,15 @@ Shinichi grants a separate Gate A compute approval.
   unavailable; no F5 implementation, retry, capability move, or public
   inference claim occurred. See
   `docs/dev-log/2026-07-27-arc6-f4-completion-review.md`.
+
+## 2026-07-27: Arc 6 F4R high-information design
+
+- The owner approved a documentation-only prospective remediation design after
+  F4 failed. F4R preserves the alpha Godambe-Wald estimator and all-attempt
+  decision rule, but proposes fresh seeds over `n = 480, 960` and the same
+  `b0`, `sigma`, and alpha grid: 16 cells / 16,000 outer attempts.
+- No runner, source SHA, host connection, DRAC allocation, compute, retry,
+  public API, capability move, or inference claim occurred. F4R needs a later
+  explicit compute approval, and a F4R PASS would still need separate F5
+  approval. See
+  `docs/dev-log/2026-07-27-arc6-f4r-high-information-design.md`.
