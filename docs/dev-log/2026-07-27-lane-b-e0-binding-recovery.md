@@ -198,6 +198,20 @@ truths (0.25 intercept, 0.45 slope). Its direct target is likewise
 `pdHess = TRUE`. It is bound as an exact routing target, while retaining the
 boundary contact as non-covering technical evidence.
 
+### Recovered Poisson q1 spatial, animal, and relatedness slopes
+
+The three parallel archived Poisson runners recover exact DGPs for `mc-0441`
+(spatial), `mc-0448` (animal), and `mc-0452` (relatedness): eight grouping
+levels, 20 observations per level, seed `760001`, log-mu `0.55 - 0.15 x`, and
+independent intercept/slope SD truths 0.25/0.45. Their direct slope targets
+are, respectively, `sd:mu:spatial(0 + x | site)`,
+`sd:mu:animal(0 + x | id)`, and `sd:mu:relmat(0 + x | id)`. Exact-DGP local
+profile smokes returned `[0, 0.3056272]`, `[0, 0.2791434]`, and
+`[0, 0.2791434]`; every target was direct/ready, fit with convergence 0 and
+`pdHess = TRUE`, and returned `near_sd_boundary`. All three are therefore
+bound for route identity while their lower-bound contact remains negative,
+non-covering technical evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
