@@ -906,6 +906,7 @@ drm_profile_curve <- function(
   profile_value_link <- profile_data[[value_column]]
   objective <- profile_data$value
   delta_objective <- objective - min(objective, na.rm = TRUE)
+  clamp_trace <- drm_profile_direct_sd_clamp_trace(object, prof)
   ci <- tryCatch(
     drm_tmbprofile_confint(prof, target_name = target$parm, level = level),
     error = function(err) err
@@ -913,7 +914,11 @@ drm_profile_curve <- function(
   interval <- c(NA_real_, NA_real_)
   conf_status <- "profile_interval_unavailable"
   profile_message <- "interval_unavailable"
-  if (!inherits(ci, "error")) {
+  if (!identical(clamp_trace$status, "not_applicable") &&
+      !identical(clamp_trace$status, "ok")) {
+    conf_status <- "clamp_limited"
+    profile_message <- clamp_trace$status
+  } else if (!inherits(ci, "error")) {
     interval <- profile_transform_interval(
       c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
       target
