@@ -303,6 +303,16 @@ the declared Phase-18 registry helper when sourced locally; after loading it,
 the smoke was reproducible. This is an exact routing binding only, not coverage
 evidence.
 
+### Recovered Gaussian REML ordinary intercepts
+
+Two exact Gaussian REML fixtures add direct targets. The `mc-0265` bias-study
+condition (18 groups × four, seed 1001, mu SD truth 0.80) yielded an interior
+`sd:mu:(1 | id)` profile `[0.5316308, 1.1104370]`. The `mc-0267`
+ordinary-sigma fixture (40 × eight, seed 1, log-sigma SD truth 0.40) yielded
+`sd:sigma:(1 | id)` `[0.1526102, 0.4156606]`. Both targets were direct/ready,
+with `conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. These are
+local routing bindings, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
