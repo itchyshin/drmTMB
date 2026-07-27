@@ -30,6 +30,11 @@ a recovery boundary, not an interval failure, exclusion, or permission to
 schedule a substitute target. It prevents legacy evidence labels from being
 mistaken for an exact replayable DGP contract.
 
+The packet also writes `lane-b-binding-recovery-summary.tsv`, a per-estimand
+stratum table of frozen-cell count, recovered target rows, retained K=12 target
+rows, and unrecovered exact-DGP cells. Every row carries `pregrid_eligible =
+FALSE`: the summary is a recovery queue and review aid, never a dispatch list.
+
 ## Fail-closed target contract
 
 The contract table stratifies fixed coefficients and ordinary RE-SD intercepts

@@ -369,6 +369,30 @@ phase18_interval_campaign_runtime_receipt <- function(source_sha, source_root) {
   )
 }
 
+phase18_interval_campaign_binding_recovery_summary <- function(contracts, partial_bindings) {
+  inventory <- phase18_interval_campaign_binding_inventory(contracts, partial_bindings)
+  strata <- sort(unique(inventory$estimand_stratum))
+  out <- lapply(strata, function(stratum) {
+    rows <- inventory[inventory$estimand_stratum == stratum, , drop = FALSE]
+    unrecovered <- sum(rows$binding_blocker == "exact_dgp_and_direct_target_not_recovered")
+    data.frame(
+      estimand_stratum = stratum,
+      frozen_cell_count = length(unique(rows$cell_id)),
+      recovered_target_rows = sum(rows$binding_blocker == "exact_dgp_and_profile_smoke_recovered"),
+      negative_control_target_rows = sum(rows$binding_blocker == "negative_control_retained_fail_closed"),
+      unrecovered_exact_dgp_cells = unrecovered,
+      recovery_state = if (unrecovered > 0L) {
+        "blocked_by_exact_dgp_and_direct_target_recovery"
+      } else {
+        "local_profile_smoke_recovered"
+      },
+      pregrid_eligible = FALSE,
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, out)
+}
+
 phase18_write_interval_campaign_readiness_packet <- function(
   contracts,
   evidence_path,
@@ -391,6 +415,7 @@ phase18_write_interval_campaign_readiness_packet <- function(
   contracts_path <- file.path(output_dir, "lane-b-profile-contracts.tsv")
   worklist_path <- file.path(output_dir, "lane-b-binding-worklist.tsv")
   inventory_path <- file.path(output_dir, "lane-b-binding-inventory.tsv")
+  recovery_summary_path <- file.path(output_dir, "lane-b-binding-recovery-summary.tsv")
   receipt_path <- file.path(output_dir, "lane-b-runtime-receipt.rds")
   if (is.null(partial_bindings)) {
     partial_bindings <- data.frame(
@@ -424,12 +449,21 @@ phase18_write_interval_campaign_readiness_packet <- function(
     quote = FALSE,
     na = ""
   )
+  utils::write.table(
+    phase18_interval_campaign_binding_recovery_summary(contracts, partial_bindings),
+    recovery_summary_path,
+    sep = "\t",
+    row.names = FALSE,
+    quote = FALSE,
+    na = ""
+  )
   saveRDS(phase18_interval_campaign_runtime_receipt(source_sha, source_root), receipt_path)
   list(
     manifest = manifest_path,
     contracts = contracts_path,
     binding_worklist = worklist_path,
     binding_inventory = inventory_path,
+    binding_recovery_summary = recovery_summary_path,
     runtime_receipt = receipt_path,
     source_md5 = attr(contracts, "source_md5"),
     manifest_md5 = attr(contracts, "manifest_md5"),
