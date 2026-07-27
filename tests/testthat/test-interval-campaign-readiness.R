@@ -88,6 +88,37 @@ test_that("B1 source recovery is limited to the frozen E0 intersection", {
   expect_false(any(c("mc-0031", "mc-0074") %in% recovered))
 })
 
+test_that("recovered binding subsets are machine-readable but cannot schedule", {
+  env <- new.env(parent = globalenv())
+  sys.source(interval_campaign_readiness_script(), envir = env)
+  root <- testthat::test_path("..", "..")
+  manifest <- env$phase18_interval_campaign_manifest(
+    file.path(root, "docs", "dev-log", "dashboard", "capability-ledger", "cells.tsv")
+  )
+  contracts <- env$phase18_interval_campaign_contracts(manifest)
+  subset_path <- file.path(
+    root, "docs", "dev-log", "interval-campaign-bindings",
+    "2026-07-27-b1-recovered-subset.tsv"
+  )
+  recovered <- env$phase18_read_interval_campaign_bindings(
+    subset_path, contracts, allow_partial = TRUE
+  )
+
+  expect_equal(nrow(recovered), 8L)
+  expect_setequal(
+    recovered$cell_id,
+    c("mc-0005", "mc-0059", "mc-0251", "mc-0270", "mc-0388", "mc-0423", "mc-0438", "mc-0511")
+  )
+  expect_error(
+    env$phase18_read_interval_campaign_bindings(subset_path, contracts),
+    "covering every Lane-B cell"
+  )
+  expect_error(
+    env$phase18_bind_interval_campaign_contracts(contracts, recovered),
+    "cover every and only Lane-B target candidate"
+  )
+})
+
 test_that("all-attempt reducer retains unavailable and not-run attempts", {
   env <- new.env(parent = globalenv())
   sys.source(interval_campaign_readiness_script(), envir = env)

@@ -200,6 +200,42 @@ phase18_bind_interval_campaign_contracts <- function(contracts, bindings) {
   base
 }
 
+phase18_read_interval_campaign_bindings <- function(
+  bindings_path,
+  contracts,
+  allow_partial = FALSE
+) {
+  phase18_assert_interval_campaign_census(contracts)
+  if (!is.character(bindings_path) || length(bindings_path) != 1L ||
+      !file.exists(bindings_path)) {
+    stop("`bindings_path` must name an existing bindings TSV.", call. = FALSE)
+  }
+  if (!is.logical(allow_partial) || length(allow_partial) != 1L || is.na(allow_partial)) {
+    stop("`allow_partial` must be one non-missing logical value.", call. = FALSE)
+  }
+  bindings <- utils::read.delim(bindings_path, check.names = FALSE, stringsAsFactors = FALSE)
+  required <- c(
+    "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
+    "profile_parameter", "information_rung"
+  )
+  missing <- setdiff(required, names(bindings))
+  if (length(missing) > 0L) {
+    stop("Bindings TSV is missing: ", paste(missing, collapse = ", "), ".", call. = FALSE)
+  }
+  key <- paste(bindings$cell_id, bindings$target_id, sep = "\r")
+  target_ids <- contracts$cell_id[contracts$lane_b_target]
+  complete <- setequal(unique(bindings$cell_id), target_ids)
+  if (anyDuplicated(key) || any(!bindings$cell_id %in% target_ids) ||
+      (!allow_partial && !complete)) {
+    stop("Bindings TSV must be a unique in-cohort target table", if (allow_partial) "." else " covering every Lane-B cell.", call. = FALSE)
+  }
+  incomplete <- vapply(bindings[required[-1L]], function(x) any(is.na(x) | !nzchar(x)), logical(1))
+  if (any(incomplete)) {
+    stop("Bindings TSV has incomplete ", paste(names(incomplete)[incomplete], collapse = ", "), ".", call. = FALSE)
+  }
+  bindings
+}
+
 phase18_interval_campaign_binding_worklist <- function(contracts, evidence_path) {
   phase18_assert_interval_campaign_census(contracts)
   if (!is.character(evidence_path) || length(evidence_path) != 1L || !file.exists(evidence_path)) {

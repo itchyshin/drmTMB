@@ -84,6 +84,11 @@ canonical-binding inputs, but only for route/DGP/target/rung definition: the
 B1 worker checks `profile_targets()` readiness and does not provide profile
 interval or coverage evidence.
 
+The exact rows are stored in the checked partial table
+[`interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv`](interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv).
+The readiness helper validates its schema and cohort membership, but refuses to
+turn it into a schedule because it deliberately lacks the other 150 cells.
+
 | Cell | DGP ID | Exact profile target | Truth/reporting scale | Rungs |
 | --- | --- | --- | --- | --- |
 | `mc-0005` | `b1_beta_mu_intercept` | `sd:mu:(1 | id)` | 0.55, beta latent/link-scale mu SD | 24/48/96 groups; 10/group |
