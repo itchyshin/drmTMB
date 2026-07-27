@@ -91663,3 +91663,17 @@ Shinichi grants a separate Gate A compute approval.
   Totoro/DRAC work, capability-ledger change, public SE/Wald/profile/CI path,
   or direct `biv_lognormal()` rho12 work occurred. See
   `docs/dev-log/after-task/2026-07-25-general-latent-normal-association-sandwich-private-build.md`.
+
+## 2026-07-26: B1 DRAC scalar breadth execution census
+
+- The isolated Fir array completed 960 single-CPU tasks: 9,600 retained attempts
+  across 16 predeclared cells and three rungs. The retained denominator is 9,599
+  `fit_completed` rows plus one real Beta response-boundary `fit_error`; no
+  attempt was dropped.
+- The canonical post-hoc evidence gate passed: canonical manifest SHA,
+  all task/seed bindings, 960 task provenance files, source/receipt records,
+  and the one permitted task-41 newline-only replay difference are verified.
+- This is execution evidence only. It makes no recovery, interval, coverage,
+  capability, public, or default claim. See
+  `docs/dev-log/2026-07-26-b1-drac-breadth-campaign-report.md` and
+  `docs/dev-log/after-task/2026-07-26-b1-drac-breadth-validation.md`.

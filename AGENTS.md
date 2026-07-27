@@ -12,7 +12,7 @@ regression using Template Model Builder.
 > | Lane | Subject | Current handover |
 > | --- | --- | --- |
 > | **A — ASSOCIATION** | bivariate `y1`/`y2` dependence, Arc 6, staged-eta, the private sandwich engine (#846, #844) | [`2026-07-25-codex-general-association-sandwich-handover.md`](docs/dev-log/handover/2026-07-25-codex-general-association-sandwich-handover.md) |
-> | **B — `sd()` SCALE & INTERVALS** | `sd(group) ~ x`, scale clamps, profile endpoints, RE coverage (#842/#843/#845/#848/#849, open #851) | [`2026-07-26-codex-handover.md`](docs/dev-log/handover/2026-07-26-codex-handover.md) |
+> | **B — `sd()` SCALE & INTERVALS** | `sd(group) ~ x`, scale clamps, profile endpoints, RE coverage (#842/#843/#845/#848/#849, open #851), and B1 execution evidence | [`2026-07-26-b1-codex-handover.md`](docs/dev-log/handover/2026-07-26-b1-codex-handover.md) |
 >
 > **Do not merge the lanes.** Association must not touch `sd()` clamps or Arc D; this lane
 > must not expose #846's engine through `vcov()`/`confint()`/profiles/docs.
