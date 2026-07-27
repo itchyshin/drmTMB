@@ -1,8 +1,8 @@
 # Arc 6 F4 preregistration review — Bernoulli x ordinary-NB2 association
 
-**Status:** frozen documentation-only review, approved 2026-07-27. This is
-not authorization to implement a harness, run a simulation, contact Totoro or
-DRAC, or make any inference or public-product claim.
+**Status:** frozen documentation-only review, amended by F4a on 2026-07-27.
+This is not authorization to implement a harness, run a simulation, contact
+Totoro or DRAC, or make any inference or public-product claim.
 
 ## Scope and source boundary
 
@@ -23,6 +23,27 @@ campaign rather than becoming an eligibility exception.
 
 The stopped `24 x 200 x 399` bootstrap shards are excluded permanently from
 this review and may not be resumed, aggregated, or used as F4 evidence.
+
+## F4a: frozen private alpha extraction
+
+For each eligible outer dataset, the F4 runner must fit fresh Bernoulli and
+ordinary-NB2 margins `b` and `nb`, construct `a <-
+associate_pairs(b, nb, kernel = latent_normal(), association = ~ 1)`, then call
+the unexported `drm_pair_general_eta_sandwich(b, nb, a)`. The only admissible
+link-scale point estimate is scalar `a$alpha`. The only admissible uncertainty
+object is the scalar `s$alpha_covariance` / `s$alpha_se` from a sandwich result
+`s` with `s$status == "ok"`. F4 must never read the conditional association
+curvature, `eta`, `eta_se`, or any `vcov()`/`confint()` result.
+
+An alpha point is available only when `a$status == "interior"`, the rectangle
+stage is `ok`, and `a$alpha` is one finite scalar. A `near_boundary`,
+`boundary_unresolved`, rectangle failure, or any other association failure is
+an unavailable point result even when an internal coefficient happens to be
+present. An alpha Godambe result is available only when an available point also
+has a finite 1 x 1 `s$alpha_covariance` and finite positive `s$alpha_se`.
+An alpha-Wald interval is available only when that Godambe result produces two
+finite endpoints. This deliberately withholds near-boundary inference rather
+than treating a numerical clamp as identification evidence.
 
 ## Frozen DGP grid
 
@@ -66,6 +87,16 @@ and failure reason. The denominators are nested and reported for every cell:
 4. alpha-Godambe and eta-delta availability, separately; and
 5. alpha-Wald interval availability.
 
+The point-estimate mean, bias, and empirical SD use only
+`n_point_available`; their denominator must be printed beside every statistic.
+The mean Godambe SE and the SE-to-empirical-SD ratio use the common
+`n_alpha_godambe_available` subset, so their numerator and empirical SD have
+the same availability condition. Both point and Godambe availability are
+reported over `n_valid`; neither may silently disappear from a calibration
+summary. Primary coverage retains its all-valid-protocol denominator, where an
+unavailable interval is non-coverage; conditional coverage uses only
+`n_interval_available` and remains secondary.
+
 A DGP, harness, source, or fixture mismatch quarantines the entire campaign;
 it is neither a failed fit nor a removable observation. The primary coverage
 denominator is all valid-protocol datasets, so an unavailable interval counts
@@ -82,6 +113,7 @@ descriptive only; no eta interval is assessed in F4.
 The candidate passes its F4 calibration screen only if every cell has:
 
 - absolute alpha bias no larger than 0.10;
+- alpha-Godambe availability of at least 0.95 over valid-protocol datasets;
 - interval availability of at least 0.95 over valid-protocol datasets;
 - mean Godambe alpha SE divided by empirical alpha SD in [0.90, 1.10]; and
 - primary 95% alpha-Wald coverage in [0.925, 0.975].

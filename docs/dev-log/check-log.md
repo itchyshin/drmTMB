@@ -91676,3 +91676,13 @@ Shinichi grants a separate Gate A compute approval.
   execution still requires a separate approval naming an exact source SHA and
   compute runbook. See
   `docs/dev-log/after-task/2026-07-27-arc6-f4-preregistration-review.md`.
+
+## 2026-07-27: Arc 6 F4a alpha contract repair
+
+- The F4 review now names the only admissible private alpha and Godambe path,
+  rejects conditional curvature and boundary-held coefficients, and binds point,
+  Godambe, and interval summaries to explicit availability denominators.
+- No code, runner, fit, remote connection, compute, API, ledger, or public
+  claim changed. F4b/F4 still require a distinct approval with an exact source
+  SHA and DRAC runbook. See
+  `docs/dev-log/after-task/2026-07-27-arc6-f4a-contract-repair.md`.
