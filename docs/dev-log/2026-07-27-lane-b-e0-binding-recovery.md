@@ -361,6 +361,17 @@ targets had convergence zero and non-boundary `conf.status = "profile"`.
 They are local routing bindings only, not interval calibration or coverage
 evidence.
 
+### Recovered ML bivariate animal q2 intercepts
+
+The animal counterpart binds `mc-0129` /
+`sd:mu:mu1:animal(1 | p | id)` and `mc-0130` /
+`sd:mu:mu2:animal(1 | p | id)` to the exact shared known-matrix q2 DGP. With
+`A = K`, 24 levels × six observations, and seed `20260727`, direct profiles
+were `[0.4965167, 0.8899039]` around the mu1 truth 0.60 and
+`[0.4008383, 0.7214585]` around the mu2 truth 0.50. Both profiles were finite,
+non-boundary, and converged with code zero. They are local routing bindings
+only, not interval calibration or coverage evidence.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18

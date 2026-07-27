@@ -104,10 +104,10 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
     subset_path, contracts, allow_partial = TRUE
   )
 
-  expect_equal(nrow(recovered), 54L)
+  expect_equal(nrow(recovered), 56L)
   expect_setequal(
     recovered$cell_id,
-    c("mc-0005", "mc-0007", "mc-0059", "mc-0107", "mc-0108", "mc-0151", "mc-0152", "mc-0184", "mc-0185", "mc-0199", "mc-0201", "mc-0208", "mc-0209", "mc-0212", "mc-0213", "mc-0225", "mc-0251", "mc-0260m", "mc-0265", "mc-0267", "mc-0270", "mc-0271", "mc-0380", "mc-0388", "mc-0401", "mc-0402", "mc-0403", "mc-0405", "mc-0406", "mc-0407", "mc-0408", "mc-0410", "mc-0411", "mc-0412", "mc-0413", "mc-0423", "mc-0429", "mc-0431", "mc-0434", "mc-0435", "mc-0438", "mc-0440", "mc-0441", "mc-0447", "mc-0448", "mc-0451", "mc-0452", "mc-0463", "mc-0511", "mc-0538", "mc-0567", "mc-0672", "mc-0674")
+    c("mc-0005", "mc-0007", "mc-0059", "mc-0107", "mc-0108", "mc-0129", "mc-0130", "mc-0151", "mc-0152", "mc-0184", "mc-0185", "mc-0199", "mc-0201", "mc-0208", "mc-0209", "mc-0212", "mc-0213", "mc-0225", "mc-0251", "mc-0260m", "mc-0265", "mc-0267", "mc-0270", "mc-0271", "mc-0380", "mc-0388", "mc-0401", "mc-0402", "mc-0403", "mc-0405", "mc-0406", "mc-0407", "mc-0408", "mc-0410", "mc-0411", "mc-0412", "mc-0413", "mc-0423", "mc-0429", "mc-0431", "mc-0434", "mc-0435", "mc-0438", "mc-0440", "mc-0441", "mc-0447", "mc-0448", "mc-0451", "mc-0452", "mc-0463", "mc-0511", "mc-0538", "mc-0567", "mc-0672", "mc-0674")
   )
   expect_equal(sum(recovered$cell_id == "mc-0260m"), 2L)
   expect_error(
@@ -135,16 +135,16 @@ test_that("binding inventory retains every Lane-B cell while exposing recovery s
   inventory <- env$phase18_interval_campaign_binding_inventory(contracts, partial)
 
   expect_equal(length(unique(inventory$cell_id)), 158L)
-  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 52L)
+  expect_equal(sum(inventory$binding_status == "partial_exact_binding"), 54L)
   expect_equal(sum(inventory$binding_status == "partial_negative_control_binding"), 2L)
-  expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 105L)
+  expect_equal(sum(inventory$binding_status == "needs_exact_binding"), 103L)
   expect_equal(
     sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"),
-    52L
+    54L
   )
   expect_equal(
     sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"),
-    105L
+    103L
   )
   expect_true(all(
     inventory$binding_blocker[inventory$cell_id == "mc-0260m"] ==
@@ -305,11 +305,11 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   expect_equal(nrow(utils::read.delim(packet$manifest)), 159L)
   inventory <- utils::read.delim(packet$binding_inventory, check.names = FALSE)
   expect_equal(nrow(inventory), 159L)
-  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"), 52L)
+  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"), 54L)
   expect_equal(sum(inventory$binding_blocker == "negative_control_retained_fail_closed"), 2L)
-  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"), 105L)
+  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"), 103L)
   recovery_summary <- utils::read.delim(packet$binding_recovery_summary, check.names = FALSE)
-  expect_equal(sum(recovery_summary$unrecovered_exact_dgp_cells), 105L)
+  expect_equal(sum(recovery_summary$unrecovered_exact_dgp_cells), 103L)
   expect_true(all(!recovery_summary$pregrid_eligible))
   expect_true(any(recovery_summary$recovery_state == "blocked_by_exact_dgp_and_direct_target_recovery"))
   expect_identical(readRDS(packet$runtime_receipt)$source_sha, source_sha)
