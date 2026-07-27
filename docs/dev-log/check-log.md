@@ -91713,3 +91713,14 @@ Shinichi grants a separate Gate A compute approval.
   claim changed. F4b/F4 still require a distinct approval with an exact source
   SHA and DRAC runbook. See
   `docs/dev-log/after-task/2026-07-27-arc6-f4a-contract-repair.md`.
+
+## 2026-07-27: Arc 6 F5 public S3 design
+
+- Documentation-only design records the possible future alpha-only `vcov()`
+  and 95% alpha-Wald `confint()` surface for the one fixed-effect, complete-pair
+  Bernoulli x ordinary-NB2 intercept route.  It preserves informative failures
+  for every other association object.
+- No implementation, public exposure, compute change, capability/ledger
+  movement, or public inference claim occurred.  F4 evidence and a separate
+  F5 approval remain mandatory. See
+  `docs/dev-log/after-task/2026-07-27-arc6-f5-public-s3-design.md`.
