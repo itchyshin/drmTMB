@@ -15,6 +15,7 @@ reviewed `cell × target` coverage contract.
 | --- | ---: | --- | --- | --- |
 | Count q1 one-slope | `mc-0410`–`mc-0413`, `mc-0435`, `mc-0441`, `mc-0448`, `mc-0452` | `tools/slurm/count-slope-recovery-rorqual.sbatch`; `docs/dev-log/simulation-artifacts/2026-06-29-count-slope-recovery-rorqual/`; the eight `tools/run-structured-re-count-slope-*-local-micro-shard.R` runners | provider/family route, formula cell, 80 seeds `760001:760080`, source SHA receipts, and truth for fixed effects plus intercept and slope SDs | choose and review the exact profile estimand(s) per cell; recovery runners record estimates, not profile intervals |
 | Bivariate REML fixed/q2/q4 | `mc-0182`–`mc-0185`, `mc-0208`–`mc-0209`, `mc-0212`–`mc-0219` | `tests/testthat/test-reml-bivariate.R`; `docs/design/221-native-reml-finish.md`; `R/profile.R` target construction | formulas, fixture truths, q2/q4 covariance construction, and direct target identities | select target cardinality for the fixed-effect routes and run a separate exact-DGP profile smoke; generic target tests explicitly permit `profile_failed` |
+| Bivariate ML q2 slope | `mc-0109`–`mc-0110`, `mc-0131`–`mc-0132` | `inst/sim/R/sim_structured_re_bridge_fixtures.R:phase18_structured_re_q2_slope_payload_fixture` | exact provider/formula grammar and deterministic target names | unavailable: the source is `fixture_only` and explicitly records `profile grid not run`; do not borrow its old Wald/fixture evidence as a profile binding |
 
 ## Count-source boundary
 
@@ -36,6 +37,18 @@ structured axes, including the dense q4 adequate-power smoke. They establish
 target names such as `sd:mu:mu1:phylo(1 | p | sp)` but not a completed profile
 attempt for the exact REML campaign DGP. No source supports treating a finite
 generic profile test as coverage evidence.
+
+## ML q2 slope boundary
+
+The archived q2 slope payloads are useful negative provenance, not omitted
+smokes. For the spatial and animal location pairs still in the frozen cohort,
+the payload contract declares `fit_status = "fixture_only"` and its profile
+channel as `not_evaluated` with the literal reason `profile grid not run`.
+This is weaker than a local exact-DGP profile smoke and therefore does not
+satisfy the binding rule. Their earlier Wald/fixture parity results remain
+descriptive evidence only; neither is a substitute profile channel, an
+exclusion from an all-attempt denominator, or an authorization to retry away
+the missing direct-profile route.
 
 ## Local technical smoke (route validation only)
 
