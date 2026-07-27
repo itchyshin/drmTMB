@@ -3363,13 +3363,17 @@ profile_check_tmbprofile_dots_list <- function(dots) {
 
 drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
+  trace_state <- drm_profile_trace_object(object, target_name, lincomb)
   tryCatch(
-    TMB::tmbprofile(
-      obj = object$obj,
-      name = target_name,
-      lincomb = lincomb,
-      trace = trace,
-      ...
+    structure(
+      TMB::tmbprofile(
+        obj = trace_state$obj,
+        name = target_name,
+        lincomb = lincomb,
+        trace = trace,
+        ...
+      ),
+      drmTMB_profile_trace = trace_state$snapshot()
     ),
     error = function(err) {
       cli::cli_abort(
@@ -3384,6 +3388,53 @@ drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
       )
     }
   )
+}
+
+drm_profile_trace_object <- function(object, target_name, lincomb) {
+  evaluations <- new.env(parent = emptyenv())
+  evaluations$entries <- list()
+  obj <- object$obj
+  original_fn <- obj$fn
+
+  record_evaluation <- function(par) {
+    index <- length(evaluations$entries) + 1L
+    evaluations$entries[[index]] <- list(
+      par = stats::setNames(as.numeric(par), names(par)),
+      objective = NA_real_,
+      error = NULL
+    )
+    index
+  }
+
+  obj$fn <- function(par) {
+    index <- record_evaluation(par)
+    value <- tryCatch(
+      original_fn(par),
+      error = function(err) {
+        evaluations$entries[[index]]$error <- conditionMessage(err)
+        stop(err)
+      }
+    )
+    evaluations$entries[[index]]$objective <- as.numeric(value)
+    value
+  }
+
+  snapshot <- function() {
+    list(
+      target_name = target_name,
+      lincomb = as.numeric(lincomb),
+      baseline = list(
+        par = stats::setNames(
+          as.numeric(object$opt$par),
+          names(object$opt$par)
+        ),
+        objective = as.numeric(object$opt$objective)
+      ),
+      evaluations = evaluations$entries
+    )
+  }
+
+  list(obj = obj, snapshot = snapshot)
 }
 
 drm_tmbprofile_confint <- function(profile, target_name, level) {
