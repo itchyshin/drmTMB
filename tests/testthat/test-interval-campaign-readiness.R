@@ -120,6 +120,24 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
   )
 })
 
+test_that("local-smoke receipts preserve failures alongside finite profiles", {
+  env <- new.env(parent = globalenv())
+  sys.source(interval_campaign_readiness_script(), envir = env)
+  root <- testthat::test_path("..", "..")
+  manifest <- env$phase18_interval_campaign_manifest(
+    file.path(root, "docs", "dev-log", "dashboard", "capability-ledger", "cells.tsv")
+  )
+  receipts <- env$phase18_read_interval_campaign_smoke_receipts(
+    file.path(root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-local-smoke-receipts.tsv"),
+    env$phase18_interval_campaign_contracts(manifest)
+  )
+  expect_equal(nrow(receipts), 3L)
+  expect_equal(sum(receipts$conf_status == "profile"), 1L)
+  expect_equal(sum(receipts$conf_status == "profile_failed"), 2L)
+  expect_true(all(is.na(receipts$lower[receipts$conf_status != "profile"])))
+  expect_true(all(nzchar(receipts$failure_reason[receipts$conf_status != "profile"])))
+})
+
 test_that("binding inventory retains every Lane-B cell while exposing recovery state", {
   env <- new.env(parent = globalenv())
   sys.source(interval_campaign_readiness_script(), envir = env)
@@ -301,6 +319,7 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   expect_true(file.exists(packet$binding_worklist))
   expect_true(file.exists(packet$binding_inventory))
   expect_true(file.exists(packet$binding_recovery_summary))
+  expect_true(file.exists(packet$local_smoke_receipts))
   expect_true(file.exists(packet$runtime_receipt))
   expect_equal(nrow(utils::read.delim(packet$manifest)), 159L)
   inventory <- utils::read.delim(packet$binding_inventory, check.names = FALSE)

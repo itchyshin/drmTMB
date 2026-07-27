@@ -236,6 +236,41 @@ phase18_read_interval_campaign_bindings <- function(
   bindings
 }
 
+phase18_read_interval_campaign_smoke_receipts <- function(receipts_path, contracts) {
+  phase18_assert_interval_campaign_census(contracts)
+  if (!is.character(receipts_path) || length(receipts_path) != 1L || !file.exists(receipts_path)) {
+    stop("`receipts_path` must name an existing local-smoke receipts TSV.", call. = FALSE)
+  }
+  receipts <- utils::read.delim(receipts_path, check.names = FALSE, stringsAsFactors = FALSE)
+  required <- c(
+    "cell_id", "target_id", "dgp_id", "seed", "conf_status", "lower", "upper",
+    "convergence", "pdHess", "profile_boundary", "failure_reason", "source"
+  )
+  missing <- setdiff(required, names(receipts))
+  if (length(missing) > 0L) {
+    stop("Local-smoke receipts TSV is missing: ", paste(missing, collapse = ", "), ".", call. = FALSE)
+  }
+  active <- contracts$cell_id[contracts$lane_b_target]
+  key <- paste(receipts$cell_id, receipts$target_id, receipts$seed, sep = "\r")
+  allowed <- c("profile", "profile_failed", "clamp_limited", "trace_incomplete", "nonfinite_interval")
+  if (anyDuplicated(key) || any(!receipts$cell_id %in% active) ||
+      any(!startsWith(receipts$target_id, paste0(receipts$cell_id, "::"))) ||
+      anyNA(receipts$seed) || any(receipts$seed < 1L) ||
+      any(!receipts$conf_status %in% allowed)) {
+    stop("Local-smoke receipts must be unique in-cohort target attempts with valid status and seed.", call. = FALSE)
+  }
+  profile <- receipts$conf_status == "profile"
+  if (any(profile & (!is.finite(receipts$lower) | !is.finite(receipts$upper) |
+      receipts$profile_boundary | !is.na(receipts$failure_reason) & nzchar(receipts$failure_reason)))) {
+    stop("Finite non-boundary profile receipts must have endpoints and no failure reason.", call. = FALSE)
+  }
+  if (any(!profile & (!is.na(receipts$lower) | !is.na(receipts$upper) |
+      is.na(receipts$failure_reason) | !nzchar(receipts$failure_reason)))) {
+    stop("Failed local-smoke receipts must retain no endpoints and a failure reason.", call. = FALSE)
+  }
+  receipts
+}
+
 phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindings) {
   phase18_assert_interval_campaign_census(contracts)
   if (!is.data.frame(partial_bindings)) {
@@ -399,7 +434,8 @@ phase18_write_interval_campaign_readiness_packet <- function(
   output_dir,
   source_sha,
   source_root = getwd(),
-  partial_bindings = NULL
+  partial_bindings = NULL,
+  smoke_receipts = NULL
 ) {
   phase18_assert_interval_campaign_census(contracts)
   if (!is.character(output_dir) || length(output_dir) != 1L || !nzchar(output_dir)) {
@@ -416,6 +452,7 @@ phase18_write_interval_campaign_readiness_packet <- function(
   worklist_path <- file.path(output_dir, "lane-b-binding-worklist.tsv")
   inventory_path <- file.path(output_dir, "lane-b-binding-inventory.tsv")
   recovery_summary_path <- file.path(output_dir, "lane-b-binding-recovery-summary.tsv")
+  smoke_receipts_path <- file.path(output_dir, "lane-b-local-smoke-receipts.tsv")
   receipt_path <- file.path(output_dir, "lane-b-runtime-receipt.rds")
   if (is.null(partial_bindings)) {
     partial_bindings <- data.frame(
@@ -425,8 +462,20 @@ phase18_write_interval_campaign_readiness_packet <- function(
       stringsAsFactors = FALSE
     )
   }
+  if (is.null(smoke_receipts)) {
+    smoke_receipts <- data.frame(
+      cell_id = character(), target_id = character(), dgp_id = character(),
+      seed = integer(), conf_status = character(), lower = numeric(), upper = numeric(),
+      convergence = integer(), pdHess = logical(), profile_boundary = logical(),
+      failure_reason = character(), source = character(), stringsAsFactors = FALSE
+    )
+  }
   utils::write.table(
     contracts[manifest_fields], manifest_path, sep = "\t", row.names = FALSE,
+    quote = FALSE, na = ""
+  )
+  utils::write.table(
+    smoke_receipts, smoke_receipts_path, sep = "\t", row.names = FALSE,
     quote = FALSE, na = ""
   )
   utils::write.table(
@@ -464,6 +513,7 @@ phase18_write_interval_campaign_readiness_packet <- function(
     binding_worklist = worklist_path,
     binding_inventory = inventory_path,
     binding_recovery_summary = recovery_summary_path,
+    local_smoke_receipts = smoke_receipts_path,
     runtime_receipt = receipt_path,
     source_md5 = attr(contracts, "source_md5"),
     manifest_md5 = attr(contracts, "manifest_md5"),

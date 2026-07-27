@@ -73,6 +73,12 @@ scale, one or more namespaced direct profile targets, information rung, and
 source receipt. Any cell lacking all of those remains unavailable. K=12 keeps
 its dedicated negative-control target and must remain incomplete/unavailable.
 
+Machine-readable local attempts now live in
+[`interval-campaign-bindings/2026-07-27-b1-local-smoke-receipts.tsv`](interval-campaign-bindings/2026-07-27-b1-local-smoke-receipts.tsv).
+The checked schema retains successful and failed profile attempts together:
+finite non-boundary profiles carry endpoints; every other status carries a
+named failure reason and no fabricated endpoints.
+
 ### Exact K=12 negative-control contract
 
 The sole E0 K=12 control is `mc-0260m`, not any structured `q12` cell. Its
