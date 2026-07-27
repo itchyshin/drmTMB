@@ -225,6 +225,25 @@ ready, converged with `pdHess = TRUE`, and reported `near_sd_boundary`.
 They are exact routing bindings only. Their boundary contact is retained as
 non-covering technical evidence.
 
+### Recovered Beta ordinary mu slope
+
+The exact `mc-0007` fixture has 26 groups of eight observations, seed
+`20260532`, Beta precision 34, a latent logit-mu linear predictor
+`0.15 + 0.42 x`, and an independent `(0 + x | id)` slope SD of 0.48. Its
+direct target `sd:mu:(0 + x | id)` was profile-ready and the local profile
+smoke returned `[0.3578016, 0.6567327]`, `conf.status = "profile"`,
+convergence 0, and `pdHess = TRUE`. This is a routing binding only, not
+coverage evidence.
+
+### Recovered lognormal ordinary mu slope
+
+The cross-family fixture also gives `mc-0380` an exact DGP: 26 groups of
+eight observations, seed `20260530`, lognormal residual log-SD 0.28, and
+link-scale mu slope SD 0.48 in `(0 + x | id)`. Its direct profile target is
+`sd:mu:(0 + x | id)`. The local profile returned `[0.3439994, 0.6179252]`,
+`conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. It is an exact
+routing binding only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
