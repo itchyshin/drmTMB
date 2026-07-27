@@ -91663,3 +91663,16 @@ Shinichi grants a separate Gate A compute approval.
   Totoro/DRAC work, capability-ledger change, public SE/Wald/profile/CI path,
   or direct `biv_lognormal()` rho12 work occurred. See
   `docs/dev-log/after-task/2026-07-25-general-latent-normal-association-sandwich-private-build.md`.
+
+## 2026-07-27: Arc 6 F4 preregistration review
+
+- The owner-approved documentation-only review freezes an intercept-only
+  Bernoulli x ordinary-NB2 24-cell F4 grid, 1,000 all-attempt outer datasets
+  per cell, the alpha-scale Godambe Wald interval, nested availability and
+  coverage denominators, calibration/MCSE reporting, and a future DRAC
+  job-array recommendation.
+- No code or harness changed. No simulation, host connection, compute launch,
+  retry, ledger movement, API work, or public inference claim occurred. F4
+  execution still requires a separate approval naming an exact source SHA and
+  compute runbook. See
+  `docs/dev-log/after-task/2026-07-27-arc6-f4-preregistration-review.md`.
