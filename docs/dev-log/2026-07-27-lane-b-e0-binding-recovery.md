@@ -338,6 +338,17 @@ for the mu2 truth 0.50. Both were direct/profile-ready, converged with code
 zero, and had non-boundary profile endpoints. This is a local routing binding
 only, not interval calibration or coverage evidence.
 
+### Recovered ML bivariate spatial q2 intercepts
+
+The same spatial-q2 source independently provides the ML q2 location pair
+`mc-0107` / `sd:mu:mu1:spatial(1 | p | site)` and `mc-0108` /
+`sd:mu:mu2:spatial(1 | p | site)`. It is a separate estimator stratum from
+the Arc 1b-S1 REML pair. At the declared 24 sites × six ring fixture and seed
+`20260727`, ML profiles returned `[0.3591473, 0.6930703]` for the mu1 truth
+0.50 and `[0.3303320, 0.6396797]` for the mu2 truth 0.42, each with convergence
+zero and non-boundary `conf.status = "profile"`. These are local routing
+bindings only, not interval calibration or coverage evidence.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
