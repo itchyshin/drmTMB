@@ -256,6 +256,14 @@ profile returned `[0.1686393, 0.4514289]`, again with `conf.status = "profile"`,
 convergence 0, and `pdHess = TRUE`. Both are exact routing bindings only;
 neither is coverage evidence.
 
+### Recovered Poisson ordinary mu intercept
+
+The `mc-0429` source fixture is an exact 36-group, 10-observation-per-group
+Poisson log-mu intercept DGP (seed `20260619`, true SD 0.55). Its direct
+`sd:mu:(1 | id)` profile returned `[0.4791987, 0.8371075]` with
+`conf.status = "profile"`, convergence 0, and `pdHess = TRUE`. This is an
+exact routing binding only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
