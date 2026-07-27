@@ -96,6 +96,23 @@ These are not a permission to schedule a six-cell pregrid: the full E0 cohort
 still requires exact binding coverage, and each B1 target needs the planned
 local profile smoke before it can participate in the no-compute packet.
 
+The first fixed-seed local smoke has now been run for all six at their low-rung
+seed (`b1_seed(cell, low, 1)`). Every fit converged with `pdHess = TRUE`, and
+every selected direct target returned `conf.status = "profile"`:
+
+| Cell | Seed | Profile interval |
+| --- | ---: | --- |
+| `mc-0005` | 2026072601 | `[0.2731837, 0.6211540]` |
+| `mc-0031` | 2026073201 | `[0.3470272, 0.7357922]` |
+| `mc-0059` | 2026073801 | `[0.4296265, 0.8129648]` |
+| `mc-0074` | 2026074401 | `[0.1426531, 0.3967293]` |
+| `mc-0270` | 2026076201 | `[0.3090095, 0.6343688]` |
+| `mc-0511` | 2026080401 | `[0.3793644, 0.9316135]` |
+
+This is a six-attempt route-validation receipt, not interval calibration: no
+attempt was discarded, but it supplies neither an all-seed denominator nor a
+coverage estimate and changes no capability status.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
