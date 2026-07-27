@@ -2,6 +2,19 @@
 
 Record meaningful development checks here.
 
+## 2026-07-27: Arc 6 F4 DRAC no-launch runbook
+
+- Added the source/fixture/manifest-pinned F4 DRAC runbook for the fixed-effect
+  Bernoulli x ordinary-NB2 alpha candidate.  It specifies a future 24-element
+  array, 1,000 retained attempts per shard, preflight/quarantine actions, and
+  the required owner-provided cluster/account/resources/snapshot/output receipt.
+- Read-only checks confirmed the owner-approved F4b base SHA and both frozen
+  private-engine blobs.  `git diff --check`: PASS.  No SSH connection, staging,
+  scheduler submission, runner invocation, fit, or compute occurred.
+- Boundary: this is no-launch documentation.  A later approval must name the
+  post-runbook SHA, this runbook path, an actual DRAC account/resources, and
+  output root before F4 can execute.  F5/public inference remains locked.
+
 ## 2026-07-27: Arc 6 F4b private Bernoulli x ordinary-NB2 runner
 
 - On the owner-approved base `095f51b3b`, added the private F4 preparation
