@@ -73,7 +73,11 @@ test_that("Arc 7B dense LSS sentinel retains incomplete direct-SD profiles", {
   direct_sd <- run$summary[grepl("^sd:study:", run$summary$parameter), , drop = FALSE]
   expect_equal(nrow(direct_sd), 2L)
   expect_true(all(direct_sd$interval_status == "incomplete"))
-  expect_true(all(direct_sd$interval_message == "nonfinite_interval"))
+  # K = 12 remains negative evidence whether profiling runs non-finite or
+  # the trace-first guard detects clamp contact. Neither is a usable interval.
+  expect_true(all(direct_sd$interval_message %in% c(
+    "nonfinite_interval", "clamp_limited", "trace_incomplete"
+  )))
   expect_true(all(direct_sd$result_status == "ok"))
   reduction <- phase18_meta_v_lss_all_attempt_profile_reduction(run$summary)
   direct_sd_reduction <- reduction[grepl("^sd:study:", reduction$parameter), , drop = FALSE]
