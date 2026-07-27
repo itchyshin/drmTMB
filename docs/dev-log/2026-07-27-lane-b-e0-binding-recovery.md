@@ -395,6 +395,16 @@ The independent ML profiles returned `[0.7520582, 1.6009320]` and
 non-boundary `conf.status = "profile"`. These remain routing bindings only,
 not interval calibration or coverage evidence.
 
+### Recovered Arc 3a lognormal phylogenetic q1 intercept
+
+The exact Arc 3a generator defines the balanced-tree `lognormal()` route for
+`mc-0386`: true log-location phylogenetic SD 0.50, fixed log-sigma 0.35, and
+`y ~ x + phylo(1 | id, tree = tree)`. At its M32 × 20 local technical fixture
+and seed `20260727`, the direct profile was `[0.3611700, 0.6194050]`, with
+convergence zero and non-boundary `conf.status = "profile"`. This is an exact
+local routing binding only, not the prior Arc 3a recovery result, a coverage
+claim, or a promotion.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
