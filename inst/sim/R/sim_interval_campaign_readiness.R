@@ -153,7 +153,7 @@ phase18_bind_interval_campaign_contracts <- function(contracts, bindings) {
   }
   required <- c(
     "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
-    "profile_parameter", "information_rung"
+    "profile_parameter", "information_rung", "binding_source"
   )
   missing <- setdiff(required, names(bindings))
   if (length(missing) > 0L) {
@@ -216,7 +216,7 @@ phase18_read_interval_campaign_bindings <- function(
   bindings <- utils::read.delim(bindings_path, check.names = FALSE, stringsAsFactors = FALSE)
   required <- c(
     "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
-    "profile_parameter", "information_rung"
+    "profile_parameter", "information_rung", "binding_source"
   )
   missing <- setdiff(required, names(bindings))
   if (length(missing) > 0L) {
@@ -236,47 +236,65 @@ phase18_read_interval_campaign_bindings <- function(
   bindings
 }
 
-phase18_validate_interval_campaign_smoke_receipts <- function(receipts, contracts) {
+phase18_validate_interval_campaign_smoke_receipts <- function(receipts, contracts, bindings) {
   phase18_assert_interval_campaign_census(contracts)
   if (!is.data.frame(receipts)) {
     stop("`receipts` must be a data frame.", call. = FALSE)
   }
   required <- c(
     "cell_id", "target_id", "dgp_id", "seed", "conf_status", "lower", "upper",
-    "convergence", "pdHess", "profile_boundary", "failure_reason", "source"
+    "convergence", "pdHess", "profile_boundary", "trace_complete", "failure_reason", "source"
   )
   missing <- setdiff(required, names(receipts))
   if (length(missing) > 0L) {
     stop("Local-smoke receipts TSV is missing: ", paste(missing, collapse = ", "), ".", call. = FALSE)
   }
   active <- contracts$cell_id[contracts$lane_b_target]
+  binding_required <- c("cell_id", "target_id", "dgp_id", "binding_source")
+  if (!is.data.frame(bindings) || !all(binding_required %in% names(bindings))) {
+    stop("`bindings` must be a validated exact-binding table.", call. = FALSE)
+  }
   key <- paste(receipts$cell_id, receipts$target_id, receipts$seed, sep = "\r")
   allowed <- c("profile", "profile_failed", "clamp_limited", "trace_incomplete", "nonfinite_interval")
   if (anyDuplicated(key) || any(!receipts$cell_id %in% active) ||
       any(!startsWith(receipts$target_id, paste0(receipts$cell_id, "::"))) ||
       anyNA(receipts$seed) || any(receipts$seed < 1L) ||
-      any(!receipts$conf_status %in% allowed)) {
+      any(!receipts$conf_status %in% allowed) ||
+      any(is.na(receipts$trace_complete)) ||
+      any(is.na(receipts$source) | !nzchar(receipts$source))) {
     stop("Local-smoke receipts must be unique in-cohort target attempts with valid status and seed.", call. = FALSE)
   }
   profile <- receipts$conf_status == "profile"
+  binding_key <- paste(bindings$cell_id, bindings$target_id, bindings$dgp_id, sep = "\r")
+  receipt_binding_key <- paste(receipts$cell_id, receipts$target_id, receipts$dgp_id, sep = "\r")
+  if (any(profile & !receipt_binding_key %in% binding_key)) {
+    stop("Successful local-smoke receipts must match an exact cell/target/DGP binding.", call. = FALSE)
+  }
   if (any(profile & (!is.finite(receipts$lower) | !is.finite(receipts$upper) |
-      receipts$profile_boundary | !is.na(receipts$failure_reason) & nzchar(receipts$failure_reason)))) {
+      receipts$profile_boundary | !receipts$trace_complete |
+      !is.na(receipts$failure_reason) & nzchar(receipts$failure_reason)))) {
     stop("Finite non-boundary profile receipts must have endpoints and no failure reason.", call. = FALSE)
   }
   if (any(!profile & (!is.na(receipts$lower) | !is.na(receipts$upper) |
       is.na(receipts$failure_reason) | !nzchar(receipts$failure_reason)))) {
     stop("Failed local-smoke receipts must retain no endpoints and a failure reason.", call. = FALSE)
   }
+  trace_incomplete <- receipts$conf_status == "trace_incomplete"
+  if (any(trace_incomplete & receipts$trace_complete) ||
+      any(!trace_incomplete & !receipts$trace_complete)) {
+    stop("Local-smoke receipts must retain trace completeness consistently.", call. = FALSE)
+  }
   receipts
 }
 
-phase18_read_interval_campaign_smoke_receipts <- function(receipts_path, contracts) {
+phase18_read_interval_campaign_smoke_receipts <- function(receipts_path, contracts, bindings) {
   if (!is.character(receipts_path) || length(receipts_path) != 1L || !file.exists(receipts_path)) {
     stop("`receipts_path` must name an existing local-smoke receipts TSV.", call. = FALSE)
   }
   phase18_validate_interval_campaign_smoke_receipts(
     utils::read.delim(receipts_path, check.names = FALSE, stringsAsFactors = FALSE),
-    contracts
+    contracts,
+    bindings
   )
 }
 
@@ -287,7 +305,7 @@ phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindi
   }
   required <- c(
     "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
-    "profile_parameter", "information_rung"
+    "profile_parameter", "information_rung", "binding_source"
   )
   missing <- setdiff(required, names(partial_bindings))
   if (length(missing) > 0L) {
@@ -324,11 +342,12 @@ phase18_interval_campaign_binding_inventory <- function(contracts, partial_bindi
   unresolved$true_parameter_scale <- NA_character_
   unresolved$profile_parameter <- NA_character_
   unresolved$information_rung <- NA_character_
+  unresolved$binding_source <- NA_character_
   unresolved$binding_status <- "needs_exact_binding"
   unresolved$binding_blocker <- "exact_dgp_and_direct_target_not_recovered"
   fields <- c(
     "cell_id", "target_id", "dgp_id", "formula", "true_parameter_scale",
-    "profile_parameter", "information_rung", "negative_control",
+    "profile_parameter", "information_rung", "binding_source", "negative_control",
     "estimand_stratum", "binding_status", "binding_blocker"
   )
   out <- rbind(bound[fields], unresolved[fields])
@@ -467,7 +486,7 @@ phase18_write_interval_campaign_readiness_packet <- function(
     partial_bindings <- data.frame(
       cell_id = character(), target_id = character(), dgp_id = character(),
       formula = character(), true_parameter_scale = character(),
-      profile_parameter = character(), information_rung = character(),
+      profile_parameter = character(), information_rung = character(), binding_source = character(),
       stringsAsFactors = FALSE
     )
   }
@@ -476,11 +495,11 @@ phase18_write_interval_campaign_readiness_packet <- function(
       cell_id = character(), target_id = character(), dgp_id = character(),
       seed = integer(), conf_status = character(), lower = numeric(), upper = numeric(),
       convergence = integer(), pdHess = logical(), profile_boundary = logical(),
-      failure_reason = character(), source = character(), stringsAsFactors = FALSE
+      trace_complete = logical(), failure_reason = character(), source = character(), stringsAsFactors = FALSE
     )
   }
   smoke_receipts <- phase18_validate_interval_campaign_smoke_receipts(
-    smoke_receipts, contracts
+    smoke_receipts, contracts, partial_bindings
   )
   utils::write.table(
     contracts[manifest_fields], manifest_path, sep = "\t", row.names = FALSE,
@@ -570,7 +589,7 @@ phase18_assert_bound_interval_contracts <- function(contracts) {
   }
   required <- c(
     "dgp_id", "formula", "true_parameter_scale", "profile_parameter",
-    "information_rung", "profile_channel", "target_id"
+    "information_rung", "binding_source", "profile_channel", "target_id"
   )
   missing <- setdiff(required, names(active))
   valid_text <- length(missing) == 0L && all(vapply(
@@ -620,7 +639,8 @@ phase18_reduce_interval_campaign_attempts <- function(schedule, attempts) {
   }
   required_attempts <- c(
     "cell_id", "target_id", "information_rung", "replicate",
-    "seed", "manifest_md5", "contract_md5", "profile_status", "covered"
+    "seed", "manifest_md5", "contract_md5", "profile_status", "covered",
+    "failure_reason", "trace_complete"
   )
   missing_attempts <- setdiff(required_attempts, names(attempts))
   if (length(missing_attempts) > 0L) {
@@ -641,6 +661,23 @@ phase18_reduce_interval_campaign_attempts <- function(schedule, attempts) {
   )
   if (anyDuplicated(attempt_key) || any(!attempt_key %in% key)) {
     stop("`attempts` must be a unique subset of the scheduled attempts.", call. = FALSE)
+  }
+  allowed_status <- c(
+    "profile", "profile_failed", "clamp_limited", "trace_incomplete",
+    "nonfinite_interval"
+  )
+  if (any(!attempts$profile_status %in% allowed_status) ||
+      any(is.na(attempts$trace_complete))) {
+    stop("`attempts` must use a declared profile status and trace-completeness flag.", call. = FALSE)
+  }
+  successful <- attempts$profile_status == "profile"
+  trace_incomplete <- attempts$profile_status == "trace_incomplete"
+  if (any(successful & (!attempts$trace_complete |
+      (!is.na(attempts$failure_reason) & nzchar(attempts$failure_reason)))) ||
+      any(!successful & (is.na(attempts$failure_reason) | !nzchar(attempts$failure_reason))) ||
+      any(trace_incomplete & attempts$trace_complete) ||
+      any(!trace_incomplete & !attempts$trace_complete)) {
+    stop("`attempts` must retain failure reasons and trace completeness consistently.", call. = FALSE)
   }
 
   joined <- merge(
@@ -673,6 +710,18 @@ phase18_reduce_interval_campaign_attempts <- function(schedule, attempts) {
       noncovering_attempts = sum(x$noncovering),
       availability = mean(x$available),
       coverage_all_attempts = sum(x$available & x$covered %in% TRUE) / nrow(x),
+      profile_status_counts = paste(
+        names(table(factor(x$profile_status, levels = c(
+          "profile", "profile_failed", "clamp_limited", "trace_incomplete",
+          "nonfinite_interval", "not_run"
+        )))),
+        as.integer(table(factor(x$profile_status, levels = c(
+          "profile", "profile_failed", "clamp_limited", "trace_incomplete",
+          "nonfinite_interval", "not_run"
+        )))),
+        sep = "=", collapse = ";"
+      ),
+      failure_reasons = paste(sort(unique(x$failure_reason[!is.na(x$failure_reason) & nzchar(x$failure_reason)])), collapse = ";"),
       stringsAsFactors = FALSE
     )
   }))

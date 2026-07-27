@@ -94,8 +94,10 @@ declared source root; the receipt also retains its porcelain status.
 
 The local test receipt covers the new manifest/contract/reducer module plus
 existing exact-DGP smoke routes for fixed effects, ordinary random intercepts,
-ordinary random slopes, and structured direct-SD meta-V.  The latter retains
-the K=12 negative-control route.  Additional local exact-DGP checks cover
+ordinary random slopes, and structured direct-SD meta-V. The K=12
+negative-control route is exercised by the reducer guard and retained in its
+binding table; it is not represented as a finite local-smoke receipt.
+Additional local exact-DGP checks cover
 structured q1, q4, q6, q12, and phylogenetic interaction routes.  These are
 technical route checks only, not coverage evidence.
 

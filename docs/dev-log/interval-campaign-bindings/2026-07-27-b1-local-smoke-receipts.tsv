@@ -1,7 +1,7 @@
-cell_id	target_id	dgp_id	seed	conf_status	lower	upper	convergence	pdHess	profile_boundary	failure_reason	source
-mc-0012	mc-0012::sd:mu:animal(1 | id)	beta_animal_mu_intercept_fixture	2026070401	profile	0.2371351	0.7135851	0	TRUE	FALSE		tools/qseries-v1-first-four-rejection-smoke.R
-mc-0013	mc-0013::sd:mu:animal(0 + x | id)	beta_animal_mu_slope_fixture	2026070603	profile_failed			0	TRUE	TRUE	nonfinite_interval	tests/testthat/test-nongaussian-structured-mu-slope.R
-mc-0015	mc-0015::sd:sigma:animal(1 | id)	beta_animal_sigma_intercept_fixture	2026070404	profile_failed			0	TRUE	TRUE	nonfinite_interval	tests/testthat/test-nongaussian-structured-boundary.R
-mc-0248	mc-0248::sd:mu:relmat(0 + x | id)	gamma_relmat_mu_one_slope_fixture	2026070601	profile	0.07582362	0.2454064	0	TRUE	FALSE		tests/testthat/test-nongaussian-structured-mu-slope.R
-mc-0494	mc-0494::sd:mu:spatial(1 | id)	student_spatial_mu_one_slope_fixture	2026070602	profile	0.07847734	0.3410286	0	TRUE	FALSE		tests/testthat/test-nongaussian-structured-mu-slope.R
-mc-0494	mc-0494::sd:mu:spatial(0 + x | id)	student_spatial_mu_one_slope_fixture	2026070602	profile	0.1776946	0.5470922	0	TRUE	FALSE		tests/testthat/test-nongaussian-structured-mu-slope.R
+cell_id	target_id	dgp_id	seed	conf_status	lower	upper	convergence	pdHess	profile_boundary	trace_complete	failure_reason	source
+mc-0012	mc-0012::sd:mu:animal(1 | id)	beta_animal_mu_intercept_fixture	2026070401	profile	0.2371351	0.7135851	0	TRUE	FALSE	TRUE		tools/qseries-v1-first-four-rejection-smoke.R
+mc-0013	mc-0013::sd:mu:animal(0 + x | id)	beta_animal_mu_slope_fixture	2026070603	profile_failed			0	TRUE	TRUE	TRUE	nonfinite_interval	tests/testthat/test-nongaussian-structured-mu-slope.R
+mc-0015	mc-0015::sd:sigma:animal(1 | id)	beta_animal_sigma_intercept_fixture	2026070404	profile_failed			0	TRUE	TRUE	TRUE	nonfinite_interval	tests/testthat/test-nongaussian-structured-boundary.R
+mc-0248	mc-0248::sd:mu:relmat(0 + x | id)	gamma_relmat_mu_one_slope_fixture	2026070601	profile	0.07582362	0.2454064	0	TRUE	FALSE	TRUE		tests/testthat/test-nongaussian-structured-mu-slope.R
+mc-0494	mc-0494::sd:mu:spatial(1 | id)	student_spatial_mu_one_slope_fixture	2026070602	profile	0.07847734	0.3410286	0	TRUE	FALSE	TRUE		tests/testthat/test-nongaussian-structured-mu-slope.R
+mc-0494	mc-0494::sd:mu:spatial(0 + x | id)	student_spatial_mu_one_slope_fixture	2026070602	profile	0.1776946	0.5470922	0	TRUE	FALSE	TRUE		tests/testthat/test-nongaussian-structured-mu-slope.R

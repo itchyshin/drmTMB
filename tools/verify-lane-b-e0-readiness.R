@@ -18,7 +18,7 @@ receipts_path <- file.path(root, "docs", "dev-log", "interval-campaign-bindings"
 manifest <- phase18_interval_campaign_manifest(cells_path)
 contracts <- phase18_interval_campaign_contracts(manifest)
 bindings <- phase18_read_interval_campaign_bindings(bindings_path, contracts, allow_partial = TRUE)
-receipts <- phase18_read_interval_campaign_smoke_receipts(receipts_path, contracts)
+receipts <- phase18_read_interval_campaign_smoke_receipts(receipts_path, contracts, bindings)
 inventory <- phase18_interval_campaign_binding_inventory(contracts, bindings)
 summary <- phase18_interval_campaign_binding_recovery_summary(contracts, bindings)
 

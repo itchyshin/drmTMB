@@ -12,6 +12,7 @@ interval_campaign_test_bindings <- function(contracts) {
     true_parameter_scale = "natural_sd",
     profile_parameter = paste0("sd:mu:group:", ids),
     information_rung = "smoke",
+    binding_source = "test fixture",
     stringsAsFactors = FALSE
   )
 }
@@ -110,6 +111,14 @@ test_that("recovered binding subsets are machine-readable but cannot schedule", 
     c("mc-0005", "mc-0007", "mc-0012", "mc-0059", "mc-0083", "mc-0084", "mc-0107", "mc-0108", "mc-0129", "mc-0130", "mc-0151", "mc-0152", "mc-0184", "mc-0185", "mc-0199", "mc-0201", "mc-0208", "mc-0209", "mc-0212", "mc-0213", "mc-0225", "mc-0248", "mc-0251", "mc-0260m", "mc-0265", "mc-0267", "mc-0270", "mc-0271", "mc-0380", "mc-0386", "mc-0388", "mc-0401", "mc-0402", "mc-0403", "mc-0405", "mc-0406", "mc-0407", "mc-0408", "mc-0410", "mc-0411", "mc-0412", "mc-0413", "mc-0423", "mc-0429", "mc-0431", "mc-0434", "mc-0435", "mc-0438", "mc-0440", "mc-0441", "mc-0447", "mc-0448", "mc-0451", "mc-0452", "mc-0463", "mc-0494", "mc-0511", "mc-0538", "mc-0567", "mc-0672", "mc-0674")
   )
   expect_equal(sum(recovered$cell_id == "mc-0260m"), 2L)
+  missing_source <- recovered
+  missing_source$binding_source[[1L]] <- ""
+  missing_source_path <- tempfile(fileext = ".tsv")
+  utils::write.table(missing_source, missing_source_path, sep = "\t", row.names = FALSE, quote = FALSE)
+  expect_error(
+    env$phase18_read_interval_campaign_bindings(missing_source_path, contracts, allow_partial = TRUE),
+    "binding_source"
+  )
   expect_error(
     env$phase18_read_interval_campaign_bindings(subset_path, contracts),
     "covering every Lane-B cell"
@@ -127,9 +136,16 @@ test_that("local-smoke receipts preserve failures alongside finite profiles", {
   manifest <- env$phase18_interval_campaign_manifest(
     file.path(root, "docs", "dev-log", "dashboard", "capability-ledger", "cells.tsv")
   )
+  contracts <- env$phase18_interval_campaign_contracts(manifest)
+  bindings <- env$phase18_read_interval_campaign_bindings(
+    file.path(root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-recovered-subset.tsv"),
+    contracts,
+    allow_partial = TRUE
+  )
   receipts <- env$phase18_read_interval_campaign_smoke_receipts(
     file.path(root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-local-smoke-receipts.tsv"),
-    env$phase18_interval_campaign_contracts(manifest)
+    contracts,
+    bindings
   )
   expect_equal(nrow(receipts), 6L)
   expect_equal(sum(receipts$conf_status == "profile"), 4L)
@@ -141,9 +157,16 @@ test_that("local-smoke receipts preserve failures alongside finite profiles", {
   expect_error(
     env$phase18_validate_interval_campaign_smoke_receipts(
       malformed,
-      env$phase18_interval_campaign_contracts(manifest)
+      contracts,
+      bindings
     ),
     "Finite non-boundary"
+  )
+  invented <- receipts[receipts$conf_status == "profile", , drop = FALSE]
+  invented$target_id[[1L]] <- paste0(invented$cell_id[[1L]], "::invented_target")
+  expect_error(
+    env$phase18_validate_interval_campaign_smoke_receipts(invented, contracts, bindings),
+    "exact cell/target/DGP binding"
   )
 })
 
@@ -202,7 +225,9 @@ test_that("all-attempt reducer retains unavailable and not-run attempts", {
     manifest_md5 = rep("manifest-md5", 2),
     contract_md5 = rep("contract-md5", 2),
     profile_status = c("profile", "clamp_limited"),
-    covered = c(TRUE, FALSE)
+    covered = c(TRUE, FALSE),
+    failure_reason = c(NA_character_, "clamp_contact"),
+    trace_complete = c(TRUE, TRUE)
   )
   out <- env$phase18_reduce_interval_campaign_attempts(schedule, attempts)
 
@@ -212,6 +237,13 @@ test_that("all-attempt reducer retains unavailable and not-run attempts", {
   expect_equal(out$covered_attempts, 1L)
   expect_equal(out$noncovering_attempts, 2L)
   expect_equal(out$coverage_all_attempts, 1 / 3)
+  expect_match(out$profile_status_counts, "clamp_limited=1")
+  expect_equal(out$failure_reasons, "clamp_contact")
+  attempts$profile_status[[2L]] <- "invented_status"
+  expect_error(
+    env$phase18_reduce_interval_campaign_attempts(schedule, attempts),
+    "declared profile status"
+  )
 })
 
 test_that("seed schedules are deterministic and cover every frozen candidate", {
@@ -292,7 +324,9 @@ test_that("a finite K=12 profile is a fail-closed reducer error", {
     manifest_md5 = "manifest-md5",
     contract_md5 = "contract-md5",
     profile_status = "profile",
-    covered = TRUE
+    covered = TRUE,
+    failure_reason = NA_character_,
+    trace_complete = TRUE
   )
   expect_error(
     env$phase18_reduce_interval_campaign_attempts(schedule, attempts),
@@ -316,7 +350,8 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   )
   smoke_receipts <- env$phase18_read_interval_campaign_smoke_receipts(
     file.path(repo_root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-local-smoke-receipts.tsv"),
-    contracts
+    contracts,
+    partial
   )
   packet <- env$phase18_write_interval_campaign_readiness_packet(
     contracts,
