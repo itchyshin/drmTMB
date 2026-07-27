@@ -283,6 +283,16 @@ truth of 0.50. Its direct `sd:mu:(1 | id)` profile returned
 `[0.4887596, 0.8098379]`, `conf.status = "profile"`, convergence 0, and
 `pdHess = TRUE`. This is an exact routing binding only, not coverage evidence.
 
+### Recovered NB2 ordinary mu and sigma intercepts
+
+The exact NB2 fixtures give direct profiles for `mc-0401` and `mc-0403`.
+The 44-group × 10, seed-`20260628` mu intercept-and-slope DGP has mu intercept
+SD truth 0.45; `sd:mu:(1 | id)` returned `[0.3494237, 0.6718856]`. The 42 × 20,
+seed-`20260642` sigma-intercept DGP has log-sigma SD truth 0.42;
+`sd:sigma:(1 | id)` returned `[0.3086365, 0.6247901]`. Both were direct,
+profile-ready and returned `conf.status = "profile"` with convergence 0 and
+`pdHess = TRUE`. They are routing bindings only, not coverage evidence.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
