@@ -434,6 +434,16 @@ the profile ended `conf.status = "profile_failed"` with
 unbound and unavailable in any future all-attempt denominator; it is not
 dropped, reclassified as a finite profile, or rescued by a Wald interval.
 
+### Beta animal q1 mu slope: retained local negative evidence
+
+The independent one-slope `mc-0013` fixture has eight pedigree levels × 20
+observations, seed `2026070603`, with separate true intercept and slope SDs
+0.30 and 0.20. Its slope target `sd:mu:animal(0 + x | id)` was
+direct/profile-ready and the fit converged, but the direct profile returned
+`profile_failed / nonfinite_interval` with a boundary flag. The failed slope
+profile stays unavailable and non-covering; it does not inherit the successful
+intercept's route binding.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
