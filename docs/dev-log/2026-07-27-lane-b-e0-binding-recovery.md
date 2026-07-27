@@ -144,6 +144,15 @@ are marginalised and `profile_targets()` reports `missing_tmb_parameter`.
 The partial table now has ten rows; these are still routing smokes, not
 coverage evidence or a schedule.
 
+### Recovered matched-q2 phylogenetic REML subset
+
+The matched q2 phylogenetic REML fixture supplies direct structured targets for
+`mc-0208` / `sd:mu:mu1:phylo(1 | p | sp)` (truth 1.00) and `mc-0209` /
+`sd:mu:mu2:phylo(1 | p | sp)` (truth 0.80), at `n_tip = 150`, seed 4. Local
+profiles returned `[0.7815568, 1.6685350]` and `[0.4983490, 1.2947650]`, both
+with `conf.status = "profile"`. They add two direct target rows to the partial
+table (12 total); again this is technical routing evidence, not coverage.
+
 ### Gaussian recovery boundary
 
 Outside `mc-0270` and the documented meta-V negative control, no Gaussian
