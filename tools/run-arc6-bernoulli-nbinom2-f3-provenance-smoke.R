@@ -52,7 +52,7 @@ f3r_sha256_command <- function(sys_which = Sys.which) {
   if (nzchar(sys_which("sha256sum")[[1L]])) return("sha256sum")
   f3r_abort("F3R requires shasum -a 256 or sha256sum before fitting.")
 }
-f3r_preflight <- function(expected_sha, out_dir, root = getwd(), runner = system2, sys_which = Sys.which, helper_env = asNamespace("drmTMB")) {
+f3r_preflight <- function(expected_sha, out_dir, root = getwd(), runner = system2, sys_which = Sys.which) {
   if (!file.exists(file.path(root, "DESCRIPTION")) || !dir.exists(file.path(root, "R"))) f3r_abort("F3R must run from the drmTMB package root.")
   f3r_check_out_dir(out_dir, root, expected_sha)
   if (file.exists(out_dir)) f3r_abort("Refusing to clobber a nonempty or existing --out-dir.")
@@ -61,9 +61,6 @@ f3r_preflight <- function(expected_sha, out_dir, root = getwd(), runner = system
   if (!identical(sha, expected_sha)) f3r_abort("Current HEAD does not equal --expected-sha.")
   blobs <- vapply(names(f3r_blobs), function(path) f3r_command("git", c("rev-parse", paste0("HEAD:", path)), runner), character(1L))
   if (!identical(unname(blobs), unname(f3r_blobs))) f3r_abort("F1M critical source blob mismatch.")
-  required <- c("drm_pair_nbinom2_quantile_from_normal", "drm_pair_general_eta_sandwich")
-  missing <- required[!vapply(required, exists, logical(1L), envir = helper_env, inherits = FALSE)]
-  if (length(missing)) f3r_abort(paste("Required private helper(s) unavailable:", paste(missing, collapse = ", ")))
   list(source_sha = sha, source_blobs = blobs, sha256_command = f3r_sha256_command(sys_which), root = normalizePath(root))
 }
 f3r_status <- function(source_sha, terminal_stage = "dgp_harness", terminal_status = "dgp_harness_failure", dataset_sha256 = NA_character_, bernoulli_margin_id = NA_character_, nb2_mean_margin_id = NA_character_, nb2_dispersion_margin_id = NA_character_, association_id = NA_character_, private_result_available = FALSE, alpha_godambe_available = FALSE, eta_delta_available = FALSE) {
@@ -105,6 +102,12 @@ f3r_load_local_namespace <- function(root, loader = pkgload::load_all, namespace
   path <- tryCatch(getNamespaceInfo(ns, "path"), error = function(...) "")
   if (!nzchar(path) || !identical(normalizePath(path), normalizePath(root))) f3r_abort("Loaded drmTMB namespace is not the preflighted local package source.")
   list(namespace = ns, path = path)
+}
+f3r_required_private_helpers <- c("drm_pair_nbinom2_quantile_from_normal", "drm_pair_general_eta_sandwich")
+f3r_require_private_helpers <- function(namespace) {
+  missing <- f3r_required_private_helpers[!vapply(f3r_required_private_helpers, exists, logical(1L), envir = namespace, inherits = FALSE)]
+  if (length(missing)) f3r_abort(paste("Required private helper(s) unavailable from the loaded local namespace:", paste(missing, collapse = ", ")))
+  invisible(namespace)
 }
 f3r_layout <- function(out_dir) { dirs <- file.path(out_dir, c("input", "fit", "private", "metadata", "logs")); dir.create(out_dir); vapply(dirs, dir.create, logical(1L)); invisible(dirs) }
 f3r_hash_file <- function(path, command, runner = system2) { out <- f3r_command(command[[1L]], c(command[-1L], path), runner); strsplit(out, "[[:space:]]+")[[1L]][1L] }
@@ -175,7 +178,10 @@ f3r_finalize_receipt <- function(result, active_stage, active_status, gate, opts
   f3r_abort(paste("F3R receipt finalization failed:", conditionMessage(write_error)))
 }
 f3r_main <- function(args = commandArgs(trailingOnly = TRUE)) {
-  opts <- f3r_parse_args(args); gate <- f3r_preflight(opts$expected_sha, opts$out_dir); f3r_layout(opts$out_dir)
+  opts <- f3r_parse_args(args); gate <- f3r_preflight(opts$expected_sha, opts$out_dir)
+  local_package <- f3r_load_local_namespace(gate$root); ns <- local_package$namespace
+  f3r_require_private_helpers(ns)
+  f3r_layout(opts$out_dir)
   stdout_connection <- file(file.path(opts$out_dir, "logs", "stdout.txt"), open = "wt")
   stderr_connection <- file(file.path(opts$out_dir, "logs", "stderr.txt"), open = "wt")
   old_warn <- getOption("warn")
@@ -187,8 +193,7 @@ f3r_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   active_status <- "dgp_harness_failure"
   namespace_path <- NA_character_
   on.exit(f3r_finalize_receipt(result, active_stage, active_status, gate, opts, namespace_path), add = TRUE)
-  local_package <- f3r_load_local_namespace(gate$root); namespace_path <- local_package$path
-  ns <- local_package$namespace
+  namespace_path <- local_package$path
   drm_fit <- get("drmTMB", envir = ns); bf <- get("bf", envir = ns)
   nb2 <- get("nbinom2", envir = ns); associate <- get("associate_pairs", envir = ns)
   latent <- get("latent_normal", envir = ns); nb2_quantile <- get("drm_pair_nbinom2_quantile_from_normal", envir = ns)

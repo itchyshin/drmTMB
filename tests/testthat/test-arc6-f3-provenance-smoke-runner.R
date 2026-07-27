@@ -40,9 +40,9 @@ test_that("F3R records the serialized dataset hash, not the inspection CSV hash"
 
 test_that("F3R preflight stops for an existing directory and SHA mismatch", {
   root <- tempfile("f3r-root-"); dir.create(root); dir.create(file.path(root, "R")); file.create(file.path(root, "DESCRIPTION"))
-  sha <- paste(rep("a", 40), collapse = ""); out <- f3r_expected_out_dir(root, sha); dir.create(out, recursive = TRUE); helper <- new.env(parent = emptyenv()); assign("drm_pair_nbinom2_quantile_from_normal", TRUE, helper); assign("drm_pair_general_eta_sandwich", TRUE, helper)
+  sha <- paste(rep("a", 40), collapse = ""); out <- f3r_expected_out_dir(root, sha); dir.create(out, recursive = TRUE)
   ok_runner <- function(command, args, stdout, stderr) if (identical(args, c("status", "--porcelain"))) character() else paste(rep("a", 40), collapse = "")
-  expect_error(f3r_preflight(sha, out, root, ok_runner, function(x) c(shasum = "/x", sha256sum = ""), helper), "clobber")
+  expect_error(f3r_preflight(sha, out, root, ok_runner, function(x) c(shasum = "/x", sha256sum = "")), "clobber")
 })
 
 test_that("F3R rejects an output directory other than the frozen SHA-specific attempt", {
@@ -123,6 +123,19 @@ test_that("F3R selects a loaded local namespace without a fit", {
     namespace_getter = function(...) ns
   ), "not the preflighted")
   expect_identical(called, root)
+})
+
+test_that("F3R validates private helpers from the loaded local namespace before layout", {
+  local_namespace <- new.env(parent = emptyenv())
+  for (helper in f3r_required_private_helpers) assign(helper, TRUE, local_namespace)
+  expect_silent(f3r_require_private_helpers(local_namespace))
+  expect_error(f3r_require_private_helpers(new.env(parent = emptyenv())), "loaded local namespace")
+  source_text <- readLines(runner_path)
+  load_line <- grep("local_package <- f3r_load_local_namespace", source_text, fixed = TRUE)[[1L]]
+  helper_line <- grep("f3r_require_private_helpers(ns)", source_text, fixed = TRUE)[[1L]]
+  layout_line <- grep("f3r_layout(opts$out_dir)", source_text, fixed = TRUE)[[1L]]
+  expect_lt(load_line, helper_line)
+  expect_lt(helper_line, layout_line)
 })
 
 test_that("F3R restores RNG state without generating data or fitting", {

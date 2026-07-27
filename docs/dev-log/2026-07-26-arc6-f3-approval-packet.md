@@ -40,6 +40,9 @@ No other argument, environment override, wrapper, seed override, start value,
 or output directory is permitted. The runner must reject a nonempty output
 directory. A relative `--out-dir` is interpreted from the drmTMB package root
 before it is compared to the frozen SHA-specific `attempt-001` path. It must
+load the preflighted local package source and validate both required private
+helpers from that namespace before creating the output layout; an installed
+`drmTMB` namespace is never an acceptable helper substitute. It must
 set `RNGkind("Mersenne-Twister", "Inversion", "Rejection")`
 before `set.seed(2026072603L)` and record both the resulting `RNGkind()` and
 the generated `.Random.seed`; its frozen DGP is therefore not configurable.
