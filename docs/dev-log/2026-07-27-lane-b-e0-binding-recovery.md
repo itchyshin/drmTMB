@@ -74,3 +74,34 @@ attempts: a finite `conf.status = "profile"` is an error, while
 `nonfinite_interval`, `clamp_limited`, or `trace_incomplete` stays unavailable
 and non-covering. This is a binding specification only; it does not authorize
 or launch a pregrid.
+
+### Recovered B1 ordinary-RE binding subset
+
+Six of the 27 ordinary-RE candidates have an existing **B1 cell × target**
+source contract in `tools/b1-breadth-contract.R:10-57`. They are legitimate
+canonical-binding inputs, but only for route/DGP/target/rung definition: the
+B1 worker checks `profile_targets()` readiness and does not provide profile
+interval or coverage evidence.
+
+| Cell | DGP ID | Exact profile target | Truth/reporting scale | Rungs |
+| --- | --- | --- | --- | --- |
+| `mc-0005` | `b1_beta_mu_intercept` | `sd:mu:(1 | id)` | 0.55, beta latent/link-scale mu SD | 24/48/96 groups; 10/group |
+| `mc-0031` | `b1_beta_binomial_mu_slope` | `sd:mu:(0 + x | id)` | 0.48, beta-binomial latent/link-scale mu slope SD | 24/48/96; 8/group |
+| `mc-0059` | `b1_binomial_mu_intercept` | `sd:mu:(1 | id)` | 0.80, binomial logit-scale mu SD | 24/48/96; 12/group |
+| `mc-0074` | `b1_biv_gaussian_sigma1_slope` | `sd:sigma:sigma1:(0 + x | p | id)` | 0.26, log-sigma1 slope SD | 36/72/108; 10/group |
+| `mc-0270` | `b1_gaussian_sigma_slope` | `sd:sigma:(0 + w | id)` | 0.35, log-sigma slope SD | 24/48/96; 12/group |
+| `mc-0511` | `b1_truncated_nbinom2_mu_slope` | `sd:mu:(0 + x | id)` | 0.48, log-mu latent slope SD | 24/48/96; 8/group |
+
+These are not a permission to schedule a six-cell pregrid: the full E0 cohort
+still requires exact binding coverage, and each B1 target needs the planned
+local profile smoke before it can participate in the no-compute packet.
+
+### Gaussian recovery boundary
+
+Outside `mc-0270` and the documented meta-V negative control, no Gaussian
+model-surface row currently has a complete recoverable contract. The q3 ML
+Gaussian mu-slope DGP is a near miss for the REML `mc-0269` route, and the
+remaining ordinary fixtures establish admission or point estimates but lack a
+reusable exact-DGP/profile-rung source. All 31 Gaussian structured rows remain
+unbound: their legacy q-series labels do not identify an exact historical
+component or target. They must not be filled by heuristic provider/q matching.
