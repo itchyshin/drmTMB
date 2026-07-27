@@ -281,12 +281,19 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   )
   repo_root <- testthat::test_path("..", "..")
   source_sha <- trimws(system2("git", c("-C", repo_root, "rev-parse", "HEAD"), stdout = TRUE))
+  contracts <- env$phase18_interval_campaign_contracts(manifest)
+  partial <- env$phase18_read_interval_campaign_bindings(
+    file.path(repo_root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-27-b1-recovered-subset.tsv"),
+    contracts,
+    allow_partial = TRUE
+  )
   packet <- env$phase18_write_interval_campaign_readiness_packet(
-    env$phase18_interval_campaign_contracts(manifest),
+    contracts,
     evidence_path = file.path(repo_root, "docs", "dev-log", "dashboard", "capability-ledger", "evidence.tsv"),
     output_dir = tempfile("lane-b-readiness-"),
     source_sha = source_sha,
-    source_root = repo_root
+    source_root = repo_root,
+    partial_bindings = partial
   )
 
   expect_true(file.exists(packet$manifest))
@@ -295,7 +302,11 @@ test_that("readiness packets preserve the manifest and cannot authorize compute"
   expect_true(file.exists(packet$binding_inventory))
   expect_true(file.exists(packet$runtime_receipt))
   expect_equal(nrow(utils::read.delim(packet$manifest)), 159L)
-  expect_equal(nrow(utils::read.delim(packet$binding_inventory)), 158L)
+  inventory <- utils::read.delim(packet$binding_inventory, check.names = FALSE)
+  expect_equal(nrow(inventory), 159L)
+  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_profile_smoke_recovered"), 44L)
+  expect_equal(sum(inventory$binding_blocker == "negative_control_retained_fail_closed"), 2L)
+  expect_equal(sum(inventory$binding_blocker == "exact_dgp_and_direct_target_not_recovered"), 113L)
   expect_identical(readRDS(packet$runtime_receipt)$source_sha, source_sha)
   expect_false(packet$pregrid_authorized)
 })
