@@ -423,6 +423,17 @@ convergence zero and non-boundary `conf.status = "profile"`. It is retained as
 a single local routing binding, not coverage evidence and not a broader beta
 animal claim.
 
+### Beta animal q1 sigma intercept: retained local negative evidence
+
+The distinct scale-side cell `mc-0015` was exercised on its archived fixture:
+eight pedigree levels × 16 observations, seed `2026070404`, true log-sigma
+animal SD 0.18, and `sigma ~ animal(1 | id, pedigree = ped)`. The target
+`sd:sigma:animal(1 | id)` was direct/profile-ready and the fit converged, but
+the profile ended `conf.status = "profile_failed"` with
+`profile.message = "nonfinite_interval"` and a boundary flag. It remains
+unbound and unavailable in any future all-attempt denominator; it is not
+dropped, reclassified as a finite profile, or rescued by a Wald interval.
+
 ### Recovered Poisson phylogenetic q1 intercept
 
 The exact `mc-0434` fixture supplies a balanced 16-tip phylogeny, 18
