@@ -4,8 +4,16 @@
 
 **PLATFORM: Codex | LANE: B — `sd()` scale and intervals.** The working tree
 contains documentation-only E3 artifacts on
-`codex/lane-b-e1-exact-binding-recovery`, based on `d4a01a519` before these
-writes. Lane preflight found no recent Claude lane, which is weak evidence only.
+`codex/lane-b-e1-exact-binding-recovery` at pushed commit `fbe4bac3f`.
+Lane preflight found no recent Claude lane, which is weak evidence only.
+
+The landing gate still reports unpushed work on declared foreign branches:
+`claude/arc-a-external-comparator-evidence`,
+`codex/arc-d-design1-overflow-guard`,
+`codex/arc6-6-bernoulli-nb2-plan`,
+`codex/sd-bootstrap-r999-diagnosis`, and
+`codex/staged-eta-godambe-se`. They are not E3 work and must not be repaired,
+merged, or rebased from this lane.
 
 ## Result
 
