@@ -12,18 +12,19 @@ regression using Template Model Builder.
 > | Lane | Subject | Current handover |
 > | --- | --- | --- |
 > | **A — ASSOCIATION** | bivariate `y1`/`y2` dependence, Arc 6, staged-eta, the private sandwich engine (#846, #844) | [`2026-07-25-codex-general-association-sandwich-handover.md`](docs/dev-log/handover/2026-07-25-codex-general-association-sandwich-handover.md) |
-> | **B — `sd()` SCALE & INTERVALS** | `sd(group) ~ x`, scale clamps, profile endpoints, RE coverage, and E1 exact-binding planning | [`2026-07-27-codex-lane-b-e1-handover.md`](docs/dev-log/handover/2026-07-27-codex-lane-b-e1-handover.md) |
+> | **B — `sd()` SCALE & INTERVALS** | `sd(group) ~ x`, scale clamps, profile endpoints, RE coverage, and exact-binding source recovery | [`2026-07-28-codex-lane-b-e4-handover.md`](docs/dev-log/handover/2026-07-28-codex-lane-b-e4-handover.md) |
 >
 > **Do not merge the lanes.** Association must not touch `sd()` clamps or Arc D; this lane
 > must not expose #846's engine through `vcov()`/`confint()`/profiles/docs.
 >
-> **Lane B snapshot (2026-07-27):** Arc D Design 1 (#856) and trace-first Design 2
-> (#857) are merged with green Ubuntu checks. E0 no-compute readiness is pushed on
-> `codex/lane-b-e0-readiness` at `f718b8d74`: 62 exact target bindings, two retained
-> K=12 negative targets, 97 unresolved cells, and `pregrid_authorized = FALSE`.
-> **START HERE:** [`2026-07-27-codex-lane-b-e1-handover.md`](docs/dev-log/handover/2026-07-27-codex-lane-b-e1-handover.md).
-> E1 starts with `arc-creation` then `ultra-plan`; do not run DRAC/Totoro or make
-> any public/capability claim without a later explicit approval.
+> **Lane B snapshot (2026-07-28):** E3/E4 source recovery is documentation-only and
+> pushed on `codex/lane-b-e1-exact-binding-recovery`: 76 structured E2 source receipts
+> remain non-bindings; E1's eight count-q1 cards remain pending review. E0 stays
+> **158 / 62 / 2 / 97** with `pregrid_authorized = FALSE`. **START HERE:**
+> [`2026-07-28-codex-lane-b-e4-handover.md`](docs/dev-log/handover/2026-07-28-codex-lane-b-e4-handover.md).
+> Do not run DRAC/Totoro, profiles/smokes, canonical binding edits, or make a public/capability
+> claim without a later explicit approval. The 364-cell interval-feasibility programme is a
+> future multi-lane roadmap, not authority for this Lane-B execution.
 >
 > **▶ Prior (2026-07-25, ARC B MERGED; ARC A1 VERIFIED — MARGINAL SIMULATION; ARC C NOW DONE).**
 > **Arc B — the C++/numerical audit — is MERGED** (PR #842, `main` `12d971f1`): five standing
