@@ -93,7 +93,7 @@ abline(stats::lm(log(body_mass_g) ~ log(flipper_length_mm), data = penguins),
 )
 ```
 
-```{r penguin-direct-lognormal, eval = has_penguins}
+```{r penguin-direct-lognormal, eval = has_penguins, warning = FALSE, message = FALSE}
 fit_log <- drmTMB::drmTMB(
   drmTMB::bf(mu1 = flipper_length_mm ~ species + sex + year_c,
              mu2 = body_mass_g ~ species + sex + year_c,
@@ -135,19 +135,52 @@ intervals <- rbind(
     )
   )
 )
-intervals
+bootstrap_total <- ci_bootstrap$bootstrap.n + ci_bootstrap$bootstrap.failed
+cat(sprintf(
+  "Bootstrap diagnostic: %d/%d full refits retained. Failed refits remain a diagnostic, not hidden precision.\n",
+  ci_bootstrap$bootstrap.n, bootstrap_total
+))
 ```
 
-```{r penguin-intervals, eval = has_penguins, fig.width = 6, fig.height = 3.5, fig.cap = "Intervals and the fitted direct log-residual association in the penguin model. The plot shows calculation output, not a generic calibration guarantee. The bootstrap label gives retained refits; a low retained fraction is a diagnostic rather than hidden precision."}
+```{r penguin-intervals, eval = has_penguins, echo = FALSE, fig.width = 7, fig.height = 3.8, fig.cap = "Reported 95% confidence intervals for the fitted direct log-residual association in the penguin model. Each eye spans the reported interval and is centred on its estimate; the taper is a visual interval cue, not a likelihood, sampling density, or posterior distribution. The retained bootstrap count is a diagnostic, not hidden precision.", fig.alt = "Three 95 percent confidence intervals for the direct log-residual correlation rho12. Wald, profile, and bootstrap estimates are all about 0.35. The bootstrap interval is annotated with its retained full-refit count."}
 at <- rev(seq_len(nrow(intervals)))
+old_par <- par(no.readonly = TRUE)
+par(mar = c(4.2, 7.4, 0.8, 2.6))
+x_limits <- range(c(0, intervals$lower, intervals$upper)) + c(-0.08, 0.18)
 plot(
-  intervals$lower, at, xlim = c(-1, 1), ylim = c(0.5, 3.5), yaxt = "n",
-  pch = 16, xlab = expression(rho[12]), ylab = "", col = "#14344a"
+  NA, xlim = x_limits, ylim = c(0.5, 3.5), yaxt = "n", bty = "n",
+  xlab = expression(rho[12]), ylab = ""
 )
-segments(intervals$lower, at, intervals$upper, at, lwd = 3, col = "#087f8c")
-points(intervals$estimate, at, pch = 16, col = "#14344a")
-axis(2, at = at, labels = intervals$label, las = 1)
-abline(v = 0, lty = 2, col = "grey50")
+abline(v = 0, lty = 2, lwd = 1, col = "grey65")
+
+draw_interval_eye <- function(lower, estimate, upper, y) {
+  x <- seq(lower, upper, length.out = 101)
+  left_width <- max(estimate - lower, .Machine$double.eps)
+  right_width <- max(upper - estimate, .Machine$double.eps)
+  taper <- ifelse(
+    x <= estimate,
+    (x - lower) / left_width,
+    (upper - x) / right_width
+  )
+  half_height <- 0.18 * sqrt(pmax(taper, 0))
+  polygon(
+    c(x, rev(x)), c(y + half_height, rev(y - half_height)),
+    col = grDevices::adjustcolor("#087f8c", alpha.f = 0.28), border = NA
+  )
+  segments(lower, y, upper, y, lwd = 1.3, col = "#087f8c")
+  points(estimate, y, pch = 16, cex = 1.05, col = "#14344a")
+}
+
+for (i in seq_len(nrow(intervals))) {
+  draw_interval_eye(intervals$lower[i], intervals$estimate[i], intervals$upper[i], at[i])
+}
+axis(2, at = at, labels = c("Wald", "Profile", "Bootstrap"), las = 1, tick = FALSE)
+text(
+  intervals$upper[3] + 0.025, at[3],
+  labels = sprintf("%d/%d retained", ci_bootstrap$bootstrap.n, bootstrap_total),
+  adj = c(0, 0.5), cex = 0.82, col = "#4b5563"
+)
+par(old_par)
 ```
 
 `fitted(fit_log)` returns arithmetic marginal means on the original response

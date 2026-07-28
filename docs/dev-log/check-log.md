@@ -2,6 +2,17 @@
 
 Record meaningful development checks here.
 
+## 2026-07-28: Bivariate non-Gaussian bootstrap-output repair
+
+- Repaired the direct-lognormal `rho12` vignette's bootstrap presentation:
+  repeated optimizer chatter is suppressed in the rendered chunk, while one
+  retained-refit diagnostic remains visible.
+- Replaced the clipped raw forest plot with a labelled confidence-eye display;
+  its caption explicitly says the taper is a visual interval cue, not a
+  likelihood, sampling density, or posterior.
+- Installed-package vignette render: PASS. The rendered HTML contained one
+  dynamic retained-refit diagnostic and no repeated optimizer warning text.
+
 ## 2026-07-24: Arc 9 legacy Julia cross-family extractor repair
 
 - `drmTMB_julia_xfam` no longer inherits extractors that read absent fields and
