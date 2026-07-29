@@ -30,6 +30,8 @@ intercept--slope correlation; fixed-effect `sigma` remained distinct.
 - The predeclared all-attempt local fixture is retained at
   `docs/dev-log/implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/`;
   it returned `PASS_POINT_RECOVERY_LOCAL` for 3/3 retained attempts.
+- A separate `K = I` joint-DGP control passed; it validates the iid limit of
+  the covariance draw without enlarging the estimator-attempt denominator.
 
 ## Reconciliation
 

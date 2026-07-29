@@ -25,6 +25,9 @@ dashboard.
 - `SOURCE-MANIFEST.sha256` independently binds the exact R, C++, focused-test,
   and runner content used for the candidate; this closes the otherwise
   insufficient base-SHA-plus-dirty provenance.
+- `iid-dgp-control.tsv` is a separate deterministic `K = I` control of the
+  same joint `Sigma` draw. It passed and is explicitly not a fourth estimator
+  attempt or part of the three-attempt recovery denominator.
 
 ## Predeclared decision rule
 

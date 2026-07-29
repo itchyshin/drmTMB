@@ -289,6 +289,8 @@ approved local three-attempt retained fixture.
 the remaining time was not used to widen scope.
 **Calibration:** 3/3 retained local attempts passed the predeclared rule; see
 `implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/`.
+The separate `K = I` joint-DGP control also passed and is outside that
+three-attempt estimator denominator.
 **Metric movement:** no capability/ledger/dashboard change. The result is a
 technical local point-recovery receipt, not a public status claim.
 **Result:** C0-04 only; the other 39 rows remain deferred. **Next arc:** a new

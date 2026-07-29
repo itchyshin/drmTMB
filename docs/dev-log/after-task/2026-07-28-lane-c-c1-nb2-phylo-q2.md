@@ -33,6 +33,7 @@ technical receipt, not a public capability promotion.
 - `docs/dev-log/implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/README.md`
 - `docs/dev-log/implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/raw-attempts.tsv`
 - `docs/dev-log/implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/summary.tsv`
+- `docs/dev-log/implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/iid-dgp-control.tsv`
 - `docs/dev-log/implementation-recovery/2026-07-28-lane-c-c1-nb2-phylo-q2-local/SOURCE-MANIFEST.sha256`
 - `docs/dev-log/plan-actual/2026-07-28-lane-c-nb2-phylo-q2.md`
 - this report
@@ -41,6 +42,7 @@ technical receipt, not a public capability promotion.
 
 - `Rscript -e 'devtools::load_all(...); testthat::test_dir(..., filter = "count-structured-mu")'` — passed after the C1 tests were added.
 - `Rscript tools/run-lane-c-c1-nb2-phylo-q2-local-recovery.R` — 3/3 retained local attempts, `PASS_POINT_RECOVERY_LOCAL`.
+- `Rscript tools/run-lane-c-c1-nb2-phylo-q2-local-recovery.R --iid-control-only` — passed deterministic `K = I` joint-DGP control; no estimator attempt was added.
 - `git diff --check` — passed.
 - `Rscript -e 'invisible(parse("tools/run-lane-c-c1-nb2-phylo-q2-local-recovery.R"))'` — passed.
 - `/Users/z3437171/shinichi-brain/tools/lane_preflight.sh .../drmTMB` — no Claude lane detected in its 12-hour window; weak evidence only.

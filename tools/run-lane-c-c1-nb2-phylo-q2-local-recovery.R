@@ -212,6 +212,36 @@ summarise_attempts <- function(attempts) {
   )
 }
 
+run_iid_dgp_control <- function(source_sha, seed = 2026072804L, n_draw = 8192L) {
+  set.seed(seed)
+  tau <- c(intercept = 0.60, slope = 0.50)
+  rho <- 0.50
+  Sigma <- diag(tau) %*% matrix(c(1, rho, rho, 1), 2L) %*% diag(tau)
+  # K = I is the iid control for the same right-hand Sigma construction used
+  # by the phylogenetic DGP above; it is not a fourth fit attempt.
+  field <- matrix(stats::rnorm(2L * n_draw), nrow = n_draw) %*% chol(Sigma)
+  empirical <- stats::cov(field)
+  tau_hat <- sqrt(diag(empirical))
+  rho_hat <- empirical[1L, 2L] / prod(tau_hat)
+  pass <- all(abs(tau_hat / tau - 1) <= 0.04) &&
+    abs(rho_hat - rho) <= 0.04
+  data.frame(
+    control_id = "lane_c_c1_nb2_phylo_q2_iid_dgp",
+    source_sha = source_sha,
+    seed = seed,
+    n_draw = n_draw,
+    K = "identity",
+    tau0_truth = tau[[1L]],
+    tau1_truth = tau[[2L]],
+    rho_truth = rho,
+    tau0_empirical = tau_hat[[1L]],
+    tau1_empirical = tau_hat[[2L]],
+    rho_empirical = rho_hat,
+    decision = if (pass) "PASS_IID_DGP_CONTROL" else "BLOCKED_IID_DGP_CONTROL",
+    stringsAsFactors = FALSE
+  )
+}
+
 script <- grep("^--file=", commandArgs(FALSE), value = TRUE)
 script <- sub("^--file=", "", script[[1L]])
 repo_root <- normalizePath(file.path(dirname(script), ".."))
@@ -227,6 +257,12 @@ dirty <- length(system2("git", c("status", "--porcelain"), stdout = TRUE)) > 0L
 source_sha <- paste0(source_head, if (dirty) "-dirty" else "")
 attempt_path <- file.path(artifact_dir, "raw-attempts.tsv")
 summary_path <- file.path(artifact_dir, "summary.tsv")
+iid_control_path <- file.path(artifact_dir, "iid-dgp-control.tsv")
+if ("--iid-control-only" %in% commandArgs(TRUE)) {
+  write_tsv(run_iid_dgp_control(source_sha), iid_control_path)
+  message("Wrote Lane C C1 iid DGP control: ", iid_control_path)
+  quit(status = 0L)
+}
 seeds <- 2026072801:2026072803
 attempts <- vector("list", length(seeds))
 for (i in seq_along(seeds)) {
