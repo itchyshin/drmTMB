@@ -600,8 +600,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,
-  multiple, or labelled count structured slopes, labelled q=2/q=4 count
-  covariance, simultaneous structured count types beyond that exact crossed
+  multiple, or labelled count structured slopes outside the exact ordinary
+  Poisson q=2 intercept--slope routes for `phylo()`, `spatial()`, `animal()`,
+  and `relmat()`, labelled q=4+ count covariance, simultaneous structured count types beyond that exact crossed
   NB2 `mu` gate, bounded, ordinal, shape,
   inflation, hurdle, and one-inflation structured effects need ordinary
   family-specific random-effect recovery and interval evidence before entering

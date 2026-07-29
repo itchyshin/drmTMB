@@ -149,9 +149,12 @@ for the row-specific tiers, floors, and caveats.
   recovery-grade, under generator-qualified evidence. Correlated or labelled
   slopes and `sigma`/`zoi`/`coi` random effects remain planned.
 - **Structured counts.** Ordinary Poisson and NB2 fit q=1 `phylo()`,
-  `spatial()`, `animal()`, and `relmat()` `mu` intercept-plus-one-slope routes;
-  the exact q=1 NB2 structured `sigma` intercept-plus-one-slope routes are
-  fitted at recovery grade, with intervals and coverage planned.
+  `spatial()`, `animal()`, and `relmat()` `mu` intercept-plus-one-slope routes.
+  Ordinary Poisson also has exact labelled q=2 intercept--slope covariance
+  routes for those four providers, at point-fit recovery only: their direct
+  targets are not profile-ready and no interval or coverage claim is made. The
+  exact q=1 NB2 structured `sigma` intercept-plus-one-slope routes are fitted
+  at recovery grade, with intervals and coverage planned.
 - **Diagnostic-only spatial gates.** Poisson slope-only `mu ~ spatial(0 + x | site, coords = coords)`,
   Poisson labelled-scalar `mu ~ spatial(1 | p | site, coords = coords)`, and
   Poisson `mu ~ spatial(1 | site, coords = coords) + (1 | id)` are single-smoke
