@@ -6376,6 +6376,8 @@ drm_build_poisson_spec <- function(
     structured_plus_ordinary_types = "spatial",
     allow_labelled_scalar_structured_mu = TRUE,
     labelled_scalar_structured_mu_types = "spatial",
+    allow_labelled_intercept_slope_structured_mu = TRUE,
+    labelled_intercept_slope_structured_mu_types = "phylo",
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
     allow_slope_only_structured_mu = TRUE,
@@ -10958,8 +10960,8 @@ phylo_mu_has_cross_dpar <- function(phylo_mu) {
   length(unique(phylo_mu_dpar_codes(phylo_mu))) > 1L
 }
 
-# Lane C C1: the only count same-dpar covariance route is one labelled
-# phylogenetic intercept--slope block in ordinary NB2 `mu`.
+# Lane C C1/C2: the only count same-dpar covariance routes are one labelled
+# phylogenetic intercept--slope block in ordinary NB2 or Poisson `mu`.
 phylo_mu_has_labelled_mu_intercept_slope_q2 <- function(phylo_mu) {
   if (!isTRUE(phylo_mu$has) || structured_mu_q(phylo_mu) != 2L) {
     return(FALSE)
@@ -17739,7 +17741,7 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     cov_tmb_data,
     list(
       has_phylo_mu_q2_covariance = as.integer(
-        identical(spec$model_type, "nbinom2") &&
+        spec$model_type %in% c("nbinom2", "poisson") &&
           phylo_mu_has_labelled_mu_intercept_slope_q2(
             spec$structured$phylo_mu
           )
@@ -19788,7 +19790,7 @@ split_tmb_sdpars <- function(par, spec) {
 }
 
 split_tmb_corpars <- function(par, spec) {
-  count_phylo_q2 <- identical(spec$model_type, "nbinom2") &&
+  count_phylo_q2 <- spec$model_type %in% c("nbinom2", "poisson") &&
     phylo_mu_has_labelled_mu_intercept_slope_q2(
       spec$structured$phylo_mu
     )
