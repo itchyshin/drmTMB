@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=0-02:00:00
-#SBATCH --output=/project/def-snakagaw/snakagaw/drmTMB-aoi2/2026-07-29-aoi2-bnb-fixed-r2/logs/%x-%A_%a.out
+#SBATCH --output=/project/def-snakagaw/snakagaw/drmTMB-aoi2/2026-07-29-aoi2-bnb-fixed-r3/logs/%x-%A_%a.out
 
 # AOI-2 point-recovery only.  This script never computes uncertainty,
 # intervals, coverage, public capability status, or AOI-3 results.
@@ -20,10 +20,10 @@ export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export TMB_NTHREADS=1
 
-# The original immutable root is retained as a failed mechanical-dispatch
-# receipt.  Recovery uses a new root so a corrected task cannot overwrite or
-# be confused with its pre-created empty result directories.
-RUN_ROOT="/project/def-snakagaw/snakagaw/drmTMB-aoi2/2026-07-29-aoi2-bnb-fixed-r2"
+# The original and r2 roots are retained as failed mechanical-dispatch
+# receipts.  Recovery uses a fresh root so a corrected task cannot overwrite
+# or be confused with incomplete staging or pre-created result directories.
+RUN_ROOT="/project/def-snakagaw/snakagaw/drmTMB-aoi2/2026-07-29-aoi2-bnb-fixed-r3"
 SOURCE="$RUN_ROOT/source"
 TASK_ID="${SLURM_ARRAY_TASK_ID:?SLURM_ARRAY_TASK_ID not set}"
 case "$RUN_ROOT" in

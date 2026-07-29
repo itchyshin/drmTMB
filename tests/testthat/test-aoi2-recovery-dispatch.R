@@ -8,8 +8,8 @@ test_that("AOI-2 Rorqual dispatch preserves immutable result paths", {
   expect_match(script, 'if \\[ -e "\\$RESULT_DIR" \\]')
   expect_false(any(grepl('mkdir -p .*"\\$RESULT_DIR"', lines)))
   expect_match(script, "--array=1-60%4")
-  expect_match(script, "aoi2-bnb-fixed-r2/logs/%x-%A_%a.out")
-  expect_match(script, 'RUN_ROOT="/project/def-snakagaw/snakagaw/drmTMB-aoi2/2026-07-29-aoi2-bnb-fixed-r2"')
+  expect_match(script, "aoi2-bnb-fixed-r3/logs/%x-%A_%a.out")
+  expect_match(script, 'RUN_ROOT="/project/def-snakagaw/snakagaw/drmTMB-aoi2/2026-07-29-aoi2-bnb-fixed-r3"')
   expect_match(script, 'export AOI2_SOURCE_SHA="\\$\\(cat "\\$SOURCE/.aoi2-source-sha"\\)"')
 })
 
