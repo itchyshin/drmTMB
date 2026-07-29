@@ -26,7 +26,11 @@ if (file.exists(out_dir)) {
 }
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-devtools::load_all(quiet = TRUE)
+if (requireNamespace("devtools", quietly = TRUE)) {
+  devtools::load_all(quiet = TRUE)
+} else {
+  library(drmTMB)
+}
 
 specifications <- list(
   additive = list(~x1 + x2, c("(Intercept)" = -0.15, x1 = 0.40, x2 = -0.25)),

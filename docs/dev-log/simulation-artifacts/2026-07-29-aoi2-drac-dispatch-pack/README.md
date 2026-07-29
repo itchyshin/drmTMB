@@ -104,6 +104,16 @@ packet.  Then, and only then:
 No GitHub Actions, Totoro substitution, public documentation update, or
 capability-ledger change is in this packet.
 
+The Rorqual submission script is
+`tools/slurm/aoi2-bernoulli-nb2-recovery-rorqual.sbatch`.  It is pinned to the
+owner-verified `def-snakagaw_cpu` account and the exact campaign run-root
+format; it refuses unsupported task IDs, absent staged source, unsafe roots,
+and pre-existing result directories.  Every task maps deterministically to one
+formula, sample size, and non-overlapping 50-replicate shard.
+The runner source-loads locally when `devtools` is available, but the array
+uses the package installed into each task's isolated library; `devtools` is not
+a cluster dependency.
+
 ## Owner authorization text
 
 > I approve the AOI-2 point-recovery DRAC campaign exactly as frozen in this
