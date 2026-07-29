@@ -91,6 +91,7 @@ RSCRIPT
 
 R CMD INSTALL --library="$RLIB" "$WORK_SOURCE" > "$METADATA_DIR/package-install.log" 2>&1
 export R_LIBS="$RLIB"
+export AOI2_SOURCE_SHA="$(cat "$SOURCE/.aoi2-source-sha")"
 set +e
 Rscript --no-init-file "$WORK_SOURCE/tools/run-aoi2-bernoulli-nb2-recovery.R" \
   --out-dir="$RESULT_DIR" --formula-id="$FORMULA_ID" --n="$N" \

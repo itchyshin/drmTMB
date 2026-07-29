@@ -49,7 +49,16 @@ estimate_columns <- paste0("estimate_", make.names(names(truth)))
 truth_columns <- paste0("truth_", make.names(names(truth)))
 eta_columns <- paste0("eta_newdata_", seq_len(5L))
 eta_truth_columns <- paste0("eta_truth_newdata_", seq_len(5L))
-source_sha <- system("git rev-parse HEAD", intern = TRUE)
+source_sha <- Sys.getenv("AOI2_SOURCE_SHA", unset = "")
+if (!nzchar(source_sha)) {
+  source_sha <- suppressWarnings(system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE))
+}
+if (length(source_sha) != 1L || !grepl("^[0-9a-f]{40}$", source_sha)) {
+  stop(
+    "AOI-2 provenance requires one 40-character source SHA via AOI2_SOURCE_SHA or a Git checkout.",
+    call. = FALSE
+  )
+}
 
 make_data <- function(seed) {
   set.seed(seed)
