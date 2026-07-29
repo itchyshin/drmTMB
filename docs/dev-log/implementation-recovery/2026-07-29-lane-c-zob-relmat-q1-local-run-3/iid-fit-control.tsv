@@ -1,0 +1,2 @@
+seed	status	tau_truth	tau_hat	convergence	pdHess	max_gradient	boundary_hit	decision
+2026073199	fit_ok	0.55	0.51544364180732	0	TRUE	0.0015537439358637	FALSE	PASS_IID_FIT_CONTROL
