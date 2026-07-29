@@ -4,7 +4,8 @@
 
 AOI-0 merged F4R PR #864 after green CI. AOI-1 is implemented on
 `codex/aoi-full-fixed`, branched from the resulting `origin/main` merge commit
-`47b9d94677993ee07036703ac049a6fa8c18a4b8`.
+`47b9d94677993ee07036703ac049a6fa8c18a4b8`. The tested AOI-1 implementation
+commit is `90c186611`.
 
 ## What is present
 
@@ -35,4 +36,5 @@ AOI-2 is a separate proposal: first write a preregistered multi-predictor
 point-recovery ladder, run only a local non-empty smoke after owner approval,
 then obtain explicit owner approval before a DRAC campaign. AOI-3 additionally
 requires a grounded methods review before the multi-parameter uncertainty
-contract and full-refit calibration are frozen.
+contract and full-refit calibration are frozen. The no-compute decision packet
+is [`2026-07-29-aoi2-aoi3-validation-protocol.md`](../2026-07-29-aoi2-aoi3-validation-protocol.md).
