@@ -40,15 +40,28 @@ rows <- lapply(files, function(path) {
   data$source_file <- normalizePath(path)
   data
 })
+bind_schema_union <- function(items) {
+  columns <- unique(unlist(lapply(items, names), use.names = FALSE))
+  do.call(rbind, lapply(items, function(item) {
+    missing <- setdiff(columns, names(item))
+    for (column in missing) item[[column]] <- NA
+    item[columns]
+  }))
+}
+all_rows <- bind_schema_union(rows)
 
 metric_rows <- list()
 cell_rows <- list()
 index <- 0L
 for (formula_id in names(specifications)) {
   for (n_value in expected_n) {
-    cell <- do.call(rbind, lapply(rows, function(x) {
-      x[x$formula_id == formula_id & x$n == n_value, , drop = FALSE]
-    }))
+    cell <- all_rows[all_rows$formula_id == formula_id & all_rows$n == n_value, , drop = FALSE]
+    if (!nrow(cell)) {
+      stop(sprintf(
+        "Campaign is incomplete: no retained attempts for formula_id=%s, n=%d.",
+        formula_id, n_value
+      ), call. = FALSE)
+    }
     keys <- paste(cell$replicate, cell$seed, sep = ":")
     expected_key_set <- identical(sort(unique(cell$replicate)), seq_len(expected_replicates))
     source_sha_count <- length(unique(cell$source_sha[nzchar(cell$source_sha)]))
