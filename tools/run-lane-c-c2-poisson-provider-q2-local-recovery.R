@@ -20,6 +20,15 @@ provider <- sub("^--provider=", "", provider_arg)
 if (!provider %in% c("spatial", "relmat", "animal")) {
   stop("Provider must be spatial, relmat, or animal.", call. = FALSE)
 }
+receipt_arg <- grep("^--receipt-tag=", commandArgs(TRUE), value = TRUE)
+if (length(receipt_arg) > 1L) {
+  stop("Supply at most one --receipt-tag= value.", call. = FALSE)
+}
+receipt_tag <- if (length(receipt_arg) == 0L) {
+  "rerun-1"
+} else {
+  sub("^--receipt-tag=", "", receipt_arg)
+}
 
 spatial_precision_from_coords <- function(coords, jitter = 1e-6) {
   distances <- as.matrix(stats::dist(as.matrix(coords[, seq_len(2L), drop = FALSE])))
@@ -28,7 +37,7 @@ spatial_precision_from_coords <- function(coords, jitter = 1e-6) {
   covariance <- exp(-distances / range)
   diag(covariance) <- diag(covariance) + jitter
   precision <- chol2inv(chol(covariance))
-  dimnames(precision) <- dimnames(coords)
+  dimnames(precision) <- list(rownames(coords), rownames(coords))
   precision
 }
 
@@ -237,7 +246,9 @@ setwd(repo_root)
 pkgload::load_all(repo_root, quiet = TRUE, export_all = FALSE)
 artifact_dir <- file.path(
   repo_root, "docs", "dev-log", "implementation-recovery",
-  paste0("2026-07-29-lane-c-c2-", provider, "-poisson-q2-local")
+  paste0(
+    "2026-07-29-lane-c-c2-", provider, "-poisson-q2-local-", receipt_tag
+  )
 )
 dir.create(artifact_dir, recursive = TRUE, showWarnings = FALSE)
 head <- trimws(system2("git", c("rev-parse", "HEAD"), stdout = TRUE))
