@@ -1,0 +1,2 @@
+status	tau_truth	tau_hat	convergence	pdHess	max_gradient	decision
+fit_ok	0.55	0.359439349015228	0	TRUE	7.04965891484832e-05	PASS_IID_FIT_CONTROL
