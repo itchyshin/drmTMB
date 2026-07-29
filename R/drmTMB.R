@@ -6869,6 +6869,8 @@ drm_build_nbinom2_spec <- function(
     has_zi = !is.null(zi_entry),
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
+    allow_labelled_intercept_slope_structured_mu = TRUE,
+    labelled_intercept_slope_structured_mu_types = "phylo",
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -8928,6 +8930,8 @@ validate_count_structured_mu_term <- function(
   structured_plus_ordinary_types = character(0),
   allow_labelled_scalar_structured_mu = FALSE,
   labelled_scalar_structured_mu_types = character(0),
+  allow_labelled_intercept_slope_structured_mu = FALSE,
+  labelled_intercept_slope_structured_mu_types = character(0),
   allow_zero_inflated_structured_mu = FALSE,
   zero_inflated_structured_mu_types = character(0),
   allow_slope_only_structured_mu = FALSE,
@@ -8964,6 +8968,12 @@ validate_count_structured_mu_term <- function(
     marker %in% labelled_scalar_structured_mu_types &&
     !isTRUE(has_zi) &&
     structured_term_is_intercept_only(term)
+  labelled_intercept_slope_structured_mu_allowed <- isTRUE(
+    allow_labelled_intercept_slope_structured_mu
+  ) &&
+    marker %in% labelled_intercept_slope_structured_mu_types &&
+    !isTRUE(has_zi) &&
+    structured_term_is_intercept_one_slope(term)
   slope_only_structured_mu_allowed <- isTRUE(
     allow_slope_only_structured_mu
   ) &&
@@ -8998,12 +9008,18 @@ validate_count_structured_mu_term <- function(
   }
   if (
     !is.null(term$covariance_label) &&
-      !isTRUE(labelled_scalar_structured_mu_allowed)
+      !isTRUE(labelled_scalar_structured_mu_allowed) &&
+      !isTRUE(labelled_intercept_slope_structured_mu_allowed)
   ) {
+    labelled_contract <- if (isTRUE(allow_labelled_intercept_slope_structured_mu)) {
+      "only the implemented labelled covariance forms"
+    } else {
+      "only unlabelled q=1 intercepts"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "{family_label} structured {.code mu} effects currently support {labelled_contract}.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
-      "i" = "Use {.code {example}}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
+      "i" = "Use {.code {example}}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned unless their exact family/provider route is implemented."
     ))
   }
   count_supported_term <- structured_term_is_intercept_only(term) ||
@@ -10942,6 +10958,25 @@ phylo_mu_has_cross_dpar <- function(phylo_mu) {
   length(unique(phylo_mu_dpar_codes(phylo_mu))) > 1L
 }
 
+# Lane C C1: the only count same-dpar covariance route is one labelled
+# phylogenetic intercept--slope block in ordinary NB2 `mu`.
+phylo_mu_has_labelled_mu_intercept_slope_q2 <- function(phylo_mu) {
+  if (!isTRUE(phylo_mu$has) || structured_mu_q(phylo_mu) != 2L) {
+    return(FALSE)
+  }
+  labels <- phylo_mu_endpoint_covariance_labels(phylo_mu)
+  coef_names <- structured_mu_endpoint_coef_names(phylo_mu)
+  endpoint_dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+  length(labels) == 2L &&
+    all(!is.na(labels) & nzchar(labels)) &&
+    identical(labels[[1L]], labels[[2L]]) &&
+    identical(phylo_mu_covariance_mode(phylo_mu), "scalar") &&
+    identical(endpoint_dpars, c("mu", "mu")) &&
+    length(coef_names) == 2L &&
+    identical(coef_names[[1L]], "(Intercept)") &&
+    nzchar(coef_names[[2L]])
+}
+
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(
@@ -11020,7 +11055,7 @@ structured_mu_endpoint_coef_names <- function(phylo_mu) {
 }
 
 phylo_mu_pair_table <- function(phylo_mu) {
-  dpars <- phylo_mu_dpars(phylo_mu)
+  dpars <- phylo_mu_endpoint_dpars(phylo_mu)
   if (length(dpars) < 2L) {
     return(data.frame(
       from_index = integer(),
@@ -17530,7 +17565,10 @@ gaussian_ls_map <- function(
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(NA)
   }
-  if (!phylo_mu_has_cross_dpar(phylo_mu)) {
+  if (
+    !phylo_mu_has_cross_dpar(phylo_mu) &&
+      !phylo_mu_has_labelled_mu_intercept_slope_q2(phylo_mu)
+  ) {
     out$eta_cor_phylo <- factor(NA)
   }
   if (re_mu$n_re == 0L) {
@@ -17700,6 +17738,12 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     drm_tmb_missing_predictor_data(spec),
     cov_tmb_data,
     list(
+      has_phylo_mu_q2_covariance = as.integer(
+        identical(spec$model_type, "nbinom2") &&
+          phylo_mu_has_labelled_mu_intercept_slope_q2(
+            spec$structured$phylo_mu
+          )
+      ),
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),
@@ -19744,11 +19788,23 @@ split_tmb_sdpars <- function(par, spec) {
 }
 
 split_tmb_corpars <- function(par, spec) {
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian")) {
+  count_phylo_q2 <- identical(spec$model_type, "nbinom2") &&
+    phylo_mu_has_labelled_mu_intercept_slope_q2(
+      spec$structured$phylo_mu
+    )
+  if (!spec$model_type %in% c("gaussian", "biv_gaussian") && !count_phylo_q2) {
     return(list())
   }
 
   out <- list()
+  if (count_phylo_q2) {
+    phylo_pairs <- phylo_mu_pair_table(spec$structured$phylo_mu)
+    cor_key <- structured_mu_correlation_key(spec$structured$phylo_mu)
+    rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
+    names(rho_phylo) <- phylo_pairs$parameter
+    out[[cor_key]] <- rho_phylo
+    return(out)
+  }
   if (spec$random$mu$n_cors > 0L) {
     if (has_modelled_mu_correlation(spec)) {
       # Report one correlation per group level, not a scalar mean. Averaging

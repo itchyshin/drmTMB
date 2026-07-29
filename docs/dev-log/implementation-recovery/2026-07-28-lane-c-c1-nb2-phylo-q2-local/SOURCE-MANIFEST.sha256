@@ -1,0 +1,4 @@
+3c84e1560c5ae17a8725eb843417ec306756a5fb61fda5adccea2e2545270bb8  R/drmTMB.R
+2deef8c2f237cbb55f7f2daf81994d875202f772026f8578c65b26ee43343a1e  src/drmTMB.cpp
+028198a19dcb942933a3529c69c0bc35951bf45bad500d795cf6b0f831387baa  tests/testthat/test-count-structured-mu.R
+9c621afcac2eec27eac36777d1b7137907cc7d49d4884b950b46b30a2bbe3abe  tools/run-lane-c-c1-nb2-phylo-q2-local-recovery.R
