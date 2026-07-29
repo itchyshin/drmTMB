@@ -21,8 +21,8 @@ returns the frozen-row latent-normal associations.}
 }
 \value{
 For a constant association, a one-row data frame with the
-latent-normal association and diagnostic status. For the beta association
-slope, a coefficient table or a frozen-row \code{eta} table according to
+latent-normal association and diagnostic status. For a beta association
+formula, a coefficient table or a frozen-row \code{eta} table according to
 \code{type}. No standard error or interval is supplied.
 }
 \description{

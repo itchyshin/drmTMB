@@ -14,8 +14,10 @@ identical complete analysis data, in the same order.}
 \code{latent_normal()}.}
 
 \item{association}{Association formula. Most Arc 6 pair classes accept only
-\code{~ 1}. The beta Bernoulli x ordinary-NB2 route also accepts \code{~ x} for one
-finite numeric fixed-effect covariate.}
+\code{~ 1}. The beta Bernoulli x ordinary-NB2 route accepts an intercept-bearing
+fixed-effect formula, including multiple predictors, factors,
+interactions, and explicit transformations. Random effects, offsets,
+missing values, aliased columns, and \code{.} expansion are not supported.}
 }
 \value{
 An object of class \code{drm_pair_association}.

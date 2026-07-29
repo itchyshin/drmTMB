@@ -60,7 +60,11 @@ test_that("Arc 6.8 matrix preserves one post-fit contract across admitted pairs"
     expect_equal(predict(fit), fitted(fit))
     expect_error(vcov(fit), "unavailable")
     expect_error(rho12(fit), "not mixed pair associations")
-    expect_error(predict(fit, newdata = data.frame(x = 0)), "frozen analysis rows")
+    if (identical(case$class, "bernoulli_nbinom2")) {
+      expect_length(predict(fit, newdata = data.frame(x = 0)), 1L)
+    } else {
+      expect_error(predict(fit, newdata = data.frame(x = 0)), "frozen analysis rows")
+    }
 
     fit$status <- "interior"
     fit$eta <- fit$eta_internal <- 0

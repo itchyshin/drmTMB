@@ -230,7 +230,11 @@ drm_pair_bernoulli_nbinom2_sandwich_provenance <- function(
       colnames(expected_design$matrix)
     ) &&
     identical(association_fit$association_design$varying, expected_design$varying) &&
-    identical(association_fit$association_design$terms, expected_design$terms)
+    identical(association_fit$association_design$terms, expected_design$terms) &&
+    identical(association_fit$association_design$contrasts, expected_design$contrasts) &&
+    identical(association_fit$association_design$xlevels, expected_design$xlevels) &&
+    identical(association_fit$association_design$column_names, expected_design$column_names) &&
+    identical(association_fit$association_design$fingerprint, expected_design$fingerprint)
 }
 
 # Assemble the private Godambe estimate for a two-margin staged association

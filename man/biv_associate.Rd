@@ -28,8 +28,10 @@ by either margin.}
 
 \item{association}{Association formula. Most Arc 6 pair classes accept only
 \code{~ 1}, which estimates one constant association parameter. The beta
-Bernoulli x ordinary-NB2 route also accepts \code{~ x} for one finite numeric
-covariate.}
+Bernoulli x ordinary-NB2 route accepts an intercept-bearing fixed-effect
+model-matrix formula, including multiple predictors, factors,
+interactions, and explicit transformations. It supplies point estimates
+only: standard errors and intervals remain unavailable.}
 
 \item{control_1, control_2}{Optional control lists passed to the corresponding
 marginal \code{\link[=drmTMB]{drmTMB()}} fits.}

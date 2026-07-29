@@ -16,14 +16,15 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   ordinary NB2, and ordinary NB2 × ordinary NB2, on exactly the same complete
   rows with explicitly declared `kernel = latent_normal()`. All accept
   `association = ~ 1`. The literal Bernoulli × ordinary NB2 beta route alone
-  accepts `association = ~ x` for one finite numeric column and returns
-  association-link coefficients plus fitted row-level latent-normal `eta_i`.
-  It freezes all stage-1 margin vectors (including NB2 `mu` and `sigma`) and
+  accepts an intercept-bearing fixed-effect association formula with multiple
+  predictors, factors, interactions, and explicit transformations. Its stored
+  training design supports point-only `newdata` association predictions. It
+  freezes all stage-1 margin vectors (including NB2 `mu` and `sigma`) and
   supplies point estimates only when optimisation and count-interval diagnostics
   are acceptable. It is neither `rho12` nor an observed-scale correlation.
-  Other family pairs, association covariates, random/structured effects, partial pairs, offsets, weights,
-  `mi()`, `meta_V()`, REML, new-data association prediction, standard errors,
-  intervals, profiles, coverage, capability promotion, Julia, and CRAN release
+  Other family pairs, random/structured effects, partial pairs, offsets, weights,
+  `mi()`, `meta_V()`, REML, standard errors, intervals, profiles, coverage,
+  capability promotion, Julia, and CRAN release
   use remain outside this first contract. Arc 6.5 has retained Totoro recovery
   **HOLD** evidence, documented in
   `docs/dev-log/simulation-artifacts/2026-07-24-arc6-5-bernoulli-recovery/`:
