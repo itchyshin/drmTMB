@@ -102,15 +102,18 @@ run_one <- function(replicate) {
   tryCatch({
     generated <- make_data(seed)
     fingerprint <- paste(colnames(generated$design), collapse = "|")
+    base$fingerprint <- fingerprint
+    base$stage <- "margins"
     binary_fit <- drmTMB(bf(mu = binary ~x1 + x2), binomial(), generated$data)
     count_fit <- drmTMB(bf(mu = count ~x1 + x2, sigma = ~1), nbinom2(), generated$data)
+    base$stage <- "association"
     fit <- associate_pairs(binary_fit, count_fit, kernel = latent_normal(), association = association_formula)
+    base$stage <- "prediction"
     prediction <- predict(fit, newdata = fixed_newdata, type = "link")
     estimates <- fit$association_coefficients
     if (!identical(names(estimates), names(truth)) || length(prediction) != 5L) {
       stop("association_output_error: coefficient order or prediction length changed.", call. = FALSE)
     }
-    base$fingerprint <- fingerprint
     base$stage <- "association"
     base$status <- fit$status
     base$pdHess_binary <- binary_fit$sdr$pdHess

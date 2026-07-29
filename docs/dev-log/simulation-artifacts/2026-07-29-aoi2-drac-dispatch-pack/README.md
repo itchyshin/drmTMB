@@ -76,6 +76,12 @@ The five fixed prediction rows are `(x1, x2, habitat)` equal to
 `(0.5, 0.3, forest)`, and `(1.0, 0.8, field)`.  They are identical in every
 outer replicate, so their eta diagnostics have an unambiguous known truth.
 
+The committed `tools/summarize-aoi2-bernoulli-nb2-recovery.R` analyser refuses
+missing, duplicate, or malformed cell keys, writes the retained-denominator
+receipt separately from coefficient/link diagnostics, and emits only
+`PASS_POINT_RECOVERY_ONLY` or `HOLD_NO_POINT_RECOVERY_CLAIM`.  It has no
+interval, covariance, or coverage code path.
+
 ## Required live preflight before any submission
 
 The owner must separately approve this exact campaign after reviewing this
