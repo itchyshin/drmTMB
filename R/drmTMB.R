@@ -6377,7 +6377,9 @@ drm_build_poisson_spec <- function(
     allow_labelled_scalar_structured_mu = TRUE,
     labelled_scalar_structured_mu_types = "spatial",
     allow_labelled_intercept_slope_structured_mu = TRUE,
-    labelled_intercept_slope_structured_mu_types = "phylo",
+    labelled_intercept_slope_structured_mu_types = c(
+      "phylo", "spatial", "animal", "relmat"
+    ),
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
     allow_slope_only_structured_mu = TRUE,
