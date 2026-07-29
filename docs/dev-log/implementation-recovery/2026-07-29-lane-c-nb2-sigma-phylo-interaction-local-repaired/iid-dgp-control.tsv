@@ -1,0 +1,2 @@
+control_id	source_sha	seed	n_draw	tau_truth	tau_empirical	decision
+lane_c_nb2_sigma_phylo_interaction_iid_dgp	c8622de82b85c95560604af2899ebe124f1b6b91-dirty	2026072999	8192	0.6	0.594908730896013	PASS_IID_DGP_CONTROL

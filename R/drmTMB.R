@@ -9088,7 +9088,7 @@ select_count_sigma_structured_term <- function(structured_terms, family_label) {
     cli::cli_abort(c(
       "Only one structured {.code sigma} effect type is implemented per {family_label} count model.",
       "x" = "The model contains structured effect types: {.val {active_structured}}.",
-      "i" = "Fit one of {.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured scale-dependence recovery tests exist."
+      "i" = "Fit one of {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured scale-dependence recovery tests exist."
     ))
   }
   if (length(active_structured) == 0L) {
@@ -9172,7 +9172,7 @@ validate_count_structured_sigma_term <- function(
     cli::cli_abort(c(
       "{family_label} structured {.code sigma} effects currently support only {supported_form} structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code {example}} for this count structured-scale gate; intercept-only, multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
+      "i" = "Use {.code {example}} for this count structured-scale gate; multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
     ))
   }
   invisible(NULL)

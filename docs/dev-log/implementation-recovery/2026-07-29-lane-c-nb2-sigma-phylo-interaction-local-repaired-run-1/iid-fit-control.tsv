@@ -1,0 +1,2 @@
+control_id	source_sha	runner_sha	seed	n_pair	n_each	n_obs	tau_truth	fit_status	convergence	pdHess	max_gradient	boundary_hit	tau_hat	decision
+lane_c_nb2_sigma_phylo_interaction_iid_fit	c8622de82b85c95560604af2899ebe124f1b6b91-dirty	b24a52c6c40c8a046eadffe04774817b	2026072999	64	18	1152	0.6	fit_ok	0	TRUE	0.000986687855885349	FALSE	0.518814713121314	PASS_IID_FIT_CONTROL
