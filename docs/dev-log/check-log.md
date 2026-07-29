@@ -91760,3 +91760,20 @@ Shinichi grants a separate Gate A compute approval.
   explicit compute approval, and a F4R PASS would still need separate F5
   approval. See
   `docs/dev-log/2026-07-27-arc6-f4r-high-information-design.md`.
+
+## 2026-07-29: Arc 6 F4R completion review
+
+- Read-only inspection of authorized Rorqual array `17603598` found 16 completed
+  shard receipts and 16 retained all-attempt files. The frozen 16-cell,
+  16,000-attempt high-information alpha screen passes every declared bias,
+  availability, Godambe SE/empirical-SD, and coverage gate. It is a private
+  interval-feasibility result only: F4R does not authorize public association
+  `vcov()`/`confint()`, generalize a sample-size threshold, or establish eta
+  inference.
+- No package code, API, capability ledger, user-facing docs, or pkgdown output
+  changed. See
+  `docs/dev-log/2026-07-29-arc6-f4r-completion-review.md` and
+  `docs/dev-log/after-task/2026-07-29-arc6-f4r-completion-review.md`.
+- The private F5 design now names the completed 16-cell F4R screen rather than
+  the failed 24-cell F4 campaign; it remains a design-only, separately approved
+  public-product decision.

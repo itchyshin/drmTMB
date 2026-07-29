@@ -5,8 +5,9 @@
 This is a **design-only** blueprint for a possible later F5.  It authorizes
 neither implementation nor any public inference claim.  The present
 `vcov.drm_pair_association()` and `confint.drm_pair_association()` methods must
-continue to fail closed until the frozen F4 campaign has passed and the owner
-has separately approved F5.
+continue to fail closed until the completed F4R high-information screen has
+passed and the owner has separately approved F5. The original F4 screen failed;
+F4R is the retained, prospective remediation receipt, not a revision of F4.
 
 The sole candidate domain is a fixed-effect ML, complete-pair Bernoulli x
 ordinary-NB2 association made with
@@ -55,10 +56,10 @@ being silently inherited by a broader class.
 
 ## Required F5 evidence and tests
 
-F5 begins only after the F4 completion panel independently confirms all 24
-cells meet the frozen bias, availability, SE/empirical-SD, coverage, and MCSE
-requirements, with all attempts and unavailable results retained.  The F5
-change then needs focused tests for:
+F5 begins only after the F4R completion panel independently confirms all 16
+high-information cells meet the frozen bias, availability, SE/empirical-SD,
+coverage, and MCSE requirements, with all attempts and unavailable results
+retained. The F5 change then needs focused tests for:
 
 - a named symmetric 1 x 1 alpha covariance and its numerical equality to the
   private Godambe extraction;
