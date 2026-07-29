@@ -534,6 +534,53 @@ expect_count_structured_mu_slope_fit <- function(fit, type, group) {
   expect_true(attr(checks, "ok"))
 }
 
+expect_count_labelled_q2_profile_restriction <- function(fit) {
+  target_names <- c(
+    "sd:mu:phylo(1 | p | site)",
+    "sd:mu:phylo(0 + x | p | site)",
+    "cor:phylo:cor(mu:(Intercept),mu:x | p | site)"
+  )
+  targets <- profile_targets(fit)
+  restricted <- targets[match(target_names, targets$parm), , drop = FALSE]
+  expect_false(anyNA(restricted$parm))
+  expect_equal(
+    restricted$tmb_parameter,
+    c("log_sd_phylo", "log_sd_phylo", "eta_cor_phylo")
+  )
+  expect_equal(restricted$target_type, rep("direct", length(target_names)))
+  expect_false(any(restricted$profile_ready))
+  expect_equal(
+    restricted$profile_note,
+    rep("point_fit_only_count_q2", length(target_names))
+  )
+  expect_false(any(target_names %in% profile_targets(fit, ready_only = TRUE)$parm))
+  expect_error(
+    stats::confint(fit, parm = target_names[[1L]], method = "profile"),
+    "not ready for direct profiling"
+  )
+  expect_error(
+    stats::profile(fit, parm = target_names[[1L]]),
+    "not ready for direct profiling"
+  )
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(
+    drm_profile_target_endpoint_confint = function(...) {
+      endpoint_called <<- TRUE
+      stop("endpoint profile must not start", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  endpoint <- stats::confint(
+    fit,
+    parm = target_names[[1L]],
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  expect_false(endpoint_called)
+  expect_equal(endpoint$conf.status, "profile_failed")
+  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+}
+
 expect_count_structured_mu_slope_only_fit <- function(fit, type, group) {
   label <- paste0(type, "(0 + x | ", group, ")")
   key <- paste0(type, "_mu")
@@ -748,6 +795,7 @@ test_that("Poisson phylo admits one labelled intercept-slope covariance block", 
   )
   rho_report <- fit$obj$report()$rho_phylo
   expect_true(is.finite(rho_report))
+  expect_count_labelled_q2_profile_restriction(fit)
 })
 
 test_that("Poisson phylo q2 covariance penalty matches the dense joint oracle", {
@@ -841,6 +889,7 @@ test_that("NB2 phylo admits one labelled intercept-slope covariance block", {
   )
   rho_report <- fit$obj$report()$rho_phylo
   expect_true(is.finite(rho_report))
+  expect_count_labelled_q2_profile_restriction(fit)
 })
 
 test_that("NB2 phylo q2 covariance penalty matches the dense joint oracle", {
