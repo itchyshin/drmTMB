@@ -258,18 +258,134 @@ test_that("Bernoulli x ordinary-NB2 beta likelihood matches a row-specific indep
   expect_equal(actual, oracle, tolerance = 2e-8)
 })
 
-test_that("Bernoulli x ordinary-NB2 association slopes reject broad formula grammar", {
-  dat <- data.frame(x = c(-1, 0, 1), habitat = factor(c("a", "b", "a")))
+test_that("Bernoulli x ordinary-NB2 association accepts full fixed-effect grammar", {
+  dat <- data.frame(
+    x1 = seq(-1, 1, length.out = 12L),
+    x2 = rep(c(-0.8, -0.1, 0.5), length.out = 12L),
+    habitat = factor(rep(c("a", "b"), length.out = 12L))
+  )
+  design <- drmTMB:::drm_pair_association_design(
+    ~x1 + x2 + habitat + x1:habitat + I(x2^2),
+    dat, "bernoulli_nbinom2"
+  )
+  expect_identical(nrow(design$matrix), nrow(dat))
+  expect_named(design, c(
+    "matrix", "terms", "varying", "contrasts", "xlevels",
+    "column_names", "fingerprint"
+  ))
+  expect_identical(colnames(design$matrix), design$column_names)
+  expect_true("habitat" %in% names(design$xlevels))
+
+  transformed <- drmTMB:::drm_pair_association_design(
+    ~scale(x1) + stats::poly(x2, 2), dat, "bernoulli_nbinom2"
+  )
+  replay <- drmTMB:::drm_pair_association_newdata_design(
+    list(association_design = transformed), dat[seq_len(7L), , drop = FALSE]
+  )
+  expect_identical(colnames(replay), colnames(transformed$matrix))
+  expect_equal(
+    as.vector(replay),
+    as.vector(transformed$matrix[seq_len(7L), , drop = FALSE])
+  )
+
   expect_error(
-    drmTMB:::drm_pair_association_design(~habitat, dat, "bernoulli_nbinom2"),
-    "named numeric column"
+    drmTMB:::drm_pair_association_design(~., dat, "bernoulli_nbinom2"),
+    "fixed-effect model-matrix"
   )
   expect_error(
-    drmTMB:::drm_pair_association_design(~x + I(x^2), dat, "bernoulli_nbinom2"),
-    "one numeric slope"
+    drmTMB:::drm_pair_association_design(~x1 + offset(x2), dat, "bernoulli_nbinom2"),
+    "fixed-effect model-matrix"
   )
   expect_error(
-    drmTMB:::drm_pair_association_design(~x, dat, "gaussian_bernoulli"),
+    drmTMB:::drm_pair_association_design(~x1 + (1 | habitat), dat, "bernoulli_nbinom2"),
+    "fixed-effect model-matrix"
+  )
+  expect_error(
+    drmTMB:::drm_pair_association_design(
+      ~x1 + I(2 * x1), dat, "bernoulli_nbinom2"
+    ),
+    "rank deficient"
+  )
+  dat_missing <- dat
+  dat_missing$x2[[2L]] <- NA_real_
+  expect_error(
+    drmTMB:::drm_pair_association_design(
+      ~x1 + x2, dat_missing, "bernoulli_nbinom2"
+    ),
+    "complete association model frame"
+  )
+  expect_error(
+    drmTMB:::drm_pair_association_design(~x1, dat, "gaussian_bernoulli"),
     "only for literal Bernoulli x ordinary-NB2"
+  )
+  z <- seq_len(nrow(dat))
+  expect_error(
+    drmTMB:::drm_pair_association_design(~z, dat, "bernoulli_nbinom2"),
+    "frozen analysis data"
+  )
+})
+
+test_that("Bernoulli x ordinary-NB2 association predicts full fixed-effect designs", {
+  set.seed(20260729)
+  n <- 360L
+  dat <- data.frame(
+    x1 = seq(-1.2, 1.2, length.out = n),
+    x2 = rep(c(-0.7, 0.7), length.out = n),
+    habitat = factor(rep(c("forest", "field"), each = n / 2L))
+  )
+  association_link <- -0.15 + 0.45 * dat$x1 - 0.2 * dat$x2 +
+    ifelse(dat$habitat == "field", 0.15, 0)
+  eta <- 0.999999 * tanh(association_link)
+  z_binary <- stats::rnorm(n)
+  z_count <- eta * z_binary + sqrt(1 - eta^2) * stats::rnorm(n)
+  dat$binary <- as.integer(
+    z_binary > stats::qnorm(stats::plogis(-0.2 + 0.25 * dat$x1), lower.tail = FALSE)
+  )
+  dat$count <- drmTMB:::drm_pair_nbinom2_quantile_from_normal(
+    z_count, exp(0.5 + 0.15 * dat$x2), rep(0.6, n)
+  )
+  binary_fit <- drmTMB(bf(mu = binary ~ x1 + x2), binomial(), dat)
+  count_fit <- drmTMB(bf(mu = count ~ x1 + x2, sigma = ~1), nbinom2(), dat)
+  association_fit <- associate_pairs(
+    binary_fit, count_fit, kernel = latent_normal(),
+    association = ~x1 + x2 + habitat + x1:habitat
+  )
+  expect_false(identical(association_fit$status, "boundary_unresolved"))
+  expect_equal(
+    predict(association_fit, type = "link"),
+    as.vector(association_fit$association_design$matrix %*%
+      association_fit$association_coefficients)
+  )
+  expect_equal(
+    predict(association_fit, type = "response"),
+    0.999999 * tanh(predict(association_fit, type = "link"))
+  )
+  expect_equal(predict(association_fit), fitted(association_fit))
+  expect_error(
+    predict(association_fit, type = "response", se.fit = TRUE),
+    "uncertainty is unavailable"
+  )
+
+  newdata <- data.frame(
+    x1 = c(-0.5, 0.4), x2 = c(0.7, -0.7),
+    habitat = factor(c("forest", "field"), levels = levels(dat$habitat))
+  )
+  new_design <- drmTMB:::drm_pair_association_newdata_design(
+    association_fit, newdata
+  )
+  expect_equal(
+    predict(association_fit, newdata = newdata, type = "link"),
+    as.vector(new_design %*% association_fit$association_coefficients)
+  )
+  expect_equal(
+    predict(association_fit, newdata = newdata),
+    0.999999 * tanh(as.vector(new_design %*%
+      association_fit$association_coefficients))
+  )
+  unseen <- newdata
+  unseen$habitat <- factor("wetland")
+  expect_error(
+    predict(association_fit, newdata = unseen, type = "response"),
+    "new-data association model frame"
   )
 })

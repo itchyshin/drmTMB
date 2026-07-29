@@ -66,7 +66,7 @@
       association = ~x)
     Condition
       Error in `drm_pair_association_design()`:
-      ! This Arc 6 association regression is available only for literal Bernoulli x ordinary-NB2 pairs and one numeric slope.
+      ! This Arc 6 association regression is available only for literal Bernoulli x ordinary-NB2 pairs.
       i Use `association = ~ 1` for the other reviewed pair classes.
 
 ---

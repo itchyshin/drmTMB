@@ -34,8 +34,10 @@ latent_normal <- function() {
 #' @param kernel A named association kernel. Arc 6 accepts only
 #'   `latent_normal()`.
 #' @param association Association formula. Most Arc 6 pair classes accept only
-#'   `~ 1`. The beta Bernoulli x ordinary-NB2 route also accepts `~ x` for one
-#'   finite numeric fixed-effect covariate.
+#'   `~ 1`. The beta Bernoulli x ordinary-NB2 route accepts an intercept-bearing
+#'   fixed-effect formula, including multiple predictors, factors,
+#'   interactions, and explicit transformations. Random effects, offsets,
+#'   missing values, aliased columns, and `.` expansion are not supported.
 #'
 #' @return An object of class `drm_pair_association`.
 #' @export
@@ -270,8 +272,10 @@ associate_pairs <- function(
 #' @param kernel Association kernel. Arc 6 accepts only [latent_normal()].
 #' @param association Association formula. Most Arc 6 pair classes accept only
 #'   `~ 1`, which estimates one constant association parameter. The beta
-#'   Bernoulli x ordinary-NB2 route also accepts `~ x` for one finite numeric
-#'   covariate.
+#'   Bernoulli x ordinary-NB2 route accepts an intercept-bearing fixed-effect
+#'   model-matrix formula, including multiple predictors, factors,
+#'   interactions, and explicit transformations. It supplies point estimates
+#'   only: standard errors and intervals remain unavailable.
 #' @param control_1,control_2 Optional control lists passed to the corresponding
 #'   marginal [drmTMB()] fits.
 #'
@@ -346,8 +350,8 @@ biv_associate <- function(
 #' @param ... Reserved for future extractor options.
 #'
 #' @return For a constant association, a one-row data frame with the
-#'   latent-normal association and diagnostic status. For the beta association
-#'   slope, a coefficient table or a frozen-row `eta` table according to
+#'   latent-normal association and diagnostic status. For a beta association
+#'   formula, a coefficient table or a frozen-row `eta` table according to
 #'   `type`. No standard error or interval is supplied.
 #' @export
 association <- function(object, ...) {
@@ -472,16 +476,66 @@ fitted.drm_pair_association <- function(object, ...) {
   out
 }
 
+#' Predict a frozen-margin pair association
+#'
+#' With no `newdata` or `type`, this method preserves the historical
+#' `fitted()`-style output of the two frozen margins. For the beta Bernoulli x
+#' ordinary-NB2 association route, `type = "link"` returns the association
+#' linear predictor and `type = "response"` returns its latent-normal
+#' association transform. These are point predictions only: no standard error,
+#' interval, or extrapolation diagnostic is supplied.
+#'
+#' @param object A `drm_pair_association` object.
+#' @param newdata Optional data frame for beta Bernoulli x ordinary-NB2
+#'   association prediction. Its terms, factor levels, contrasts, and columns
+#'   must match the fitted association formula.
+#' @param type Prediction scale: `"link"` for `X_A %*% alpha` or `"response"`
+#'   for `0.999999 * tanh(X_A %*% alpha)`. Omit `type` together with `newdata`
+#'   to retain the historical frozen-margin fitted output.
+#' @param ... Must be empty. Standard errors and intervals are unavailable for
+#'   frozen-margin association predictions.
+#' @return With omitted `type` and `newdata`, the frozen marginal fitted values.
+#'   Otherwise a numeric association prediction on the requested scale.
 #' @export
 #' @importFrom stats fitted
-predict.drm_pair_association <- function(object, newdata = NULL, ...) {
-  if (!is.null(newdata)) {
+predict.drm_pair_association <- function(object, newdata = NULL, type = NULL, ...) {
+  dots <- list(...)
+  if (length(dots)) {
     cli::cli_abort(c(
-      "Arc 6 association predictions are defined only for frozen analysis rows.",
-      i = "New-data association prediction needs a separate validated Arc."
+      "Prediction uncertainty is unavailable for frozen-margin association estimates.",
+      i = "Do not supply {.arg se.fit}, {.arg interval}, or other prediction options."
     ))
   }
-  fitted(object)
+  if (is.null(type) && is.null(newdata)) return(fitted(object))
+  if (is.null(type)) type <- "response"
+  type <- match.arg(type, c("link", "response"))
+  if (!identical(object$components$pair_class, "bernoulli_nbinom2")) {
+    if (!is.null(newdata)) {
+      cli::cli_abort(c(
+        "Arc 6 association predictions are defined only for frozen analysis rows.",
+        i = "New-data association prediction needs a separate validated Arc."
+      ))
+    }
+    cli::cli_abort(c(
+      "Association link/response prediction is available only for beta Bernoulli x ordinary-NB2 fits.",
+      i = "Other Arc 6 pair classes support only a constant association."
+    ))
+  }
+  if (identical(object$status, "boundary_unresolved")) {
+    cli::cli_abort("Cannot predict from a boundary-unresolved association fit.")
+  }
+  design <- if (is.null(newdata)) {
+    object$association_design$matrix
+  } else {
+    drm_pair_association_newdata_design(object, newdata)
+  }
+  coefficients <- object$association_coefficients
+  if (length(coefficients) != ncol(design)) {
+    cli::cli_abort("Association prediction design does not match the fitted coefficients.")
+  }
+  link <- as.vector(design %*% coefficients)
+  if (identical(type, "link")) return(link)
+  0.999999 * tanh(link)
 }
 
 #' @export
@@ -685,38 +739,114 @@ drm_pair_association_design <- function(association, data, pair_class) {
   if (!inherits(association, "formula")) {
     cli::cli_abort("{.arg association} must be a formula.")
   }
+  if (length(association) != 2L) {
+    cli::cli_abort("{.arg association} must be a one-sided formula.")
+  }
+  if ("." %in% all.names(association, functions = TRUE)) {
+    cli::cli_abort(c(
+      "The beta Bernoulli x ordinary-NB2 association model accepts fixed-effect model-matrix terms only.",
+      i = "Do not use {.code .}, offsets, random-effect bars, or {.code mi()} in {.arg association}."
+    ))
+  }
+  missing_variables <- setdiff(all.vars(association), names(data))
+  if (length(missing_variables)) {
+    cli::cli_abort(c(
+      "Association predictors must be columns of the frozen analysis data.",
+      i = "Missing column{?s}: {missing_variables}."
+    ))
+  }
   association_terms <- stats::terms(association)
   if (attr(association_terms, "intercept") != 1L) {
     cli::cli_abort("{.arg association} must include an intercept.")
   }
   labels <- attr(association_terms, "term.labels")
   if (!length(labels)) {
-    return(list(matrix = matrix(1, nrow(data), 1L, dimnames = list(NULL, "(Intercept)")),
-      terms = association_terms, varying = FALSE))
+    matrix <- matrix(1, nrow(data), 1L, dimnames = list(NULL, "(Intercept)"))
+    return(list(
+      matrix = matrix, terms = association_terms, varying = FALSE,
+      contrasts = NULL, xlevels = list(), column_names = colnames(matrix),
+      fingerprint = drm_pair_fingerprint(matrix)
+    ))
   }
-  if (!identical(pair_class, "bernoulli_nbinom2") || length(labels) != 1L) {
+  if (!identical(pair_class, "bernoulli_nbinom2")) {
     cli::cli_abort(c(
-      "This Arc 6 association regression is available only for literal Bernoulli x ordinary-NB2 pairs and one numeric slope.",
+      "This Arc 6 association regression is available only for literal Bernoulli x ordinary-NB2 pairs.",
       i = "Use {.code association = ~ 1} for the other reviewed pair classes."
     ))
   }
-  variables <- all.vars(association)
-  if (length(variables) != 1L || !identical(labels, variables) ||
-      !is.numeric(data[[variables]])) {
+  if (!is.null(attr(association_terms, "offset")) ||
+      any(grepl("\\|", labels)) ||
+      any(grepl("(^|[^[:alnum:]_])mi\\s*\\(", labels))) {
     cli::cli_abort(c(
-      "The beta Bernoulli x ordinary-NB2 association model accepts one named numeric column.",
-      i = "Factors, transformations, interactions, and derived terms are not supported."
+      "The beta Bernoulli x ordinary-NB2 association model accepts fixed-effect model-matrix terms only.",
+      i = "Do not use {.code .}, offsets, random-effect bars, or {.code mi()} in {.arg association}."
     ))
   }
-  matrix <- tryCatch(stats::model.matrix(association_terms, data = data),
+  model_frame <- tryCatch(
+    stats::model.frame(
+      association_terms, data = data, na.action = stats::na.fail,
+      drop.unused.levels = FALSE
+    ),
+    error = function(error) cli::cli_abort(
+      "Cannot construct the complete association model frame: {conditionMessage(error)}"
+    )
+  )
+  association_terms <- stats::terms(model_frame)
+  matrix <- tryCatch(stats::model.matrix(association_terms, data = model_frame),
     error = function(error) cli::cli_abort("Cannot construct the association design: {conditionMessage(error)}"))
-  if (ncol(matrix) != 2L || !is.numeric(matrix[, 2L]) || any(!is.finite(matrix))) {
+  if (nrow(matrix) != nrow(data) || !is.numeric(matrix) ||
+      any(!is.finite(matrix))) {
     cli::cli_abort(c(
-      "The beta Bernoulli x ordinary-NB2 association model accepts one finite numeric fixed-effect covariate.",
-      i = "Factors, interactions, missing covariates, and transformed multi-column terms are not supported."
+      "The association design must retain every paired analysis row and contain finite numeric columns.",
+      i = "Remove missing or non-finite association covariates before fitting."
     ))
   }
-  list(matrix = matrix, terms = association_terms, varying = TRUE)
+  if (qr(matrix)$rank != ncol(matrix)) {
+    cli::cli_abort(
+      "The association design is rank deficient; remove aliased association terms."
+    )
+  }
+  list(
+    matrix = matrix, terms = association_terms, varying = TRUE,
+    contrasts = attr(matrix, "contrasts"),
+    xlevels = stats::.getXlevels(association_terms, model_frame),
+    column_names = colnames(matrix), fingerprint = drm_pair_fingerprint(matrix)
+  )
+}
+
+drm_pair_association_newdata_design <- function(object, newdata) {
+  if (!is.data.frame(newdata) || !nrow(newdata)) {
+    cli::cli_abort("{.arg newdata} must be a non-empty data frame.")
+  }
+  design <- object$association_design
+  if (is.null(design$terms) || is.null(design$column_names)) {
+    cli::cli_abort("This association fit lacks the stored design needed for new-data prediction.")
+  }
+  model_frame <- tryCatch(
+    stats::model.frame(
+      design$terms, data = newdata, na.action = stats::na.fail,
+      xlev = design$xlevels, drop.unused.levels = FALSE
+    ),
+    error = function(error) cli::cli_abort(
+      "Cannot construct the new-data association model frame: {conditionMessage(error)}"
+    )
+  )
+  matrix <- tryCatch(
+    stats::model.matrix(
+      design$terms, data = model_frame, contrasts.arg = design$contrasts
+    ),
+    error = function(error) cli::cli_abort(
+      "Cannot construct the new-data association design: {conditionMessage(error)}"
+    )
+  )
+  if (!is.numeric(matrix) || any(!is.finite(matrix)) ||
+      !identical(colnames(matrix), design$column_names)) {
+    cli::cli_abort(c(
+      "The new-data association design does not match the fitted design.",
+      i = "Supply every fitted predictor with the same factor levels and model-matrix columns."
+    ))
+  }
+  matrix
 }
 
 drm_pair_validate_fit <- function(fit, name) {
