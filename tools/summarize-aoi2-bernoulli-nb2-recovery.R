@@ -30,7 +30,10 @@ if (!length(files)) stop("No AOI-2 raw-attempts.csv files found.", call. = FALSE
 
 expected_n <- c(360L, 720L, 1440L)
 expected_replicates <- 200L
-required_base <- c("formula_id", "n", "replicate", "seed", "source_sha", "status", "stage")
+required_base <- c(
+  "formula_id", "n", "replicate", "seed", "source_sha", "fingerprint",
+  "status", "stage"
+)
 rows <- lapply(files, function(path) {
   data <- utils::read.csv(path, check.names = FALSE, stringsAsFactors = FALSE)
   missing <- setdiff(required_base, names(data))
@@ -49,6 +52,15 @@ bind_schema_union <- function(items) {
   }))
 }
 all_rows <- bind_schema_union(rows)
+if (any(is.na(all_rows$formula_id) | !all_rows$formula_id %in% names(specifications))) {
+  stop("Campaign contains an unknown AOI-2 formula_id.", call. = FALSE)
+}
+if (any(is.na(all_rows$n) | !all_rows$n %in% expected_n)) {
+  stop("Campaign contains an unsupported AOI-2 sample size.", call. = FALSE)
+}
+if (any(is.na(all_rows$source_sha) | !grepl("^[0-9a-f]{40}$", all_rows$source_sha))) {
+  stop("Campaign contains an absent or malformed source SHA.", call. = FALSE)
+}
 
 metric_rows <- list()
 cell_rows <- list()
@@ -64,14 +76,19 @@ for (formula_id in names(specifications)) {
     }
     keys <- paste(cell$replicate, cell$seed, sep = ":")
     expected_key_set <- identical(sort(unique(cell$replicate)), seq_len(expected_replicates))
-    source_sha_count <- length(unique(cell$source_sha[nzchar(cell$source_sha)]))
+    source_sha_count <- length(unique(cell$source_sha))
+    expected_fingerprint <- paste(specifications[[formula_id]], collapse = "|")
+    fingerprint_count <- length(unique(cell$fingerprint[nzchar(cell$fingerprint)]))
+    fingerprint_matches <- fingerprint_count == 1L &&
+      identical(unique(cell$fingerprint[nzchar(cell$fingerprint)]), expected_fingerprint)
     complete <- nrow(cell) == expected_replicates && !anyDuplicated(keys) &&
-      expected_key_set && source_sha_count == 1L
+      expected_key_set && source_sha_count == 1L && fingerprint_matches
     status_usable <- cell$status == "interior"
     cell_rows[[length(cell_rows) + 1L]] <- data.frame(
       formula_id = formula_id, n = n_value, expected_attempts = expected_replicates,
       retained_attempts = nrow(cell), duplicate_keys = anyDuplicated(keys) > 0L,
       complete_key_set = expected_key_set, source_sha_count = source_sha_count,
+      fingerprint_count = fingerprint_count, fingerprint_matches = fingerprint_matches,
       complete = complete,
       stringsAsFactors = FALSE
     )
