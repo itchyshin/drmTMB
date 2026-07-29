@@ -71,6 +71,18 @@ make_data <- function(seed) {
   list(data = data, eta = eta, design = association_matrix)
 }
 
+fixed_newdata <- data.frame(
+  x1 = c(-1.0, -0.5, 0.0, 0.5, 1.0),
+  x2 = c(-0.7, -0.2, 0.0, 0.3, 0.8),
+  habitat = factor(c("field", "forest", "field", "forest", "field"),
+    levels = c("field", "forest")
+  )
+)
+fixed_newdata_matrix <- stats::model.matrix(association_formula, fixed_newdata)
+if (!identical(colnames(fixed_newdata_matrix), names(truth))) {
+  stop("Fixed new-data design no longer matches the frozen association encoding.", call. = FALSE)
+}
+
 run_one <- function(replicate) {
   seed <- 2026072900L + match(formula_id, names(specifications)) * 100000L +
     n * 100L + replicate
@@ -93,8 +105,7 @@ run_one <- function(replicate) {
     binary_fit <- drmTMB(bf(mu = binary ~x1 + x2), binomial(), generated$data)
     count_fit <- drmTMB(bf(mu = count ~x1 + x2, sigma = ~1), nbinom2(), generated$data)
     fit <- associate_pairs(binary_fit, count_fit, kernel = latent_normal(), association = association_formula)
-    prediction_data <- generated$data[seq_len(5L), c("x1", "x2", "habitat"), drop = FALSE]
-    prediction <- predict(fit, newdata = prediction_data, type = "link")
+    prediction <- predict(fit, newdata = fixed_newdata, type = "link")
     estimates <- fit$association_coefficients
     if (!identical(names(estimates), names(truth)) || length(prediction) != 5L) {
       stop("association_output_error: coefficient order or prediction length changed.", call. = FALSE)
@@ -106,7 +117,7 @@ run_one <- function(replicate) {
     base$pdHess_count <- count_fit$sdr$pdHess
     base[estimate_columns] <- as.list(unname(estimates))
     base[eta_columns] <- as.list(unname(prediction))
-    base[eta_truth_columns] <- as.list(unname(generated$design[seq_len(5L), , drop = FALSE] %*% truth))
+    base[eta_truth_columns] <- as.list(unname(fixed_newdata_matrix %*% truth))
     base$elapsed_seconds <- as.numeric(difftime(Sys.time(), started, units = "secs"))
     as.data.frame(base, check.names = FALSE, stringsAsFactors = FALSE)
   }, error = function(e) {

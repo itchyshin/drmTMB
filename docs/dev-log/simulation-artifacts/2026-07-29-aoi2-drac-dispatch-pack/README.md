@@ -7,8 +7,10 @@ point-recovery packet for AOI-2.  It contains no scheduler script and no
 remote-cluster action.  Its purpose is to make the next owner decision
 specific and auditable, rather than to imply that a DRAC run has started.
 
-The source implementation is `00c75b79c` on `codex/aoi-full-fixed` (the
-implementation commit is `90c186611`).  It is limited to frozen-margin,
+The AOI-1 implementation baseline was `00c75b79c` on `codex/aoi-full-fixed`
+(the implementation commit is `90c186611`).  The owner-approved run must
+freeze and record the exact later commit that contains this packet.  It is
+limited to frozen-margin,
 complete-pair, fixed-effect-ML Bernoulli × ordinary-NB2 associations with
 `kernel = latent_normal()`.  It does not construct or report standard errors,
 covariance, intervals, profiles, coverage, capability changes, or a public
@@ -68,6 +70,11 @@ bias no greater than 0.10 for every declared coefficient and fixed new-data
 link target.  This is a decision gate for further AOI work, not an interval or
 capability criterion.  The `n = 360` rows are stress diagnostics; no
 lower-sample-size claim is made solely from a pass there.
+
+The five fixed prediction rows are `(x1, x2, habitat)` equal to
+`(-1.0, -0.7, field)`, `(-0.5, -0.2, forest)`, `(0.0, 0.0, field)`,
+`(0.5, 0.3, forest)`, and `(1.0, 0.8, field)`.  They are identical in every
+outer replicate, so their eta diagnostics have an unambiguous known truth.
 
 ## Required live preflight before any submission
 
