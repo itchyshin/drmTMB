@@ -1,8 +1,8 @@
 # Z3 local runner history
 
 This directory's retained recovery evidence is the run made after the runner
-was committed. The two earlier invocations did not reach a fitted candidate and
-are retained here solely as runner provenance.
+was committed. `pre-final-runner-failures.tsv` retains every earlier invocation,
+including source SHA, runner checksum, seed, whether a fit began, and the error.
 
 | Attempt | Runner defect | Result | Evidence role |
 |---|---|---|---|

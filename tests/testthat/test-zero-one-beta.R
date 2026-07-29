@@ -516,6 +516,27 @@ test_that("zero-one-beta admits only the exact sigma random-intercept q1 gate", 
     "Only one independent"
   )
   expect_error(
+    drmTMB(bf(y ~ x, sigma ~ x + (1 | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "requires fixed"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ x, coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "requires fixed"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ x), family = zero_one_beta(), data = sim$data),
+    "requires fixed"
+  )
+  phylo_sim <- new_zero_one_beta_phylo_data()
+  tree <- phylo_sim$tree
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1),
+      family = zero_one_beta(), data = phylo_sim$data
+    ),
+    "cannot be combined with a structured mu"
+  )
+  expect_error(
     drmTMB(bf(y ~ x, sigma ~ phylo(1 | id, tree = ape::stree(12L)), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = sim$data),
     "tree.*phylogeny"
   )

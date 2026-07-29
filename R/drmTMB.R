@@ -5406,6 +5406,13 @@ drm_build_zero_one_beta_spec <- function(
     sigma_re$terms,
     mu_terms = mu_re$terms
   )
+  if (length(sigma_re$terms) > 0L) {
+    validate_zero_one_beta_sigma_q1_fixed_rhs(
+      sigma_entry$rhs,
+      zoi_entry$rhs,
+      coi_entry$rhs
+    )
+  }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
   validate_zero_one_beta_mu_phylo_term(mu_phylo$term)
@@ -5427,6 +5434,9 @@ drm_build_zero_one_beta_spec <- function(
   mu_structured <- if (!is.null(mu_phylo$term)) mu_phylo$term else if (!is.null(mu_animal$term)) mu_animal$term else if (!is.null(mu_relmat$term)) mu_relmat$term else if (!is.null(mu_spatial$term)) mu_spatial$term else mu_phylo_interaction$term
   if (!is.null(mu_structured) && length(mu_re$terms) > 0L) {
     cli::cli_abort("A zero-one-beta structured mu effect cannot be combined with an ordinary mu random effect in this q1 gate.")
+  }
+  if (!is.null(mu_structured) && length(sigma_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta sigma random intercept cannot be combined with a structured mu effect in this q1 gate.")
   }
 
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
@@ -9497,11 +9507,26 @@ validate_zero_one_beta_sigma_random_terms <- function(
     cli::cli_abort(c(
       "Only one independent {.fn zero_one_beta} {.code sigma} random intercept is implemented in this q1 gate.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(y ~ x, sigma ~ z + (1 | id), zoi ~ 1, coi ~ 1)}.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}.",
       "i" = "Zero-one-beta {.code sigma} slopes, labelled covariance blocks, structured scale effects, and cross-parameter covariance remain deferred until separate recovery tests exist."
     ))
   }
   invisible(terms)
+}
+
+validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs) {
+  if (
+    !is_intercept_one(sigma_rhs) ||
+      !is_intercept_one(zoi_rhs) ||
+      !is_intercept_one(coi_rhs)
+  ) {
+    cli::cli_abort(c(
+      "The zero-one-beta sigma random-intercept q1 gate requires fixed {.code sigma ~ 1}, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
+      "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}."
+    ))
+  }
+  invisible(NULL)
 }
 
 validate_zero_one_beta_mu_phylo_term <- function(term) {
