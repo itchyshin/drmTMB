@@ -241,7 +241,9 @@ artifact_dir <- file.path(
 )
 dir.create(artifact_dir, recursive = TRUE, showWarnings = FALSE)
 head <- trimws(system2("git", c("rev-parse", "HEAD"), stdout = TRUE))
-dirty <- length(system2("git", c("status", "--porcelain"), stdout = TRUE)) > 0L
+dirty <- length(system2(
+  "git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE
+)) > 0L
 source_sha <- paste0(head, if (dirty) "-dirty" else "")
 runner_sha <- unname(tools::md5sum(script))
 if ("--iid-control-only" %in% commandArgs(TRUE)) {
