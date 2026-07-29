@@ -57,7 +57,7 @@ if [ -e "$RESULT_DIR" ]; then
   echo "Refusing to overwrite immutable result directory: $RESULT_DIR" >&2
   exit 2
 fi
-mkdir -p "$RUN_ROOT/logs" "$RUN_ROOT/work/$SHARD" "$RLIB" "$RESULT_DIR" "$METADATA_DIR"
+mkdir -p "$RUN_ROOT/logs" "$RUN_ROOT/work/$SHARD" "$RLIB" "$METADATA_DIR"
 rsync -a --exclude='.git/' --exclude='docs/dev-log/simulation-artifacts/' "$SOURCE/" "$WORK_SOURCE/"
 find "$WORK_SOURCE/src" -type f \( -name '*.o' -o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \) -print -delete > "$METADATA_DIR/source-clean.txt" 2>&1
 
