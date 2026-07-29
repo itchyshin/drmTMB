@@ -94,7 +94,7 @@ WORK_STATUSES = {
     "verified", "blocked", "deferred",
 }
 CAPABILITY_STATUSES = {
-    "rejected_by_design", "not_implemented", "scaffolded", "implemented",
+    "not_implemented", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
 # evidence_class was previously unconstrained, so a typo silently produced zero badges
@@ -269,11 +269,11 @@ def bootstrap() -> None:
         cell_id = f"mc-{index:04d}"
         evidence_id = f"ev-{cell_id}-legacy" if old["evidence_source"] else ""
         status = old["status"]
-        work = (
-            "verified" if status == "implemented"
-            else "deferred" if status == "rejected_by_design"
-            else "backlog"
-        )
+        # The pre-ledger census used `rejected_by_design` for cells deliberately
+        # out of scope at the time. That was not a proof of impossibility: every
+        # unimplemented model cell belongs to the visible backlog.
+        status = "not_implemented" if status == "rejected_by_design" else status
+        work = "verified" if status == "implemented" else "backlog"
         cells.append({
             "cell_id": cell_id,
             "source_order": str(index),
@@ -366,7 +366,7 @@ def bootstrap() -> None:
             "dimension": "bivariate" if route == "biv_gaussian" else "univariate",
             "q_gate": "na",
             "estimator": "ML",
-            "capability_status": "implemented" if admitted else "rejected_by_design",
+            "capability_status": "implemented" if admitted else "not_implemented",
             "work_status": "implemented_unverified" if admitted else "backlog",
             "evidence_tier": "na",
             "test_gate": "G1" if admitted else "G0",
@@ -569,7 +569,7 @@ def validate(
     # row) was inserted on 2026-07-25. It entered at point_fit_recovery, the tier its
     # existing metafor comparator evidence already supports; no cell changed tier.
     expected = Counter(
-        {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40}
+        {"implemented": 307, "not_implemented": 370}
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
@@ -679,6 +679,7 @@ def model_projection(
         "q_gate": row["q_gate"],
         "estimator": row["estimator"],
         "status": row["capability_status"],
+        "planning_class": planning_class(row),
         "evidence_tier": row["evidence_tier"],
         "evidence_source": (
             evidence_by_id[row["primary_evidence_id"]]["path_or_url"]
@@ -687,6 +688,21 @@ def model_projection(
         ),
         "notes": row["claim_boundary"] or row["notes"],
     } for row in rows]
+
+
+def planning_class(row: dict[str, str]) -> str:
+    """Return a visible scope class without treating an unimplemented cell as impossible.
+
+    It is a planning cue, not an effort estimate or an inference claim. REML is
+    a restricted-likelihood objective; an ML fit does not automatically supply it.
+    """
+    if row["capability_status"] == "implemented":
+        return "available"
+    if row["estimator"] in {"REML", "AI-REML"}:
+        return "estimator method"
+    if row["effect_type"] == "structured":
+        return "covariance / model method"
+    return "admission candidate"
 
 
 def widget_value(
@@ -713,7 +729,7 @@ def widget_value(
         "rows": [
             {key: row[key] for key in (
                 "family", "dpar", "effect_type", "structure_provider",
-                "dimension", "q_gate", "estimator", "status", "evidence_tier",
+                "dimension", "q_gate", "estimator", "status", "planning_class", "evidence_tier",
             )}
             for row in model
         ],
@@ -812,7 +828,6 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
     counts = Counter(row["capability_status"] for row in rows)
     labels = {
         "implemented": "implemented",
-        "rejected_by_design": "rejected",
         "not_implemented": "not implemented",
         "scaffolded": "scaffolded",
     }
@@ -820,9 +835,7 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
         return labels[next(iter(counts))]
     details = "; ".join(
         f"{labels[status]} {counts[status]}"
-        for status in (
-            "implemented", "rejected_by_design", "not_implemented", "scaffolded"
-        )
+        for status in ("implemented", "not_implemented", "scaffolded")
         if counts[status]
     )
     prefix = "scope-limited" if counts["implemented"] else "mixed"
@@ -1089,8 +1102,13 @@ def surface_markdown(
         "",
         f"- Model surface: **{len(model)} cells** across **{len(by_family)} routes**.",
         f"- Runtime status: **{status['implemented']} implemented**, "
-        f"**{status['rejected_by_design']} rejected by design**, "
         f"**{status['not_implemented']} not implemented**.",
+        "- Planning classes make the backlog visible without calling it impossible: "
+        "admission candidate, covariance/model method, or estimator method. "
+        "They are scope classes, not effort estimates or evidence claims.",
+        "- ML and REML are separate estimators. An ML implementation does not "
+        "automatically supply REML; REML cells require a valid restricted-likelihood "
+        "objective and their own validation.",
         f"- Evidence: **{tiers['supported']} supported**, "
         f"**{tiers['inference_ready_with_caveats']} inference-ready**, "
         f"**{tiers['interval_feasible']} interval-feasible**, "
@@ -1120,8 +1138,8 @@ def surface_markdown(
         "",
         "## Per-family model-surface summary",
         "",
-        "| Route | Cells | Implemented | Rejected | Not implemented | Highest evidence |",
-        "|---|---:|---:|---:|---:|---|",
+        "| Route | Cells | Implemented | Not implemented | Highest evidence |",
+        "|---|---:|---:|---:|---|",
     ]
     for family in sorted(by_family):
         rows = by_family[family]
@@ -1130,7 +1148,7 @@ def surface_markdown(
         highest = next((tier for tier in TIER_ORDER if tier in available), "none")
         lines.append(
             f"| `{family}` | {len(rows)} | {counts['implemented']} | "
-            f"{counts['rejected_by_design']} | {counts['not_implemented']} | "
+            f"{counts['not_implemented']} | "
             f"{highest.replace('_', ' ')} |"
         )
     lines.extend([
@@ -1252,6 +1270,7 @@ def surface_html(
                 "capability_status", "evidence_tier", "claim_boundary",
                 "primary_evidence_id",
             )},
+            "planning_class": planning_class(row),
             "external_comparator": comparators.get(row["cell_id"], ""),
         }
         for row in model
@@ -1265,6 +1284,7 @@ def surface_html(
         f"<td>{html.escape(row['effect_type'])}</td>"
         f"<td>{html.escape(row['structure_provider'])}</td>"
         f"<td>{html.escape(row['estimator'])}</td>"
+        f"<td>{html.escape(planning_class(row))}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
         f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
@@ -1284,7 +1304,7 @@ def surface_html(
 </style></head><body><a class="skip" href="#missing-response">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
-<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
+<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. Every unimplemented cell is visible work, not a claim of impossibility.</p>
 <nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
@@ -1298,10 +1318,11 @@ def surface_html(
 <section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="muted"><strong>Estimator:</strong> ML and REML are separate objectives. A working ML route does not automatically have a valid REML implementation. <strong>Planning class</strong> distinguishes an admission candidate from a covariance/model-method or estimator-method extension; it is a planning cue, not an effort estimate or a support claim.</p>
 <p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
@@ -1311,7 +1332,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
 for(const v of [...new Set(DATA.map(r=>r.family_route))].sort()) fam.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
 for(const v of [...new Set(DATA.map(r=>r.capability_status))].sort()) status.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
-function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
+function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td>${{esc(r.planning_class)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 

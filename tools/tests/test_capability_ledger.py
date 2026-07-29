@@ -60,8 +60,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
-             for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
+             for status in ("implemented", "not_implemented")},
+            {"implemented": 307, "not_implemented": 370},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -81,8 +81,8 @@ class CapabilityLedgerTests(unittest.TestCase):
             row = by_id[cell_id]
             self.assertEqual(row["route_variant"], "arc3a_beyond_intercept")
             self.assertEqual(row["q_gate"], "q2")
-            self.assertEqual(row["capability_status"], "rejected_by_design")
-            self.assertEqual(row["work_status"], "deferred")
+            self.assertEqual(row["capability_status"], "not_implemented")
+            self.assertEqual(row["work_status"], "backlog")
             self.assertEqual(row["evidence_tier"], "none")
             for excluded in ("slope", "labelled", "q2", "structured `sigma`", "simultaneous"):
                 self.assertIn(excluded, row["claim_boundary"])
@@ -92,7 +92,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(comparator["evidence_tier"], "point_fit_recovery")
         self.assertIn("90/90-converged", comparator["claim_boundary"])
 
-    def test_arc1b_s1_cells_are_exact_and_preserve_the_rejected_remainder(self):
+    def test_arc1b_s1_cells_are_exact_and_preserve_the_not_implemented_remainder(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
@@ -103,8 +103,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
-             for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
+             for status in ("implemented", "not_implemented")},
+            {"implemented": 307, "not_implemented": 370},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -172,8 +172,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         remainder = by_id["mc-0673"]
         self.assertEqual(remainder["route_variant"], "arc1b_s1_remaining_spatial_reml")
         self.assertEqual(remainder["estimator"], "REML")
-        self.assertEqual(remainder["capability_status"], "rejected_by_design")
-        self.assertEqual(remainder["work_status"], "deferred")
+        self.assertEqual(remainder["capability_status"], "not_implemented")
+        self.assertEqual(remainder["work_status"], "backlog")
         self.assertEqual(remainder["evidence_tier"], "none")
         self.assertIn("mc-0199` and `mc-0672", remainder["claim_boundary"])
         for rejected_neighbour in (
@@ -233,8 +233,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             remainder["route_variant"], "arc1b_s2r_remaining_relmat_reml"
         )
-        self.assertEqual(remainder["capability_status"], "rejected_by_design")
-        self.assertEqual(remainder["work_status"], "deferred")
+        self.assertEqual(remainder["capability_status"], "not_implemented")
+        self.assertEqual(remainder["work_status"], "backlog")
         self.assertEqual(remainder["evidence_tier"], "none")
         self.assertIn("`mc-0201` and `mc-0674`", remainder["claim_boundary"])
         self.assertEqual(
@@ -247,13 +247,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(
                 by_id[cell_id]["primary_evidence_id"], f"ev-{cell_id}-legacy"
             )
-        self.assertEqual(by_id["mc-0200"]["capability_status"], "rejected_by_design")
+        self.assertEqual(by_id["mc-0200"]["capability_status"], "not_implemented")
         for cell_id in ("mc-0199", "mc-0672"):
             self.assertEqual(by_id[cell_id]["structure_provider"], "spatial")
             self.assertEqual(by_id[cell_id]["evidence_tier"], "point_fit_recovery")
-        self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
+        self.assertEqual(by_id["mc-0673"]["capability_status"], "not_implemented")
 
-    def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_rejected(self):
+    def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_not_implemented(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
@@ -291,8 +291,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         remainder = by_id["mc-0676"]
         self.assertEqual(remainder["route_variant"], "beta_phylo_remainder")
-        self.assertEqual(remainder["capability_status"], "rejected_by_design")
-        self.assertEqual(remainder["work_status"], "deferred")
+        self.assertEqual(remainder["capability_status"], "not_implemented")
+        self.assertEqual(remainder["work_status"], "backlog")
         self.assertEqual(remainder["evidence_tier"], "none")
         self.assertIn("mc-0017", remainder["claim_boundary"])
         self.assertEqual(
@@ -336,7 +336,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for route in ("gamma", "lognormal"):
             self.assertIn(
-                "`sigma`: int implemented / slope rejected",
+                "`sigma`: int implemented / slope not implemented",
                 rows[route]["Random (int/slope)"],
             )
 
@@ -344,24 +344,20 @@ class CapabilityLedgerTests(unittest.TestCase):
         status = lambda value: {"capability_status": value}
         self.assertEqual(ledger._aggregate_state([]), "absent")
         self.assertEqual(
-            ledger._aggregate_state([status("rejected_by_design")]),
-            "rejected",
-        )
-        self.assertEqual(
             ledger._aggregate_state([status("not_implemented")]),
             "not implemented",
         )
         self.assertEqual(
             ledger._aggregate_state([
-                status("rejected_by_design"), status("not_implemented")
+                status("not_implemented"), status("scaffolded")
             ]),
-            "mixed (rejected 1; not implemented 1)",
+            "mixed (not implemented 1; scaffolded 1)",
         )
         self.assertEqual(
             ledger._aggregate_state([
-                status("implemented"), status("rejected_by_design")
+                status("implemented"), status("not_implemented")
             ]),
-            "scope-limited (implemented 1; rejected 1)",
+            "scope-limited (implemented 1; not implemented 1)",
         )
 
     def test_family_map_reml_is_not_inferred_from_ml(self):
@@ -377,13 +373,27 @@ class CapabilityLedgerTests(unittest.TestCase):
             and row["estimator"] == "ML"
             and row["effect_type"] == "ordinary_re_intercept"
         )
-        ml_binomial["capability_status"] = "rejected_by_design"
+        ml_binomial["capability_status"] = "not_implemented"
         after = {
             row["family_route"]: row["REML"]
             for row in ledger.family_map_rows(cells)
         }
         self.assertEqual(before["binomial"], after["binomial"])
-        self.assertIn("`mu`: rejected", before["binomial"])
+        self.assertIn("`mu`: not implemented", before["binomial"])
+
+    def test_planning_class_keeps_unimplemented_work_visible(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        self.assertEqual(ledger.planning_class(by_id["mc-0001"]), "available")
+        self.assertEqual(
+            ledger.planning_class(by_id["mc-0002"]), "estimator method"
+        )
+        self.assertEqual(
+            ledger.planning_class(by_id["mc-0009"]), "admission candidate"
+        )
+        self.assertEqual(
+            ledger.planning_class(by_id["mc-0014"]),
+            "covariance / model method",
+        )
 
     def test_arc1a_reml_provider_promotions_are_live_and_discrete(self):
         by_id = {row["cell_id"]: row for row in self.cells}
@@ -422,7 +432,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             if row["family_route"] == "gaussian"
         )
         self.assertIn(
-            "`mu`: scope-limited (implemented 8; rejected 4)",
+            "`mu`: scope-limited (implemented 8; not implemented 4)",
             gaussian["REML"],
         )
 
