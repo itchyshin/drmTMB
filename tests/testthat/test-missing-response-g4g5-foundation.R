@@ -75,7 +75,7 @@ test_that("T4 fixtures retain encoded-response masks and ordinal cutpoints", {
   expect_equal(mean(is.na(bb$data$success)), .25)
   ord <- mr_g4g5_t4_dgp("cumulative_logit", .5)
   expect_equal(mean(is.na(ord$data$score)), .25)
-  expect_true(all(c("cutpoint:1", "cutpoint:2") %in% names(ord$truth)))
+  expect_true(all(c("ordinal:theta_ord:low|medium", "ordinal:theta_ord:medium|high") %in% names(ord$truth)))
 })
 
 test_that("T5 fixture preserves positive observed responses and its random SD target", {
@@ -97,6 +97,17 @@ test_that("route dispatcher resolves all 18 frozen G3 designs", {
   source_missing_response_g4g5(); routes<-mr_g4g5_route_manifest()$route_id
   cases<-lapply(routes,mr_g4g5_route_fixture,information_multiplier=.5)
   expect_equal(length(cases),18L);expect_true(all(vapply(cases,function(x)is.data.frame(x$data)&&length(x$truth)>0,logical(1))))
+})
+
+test_that("Gaussian target manifest materializes from canonical profile targets", {
+  source_missing_response_g4g5(); out<-mr_g4g5_materialise_target_manifest("gaussian",.5)
+  expect_silent(mr_g4_validate_target_manifest(out$manifest));expect_equal(nrow(out$manifest),5L)
+})
+
+test_that("every G3 route materializes an exact canonical target manifest", {
+  source_missing_response_g4g5(); routes<-mr_g4g5_route_manifest()$route_id
+  manifests<-lapply(routes,function(r) mr_g4g5_materialise_target_manifest(r,.5)$manifest)
+  expect_equal(length(manifests),18L);expect_true(all(vapply(manifests,function(x){mr_g4_validate_target_manifest(x);TRUE},logical(1))))
 })
 
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {

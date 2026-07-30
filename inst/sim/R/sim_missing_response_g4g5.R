@@ -345,7 +345,8 @@ mr_g4g5_t4_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     draw <- vapply(seq_len(n), function(i) sample.int(3L, 1L, prob = c(p1[i], p2[i], 1-plogis(.75-eta[i]))), integer(1L))
     data$score <- ordered(c("low","medium","high")[draw], levels = c("low","medium","high"))
     data <- mr_g4g5_mask_mcar(data, "score", if (use_g3_seed) defaults[[route]] else seed+1L)
-    truth <- c("fixef:mu:x"=.85, "cutpoint:1"=-.90, "cutpoint:2"=.75)
+    truth <- c("fixef:mu:x"=.85, "ordinal:theta_ord:low|medium"=-.90,
+      "ordinal:theta_ord:medium|high"=.75)
   }
   list(data=data, truth=truth, information_multiplier=information_multiplier)
 }
@@ -396,6 +397,24 @@ mr_g4g5_route_fixture <- function(route_id, information_multiplier = 1, seed = N
   if (route_id %in% c("beta_binomial","cumulative_logit")) return(mr_g4g5_t4_dgp(route_id,information_multiplier,seed))
   if (route_id == "truncated_nbinom2") return(mr_g4g5_t5_dgp(information_multiplier,if(is.null(seed))2026071506L else seed))
   mr_g4g5_t6_dgp(route_id,information_multiplier,seed)
+}
+
+mr_g4g5_route_fit <- function(route_id, data) {
+  if (route_id == "gaussian") return(mr_g4g5_fit_gaussian(data))
+  if (route_id == "biv_gaussian") return(mr_g4g5_fit_biv_gaussian(data))
+  if (route_id == "binomial") return(drmTMB(bf(y ~ x), binomial(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE)))
+  if (route_id %in% c("poisson","nbinom2","beta")) return(mr_g4g5_fit_t1_ri(route_id,data))
+  if (route_id %in% c("student","lognormal","gamma","skew_normal")) return(mr_g4g5_fit_t2(route_id,data))
+  if (route_id %in% c("tweedie","zero_one_beta")) return(mr_g4g5_fit_t3(route_id,data))
+  if (route_id %in% c("beta_binomial","cumulative_logit")) return(mr_g4g5_fit_t4(route_id,data))
+  if (route_id == "truncated_nbinom2") return(mr_g4g5_fit_t5(data))
+  mr_g4g5_fit_t6(route_id,data)
+}
+
+mr_g4g5_materialise_target_manifest <- function(route_id, information_multiplier = 1, seed = NULL) {
+  fixture <- mr_g4g5_route_fixture(route_id, information_multiplier, seed)
+  fit <- mr_g4g5_route_fit(route_id, fixture$data)
+  list(fit = fit, manifest = mr_g4_target_manifest(route_id, profile_targets(fit), fixture$truth))
 }
 
 # Freeze the actual, canonical targets for one route after constructing its
