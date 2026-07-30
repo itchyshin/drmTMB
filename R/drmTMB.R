@@ -5474,6 +5474,15 @@ drm_build_zero_one_beta_spec <- function(
     cli::cli_abort("A zero-one-beta model can use only one structured mu provider in this q1 gate.")
   }
   mu_structured <- if (!is.null(mu_phylo$term)) mu_phylo$term else if (!is.null(mu_animal$term)) mu_animal$term else if (!is.null(mu_relmat$term)) mu_relmat$term else if (!is.null(mu_spatial$term)) mu_spatial$term else mu_phylo_interaction$term
+  sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_phylo$rhs
+  if (!is.null(sigma_phylo$term)) {
+    validate_zero_one_beta_sigma_phylo_term(sigma_phylo$term)
+    sigma_phylo$term$dpars <- "sigma"
+  }
+  if (!is.null(mu_structured) && !is.null(sigma_phylo$term)) {
+    cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with a structured mu effect in this gate.")
+  }
   if (!is.null(mu_structured) && length(mu_re$terms) > 0L) {
     cli::cli_abort("A zero-one-beta structured mu effect cannot be combined with an ordinary mu random effect in this q1 gate.")
   }
@@ -5577,7 +5586,12 @@ drm_build_zero_one_beta_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_zoi <- build_random_zoi_structure(zoi_re$terms, data_model)
-  phylo_mu <- build_structured_mu_structure(mu_structured, data_model, env)
+  re_coi <- build_random_coi_structure(coi_re$terms, data_model)
+  if (!is.null(sigma_phylo$term) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re, re_coi$n_re) > 0L)) {
+    cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with ordinary random effects in this gate.")
+  }
+  structured_term <- if (!is.null(sigma_phylo$term)) sigma_phylo$term else mu_structured
+  phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
 
   spec <- list(
     model_type = "zero_one_beta",
@@ -9651,6 +9665,17 @@ validate_zero_one_beta_mu_phylo_term <- function(term) {
   if (is.null(term)) return(invisible(term))
   if (!identical(term$type, "phylo") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
     cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 phylo(1 | species, tree = tree) intercept.")
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_phylo_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code phylo(1 | species, tree = tree)} intercept.",
+      "i" = "Structured sigma slopes, labels, non-phylogenetic providers, and cross-parameter effects need separate recovery evidence."
+    ))
   }
   invisible(term)
 }

@@ -214,6 +214,18 @@ zoib_phylo_nll <- function(fit, par, tree, species) {
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
 }
 
+zoib_sigma_phylo_nll <- function(fit, par, tree, species) {
+  d <- fit$model$tmb_data; u <- as.vector(par$u_phylo)
+  precision <- dense_zoib_phylo_precision(tree)
+  observation_node_index <- precision$tip_index[match(species, tree$tip.label)]
+  expect_equal(d$phylo_mu_node_index + 1L, unname(observation_node_index))
+  eta_mu <- as.vector(d$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[observation_node_index]
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta_mu)
+  prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
+  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
+}
+
 zoib_phylo_central_gradient <- function(fn, par) {
   vapply(seq_along(par), function(i) {
     step <- 1e-6 * max(1, abs(par[[i]]))
@@ -366,9 +378,37 @@ test_that("zero-one-beta admits the exact phylo q1 mu gate", {
   expect_error(drmTMB(bf(y ~ x + animal(1 + x | species, Ainv = Q)), family = zero_one_beta(), data = sim$data), "only one unlabelled q1")
   expect_error(drmTMB(bf(y ~ x + relmat(1 + x | species, K = Q)), family = zero_one_beta(), data = sim$data), "only one unlabelled q1")
   expect_error(drmTMB(bf(y ~ x + phylo_interaction(1 + x | plant:pollinator, tree1 = tree, tree2 = tree)), family = zero_one_beta(), data = interaction_data), "intercept-only")
-  expect_error(drmTMB(bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)), family = zero_one_beta(), data = sim$data), "Structured-effect syntax")
   expect_error(drmTMB(bf(y ~ x, zoi ~ phylo(1 | species, tree = tree)), family = zero_one_beta(), data = sim$data), "Structured-effect syntax")
   expect_error(drmTMB(bf(y ~ x, coi ~ phylo(1 | species, tree = tree)), family = zero_one_beta(), data = sim$data), "Structured-effect syntax")
+})
+
+test_that("zero-one-beta admits only the exact phylo q1 sigma gate", {
+  set.seed(2026074001L)
+  tree <- ape::stree(16L, type = "balanced"); tree$edge.length <- rep(1, nrow(tree$edge)); tree$tip.label <- paste0("sp", seq_len(16L))
+  precision <- dense_zoib_phylo_precision(tree); u <- as.numeric(t(chol(solve(precision$Q))) %*% rnorm(nrow(precision$Q), sd = .45)); names(u) <- tree$tip.label
+  species <- rep(tree$tip.label, each = 40L); x <- rnorm(length(species)); mu <- plogis(-.15 + .35 * x); sigma <- exp(-1 + u[species]); zoi <- plogis(-1.1); coi <- plogis(.1)
+  boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi)
+  d <- data.frame(y, x, species)
+  fit <- drmTMB(bf(y ~ x, sigma ~ phylo(1 | species, tree = tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
+  expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "phylo(1 | species)")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:phylo(1 | species)")
+  expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct")
+  expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_phylo_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
+  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB")
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
+  expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed"); expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ phylo(1 + x | species, tree = tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ phylo(1 | species, tree = tree), zoi ~ 1 + (1 | species), coi ~ 1), family = zero_one_beta(), data = d), "requires")
+  obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_phylo_nll(fit, obj$env$parList(v), tree, d$species)
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2
+  expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
 
 test_that("zero-one-beta phylo q1 objective depends on its latent SD", {

@@ -3057,7 +3057,12 @@ Type objective_function<Type>::operator()()
     if (has_phylo_mu == 1) {
       int n_phylo = Q_phylo.rows();
       for (int i = 0; i < y.size(); ++i) {
-        eta_mu(i) += phylo_mu_value(i, 0) * u_phylo(phylo_mu_node_index(i));
+        Type contribution = phylo_mu_value(i, 0) * u_phylo(phylo_mu_node_index(i));
+        if (phylo_mu_dpar(0) == 1) {
+          log_sigma(i) += contribution;
+        } else {
+          eta_mu(i) += contribution;
+        }
       }
       vector<Type> Q_u = Q_phylo * u_phylo;
       Type quadratic = Type(0.0);
