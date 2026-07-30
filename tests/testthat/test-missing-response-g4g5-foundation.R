@@ -59,6 +59,15 @@ test_that("T2 fixtures retain their route-specific target and MCAR contracts", {
   }
 })
 
+test_that("T3 boundary fixtures retain all distributional target families", {
+  source_missing_response_g4g5()
+  for (route in c("tweedie", "zero_one_beta")) {
+    case <- mr_g4g5_t3_dgp(route, .5)
+    expect_equal(mean(is.na(case$data$y)), .25, info = route)
+    expect_true("fixef:sigma:z" %in% names(case$truth), info = route)
+  }
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))

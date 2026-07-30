@@ -288,6 +288,42 @@ mr_g4g5_fit_t2 <- function(route, data) {
   drmTMB(f, family, data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
 }
 
+mr_g4g5_t3_dgp <- function(route, information_multiplier = 1, seed = NULL) {
+  if (!route %in% c("tweedie", "zero_one_beta") || !information_multiplier %in% c(.5, 1, 2)) {
+    stop("Unsupported T3 route or information multiplier.", call. = FALSE)
+  }
+  defaults <- c(tweedie = 2026071321L, zero_one_beta = 2026071322L)
+  use_g3_seed <- is.null(seed); if (use_g3_seed) seed <- defaults[[route]]; set.seed(seed)
+  n <- as.integer(ceiling(c(tweedie = 500L, zero_one_beta = 1600L)[[route]] * information_multiplier / 4) * 4)
+  if (route == "tweedie") {
+    data <- data.frame(x = runif(n, -1, 1), z = rnorm(n))
+    mu <- exp(.20 + .45 * data$x); sigma <- exp(-.55 + .20 * data$z)
+    data$y <- rtweedie_compound(n, mu = mu, phi = sigma^2, power = 1.35)
+    truth <- c("fixef:mu:(Intercept)" = .20, "fixef:mu:x" = .45,
+      "fixef:sigma:(Intercept)" = -.55, "fixef:sigma:z" = .20, "fixef:nu:(Intercept)" = 1.35)
+  } else {
+    data <- data.frame(x = rnorm(n), z = rnorm(n), w = rnorm(n), v = rnorm(n))
+    mu <- plogis(-.20 + .65 * data$x); sigma <- exp(-.85 + .22 * data$z)
+    zoi <- plogis(-1 + .45 * data$w); coi <- plogis(.15 - .55 * data$v)
+    data$y <- rbeta(n, mu/sigma^2, (1-mu)/sigma^2)
+    boundary <- runif(n) < zoi; data$y[boundary] <- as.numeric(runif(sum(boundary)) < coi[boundary])
+    truth <- c("fixef:mu:(Intercept)" = -.20, "fixef:mu:x" = .65,
+      "fixef:sigma:(Intercept)" = -.85, "fixef:sigma:z" = .22,
+      "fixef:zoi:(Intercept)" = -1, "fixef:zoi:w" = .45,
+      "fixef:coi:(Intercept)" = .15, "fixef:coi:v" = -.55)
+  }
+  data <- mr_g4g5_mask_mcar(data, "y", if (use_g3_seed) defaults[[route]] else seed + 1L)
+  list(data = data, truth = truth, information_multiplier = information_multiplier)
+}
+
+mr_g4g5_fit_t3 <- function(route, data) {
+  if (route == "tweedie") {
+    drmTMB(bf(y ~ x, sigma ~ z, nu ~ 1), tweedie(), data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  } else {
+    drmTMB(bf(y ~ x, sigma ~ z, zoi ~ w, coi ~ v), zero_one_beta(), data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  }
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for
