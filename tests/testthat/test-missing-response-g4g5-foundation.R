@@ -40,6 +40,16 @@ test_that("T1 random-intercept fixtures preserve route-specific G3 shapes", {
   }
 })
 
+test_that("bivariate Gaussian fixture preserves independent partial-response masks", {
+  source_missing_response_g4g5()
+  case <- mr_g4g5_biv_gaussian_g3_dgp(0.5)
+  expect_equal(mean(is.na(case$data$y1)), 0.25)
+  expect_equal(mean(is.na(case$data$y2)), 0.25)
+  expect_gt(sum(!is.na(case$data$y1) & is.na(case$data$y2)), 0L)
+  expect_gt(sum(is.na(case$data$y1) & !is.na(case$data$y2)), 0L)
+  expect_true(all(c("rho12", "sd:mu:mu1:(1 | p | id)") %in% names(case$truth)))
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))

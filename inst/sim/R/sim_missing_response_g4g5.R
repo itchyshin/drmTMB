@@ -184,6 +184,50 @@ mr_g4g5_fit_t1_ri <- function(route, data) {
   )
 }
 
+# Exact bivariate-Gaussian partial-response design. The two outcomes are
+# masked independently within group; this preserves the complete/partial pair
+# structure required for the rho12 target.
+mr_g4g5_biv_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 2026071103L) {
+  if (!information_multiplier %in% c(0.5, 1, 2)) {
+    stop("Bivariate information multiplier must be 0.5, 1, or 2.", call. = FALSE)
+  }
+  set.seed(seed)
+  n_id <- as.integer(60L * information_multiplier)
+  n_each <- 8L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  u1 <- rnorm(n_id)
+  u2 <- 0.45 * u1 + sqrt(1 - 0.45^2) * rnorm(n_id)
+  e1 <- rnorm(length(id))
+  e2 <- 0.25 * e1 + sqrt(1 - 0.25^2) * rnorm(length(id))
+  data <- data.frame(id = id, x = x)
+  data$y1 <- 0.20 + 0.45 * x + 0.55 * u1[id] + 0.35 * e1
+  data$y2 <- -0.15 - 0.35 * x + 0.65 * u2[id] + 0.45 * e2
+  data <- mr_g4g5_mask_mcar(data, "y1", seed = seed + 1L, group = "id")
+  data <- mr_g4g5_mask_mcar(data, "y2", seed = seed + 2L, group = "id")
+  list(
+    data = data,
+    truth = c(
+      "fixef:mu1:(Intercept)" = 0.20, "fixef:mu1:x" = 0.45,
+      "fixef:mu2:(Intercept)" = -0.15, "fixef:mu2:x" = -0.35,
+      "fixef:sigma1:(Intercept)" = log(0.35), "fixef:sigma2:(Intercept)" = log(0.45),
+      "fixef:rho12:(Intercept)" = atanh(0.25), "sigma1" = 0.35, "sigma2" = 0.45,
+      "rho12" = 0.25, "sd:mu:mu1:(1 | p | id)" = 0.55,
+      "sd:mu:mu2:(1 | p | id)" = 0.65,
+      "cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)" = 0.45
+    ), information_multiplier = information_multiplier
+  )
+}
+
+mr_g4g5_fit_biv_gaussian <- function(data) {
+  drmTMB(
+    bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    biv_gaussian(), data, missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for
