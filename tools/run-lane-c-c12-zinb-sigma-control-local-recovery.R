@@ -68,8 +68,10 @@ accepted_data <- function(seed, structured) {
 
 fit_one <- function(sim, structured) {
   formula <- if (structured) {
+    plant_tree <- sim$plant_tree
+    pollinator_tree <- sim$pollinator_tree
     drmTMB::bf(count ~ x, sigma ~ phylo_interaction(
-      1 | plant:pollinator, tree1 = sim$plant_tree, tree2 = sim$pollinator_tree
+      1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
     ), zi ~ 1)
   } else {
     drmTMB::bf(count ~ x, sigma ~ 1 + (1 | pair), zi ~ 1)
