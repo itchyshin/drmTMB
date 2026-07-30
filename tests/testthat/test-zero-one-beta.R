@@ -235,6 +235,15 @@ zoib_sigma_animal_nll <- function(fit, par, Ainv, species) {
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
 }
 
+zoib_sigma_relmat_nll <- function(fit, par, K, species) {
+  d <- fit$model$tmb_data; u <- as.vector(par$u_phylo); Q <- solve(K)
+  node <- match(species, rownames(K)); expect_equal(d$phylo_mu_node_index + 1L, unname(node))
+  log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[node]
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
+  prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo + as.numeric(determinant(K, logarithm = TRUE)$modulus) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
+  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
+}
+
 zoib_phylo_central_gradient <- function(fn, par) {
   vapply(seq_along(par), function(i) {
     step <- 1e-6 * max(1, abs(par[[i]]))
@@ -448,6 +457,25 @@ test_that("zero-one-beta admits only the exact animal Ainv q1 sigma gate", {
   expect_error(drmTMB(bf(y ~ x, sigma ~ animal(1 + x | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
   expect_error(drmTMB(bf(y ~ x + animal(1 | species, Ainv = Ainv), sigma ~ animal(1 | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE); probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_animal_nll(fit, obj$env$parList(v), Ainv, d$species)
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8); expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2; expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
+})
+
+test_that("zero-one-beta admits only the exact relmat K q1 sigma gate", {
+  set.seed(2026074201L); n <- 16L; labels <- paste0("sp", seq_len(n)); Q <- diag(2, n); Q[cbind(seq_len(n - 1L), seq.int(2L, n))] <- -.5; Q[cbind(seq.int(2L, n), seq_len(n - 1L))] <- -.5; rownames(Q) <- colnames(Q) <- rev(labels); K <- solve(Q)
+  u <- as.numeric(t(chol(K)) %*% rnorm(n, sd = .45)); names(u) <- rownames(K); species <- rep(labels, each = 40L); x <- rnorm(length(species)); mu <- plogis(-.15 + .35 * x); sigma <- exp(-1 + u[species]); zoi <- plogis(-1.1); coi <- plogis(.1)
+  boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi); d <- data.frame(y, x, species)
+  fit <- drmTMB(bf(y ~ x, sigma ~ relmat(1 | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
+  expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "relmat(1 | species)"); expect_named(ranef(fit, "relmat_sigma")$terms, "relmat(1 | species)")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:relmat(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_relmat_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB")
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ relmat(1 + x | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ relmat(1 | species, Q = Q), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "K")
+  expect_error(drmTMB(bf(y ~ x + relmat(1 | species, K = K), sigma ~ relmat(1 | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
+  obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE); probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_relmat_nll(fit, obj$env$parList(v), K, d$species)
   expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8); expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
   i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2; expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
