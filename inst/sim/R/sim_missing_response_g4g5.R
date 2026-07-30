@@ -40,6 +40,48 @@ mr_g4g5_validate_manifest <- function(manifest = mr_g4g5_route_manifest()) {
   invisible(manifest)
 }
 
+# Freeze the actual, canonical targets for one route after constructing its
+# frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
+# Requiring an exact name match prevents a runner-local alias (especially for
+# ordinal cutpoints and random-effect SDs) from silently shrinking the target
+# set.
+mr_g4_target_manifest <- function(route_id, targets, truth) {
+  required <- c("parm", "target_class", "dpar", "scale", "profile_ready")
+  if (!is.data.frame(targets) || !all(required %in% names(targets))) {
+    stop("`targets` must be the canonical `profile_targets()` table.", call. = FALSE)
+  }
+  if (!is.numeric(truth) || is.null(names(truth)) || any(!nzchar(names(truth)))) {
+    stop("`truth` must be a named numeric vector keyed by canonical `parm`.", call. = FALSE)
+  }
+  if (anyDuplicated(targets$parm) || anyDuplicated(names(truth)) ||
+      !setequal(targets$parm, names(truth))) {
+    stop("Frozen truths must name every canonical target exactly once.", call. = FALSE)
+  }
+  out <- targets[, required, drop = FALSE]
+  out$route_id <- route_id
+  out$truth <- unname(truth[out$parm])
+  out$interval_method <- ifelse(out$profile_ready, "profile", "wald")
+  out$conf.level <- 0.95
+  out <- out[c("route_id", "parm", "truth", "target_class", "dpar", "scale",
+    "profile_ready", "interval_method", "conf.level")]
+  row.names(out) <- NULL
+  out
+}
+
+mr_g4_validate_target_manifest <- function(manifest) {
+  required <- c("route_id", "parm", "truth", "profile_ready", "interval_method", "conf.level")
+  if (!is.data.frame(manifest) || !all(required %in% names(manifest)) ||
+      anyDuplicated(manifest[c("route_id", "parm")])) {
+    stop("A target manifest must have one canonical target per route.", call. = FALSE)
+  }
+  if (any(!is.finite(manifest$truth)) || any(manifest$conf.level != 0.95) ||
+      any(!manifest$interval_method %in% c("profile", "wald")) ||
+      any(manifest$profile_ready != (manifest$interval_method == "profile"))) {
+    stop("Target manifest has an invalid truth, interval method, or confidence level.", call. = FALSE)
+  }
+  invisible(manifest)
+}
+
 # Convert one profile attempt into an immutable G4 record.  The caller supplies
 # the frozen truth on the reporting scale for the canonical `profile_targets()`
 # parameter name.  Failed fits and unusable intervals remain records.
@@ -86,11 +128,82 @@ mr_g4_validate_record <- function(record) {
   }
   finite_two_sided <- is.finite(record$conf.low) && is.finite(record$conf.high) &&
     record$conf.low < record$conf.high
-  profile_ok <- identical(as.character(record$conf.status), "profile") &&
+  method <- if ("interval_method" %in% names(record)) record$interval_method else "profile"
+  profile_ok <- identical(method, "profile") && identical(as.character(record$conf.status), "profile") &&
     identical(as.logical(record$profile.boundary), FALSE)
-  record$g4_interval_usable <- finite_two_sided && profile_ok
+  wald_ok <- identical(method, "wald") && identical(as.character(record$conf.status), "wald")
+  record$g4_interval_usable <- finite_two_sided && (profile_ok || wald_ok)
   record$g4_truth_contained <- record$g4_interval_usable &&
     record$conf.low <= record$truth && record$truth <= record$conf.high
   record$g4_pass <- record$g4_interval_usable && record$g4_truth_contained
   record
+}
+
+# Run the frozen target manifest without dropping an unavailable profile or a
+# failed fit. This is the route-level unit consumed by the future DGP runners.
+mr_g4_run_target_manifest <- function(fit, target_manifest, replicate = 1L, trace = TRUE) {
+  mr_g4_validate_target_manifest(target_manifest)
+  rows <- lapply(seq_len(nrow(target_manifest)), function(i) {
+    target <- target_manifest[i, , drop = FALSE]
+    ci <- tryCatch(
+      confint(fit, parm = target$parm, level = target$conf.level,
+        method = target$interval_method, trace = trace),
+      error = function(e) e
+    )
+    out <- data.frame(
+      route_id = target$route_id, replicate = as.integer(replicate), parm = target$parm,
+      truth = target$truth, conf.level = target$conf.level, target_scale = target$scale,
+      target_class = target$target_class, profile_ready = target$profile_ready,
+      interval_method = target$interval_method, conf.low = NA_real_, conf.high = NA_real_,
+      conf.status = paste0(target$interval_method, "_failed"), profile.boundary = NA,
+      profile.message = NA_character_, stringsAsFactors = FALSE
+    )
+    if (inherits(ci, "error")) {
+      out$profile.message <- conditionMessage(ci)
+      return(mr_g4_validate_record(out))
+    }
+    row <- ci[ci$parm == target$parm, , drop = FALSE]
+    if (nrow(row) != 1L) {
+      out$profile.message <- "interval output did not contain the requested target"
+      return(mr_g4_validate_record(out))
+    }
+    out$conf.low <- row$lower
+    out$conf.high <- row$upper
+    out$conf.status <- row$conf.status
+    out$profile.boundary <- row$profile.boundary
+    out$profile.message <- row$profile.message
+    mr_g4_validate_record(out)
+  })
+  do.call(rbind, rows)
+}
+
+# Coverage is intentionally unconditional on fit and interval success. Every
+# planned replicate stays in the denominator; unusable intervals therefore
+# contribute `covered = FALSE` rather than being silently dropped.
+mr_g5_summarise_attempts <- function(records, by = c("route_id", "parm", "information_rung"),
+                                     planned = 1200L) {
+  required <- c(by, "g4_interval_usable", "g4_truth_contained")
+  if (!is.data.frame(records) || !all(required %in% names(records))) {
+    stop("G5 records must include grouping and G4 interval fields.", call. = FALSE)
+  }
+  if (!is.numeric(planned) || length(planned) != 1L || planned < 1L) {
+    stop("`planned` must be one positive number of planned attempts.", call. = FALSE)
+  }
+  key <- interaction(records[by], drop = TRUE, lex.order = TRUE)
+  pieces <- split(records, key)
+  out <- lapply(pieces, function(x) {
+    if (nrow(x) != planned) {
+      stop("Each G5 cell must retain exactly its planned number of attempts.", call. = FALSE)
+    }
+    covered <- as.logical(x$g4_truth_contained)
+    covered[is.na(covered)] <- FALSE
+    data.frame(x[1L, by, drop = FALSE], n_planned = planned,
+      n_attempt = nrow(x), n_interval_usable = sum(x$g4_interval_usable %in% TRUE),
+      n_covered = sum(covered), coverage = mean(covered),
+      coverage_mcse = sqrt(mean(covered) * (1 - mean(covered)) / planned),
+      stringsAsFactors = FALSE, check.names = FALSE)
+  })
+  out <- do.call(rbind, out)
+  row.names(out) <- NULL
+  out
 }
