@@ -69,3 +69,26 @@ test_that("Wald fallback is usable only for a target marked profile-unavailable"
   expect_true(wald$g4_pass)
   expect_false(wrong$g4_interval_usable)
 })
+
+test_that("G4 runner writes one retained record per canonical Gaussian target", {
+  source_missing_response_g4g5()
+  set.seed(7304)
+  dat <- data.frame(x = rnorm(120))
+  dat$y <- 0.3 + 0.4 * dat$x + rnorm(120, sd = 0.7)
+  dat$y[sample.int(nrow(dat), 30L)] <- NA_real_
+  fit <- drmTMB(
+    bf(y ~ x), family = gaussian(), data = dat,
+    missing = miss_control(response = "include")
+  )
+  targets <- profile_targets(fit)
+  truth <- c(
+    "fixef:mu:(Intercept)" = 0.3, "fixef:mu:x" = 0.4,
+    "fixef:sigma:(Intercept)" = log(0.7), "sigma" = 0.7
+  )
+  manifest <- mr_g4_target_manifest("gaussian", targets, truth)
+  out <- mr_g4_run_target_manifest(fit, manifest, trace = FALSE)
+  expect_equal(nrow(out), nrow(targets))
+  expect_setequal(out$parm, targets$parm)
+  expect_true(all(out$interval_method == "profile"))
+  expect_true(all(out$conf.status %in% c("profile", "profile_failed", "clamp_limited")))
+})
