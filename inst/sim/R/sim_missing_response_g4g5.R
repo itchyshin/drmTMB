@@ -355,6 +355,18 @@ mr_g4g5_fit_t4 <- function(route, data) {
   else drmTMB(bf(score ~ x), cumulative_logit(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE))
 }
 
+mr_g4g5_t5_dgp <- function(information_multiplier = 1, seed = 2026071506L) {
+  if (!information_multiplier %in% c(.5, 1, 2)) stop("T5 information multiplier must be 0.5, 1, or 2.", call.=FALSE)
+  set.seed(seed); n_id <- mr_g4g5_group_count(34L, 8L, information_multiplier); n <- n_id*8L
+  id <- factor(rep(seq_len(n_id),each=8L)); data <- data.frame(id=id,x=rep(seq(-1,1,length.out=8L),n_id)+rnorm(n,sd=.05),z=rnorm(n))
+  b <- rnorm(n_id,sd=.35); mu <- exp(.35-.28*data$x+b[id]); sigma <- exp(-.65+.15*data$z); p0 <- dnbinom(0,size=1/sigma^2,mu=mu)
+  data$count <- qnbinom(p0+pmax(runif(n),.Machine$double.eps)*(1-p0),size=1/sigma^2,mu=mu)
+  data <- mr_g4g5_mask_mcar(data,"count",seed=seed+1L,group="id")
+  list(data=data,truth=c("fixef:mu:(Intercept)"=.35,"fixef:mu:x"=-.28,"fixef:sigma:(Intercept)"=-.65,"fixef:sigma:z"=.15,"sd:mu:(1 | id)"=.35),information_multiplier=information_multiplier)
+}
+
+mr_g4g5_fit_t5 <- function(data) drmTMB(bf(count~x+(1|id),sigma~z),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE))
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for

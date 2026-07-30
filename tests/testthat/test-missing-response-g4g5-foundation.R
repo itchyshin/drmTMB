@@ -78,6 +78,13 @@ test_that("T4 fixtures retain encoded-response masks and ordinal cutpoints", {
   expect_true(all(c("cutpoint:1", "cutpoint:2") %in% names(ord$truth)))
 })
 
+test_that("T5 fixture preserves positive observed responses and its random SD target", {
+  source_missing_response_g4g5(); case <- mr_g4g5_t5_dgp(.5)
+  expect_equal(mean(is.na(case$data$count)), .25)
+  expect_true(all(case$data$count[!is.na(case$data$count)] > 0))
+  expect_true("sd:mu:(1 | id)" %in% names(case$truth))
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))
