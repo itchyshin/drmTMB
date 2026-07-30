@@ -324,6 +324,37 @@ mr_g4g5_fit_t3 <- function(route, data) {
   }
 }
 
+mr_g4g5_t4_dgp <- function(route, information_multiplier = 1, seed = NULL) {
+  if (!route %in% c("beta_binomial", "cumulative_logit") || !information_multiplier %in% c(.5, 1, 2)) {
+    stop("Unsupported T4 route or information multiplier.", call. = FALSE)
+  }
+  defaults <- c(beta_binomial = 2026071421L, cumulative_logit = 2026071422L)
+  use_g3_seed <- is.null(seed); if (use_g3_seed) seed <- defaults[[route]]; set.seed(seed)
+  if (route == "beta_binomial") {
+    n_id <- mr_g4g5_group_count(52L, 10L, information_multiplier); id <- factor(rep(seq_len(n_id), each = 10L)); n <- length(id)
+    data <- data.frame(id = id, x = rnorm(n), z = rnorm(n), trials = sample(18:34, n, replace = TRUE))
+    u <- rnorm(n_id, sd = .60); u <- u - mean(u)
+    mu <- plogis(-.25 + .65 * data$x + u[id]); sigma <- exp(-1.35 + .15 * data$z); phi <- 1/sigma^2
+    data$success <- rbinom(n, data$trials, rbeta(n, mu*phi, (1-mu)*phi)); data$failure <- data$trials - data$success
+    data <- mr_g4g5_mask_mcar(data, "success", if (use_g3_seed) defaults[[route]] else seed+1L)
+    data$failure[is.na(data$success)] <- NA_real_
+    truth <- c("fixef:mu:(Intercept)"=-.25,"fixef:mu:x"=.65,"fixef:sigma:(Intercept)"=-1.35,"fixef:sigma:z"=.15,"sd:mu:(1 | id)"=.60)
+  } else {
+    n <- as.integer(ceiling(900L * information_multiplier / 4) * 4); data <- data.frame(x = rnorm(n))
+    eta <- .85 * data$x; p1 <- plogis(-.90 - eta); p2 <- plogis(.75 - eta) - p1
+    draw <- vapply(seq_len(n), function(i) sample.int(3L, 1L, prob = c(p1[i], p2[i], 1-plogis(.75-eta[i]))), integer(1L))
+    data$score <- ordered(c("low","medium","high")[draw], levels = c("low","medium","high"))
+    data <- mr_g4g5_mask_mcar(data, "score", if (use_g3_seed) defaults[[route]] else seed+1L)
+    truth <- c("fixef:mu:x"=.85, "cutpoint:1"=-.90, "cutpoint:2"=.75)
+  }
+  list(data=data, truth=truth, information_multiplier=information_multiplier)
+}
+
+mr_g4g5_fit_t4 <- function(route, data) {
+  if (route == "beta_binomial") drmTMB(bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z), beta_binomial(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE))
+  else drmTMB(bf(score ~ x), cumulative_logit(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE))
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for
