@@ -9584,7 +9584,7 @@ validate_zero_one_beta_zoi_random_terms <- function(
   }
   unsupported <- vapply(
     terms,
-    function(term) !identical(term$type, "intercept") || !is.null(term$covariance_label),
+    function(term) !(term$type %in% c("intercept", "slope")) || !is.null(term$covariance_label),
     logical(1L)
   )
   if (any(unsupported) || length(terms) != 1L) {
