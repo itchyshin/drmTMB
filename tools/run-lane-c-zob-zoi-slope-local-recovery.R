@@ -28,5 +28,5 @@ ok <- if (all(c("convergence", "pdHess", "max_gradient", "boundary_hit", "mode_c
 
 fixed <- simulate_one(2026073899L, tau = 0)
 fixed_fit <- tryCatch(drmTMB::drmTMB(drmTMB::bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1), family = drmTMB::zero_one_beta(), data = fixed$data, control = drmTMB::drm_control(se = TRUE, optimizer = list(eval.max = 2000L, iter.max = 2000L))), error = identity)
-fixed_record <- if (inherits(fixed_fit, "error")) data.frame(status = "fit_error", decision = "BOUNDARY_DIAGNOSTIC_ONLY") else data.frame(status = "fit_ok", convergence = fixed_fit$opt$convergence, pdHess = isTRUE(fixed_fit$sdr$pdHess), tau_hat = unname(fixed_fit$sdpars$zoi[["(0 + x | id)"]]), decision = "BOUNDARY_DIAGNOSTIC_ONLY")
+fixed_record <- if (inherits(fixed_fit, "error")) data.frame(source_sha = sha, runner_md5 = md5, status = "fit_error", decision = "BOUNDARY_DIAGNOSTIC_ONLY") else data.frame(source_sha = sha, runner_md5 = md5, status = "fit_ok", convergence = fixed_fit$opt$convergence, pdHess = isTRUE(fixed_fit$sdr$pdHess), tau_hat = unname(fixed_fit$sdpars$zoi[["(0 + x | id)"]]), decision = "BOUNDARY_DIAGNOSTIC_ONLY")
 write_tsv(fixed_record, file.path(out, "fixed-zoi-slope-boundary-diagnostic.tsv"))
