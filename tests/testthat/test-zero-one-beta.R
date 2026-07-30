@@ -617,7 +617,30 @@ test_that("zero-one-beta admits only the exact sigma random-slope q1 gate", {
   d <- data.frame(y, x, id)
   fit <- drmTMB(bf(y ~ x, sigma ~ x + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
   expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "(0 + x | id)")
+  target <- profile_targets(fit)
+  target <- target[target$parm == "sd:sigma:(0 + x | id)", , drop = FALSE]
+  expect_equal(nrow(target), 1L)
+  expect_identical(target$tmb_parameter, "log_sd_sigma")
+  expect_identical(target$target_type, "direct")
+  expect_identical(target$profile_ready, FALSE)
+  expect_identical(target$profile_note, "point_fit_only_zero_one_beta_sigma_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
+  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(
+    drm_profile_target_endpoint_confint = function(...) {
+      endpoint_called <<- TRUE
+      stop("endpoint profile must not start", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
+  expect_false(endpoint_called)
+  expect_identical(endpoint$conf.status, "profile_failed")
+  expect_match(endpoint$profile.message, "endpoint engine unsupported")
   expect_error(drmTMB(bf(y ~ x, sigma ~ x + z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ x + (1 | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "requires")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
   probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_random_intercept_nll(fit, obj$env$parList(v))
