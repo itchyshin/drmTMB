@@ -3873,7 +3873,14 @@ Type objective_function<Type>::operator()()
       for (int i = 0; i < y.size(); ++i) {
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
-          eta_mu(i) += phylo_mu_value(i, k) * u_phylo(effect_index);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          if (phylo_mu_dpar(k) == 0) {
+            eta_mu(i) += contribution;
+          } else if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            error("Unsupported zero-inflated NB2 structured endpoint code");
+          }
         }
       }
       Type quadratic = Type(0.0);

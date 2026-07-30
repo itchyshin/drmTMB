@@ -6886,6 +6886,7 @@ drm_build_nbinom2_spec <- function(
     mu_terms = mu_re$terms,
     mu_structured_term = mu_structured_term,
     has_zi = !is.null(zi_entry),
+    zi_intercept_only = is.null(zi_entry) || is_intercept_one(zi_entry$rhs),
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -6895,6 +6896,13 @@ drm_build_nbinom2_spec <- function(
     structured_term = mu_structured_term,
     has_zi = !is.null(zi_entry)
   )
+
+  if (!is.null(zi_entry) && !is.null(sigma_structured_term) && include_missing_response) {
+    cli::cli_abort(c(
+      "Zero-inflated NB2 {.code sigma ~ phylo_interaction()} is implemented only for complete responses.",
+      "i" = "Missing-response masking remains outside this point-fit-only route."
+    ))
+  }
 
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
@@ -9061,6 +9069,7 @@ validate_count_structured_sigma_term <- function(
   mu_terms,
   mu_structured_term = NULL,
   has_zi = FALSE,
+  zi_intercept_only = TRUE,
   family_label,
   inflated_label
 ) {
@@ -9078,11 +9087,14 @@ validate_count_structured_sigma_term <- function(
     relmat = "relmat(1 + x | id, Q = Q)",
     paste0(marker, "(1 + x | id, ...)")
   )
-  if (isTRUE(has_zi)) {
+  allow_zi_phylo_interaction <- isTRUE(has_zi) &&
+    isTRUE(zi_intercept_only) &&
+    identical(marker, "phylo_interaction")
+  if (isTRUE(has_zi) && !allow_zi_phylo_interaction) {
     cli::cli_abort(c(
       "{family_label} structured {.code sigma} effects are implemented only for ordinary {family_label} models.",
       "x" = "{inflated_label} structured scale effects are planned but not implemented.",
-      "i" = "Fit {.code bf(count ~ x, sigma ~ {example})} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured-scale recovery tests exist."
+      "i" = "Only the exact {.code zi ~ 1} plus unlabelled q1 {.code phylo_interaction()} sigma gate is implemented for zero-inflated {family_label}."
     ))
   }
   if (length(mu_terms) > 0L || !is.null(mu_structured_term)) {
