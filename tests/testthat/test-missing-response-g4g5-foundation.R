@@ -28,6 +28,18 @@ test_that("Gaussian G3 fixture retains its MCAR and target contract at all rungs
   }
 })
 
+test_that("T1 random-intercept fixtures preserve route-specific G3 shapes", {
+  source_missing_response_g4g5()
+  for (route in c("poisson", "nbinom2", "beta")) {
+    case <- mr_g4g5_t1_ri_dgp(route, information_multiplier = 0.5)
+    response <- if (route == "beta") "prop" else "count"
+    expect_equal(mean(is.na(case$data[[response]])), 0.25, info = route)
+    expect_equal(nlevels(case$data$id), 24L, info = route)
+    expect_true("sd:mu:(1 | id)" %in% names(case$truth), info = route)
+    expect_identical("fixef:sigma:z" %in% names(case$truth), route != "poisson", info = route)
+  }
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))

@@ -121,6 +121,69 @@ mr_g4g5_fit_gaussian <- function(data) {
   )
 }
 
+# Remaining MR-T1 univariate random-intercept DGPs. These retain the G3
+# family parameterizations and use only the number of groups for information
+# scaling, preserving within-group replication.
+mr_g4g5_t1_ri_dgp <- function(route, information_multiplier = 1, seed = NULL) {
+  if (!route %in% c("poisson", "nbinom2", "beta")) {
+    stop("`route` must be poisson, nbinom2, or beta.", call. = FALSE)
+  }
+  if (!information_multiplier %in% c(0.5, 1, 2)) {
+    stop("T1 information multiplier must be 0.5, 1, or 2.", call. = FALSE)
+  }
+  defaults <- c(poisson = 2026071106L, nbinom2 = 2026071108L, beta = 2026071110L)
+  use_g3_seed <- is.null(seed)
+  if (use_g3_seed) seed <- defaults[[route]]
+  set.seed(seed)
+  n_id <- as.integer(48L * information_multiplier)
+  n_each <- 12L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  data <- data.frame(id = id, x = rnorm(length(id)))
+  if (route != "poisson") data$z <- rnorm(length(id))
+  spec <- switch(route,
+    poisson = list(mu = c(0.35, -0.30), sd = 0.55, mask_seed = 2026071107L),
+    nbinom2 = list(mu = c(0.35, -0.25), sigma = c(-0.70, 0.20), sd = 0.45, mask_seed = 2026071109L),
+    beta = list(mu = c(-0.30, 0.70), sigma = c(-0.85, 0.16), sd = 0.55, mask_seed = 2026071111L)
+  )
+  u <- rnorm(n_id, sd = spec$sd)
+  if (route %in% c("poisson", "beta")) u <- u - mean(u)
+  eta <- spec$mu[[1L]] + spec$mu[[2L]] * data$x + u[id]
+  if (route == "poisson") {
+    data$count <- rpois(nrow(data), exp(eta))
+    response <- "count"
+  } else {
+    sigma <- exp(spec$sigma[[1L]] + spec$sigma[[2L]] * data$z)
+    if (route == "nbinom2") {
+      data$count <- rnbinom(nrow(data), size = 1 / sigma^2, mu = exp(eta))
+      response <- "count"
+    } else {
+      mu <- plogis(eta)
+      phi <- 1 / sigma^2
+      data$prop <- rbeta(nrow(data), mu * phi, (1 - mu) * phi)
+      response <- "prop"
+    }
+  }
+  mask_seed <- if (use_g3_seed) spec$mask_seed else as.integer(seed + 1L)
+  data <- mr_g4g5_mask_mcar(data, response, seed = mask_seed, group = "id")
+  truth <- c("fixef:mu:(Intercept)" = spec$mu[[1L]], "fixef:mu:x" = spec$mu[[2L]])
+  if (!is.null(spec$sigma)) {
+    truth <- c(truth, "fixef:sigma:(Intercept)" = spec$sigma[[1L]], "fixef:sigma:z" = spec$sigma[[2L]])
+  }
+  truth <- c(truth, "sd:mu:(1 | id)" = spec$sd)
+  list(data = data, truth = truth, information_multiplier = information_multiplier)
+}
+
+mr_g4g5_fit_t1_ri <- function(route, data) {
+  switch(route,
+    poisson = drmTMB(bf(count ~ x + (1 | id)), poisson(), data,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)),
+    nbinom2 = drmTMB(bf(count ~ x + (1 | id), sigma ~ z), nbinom2(), data,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)),
+    beta = drmTMB(bf(prop ~ x + (1 | id), sigma ~ z), beta(), data,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  )
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for
