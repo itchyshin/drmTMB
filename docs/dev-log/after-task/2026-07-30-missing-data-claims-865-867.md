@@ -36,6 +36,10 @@ Searched `README.md`, `ROADMAP.md`, `NEWS.md`, `docs/dev-log/known-limitations.m
 
 The branch is committed and pushed. GitHub issue comments/closures and pull-request creation are pending because this session's GitHub credentials are invalid. PR #869 remains a separate documentation-only cross-package brief.
 
+Mission Control was updated in the local Shinichi vault at commit `73f3317` to
+record this R claim closeout as the current user-directed lane while retaining
+Lane C as the unchanged capability source.
+
 ## What Did Not Go Smoothly
 
 The first strict CRAN-style check stopped before package validation because `palmerpenguins` is unavailable locally. The no-force-suggests check completed and exercised installation, generated documentation, examples, the CRAN-safe test subset, and vignette rebuilding.
