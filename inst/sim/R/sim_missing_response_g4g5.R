@@ -308,9 +308,13 @@ mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2
   filtered <- filtered[vapply(filtered, nrow, integer(1L)) > 0L]
   # The all-route guard is intentionally bypassed only here: G5 is permitted
   # cohort-by-cohort, but never for a target that failed G4.
-  all_targets <- do.call(rbind, filtered)
-  all_targets$information_rung <- rep(c("0.5x", "1x", "2x"), each = nrow(all_targets))
-  all_targets$information_multiplier <- rep(c(0.5, 1, 2), each = nrow(all_targets))
+  passed_targets <- do.call(rbind, filtered)
+  all_targets <- do.call(rbind, lapply(c(0.5, 1, 2), function(rung) {
+    out <- passed_targets
+    out$information_rung <- paste0(rung, "x")
+    out$information_multiplier <- rung
+    out
+  }))
   all_targets$cell_id <- sprintf("mr_g5_%04d", seq_len(nrow(all_targets)))
   seeds <- mr_g4g5_seed_table(all_targets, n_rep = 1200L, master_seed = master_seed)
   list(cells = all_targets, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
