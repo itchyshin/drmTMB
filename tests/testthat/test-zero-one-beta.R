@@ -473,10 +473,24 @@ test_that("zero-one-beta admits only the exact animal Ainv q1 sigma gate", {
   boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi); d <- data.frame(y, x, species)
   fit <- drmTMB(bf(y ~ x, sigma ~ animal(1 | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
   expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "animal(1 | species)"); expect_named(ranef(fit, "animal_sigma")$terms, "animal(1 | species)")
-  target <- subset(profile_targets(fit), parm == "sd:sigma:animal(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_animal_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:animal(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_animal_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(
+    drm_profile_target_endpoint_confint = function(...) {
+      endpoint_called <<- TRUE
+      stop("endpoint profile must not start", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
+  expect_false(endpoint_called)
+  expect_identical(endpoint$conf.status, "profile_failed")
   expect_error(drmTMB(bf(y ~ x, sigma ~ animal(1 + x | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
   expect_error(drmTMB(bf(y ~ x + animal(1 | species, Ainv = Ainv), sigma ~ animal(1 | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ animal(1 | species, A = solve(Ainv)), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "Ainv")
+  pedigree <- data.frame(id = labels, dam = NA_character_, sire = NA_character_)
+  expect_error(drmTMB(bf(y ~ x, sigma ~ animal(1 | species, pedigree = pedigree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "Ainv")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE); probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_animal_nll(fit, obj$env$parList(v), Ainv, d$species)
   expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8); expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
   i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2; expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
