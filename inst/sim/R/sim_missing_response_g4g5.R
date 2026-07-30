@@ -24,18 +24,44 @@ mr_g4g5_route_manifest <- function() {
       "global", "global", "global", "global", "global", "global", "global",
       "global", "global", "within_group", "global", "global", "global"
     ),
+    g3_source = c(
+      "test-missing-response-recovery.R", "test-missing-response-recovery.R",
+      "test-missing-response-recovery.R", "test-missing-response-recovery.R",
+      "test-missing-response-recovery.R", "test-missing-response-binomial.R",
+      "test-missing-response-continuous.R", "test-missing-response-continuous.R",
+      "test-missing-response-continuous.R", "test-missing-response-continuous.R",
+      "test-missing-response-boundary.R", "test-missing-response-boundary.R",
+      "test-missing-response-encoded.R", "test-missing-response-encoded.R",
+      "test-missing-response-truncated-nbinom2.R", "test-missing-response-count-mixtures.R",
+      "test-missing-response-count-mixtures.R", "test-missing-response-count-mixtures.R"
+    ),
+    base_information = c(
+      "36_id_x_12", "60_id_x_8", "48_id_x_12", "48_id_x_12", "48_id_x_12",
+      "4000", "40_id_x_10", "36_id_x_9", "42_id_x_10", "360", "1600", "500",
+      "900", "52_id_x_10", "34_id_x_8", "1800", "1800", "1800"
+    ),
+    g3_mask_seed = c(
+      2026071102L, 2026071104L, 2026071107L, 2026071109L, 2026071111L, 202L,
+      2026071221L, 2026071222L, 2026071223L, 2026071231L, 2026071322L, 2026071321L,
+      2026071422L, 2026071421L, 2026071506L, 2026071609L, 2026071627L, 2026071650L
+    ),
     stringsAsFactors = FALSE
   )
 }
 
 mr_g4g5_validate_manifest <- function(manifest = mr_g4g5_route_manifest()) {
-  required <- c("route_id", "tranche", "g3_evidence_id", "mask_design")
+  required <- c("route_id", "tranche", "g3_evidence_id", "mask_design", "g3_source",
+    "base_information", "g3_mask_seed")
   if (!is.data.frame(manifest) || !all(required %in% names(manifest))) {
     stop("Missing-response manifest must contain the required route fields.", call. = FALSE)
   }
   if (nrow(manifest) != 18L || anyDuplicated(manifest$route_id) ||
       any(!nzchar(manifest$route_id)) || any(!grepl("^ev-mr-.*-g3$", manifest$g3_evidence_id))) {
     stop("Missing-response manifest must contain exactly 18 unique G3 routes.", call. = FALSE)
+  }
+  if (any(!grepl("^test-missing-response-.*\\.R$", manifest$g3_source)) ||
+      any(!nzchar(manifest$base_information)) || any(!is.finite(manifest$g3_mask_seed))) {
+    stop("Missing-response manifest must retain a G3 source, size, and mask seed.", call. = FALSE)
   }
   invisible(manifest)
 }

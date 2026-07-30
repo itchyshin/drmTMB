@@ -11,6 +11,8 @@ test_that("the missing-response manifest freezes all 18 G3 routes", {
   expect_equal(nrow(manifest), 18L)
   expect_true("biv_gaussian" %in% manifest$route_id)
   expect_identical(manifest$mask_design[manifest$route_id == "biv_gaussian"], "paired_within_group")
+  expect_true(all(grepl("^test-missing-response-", manifest$g3_source)))
+  expect_true(all(nzchar(manifest$base_information)))
 })
 
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
