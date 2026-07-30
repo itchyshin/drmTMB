@@ -417,6 +417,21 @@ mr_g4g5_materialise_target_manifest <- function(route_id, information_multiplier
   list(fit = fit, manifest = mr_g4_target_manifest(route_id, profile_targets(fit), fixture$truth))
 }
 
+mr_g4_run_route <- function(route_id, information_multiplier = 1, seed = NULL, replicate = 1L, trace = TRUE) {
+  fixture <- mr_g4g5_route_fixture(route_id, information_multiplier, seed)
+  fit <- mr_g4g5_route_fit(route_id, fixture$data)
+  manifest <- mr_g4_target_manifest(route_id, profile_targets(fit), fixture$truth)
+  records <- mr_g4_run_target_manifest(fit, manifest, replicate = replicate, trace = trace)
+  response <- if (route_id == "biv_gaussian") c("y1", "y2") else if (route_id == "beta") "prop" else if (route_id == "binomial") "y" else if (route_id == "cumulative_logit") "score" else "count"
+  if (route_id %in% c("gaussian","student","lognormal","gamma","skew_normal","tweedie","zero_one_beta")) response <- "y"
+  mask_count <- if (length(response) == 1L) sum(is.na(fixture$data[[response]])) else sum(is.na(fixture$data[[response[[1L]]]]) | is.na(fixture$data[[response[[2L]]]]))
+  records$information_multiplier <- information_multiplier
+  records$information_rung <- paste0(information_multiplier, "x")
+  records$mask_fraction <- 0.25
+  records$mask_any_response_rows <- mask_count
+  records
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for

@@ -110,6 +110,11 @@ test_that("every G3 route materializes an exact canonical target manifest", {
   expect_equal(length(manifests),18L);expect_true(all(vapply(manifests,function(x){mr_g4_validate_target_manifest(x);TRUE},logical(1))))
 })
 
+test_that("route-level G4 run retains a record for every Gaussian target", {
+  source_missing_response_g4g5(); out<-mr_g4_run_route("gaussian",.5,trace=FALSE)
+  expect_equal(nrow(out),5L);expect_true(all(out$information_rung=="0.5x"));expect_true(all(out$mask_fraction==.25))
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))
