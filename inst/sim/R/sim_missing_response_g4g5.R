@@ -233,3 +233,74 @@ mr_g5_summarise_attempts <- function(records, by = c("route_id", "parm", "inform
   row.names(out) <- NULL
   out
 }
+
+# Build the deterministic G4/G5 task registry only after all route-specific
+# target manifests are frozen.  The registry is a plan, not evidence: G5
+# callers must pass only rows whose G4 records pass.
+mr_g4g5_task_registry <- function(target_manifests, information_rungs = c(0.5, 1, 2),
+                                  n_rep = 1L, master_seed = 2026073001L) {
+  routes <- mr_g4g5_route_manifest()
+  if (!is.list(target_manifests) || is.null(names(target_manifests)) ||
+      !setequal(names(target_manifests), routes$route_id)) {
+    stop("`target_manifests` must contain one frozen manifest for every one of the 18 routes.", call. = FALSE)
+  }
+  if (!is.numeric(information_rungs) || !identical(information_rungs, c(0.5, 1, 2))) {
+    stop("Information rungs must be exactly 0.5, 1, and 2 times the G3 design.", call. = FALSE)
+  }
+  if (!is.numeric(n_rep) || length(n_rep) != 1L || n_rep < 1L || n_rep != as.integer(n_rep)) {
+    stop("`n_rep` must be one positive whole number.", call. = FALSE)
+  }
+  targets <- do.call(rbind, lapply(target_manifests, function(x) {
+    mr_g4_validate_target_manifest(x)
+    x
+  }))
+  targets <- merge(targets, routes, by = "route_id", all.x = TRUE, sort = FALSE)
+  cells <- do.call(rbind, lapply(information_rungs, function(rung) {
+    out <- targets
+    out$information_rung <- paste0(rung, "x")
+    out$information_multiplier <- rung
+    out
+  }))
+  cells$cell_id <- sprintf("mr_g4g5_%04d", seq_len(nrow(cells)))
+  set.seed(master_seed)
+  seeds <- data.frame(
+    cell_id = rep(cells$cell_id, each = n_rep),
+    cell_index = rep(seq_len(nrow(cells)), each = n_rep),
+    replicate = rep(seq_len(n_rep), times = nrow(cells)),
+    seed = sample.int(.Machine$integer.max, nrow(cells) * n_rep),
+    stringsAsFactors = FALSE
+  )
+  list(cells = cells, seeds = seeds, n_rep = as.integer(n_rep), master_seed = master_seed)
+}
+
+mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2026073002L) {
+  required <- c("route_id", "parm", "g4_pass")
+  if (!is.data.frame(g4_records) || !all(required %in% names(g4_records))) {
+    stop("`g4_records` must include route, parameter, and pass fields.", call. = FALSE)
+  }
+  passed <- g4_records[g4_records$g4_pass %in% TRUE, c("route_id", "parm"), drop = FALSE]
+  if (nrow(passed) == 0L) {
+    stop("No G4-passing targets are eligible for G5.", call. = FALSE)
+  }
+  filtered <- lapply(target_manifests, function(x) {
+    keep <- paste(x$route_id, x$parm, sep = "\r") %in%
+      paste(passed$route_id, passed$parm, sep = "\r")
+    x[keep, , drop = FALSE]
+  })
+  filtered <- filtered[vapply(filtered, nrow, integer(1L)) > 0L]
+  # The all-route guard is intentionally bypassed only here: G5 is permitted
+  # cohort-by-cohort, but never for a target that failed G4.
+  all_targets <- do.call(rbind, filtered)
+  all_targets$information_rung <- rep(c("0.5x", "1x", "2x"), each = nrow(all_targets))
+  all_targets$information_multiplier <- rep(c(0.5, 1, 2), each = nrow(all_targets))
+  all_targets$cell_id <- sprintf("mr_g5_%04d", seq_len(nrow(all_targets)))
+  set.seed(master_seed)
+  seeds <- data.frame(
+    cell_id = rep(all_targets$cell_id, each = 1200L),
+    cell_index = rep(seq_len(nrow(all_targets)), each = 1200L),
+    replicate = rep(seq_len(1200L), times = nrow(all_targets)),
+    seed = sample.int(.Machine$integer.max, nrow(all_targets) * 1200L),
+    stringsAsFactors = FALSE
+  )
+  list(cells = all_targets, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
+}

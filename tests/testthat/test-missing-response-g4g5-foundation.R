@@ -92,3 +92,18 @@ test_that("G4 runner writes one retained record per canonical Gaussian target", 
   expect_true(all(out$interval_method == "profile"))
   expect_true(all(out$conf.status %in% c("profile", "profile_failed", "clamp_limited")))
 })
+
+test_that("G4 task registry requires all routes and fixes the three information rungs", {
+  source_missing_response_g4g5()
+  routes <- mr_g4g5_route_manifest()$route_id
+  target_manifests <- setNames(lapply(routes, function(route) {
+    data.frame(route_id = route, parm = "fixef:mu:x", truth = 0.2,
+      target_class = "fixed-effect", dpar = "mu", scale = "link",
+      profile_ready = TRUE, interval_method = "profile", conf.level = 0.95)
+  }), routes)
+  registry <- mr_g4g5_task_registry(target_manifests, n_rep = 2L)
+  expect_equal(nrow(registry$cells), 18L * 3L)
+  expect_equal(nrow(registry$seeds), 18L * 3L * 2L)
+  expect_setequal(registry$cells$information_rung, c("0.5x", "1x", "2x"))
+  expect_error(mr_g4g5_task_registry(target_manifests[-1L]), "18 routes")
+})
