@@ -207,22 +207,25 @@ likelihood weights, random effects, direct-SD formulas, structured effects,
 known sampling covariance, bivariate models, non-Gaussian families, and
 combined sparse fixed-effect matrices before TMB is called.
 
-## Univariate Gaussian Response Masks
+## Observed-Response Masks
 
-When `missing = miss_control(response = "include")` is used for a univariate
-Gaussian model, the R builder keeps rows with missing response values only after
-it has verified that all predictors, grouping variables, structured-effect
-inputs, likelihood weights, and known sampling variances needed for retained
-rows are complete. It then stores:
+`missing = miss_control(response = "include")` uses an observed-response mask
+for every current univariate fitted response route. The R builder keeps a row
+with a missing response only after it has verified that all predictors,
+grouping variables, structured-effect inputs, likelihood weights, and known
+sampling variances needed for retained rows are complete. It then stores:
 
 ```text
 observed_y_i = 1 if y_i is observed
 observed_y_i = 0 if y_i is missing
 ```
 
-Missing responses are replaced by an internal finite sentinel after
-`observed_y` has been recorded. The sentinel is an implementation detail and is
-not part of the statistical model.
+Missing responses are replaced by a route-specific internal finite sentinel
+after `observed_y` has been recorded. The sentinel is an implementation detail
+and is not part of the statistical model. Bivariate Gaussian partial-response
+rows are a separate route: one observed response uses its marginal Gaussian
+density, while a row with both responses missing contributes zero response
+likelihood.
 
 For independent-row Gaussian likelihoods, the MD1 TMB branch evaluates:
 
@@ -450,8 +453,8 @@ log L_i =
 
 This is the same finite-state observed-data idea as MD6a, but the response term
 is the Poisson count density. The Poisson response must be observed in MD9a:
-`miss_control(response = "include")` is still limited to Gaussian response
-models. The route rejects zero-inflated Poisson formulas, Poisson response
+At the MD9a historical checkpoint, `miss_control(response = "include")` was
+limited to Gaussian response models. The route then rejected zero-inflated Poisson formulas, Poisson response
 random effects, structured Poisson response terms, non-binary missing predictor
 families, and ordinary missing predictors outside the explicit `mi()` term.
 

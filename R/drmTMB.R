@@ -106,10 +106,12 @@
 #'   non-Gaussian response route also supports `family = poisson()` with one
 #'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
-#'   keeps the existing complete-case behaviour. In the current fitted slices,
-#'   `missing = miss_control(response = "include")` is implemented only for
-#'   univariate Gaussian response masks and bivariate Gaussian partial-response
-#'   rows without dense known covariance. `missing =
+#'   keeps the existing complete-case behaviour; for bivariate Gaussian fits, a
+#'   row with either response missing is omitted. In the current fitted slices,
+#'   `missing = miss_control(response = "include")` is implemented for every
+#'   current univariate fitted response route and bivariate Gaussian
+#'   partial-response rows without dense known covariance. Missing responses
+#'   contribute no direct response likelihood. `missing =
 #'   miss_control(predictor = "model")` is implemented for one `mi()`
 #'   missing predictor in a univariate Gaussian location model: numeric
 #'   Gaussian predictors may use a
@@ -294,7 +296,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, and the non-hurdle {.fn truncated_nbinom2} route.",
+      "x" = "Missing-response masking is currently validated for the current documented response-mask routes; see {.code vignette(\"missing-data\")} for the route-specific inventory and boundaries.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }

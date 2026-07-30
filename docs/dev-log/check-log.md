@@ -91702,3 +91702,11 @@ Shinichi grants a separate Gate A compute approval.
   changed. See
   `docs/dev-log/2026-07-29-arc6-f4r-completion-review.md` and
   `docs/dev-log/after-task/2026-07-29-arc6-f4r-completion-review.md`.
+## 2026-07-30: Missing-data R claim reconciliation (#865–#867)
+
+- Isolated `codex/missing-data-claims-865-867` from `origin/main` at `aa599095f`; PR #869 is a separate documentation-only brief and was not modified.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::document()'` completed after Roxygen changes.
+- Focused `missing-(data-control|response-biv-gaussian|response-family-gate|data-capability-gate)` tests passed: 99 expectations, 0 failures, 0 warnings, 0 skips.
+- `R_PROFILE_USER=/dev/null R CMD build .` completed. The no-force-suggests installed-package check `NOT_CRAN=false _R_CHECK_FORCE_SUGGESTS_=false R CMD check --as-cran --no-manual drmTMB_0.6.0.tar.gz` completed with two pre-existing/environmental notes: unavailable optional `palmerpenguins` and `utils::head` missing from the namespace import list.
+- `pkgdown::check_pkgdown()` is blocked before this arc's pages by the existing `_pkgdown.yml` omission for `predict.drm_pair_association`; this arc does not own that navigation repair.
+- Rose's claim audit required and then verified reconciliation of the current 18-route response-mask inventory, the unsupported-family message, and the historical 0.5.0 wording. Full source-suite completion and GitHub closeout remain pending the final branch commit.

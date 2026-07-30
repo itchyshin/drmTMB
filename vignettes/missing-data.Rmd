@@ -126,7 +126,9 @@ miss_control()
 ```
 
 Use `missing = miss_control(response = "include")` when you want supported
-missing responses retained in the fitted object. Use
+missing responses retained in the fitted object; they contribute no direct
+response likelihood. The default `response = "drop"` removes a bivariate
+Gaussian row when either response is missing. Use
 `missing = miss_control(predictor = "model")` only when the response formula
 contains one supported `mi()` term and `impute` supplies the corresponding
 predictor model.
