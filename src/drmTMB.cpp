@@ -369,6 +369,10 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(sigma_re_pair_index);
   DATA_IVECTOR(sigma_re_cross_cor);
   DATA_IVECTOR(sigma_re_cross_mu);
+  DATA_INTEGER(n_zoi_re_terms);
+  DATA_IMATRIX(zoi_re_index);
+  DATA_MATRIX(zoi_re_value);
+  DATA_IVECTOR(zoi_re_term);
   DATA_INTEGER(has_phylo_mu);
   DATA_IVECTOR(phylo_mu_sd_row);
   DATA_IVECTOR(phylo_mu_node_index);
@@ -444,6 +448,8 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(eta_cor_sigma);
   PARAMETER_VECTOR(u_sigma);
   PARAMETER_VECTOR(log_sd_sigma);
+  PARAMETER_VECTOR(u_zoi);
+  PARAMETER_VECTOR(log_sd_zoi);
   PARAMETER_VECTOR(u_phylo);
   PARAMETER_VECTOR(u_re_cov);
   PARAMETER_VECTOR(log_sd_re_cov);
@@ -3029,6 +3035,24 @@ Type objective_function<Type>::operator()()
       REPORT(sd_sigma_re);
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
+    }
+    if (n_zoi_re_terms > 0) {
+      vector<Type> sd_zoi_re = exp(log_sd_zoi);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_zoi_re_terms; ++j) {
+          int idx = zoi_re_index(i, j);
+          eta_zoi(i) +=
+            zoi_re_value(i, j) * sd_zoi_re(zoi_re_term(idx)) * u_zoi(idx);
+        }
+      }
+      for (int j = 0; j < u_zoi.size(); ++j) {
+        nll -= dnorm(u_zoi(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_zoi);
+      REPORT(log_sd_zoi);
+      REPORT(sd_zoi_re);
+      ADREPORT(log_sd_zoi);
+      ADREPORT(sd_zoi_re);
     }
     if (has_phylo_mu == 1) {
       int n_phylo = Q_phylo.rows();

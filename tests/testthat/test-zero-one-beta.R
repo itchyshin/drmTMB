@@ -150,6 +150,30 @@ new_zero_one_beta_sigma_random_intercept_data <- function(
   )
 }
 
+new_zero_one_beta_zoi_random_intercept_data <- function(
+  seed = 2026073501L,
+  n_id = 32L,
+  n_each = 50L,
+  sd_zoi = 0.45
+) {
+  set.seed(seed)
+  id <- factor(rep(paste0("id", seq_len(n_id)), each = n_each))
+  x <- stats::rnorm(length(id))
+  u_zoi <- stats::rnorm(n_id)
+  names(u_zoi) <- levels(id)
+  mu <- stats::plogis(-0.15 + 0.35 * x)
+  sigma <- exp(-1.0)
+  zoi <- stats::plogis(-1.15 + sd_zoi * u_zoi[as.character(id)])
+  coi <- stats::plogis(0.1)
+  boundary <- stats::rbinom(length(id), 1L, zoi)
+  y <- stats::rbeta(length(id), mu / sigma^2, (1 - mu) / sigma^2)
+  y[boundary == 1L] <- stats::rbinom(sum(boundary), 1L, coi)
+  list(
+    data = data.frame(y = y, x = x, id = id, id2 = factor(rep(seq_len(n_id), each = n_each))),
+    truth = list(sd_zoi = sd_zoi, u_zoi = u_zoi)
+  )
+}
+
 dense_zoib_phylo_precision <- function(tree) {
   n_tip <- length(tree$tip.label)
   n_total <- n_tip + tree$Nnode
@@ -280,6 +304,24 @@ zoib_sigma_random_intercept_nll <- function(fit, par) {
   coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   -sum(stats::dnorm(u_sigma, log = TRUE)) -
     sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
+}
+
+zoib_zoi_random_intercept_nll <- function(fit, par) {
+  d <- fit$model$tmb_data
+  u_zoi <- as.vector(par$u_zoi)
+  index <- d$zoi_re_index[, 1L] + 1L
+  term <- d$zoi_re_term[index] + 1L
+  eta_mu <- as.vector(d$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma)
+  eta_zoi <- as.vector(d$X_zi %*% par$beta_zoi) +
+    d$zoi_re_value[, 1L] * exp(par$log_sd_zoi[term]) * u_zoi[index]
+  eta_coi <- as.vector(d$X_nu %*% par$beta_coi)
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta_mu)
+  sigma <- exp(log_sigma)
+  -sum(stats::dnorm(u_zoi, log = TRUE)) -
+    sum(d$weights * dzoibeta_drm(
+      d$y, mu, sigma, stats::plogis(eta_zoi), stats::plogis(eta_coi), log = TRUE
+    ))
 }
 
 test_that("zero-one-beta admits the exact phylo q1 mu gate", {
@@ -566,6 +608,113 @@ test_that("zero-one-beta sigma random-intercept objective has independent oracle
   expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
 
+test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
+  sim <- new_zero_one_beta_zoi_random_intercept_data(n_id = 12L, n_each = 24L)
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
+    family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE)
+  )
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$random$zoi$n_terms, 1L)
+  expect_equal(fit$model$random$zoi$n_cors, 0L)
+  expect_named(fit$sdpars$zoi, "(1 | id)")
+  expect_named(ranef(fit, "zoi")$terms, "(1 | id)")
+  target <- profile_targets(fit)
+  target <- target[target$parm == "sd:zoi:(1 | id)", , drop = FALSE]
+  expect_equal(nrow(target), 1L)
+  expect_identical(target$tmb_parameter, "log_sd_zoi")
+  expect_identical(target$target_type, "direct")
+  expect_identical(target$profile_ready, FALSE)
+  expect_identical(target$profile_note, "point_fit_only_zero_one_beta_zoi_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
+  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(
+    drm_profile_target_endpoint_confint = function(...) {
+      endpoint_called <<- TRUE
+      stop("endpoint profile must not start", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
+  expect_false(endpoint_called)
+  expect_identical(endpoint$conf.status, "profile_failed")
+  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ 1 + (0 + x | id), coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "Only one independent"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | p | id), coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "Only one independent"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ x + (1 | id), coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "requires fixed"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ x), family = zero_one_beta(), data = sim$data),
+    "requires fixed"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + (1 | id), sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "cannot be combined"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1 + (1 | id), coi ~ 1), family = zero_one_beta(), data = sim$data),
+    "cannot be combined"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1 + (1 | id)), family = zero_one_beta(), data = sim$data),
+    "cannot be combined"
+  )
+  missing_data <- sim$data
+  missing_data$y[[1L]] <- NA_real_
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
+      family = zero_one_beta(), data = missing_data,
+      missing = miss_control(response = "include")
+    ),
+    "does not support missing responses"
+  )
+  tree <- ape::stree(12L, type = "star")
+  tree$edge.length <- rep(1, nrow(tree$edge))
+  tree$tip.label <- levels(sim$data$id)
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, zoi ~ phylo(1 | id, tree = tree), coi ~ 1),
+      family = zero_one_beta(), data = sim$data
+    ),
+    "Structured-effect syntax"
+  )
+})
+
+test_that("zero-one-beta zoi random-intercept objective has independent oracle and gradient", {
+  sim <- new_zero_one_beta_zoi_random_intercept_data(n_id = 12L, n_each = 24L)
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
+    family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = fit$model$start,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.025, 0.025, length.out = length(obj$par))
+  oracle_fn <- function(x) zoib_zoi_random_intercept_nll(fit, obj$env$parList(x))
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(
+    as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe),
+    tolerance = 2e-5
+  )
+  i <- which(names(probe) == "log_sd_zoi")
+  expect_length(i, 1L)
+  changed <- probe
+  changed[[i]] <- changed[[i]] + 0.2
+  expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
+})
+
 test_that("drmTMB fits fixed-effect zero-one beta models", {
   sim <- new_zero_one_beta_data()
 
@@ -804,7 +953,7 @@ test_that("zero-one beta validates malformed and neighbouring inputs", {
       family = zero_one_beta(),
       data = dat
     ),
-    "Zero-one-inflation random effects"
+    "zoi random-intercept q1 gate"
   )
   expect_error(
     drmTMB(
