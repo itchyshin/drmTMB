@@ -93,6 +93,12 @@ test_that("T6 mixture fixtures retain all mixture-side target formulas", {
   }
 })
 
+test_that("route dispatcher resolves all 18 frozen G3 designs", {
+  source_missing_response_g4g5(); routes<-mr_g4g5_route_manifest()$route_id
+  cases<-lapply(routes,mr_g4g5_route_fixture,information_multiplier=.5)
+  expect_equal(length(cases),18L);expect_true(all(vapply(cases,function(x)is.data.frame(x$data)&&length(x$truth)>0,logical(1))))
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))

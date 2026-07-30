@@ -380,6 +380,18 @@ mr_g4g5_t6_dgp <- function(route, information_multiplier=1, seed=NULL) {
 
 mr_g4g5_fit_t6 <- function(route,data) switch(route,zi_poisson=drmTMB(bf(count~x+habitat,zi~z+habitat),poisson(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)),zi_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,zi~w+habitat),nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)),hurdle_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,hu~w+habitat),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)))
 
+mr_g4g5_route_fixture <- function(route_id, information_multiplier = 1, seed = NULL) {
+  if (!route_id %in% mr_g4g5_route_manifest()$route_id) stop("Unknown missing-response route.", call.=FALSE)
+  if (route_id == "gaussian") return(mr_g4g5_gaussian_g3_dgp(information_multiplier, if(is.null(seed))2026071101L else seed))
+  if (route_id == "biv_gaussian") return(mr_g4g5_biv_gaussian_g3_dgp(information_multiplier, if(is.null(seed))2026071103L else seed))
+  if (route_id %in% c("poisson","nbinom2","beta")) return(mr_g4g5_t1_ri_dgp(route_id,information_multiplier,seed))
+  if (route_id %in% c("student","lognormal","gamma","skew_normal")) return(mr_g4g5_t2_dgp(route_id,information_multiplier,seed))
+  if (route_id %in% c("tweedie","zero_one_beta")) return(mr_g4g5_t3_dgp(route_id,information_multiplier,seed))
+  if (route_id %in% c("beta_binomial","cumulative_logit")) return(mr_g4g5_t4_dgp(route_id,information_multiplier,seed))
+  if (route_id == "truncated_nbinom2") return(mr_g4g5_t5_dgp(information_multiplier,if(is.null(seed))2026071506L else seed))
+  mr_g4g5_t6_dgp(route_id,information_multiplier,seed)
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for
