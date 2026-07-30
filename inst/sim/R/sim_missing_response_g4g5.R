@@ -679,22 +679,39 @@ mr_g4_validate_campaign <- function(records, registry) {
   invisible(records)
 }
 
-mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE) {
+mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE,
+                               checkpoint_path = NULL) {
   if (is.null(registry)) registry <- mr_g4g5_task_registry(target_manifests)
   if (registry$n_rep != 1L) {
     stop("G4 execution uses one retained attempt per frozen target cell.", call. = FALSE)
   }
   cells <- registry$cells
   seed_lookup <- registry$seeds$seed[match(cells$cell_id, registry$seeds$cell_id)]
-  records <- do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {
+  records <- if (!is.null(checkpoint_path) && file.exists(checkpoint_path)) {
+    readRDS(checkpoint_path)
+  } else {
+    NULL
+  }
+  if (!is.null(records) && (!is.data.frame(records) || !all(c("route_id", "parm", "information_rung") %in% names(records)))) {
+    stop("G4 checkpoint must contain retained target records.", call. = FALSE)
+  }
+  key <- function(x) do.call(paste, c(x[c("route_id", "parm", "information_rung")], sep = "\r"))
+  for (i in seq_len(nrow(cells))) {
     cell <- cells[i, , drop = FALSE]
+    cell_key <- key(cell)
+    if (!is.null(records) && cell_key %in% key(records)) next
     route_manifest <- target_manifests[[cell$route_id]]
     target <- route_manifest[route_manifest$parm == cell$parm, , drop = FALSE]
-    mr_g4_run_route(
+    next_record <- mr_g4_run_route(
       route_id = cell$route_id, information_multiplier = cell$information_multiplier,
       seed = seed_lookup[[i]], replicate = 1L, trace = trace, target_manifest = target
     )
-  }))
+    records <- if (is.null(records)) next_record else rbind(records, next_record)
+    if (!is.null(checkpoint_path)) {
+      dir.create(dirname(checkpoint_path), recursive = TRUE, showWarnings = FALSE)
+      saveRDS(records, checkpoint_path)
+    }
+  }
   mr_g4_validate_campaign(records, registry)
   records
 }
