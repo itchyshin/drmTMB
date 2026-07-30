@@ -105,5 +105,6 @@ test_that("G4 task registry requires all routes and fixes the three information 
   expect_equal(nrow(registry$cells), 18L * 3L)
   expect_equal(nrow(registry$seeds), 18L * 3L * 2L)
   expect_setequal(registry$cells$information_rung, c("0.5x", "1x", "2x"))
+  expect_identical(registry$seeds$seed, mr_g4g5_task_registry(target_manifests, n_rep = 2L)$seeds$seed)
   expect_error(mr_g4g5_task_registry(target_manifests[-1L]), "18 routes")
 })

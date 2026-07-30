@@ -234,6 +234,31 @@ mr_g5_summarise_attempts <- function(records, by = c("route_id", "parm", "inform
   out
 }
 
+mr_g4g5_seed_table <- function(cells, n_rep, master_seed) {
+  old_seed <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+    get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  } else {
+    NULL
+  }
+  on.exit({
+    if (is.null(old_seed)) {
+      if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+        rm(list = ".Random.seed", envir = .GlobalEnv)
+      }
+    } else {
+      assign(".Random.seed", old_seed, envir = .GlobalEnv)
+    }
+  }, add = TRUE)
+  set.seed(master_seed)
+  data.frame(
+    cell_id = rep(cells$cell_id, each = n_rep),
+    cell_index = rep(seq_len(nrow(cells)), each = n_rep),
+    replicate = rep(seq_len(n_rep), times = nrow(cells)),
+    seed = sample.int(.Machine$integer.max, nrow(cells) * n_rep),
+    stringsAsFactors = FALSE
+  )
+}
+
 # Build the deterministic G4/G5 task registry only after all route-specific
 # target manifests are frozen.  The registry is a plan, not evidence: G5
 # callers must pass only rows whose G4 records pass.
@@ -262,14 +287,7 @@ mr_g4g5_task_registry <- function(target_manifests, information_rungs = c(0.5, 1
     out
   }))
   cells$cell_id <- sprintf("mr_g4g5_%04d", seq_len(nrow(cells)))
-  set.seed(master_seed)
-  seeds <- data.frame(
-    cell_id = rep(cells$cell_id, each = n_rep),
-    cell_index = rep(seq_len(nrow(cells)), each = n_rep),
-    replicate = rep(seq_len(n_rep), times = nrow(cells)),
-    seed = sample.int(.Machine$integer.max, nrow(cells) * n_rep),
-    stringsAsFactors = FALSE
-  )
+  seeds <- mr_g4g5_seed_table(cells, n_rep = n_rep, master_seed = master_seed)
   list(cells = cells, seeds = seeds, n_rep = as.integer(n_rep), master_seed = master_seed)
 }
 
@@ -294,13 +312,6 @@ mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2
   all_targets$information_rung <- rep(c("0.5x", "1x", "2x"), each = nrow(all_targets))
   all_targets$information_multiplier <- rep(c(0.5, 1, 2), each = nrow(all_targets))
   all_targets$cell_id <- sprintf("mr_g5_%04d", seq_len(nrow(all_targets)))
-  set.seed(master_seed)
-  seeds <- data.frame(
-    cell_id = rep(all_targets$cell_id, each = 1200L),
-    cell_index = rep(seq_len(nrow(all_targets)), each = 1200L),
-    replicate = rep(seq_len(1200L), times = nrow(all_targets)),
-    seed = sample.int(.Machine$integer.max, nrow(all_targets) * 1200L),
-    stringsAsFactors = FALSE
-  )
+  seeds <- mr_g4g5_seed_table(all_targets, n_rep = 1200L, master_seed = master_seed)
   list(cells = all_targets, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
 }
