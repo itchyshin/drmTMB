@@ -15,7 +15,7 @@ The source gate requires the fixed and random sigma predictors to be identical.
 
 ## Retained local result
 
-The source SHA is `1994ab65f4ad38f84b0f35e9a21891507b9f8af1` and the runner
+The source SHA is `4ca285784a76ba0e37c3087a9d005178d95987f5` and the runner
 MD5 is `70284a00126e106ec119ae2676945ff4`. The four fixed seeds in
 `raw-attempts.tsv` all converge with `pdHess = TRUE`, gradients at most 0.00477,
 finite non-boundary SD estimates, inactive scale clamp, nonzero zero/one atoms
