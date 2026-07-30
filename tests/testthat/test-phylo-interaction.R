@@ -713,6 +713,19 @@ test_that("zero-inflated NB2 sigma admits only the IID q1 control with a full or
   expect_length(sd_index, 1L)
   perturbed <- probe; perturbed[[sd_index]] <- perturbed[[sd_index]] + .25
   expect_gt(abs(full_obj$fn(perturbed) - full_obj$fn(probe)), 1e-5)
+  zi_index <- which(names(probe) == "beta_zi")
+  expect_length(zi_index, 1L)
+  for (zi_eta in c(-12, 12)) {
+    zi_probe <- probe
+    zi_probe[[zi_index]] <- zi_eta
+    zi_par <- full_obj$env$parList(zi_probe)
+    expect_true(is.finite(full_obj$fn(zi_probe)))
+    expect_equal(full_obj$fn(zi_probe), zi_nbinom2_sigma_iid_nll(fit, zi_par), tolerance = 1e-8)
+  }
+  near_zero_sd <- probe
+  near_zero_sd[[sd_index]] <- -12
+  near_zero_sd_par <- full_obj$env$parList(near_zero_sd)
+  expect_equal(full_obj$fn(near_zero_sd), zi_nbinom2_sigma_iid_nll(fit, near_zero_sd_par), tolerance = 1e-8)
 
   expect_error(
     drmTMB(bf(count ~ x, sigma ~ x + (1 | pair), zi ~ 1), family = nbinom2(), data = dat),
