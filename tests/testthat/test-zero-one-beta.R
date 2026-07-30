@@ -608,6 +608,23 @@ test_that("zero-one-beta sigma random-intercept objective has independent oracle
   expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
 
+test_that("zero-one-beta admits only the exact sigma random-slope q1 gate", {
+  set.seed(2026073701L)
+  id <- factor(rep(seq_len(12L), each = 30L)); x <- stats::rnorm(length(id)); u <- stats::rnorm(12L)
+  mu <- stats::plogis(.2 * x); sigma <- exp(-1 + .35 * u[id] * x); zoi <- stats::plogis(-.7); coi <- stats::plogis(.1)
+  boundary <- stats::rbinom(length(id), 1L, zoi); y <- stats::rbeta(length(id), mu / sigma^2, (1 - mu) / sigma^2)
+  y[boundary == 1L] <- stats::rbinom(sum(boundary), 1L, coi)
+  d <- data.frame(y, x, id)
+  fit <- drmTMB(bf(y ~ x, sigma ~ x + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
+  expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "(0 + x | id)")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ x + z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ x + (1 | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "requires")
+  obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_random_intercept_nll(fit, obj$env$parList(v))
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+})
+
 test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
   sim <- new_zero_one_beta_zoi_random_intercept_data(n_id = 12L, n_each = 24L)
   fit <- drmTMB(

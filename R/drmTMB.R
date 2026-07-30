@@ -5443,7 +5443,8 @@ drm_build_zero_one_beta_spec <- function(
     validate_zero_one_beta_sigma_q1_fixed_rhs(
       sigma_entry$rhs,
       zoi_entry$rhs,
-      coi_entry$rhs
+      coi_entry$rhs,
+      sigma_terms = sigma_re$terms
     )
   }
   if (length(zoi_re$terms) > 0L) {
@@ -9549,19 +9550,15 @@ validate_zero_one_beta_sigma_random_terms <- function(
       "i" = "Fit either {.code y ~ x + (1 | id)} or {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)} until joint recovery tests exist."
     ))
   }
-  unsupported <- vapply(
-    terms,
-    function(term) {
-      !identical(term$type, "intercept") || !is.null(term$covariance_label)
-    },
-    logical(1L)
-  )
+  unsupported <- vapply(terms, function(term) {
+    !(term$type %in% c("intercept", "slope")) || !is.null(term$covariance_label)
+  }, logical(1L))
   if (any(unsupported) || length(terms) != 1L) {
     labels <- vapply(terms, `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only one independent {.fn zero_one_beta} {.code sigma} random intercept is implemented in this q1 gate.",
+      "Only one independent {.fn zero_one_beta} {.code sigma} random intercept or slope is implemented in this q1 gate.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)} or the exact slope-only form {.code bf(y ~ x, sigma ~ x + (0 + x | id), zoi ~ 1, coi ~ 1)}.",
       "i" = "Zero-one-beta {.code sigma} slopes, labelled covariance blocks, structured scale effects, and cross-parameter covariance remain deferred until separate recovery tests exist."
     ))
   }
@@ -9610,14 +9607,16 @@ validate_zero_one_beta_coi_random_terms <- function(terms) {
   ))
 }
 
-validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs) {
+validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs, sigma_terms) {
+  is_slope <- identical(sigma_terms[[1L]]$type, "slope")
+  sigma_ok <- if (is_slope) length(all.vars(sigma_rhs)) == 1L else is_intercept_one(sigma_rhs)
   if (
-    !is_intercept_one(sigma_rhs) ||
+    !sigma_ok ||
       !is_intercept_one(zoi_rhs) ||
       !is_intercept_one(coi_rhs)
   ) {
     cli::cli_abort(c(
-      "The zero-one-beta sigma random-intercept q1 gate requires fixed {.code sigma ~ 1}, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
+      "The zero-one-beta sigma q1 gate requires fixed matching sigma, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
       "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
       "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}."
     ))
