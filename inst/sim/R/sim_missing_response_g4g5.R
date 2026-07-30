@@ -432,6 +432,15 @@ mr_g4_run_route <- function(route_id, information_multiplier = 1, seed = NULL, r
   records
 }
 
+mr_g4_write_records <- function(records, path) {
+  if (!is.data.frame(records) || nrow(records) == 0L || !all(c("route_id", "parm", "g4_pass") %in% names(records))) {
+    stop("G4 artifacts must be a non-empty target-record data frame.", call.=FALSE)
+  }
+  dir.create(dirname(path), recursive=TRUE, showWarnings=FALSE)
+  saveRDS(records, path)
+  invisible(normalizePath(path))
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for

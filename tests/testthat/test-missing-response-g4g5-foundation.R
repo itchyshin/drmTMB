@@ -115,6 +115,12 @@ test_that("route-level G4 run retains a record for every Gaussian target", {
   expect_equal(nrow(out),5L);expect_true(all(out$information_rung=="0.5x"));expect_true(all(out$mask_fraction==.25))
 })
 
+test_that("G4 artifact writer round-trips retained records", {
+  source_missing_response_g4g5(); p<-file.path(tempdir(),"mr-g4-records.rds")
+  x<-data.frame(route_id="gaussian",parm="fixef:mu:x",g4_pass=TRUE)
+  expect_true(file.exists(mr_g4_write_records(x,p)));expect_equal(readRDS(p),x)
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))
