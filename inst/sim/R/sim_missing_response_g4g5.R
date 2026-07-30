@@ -417,11 +417,58 @@ mr_g4g5_materialise_target_manifest <- function(route_id, information_multiplier
   list(fit = fit, manifest = mr_g4_target_manifest(route_id, profile_targets(fit), fixture$truth))
 }
 
-mr_g4_run_route <- function(route_id, information_multiplier = 1, seed = NULL, replicate = 1L, trace = TRUE) {
-  fixture <- mr_g4g5_route_fixture(route_id, information_multiplier, seed)
-  fit <- mr_g4g5_route_fit(route_id, fixture$data)
-  manifest <- mr_g4_target_manifest(route_id, profile_targets(fit), fixture$truth)
-  records <- mr_g4_run_target_manifest(fit, manifest, replicate = replicate, trace = trace)
+# Produce the immutable target contract before a campaign begins.  Later
+# information rungs use these exact names, scales, truths, and method choices;
+# no route is allowed to select a more convenient target after observing a fit.
+mr_g4g5_freeze_target_manifests <- function(information_multiplier = 1, seed = NULL) {
+  routes <- mr_g4g5_route_manifest()$route_id
+  out <- setNames(lapply(routes, function(route_id) {
+    mr_g4g5_materialise_target_manifest(route_id, information_multiplier, seed)$manifest
+  }), routes)
+  lapply(out, mr_g4_validate_target_manifest)
+  out
+}
+
+mr_g4_failure_records <- function(target_manifest, replicate = 1L, message,
+                                  failure_stage = "fit", trace = TRUE) {
+  mr_g4_validate_target_manifest(target_manifest)
+  out <- target_manifest
+  out$replicate <- as.integer(replicate)
+  out$target_scale <- out$scale
+  out$conf.low <- NA_real_
+  out$conf.high <- NA_real_
+  out$conf.status <- paste0(failure_stage, "_failed")
+  out$profile.boundary <- NA
+  out$profile.message <- as.character(message)
+  out$trace_requested <- as.logical(trace)
+  out$profile_trace <- NA_character_
+  out <- out[, c("route_id", "replicate", "parm", "truth", "conf.level",
+    "target_scale", "target_class", "profile_ready", "interval_method",
+    "conf.low", "conf.high", "conf.status", "profile.boundary",
+    "profile.message", "trace_requested", "profile_trace")]
+  do.call(rbind, lapply(seq_len(nrow(out)), function(i) mr_g4_validate_record(out[i, , drop = FALSE])))
+}
+
+mr_g4_run_route <- function(route_id, information_multiplier = 1, seed = NULL,
+                            replicate = 1L, trace = TRUE, target_manifest = NULL) {
+  fixture <- tryCatch(
+    mr_g4g5_route_fixture(route_id, information_multiplier, seed),
+    error = function(e) e
+  )
+  if (inherits(fixture, "error")) {
+    if (is.null(target_manifest)) stop(conditionMessage(fixture), call. = FALSE)
+    return(mr_g4_failure_records(target_manifest, replicate, conditionMessage(fixture), "fixture", trace))
+  }
+  fit <- tryCatch(mr_g4g5_route_fit(route_id, fixture$data), error = function(e) e)
+  if (is.null(target_manifest) && !inherits(fit, "error")) {
+    target_manifest <- mr_g4_target_manifest(route_id, profile_targets(fit), fixture$truth)
+  }
+  if (inherits(fit, "error")) {
+    if (is.null(target_manifest)) stop(conditionMessage(fit), call. = FALSE)
+    records <- mr_g4_failure_records(target_manifest, replicate, conditionMessage(fit), "fit", trace)
+  } else {
+    records <- mr_g4_run_target_manifest(fit, target_manifest, replicate = replicate, trace = trace)
+  }
   response <- if (route_id == "biv_gaussian") c("y1", "y2") else if (route_id == "beta") "prop" else if (route_id == "binomial") "y" else if (route_id == "cumulative_logit") "score" else "count"
   if (route_id %in% c("gaussian","student","lognormal","gamma","skew_normal","tweedie","zero_one_beta")) response <- "y"
   mask_count <- if (length(response) == 1L) sum(is.na(fixture$data[[response]])) else sum(is.na(fixture$data[[response[[1L]]]]) | is.na(fixture$data[[response[[2L]]]]))
@@ -429,6 +476,14 @@ mr_g4_run_route <- function(route_id, information_multiplier = 1, seed = NULL, r
   records$information_rung <- paste0(information_multiplier, "x")
   records$mask_fraction <- 0.25
   records$mask_any_response_rows <- mask_count
+  if (route_id == "biv_gaussian") {
+    missing_y1 <- is.na(fixture$data$y1)
+    missing_y2 <- is.na(fixture$data$y2)
+    records$mask_complete_pairs <- sum(!missing_y1 & !missing_y2)
+    records$mask_y1_only_missing <- sum(missing_y1 & !missing_y2)
+    records$mask_y2_only_missing <- sum(!missing_y1 & missing_y2)
+    records$mask_both_missing <- sum(missing_y1 & missing_y2)
+  }
   records
 }
 
@@ -438,6 +493,19 @@ mr_g4_write_records <- function(records, path) {
   }
   dir.create(dirname(path), recursive=TRUE, showWarnings=FALSE)
   saveRDS(records, path)
+  invisible(normalizePath(path))
+}
+
+mr_g4_write_artifact <- function(records, registry, path) {
+  mr_g4_validate_campaign(records, registry)
+  artifact <- list(
+    schema_version = "mr-g4g5-v1",
+    records = records,
+    registry = registry,
+    created_utc = format(Sys.time(), tz = "UTC", usetz = TRUE)
+  )
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(artifact, path)
   invisible(normalizePath(path))
 }
 
@@ -530,8 +598,9 @@ mr_g4_validate_record <- function(record) {
   finite_two_sided <- is.finite(record$conf.low) && is.finite(record$conf.high) &&
     record$conf.low < record$conf.high
   method <- if ("interval_method" %in% names(record)) record$interval_method else "profile"
+  trace_ok <- !"trace_requested" %in% names(record) || isTRUE(record$trace_requested)
   profile_ok <- identical(method, "profile") && identical(as.character(record$conf.status), "profile") &&
-    identical(as.logical(record$profile.boundary), FALSE)
+    identical(as.logical(record$profile.boundary), FALSE) && trace_ok
   wald_ok <- identical(method, "wald") && identical(as.character(record$conf.status), "wald")
   record$g4_interval_usable <- finite_two_sided && (profile_ok || wald_ok)
   record$g4_truth_contained <- record$g4_interval_usable &&
@@ -546,11 +615,15 @@ mr_g4_run_target_manifest <- function(fit, target_manifest, replicate = 1L, trac
   mr_g4_validate_target_manifest(target_manifest)
   rows <- lapply(seq_len(nrow(target_manifest)), function(i) {
     target <- target_manifest[i, , drop = FALSE]
-    ci <- tryCatch(
-      confint(fit, parm = target$parm, level = target$conf.level,
-        method = target$interval_method, trace = trace),
-      error = function(e) e
-    )
+    trace_lines <- character()
+    ci <- tryCatch({
+      value <- NULL
+      trace_lines <- utils::capture.output({
+        value <- confint(fit, parm = target$parm, level = target$conf.level,
+          method = target$interval_method, trace = trace)
+      })
+      value
+    }, error = function(e) e)
     out <- data.frame(
       route_id = target$route_id, replicate = as.integer(replicate), parm = target$parm,
       truth = target$truth, conf.level = target$conf.level, target_scale = target$scale,
@@ -559,6 +632,8 @@ mr_g4_run_target_manifest <- function(fit, target_manifest, replicate = 1L, trac
       conf.status = paste0(target$interval_method, "_failed"), profile.boundary = NA,
       profile.message = NA_character_, stringsAsFactors = FALSE
     )
+    out$trace_requested <- as.logical(trace)
+    out$profile_trace <- paste(trace_lines, collapse = "\n")
     if (inherits(ci, "error")) {
       out$profile.message <- conditionMessage(ci)
       return(mr_g4_validate_record(out))
@@ -576,6 +651,61 @@ mr_g4_run_target_manifest <- function(fit, target_manifest, replicate = 1L, trac
     mr_g4_validate_record(out)
   })
   do.call(rbind, rows)
+}
+
+# Validate the G4 gate at campaign scope.  A collection of individually valid
+# records is insufficient: every frozen route × target × information rung must
+# be represented once, and each profiled record must have requested a trace.
+mr_g4_validate_campaign <- function(records, registry) {
+  if (!is.list(registry) || is.null(registry$cells) || registry$n_rep != 1L) {
+    stop("A G4 campaign requires a one-attempt frozen task registry.", call. = FALSE)
+  }
+  required <- c("route_id", "parm", "information_rung", "g4_pass",
+    "interval_method", "trace_requested", "conf.low", "conf.high")
+  if (!is.data.frame(records) || !all(required %in% names(records))) {
+    stop("G4 records must carry route, target, rung, method, trace, and gate fields.", call. = FALSE)
+  }
+  expected <- registry$cells[, c("route_id", "parm", "information_rung"), drop = FALSE]
+  actual <- records[, c("route_id", "parm", "information_rung"), drop = FALSE]
+  expected_key <- do.call(paste, c(expected, sep = "\r"))
+  actual_key <- do.call(paste, c(actual, sep = "\r"))
+  if (anyDuplicated(actual_key) || !setequal(expected_key, actual_key)) {
+    stop("G4 records must retain exactly one result for every frozen target and information rung.", call. = FALSE)
+  }
+  profiled <- records$interval_method == "profile"
+  if (any(profiled & !records$trace_requested)) {
+    stop("Profiled G4 records must retain trace-request evidence.", call. = FALSE)
+  }
+  invisible(records)
+}
+
+mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE) {
+  if (is.null(registry)) registry <- mr_g4g5_task_registry(target_manifests)
+  if (registry$n_rep != 1L) {
+    stop("G4 execution uses one retained attempt per frozen target cell.", call. = FALSE)
+  }
+  cells <- registry$cells
+  seed_lookup <- registry$seeds$seed[match(cells$cell_id, registry$seeds$cell_id)]
+  records <- do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {
+    cell <- cells[i, , drop = FALSE]
+    route_manifest <- target_manifests[[cell$route_id]]
+    target <- route_manifest[route_manifest$parm == cell$parm, , drop = FALSE]
+    mr_g4_run_route(
+      route_id = cell$route_id, information_multiplier = cell$information_multiplier,
+      seed = seed_lookup[[i]], replicate = 1L, trace = trace, target_manifest = target
+    )
+  }))
+  mr_g4_validate_campaign(records, registry)
+  records
+}
+
+mr_g4_campaign_summary <- function(records, registry) {
+  mr_g4_validate_campaign(records, registry)
+  aggregate(cbind(n_target = one, n_interval_usable = g4_interval_usable,
+    n_truth_contained = g4_truth_contained, n_g4_pass = g4_pass) ~ route_id + information_rung,
+    data = transform(records, one = 1L, g4_pass = as.integer(g4_pass),
+      g4_interval_usable = as.integer(g4_interval_usable),
+      g4_truth_contained = as.integer(g4_truth_contained)), FUN = sum)
 }
 
 # Coverage is intentionally unconditional on fit and interval success. Every
