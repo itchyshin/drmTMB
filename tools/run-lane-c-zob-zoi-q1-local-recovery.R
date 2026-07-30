@@ -27,7 +27,13 @@ simulate_zoib_zoi_re <- function(seed, tau = 0.45, n_group = 32L, n_each = 50L) 
 
 fit_one <- function(seed, source_sha, runner_md5) {
   sim <- simulate_zoib_zoi_re(seed)
-  support <- table(sim$data$id[sim$data$y %in% c(0, 1)])
+  group_levels <- levels(sim$data$id)
+  n_zero_group <- tabulate(
+    as.integer(sim$data$id[sim$data$y == 0]), nbins = length(group_levels)
+  )
+  n_one_group <- tabulate(
+    as.integer(sim$data$id[sim$data$y == 1]), nbins = length(group_levels)
+  )
   fit <- tryCatch(
     drmTMB::drmTMB(
       drmTMB::bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
@@ -52,7 +58,8 @@ fit_one <- function(seed, source_sha, runner_md5) {
     convergence = fit$opt$convergence, pdHess = isTRUE(fit$sdr$pdHess),
     max_gradient = gradient, tau_truth = 0.45, tau_hat,
     mode_correlation = mode_cor, n_zero = sum(sim$data$y == 0),
-    n_one = sum(sim$data$y == 1), min_group_boundary = min(support),
+    n_one = sum(sim$data$y == 1), min_group_zero = min(n_zero_group),
+    min_group_one = min(n_one_group),
     eta_zoi_min = min(eta_zoi), eta_zoi_max = max(eta_zoi),
     clamp_active = FALSE,
     boundary_hit = !is.finite(tau_hat) || tau_hat <= 0.05 || tau_hat >= 2.5
@@ -74,7 +81,8 @@ write_tsv(attempts, file.path(out, "raw-attempts.tsv"))
 ok <- with(
   attempts,
   status == "fit_ok" & convergence == 0L & pdHess & max_gradient <= 0.01 &
-    !boundary_hit & !clamp_active & min_group_boundary >= 2L & mode_correlation > 0.45
+    !boundary_hit & !clamp_active & min_group_zero >= 2L & min_group_one >= 2L &
+    mode_correlation > 0.45
 )
 mean_relative_error <- if (any(ok)) mean(abs(attempts$tau_hat[ok] / 0.45 - 1)) else NA_real_
 decision <- if (all(ok) && is.finite(mean_relative_error) && mean_relative_error <= 0.40) {
