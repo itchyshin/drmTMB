@@ -22,7 +22,7 @@ Roxygen and generated Rd now agree with the tests; the missing-data vignette, fo
 - Focused missing-data suite: 99 expectations, 0 failures, 0 warnings, 0 skips.
 - `R CMD build .` completed successfully.
 - `NOT_CRAN=false R CMD check --as-cran --no-manual` completed with 2 pre-existing/environmental notes: unavailable optional `palmerpenguins` and a missing `utils::head` import.
-- `pkgdown::check_pkgdown()` is blocked by an unrelated baseline index omission: `predict.drm_pair_association` is absent from `_pkgdown.yml`.
+- `pkgdown::check_pkgdown()` passed after adding the existing exported `predict.drm_pair_association` topic to the frozen-margin association reference group.
 
 ## Tests Of The Tests
 
@@ -34,7 +34,7 @@ Searched `README.md`, `ROADMAP.md`, `NEWS.md`, `docs/dev-log/known-limitations.m
 
 ## GitHub Issue Maintenance
 
-Issues #865–#867 remain open until this branch is committed, pushed, and reviewed. PR #869 remains a separate documentation-only cross-package brief.
+The branch is committed and pushed. GitHub issue comments/closures and pull-request creation are pending because this session's GitHub credentials are invalid. PR #869 remains a separate documentation-only cross-package brief.
 
 ## What Did Not Go Smoothly
 
@@ -46,8 +46,8 @@ Rose found three stale current-claim remnants after the initial implementation: 
 
 ## Known Limitations
 
-Dense known covariance with bivariate partial responses, MNAR, response-plus-`mi()`, EM/profile engines, and broad random/structured masking remain outside the claim. The unrelated pkgdown index omission must be repaired in its owning lane.
+Dense known covariance with bivariate partial responses, MNAR, response-plus-`mi()`, EM/profile engines, and broad random/structured masking remain outside the claim. The strict CRAN-style check remains environment-limited by an unavailable optional suggested package and the existing `utils::head` namespace note.
 
 ## Next Actions
 
-Complete the running full source suite, rerun the final focused tests and build after the documentation reconciliation, then commit, push, open the focused PR, and close #865–#867 with the exact evidence.
+Open the focused PR from the pushed branch and close #865–#867 with the recorded evidence once GitHub authentication is restored. A broad source suite was started and reached unrelated phase-18 contexts without failures, then intentionally stopped; the focused suite and installed CRAN-safe suite are the final evidence for this arc.
