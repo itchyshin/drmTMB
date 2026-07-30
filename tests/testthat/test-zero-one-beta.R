@@ -777,6 +777,10 @@ test_that("zero-one-beta admits only the exact zoi random-slope q1 gate", {
   expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
   expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
   expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB")
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
+  expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed"); expect_match(endpoint$profile.message, "endpoint engine unsupported")
   expect_error(drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ z + (0 + x | id), coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ I(x^2) + (0 + x | id), coi ~ 1), family = zero_one_beta(), data = d), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ x + (1 | id), coi ~ 1), family = zero_one_beta(), data = d), "requires")

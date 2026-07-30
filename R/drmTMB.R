@@ -9577,7 +9577,7 @@ validate_zero_one_beta_zoi_random_terms <- function(
   }
   if (length(mu_terms) > 0L || length(sigma_terms) > 0L || length(coi_terms) > 0L) {
     cli::cli_abort(c(
-      "Zero-one-beta {.code zoi} random intercepts cannot be combined with other random effects in this q1 gate.",
+      "Zero-one-beta {.code zoi} random effects cannot be combined with other random effects in this q1 gate.",
       "x" = "The formula contains a {.code zoi} random effect and another random-effect component.",
       "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)}."
     ))
@@ -9622,7 +9622,7 @@ validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rh
       !is_intercept_one(coi_rhs)
   ) {
     cli::cli_abort(c(
-      "The zero-one-beta sigma q1 gate requires one identical untransformed fixed and random sigma predictor, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
+      "The zero-one-beta sigma q1 gate requires fixed identical untransformed sigma predictors, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
       "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
       "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}."
     ))
