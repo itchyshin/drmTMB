@@ -384,6 +384,12 @@ mr_g4g5_route_fixture <- function(route_id, information_multiplier = 1, seed = N
   if (!route_id %in% mr_g4g5_route_manifest()$route_id) stop("Unknown missing-response route.", call.=FALSE)
   if (route_id == "gaussian") return(mr_g4g5_gaussian_g3_dgp(information_multiplier, if(is.null(seed))2026071101L else seed))
   if (route_id == "biv_gaussian") return(mr_g4g5_biv_gaussian_g3_dgp(information_multiplier, if(is.null(seed))2026071103L else seed))
+  if (route_id == "binomial") {
+    use_seed <- if(is.null(seed)) 202L else seed; set.seed(use_seed)
+    n <- as.integer(ceiling(4000L * information_multiplier / 4) * 4); data <- data.frame(x=rnorm(n))
+    data$y <- rbinom(n,1L,plogis(-.3+1.1*data$x)); data <- mr_g4g5_mask_mcar(data,"y",if(is.null(seed))202L else seed+1L)
+    return(list(data=data,truth=c("fixef:mu:(Intercept)"=-.3,"fixef:mu:x"=1.1),information_multiplier=information_multiplier))
+  }
   if (route_id %in% c("poisson","nbinom2","beta")) return(mr_g4g5_t1_ri_dgp(route_id,information_multiplier,seed))
   if (route_id %in% c("student","lognormal","gamma","skew_normal")) return(mr_g4g5_t2_dgp(route_id,information_multiplier,seed))
   if (route_id %in% c("tweedie","zero_one_beta")) return(mr_g4g5_t3_dgp(route_id,information_multiplier,seed))
