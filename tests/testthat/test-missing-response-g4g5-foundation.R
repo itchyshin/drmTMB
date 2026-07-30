@@ -15,6 +15,19 @@ test_that("the missing-response manifest freezes all 18 G3 routes", {
   expect_true(all(nzchar(manifest$base_information)))
 })
 
+test_that("Gaussian G3 fixture retains its MCAR and target contract at all rungs", {
+  source_missing_response_g4g5()
+  for (rung in c(0.5, 1, 2)) {
+    case <- mr_g4g5_gaussian_g3_dgp(rung)
+    expect_equal(mean(is.na(case$data$y)), 0.25)
+    expect_equal(nlevels(case$data$id), 36L * rung)
+    expect_identical(names(case$truth), c(
+      "fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)",
+      "fixef:sigma:z", "sd:mu:(1 | id)"
+    ))
+  }
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))

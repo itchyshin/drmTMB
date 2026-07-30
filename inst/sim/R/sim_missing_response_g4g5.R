@@ -66,6 +66,61 @@ mr_g4g5_validate_manifest <- function(manifest = mr_g4g5_route_manifest()) {
   invisible(manifest)
 }
 
+mr_g4g5_mask_mcar <- function(data, response, seed, fraction = 0.25, group = NULL) {
+  if (!is.character(response) || length(response) != 1L || !response %in% names(data)) {
+    stop("`response` must name one response column in `data`.", call. = FALSE)
+  }
+  if (!is.numeric(fraction) || length(fraction) != 1L || fraction <= 0 || fraction >= 1) {
+    stop("`fraction` must be one fraction strictly between zero and one.", call. = FALSE)
+  }
+  set.seed(seed)
+  rows <- if (is.null(group)) {
+    sample.int(nrow(data), size = nrow(data) * fraction)
+  } else {
+    if (!group %in% names(data)) stop("`group` must name a column in `data`.", call. = FALSE)
+    unlist(tapply(seq_len(nrow(data)), data[[group]], function(index) {
+      sample(index, size = length(index) * fraction)
+    }), use.names = FALSE)
+  }
+  data[[response]][rows] <- NA_real_
+  data
+}
+
+# Exact MR-T1 Gaussian G3 DGP, promoted from its test-local definition so G4
+# can regenerate the same route at the prescribed information rungs.
+mr_g4g5_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 2026071101L) {
+  if (!information_multiplier %in% c(0.5, 1, 2)) {
+    stop("Gaussian G4/G5 information multiplier must be 0.5, 1, or 2.", call. = FALSE)
+  }
+  set.seed(seed)
+  n_id <- as.integer(36L * information_multiplier)
+  n_each <- 12L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  z <- rnorm(length(id))
+  u <- rnorm(n_id, sd = 0.7)
+  u <- u - mean(u)
+  data <- data.frame(id = id, x = x, z = z)
+  data$y <- rnorm(nrow(data), 0.35 + 0.55 * x + u[id], exp(-0.25 + 0.22 * z))
+  data <- mr_g4g5_mask_mcar(data, "y", seed = seed + 1L, group = "id")
+  list(
+    data = data,
+    truth = c(
+      "fixef:mu:(Intercept)" = 0.35, "fixef:mu:x" = 0.55,
+      "fixef:sigma:(Intercept)" = -0.25, "fixef:sigma:z" = 0.22,
+      "sd:mu:(1 | id)" = 0.70
+    ),
+    information_multiplier = information_multiplier
+  )
+}
+
+mr_g4g5_fit_gaussian <- function(data) {
+  drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z), gaussian(), data,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+}
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for
