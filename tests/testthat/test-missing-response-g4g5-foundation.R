@@ -20,7 +20,7 @@ test_that("Gaussian G3 fixture retains its MCAR and target contract at all rungs
   for (rung in c(0.5, 1, 2)) {
     case <- mr_g4g5_gaussian_g3_dgp(rung)
     expect_equal(mean(is.na(case$data$y)), 0.25)
-    expect_equal(nlevels(case$data$id), 36L * rung)
+    expect_equal(nlevels(case$data$id), mr_g4g5_group_count(36L, 12L, rung))
     expect_identical(names(case$truth), c(
       "fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)",
       "fixef:sigma:z", "sd:mu:(1 | id)"
@@ -34,7 +34,7 @@ test_that("T1 random-intercept fixtures preserve route-specific G3 shapes", {
     case <- mr_g4g5_t1_ri_dgp(route, information_multiplier = 0.5)
     response <- if (route == "beta") "prop" else "count"
     expect_equal(mean(is.na(case$data[[response]])), 0.25, info = route)
-    expect_equal(nlevels(case$data$id), 24L, info = route)
+    expect_equal(nlevels(case$data$id), mr_g4g5_group_count(48L, 12L, .5), info = route)
     expect_true("sd:mu:(1 | id)" %in% names(case$truth), info = route)
     expect_identical("fixef:sigma:z" %in% names(case$truth), route != "poisson", info = route)
   }
@@ -48,6 +48,15 @@ test_that("bivariate Gaussian fixture preserves independent partial-response mas
   expect_gt(sum(!is.na(case$data$y1) & is.na(case$data$y2)), 0L)
   expect_gt(sum(is.na(case$data$y1) & !is.na(case$data$y2)), 0L)
   expect_true(all(c("rho12", "sd:mu:mu1:(1 | p | id)") %in% names(case$truth)))
+})
+
+test_that("T2 fixtures retain their route-specific target and MCAR contracts", {
+  source_missing_response_g4g5()
+  for (route in c("student", "lognormal", "gamma", "skew_normal")) {
+    case <- mr_g4g5_t2_dgp(route, 0.5)
+    expect_equal(mean(is.na(case$data$y)), 0.25, info = route)
+    expect_true("fixef:mu:x" %in% names(case$truth), info = route)
+  }
 })
 
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {

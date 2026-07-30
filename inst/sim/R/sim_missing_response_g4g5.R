@@ -86,6 +86,12 @@ mr_g4g5_mask_mcar <- function(data, response, seed, fraction = 0.25, group = NUL
   data
 }
 
+mr_g4g5_group_count <- function(base_groups, n_each, information_multiplier) {
+  n_group <- as.integer(round(base_groups * information_multiplier))
+  while ((n_group * n_each) %% 4L != 0L) n_group <- n_group + 1L
+  n_group
+}
+
 # Exact MR-T1 Gaussian G3 DGP, promoted from its test-local definition so G4
 # can regenerate the same route at the prescribed information rungs.
 mr_g4g5_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 2026071101L) {
@@ -93,7 +99,7 @@ mr_g4g5_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 202607110
     stop("Gaussian G4/G5 information multiplier must be 0.5, 1, or 2.", call. = FALSE)
   }
   set.seed(seed)
-  n_id <- as.integer(36L * information_multiplier)
+  n_id <- mr_g4g5_group_count(36L, n_each = 12L, information_multiplier)
   n_each <- 12L
   id <- factor(rep(seq_len(n_id), each = n_each))
   x <- rnorm(length(id))
@@ -135,7 +141,7 @@ mr_g4g5_t1_ri_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   use_g3_seed <- is.null(seed)
   if (use_g3_seed) seed <- defaults[[route]]
   set.seed(seed)
-  n_id <- as.integer(48L * information_multiplier)
+  n_id <- mr_g4g5_group_count(48L, n_each = 12L, information_multiplier)
   n_each <- 12L
   id <- factor(rep(seq_len(n_id), each = n_each))
   data <- data.frame(id = id, x = rnorm(length(id)))
@@ -192,7 +198,7 @@ mr_g4g5_biv_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 20260
     stop("Bivariate information multiplier must be 0.5, 1, or 2.", call. = FALSE)
   }
   set.seed(seed)
-  n_id <- as.integer(60L * information_multiplier)
+  n_id <- mr_g4g5_group_count(60L, n_each = 8L, information_multiplier)
   n_each <- 8L
   id <- factor(rep(seq_len(n_id), each = n_each))
   x <- rnorm(length(id))
@@ -226,6 +232,60 @@ mr_g4g5_fit_biv_gaussian <- function(data) {
     biv_gaussian(), data, missing = miss_control(response = "include"),
     control = drm_control(se = FALSE)
   )
+}
+
+mr_g4g5_t2_dgp <- function(route, information_multiplier = 1, seed = NULL) {
+  if (!route %in% c("student", "lognormal", "gamma", "skew_normal") ||
+      !information_multiplier %in% c(0.5, 1, 2)) {
+    stop("Unsupported T2 route or information multiplier.", call. = FALSE)
+  }
+  defaults <- c(student = 2026071221L, lognormal = 2026071222L,
+    gamma = 2026071223L, skew_normal = 2026071231L)
+  use_g3_seed <- is.null(seed)
+  if (use_g3_seed) seed <- defaults[[route]]
+  set.seed(seed)
+  if (route == "skew_normal") {
+    n <- as.integer(360L * information_multiplier)
+    data <- data.frame(x = seq(-1.2, 1.2, length.out = n), z = rep(seq(-1, 1, length.out = 24), length.out = n))
+    truth <- c("fixef:mu:(Intercept)" = .2, "fixef:mu:x" = .4,
+      "fixef:sigma:(Intercept)" = -.3, "fixef:sigma:z" = .15, "fixef:nu:(Intercept)" = 1.4)
+    native <- skew_normal_public_to_native(.2 + .4 * data$x, exp(-.3 + .15 * data$z), 1.4)
+    i <- seq_len(n); u <- qnorm((i - .5) / n); v <- qnorm((((i * 37L) %% n) + .5) / n)
+    data$y <- native$xi + native$omega * (native$delta * abs(u) + sqrt(1 - native$delta^2) * v)
+    data <- mr_g4g5_mask_mcar(data, "y", seed = if (use_g3_seed) defaults[[route]] else seed + 1L)
+    return(list(data = data, truth = truth, information_multiplier = information_multiplier))
+  }
+  n_id0 <- c(student = 40L, lognormal = 36L, gamma = 42L)[[route]]
+  n_each <- c(student = 10L, lognormal = 9L, gamma = 10L)[[route]]
+  n_id <- mr_g4g5_group_count(n_id0, n_each, information_multiplier)
+  id <- factor(rep(seq_len(n_id), each = n_each)); n <- length(id)
+  data <- data.frame(id = id, x = rnorm(n), z = rnorm(n))
+  spec <- switch(route,
+    student = list(mu = c(.20, .48), sigma = c(-.42, .18), sd = .52, nu = log(7)),
+    lognormal = list(mu = c(.25, .40), sigma = c(-.75, .18), sd = .55),
+    gamma = list(mu = c(.15, .36), sigma = c(-.85, .16), sd = .48)
+  )
+  u <- rnorm(n_id, sd = spec$sd); u <- u - mean(u)
+  eta <- spec$mu[[1L]] + spec$mu[[2L]] * data$x + u[id]
+  sigma <- exp(spec$sigma[[1L]] + spec$sigma[[2L]] * data$z)
+  if (route == "student") data$y <- eta + sigma * sample(qt((seq_len(n)-.5)/n, df = 2 + exp(spec$nu)))
+  if (route == "lognormal") data$y <- rlnorm(n, meanlog = eta, sdlog = sigma)
+  if (route == "gamma") data$y <- rgamma(n, shape = 1/sigma^2, scale = exp(eta) * sigma^2)
+  data <- mr_g4g5_mask_mcar(data, "y", seed = if (use_g3_seed) defaults[[route]] else seed + 1L)
+  truth <- c("fixef:mu:(Intercept)" = spec$mu[[1L]], "fixef:mu:x" = spec$mu[[2L]],
+    "fixef:sigma:(Intercept)" = spec$sigma[[1L]], "fixef:sigma:z" = spec$sigma[[2L]])
+  if (route == "student") truth <- c(truth, "fixef:nu:(Intercept)" = spec$nu)
+  truth <- c(truth, "sd:mu:(1 | id)" = spec$sd)
+  list(data = data, truth = truth, information_multiplier = information_multiplier)
+}
+
+mr_g4g5_fit_t2 <- function(route, data) {
+  f <- switch(route,
+    student = bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1),
+    lognormal = bf(y ~ x + (1 | id), sigma ~ z), gamma = bf(y ~ x + (1 | id), sigma ~ z),
+    skew_normal = bf(y ~ x, sigma ~ z, nu ~ 1))
+  family <- switch(route, student = student(), lognormal = lognormal(), gamma = Gamma(link = "log"), skew_normal = skew_normal())
+  drmTMB(f, family, data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
 }
 
 # Freeze the actual, canonical targets for one route after constructing its
