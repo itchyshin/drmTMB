@@ -553,7 +553,8 @@ mr_g4_validate_target_manifest <- function(manifest) {
 
 # Convert one profile attempt into an immutable G4 record.  The caller supplies
 # the frozen truth on the reporting scale for the canonical `profile_targets()`
-# parameter name.  Failed fits and unusable intervals remain records.
+# parameter name.  G4 is an interval-feasibility gate: one-shot containment is
+# retained as a diagnostic, while repeated coverage belongs exclusively to G5.
 mr_g4_profile_record <- function(fit, route_id, parm, truth, replicate = 1L,
                                  level = 0.95, trace = TRUE) {
   targets <- profile_targets(fit)
@@ -605,7 +606,10 @@ mr_g4_validate_record <- function(record) {
   record$g4_interval_usable <- finite_two_sided && (profile_ok || wald_ok)
   record$g4_truth_contained <- record$g4_interval_usable &&
     record$conf.low <= record$truth && record$truth <= record$conf.high
-  record$g4_pass <- record$g4_interval_usable && record$g4_truth_contained
+  record$g4_feasible <- record$g4_interval_usable
+  # Compatibility field for existing artifact consumers.  It now carries the
+  # explicit feasibility decision, not a one-shot coverage decision.
+  record$g4_pass <- record$g4_feasible
   record
 }
 
@@ -660,7 +664,7 @@ mr_g4_validate_campaign <- function(records, registry) {
   if (!is.list(registry) || is.null(registry$cells) || registry$n_rep != 1L) {
     stop("A G4 campaign requires a one-attempt frozen task registry.", call. = FALSE)
   }
-  required <- c("route_id", "parm", "information_rung", "g4_pass",
+  required <- c("route_id", "parm", "information_rung", "g4_feasible",
     "interval_method", "trace_requested", "conf.low", "conf.high")
   if (!is.data.frame(records) || !all(required %in% names(records))) {
     stop("G4 records must carry route, target, rung, method, trace, and gate fields.", call. = FALSE)
@@ -692,6 +696,12 @@ mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE,
   } else {
     NULL
   }
+  if (!is.null(records) && !"g4_feasible" %in% names(records) &&
+      "g4_interval_usable" %in% names(records)) {
+    # Checkpoints written before the feasibility-only G4 decision retain the
+    # primitive interval field, so they can be migrated without rerunning fits.
+    records$g4_feasible <- records$g4_interval_usable
+  }
   if (!is.null(records) && (!is.data.frame(records) || !all(c("route_id", "parm", "information_rung") %in% names(records)))) {
     stop("G4 checkpoint must contain retained target records.", call. = FALSE)
   }
@@ -719,8 +729,8 @@ mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE,
 mr_g4_campaign_summary <- function(records, registry) {
   mr_g4_validate_campaign(records, registry)
   aggregate(cbind(n_target = one, n_interval_usable = g4_interval_usable,
-    n_truth_contained = g4_truth_contained, n_g4_pass = g4_pass) ~ route_id + information_rung,
-    data = transform(records, one = 1L, g4_pass = as.integer(g4_pass),
+    n_truth_contained = g4_truth_contained, n_g4_feasible = g4_feasible) ~ route_id + information_rung,
+    data = transform(records, one = 1L, g4_feasible = as.integer(g4_feasible),
       g4_interval_usable = as.integer(g4_interval_usable),
       g4_truth_contained = as.integer(g4_truth_contained)), FUN = sum)
 }
@@ -814,13 +824,13 @@ mr_g4g5_task_registry <- function(target_manifests, information_rungs = c(0.5, 1
 }
 
 mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2026073002L) {
-  required <- c("route_id", "parm", "g4_pass")
+  required <- c("route_id", "parm", "g4_feasible")
   if (!is.data.frame(g4_records) || !all(required %in% names(g4_records))) {
     stop("`g4_records` must include route, parameter, and pass fields.", call. = FALSE)
   }
-  passed <- g4_records[g4_records$g4_pass %in% TRUE, c("route_id", "parm"), drop = FALSE]
+  passed <- g4_records[g4_records$g4_feasible %in% TRUE, c("route_id", "parm"), drop = FALSE]
   if (nrow(passed) == 0L) {
-    stop("No G4-passing targets are eligible for G5.", call. = FALSE)
+    stop("No G4-feasible targets are eligible for G5.", call. = FALSE)
   }
   filtered <- lapply(target_manifests, function(x) {
     keep <- paste(x$route_id, x$parm, sep = "\r") %in%

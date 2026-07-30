@@ -134,9 +134,9 @@ test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))
   clamp <- mr_g4_validate_record(data.frame(conf.low = NA_real_, conf.high = NA_real_, conf.status = "clamp_limited", profile.boundary = TRUE, truth = 0.2))
   miss <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.8))
-  expect_true(ok$g4_pass)
+  expect_true(ok$g4_feasible)
   expect_false(clamp$g4_interval_usable)
-  expect_false(miss$g4_pass)
+  expect_true(miss$g4_feasible)
   expect_false(miss$g4_truth_contained)
 })
 
@@ -150,8 +150,8 @@ test_that("a profiled G4 pass requires requested trace retention", {
     conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE,
     truth = 0.2, interval_method = "profile", trace_requested = TRUE
   ))
-  expect_false(no_trace$g4_pass)
-  expect_true(traced$g4_pass)
+  expect_false(no_trace$g4_feasible)
+  expect_true(traced$g4_feasible)
 })
 
 test_that("target manifests require every canonical target and choose the gate method", {
@@ -194,7 +194,7 @@ test_that("Wald fallback is usable only for a target marked profile-unavailable"
     conf.low = 0.1, conf.high = 0.4, conf.status = "wald", profile.boundary = NA,
     truth = 0.2, interval_method = "profile"
   ))
-  expect_true(wald$g4_pass)
+  expect_true(wald$g4_feasible)
   expect_false(wrong$g4_interval_usable)
 })
 
@@ -231,7 +231,7 @@ test_that("route runner retains one failure record per frozen target", {
   out <- mr_g4_run_route("not-a-route", .5, target_manifest = target_manifest)
   expect_equal(nrow(out), 2L)
   expect_true(all(out$conf.status == "fixture_failed"))
-  expect_true(all(!out$g4_pass))
+  expect_true(all(!out$g4_feasible))
 })
 
 test_that("G4 task registry requires all routes and fixes the three information rungs", {
@@ -250,7 +250,7 @@ test_that("G4 task registry requires all routes and fixes the three information 
   expect_error(mr_g4g5_task_registry(target_manifests[-1L]), "18 routes")
 })
 
-test_that("G5 registry is gated by G4-passing targets and fixes 1,200 attempts", {
+test_that("G5 registry is gated by G4-feasible targets and fixes 1,200 attempts", {
   source_missing_response_g4g5()
   routes <- mr_g4g5_route_manifest()$route_id
   target_manifests <- setNames(lapply(routes, function(route) {
@@ -258,13 +258,13 @@ test_that("G5 registry is gated by G4-passing targets and fixes 1,200 attempts",
       target_class = "fixed-effect", dpar = "mu", scale = "link",
       profile_ready = TRUE, interval_method = "profile", conf.level = 0.95)
   }), routes)
-  g4 <- data.frame(route_id = routes, parm = "fixef:mu:x", g4_pass = FALSE)
-  g4$g4_pass[c(1L, 2L)] <- TRUE
+  g4 <- data.frame(route_id = routes, parm = "fixef:mu:x", g4_feasible = FALSE)
+  g4$g4_feasible[c(1L, 2L)] <- TRUE
   registry <- mr_g5_registry_from_g4(target_manifests, g4)
   expect_equal(nrow(registry$cells), 2L * 3L)
   expect_equal(nrow(registry$seeds), 2L * 3L * 1200L)
   expect_true(all(registry$seeds$replicate <= 1200L))
-  expect_error(mr_g5_registry_from_g4(target_manifests, transform(g4, g4_pass = FALSE)), "No G4-passing")
+  expect_error(mr_g5_registry_from_g4(target_manifests, transform(g4, g4_feasible = FALSE)), "No G4-feasible")
 })
 
 test_that("G4 campaign validator requires every frozen route target and rung", {
@@ -280,7 +280,7 @@ test_that("G4 campaign validator requires every frozen route target and rung", {
   records$trace_requested <- TRUE
   records$conf.low <- 0
   records$conf.high <- 1
-  records$g4_pass <- TRUE
+  records$g4_feasible <- TRUE
   expect_silent(mr_g4_validate_campaign(records, registry))
   expect_error(mr_g4_validate_campaign(records[-1L, ], registry), "every frozen target")
   records$trace_requested[1L] <- FALSE
