@@ -4,25 +4,39 @@ write_tsv <- function(x, path) {
   utils::write.table(x, path, sep = "\t", quote = FALSE, row.names = FALSE)
 }
 
-simulate_zoib_zoi_re <- function(seed, tau = 0.45, n_group = 32L, n_each = 50L) {
+simulate_zoib_zoi_re <- function(
+  seed,
+  tau = 0.45,
+  n_group = 32L,
+  n_each = 50L,
+  min_group_atom_support = 2L,
+  max_dgp_draws = 1000L
+) {
   set.seed(seed)
   id <- factor(rep(paste0("g", seq_len(n_group)), each = n_each))
-  x <- rnorm(length(id))
-  x <- x - ave(x, id, FUN = mean)
-  x <- x / stats::sd(x)
-  b <- rnorm(n_group, sd = tau)
-  names(b) <- levels(id)
-  mu <- stats::plogis(-0.15 + 0.35 * x)
-  sigma <- exp(-1.0)
-  zoi <- stats::plogis(-1.15 + b[as.character(id)])
-  coi <- stats::plogis(0.1)
-  boundary <- stats::rbinom(length(id), 1L, zoi)
-  y <- ifelse(
-    boundary == 1L,
-    stats::rbinom(length(id), 1L, coi),
-    stats::rbeta(length(id), mu / sigma^2, (1 - mu) / sigma^2)
-  )
-  list(data = data.frame(y = y, x = x, id = id), b = b)
+  for (dgp_draw in seq_len(max_dgp_draws)) {
+    x <- rnorm(length(id))
+    x <- x - ave(x, id, FUN = mean)
+    x <- x / stats::sd(x)
+    b <- rnorm(n_group, sd = tau)
+    names(b) <- levels(id)
+    mu <- stats::plogis(-0.15 + 0.35 * x)
+    sigma <- exp(-1.0)
+    zoi <- stats::plogis(-1.15 + b[as.character(id)])
+    coi <- stats::plogis(0.1)
+    boundary <- stats::rbinom(length(id), 1L, zoi)
+    y <- ifelse(
+      boundary == 1L,
+      stats::rbinom(length(id), 1L, coi),
+      stats::rbeta(length(id), mu / sigma^2, (1 - mu) / sigma^2)
+    )
+    n_zero <- tabulate(as.integer(id[y == 0]), nbins = n_group)
+    n_one <- tabulate(as.integer(id[y == 1]), nbins = n_group)
+    if (all(n_zero >= min_group_atom_support) && all(n_one >= min_group_atom_support)) {
+      return(list(data = data.frame(y = y, x = x, id = id), b = b, dgp_draw = dgp_draw))
+    }
+  }
+  stop("Could not generate the predeclared per-group zero/one support within ", max_dgp_draws, " DGP draws.")
 }
 
 fit_one <- function(seed, source_sha, runner_md5) {
@@ -54,7 +68,7 @@ fit_one <- function(seed, source_sha, runner_md5) {
   report <- fit$obj$report()
   eta_zoi <- as.numeric(report$eta_zoi)
   data.frame(
-    seed, source_sha, runner_md5, status = "fit_ok",
+    seed, dgp_draw = sim$dgp_draw, source_sha, runner_md5, status = "fit_ok",
     convergence = fit$opt$convergence, pdHess = isTRUE(fit$sdr$pdHess),
     max_gradient = gradient, tau_truth = 0.45, tau_hat,
     mode_correlation = mode_cor, n_zero = sum(sim$data$y == 0),
