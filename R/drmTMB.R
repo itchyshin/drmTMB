@@ -5451,7 +5451,8 @@ drm_build_zero_one_beta_spec <- function(
     validate_zero_one_beta_zoi_q1_fixed_rhs(
       sigma_entry$rhs,
       zoi_entry$rhs,
-      coi_entry$rhs
+      coi_entry$rhs,
+      zoi_terms = zoi_re$terms
     )
   }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
@@ -9589,9 +9590,9 @@ validate_zero_one_beta_zoi_random_terms <- function(
   if (any(unsupported) || length(terms) != 1L) {
     labels <- vapply(terms, `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only one independent {.fn zero_one_beta} {.code zoi} random intercept is implemented in this q1 gate.",
+      "Only one independent {.fn zero_one_beta} {.code zoi} random intercept or slope is implemented in this q1 gate.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Zero-one-beta {.code zoi} slopes, labelled covariance blocks, structured atom effects, and cross-parameter covariance remain deferred until separate recovery tests exist."
+      "i" = "Use the exact slope-only form {.code bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1)}; labelled covariance, structured atom effects, and cross-parameter covariance remain deferred."
     ))
   }
   invisible(terms)
@@ -9629,12 +9630,18 @@ validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rh
   invisible(NULL)
 }
 
-validate_zero_one_beta_zoi_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs) {
-  if (!is_intercept_one(sigma_rhs) || !is_intercept_one(zoi_rhs) || !is_intercept_one(coi_rhs)) {
+validate_zero_one_beta_zoi_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs, zoi_terms) {
+  is_slope <- identical(zoi_terms[[1L]]$type, "slope")
+  zoi_ok <- if (is_slope) {
+    is.symbol(zoi_rhs) && identical(as.character(zoi_rhs), zoi_terms[[1L]]$variable)
+  } else {
+    is_intercept_one(zoi_rhs)
+  }
+  if (!is_intercept_one(sigma_rhs) || !zoi_ok || !is_intercept_one(coi_rhs)) {
     cli::cli_abort(c(
-      "The zero-one-beta zoi random-intercept q1 gate requires fixed {.code sigma ~ 1}, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
+      "The zero-one-beta zoi q1 gate requires {.code sigma ~ 1}, an exact matching fixed and random zoi predictor, and {.code coi ~ 1}.",
       "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
-      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)}."
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)} or the exact slope-only form {.code bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1)}."
     ))
   }
   invisible(NULL)

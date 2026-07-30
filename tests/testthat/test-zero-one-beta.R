@@ -763,6 +763,30 @@ test_that("zero-one-beta zoi random-intercept objective has independent oracle a
   expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
 
+test_that("zero-one-beta admits only the exact zoi random-slope q1 gate", {
+  set.seed(2026073801L)
+  id <- factor(rep(seq_len(16L), each = 40L)); x <- rnorm(length(id)); x <- x - ave(x, id, FUN = mean); x <- x / sd(x)
+  u <- rnorm(16L); mu <- plogis(-.15 + .35 * x); sigma <- exp(-1); zoi <- plogis(-1.15 + .45 * u[id] * x); coi <- plogis(.1)
+  boundary <- rbinom(length(id), 1L, zoi); y <- rbeta(length(id), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi)
+  d <- data.frame(y, x, id)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
+  expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$zoi, "(0 + x | id)")
+  target <- subset(profile_targets(fit), parm == "sd:zoi:(0 + x | id)")
+  expect_identical(target$tmb_parameter, "log_sd_zoi"); expect_identical(target$target_type, "direct")
+  expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_zoi_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
+  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ z + (0 + x | id), coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ I(x^2) + (0 + x | id), coi ~ 1), family = zero_one_beta(), data = d), "requires")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ x + (1 | id), coi ~ 1), family = zero_one_beta(), data = d), "requires")
+  obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_zoi_random_intercept_nll(fit, obj$env$parList(v))
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  i <- which(names(probe) == "log_sd_zoi"); changed <- probe; changed[[i]] <- changed[[i]] + .2
+  expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
+})
 test_that("drmTMB fits fixed-effect zero-one beta models", {
   sim <- new_zero_one_beta_data()
 
