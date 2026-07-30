@@ -108,3 +108,20 @@ test_that("G4 task registry requires all routes and fixes the three information 
   expect_identical(registry$seeds$seed, mr_g4g5_task_registry(target_manifests, n_rep = 2L)$seeds$seed)
   expect_error(mr_g4g5_task_registry(target_manifests[-1L]), "18 routes")
 })
+
+test_that("G5 registry is gated by G4-passing targets and fixes 1,200 attempts", {
+  source_missing_response_g4g5()
+  routes <- mr_g4g5_route_manifest()$route_id
+  target_manifests <- setNames(lapply(routes, function(route) {
+    data.frame(route_id = route, parm = "fixef:mu:x", truth = 0.2,
+      target_class = "fixed-effect", dpar = "mu", scale = "link",
+      profile_ready = TRUE, interval_method = "profile", conf.level = 0.95)
+  }), routes)
+  g4 <- data.frame(route_id = routes, parm = "fixef:mu:x", g4_pass = FALSE)
+  g4$g4_pass[c(1L, 2L)] <- TRUE
+  registry <- mr_g5_registry_from_g4(target_manifests, g4)
+  expect_equal(nrow(registry$cells), 2L * 3L)
+  expect_equal(nrow(registry$seeds), 2L * 3L * 1200L)
+  expect_true(all(registry$seeds$replicate <= 1200L))
+  expect_error(mr_g5_registry_from_g4(target_manifests, transform(g4, g4_pass = FALSE)), "No G4-passing")
+})
