@@ -2087,10 +2087,13 @@ for the independent `(0 + x | id)` slope SD under its frozen DGP at true SD
 and M >= 16. Rare beta-labelled draws rounded to exactly one in that campaign,
 so this evidence does not establish an exactly 15% observed-boundary design.
 See `docs/dev-log/simulation-artifacts/2026-07-19-arc4c-mu-slope-coverage/README.md`.
-Correlated or labelled `mu` slopes, `sigma`/`zoi`/`coi` random effects,
-structured effects, covariance blocks, known sampling covariance, denominator
-syntax, bivariate bounded responses, and mixed-response bounded models remain
-planned or unsupported.
+Exact ordinary q1 `sigma ~ 1 + (1 | id)` and, separately,
+`zoi ~ 1 + (1 | id)` random intercepts are point-fit-only, with direct targets
+that are not profile-ready. Correlated or labelled `mu` slopes, `coi` effects,
+`sigma`/`zoi` slopes, joint/covariant and structured effects, profiles,
+intervals, coverage, known sampling covariance, denominator syntax, bivariate
+bounded responses, and mixed-response bounded models remain planned or
+unsupported.
 
 ## Implemented Beta-Binomial Mean-Overdispersion
 
