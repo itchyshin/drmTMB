@@ -2,9 +2,11 @@
 #'
 #' `miss_control()` configures the first `drmTMB` missing-data slices. The
 #' default keeps the existing complete-case behaviour. In the current fitted
-#' slices, `response = "include"` is implemented for univariate Gaussian
-#' response masks and bivariate Gaussian partial-response rows without dense
-#' known covariance. `predictor = "model"` is implemented mainly for one `mi()`
+#' slices, `response = "include"` is implemented for every current univariate
+#' fitted response route and for bivariate Gaussian partial-response rows
+#' without dense known covariance. It uses an observed-response mask: a missing
+#' response contributes no direct response likelihood. `predictor = "model"`
+#' is implemented mainly for one `mi()`
 #' missing predictor at a time in a univariate Gaussian location model:
 #' numeric missing predictors can use Gaussian fixed-effect, grouped, or
 #' structured predictor models. Binary,
@@ -20,8 +22,9 @@
 #' summaries are reserved for later slices.
 #'
 #' @param response Response missingness policy. `"drop"` keeps existing
-#'   complete-case fitting; `"include"` keeps rows with supported missing
-#'   Gaussian responses and masks or marginalizes their likelihood contribution.
+#'   complete-case fitting; for a bivariate Gaussian model, a row with either
+#'   response missing is omitted. `"include"` keeps rows with supported missing
+#'   responses and masks their response likelihood contribution.
 #' @param predictor Predictor missingness policy. `"fail"` errors on missing
 #'   predictors. `"model"` enables the current `mi()` predictor-model routes when
 #'   paired with a matching `impute` formula or [impute_model()] in [drmTMB()].
@@ -38,16 +41,24 @@
 miss_control <- function(
   response = c("drop", "include"),
   predictor = c("fail", "model"),
-  engine = c("laplace", "em", "profile")
+  engine = "laplace"
 ) {
   response <- match.arg(response)
   predictor <- match.arg(predictor)
-  engine <- match.arg(engine)
 
-  if (!identical(engine, "laplace")) {
+  if (!is.character(engine) || length(engine) != 1L || is.na(engine)) {
+    cli::cli_abort("{.arg engine} must be a single character string.")
+  }
+  if (engine %in% c("em", "profile")) {
     cli::cli_abort(c(
       "{.arg engine = \"{engine}\"} is reserved, not implemented yet.",
       "i" = "Use {.code engine = \"laplace\"} for the first missing-data slice."
+    ))
+  }
+  if (!identical(engine, "laplace")) {
+    cli::cli_abort(c(
+      "{.arg engine} only supports {.code \"laplace\"}.",
+      "i" = "{.code \"em\"} and {.code \"profile\"} are reserved for planned work."
     ))
   }
 

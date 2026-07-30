@@ -207,6 +207,7 @@ reference:
       - associate_pairs
       - association
       - latent_normal
+      - predict.drm_pair_association
   - title: Distributional outputs and adequacy
     desc: >
       A first-class fitted distribution for every family, plus the adequacy

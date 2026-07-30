@@ -152,9 +152,9 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   claims, and the full double-hierarchical endpoint remain roadmap work for
   later releases.
 - Missing-data preview boundary: `miss_control(response = "include")` is G3
-  recovery-verified for univariate and bivariate Gaussian, Student-t,
-  skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta, binomial,
-  Poisson, and NB2 responses.
+  recovery-verified for every current univariate fitted response route and
+  independent-observation bivariate Gaussian partial-response rows. The
+  route-specific inventory and boundaries are in `vignette("missing-data")`.
   Student-t, lognormal, and Gamma include ordinary random-intercept recovery in
   this response-masking evidence; skew-normal, Tweedie, and zero-one beta have
   fixed-effect masking evidence only, although their ordinary `mu` random

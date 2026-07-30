@@ -2494,7 +2494,9 @@ drm_standard_error_status <- function(object) {
 #' `logLik()` returns a `"logLik"` object with `df` and `nobs` attributes so
 #' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
 #' top-level parameter count, and fitted-row count consistently.
-#' `nobs()` returns the number of fitted rows after complete-case filtering.
+#' `nobs()` returns the number of rows contributing to the fitted likelihood.
+#' With supported response masks, this excludes missing univariate responses;
+#' for bivariate Gaussian fits, a partial-response row contributes once.
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
 #' `-2 * logLik`; for these likelihood-based distributional models this is an

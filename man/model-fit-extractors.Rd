@@ -45,7 +45,9 @@ comparison helpers.
 \code{logLik()} returns a \code{"logLik"} object with \code{df} and \code{nobs} attributes so
 \code{\link[stats:AIC]{stats::AIC()}} and \code{\link[stats:BIC]{stats::BIC()}} use the fitted likelihood, optimized
 top-level parameter count, and fitted-row count consistently.
-\code{nobs()} returns the number of fitted rows after complete-case filtering.
+\code{nobs()} returns the number of rows contributing to the fitted likelihood.
+With supported response masks, this excludes missing univariate responses;
+for bivariate Gaussian fits, a partial-response row contributes once.
 \code{df.residual()} returns \code{nobs - df}, where \code{df} is the number of optimized
 top-level parameters recorded in \code{logLik()}. \code{deviance()} returns
 \code{-2 * logLik}; for these likelihood-based distributional models this is an
