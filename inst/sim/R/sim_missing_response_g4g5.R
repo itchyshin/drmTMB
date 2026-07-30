@@ -367,6 +367,19 @@ mr_g4g5_t5_dgp <- function(information_multiplier = 1, seed = 2026071506L) {
 
 mr_g4g5_fit_t5 <- function(data) drmTMB(bf(count~x+(1|id),sigma~z),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE))
 
+mr_g4g5_t6_dgp <- function(route, information_multiplier=1, seed=NULL) {
+  if (!route %in% c("zi_poisson","zi_nbinom2","hurdle_nbinom2") || !information_multiplier %in% c(.5,1,2)) stop("Unsupported T6 route or information multiplier.",call.=FALSE)
+  defaults<-c(zi_poisson=2026071609L,zi_nbinom2=2026071627L,hurdle_nbinom2=2026071650L); use_g3<-is.null(seed);if(use_g3)seed<-defaults[[route]];set.seed(seed)
+  n<-as.integer(ceiling(1800L*information_multiplier/4)*4); habitat<-if(route=="hurdle_nbinom2") factor(rep(c("open","closed"),length.out=n)) else factor(sample(c("open","edge"),n,replace=TRUE))
+  data<-data.frame(x=rnorm(n),z=rnorm(n),w=rnorm(n),habitat=habitat)
+  if(route=="zi_poisson") {mu<-exp(.30-.35*data$x+.25*(data$habitat=="open")); zi<-plogis(-.90+.55*data$z-.45*(data$habitat=="open"));data$count<-ifelse(runif(n)<zi,0L,rpois(n,mu));truth<-c("fixef:mu:(Intercept)"=.30,"fixef:mu:x"=-.35,"fixef:mu:habitatopen"=.25,"fixef:zi:(Intercept)"=-.90,"fixef:zi:z"=.55,"fixef:zi:habitatopen"=-.45)}
+  if(route=="zi_nbinom2") {mu<-exp(.45-.30*data$x+.25*(data$habitat=="open"));s<-exp(-.75+.20*data$z);zi<-plogis(-1.15+.45*data$w-.35*(data$habitat=="open"));data$count<-ifelse(runif(n)<zi,0L,rnbinom(n,size=1/s^2,mu=mu));truth<-c("fixef:mu:(Intercept)"=.45,"fixef:mu:x"=-.30,"fixef:mu:habitatopen"=.25,"fixef:sigma:(Intercept)"=-.75,"fixef:sigma:z"=.20,"fixef:zi:(Intercept)"=-1.15,"fixef:zi:w"=.45,"fixef:zi:habitatopen"=-.35)}
+  if(route=="hurdle_nbinom2") {mu<-exp(.40-.22*data$x+.20*(data$habitat=="open"));s<-exp(-.75+.18*data$z);hu<-plogis(-.85+.45*data$w-.35*(data$habitat=="open"));p0<-dnbinom(0,size=1/s^2,mu=mu);data$count<-ifelse(runif(n)<hu,0L,qnbinom(p0+pmax(runif(n),.Machine$double.eps)*(1-p0),size=1/s^2,mu=mu));truth<-c("fixef:mu:(Intercept)"=.40,"fixef:mu:x"=-.22,"fixef:mu:habitatopen"=.20,"fixef:sigma:(Intercept)"=-.75,"fixef:sigma:z"=.18,"fixef:hu:(Intercept)"=-.85,"fixef:hu:w"=.45,"fixef:hu:habitatopen"=-.35)}
+  data<-mr_g4g5_mask_mcar(data,"count",if(use_g3)defaults[[route]] else seed+1L);list(data=data,truth=truth,information_multiplier=information_multiplier)
+}
+
+mr_g4g5_fit_t6 <- function(route,data) switch(route,zi_poisson=drmTMB(bf(count~x+habitat,zi~z+habitat),poisson(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)),zi_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,zi~w+habitat),nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)),hurdle_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,hu~w+habitat),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)))
+
 # Freeze the actual, canonical targets for one route after constructing its
 # frozen G3 DGP. `truth` is a named numeric vector on the reporting scale.
 # Requiring an exact name match prevents a runner-local alias (especially for

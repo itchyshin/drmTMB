@@ -85,6 +85,14 @@ test_that("T5 fixture preserves positive observed responses and its random SD ta
   expect_true("sd:mu:(1 | id)" %in% names(case$truth))
 })
 
+test_that("T6 mixture fixtures retain all mixture-side target formulas", {
+  source_missing_response_g4g5()
+  for (route in c("zi_poisson","zi_nbinom2","hurdle_nbinom2")) {
+    case<-mr_g4g5_t6_dgp(route,.5); expect_equal(mean(is.na(case$data$count)),.25,info=route)
+    dpar<-if(route=="hurdle_nbinom2")"hu" else "zi";expect_true(any(grepl(paste0("fixef:",dpar),names(case$truth))),info=route)
+  }
+})
+
 test_that("G4 retains failed, clamped, and truth-missing profile attempts", {
   source_missing_response_g4g5()
   ok <- mr_g4_validate_record(data.frame(conf.low = 0.1, conf.high = 0.4, conf.status = "profile", profile.boundary = FALSE, truth = 0.2))
