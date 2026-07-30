@@ -24,6 +24,7 @@ target is direct and the fitted object retained the TMB object needed for
 values are \code{"ready"}, \code{"tmb_object_required"}, \code{"missing_tmb_parameter"},
 \code{"point_fit_only_count_q2"}, \code{"point_fit_only_count_sigma_interaction"},
 \code{"point_fit_only_zi_nbinom2_sigma_interaction"},
+\code{"point_fit_only_zi_nbinom2_sigma_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_zoi_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_coi_q1"},

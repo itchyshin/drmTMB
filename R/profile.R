@@ -513,6 +513,7 @@ confint.drmTMB <- function(
 #'   values are `"ready"`, `"tmb_object_required"`, `"missing_tmb_parameter"`,
 #'   `"point_fit_only_count_q2"`, `"point_fit_only_count_sigma_interaction"`,
 #'   `"point_fit_only_zi_nbinom2_sigma_interaction"`,
+#'   `"point_fit_only_zi_nbinom2_sigma_q1"`,
 #'   `"point_fit_only_zero_one_beta_phylo_q1"`,
 #'   `"point_fit_only_zero_one_beta_phylo_zoi_q1"`,
 #'   `"point_fit_only_zero_one_beta_phylo_coi_q1"`,
@@ -1396,7 +1397,8 @@ drm_profile_targets <- function(object) {
       }
       status <- if (is_direct) {
         if (
-          (identical(internal, "log_sd_phylo") &&
+          ((identical(internal, "log_sd_phylo") ||
+            identical(internal, "log_sd_sigma")) &&
             count_point_fit_only_profile_restricted(object, dpar)) ||
             zero_one_beta_sigma_q1_profile_restricted(object, dpar, internal) ||
             zero_one_beta_zoi_q1_profile_restricted(object, dpar, internal) ||
@@ -3806,6 +3808,7 @@ validate_profile_targets <- function(targets) {
     "point_fit_only_count_q2",
     "point_fit_only_count_sigma_interaction",
     "point_fit_only_zi_nbinom2_sigma_interaction",
+    "point_fit_only_zi_nbinom2_sigma_q1",
     "point_fit_only_zero_one_beta_animal_q1",
     "point_fit_only_zero_one_beta_relmat_q1",
     "point_fit_only_zero_one_beta_spatial_q1",
@@ -3987,9 +3990,22 @@ count_sigma_interaction_profile_restricted <- function(object, dpar) {
     identical(structured_mu_q(structured), 1L)
 }
 
+zi_nbinom2_sigma_q1_profile_restricted <- function(object, dpar) {
+  structured <- object$model$structured$phylo_mu
+  re_sigma <- object$model$random$sigma
+  identical(object$model$model_type, "zi_nbinom2") &&
+    identical(dpar, "sigma") &&
+    !isTRUE(structured$has) &&
+    identical(re_sigma$n_terms, 1L) &&
+    isTRUE(re_sigma$n_re > 0L) &&
+    identical(re_sigma$coef_names[[1L]], "(Intercept)") &&
+    is.na(re_sigma$covariance_labels[[1L]])
+}
+
 count_point_fit_only_profile_restricted <- function(object, dpar) {
   (identical(dpar, "mu") && count_labelled_q2_profile_restricted(object)) ||
     count_sigma_interaction_profile_restricted(object, dpar) ||
+    zi_nbinom2_sigma_q1_profile_restricted(object, dpar) ||
     (identical(object$model$model_type, "zero_one_beta") &&
       dpar %in% c("mu", "sigma", "zoi", "coi") && isTRUE(object$model$structured$phylo_mu$has) &&
       structured_mu_type(object$model$structured$phylo_mu) %in% c("phylo", "animal", "relmat", "spatial", "phylo_interaction") &&
@@ -4024,6 +4040,12 @@ count_point_fit_only_profile_restricted_status <- function(object, dpar) {
       } else {
         "point_fit_only_count_sigma_interaction"
       }
+    ))
+  }
+  if (zi_nbinom2_sigma_q1_profile_restricted(object, dpar)) {
+    return(list(
+      profile_ready = FALSE,
+      profile_note = "point_fit_only_zi_nbinom2_sigma_q1"
     ))
   }
   if (identical(object$model$model_type, "zero_one_beta")) {

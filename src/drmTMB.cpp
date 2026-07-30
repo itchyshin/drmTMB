@@ -3910,6 +3910,27 @@ Type objective_function<Type>::operator()()
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
     }
+    // C12: model 9 admits only an independent sigma random intercept. The
+    // R-side validator excludes slopes, labels, covariance, and other dpars.
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          log_sigma(i) +=
+            sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) *
+            u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+    }
     vector<Type> mu = exp(eta_mu);
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(

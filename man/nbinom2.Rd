@@ -23,8 +23,10 @@ also support first-slice random intercepts on the log-\code{sigma} predictor,
 such as \code{bf(count ~ x, sigma ~ z + (1 | id))}. Structured \code{sigma} effects
 (\code{phylo}/\code{spatial}/\code{animal}/\code{relmat}) also fit as a point-recovery route
 (trust the point estimate, not the interval; not yet coverage-verified).
-NB2 \code{sigma} random slopes and zero-inflated NB2 \code{sigma} random effects
-remain planned.
+NB2 \code{sigma} random slopes remain planned. Zero-inflated NB2 supports only
+the point-fit-only IID control \code{bf(count ~ fixed_effects, sigma ~ 1 + (1 | group), zi ~ 1)} under ML with complete responses; zero-inflated
+sigma predictors, slopes, labels, and other random-effect combinations
+remain unsupported.
 }
 \examples{
 nbinom2()

@@ -264,6 +264,32 @@ zi_nbinom2_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, obser
   prior - sum(data$weights * log_lik)
 }
 
+zi_nbinom2_sigma_iid_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  index <- data$sigma_re_index[, 1L] + 1L
+  term <- data$sigma_re_term[index] + 1L
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  eta_zi <- as.vector(data$X_zi %*% par$beta_zi)
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma) +
+    data$sigma_re_value[, 1L] * exp(par$log_sd_sigma[term]) *
+    par$u_sigma[index]
+  log_nb <- stats::dnbinom(
+    data$y, size = exp(-2 * log_sigma), mu = exp(eta_mu), log = TRUE
+  )
+  log_zi <- -log1p(exp(-eta_zi))
+  log_one_minus_zi <- -log1p(exp(eta_zi))
+  log_mix_zero <- function(a, b) {
+    high <- pmax(a, b)
+    high + log(exp(a - high) + exp(b - high))
+  }
+  log_lik <- ifelse(
+    data$y == 0,
+    log_mix_zero(log_zi, log_one_minus_zi + log_nb),
+    log_one_minus_zi + log_nb
+  )
+  -sum(data$weights * log_lik) - sum(stats::dnorm(par$u_sigma, log = TRUE))
+}
+
 central_gradient <- function(fn, par) {
   vapply(seq_along(par), function(i) {
     step <- 1e-6 * max(1, abs(par[[i]]))
@@ -628,6 +654,88 @@ test_that("zero-inflated NB2 sigma phylo-interaction q1 matches an independent o
   perturbed <- probe
   perturbed[[sd_index]] <- perturbed[[sd_index]] + .25
   expect_gt(abs(full_obj$fn(perturbed) - full_obj$fn(probe)), 1e-5)
+})
+
+test_that("zero-inflated NB2 sigma admits only the IID q1 control with a full oracle", {
+  skip_on_cran()
+  sim <- new_zi_nbinom2_sigma_phylo_interaction_data(n_each = 8L)
+  dat <- sim$data
+  dat$pair <- factor(paste(dat$plant, dat$pollinator, sep = ":"))
+  plant_tree <- sim$plant_tree
+  pollinator_tree <- sim$pollinator_tree
+  fit <- drmTMB(
+    bf(count ~ x, sigma ~ 1 + (1 | pair), zi ~ 1),
+    family = nbinom2(), data = dat, control = drm_control(se = FALSE)
+  )
+
+  expect_identical(fit$model$model_type, "zi_nbinom2")
+  expect_false(isTRUE(fit$model$structured$phylo_mu$has))
+  expect_named(fit$sdpars$sigma, "(1 | pair)")
+  expect_named(ranef(fit, "sigma")$terms, "(1 | pair)")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:(1 | pair)")
+  expect_equal(nrow(target), 1L)
+  expect_identical(target$tmb_parameter, "log_sd_sigma")
+  expect_identical(target$target_type, "direct")
+  expect_identical(target$transformation, "exp")
+  expect_false(target$profile_ready)
+  expect_identical(target$profile_note, "point_fit_only_zi_nbinom2_sigma_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(
+    drm_profile_target_endpoint_confint = function(...) {
+      endpoint_called <<- TRUE
+      stop("endpoint profile must not start", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
+  expect_false(endpoint_called)
+  expect_identical(endpoint$conf.status, "profile_failed")
+
+  fixed_sigma <- as.vector(fit$model$tmb_data$X_sigma %*% coef(fit, "sigma"))
+  sigma_re <- ranef(fit, "sigma")$terms[["(1 | pair)"]]
+  expect_equal(
+    unname(predict(fit, dpar = "sigma", type = "link")),
+    fixed_sigma + unname(sigma_re[as.character(dat$pair)]),
+    tolerance = 1e-5
+  )
+
+  full_obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map,
+    DLL = "drmTMB", silent = TRUE
+  )
+  probe <- full_obj$par + seq(-.04, .04, length.out = length(full_obj$par))
+  par <- full_obj$env$parList(probe)
+  expect_equal(full_obj$fn(probe), zi_nbinom2_sigma_iid_nll(fit, par), tolerance = 1e-8)
+  expect_equal(as.numeric(full_obj$gr(probe)), central_gradient(full_obj$fn, probe), tolerance = 4e-5)
+  sd_index <- which(names(probe) == "log_sd_sigma")
+  expect_length(sd_index, 1L)
+  perturbed <- probe; perturbed[[sd_index]] <- perturbed[[sd_index]] + .25
+  expect_gt(abs(full_obj$fn(perturbed) - full_obj$fn(probe)), 1e-5)
+
+  expect_error(
+    drmTMB(bf(count ~ x, sigma ~ x + (1 | pair), zi ~ 1), family = nbinom2(), data = dat),
+    "only the point-fit q1 IID control"
+  )
+  expect_error(
+    drmTMB(bf(count ~ x, sigma ~ 1 + (1 + x | pair), zi ~ 1), family = nbinom2(), data = dat),
+    "Only independent NB2.*random intercepts"
+  )
+  expect_error(
+    drmTMB(bf(count ~ x + (1 | pair), sigma ~ 1 + (1 | pair), zi ~ 1), family = nbinom2(), data = dat),
+    "implemented only for ordinary NB2 models"
+  )
+  expect_error(
+    drmTMB(bf(count ~ x, sigma ~ 1 + (1 | pair), zi ~ x), family = nbinom2(), data = dat),
+    "only the point-fit q1 IID control"
+  )
+  expect_error(
+    drmTMB(bf(count ~ x, sigma ~ (1 | pair) + phylo_interaction(
+      1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
+    ), zi ~ 1), family = nbinom2(), data = dat),
+    "cannot be combined with ordinary"
+  )
 })
 
 test_that("phylo_interaction uses sparse Kronecker augmented precision", {
