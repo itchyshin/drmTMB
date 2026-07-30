@@ -5480,6 +5480,8 @@ drm_build_zero_one_beta_spec <- function(
   sigma_entry$rhs <- sigma_animal$rhs
   sigma_relmat <- extract_gaussian_mu_known_term(sigma_entry, "relmat", dpar = "sigma")
   sigma_entry$rhs <- sigma_relmat$rhs
+  sigma_spatial <- extract_gaussian_mu_spatial_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_spatial$rhs
   if (!is.null(sigma_phylo$term)) {
     validate_zero_one_beta_sigma_phylo_term(sigma_phylo$term)
     sigma_phylo$term$dpars <- "sigma"
@@ -5492,10 +5494,14 @@ drm_build_zero_one_beta_spec <- function(
     validate_zero_one_beta_sigma_relmat_term(sigma_relmat$term)
     sigma_relmat$term$dpars <- "sigma"
   }
-  if (sum(!vapply(list(sigma_phylo$term, sigma_animal$term, sigma_relmat$term), is.null, logical(1L))) > 1L) {
+  if (!is.null(sigma_spatial$term)) {
+    validate_zero_one_beta_sigma_spatial_term(sigma_spatial$term)
+    sigma_spatial$term$dpars <- "sigma"
+  }
+  if (sum(!vapply(list(sigma_phylo$term, sigma_animal$term, sigma_relmat$term, sigma_spatial$term), is.null, logical(1L))) > 1L) {
     cli::cli_abort("A zero-one-beta sigma formula can use only one structured provider in this q1 gate.")
   }
-  sigma_structured <- if (!is.null(sigma_phylo$term)) sigma_phylo$term else if (!is.null(sigma_animal$term)) sigma_animal$term else sigma_relmat$term
+  sigma_structured <- if (!is.null(sigma_phylo$term)) sigma_phylo$term else if (!is.null(sigma_animal$term)) sigma_animal$term else if (!is.null(sigma_relmat$term)) sigma_relmat$term else sigma_spatial$term
   if (!is.null(mu_structured) && !is.null(sigma_structured)) {
     cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with a structured mu effect in this gate.")
   }
@@ -9714,6 +9720,18 @@ validate_zero_one_beta_sigma_relmat_term <- function(term) {
     cli::cli_abort(c(
       "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code relmat(1 | species, K = K)} intercept.",
       "i" = "Q inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_spatial_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "spatial") || !identical(term$structure, "coords") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code spatial(1 | site, coords = coords)} intercept.",
+      "i" = "Mesh/range inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
     ))
   }
   invisible(term)

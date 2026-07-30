@@ -304,6 +304,16 @@ zoib_spatial_nll <- function(fit, par, coords, site) {
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
 }
 
+zoib_sigma_spatial_nll <- function(fit, par, coords, site) {
+  d <- fit$model$tmb_data; u <- as.vector(par$u_phylo)
+  precision <- dense_zoib_spatial_precision(coords, unique(as.character(site)))
+  node <- match(site, precision$levels); expect_equal(d$phylo_mu_node_index + 1L, unname(node))
+  log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[node]
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
+  prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det_Q + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
+  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
+}
+
 zoib_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame) {
   d <- fit$model$tmb_data; u <- as.vector(par$u_phylo)
   p1 <- dense_zoib_phylo_precision(tree1); p2 <- dense_zoib_phylo_precision(tree2)
@@ -476,6 +486,23 @@ test_that("zero-one-beta admits only the exact relmat K q1 sigma gate", {
   expect_error(drmTMB(bf(y ~ x, sigma ~ relmat(1 | species, Q = Q), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "K")
   expect_error(drmTMB(bf(y ~ x + relmat(1 | species, K = K), sigma ~ relmat(1 | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE); probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_relmat_nll(fit, obj$env$parList(v), K, d$species)
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8); expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2; expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
+})
+
+test_that("zero-one-beta admits only the exact spatial coords q1 sigma gate", {
+  set.seed(2026074301L); n <- 16L; labels <- paste0("site", seq_len(n)); coords <- cbind(seq_len(n), (seq_len(n) %% 5L) / 3); rownames(coords) <- rev(labels); precision <- dense_zoib_spatial_precision(coords, labels)
+  u <- as.numeric(t(chol(solve(precision$Q))) %*% rnorm(n, sd = .45)); names(u) <- labels; site <- rep(labels, each = 40L); x <- rnorm(length(site)); mu <- plogis(-.15 + .35 * x); sigma <- exp(-1 + u[site]); zoi <- plogis(-1.1); coi <- plogis(.1)
+  boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi); d <- data.frame(y, x, site)
+  fit <- drmTMB(bf(y ~ x, sigma ~ spatial(1 | site, coords = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
+  expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "spatial(1 | site)"); expect_named(ranef(fit, "spatial_sigma")$terms, "spatial(1 | site)")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:spatial(1 | site)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_spatial_q1")
+  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  endpoint_called <- FALSE; testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB"); endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ spatial(1 | site, mesh = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "coords")
+  expect_error(drmTMB(bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ spatial(1 | site, coords = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
+  obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE); probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_spatial_nll(fit, obj$env$parList(v), coords, d$site)
   expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8); expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
   i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2; expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
