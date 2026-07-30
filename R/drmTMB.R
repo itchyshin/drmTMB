@@ -9610,8 +9610,8 @@ validate_zero_one_beta_coi_random_terms <- function(terms) {
 validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs, sigma_terms) {
   is_slope <- identical(sigma_terms[[1L]]$type, "slope")
   sigma_ok <- if (is_slope) {
-    fixed_var <- all.vars(sigma_rhs)
-    identical(fixed_var, sigma_terms[[1L]]$variable)
+    is.symbol(sigma_rhs) &&
+      identical(as.character(sigma_rhs), sigma_terms[[1L]]$variable)
   } else {
     is_intercept_one(sigma_rhs)
   }
@@ -9621,7 +9621,7 @@ validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rh
       !is_intercept_one(coi_rhs)
   ) {
     cli::cli_abort(c(
-      "The zero-one-beta sigma q1 gate requires an exact matching fixed and random sigma predictor, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
+      "The zero-one-beta sigma q1 gate requires one identical untransformed fixed and random sigma predictor, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
       "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
       "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}."
     ))

@@ -641,6 +641,7 @@ test_that("zero-one-beta admits only the exact sigma random-slope q1 gate", {
   expect_match(endpoint$profile.message, "endpoint engine unsupported")
   expect_error(drmTMB(bf(y ~ x, sigma ~ x + z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
+  expect_error(drmTMB(bf(y ~ x, sigma ~ I(x^2) + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ x + (1 | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "requires")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
   probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_random_intercept_nll(fit, obj$env$parList(v))
