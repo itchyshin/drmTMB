@@ -5478,6 +5478,9 @@ drm_build_zero_one_beta_spec <- function(
   if (!is.null(mu_structured) && length(sigma_re$terms) > 0L) {
     cli::cli_abort("A zero-one-beta sigma random intercept cannot be combined with a structured mu effect in this q1 gate.")
   }
+  if (!is.null(mu_structured) && length(zoi_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta zoi random intercept cannot be combined with a structured mu effect in this q1 gate.")
+  }
 
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)

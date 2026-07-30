@@ -689,6 +689,13 @@ test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
     ),
     "Structured-effect syntax"
   )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | id, tree = tree), sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
+      family = zero_one_beta(), data = sim$data
+    ),
+    "cannot be combined with a structured mu"
+  )
 })
 
 test_that("zero-one-beta zoi random-intercept objective has independent oracle and gradient", {
