@@ -127,6 +127,9 @@ reference:
       - nbinom2
       - truncated_nbinom2
       - biv_gaussian
+      - biv_lognormal
+      - biv_student
+      - latent_normal
   - title: Structured-effect markers
     desc: Status-marked random-effect scale, structured covariance, and latent-correlation syntax; each reference page separates fitted routes from planned neighbours.
     contents:
@@ -172,6 +175,10 @@ reference:
       - structured_effects
       - summary.drmTMB
       - weights.drmTMB
+      - associate_pairs
+      - association
+      - biv_associate
+      - predict.drm_pair_association
   - title: Distributional outputs and adequacy
     desc: >
       A first-class fitted distribution for every family, plus the adequacy
@@ -189,6 +196,8 @@ reference:
       - predict.drmTMB_julia
       - summary.drmTMB_julia
       - rho_latent
+      - summary.drmTMB_julia_xfam
+      - vcov.drmTMB_julia_xfam
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
     contents:
