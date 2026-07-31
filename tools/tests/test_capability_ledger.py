@@ -954,7 +954,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn(stale, ordinal_combined)
         self.assertNotIn("skew-normal is a fixed-effect first slice", surfaces["README.md"])
         self.assertIn(
-            "Every fitted univariate\nnon-Gaussian family has at least recovery-grade ordinary `mu` random-intercept\nand independent numeric-slope evidence",
+            "Every fitted univariate\nnon-Gaussian family has an ordinary recovery-grade `mu` random intercept and\nindependent numeric slope",
             surfaces["README.md"],
         )
         self.assertIn(
