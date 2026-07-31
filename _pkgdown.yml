@@ -215,6 +215,11 @@ articles:
       - model-map
       - model-workflow
       - missing-data
+      - function-map-cheatsheet
+  - title: Extended models
+    contents:
+      - bivariate-nongaussian
+      - location-scale-scale
   - title: Choose Your Model
     contents:
       - which-scale
