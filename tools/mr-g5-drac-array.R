@@ -1,11 +1,15 @@
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 3L) {
-  stop("Usage: mr-g5-drac-array.R <manifest.rds> <g4-records.rds> <array-index>", call. = FALSE)
+if (!length(args) %in% c(3L, 4L)) {
+  stop("Usage: mr-g5-drac-array.R <manifest.rds> <g4-records.rds> <array-index> [smoke-attempts]", call. = FALSE)
 }
 manifest_path <- args[[1L]]
 g4_path <- args[[2L]]
 array_index <- as.integer(args[[3L]])
 if (!is.finite(array_index) || array_index < 1L) stop("Array index must be positive.", call. = FALSE)
+smoke_attempts <- if (length(args) == 4L) as.integer(args[[4L]]) else NA_integer_
+if (!is.na(smoke_attempts) && (!is.finite(smoke_attempts) || smoke_attempts < 1L || smoke_attempts > 3L)) {
+  stop("DRAC smoke must retain one to three explicit attempts.", call. = FALSE)
+}
 
 library(drmTMB)
 runner_path <- system.file("sim/R/sim_missing_response_g4g5.R", package = "drmTMB")
@@ -24,6 +28,18 @@ out_dir <- Sys.getenv("MR_G5_OUT_DIR", unset = ".")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 stem <- gsub("[^A-Za-z0-9_.-]", "_", paste(cell$route_id, cell$parm, cell$information_rung, sep = "-"))
 out_path <- file.path(out_dir, paste0("g5-", stem, ".rds"))
-records <- mr_g5_run_campaign(registry, trace = TRUE, checkpoint_path = out_path)
-mr_g5_validate_campaign(records, registry)
-print(mr_g5_summarise_attempts(records))
+if (is.na(smoke_attempts)) {
+  records <- mr_g5_run_campaign(registry, trace = TRUE, checkpoint_path = out_path)
+  mr_g5_validate_campaign(records, registry)
+  print(mr_g5_summarise_attempts(records))
+} else {
+  smoke_seeds <- registry$seeds[seq_len(smoke_attempts), , drop = FALSE]
+  records <- do.call(rbind, lapply(seq_len(nrow(smoke_seeds)), function(i) {
+    mr_g5_run_attempt(cell, seed = smoke_seeds$seed[[i]], replicate = smoke_seeds$replicate[[i]], trace = TRUE)
+  }))
+  invisible(lapply(seq_len(nrow(records)), function(i) mr_g5_validate_record(records[i, , drop = FALSE])))
+  saveRDS(records, out_path)
+  print(records[, c("route_id", "parm", "information_rung", "replicate", "attempt_seed",
+    "fit_status", "fit_converged", "pdHess", "interval_usable", "truth_contained",
+    "conf.status", "profile.boundary", "boundary_or_clamp"), drop = FALSE])
+}
