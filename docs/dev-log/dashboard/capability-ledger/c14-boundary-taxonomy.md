@@ -13,11 +13,14 @@ The restoration set is the 330 `model_surface` rows explicitly marked
 `0ccffcb539e19c3b4eeabf394634ddbcfc930cd8`, at
 `docs/dev-log/dashboard/capability-ledger/cells.tsv`.
 
-`tools/capability_ledger.py --restore-c14-boundaries` reads that exact Git
-object, requires exactly 330 unique IDs, refuses to overwrite an implemented
-row, and accepts only a prior `not_implemented/backlog/none` state. For every
-restored row it records the matching C14 `backlog -> deferred` taxonomy
-transition with no evidence IDs.
+`c14-boundary-source.tsv` is the immutable, portable snapshot of those exact
+330 IDs, extracted from that source revision. `tools/capability_ledger.py
+--restore-c14-boundaries` validates its one-column schema and exact unique-ID
+count, refuses to overwrite an implemented row, and accepts only a prior
+`not_implemented/backlog/none` state. This lets CI validate the taxonomy
+without requiring a historical local-only Git object. For every restored row it
+records the matching C14 `backlog -> deferred` taxonomy transition with no
+evidence IDs.
 
 ## Result
 

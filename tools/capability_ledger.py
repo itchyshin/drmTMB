@@ -30,9 +30,12 @@ CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 # C14 restores the package-boundary classification from the last ledger commit
 # that recorded it explicitly.  This is a taxonomy correction, not evidence for
 # an implementation: the immutable source set is deliberately named here so a
-# future rerun cannot infer boundaries from a broad formula heuristic.
+# future rerun cannot infer boundaries from a broad formula heuristic.  The
+# committed snapshot keeps the check portable when the historical local-only
+# commit is not available to a fresh CI checkout.
 C14_BOUNDARY_SOURCE_COMMIT = "0ccffcb539e19c3b4eeabf394634ddbcfc930cd8"
 C14_BOUNDARY_SOURCE_PATH = "docs/dev-log/dashboard/capability-ledger/cells.tsv"
+C14_BOUNDARY_SOURCE_SNAPSHOT = LEDGER / "c14-boundary-source.tsv"
 C14_BOUNDARY_COUNT = 330
 C14_ZOB_LEAF_TAXONOMY = (
     ("mc-0583", "mc-0695"), ("mc-0584", "mc-0696"),
@@ -454,31 +457,22 @@ def c14_boundary_source_rows() -> list[dict[str, str]]:
     single implementation backlog. C14 reverses only the 330 records that an
     earlier committed ledger explicitly classified as package boundaries. The
     source commit is part of the contract: a row must never be reclassified by
-    a pattern over its current formula fields.
+    a pattern over its current formula fields.  Its checked-in ID snapshot is
+    deliberately used instead of ``git show`` so source verification is
+    available in a shallow CI checkout too.
     """
-    text = subprocess.check_output(
-        [
-            "git", "show",
-            f"{C14_BOUNDARY_SOURCE_COMMIT}:{C14_BOUNDARY_SOURCE_PATH}",
-        ],
-        cwd=ROOT,
-        text=True,
-    )
-    rows = list(csv.DictReader(text.splitlines(), delimiter="\t"))
-    boundaries = [
-        row for row in rows
-        if row["axis"] == "model_surface"
-        and row["capability_status"] == "rejected_by_design"
-    ]
-    if len(boundaries) != C14_BOUNDARY_COUNT:
+    rows = read_tsv(C14_BOUNDARY_SOURCE_SNAPSHOT)
+    if not rows or set(rows[0]) != {"cell_id"}:
+        raise SystemExit("C14 boundary source snapshot has an invalid schema")
+    if len(rows) != C14_BOUNDARY_COUNT:
         raise SystemExit(
             "C14 boundary source count changed: "
-            f"{len(boundaries)} (expected {C14_BOUNDARY_COUNT})"
+            f"{len(rows)} (expected {C14_BOUNDARY_COUNT})"
         )
-    ids = [row["cell_id"] for row in boundaries]
+    ids = [row["cell_id"] for row in rows]
     if len(ids) != len(set(ids)):
         raise SystemExit("C14 boundary source contains duplicate cell IDs")
-    return boundaries
+    return rows
 
 
 def restore_c14_boundaries() -> None:
