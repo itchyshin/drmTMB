@@ -300,6 +300,39 @@ test_that("G5 validator retains every deterministic attempt including failures",
   expect_error(mr_g5_validate_campaign(records, registry), "deterministic seed")
 })
 
+test_that("G5 reconciliation requires a complete, non-conflicting receipt set", {
+  source_missing_response_g4g5()
+  cell <- data.frame(
+    route_id = "gaussian", parm = "fixef:mu:x", truth = .2,
+    target_class = "fixed-effect", dpar = "mu", scale = "link",
+    profile_ready = TRUE, interval_method = "profile", conf.level = .95,
+    information_rung = "1x", information_multiplier = 1,
+    cell_id = "mr_g5_0001", stringsAsFactors = FALSE
+  )
+  registry <- list(
+    cells = cell,
+    seeds = data.frame(cell_id = "mr_g5_0001", cell_index = 1L,
+      replicate = seq_len(1200L), seed = seq_len(1200L)),
+    n_rep = 1200L, master_seed = 1L
+  )
+  records <- do.call(rbind, lapply(seq_len(1200L), function(i) {
+    out <- mr_g5_failure_record(cell, seed = i, message = "retained failure")
+    out$replicate <- i
+    out
+  }))
+  first <- tempfile(fileext = ".rds")
+  duplicate <- tempfile(fileext = ".rds")
+  saveRDS(records, first)
+  saveRDS(records, duplicate)
+  reconciled <- mr_g5_reconcile_checkpoints(c(first, duplicate), registry)
+  expect_equal(nrow(reconciled), 1200L)
+  expect_true(all(grepl(";", reconciled$checkpoint_paths, fixed = TRUE)))
+  conflicting <- records
+  conflicting$receipt_note <- "different receipt payload"
+  saveRDS(conflicting, duplicate)
+  expect_error(mr_g5_reconcile_checkpoints(c(first, duplicate), registry), "Conflicting G5")
+})
+
 test_that("G5 runner retains a real masked Gaussian attempt", {
   source_missing_response_g4g5()
   manifest <- mr_g4g5_materialise_target_manifest("gaussian", .5)$manifest

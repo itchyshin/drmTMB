@@ -1029,6 +1029,59 @@ mr_g5_validate_campaign <- function(records, registry) {
   invisible(records)
 }
 
+# Reconcile one or more completed array receipts against the exact frozen
+# registry.  A rerun may leave an identical receipt behind; that is harmless,
+# whereas two non-identical records for the same deterministic attempt are a
+# provenance failure and must stop interpretation.
+mr_g5_reconcile_checkpoints <- function(paths, registry) {
+  if (!is.character(paths) || !length(paths) || any(!file.exists(paths))) {
+    stop("G5 reconciliation requires existing checkpoint files.", call. = FALSE)
+  }
+  key_columns <- c("route_id", "parm", "information_rung", "replicate")
+  records <- lapply(normalizePath(paths), function(path) {
+    x <- readRDS(path)
+    if (!is.data.frame(x) || !all(key_columns %in% names(x))) {
+      stop("Each G5 checkpoint must contain retained attempt identities.", call. = FALSE)
+    }
+    cell_key <- unique(do.call(paste, c(x[key_columns[1:3]], sep = "\r")))
+    expected_key <- do.call(paste, c(registry$cells[key_columns[1:3]], sep = "\r"))
+    if (!length(cell_key) || any(!cell_key %in% expected_key)) {
+      stop("A G5 checkpoint contains a cell outside the frozen registry.", call. = FALSE)
+    }
+    cell_ids <- registry$cells$cell_id[match(cell_key, expected_key)]
+    local_registry <- registry
+    local_registry$cells <- registry$cells[registry$cells$cell_id %in% cell_ids, , drop = FALSE]
+    local_registry$seeds <- registry$seeds[registry$seeds$cell_id %in% cell_ids, , drop = FALSE]
+    mr_g5_validate_campaign(x, local_registry)
+    x$.mr_g5_checkpoint_path <- path
+    x
+  })
+  fields <- Reduce(union, lapply(records, names))
+  records <- lapply(records, function(x) {
+    for (field in setdiff(fields, names(x))) x[[field]] <- NA
+    x[, fields, drop = FALSE]
+  })
+  all_records <- do.call(rbind, records)
+  attempt_key <- do.call(paste, c(all_records[key_columns], sep = "\r"))
+  groups <- split(seq_len(nrow(all_records)), attempt_key)
+  keep <- vapply(groups, `[[`, integer(1L), 1L)
+  sources <- vapply(groups, function(index) {
+    rows <- all_records[index, setdiff(names(all_records), ".mr_g5_checkpoint_path"), drop = FALSE]
+    identical_rows <- vapply(seq_len(nrow(rows))[-1L], function(i) {
+      identical(rows[1L, , drop = FALSE], rows[i, , drop = FALSE])
+    }, logical(1L))
+    if (length(identical_rows) && !all(identical_rows)) {
+      stop("Conflicting G5 checkpoint records share a deterministic attempt.", call. = FALSE)
+    }
+    paste(sort(unique(all_records$.mr_g5_checkpoint_path[index])), collapse = ";")
+  }, character(1L))
+  out <- all_records[keep, setdiff(names(all_records), ".mr_g5_checkpoint_path"), drop = FALSE]
+  out$checkpoint_paths <- unname(sources[attempt_key[keep]])
+  row.names(out) <- NULL
+  mr_g5_validate_campaign(out, registry)
+  out
+}
+
 # Run or resume a planned G5 campaign.  Checkpoints are append-only at the
 # attempt level: an unsuccessful fit is retained and never retried in place,
 # while an interrupted campaign resumes only genuinely absent attempt keys.
