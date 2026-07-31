@@ -2,6 +2,22 @@
 
 Record meaningful development checks here.
 
+## 2026-07-31: Missing-response G5 binomial and Poisson cohort receipts
+
+- The retained binomial cohort contains all 7,200 planned attempts across six
+  frozen target-rung cells. Its profile-interval calibration rows all pass the
+  prospective `mr-g5-calibration-v1` rule (coverage 0.946--0.962; MCSE below
+  0.01). Durable artifact:
+  `~/g4g5/artifacts/g5-binomial-reconciled-v1.rds`.
+- The retained Poisson cohort contains all 10,800 planned attempts across nine
+  frozen target-rung cells. The three fixed-intercept rows have coverage 1.000
+  and fail calibration; the `sd:mu:(1 | id)` 0.5x row fails because two
+  intervals were unusable. The remaining five exact rows pass. Durable
+  artifact: `~/g4g5/artifacts/g5-poisson-reconciled-v1.rds`.
+- These are calibration receipts, not a capability promotion: no test gate or
+  inference tier changes here. All failed attempts and non-finite/unusable
+  intervals remain in the unconditional 1,200-attempt denominators.
+
 ## 2026-07-31: Missing-response G5 route-cohort DRAC runner
 
 - Added a route selector that can only subset the frozen G4-feasible registry;
