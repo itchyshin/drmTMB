@@ -91710,3 +91710,17 @@ Shinichi grants a separate Gate A compute approval.
 - `R_PROFILE_USER=/dev/null R CMD build .` completed. The no-force-suggests installed-package check `NOT_CRAN=false _R_CHECK_FORCE_SUGGESTS_=false R CMD check --as-cran --no-manual drmTMB_0.6.0.tar.gz` completed with two pre-existing/environmental notes: unavailable optional `palmerpenguins` and `utils::head` missing from the namespace import list.
 - `pkgdown::check_pkgdown()` passed after adding the existing exported `predict.drm_pair_association` topic to the frozen-margin bivariate-association reference group.
 - Rose's claim audit required and then verified reconciliation of the current 18-route response-mask inventory, the unsupported-family message, and the historical 0.5.0 wording. A broad source suite was started and reached unrelated phase-18 contexts without failures, then intentionally stopped. PR #871 merged as `5e732894` on 2026-07-30 and automatically closed #865–#867; the focused suite and installed CRAN-safe suite remain the final evidence for this R claim-reconciliation arc.
+## 2026-07-28: capability backlog taxonomy correction
+
+- Reclassified the 330 legacy `rejected_by_design` model-surface cells as
+  visible `not_implemented` backlog. The ledger now reports 307 implemented and
+  370 not-implemented model cells; no evidence tier changed.
+- Added deterministic planning classes to the generated detailed surface:
+  admission candidate, covariance/model method, and estimator method. The
+  rendered table explains that ML and REML are separate objectives, so an ML
+  route does not automatically imply a valid REML route.
+- `python3 -m unittest tools.tests.test_capability_ledger` passed 41 tests and
+  `python3 tools/capability_ledger.py --check` confirmed 30 current generated
+  outputs. No model implementation, simulation, inference promotion, or Arc 6
+  work occurred. See
+`docs/dev-log/after-task/2026-07-28-capability-backlog-taxonomy.md`.

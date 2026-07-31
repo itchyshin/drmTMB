@@ -65,7 +65,6 @@
     "capability_status": [
       "implemented",
       "not_implemented",
-      "rejected_by_design",
       "scaffolded"
     ],
     "work_status": [
