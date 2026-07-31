@@ -33,6 +33,17 @@ CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 C14_BOUNDARY_SOURCE_COMMIT = "0ccffcb539e19c3b4eeabf394634ddbcfc930cd8"
 C14_BOUNDARY_SOURCE_PATH = "docs/dev-log/dashboard/capability-ledger/cells.tsv"
 C14_BOUNDARY_COUNT = 330
+C14_ZOB_LEAF_TAXONOMY = (
+    ("mc-0583", "mc-0695"), ("mc-0584", "mc-0696"),
+    ("mc-0585", "mc-0697"), ("mc-0586", "mc-0698"),
+    ("mc-0587", "mc-0699"), ("mc-0593", "mc-0700"),
+    ("mc-0594", "mc-0701"), ("mc-0595", "mc-0702"),
+    ("mc-0596", "mc-0703"), ("mc-0597", "mc-0704"),
+)
+C14_ZOB_LEAF_TAXONOMY_SOURCE = (
+    "docs/dev-log/dashboard/capability-ledger/"
+    "c14-zob-structured-leaf-taxonomy.md"
+)
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
@@ -40,7 +51,7 @@ IMPORTED_MODEL_COUNT = 668
 # approved draft docs/dev-log/handover/2026-07-21-mc-0260m-ledger-cell-draft.md. The row
 # is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
-MODEL_SURFACE_COUNT = 677
+MODEL_SURFACE_COUNT = 687
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
@@ -530,6 +541,161 @@ def restore_c14_boundaries() -> None:
     )
 
 
+def split_c14_zob_structured_leaves() -> None:
+    """Replace C14's lossy zero-one-beta structured rows with exact leaves.
+
+    Each original row becomes a q1 intercept leaf. A separate q2-plus boundary
+    row is added for the same provider and endpoint, so promotion of the q1
+    leaf can never silently inherit the untested higher-dimensional forms.
+    """
+    cells = read_tsv(CELLS)
+    evidence = read_tsv(EVIDENCE)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    evidence_ids = {row["evidence_id"] for row in evidence}
+    transition_ids = {row["transition_id"] for row in transitions}
+    sha = git_sha()
+
+    for original_id, boundary_id in C14_ZOB_LEAF_TAXONOMY:
+        if original_id not in by_id:
+            raise SystemExit(f"C14 q1 leaf source is missing: {original_id}")
+        original = by_id[original_id]
+        expected = {
+            "axis": "model_surface",
+            "family_route": "zero_one_beta",
+            "effect_type": "structured",
+            "capability_status": "not_implemented",
+            "work_status": "backlog",
+            "evidence_tier": "none",
+        }
+        if any(original[field] != value for field, value in expected.items()):
+            raise SystemExit(
+                f"C14 q1 leaf source has unexpected state: {original_id}"
+            )
+
+        q1_evidence_id = f"ev-{original_id}-c14-q1-leaf-taxonomy"
+        q1_transition_id = f"tr-{original_id}-c14-q1-leaf-taxonomy"
+        q1_boundary = (
+            "Exact C14 leaf for ordinary ML zero_one_beta(): one unlabelled "
+            f"structured {original['dpar']} intercept with provider "
+            f"`{original['structure_provider']}` and q1 only. This leaf carries "
+            "no point-fit evidence until its provider-specific oracle, retained "
+            "attempts, source SHA, and independent GO review are bound. Slopes, "
+            "labels, covariance, q2+, other random effects, profiles, intervals, "
+            "coverage, and inference claims remain outside this leaf."
+        )
+        if q1_evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": q1_evidence_id,
+                "cell_id": original_id,
+                "evidence_class": "contract_test",
+                "path_or_url": C14_ZOB_LEAF_TAXONOMY_SOURCE,
+                "commit_sha": sha,
+                "run_id": "c14-zob-structured-q1-leaf-taxonomy",
+                "command": "python3 tools/capability_ledger.py --split-c14-zob-structured-leaves",
+                "result": "q1_leaf_not_promoted",
+                "replicates": "",
+                "reviewed_by": "C14 taxonomy reconciliation",
+                "review_date": "2026-07-31",
+                "claim_boundary": q1_boundary,
+            })
+        original.update({
+            "route_variant": "c14_exact_q1_structured_intercept",
+            "q_gate": "q1",
+            "tranche_id": "lane-c-c14-leaf-taxonomy",
+            "owner": "Lane C",
+            "blocking_reviewers": "Noether; Fisher; Rose",
+            "primary_evidence_id": q1_evidence_id,
+            "claim_boundary": q1_boundary,
+            "next_gate": (
+                "Bind this exact q1 leaf to its current-source oracle, all-attempt "
+                "recovery receipt, and independent GO/BLOCK review before promotion."
+            ),
+            "updated_commit": sha,
+            "updated_date": "2026-07-31",
+            "notes": "C14 non-lossy q1 leaf; q2-plus boundary is " + boundary_id + ".",
+        })
+        if q1_transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": q1_transition_id,
+                "cell_id": original_id,
+                "from_work_status": "backlog",
+                "to_work_status": "backlog",
+                "evidence_ids": q1_evidence_id,
+                "reason": "C14 non-lossy taxonomy split; q1 remains unpromoted.",
+                "actor": "Codex C14 leaf taxonomy",
+                "commit_sha": sha,
+                "date": "2026-07-31",
+            })
+
+        q2_evidence_id = f"ev-{boundary_id}-c14-q2plus-boundary"
+        q2_transition_id = f"tr-{boundary_id}-c14-q2plus-boundary"
+        q2_boundary = (
+            "C14 q2-plus boundary paired with " + original_id + ": q2, q4, q6, "
+            "q8, q12, slopes, labels, covariance, additional structured or "
+            "ordinary random effects, profiles, intervals, coverage, and inference "
+            "claims are not currently supported by the exact q1 leaf."
+        )
+        if boundary_id not in by_id:
+            boundary = original.copy()
+            boundary.update({
+                "cell_id": boundary_id,
+                "source_order": str(695 + len([pair for pair in C14_ZOB_LEAF_TAXONOMY if pair[1] < boundary_id])),
+                "route_variant": "c14_q2plus_structured_boundary",
+                "q_gate": "q2plus",
+                "capability_status": "rejected_by_design",
+                "work_status": "deferred",
+                "evidence_tier": "none",
+                "tranche_id": "lane-c-c14-leaf-taxonomy",
+                "owner": "Lane C",
+                "blocking_reviewers": "Noether; Fisher; Rose",
+                "primary_evidence_id": q2_evidence_id,
+                "claim_boundary": q2_boundary,
+                "next_gate": (
+                    "A separately approved exact q2-plus target, implementation, "
+                    "oracle, and recovery programme is required."
+                ),
+                "updated_commit": sha,
+                "updated_date": "2026-07-31",
+                "notes": "C14 non-lossy q2-plus boundary paired with " + original_id + ".",
+            })
+            cells.append(boundary)
+            by_id[boundary_id] = boundary
+        if q2_evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": q2_evidence_id,
+                "cell_id": boundary_id,
+                "evidence_class": "contract_test",
+                "path_or_url": C14_ZOB_LEAF_TAXONOMY_SOURCE,
+                "commit_sha": sha,
+                "run_id": "c14-zob-structured-q2plus-boundary",
+                "command": "python3 tools/capability_ledger.py --split-c14-zob-structured-leaves",
+                "result": "q2plus_deferred",
+                "replicates": "",
+                "reviewed_by": "C14 taxonomy reconciliation",
+                "review_date": "2026-07-31",
+                "claim_boundary": q2_boundary,
+            })
+        if q2_transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": q2_transition_id,
+                "cell_id": boundary_id,
+                "from_work_status": "",
+                "to_work_status": "deferred",
+                "evidence_ids": q2_evidence_id,
+                "reason": "C14 non-lossy q2-plus boundary created beside a q1 leaf.",
+                "actor": "Codex C14 leaf taxonomy",
+                "commit_sha": sha,
+                "date": "2026-07-31",
+            })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    EVIDENCE.write_bytes(tsv_bytes(EVIDENCE_FIELDS, evidence))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print("C14 zero-one-beta structured q1/q2-plus leaves are current")
+
+
 def source_path_exists(value: str) -> bool:
     if not value or value.startswith(("http://", "https://")):
         return True
@@ -678,7 +844,9 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    # C14 restores the 330 source-pinned package boundaries. Implemented is
+    # C14 restores the 330 source-pinned package boundaries and then splits ten
+    # lossy structured zero-one-beta representatives into q1 and q2-plus leaves.
+    # Implemented is
     # 314: mc-0260m is an approved point-fit insert; C12 independently
     # promoted mc-0653; and the canonical Lane-C count tranche independently
     # promoted six named frozen-census cells. The remaining 33 rows are the
@@ -687,7 +855,7 @@ def validate(
     expected = Counter(
         {
             "implemented": 314,
-            "rejected_by_design": C14_BOUNDARY_COUNT,
+            "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
             "not_implemented": 33,
         }
     )
@@ -1580,6 +1748,7 @@ def main() -> None:
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--bootstrap", action="store_true")
     action.add_argument("--restore-c14-boundaries", action="store_true")
+    action.add_argument("--split-c14-zob-structured-leaves", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
     action.add_argument("--summary", action="store_true")
@@ -1589,6 +1758,9 @@ def main() -> None:
         return
     if args.restore_c14_boundaries:
         restore_c14_boundaries()
+        return
+    if args.split_c14_zob_structured_leaves:
+        split_c14_zob_structured_leaves()
         return
     cells, evidence, _ = load_sources()
     if args.write:

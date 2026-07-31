@@ -21,13 +21,15 @@ transition with no evidence IDs.
 
 ## Result
 
-The model surface remains 677 cells, partitioned into:
+At completion of C14-A, the model surface remained 677 cells, partitioned into:
 
 - 314 implemented;
 - 330 not currently supported package-boundary cells; and
 - 33 actionable not-implemented cells.
 
-The Future-extension audit remains a separate presentation of those package
+The subsequent approved C14-B q1/q2-plus leaf split adds ten package-boundary
+leaves, so the current model surface is 687 cells with 340 boundary rows. The
+Future-extension audit remains a separate presentation of those package
 boundaries. No formula grammar, evidence tier, recovery claim, profile,
 interval, coverage, or Mission Control runtime source is changed by this
 restoration.

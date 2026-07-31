@@ -28,9 +28,9 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        # 677 = the 676 frozen census rows + mc-0260m, the meta_V route row inserted
-        # 2026-07-25. An insert, not a promotion: no pre-existing cell changed tier.
-        self.assertEqual(len(model), 677)
+        # 687 = the 676 frozen census rows, mc-0260m, and ten C14 q2-plus
+        # boundary leaves paired with the newly exact q1 structured leaves.
+        self.assertEqual(len(model), 687)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -71,6 +71,24 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(row["work_status"], "deferred")
             self.assertEqual(row["evidence_tier"], "none")
 
+    def test_c14_structured_zero_one_beta_leaves_preserve_q2plus_boundaries(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        self.assertEqual(len(ledger.C14_ZOB_LEAF_TAXONOMY), 10)
+        for index, (q1_id, q2plus_id) in enumerate(ledger.C14_ZOB_LEAF_TAXONOMY):
+            q1 = by_id[q1_id]
+            q2plus = by_id[q2plus_id]
+            self.assertEqual(q1["q_gate"], "q1")
+            self.assertEqual(q1["route_variant"], "c14_exact_q1_structured_intercept")
+            self.assertEqual(q1["capability_status"], "not_implemented")
+            self.assertEqual(q1["work_status"], "backlog")
+            self.assertEqual(q2plus["q_gate"], "q2plus")
+            self.assertEqual(q2plus["route_variant"], "c14_q2plus_structured_boundary")
+            self.assertEqual(q2plus["capability_status"], "rejected_by_design")
+            self.assertEqual(q2plus["work_status"], "deferred")
+            self.assertEqual(q2plus["source_order"], str(695 + index))
+            self.assertEqual(q1["dpar"], q2plus["dpar"])
+            self.assertEqual(q1["structure_provider"], q2plus["structure_provider"])
+
     def test_arc3a_cells_are_narrow_and_evidence_backed(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
@@ -79,7 +97,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 314, "not_implemented": 33, "rejected_by_design": 330},
+            {"implemented": 314, "not_implemented": 33, "rejected_by_design": 340},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -122,7 +140,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 314, "not_implemented": 33, "rejected_by_design": 330},
+            {"implemented": 314, "not_implemented": 33, "rejected_by_design": 340},
         )
         # Two assertions, because one number cannot express both facts.
         #

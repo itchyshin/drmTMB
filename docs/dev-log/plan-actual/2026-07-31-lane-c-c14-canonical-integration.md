@@ -17,6 +17,12 @@ package-boundary classifications from an immutable source commit. This records
 only `backlog -> deferred` taxonomy transitions and yields a verified interim
 ledger of `314 implemented / 330 rejected-by-design / 33 not implemented`.
 
+With explicit approval for the non-lossy alternative, C14-B converted the ten
+lossy structured zero-one-beta representatives into q1 leaves and added ten
+q2-plus boundary leaves. The current truthful denominator is therefore 687,
+with `314 implemented / 340 rejected-by-design / 33 not implemented` before
+any q1 recovery transition.
+
 ## Evidence outcome
 
 Nine structured provider fixtures passed locally; structured `mu` animal

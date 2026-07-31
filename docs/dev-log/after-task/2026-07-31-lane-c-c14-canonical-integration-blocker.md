@@ -69,6 +69,12 @@ This corrects the sentence above that said the canonical ledger remained
 unchanged; no point-fit promotion was made, and every C14-B promotion blocker
 remains in force.
 
+After user approval, C14-B then split the ten lossy structured zero-one-beta
+representatives into exact q1 leaves plus ten explicit q2-plus boundary leaves.
+The canonical model denominator is now 687, with 314 implemented, 340 package
+boundaries, and 33 actionable leaves. This preserves the blocker: only a
+source-bound q1 evidence bridge and independent GO can promote each leaf.
+
 ## 10. Status
 
 **BLOCKED.** The requested `328 / 330 / 19` census is not derivable honestly
