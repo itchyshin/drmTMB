@@ -6820,6 +6820,11 @@ drm_build_nbinom2_spec <- function(
   }
   sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
   sigma_entry$rhs <- sigma_phylo$rhs
+  sigma_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(
+    sigma_entry,
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_phylo_interaction$rhs
   sigma_spatial <- extract_gaussian_mu_spatial_term(
     sigma_entry,
     dpar = "sigma"
@@ -6840,6 +6845,7 @@ drm_build_nbinom2_spec <- function(
   sigma_structured_term <- select_count_sigma_structured_term(
     list(
       phylo = sigma_phylo$term,
+      phylo_interaction = sigma_phylo_interaction$term,
       spatial = sigma_spatial$term,
       animal = sigma_animal$term,
       relmat = sigma_relmat$term
@@ -9093,6 +9099,7 @@ validate_count_structured_sigma_term <- function(
     spatial = "spatial(1 + x | site, coords = coords)",
     animal = "animal(1 + x | id, Ainv = Ainv)",
     relmat = "relmat(1 + x | id, Q = Q)",
+    phylo_interaction = "phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)",
     paste0(marker, "(1 + x | id, ...)")
   )
   allow_zi_phylo_interaction <- isTRUE(has_zi) &&
@@ -9120,15 +9127,30 @@ validate_count_structured_sigma_term <- function(
     ))
   }
   if (!is.null(term$covariance_label)) {
+    supported_label_form <- if (identical(marker, "phylo_interaction")) {
+      "unlabelled independent intercept-only terms"
+    } else {
+      "unlabelled independent one-slope terms"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects currently support only unlabelled independent one-slope terms.",
+      "{family_label} structured {.code sigma} effects currently support only {supported_label_form}.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
       "i" = "Use {.code {example}}; labelled scale covariance, q2/q4, and cross-parameter covariance routes remain planned."
     ))
   }
-  if (!structured_term_is_intercept_one_slope(term)) {
+  valid_structure <- if (identical(marker, "phylo_interaction")) {
+    structured_term_is_intercept_only(term)
+  } else {
+    structured_term_is_intercept_one_slope(term)
+  }
+  if (!valid_structure) {
+    supported_form <- if (identical(marker, "phylo_interaction")) {
+      "unlabelled q1 intercept-only"
+    } else {
+      "unlabelled intercept-plus-one-slope"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects currently support only unlabelled intercept-plus-one-slope structured terms.",
+      "{family_label} structured {.code sigma} effects currently support only {supported_form} structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Use {.code {example}} for this count structured-scale gate; intercept-only, multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
     ))
