@@ -34,3 +34,36 @@ test_that("AOI-3 private full-refit runner keeps its frozen execution boundary",
   expect_match(contract_text, "non-covering", fixed = TRUE)
   expect_match(contract_text, "AOI-2 point-recovery HOLD", fixed = TRUE)
 })
+
+test_that("AOI-3R inner rows inherit only a validated outer diagnostic payload", {
+  runner <- test_path("..", "..", "tools", "run-aoi3-bernoulli-nb2-full-refit.R")
+  expressions <- as.list(parse(file = runner))
+  helper_names <- vapply(expressions, function(expression) {
+    is.call(expression) && identical(expression[[1L]], as.name("<-")) &&
+      as.character(expression[[2L]]) %in% c("has_diagnostic_payload", "inherit_outer_payload")
+  }, logical(1L))
+  helper_environment <- new.env(parent = baseenv())
+  invisible(lapply(expressions[helper_names], eval, envir = helper_environment))
+
+  outer <- list(
+    outer_status = "interior",
+    outer_message = "",
+    sandwich_status = "unavailable",
+    sandwich_reason = "association_step_unstable",
+    diagnostic_version = "aoi3r1",
+    diagnostic_status = "boundary_diagnostic",
+    diagnostic_sandwich_status = "unavailable"
+  )
+  inherited <- helper_environment$inherit_outer_payload(
+    list(inner_status = "not_eligible"), outer
+  )
+  expect_identical(inherited$diagnostic_payload_origin, "outer")
+  expect_identical(inherited$diagnostic_version, "aoi3r1")
+  expect_match(inherited$diagnostic_eligibility_reason, "outer_sandwich_reason=association_step_unstable", fixed = TRUE)
+
+  unknown <- helper_environment$inherit_outer_payload(
+    list(inner_status = "not_eligible"),
+    list(outer_status = "unavailable", sandwich_status = "not_attempted", sandwich_reason = "")
+  )
+  expect_false("diagnostic_version" %in% names(unknown))
+})

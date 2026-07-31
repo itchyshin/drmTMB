@@ -29,15 +29,19 @@ would turn unknown execution state into an asserted diagnosis.
 - `tests/testthat/test-aoi3-full-refit-runner.R`
 - `docs/dev-log/2026-07-31-aoi3r-revised-smoke-contract.md`
 - `docs/dev-log/after-task/2026-07-31-aoi3r1-payload-inheritance-repair.md`
+- `docs/dev-log/simulation-artifacts/2026-07-31-aoi3r2-diagnostic-manifest/manifest.csv`
+- `docs/dev-log/simulation-artifacts/2026-07-31-aoi3r2-diagnostic-manifest/README.md`
 
 Retained local AOI-3R1 output and its invalid reducer analysis were inspected
 but are intentionally untracked and unchanged.
 
 ## 5. Checks Run
 
-- `Rscript -e 'testthat::test_file("tests/testthat/test-aoi3-full-refit-runner.R")'` — PASS, 22 expectations.
+- `Rscript -e 'testthat::test_file("tests/testthat/test-aoi3-full-refit-runner.R")'` — PASS, 26 expectations.
 - `git diff --check` — PASS.
 - Parsed the runner and both AOI-3 reducers through the focused test — PASS.
+- AOI-3R2 manifest assertion — PASS: 60 rows, 60 unique seeds, 15 outer and
+  45 inner attempts, and no seed overlap with AOI-3R1.
 
 ## 6. Tests of the Tests
 
@@ -47,6 +51,10 @@ required-column and non-missing-version fail-closed conditions, then passed.
 The runner test also asserts that inheritance occurs after the default inner
 row exists and before the inner eligibility branch, so deleting or moving that
 call fails the test.
+The test also evaluates the two runner helpers from the parsed runner with a
+valid unavailable outer sandwich and an outer failure without a payload; it
+checks inheritance in the first case and refuses fabricated diagnostics in the
+second.
 
 ## 7a. Issue Ledger
 
@@ -77,6 +85,8 @@ The source repair has not been exercised in a fresh run. The retained AOI-3R1
 run remains `AOI3R1_DIAGNOSTIC_INVALID`; it is not scientific confirmation or
 disconfirmation of a sandwich route. A fresh immutable seed manifest and an
 explicit owner authorization are required before a replacement local smoke.
+The AOI-3R2 replacement manifest is now frozen against the repaired runner,
+but its result root must not be created before that separate authorization.
 
 ## 11. Team Learning
 

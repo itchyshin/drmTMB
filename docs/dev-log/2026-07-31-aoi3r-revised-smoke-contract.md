@@ -27,6 +27,10 @@ Before a run, freeze in a committed manifest:
    design fingerprints;
 4. the AOI-3R0 payload schema and failure taxonomy.
 
+The committed AOI-3R2 manifest is
+`docs/dev-log/simulation-artifacts/2026-07-31-aoi3r2-diagnostic-manifest/manifest.csv`.
+It is a run authorization boundary, not evidence that the successor ran.
+
 The runner must first attach a valid outer payload whenever the outer fit
 exists, including when its sandwich is unavailable. Each scheduled inner row
 then either records its own payload (`diagnostic_payload_origin = "inner"`) or
