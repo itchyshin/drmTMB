@@ -37,11 +37,13 @@ but are intentionally untracked and unchanged.
 
 ## 5. Checks Run
 
-- `Rscript -e 'testthat::test_file("tests/testthat/test-aoi3-full-refit-runner.R")'` — PASS, 26 expectations.
+- `Rscript -e 'testthat::test_file("tests/testthat/test-aoi3-full-refit-runner.R")'` — PASS, 30 expectations.
 - `git diff --check` — PASS.
 - Parsed the runner and both AOI-3 reducers through the focused test — PASS.
 - AOI-3R2 manifest assertion — PASS: 60 rows, 60 unique seeds, 15 outer and
   45 inner attempts, and no seed overlap with AOI-3R1.
+- Deliberately mismatched source SHA invocation — PASS: aborts before creating
+  the requested result directory.
 
 ## 6. Tests of the Tests
 
@@ -55,6 +57,8 @@ The test also evaluates the two runner helpers from the parsed runner with a
 valid unavailable outer sandwich and an outer failure without a payload; it
 checks inheritance in the first case and refuses fabricated diagnostics in the
 second.
+It also checks that the source-SHA mismatch gate precedes result-directory
+creation; a command-level negative control confirmed that behavior.
 
 ## 7a. Issue Ledger
 
