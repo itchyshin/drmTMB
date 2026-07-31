@@ -53,7 +53,46 @@ if (!is.null(seed_manifest)) {
 }
 if (dir.exists(out_dir) || file.exists(out_dir)) stop("Refusing to overwrite immutable AOI-3 result directory.", call. = FALSE)
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Retain enough state to classify an interrupted local run.  The old runner
+# wrote every table only at normal completion, turning a process interruption
+# into an empty, unclassifiable result directory.
+write_csv_atomic <- function(object, path) {
+  temporary <- tempfile(".aoi3-writing-", tmpdir = dirname(path))
+  on.exit(unlink(temporary), add = TRUE)
+  utils::write.csv(object, temporary, row.names = FALSE)
+  if (!file.rename(temporary, path)) stop("Could not atomically retain AOI-3 output.", call. = FALSE)
+}
+runner_events <- list()
+runner_event_index <- 0L
+runner_phase <- "directory_created"
+record_runner_event <- function(event, message = "", outer_id = NA_integer_) {
+  runner_event_index <<- runner_event_index + 1L
+  runner_events[[runner_event_index]] <<- data.frame(
+    event_index = runner_event_index,
+    timestamp_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    event = event,
+    phase = runner_phase,
+    formula_id = formula_id,
+    n = n,
+    outer_id = outer_id,
+    message = message,
+    stringsAsFactors = FALSE
+  )
+  write_csv_atomic(do.call(rbind, runner_events), file.path(out_dir, "runner-events.csv"))
+}
+write_csv_atomic(data.frame(
+  mode = mode, formula_id = formula_id, n = n, strength = strength,
+  outer_start = outer_start, outer_end = outer_end, inner_n = inner_n,
+  source_sha = source_sha,
+  seed_manifest_path = if (is.null(seed_manifest_path)) NA_character_ else normalizePath(seed_manifest_path),
+  seed_manifest_md5 = if (is.null(seed_manifest_path)) NA_character_ else unname(tools::md5sum(seed_manifest_path)),
+  stringsAsFactors = FALSE
+), file.path(out_dir, "run-startup.csv"))
+record_runner_event("startup_retained")
+runner_phase <- "package_loading"
 if (requireNamespace("devtools", quietly = TRUE)) devtools::load_all(quiet = TRUE) else library(drmTMB)
+record_runner_event("package_loaded")
 
 specifications <- list(
   additive = list(~ x1 + x2, c("(Intercept)" = -0.15, x1 = 0.40, x2 = -0.25)),
@@ -177,6 +216,21 @@ covariance_rows <- list()
 outer_index <- 0L
 inner_index <- 0L
 covariance_index <- 0L
+covariance_table <- function() {
+  if (length(covariance_rows)) return(do.call(rbind, covariance_rows))
+  data.frame(
+    mode = character(), formula_id = character(), n = integer(), strength = character(),
+    outer_id = integer(), source_sha = character(), row = character(), column = character(), covariance = numeric()
+  )
+}
+checkpoint_results <- function() {
+  if (!length(outer_rows)) return(invisible(NULL))
+  write_csv_atomic(do.call(rbind, outer_rows), file.path(out_dir, "outer-attempts.csv"))
+  write_csv_atomic(do.call(rbind, inner_rows), file.path(out_dir, "inner-attempts.csv"))
+  write_csv_atomic(covariance_table(), file.path(out_dir, "outer-sandwich-covariance.csv"))
+  invisible(NULL)
+}
+runner_phase <- "outer_loop"
 for (outer_id in seq.int(outer_start, outer_end)) {
   outer_seed <- manifest_seed("outer", outer_id)
   if (is.null(outer_seed)) outer_seed <- 2026073100L + match(formula_id, names(specifications)) * 100000L + n * 100L + outer_id + if (strength == "near_boundary") 50000000L else 0L
@@ -259,15 +313,13 @@ for (outer_id in seq.int(outer_start, outer_end)) {
     inner_index <- inner_index + 1L
     inner_rows[[inner_index]] <- as_row(row)
   }
+  checkpoint_results()
+  record_runner_event("outer_checkpoint_retained", outer_id = outer_id)
 }
 
-utils::write.csv(do.call(rbind, outer_rows), file.path(out_dir, "outer-attempts.csv"), row.names = FALSE)
-utils::write.csv(do.call(rbind, inner_rows), file.path(out_dir, "inner-attempts.csv"), row.names = FALSE)
-covariance_table <- if (length(covariance_rows)) do.call(rbind, covariance_rows) else data.frame(
-  mode = character(), formula_id = character(), n = integer(), strength = character(),
-  outer_id = integer(), source_sha = character(), row = character(), column = character(), covariance = numeric()
-)
-utils::write.csv(covariance_table, file.path(out_dir, "outer-sandwich-covariance.csv"), row.names = FALSE)
-utils::write.csv(data.frame(formula_id, n, strength, outer_start, outer_end, inner_n, source_sha, seed_manifest_path = if (is.null(seed_manifest_path)) NA_character_ else normalizePath(seed_manifest_path)), file.path(out_dir, "manifest.csv"), row.names = FALSE)
+runner_phase <- "finalizing"
+checkpoint_results()
+write_csv_atomic(data.frame(formula_id, n, strength, outer_start, outer_end, inner_n, source_sha, seed_manifest_path = if (is.null(seed_manifest_path)) NA_character_ else normalizePath(seed_manifest_path)), file.path(out_dir, "manifest.csv"))
 writeLines(capture.output(sessionInfo()), file.path(out_dir, "session-info.txt"))
 writeLines(source_sha, file.path(out_dir, "git-sha.txt"))
+record_runner_event("run_complete")
