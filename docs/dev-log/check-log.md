@@ -2,6 +2,17 @@
 
 Record meaningful development checks here.
 
+## 2026-07-31: Missing-response G5 Gamma cohort receipt
+
+- Reconciled 15 frozen Gamma target-rung cells and all 18,000 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-gamma-reconciled-v1.rds`. Every cell has
+  its complete 1,200-attempt denominator and 1,200 usable intervals.
+- Twelve cells pass `mr-g5-calibration-v1`. The three
+  `fixef:mu:(Intercept)` information rungs have coverage 1.000 and fail the
+  predeclared 0.925--0.975 band; they are retained as calibration failures.
+- This is a cohort receipt only: frozen G3 settings are unchanged, failures
+  remain in the denominator, and no test gate or inference tier is promoted.
+
 ## 2026-07-31: Missing-response dashboard active-campaign wording
 
 - Kept all 18 public route badges at G3: partial G4/G5 calibration receipts
