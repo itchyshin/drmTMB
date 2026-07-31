@@ -5586,8 +5586,7 @@ drm_build_zero_one_beta_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_zoi <- build_random_zoi_structure(zoi_re$terms, data_model)
-  re_coi <- build_random_coi_structure(coi_re$terms, data_model)
-  if (!is.null(sigma_phylo$term) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re, re_coi$n_re) > 0L)) {
+  if (!is.null(sigma_phylo$term) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re) > 0L)) {
     cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with ordinary random effects in this gate.")
   }
   structured_term <- if (!is.null(sigma_phylo$term)) sigma_phylo$term else mu_structured
