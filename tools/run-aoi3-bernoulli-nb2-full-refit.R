@@ -10,20 +10,38 @@ arg_value <- function(name, default = NULL) {
   if (length(hit) != 1L) stop("Supply exactly one --", name, "=VALUE.", call. = FALSE)
   sub(paste0("^--", name, "="), "", hit)
 }
+arg_optional <- function(name) {
+  hit <- grep(paste0("^--", name, "="), args, value = TRUE)
+  if (!length(hit)) return(NULL)
+  if (length(hit) != 1L) stop("Supply at most one --", name, "=VALUE.", call. = FALSE)
+  sub(paste0("^--", name, "="), "", hit)
+}
 
 out_dir <- arg_value("out-dir")
 mode <- arg_value("mode")
+seed_manifest_path <- arg_optional("seed-manifest")
 formula_id <- arg_value("formula-id")
 n <- suppressWarnings(as.integer(arg_value("n")))
 strength <- arg_value("strength", "interior")
 outer_start <- suppressWarnings(as.integer(arg_value("outer-start")))
 outer_end <- suppressWarnings(as.integer(arg_value("outer-end")))
 inner_n <- suppressWarnings(as.integer(arg_value("inner-n")))
-if (!mode %in% c("smoke", "campaign") || !is.finite(n) || n < 20L ||
+if (!mode %in% c("smoke", "campaign", "diagnostic") || !is.finite(n) || n < 20L ||
     !strength %in% c("interior", "near_boundary") || !is.finite(outer_start) ||
     !is.finite(outer_end) || outer_start < 1L || outer_end < outer_start ||
     !is.finite(inner_n) || inner_n < 1L) {
   stop("Invalid AOI-3 runner arguments.", call. = FALSE)
+}
+seed_manifest <- NULL
+if (identical(mode, "diagnostic")) {
+  if (is.null(seed_manifest_path) || !file.exists(seed_manifest_path)) {
+    stop("Diagnostic mode requires an existing --seed-manifest=FILE.", call. = FALSE)
+  }
+  seed_manifest <- utils::read.csv(seed_manifest_path, stringsAsFactors = FALSE)
+  required_manifest <- c("attempt_type", "formula_id", "n", "outer_id", "inner_id", "seed", "source_sha")
+  if (!all(required_manifest %in% names(seed_manifest))) stop("Invalid AOI-3R seed manifest schema.", call. = FALSE)
+  seed_manifest <- seed_manifest[seed_manifest$formula_id == formula_id & seed_manifest$n == n, , drop = FALSE]
+  if (!nrow(seed_manifest) || anyDuplicated(seed_manifest$seed)) stop("AOI-3R seed manifest is empty or duplicates a seed.", call. = FALSE)
 }
 if (dir.exists(out_dir) || file.exists(out_dir)) stop("Refusing to overwrite immutable AOI-3 result directory.", call. = FALSE)
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -49,6 +67,36 @@ fixed_newdata <- data.frame(
 )
 as_row <- function(x) as.data.frame(x, check.names = FALSE, stringsAsFactors = FALSE)
 err_text <- function(e) paste(conditionMessage(e), collapse = " ")
+add_payload <- function(row, fitted, sandwich = NULL) {
+  payload <- drmTMB:::drm_pair_aoi2_diagnostic_payload(fitted$association)
+  row[names(payload)] <- payload
+  row$diagnostic_margin_binary_pdHess <- isTRUE(fitted$binary$sdr$pdHess)
+  row$diagnostic_margin_count_pdHess <- isTRUE(fitted$count$sdr$pdHess)
+  row$diagnostic_design_fingerprint <- fitted$association$association_design$fingerprint
+  row$diagnostic_sandwich_status <- if (is.null(sandwich)) "not_attempted" else sandwich$status
+  row$diagnostic_sandwich_reason <- if (!is.null(sandwich) && identical(sandwich$status, "unavailable")) sandwich$reason else NA_character_
+  if (!is.null(sandwich) && !is.null(sandwich$derivative_diagnostics)) {
+    diagnostics <- sandwich$derivative_diagnostics
+    row$diagnostic_derivative_rows <- length(diagnostics)
+    row$diagnostic_derivative_max_step_difference <- max(vapply(diagnostics, `[[`, numeric(1L), "max_step_difference"))
+    row$diagnostic_derivative_max_scale <- max(vapply(diagnostics, `[[`, numeric(1L), "scale"))
+  } else {
+    row$diagnostic_derivative_rows <- NA_integer_
+    row$diagnostic_derivative_max_step_difference <- NA_real_
+    row$diagnostic_derivative_max_scale <- NA_real_
+  }
+  row
+}
+manifest_seed <- function(attempt_type, outer_id, inner_id = NA_integer_) {
+  if (is.null(seed_manifest)) return(NULL)
+  hit <- seed_manifest[
+    seed_manifest$attempt_type == attempt_type & seed_manifest$outer_id == outer_id &
+      (if (is.na(inner_id)) is.na(seed_manifest$inner_id) else seed_manifest$inner_id == inner_id),
+    , drop = FALSE
+  ]
+  if (nrow(hit) != 1L) stop("AOI-3R seed manifest does not define exactly one requested attempt.", call. = FALSE)
+  as.integer(hit$seed[[1L]])
+}
 
 make_outer <- function(seed) {
   set.seed(seed)
@@ -100,7 +148,8 @@ outer_index <- 0L
 inner_index <- 0L
 covariance_index <- 0L
 for (outer_id in seq.int(outer_start, outer_end)) {
-  outer_seed <- 2026073100L + match(formula_id, names(specifications)) * 100000L + n * 100L + outer_id + if (strength == "near_boundary") 50000000L else 0L
+  outer_seed <- manifest_seed("outer", outer_id)
+  if (is.null(outer_seed)) outer_seed <- 2026073100L + match(formula_id, names(specifications)) * 100000L + n * 100L + outer_id + if (strength == "near_boundary") 50000000L else 0L
   started <- Sys.time()
   base <- c(
     list(mode = mode, formula_id = formula_id, n = n, strength = strength, outer_id = outer_id, outer_seed = outer_seed, source_sha = source_sha, outer_status = "unavailable", outer_message = "", sandwich_status = "not_attempted", sandwich_reason = "", elapsed_seconds = NA_real_),
@@ -116,6 +165,7 @@ for (outer_id in seq.int(outer_start, outer_end)) {
     fitted <- fit_complete(make_outer(outer_seed))
     alpha <- alpha_values(fitted)
     sandwich <- drmTMB:::drm_pair_general_eta_sandwich(fitted$binary, fitted$count, fitted$association)
+    base <- add_payload(base, fitted, sandwich)
     base$outer_status <- fitted$association$status
     base$sandwich_status <- sandwich$status
     if (identical(sandwich$status, "unavailable")) base$sandwich_reason <- sandwich$reason
@@ -151,7 +201,8 @@ for (outer_id in seq.int(outer_start, outer_end)) {
   outer_index <- outer_index + 1L
   outer_rows[[outer_index]] <- as_row(base)
   for (inner_id in seq_len(inner_n)) {
-    inner_seed <- 1076073100L + outer_id * 1000L + inner_id + match(formula_id, names(specifications)) * 10000000L + if (strength == "near_boundary") 500000000L else 0L
+    inner_seed <- manifest_seed("inner", outer_id, inner_id)
+    if (is.null(inner_seed)) inner_seed <- 1076073100L + outer_id * 1000L + inner_id + match(formula_id, names(specifications)) * 10000000L + if (strength == "near_boundary") 500000000L else 0L
     row <- c(
       list(mode = mode, formula_id = formula_id, n = n, strength = strength, outer_id = outer_id, inner_id = inner_id, inner_seed = inner_seed, source_sha = source_sha, inner_status = "not_eligible", inner_message = "", sandwich_status = "not_attempted", sandwich_reason = "", elapsed_seconds = NA_real_),
       as.list(stats::setNames(rep(NA_real_, length(truth)), paste0("estimate_", make.names(names(truth)))))
@@ -162,6 +213,7 @@ for (outer_id in seq.int(outer_start, outer_end)) {
         refit <- fit_complete(simulate_inner(fitted, inner_seed))
         alpha <- alpha_values(refit)
         inner_sandwich <- drmTMB:::drm_pair_general_eta_sandwich(refit$binary, refit$count, refit$association)
+        row <- add_payload(row, refit, inner_sandwich)
         row$inner_status <- refit$association$status
         row$sandwich_status <- inner_sandwich$status
         if (identical(inner_sandwich$status, "unavailable")) row$sandwich_reason <- inner_sandwich$reason
@@ -181,6 +233,6 @@ covariance_table <- if (length(covariance_rows)) do.call(rbind, covariance_rows)
   outer_id = integer(), source_sha = character(), row = character(), column = character(), covariance = numeric()
 )
 utils::write.csv(covariance_table, file.path(out_dir, "outer-sandwich-covariance.csv"), row.names = FALSE)
-utils::write.csv(data.frame(formula_id, n, strength, outer_start, outer_end, inner_n, source_sha), file.path(out_dir, "manifest.csv"), row.names = FALSE)
+utils::write.csv(data.frame(formula_id, n, strength, outer_start, outer_end, inner_n, source_sha, seed_manifest_path = if (is.null(seed_manifest_path)) NA_character_ else normalizePath(seed_manifest_path)), file.path(out_dir, "manifest.csv"), row.names = FALSE)
 writeLines(capture.output(sessionInfo()), file.path(out_dir, "session-info.txt"))
 writeLines(source_sha, file.path(out_dir, "git-sha.txt"))
