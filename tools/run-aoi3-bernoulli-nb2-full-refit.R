@@ -43,6 +43,14 @@ if (identical(mode, "diagnostic")) {
   seed_manifest <- seed_manifest[seed_manifest$formula_id == formula_id & seed_manifest$n == n, , drop = FALSE]
   if (!nrow(seed_manifest) || anyDuplicated(seed_manifest$seed)) stop("AOI-3R seed manifest is empty or duplicates a seed.", call. = FALSE)
 }
+source_sha <- Sys.getenv("AOI3_SOURCE_SHA", unset = system("git rev-parse HEAD", intern = TRUE))
+if (length(source_sha) != 1L || !grepl("^[0-9a-f]{40}$", source_sha)) stop("AOI-3 requires a 40-character source SHA.", call. = FALSE)
+if (!is.null(seed_manifest)) {
+  manifest_source_sha <- unique(as.character(seed_manifest$source_sha))
+  if (length(manifest_source_sha) != 1L || !identical(source_sha, manifest_source_sha)) {
+    stop("AOI-3R source SHA does not match the frozen seed manifest.", call. = FALSE)
+  }
+}
 if (dir.exists(out_dir) || file.exists(out_dir)) stop("Refusing to overwrite immutable AOI-3 result directory.", call. = FALSE)
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 if (requireNamespace("devtools", quietly = TRUE)) devtools::load_all(quiet = TRUE) else library(drmTMB)
@@ -58,8 +66,6 @@ if (!formula_id %in% names(specifications)) stop("Unknown --formula-id.", call. 
 association_formula <- specifications[[formula_id]][[1L]]
 truth <- specifications[[formula_id]][[2L]]
 if (identical(strength, "near_boundary")) truth[["(Intercept)"]] <- 2.0
-source_sha <- Sys.getenv("AOI3_SOURCE_SHA", unset = system("git rev-parse HEAD", intern = TRUE))
-if (length(source_sha) != 1L || !grepl("^[0-9a-f]{40}$", source_sha)) stop("AOI-3 requires a 40-character source SHA.", call. = FALSE)
 
 fixed_newdata <- data.frame(
   x1 = c(-1, -0.5, 0, 0.5, 1), x2 = c(-0.7, -0.2, 0, 0.3, 0.8),

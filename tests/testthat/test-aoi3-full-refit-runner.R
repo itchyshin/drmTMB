@@ -11,6 +11,12 @@ test_that("AOI-3 private full-refit runner keeps its frozen execution boundary",
   expect_match(text, "simulate_inner", fixed = TRUE)
   expect_match(text, "fit_complete", fixed = TRUE)
   expect_match(text, "outer-sandwich-covariance.csv", fixed = TRUE)
+  expect_match(text, "AOI-3R source SHA does not match the frozen seed manifest.", fixed = TRUE)
+  source_check <- regexpr("AOI-3R source SHA does not match the frozen seed manifest.", text, fixed = TRUE)
+  output_directory <- regexpr("dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)", text, fixed = TRUE)
+  expect_gt(source_check, 0L)
+  expect_gt(output_directory, 0L)
+  expect_lt(source_check, output_directory)
 
   inner_setup <- regexpr("row <- c(", text, fixed = TRUE)
   inherited_payload <- regexpr("row <- inherit_outer_payload(row, base)", text, fixed = TRUE)
