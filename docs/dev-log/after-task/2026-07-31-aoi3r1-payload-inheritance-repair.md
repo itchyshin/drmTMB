@@ -91,6 +91,8 @@ disconfirmation of a sandwich route. A fresh immutable seed manifest and an
 explicit owner authorization are required before a replacement local smoke.
 The AOI-3R2 replacement manifest is now frozen against the repaired runner,
 but its result root must not be created before that separate authorization.
+Its README also makes the source-commit preflight explicit, so a later
+documentation-only commit cannot be mistaken for the computational provenance.
 
 ## 11. Team Learning
 

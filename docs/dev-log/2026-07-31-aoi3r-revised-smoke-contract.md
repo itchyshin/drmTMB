@@ -30,6 +30,10 @@ Before a run, freeze in a committed manifest:
 The committed AOI-3R2 manifest is
 `docs/dev-log/simulation-artifacts/2026-07-31-aoi3r2-diagnostic-manifest/manifest.csv`.
 It is a run authorization boundary, not evidence that the successor ran.
+The operator must additionally verify that the package and private runner code
+are unchanged from the manifest's source SHA; the README beside the manifest
+defines the exact preflight. A documentation-only commit after that source
+commit does not substitute for the preflight.
 
 The runner must first attach a valid outer payload whenever the outer fit
 exists, including when its sandwich is unavailable. Each scheduled inner row

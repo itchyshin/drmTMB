@@ -13,3 +13,19 @@ attempts per outer attempt. No result directory is allocated here. A future
 owner-approved local invocation must use this manifest, a fresh immutable
 result directory, and the stated source SHA. It may not overwrite or re-use
 AOI-3R1 output.
+
+## Required preflight at execution time
+
+`source_sha` identifies the runner/package-code commit, not the later
+documentation-only manifest commit. Before an authorized run, verify that the
+computational package surface has not changed since that source commit:
+
+```sh
+git diff --quiet 4d2b1afac7c45bdef74b98487a16a69535db2b81 -- \
+  R src DESCRIPTION NAMESPACE tools/run-aoi3-bernoulli-nb2-full-refit.R
+```
+
+Only if that returns success, invoke the runner with
+`AOI3_SOURCE_SHA=4d2b1afac7c45bdef74b98487a16a69535db2b81` and this manifest.
+The runner independently rejects any other source SHA before creating the
+requested result directory. This preflight does not authorize an invocation.
