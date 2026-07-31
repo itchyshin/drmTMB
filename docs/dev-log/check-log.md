@@ -91727,3 +91727,8 @@ Shinichi grants a separate Gate A compute approval.
 - Focused `missing-response-g4g5-foundation` tests passed under
   `R_PROFILE_USER=/dev/null Rscript --no-init-file`, including direct
   overcoverage-rejection and provenance-receipt regression tests.
+- Reconciliation on Rorqual under the existing G5 module/library environment
+  produced `g5-gaussian-reconciled-v2.rds`: 51/54 exact cells pass the
+  prospective policy and the three Gaussian fixed-intercept rungs fail. This
+  artifact is eligible only for later review; it does not promote a test gate
+  or inference tier.

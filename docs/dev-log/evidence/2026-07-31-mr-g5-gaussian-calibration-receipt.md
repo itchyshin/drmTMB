@@ -23,6 +23,12 @@ whereas the fitted random-intercept model estimates a population intercept.
 That finite-sample design mismatch makes the intervals systematically
 conservative for this target.
 
+The re-reconciled `mr-g4g5-v2` artifact carries 56 source/input receipt hashes:
+the runner, frozen target manifest, G4 records, and 54 durable array receipts.
+It marks 51 of 54 exact cells as policy passes and the three Gaussian
+fixed-intercept rungs as policy failures. A policy pass only makes a cell
+eligible for a later response-mask review; it is not a promotion.
+
 ## Decision and prospective policy
 
 The frozen G3 DGP, targets, seeds, interval method, and existing G5 records are
