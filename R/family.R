@@ -414,8 +414,11 @@ cumulative_logit <- function() {
 #' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
 #' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
 #' (trust the point estimate, not the interval; not yet coverage-verified).
-#' NB2 `sigma` random slopes and zero-inflated NB2 `sigma` random effects
-#' remain planned.
+#' NB2 `sigma` random slopes remain planned. Zero-inflated NB2 supports only
+#' the point-fit-only IID control `bf(count ~ fixed_effects, sigma ~ 1 +
+#' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
+#' sigma predictors, slopes, labels, and other random-effect combinations
+#' remain unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export

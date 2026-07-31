@@ -6820,6 +6820,11 @@ drm_build_nbinom2_spec <- function(
   }
   sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
   sigma_entry$rhs <- sigma_phylo$rhs
+  sigma_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(
+    sigma_entry,
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_phylo_interaction$rhs
   sigma_spatial <- extract_gaussian_mu_spatial_term(
     sigma_entry,
     dpar = "sigma"
@@ -6840,6 +6845,7 @@ drm_build_nbinom2_spec <- function(
   sigma_structured_term <- select_count_sigma_structured_term(
     list(
       phylo = sigma_phylo$term,
+      phylo_interaction = sigma_phylo_interaction$term,
       spatial = sigma_spatial$term,
       animal = sigma_animal$term,
       relmat = sigma_relmat$term
@@ -6886,6 +6892,7 @@ drm_build_nbinom2_spec <- function(
     mu_terms = mu_re$terms,
     mu_structured_term = mu_structured_term,
     has_zi = !is.null(zi_entry),
+    zi_intercept_only = is.null(zi_entry) || is_intercept_one(zi_entry$rhs),
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -6893,8 +6900,19 @@ drm_build_nbinom2_spec <- function(
     sigma_re$terms,
     mu_terms = mu_re$terms,
     structured_term = mu_structured_term,
-    has_zi = !is.null(zi_entry)
+    has_zi = !is.null(zi_entry),
+    sigma_rhs = sigma_entry$rhs,
+    zi_intercept_only = is.null(zi_entry) || is_intercept_one(zi_entry$rhs),
+    complete_response = !isTRUE(include_missing_response),
+    sigma_structured_term = sigma_structured_term
   )
+
+  if (!is.null(zi_entry) && !is.null(sigma_structured_term) && include_missing_response) {
+    cli::cli_abort(c(
+      "Zero-inflated NB2 {.code sigma ~ phylo_interaction()} is implemented only for complete responses.",
+      "i" = "Missing-response masking remains outside this point-fit-only route."
+    ))
+  }
 
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
@@ -7162,10 +7180,14 @@ drm_build_nbinom2_spec <- function(
         } else {
           offset_mu
         },
-        phylo_mu
+        phylo_mu,
+        re_sigma = re_sigma
       )
     } else if (has_zi) {
-      zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu)
+      zi_nbinom2_start(
+        y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu,
+        re_sigma = re_sigma
+      )
     } else if (include_missing_response) {
       nbinom2_start(
         y[observed_y],
@@ -7192,7 +7214,7 @@ drm_build_nbinom2_spec <- function(
       )
     },
     map = if (has_zi) {
-      zi_nbinom2_map(phylo_mu)
+      zi_nbinom2_map(phylo_mu, re_sigma = re_sigma)
     } else {
       nbinom2_map(re_mu, phylo_mu, re_sigma)
     },
@@ -9061,6 +9083,7 @@ validate_count_structured_sigma_term <- function(
   mu_terms,
   mu_structured_term = NULL,
   has_zi = FALSE,
+  zi_intercept_only = TRUE,
   family_label,
   inflated_label
 ) {
@@ -9076,13 +9099,17 @@ validate_count_structured_sigma_term <- function(
     spatial = "spatial(1 + x | site, coords = coords)",
     animal = "animal(1 + x | id, Ainv = Ainv)",
     relmat = "relmat(1 + x | id, Q = Q)",
+    phylo_interaction = "phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)",
     paste0(marker, "(1 + x | id, ...)")
   )
-  if (isTRUE(has_zi)) {
+  allow_zi_phylo_interaction <- isTRUE(has_zi) &&
+    isTRUE(zi_intercept_only) &&
+    identical(marker, "phylo_interaction")
+  if (isTRUE(has_zi) && !allow_zi_phylo_interaction) {
     cli::cli_abort(c(
       "{family_label} structured {.code sigma} effects are implemented only for ordinary {family_label} models.",
       "x" = "{inflated_label} structured scale effects are planned but not implemented.",
-      "i" = "Fit {.code bf(count ~ x, sigma ~ {example})} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured-scale recovery tests exist."
+      "i" = "Only the exact {.code zi ~ 1} plus unlabelled q1 {.code phylo_interaction()} sigma gate is implemented for zero-inflated {family_label}."
     ))
   }
   if (length(mu_terms) > 0L || !is.null(mu_structured_term)) {
@@ -9100,15 +9127,30 @@ validate_count_structured_sigma_term <- function(
     ))
   }
   if (!is.null(term$covariance_label)) {
+    supported_label_form <- if (identical(marker, "phylo_interaction")) {
+      "unlabelled independent intercept-only terms"
+    } else {
+      "unlabelled independent one-slope terms"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects currently support only unlabelled independent one-slope terms.",
+      "{family_label} structured {.code sigma} effects currently support only {supported_label_form}.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
       "i" = "Use {.code {example}}; labelled scale covariance, q2/q4, and cross-parameter covariance routes remain planned."
     ))
   }
-  if (!structured_term_is_intercept_one_slope(term)) {
+  valid_structure <- if (identical(marker, "phylo_interaction")) {
+    structured_term_is_intercept_only(term)
+  } else {
+    structured_term_is_intercept_one_slope(term)
+  }
+  if (!valid_structure) {
+    supported_form <- if (identical(marker, "phylo_interaction")) {
+      "unlabelled q1 intercept-only"
+    } else {
+      "unlabelled intercept-plus-one-slope"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects currently support only unlabelled intercept-plus-one-slope structured terms.",
+      "{family_label} structured {.code sigma} effects currently support only {supported_form} structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Use {.code {example}} for this count structured-scale gate; intercept-only, multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
     ))
@@ -9120,17 +9162,30 @@ validate_nbinom2_sigma_random_terms <- function(
   terms,
   mu_terms = list(),
   structured_term = NULL,
-  has_zi = FALSE
+  has_zi = FALSE,
+  sigma_rhs = NULL,
+  zi_intercept_only = FALSE,
+  complete_response = TRUE,
+  sigma_structured_term = NULL
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
   if (isTRUE(has_zi)) {
-    cli::cli_abort(c(
-      "NB2 {.code sigma} random intercepts are implemented only for ordinary NB2 models.",
-      "x" = "Zero-inflated NB2 {.code sigma} random effects are planned but not implemented.",
-      "i" = "Fit {.code bf(count ~ x, sigma ~ z + (1 | id))} without a {.code zi} formula until zero-inflated overdispersion recovery tests exist."
-    ))
+    exact_zi_control <-
+      length(mu_terms) == 0L &&
+      is.null(structured_term) &&
+      is.null(sigma_structured_term) &&
+      isTRUE(zi_intercept_only) &&
+      isTRUE(complete_response) &&
+      is_intercept_one(sigma_rhs)
+    if (!exact_zi_control) {
+      cli::cli_abort(c(
+        "Zero-inflated NB2 {.code sigma} random effects support only the point-fit q1 IID control.",
+        "x" = "The admitted form is {.code bf(count ~ fixed_effects, sigma ~ 1 + (1 | group), zi ~ 1)} with a complete response.",
+        "i" = "Sigma predictors/slopes/labels, {.code mu} random or structured terms, structured {.code sigma}, non-intercept {.code zi}, missing responses, and REML remain unsupported."
+      ))
+    }
   }
   if (length(mu_terms) > 0L || !is.null(structured_term)) {
     cli::cli_abort(c(
@@ -16746,9 +16801,13 @@ zi_nbinom2_start <- function(
   X_sigma,
   X_zi,
   offset_mu = rep(0, length(y)),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  re_sigma = empty_random_sigma_structure(length(y))
 ) {
-  nb <- nbinom2_start(y, X_mu, X_sigma, offset_mu, phylo_mu = phylo_mu)
+  nb <- nbinom2_start(
+    y, X_mu, X_sigma, offset_mu,
+    re_sigma = re_sigma, phylo_mu = phylo_mu
+  )
   beta_mu <- nb$beta_mu
   beta_sigma <- nb$beta_sigma
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
@@ -16767,8 +16826,11 @@ zi_nbinom2_start <- function(
   nb
 }
 
-zi_nbinom2_map <- function(phylo_mu = empty_phylo_mu_structure()) {
-  out <- nbinom2_map(phylo_mu = phylo_mu)
+zi_nbinom2_map <- function(
+  phylo_mu = empty_phylo_mu_structure(),
+  re_sigma = empty_random_sigma_structure(1L)
+) {
+  out <- nbinom2_map(phylo_mu = phylo_mu, re_sigma = re_sigma)
   out$beta_zi <- NULL
   out
 }
@@ -19064,6 +19126,7 @@ make_tmb_data <- function(spec) {
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
     phylo_mu <- spec$structured$phylo_mu
+    re_sigma <- spec$random$sigma
     return(list(
       model_type = 9L,
       y = spec$y,
@@ -19102,17 +19165,17 @@ make_tmb_data <- function(spec) {
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
-      n_sigma_re_terms = 0L,
-      n_sigma_re_cors = 0L,
+      n_sigma_re_terms = re_sigma$n_terms,
+      n_sigma_re_cors = re_sigma$n_cors,
       n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
+      sigma_re_index = re_sigma$index0,
+      sigma_re_value = re_sigma$value,
+      sigma_re_term = re_sigma$term_id0,
+      sigma_re_dpar = re_sigma$dpar_id0,
+      sigma_re_cor_id = re_sigma$re_cor_id0,
+      sigma_re_pair_index = re_sigma$re_pair_index0,
+      sigma_re_cross_cor = rep.int(-1L, max(1L, re_sigma$n_re)),
+      sigma_re_cross_mu = rep.int(-1L, max(1L, re_sigma$n_re)),
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
       phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {

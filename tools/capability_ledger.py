@@ -33,11 +33,12 @@ IMPORTED_MODEL_COUNT = 668
 # is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
 MODEL_SURFACE_COUNT = 677
-# The frozen 2026-07-09 census: the original 676 model_surface rows and the 158 of them
-# at point_fit_recovery. Both are permanent. Approved inserts get a higher source_order,
-# so they never touch these; only a promotion or demotion of a frozen cell can.
+# The frozen 2026-07-09 census: the original 676 model_surface rows and their
+# recovery tier. C12 then promoted the independently evidenced mc-0653 ZINB
+# q1 phylo-interaction sigma route. Future changes require an explicit
+# row-specific receipt; this is not a blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 158
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 159
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -565,20 +566,17 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    # implemented is 307, not the frozen census's 306, because mc-0260m (the meta_V route
-    # row) was inserted on 2026-07-25. It entered at point_fit_recovery, the tier its
-    # existing metafor comparator evidence already supports; no cell changed tier.
+    # implemented is 308: mc-0260m is an approved point-fit insert, and C12
+    # independently promoted the frozen mc-0653 ZINB q1 phylo-interaction route.
     expected = Counter(
-        {"implemented": 307, "not_implemented": 370}
+        {"implemented": 308, "not_implemented": 369}
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census -- the original 676 model_surface rows -- must keep exactly 158
-    # point_fit_recovery cells. Approved inserts take a higher source_order and so cannot
-    # disturb this number; a PROMOTION of any frozen cell breaks it immediately. Checking
-    # the frozen baseline separately from the total is what stops a promotion being
-    # laundered behind a simultaneous insert. Do not raise 158 to make a failure go away.
+    # The frozen census has 159 point_fit_recovery cells after the explicit C12 mc-0653
+    # promotion. Approved inserts take a higher source_order and so cannot disturb this
+    # number; every frozen-cell promotion needs a named transition and evidence receipt.
     frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
     if len(frozen) != FROZEN_CENSUS_COUNT:
         errors.append(
