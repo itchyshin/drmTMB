@@ -35,10 +35,13 @@ inner_key <- paste(inner$formula_id, inner$outer_id, inner$inner_id, inner$inner
 expected_outer_key <- paste(expected_outer$formula_id, expected_outer$outer_id, expected_outer$seed)
 expected_inner_key <- paste(expected_inner$formula_id, expected_inner$outer_id, expected_inner$inner_id, expected_inner$seed)
 required_payload <- c("diagnostic_version", "diagnostic_status", "diagnostic_sandwich_status")
+expected_source_sha <- unique(manifest$source_sha)
 complete <- nrow(outer) == 15L && nrow(inner) == 45L &&
   setequal(outer_key, expected_outer_key) && setequal(inner_key, expected_inner_key) &&
-  length(unique(outer$source_sha)) == 1L && all(required_payload %in% names(outer)) &&
-  all(!is.na(outer$diagnostic_version))
+  length(expected_source_sha) == 1L &&
+  all(required_payload %in% names(outer)) && all(required_payload %in% names(inner)) &&
+  all(!is.na(outer$diagnostic_version)) && all(!is.na(inner$diagnostic_version)) &&
+  all(outer$source_sha == expected_source_sha) && all(inner$source_sha == expected_source_sha)
 dir.create(out_dir, recursive = TRUE)
 utils::write.csv(outer, file.path(out_dir, "outer-attempts.csv"), row.names = FALSE)
 utils::write.csv(inner, file.path(out_dir, "inner-attempts.csv"), row.names = FALSE)
