@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=def-snaka
+#SBATCH --account=def-snakagaw
 #SBATCH --job-name=mr-g5-setup
 #SBATCH --time=0-01:00
 #SBATCH --cpus-per-task=2

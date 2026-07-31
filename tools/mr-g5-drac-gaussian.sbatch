@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=def-snaka
+#SBATCH --account=def-snakagaw
 #SBATCH --job-name=mr-g5-gaussian
 #SBATCH --array=1-54%18
 #SBATCH --time=0-04:00
