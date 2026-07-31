@@ -310,7 +310,7 @@ test_that("G5 runner retains a real masked Gaussian attempt", {
   expect_equal(nrow(out), 1L)
   expect_equal(out$attempt_seed, 2026073003L)
   expect_true(all(c("fit_status", "fit_converged", "pdHess", "interval_usable",
-    "truth_contained", "boundary_or_clamp") %in% names(out)))
+    "truth_contained", "boundary_or_clamp", "mask_fraction", "mask_any_response_rows") %in% names(out)))
 })
 
 test_that("G5 campaign runner retains all planned mock failures", {
@@ -331,6 +331,7 @@ test_that("G5 campaign runner retains all planned mock failures", {
   runner <- function(cell, seed, replicate, trace) {
     out <- mr_g5_failure_record(cell, seed, "retained mock failure")
     out$replicate <- replicate
+    out$mask_any_response_rows <- 0
     out
   }
   out <- mr_g5_run_campaign(registry, runner = runner)

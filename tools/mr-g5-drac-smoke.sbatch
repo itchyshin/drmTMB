@@ -14,6 +14,7 @@ campaign_root="$HOME/g4g5"
 scratch_root="$SCRATCH/mr-g5-smoke-${SLURM_JOB_ID}"
 mkdir -p "$scratch_root" "$campaign_root/artifacts/g5-smoke"
 export MR_G5_OUT_DIR="$scratch_root"
+export MR_G5_RUNNER_PATH="$campaign_root/drmTMB/inst/sim/R/sim_missing_response_g4g5.R"
 Rscript --vanilla "$campaign_root/drmTMB/tools/mr-g5-drac-array.R" \
   "$campaign_root/artifacts/target-manifests.rds" \
   "$campaign_root/artifacts/g4-reconciled-records.rds" 1 3

@@ -469,16 +469,24 @@ mr_g4_run_route <- function(route_id, information_multiplier = 1, seed = NULL,
   } else {
     records <- mr_g4_run_target_manifest(fit, target_manifest, replicate = replicate, trace = trace)
   }
-  response <- if (route_id == "biv_gaussian") c("y1", "y2") else if (route_id == "beta") "prop" else if (route_id == "binomial") "y" else if (route_id == "cumulative_logit") "score" else "count"
-  if (route_id %in% c("gaussian","student","lognormal","gamma","skew_normal","tweedie","zero_one_beta")) response <- "y"
-  mask_count <- if (length(response) == 1L) sum(is.na(fixture$data[[response]])) else sum(is.na(fixture$data[[response[[1L]]]]) | is.na(fixture$data[[response[[2L]]]]))
+  records <- mr_g4_add_mask_receipt(records, fixture, route_id)
   records$information_multiplier <- information_multiplier
   records$information_rung <- paste0(information_multiplier, "x")
+  records
+}
+
+# Store the realized MCAR mask receipt on every G4/G5 record.  Bivariate
+# records retain the four outcome-pattern counts rather than collapsing the
+# partial-response information into a single missing-row number.
+mr_g4_add_mask_receipt <- function(records, fixture, route_id) {
+  response <- if (route_id == "biv_gaussian") c("y1", "y2") else if (route_id == "beta") "prop" else if (route_id == "binomial") "y" else if (route_id == "cumulative_logit") "score" else if (route_id %in% c("gaussian", "student", "lognormal", "gamma", "skew_normal", "tweedie", "zero_one_beta")) "y" else "count"
   records$mask_fraction <- 0.25
-  records$mask_any_response_rows <- mask_count
-  if (route_id == "biv_gaussian") {
+  if (length(response) == 1L) {
+    records$mask_any_response_rows <- sum(is.na(fixture$data[[response]]))
+  } else {
     missing_y1 <- is.na(fixture$data$y1)
     missing_y2 <- is.na(fixture$data$y2)
+    records$mask_any_response_rows <- sum(missing_y1 | missing_y2)
     records$mask_complete_pairs <- sum(!missing_y1 & !missing_y2)
     records$mask_y1_only_missing <- sum(missing_y1 & !missing_y2)
     records$mask_y2_only_missing <- sum(!missing_y1 & missing_y2)
@@ -925,7 +933,8 @@ mr_g5_failure_record <- function(cell, seed, message, fit_status = "fit_failed")
     fit_status = fit_status, fit_converged = FALSE, pdHess = NA,
     conf.low = NA_real_, conf.high = NA_real_, conf.status = "profile_failed",
     profile.boundary = NA, profile.message = as.character(message),
-    trace_requested = TRUE, profile_trace = "", stringsAsFactors = FALSE
+    trace_requested = TRUE, profile_trace = "", mask_fraction = 0.25,
+    mask_any_response_rows = NA_real_, stringsAsFactors = FALSE
   )
   out$interval_usable <- FALSE
   out$truth_contained <- FALSE
@@ -936,7 +945,8 @@ mr_g5_failure_record <- function(cell, seed, message, fit_status = "fit_failed")
 mr_g5_validate_record <- function(record) {
   required <- c("route_id", "parm", "information_rung", "replicate", "attempt_seed",
     "fit_status", "fit_converged", "pdHess", "interval_usable", "truth_contained",
-    "conf.low", "conf.high", "conf.status", "profile.boundary", "boundary_or_clamp")
+    "conf.low", "conf.high", "conf.status", "profile.boundary", "boundary_or_clamp",
+    "mask_fraction", "mask_any_response_rows")
   if (!is.data.frame(record) || nrow(record) != 1L || !all(required %in% names(record))) {
     stop("A G5 record must retain one attempted fit, interval, and containment result.", call. = FALSE)
   }
@@ -946,6 +956,16 @@ mr_g5_validate_record <- function(record) {
   }
   if (isTRUE(record$truth_contained) && !isTRUE(record$interval_usable)) {
     stop("G5 containment requires a usable interval.", call. = FALSE)
+  }
+  no_realization <- identical(record$fit_status, "fixture_failed") && is.na(record$mask_any_response_rows)
+  if (!identical(as.numeric(record$mask_fraction), 0.25) ||
+      (!no_realization && !is.finite(record$mask_any_response_rows))) {
+    stop("A G5 record must retain its realized 25% MCAR mask receipt.", call. = FALSE)
+  }
+  if (identical(record$route_id, "biv_gaussian") && !all(c(
+      "mask_complete_pairs", "mask_y1_only_missing", "mask_y2_only_missing", "mask_both_missing"
+    ) %in% names(record))) {
+    stop("A bivariate G5 record must retain every partial-response mask count.", call. = FALSE)
   }
   invisible(record)
 }
@@ -967,11 +987,7 @@ mr_g5_run_attempt <- function(cell, seed, replicate, trace = TRUE) {
   if (inherits(fit, "error")) {
     out <- mr_g5_failure_record(cell, seed, conditionMessage(fit))
     out$replicate <- as.integer(replicate)
-    out$mask_any_response_rows <- if (cell$route_id == "biv_gaussian") {
-      sum(is.na(fixture$data$y1) | is.na(fixture$data$y2))
-    } else {
-      sum(is.na(fixture$data[[if (cell$route_id == "beta") "prop" else if (cell$route_id == "binomial") "y" else if (cell$route_id == "cumulative_logit") "score" else if (cell$route_id %in% c("gaussian", "student", "lognormal", "gamma", "skew_normal", "tweedie", "zero_one_beta")) "y" else "count"]]))
-    }
+    out <- mr_g4_add_mask_receipt(out, fixture, cell$route_id)
     return(mr_g5_validate_record(out))
   }
   target <- cell[, c("route_id", "parm", "truth", "target_class", "dpar", "scale",
@@ -986,6 +1002,7 @@ mr_g5_run_attempt <- function(cell, seed, replicate, trace = TRUE) {
   out$interval_usable <- out$g4_interval_usable
   out$truth_contained <- out$g4_truth_contained
   out$boundary_or_clamp <- isTRUE(out$profile.boundary) || identical(out$conf.status, "clamp_limited")
+  out <- mr_g4_add_mask_receipt(out, fixture, cell$route_id)
   mr_g5_validate_record(out)
   out
 }

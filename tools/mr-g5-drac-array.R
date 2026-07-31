@@ -12,7 +12,7 @@ if (!is.na(smoke_attempts) && (!is.finite(smoke_attempts) || smoke_attempts < 1L
 }
 
 library(drmTMB)
-runner_path <- system.file("sim/R/sim_missing_response_g4g5.R", package = "drmTMB")
+runner_path <- Sys.getenv("MR_G5_RUNNER_PATH", unset = system.file("sim/R/sim_missing_response_g4g5.R", package = "drmTMB"))
 if (!nzchar(runner_path)) stop("Installed drmTMB lacks the G4/G5 runner.", call. = FALSE)
 source(runner_path)
 manifest <- readRDS(manifest_path)
@@ -41,5 +41,6 @@ if (is.na(smoke_attempts)) {
   saveRDS(records, out_path)
   print(records[, c("route_id", "parm", "information_rung", "replicate", "attempt_seed",
     "fit_status", "fit_converged", "pdHess", "interval_usable", "truth_contained",
-    "conf.status", "profile.boundary", "boundary_or_clamp"), drop = FALSE])
+    "conf.status", "profile.boundary", "boundary_or_clamp", "mask_fraction",
+    "mask_any_response_rows"), drop = FALSE])
 }
