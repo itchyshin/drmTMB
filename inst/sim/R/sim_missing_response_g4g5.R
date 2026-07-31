@@ -789,6 +789,10 @@ mr_g4_campaign_summary <- function(records, registry) {
 # contribute `covered = FALSE` rather than being silently dropped.
 mr_g5_summarise_attempts <- function(records, by = c("route_id", "parm", "information_rung"),
                                      planned = 1200L) {
+  if ("interval_usable" %in% names(records) && "truth_contained" %in% names(records)) {
+    records$g4_interval_usable <- records$interval_usable
+    records$g4_truth_contained <- records$truth_contained
+  }
   required <- c(by, "g4_interval_usable", "g4_truth_contained")
   if (!is.data.frame(records) || !all(required %in% names(records))) {
     stop("G5 records must include grouping and G4 interval fields.", call. = FALSE)
@@ -904,4 +908,106 @@ mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2
   cells$cell_id <- sprintf("mr_g5_%04d", seq_len(nrow(cells)))
   seeds <- mr_g4g5_seed_table(cells, n_rep = 1200L, master_seed = master_seed)
   list(cells = cells, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
+}
+
+# A G5 attempt is a fresh masked DGP, fit, and interval calculation.  It is
+# deliberately a separate record type: G4 feasibility authorizes the target,
+# but does not turn a failed G5 fit or interval into a dropped observation.
+mr_g5_failure_record <- function(cell, seed, message, fit_status = "fit_failed") {
+  target <- cell[, c("route_id", "parm", "truth", "target_class", "dpar", "scale",
+    "profile_ready", "interval_method", "conf.level", "information_multiplier",
+    "information_rung"), drop = FALSE]
+  out <- data.frame(
+    route_id = target$route_id, parm = target$parm, information_rung = target$information_rung,
+    information_multiplier = target$information_multiplier, replicate = NA_integer_,
+    attempt_seed = as.integer(seed), truth = target$truth, target_class = target$target_class,
+    target_scale = target$scale, interval_method = target$interval_method,
+    fit_status = fit_status, fit_converged = FALSE, pdHess = NA,
+    conf.low = NA_real_, conf.high = NA_real_, conf.status = "profile_failed",
+    profile.boundary = NA, profile.message = as.character(message),
+    trace_requested = TRUE, profile_trace = "", stringsAsFactors = FALSE
+  )
+  out$interval_usable <- FALSE
+  out$truth_contained <- FALSE
+  out$boundary_or_clamp <- FALSE
+  out
+}
+
+mr_g5_validate_record <- function(record) {
+  required <- c("route_id", "parm", "information_rung", "replicate", "attempt_seed",
+    "fit_status", "fit_converged", "pdHess", "interval_usable", "truth_contained",
+    "conf.low", "conf.high", "conf.status", "profile.boundary", "boundary_or_clamp")
+  if (!is.data.frame(record) || nrow(record) != 1L || !all(required %in% names(record))) {
+    stop("A G5 record must retain one attempted fit, interval, and containment result.", call. = FALSE)
+  }
+  if (!is.finite(record$attempt_seed) || is.na(record$replicate) ||
+      !is.logical(record$interval_usable) || !is.logical(record$truth_contained)) {
+    stop("A G5 record has an invalid attempt identifier or interval outcome.", call. = FALSE)
+  }
+  if (isTRUE(record$truth_contained) && !isTRUE(record$interval_usable)) {
+    stop("G5 containment requires a usable interval.", call. = FALSE)
+  }
+  invisible(record)
+}
+
+mr_g5_run_attempt <- function(cell, seed, replicate, trace = TRUE) {
+  if (!is.data.frame(cell) || nrow(cell) != 1L) {
+    stop("A G5 attempt requires exactly one frozen registry cell.", call. = FALSE)
+  }
+  fixture <- tryCatch(
+    mr_g4g5_route_fixture(cell$route_id, cell$information_multiplier, seed),
+    error = function(e) e
+  )
+  if (inherits(fixture, "error")) {
+    out <- mr_g5_failure_record(cell, seed, conditionMessage(fixture), "fixture_failed")
+    out$replicate <- as.integer(replicate)
+    return(mr_g5_validate_record(out))
+  }
+  fit <- tryCatch(mr_g4g5_route_fit(cell$route_id, fixture$data), error = function(e) e)
+  if (inherits(fit, "error")) {
+    out <- mr_g5_failure_record(cell, seed, conditionMessage(fit))
+    out$replicate <- as.integer(replicate)
+    out$mask_any_response_rows <- if (cell$route_id == "biv_gaussian") {
+      sum(is.na(fixture$data$y1) | is.na(fixture$data$y2))
+    } else {
+      sum(is.na(fixture$data[[if (cell$route_id == "beta") "prop" else if (cell$route_id == "binomial") "y" else if (cell$route_id == "cumulative_logit") "score" else if (cell$route_id %in% c("gaussian", "student", "lognormal", "gamma", "skew_normal", "tweedie", "zero_one_beta")) "y" else "count"]]))
+    }
+    return(mr_g5_validate_record(out))
+  }
+  target <- cell[, c("route_id", "parm", "truth", "target_class", "dpar", "scale",
+    "profile_ready", "interval_method", "conf.level"), drop = FALSE]
+  out <- mr_g4_run_target_manifest(fit, target, replicate = replicate, trace = trace)
+  out$information_multiplier <- cell$information_multiplier
+  out$information_rung <- cell$information_rung
+  out$attempt_seed <- as.integer(seed)
+  out$fit_status <- "fit_ok"
+  out$fit_converged <- isTRUE(fit$fit$convergence == 0L)
+  out$pdHess <- if (!is.null(fit$sdr$pdHess)) isTRUE(fit$sdr$pdHess) else NA
+  out$interval_usable <- out$g4_interval_usable
+  out$truth_contained <- out$g4_truth_contained
+  out$boundary_or_clamp <- isTRUE(out$profile.boundary) || identical(out$conf.status, "clamp_limited")
+  mr_g5_validate_record(out)
+  out
+}
+
+mr_g5_validate_campaign <- function(records, registry) {
+  if (!is.list(registry) || registry$n_rep != 1200L || is.null(registry$cells) || is.null(registry$seeds)) {
+    stop("A G5 campaign requires the frozen 1,200-attempt registry.", call. = FALSE)
+  }
+  required <- c("route_id", "parm", "information_rung", "replicate", "attempt_seed")
+  if (!is.data.frame(records) || !all(required %in% names(records))) {
+    stop("G5 campaign records must retain every planned attempt identity.", call. = FALSE)
+  }
+  expected <- merge(registry$seeds, registry$cells[, c("cell_id", "route_id", "parm", "information_rung")],
+    by = "cell_id", sort = FALSE)
+  expected_key <- with(expected, paste(route_id, parm, information_rung, replicate, sep = "\r"))
+  actual_key <- with(records, paste(route_id, parm, information_rung, replicate, sep = "\r"))
+  if (anyDuplicated(actual_key) || !setequal(expected_key, actual_key)) {
+    stop("G5 records must retain exactly every planned attempt.", call. = FALSE)
+  }
+  seed_expected <- expected$seed[match(actual_key, expected_key)]
+  if (!identical(as.integer(records$attempt_seed), as.integer(seed_expected))) {
+    stop("G5 records must retain the deterministic seed for every planned attempt.", call. = FALSE)
+  }
+  invisible(records)
 }

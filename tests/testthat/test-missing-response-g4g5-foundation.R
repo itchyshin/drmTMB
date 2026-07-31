@@ -271,6 +271,35 @@ test_that("G5 registry is gated by G4-feasible targets and fixes 1,200 attempts"
   expect_error(mr_g5_registry_from_g4(target_manifests, transform(g4, g4_feasible = FALSE)), "No G4-feasible")
 })
 
+test_that("G5 validator retains every deterministic attempt including failures", {
+  source_missing_response_g4g5()
+  target <- data.frame(
+    route_id = "gaussian", parm = "fixef:mu:x", truth = .2,
+    target_class = "fixed-effect", dpar = "mu", scale = "link",
+    profile_ready = TRUE, interval_method = "profile", conf.level = .95,
+    information_rung = "1x", information_multiplier = 1,
+    stringsAsFactors = FALSE
+  )
+  registry <- list(
+    cells = transform(target, cell_id = "mr_g5_0001"),
+    seeds = data.frame(cell_id = "mr_g5_0001", cell_index = 1L,
+      replicate = seq_len(1200L), seed = seq_len(1200L)),
+    n_rep = 1200L, master_seed = 1L
+  )
+  records <- do.call(rbind, lapply(seq_len(1200L), function(i) {
+    x <- mr_g5_failure_record(target, seed = i, message = "retained failure")
+    x$replicate <- i
+    x
+  }))
+  expect_silent(mr_g5_validate_campaign(records, registry))
+  summary <- mr_g5_summarise_attempts(records)
+  expect_equal(summary$n_attempt, 1200L)
+  expect_equal(summary$n_interval_usable, 0L)
+  expect_equal(summary$coverage, 0)
+  records$attempt_seed[1L] <- 999L
+  expect_error(mr_g5_validate_campaign(records, registry), "deterministic seed")
+})
+
 test_that("G4 campaign validator requires every frozen route target and rung", {
   source_missing_response_g4g5()
   routes <- mr_g4g5_route_manifest()$route_id
