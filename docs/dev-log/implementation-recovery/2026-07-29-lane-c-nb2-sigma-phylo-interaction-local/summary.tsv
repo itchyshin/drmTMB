@@ -1,0 +1,2 @@
+fixture_id	planned_attempts	attempted_attempts	fit_ok	fit_error	nonconverged	pdhess_false	boundary_hits	mean_beta0_hat	mean_beta1_hat	mean_sigma_intercept_hat	mean_tau_hat	decision
+lane_c_nb2_sigma_phylo_interaction_local	4	4	0	4	0	0	0	NA	NA	NA	NA	BLOCKED_LOCAL_FIXTURE

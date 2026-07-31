@@ -34,11 +34,12 @@ IMPORTED_MODEL_COUNT = 668
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
 MODEL_SURFACE_COUNT = 677
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
-# recovery tier. C12 then promoted the independently evidenced mc-0653 ZINB
-# q1 phylo-interaction sigma route. Future changes require an explicit
-# row-specific receipt; this is not a blanket re-baseline.
+# recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
+# count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
+# mc-0454. Future changes require an explicit row-specific receipt; this is
+# not a blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 159
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 165
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -566,17 +567,19 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    # implemented is 308: mc-0260m is an approved point-fit insert, and C12
-    # independently promoted the frozen mc-0653 ZINB q1 phylo-interaction route.
+    # Implemented is 314: mc-0260m is an approved point-fit insert; C12
+    # independently promoted mc-0653; and the canonical Lane-C count tranche
+    # independently promoted six named frozen-census cells.
     expected = Counter(
-        {"implemented": 308, "not_implemented": 369}
+        {"implemented": 314, "not_implemented": 363}
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census has 159 point_fit_recovery cells after the explicit C12 mc-0653
-    # promotion. Approved inserts take a higher source_order and so cannot disturb this
-    # number; every frozen-cell promotion needs a named transition and evidence receipt.
+    # The frozen census has 165 point_fit_recovery cells after C12 and the
+    # six-cell canonical Lane-C count tranche. Approved inserts take a higher
+    # source_order and so cannot disturb this number; every frozen-cell promotion
+    # needs a named transition and evidence receipt.
     frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
     if len(frozen) != FROZEN_CENSUS_COUNT:
         errors.append(

@@ -459,6 +459,8 @@ expect_profile_target_contract <- function(targets) {
         "ready",
         "tmb_object_required",
         "missing_tmb_parameter",
+        "point_fit_only_count_q2",
+        "point_fit_only_count_sigma_interaction",
         "derived_target",
         "derived_unstructured_correlation"
       )

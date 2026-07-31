@@ -1,0 +1,10 @@
+invocation	seed	attempted_fit	source_sha	runner_md5	status	error
+1	2026073401	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	2aa19ad59f50d8f1005b25225d582194	setup_error	unused arguments (eval.max = 2000, iter.max = 2000)
+1	2026073402	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	2aa19ad59f50d8f1005b25225d582194	setup_error	unused arguments (eval.max = 2000, iter.max = 2000)
+1	2026073403	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	2aa19ad59f50d8f1005b25225d582194	setup_error	unused arguments (eval.max = 2000, iter.max = 2000)
+1	2026073404	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	2aa19ad59f50d8f1005b25225d582194	setup_error	unused arguments (eval.max = 2000, iter.max = 2000)
+2	2026073401	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	edc98ec5f0e9020872e77c386ef3f26c	setup_error	control contains reserved drmTMB control name: se
+2	2026073402	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	edc98ec5f0e9020872e77c386ef3f26c	setup_error	control contains reserved drmTMB control name: se
+2	2026073403	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	edc98ec5f0e9020872e77c386ef3f26c	setup_error	control contains reserved drmTMB control name: se
+2	2026073404	FALSE	ee303f960cf90f4dbe94c651e075b06071900074	edc98ec5f0e9020872e77c386ef3f26c	setup_error	control contains reserved drmTMB control name: se
+3	2026073401	TRUE	ee303f960cf90f4dbe94c651e075b06071900074	d0208eab0183ea4e1263b37ac7025817	recording_error	attempt to set an attribute on NULL while obtaining ranef values
