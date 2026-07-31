@@ -300,6 +300,19 @@ test_that("G5 validator retains every deterministic attempt including failures",
   expect_error(mr_g5_validate_campaign(records, registry), "deterministic seed")
 })
 
+test_that("G5 runner retains a real masked Gaussian attempt", {
+  source_missing_response_g4g5()
+  manifest <- mr_g4g5_materialise_target_manifest("gaussian", .5)$manifest
+  cell <- manifest[manifest$parm == "fixef:mu:x", , drop = FALSE]
+  cell$information_rung <- "0.5x"
+  cell$information_multiplier <- .5
+  out <- mr_g5_run_attempt(cell, seed = 2026073003L, replicate = 1L, trace = FALSE)
+  expect_equal(nrow(out), 1L)
+  expect_equal(out$attempt_seed, 2026073003L)
+  expect_true(all(c("fit_status", "fit_converged", "pdHess", "interval_usable",
+    "truth_contained", "boundary_or_clamp") %in% names(out)))
+})
+
 test_that("G4 campaign validator requires every frozen route target and rung", {
   source_missing_response_g4g5()
   routes <- mr_g4g5_route_manifest()$route_id
