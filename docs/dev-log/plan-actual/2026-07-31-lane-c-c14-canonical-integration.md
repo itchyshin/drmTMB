@@ -42,3 +42,17 @@ Approve or reject a dedicated non-lossy q1 leaf-taxonomy design before any
 point-fit transition for the structured q1 fixtures. Mission Control may be
 updated only after this canonical source is reviewed, landed, and selected as
 its runtime source; its Future-extension audit remains unchanged.
+
+## Authorized C14-B outcome
+
+The non-lossy taxonomy was approved. A subsequent provenance audit narrowed
+the eligible historical set to three exact ordinary zero-one-beta q1 routes:
+`mc-0568`, `mc-0569`, and `mc-0576`. Their raw receipts bind to the C14 source,
+have four retained passing attempts each, and received fresh three-lens GO.
+Shinichi then explicitly authorized their named frozen-census exception.
+
+Actual canonical ledger result: **317 implemented / 340 rejected-by-design /
+30 actionable not implemented**. The original 328/330/19 projection is not
+supported: the seven structured receipts differ from the current source and
+the remaining candidates lack equally source-bound evidence. They stay visible
+as blockers rather than being folded into a headline count.

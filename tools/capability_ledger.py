@@ -61,10 +61,12 @@ MODEL_SURFACE_COUNT = 687
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
-# mc-0454. Future changes require an explicit row-specific receipt; this is
-# not a blanket re-baseline.
+# mc-0454. With explicit user approval, C14 promotes only mc-0568, mc-0569,
+# and mc-0576 after source-equivalence verification and fresh three-lens GO.
+# Future changes require an explicit row-specific receipt; this is not a
+# blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 165
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 168
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -924,9 +926,9 @@ def validate(
     # mathematically impossible.
     expected = Counter(
         {
-            "implemented": 314,
+            "implemented": 317,
             "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
-            "not_implemented": 33,
+            "not_implemented": 30,
         }
     )
     if status_counts != expected:

@@ -117,7 +117,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 314, "not_implemented": 33, "rejected_by_design": 340},
+            {"implemented": 317, "not_implemented": 30, "rejected_by_design": 340},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -160,7 +160,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 314, "not_implemented": 33, "rejected_by_design": 340},
+            {"implemented": 317, "not_implemented": 30, "rejected_by_design": 340},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -172,7 +172,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            165,
+            168,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -180,7 +180,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            166,
+            169,
         )
 
         c12 = by_id["mc-0653"]

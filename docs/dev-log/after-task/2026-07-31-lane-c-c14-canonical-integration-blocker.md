@@ -94,3 +94,19 @@ Mission Control canonical-source check.
 Resume from `codex/lane-c-c14-evidence-rebind`. Do not promote the nine q1
 providers or alter the 330 package-boundary classification until the taxonomy
 decision above is approved.
+
+## 13. C14 provenance repair and authorized three-cell exception
+
+The taxonomy decision was approved, followed by a source-binding audit. Seven
+structured q1 receipts remain blocked because their immutable execution source
+differs from the C14 target; the invalid sigma-spatial run-1 is not used. The
+raw SHA substitutions introduced in `7915c60f8` were restored from its parent
+without changing any attempts, estimates, or runner hashes.
+
+Only `mc-0568`, `mc-0569`, and `mc-0576` have raw receipt SHAs that are
+byte-identical in the relevant R/TMB/test paths to the C14 target. Each has
+four retained passing attempts and fresh Fisher, Noether, and Rose GO at
+point-fit-recovery grade only. Shinichi explicitly authorized the named
+frozen-census exception, so the ledger now records **317 implemented / 340
+rejected-by-design / 30 actionable not implemented**. No interval, profile,
+coverage, calibration, or inference-ready claim is made.

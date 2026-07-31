@@ -303,11 +303,12 @@ beta <- function() {
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
 #' `mu`. The point-fit-only q1 gates additionally admit one ordinary
-#' intercept-only random effect in `sigma` or `zoi`, separately; direct
-#' profiling, intervals, and recovery claims beyond their retained local
-#' fixtures remain unavailable. Correlated or labelled effects, slopes in
-#' `sigma`/`zoi`/`coi`, `coi` random effects, structured effects, covariance
-#' blocks, and denominator syntax remain unsupported.
+#' intercept-only random effect in `sigma` or `zoi`, separately, and one
+#' ordinary slope-only `sigma` effect `(0 + x | id)`. These exact routes are
+#' point-fit recovery only: direct profiling, intervals, coverage, and broader
+#' recovery claims remain unavailable. Correlated or labelled effects, slopes
+#' in `zoi`/`coi`, `coi` random effects, structured effects, covariance blocks,
+#' and denominator syntax remain unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export

@@ -1,4 +1,7 @@
 transition_id	cell_id	from_work_status	to_work_status	evidence_ids	reason	actor	commit_sha	date
+tr-mc-0568-c14-promote	mc-0568	backlog	verified	ev-mc-0568-c14-contract;ev-mc-0568-c14-recovery	C14 source-equivalent retained recovery and fresh three-lens GO; exact point-fit-only route.	Codex C14	4a7dc5a56	2026-07-31
+tr-mc-0569-c14-promote	mc-0569	backlog	verified	ev-mc-0569-c14-contract;ev-mc-0569-c14-recovery	C14 source-equivalent retained recovery and fresh three-lens GO; exact point-fit-only route.	Codex C14	4a7dc5a56	2026-07-31
+tr-mc-0576-c14-promote	mc-0576	backlog	verified	ev-mc-0576-c14-contract;ev-mc-0576-c14-recovery	C14 source-equivalent retained recovery and fresh three-lens GO; exact point-fit-only route.	Codex C14	4a7dc5a56	2026-07-31
 tr-mc-0001-seed	mc-0001		verified	ev-mc-0001-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
 tr-mc-0002-seed	mc-0002		backlog	ev-mc-0002-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
 tr-mc-0003-seed	mc-0003		verified	ev-mc-0003-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
@@ -1098,3 +1101,6 @@ tr-mc-0596-c14-q1-leaf-taxonomy	mc-0596	backlog	backlog	ev-mc-0596-c14-q1-leaf-t
 tr-mc-0703-c14-q2plus-boundary	mc-0703		deferred	ev-mc-0703-c14-q2plus-boundary	C14 non-lossy q2-plus boundary created beside a q1 leaf.	Codex C14 leaf taxonomy	192338cb281a1e7e3851c56cb9b57788b6c65bed	2026-07-31
 tr-mc-0597-c14-q1-leaf-taxonomy	mc-0597	backlog	backlog	ev-mc-0597-c14-q1-leaf-taxonomy	C14 non-lossy taxonomy split; q1 remains unpromoted.	Codex C14 leaf taxonomy	192338cb281a1e7e3851c56cb9b57788b6c65bed	2026-07-31
 tr-mc-0704-c14-q2plus-boundary	mc-0704		deferred	ev-mc-0704-c14-q2plus-boundary	C14 non-lossy q2-plus boundary created beside a q1 leaf.	Codex C14 leaf taxonomy	192338cb281a1e7e3851c56cb9b57788b6c65bed	2026-07-31
+tr-mc-0568-c14-promote-final	mc-0568	backlog	verified	ev-mc-0568-c14-contract;ev-mc-0568-c14-recovery	C14 source-equivalent retained recovery and fresh three-lens GO; exact point-fit-only route.	Codex C14	4a7dc5a56e54460d6d34ae309e72fd5cdb5fa98d	2026-07-31
+tr-mc-0569-c14-promote-final	mc-0569	backlog	verified	ev-mc-0569-c14-contract;ev-mc-0569-c14-recovery	C14 source-equivalent retained recovery and fresh three-lens GO; exact point-fit-only route.	Codex C14	4a7dc5a56e54460d6d34ae309e72fd5cdb5fa98d	2026-07-31
+tr-mc-0576-c14-promote-final	mc-0576	backlog	verified	ev-mc-0576-c14-contract;ev-mc-0576-c14-recovery	C14 source-equivalent retained recovery and fresh three-lens GO; exact point-fit-only route.	Codex C14	4a7dc5a56e54460d6d34ae309e72fd5cdb5fa98d	2026-07-31
