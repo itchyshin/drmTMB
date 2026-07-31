@@ -15,9 +15,19 @@ if (dir.exists(out_dir) || file.exists(out_dir)) stop("Refusing to overwrite dia
 manifest <- utils::read.csv(manifest_path, stringsAsFactors = FALSE)
 paths <- Sys.glob(file.path(result_dir, "shards", "*", "outer-attempts.csv"))
 if (!length(paths)) stop("No AOI-3R1 output shards found.", call. = FALSE)
-outer <- do.call(rbind, lapply(paths, utils::read.csv, check.names = FALSE, stringsAsFactors = FALSE))
+read_union <- function(paths) {
+  tables <- lapply(paths, utils::read.csv, check.names = FALSE, stringsAsFactors = FALSE)
+  columns <- unique(unlist(lapply(tables, names), use.names = FALSE))
+  tables <- lapply(tables, function(table) {
+    missing <- setdiff(columns, names(table))
+    for (column in missing) table[[column]] <- NA
+    table[, columns, drop = FALSE]
+  })
+  do.call(rbind, tables)
+}
+outer <- read_union(paths)
 inner_paths <- sub("outer-attempts.csv$", "inner-attempts.csv", paths)
-inner <- do.call(rbind, lapply(inner_paths, utils::read.csv, check.names = FALSE, stringsAsFactors = FALSE))
+inner <- read_union(inner_paths)
 expected_outer <- manifest[manifest$attempt_type == "outer", ]
 expected_inner <- manifest[manifest$attempt_type == "inner", ]
 outer_key <- paste(outer$formula_id, outer$outer_id, outer$outer_seed)
