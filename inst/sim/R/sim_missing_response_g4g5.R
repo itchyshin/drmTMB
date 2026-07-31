@@ -715,12 +715,14 @@ mr_g4_reconcile_checkpoints <- function(paths) {
   key <- do.call(paste, c(all_records[required], sep = "\r"))
   groups <- split(seq_len(nrow(all_records)), key)
   keep <- vapply(groups, `[[`, integer(1L), 1L)
-  sources <- vapply(groups, function(index) {
+  sources <- vapply(names(groups), function(group_key) {
+    index <- groups[[group_key]]
     rows <- all_records[index, setdiff(names(all_records), ".mr_g4_checkpoint_path"), drop = FALSE]
     if (nrow(rows) > 1L && !all(vapply(seq_len(nrow(rows))[-1L], function(i) {
       identical(rows[1L, , drop = FALSE], rows[i, , drop = FALSE])
     }, logical(1L)))) {
-      stop("Conflicting G4 checkpoint records share a route, target, and information rung.", call. = FALSE)
+      stop(sprintf("Conflicting G4 checkpoint records share a route, target, and information rung: %s.",
+        gsub("\r", " / ", group_key, fixed = TRUE)), call. = FALSE)
     }
     paste(sort(unique(all_records$.mr_g4_checkpoint_path[index])), collapse = ";")
   }, character(1L))
