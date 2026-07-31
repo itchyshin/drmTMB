@@ -727,7 +727,14 @@ mr_g4_reconcile_checkpoints <- function(paths) {
     index <- groups[[group_key]]
     rows <- all_records[index, setdiff(names(all_records), ".mr_g4_checkpoint_path"), drop = FALSE]
     if (nrow(rows) > 1L && !all(vapply(seq_len(nrow(rows))[-1L], function(i) {
-      identical(rows[1L, , drop = FALSE], rows[i, , drop = FALSE])
+      # Receipts from separate checkpoint files acquire different row names
+      # during rbind().  Row names are provenance-free and must not turn two
+      # otherwise identical receipts into an apparent collision.
+      left <- rows[1L, , drop = FALSE]
+      right <- rows[i, , drop = FALSE]
+      row.names(left) <- NULL
+      row.names(right) <- NULL
+      identical(left, right)
     }, logical(1L)))) {
       stop(sprintf("Conflicting G4 checkpoint records share a route, target, and information rung: %s.",
         gsub("\r", " / ", group_key, fixed = TRUE)), call. = FALSE)
@@ -1071,7 +1078,13 @@ mr_g5_reconcile_checkpoints <- function(paths, registry) {
   sources <- vapply(groups, function(index) {
     rows <- all_records[index, setdiff(names(all_records), ".mr_g5_checkpoint_path"), drop = FALSE]
     identical_rows <- vapply(seq_len(nrow(rows))[-1L], function(i) {
-      identical(rows[1L, , drop = FALSE], rows[i, , drop = FALSE])
+      # Duplicate receipts from separate files have distinct rbind() row
+      # names.  Compare the retained evidence, not that incidental label.
+      left <- rows[1L, , drop = FALSE]
+      right <- rows[i, , drop = FALSE]
+      row.names(left) <- NULL
+      row.names(right) <- NULL
+      identical(left, right)
     }, logical(1L))
     if (length(identical_rows) && !all(identical_rows)) {
       stop("Conflicting G5 checkpoint records share a deterministic attempt.", call. = FALSE)

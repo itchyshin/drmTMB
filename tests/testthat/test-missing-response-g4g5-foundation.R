@@ -318,6 +318,7 @@ test_that("G5 reconciliation requires a complete, non-conflicting receipt set", 
   records <- do.call(rbind, lapply(seq_len(1200L), function(i) {
     out <- mr_g5_failure_record(cell, seed = i, message = "retained failure")
     out$replicate <- i
+    out$mask_any_response_rows <- 0
     out
   }))
   first <- tempfile(fileext = ".rds")
