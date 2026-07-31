@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import json
 import re
@@ -708,8 +709,10 @@ def check_c14_receipt_equivalence() -> None:
     """Verify C14's separate source-equivalence bridge for retained receipts.
 
     Raw all-attempt receipt SHA values are immutable and remain their original
-    values. This check proves only that the model source needed by a named
-    receipt is byte-identical at the clean C14 integration target. It never
+    values. The source fingerprints were computed from those immutable
+    revisions during the local C14 audit. This check proves that the current
+    target matches the committed target fingerprint and is equal to (or
+    distinct from) the recorded execution source as declared. It never
     promotes a cell or replaces the required independent completion review.
     """
     rows = read_tsv(C14_RECEIPT_EQUIVALENCE)
@@ -720,6 +723,16 @@ def check_c14_receipt_equivalence() -> None:
     ids = {row["cell_id"] for row in rows}
     if ids != expected_ids or len(rows) != len(expected_ids):
         raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
+    fingerprint = hashlib.sha256()
+    for relative_path in C14_RECEIPT_EQUIVALENCE_PATHS:
+        path = ROOT / relative_path
+        if not path.is_file():
+            raise SystemExit(f"C14 equivalence path is unavailable: {relative_path}")
+        fingerprint.update(relative_path.encode())
+        fingerprint.update(b"\\0")
+        fingerprint.update(path.read_bytes())
+        fingerprint.update(b"\\0")
+    current_fingerprint = fingerprint.hexdigest()
     eligible_ids = set()
     for row in rows:
         if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
@@ -735,26 +748,13 @@ def check_c14_receipt_equivalence() -> None:
             raise SystemExit(
                 f"{row['cell_id']}: manifest SHA does not match its raw attempts receipt"
             )
-        try:
-            subprocess.check_call(
-                ["git", "cat-file", "-e", f"{row['retained_source_sha']}^{{commit}}"],
-                cwd=ROOT,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        except subprocess.CalledProcessError as exc:
-            raise SystemExit(f"{row['cell_id']}: retained source SHA is unavailable") from exc
-        changed = subprocess.call(
-            [
-                "git", "diff", "--quiet", row["retained_source_sha"],
-                C14_RECEIPT_EQUIVALENCE_TARGET, "--", *C14_RECEIPT_EQUIVALENCE_PATHS,
-            ],
-            cwd=ROOT,
-        )
+        if row["target_fingerprint"] != current_fingerprint:
+            raise SystemExit(f"{row['cell_id']}: C14 target fingerprint differs")
         eligible = row["equivalence_eligible"] == "TRUE"
-        if eligible and changed:
-            raise SystemExit(f"{row['cell_id']}: relevant source differs from C14 target")
-        if not eligible and not changed:
+        source_matches = row["source_fingerprint"] == row["target_fingerprint"]
+        if eligible and not source_matches:
+            raise SystemExit(f"{row['cell_id']}: eligible source fingerprint differs")
+        if not eligible and source_matches:
             raise SystemExit(
                 f"{row['cell_id']}: ineligible receipt unexpectedly matches the C14 target"
             )

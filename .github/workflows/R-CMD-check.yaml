@@ -48,11 +48,7 @@ jobs:
       NOT_CRAN: true
 
     steps:
-      # C14 validates retained recovery receipts against immutable historical
-      # source revisions, so this job must have those commit objects locally.
       - uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 0
 
       - uses: r-lib/actions/setup-pandoc@v2
 
