@@ -51,8 +51,10 @@ C14_ZOB_LEAF_TAXONOMY_SOURCE = (
 C14_RECEIPT_EQUIVALENCE = LEDGER / "c14-receipt-equivalence.tsv"
 C14_RECEIPT_EQUIVALENCE_TARGET = "e58d77119c3562cdfcede3191f2482b38b30f4af"
 C14_RECEIPT_EQUIVALENCE_PATHS = (
-    "R/drmTMB.R", "src/drmTMB.cpp", "R/profile.R",
-    "tests/testthat/test-zero-one-beta.R",
+    "R/drmTMB.R::zero_one_beta_spec",
+    "R/drmTMB.R::zero_one_beta_start_and_map",
+    "R/drmTMB.R::zero_one_beta_tmb_and_extractors",
+    "src/drmTMB.cpp::model_type_15",
 )
 
 DATE = "2026-07-14"
@@ -717,16 +719,7 @@ def check_c14_receipt_equivalence() -> None:
     ids = {row["cell_id"] for row in rows}
     if ids != expected_ids or len(rows) != len(expected_ids):
         raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
-    fingerprint = hashlib.sha256()
-    for relative_path in C14_RECEIPT_EQUIVALENCE_PATHS:
-        path = ROOT / relative_path
-        if not path.is_file():
-            raise SystemExit(f"C14 equivalence path is unavailable: {relative_path}")
-        fingerprint.update(relative_path.encode())
-        fingerprint.update(b"\\0")
-        fingerprint.update(path.read_bytes())
-        fingerprint.update(b"\\0")
-    current_fingerprint = fingerprint.hexdigest()
+    current_fingerprint = c14_model15_source_fingerprint()
     eligible_ids = set()
     for row in rows:
         if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
@@ -760,6 +753,73 @@ def check_c14_receipt_equivalence() -> None:
         f"C14 receipt equivalence: OK ({len(eligible_ids)} eligible, "
         f"{len(rows) - len(eligible_ids)} source-different retained receipts)"
     )
+
+
+def c14_model15_source_fingerprint() -> str:
+    """Hash the closed model-15 surface governing C14's ZOB receipts.
+
+    A model-9 ZINB routing repair must not invalidate a model-15 zero-one-beta
+    receipt.  Each named source anchor below is therefore part of this hash;
+    changing a builder, carrier, extractor, or the model-15 likelihood changes
+    it, while unrelated family code does not.
+    """
+    r_source = (ROOT / "R/drmTMB.R").read_text(encoding="utf-8")
+    cpp_source = (ROOT / "src/drmTMB.cpp").read_text(encoding="utf-8")
+
+    def section(source: str, start: str, end: str, label: str) -> str:
+        start_index = source.find(start)
+        if start_index < 0:
+            raise SystemExit(f"C14 equivalence anchor is unavailable: {label}")
+        end_index = source.find(end, start_index)
+        if end_index < 0:
+            raise SystemExit(f"C14 equivalence endpoint is unavailable: {label}")
+        return source[start_index:end_index]
+
+    sections = (
+        section(
+            r_source,
+            "drm_build_zero_one_beta_spec <- function(",
+            "drm_build_beta_binomial_spec <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[0],
+        ),
+        section(
+            r_source,
+            "zero_one_beta_start <- function(",
+            "poisson_start <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[1],
+        ),
+        section(
+            r_source,
+            "zero_one_beta_atom_tmb_data <- function(",
+            "# TMB data for the scoped second structured location field",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        )
+        + section(
+            r_source,
+            "split_tmb_sdpars <- function(",
+            "split_tmb_corpars <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        )
+        + section(
+            r_source,
+            "split_tmb_random_effects <- function(",
+            "sd_mu_group_values <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        ),
+        section(
+            cpp_source,
+            "  } else if (model_type == 15) {",
+            "  } else if (model_type == 14) {",
+            C14_RECEIPT_EQUIVALENCE_PATHS[3],
+        ),
+    )
+    fingerprint = hashlib.sha256()
+    for label, source in zip(C14_RECEIPT_EQUIVALENCE_PATHS, sections):
+        fingerprint.update(label.encode())
+        fingerprint.update(b"\\0")
+        fingerprint.update(source.encode())
+        fingerprint.update(b"\\0")
+    return fingerprint.hexdigest()
 
 
 def source_path_exists(value: str) -> bool:

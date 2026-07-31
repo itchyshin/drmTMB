@@ -4013,13 +4013,37 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_zi = X_zi * beta_zi;
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          log_sigma(i) +=
+            sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) *
+            u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+    }
     if (has_phylo_mu == 1) {
       int n_phylo = Q_phylo.rows();
       int q_phylo = log_sd_phylo.size();
       for (int i = 0; i < y.size(); ++i) {
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
-          eta_mu(i) += phylo_mu_value(i, k) * u_phylo(effect_index);
+          Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
+          if (phylo_mu_dpar(k) == 1) {
+            log_sigma(i) += contribution;
+          } else {
+            eta_mu(i) += contribution;
+          }
         }
       }
       Type quadratic = Type(0.0);

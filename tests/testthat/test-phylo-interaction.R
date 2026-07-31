@@ -729,11 +729,11 @@ test_that("zero-inflated NB2 sigma admits only the IID q1 control with a full or
 
   expect_error(
     drmTMB(bf(count ~ x, sigma ~ x + (1 | pair), zi ~ 1), family = nbinom2(), data = dat),
-    "only the point-fit q1 IID control"
+    "Only the exact zero-inflated NB2"
   )
   expect_error(
     drmTMB(bf(count ~ x, sigma ~ 1 + (1 + x | pair), zi ~ 1), family = nbinom2(), data = dat),
-    "Only independent NB2.*random intercepts"
+    "Only the exact zero-inflated NB2"
   )
   expect_error(
     drmTMB(bf(count ~ x + (1 | pair), sigma ~ 1 + (1 | pair), zi ~ 1), family = nbinom2(), data = dat),
@@ -741,7 +741,7 @@ test_that("zero-inflated NB2 sigma admits only the IID q1 control with a full or
   )
   expect_error(
     drmTMB(bf(count ~ x, sigma ~ 1 + (1 | pair), zi ~ x), family = nbinom2(), data = dat),
-    "only the point-fit q1 IID control"
+    "Only the exact zero-inflated NB2"
   )
   expect_error(
     drmTMB(bf(count ~ x, sigma ~ (1 | pair) + phylo_interaction(

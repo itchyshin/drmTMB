@@ -56,3 +56,12 @@ Actual canonical ledger result: **317 implemented / 340 rejected-by-design /
 supported: the seven structured receipts differ from the current source and
 the remaining candidates lack equally source-bound evidence. They stay visible
 as blockers rather than being folded into a headline count.
+
+## C11/C12 compatibility repair
+
+The later model-9 ZINB sigma-control repair changed the shared R/C++ files but
+not the model-15 zero-one-beta surface underlying the three eligible C14
+receipts. With explicit approval, the portable verifier now hashes the closed
+model-15 builders, carriers, extractors, and likelihood block. Its retained
+source SHA check is unchanged; the seven source-different receipts remain
+ineligible. This is a non-interference proof, not new recovery evidence.

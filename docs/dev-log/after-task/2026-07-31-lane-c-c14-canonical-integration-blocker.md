@@ -110,3 +110,12 @@ point-fit-recovery grade only. Shinichi explicitly authorized the named
 frozen-census exception, so the ledger now records **317 implemented / 340
 rejected-by-design / 30 actionable not implemented**. No interval, profile,
 coverage, calibration, or inference-ready claim is made.
+
+## 14. Model-9 compatibility repair
+
+The C11/C12 repair completed only the already-authorized zero-inflated NB2
+model-9 sigma q1 carriers: one IID intercept and one phylo-interaction
+intercept. It does not relax any other ZINB random-effect grammar. The C14
+source verifier is model-15-scoped so this non-overlapping repair cannot erase
+the raw-SHA requirement for the three ordinary zero-one-beta promotions or
+make any of the seven source-different receipts eligible.
