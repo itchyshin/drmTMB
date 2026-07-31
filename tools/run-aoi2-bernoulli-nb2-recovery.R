@@ -105,7 +105,8 @@ run_one <- function(replicate) {
       formula_id = formula_id, n = n, replicate = replicate, seed = seed,
       source_sha = source_sha, fingerprint = NA_character_, stage = "dgp",
       status = "unavailable", message = "", pdHess_binary = NA,
-      pdHess_count = NA
+      pdHess_count = NA, prediction_status = "not_attempted",
+      prediction_message = ""
     ),
     as.list(stats::setNames(rep(NA_real_, length(estimate_columns)), estimate_columns)),
     as.list(stats::setNames(unname(truth), truth_columns)),
@@ -121,19 +122,32 @@ run_one <- function(replicate) {
     count_fit <- drmTMB(bf(mu = count ~x1 + x2, sigma = ~1), nbinom2(), generated$data)
     base$stage <- "association"
     fit <- associate_pairs(binary_fit, count_fit, kernel = latent_normal(), association = association_formula)
-    base$stage <- "prediction"
-    prediction <- predict(fit, newdata = fixed_newdata, type = "link")
     estimates <- fit$association_coefficients
-    if (!identical(names(estimates), names(truth)) || length(prediction) != 5L) {
-      stop("association_output_error: coefficient order or prediction length changed.", call. = FALSE)
-    }
-    base$stage <- "association"
     base$status <- fit$status
     base$pdHess_binary <- binary_fit$sdr$pdHess
     base$pdHess_count <- count_fit$sdr$pdHess
     base[estimate_columns] <- as.list(unname(estimates))
-    base[eta_columns] <- as.list(unname(prediction))
-    base[eta_truth_columns] <- as.list(unname(fixed_newdata_matrix %*% truth))
+    payload <- drmTMB:::drm_pair_aoi2_diagnostic_payload(fit)
+    for (name in names(payload)) base[[name]] <- payload[[name]]
+    base$stage <- "prediction"
+    prediction <- tryCatch(
+      predict(fit, newdata = fixed_newdata, type = "link"),
+      error = function(e) e
+    )
+    if (!identical(names(estimates), names(truth))) {
+      stop("association_output_error: coefficient order or prediction length changed.", call. = FALSE)
+    }
+    if (inherits(prediction, "error")) {
+      base$prediction_status <- "unavailable"
+      base$prediction_message <- conditionMessage(prediction)
+      base$message <- conditionMessage(prediction)
+    } else if (length(prediction) != 5L) {
+      stop("association_output_error: coefficient order or prediction length changed.", call. = FALSE)
+    } else {
+      base$prediction_status <- "available"
+      base[eta_columns] <- as.list(unname(prediction))
+      base[eta_truth_columns] <- as.list(unname(fixed_newdata_matrix %*% truth))
+    }
     base$elapsed_seconds <- as.numeric(difftime(Sys.time(), started, units = "secs"))
     as.data.frame(base, check.names = FALSE, stringsAsFactors = FALSE)
   }, error = function(e) {

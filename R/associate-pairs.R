@@ -1146,6 +1146,82 @@ drm_pair_fit_eta <- function(components, association_design = NULL) {
   )
 }
 
+# Internal AOI-2 diagnostic record.  This deliberately records the inputs to
+# the public prediction fence rather than relaxing that fence: an unresolved
+# association fit remains unavailable to predict from.
+drm_pair_aoi2_diagnostic_payload <- function(fit_result) {
+  diagnostics <- fit_result$diagnostics
+  coefficients <- if (!is.null(fit_result$association_coefficients)) {
+    fit_result$association_coefficients
+  } else {
+    fit_result$coefficients
+  }
+  interval <- diagnostics$count_interval
+  rows <- if (is.null(interval)) NULL else interval$row_numerics
+  serialise_named <- function(x) {
+    if (is.null(x) || !length(x)) return(NA_character_)
+    values <- format(unname(x), digits = 17L, trim = TRUE, scientific = TRUE)
+    labels <- names(x)
+    if (is.null(labels)) labels <- seq_along(values)
+    paste(paste0(labels, "=", values), collapse = "|")
+  }
+  serialise_matrix <- function(x) {
+    if (is.null(x) || !length(x)) return(NA_character_)
+    if (is.null(rownames(x))) rownames(x) <- seq_len(nrow(x))
+    if (is.null(colnames(x))) colnames(x) <- seq_len(ncol(x))
+    paste(vapply(seq_len(ncol(x)), function(column) {
+      paste0(
+        colnames(x)[[column]], ":",
+        serialise_named(stats::setNames(x[, column], rownames(x)))
+      )
+    }, character(1L)), collapse = ";")
+  }
+  serialise_table <- function(x) {
+    if (is.null(x) || !length(x)) return(NA_character_)
+    serialise_named(as.vector(x, mode = "numeric"))
+  }
+  finite_max <- function(x) {
+    x <- x[is.finite(x)]
+    if (!length(x)) NA_real_ else max(x)
+  }
+  finite_min <- function(x) {
+    x <- x[is.finite(x)]
+    if (!length(x)) NA_real_ else min(x)
+  }
+  row_status <- if (is.null(rows) || is.null(rows$status)) NULL else table(rows$status)
+  list(
+    diagnostic_version = "aoi2d0-v1",
+    diagnostic_status = fit_result$status,
+    diagnostic_logLik = fit_result$logLik,
+    diagnostic_alpha_min = finite_min(diagnostics$alpha),
+    diagnostic_alpha_max = finite_max(diagnostics$alpha),
+    diagnostic_eta_max_abs = finite_max(abs(diagnostics$eta_internal)),
+    diagnostic_hard_parameter_cap = any(abs(coefficients) >= 7.99),
+    diagnostic_nonfinite_logLik = !is.finite(fit_result$logLik),
+    diagnostic_convergence_failure = isTRUE(diagnostics$convergence_failure),
+    diagnostic_multistart_disagreement = isTRUE(diagnostics$multistart_disagreement),
+    diagnostic_weak_curvature = isTRUE(diagnostics$weak_curvature),
+    diagnostic_score_failure = isTRUE(diagnostics$score_failure),
+    diagnostic_endpoint_failure = isTRUE(diagnostics$endpoint_failure),
+    diagnostic_optimizer_convergence = diagnostics$optimizer_convergence,
+    diagnostic_optimizer_message = diagnostics$optimizer_message,
+    diagnostic_multistart_objectives = serialise_named(diagnostics$multistart_objectives),
+    diagnostic_multistart_alpha = serialise_matrix(diagnostics$multistart_alpha),
+    diagnostic_score = serialise_named(diagnostics$score),
+    diagnostic_curvature = serialise_named(diagnostics$curvature),
+    diagnostic_endpoint_failure_message = if (is.null(interval)) NA_character_ else interval$endpoint_failure_message,
+    diagnostic_count_row_status = serialise_table(row_status),
+    diagnostic_count_nonfinite_relative_error = if (is.null(rows) ||
+      is.null(rows$relative_integration_error)) NA_integer_ else
+      sum(!is.finite(rows$relative_integration_error)),
+    diagnostic_count_max_relative_error = if (is.null(rows) ||
+      is.null(rows$relative_integration_error)) NA_real_ else
+      finite_max(rows$relative_integration_error),
+    diagnostic_response_patterns = serialise_named(unlist(diagnostics$response_patterns,
+      recursive = TRUE, use.names = TRUE))
+  )
+}
+
 drm_pair_component_n <- function(components) {
   if (identical(components$pair_class, "bernoulli_bernoulli")) return(length(components$binary_1_y))
   if (identical(components$pair_class, "nbinom2_nbinom2")) return(length(components$nbinom2_y_1))

@@ -23,3 +23,18 @@ test_that("AOI-2 analysis rejects malformed design provenance", {
   expect_match(script, "Campaign contains an absent or malformed source SHA")
   expect_match(script, "fingerprint_matches")
 })
+
+test_that("AOI-2 runner records diagnostics before the prediction fence", {
+  script_path <- file.path(
+    testthat::test_path(), "..", "..", "tools",
+    "run-aoi2-bernoulli-nb2-recovery.R"
+  )
+  script <- paste(readLines(script_path, warn = FALSE), collapse = "\n")
+  payload_position <- regexpr("drm_pair_aoi2_diagnostic_payload", script, fixed = TRUE)
+  prediction_position <- regexpr("prediction <- tryCatch", script, fixed = TRUE)
+
+  expect_gt(payload_position, 0L)
+  expect_gt(prediction_position, payload_position)
+  expect_match(script, 'prediction_status = "not_attempted"')
+  expect_match(script, 'base\\$prediction_status <- "unavailable"')
+})
