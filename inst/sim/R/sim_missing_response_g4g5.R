@@ -1053,6 +1053,9 @@ mr_g5_reconcile_checkpoints <- function(paths, registry) {
     local_registry$cells <- registry$cells[registry$cells$cell_id %in% cell_ids, , drop = FALSE]
     local_registry$seeds <- registry$seeds[registry$seeds$cell_id %in% cell_ids, , drop = FALSE]
     mr_g5_validate_campaign(x, local_registry)
+    invisible(lapply(seq_len(nrow(x)), function(i) {
+      mr_g5_validate_record(x[i, , drop = FALSE])
+    }))
     x$.mr_g5_checkpoint_path <- path
     x
   })
