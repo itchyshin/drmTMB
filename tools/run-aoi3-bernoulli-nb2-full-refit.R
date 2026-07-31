@@ -87,6 +87,30 @@ add_payload <- function(row, fitted, sandwich = NULL) {
   }
   row
 }
+has_diagnostic_payload <- function(row) {
+  required <- c("diagnostic_version", "diagnostic_status", "diagnostic_sandwich_status")
+  all(required %in% names(row)) && all(!is.na(unlist(row[required], use.names = FALSE)))
+}
+inherit_outer_payload <- function(row, outer) {
+  # An ineligible inner attempt must retain the diagnostic state that made it
+  # ineligible.  Do not invent a payload when the outer attempt failed first.
+  if (!has_diagnostic_payload(outer)) return(row)
+  fields <- grep("^diagnostic_", names(outer), value = TRUE)
+  row[fields] <- outer[fields]
+  row$diagnostic_payload_origin <- "outer"
+  reason <- c(
+    paste0("outer_status=", outer$outer_status),
+    paste0("outer_sandwich_status=", outer$sandwich_status)
+  )
+  if (!is.null(outer$sandwich_reason) && !is.na(outer$sandwich_reason) && nzchar(outer$sandwich_reason)) {
+    reason <- c(reason, paste0("outer_sandwich_reason=", outer$sandwich_reason))
+  }
+  if (!is.null(outer$outer_message) && !is.na(outer$outer_message) && nzchar(outer$outer_message)) {
+    reason <- c(reason, paste0("outer_message=", outer$outer_message))
+  }
+  row$diagnostic_eligibility_reason <- paste(reason, collapse = ";")
+  row
+}
 manifest_seed <- function(attempt_type, outer_id, inner_id = NA_integer_) {
   if (is.null(seed_manifest)) return(NULL)
   hit <- seed_manifest[
@@ -166,6 +190,8 @@ for (outer_id in seq.int(outer_start, outer_end)) {
     alpha <- alpha_values(fitted)
     sandwich <- drmTMB:::drm_pair_general_eta_sandwich(fitted$binary, fitted$count, fitted$association)
     base <- add_payload(base, fitted, sandwich)
+    base$diagnostic_payload_origin <- "outer"
+    base$diagnostic_eligibility_reason <- NA_character_
     base$outer_status <- fitted$association$status
     base$sandwich_status <- sandwich$status
     if (identical(sandwich$status, "unavailable")) base$sandwich_reason <- sandwich$reason
@@ -207,6 +233,7 @@ for (outer_id in seq.int(outer_start, outer_end)) {
       list(mode = mode, formula_id = formula_id, n = n, strength = strength, outer_id = outer_id, inner_id = inner_id, inner_seed = inner_seed, source_sha = source_sha, inner_status = "not_eligible", inner_message = "", sandwich_status = "not_attempted", sandwich_reason = "", elapsed_seconds = NA_real_),
       as.list(stats::setNames(rep(NA_real_, length(truth)), paste0("estimate_", make.names(names(truth)))))
     )
+    row <- inherit_outer_payload(row, base)
     started_inner <- Sys.time()
     if (!is.null(fitted) && identical(base$outer_status, "interior") && identical(base$sandwich_status, "ok")) {
       tryCatch({
@@ -214,6 +241,8 @@ for (outer_id in seq.int(outer_start, outer_end)) {
         alpha <- alpha_values(refit)
         inner_sandwich <- drmTMB:::drm_pair_general_eta_sandwich(refit$binary, refit$count, refit$association)
         row <- add_payload(row, refit, inner_sandwich)
+        row$diagnostic_payload_origin <- "inner"
+        row$diagnostic_eligibility_reason <- NA_character_
         row$inner_status <- refit$association$status
         row$sandwich_status <- inner_sandwich$status
         if (identical(inner_sandwich$status, "unavailable")) row$sandwich_reason <- inner_sandwich$reason

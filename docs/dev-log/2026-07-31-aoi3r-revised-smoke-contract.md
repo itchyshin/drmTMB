@@ -27,6 +27,13 @@ Before a run, freeze in a committed manifest:
    design fingerprints;
 4. the AOI-3R0 payload schema and failure taxonomy.
 
+The runner must first attach a valid outer payload whenever the outer fit
+exists, including when its sandwich is unavailable. Each scheduled inner row
+then either records its own payload (`diagnostic_payload_origin = "inner"`) or
+inherits that valid outer payload (`"outer"`) with an explicit eligibility
+reason. An outer failure before a valid payload is not repaired or inferred;
+the corresponding inner row remains payload-less and invalidates the run.
+
 The result root must be new and immutable. Every outer and inner row records
 the payload before any prediction, sandwich, or eligibility decision. The
 runner must continue to record an inner row after an outer failure as
