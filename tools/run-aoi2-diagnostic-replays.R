@@ -43,6 +43,11 @@ if (!all(grepl("^[0-9a-f]{40}$", manifest$source_sha))) {
 }
 
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+replay_source_sha <- suppressWarnings(system2("git", c("rev-parse", "HEAD"),
+  stdout = TRUE, stderr = FALSE))
+if (length(replay_source_sha) != 1L || !grepl("^[0-9a-f]{40}$", replay_source_sha)) {
+  stop("Diagnostic replay provenance requires one current 40-character Git SHA.", call. = FALSE)
+}
 script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 if (length(script_arg) != 1L) stop("Cannot locate the diagnostic replay runner.", call. = FALSE)
 runner <- normalizePath(file.path(dirname(sub("^--file=", "", script_arg)),
@@ -60,11 +65,13 @@ run_one <- function(index) {
     paste0("--replicate-start=", row$replicate),
     paste0("--replicate-end=", row$replicate)
   )
-  status <- system2("Rscript", command)
+  status <- system2("Rscript", command,
+    env = paste0("AOI2_SOURCE_SHA=", replay_source_sha))
   data.frame(
     formula_id = row$formula_id, n = row$n, replicate = row$replicate,
     seed = row$seed, original_status = row$original_status,
     diagnostic_stratum = row$diagnostic_stratum, exit_status = status,
+    replay_source_sha = replay_source_sha,
     result_dir = normalizePath(result_dir, mustWork = FALSE),
     stringsAsFactors = FALSE
   )
