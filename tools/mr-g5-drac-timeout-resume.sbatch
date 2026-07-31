@@ -17,7 +17,7 @@ module load StdEnv/2023 r-bundle-bioconductor/3.21
 export R_LIBS_USER="$HOME/R/g4g5-lib"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
 campaign_root="$HOME/g4g5"
-resume_root="$campaign_root/artifacts/g5-gaussian-timeout-resume"
+resume_root="$campaign_root/artifacts/g5-gaussian-timeout-resume/$SLURM_ARRAY_TASK_ID"
 mkdir -p "$resume_root" "$campaign_root/artifacts/g5-gaussian"
 export MR_G5_OUT_DIR="$resume_root"
 export MR_G5_RUNNER_PATH="$campaign_root/drmTMB/inst/sim/R/sim_missing_response_g4g5.R"
