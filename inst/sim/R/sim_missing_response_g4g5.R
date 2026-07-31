@@ -683,6 +683,53 @@ mr_g4_validate_campaign <- function(records, registry) {
   invisible(records)
 }
 
+# Reconcile independently checkpointed G4 route/rung results before the
+# campaign-level validator is called.  A repeated checkpoint is harmless only
+# when its retained target record is byte-for-byte equivalent after migration;
+# otherwise it is evidence of an ambiguous rerun and must stop the campaign.
+# Keeping source paths on the reconciled rows makes the evidence receipt
+# auditable without silently preferring a local or remote copy.
+mr_g4_reconcile_checkpoints <- function(paths) {
+  if (!is.character(paths) || !length(paths) || any(!file.exists(paths))) {
+    stop("`paths` must name one or more existing G4 checkpoint files.", call. = FALSE)
+  }
+  required <- c("route_id", "parm", "information_rung")
+  records <- lapply(paths, function(path) {
+    x <- readRDS(path)
+    if (!is.data.frame(x) || !all(required %in% names(x))) {
+      stop("Each G4 checkpoint must be a target-record data frame.", call. = FALSE)
+    }
+    if (!"g4_feasible" %in% names(x) && "g4_interval_usable" %in% names(x)) {
+      x$g4_feasible <- x$g4_interval_usable
+    }
+    x$.mr_g4_checkpoint_path <- normalizePath(path)
+    x
+  })
+  fields <- Reduce(union, lapply(records, names))
+  records <- lapply(records, function(x) {
+    missing <- setdiff(fields, names(x))
+    for (field in missing) x[[field]] <- NA
+    x[, fields, drop = FALSE]
+  })
+  all_records <- do.call(rbind, records)
+  key <- do.call(paste, c(all_records[required], sep = "\r"))
+  groups <- split(seq_len(nrow(all_records)), key)
+  keep <- vapply(groups, `[[`, integer(1L), 1L)
+  sources <- vapply(groups, function(index) {
+    rows <- all_records[index, setdiff(names(all_records), ".mr_g4_checkpoint_path"), drop = FALSE]
+    if (nrow(rows) > 1L && !all(vapply(seq_len(nrow(rows))[-1L], function(i) {
+      identical(rows[1L, , drop = FALSE], rows[i, , drop = FALSE])
+    }, logical(1L)))) {
+      stop("Conflicting G4 checkpoint records share a route, target, and information rung.", call. = FALSE)
+    }
+    paste(sort(unique(all_records$.mr_g4_checkpoint_path[index])), collapse = ";")
+  }, character(1L))
+  out <- all_records[keep, setdiff(names(all_records), ".mr_g4_checkpoint_path"), drop = FALSE]
+  out$checkpoint_paths <- unname(sources[key[keep]])
+  row.names(out) <- NULL
+  out
+}
+
 mr_g4_run_campaign <- function(target_manifests, registry = NULL, trace = TRUE,
                                checkpoint_path = NULL) {
   if (is.null(registry)) registry <- mr_g4g5_task_registry(target_manifests)

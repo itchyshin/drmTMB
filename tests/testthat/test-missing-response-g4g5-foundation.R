@@ -286,3 +286,27 @@ test_that("G4 campaign validator requires every frozen route target and rung", {
   records$trace_requested[1L] <- FALSE
   expect_error(mr_g4_validate_campaign(records, registry), "trace-request")
 })
+
+test_that("G4 checkpoint reconciliation retains provenance and rejects collisions", {
+  source_missing_response_g4g5()
+  one <- data.frame(
+    route_id = "gaussian", parm = "fixef:mu:x", information_rung = "1x",
+    g4_interval_usable = TRUE, stringsAsFactors = FALSE
+  )
+  duplicate <- tempfile(fileext = ".rds")
+  original <- tempfile(fileext = ".rds")
+  saveRDS(one, original)
+  saveRDS(one, duplicate)
+  out <- mr_g4_reconcile_checkpoints(c(original, duplicate))
+  expect_equal(nrow(out), 1L)
+  expect_true(out$g4_feasible)
+  expect_match(out$checkpoint_paths, normalizePath(original), fixed = TRUE)
+  expect_match(out$checkpoint_paths, normalizePath(duplicate), fixed = TRUE)
+
+  conflict <- tempfile(fileext = ".rds")
+  saveRDS(transform(one, g4_interval_usable = FALSE), conflict)
+  expect_error(
+    mr_g4_reconcile_checkpoints(c(original, conflict)),
+    "Conflicting G4 checkpoint"
+  )
+})
