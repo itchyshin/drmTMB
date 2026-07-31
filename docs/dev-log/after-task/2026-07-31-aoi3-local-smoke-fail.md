@@ -14,13 +14,14 @@ SHA `e9a24c30350ca3b5c5fc783ae161840ded905a23`. It generated five retained
 outer attempts and 35 scheduled inner rows under
 `docs/dev-log/simulation-artifacts/2026-07-31-aoi3-local-smoke/`.
 
-The strict reducer returned `AOI3_LOCAL_SMOKE_FAIL_DRAC_BLOCKED`. Four outer
-fits (`mixed`, `factor_interaction`, `numeric_interaction`, and
-`transformation`) were interior with an available private sandwich. The
-`additive` outer fit was `boundary_unresolved`, so its seven scheduled inner
-rows are correctly recorded as `not_eligible`. Of the eligible 28 inner
-refits, 26 were interior and two transformation refits were
-`boundary_unresolved`.
+The strict reducer returned `AOI3_LOCAL_SMOKE_FAIL_DRAC_BLOCKED`. The `mixed`,
+`numeric_interaction`, and `transformation` outer fits were interior with an
+available private sandwich. `factor_interaction` was interior but its private
+sandwich was unavailable because of `association_step_unstable`; its seven
+inner rows are therefore correctly `not_eligible`. The `additive` outer fit
+was `boundary_unresolved`, so its seven scheduled inner rows are also
+`not_eligible`. Of the eligible 21 inner refits, 19 were interior and two
+transformation refits were `boundary_unresolved`.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -94,9 +95,12 @@ AOI-3 design has been selected.
 
 Formula-flexible association evidence must preserve a union schema at analysis
 time; an assumption of common coefficient columns would selectively erase
-exactly the multi-parameter cases AOI was designed to test. More importantly,
-complete full refits make a small smoke expensive enough that the fail-closed
-gate is a necessary protection against an unjustified large campaign.
+exactly the multi-parameter cases AOI was designed to test. The private
+sandwich availability gate is independently load-bearing: an interior
+association point fit does not license an inner uncertainty calculation. More
+importantly, complete full refits make a small smoke expensive enough that the
+fail-closed gate is a necessary protection against an unjustified large
+campaign.
 
 ## 12. Cross-Product Coverage
 

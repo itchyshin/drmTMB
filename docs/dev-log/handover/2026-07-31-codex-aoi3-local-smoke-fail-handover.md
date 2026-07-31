@@ -13,11 +13,14 @@ contract.
 
 ## Exact outcome
 
-Of five `n = 720` outer draws, additive was `boundary_unresolved`; the other
-four were interior/private-sandwich available. Additive's seven inner rows are
-correctly `not_eligible`. The 28 eligible inner refits contain 26 interior and
-two transformation `boundary_unresolved` rows. This is a local mechanical
-gate result, not a calibration or public inference result.
+Of five `n = 720` outer draws, additive was `boundary_unresolved`; factor
+interaction was interior but its private sandwich was unavailable with
+`association_step_unstable`; mixed, numeric interaction, and transformation
+were interior/private-sandwich available. The additive and factor-interaction
+inner rows (14 total) are correctly `not_eligible`. The 21 eligible inner
+refits contain 19 interior and two transformation `boundary_unresolved` rows.
+This is a local mechanical gate result, not a calibration or public inference
+result.
 
 ## Correction retained
 
