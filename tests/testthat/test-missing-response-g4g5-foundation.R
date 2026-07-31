@@ -258,11 +258,15 @@ test_that("G5 registry is gated by G4-feasible targets and fixes 1,200 attempts"
       target_class = "fixed-effect", dpar = "mu", scale = "link",
       profile_ready = TRUE, interval_method = "profile", conf.level = 0.95)
   }), routes)
-  g4 <- data.frame(route_id = routes, parm = "fixef:mu:x", g4_feasible = FALSE)
-  g4$g4_feasible[c(1L, 2L)] <- TRUE
+  g4 <- expand.grid(route_id = routes, information_rung = c("0.5x", "1x", "2x"),
+    KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  g4$parm <- "fixef:mu:x"
+  g4$g4_feasible <- FALSE
+  g4$g4_feasible[g4$route_id %in% routes[c(1L, 2L)] & g4$information_rung == "1x"] <- TRUE
   registry <- mr_g5_registry_from_g4(target_manifests, g4)
-  expect_equal(nrow(registry$cells), 2L * 3L)
-  expect_equal(nrow(registry$seeds), 2L * 3L * 1200L)
+  expect_equal(nrow(registry$cells), 2L)
+  expect_equal(nrow(registry$seeds), 2L * 1200L)
+  expect_true(all(registry$cells$information_rung == "1x"))
   expect_true(all(registry$seeds$replicate <= 1200L))
   expect_error(mr_g5_registry_from_g4(target_manifests, transform(g4, g4_feasible = FALSE)), "No G4-feasible")
 })

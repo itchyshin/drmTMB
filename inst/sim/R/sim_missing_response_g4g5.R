@@ -873,30 +873,35 @@ mr_g4g5_task_registry <- function(target_manifests, information_rungs = c(0.5, 1
 }
 
 mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2026073002L) {
-  required <- c("route_id", "parm", "g4_feasible")
+  required <- c("route_id", "parm", "information_rung", "g4_feasible")
   if (!is.data.frame(g4_records) || !all(required %in% names(g4_records))) {
-    stop("`g4_records` must include route, parameter, and pass fields.", call. = FALSE)
+    stop("`g4_records` must include route, parameter, information rung, and pass fields.", call. = FALSE)
   }
-  passed <- g4_records[g4_records$g4_feasible %in% TRUE, c("route_id", "parm"), drop = FALSE]
+  passed <- g4_records[g4_records$g4_feasible %in% TRUE,
+    c("route_id", "parm", "information_rung"), drop = FALSE]
   if (nrow(passed) == 0L) {
     stop("No G4-feasible targets are eligible for G5.", call. = FALSE)
   }
-  filtered <- lapply(target_manifests, function(x) {
-    keep <- paste(x$route_id, x$parm, sep = "\r") %in%
-      paste(passed$route_id, passed$parm, sep = "\r")
-    x[keep, , drop = FALSE]
-  })
-  filtered <- filtered[vapply(filtered, nrow, integer(1L)) > 0L]
-  # The all-route guard is intentionally bypassed only here: G5 is permitted
-  # cohort-by-cohort, but never for a target that failed G4.
-  passed_targets <- do.call(rbind, filtered)
-  all_targets <- do.call(rbind, lapply(c(0.5, 1, 2), function(rung) {
-    out <- passed_targets
-    out$information_rung <- paste0(rung, "x")
-    out$information_multiplier <- rung
-    out
-  }))
-  all_targets$cell_id <- sprintf("mr_g5_%04d", seq_len(nrow(all_targets)))
-  seeds <- mr_g4g5_seed_table(all_targets, n_rep = 1200L, master_seed = master_seed)
-  list(cells = all_targets, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
+  if (anyDuplicated(passed)) {
+    stop("G4 eligibility must retain at most one result per route, target, and information rung.", call. = FALSE)
+  }
+  valid_rungs <- c("0.5x", "1x", "2x")
+  if (any(!passed$information_rung %in% valid_rungs)) {
+    stop("G4 eligibility contains an unknown information rung.", call. = FALSE)
+  }
+  targets <- do.call(rbind, target_manifests)
+  target_key <- paste(targets$route_id, targets$parm, sep = "\r")
+  passed_key <- paste(passed$route_id, passed$parm, sep = "\r")
+  index <- match(passed_key, target_key)
+  if (anyNA(index)) {
+    stop("A G4-feasible result names a target absent from the frozen manifest.", call. = FALSE)
+  }
+  # G5 is permitted cohort-by-cohort, but it inherits the *same* information
+  # rung that passed G4.  Passing at 2x must never authorize a 0.5x campaign.
+  cells <- targets[index, , drop = FALSE]
+  cells$information_rung <- passed$information_rung
+  cells$information_multiplier <- as.numeric(sub("x$", "", cells$information_rung))
+  cells$cell_id <- sprintf("mr_g5_%04d", seq_len(nrow(cells)))
+  seeds <- mr_g4g5_seed_table(cells, n_rep = 1200L, master_seed = master_seed)
+  list(cells = cells, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
 }
