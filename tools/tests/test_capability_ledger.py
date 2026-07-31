@@ -106,6 +106,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertTrue(all((ROOT / row["retained_receipt"]).exists() for row in rows))
         self.assertTrue(all(row["c14_decision"] for row in rows))
 
+    def test_c14_receipt_equivalence_keeps_raw_sources_separate(self):
+        ledger.check_c14_receipt_equivalence()
+
     def test_arc3a_cells_are_narrow_and_evidence_backed(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}

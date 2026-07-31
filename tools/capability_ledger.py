@@ -44,6 +44,12 @@ C14_ZOB_LEAF_TAXONOMY_SOURCE = (
     "docs/dev-log/dashboard/capability-ledger/"
     "c14-zob-structured-leaf-taxonomy.md"
 )
+C14_RECEIPT_EQUIVALENCE = LEDGER / "c14-receipt-equivalence.tsv"
+C14_RECEIPT_EQUIVALENCE_TARGET = "e58d77119c3562cdfcede3191f2482b38b30f4af"
+C14_RECEIPT_EQUIVALENCE_PATHS = (
+    "R/drmTMB.R", "src/drmTMB.cpp", "R/profile.R",
+    "tests/testthat/test-zero-one-beta.R",
+)
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
@@ -694,6 +700,48 @@ def split_c14_zob_structured_leaves() -> None:
     TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
     SCHEMA.write_bytes(json_bytes(schema_value()))
     print("C14 zero-one-beta structured q1/q2-plus leaves are current")
+
+
+def check_c14_receipt_equivalence() -> None:
+    """Verify C14's separate source-equivalence bridge for retained receipts.
+
+    Raw all-attempt receipt SHA values are immutable and remain their original
+    values. This check proves only that the model source needed by a named
+    receipt is byte-identical at the clean C14 integration target. It never
+    promotes a cell or replaces the required independent completion review.
+    """
+    rows = read_tsv(C14_RECEIPT_EQUIVALENCE)
+    expected_ids = {
+        "mc-0568", "mc-0569", "mc-0576", "mc-0586", "mc-0587",
+        "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+    }
+    ids = {row["cell_id"] for row in rows}
+    if ids != expected_ids or len(rows) != len(expected_ids):
+        raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
+    for row in rows:
+        if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
+            raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence target")
+        if row["compared_paths"] != ";".join(C14_RECEIPT_EQUIVALENCE_PATHS):
+            raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence path set")
+        try:
+            subprocess.check_call(
+                ["git", "cat-file", "-e", f"{row['retained_source_sha']}^{{commit}}"],
+                cwd=ROOT,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError as exc:
+            raise SystemExit(f"{row['cell_id']}: retained source SHA is unavailable") from exc
+        changed = subprocess.call(
+            [
+                "git", "diff", "--quiet", row["retained_source_sha"],
+                C14_RECEIPT_EQUIVALENCE_TARGET, "--", *C14_RECEIPT_EQUIVALENCE_PATHS,
+            ],
+            cwd=ROOT,
+        )
+        if changed:
+            raise SystemExit(f"{row['cell_id']}: relevant source differs from C14 target")
+    print(f"C14 receipt equivalence: OK ({len(rows)} retained receipts)")
 
 
 def source_path_exists(value: str) -> bool:
@@ -1749,6 +1797,7 @@ def main() -> None:
     action.add_argument("--bootstrap", action="store_true")
     action.add_argument("--restore-c14-boundaries", action="store_true")
     action.add_argument("--split-c14-zob-structured-leaves", action="store_true")
+    action.add_argument("--check-c14-receipt-equivalence", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
     action.add_argument("--summary", action="store_true")
@@ -1761,6 +1810,9 @@ def main() -> None:
         return
     if args.split_c14_zob_structured_leaves:
         split_c14_zob_structured_leaves()
+        return
+    if args.check_c14_receipt_equivalence:
+        check_c14_receipt_equivalence()
         return
     cells, evidence, _ = load_sources()
     if args.write:
