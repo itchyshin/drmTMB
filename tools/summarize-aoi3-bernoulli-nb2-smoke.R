@@ -15,8 +15,18 @@ if (!dir.exists(input_root) || dir.exists(out_dir) || file.exists(out_dir)) stop
 outer_paths <- list.files(input_root, pattern = "^outer-attempts\\.csv$", recursive = TRUE, full.names = TRUE)
 inner_paths <- list.files(input_root, pattern = "^inner-attempts\\.csv$", recursive = TRUE, full.names = TRUE)
 if (length(outer_paths) != 5L || length(inner_paths) != 5L) stop("AOI-3 smoke requires exactly five outer and five inner files.", call. = FALSE)
-outer <- do.call(rbind, lapply(outer_paths, utils::read.csv, check.names = FALSE, stringsAsFactors = FALSE))
-inner <- do.call(rbind, lapply(inner_paths, utils::read.csv, check.names = FALSE, stringsAsFactors = FALSE))
+bind_union <- function(paths) {
+  tables <- lapply(paths, utils::read.csv, check.names = FALSE, stringsAsFactors = FALSE)
+  columns <- unique(unlist(lapply(tables, names), use.names = FALSE))
+  tables <- lapply(tables, function(table) {
+    missing <- setdiff(columns, names(table))
+    for (name in missing) table[[name]] <- NA
+    table[columns]
+  })
+  do.call(rbind, tables)
+}
+outer <- bind_union(outer_paths)
+inner <- bind_union(inner_paths)
 needed_outer <- c("formula_id", "n", "strength", "outer_id", "source_sha", "outer_status", "sandwich_status", grep("^sandwich_se_", names(outer), value = TRUE))
 if (!all(needed_outer %in% names(outer)) || !all(c("formula_id", "outer_id", "inner_id", "inner_status", "sandwich_status", "source_sha") %in% names(inner))) stop("AOI-3 smoke CSV schema is incomplete.", call. = FALSE)
 expected_formulae <- c("additive", "mixed", "factor_interaction", "numeric_interaction", "transformation")

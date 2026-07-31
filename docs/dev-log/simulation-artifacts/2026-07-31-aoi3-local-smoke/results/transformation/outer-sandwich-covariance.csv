@@ -1,0 +1,10 @@
+"mode","formula_id","n","strength","outer_id","source_sha","row","column","covariance"
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","(Intercept)","(Intercept)",0.00387323464508872
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","(Intercept)","x1",-0.000213131559383539
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","(Intercept)","I(x2^2)",-0.0017334981759137
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","x1","(Intercept)",-0.000213131559383539
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","x1","x1",0.00316120087449478
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","x1","I(x2^2)",0.000382263630558378
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","I(x2^2)","(Intercept)",-0.0017334981759137
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","I(x2^2)","x1",0.000382263630558378
+"smoke","transformation",720,"interior",1,"e9a24c30350ca3b5c5fc783ae161840ded905a23","I(x2^2)","I(x2^2)",0.00242073384900646

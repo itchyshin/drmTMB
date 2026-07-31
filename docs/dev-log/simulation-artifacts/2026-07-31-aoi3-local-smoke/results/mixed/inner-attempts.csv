@@ -1,0 +1,8 @@
+"mode","formula_id","n","strength","outer_id","inner_id","inner_seed","source_sha","inner_status","inner_message","sandwich_status","sandwich_reason","elapsed_seconds","estimate_X.Intercept.","estimate_x1","estimate_habitatforest"
+"smoke","mixed",720,"interior",1,1,1096074101,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","ok","",192.49668097496,-0.243781115913284,0.371746557444594,0.419397016515838
+"smoke","mixed",720,"interior",1,2,1096074102,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","ok","",188.909847021103,-0.191663280891011,0.376446073566054,0.288836862822359
+"smoke","mixed",720,"interior",1,3,1096074103,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","unavailable","association_step_unstable",124.733911037445,-0.244566128653675,0.432087729057452,0.313235350092046
+"smoke","mixed",720,"interior",1,4,1096074104,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","unavailable","association_step_unstable",75.185231924057,-0.229734693797289,0.554432414214478,0.362635294262377
+"smoke","mixed",720,"interior",1,5,1096074105,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","unavailable","association_step_unstable",81.1880571842194,-0.246414797943396,0.399382836431306,0.313627014677196
+"smoke","mixed",720,"interior",1,6,1096074106,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","unavailable","association_step_unstable",148.49681019783,-0.275026223891957,0.374638579575715,0.475467387202568
+"smoke","mixed",720,"interior",1,7,1096074107,"e9a24c30350ca3b5c5fc783ae161840ded905a23","interior","","ok","",177.454972028732,-0.218067810056677,0.497308160135621,0.425557351016833
