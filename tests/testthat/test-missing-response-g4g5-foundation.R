@@ -313,6 +313,31 @@ test_that("G5 runner retains a real masked Gaussian attempt", {
     "truth_contained", "boundary_or_clamp") %in% names(out)))
 })
 
+test_that("G5 campaign runner retains all planned mock failures", {
+  source_missing_response_g4g5()
+  cell <- data.frame(
+    route_id = "gaussian", parm = "fixef:mu:x", truth = .2,
+    target_class = "fixed-effect", dpar = "mu", scale = "link",
+    profile_ready = TRUE, interval_method = "profile", conf.level = .95,
+    information_rung = "1x", information_multiplier = 1,
+    cell_id = "mr_g5_0001", stringsAsFactors = FALSE
+  )
+  registry <- list(
+    cells = cell,
+    seeds = data.frame(cell_id = "mr_g5_0001", cell_index = 1L,
+      replicate = seq_len(1200L), seed = seq_len(1200L)),
+    n_rep = 1200L, master_seed = 1L
+  )
+  runner <- function(cell, seed, replicate, trace) {
+    out <- mr_g5_failure_record(cell, seed, "retained mock failure")
+    out$replicate <- replicate
+    out
+  }
+  out <- mr_g5_run_campaign(registry, runner = runner)
+  expect_equal(nrow(out), 1200L)
+  expect_equal(sum(out$fit_status == "fit_failed"), 1200L)
+})
+
 test_that("G4 campaign validator requires every frozen route target and rung", {
   source_missing_response_g4g5()
   routes <- mr_g4g5_route_manifest()$route_id

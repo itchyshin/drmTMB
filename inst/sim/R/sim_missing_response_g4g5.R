@@ -120,10 +120,10 @@ mr_g4g5_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 202607110
   )
 }
 
-mr_g4g5_fit_gaussian <- function(data) {
+mr_g4g5_fit_gaussian <- function(data, se = FALSE) {
   drmTMB(
     bf(y ~ x + (1 | id), sigma ~ z), gaussian(), data,
-    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    missing = miss_control(response = "include"), control = drm_control(se = se)
   )
 }
 
@@ -179,14 +179,14 @@ mr_g4g5_t1_ri_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   list(data = data, truth = truth, information_multiplier = information_multiplier)
 }
 
-mr_g4g5_fit_t1_ri <- function(route, data) {
+mr_g4g5_fit_t1_ri <- function(route, data, se = FALSE) {
   switch(route,
     poisson = drmTMB(bf(count ~ x + (1 | id)), poisson(), data,
-      missing = miss_control(response = "include"), control = drm_control(se = FALSE)),
+      missing = miss_control(response = "include"), control = drm_control(se = se)),
     nbinom2 = drmTMB(bf(count ~ x + (1 | id), sigma ~ z), nbinom2(), data,
-      missing = miss_control(response = "include"), control = drm_control(se = FALSE)),
+      missing = miss_control(response = "include"), control = drm_control(se = se)),
     beta = drmTMB(bf(prop ~ x + (1 | id), sigma ~ z), beta(), data,
-      missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+      missing = miss_control(response = "include"), control = drm_control(se = se))
   )
 }
 
@@ -225,12 +225,12 @@ mr_g4g5_biv_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 20260
   )
 }
 
-mr_g4g5_fit_biv_gaussian <- function(data) {
+mr_g4g5_fit_biv_gaussian <- function(data, se = FALSE) {
   drmTMB(
     bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x + (1 | p | id),
       sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
     biv_gaussian(), data, missing = miss_control(response = "include"),
-    control = drm_control(se = FALSE)
+    control = drm_control(se = se)
   )
 }
 
@@ -279,13 +279,13 @@ mr_g4g5_t2_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   list(data = data, truth = truth, information_multiplier = information_multiplier)
 }
 
-mr_g4g5_fit_t2 <- function(route, data) {
+mr_g4g5_fit_t2 <- function(route, data, se = FALSE) {
   f <- switch(route,
     student = bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1),
     lognormal = bf(y ~ x + (1 | id), sigma ~ z), gamma = bf(y ~ x + (1 | id), sigma ~ z),
     skew_normal = bf(y ~ x, sigma ~ z, nu ~ 1))
   family <- switch(route, student = student(), lognormal = lognormal(), gamma = Gamma(link = "log"), skew_normal = skew_normal())
-  drmTMB(f, family, data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  drmTMB(f, family, data, missing = miss_control(response = "include"), control = drm_control(se = se))
 }
 
 mr_g4g5_t3_dgp <- function(route, information_multiplier = 1, seed = NULL) {
@@ -316,11 +316,11 @@ mr_g4g5_t3_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   list(data = data, truth = truth, information_multiplier = information_multiplier)
 }
 
-mr_g4g5_fit_t3 <- function(route, data) {
+mr_g4g5_fit_t3 <- function(route, data, se = FALSE) {
   if (route == "tweedie") {
-    drmTMB(bf(y ~ x, sigma ~ z, nu ~ 1), tweedie(), data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+    drmTMB(bf(y ~ x, sigma ~ z, nu ~ 1), tweedie(), data, missing = miss_control(response = "include"), control = drm_control(se = se))
   } else {
-    drmTMB(bf(y ~ x, sigma ~ z, zoi ~ w, coi ~ v), zero_one_beta(), data, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+    drmTMB(bf(y ~ x, sigma ~ z, zoi ~ w, coi ~ v), zero_one_beta(), data, missing = miss_control(response = "include"), control = drm_control(se = se))
   }
 }
 
@@ -351,9 +351,9 @@ mr_g4g5_t4_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   list(data=data, truth=truth, information_multiplier=information_multiplier)
 }
 
-mr_g4g5_fit_t4 <- function(route, data) {
-  if (route == "beta_binomial") drmTMB(bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z), beta_binomial(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE))
-  else drmTMB(bf(score ~ x), cumulative_logit(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE))
+mr_g4g5_fit_t4 <- function(route, data, se = FALSE) {
+  if (route == "beta_binomial") drmTMB(bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z), beta_binomial(), data, missing=miss_control(response="include"), control=drm_control(se=se))
+  else drmTMB(bf(score ~ x), cumulative_logit(), data, missing=miss_control(response="include"), control=drm_control(se=se))
 }
 
 mr_g4g5_t5_dgp <- function(information_multiplier = 1, seed = 2026071506L) {
@@ -366,7 +366,7 @@ mr_g4g5_t5_dgp <- function(information_multiplier = 1, seed = 2026071506L) {
   list(data=data,truth=c("fixef:mu:(Intercept)"=.35,"fixef:mu:x"=-.28,"fixef:sigma:(Intercept)"=-.65,"fixef:sigma:z"=.15,"sd:mu:(1 | id)"=.35),information_multiplier=information_multiplier)
 }
 
-mr_g4g5_fit_t5 <- function(data) drmTMB(bf(count~x+(1|id),sigma~z),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE))
+mr_g4g5_fit_t5 <- function(data, se = FALSE) drmTMB(bf(count~x+(1|id),sigma~z),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=se))
 
 mr_g4g5_t6_dgp <- function(route, information_multiplier=1, seed=NULL) {
   if (!route %in% c("zi_poisson","zi_nbinom2","hurdle_nbinom2") || !information_multiplier %in% c(.5,1,2)) stop("Unsupported T6 route or information multiplier.",call.=FALSE)
@@ -379,7 +379,7 @@ mr_g4g5_t6_dgp <- function(route, information_multiplier=1, seed=NULL) {
   data<-mr_g4g5_mask_mcar(data,"count",if(use_g3)defaults[[route]] else seed+1L);list(data=data,truth=truth,information_multiplier=information_multiplier)
 }
 
-mr_g4g5_fit_t6 <- function(route,data) switch(route,zi_poisson=drmTMB(bf(count~x+habitat,zi~z+habitat),poisson(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)),zi_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,zi~w+habitat),nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)),hurdle_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,hu~w+habitat),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=FALSE)))
+mr_g4g5_fit_t6 <- function(route,data, se = FALSE) switch(route,zi_poisson=drmTMB(bf(count~x+habitat,zi~z+habitat),poisson(),data,missing=miss_control(response="include"),control=drm_control(se=se)),zi_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,zi~w+habitat),nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=se)),hurdle_nbinom2=drmTMB(bf(count~x+habitat,sigma~z,hu~w+habitat),truncated_nbinom2(),data,missing=miss_control(response="include"),control=drm_control(se=se)))
 
 mr_g4g5_route_fixture <- function(route_id, information_multiplier = 1, seed = NULL) {
   if (!route_id %in% mr_g4g5_route_manifest()$route_id) stop("Unknown missing-response route.", call.=FALSE)
@@ -399,16 +399,16 @@ mr_g4g5_route_fixture <- function(route_id, information_multiplier = 1, seed = N
   mr_g4g5_t6_dgp(route_id,information_multiplier,seed)
 }
 
-mr_g4g5_route_fit <- function(route_id, data) {
-  if (route_id == "gaussian") return(mr_g4g5_fit_gaussian(data))
-  if (route_id == "biv_gaussian") return(mr_g4g5_fit_biv_gaussian(data))
-  if (route_id == "binomial") return(drmTMB(bf(y ~ x), binomial(), data, missing=miss_control(response="include"), control=drm_control(se=FALSE)))
-  if (route_id %in% c("poisson","nbinom2","beta")) return(mr_g4g5_fit_t1_ri(route_id,data))
-  if (route_id %in% c("student","lognormal","gamma","skew_normal")) return(mr_g4g5_fit_t2(route_id,data))
-  if (route_id %in% c("tweedie","zero_one_beta")) return(mr_g4g5_fit_t3(route_id,data))
-  if (route_id %in% c("beta_binomial","cumulative_logit")) return(mr_g4g5_fit_t4(route_id,data))
-  if (route_id == "truncated_nbinom2") return(mr_g4g5_fit_t5(data))
-  mr_g4g5_fit_t6(route_id,data)
+mr_g4g5_route_fit <- function(route_id, data, se = FALSE) {
+  if (route_id == "gaussian") return(mr_g4g5_fit_gaussian(data, se = se))
+  if (route_id == "biv_gaussian") return(mr_g4g5_fit_biv_gaussian(data, se = se))
+  if (route_id == "binomial") return(drmTMB(bf(y ~ x), binomial(), data, missing=miss_control(response="include"), control=drm_control(se=se)))
+  if (route_id %in% c("poisson","nbinom2","beta")) return(mr_g4g5_fit_t1_ri(route_id,data, se = se))
+  if (route_id %in% c("student","lognormal","gamma","skew_normal")) return(mr_g4g5_fit_t2(route_id,data, se = se))
+  if (route_id %in% c("tweedie","zero_one_beta")) return(mr_g4g5_fit_t3(route_id,data, se = se))
+  if (route_id %in% c("beta_binomial","cumulative_logit")) return(mr_g4g5_fit_t4(route_id,data, se = se))
+  if (route_id == "truncated_nbinom2") return(mr_g4g5_fit_t5(data, se = se))
+  mr_g4g5_fit_t6(route_id,data, se = se)
 }
 
 mr_g4g5_materialise_target_manifest <- function(route_id, information_multiplier = 1, seed = NULL) {
@@ -963,7 +963,7 @@ mr_g5_run_attempt <- function(cell, seed, replicate, trace = TRUE) {
     out$replicate <- as.integer(replicate)
     return(mr_g5_validate_record(out))
   }
-  fit <- tryCatch(mr_g4g5_route_fit(cell$route_id, fixture$data), error = function(e) e)
+  fit <- tryCatch(mr_g4g5_route_fit(cell$route_id, fixture$data, se = TRUE), error = function(e) e)
   if (inherits(fit, "error")) {
     out <- mr_g5_failure_record(cell, seed, conditionMessage(fit))
     out$replicate <- as.integer(replicate)
@@ -981,8 +981,8 @@ mr_g5_run_attempt <- function(cell, seed, replicate, trace = TRUE) {
   out$information_rung <- cell$information_rung
   out$attempt_seed <- as.integer(seed)
   out$fit_status <- "fit_ok"
-  out$fit_converged <- isTRUE(fit$fit$convergence == 0L)
-  out$pdHess <- if (!is.null(fit$sdr$pdHess)) isTRUE(fit$sdr$pdHess) else NA
+  out$fit_converged <- isTRUE(fit$opt$convergence == 0L)
+  out$pdHess <- if (!is.null(fit$sdreport$pdHess)) isTRUE(fit$sdreport$pdHess) else NA
   out$interval_usable <- out$g4_interval_usable
   out$truth_contained <- out$g4_truth_contained
   out$boundary_or_clamp <- isTRUE(out$profile.boundary) || identical(out$conf.status, "clamp_limited")
@@ -1010,4 +1010,36 @@ mr_g5_validate_campaign <- function(records, registry) {
     stop("G5 records must retain the deterministic seed for every planned attempt.", call. = FALSE)
   }
   invisible(records)
+}
+
+# Run or resume a planned G5 campaign.  Checkpoints are append-only at the
+# attempt level: an unsuccessful fit is retained and never retried in place,
+# while an interrupted campaign resumes only genuinely absent attempt keys.
+mr_g5_run_campaign <- function(registry, trace = TRUE, checkpoint_path = NULL,
+                               runner = mr_g5_run_attempt) {
+  if (!is.list(registry) || registry$n_rep != 1200L || is.null(registry$cells) || is.null(registry$seeds)) {
+    stop("G5 execution requires the frozen 1,200-attempt registry.", call. = FALSE)
+  }
+  records <- if (!is.null(checkpoint_path) && file.exists(checkpoint_path)) readRDS(checkpoint_path) else NULL
+  required <- c("route_id", "parm", "information_rung", "replicate")
+  if (!is.null(records) && (!is.data.frame(records) || !all(required %in% names(records)))) {
+    stop("G5 checkpoint must contain retained attempted records.", call. = FALSE)
+  }
+  key <- function(x) with(x, paste(route_id, parm, information_rung, replicate, sep = "\r"))
+  for (i in seq_len(nrow(registry$seeds))) {
+    seed_row <- registry$seeds[i, , drop = FALSE]
+    cell <- registry$cells[match(seed_row$cell_id, registry$cells$cell_id), , drop = FALSE]
+    expected_key <- key(data.frame(route_id = cell$route_id, parm = cell$parm,
+      information_rung = cell$information_rung, replicate = seed_row$replicate))
+    if (!is.null(records) && expected_key %in% key(records)) next
+    next_record <- runner(cell, seed = seed_row$seed, replicate = seed_row$replicate, trace = trace)
+    mr_g5_validate_record(next_record)
+    records <- if (is.null(records)) next_record else rbind(records, next_record)
+    if (!is.null(checkpoint_path)) {
+      dir.create(dirname(checkpoint_path), recursive = TRUE, showWarnings = FALSE)
+      saveRDS(records, checkpoint_path)
+    }
+  }
+  mr_g5_validate_campaign(records, registry)
+  records
 }
