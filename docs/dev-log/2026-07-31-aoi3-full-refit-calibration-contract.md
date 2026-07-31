@@ -2,10 +2,13 @@
 
 ## Status
 
-**PRIVATE EXECUTABLE VALIDATION — owner-authorized 2026-07-31.** This freezes
-the local smoke and conditional DRAC campaign for the private multi-column
-staged sandwich. It does not expose a public standard error, interval, `vcov()`,
-`confint()`, capability tier, or reader-facing claim.
+**SUPERSEDED FOR EXECUTION — historical contract only.** The owner-authorized
+local smoke failed and its reducer recorded
+`AOI3_LOCAL_SMOKE_FAIL_DRAC_BLOCKED`; therefore this contract authorizes
+neither a retry nor a DRAC campaign. The prospective diagnostic successor is
+the AOI-3R2 contract and manifest, which independently require a new owner
+authorization. This historical record does not expose a public standard error,
+interval, `vcov()`, `confint()`, capability tier, or reader-facing claim.
 
 ## Estimand and scope
 
