@@ -2,6 +2,17 @@
 
 Record meaningful development checks here.
 
+## 2026-07-31: Missing-response G5 lognormal cohort receipt
+
+- Reconciled 15 frozen lognormal target-rung cells and all 18,000 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-lognormal-reconciled-v1.rds`.
+- Eleven cells pass `mr-g5-calibration-v1`. The three fixed-`mu` intercept
+  rungs have coverage 1.000 and fail the policy band; the 0.5x `sd:mu:(1 | id)`
+  cell has one unusable interval and fails the all-interval-available rule.
+  All failures remain in their unconditional 1,200-attempt denominators.
+- No test gate or inference tier is promoted; the frozen G3 design and public
+  G3 status remain unchanged.
+
 ## 2026-07-31: Missing-response G5 Gamma cohort receipt
 
 - Reconciled 15 frozen Gamma target-rung cells and all 18,000 planned DRAC
