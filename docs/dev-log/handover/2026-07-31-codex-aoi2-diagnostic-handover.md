@@ -53,15 +53,14 @@ is a one-seed observation, not an explanation of all 708 unavailable attempts.
 
 ## Landing State
 
-`/Users/z3437171/Dropbox/Github Local/Shinichi/tools/handoff_gate.sh` reports
-this branch has four commits not present on its origin counterpart. They are
-intentionally **CARRIED-OVER**, not pushed or put in a PR: this branch also
-must remain segregated from foreign Lane-B and association work, and no owner
-instruction has selected a landing/PR path after the AOI-2 HOLD.
+The completed Association-lane commits are pushed through `9366c68e2`.
+They remain **CARRIED-OVER** rather than merged: this branch must remain
+segregated from foreign Lane-B and association work, and the AOI-2 HOLD has no
+owner-approved landing/PR path.
 
 | Artifact / branch | Committed | Pushed | PR | State |
 | --- | --- | --- | --- | --- |
-| `codex/aoi2-drac-recovery` through `8db19b67b` | yes | no | none | CARRIED-OVER — resume on this checkout; do not push/merge without owner routing |
+| `codex/aoi2-drac-recovery` through `9366c68e2` | yes | yes | none | CARRIED-OVER — resume on this checkout; do not merge without owner routing |
 
 Other unpushed branches reported by the gate are foreign and must not be
 cleaned, rebased, or included in this lane.
