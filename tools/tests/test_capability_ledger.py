@@ -89,6 +89,23 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(q1["dpar"], q2plus["dpar"])
             self.assertEqual(q1["structure_provider"], q2plus["structure_provider"])
 
+    def test_c14_candidate_manifest_is_complete_and_source_resolved(self):
+        manifest = (
+            ROOT / "docs/dev-log/dashboard/capability-ledger/"
+            "c14-candidate-evidence-manifest.tsv"
+        )
+        with manifest.open(newline="", encoding="utf-8") as handle:
+            rows = list(csv.DictReader(handle, delimiter="\t"))
+        expected = {
+            "mc-0418", "mc-0425", "mc-0436", "mc-0446", "mc-0450", "mc-0454",
+            "mc-0568", "mc-0569", "mc-0576", "mc-0577",
+            "mc-0583", "mc-0584", "mc-0585", "mc-0586", "mc-0587",
+            "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+        }
+        self.assertEqual({row["cell_id"] for row in rows}, expected)
+        self.assertTrue(all((ROOT / row["retained_receipt"]).exists() for row in rows))
+        self.assertTrue(all(row["c14_decision"] for row in rows))
+
     def test_arc3a_cells_are_narrow_and_evidence_backed(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
