@@ -184,6 +184,36 @@ test_that("G5 coverage retains all planned attempts in its denominator", {
   expect_error(mr_g5_summarise_attempts(records, planned = 5L), "planned")
 })
 
+test_that("G5 calibration gate rejects systematic overcoverage without promotion", {
+  source_missing_response_g4g5()
+  summary <- data.frame(route_id = "gaussian", parm = "fixef:mu:(Intercept)",
+    information_rung = c("0.5x", "1x", "2x"), n_planned = 1200L,
+    n_attempt = 1200L, n_interval_usable = 1200L, coverage = 1,
+    coverage_mcse = 0, stringsAsFactors = FALSE)
+  calibration <- mr_g5_calibration_gate(summary)
+  expect_silent(mr_g5_validate_calibration(calibration))
+  expect_false(any(calibration$calibration_pass))
+  expect_true(all(calibration$calibration_reason == "coverage_outside_policy_band"))
+  summary$coverage <- .95
+  summary$coverage_mcse <- sqrt(.95 * .05 / 1200)
+  expect_true(all(mr_g5_calibration_gate(summary)$calibration_pass))
+})
+
+test_that("G5 provenance receipt hashes runner, inputs, and all receipts", {
+  source_missing_response_g4g5()
+  paths <- vapply(seq_len(4L), function(i) {
+    path <- tempfile(fileext = ".rds")
+    saveRDS(i, path)
+    path
+  }, character(1))
+  receipt <- mr_g5_provenance_receipt(paths[[1L]], paths[[2L]], paths[[3L]], paths[[4L]],
+    command = "Rscript tools/mr-g5-reconcile.R")
+  expect_silent(mr_g5_validate_provenance(receipt))
+  expect_equal(nrow(receipt$input_md5), 3L)
+  receipt$input_md5 <- receipt$input_md5[0, , drop = FALSE]
+  expect_error(mr_g5_validate_provenance(receipt), "incomplete")
+})
+
 test_that("Wald fallback is usable only for a target marked profile-unavailable", {
   source_missing_response_g4g5()
   wald <- mr_g4_validate_record(data.frame(

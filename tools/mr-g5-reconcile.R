@@ -35,14 +35,25 @@ if (!nrow(registry$cells)) stop("No G5-eligible Gaussian-cohort cells exist.", c
 
 records <- mr_g5_reconcile_checkpoints(paths, registry)
 summary <- mr_g5_summarise_attempts(records)
+calibration <- mr_g5_calibration_gate(summary)
+mr_g5_validate_calibration(calibration)
+provenance <- mr_g5_provenance_receipt(
+  runner_path = runner_path, manifest_path = manifest_path, g4_path = g4_path,
+  receipt_paths = paths
+)
+mr_g5_validate_provenance(provenance)
 artifact <- list(
-  schema_version = "mr-g4g5-v1",
+  schema_version = "mr-g4g5-v2",
   cohort = "gaussian_and_bivariate_gaussian",
   records = records,
   summary = summary,
+  calibration = calibration,
   registry = registry,
+  provenance = provenance,
   created_utc = format(Sys.time(), tz = "UTC", usetz = TRUE)
 )
 dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
 saveRDS(artifact, output_path)
 print(summary)
+print(calibration[, c("route_id", "parm", "information_rung", "coverage",
+  "calibration_status", "calibration_reason")])

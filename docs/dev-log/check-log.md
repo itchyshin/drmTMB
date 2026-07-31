@@ -91710,3 +91710,20 @@ Shinichi grants a separate Gate A compute approval.
 - `R_PROFILE_USER=/dev/null R CMD build .` completed. The no-force-suggests installed-package check `NOT_CRAN=false _R_CHECK_FORCE_SUGGESTS_=false R CMD check --as-cran --no-manual drmTMB_0.6.0.tar.gz` completed with two pre-existing/environmental notes: unavailable optional `palmerpenguins` and `utils::head` missing from the namespace import list.
 - `pkgdown::check_pkgdown()` passed after adding the existing exported `predict.drm_pair_association` topic to the frozen-margin bivariate-association reference group.
 - Rose's claim audit required and then verified reconciliation of the current 18-route response-mask inventory, the unsupported-family message, and the historical 0.5.0 wording. A broad source suite was started and reached unrelated phase-18 contexts without failures, then intentionally stopped. PR #871 merged as `5e732894` on 2026-07-30 and automatically closed #865–#867; the focused suite and installed CRAN-safe suite remain the final evidence for this R claim-reconciliation arc.
+
+## 2026-07-31: MR-G5 Gaussian calibration policy and provenance receipt
+
+- The first reconciled G5 Gaussian/bivariate-Gaussian cohort remains
+  non-promotional. Its 54 cells retain all 64,800 planned attempts, but the
+  Gaussian `fixef:mu:(Intercept)` target has 3,600/3,600 containment across
+  its three rungs. This is recorded as a calibration failure, not discarded or
+  interpreted as inference evidence.
+- `mr-g5-calibration-v1` now requires complete all-attempt denominators,
+  all-attempt interval availability, MCSE <= 0.01, and prospective 0.925--0.975
+  coverage for every exact route x parameter x rung. The reconciler writes the
+  policy result plus hashes of the runner, frozen manifests, G4 records, and
+  all input receipts. No G3/G4/G5 test-gate or model inference-tier promotion
+  occurred.
+- Focused `missing-response-g4g5-foundation` tests passed under
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`, including direct
+  overcoverage-rejection and provenance-receipt regression tests.

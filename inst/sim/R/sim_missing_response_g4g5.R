@@ -834,6 +834,95 @@ mr_g5_summarise_attempts <- function(records, by = c("route_id", "parm", "inform
   out
 }
 
+# A G5 result is eligible for a response-mask coverage statement only when it
+# clears this prospective, per-cell calibration policy.  The policy is not a
+# model inference-tier rule and must never be applied retroactively to promote
+# an artifact created before its provenance receipt exists.
+mr_g5_calibration_gate <- function(summary, nominal = 0.95,
+                                   tolerance = 0.025, mcse_max = 0.01,
+                                   policy_id = "mr-g5-calibration-v1") {
+  required <- c("route_id", "parm", "information_rung", "n_planned",
+    "n_attempt", "n_interval_usable", "coverage", "coverage_mcse")
+  if (!is.data.frame(summary) || !all(required %in% names(summary))) {
+    stop("G5 calibration requires the reconciled per-cell summary.", call. = FALSE)
+  }
+  if (!is.numeric(nominal) || length(nominal) != 1L || nominal <= 0 || nominal >= 1 ||
+      !is.numeric(tolerance) || length(tolerance) != 1L || tolerance <= 0 ||
+      !is.numeric(mcse_max) || length(mcse_max) != 1L || mcse_max <= 0) {
+    stop("G5 calibration policy values must be positive finite scalars.", call. = FALSE)
+  }
+  out <- summary
+  out$calibration_policy <- policy_id
+  out$calibration_nominal <- nominal
+  out$calibration_lower <- nominal - tolerance
+  out$calibration_upper <- nominal + tolerance
+  out$calibration_delta <- abs(out$coverage - nominal)
+  out$calibration_complete <- out$n_attempt == out$n_planned
+  out$calibration_available <- out$n_interval_usable == out$n_planned
+  out$calibration_precise <- is.finite(out$coverage_mcse) & out$coverage_mcse <= mcse_max
+  out$calibration_in_band <- is.finite(out$coverage) &
+    out$coverage >= out$calibration_lower & out$coverage <= out$calibration_upper
+  out$calibration_pass <- with(out, calibration_complete & calibration_available &
+    calibration_precise & calibration_in_band)
+  out$calibration_status <- ifelse(out$calibration_pass, "pass", "fail")
+  out$calibration_reason <- ifelse(!out$calibration_complete, "incomplete_attempt_denominator",
+    ifelse(!out$calibration_available, "unusable_interval",
+      ifelse(!out$calibration_precise, "mcse_exceeds_policy",
+        ifelse(!out$calibration_in_band, "coverage_outside_policy_band", "pass"))))
+  out
+}
+
+mr_g5_validate_calibration <- function(calibration) {
+  required <- c("calibration_policy", "calibration_nominal", "calibration_lower",
+    "calibration_upper", "calibration_complete", "calibration_available",
+    "calibration_precise", "calibration_in_band", "calibration_pass",
+    "calibration_status", "calibration_reason")
+  if (!is.data.frame(calibration) || !all(required %in% names(calibration))) {
+    stop("G5 calibration receipt is incomplete.", call. = FALSE)
+  }
+  if (any(calibration$calibration_lower >= calibration$calibration_upper) ||
+      any(calibration$calibration_status != ifelse(calibration$calibration_pass, "pass", "fail")) ||
+      any(calibration$calibration_reason == "pass" & !calibration$calibration_pass)) {
+    stop("G5 calibration receipt is internally inconsistent.", call. = FALSE)
+  }
+  invisible(calibration)
+}
+
+mr_g5_md5_receipt <- function(paths) {
+  if (!is.character(paths) || !length(paths) || any(!file.exists(paths))) {
+    stop("G5 provenance requires existing source and input files.", call. = FALSE)
+  }
+  paths <- normalizePath(paths, winslash = "/", mustWork = TRUE)
+  data.frame(path = paths, md5 = unname(tools::md5sum(paths)),
+    stringsAsFactors = FALSE, check.names = FALSE)
+}
+
+mr_g5_provenance_receipt <- function(runner_path, manifest_path, g4_path,
+                                     receipt_paths, command = commandArgs(FALSE)) {
+  hashes <- mr_g5_md5_receipt(c(runner_path, manifest_path, g4_path, receipt_paths))
+  list(
+    schema_version = "mr-g5-provenance-v1",
+    created_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    runner_path = hashes$path[[1L]], runner_md5 = hashes$md5[[1L]],
+    input_md5 = hashes[-1L, , drop = FALSE],
+    command = paste(command, collapse = " "),
+    r_version = R.version.string
+  )
+}
+
+mr_g5_validate_provenance <- function(receipt) {
+  if (!is.list(receipt) || !identical(receipt$schema_version, "mr-g5-provenance-v1") ||
+      !is.character(receipt$runner_path) || !nzchar(receipt$runner_path) ||
+      !is.character(receipt$runner_md5) || !nzchar(receipt$runner_md5) ||
+      !is.data.frame(receipt$input_md5) || nrow(receipt$input_md5) < 3L ||
+      !all(c("path", "md5") %in% names(receipt$input_md5)) ||
+      !is.character(receipt$command) || !nzchar(receipt$command) ||
+      !is.character(receipt$r_version) || !nzchar(receipt$r_version)) {
+    stop("G5 provenance receipt is incomplete.", call. = FALSE)
+  }
+  invisible(receipt)
+}
+
 mr_g4g5_seed_table <- function(cells, n_rep, master_seed) {
   old_seed <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
     get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
