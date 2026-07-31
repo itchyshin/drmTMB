@@ -10942,6 +10942,27 @@ phylo_mu_has_cross_dpar <- function(phylo_mu) {
   length(unique(phylo_mu_dpar_codes(phylo_mu))) > 1L
 }
 
+# The count q2 profile-status contract applies only to one labelled,
+# same-endpoint intercept--slope covariance block.  Keep this predicate close
+# to the structured-effect accessors so validation and target construction use
+# the same representation-level definition.
+phylo_mu_has_labelled_mu_intercept_slope_q2 <- function(phylo_mu) {
+  if (!isTRUE(phylo_mu$has) || structured_mu_q(phylo_mu) != 2L) {
+    return(FALSE)
+  }
+  labels <- phylo_mu_endpoint_covariance_labels(phylo_mu)
+  coef_names <- structured_mu_endpoint_coef_names(phylo_mu)
+  endpoint_dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+  length(labels) == 2L &&
+    all(!is.na(labels) & nzchar(labels)) &&
+    identical(labels[[1L]], labels[[2L]]) &&
+    identical(phylo_mu_covariance_mode(phylo_mu), "scalar") &&
+    identical(endpoint_dpars, c("mu", "mu")) &&
+    length(coef_names) == 2L &&
+    identical(coef_names[[1L]], "(Intercept)") &&
+    nzchar(coef_names[[2L]])
+}
+
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(

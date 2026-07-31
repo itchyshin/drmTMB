@@ -333,7 +333,7 @@ test_that("nbinom2 sigma random intercepts keep planned neighbours closed", {
       family = nbinom2(),
       data = dat
     ),
-    "ordinary NB2"
+    "Zero-inflated NB2"
   )
   expect_error(
     drmTMB(
