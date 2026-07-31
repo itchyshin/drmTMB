@@ -55,13 +55,27 @@ family-wide structured zero-one-beta claim.
 passed. `python3 tools/capability_ledger.py --check` passed before any ledger
 edit.
 
-## 9. Status
+## 9. Superseding C14-A taxonomy repair
+
+After this blocker receipt, the independent classification-only C14-A repair
+was completed. It restores 330 source-pinned package-boundary rows to
+`rejected_by_design / deferred / none`, records 330 matching non-evidence
+transitions, and regenerates the canonical ledger outputs. The verified
+intermediate census is **314 implemented / 330 package boundaries / 33
+actionable not implemented**. Its source and guard are recorded in
+`docs/dev-log/dashboard/capability-ledger/c14-boundary-taxonomy.md`.
+
+This corrects the sentence above that said the canonical ledger remained
+unchanged; no point-fit promotion was made, and every C14-B promotion blocker
+remains in force.
+
+## 10. Status
 
 **BLOCKED.** The requested `328 / 330 / 19` census is not derivable honestly
 from the current representative-row taxonomy. The canonical ledger therefore
 remains unchanged.
 
-## 10. Required successor
+## 11. Required successor
 
 A new, separately approved taxonomy arc must introduce non-lossy q1 leaf
 representation (or another audited exact-cell representation), preserve the
@@ -69,7 +83,7 @@ existing q>1 representative rows as not implemented, bind every retained
 fixture to an immutable source revision, then rerun ledger generation and the
 Mission Control canonical-source check.
 
-## 11. Handoff
+## 12. Handoff
 
 Resume from `codex/lane-c-c14-evidence-rebind`. Do not promote the nine q1
 providers or alter the 330 package-boundary classification until the taxonomy

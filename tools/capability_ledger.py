@@ -26,6 +26,14 @@ TRANSITIONS = LEDGER / "transitions.tsv"
 SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 
+# C14 restores the package-boundary classification from the last ledger commit
+# that recorded it explicitly.  This is a taxonomy correction, not evidence for
+# an implementation: the immutable source set is deliberately named here so a
+# future rerun cannot infer boundaries from a broad formula heuristic.
+C14_BOUNDARY_SOURCE_COMMIT = "0ccffcb539e19c3b4eeabf394634ddbcfc930cd8"
+C14_BOUNDARY_SOURCE_PATH = "docs/dev-log/dashboard/capability-ledger/cells.tsv"
+C14_BOUNDARY_COUNT = 330
+
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
 # 676 frozen census rows + mc-0260m, the meta_V route row landed 2026-07-25 from the
@@ -96,7 +104,7 @@ WORK_STATUSES = {
     "verified", "blocked", "deferred",
 }
 CAPABILITY_STATUSES = {
-    "not_implemented", "scaffolded", "implemented",
+    "not_implemented", "rejected_by_design", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
 # evidence_class was previously unconstrained, so a typo silently produced zero badges
@@ -419,6 +427,109 @@ def bootstrap() -> None:
     print(f"Bootstrapped {len(cells)} cells and {len(evidence)} evidence records")
 
 
+def c14_boundary_source_rows() -> list[dict[str, str]]:
+    """Return the immutable C14 package-boundary source set.
+
+    The prior MR-T0 import intentionally made all historical rows visible in a
+    single implementation backlog. C14 reverses only the 330 records that an
+    earlier committed ledger explicitly classified as package boundaries. The
+    source commit is part of the contract: a row must never be reclassified by
+    a pattern over its current formula fields.
+    """
+    text = subprocess.check_output(
+        [
+            "git", "show",
+            f"{C14_BOUNDARY_SOURCE_COMMIT}:{C14_BOUNDARY_SOURCE_PATH}",
+        ],
+        cwd=ROOT,
+        text=True,
+    )
+    rows = list(csv.DictReader(text.splitlines(), delimiter="\t"))
+    boundaries = [
+        row for row in rows
+        if row["axis"] == "model_surface"
+        and row["capability_status"] == "rejected_by_design"
+    ]
+    if len(boundaries) != C14_BOUNDARY_COUNT:
+        raise SystemExit(
+            "C14 boundary source count changed: "
+            f"{len(boundaries)} (expected {C14_BOUNDARY_COUNT})"
+        )
+    ids = [row["cell_id"] for row in boundaries]
+    if len(ids) != len(set(ids)):
+        raise SystemExit("C14 boundary source contains duplicate cell IDs")
+    return boundaries
+
+
+def restore_c14_boundaries() -> None:
+    """Restore only the source-pinned C14 package-boundary classifications."""
+    source = c14_boundary_source_rows()
+    source_ids = {row["cell_id"] for row in source}
+    cells = read_tsv(CELLS)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    missing = source_ids - set(by_id)
+    if missing:
+        raise SystemExit(
+            "C14 boundary source IDs missing from the current ledger: "
+            + ", ".join(sorted(missing))
+        )
+
+    affected = [by_id[cell_id] for cell_id in source_ids]
+    if any(row["axis"] != "model_surface" for row in affected):
+        raise SystemExit("C14 boundary source attempted to alter a non-model row")
+    if any(row["capability_status"] == "implemented" for row in affected):
+        raise SystemExit("C14 taxonomy restoration would overwrite an implementation")
+    unexpected = {
+        (row["capability_status"], row["work_status"], row["evidence_tier"])
+        for row in affected
+        if (row["capability_status"], row["work_status"], row["evidence_tier"])
+        not in {
+            ("not_implemented", "backlog", "none"),
+            ("rejected_by_design", "deferred", "none"),
+        }
+    }
+    if unexpected:
+        raise SystemExit(
+            "C14 boundary source has non-taxonomy state in the current ledger: "
+            + repr(sorted(unexpected))
+        )
+
+    for row in affected:
+        row["capability_status"] = "rejected_by_design"
+        row["work_status"] = "deferred"
+        row["evidence_tier"] = "none"
+
+    transition_ids = {row["transition_id"] for row in transitions}
+    for cell_id in sorted(source_ids):
+        transition_id = f"tr-{cell_id}-c14-boundary-taxonomy"
+        if transition_id in transition_ids:
+            continue
+        transitions.append({
+            "transition_id": transition_id,
+            "cell_id": cell_id,
+            "from_work_status": "backlog",
+            "to_work_status": "deferred",
+            "evidence_ids": "",
+            "reason": (
+                "C14 source-pinned taxonomy restoration from the explicit "
+                f"package-boundary classification at {C14_BOUNDARY_SOURCE_COMMIT}; "
+                "this changes no implementation or evidence claim."
+            ),
+            "actor": "Codex C14 taxonomy restoration",
+            "commit_sha": C14_BOUNDARY_SOURCE_COMMIT,
+            "date": "2026-07-31",
+        })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print(
+        "C14 boundary taxonomy restored "
+        f"({len(affected)} rows from {C14_BOUNDARY_SOURCE_COMMIT})"
+    )
+
+
 def source_path_exists(value: str) -> bool:
     if not value or value.startswith(("http://", "https://")):
         return True
@@ -567,11 +678,18 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    # Implemented is 314: mc-0260m is an approved point-fit insert; C12
-    # independently promoted mc-0653; and the canonical Lane-C count tranche
-    # independently promoted six named frozen-census cells.
+    # C14 restores the 330 source-pinned package boundaries. Implemented is
+    # 314: mc-0260m is an approved point-fit insert; C12 independently
+    # promoted mc-0653; and the canonical Lane-C count tranche independently
+    # promoted six named frozen-census cells. The remaining 33 rows are the
+    # actionable implementation backlog, not a claim that every boundary is
+    # mathematically impossible.
     expected = Counter(
-        {"implemented": 314, "not_implemented": 363}
+        {
+            "implemented": 314,
+            "rejected_by_design": C14_BOUNDARY_COUNT,
+            "not_implemented": 33,
+        }
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
@@ -830,13 +948,16 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
     labels = {
         "implemented": "implemented",
         "not_implemented": "not implemented",
+        "rejected_by_design": "not currently supported",
         "scaffolded": "scaffolded",
     }
     if len(counts) == 1:
         return labels[next(iter(counts))]
     details = "; ".join(
         f"{labels[status]} {counts[status]}"
-        for status in ("implemented", "not_implemented", "scaffolded")
+        for status in (
+            "implemented", "not_implemented", "rejected_by_design", "scaffolded"
+        )
         if counts[status]
     )
     prefix = "scope-limited" if counts["implemented"] else "mixed"
@@ -1103,7 +1224,8 @@ def surface_markdown(
         "",
         f"- Model surface: **{len(model)} cells** across **{len(by_family)} routes**.",
         f"- Runtime status: **{status['implemented']} implemented**, "
-        f"**{status['not_implemented']} not implemented**.",
+        f"**{status['not_implemented']} actionable not implemented**, and "
+        f"**{status['rejected_by_design']} not currently supported**.",
         "- Planning classes make the backlog visible without calling it impossible: "
         "admission candidate, covariance/model method, or estimator method. "
         "They are scope classes, not effort estimates or evidence claims.",
@@ -1139,8 +1261,8 @@ def surface_markdown(
         "",
         "## Per-family model-surface summary",
         "",
-        "| Route | Cells | Implemented | Not implemented | Highest evidence |",
-        "|---|---:|---:|---:|---|",
+        "| Route | Cells | Implemented | Actionable backlog | Not currently supported | Highest evidence |",
+        "|---|---:|---:|---:|---:|---|",
     ]
     for family in sorted(by_family):
         rows = by_family[family]
@@ -1149,7 +1271,7 @@ def surface_markdown(
         highest = next((tier for tier in TIER_ORDER if tier in available), "none")
         lines.append(
             f"| `{family}` | {len(rows)} | {counts['implemented']} | "
-            f"{counts['not_implemented']} | "
+            f"{counts['not_implemented']} | {counts['rejected_by_design']} | "
             f"{highest.replace('_', ' ')} |"
         )
     lines.extend([
@@ -1305,12 +1427,12 @@ def surface_html(
 </style></head><body><a class="skip" href="#missing-response">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
-<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. Every unimplemented cell is visible work, not a claim of impossibility.</p>
+<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The actionable backlog is distinct from package boundaries that are not currently supported.</p>
 <nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
-<div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
+<div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{status['not_implemented']}</b><span>actionable backlog cells</span></div><div class="stat"><b>{status['rejected_by_design']}</b><span>not currently supported</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
 <h2 id="missing-response">Missing-response execution board</h2>
@@ -1457,12 +1579,16 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--bootstrap", action="store_true")
+    action.add_argument("--restore-c14-boundaries", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
     action.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.bootstrap:
         bootstrap()
+        return
+    if args.restore_c14_boundaries:
+        restore_c14_boundaries()
         return
     cells, evidence, _ = load_sources()
     if args.write:
