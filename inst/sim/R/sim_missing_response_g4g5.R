@@ -1014,6 +1014,26 @@ mr_g5_registry_from_g4 <- function(target_manifests, g4_records, master_seed = 2
   list(cells = cells, seeds = seeds, n_rep = 1200L, master_seed = master_seed)
 }
 
+# Select a named G5 cohort without changing the frozen target, rung, or seed
+# contract.  This is deliberately a registry operation: route-specific DRAC
+# arrays may scale safely, but cannot silently include an unreviewed route.
+mr_g5_select_routes <- function(registry, route_ids) {
+  if (!is.list(registry) || is.null(registry$cells) || is.null(registry$seeds)) {
+    stop("`registry` must be a G5 registry.", call. = FALSE)
+  }
+  if (!is.character(route_ids) || !length(route_ids) || anyNA(route_ids) || any(!nzchar(route_ids))) {
+    stop("`route_ids` must name one or more G5 routes.", call. = FALSE)
+  }
+  unknown <- setdiff(unique(route_ids), unique(registry$cells$route_id))
+  if (length(unknown)) {
+    stop("Requested route is absent from the G4-feasible registry: ", paste(unknown, collapse = ", "), call. = FALSE)
+  }
+  cells <- registry$cells[registry$cells$route_id %in% route_ids, , drop = FALSE]
+  registry$cells <- cells
+  registry$seeds <- registry$seeds[registry$seeds$cell_id %in% cells$cell_id, , drop = FALSE]
+  registry
+}
+
 # A G5 attempt is a fresh masked DGP, fit, and interval calculation.  It is
 # deliberately a separate record type: G4 feasibility authorizes the target,
 # but does not turn a failed G5 fit or interval into a dropped observation.

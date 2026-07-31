@@ -2,6 +2,20 @@
 
 Record meaningful development checks here.
 
+## 2026-07-31: Missing-response G5 route-cohort DRAC runner
+
+- Added a route selector that can only subset the frozen G4-feasible registry;
+  it preserves the original cell IDs and deterministic attempt seeds and errors
+  for an unknown route.
+- Added one explicit three-attempt DRAC receipt smoke and one full route-array
+  entry point. Both source the checked-out G4/G5 runner, write durable RDS
+  receipts, and leave the frozen G3 DGP, target, interval-method, and
+  all-attempt denominator contract untouched.
+- Focused `missing-response-g4g5-foundation` tests, R-script parsing, shell
+  syntax checks, and `git diff --check`: PASS. This is execution plumbing only:
+  no G5 calibration result, test-gate change, or inference-tier promotion is
+  claimed.
+
 ## 2026-07-28: Bivariate non-Gaussian bootstrap-output repair
 
 - Repaired the direct-lognormal `rho12` vignette's bootstrap presentation:

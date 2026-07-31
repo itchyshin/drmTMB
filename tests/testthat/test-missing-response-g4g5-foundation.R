@@ -184,6 +184,18 @@ test_that("G5 coverage retains all planned attempts in its denominator", {
   expect_error(mr_g5_summarise_attempts(records, planned = 5L), "planned")
 })
 
+test_that("route-specific G5 cohorts retain only frozen eligible cells and seeds", {
+  source_missing_response_g4g5()
+  registry <- list(
+    cells = data.frame(cell_id = c("a", "b"), route_id = c("poisson", "gamma")),
+    seeds = data.frame(cell_id = c("a", "a", "b"), seed = 1:3)
+  )
+  out <- mr_g5_select_routes(registry, "poisson")
+  expect_identical(out$cells$cell_id, "a")
+  expect_true(all(out$seeds$cell_id == "a"))
+  expect_error(mr_g5_select_routes(registry, "not_a_route"), "absent")
+})
+
 test_that("G5 calibration gate rejects systematic overcoverage without promotion", {
   source_missing_response_g4g5()
   summary <- data.frame(route_id = "gaussian", parm = "fixef:mu:(Intercept)",
