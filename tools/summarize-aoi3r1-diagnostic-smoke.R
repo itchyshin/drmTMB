@@ -28,6 +28,8 @@ read_union <- function(paths) {
 outer <- read_union(paths)
 inner_paths <- sub("outer-attempts.csv$", "inner-attempts.csv", paths)
 inner <- read_union(inner_paths)
+supervisor_path <- file.path(result_dir, "supervisor-events.csv")
+supervisor <- if (file.exists(supervisor_path)) utils::read.csv(supervisor_path, stringsAsFactors = FALSE) else data.frame()
 expected_outer <- manifest[manifest$attempt_type == "outer", ]
 expected_inner <- manifest[manifest$attempt_type == "inner", ]
 outer_key <- paste(outer$formula_id, outer$outer_id, outer$outer_seed)
@@ -36,15 +38,22 @@ expected_outer_key <- paste(expected_outer$formula_id, expected_outer$outer_id, 
 expected_inner_key <- paste(expected_inner$formula_id, expected_inner$outer_id, expected_inner$inner_id, expected_inner$seed)
 required_payload <- c("diagnostic_version", "diagnostic_status", "diagnostic_sandwich_status")
 expected_source_sha <- unique(manifest$source_sha)
+supervisor_complete <- !nrow(supervisor) || (
+  nrow(supervisor) == nrow(expected_outer) &&
+    all(supervisor$event == "outer_complete") &&
+    setequal(paste(supervisor$formula_id, supervisor$outer_id), paste(expected_outer$formula_id, expected_outer$outer_id))
+)
 complete <- nrow(outer) == 15L && nrow(inner) == 45L &&
   setequal(outer_key, expected_outer_key) && setequal(inner_key, expected_inner_key) &&
   length(expected_source_sha) == 1L &&
   all(required_payload %in% names(outer)) && all(required_payload %in% names(inner)) &&
   all(!is.na(outer$diagnostic_version)) && all(!is.na(inner$diagnostic_version)) &&
-  all(outer$source_sha == expected_source_sha) && all(inner$source_sha == expected_source_sha)
+  all(outer$source_sha == expected_source_sha) && all(inner$source_sha == expected_source_sha) &&
+  supervisor_complete
 dir.create(out_dir, recursive = TRUE)
 utils::write.csv(outer, file.path(out_dir, "outer-attempts.csv"), row.names = FALSE)
 utils::write.csv(inner, file.path(out_dir, "inner-attempts.csv"), row.names = FALSE)
+if (nrow(supervisor)) utils::write.csv(supervisor, file.path(out_dir, "supervisor-events.csv"), row.names = FALSE)
 utils::write.csv(as.data.frame(table(outer$formula_id, outer$outer_status, outer$sandwich_status), stringsAsFactors = FALSE), file.path(out_dir, "outer-statuses.csv"), row.names = FALSE)
 utils::write.csv(as.data.frame(table(inner$formula_id, inner$inner_status, inner$sandwich_status), stringsAsFactors = FALSE), file.path(out_dir, "inner-statuses.csv"), row.names = FALSE)
 writeLines(if (complete) "AOI3R1_DIAGNOSTIC_COMPLETE" else "AOI3R1_DIAGNOSTIC_INVALID", file.path(out_dir, "decision.txt"))

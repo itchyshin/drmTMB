@@ -40,6 +40,8 @@ test_that("AOI-3 private full-refit runner keeps its frozen execution boundary",
 
   diagnostic_reducer_text <- paste(readLines(diagnostic_reducer, warn = FALSE), collapse = "\n")
   expect_match(diagnostic_reducer_text, "all(required_payload %in% names(inner))", fixed = TRUE)
+  expect_match(diagnostic_reducer_text, "supervisor-events.csv", fixed = TRUE)
+  expect_match(diagnostic_reducer_text, "supervisor_complete", fixed = TRUE)
   expect_match(diagnostic_reducer_text, "all(!is.na(inner$diagnostic_version))", fixed = TRUE)
   expect_match(diagnostic_reducer_text, "diagnostic_version", fixed = TRUE)
   supervisor_text <- paste(readLines(supervisor, warn = FALSE), collapse = "\n")
