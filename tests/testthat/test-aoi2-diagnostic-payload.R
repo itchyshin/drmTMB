@@ -62,6 +62,7 @@ test_that("AOI-2 diagnostic payload retains every pre-prediction trigger", {
   expect_true(payload$diagnostic_endpoint_failure)
   expect_identical(payload$diagnostic_optimizer_convergence, 1L)
   expect_identical(payload$diagnostic_endpoint_failure_message, "synthetic endpoint")
+  expect_match(payload$diagnostic_count_row_status, "endpoint_failure=1")
   expect_identical(payload$diagnostic_count_nonfinite_relative_error, 1L)
   expect_equal(payload$diagnostic_count_max_relative_error, 1e-8)
 })

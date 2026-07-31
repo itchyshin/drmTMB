@@ -1178,7 +1178,13 @@ drm_pair_aoi2_diagnostic_payload <- function(fit_result) {
   }
   serialise_table <- function(x) {
     if (is.null(x) || !length(x)) return(NA_character_)
-    serialise_named(as.vector(x, mode = "numeric"))
+    if (length(dim(x)) <= 1L) {
+      return(serialise_named(stats::setNames(as.vector(x, mode = "numeric"), names(x))))
+    }
+    cells <- as.data.frame(x, stringsAsFactors = FALSE)
+    labels <- apply(cells[, seq_len(ncol(cells) - 1L), drop = FALSE], 1L,
+      paste, collapse = ":")
+    serialise_named(stats::setNames(cells[[ncol(cells)]], labels))
   }
   finite_max <- function(x) {
     x <- x[is.finite(x)]
