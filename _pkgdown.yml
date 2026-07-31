@@ -4,7 +4,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   includes:
-    before_navbar: '<span class="drmtmb-version-note">0.6.0 · experimental</span>'
+    before_navbar: '<span class="drmtmb-version-note">0.6.0 experimental</span>'
   bslib:
     primary: "#0f7887"
     headings-color: "#112638"
@@ -17,42 +17,45 @@ template:
 development:
   mode: default
 
-# Canonical order: docs/design/226-reader-learning-path.md §3. Menu
-# membership (including the in-menu section headings below) must stay
-# identical, in the same order, to the articles: index further down this
-# file — do not edit one without the other.
 navbar:
   structure:
-    left: [get_started, reference, choose_family, tutorials, diagnostics_limits, specialist, developer, news]
+    left: [intro, reference, model_guides, tutorials, diagnostics, developer, news]
     right: [search, github]
   components:
-    get_started:
-      text: Get Started
+    model_guides:
+      text: Model Guides
       menu:
-        - text: Getting started
-          href: articles/drmTMB.html
-        - text: Function map and cheat sheet
-          href: articles/function-map-cheatsheet.html
-        - text: Checking and using fitted models
-          href: articles/model-workflow.html
-    choose_family:
-      text: Choose Your Family
-      menu:
+        - text: What can I trust? (capabilities & limits)
+          href: articles/capability-and-limits.html
+        - text: What can I fit today?
+          href: articles/model-map.html
         - text: Which scale are you modelling?
           href: articles/which-scale.html
         - text: Choosing response families
           href: articles/distribution-families.html
-        - text: What can I fit today?
-          href: articles/model-map.html
-        - text: Implementation map
-          href: articles/implementation-map.html
+        - text: Model selection with AIC and BIC
+          href: articles/model-selection.html
+        - text: Checking and using fitted models
+          href: articles/model-workflow.html
+        - text: Handling missing data
+          href: articles/missing-data.html
+        - text: Improving convergence
+          href: articles/convergence.html
+        - text: Working with large data
+          href: articles/large-data.html
+        - text: Running models with the Julia engine
+          href: articles/julia-engine.html
+        - text: Cross-family bivariate (Julia)
+          href: articles/cross-family.html
     tutorials:
       text: Tutorials
       menu:
-        - text: "When variance carries signal, Part 1: location-scale"
+        - text: Getting started
+          href: articles/drmTMB.html
+        - text: When variance carries signal
           href: articles/location-scale.html
-        - text: "When variance carries signal, Part 2: location-scale-scale"
-          href: articles/location-scale-scale.html
+        - text: Distributional outputs and adequacy
+          href: articles/distributional-outputs-and-adequacy.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
@@ -61,12 +64,8 @@ navbar:
           href: articles/proportion-beta-binomial.html
         - text: Changing residual coupling with rho12
           href: articles/bivariate-coscale.html
-        - text: Handling missing data
-          href: articles/missing-data.html
-        - text: Figure gallery
-          href: articles/figure-gallery.html
-        - text: "-------"
-        - text: Random & Structured Effects
+        - text: Mean effects and residual heterogeneity
+          href: articles/meta-analysis.html
         - text: Structural dependence overview
           href: articles/structural-dependence.html
         - text: Animal models and relatedness
@@ -81,32 +80,17 @@ navbar:
           href: articles/relmat-known-matrices.html
         - text: Structural dependence details
           href: articles/phylogenetic-spatial.html
-    diagnostics_limits:
-      text: Diagnostics & Limits
+    diagnostics:
+      text: Diagnostics & Validation
       menu:
-        - text: Model selection with AIC and BIC
-          href: articles/model-selection.html
-        - text: Distributional outputs and adequacy
-          href: articles/distributional-outputs-and-adequacy.html
-        - text: Improving convergence
-          href: articles/convergence.html
-        - text: Working with large data
-          href: articles/large-data.html
-        - text: "-------"
-        - text: Honest Limitations
-        - text: What can I trust? (capabilities & limits)
-          href: articles/capability-and-limits.html
-    specialist:
-      text: Specialist Routes
-      menu:
-        - text: Mean effects and residual heterogeneity
-          href: articles/meta-analysis.html
-        - text: Julia support (future work)
-          href: articles/julia-engine.html
-        - text: Bivariate non-Gaussian (beta)
-          href: articles/bivariate-nongaussian.html
-        - text: Mixed-outcome association (beta)
-          href: articles/cross-family.html
+        - text: Figure gallery
+          href: articles/figure-gallery.html
+        - text: Implementation map
+          href: articles/implementation-map.html
+        - text: Testing likelihoods and comparators
+          href: articles/testing-likelihoods.html
+        - text: Simulation plot grammar
+          href: articles/simulation-plot-grammar.html
     developer:
       text: Developer Notes
       menu:
@@ -116,10 +100,6 @@ navbar:
           href: articles/adding-families.html
         - text: Implemented source map
           href: articles/source-map.html
-        - text: Testing likelihoods and comparators
-          href: articles/testing-likelihoods.html
-        - text: Simulation plot grammar
-          href: articles/simulation-plot-grammar.html
         - text: Finish capability matrix
           href: https://github.com/itchyshin/drmTMB/blob/main/docs/design/168-r-julia-finish-capability-matrix.md
 
@@ -147,15 +127,6 @@ reference:
       - nbinom2
       - truncated_nbinom2
       - biv_gaussian
-      - biv_lognormal
-      - biv_student
-  - title: Frozen-margin association helpers
-    desc: "Development only: explicitly reviewed paired margins, point estimate plus diagnostics, no uncertainty claim."
-    contents:
-      - biv_associate
-      - associate_pairs
-      - association
-      - latent_normal
   - title: Structured-effect markers
     desc: Status-marked random-effect scale, structured covariance, and latent-correlation syntax; each reference page separates fitted routes from planned neighbours.
     contents:
@@ -201,13 +172,6 @@ reference:
       - structured_effects
       - summary.drmTMB
       - weights.drmTMB
-  - title: Frozen-margin bivariate association
-    desc: Post-fit latent-normal association for the individually reviewed complete-pair development slices.
-    contents:
-      - associate_pairs
-      - association
-      - latent_normal
-      - predict.drm_pair_association
   - title: Distributional outputs and adequacy
     desc: >
       A first-class fitted distribution for every family, plus the adequacy
@@ -218,14 +182,12 @@ reference:
       - centile_chart
       - worm_plot
       - qq_plot
-  - title: Future Julia support
-    desc: Deprecated bridge methods retained for compatibility; the Julia engine and cross-family bivariate fitting are halted/deferred future work.
+  - title: Julia engine
+    desc: Experimental Julia-engine methods and extractors for cross-family bivariate fits.
     contents:
       - confint.drmTMB_julia
       - predict.drmTMB_julia
       - summary.drmTMB_julia
-      - summary.drmTMB_julia_xfam
-      - vcov.drmTMB_julia_xfam
       - rho_latent
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
@@ -234,32 +196,30 @@ reference:
       - plot_corpairs
       - plot_parameter_surface
 
-# Canonical order: docs/design/226-reader-learning-path.md §3. Group
-# membership and order here must match navbar: exactly, including the
-# in-menu section headings there — do not edit one without the other.
 articles:
-  - title: Get Started
+  - title: Getting Started
     contents:
       - drmTMB
-      - function-map-cheatsheet
+  - title: Start Here
+    contents:
+      - capability-and-limits
+      - model-map
       - model-workflow
-  - title: Choose Your Family
+      - missing-data
+  - title: Choose Your Model
     contents:
       - which-scale
       - distribution-families
-      - model-map
-      - implementation-map
-  - title: Tutorials
-    contents:
+      - model-selection
       - location-scale
-      - location-scale-scale
+      - bivariate-coscale
+      - meta-analysis
+  - title: Applied Family Tutorials
+    contents:
       - robust-student
       - count-nbinom2
       - proportion-beta-binomial
-      - bivariate-coscale
-      - missing-data
-      - figure-gallery
-  - title: Random & Structured Effects
+  - title: Structured Dependence
     contents:
       - structural-dependence
       - animal-models
@@ -268,25 +228,21 @@ articles:
       - spatial-models
       - relmat-known-matrices
       - phylogenetic-spatial
-  - title: Diagnostics & Limits
+  - title: Inference, Diagnostics, and Figures
     contents:
-      - model-selection
       - distributional-outputs-and-adequacy
       - convergence
       - large-data
-  - title: Honest Limitations
-    contents:
-      - capability-and-limits
-  - title: Specialist Routes
-    contents:
-      - meta-analysis
       - julia-engine
-      - bivariate-nongaussian
       - cross-family
+      - figure-gallery
+  - title: Simulation and Validation
+    contents:
+      - implementation-map
+      - testing-likelihoods
+      - simulation-plot-grammar
   - title: Developer Notes
     contents:
       - formula-grammar
       - adding-families
       - source-map
-      - testing-likelihoods
-      - simulation-plot-grammar
