@@ -1,0 +1,3 @@
+INTERNAL_AOI2_DIAGNOSTIC_ONLY
+No point-recovery, uncertainty, interval, covariance, or capability claim is calculated here.
+Rates describe the frozen stratified sample; they are not a replacement for the original 3,000-attempt HOLD.
