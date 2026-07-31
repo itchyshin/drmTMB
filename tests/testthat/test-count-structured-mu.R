@@ -303,6 +303,7 @@ new_count_structured_mu_slope_data <- function(
   sd_intercept = 0.25,
   sd_slope = 0.45,
   rho_phylo = 0,
+  rho_provider = 0,
   sigma_nb2 = 0.20
 ) {
   set.seed(seed)
@@ -354,8 +355,8 @@ new_count_structured_mu_slope_data <- function(
 
   fields <- list(
     phylo = draw_fields(phylo_covariance, rho = rho_phylo),
-    spatial = draw_fields(spatial_covariance),
-    known = draw_fields(K)
+    spatial = draw_fields(spatial_covariance, rho = rho_provider),
+    known = draw_fields(K, rho = rho_provider)
   )
   beta_mu <- c(`(Intercept)` = 0.55, x = -0.15)
   eta <- list(
@@ -1117,7 +1118,12 @@ test_that("NB2 labelled phylo covariance keeps non-C1 forms closed", {
 
 test_that("Poisson admits only the C2 labelled provider covariance cohort", {
   testthat::skip_if_not_installed("ape")
-  sim <- new_count_structured_mu_slope_data(n_level = 8L, n_each = 4L)
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072908,
+    n_level = 16L,
+    n_each = 24L,
+    rho_provider = 0.35
+  )
   tree <- sim$tree
   coords <- sim$coords
   Q <- sim$Q
