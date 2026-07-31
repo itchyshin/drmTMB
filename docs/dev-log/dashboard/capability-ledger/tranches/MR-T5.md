@@ -10,7 +10,7 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
 
 ## Does not cover
 

@@ -10,12 +10,12 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `gaussian` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `biv_gaussian` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `poisson` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `nbinom2` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `beta` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
-| `binomial` | implemented | G3 ✓ | verified | G4/G5 interval and coverage evidence are outside this arc. |
+| `gaussian` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `biv_gaussian` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `poisson` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `nbinom2` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `beta` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `binomial` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
 
 ## Does not cover
 

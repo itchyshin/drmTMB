@@ -740,6 +740,16 @@ def evidence_href(value: str) -> str:
     return f"https://github.com/itchyshin/drmTMB/blob/main/{path}{anchor}"
 
 
+def missing_next_gate(row: dict[str, str]) -> str:
+    """Return current reader-facing next-step wording for a missing-response row."""
+    if row["next_gate"] == "G4/G5 interval and coverage evidence are outside this arc.":
+        return (
+            "G4/G5 evidence campaign is active; retain G3 until every frozen "
+            "route x target is reconciled and receives D-43 review."
+        )
+    return row["next_gate"]
+
+
 def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> str:
     lines = [
         "| Route | Runtime state | Evidence gate | Work state | Next gate |",
@@ -750,7 +760,7 @@ def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> st
         verified = " ✓" if int(row["test_gate"][1:]) >= 3 else ""
         lines.append(
             f"| `{row['family_route']}` | {runtime} | {row['test_gate']}{verified} | "
-            f"{row['work_status'].replace('_', ' ')} | {row['next_gate']} |"
+            f"{row['work_status'].replace('_', ' ')} | {missing_next_gate(row)} |"
         )
     if compact:
         lines.extend([
@@ -1240,7 +1250,7 @@ def surface_html(
   <div class="route-state">{html.escape(row['capability_status'].replace('_', ' '))} · {html.escape(row['work_status'].replace('_', ' '))} {verified}</div>
   <div class="gate-track" aria-label="Evidence gate {gate_num} of 5"><span style="width:{gate_num * 20}%"></span></div>
   <p>{html.escape(row['claim_boundary'])}</p>
-  <p class="next"><strong>Next:</strong> {html.escape(row['next_gate'])}</p>
+  <p class="next"><strong>Next:</strong> {html.escape(missing_next_gate(row))}</p>
   <a href="{html.escape(link)}">Evidence: {html.escape(evidence_row['path_or_url'])}</a>
 </article>""")
     comparators = external_comparator_by_cell(evidence)

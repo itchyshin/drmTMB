@@ -2,6 +2,16 @@
 
 Record meaningful development checks here.
 
+## 2026-07-31: Missing-response dashboard active-campaign wording
+
+- Kept all 18 public route badges at G3: partial G4/G5 calibration receipts
+  cannot promote a route-level test gate or its separate model inference tier.
+- Replaced the reader-facing stale "outside this arc" next-step text with the
+  active G4/G5 campaign boundary: every frozen route x target needs
+  reconciliation and fresh D-43 review before promotion.
+- `python3 tools/capability_ledger.py --write --check` and the focused
+  generated-surface unit test: PASS.
+
 ## 2026-07-31: Missing-response G5 binomial and Poisson cohort receipts
 
 - The retained binomial cohort contains all 7,200 planned attempts across six
