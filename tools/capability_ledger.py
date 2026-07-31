@@ -718,11 +718,21 @@ def check_c14_receipt_equivalence() -> None:
     ids = {row["cell_id"] for row in rows}
     if ids != expected_ids or len(rows) != len(expected_ids):
         raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
+    eligible_ids = set()
     for row in rows:
         if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
             raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence target")
         if row["compared_paths"] != ";".join(C14_RECEIPT_EQUIVALENCE_PATHS):
             raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence path set")
+        raw_path = ROOT / row["raw_attempts_path"]
+        if not raw_path.is_file():
+            raise SystemExit(f"{row['cell_id']}: raw attempts receipt is unavailable")
+        raw_rows = read_tsv(raw_path)
+        raw_shas = {raw_row.get("source_sha", "") for raw_row in raw_rows}
+        if not raw_rows or raw_shas != {row["retained_source_sha"]}:
+            raise SystemExit(
+                f"{row['cell_id']}: manifest SHA does not match its raw attempts receipt"
+            )
         try:
             subprocess.check_call(
                 ["git", "cat-file", "-e", f"{row['retained_source_sha']}^{{commit}}"],
@@ -739,9 +749,21 @@ def check_c14_receipt_equivalence() -> None:
             ],
             cwd=ROOT,
         )
-        if changed:
+        eligible = row["equivalence_eligible"] == "TRUE"
+        if eligible and changed:
             raise SystemExit(f"{row['cell_id']}: relevant source differs from C14 target")
-    print(f"C14 receipt equivalence: OK ({len(rows)} retained receipts)")
+        if not eligible and not changed:
+            raise SystemExit(
+                f"{row['cell_id']}: ineligible receipt unexpectedly matches the C14 target"
+            )
+        if eligible:
+            eligible_ids.add(row["cell_id"])
+    if eligible_ids != {"mc-0568", "mc-0569", "mc-0576"}:
+        raise SystemExit("C14 receipt equivalence has an unexpected eligible cell set")
+    print(
+        f"C14 receipt equivalence: OK ({len(eligible_ids)} eligible, "
+        f"{len(rows) - len(eligible_ids)} source-different retained receipts)"
+    )
 
 
 def source_path_exists(value: str) -> bool:
