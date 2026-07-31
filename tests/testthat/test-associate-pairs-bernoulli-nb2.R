@@ -365,6 +365,9 @@ test_that("Bernoulli x ordinary-NB2 association predicts full fixed-effect desig
     predict(association_fit, type = "response", se.fit = TRUE),
     "uncertainty is unavailable"
   )
+  expect_error(vcov(association_fit), "unavailable")
+  expect_error(confint(association_fit), "unavailable")
+  expect_error(profile(association_fit), "unavailable")
 
   newdata <- data.frame(
     x1 = c(-0.5, 0.4), x2 = c(0.7, -0.7),
