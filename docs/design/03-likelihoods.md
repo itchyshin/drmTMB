@@ -86,7 +86,7 @@ is the current routing contract:
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The narrow q1 phylogenetic successor route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. |
-| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. |
+| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, fixed latent logistic scale, ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
@@ -2041,17 +2041,45 @@ Pr(y_i = 1) = zoi_i coi_i
 Pr(0 < y_i < 1) = 1 - zoi_i
 eta_mu_i = X_mu[i, ] beta_mu
 eta_sigma_i = X_sigma[i, ] beta_sigma
-eta_zoi_i = X_zoi[i, ] beta_zoi
+eta_zoi_i = X_zoi[i, ] beta_zoi + Z_zoi[i, ] diag(sd_zoi) u_zoi
 eta_coi_i = X_coi[i, ] beta_coi
-mu_i = logit^{-1}(eta_mu_i)
+sd_zoi_j = exp(log_sd_zoi_j)
+u_zoi ~ Normal(0, I)
+mu_raw_i = logit^{-1}(eta_mu_i)
+mu_i = epsilon_mu + (1 - 2 epsilon_mu) mu_raw_i
 sigma_i = exp(eta_sigma_i)
 zoi_i = logit^{-1}(eta_zoi_i)
 coi_i = logit^{-1}(eta_coi_i)
 phi_i = 1 / sigma_i^2
-alpha_i = mu_i phi_i
-beta_i = (1 - mu_i) phi_i
+alpha_i = max(mu_i phi_i, epsilon_shape)
+beta_i = max((1 - mu_i) phi_i, epsilon_shape)
 E[y_i] = (1 - zoi_i) mu_i + zoi_i coi_i
 ```
+
+Here `epsilon_mu = 1e-12` and `epsilon_shape = 1e-8` are numerical guards in
+the fitted likelihood, not changes to the public mean-scale parameterization.
+The existing optional log-`sigma` soft clamp, when enabled, is applied before
+`sigma_i = exp(eta_sigma_i)`. For the exact `mc-0577` route,
+`Z_zoi[i, ] = x_i`, there is one grouping factor `id`, and
+
+```text
+eta_zoi_i = X_zoi[i, ] beta_zoi + x_i sd_zoi u_zoi,id[i]
+sd_zoi = exp(log_sd_zoi)
+u_zoi,g independently ~ Normal(0, 1).
+```
+
+The recovery runner calls this natural-scale standard deviation `tau`; thus
+`tau` and `sd_zoi` name the same estimand. Under ML, TMB treats `u_zoi` as a
+random parameter and uses its Laplace approximation to the marginal likelihood
+
+```text
+L_marginal(beta, log_sd_zoi) =
+  integral [product_i Pr(y_i | u_zoi) ^ weight_i]
+           phi(u_zoi; 0, I) du_zoi.
+```
+
+No Jacobian is added for `sd_zoi u_zoi`: this is the fitted non-centred
+Gaussian representation, with the standard-normal density included explicitly.
 
 The TMB likelihood is:
 
@@ -2060,7 +2088,7 @@ log Pr(y_i = 0) = log(zoi_i) + log(1 - coi_i)
 log Pr(y_i = 1) = log(zoi_i) + log(coi_i)
 log f(0 < y_i < 1) =
   log(1 - zoi_i) +
-  log Gamma(phi_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
+  log Gamma(alpha_i + beta_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
   (alpha_i - 1) log(y_i) + (beta_i - 1) log(1 - y_i)
 ```
 
@@ -2089,11 +2117,14 @@ so this evidence does not establish an exactly 15% observed-boundary design.
 See `docs/dev-log/simulation-artifacts/2026-07-19-arc4c-mu-slope-coverage/README.md`.
 Exact ordinary q1 `sigma ~ 1 + (1 | id)` and, separately,
 `zoi ~ 1 + (1 | id)` random intercepts are point-fit-only, with direct targets
-that are not profile-ready. Correlated or labelled `mu` slopes, `coi` effects,
-`sigma`/`zoi` slopes, joint/covariant and structured effects, profiles,
-intervals, coverage, known sampling covariance, denominator syntax, bivariate
-bounded responses, and mixed-response bounded models remain planned or
-unsupported.
+that are not profile-ready. The exact slope-only `zoi` route is also
+point-fit-only and requires the same raw symbol in its fixed and random terms,
+for example `zoi ~ x + (0 + x | id)`. It does not admit transformed or
+mismatched symbols, an intercept-plus-slope term, labels, or covariance.
+Correlated or labelled `mu` slopes, `coi` random effects, other `sigma`/`zoi`
+slope shapes, joint/covariant and structured effects, profiles, intervals,
+coverage, known sampling covariance, denominator syntax, bivariate bounded
+responses, and mixed-response bounded models remain planned or unsupported.
 
 ## Implemented Beta-Binomial Mean-Overdispersion
 

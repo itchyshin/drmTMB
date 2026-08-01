@@ -412,9 +412,14 @@ response is therefore:
 fitted_i = (1 - zoi_i) mu_i + zoi_i coi_i
 ```
 
-This is a fixed-effect first slice. Boundary random effects, covariance blocks,
-known sampling covariance, bivariate zero-one beta models, and denominator
-syntax remain outside the fitted surface.
+The fitted surface also contains two exact point-fit-only ordinary q1 `zoi`
+random-effect forms: an unlabelled intercept, `zoi ~ 1 + (1 | id)`, or a
+slope-only effect whose fixed and random terms use the same raw symbol, such as
+`zoi ~ x + (0 + x | id)`. The slope route does not admit transformed or
+mismatched symbols, an intercept-plus-slope term, labels, or covariance. Direct
+profiles, intervals, coverage, broader boundary random effects, known sampling
+covariance, bivariate zero-one beta models, and denominator syntax remain outside
+this contract; `coi` random effects remain unsupported.
 
 For percentages derived from counts, `beta_binomial()` keeps the denominator
 rather than forcing users to convert to a continuous proportion:

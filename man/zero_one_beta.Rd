@@ -26,9 +26,20 @@ the same beta mean-scale contract as \code{\link[=beta]{beta()}}, with internal 
 \code{fitted()} returns the unconditional response mean
 \code{(1 - zoi) * mu + zoi * coi}. Ordinary unlabelled random intercepts and
 independent numeric slopes such as \code{(1 | id)} and \code{(0 + x | id)} may enter
-\code{mu}. Correlated or labelled \code{mu} slopes, \code{sigma}, \code{zoi}, or \code{coi} random
-effects, structured effects, covariance blocks, and denominator syntax remain
-unsupported.
+\code{mu}. The point-fit-only q1 gates additionally admit one ordinary
+intercept-only random effect in \code{sigma} or \code{zoi}, separately, one ordinary
+slope-only \code{sigma} effect \code{(0 + x | id)}, and one ordinary slope-only \code{zoi}
+effect when the fixed and random terms use the same raw symbol, for example
+\code{zoi ~ x + (0 + x | id)}. These exact routes are point-fit recovery only:
+direct profiling, intervals, coverage, and broader recovery claims remain
+unavailable. Correlated or labelled effects, intercept-plus-slope \code{zoi}
+effects, transformed or mismatched \code{zoi} slope symbols, \code{coi} random effects,
+covariance blocks, and denominator syntax remain unsupported. One further
+point-fit-only structured route is
+available: an unlabelled q1 \code{phylo(1 | group, tree = tree)} intercept in
+\code{mu}. It does not license other providers, slopes, labels, covariance,
+q2-plus structured effects, profiling, intervals, coverage, or inference
+claims.
 }
 \examples{
 zero_one_beta()

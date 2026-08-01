@@ -502,13 +502,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   random intercepts and independent numeric slopes. There are no `sigma`
   random effects, correlated beta-binomial slopes, known sampling covariance,
   phylogenetic terms, bivariate or mixed beta-binomial models, or
-  successes/trials response alias. Zero-one-inflated
-  bounded-response models for percentage or proportion data are planned:
-  fixed-effect `zoi` and `coi` likelihoods should come before random effects
-  or covariance among bounded-response distributional parameters, and current
-  `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
-  messages. Beta-binomial evidence does not promote plain binomial interval
-  calibration.
+  successes/trials response alias. For continuous proportions with exact
+  boundaries, `zero_one_beta()` implements fixed-effect `zoi` and `coi`.
+  Exact ordinary ML point-fit-only exceptions additionally admit one `zoi`
+  random intercept or one same-raw-symbol slope
+  `zoi ~ x + (0 + x | id)`; direct profiles, intervals, coverage, other atom
+  shapes, `coi` random effects, and covariance among bounded-response
+  distributional parameters remain unavailable. Beta-binomial evidence does
+  not promote plain binomial interval calibration.
 - Univariate Bernoulli/binomial logit models are implemented with
   `family = stats::binomial(link = "logit")`. The first path supports explicit
   0/1 event indicators and `cbind(successes, failures)` responses, stores
