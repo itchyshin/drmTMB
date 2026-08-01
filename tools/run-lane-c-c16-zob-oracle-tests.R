@@ -22,7 +22,7 @@ runner_md5 <- unname(tools::md5sum(script))
 
 exit_status <- system2(
   file.path(R.home("bin"), "Rscript"),
-  c("-e", "devtools::test(filter = '^zero-one-beta$')")
+  c("-e", shQuote("devtools::test(filter = '^zero-one-beta$')"))
 )
 status <- if (identical(exit_status, 0L)) "PASS" else paste0("FAIL: child R exit status ", exit_status)
 
