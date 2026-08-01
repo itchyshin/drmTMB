@@ -72,7 +72,17 @@ MODEL_SURFACE_COUNT = 687
 # Future changes require an explicit row-specific receipt; this is not a
 # blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 178
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 174
+B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
+B3_Q6_MU2_TARGETS = {
+    "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
+    "mc-0124": ("spatial", "mc-0123", "mc-0124::sd:mu:mu2:spatial(1 | p | site)"),
+    "mc-0146": ("animal", "mc-0145", "mc-0146::sd:mu:mu2:animal(1 | p | id)"),
+    "mc-0168": ("relmat", "mc-0167", "mc-0168::sd:mu:mu2:relmat(1 | p | id)"),
+}
+B3_Q6_MU2_PACKET = (
+    ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
+)
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -986,9 +996,10 @@ def validate(
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census has 178 point_fit_recovery cells after C16's exact
-    # ten-leaf promotion. Approved inserts take a higher source_order and so
-    # cannot disturb this number; every frozen-cell promotion needs a named
+    # The frozen census has 174 point_fit_recovery cells after C16's exact
+    # ten-leaf promotion and B3's exact four q6 mu2 target promotions.
+    # Approved inserts take a higher source_order and so cannot disturb this
+    # number; every frozen-cell promotion needs a named
     # transition and evidence receipt.
     frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
     if len(frozen) != FROZEN_CENSUS_COUNT:
@@ -1004,6 +1015,65 @@ def validate(
             f"(expected {FROZEN_CENSUS_POINT_FIT_RECOVERY}); a frozen cell was promoted "
             "or demoted"
         )
+
+    by_cell = {row["cell_id"]: row for row in cells}
+    b3_observed = {
+        row["cell_id"]
+        for row in model
+        if row["q_gate"] == "q6"
+        and row["dpar"] == "mu2"
+        and row["effect_type"] == "structured"
+        and row["estimator"] == "ML"
+        and row["evidence_tier"] == "interval_feasible"
+    }
+    if b3_observed != set(B3_Q6_MU2_TARGETS):
+        errors.append(
+            "B3 q6 mu2 interval-feasible allowlist changed: "
+            f"{sorted(b3_observed)}"
+        )
+    b3_latest_transition = {
+        row["cell_id"]: row for row in transitions
+    }
+    for cell_id, (provider, paired_mu1, target_id) in B3_Q6_MU2_TARGETS.items():
+        cell = by_cell.get(cell_id, {})
+        evidence_id = f"ev-{cell_id}-b3-q6-mu2-interval"
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        expected_receipt = (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{B3_Q6_MU2_RUNNER_SHA}/b2-q6-proof-profile/{cell_id}/"
+            f"b2-q6-proof-{cell_id}-high-seed-20260731-receipt.tsv"
+        )
+        if (
+            cell.get("structure_provider") != provider
+            or cell.get("family_route") != "biv_gaussian"
+            or cell.get("dpar") != "mu2"
+            or cell.get("q_gate") != "q6"
+            or cell.get("estimator") != "ML"
+            or cell.get("capability_status") != "implemented"
+            or cell.get("work_status") != "verified"
+            or cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("primary_evidence_id") != evidence_id
+        ):
+            errors.append(f"{cell_id}: B3 canonical target row changed")
+        if by_cell.get(paired_mu1, {}).get("evidence_tier") != "point_fit_recovery":
+            errors.append(f"{paired_mu1}: paired mu1 row inherited B3 target promotion")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "estimator_diagnostic"
+            or evidence_row.get("path_or_url") != expected_receipt
+            or evidence_row.get("commit_sha") != B3_Q6_MU2_RUNNER_SHA
+            or evidence_row.get("result") != "interval_feasible"
+        ):
+            errors.append(f"{evidence_id}: B3 evidence binding changed")
+        if target_id not in B3_Q6_MU2_PACKET.read_text(encoding="utf-8"):
+            errors.append(f"{cell_id}: exact direct target missing from B3 packet")
+        transition = b3_latest_transition.get(cell_id, {})
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: B3 transition must remain verified-to-verified")
 
     missing = {row["family_route"]: row for row in cells if row["axis"] == "missing_response"}
     for route, row in missing.items():

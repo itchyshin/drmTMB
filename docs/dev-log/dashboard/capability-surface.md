@@ -10,7 +10,7 @@ The model surface and missing-response execution axis answer different questions
 - Runtime status: **327 implemented**, **20 actionable not implemented**, and **340 not currently supported**.
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
-- Evidence: **4 supported**, **27 inference-ready**, **44 interval-feasible**, **179 recovery-grade**.
+- Evidence: **4 supported**, **27 inference-ready**, **48 interval-feasible**, **175 recovery-grade**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Missing-response execution board

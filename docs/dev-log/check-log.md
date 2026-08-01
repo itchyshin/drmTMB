@@ -91737,3 +91737,39 @@ Shinichi grants a separate Gate A compute approval.
   outputs. No model implementation, simulation, inference promotion, or Arc 6
   work occurred. See
 `docs/dev-log/after-task/2026-07-28-capability-backlog-taxonomy.md`.
+
+## 2026-08-01: B3 q6 direct-mu2 target promotion
+
+- With exact owner authority, promoted only `mc-0102`, `mc-0124`,
+  `mc-0146`, and `mc-0168` from `point_fit_recovery` to targetwise
+  `interval_feasible`.
+- The imported `a8d068e` serial cohort passes 4/4 independent receipt audits;
+  the 22 authorization/result artifacts plus the audit runner remain
+  byte-identical to the reviewed B2 source (23/23 immutable files).
+- The four-row packet corrects the immutable authorization's erroneous
+  `latent_log_sd` label: truth `0.4` is `response_sd`, and every retained
+  trace binds `scale=response`, `transformation=exp`,
+  `tmb_parameter=log_sd_phylo`, index `4`.
+- All four linked whole-q6 rows remain `point_fit / planned / planned`; paired
+  `mu1` cells remain `point_fit_recovery`. No profile rerun, coverage,
+  calibration, q12, E0, K=12, Lane A/C, missing-response, API, or compute work
+  occurred.
+- After `origin/main` advanced during B3, the lane refreshed to `5ff94d86`
+  and preserved all ten C16 promotions. Capability generation is current
+  (30 outputs); 46 ledger tests, 3 focused B3 tests, and 6 R receipt
+  expectations pass. A scoped `git diff --check` passes for all authored,
+  generated, and imported non-log files; the unscoped check flags only
+  historical trailing spaces in four immutable supervisor logs, retained to
+  preserve the 23/23 immutable byte-identity proof. Fresh
+  Fisher/Noether/Rose review is
+  3/3 PASS.
+- PR #879 run `30705835401` failed only because the focused R audit test tried
+  to source a top-level development tool from the built-package check tree,
+  where `.Rbuildignore` intentionally excludes `tools/`. The repaired test
+  still passes all six expectations in a source checkout and produces one
+  explicit expected skip in an extracted source tarball, following existing
+  repository practice for top-level-tool tests.
+- The global Mission Control and q-series commands remain red only for 15
+  inherited missing absolute paths into a historical DRM.jl worktree. B3
+  records this baseline and does not alter the foreign dashboard/DRM.jl lane.
+  See `docs/dev-log/after-task/2026-08-01-b3-q6-target-promotion.md`.
