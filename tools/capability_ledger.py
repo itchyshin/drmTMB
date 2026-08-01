@@ -776,6 +776,30 @@ def c14_model15_source_fingerprint() -> str:
     r_source = (ROOT / "R/drmTMB.R").read_text(encoding="utf-8")
     cpp_source = (ROOT / "src/drmTMB.cpp").read_text(encoding="utf-8")
 
+    # C17-B widens only the missing-response diagnostic so it names the already
+    # fitted same-symbol zoi slope. Missing responses remain rejected before a
+    # likelihood object is built, so this prose-only abort must not invalidate
+    # C14's immutable fit-source equivalence receipts. Normalize that one abort
+    # block to its C14 wording before hashing; all builder/carrier/extractor and
+    # model-15 likelihood bytes remain fingerprinted exactly.
+    c17_diagnostic = '''  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
+    ))
+  }
+'''
+    c14_diagnostic = '''  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi random-intercept q1 gate does not support missing responses.",
+      "i" = "Use complete observed responses for {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)}."
+    ))
+  }
+'''
+    if c17_diagnostic not in r_source:
+        raise SystemExit("C17-B diagnostic normalization anchor is unavailable")
+    r_source = r_source.replace(c17_diagnostic, c14_diagnostic, 1)
+
     def section(source: str, start: str, end: str, label: str) -> str:
         start_index = source.find(start)
         if start_index < 0:

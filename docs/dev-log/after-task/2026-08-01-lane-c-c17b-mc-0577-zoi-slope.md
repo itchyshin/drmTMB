@@ -135,6 +135,16 @@ re-read found two additional historical blanket statements in the family
 registry and readiness matrix; both are now explicitly superseded for the same
 two exact `zoi` gates and retained only for neighbouring requests.
 
+Draft PR #882's first release CI run failed its ledger unit step because two
+tests still froze the pre-C17 census, one reader-surface assertion expected the
+pre-repair readiness sentence, and C14's strict source fingerprint included the
+C17 missing-response diagnostic wording. The repair updates the explicit
+`328 / 340 / 19`, frozen-recovery `175`, and total-recovery `176` invariants,
+adds a direct C17-B promotion test, and normalizes only that pre-likelihood abort
+message to its C14 wording before the C14 fit-source hash. All builder, carrier,
+extractor, and model-15 likelihood bytes remain fingerprinted. The complete
+47-test Python ledger suite, generator check, and runtime check then passed.
+
 ## 10. Known Residuals
 
 This is one ordinary univariate ML zoi slope-only q1 cell at the frozen fixture.
