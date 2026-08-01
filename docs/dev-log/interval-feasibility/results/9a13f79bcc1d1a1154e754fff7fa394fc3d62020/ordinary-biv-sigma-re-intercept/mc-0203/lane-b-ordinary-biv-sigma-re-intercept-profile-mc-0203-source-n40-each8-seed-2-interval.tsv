@@ -1,0 +1,2 @@
+cell_id	target_id	dgp_id	seed	lower	upper	profile_engine
+mc-0203	mc-0203::sd:sigma:sigma1:(1 | s | id)	reml_biv_sigma_re_admitted_source_fixture	2	0.218142124023593	0.482584374122418	tmbprofile

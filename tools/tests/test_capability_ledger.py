@@ -248,17 +248,18 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 176 point_fit_recovery cells after the explicit C12 mc-0653,
+        # contains 152 point_fit_recovery cells after the explicit C12 mc-0653,
         # six-cell count tranche, ten named C16 structured zero-one-beta
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
-        # promotion, and the exact C17-C1 mc-0570 promotion. Future changes require a
+        # promotion, the exact 24-cell B4-CI C1 interval promotion, and the exact
+        # C17-C1 mc-0570 promotion. Future changes require a
         # named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            176,
+            152,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -266,7 +267,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            177,
+            153,
         )
 
         b3 = {

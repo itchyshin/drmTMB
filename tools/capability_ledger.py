@@ -69,10 +69,11 @@ MODEL_SURFACE_COUNT = 687
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
 # mc-0454. With explicit user approval, C14 promotes only mc-0568, mc-0569,
 # and mc-0576 after source-equivalence verification and fresh three-lens GO.
-# Future changes require an explicit row-specific receipt; this is not a
-# blanket re-baseline.
+# B4-CI C1 promotes exactly the approved 24-cell ordinary/fixed cohort from
+# point-fit recovery to interval feasible. This is a source-bound promotion
+# receipt, not a blanket re-baseline; future changes need their own receipt.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 176
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 152
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
@@ -1024,10 +1025,11 @@ def validate(
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census has 176 point_fit_recovery cells after C16's exact
-    # ten-leaf promotion, B3's exact four q6 mu2 target promotions, and C17-B's
-    # exact zero-one-beta zoi same-symbol q1 slope promotion, and C17-C1's
-    # exact zero-one-beta coi q1 random-intercept promotion.
+    # The frozen census has 152 point_fit_recovery cells after C16's exact
+    # ten-leaf promotion, B3's exact four q6 mu2 target promotions, C17-B's
+    # exact zero-one-beta zoi same-symbol q1 slope promotion, and C1's exact
+    # 24-cell promotion to interval feasible, followed by C17-C1's exact
+    # zero-one-beta coi q1 random-intercept promotion.
     # Approved inserts take a higher source_order and so cannot disturb this
     # number; every frozen-cell promotion needs a named
     # transition and evidence receipt.
