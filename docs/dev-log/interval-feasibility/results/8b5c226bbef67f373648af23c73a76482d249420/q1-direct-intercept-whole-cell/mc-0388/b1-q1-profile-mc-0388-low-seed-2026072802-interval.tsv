@@ -1,0 +1,2 @@
+cell_id	seed	information_rung	target_id	profile_parameter	level	lower	upper	profile_engine	profile_source
+mc-0388	2026072802	low	mc-0388::sd:mu:relmat(1 | id)	sd:mu:relmat(1 | id)	0.95	0.337507867080193	0.573561737139684	tmbprofile	TMB::tmbprofile via stats::profile.drmTMB

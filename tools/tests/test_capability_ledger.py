@@ -196,10 +196,10 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(row["estimator"], "ML")
             self.assertEqual(row["capability_status"], "implemented")
             self.assertEqual(row["work_status"], "verified")
-            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
-            self.assertIn("unlabelled q1 structured intercept", row["claim_boundary"])
-            for excluded in ("REML", "intervals", "coverage", "inference-ready", "supported"):
-                self.assertIn(excluded, row["claim_boundary"])
+            self.assertEqual(row["evidence_tier"], "interval_feasible")
+            self.assertIn("interval_feasible only", row["claim_boundary"])
+            for excluded in ("reml", "coverage", "inference readiness"):
+                self.assertIn(excluded, row["claim_boundary"].lower())
             self.assertEqual(
                 evidence_by_id[row["primary_evidence_id"]]["cell_id"], cell_id
             )
@@ -215,9 +215,9 @@ class CapabilityLedgerTests(unittest.TestCase):
                 self.assertIn(excluded, row["claim_boundary"])
 
         comparator = by_id["mc-0248"]
-        self.assertEqual(comparator["primary_evidence_id"], "ev-mc-0248-legacy")
-        self.assertEqual(comparator["evidence_tier"], "point_fit_recovery")
-        self.assertIn("90/90-converged", comparator["claim_boundary"])
+        self.assertEqual(comparator["primary_evidence_id"], "ev-mc-0248-q1-expanded-targetwise-profile-low")
+        self.assertEqual(comparator["evidence_tier"], "interval_feasible")
+        self.assertIn("interval_feasible only", comparator["claim_boundary"])
 
     def test_arc1b_s1_cells_are_exact_and_preserve_the_not_implemented_remainder(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
@@ -236,7 +236,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 151 point_fit_recovery cells after the explicit C12 mc-0653,
+        # contains 126 point_fit_recovery cells after the explicit C12 mc-0653,
         # six-cell count tranche, ten named C16 structured zero-one-beta
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
         # promotion, and the exact 24-cell B4-CI C1 interval promotion. Future changes require a
@@ -246,7 +246,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            151,
+            126,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -254,7 +254,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            152,
+            127,
         )
 
         b3 = {
@@ -1351,15 +1351,15 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_student_structured_tiers_fail_closed_to_live_ledger(self):
         by_id = {row["cell_id"]: row for row in self.cells}
         self.assertEqual(by_id["mc-0493"]["evidence_tier"], "diagnostic_only")
-        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "point_fit_recovery")
+        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "interval_feasible")
         self.assertEqual(by_id["mc-0495"]["evidence_tier"], "diagnostic_only")
         self.assertEqual(by_id["mc-0641"]["evidence_tier"], "diagnostic_only")
         for cell_id in ("mc-0229", "mc-0364", "mc-0641", "mc-0662", "mc-0667"):
             self.assertEqual(by_id[cell_id]["evidence_tier"], "diagnostic_only")
             self.assertIn("recovery", by_id[cell_id]["claim_boundary"].lower())
             self.assertIn("no_denominator_local_debug_only", by_id[cell_id]["claim_boundary"])
-        self.assertEqual(by_id["mc-0248"]["evidence_tier"], "point_fit_recovery")
-        self.assertIn("90/90-converged", by_id["mc-0248"]["claim_boundary"])
+        self.assertEqual(by_id["mc-0248"]["evidence_tier"], "interval_feasible")
+        self.assertIn("interval_feasible only", by_id["mc-0248"]["claim_boundary"])
 
         no_denominator_recovery = [
             row["cell_id"]
