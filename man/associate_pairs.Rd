@@ -35,8 +35,16 @@ same complete analysis rows.
 The fitted parameter \code{eta} is a Gaussian-copula latent-normal association.
 It is neither \code{\link[=rho12]{rho12()}}, an observed-scale correlation, nor \code{\link[=corpairs]{corpairs()}}.
 The \code{\link[=corpair]{corpair()}} formula marker is a distinct interface.
-The stage-2 Hessian treats the margins as fixed, so no standard error,
-confidence interval, profile, or coverage claim is available.
+The stage-2 Hessian treats the margins as fixed and is not used for
+uncertainty. For every admitted pair route, \code{\link[=vcov]{vcov()}} and \code{\link[=confint]{confint()}} instead
+use a two-stage Godambe covariance that propagates fitted-margin uncertainty
+when the fit-specific calculation succeeds. These alpha-scale routes are
+interval-feasible. The retained Bernoulli x ordinary-NB2 intercept campaign
+supports the stronger inference-ready-with-caveats tier. Intercept-only
+associations also expose bounded eta intervals through
+\code{confint(object, type = "eta")}; \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}} supplies
+delta-method eta standard errors and pointwise transformed intervals.
+Profiles remain unavailable.
 }
 \examples{
 set.seed(20260723)
@@ -58,4 +66,7 @@ assoc <- associate_pairs(
   kernel = latent_normal(), association = ~ 1
 )
 association(assoc)
+sqrt(diag(vcov(assoc)))
+confint(assoc)
+confint(assoc, type = "eta")
 }

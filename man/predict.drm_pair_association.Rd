@@ -4,7 +4,15 @@
 \alias{predict.drm_pair_association}
 \title{Predict a frozen-margin pair association}
 \usage{
-\method{predict}{drm_pair_association}(object, newdata = NULL, type = NULL, ...)
+\method{predict}{drm_pair_association}(
+  object,
+  newdata = NULL,
+  type = NULL,
+  se.fit = FALSE,
+  interval = c("none", "confidence"),
+  level = 0.95,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{drm_pair_association} object.}
@@ -13,22 +21,74 @@
 association prediction. Its terms, factor levels, contrasts, and columns
 must match the fitted association formula.}
 
-\item{type}{Prediction scale: \code{"link"} for \code{X_A \%*\% alpha} or \code{"response"}
-for \code{0.999999 * tanh(X_A \%*\% alpha)}. Omit \code{type} together with \code{newdata}
-to retain the historical frozen-margin fitted output.}
+\item{type}{Prediction scale: \code{"link"} for \code{X_A \%*\% alpha} or \code{"eta"} for
+\code{0.999999 * tanh(X_A \%*\% alpha)}. \code{"response"} is an alias for \code{"eta"}.
+Omit \code{type} together with \code{newdata} to retain the historical frozen-margin
+fitted output.}
 
-\item{...}{Must be empty. Standard errors and intervals are unavailable for
-frozen-margin association predictions.}
+\item{se.fit}{Logical; return pointwise standard errors on the requested
+scale. Eta-scale standard errors use the delta method.}
+
+\item{interval}{\code{"none"} or \code{"confidence"}. Confidence limits are
+pointwise link-scale Wald limits transformed monotonically to eta when
+\code{type = "eta"}.}
+
+\item{level}{Confidence level in \verb{(0, 1)}.}
+
+\item{...}{Must be empty.}
 }
 \value{
 With omitted \code{type} and \code{newdata}, the frozen marginal fitted values.
-Otherwise a numeric association prediction on the requested scale.
+Without uncertainty, a numeric association prediction on the requested
+scale. With \code{interval = "confidence"}, a matrix with \code{fit}, \code{lwr}, and
+\code{upr} columns. With \code{se.fit = TRUE}, a list containing \code{fit} and \code{se.fit};
+\code{fit} is the three-column matrix when an interval is requested.
 }
 \description{
 With no \code{newdata} or \code{type}, this method preserves the historical
-\code{fitted()}-style output of the two frozen margins. For the beta Bernoulli x
-ordinary-NB2 association route, \code{type = "link"} returns the association
-linear predictor and \code{type = "response"} returns its latent-normal
-association transform. These are point predictions only: no standard error,
-interval, or extrapolation diagnostic is supplied.
+\code{fitted()}-style output of the two frozen margins. \code{type = "link"} returns
+the association linear predictor and \code{type = "eta"} returns its bounded
+latent-normal association transform; \code{type = "response"} is a compatibility
+alias for \code{"eta"}. The beta Bernoulli x ordinary-NB2 route also admits
+new-data prediction from its fixed-effect association formula.
+}
+\examples{
+\dontrun{
+set.seed(20260801)
+n <- 160
+dat <- data.frame(
+  x1 = seq(-1.2, 1.2, length.out = n),
+  x2 = rep(c(-0.5, 0.5), length.out = n)
+)
+z_binary <- rnorm(n)
+eta <- 0.999999 * tanh(-0.1 + 0.4 * dat$x1 - 0.2 * dat$x2)
+z_count <- eta * z_binary + sqrt(1 - eta^2) * rnorm(n)
+dat$binary <- as.integer(
+  z_binary > qnorm(plogis(-0.2 + 0.3 * dat$x1), lower.tail = FALSE)
+)
+dat$count <- qnbinom(
+  pnorm(z_count), mu = exp(0.5 + 0.2 * dat$x2), size = 4
+)
+binary_fit <- drmTMB(bf(mu = binary ~ x1), binomial(), dat)
+count_fit <- drmTMB(
+  bf(mu = count ~ x2, sigma = ~ 1), nbinom2(), dat
+)
+assoc <- associate_pairs(
+  binary_fit, count_fit,
+  kernel = latent_normal(), association = ~ x1 + x2
+)
+new_dat <- data.frame(x1 = c(-1, 0, 1), x2 = 0)
+eta_prediction <- predict(
+  assoc,
+  newdata = new_dat,
+  type = "eta",
+  se.fit = TRUE,
+  interval = "confidence"
+)
+eta_prediction$fit
+eta_prediction$se.fit
+}
+}
+\seealso{
+\code{\link[=vcov.drm_pair_association]{vcov.drm_pair_association()}}, \code{\link[=confint.drm_pair_association]{confint.drm_pair_association()}}
 }

@@ -26,8 +26,9 @@ adds a third submodel: predictors can also change the standard deviation of a
 latent random effect. `drmTMB` writes this third submodel as
 `sd(group) ~ predictors`.
 
-Read [Part 1: location-scale models](location-scale.html) first if `mu` and
-`sigma` are new to you. Read [Which scale are you
+This is Part 2 of the variance sequence. Return to [Part 1: location-scale
+models](location-scale.html) if `mu` and `sigma` are new to you or if the
+scientific question concerns only mean and residual variation. Read [Which scale are you
 modelling?](which-scale.html) when you need to distinguish residual SD,
 group-level SD, known sampling variance, and likelihood weights.
 
@@ -69,6 +70,13 @@ The same predictor appears in three formulas, but its coefficients answer
 three separate questions. Sex must be constant within each individual because
 it is used to model `sd(individual)`.
 
+If `drmTMB()` reports that an `sd(individual)` predictor varies within an
+individual, check the grouping variable and source data. Correct miscoded
+values or remove that predictor from the `sd()` formula. Do not average a
+genuinely within-individual predictor to silence the error, because doing so
+changes the scientific question. See [Errors, warnings, and
+convergence](convergence.html) for the next diagnostic steps.
+
 ## Simulate and fit the three submodels
 
 The example below gives females and males different means, between-individual
@@ -76,7 +84,7 @@ SDs, and within-individual SDs. It is intentionally simple enough that the
 three sources of signal remain visible.
 
 ```{r personality-simulate}
-set.seed(20260721)
+set.seed(20260715)
 n_individual <- 80L
 n_each <- 6L
 
@@ -118,9 +126,40 @@ fit_personality <- drmTMB(
   data = personality
 )
 
+check_drm(fit_personality)
 round(coef(fit_personality, "mu"), 3)
 round(coef(fit_personality, "sigma"), 3)
 round(coef(fit_personality, "sd(individual)"), 3)
+```
+
+Inspect interval availability before requesting an interval. The two slope
+rows below are coefficients on log-SD scales; `profile_ready` says whether the
+fitted object retained what a direct profile interval needs.
+
+```{r personality-interval-targets}
+personality_targets <- profile_targets(fit_personality)
+personality_targets[
+  personality_targets$parm %in% c(
+    "fixef:sigma:sexmale",
+    "fixef:sd(individual):sexmale"
+  ),
+  c("parm", "estimate", "profile_ready", "profile_note")
+]
+```
+
+For a quick first interval, request the named coefficients and retain the
+status and method columns returned with the endpoints:
+
+```{r personality-component-intervals}
+personality_ci <- confint(
+  fit_personality,
+  parm = c(
+    "fixef:sigma:sexmale",
+    "fixef:sd(individual):sexmale"
+  ),
+  method = "wald"
+)
+personality_ci
 ```
 
 The `sigma` and `sd(individual)` coefficients use log-SD links. For example,
@@ -128,6 +167,32 @@ exponentiating the male coefficient from `sigma` gives the male-to-female
 ratio of within-individual SDs. Exponentiating the corresponding
 `sd(individual)` coefficient gives the male-to-female ratio of
 between-individual SDs.
+
+When an interval row has a successful `conf.status`, exponentiating both
+log-SD endpoints gives an interval for the corresponding male-to-female SD
+ratio. Keep the returned interval method and status with the reported result.
+If the status marks a boundary or failure, do not transform missing or
+unreliable endpoints; inspect the profile target and follow the suggested
+profile or diagnostic route instead.
+
+```{r personality-ratio-intervals}
+interval_ok <- personality_ci$conf.status == "wald" &
+  stats::complete.cases(personality_ci[c("lower", "upper")])
+data.frame(
+  parm = personality_ci$parm[interval_ok],
+  sd_ratio_lower = exp(personality_ci$lower[interval_ok]),
+  sd_ratio_upper = exp(personality_ci$upper[interval_ok]),
+  method = personality_ci$method[interval_ok],
+  conf.status = personality_ci$conf.status[interval_ok]
+)
+```
+
+Before reporting either contrast, inspect the diagnostics printed by
+`check_drm()`. A warning about weak replication, a non-positive-definite
+Hessian, or a large terminal gradient means the fitted SD surface may be
+unstable. Simplify the SD formula or increase group-level information, refit,
+and use the [errors, warnings, and convergence guide](convergence.html) rather
+than interpreting the coefficient anyway.
 
 ```{r personality-data-figure, echo = FALSE, fig.width = 7, fig.height = 4.1, fig.cap = "Repeated exploration scores for females and males. Grey points are observations, blue ticks are individual means, and the vermillion line is the fitted sex-specific mean. The spread of individual means represents between-individual variation; scatter around each individual mean represents within-individual variation. Both panels use the same vertical scale.", fig.alt = "Two panels show repeated exploration scores for female and male individuals. Grey observations cluster around blue individual-mean ticks, while a vermillion horizontal line marks the fitted sex-specific mean. The female panel has wider spread among individual means, while the male panel has more scatter within individuals."}
 individual_summary <- stats::aggregate(
@@ -269,6 +334,11 @@ Repeatability is derived from the two fitted scale submodels; it is not a
 fourth formula. The calculation above is a point estimate. It does not supply
 an uncertainty interval for this nonlinear ratio.
 
+Do not create a repeatability interval by combining the separate endpoints of
+the two SD intervals. That ignores their covariance and does not produce an
+interval for the ratio itself. Report the repeatability calculation as a point
+estimate unless the analysis includes a validated joint uncertainty method.
+
 ```{r personality-component-figure, echo = FALSE, fig.width = 7, fig.height = 2.9, fig.cap = "Model-implied values for females and males. Panels show the expected exploration score, between-individual SD from `sd(individual)`, and within-individual residual SD from `sigma`. Lines aid comparison and are not uncertainty intervals.", fig.alt = "Three small panels compare fitted female and male values. The expected score and within-individual standard deviation are higher for males, while the between-individual standard deviation is higher for females. No uncertainty intervals are shown."}
 component_surface <- rbind(
   data.frame(
@@ -377,7 +447,7 @@ residual SD. With one response row per species, it is the independent
 non-phylogenetic species-level deviation. It should not automatically be
 described as measurement error.
 
-## Current boundaries
+## What this example supports
 
 - Ordinary `sd(group) ~ predictors` is implemented for distinct unlabelled
   Gaussian `mu` random intercepts. The matching `(1 | group)` term must appear
@@ -394,10 +464,11 @@ described as measurement error.
   and retain failed fits. A clean optimizer code alone does not establish that
   every SD surface is well identified.
 
-For broader phylogenetic syntax, continue to [Phylogenetic mixed
-models](phylogenetic-models.html). For prediction tables and the distinction
-between `sigma` and `sd(group)`, return to [Which scale are you
-modelling?](which-scale.html).
+Return to [Part 1: location-scale models](location-scale.html) for residual
+variability without a model for the group-level SD. For broader phylogenetic
+syntax, continue to [Phylogenetic mixed models](phylogenetic-models.html). For
+prediction tables and the distinction between `sigma` and `sd(group)`, use
+[Which scale are you modelling?](which-scale.html).
 
 ## Reference
 

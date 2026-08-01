@@ -1,81 +1,84 @@
-# Arc 6 staged-eta uncertainty follow-up
+# Arc 6 staged eta uncertainty
 
-> **Supersession (2026-07-25).** The former full-refit-bootstrap proposal is
-> still stopped; its partial outputs remain non-evidential provenance. A
-> developer-only stacked-score/Godambe diagnostic now exists under
-> [`244-arc6-staged-eta-godambe-se.md`](244-arc6-staged-eta-godambe-se.md).
-> This does not make a public SE, Wald interval, profile, `confint()`, or
-> coverage claim available. Any small full-refit comparison requires the
-> frozen-method gate and separate owner approval.
+> **Supersession (2026-08-01).** The public two-stage Godambe covariance now
+> supports alpha-scale Wald intervals for every admitted frozen-margin pair
+> route whose fit-specific diagnostics pass. This note defines the derived
+> eta-scale interface built from that covariance. The stopped full-refit
+> bootstrap remains historical provenance, not the implemented method.
 
-## Status and boundary
+## Mathematical contract
 
-This is a design handoff, not an implemented uncertainty method. It applies
-only to the reviewed fixed-effect literal-Bernoulli × ordinary-NB2
-`associate_pairs()` route, including its one numeric `association = ~ x` beta
-extension. It does not grant `vcov()`, Wald standard errors, likelihood
-profiles, confidence intervals, coverage, random effects, missingness, or a
-generic cross-family inference claim.
-
-## Why the current curvature is not an interval estimator
-
-The staged object first estimates margin parameters \(\hat\psi_1\) and
-\(\hat\psi_2\), then freezes their fitted probability, mean, and dispersion
-vectors while optimizing association coefficients \(\hat\alpha\). The current
-stage-2 curvature therefore describes
+For association design row \(x_i^\top\), coefficient vector
+\(\boldsymbol\alpha\), and guard \(c = 0.999999\), define
 
 \[
-I_{\alpha\alpha\mid\hat\psi_1,\hat\psi_2},
+  a_i = x_i^\top\boldsymbol\alpha,
+  \qquad
+  \eta_i = g(a_i) = c\tanh(a_i).
 \]
 
-not the sampling variance of the two-stage estimator. It omits margin
-uncertainty and cross-stage covariance. Profiling that same conditional
-objective has the same defect: it is not a profile of a joint likelihood.
+Let \(\widehat V_\alpha\) be the stored two-stage Godambe covariance. The
+link-scale prediction variance and eta-scale delta-method variance are
 
-Until a validated stacked-score Godambe estimator exists, the admissible route
-is a full-refit parametric bootstrap. The package must keep conditional
-Hessian, `profile()`, and `confint()` unavailable in the meantime.
+\[
+  \widehat{\mathrm{Var}}(\hat a_i)
+    = x_i^\top\widehat V_\alpha x_i,
+  \qquad
+  \widehat{\mathrm{SE}}(\hat\eta_i)
+    = c\{1-\tanh^2(\hat a_i)\}
+      \sqrt{x_i^\top\widehat V_\alpha x_i}.
+\]
 
-## Later full-refit bootstrap contract
+For confidence level \(1-\gamma\), first construct the pointwise link-scale
+Wald limits
 
-1. Fit the two declared margin models on their complete matched rows and fit
-   `associate_pairs()` with the original association formula, controls, and
-   response order.
-2. Hold the observed covariate design fixed. For each row draw coupled latent
-   normals using fitted \(\eta_i = 0.999999\tanh(X_{Ai}\hat\alpha)\), map the
-   first through the Bernoulli threshold and the second through the fitted NB2
-   quantile (`size = sigma^{-2}`).
-3. In every bootstrap replicate, refit **both** margin models from scratch and
-   then rerun the association fit. Do not reuse fitted margin vectors or use a
-   conditional stage-2 refit as a shortcut.
-4. Start with 399 attempted refits and use plain percentile intervals on the
-   association-link coefficients. For `association = ~ x`, report derived
-   `eta(x)` only at predeclared `x = -1, 0, 1`, transforming each bootstrap
-   draw before taking quantiles.
-5. Retain every stage-1 and stage-2 status, score/curvature/multistart
-   diagnostic, response-pattern count, endpoint/integration diagnostic, seed,
-   and failure message. An interval is available only with at least 380
-   resolved associations; report availability over all outer attempts and both
-   conservative all-attempt and conditional coverage.
+\[
+  L_{a,i}, U_{a,i}
+    = \hat a_i \mathbin{\mp}
+      z_{1-\gamma/2}\widehat{\mathrm{SE}}(\hat a_i),
+\]
 
-## First simulation ladder
+then return \(g(L_{a,i})\) and \(g(U_{a,i})\). Transforming the endpoints,
+rather than forming a symmetric eta-scale interval, respects the bounded
+association range and the monotonicity of \(g\).
 
-Before implementing an interval API, establish point recovery and bootstrap
-feasibility over this immutable grid:
+## Symbolic-to-implementation alignment
 
-- `n = 120, 240, 480`, with `x` equally spaced on `[-1.4, 1.4]`;
-- Bernoulli logit intercept `-1.4` or `-0.2`, plus slope `0.3`;
-- NB2 `mu = exp(0.7 + 0.2 x)` and `sigma = 0.25` or `0.65`;
-- association coefficients `(alpha0, alpha1) = (0, 0)` or `(-0.15, 0.65)`.
+| Symbol | Public syntax | Stored input | Implementation | Verification |
+| --- | --- | --- | --- | --- |
+| \(\boldsymbol\alpha\) | `confint(object, type = "alpha")` | `association_coefficients` | existing alpha Wald method | coefficient interval tests |
+| \(\widehat V_\alpha\) | `vcov(object)` | `alpha_inference$covariance` | existing Godambe adapter | sandwich fixture and S3 tests |
+| \(x_i\) | `predict(object, newdata = ...)` | fitted or rebuilt association design | fitted matrix or `drm_pair_association_newdata_design()` | fitted-row and new-data tests |
+| \(a_i\) | `predict(..., type = "link")` | \(X_A\hat\alpha\) | matrix product | independent matrix calculation |
+| \(\eta_i\) | `predict(..., type = "eta")` | \(c\tanh(a_i)\) | guarded inverse link | direct transform comparison |
+| \(\mathrm{SE}(\hat\eta_i)\) | `predict(..., type = "eta", se.fit = TRUE)` | \(X_A\), \(\widehat V_\alpha\) | quadratic form plus delta derivative | independent delta calculation |
+| eta confidence limits | `predict(..., type = "eta", interval = "confidence")` | link estimate and SE | transform link-Wald endpoints | bounds and endpoint-transform tests |
+| constant eta interval | `confint(object, type = "eta")` | intercept-only design | same prediction kernel | equality with `predict()` interval |
 
-This 24-cell grid uses 200 retained outer attempts per cell and 399 full-refit
-bootstrap attempts per outer fit. It is DRAC-scale, not a GitHub Actions job,
-and requires a fresh compute approval after a non-empty smoke.
+## Public API boundary
 
-## References to the implemented boundary
+`confint(object, type = "eta")` is defined for an intercept-only association,
+where eta is a single fitted estimand. When association varies with predictors,
+there is no single eta parameter: the method errors with a next step directing
+the user to `predict(object, newdata = ..., type = "eta", se.fit = TRUE,
+interval = "confidence")`.
 
-The current staged estimator and its withheld inference API are documented in
-`R/associate-pairs.R` and the Bernoulli × NB2 contract
-`docs/design/236-arc6-6-bernoulli-nbinom2-contract.md`. The direct
-`biv_lognormal()` campaign is irrelevant to this two-stage uncertainty claim:
-it validates an exact joint likelihood, not frozen-margin `eta`.
+`predict()` keeps its historical numeric return when neither `se.fit` nor an
+interval is requested. With `se.fit = TRUE`, it returns a list containing
+`fit` and `se.fit`; `fit` is a three-column matrix when
+`interval = "confidence"`. New-data association prediction remains limited to
+the admitted Bernoulli x ordinary-NB2 fixed-effect formula route. The other
+four pair classes expose their constant fitted association and uncertainty but
+do not admit new-data association formulas.
+
+The eta results inherit the same capability tier, validation-domain warning,
+and numerical fail-closed behaviour as the underlying alpha covariance. This
+transformation does not create a new coverage claim, simultaneous band,
+profile likelihood, or bootstrap interval.
+
+## Historical bootstrap boundary
+
+The stopped full-refit-bootstrap proposal and partial artifacts remain retained
+as provenance. They are not used by `vcov()`, `confint()`, or `predict()`. Any
+future bootstrap or profile implementation remains a separate method and
+requires its own design, evidence, and compute approval.

@@ -28,38 +28,41 @@ modelled. Those four words describe what a formula changes; they say
 nothing about whether the resulting interval has been checked. That check
 is what the rest of this page reports.
 
-## Four tiers, defined once
+## Capability tiers, defined once
 
-Every model/effect combination in `drmTMB` sits in one of four tiers.
+Evidence accumulates through the following tiers. A higher tier retains the
+capabilities below it.
 
-1. **Inference-ready.** The confidence/compatibility interval has been
-   coverage-checked by simulation and holds, at least at an honest
-   small-sample floor (see the caveats below). You can report the point
-   estimate and the interval.
-2. **Recovery-only.** The point estimate has been checked against a known
+1. **Supported.** The route is inference-ready without a material caveat in
+   its declared domain. This is the strongest, narrowest status.
+2. **Inference-ready with caveats.** The confidence/compatibility interval has
+   been coverage-checked by simulation and holds in a named domain. You can
+   report the point estimate and interval together with the stated limits.
+3. **Interval-feasible.** A real standard-error or interval method is publicly
+   available and passes fit-specific numerical checks, but route-specific
+   coverage has not yet been established. Use it experimentally and retain the
+   warning in interpretation; this is a capability, not a block.
+4. **Point-fit recovery.** The point estimate has been checked against a known
    simulated truth and recovers it. The interval has not been
    coverage-checked and should be treated as provisional: report the
    point estimate, and treat any interval on the same row as a plausible
    range rather than a calibrated one.
-3. **Diagnostic-only.** A deterministic or single-smoke fit verifies that the
+5. **Diagnostic-only.** A deterministic or single-smoke fit verifies that the
    route is wired to the requested parameter and that its extractors work, but
    no retained-denominator seed ladder supports recovery. Treat the estimate as
    a debugging or feasibility result, not as a recovery-backed scientific
    estimate.
-4. **Not available / rejected by design.** `drmTMB` refuses to fit the
+**Not available / rejected by design** is outside the capability ladder:
+`drmTMB` refuses to fit the
    request outright. Some of these routes are planned for a later release;
    some are out of scope for the package's current design. Either way,
    fitting it anyway is not an option -- use the alternative named below
    each entry.
 
-No cell in `drmTMB` is coverage-verified at the strictest bar the project
-tracks internally as "supported" (nominal-exact coverage with symmetric
-misses on both sides). The census does mark four cells `fit_status =
-supported` -- ordinary (unstructured) Gaussian and bivariate-Gaussian random
-effects -- but those are point-trustworthy with interval coverage still
-planned, not coverage-verified. Read "inference-ready" as an honest floor
-for a first fitted structured route, not as parity with a long-mature
-fixed-effect interval in a package such as `glmmTMB` or `lme4`.
+The generated census preserves historical statuses while their rows are
+audited against this ladder. Read the evidence and caveat columns when a legacy
+`supported` label conflicts with an interval or coverage note; the stricter
+meaning above is the forward definition.
 
 ## At a glance
 
@@ -67,6 +70,8 @@ fixed-effect interval in a package such as `glmmTMB` or `lme4`.
 
 | Model / effect | Tier | What you can trust |
 | --- | --- | --- |
+| Frozen-margin latent-normal association -- all five admitted pair classes, plus the Bernoulli x ordinary-NB2 fixed-effect association formula | Interval-feasible | Alpha-scale `vcov()` and Wald `confint()`, plus derived eta standard errors and transformed pointwise intervals, when fit-specific Godambe diagnostics pass; coverage is uncalibrated outside the next row and the method warns accordingly |
+| Frozen-margin literal-Bernoulli x ordinary-NB2 intercept association | Inference-ready with caveats | Alpha and derived eta uncertainty in the retained high-information `n = 480` or `960` domain; lower-information fits warn and fail closed if covariance diagnostics do not pass |
 | Census-supported ordinary Gaussian `mu` random effects and matching bivariate-Gaussian `mu1`/`mu2` intercepts | Point-trustworthy (census "supported", coverage planned) | Point estimate for the exact supported rows; their intervals are not yet coverage-verified |
 | Gaussian `mu` q1 intercept -- `phylo()`, `spatial()`, `relmat()` | Inference-ready | Point estimate and the default location-axis bias-corrected, small-sample-t Wald interval; coverage is mildly conservative in the tested campaigns |
 | Gaussian `sigma` q1 one-slope -- `phylo()`, `animal()`, `relmat()` | Inference-ready | Point estimate and raw uncorrected log-SD Wald-z interval; profile is diagnostic-only at `g = 8` |
@@ -424,6 +429,38 @@ rather than returning an empty value. What to try next: use the native TMB
 engine, `drmTMB`'s default, for current supported models. For the bounded
 post-0.6 development association route, see the frozen-margin article; it is a
 separate staged interface and is not a Julia fit.
+
+### Frozen-margin association intervals
+
+All five admitted fixed-effect, complete-pair association classes are
+**interval-feasible** for their association-link coefficients `alpha`.
+`vcov()` returns the relevant block of the two-stage Godambe covariance and
+`confint()` returns alpha-scale Wald intervals whenever the fit-specific
+calculation succeeds. This includes the admitted Bernoulli x ordinary-NB2
+association-slope formula. Routes without a coverage campaign warn that the
+interval is experimental; they are not withheld.
+
+For an intercept-only association, `confint(object, type = "eta")` transforms
+the alpha interval to the bounded latent-association scale. For association
+regression, `predict(object, newdata = ..., type = "eta", se.fit = TRUE,
+interval = "confidence")` supplies pointwise delta-method eta standard errors
+and transformed confidence limits. These derived results inherit the alpha
+route's evidence tier; they do not add a new coverage or simultaneous-band
+claim.
+
+Within that surface, literal-Bernoulli x ordinary-NB2 with
+`association = ~ 1` is **inference-ready with caveats**. A 16-cell,
+16,000-attempt high-information campaign (`n = 480` or `960`) passed its
+predeclared bias, availability, SE-calibration, and coverage gates. This
+positive scoped evidence supports the stronger tier; it does not require
+unrestricted calibration over every possible dataset.
+
+The earlier lower-information campaign found five primary coverage failures
+driven by unavailable intervals. drmTMB therefore warns on lower-information
+fits and returns an interval only when the fit-specific covariance diagnostics
+pass. It does not manufacture bounds for an unstable or unresolved result.
+Simultaneous eta bands, profiles, random effects, missingness, weights,
+offsets, and REML remain outside this interval surface.
 
 ## Missing data
 

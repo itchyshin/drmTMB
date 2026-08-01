@@ -200,8 +200,14 @@ test_that("Gaussian x Bernoulli association fences unsupported public methods", 
   association_fit <- fits$association
 
   expect_snapshot(error = TRUE, rho12(association_fit))
-  expect_snapshot(error = TRUE, vcov(association_fit))
-  expect_snapshot(error = TRUE, confint(association_fit))
+  expect_warning(
+    expect_true(all(is.finite(vcov(association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    expect_true(all(is.finite(confint(association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
   expect_snapshot(error = TRUE, quantile(association_fit))
   expect_snapshot(error = TRUE, update(association_fit))
   expect_snapshot(error = TRUE, emmeans::recover_data(association_fit))

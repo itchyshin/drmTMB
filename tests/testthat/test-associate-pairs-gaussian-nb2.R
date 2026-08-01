@@ -295,12 +295,18 @@ test_that("Gaussian x ordinary-NB2 rejects malformed or unsupported NB2 margins"
   expect_error(construct(random_fit), "random or structured")
 })
 
-test_that("Gaussian x ordinary-NB2 association remains point-estimate only", {
+test_that("Gaussian x ordinary-NB2 association exposes experimental intervals", {
   fits <- fit_arc6_2_pair()
   association_fit <- fits$association
 
-  expect_error(vcov(association_fit), "unavailable")
-  expect_error(confint(association_fit), "unavailable")
+  expect_warning(
+    expect_true(all(is.finite(vcov(association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    expect_true(all(is.finite(confint(association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
   expect_error(profile(association_fit), "unavailable")
   expect_error(
     predict(association_fit, newdata = data.frame(x = 0)),

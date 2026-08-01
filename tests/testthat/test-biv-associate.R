@@ -22,7 +22,15 @@ test_that("biv_associate fits reviewed margins and preserves the staged contract
   expect_identical(one_call$stage, "two-stage frozen margins")
   expect_equal(one_call$eta, manual$eta, tolerance = 1e-7)
   expect_equal(one_call$logLik, manual$logLik, tolerance = 1e-7)
-  expect_error(vcov(one_call), "unavailable")
+  expect_warning(
+    one_call_vcov <- vcov(one_call),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    manual_vcov <- vcov(manual),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_equal(one_call_vcov, manual_vcov, tolerance = 1e-10)
 })
 
 test_that("biv_associate requires two marginal formulas and families", {

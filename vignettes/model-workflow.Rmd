@@ -163,7 +163,7 @@ standard deviations near zero, and random-effect design issues when random
 effects are present.
 
 If `check_drm()` flags `optimizer_convergence` or `fixed_gradient`, read
-[Improving convergence](convergence.html) for the full diagnostic table before
+[Errors, warnings, and convergence](convergence.html) for the full diagnostic table before
 trusting any estimate from that fit.
 
 `check_drm()` only checks that the optimizer behaved; it does not ask whether

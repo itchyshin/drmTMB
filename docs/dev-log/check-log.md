@@ -91913,3 +91913,82 @@ Shinichi grants a separate Gate A compute approval.
   inherited missing absolute paths into a historical DRM.jl worktree. B3
   records this baseline and does not alter the foreign dashboard/DRM.jl lane.
   See `docs/dev-log/after-task/2026-08-01-b3-q6-target-promotion.md`.
+
+## 2026-08-01: Arc 6 association public alpha intervals and reader-path repair
+
+- Released public alpha-scale two-stage Godambe `vcov()` and Wald `confint()`
+  for all five admitted frozen-margin association pair classes and the full
+  admitted Bernoulli x ordinary-NB2 fixed-effect association regression.
+- Added a separate six-cell association capability axis: five exact
+  `interval_feasible` cells and one Bernoulli x ordinary-NB2 intercept
+  `inference_ready_with_caveats` cell backed by the retained 16-cell F4R grid.
+  The failed lower-information F4 receipt remains retained as a warning and
+  availability caveat; no new compute was run.
+- The complete `associate-pairs` test family passed, all 46 capability-ledger
+  tests passed, all 30 generated ledger outputs checked current,
+  `pkgdown::build_site()` completed, and `pkgdown::check_pkgdown()` found no
+  problems.
+- The navigation audit now maps all 36 vignette sources to 36 unique navbar
+  targets. It restores the function map, rho12 and staged-association guides,
+  Errors/warnings, and the location-scale-scale Part 2 tutorial; it also fixes
+  misleading Julia/meta-analysis labels and user-versus-developer grouping.
+- The `associate_pairs()` and `biv_associate()` reference examples now execute
+  `sqrt(diag(vcov(assoc)))` and `confint(assoc)`, and a dedicated public
+  `vcov.drm_pair_association` reference page documents the alpha covariance.
+- Fisher, Pat, and Rose returned final PASS verdicts on the inference scope and
+  rebuilt reader surface. See
+  `docs/dev-log/after-task/2026-08-01-arc6-association-public-alpha-intervals.md`.
+
+## 2026-08-01: Arc 6 association eta uncertainty
+
+- Added `confint(assoc, type = "eta")` for intercept-only associations and
+  `predict(assoc, newdata = ..., type = "eta", se.fit = TRUE, interval =
+  "confidence")` for pointwise eta estimates, delta-method standard errors,
+  and monotonically transformed link-Wald limits.
+- The complete `associate-pairs` test family passed. Its first run caught two
+  message-only snapshots; the final rerun passed after preserving the existing
+  new-data error contract. Independent tests reproduce `sqrt(x' V_alpha x)`,
+  the eta derivative, and the transformed endpoints.
+- `devtools::document()` completed for the touched pages. A full
+  `pkgdown::build_site(new_process = FALSE)` and `pkgdown::check_pkgdown()`
+  passed; rendered articles and method references show both eta interfaces.
+- Capability ledger checks remain green: 46 Python tests passed and all 30
+  generated outputs are current. `git diff --check` and the after-task
+  structure validator passed.
+- Fisher returned PASS on the statistical transformation and evidence-tier
+  inheritance. Pat and Rose identified and then re-reviewed method examples,
+  constant-versus-varying reader guidance, current contract supersessions, and
+  rendered-site stale wording. See
+  `docs/dev-log/after-task/2026-08-01-arc6-association-eta-uncertainty.md`.
+
+## 2026-08-01: Function Map and location-scale reader-path repair
+
+- Repaired the remaining public article substance after the Arc 6 interval
+  implementation: the Function Map is a concise installed-user route chooser,
+  the full introduction owns the guided first fit, and Location-Scale Parts 1
+  and 2 now form one explicit sequence.
+- Part 2 now runs a clean `check_drm()` gate before inference, inventories the
+  residual- and group-SD targets, reports named Wald intervals with method and
+  status, transforms successful log-SD endpoints to SD-ratio intervals, and
+  keeps repeatability point-only.
+- Reorganized `_pkgdown.yml` so Getting Started, Location and Scale, and
+  Bivariate Models and Association are coherent; removed duplicate top-menu
+  destinations and isolated deferred Julia compatibility.
+- The article inventory has 36 entries, 36 unique targets, zero missing
+  sources, and zero unindexed vignettes. Full pkgdown build and
+  `pkgdown::check_pkgdown()` passed; rendered internal-link and public-only API
+  sweeps passed.
+- Pat caught a gradient warning in the first rendered Part 2 example. The
+  deterministic example was rerun with the same scientific design and now
+  reports 14/14 checks OK before interpretation. Pat and Rose returned final
+  PASS verdicts. See
+  `docs/dev-log/after-task/2026-08-01-reader-path-function-map-location-scale-part2.md`.
+- After rebasing onto current `origin/main`, all 30 generated capability outputs
+  remained current. One newly landed ledger test still expected the full
+  introduction to duplicate a zero-one-beta capability sentence; the guard now
+  verifies that the introduction delegates changing claims to the model map,
+  whose existing assertions retain the exact support check. All 47 ledger tests
+  pass on the rebased tree.
+- The complete post-rebase focused association suite passed 808/808 with zero
+  failures, warnings, or skips. A fresh full pkgdown build completed and
+  `pkgdown::check_pkgdown()` reported no problems.

@@ -28,10 +28,43 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
+        association = [row for row in self.cells if row["axis"] == "association"]
         # 687 = the 676 frozen census rows, mc-0260m, and ten C14 q2-plus
         # boundary leaves paired with the newly exact q1 structured leaves.
         self.assertEqual(len(model), 687)
         self.assertEqual(len(missing), 18)
+        self.assertEqual(len(association), 6)
+        by_association = {row["cell_id"]: row for row in association}
+        self.assertEqual(
+            by_association["as-0004"]["evidence_tier"],
+            "inference_ready_with_caveats",
+        )
+        self.assertEqual(by_association["as-0004"]["dpar"], "alpha")
+        self.assertEqual(
+            sum(
+                row["evidence_tier"] == "interval_feasible"
+                for row in association
+            ),
+            5,
+        )
+        self.assertEqual(
+            sum(
+                row["evidence_tier"] == "inference_ready_with_caveats"
+                for row in association
+            ),
+            1,
+        )
+        self.assertTrue(all(
+            row["capability_status"] == "implemented" for row in association
+        ))
+        self.assertTrue(all(
+            row["work_status"] == "verified" for row in association
+        ))
+        self.assertTrue(all(row["primary_evidence_id"] for row in association))
+        self.assertEqual(
+            ledger.TIER_ORDER[:3],
+            ["supported", "inference_ready_with_caveats", "interval_feasible"],
+        )
         self.assertEqual(
             {
                 row["family_route"]
@@ -1075,10 +1108,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["README.md"],
         )
         self.assertIn(
-            "zero-one beta fixed effects plus ordinary `mu` random intercepts",
+            "deliberately does not repeat\nthat changing capability ledger",
             surfaces["drmTMB.Rmd"],
         )
-        self.assertIn("exact slope cell is inference-ready with caveats", surfaces["drmTMB.Rmd"])
         self.assertNotIn("fixed-effect zero-one beta", surfaces["drmTMB.Rmd"])
         self.assertIn(
             "each has ordinary `mu` random intercepts and independent numeric slopes",
@@ -1356,7 +1388,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "diagnostic-only Student-t q1 `nu ~ phylo",
             "intercept-only `mu ~ spatial(1 | ...)`",
             "`mu ~ spatial(1 + x | ...)` is recovery-grade",
-            "Four tiers, defined once",
+            "Capability tiers, defined once",
             "fixed-`zi` Poisson",
             "diagnostic-only fixed-`zi` NB2",
         ):
