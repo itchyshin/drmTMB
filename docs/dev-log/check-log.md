@@ -2,6 +2,125 @@
 
 Record meaningful development checks here.
 
+## 2026-08-01: Missing-response scoped-evidence reader surface
+
+- Replaced the duplicated 18-card execution board with a compact generated
+  target-rung G4/G5 summary. Each per-family Missing response cell now retains
+  its honest route-wide G3 badge and adds its scoped G4 framework status plus
+  route-specific G5 calibration result (or `not run`/cancelled state): 295/306
+  G4-feasible records; 98/130 G5 calibration passes; 32 retained failures;
+  binomial 6/6. This prevents the G3 badge from hiding completed scoped evidence
+  without misrepresenting it as a route-wide G5 promotion.
+- `python3 tools/capability_ledger.py --write`, `--check`, focused generated-
+  surface unit test, and `git diff --check`: PASS.
+
+## 2026-08-01: Missing-response G4/G5 bounded closeout
+
+- The frozen remote manifest contains 18 routes and 102 targets. Its reconciled
+  G4 ledger has 306 target-rung records: 295 G4-feasible and 11 retained
+  non-eligible records. This makes the G4 framework ready for audited use; it
+  is not an all-target interval-feasibility claim.
+- Seven reconciled G5 artifacts cover eight cohorts and retain 156,000 planned
+  attempts. Of 130 exact cells, 98 pass `mr-g5-calibration-v1` and 32 fail.
+  Binomial is the only fully passing completed cohort (6/6); all public route
+  badges remain G3.
+- User-directed cancellation stopped Rorqual Beta array `18098606` after two
+  durable but unreconciled receipts. No later cohort was submitted. The durable
+  provenance inventory and hashes are in
+  `docs/dev-log/evidence/2026-08-01-mr-g4g5-bounded-closeout-receipt.md`.
+- `devtools::test(filter = "missing-response-g4g5-foundation")`: PASS.
+
+## 2026-08-01: Missing-response G5 NB2 cohort receipt
+
+- Reconciled 15 frozen NB2 target-rung cells and all 18,000 planned Rorqual
+  attempts from `~/g4g5/artifacts/g5-nbinom2-reconciled-v1.rds`. The durable
+  `mr-g4g5-v2` artifact records the runner, frozen manifest, G4 records, and
+  all 15 input-receipt hashes.
+- Ten exact route x target x information-rung cells pass
+  `mr-g5-calibration-v1`: all three `fixef:mu:(Intercept)` and `fixef:mu:x`
+  rungs; `fixef:sigma:(Intercept)` at 2x; `fixef:sigma:z` at 2x; and
+  `sd:mu:(1 | id)` at 2x. Their coverage is 0.93500--0.95417 with MCSE at
+  most 0.00712. These are positive scoped response-mask evidence for the
+  exact frozen cells.
+- Five cells fail because not every planned attempt produced a usable interval:
+  `fixef:sigma:(Intercept)` at 0.5x and 1x, `fixef:sigma:z` at 0.5x and 1x,
+  and `sd:mu:(1 | id)` at 0.5x and 1x. All failures remain in their
+  unconditional 1,200-attempt denominators. No route-wide capability or model
+  inference-tier claim is made from the partial cohort.
+
+## 2026-08-01: Missing-response G5 Student-t cohort receipt
+
+- Reconciled 16 frozen Student-t target-rung cells and all 19,200 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-student-reconciled-v1.rds`.
+- Three 2x cells pass `mr-g5-calibration-v1`: `fixef:mu:x`,
+  `fixef:sigma:z`, and `sd:mu:(1 | id)`. Thirteen cells fail; failures include
+  unusable intervals, fixed-intercept overcoverage, and the `nu` target's
+  0.81583 coverage with MCSE 0.01119. All attempts remain retained.
+- No test gate or inference tier is promoted; the frozen G3 design and public
+  G3 status remain unchanged.
+
+## 2026-07-31: Missing-response G5 lognormal cohort receipt
+
+- Reconciled 15 frozen lognormal target-rung cells and all 18,000 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-lognormal-reconciled-v1.rds`.
+- Eleven cells pass `mr-g5-calibration-v1`. The three fixed-`mu` intercept
+  rungs have coverage 1.000 and fail the policy band; the 0.5x `sd:mu:(1 | id)`
+  cell has one unusable interval and fails the all-interval-available rule.
+  All failures remain in their unconditional 1,200-attempt denominators.
+- No test gate or inference tier is promoted; the frozen G3 design and public
+  G3 status remain unchanged.
+
+## 2026-07-31: Missing-response G5 Gamma cohort receipt
+
+- Reconciled 15 frozen Gamma target-rung cells and all 18,000 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-gamma-reconciled-v1.rds`. Every cell has
+  its complete 1,200-attempt denominator and 1,200 usable intervals.
+- Twelve cells pass `mr-g5-calibration-v1`. The three
+  `fixef:mu:(Intercept)` information rungs have coverage 1.000 and fail the
+  predeclared 0.925--0.975 band; they are retained as calibration failures.
+- This is a cohort receipt only: frozen G3 settings are unchanged, failures
+  remain in the denominator, and no test gate or inference tier is promoted.
+
+## 2026-07-31: Missing-response dashboard active-campaign wording
+
+- Kept all 18 public route badges at G3: partial G4/G5 calibration receipts
+  cannot promote a route-level test gate or its separate model inference tier.
+- Replaced the reader-facing stale "outside this arc" next-step text with the
+  active G4/G5 campaign boundary: every frozen route x target needs
+  reconciliation and fresh D-43 review before promotion.
+- `python3 tools/capability_ledger.py --write --check` and the focused
+  generated-surface unit test: PASS.
+
+## 2026-07-31: Missing-response G5 binomial and Poisson cohort receipts
+
+- The retained binomial cohort contains all 7,200 planned attempts across six
+  frozen target-rung cells. Its profile-interval calibration rows all pass the
+  prospective `mr-g5-calibration-v1` rule (coverage 0.946--0.962; MCSE below
+  0.01). Durable artifact:
+  `~/g4g5/artifacts/g5-binomial-reconciled-v1.rds`.
+- The retained Poisson cohort contains all 10,800 planned attempts across nine
+  frozen target-rung cells. The three fixed-intercept rows have coverage 1.000
+  and fail calibration; the `sd:mu:(1 | id)` 0.5x row fails because two
+  intervals were unusable. The remaining five exact rows pass. Durable
+  artifact: `~/g4g5/artifacts/g5-poisson-reconciled-v1.rds`.
+- These are calibration receipts, not a capability promotion: no test gate or
+  inference tier changes here. All failed attempts and non-finite/unusable
+  intervals remain in the unconditional 1,200-attempt denominators.
+
+## 2026-07-31: Missing-response G5 route-cohort DRAC runner
+
+- Added a route selector that can only subset the frozen G4-feasible registry;
+  it preserves the original cell IDs and deterministic attempt seeds and errors
+  for an unknown route.
+- Added one explicit three-attempt DRAC receipt smoke and one full route-array
+  entry point. Both source the checked-out G4/G5 runner, write durable RDS
+  receipts, and leave the frozen G3 DGP, target, interval-method, and
+  all-attempt denominator contract untouched.
+- Focused `missing-response-g4g5-foundation` tests, R-script parsing, shell
+  syntax checks, and `git diff --check`: PASS. This is execution plumbing only:
+  no G5 calibration result, test-gate change, or inference-tier promotion is
+  claimed.
+
 ## 2026-07-28: Bivariate non-Gaussian bootstrap-output repair
 
 - Repaired the direct-lognormal `rho12` vignette's bootstrap presentation:
@@ -91723,6 +91842,27 @@ Shinichi grants a separate Gate A compute approval.
 - `R_PROFILE_USER=/dev/null R CMD build .` completed. The no-force-suggests installed-package check `NOT_CRAN=false _R_CHECK_FORCE_SUGGESTS_=false R CMD check --as-cran --no-manual drmTMB_0.6.0.tar.gz` completed with two pre-existing/environmental notes: unavailable optional `palmerpenguins` and `utils::head` missing from the namespace import list.
 - `pkgdown::check_pkgdown()` passed after adding the existing exported `predict.drm_pair_association` topic to the frozen-margin bivariate-association reference group.
 - Rose's claim audit required and then verified reconciliation of the current 18-route response-mask inventory, the unsupported-family message, and the historical 0.5.0 wording. A broad source suite was started and reached unrelated phase-18 contexts without failures, then intentionally stopped. PR #871 merged as `5e732894` on 2026-07-30 and automatically closed #865–#867; the focused suite and installed CRAN-safe suite remain the final evidence for this R claim-reconciliation arc.
+## 2026-07-31: MR-G5 Gaussian calibration policy and provenance receipt
+
+- The first reconciled G5 Gaussian/bivariate-Gaussian cohort remains
+  non-promotional. Its 54 cells retain all 64,800 planned attempts, but the
+  Gaussian `fixef:mu:(Intercept)` target has 3,600/3,600 containment across
+  its three rungs. This is recorded as a calibration failure, not discarded or
+  interpreted as inference evidence.
+- `mr-g5-calibration-v1` now requires complete all-attempt denominators,
+  all-attempt interval availability, MCSE <= 0.01, and prospective 0.925--0.975
+  coverage for every exact route x parameter x rung. The reconciler writes the
+  policy result plus hashes of the runner, frozen manifests, G4 records, and
+  all input receipts. No G3/G4/G5 test-gate or model inference-tier promotion
+  occurred.
+- Focused `missing-response-g4g5-foundation` tests passed under
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`, including direct
+  overcoverage-rejection and provenance-receipt regression tests.
+- Reconciliation on Rorqual under the existing G5 module/library environment
+  produced `g5-gaussian-reconciled-v2.rds`: 51/54 exact cells pass the
+  prospective policy and the three Gaussian fixed-intercept rungs fail. This
+  artifact is eligible only for later review; it does not promote a test gate
+  or inference tier.
 ## 2026-07-28: capability backlog taxonomy correction
 
 - Reclassified the 330 legacy `rejected_by_design` model-surface cells as

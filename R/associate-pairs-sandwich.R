@@ -256,7 +256,7 @@ drm_pair_sandwich_assemble <- function(
   scores <- do.call(cbind, score_blocks)
   block_sizes <- vapply(score_blocks, ncol, integer(1L))
   block_ends <- cumsum(block_sizes)
-  block_starts <- c(1L, head(block_ends, -1L) + 1L)
+  block_starts <- c(1L, utils::head(block_ends, -1L) + 1L)
   block_indices <- Map(seq.int, block_starts, block_ends)
   p_total <- sum(block_sizes)
   bread <- matrix(0, p_total, p_total)
