@@ -1,4 +1,8 @@
 runner_path <- testthat::test_path("..", "..", "tools", "run-arc6-bernoulli-nbinom2-f3-provenance-smoke.R")
+testthat::skip_if_not(
+  file.exists(runner_path),
+  "requires the development-only F3 provenance runner"
+)
 source(runner_path, local = TRUE)
 
 test_that("F3R accepts only its frozen CLI shape", {
