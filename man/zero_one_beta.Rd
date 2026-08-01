@@ -34,7 +34,12 @@ effect when the fixed and random terms use the same raw symbol, for example
 \code{coi ~ 1 + (1 | id)} with fixed \code{sigma ~ 1} and \code{zoi ~ 1}. These routes are
 point-fit recovery only:
 direct profiling, intervals, coverage, and broader recovery claims remain
-unavailable. Correlated or labelled effects, intercept-plus-slope \code{zoi}
+unavailable. In the retained \code{coi} recovery rung (\code{M = 64}, 50 observations
+per group), population-level point recovery remained stable when a few groups
+had fewer than two observed zeroes or ones, but those groups can have weakly
+identified conditional modes; inspect the within-group atom counts before
+interpreting individual modes. Correlated or
+labelled effects, intercept-plus-slope \code{zoi}
 effects, transformed or mismatched \code{zoi} slope symbols, \code{coi} slopes or
 structured effects,
 covariance blocks, and denominator syntax remain unsupported. One further
