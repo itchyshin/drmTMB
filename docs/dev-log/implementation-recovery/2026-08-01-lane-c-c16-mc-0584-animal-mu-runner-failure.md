@@ -10,6 +10,9 @@ Error in stats::cor(mode[names(sim$u)], sim$u) :
   supply both 'x' and 'y' or a matrix-like 'x'
 ```
 
-This is a runner-accounting failure, not a fitted-model result. The succeeding
-rerun must name the vector from `fit$model$structured$phylo_mu$node_labels`,
-retain all four resulting rows, and keep this event in the C16 audit trail.
+This is a runner-accounting failure, not a fitted-model result. The first
+repair named the fitted vector from
+`fit$model$structured$phylo_mu$node_labels`; a second rerun showed that the
+simulator also had to return its named true field. The succeeding rerun must
+retain all four resulting rows and keep both runner events in the C16 audit
+trail.

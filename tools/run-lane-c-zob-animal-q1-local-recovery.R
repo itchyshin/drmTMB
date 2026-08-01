@@ -12,7 +12,8 @@ new_data <- function(seed, n_group = 32L, n_each = 30L) {
   data$x <- data$x - ave(data$x, data$species, FUN = mean); data$x <- data$x / sd(data$x)
   mu <- plogis(-.10 + .35 * data$x + u[data$species]); boundary <- rbinom(nrow(data), 1, .12)
   data$y <- ifelse(boundary == 1, rbinom(nrow(data), 1, .45), rbeta(nrow(data), mu / .45^2, (1 - mu) / .45^2))
-  list(data = data, Ainv = Ainv, digest = digest::digest(list(Ainv = Ainv, x = data$x, y = data$y)))
+  list(data = data, Ainv = Ainv, u = u,
+    digest = digest::digest(list(Ainv = Ainv, x = data$x, y = data$y)))
 }
 
 run_one <- function(seed, source_sha, runner_sha) {
