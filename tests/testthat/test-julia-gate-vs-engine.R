@@ -185,6 +185,27 @@ test_that("Julia capability comparison artifact matches the registry", {
   expect_equal(binomial_row$r_bridge_status, "intentional_error")
   expect_match(binomial_row$claim_boundary, "#569")
 
+  # Hopper Phase 1.5 admitted trio (DRM.jl #5) — named, not a family expansion.
+  expect_true(all(
+    c(
+      "base_gaussian_location_scale",
+      "biv_gaussian_residual",
+      "gaussian_phylo_mean"
+    ) %in%
+      registry$capability_id
+  ))
+  phase15 <- drmTMB:::drm_julia_phase15_admitted_cells()
+  expect_setequal(
+    phase15$capability_id,
+    c(
+      "base_gaussian_location_scale",
+      "biv_gaussian_residual",
+      "gaussian_phylo_mean"
+    )
+  )
+  expect_true(all(phase15$claim_status %in% c("partial", "experimental")))
+  expect_false(any(phase15$r_bridge_status == "intentional_error"))
+
   for (capability_path in capability_paths) {
     artifact <- utils::read.delim(
       capability_path,

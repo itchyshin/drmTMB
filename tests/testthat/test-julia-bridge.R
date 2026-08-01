@@ -209,6 +209,75 @@ test_that("Julia bridge object exposes standard fitted-model methods", {
   )
 })
 
+test_that("Julia bivariate residual bridge exposes Hopper #5 result-shape methods", {
+  # Offline reconstruction of DRM.jl drm_bridge flatten keys for Route B —
+  # Gaussian biv residual rho12, no phylo. Live TMB parity stays in
+  # test-julia-tmb-parity.R (skips without JuliaCall).
+  n <- 6L
+  result <- list(
+    coef_names = c(
+      "mu1_(Intercept)",
+      "mu1_x",
+      "mu2_(Intercept)",
+      "mu2_x",
+      "sigma1_(Intercept)",
+      "sigma2_(Intercept)",
+      "rho12_(Intercept)"
+    ),
+    coefficients = c(0.1, 0.4, -0.1, 0.3, 0.0, 0.1, 0.2),
+    vcov = diag(7),
+    loglik = -20.5,
+    aic = 55,
+    bic = 56.5,
+    df = 7L,
+    nobs = n,
+    converged = TRUE,
+    fitted = list(mu1 = seq_len(n), mu2 = seq_len(n) + 0.5),
+    residuals = list(mu1 = rep(0.1, n), mu2 = rep(-0.1, n)),
+    sigma = list(sigma1 = rep(0.8, n), sigma2 = rep(0.9, n)),
+    corpairs = rep(tanh(0.2), n)
+  )
+  form <- bf(
+    mu1 = y1 ~ x,
+    mu2 = y2 ~ x,
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  dat <- data.frame(
+    y1 = seq_len(n),
+    y2 = seq_len(n) + 0.5,
+    x = seq_len(n)
+  )
+
+  fit <- drmTMB:::new_drmTMB_julia(
+    result = result,
+    call = quote(drmTMB(form, data = dat, family = biv_gaussian(), engine = "julia")),
+    formula = form,
+    family = biv_gaussian(),
+    data = dat,
+    family_type = "biv_gaussian"
+  )
+
+  expect_s3_class(fit, "drmTMB_julia")
+  expect_equal(fit$model$model_type, "biv_gaussian")
+  expect_equal(coef(fit, "mu1"), c("(Intercept)" = 0.1, x = 0.4))
+  expect_equal(coef(fit, "mu2"), c("(Intercept)" = -0.1, x = 0.3))
+  expect_equal(coef(fit, "sigma1"), c("(Intercept)" = 0.0))
+  expect_equal(coef(fit, "sigma2"), c("(Intercept)" = 0.1))
+  expect_equal(coef(fit, "rho12"), c("(Intercept)" = 0.2))
+  expect_equal(dim(stats::vcov(fit)), c(7L, 7L))
+  expect_equal(as.numeric(stats::logLik(fit)), -20.5)
+  expect_equal(stats::nobs(fit), n)
+  expect_true(is_converged(fit))
+  expect_equal(stats::fitted(fit)$mu1, seq_len(n))
+  expect_equal(stats::fitted(fit)$mu2, seq_len(n) + 0.5)
+  expect_equal(stats::residuals(fit)$mu1, rep(0.1, n))
+  expect_equal(stats::sigma(fit)$sigma1, rep(0.8, n))
+  expect_equal(stats::sigma(fit)$sigma2, rep(0.9, n))
+  expect_equal(rho12(fit), rep(tanh(0.2), n))
+})
+
 test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   tree <- structure(
     list(
