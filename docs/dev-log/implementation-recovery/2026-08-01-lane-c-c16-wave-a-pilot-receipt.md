@@ -20,7 +20,13 @@ transfer evidence to another provider, endpoint, or q-gate.
 | --- | --- | --- |
 | `mc-0583` | Four/ four source-pinned phylo-`mu` fits converged, had positive-definite Hessians, gradients below 0.01, non-boundary SDs, mode correlations above 0.90, and an unclamped fixed `log_sigma` range. | **BLOCKED from promotion** pending a retained fixed/IID comparator and current-source oracle command receipt. |
 | `mc-0593` | Four/ four source-pinned phylo-`sigma` fits pass convergence, Hessian, gradient, mode, support, clamp, boundary, and SD-error gates. The zero-SD run is retained as diagnostic-only. | **BLOCKED from promotion** pending explicit cell/endpoint/DGP metadata, unclamped-range record, fixed/IID comparator, and oracle command receipt. |
-| `mc-0584` | All four animal-`mu` attempts fail before fitting because the runner passes `Ainv` as a value rather than the required formula object name. | **BLOCKED local runner**; retain all four failures and repair only the formula-environment binding. |
+| `mc-0584` | Run 1 retained four formula-environment failures.  The narrowly repaired runner's Run 2 has four/ four passing fits at source `191961219`. | **BLOCKED from promotion** pending the same complete control/oracle receipt as the other leaves; the failed run remains in the denominator. |
+
+The other seven exact leaves also have source-pinned four/ four local passes:
+`mc-0585`–`mc-0587` (`mu`) and `mc-0594`–`mc-0597` (`sigma`).  Their raw
+receipts are retained separately.  This extends the local fixture evidence;
+it does not satisfy their individual source-equivalence, control, and fresh
+review gates.
 
 The pre-commit `mc-0583` smoke directory is retained but excluded: its source
 SHA precedes the runner commit.  The committed-source rerun is the only
@@ -40,4 +46,6 @@ coverage, or a q2-plus companion row.
 1. Add a current-source oracle-command receipt and fixed/IID controls for the
    two phylo leaves.
 2. Correct only the animal formula object binding; rerun all four attempts.
-3. Re-review each leaf independently before any ledger edit.
+3. Add current-source oracle-command receipts and matching fixed/IID controls
+   for every one of the ten exact leaves.
+4. Re-review each leaf independently before any ledger edit.
