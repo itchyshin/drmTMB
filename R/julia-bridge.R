@@ -241,7 +241,7 @@ drm_julia_capability_comparison <- function() {
       "https://github.com/itchyshin/drmTMB/issues/569"
     ),
     claim_boundary = c(
-      "Phase 1.5 Hopper admitted cell (Route C): offline result-shape + optional live TMB parity; CRAN readers still use TMB — vignette keeps Julia deferred/experimental.",
+      "Phase 1.5 Hopper admitted cell (Route C): offline result-shape + optional live TMB parity; CRAN readers still use TMB  -  vignette keeps Julia deferred/experimental.",
       "Phase 1.5 Hopper admitted cell (Route B): residual rho12 result-shape + optional live logLik parity; not a phylo or cross-family claim.",
       "Phase 1.5 Hopper admitted cell (Route A): first phylo-mean (sigma ~ 1) marshalling/result-shape + optional live TMB parity; not loc-scale phylo or non-Gaussian phylo.",
       "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
@@ -274,7 +274,7 @@ drm_julia_capability_comparison <- function() {
   )
 }
 
-# Hopper Phase 1.5 (#5 / DRM.jl twin) admitted cells only — not a family expansion list.
+# Hopper Phase 1.5 (#5 / DRM.jl twin) admitted cells only  -  not a family expansion list.
 drm_julia_phase15_admitted_cells <- function() {
   caps <- drm_julia_capability_comparison()
   caps[
@@ -392,7 +392,7 @@ drmTMB_julia_bridge <- function(
   # likelihood (Ayumi #2). The mean-only phylo Gaussian route (sigma ~ 1) and
   # the phylo-only families still return ML on the DRM.jl side, so warn and fit
   # ML rather than silently mislead. Bivariate q4 phylo
-  # (`biv_gaussian` with phylo on all four axes) IS now supported — DRM.jl's
+  # (`biv_gaussian` with phylo on all four axes) IS now supported  -  DRM.jl's
   # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
   # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
   reml_supported <- drm_julia_reml_supported(
@@ -1781,7 +1781,7 @@ drm_julia_profile_targets_biv <- function(object) {
   # Term label for the four axis rows. The phylo term shares ONE group across the
   # four axes; its rendered label ("phylo(1 | <group>)") is carried on the fit's
   # structured_sd_scales names, which the bridge populates on BOTH the live fit and
-  # the synthetic fixtures — so use that as the primary source. Fall back to the
+  # the synthetic fixtures  -  so use that as the primary source. Fall back to the
   # parsed formula's phylo group, then bp$group, then a literal. This labels the
   # confint() parm rows with the real grouping variable instead of "group".
   scales <- object$structured_sd_scales
@@ -2380,8 +2380,8 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
 # vectors: param ("sd_mu1", "sd_mu2", "sd_sigma1", "sd_sigma2"), lower, upper,
 # estimate, std_error (NaN for profile), bounded (profile only), status,
 # message, elapsed (scalar). We join by dpar: "sd_mu1" -> dpar "mu1", etc.
-# `upper` may be Inf on a flat/collapsed axis — left as-is, never coerced to NA.
-# `std_error` may be NaN for profile — ignored (only lower/upper matter).
+# `upper` may be Inf on a flat/collapsed axis  -  left as-is, never coerced to NA.
+# `std_error` may be NaN for profile  -  ignored (only lower/upper matter).
 drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   result <- as.list(result)
 
@@ -2429,7 +2429,7 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
         i = "Julia returned params: {.val {julia_params}}."
       ))
     }
-    # DRM.jl returns the among-axis SD bounds ALREADY on the SD scale (no exp() —
+    # DRM.jl returns the among-axis SD bounds ALREADY on the SD scale (no exp()  - 
     # that is the univariate log-SD convention), but on the RAW-Q scale (Q built
     # from raw branch lengths). To keep the CI on the same native (unit-height)
     # scale as the rescaled point estimate, multiply the bounds by the per-axis
