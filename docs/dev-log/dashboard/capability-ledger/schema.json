@@ -65,6 +65,7 @@
     "capability_status": [
       "implemented",
       "not_implemented",
+      "rejected_by_design",
       "scaffolded"
     ],
     "work_status": [
@@ -109,7 +110,7 @@
     ]
   },
   "expected_counts": {
-    "model_surface": 677,
+    "model_surface": 687,
     "missing_response": 18
   },
   "missing_response_verified_gate": "G3",

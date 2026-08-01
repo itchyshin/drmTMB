@@ -1,0 +1,13 @@
+seed	source_sha	runner_md5	status	error
+2026074001	1ec79267e9f30ea123912e3ff52b0fc78478aaab	a4d9cfd7b5b76825c4b393c00996322a	fit_error	Could not find phylogeny object tree.
+✖ `phylo()` terms use objects from the calling environment, for example
+  `phylo(1 | species, tree = tree)`.
+2026074002	1ec79267e9f30ea123912e3ff52b0fc78478aaab	a4d9cfd7b5b76825c4b393c00996322a	fit_error	Could not find phylogeny object tree.
+✖ `phylo()` terms use objects from the calling environment, for example
+  `phylo(1 | species, tree = tree)`.
+2026074003	1ec79267e9f30ea123912e3ff52b0fc78478aaab	a4d9cfd7b5b76825c4b393c00996322a	fit_error	Could not find phylogeny object tree.
+✖ `phylo()` terms use objects from the calling environment, for example
+  `phylo(1 | species, tree = tree)`.
+2026074004	1ec79267e9f30ea123912e3ff52b0fc78478aaab	a4d9cfd7b5b76825c4b393c00996322a	fit_error	Could not find phylogeny object tree.
+✖ `phylo()` terms use objects from the calling environment, for example
+  `phylo(1 | species, tree = tree)`.

@@ -1,0 +1,5 @@
+1ed48de1a07fd6c95360ac250b75075d6fd4bf02d9f9be99bd53165b9a3873ce  R/drmTMB.R
+4019d7708a6d82a90989d8eef7a340722421431fd25f71a4ac9ae3b4d1c20488  R/profile.R
+16b02702d454a5ad2b18c6c86918940afe0a22dd7554a73c67005f8b9af6ca35  src/drmTMB.cpp
+bf5dca3039cebc68542fcd0696313ab7d3e7bcbbe8eb8d0d29d977b30fe89a71  tests/testthat/test-count-structured-mu.R
+18b95fbe9f468f14a275943b9f3ce39b91f4c4b2803044c712202d4793d407d9  tools/run-lane-c-c2-poisson-provider-q2-local-recovery.R

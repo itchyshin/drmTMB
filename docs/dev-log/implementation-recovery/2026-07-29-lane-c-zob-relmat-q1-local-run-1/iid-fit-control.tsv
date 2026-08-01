@@ -1,0 +1,2 @@
+seed	status	tau_truth	tau_hat	convergence	pdHess	decision
+2026073199	fit_ok	0.55	0.51544364180732	0	TRUE	PASS_IID_FIT_CONTROL

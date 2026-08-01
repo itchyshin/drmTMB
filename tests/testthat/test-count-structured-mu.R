@@ -66,6 +66,189 @@ new_count_structured_mu_data <- function(
   )
 }
 
+nb2_phylo_q2_independent_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  u_phylo <- matrix(par$u_phylo, nrow = n_phylo)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u_phylo))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u_phylo[data$phylo_mu_node_index + 1L, k]
+  }
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  quadratic <- vapply(
+    seq_len(ncol(u_phylo)),
+    function(k) {
+      u <- u_phylo[, k]
+      sum(u * as.vector(data$Q_phylo %*% u))
+    },
+    numeric(1L)
+  )
+  prior <- sum(0.5 * (
+    n_phylo * log(2 * pi) + 2 * par$log_sd_phylo * n_phylo -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  ))
+  prior - sum(data$weights * stats::dnbinom(
+    data$y,
+    size = exp(-2 * log_sigma),
+    mu = exp(eta_mu),
+    log = TRUE
+  ))
+}
+
+nb2_phylo_q2_covariance_nll <- function(fit, par, rho = NULL) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  u_phylo <- matrix(par$u_phylo, nrow = n_phylo)
+  if (is.null(rho)) {
+    rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  }
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u_phylo))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u_phylo[data$phylo_mu_node_index + 1L, k]
+  }
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  Q_u <- lapply(seq_len(2L), function(k) {
+    as.vector(data$Q_phylo %*% u_phylo[, k])
+  })
+  q11 <- sum(u_phylo[, 1L] * Q_u[[1L]])
+  q12 <- sum(u_phylo[, 1L] * Q_u[[2L]])
+  q22 <- sum(u_phylo[, 2L] * Q_u[[2L]])
+  one_minus_rho2 <- 1 - rho^2
+  tau <- exp(par$log_sd_phylo)
+  quadratic <- (
+    q11 / tau[[1L]]^2 - 2 * rho * q12 / prod(tau) +
+      q22 / tau[[2L]]^2
+  ) / one_minus_rho2
+  prior <- 0.5 * (
+    2 * n_phylo * log(2 * pi) +
+      n_phylo * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
+      2 * data$log_det_Q_phylo + quadratic
+  )
+  prior - sum(data$weights * stats::dnbinom(
+    data$y,
+    size = exp(-2 * log_sigma),
+    mu = exp(eta_mu),
+    log = TRUE
+  ))
+}
+
+nb2_phylo_q2_central_gradient <- function(fn, par) {
+  vapply(
+    seq_along(par),
+    function(i) {
+      step <- 1e-6 * max(1, abs(par[[i]]))
+      plus <- minus <- par
+      plus[[i]] <- plus[[i]] + step
+      minus[[i]] <- minus[[i]] - step
+      (fn(plus) - fn(minus)) / (2 * step)
+    },
+    numeric(1L)
+  )
+}
+
+poisson_phylo_q2_independent_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  u_phylo <- matrix(par$u_phylo, nrow = n_phylo)
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u_phylo))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u_phylo[data$phylo_mu_node_index + 1L, k]
+  }
+  quadratic <- vapply(
+    seq_len(ncol(u_phylo)),
+    function(k) {
+      u <- u_phylo[, k]
+      sum(u * as.vector(data$Q_phylo %*% u))
+    },
+    numeric(1L)
+  )
+  prior <- sum(0.5 * (
+    n_phylo * log(2 * pi) + 2 * par$log_sd_phylo * n_phylo -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  ))
+  prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
+}
+
+poisson_phylo_q2_covariance_nll <- function(fit, par, rho = NULL) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  u_phylo <- matrix(par$u_phylo, nrow = n_phylo)
+  if (is.null(rho)) {
+    rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  }
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u_phylo))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u_phylo[data$phylo_mu_node_index + 1L, k]
+  }
+  Q_u <- lapply(seq_len(2L), function(k) {
+    as.vector(data$Q_phylo %*% u_phylo[, k])
+  })
+  q11 <- sum(u_phylo[, 1L] * Q_u[[1L]])
+  q12 <- sum(u_phylo[, 1L] * Q_u[[2L]])
+  q22 <- sum(u_phylo[, 2L] * Q_u[[2L]])
+  one_minus_rho2 <- 1 - rho^2
+  tau <- exp(par$log_sd_phylo)
+  quadratic <- (
+    q11 / tau[[1L]]^2 - 2 * rho * q12 / prod(tau) +
+      q22 / tau[[2L]]^2
+  ) / one_minus_rho2
+  prior <- 0.5 * (
+    2 * n_phylo * log(2 * pi) +
+      n_phylo * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
+      2 * data$log_det_Q_phylo + quadratic
+  )
+  prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
+}
+
+poisson_provider_q2_covariance_nll <- function(fit, par, precision, rho = NULL) {
+  data <- fit$model$tmb_data
+  n_level <- nrow(precision)
+  u <- matrix(par$u_phylo, nrow = n_level)
+  if (is.null(rho)) {
+    rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  }
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (k in seq_len(ncol(u))) {
+    eta_mu <- eta_mu + data$phylo_mu_value[, k] *
+      u[data$phylo_mu_node_index + 1L, k]
+  }
+  precision_u <- lapply(seq_len(2L), function(k) precision %*% u[, k])
+  q11 <- sum(u[, 1L] * precision_u[[1L]])
+  q12 <- sum(u[, 1L] * precision_u[[2L]])
+  q22 <- sum(u[, 2L] * precision_u[[2L]])
+  tau <- exp(par$log_sd_phylo)
+  one_minus_rho2 <- 1 - rho^2
+  quadratic <- (
+    q11 / tau[[1L]]^2 - 2 * rho * q12 / prod(tau) +
+      q22 / tau[[2L]]^2
+  ) / one_minus_rho2
+  log_det_precision <- as.numeric(determinant(precision, logarithm = TRUE)$modulus)
+  prior <- 0.5 * (
+    2 * n_level * log(2 * pi) +
+      n_level * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
+      2 * log_det_precision + quadratic
+  )
+  prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
+}
+
+poisson_provider_q2_independent_nll <- function(fit, par, precision) {
+  poisson_provider_q2_covariance_nll(fit, par, precision, rho = 0)
+}
+
+independent_spatial_precision <- function(coords, levels, jitter = 1e-6) {
+  xy <- as.matrix(coords[levels, seq_len(2L), drop = FALSE])
+  distances <- as.matrix(stats::dist(xy))
+  positive_distances <- distances[distances > 0]
+  range <- stats::median(positive_distances)
+  covariance <- exp(-distances / range)
+  diag(covariance) <- diag(covariance) + jitter
+  chol2inv(chol(covariance))
+}
+
 new_count_structured_mu_plus_ordinary_data <- function(
   seed = 2026070412,
   n_site = 8L,
@@ -119,6 +302,8 @@ new_count_structured_mu_slope_data <- function(
   n_each = 20L,
   sd_intercept = 0.25,
   sd_slope = 0.45,
+  rho_phylo = 0,
+  rho_provider = 0,
   sigma_nb2 = 0.20
 ) {
   set.seed(seed)
@@ -151,13 +336,17 @@ new_count_structured_mu_slope_data <- function(
   phylo_covariance <- drmTMB:::drm_phylo_tip_covariance(tree)
   phylo_covariance <- phylo_covariance[levels, levels]
 
-  draw_fields <- function(covariance) {
+  draw_fields <- function(covariance, rho = 0) {
     chol_covariance <- chol(covariance + diag(1e-8, nrow(covariance)))
+    z_intercept <- stats::rnorm(nrow(covariance))
+    z_slope <- rho * z_intercept + sqrt(1 - rho^2) * stats::rnorm(
+      nrow(covariance)
+    )
     intercept <- as.vector(
-      t(chol_covariance) %*% stats::rnorm(nrow(covariance), sd = sd_intercept)
+      t(chol_covariance) %*% z_intercept * sd_intercept
     )
     slope <- as.vector(
-      t(chol_covariance) %*% stats::rnorm(nrow(covariance), sd = sd_slope)
+      t(chol_covariance) %*% z_slope * sd_slope
     )
     names(intercept) <- rownames(covariance)
     names(slope) <- rownames(covariance)
@@ -165,9 +354,9 @@ new_count_structured_mu_slope_data <- function(
   }
 
   fields <- list(
-    phylo = draw_fields(phylo_covariance),
-    spatial = draw_fields(spatial_covariance),
-    known = draw_fields(K)
+    phylo = draw_fields(phylo_covariance, rho = rho_phylo),
+    spatial = draw_fields(spatial_covariance, rho = rho_provider),
+    known = draw_fields(K, rho = rho_provider)
   )
   beta_mu <- c(`(Intercept)` = 0.55, x = -0.15)
   eta <- list(
@@ -391,6 +580,59 @@ expect_count_structured_mu_slope_fit <- function(fit, type, group) {
   expect_true(attr(checks, "ok"))
 }
 
+expect_count_labelled_q2_profile_restriction <- function(
+  fit,
+  provider = "phylo",
+  group = "site"
+) {
+  target_names <- c(
+    paste0("sd:mu:", provider, "(1 | p | ", group, ")"),
+    paste0("sd:mu:", provider, "(0 + x | p | ", group, ")"),
+    paste0(
+      "cor:", provider, ":cor(mu:(Intercept),mu:x | p | ", group, ")"
+    )
+  )
+  targets <- profile_targets(fit)
+  restricted <- targets[match(target_names, targets$parm), , drop = FALSE]
+  expect_false(anyNA(restricted$parm))
+  expect_equal(
+    restricted$tmb_parameter,
+    c("log_sd_phylo", "log_sd_phylo", "eta_cor_phylo")
+  )
+  expect_equal(restricted$target_type, rep("direct", length(target_names)))
+  expect_false(any(restricted$profile_ready))
+  expect_equal(
+    restricted$profile_note,
+    rep("point_fit_only_count_q2", length(target_names))
+  )
+  expect_false(any(target_names %in% profile_targets(fit, ready_only = TRUE)$parm))
+  expect_error(
+    stats::confint(fit, parm = target_names[[1L]], method = "profile"),
+    "not ready for direct profiling"
+  )
+  expect_error(
+    stats::profile(fit, parm = target_names[[1L]]),
+    "not ready for direct profiling"
+  )
+  endpoint_called <- FALSE
+  testthat::local_mocked_bindings(
+    drm_profile_target_endpoint_confint = function(...) {
+      endpoint_called <<- TRUE
+      stop("endpoint profile must not start", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  endpoint <- stats::confint(
+    fit,
+    parm = target_names[[1L]],
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  expect_false(endpoint_called)
+  expect_equal(endpoint$conf.status, "profile_failed")
+  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+}
+
 expect_count_structured_mu_slope_only_fit <- function(fit, type, group) {
   label <- paste0(type, "(0 + x | ", group, ")")
   key <- paste0(type, "_mu")
@@ -456,6 +698,41 @@ test_that("Poisson mu supports q1 spatial, animal, and relmat intercepts", {
   expect_lt(max(abs(coef(fit_animal, "mu") - sim$beta_mu)), 0.45)
   expect_lt(max(abs(coef(fit_relmat, "mu") - sim$beta_mu)), 0.45)
 })
+
+expect_poisson_labelled_q2_provider_fit <- function(fit, provider, group) {
+  expected_correlation <- paste0(
+    "cor(mu:(Intercept),mu:x | p | ", group, ")"
+  )
+  structured <- fit$model$structured$phylo_mu
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(structured$type, provider)
+  expect_equal(structured$q, 2L)
+  expect_true(
+    drmTMB:::phylo_mu_has_labelled_mu_intercept_slope_q2(structured)
+  )
+  expect_equal(fit$model$tmb_data$has_phylo_mu_q2_covariance, 1L)
+  expect_false(is.factor(fit$model$map$eta_cor_phylo))
+  expect_named(
+    fit$sdpars$mu,
+    c(
+      paste0(provider, "(1 | p | ", group, ")"),
+      paste0(provider, "(0 + x | p | ", group, ")")
+    )
+  )
+  expect_named(fit$corpars[[provider]], expected_correlation)
+  expect_true(is.finite(unname(fit$corpars[[provider]][[expected_correlation]])))
+  expect_lt(abs(unname(fit$corpars[[provider]][[expected_correlation]])), 1)
+  par <- fit$obj$env$parList(fit$opt$par)
+  rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
+  expect_equal(
+    unname(fit$corpars[[provider]][[expected_correlation]]),
+    unname(rho_parameter),
+    tolerance = 1e-12
+  )
+  expect_true(is.finite(fit$obj$report()$rho_phylo))
+  expect_count_labelled_q2_profile_restriction(fit, provider, group)
+}
 
 test_that("nbinom2 mu supports q1 spatial, animal, and relmat intercepts", {
   sim <- new_count_structured_mu_data(seed = 2026052802)
@@ -562,6 +839,464 @@ test_that("Poisson and nbinom2 mu support one structured count slope", {
   expect_true(all(sigma(nb2_relmat) > 0))
 })
 
+test_that("Poisson phylo admits one labelled intercept-slope covariance block", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072811,
+    n_level = 16L,
+    n_each = 24L,
+    rho_phylo = 0.35
+  )
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree)),
+    family = stats::poisson(link = "log"),
+    data = sim$data,
+    control = list(eval.max = 900, iter.max = 900)
+  )
+
+  structured <- fit$model$structured$phylo_mu
+  expected_correlation <- "cor(mu:(Intercept),mu:x | p | site)"
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(structured$q, 2L)
+  expect_true(
+    drmTMB:::phylo_mu_has_labelled_mu_intercept_slope_q2(structured)
+  )
+  expect_equal(fit$model$tmb_data$has_phylo_mu_q2_covariance, 1L)
+  expect_false(is.factor(fit$model$map$eta_cor_phylo))
+  expect_named(
+    fit$sdpars$mu,
+    c("phylo(1 | p | site)", "phylo(0 + x | p | site)")
+  )
+  expect_named(fit$corpars$phylo, expected_correlation)
+  expect_true(is.finite(unname(fit$corpars$phylo[[expected_correlation]])))
+  expect_lt(abs(unname(fit$corpars$phylo[[expected_correlation]])), 1)
+  par <- fit$obj$env$parList(fit$opt$par)
+  rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
+  expect_equal(
+    unname(fit$corpars$phylo[[expected_correlation]]),
+    unname(rho_parameter),
+    tolerance = 1e-12
+  )
+  rho_report <- fit$obj$report()$rho_phylo
+  expect_true(is.finite(rho_report))
+  expect_count_labelled_q2_profile_restriction(fit)
+})
+
+test_that("Poisson phylo q2 covariance penalty matches the dense joint oracle", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072812,
+    n_level = 8L,
+    n_each = 8L,
+    rho_phylo = 0.30
+  )
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree)),
+    family = stats::poisson(link = "log"),
+    data = sim$data,
+    control = drm_control(se = FALSE)
+  )
+  full_obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  probe <- full_obj$par + seq(-0.04, 0.04, length.out = length(full_obj$par))
+  par <- full_obj$env$parList(probe)
+  expect_equal(
+    poisson_phylo_q2_covariance_nll(fit, par, rho = 0),
+    poisson_phylo_q2_independent_nll(fit, par),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    full_obj$fn(probe),
+    poisson_phylo_q2_covariance_nll(fit, par),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    as.numeric(full_obj$gr(probe)),
+    nb2_phylo_q2_central_gradient(full_obj$fn, probe),
+    tolerance = 4e-5
+  )
+  eta_index <- which(names(probe) == "eta_cor_phylo")
+  expect_length(eta_index, 1L)
+  rho_zero <- probe
+  rho_nonzero <- probe
+  rho_zero[[eta_index]] <- 0
+  rho_nonzero[[eta_index]] <- atanh(0.35 / 0.999999)
+  expect_gt(abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)), 1e-5)
+})
+
+test_that("NB2 phylo admits one labelled intercept-slope covariance block", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072801,
+    n_level = 16L,
+    n_each = 24L,
+    rho_phylo = 0.35
+  )
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree), sigma ~ 1),
+    family = nbinom2(),
+    data = sim$data,
+    control = list(eval.max = 900, iter.max = 900)
+  )
+
+  structured <- fit$model$structured$phylo_mu
+  expected_correlation <- "cor(mu:(Intercept),mu:x | p | site)"
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(structured$q, 2L)
+  expect_true(
+    drmTMB:::phylo_mu_has_labelled_mu_intercept_slope_q2(structured)
+  )
+  expect_equal(fit$model$tmb_data$has_phylo_mu_q2_covariance, 1L)
+  expect_false(is.factor(fit$model$map$eta_cor_phylo))
+  expect_named(
+    fit$sdpars$mu,
+    c("phylo(1 | p | site)", "phylo(0 + x | p | site)")
+  )
+  expect_named(fit$corpars$phylo, expected_correlation)
+  expect_true(is.finite(unname(fit$corpars$phylo[[expected_correlation]])))
+  expect_lt(abs(unname(fit$corpars$phylo[[expected_correlation]])), 1)
+  par <- fit$obj$env$parList(fit$opt$par)
+  rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
+  expect_equal(
+    unname(fit$corpars$phylo[[expected_correlation]]),
+    unname(rho_parameter),
+    tolerance = 1e-12
+  )
+  rho_report <- fit$obj$report()$rho_phylo
+  expect_true(is.finite(rho_report))
+  expect_count_labelled_q2_profile_restriction(fit)
+})
+
+test_that("NB2 phylo q2 covariance penalty matches the dense joint oracle", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072802,
+    n_level = 8L,
+    n_each = 8L,
+    rho_phylo = 0.30
+  )
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree), sigma ~ 1),
+    family = nbinom2(),
+    data = sim$data,
+    control = drm_control(se = FALSE)
+  )
+  full_obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  probe <- full_obj$par + seq(-0.04, 0.04, length.out = length(full_obj$par))
+  par <- full_obj$env$parList(probe)
+  expect_equal(
+    nb2_phylo_q2_covariance_nll(fit, par, rho = 0),
+    nb2_phylo_q2_independent_nll(fit, par),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    full_obj$fn(probe),
+    nb2_phylo_q2_covariance_nll(fit, par),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    as.numeric(full_obj$gr(probe)),
+    nb2_phylo_q2_central_gradient(full_obj$fn, probe),
+    tolerance = 4e-5
+  )
+  eta_index <- which(names(probe) == "eta_cor_phylo")
+  expect_length(eta_index, 1L)
+  rho_zero <- probe
+  rho_nonzero <- probe
+  rho_zero[[eta_index]] <- 0
+  rho_nonzero[[eta_index]] <- atanh(0.35 / 0.999999)
+  expect_gt(abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)), 1e-5)
+})
+
+test_that("NB2 labelled phylo covariance keeps non-C1 forms closed", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(n_level = 8L, n_each = 4L)
+  tree <- sim$tree
+  coords <- sim$coords
+  Q <- sim$Q
+  sim$data$z <- sim$data$x^2
+  sim$data$id <- factor(sim$data$id, levels = rownames(Q))
+  expect_error(
+    drmTMB(
+      bf(nb2_phylo ~ x + phylo(1 | p | site, tree = tree), sigma ~ 1),
+      family = nbinom2(),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(nb2_spatial ~ x + spatial(1 + x | p | site, coords = coords), sigma ~ 1),
+      family = nbinom2(),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(nb2_phylo ~ x + phylo(0 + x | p | site, tree = tree), sigma ~ 1),
+      family = nbinom2(),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        nb2_phylo ~ x + phylo(1 + x + z | p | site, tree = tree),
+        sigma ~ 1
+      ),
+      family = nbinom2(),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree) + (1 | id),
+        sigma ~ 1
+      ),
+      family = nbinom2(),
+      data = sim$data
+    ),
+    "cannot be combined"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree) +
+          spatial(1 | site, coords = coords),
+        sigma ~ 1
+      ),
+      family = nbinom2(),
+      data = sim$data
+    )
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree),
+        sigma ~ phylo(1 | species, tree = tree)
+      ),
+      family = nbinom2(),
+      data = sim$data
+    )
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree),
+        sigma ~ 1,
+        zi ~ 1
+      ),
+      family = nbinom2(),
+      data = sim$data
+    ),
+    "zero-inflated"
+  )
+})
+
+test_that("Poisson admits only the C2 labelled provider covariance cohort", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072908,
+    n_level = 16L,
+    n_each = 24L,
+    rho_provider = 0.35
+  )
+  tree <- sim$tree
+  coords <- sim$coords
+  Q <- sim$Q
+  sim$data$z <- sim$data$x^2
+  sim$data$id <- factor(sim$data$id, levels = rownames(Q))
+  expect_error(
+    drmTMB(
+      bf(poisson_phylo ~ x + phylo(1 | p | site, tree = tree)),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(poisson_phylo ~ x + phylo(0 + x | p | site, tree = tree)),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(poisson_phylo ~ x + phylo(1 + x + z | p | site, tree = tree)),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree) + (1 | id)
+      ),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "cannot be combined"
+  )
+  spatial_fit <- drmTMB(
+    bf(poisson_spatial ~ x + spatial(1 + x | p | site, coords = coords)),
+    family = stats::poisson(link = "log"),
+    data = sim$data,
+    control = list(eval.max = 900, iter.max = 900)
+  )
+  animal_fit <- drmTMB(
+    bf(poisson_known ~ x + animal(1 + x | p | id, Ainv = Q)),
+    family = stats::poisson(link = "log"),
+    data = sim$data,
+    control = list(eval.max = 900, iter.max = 900)
+  )
+  relmat_fit <- drmTMB(
+    bf(poisson_known ~ x + relmat(1 + x | p | id, Q = Q)),
+    family = stats::poisson(link = "log"),
+    data = sim$data,
+    control = list(eval.max = 900, iter.max = 900)
+  )
+  expect_poisson_labelled_q2_provider_fit(spatial_fit, "spatial", "site")
+  expect_poisson_labelled_q2_provider_fit(animal_fit, "animal", "id")
+  expect_poisson_labelled_q2_provider_fit(relmat_fit, "relmat", "id")
+  expect_error(
+    drmTMB(
+      bf(poisson_known ~ x + animal(1 + x + z | p | id, Ainv = Q)),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(poisson_known ~ x + relmat(0 + x | p | id, Q = Q)),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "implemented labelled covariance forms"
+  )
+  expect_error(
+    drmTMB(
+      bf(poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree), zi ~ 1),
+      family = stats::poisson(link = "log"),
+      data = sim$data
+    ),
+    "ordinary Poisson"
+  )
+})
+
+test_that("Poisson C2 provider q2 penalties match independent provider oracles", {
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072901,
+    n_level = 8L,
+    n_each = 8L,
+    rho_phylo = 0.30
+  )
+  dat <- sim$data
+  dat$id <- factor(dat$id)
+  coords <- sim$coords
+  Q <- sim$Q
+  inputs <- list(
+    spatial = list(
+      formula = bf(poisson_spatial ~ x + spatial(1 + x | p | site, coords = coords)),
+      response = "poisson_spatial",
+      precision = function(fit) {
+        independent_spatial_precision(
+          sim$coords,
+          fit$model$structured$phylo_mu$node_labels
+        )
+      }
+    ),
+    relmat = list(
+      formula = bf(poisson_known ~ x + relmat(1 + x | p | id, Q = Q)),
+      response = "poisson_known",
+      precision = function(fit) {
+        nodes <- fit$model$structured$phylo_mu$node_labels
+        unname(sim$Q[nodes, nodes, drop = FALSE])
+      }
+    ),
+    animal = list(
+      formula = bf(poisson_known ~ x + animal(1 + x | p | id, Ainv = Q)),
+      response = "poisson_known",
+      precision = function(fit) {
+        nodes <- fit$model$structured$phylo_mu$node_labels
+        unname(sim$Q[nodes, nodes, drop = FALSE])
+      }
+    )
+  )
+  for (provider in names(inputs)) {
+    fit <- drmTMB(
+      inputs[[provider]]$formula,
+      family = stats::poisson(link = "log"),
+      data = dat,
+      control = drm_control(se = FALSE)
+    )
+    full_obj <- TMB::MakeADFun(
+      data = fit$model$tmb_data,
+      parameters = fit$model$start,
+      map = fit$model$map,
+      DLL = "drmTMB",
+      silent = TRUE
+    )
+    probe <- full_obj$par + seq(-0.04, 0.04, length.out = length(full_obj$par))
+    par <- full_obj$env$parList(probe)
+    precision <- inputs[[provider]]$precision(fit)
+    expect_equal(
+      poisson_provider_q2_covariance_nll(fit, par, precision, rho = 0),
+      poisson_provider_q2_independent_nll(fit, par, precision),
+      tolerance = 1e-10,
+      info = provider
+    )
+    expect_equal(
+      full_obj$fn(probe),
+      poisson_provider_q2_covariance_nll(fit, par, precision),
+      tolerance = 1e-8,
+      info = provider
+    )
+    expect_equal(
+      as.numeric(full_obj$gr(probe)),
+      nb2_phylo_q2_central_gradient(full_obj$fn, probe),
+      tolerance = 4e-5,
+      info = provider
+    )
+    eta_index <- which(names(probe) == "eta_cor_phylo")
+    expect_length(eta_index, 1L)
+    rho_zero <- probe
+    rho_nonzero <- probe
+    rho_zero[[eta_index]] <- 0
+    rho_nonzero[[eta_index]] <- atanh(0.35 / 0.999999)
+    expect_gt(
+      abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)),
+      1e-5
+    )
+  }
+})
+
 test_that("count structured mu keeps planned neighboring routes closed", {
   sim <- new_count_structured_mu_data(n_level = 6L, n_each = 4L)
   dat <- sim$data
@@ -621,14 +1356,6 @@ test_that("count structured mu keeps planned neighboring routes closed", {
   expect_equal(labelled_target$tmb_parameter, "log_sd_phylo")
   expect_equal(labelled_target$target_type, "direct")
   expect_true(labelled_target$profile_ready)
-  expect_error(
-    drmTMB(
-      bf(poisson_spatial ~ x + spatial(1 + x | p | site, coords = coords)),
-      family = stats::poisson(link = "log"),
-      data = dat
-    ),
-    "unlabelled q=1"
-  )
   sim_plus_ordinary <- new_count_structured_mu_plus_ordinary_data()
   coords_plus_ordinary <- sim_plus_ordinary$coords
   fit_plus_ordinary <- drmTMB(

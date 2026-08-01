@@ -24,18 +24,20 @@ No spawned subagents were running for this planning slice.
 | 304 | p8/q8 location-scale planning | Completed as plan | Full location-scale slope covariance stays planned until endpoint labels, block size, parameterization, diagnostics, and interval policy are explicit. |
 | 305 | Structured q=4 parity plan | Completed as plan | Spatial, animal, and `relmat()` q=4 parity should move one structured level at a time with `corpairs()`, diagnostics, and simulation evidence. |
 | 306 | q=4 interval policy | Completed as plan | q=4 correlations remain derived-unavailable unless a direct or derived-profile method is designed, tested, and documented. |
-| 307 | Inflation and hurdle random-effect gate | Completed as no-fit decision, later updated by fixed-effect zero-one beta | `zi`, `hu`, `zoi`, and `coi` stay fixed-effect-only where implemented; random effects are not a near-term implementation target. |
+| 307 | Inflation and hurdle random-effect gate | Completed as no-fit decision, later superseded in part by the exact zero-one-beta q1 atom gate | `zi`, `hu`, and `coi` stay fixed-effect-only where implemented. The exact ordinary `zoi ~ 1 + (1 | id)` route is point-fit-only and not profile-ready; slopes, joint/covariant and structured forms, intervals, and coverage remain deferred. |
 | 308 | Non-Gaussian structured-dependence candidate map | Completed as plan | The next non-Gaussian structured-dependence step should pick one family and one dependence layer after ordinary likelihood, diagnostics, extractor, and simulation gates are clear. |
 | 309 | Implementation-map maintenance gate | Completed as process | After each substantial feature slice, update the implementation map, model-map, README, ROADMAP, NEWS, and stale-claim scans together. |
 | 310 | User-route examples for the map | Completed as plan | The map now points readers toward fitted alternatives rather than planned syntax when a richer requested model is not ready. |
 
 ## Slice 307 Decision
 
-Random effects in inflation, one-inflation, zero-one-inflation, and hurdle
-parameters are not needed for the near-term public surface. They are plausible
-future models, but they add a second latent process whose identifiability can
-be weak even before structural dependence is introduced. The current fitted
-route is fixed-effect modelling of these probability components:
+This historical no-fit decision is superseded only for the exact ordinary
+zero-one-beta `zoi ~ 1 + (1 | id)` q1 intercept, which is point-fit-only with a
+direct target unavailable to profiling. Random effects in `zi`, `hu`, `coi`,
+atom slopes, joint/covariant atom effects, and structured atom forms remain
+outside the near-term public surface: they add a second latent process whose
+identifiability can be weak even before structural dependence is introduced.
+The fixed-effect routes are:
 
 ```r
 zi ~ predictors
@@ -44,7 +46,7 @@ zoi ~ predictors
 coi ~ predictors
 ```
 
-The revisit gate for random effects in `zi`, `hu`, `zoi`, or `coi` should
+The revisit gate for random effects beyond that exact `zoi` q1 route should
 require:
 
 - a clear applied use case that fixed effects cannot answer;

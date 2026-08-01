@@ -28,9 +28,9 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        # 677 = the 676 frozen census rows + mc-0260m, the meta_V route row inserted
-        # 2026-07-25. An insert, not a promotion: no pre-existing cell changed tier.
-        self.assertEqual(len(model), 677)
+        # 687 = the 676 frozen census rows, mc-0260m, and ten C14 q2-plus
+        # boundary leaves paired with the newly exact q1 structured leaves.
+        self.assertEqual(len(model), 687)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -53,6 +53,62 @@ class CapabilityLedgerTests(unittest.TestCase):
             len(ledger.ADMITTED),
         )
 
+    def test_c14_boundary_restoration_is_source_pinned_and_non_promoting(self):
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+        source_ids = {
+            row["cell_id"] for row in ledger.c14_boundary_source_rows()
+        }
+        self.assertEqual(len(source_ids), ledger.C14_BOUNDARY_COUNT)
+        self.assertTrue(source_ids <= set(by_id))
+        self.assertFalse(any(
+            by_id[cell_id]["capability_status"] == "implemented"
+            for cell_id in source_ids
+        ))
+        for cell_id in source_ids:
+            row = by_id[cell_id]
+            self.assertEqual(row["capability_status"], "rejected_by_design")
+            self.assertEqual(row["work_status"], "deferred")
+            self.assertEqual(row["evidence_tier"], "none")
+
+    def test_c14_structured_zero_one_beta_leaves_preserve_q2plus_boundaries(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        self.assertEqual(len(ledger.C14_ZOB_LEAF_TAXONOMY), 10)
+        for index, (q1_id, q2plus_id) in enumerate(ledger.C14_ZOB_LEAF_TAXONOMY):
+            q1 = by_id[q1_id]
+            q2plus = by_id[q2plus_id]
+            self.assertEqual(q1["q_gate"], "q1")
+            self.assertEqual(q1["route_variant"], "c14_exact_q1_structured_intercept")
+            self.assertEqual(q1["capability_status"], "not_implemented")
+            self.assertEqual(q1["work_status"], "backlog")
+            self.assertEqual(q2plus["q_gate"], "q2plus")
+            self.assertEqual(q2plus["route_variant"], "c14_q2plus_structured_boundary")
+            self.assertEqual(q2plus["capability_status"], "rejected_by_design")
+            self.assertEqual(q2plus["work_status"], "deferred")
+            self.assertEqual(q2plus["source_order"], str(695 + index))
+            self.assertEqual(q1["dpar"], q2plus["dpar"])
+            self.assertEqual(q1["structure_provider"], q2plus["structure_provider"])
+
+    def test_c14_candidate_manifest_is_complete_and_source_resolved(self):
+        manifest = (
+            ROOT / "docs/dev-log/dashboard/capability-ledger/"
+            "c14-candidate-evidence-manifest.tsv"
+        )
+        with manifest.open(newline="", encoding="utf-8") as handle:
+            rows = list(csv.DictReader(handle, delimiter="\t"))
+        expected = {
+            "mc-0418", "mc-0425", "mc-0436", "mc-0446", "mc-0450", "mc-0454",
+            "mc-0568", "mc-0569", "mc-0576", "mc-0577",
+            "mc-0583", "mc-0584", "mc-0585", "mc-0586", "mc-0587",
+            "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+        }
+        self.assertEqual({row["cell_id"] for row in rows}, expected)
+        self.assertTrue(all((ROOT / row["retained_receipt"]).exists() for row in rows))
+        self.assertTrue(all(row["c14_decision"] for row in rows))
+
+    def test_c14_receipt_equivalence_keeps_raw_sources_separate(self):
+        ledger.check_c14_receipt_equivalence()
+
     def test_arc3a_cells_are_narrow_and_evidence_backed(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
@@ -60,8 +116,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
-             for status in ("implemented", "not_implemented")},
-            {"implemented": 308, "not_implemented": 369},
+             for status in ("implemented", "not_implemented", "rejected_by_design")},
+            {"implemented": 317, "not_implemented": 30, "rejected_by_design": 340},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -81,8 +137,8 @@ class CapabilityLedgerTests(unittest.TestCase):
             row = by_id[cell_id]
             self.assertEqual(row["route_variant"], "arc3a_beyond_intercept")
             self.assertEqual(row["q_gate"], "q2")
-            self.assertEqual(row["capability_status"], "not_implemented")
-            self.assertEqual(row["work_status"], "backlog")
+            self.assertEqual(row["capability_status"], "rejected_by_design")
+            self.assertEqual(row["work_status"], "deferred")
             self.assertEqual(row["evidence_tier"], "none")
             for excluded in ("slope", "labelled", "q2", "structured `sigma`", "simultaneous"):
                 self.assertIn(excluded, row["claim_boundary"])
@@ -103,20 +159,20 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
-             for status in ("implemented", "not_implemented")},
-            {"implemented": 308, "not_implemented": 369},
+             for status in ("implemented", "not_implemented", "rejected_by_design")},
+            {"implemented": 317, "not_implemented": 30, "rejected_by_design": 340},
         )
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 159 point_fit_recovery cells after the explicit C12 mc-0653
-        # promotion. Future changes require a named transition and evidence receipt;
+        # contains 165 point_fit_recovery cells after the explicit C12 mc-0653
+        # and six-cell count-tranche promotions. Future changes require a named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            159,
+            168,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -124,7 +180,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            160,
+            169,
         )
 
         c12 = by_id["mc-0653"]
@@ -178,8 +234,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         remainder = by_id["mc-0673"]
         self.assertEqual(remainder["route_variant"], "arc1b_s1_remaining_spatial_reml")
         self.assertEqual(remainder["estimator"], "REML")
-        self.assertEqual(remainder["capability_status"], "not_implemented")
-        self.assertEqual(remainder["work_status"], "backlog")
+        self.assertEqual(remainder["capability_status"], "rejected_by_design")
+        self.assertEqual(remainder["work_status"], "deferred")
         self.assertEqual(remainder["evidence_tier"], "none")
         self.assertIn("mc-0199` and `mc-0672", remainder["claim_boundary"])
         for rejected_neighbour in (
@@ -239,8 +295,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             remainder["route_variant"], "arc1b_s2r_remaining_relmat_reml"
         )
-        self.assertEqual(remainder["capability_status"], "not_implemented")
-        self.assertEqual(remainder["work_status"], "backlog")
+        self.assertEqual(remainder["capability_status"], "rejected_by_design")
+        self.assertEqual(remainder["work_status"], "deferred")
         self.assertEqual(remainder["evidence_tier"], "none")
         self.assertIn("`mc-0201` and `mc-0674`", remainder["claim_boundary"])
         self.assertEqual(
@@ -253,11 +309,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(
                 by_id[cell_id]["primary_evidence_id"], f"ev-{cell_id}-legacy"
             )
-        self.assertEqual(by_id["mc-0200"]["capability_status"], "not_implemented")
+        self.assertEqual(by_id["mc-0200"]["capability_status"], "rejected_by_design")
         for cell_id in ("mc-0199", "mc-0672"):
             self.assertEqual(by_id[cell_id]["structure_provider"], "spatial")
             self.assertEqual(by_id[cell_id]["evidence_tier"], "point_fit_recovery")
-        self.assertEqual(by_id["mc-0673"]["capability_status"], "not_implemented")
+        self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
 
     def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_not_implemented(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
@@ -297,8 +353,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         remainder = by_id["mc-0676"]
         self.assertEqual(remainder["route_variant"], "beta_phylo_remainder")
-        self.assertEqual(remainder["capability_status"], "not_implemented")
-        self.assertEqual(remainder["work_status"], "backlog")
+        self.assertEqual(remainder["capability_status"], "rejected_by_design")
+        self.assertEqual(remainder["work_status"], "deferred")
         self.assertEqual(remainder["evidence_tier"], "none")
         self.assertIn("mc-0017", remainder["claim_boundary"])
         self.assertEqual(
@@ -342,7 +398,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for route in ("gamma", "lognormal"):
             self.assertIn(
-                "`sigma`: int implemented / slope not implemented",
+                "`sigma`: int implemented / slope not currently supported",
                 rows[route]["Random (int/slope)"],
             )
 
@@ -352,6 +408,10 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             ledger._aggregate_state([status("not_implemented")]),
             "not implemented",
+        )
+        self.assertEqual(
+            ledger._aggregate_state([status("rejected_by_design")]),
+            "not currently supported",
         )
         self.assertEqual(
             ledger._aggregate_state([
@@ -385,7 +445,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             for row in ledger.family_map_rows(cells)
         }
         self.assertEqual(before["binomial"], after["binomial"])
-        self.assertIn("`mu`: not implemented", before["binomial"])
+        self.assertIn("`mu`: not currently supported", before["binomial"])
 
     def test_planning_class_keeps_unimplemented_work_visible(self):
         by_id = {row["cell_id"]: row for row in self.cells}
@@ -438,7 +498,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             if row["family_route"] == "gaussian"
         )
         self.assertIn(
-            "`mu`: scope-limited (implemented 8; not implemented 4)",
+            "`mu`: scope-limited (implemented 8; not currently supported 4)",
             gaussian["REML"],
         )
 
