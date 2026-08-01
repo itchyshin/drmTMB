@@ -38,7 +38,7 @@ The capability generator refreshed only the affected census, widget, bivariate-G
 
 ## 5. Checks Run
 
-Gate 1 ran the E0 readiness verifier, B2 exit-dossier validator and focused tests, independent serial audit, and mechanical four-receipt verifier in an isolated frozen snapshot. All passed. The imported B2 evidence is byte-identical to commit `574c1108e16e3b0fe4ba88e254a34673508db901` (24/24 files), including the authorization SHA-256 `e96cda2d7da3a301aa52866d8833e84c21831e727feb52635ad30487d04c336f`.
+Gate 1 ran the E0 readiness verifier, B2 exit-dossier validator and focused tests, independent serial audit, and mechanical four-receipt verifier in an isolated frozen snapshot. All passed. The 22 authorization/result artifacts and the audit runner remain byte-identical to commit `574c1108e16e3b0fe4ba88e254a34673508db901` (23/23 source-bound files), including the authorization SHA-256 `e96cda2d7da3a301aa52866d8833e84c21831e727feb52635ad30487d04c336f`. The focused R test retains the same six source-checkout assertions but now skips in a built source package, where `.Rbuildignore` intentionally excludes top-level `tools/`.
 
 On refreshed base `5ff94d86c534d21155d6b46740c48234420e0b79`:
 
@@ -46,11 +46,13 @@ On refreshed base `5ff94d86c534d21155d6b46740c48234420e0b79`:
 - `python3 -m unittest tools/tests/test_capability_ledger.py`: PASS, 46 tests;
 - `python3 -m unittest tools/tests/test_b3_q6_target_promotion.py`: PASS, 3 tests;
 - the independent serial audit: PASS, 4/4 receipts;
-- `tests/testthat/test-b2-q6-serial-proof-receipt-audit.R`: PASS, 6 expectations;
-- `git diff --check -- . ':(exclude).../supervisor-logs/*.log'`: PASS for every authored or generated B3 file and every imported TSV/script/test. The unscoped check reports historical trailing spaces in the four immutable supervisor logs; those bytes are retained deliberately so the 24/24 source-identity proof remains valid;
+- `tests/testthat/test-b2-q6-serial-proof-receipt-audit.R`: PASS, 6 expectations in a source checkout; expected SKIP in an extracted source tarball without top-level `tools/`;
+- `git diff --check -- . ':(exclude).../supervisor-logs/*.log'`: PASS for every authored or generated B3 file and every imported TSV/script/test. The unscoped check reports historical trailing spaces in the four immutable supervisor logs; those bytes are retained deliberately so the 23/23 immutable source-identity proof remains valid;
 - final lane preflight: no foreign Claude lane detected; this remains weak evidence, not proof of sole ownership.
 
 `python3 tools/validate-mission-control.py` and `python3 tools/qseries_v1_release_check.py --summary` remain red for 15 pre-existing absolute paths into the absent historical `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot` worktree. The same 15 errors were present on clean `origin/main` before B3; no B3 validation error is present. This lane did not alter those foreign DRM.jl/dashboard records.
+
+PR #879's first Ubuntu `R CMD check` run correctly exposed the source-package context error: the focused audit test attempted to source a top-level development tool that `.Rbuildignore` excludes. The repair follows the repository's established development-tool test pattern: assert all six expectations in a source checkout and skip only when the tool is absent from the built source package. An extracted-tarball rehearsal reproduced that expected skip before the repair was pushed.
 
 ## 6. Tests of the Tests
 

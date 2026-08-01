@@ -1,7 +1,11 @@
 test_that("q6 serial receipt audit derives the supervised result root", {
   root <- normalizePath(test_path("..", ".."), mustWork = TRUE)
+  audit_path <- file.path(root, "tools", "audit-b2-q6-serial-proof-cohort.R")
+  if (!file.exists(audit_path)) {
+    skip("Top-level tools are intentionally excluded from the source tarball")
+  }
   e <- new.env(parent = globalenv())
-  sys.source(file.path(root, "tools", "audit-b2-q6-serial-proof-cohort.R"), envir = e)
+  sys.source(audit_path, envir = e)
   auth <- file.path(root, "docs", "dev-log", "interval-campaign-bindings", "2026-07-31-b2-q6-proof-serial-approved-execution-authorization.tsv")
   out <- tempfile(fileext = ".tsv")
   audit <- e$b2_q6_audit_run(root, auth, out)
