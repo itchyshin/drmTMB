@@ -37,6 +37,7 @@ knitr::include_graphics("function-map-cheatsheet.png")
 | Decide whether the fit is interpretable | `check_drm()`, `summary()` | [Model workflow](model-workflow.html) |
 | Resolve an error, warning, or unstable fit | `check_drm()`, the original warning, and the fitted object | [Errors, warnings, and convergence](convergence.html) |
 | Extract a parameter or make a prediction table | `coef()`, `fixef()`, `predict_parameters()` | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) |
+| Study association between differently modelled paired outcomes | `biv_associate()`, `association()`, `vcov()`, `confint()` | [Association between outcome pairs](cross-family.html) |
 | Work with repeated, related, or spatially structured data | `ranef()`, `phylo()`, `spatial()`, `relmat()` | [Structural dependence overview](structural-dependence.html) |
 | Request an interval or profile a target | `confint()`, `profile_targets()`, `profile()` | [Checking and using fitted models](model-workflow.html) |
 | Fit when some values are missing | `miss_control()`, `mi()`, `imputed()` | [Handling missing data](missing-data.html) |
