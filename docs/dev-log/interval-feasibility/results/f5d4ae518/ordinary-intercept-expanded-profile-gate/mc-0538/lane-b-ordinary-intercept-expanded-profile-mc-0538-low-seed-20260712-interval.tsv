@@ -1,0 +1,2 @@
+cell_id	target_id	seed	execution_information_rung	profile_parameter	level	lower	upper	profile_engine
+mc-0538	mc-0538::sd:mu:(1 | id)	20260712	low	sd:mu:(1 | id)	0.95	0.488774258591605	0.809832481492265	tmbprofile
