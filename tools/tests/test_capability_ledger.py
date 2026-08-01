@@ -1108,10 +1108,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["README.md"],
         )
         self.assertIn(
-            "zero-one beta fixed effects plus ordinary `mu` random intercepts",
+            "deliberately does not repeat\nthat changing capability ledger",
             surfaces["drmTMB.Rmd"],
         )
-        self.assertIn("exact slope cell is inference-ready with caveats", surfaces["drmTMB.Rmd"])
         self.assertNotIn("fixed-effect zero-one beta", surfaces["drmTMB.Rmd"])
         self.assertIn(
             "each has ordinary `mu` random intercepts and independent numeric slopes",

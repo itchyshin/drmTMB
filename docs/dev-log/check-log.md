@@ -91983,3 +91983,12 @@ Shinichi grants a separate Gate A compute approval.
   reports 14/14 checks OK before interpretation. Pat and Rose returned final
   PASS verdicts. See
   `docs/dev-log/after-task/2026-08-01-reader-path-function-map-location-scale-part2.md`.
+- After rebasing onto current `origin/main`, all 30 generated capability outputs
+  remained current. One newly landed ledger test still expected the full
+  introduction to duplicate a zero-one-beta capability sentence; the guard now
+  verifies that the introduction delegates changing claims to the model map,
+  whose existing assertions retain the exact support check. All 47 ledger tests
+  pass on the rebased tree.
+- The complete post-rebase focused association suite passed 808/808 with zero
+  failures, warnings, or skips. A fresh full pkgdown build completed and
+  `pkgdown::check_pkgdown()` reported no problems.

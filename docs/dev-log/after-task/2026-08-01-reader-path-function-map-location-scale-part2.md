@@ -78,6 +78,12 @@ interval for repeatability.
 - `git diff --check`: PASS.
 - Pat final rendered reader-path review: PASS.
 - Rose final navigation and consistency audit: PASS.
+- Post-rebase capability-ledger tests: 47/47 PASS after updating one stale
+  assertion so the model map, rather than the full introduction, owns changing
+  zero-one-beta capability wording.
+- Post-rebase complete focused association suite: 808/808 PASS with zero
+  failures, warnings, or skips.
+- Post-rebase full pkgdown build and `pkgdown::check_pkgdown()`: PASS.
 
 ## 6. Tests of the Tests
 
@@ -131,8 +137,14 @@ the example was rerun and rebuilt before final review.
 A broad `devtools::test()` run was also started, but it was intentionally
 stopped after the already-relevant association contexts had continued to pass;
 running the entire model-surface suite was disproportionate for a documentation-
-only diff. The rendered examples, prior complete association suite at this
-branch head, and documentation-specific checks are the acceptance evidence.
+only diff. The rendered examples, post-rebase complete focused association
+suite, and documentation-specific checks are the acceptance evidence.
+
+Rebasing onto current `origin/main` surfaced a newly landed ledger test that
+required the full introduction to repeat a capability sentence. The assertion
+was moved to the repaired ownership contract: the introduction must delegate
+changing capability claims, while existing model-map assertions continue to
+guard the exact zero-one-beta support.
 
 ## 10. Known Residuals
 
