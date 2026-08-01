@@ -2041,17 +2041,45 @@ Pr(y_i = 1) = zoi_i coi_i
 Pr(0 < y_i < 1) = 1 - zoi_i
 eta_mu_i = X_mu[i, ] beta_mu
 eta_sigma_i = X_sigma[i, ] beta_sigma
-eta_zoi_i = X_zoi[i, ] beta_zoi
+eta_zoi_i = X_zoi[i, ] beta_zoi + Z_zoi[i, ] diag(sd_zoi) u_zoi
 eta_coi_i = X_coi[i, ] beta_coi
-mu_i = logit^{-1}(eta_mu_i)
+sd_zoi_j = exp(log_sd_zoi_j)
+u_zoi ~ Normal(0, I)
+mu_raw_i = logit^{-1}(eta_mu_i)
+mu_i = epsilon_mu + (1 - 2 epsilon_mu) mu_raw_i
 sigma_i = exp(eta_sigma_i)
 zoi_i = logit^{-1}(eta_zoi_i)
 coi_i = logit^{-1}(eta_coi_i)
 phi_i = 1 / sigma_i^2
-alpha_i = mu_i phi_i
-beta_i = (1 - mu_i) phi_i
+alpha_i = max(mu_i phi_i, epsilon_shape)
+beta_i = max((1 - mu_i) phi_i, epsilon_shape)
 E[y_i] = (1 - zoi_i) mu_i + zoi_i coi_i
 ```
+
+Here `epsilon_mu = 1e-12` and `epsilon_shape = 1e-8` are numerical guards in
+the fitted likelihood, not changes to the public mean-scale parameterization.
+The existing optional log-`sigma` soft clamp, when enabled, is applied before
+`sigma_i = exp(eta_sigma_i)`. For the exact `mc-0577` route,
+`Z_zoi[i, ] = x_i`, there is one grouping factor `id`, and
+
+```text
+eta_zoi_i = X_zoi[i, ] beta_zoi + x_i sd_zoi u_zoi,id[i]
+sd_zoi = exp(log_sd_zoi)
+u_zoi,g independently ~ Normal(0, 1).
+```
+
+The recovery runner calls this natural-scale standard deviation `tau`; thus
+`tau` and `sd_zoi` name the same estimand. Under ML, TMB treats `u_zoi` as a
+random parameter and uses its Laplace approximation to the marginal likelihood
+
+```text
+L_marginal(beta, log_sd_zoi) =
+  integral [product_i Pr(y_i | u_zoi) ^ weight_i]
+           phi(u_zoi; 0, I) du_zoi.
+```
+
+No Jacobian is added for `sd_zoi u_zoi`: this is the fitted non-centred
+Gaussian representation, with the standard-normal density included explicitly.
 
 The TMB likelihood is:
 
