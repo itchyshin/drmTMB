@@ -50,11 +50,29 @@ C14_ZOB_LEAF_TAXONOMY_SOURCE = (
 )
 C14_RECEIPT_EQUIVALENCE = LEDGER / "c14-receipt-equivalence.tsv"
 C14_RECEIPT_EQUIVALENCE_TARGET = "e58d77119c3562cdfcede3191f2482b38b30f4af"
+C14_RECEIPT_EQUIVALENCE_FINGERPRINT = (
+    "854d09453a44610c4d699bbb442331634b93852c2aecd024e45892904052470b"
+)
 C14_RECEIPT_EQUIVALENCE_PATHS = (
     "R/drmTMB.R::zero_one_beta_spec",
     "R/drmTMB.R::zero_one_beta_start_and_map",
     "R/drmTMB.R::zero_one_beta_tmb_and_extractors",
     "src/drmTMB.cpp::model_type_15",
+)
+C17C1_C14_CURRENT_SOURCE_COMPATIBILITY = (
+    LEDGER / "c17c1-c14-current-source-compatibility.tsv"
+)
+C17C1_C14_COMPATIBLE_SEEDS = {
+    "mc-0568": {str(seed) for seed in range(2026073401, 2026073405)},
+    "mc-0569": {str(seed) for seed in range(2026073501, 2026073505)},
+    "mc-0576": {str(seed) for seed in range(2026073701, 2026073705)},
+}
+C17C1_C14_SOURCE_FILES = (
+    "R/drmTMB.R",
+    "R/methods.R",
+    "src/drmTMB.cpp",
+    "tests/testthat/test-zero-one-beta.R",
+    "tools/run-lane-c-c17c1-c14-model15-compatibility.R",
 )
 
 DATE = "2026-07-14"
@@ -731,6 +749,9 @@ def check_c14_receipt_equivalence() -> None:
     if ids != expected_ids or len(rows) != len(expected_ids):
         raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
     current_fingerprint = c14_model15_source_fingerprint()
+    c17c1_bridge = current_fingerprint != C14_RECEIPT_EQUIVALENCE_FINGERPRINT
+    if c17c1_bridge:
+        check_c17c1_c14_current_source_compatibility(current_fingerprint)
     eligible_ids = set()
     for row in rows:
         if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
@@ -746,8 +767,8 @@ def check_c14_receipt_equivalence() -> None:
             raise SystemExit(
                 f"{row['cell_id']}: manifest SHA does not match its raw attempts receipt"
             )
-        if row["target_fingerprint"] != current_fingerprint:
-            raise SystemExit(f"{row['cell_id']}: C14 target fingerprint differs")
+        if row["target_fingerprint"] != C14_RECEIPT_EQUIVALENCE_FINGERPRINT:
+            raise SystemExit(f"{row['cell_id']}: immutable C14 target fingerprint differs")
         eligible = row["equivalence_eligible"] == "TRUE"
         source_matches = row["source_fingerprint"] == row["target_fingerprint"]
         if eligible and not source_matches:
@@ -762,8 +783,115 @@ def check_c14_receipt_equivalence() -> None:
         raise SystemExit("C14 receipt equivalence has an unexpected eligible cell set")
     print(
         f"C14 receipt equivalence: OK ({len(eligible_ids)} eligible, "
-        f"{len(rows) - len(eligible_ids)} source-different retained receipts)"
+        f"{len(rows) - len(eligible_ids)} source-different retained receipts"
+        + ("; C17-C1 current-source compatibility PASS" if c17c1_bridge else "")
+        + ")"
     )
+
+
+def check_c17c1_c14_current_source_compatibility(
+    current_fingerprint: str,
+) -> None:
+    """Authenticate C17-C1's narrow current-source bridge for C14 receipts.
+
+    The historical C14 target and raw receipts stay immutable. This bridge
+    accepts only the separately authenticated C17-C1 model-15 fingerprint and
+    only when all retained attempts for the three previously promoted ordinary
+    routes pass with the new ``coi`` carrier inert.
+    """
+    rows = read_tsv(C17C1_C14_CURRENT_SOURCE_COMPATIBILITY)
+    expected_ids = set(C17C1_C14_COMPATIBLE_SEEDS)
+    if len(rows) != len(expected_ids) or {row["cell_id"] for row in rows} != expected_ids:
+        raise SystemExit(
+            "C17-C1 compatibility manifest must name exactly mc-0568, "
+            "mc-0569, and mc-0576"
+        )
+
+    expected_paths = ";".join(C14_RECEIPT_EQUIVALENCE_PATHS)
+    expected_source_files = ";".join(C17C1_C14_SOURCE_FILES)
+    runner_path = ROOT / C17C1_C14_SOURCE_FILES[-1]
+    runner_hash = hashlib.sha256(runner_path.read_bytes()).hexdigest()
+
+    for row in rows:
+        cell_id = row["cell_id"]
+        if row["compared_paths"] != expected_paths:
+            raise SystemExit(f"{cell_id}: wrong C17-C1 compatibility path set")
+        if row["source_fingerprint"] != current_fingerprint:
+            raise SystemExit(f"{cell_id}: current model-15 fingerprint differs")
+        if row["source_files"] != expected_source_files:
+            raise SystemExit(f"{cell_id}: wrong C17-C1 authenticated source-file set")
+        if (
+            row["attempts"] != "4"
+            or row["passed"] != "4"
+            or row["compatibility_result"] != "PASS_CURRENT_SOURCE_COMPATIBILITY"
+        ):
+            raise SystemExit(f"{cell_id}: current-source compatibility did not pass 4/4")
+        if runner_hash != row["runner_sha256"]:
+            raise SystemExit(f"{cell_id}: committed compatibility runner differs")
+
+        raw_path = ROOT / row["raw_attempts_path"]
+        provenance_path = ROOT / row["provenance_path"]
+        summary_path = ROOT / row["summary_path"]
+        if not all(path.is_file() for path in (raw_path, provenance_path, summary_path)):
+            raise SystemExit(f"{cell_id}: C17-C1 compatibility receipt is unavailable")
+
+        provenance = {
+            item["key"]: item["value"] for item in read_tsv(provenance_path)
+        }
+        if provenance.get("run_status") != "COMPLETE":
+            raise SystemExit(f"{cell_id}: C17-C1 compatibility run is incomplete")
+        if provenance.get("source_sha") != row["current_source_sha"]:
+            raise SystemExit(f"{cell_id}: compatibility source SHA differs")
+        if provenance.get("runner_sha256") != row["runner_sha256"]:
+            raise SystemExit(f"{cell_id}: compatibility runner hash differs")
+        for source_file in C17C1_C14_SOURCE_FILES:
+            blob = subprocess.run(
+                ["git", "hash-object", source_file],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            if provenance.get(f"git_blob:{source_file}") != blob:
+                raise SystemExit(f"{cell_id}: current source blob differs for {source_file}")
+
+        raw_rows = [
+            item for item in read_tsv(raw_path) if item["cell_id"] == cell_id
+        ]
+        if (
+            len(raw_rows) != 4
+            or {item["seed"] for item in raw_rows}
+            != C17C1_C14_COMPATIBLE_SEEDS[cell_id]
+        ):
+            raise SystemExit(f"{cell_id}: compatibility seed set differs")
+        for attempt in raw_rows:
+            passed = (
+                attempt["source_sha"] == row["current_source_sha"]
+                and attempt["runner_sha256"] == row["runner_sha256"]
+                and attempt["status"] == "fit_ok"
+                and attempt["convergence"] == "0"
+                and attempt["pdHess"] == "TRUE"
+                and float(attempt["max_gradient"]) <= 0.01
+                and attempt["boundary_hit"] == "FALSE"
+                and attempt["support_gate"] == "TRUE"
+                and float(attempt["mode_correlation"]) > 0.45
+                and attempt["n_coi_re_terms"] == "0"
+                and attempt["error"] == "none"
+            )
+            if not passed:
+                raise SystemExit(f"{cell_id}: a compatibility attempt fails its contract")
+
+        summary = [
+            item for item in read_tsv(summary_path) if item["cell_id"] == cell_id
+        ]
+        if (
+            len(summary) != 1
+            or summary[0]["attempts"] != "4"
+            or summary[0]["passed"] != "4"
+            or summary[0]["decision"] != "PASS_CURRENT_SOURCE_COMPATIBILITY"
+            or float(summary[0]["mean_tau_relative_error"]) > 0.40
+        ):
+            raise SystemExit(f"{cell_id}: compatibility summary does not pass")
 
 
 def c14_model15_source_fingerprint() -> str:

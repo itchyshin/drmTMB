@@ -117,6 +117,23 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_c14_receipt_equivalence_keeps_raw_sources_separate(self):
         ledger.check_c14_receipt_equivalence()
 
+    def test_c17c1_c14_bridge_is_current_source_and_fail_closed(self):
+        current = ledger.c14_model15_source_fingerprint()
+        ledger.check_c17c1_c14_current_source_compatibility(current)
+
+        original = ledger.C17C1_C14_CURRENT_SOURCE_COMPATIBILITY
+        with tempfile.TemporaryDirectory() as directory:
+            tampered = Path(directory) / "compatibility.tsv"
+            rows = ledger.read_tsv(original)
+            rows[0]["passed"] = "3"
+            tampered.write_bytes(ledger.tsv_bytes(list(rows[0]), rows))
+            ledger.C17C1_C14_CURRENT_SOURCE_COMPATIBILITY = tampered
+            try:
+                with self.assertRaisesRegex(SystemExit, "did not pass 4/4"):
+                    ledger.check_c17c1_c14_current_source_compatibility(current)
+            finally:
+                ledger.C17C1_C14_CURRENT_SOURCE_COMPATIBILITY = original
+
     def test_c17b_promotes_only_the_exact_same_symbol_zoi_slope(self):
         by_id = {row["cell_id"]: row for row in self.cells}
         row = by_id["mc-0577"]
@@ -184,7 +201,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             (ROOT / "tools/check-lane-c-c17c1-support-floor-attainability.R").is_file()
         )
         self.assertIn(
-            "strict current-source C14 landing guard remains pending explicit permission",
+            "strict current-source C14 landing guard accepts only the separate",
             evidence["ev-mc-0570-c17c1-compatibility"]["claim_boundary"],
         )
 

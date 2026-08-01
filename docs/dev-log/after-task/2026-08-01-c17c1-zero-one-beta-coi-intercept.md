@@ -66,14 +66,16 @@ sentences are recorded below rather than silently widening this task.
   code. The four evidence pointers were updated, and the focused
   `estimator-surface-conformance` rerun passed.
 - `python3 tools/capability_ledger.py --check`: pass, 30 generated outputs.
-- `python3 -m unittest tools.tests.test_capability_ledger`: 47 tests pass; the
-  sole remaining error is the intentionally unchanged strict C14 fingerprint
-  guard (`mc-0568: C14 target fingerprint differs`).
-- `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: same
-  expected pending-authorization error.
+- `python3 -m unittest tools.tests.test_capability_ledger`: pass, including a
+  tamper test for the narrow C17-C1 current-source C14 bridge.
+- `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: pass.
+  The immutable C14 receipt and fingerprint remain unchanged; the checker
+  accepts the new model-15 fingerprint only when the separate three-cell,
+  12-attempt current-source compatibility manifest passes.
 - The 12/12 authenticated C14 model-15 compatibility receipt remains retained
-  and fingerprint-equivalent for the relevant source files. It is evidence,
-  not a claim that the persistent strict landing guard has been changed.
+  and fingerprint-equivalent for the relevant source files. The strict guard
+  consumes this separate current-source evidence without rewriting the
+  immutable historical C14 receipt or fingerprint.
 
 `devtools::check(args = "--no-manual", error_on = "never")` compiled and
 installed the package, built vignettes, and passed documentation, examples,
@@ -133,9 +135,11 @@ probability only 0.3700719. Shinichi therefore authorized promotion with a
 sample-information warning. Historical M=32 boundary failure and all sparse-
 support attempts remain retained.
 
-The existing C14 equivalence checker also rejects the new model-15 fingerprint.
-Two attempted guard edits were stopped by the safety review. The guard remains
-unchanged pending explicit authorization of the exact compatibility bridge.
+The existing C14 equivalence checker initially rejected the new model-15
+fingerprint. After explicit owner authorization, the landing guard gained a
+narrow fail-closed bridge: it preserves the immutable C14 fingerprint and
+accepts the C17-C1 fingerprint only when the separate authenticated 12/12
+current-source compatibility receipt passes.
 
 ## Team Learning
 
@@ -157,19 +161,15 @@ weakly identified conditional modes, so users should inspect within-group atom
 counts before interpreting individual modes. No interval, coverage, robustness,
 or broad family-level claim follows.
 
-The strict C14 landing guard is unresolved. Formula-grammar and likelihood
-design wording is intentionally deferred. The shared check log is deferred
-until PR #869 lands or closes.
+Formula-grammar and likelihood-design wording is intentionally deferred. The
+shared check log is deferred until PR #869 lands or closes.
 
 ## Next Actions
 
-1. Obtain explicit permission, if desired, for the strict C17-C1 C14
-   current-source compatibility bridge while keeping the immutable C14 receipt
-   and fingerprint unchanged.
-2. Obtain a fresh Rose landing reread after the overlapping foreign PRs are
+1. Obtain a fresh Rose landing reread after the overlapping foreign PRs are
    integrated from canonical `main`.
-3. Open a focused PR, require CI green on one unchanged head SHA, and request
+2. Open a focused PR, require CI green on one unchanged head SHA, and request
    fresh merge authorization.
-4. After merge, verify canonical `origin/main`, the 329/340/18 ledger census,
+3. After merge, verify canonical `origin/main`, the 329/340/18 ledger census,
    and Mission Control runtime with no overlay.
-5. Begin `mc-0578` only as a separate C17-C2 milestone after C17-C1 merges.
+4. Begin `mc-0578` only as a separate C17-C2 milestone after C17-C1 merges.
