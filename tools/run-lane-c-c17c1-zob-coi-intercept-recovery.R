@@ -27,7 +27,9 @@ sha256_file <- function(path) {
 simulate_one <- function(M, seed, tau = 0.45) {
   set.seed(seed)
   n_each <- 50L
-  id <- factor(rep(paste0("g", seq_len(M)), each = n_each))
+  group_levels <- paste0("g", seq_len(M))
+  id <- factor(rep(group_levels, each = n_each), levels = group_levels)
+  stopifnot(identical(levels(id), group_levels))
   x <- stats::rnorm(length(id))
   x <- x - ave(x, id, FUN = mean)
   x <- x / stats::sd(x)

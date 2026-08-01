@@ -192,7 +192,8 @@ new_zero_one_beta_coi_random_intercept_data <- function(
   sd_coi = 0.45
 ) {
   set.seed(seed)
-  id <- factor(rep(paste0("id", seq_len(n_id)), each = n_each))
+  id_levels <- paste0("id", seq_len(n_id))
+  id <- factor(rep(id_levels, each = n_each), levels = id_levels)
   x <- stats::rnorm(length(id))
   x <- x - ave(x, id, FUN = mean)
   x <- x / stats::sd(x)
