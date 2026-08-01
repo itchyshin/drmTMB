@@ -59,6 +59,14 @@ STRUCTURED_RE_BALANCE_MATRIX = DASHBOARD / "structured-re-balance-matrix.tsv"
 STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS = (
     DASHBOARD / "structured-re-q-series-support-cells.tsv"
 )
+STRUCTURED_RE_Q6_MU2_TARGET_INTERVAL_FEASIBLE = (
+    DASHBOARD / "structured-re-q6-mu2-target-interval-feasible.tsv"
+)
+B3_Q6_TARGET_PROMOTION_PACKET = (
+    ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
+)
+CAPABILITY_LEDGER_CELLS = DASHBOARD / "capability-ledger/cells.tsv"
+CAPABILITY_LEDGER_EVIDENCE = DASHBOARD / "capability-ledger/evidence.tsv"
 STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY = (
     DASHBOARD / "structured-re-q-series-inference-evidence-summary.tsv"
 )
@@ -2371,6 +2379,51 @@ STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS = (
     "claim_boundary",
     "denominator_policy",
     "next_gate",
+)
+STRUCTURED_RE_Q6_MU2_TARGET_INTERVAL_FIELDS = (
+    "target_id",
+    "cell_id",
+    "provider",
+    "component",
+    "dimension",
+    "estimator",
+    "evidence_tier",
+    "evidence_id",
+    "linked_whole_cell_id",
+    "whole_fit_status",
+    "whole_interval_status",
+    "whole_coverage_status",
+    "evidence_path",
+    "claim_boundary",
+    "next_gate",
+)
+B3_Q6_TARGET_PROMOTION_PACKET_FIELDS = (
+    "cell_id",
+    "target_id",
+    "provider",
+    "dgp_id",
+    "seed",
+    "information_rung",
+    "runner_source_sha",
+    "runner_source_tree_sha",
+    "authorization_sha256",
+    "target_truth",
+    "target_truth_scale",
+    "source_metadata_correction",
+    "profile_engine",
+    "conf_status",
+    "estimate",
+    "lower",
+    "upper",
+    "convergence",
+    "pdHess",
+    "profile_boundary",
+    "clamp_limited",
+    "trace_complete",
+    "trace_sha256",
+    "interval_sha256",
+    "evidence_path",
+    "claim_boundary",
 )
 STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY_FIELDS = (
     "summary_id",
@@ -13645,6 +13698,12 @@ def main() -> int:
     structured_re_q_series_support_cell_rows = read_tsv(
         STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS
     )
+    structured_re_q6_mu2_target_interval_rows = read_tsv(
+        STRUCTURED_RE_Q6_MU2_TARGET_INTERVAL_FEASIBLE
+    )
+    b3_q6_target_promotion_packet_rows = read_tsv(B3_Q6_TARGET_PROMOTION_PACKET)
+    capability_ledger_cell_rows = read_tsv(CAPABILITY_LEDGER_CELLS)
+    capability_ledger_evidence_rows = read_tsv(CAPABILITY_LEDGER_EVIDENCE)
     structured_re_q_series_inference_evidence_summary_rows = read_tsv(
         STRUCTURED_RE_Q_SERIES_INFERENCE_EVIDENCE_SUMMARY
     )
@@ -18914,6 +18973,235 @@ def main() -> int:
     q_series_cell_map = {
         row.get("cell_id", ""): row for row in structured_re_q_series_support_cell_rows
     }
+    b3_expected = {
+        "mc-0102": {
+            "provider": "phylo",
+            "target_id": "mc-0102::sd:mu:mu2:phylo(1 | p | species)",
+            "whole_cell": "qseries_phylo_q6_planned",
+            "dgp_id": "b2_q6_phylo_all_component_highinfo_v1",
+            "estimate": "0.454590090046572",
+            "lower": "0.386389111092201",
+            "upper": "0.543584879357278",
+            "trace_sha256": "4573d5b76c0bd342fb382991fd5ab62005d3efa375139a4df33dda0c10492917",
+            "interval_sha256": "174c96a1809caec6b8e6ce1ec872e290578844ce563d03266cecb46d8edce839",
+        },
+        "mc-0124": {
+            "provider": "spatial",
+            "target_id": "mc-0124::sd:mu:mu2:spatial(1 | p | site)",
+            "whole_cell": "qseries_spatial_q6_planned",
+            "dgp_id": "b2_q6_spatial_all_component_highinfo_v1",
+            "estimate": "0.480021138112171",
+            "lower": "0.373810106511758",
+            "upper": "0.620581451827838",
+            "trace_sha256": "ea0c6a064f54807546ae1fcb1a9b40a01b7b085359691d6f8e28532f811c9b56",
+            "interval_sha256": "395ee46e5000fca21be1dea88ea55cb93a6d01406315bbf7ae5a89515c0d28e5",
+        },
+        "mc-0146": {
+            "provider": "animal",
+            "target_id": "mc-0146::sd:mu:mu2:animal(1 | p | id)",
+            "whole_cell": "qseries_animal_q6_planned",
+            "dgp_id": "b2_q6_animal_all_component_highinfo_v1",
+            "estimate": "0.452598885101984",
+            "lower": "0.384577325004685",
+            "upper": "0.541341115816539",
+            "trace_sha256": "2645fa58735c110034d8710d059683f03d7ddba889f2f6686c623d67f1fe694e",
+            "interval_sha256": "f54b42ae98e0e4338a9a96aab851c31797fd3bf4284b6e3cf4f2371c1b485612",
+        },
+        "mc-0168": {
+            "provider": "relmat",
+            "target_id": "mc-0168::sd:mu:mu2:relmat(1 | p | id)",
+            "whole_cell": "qseries_relmat_q6_planned",
+            "dgp_id": "b2_q6_relmat_all_component_highinfo_v1",
+            "estimate": "0.452598885101984",
+            "lower": "0.384577325004685",
+            "upper": "0.541341115816539",
+            "trace_sha256": "93e394e8b65c586afef5f581c9370417256ce6d5a20b83ef0bd954ecf5d0acc9",
+            "interval_sha256": "3ed4b7acc10f60b0e4fd1f68cfb441efce50af6c15071e8739865a127ed5aed7",
+        },
+    }
+    b3_sidecar_by_cell = {
+        row.get("cell_id", ""): row for row in structured_re_q6_mu2_target_interval_rows
+    }
+    b3_packet_by_cell = {
+        row.get("cell_id", ""): row for row in b3_q6_target_promotion_packet_rows
+    }
+    capability_cell_map = {
+        row.get("cell_id", ""): row for row in capability_ledger_cell_rows
+    }
+    capability_evidence_map = {
+        row.get("evidence_id", ""): row for row in capability_ledger_evidence_rows
+    }
+    if set(b3_sidecar_by_cell) != set(b3_expected) or len(
+        structured_re_q6_mu2_target_interval_rows
+    ) != 4:
+        errors.append("B3 q6 mu2 target sidecar must contain exactly the four approved cell IDs")
+    if set(b3_packet_by_cell) != set(b3_expected) or len(
+        b3_q6_target_promotion_packet_rows
+    ) != 4:
+        errors.append("B3 promotion packet must contain exactly the four approved cell IDs")
+    authorization_path = (
+        ROOT
+        / "docs/dev-log/interval-campaign-bindings/"
+        "2026-07-31-b2-q6-proof-serial-approved-execution-authorization.tsv"
+    )
+    if (
+        not authorization_path.exists()
+        or hashlib.sha256(authorization_path.read_bytes()).hexdigest()
+        != "e96cda2d7da3a301aa52866d8833e84c21831e727feb52635ad30487d04c336f"
+    ):
+        errors.append("B3 serial authorization artifact is absent or hash-mismatched")
+    for cell_id, expected in b3_expected.items():
+        sidecar = b3_sidecar_by_cell.get(cell_id, {})
+        packet = b3_packet_by_cell.get(cell_id, {})
+        ledger_cell = capability_cell_map.get(cell_id, {})
+        evidence_id = f"ev-{cell_id}-b3-q6-mu2-interval"
+        ledger_evidence = capability_evidence_map.get(evidence_id, {})
+        if sidecar and set(sidecar) != set(STRUCTURED_RE_Q6_MU2_TARGET_INTERVAL_FIELDS):
+            errors.append(f"{cell_id}: B3 q6 target sidecar fields do not match the contract")
+        if packet and set(packet) != set(B3_Q6_TARGET_PROMOTION_PACKET_FIELDS):
+            errors.append(f"{cell_id}: B3 promotion packet fields do not match the contract")
+        expected_sidecar = {
+            "target_id": expected["target_id"],
+            "cell_id": cell_id,
+            "provider": expected["provider"],
+            "component": "mu2",
+            "dimension": "q6",
+            "estimator": "ML",
+            "evidence_tier": "interval_feasible",
+            "evidence_id": evidence_id,
+            "linked_whole_cell_id": expected["whole_cell"],
+            "whole_fit_status": "point_fit",
+            "whole_interval_status": "planned",
+            "whole_coverage_status": "planned",
+            "evidence_path": "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv",
+            "claim_boundary": sidecar.get("claim_boundary", ""),
+            "next_gate": "Coverage and calibration for this same named target only; no whole-q6 inheritance.",
+        }
+        if sidecar and sidecar != expected_sidecar:
+            errors.append(f"{cell_id}: B3 q6 target sidecar binding changed")
+        whole = q_series_cell_map.get(expected["whole_cell"], {})
+        if (
+            whole.get("fit_status") != "point_fit"
+            or whole.get("interval_status") != "planned"
+            or whole.get("coverage_status") != "planned"
+        ):
+            errors.append(f"{expected['whole_cell']}: whole-q6 status inherited a target promotion")
+        if (
+            ledger_cell.get("dpar") != "mu2"
+            or ledger_cell.get("q_gate") != "q6"
+            or ledger_cell.get("estimator") != "ML"
+            or ledger_cell.get("structure_provider") != expected["provider"]
+            or ledger_cell.get("evidence_tier") != "interval_feasible"
+            or ledger_cell.get("primary_evidence_id") != evidence_id
+        ):
+            errors.append(f"{cell_id}: canonical ledger row does not match the B3 target split")
+        expected_receipt = (
+            "docs/dev-log/interval-feasibility/results/"
+            "a8d068e641105473b3f30723a92c909467a46fac/b2-q6-proof-profile/"
+            f"{cell_id}/b2-q6-proof-{cell_id}-high-seed-20260731-receipt.tsv"
+        )
+        if (
+            ledger_evidence.get("cell_id") != cell_id
+            or ledger_evidence.get("path_or_url") != expected_receipt
+            or ledger_evidence.get("result") != "interval_feasible"
+        ):
+            errors.append(f"{evidence_id}: canonical evidence row does not match the B3 packet")
+        packet_expected = {
+            "cell_id": cell_id,
+            "target_id": expected["target_id"],
+            "provider": expected["provider"],
+            "dgp_id": expected["dgp_id"],
+            "seed": "20260731",
+            "information_rung": "high_n72_each20",
+            "runner_source_sha": "a8d068e641105473b3f30723a92c909467a46fac",
+            "runner_source_tree_sha": "26609fbcedae06752505078dca9a1daed623ea8d",
+            "authorization_sha256": "e96cda2d7da3a301aa52866d8833e84c21831e727feb52635ad30487d04c336f",
+            "target_truth": "0.4",
+            "target_truth_scale": "response_sd",
+            "source_metadata_correction": "Frozen authorization labels 0.4 as latent_log_sd; B3 corrects this metadata because the direct sd target is exp(log_sd_phylo) on the response-SD scale.",
+            "profile_engine": "tmbprofile",
+            "conf_status": "profile",
+            "estimate": expected["estimate"],
+            "lower": expected["lower"],
+            "upper": expected["upper"],
+            "convergence": "0",
+            "pdHess": "TRUE",
+            "profile_boundary": "FALSE",
+            "clamp_limited": "FALSE",
+            "trace_complete": "TRUE",
+            "trace_sha256": expected["trace_sha256"],
+            "interval_sha256": expected["interval_sha256"],
+            "evidence_path": expected_receipt,
+            "claim_boundary": packet.get("claim_boundary", ""),
+        }
+        if packet and packet != packet_expected:
+            errors.append(f"{cell_id}: B3 promotion packet binding changed")
+        try:
+            estimate = float(packet.get("estimate", "nan"))
+            lower = float(packet.get("lower", "nan"))
+            upper = float(packet.get("upper", "nan"))
+        except ValueError:
+            estimate = lower = upper = math.nan
+        if not (
+            math.isfinite(estimate)
+            and math.isfinite(lower)
+            and math.isfinite(upper)
+            and lower < upper
+            and lower <= estimate <= upper
+        ):
+            errors.append(f"{cell_id}: B3 packet endpoints are not finite, ordered, and estimate-containing")
+        receipt_path = ROOT / packet.get("evidence_path", "")
+        trace_path = pathlib.Path(str(receipt_path).replace("-receipt.tsv", "-trace.tsv"))
+        interval_path = pathlib.Path(str(receipt_path).replace("-receipt.tsv", "-interval.tsv"))
+        if not receipt_path.is_file():
+            errors.append(f"{cell_id}: B3 receipt path does not resolve")
+        if (
+            not trace_path.is_file()
+            or hashlib.sha256(trace_path.read_bytes()).hexdigest()
+            != expected["trace_sha256"]
+        ):
+            errors.append(f"{cell_id}: B3 trace artifact is absent or hash-mismatched")
+        else:
+            trace_rows = read_tsv(trace_path)
+            if not trace_rows or any(
+                row.get("target_id") != expected["target_id"]
+                or row.get("scale") != "response"
+                or row.get("transformation") != "exp"
+                or row.get("tmb_parameter") != "log_sd_phylo"
+                or row.get("index") != "4"
+                for row in trace_rows
+            ):
+                errors.append(
+                    f"{cell_id}: B3 trace no longer binds the direct response-SD "
+                    "target to exp(log_sd_phylo) index 4"
+                )
+        if (
+            not interval_path.is_file()
+            or hashlib.sha256(interval_path.read_bytes()).hexdigest()
+            != expected["interval_sha256"]
+        ):
+            errors.append(f"{cell_id}: B3 interval artifact is absent or hash-mismatched")
+        boundary = " ".join(
+            (sidecar.get("claim_boundary", ""), packet.get("claim_boundary", ""))
+        ).lower()
+        for phrase in (
+            "no sibling target",
+            "whole-q6",
+            "provider-wide",
+            "coverage",
+            "calibration",
+            "inference-ready",
+            "supported",
+            "reml",
+            "public-support",
+        ):
+            if phrase not in boundary:
+                errors.append(f"{cell_id}: B3 claim boundary must name exclusion {phrase}")
+    index_html = (DASHBOARD / "index.html").read_text(encoding="utf-8")
+    if "structured-re-q6-mu2-target-interval-feasible.tsv" not in index_html:
+        errors.append("index.html must load the B3 q6 mu2 target sidecar")
+    if "B3 q6 mu2 targets" not in index_html:
+        errors.append("index.html must render the B3 q6 mu2 target sidecar")
     expected_q_series_inference_evidence_summaries = {
         "qseries_inference_phylo_q1_sigma": {
             "cell_id": "qseries_phylo_q1_sigma_one_slope",

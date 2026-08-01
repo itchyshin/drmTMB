@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	estimate	profile_engine
+mc-0102	mc-0102::sd:mu:mu2:phylo(1 | p | species)	20260731	high_n72_each20	0.95	0.386389111092201	0.543584879357278	0.454590090046572	tmbprofile

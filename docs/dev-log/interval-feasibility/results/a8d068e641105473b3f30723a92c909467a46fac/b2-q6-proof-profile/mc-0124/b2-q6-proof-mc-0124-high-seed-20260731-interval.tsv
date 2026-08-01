@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	estimate	profile_engine
+mc-0124	mc-0124::sd:mu:mu2:spatial(1 | p | site)	20260731	high_n72_each20	0.95	0.373810106511758	0.620581451827838	0.480021138112171	tmbprofile
