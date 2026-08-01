@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	estimate	profile_engine
+mc-0317	mc-0317::sd:mu:mu:relmat(0 + x | p | id)	2026072939	high	0.95	0.377572576421349	0.563615233188646	0.459642710833158	tmbprofile
