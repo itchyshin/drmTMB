@@ -18,14 +18,21 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `association = ~ 1`. The literal Bernoulli × ordinary NB2 beta route alone
   accepts an intercept-bearing fixed-effect association formula with multiple
   predictors, factors, interactions, and explicit transformations. Its stored
-  training design supports point-only `newdata` association predictions. It
+  training design supports pointwise `newdata` association predictions. It
   freezes all stage-1 margin vectors (including NB2 `mu` and `sigma`) and
   supplies point estimates only when optimisation and count-interval diagnostics
-  are acceptable. It is neither `rho12` nor an observed-scale correlation.
-  Other family pairs, random/structured effects, partial pairs, offsets, weights,
-  `mi()`, `meta_V()`, REML, standard errors, intervals, profiles, coverage,
-  capability promotion, Julia, and CRAN release
-  use remain outside this first contract. Arc 6.5 has retained Totoro recovery
+  are acceptable. Every admitted route also supplies alpha-scale two-stage
+  Godambe `vcov()` and Wald `confint()` output when fit-specific covariance
+  diagnostics pass. Those routes are interval-feasible and warn where coverage
+  is uncalibrated; Bernoulli × ordinary NB2 intercept is inference-ready with
+  caveats in its retained high-information F4R domain. Intercept-only
+  `confint(type = "eta")` and row-specific `predict(type = "eta", se.fit =
+  TRUE, interval = "confidence")` derive bounded eta uncertainty from the
+  alpha covariance and inherit the same warning and evidence tier. It is neither `rho12`
+  nor an observed-scale correlation. Other family pairs, random/structured
+  association effects, partial pairs, offsets, weights, `mi()`, `meta_V()`,
+  REML, simultaneous eta bands, profiles, Julia, and CRAN release use remain
+  outside this first contract. Arc 6.5 has retained Totoro recovery
   **HOLD** evidence, documented in
   `docs/dev-log/simulation-artifacts/2026-07-24-arc6-5-bernoulli-recovery/`:
   it is not a passing recovery result and makes no capability claim.

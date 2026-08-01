@@ -1,7 +1,141 @@
-# Developer-only router for the admitted fixed-effect, frozen-margin
-# latent-normal association classes. This is intentionally internal: it
-# supplies a diagnostic calculation for development, not `vcov()`, intervals,
-# or any public inference surface.
+# Prepare public uncertainty while both original margin fits are still
+# available. The fitted association object otherwise retains immutable margin
+# snapshots rather than the full TMB objects. A numerical failure is retained
+# as an explicit status so the point estimate remains usable and public S3
+# methods can fail informatively without manufacturing an interval.
+drm_pair_prepare_alpha_inference <- function(fit_1, fit_2, association_fit) {
+  result <- tryCatch(
+    drm_pair_general_eta_sandwich(fit_1, fit_2, association_fit),
+    error = function(e) drm_pair_sandwich_unavailable(
+      paste0("adapter_error: ", conditionMessage(e))
+    )
+  )
+  if (!identical(result$status, "ok")) {
+    return(list(
+      status = "unavailable",
+      reason = result$reason,
+      method = "two-stage Godambe-Wald",
+      scale = "alpha"
+    ))
+  }
+  covariance <- result$alpha_covariance
+  coefficient_names <- drm_pair_alpha_coefficient_names(association_fit)
+  dimnames(covariance) <- list(coefficient_names, coefficient_names)
+  list(
+    status = "available",
+    reason = NA_character_,
+    method = "two-stage Godambe-Wald",
+    scale = "alpha",
+    covariance = covariance,
+    se = stats::setNames(sqrt(diag(covariance)), coefficient_names),
+    n = nrow(association_fit$association_design$matrix),
+    pair_class = association_fit$components$pair_class,
+    capability_tier = if (
+      identical(association_fit$components$pair_class, "bernoulli_nbinom2") &&
+        length(coefficient_names) == 1L &&
+        identical(colnames(association_fit$association_design$matrix), "(Intercept)")
+    ) "inference_ready_with_caveats" else "interval_feasible",
+    validation_domain = if (
+      identical(association_fit$components$pair_class, "bernoulli_nbinom2") &&
+        length(coefficient_names) == 1L &&
+        identical(colnames(association_fit$association_design$matrix), "(Intercept)")
+    ) {
+      "retained 16-cell high-information F4R grid (n = 480 or 960)"
+    } else {
+      "fit-specific numerical interval feasibility; coverage uncalibrated"
+    }
+  )
+}
+
+drm_pair_alpha_coefficient_names <- function(object) {
+  terms <- names(object$association_coefficients)
+  if (is.null(terms) || any(!nzchar(terms))) {
+    terms <- colnames(object$association_design$matrix)
+  }
+  if (length(terms) == 1L && identical(terms, "(Intercept)")) {
+    return("alpha")
+  }
+  paste0("alpha:", terms)
+}
+
+drm_pair_public_alpha_inference <- function(object) {
+  if (!inherits(object, "drm_pair_association")) {
+    cli::cli_abort("Association uncertainty requires a {.cls drm_pair_association} object.")
+  }
+  if (!object$status %in% c("interior", "near_boundary")) {
+    cli::cli_abort(c(
+      "Association uncertainty is unavailable because the alpha estimate is not interior.",
+      i = "Inspect {.code object$diagnostics}; no boundary clamp or placeholder interval is returned."
+    ))
+  }
+  inference <- object$alpha_inference
+  if (is.null(inference)) {
+    cli::cli_abort(c(
+      "This association object predates stored two-stage uncertainty.",
+      i = "Refit the two margins and reconstruct the association with the current drmTMB version."
+    ))
+  }
+  if (!identical(inference$status, "available")) {
+    reason <- if (is.null(inference$reason)) "unknown" else inference$reason
+    cli::cli_abort(c(
+      "The two-stage alpha covariance is unavailable for this fit.",
+      i = "Diagnostic reason: {.val {reason}}. No placeholder interval is returned.",
+      i = "Inspect {.code object$diagnostics}; verify predictor variation and design rank, then simplify or refit the association model."
+    ))
+  }
+  covariance <- inference$covariance
+  p <- length(object$association_coefficients)
+  if (
+    !is.matrix(covariance) ||
+      !identical(dim(covariance), c(p, p)) ||
+      any(!is.finite(covariance)) ||
+      any(diag(covariance) <= 0) ||
+      any(!is.finite(inference$se)) ||
+      any(inference$se <= 0)
+  ) {
+    cli::cli_abort(c(
+      "The stored two-stage alpha covariance is invalid; no interval is returned.",
+      i = "Inspect {.code object$diagnostics} and {.code object$alpha_inference}, then reconstruct the association with the current drmTMB version."
+    ))
+  }
+  inference
+}
+
+drm_pair_warn_alpha_inference <- function(object) {
+  n <- nrow(object$association_design$matrix)
+  inference <- object$alpha_inference
+  if (identical(object$status, "near_boundary")) {
+    cli::cli_warn(c(
+      "Association uncertainty is interval-feasible but the fitted association is near its numerical boundary.",
+      i = "The covariance calculation passed; interpret the Wald interval cautiously and inspect {.code object$diagnostics}."
+    ), class = "drmTMB_association_inference_warning")
+  } else if (
+    identical(inference$capability_tier, "inference_ready_with_caveats") &&
+      n < 480L
+  ) {
+    cli::cli_warn(c(
+      "Association uncertainty is experimental for this lower-information fit (n = {n}).",
+      i = "The original lower-information campaign had unavailable intervals in some cells; this fit passed its numerical covariance diagnostics.",
+      i = "The retained high-information calibration campaign used n = 480 or 960."
+    ), class = "drmTMB_association_inference_warning")
+  } else if (identical(inference$capability_tier, "inference_ready_with_caveats")) {
+    cli::cli_warn(c(
+      "This Bernoulli x ordinary-NB2 intercept route is inference-ready with caveats in its retained validation domain.",
+      i = "The current data set is not classified as inside that domain merely because n >= 480; coverage was calibrated for a named 16-cell grid, not every prevalence, dispersion, or association strength."
+    ), class = "drmTMB_association_inference_warning")
+  } else {
+    cli::cli_warn(c(
+      "Association uncertainty is interval-feasible; coverage is not yet calibrated for this route.",
+      i = "The two-stage Godambe covariance passed fit-specific diagnostics. Treat the Wald interval as experimental until a route-specific coverage campaign is completed."
+    ), class = "drmTMB_association_inference_warning")
+  }
+  invisible(NULL)
+}
+
+# Internal router for the admitted fixed-effect, frozen-margin latent-normal
+# association classes. Its Godambe alpha block supplies the public `vcov()` /
+# `confint()` surface for every route whose fit-specific covariance diagnostics
+# pass. Coverage calibration remains a separate, higher evidence tier.
 drm_pair_general_eta_sandwich <- function(
   fit_1,
   fit_2,
@@ -26,9 +160,10 @@ drm_pair_general_eta_sandwich <- function(
   adapter(fit_1, fit_2, association_fit, control = control)
 }
 
-# Developer-only candidate sandwich variance for the staged Bernoulli x NB2
-# association estimator. This file deliberately has no exported entry point:
-# public inference remains unavailable until a separately approved validation.
+# Two-stage sandwich variance for the staged Bernoulli x NB2 association
+# estimator. The alpha block is exposed publicly for both the constant and
+# admitted fixed-effect association formulas; eta-scale delta intervals remain
+# internal.
 
 drm_pair_staged_eta_sandwich <- function(
   fit_1,

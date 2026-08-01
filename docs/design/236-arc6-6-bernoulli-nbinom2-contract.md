@@ -4,10 +4,16 @@ Arc 6.6 extends `associate_pairs()` to one literal `binomial(link = "logit")`
 margin and one ordinary fixed-effect ML `nbinom2()` margin, on identical
 complete rows, in either input order. Both margins are frozen. The only fitted
 quantity is a latent-normal association: normally intercept-only
-\(\eta=0.999999\tanh(\alpha_0)\), with one beta-only finite numeric
-`association = ~ x` slope that gives
-\(\eta_i=0.999999\tanh(\alpha_0+\alpha_1x_i)\). It is not `rho12`, an
-observed-scale correlation, joint-MLE association, or an inference estimand.
+\(\eta=0.999999\tanh(\alpha_0)\), with a beta-only intercept-bearing
+fixed-effect association formula giving
+\(\eta_i=0.999999\tanh(X_{A,i}\boldsymbol\alpha)\). That formula admits
+multiple predictors, factors, interactions, and explicit transformations; it
+rejects random effects, offsets, missing predictors, aliases, and dot expansion.
+The association is not `rho12`, an observed-scale correlation, or a joint-MLE
+association. The association-link coefficients `alpha` have a public two-stage
+Godambe covariance and Wald intervals for the full admitted coefficient block;
+the bounded `eta` scale has delta-method standard errors and monotonically
+transformed pointwise Wald intervals derived from that same covariance.
 
 For binary observation \(B_i\), define
 \(c_i=\Phi^{-1}(p_i;\mathrm{lower.tail}=FALSE)\), with interval
@@ -31,14 +37,40 @@ withhold `eta` and expose row-level diagnostics. Four-corner subtraction,
 clipping, and probability flooring are prohibited. At `eta = 0`, the result
 equals the Bernoulli mass times the NB2 mass.
 
+For the public uncertainty route, let
+(q=(\theta_B^\top,\theta_N^\top,\boldsymbol\alpha^\top)^\top) collect both
+margin parameters and the association-link coefficients, and let (U_i(q)) be the corresponding
+stacked per-row estimating equation. The covariance is
+
+\[
+\widehat{\operatorname{Var}}(\widehat q)
+=n^{-1}H^{-1}JH^{-\top},\quad
+H=-n^{-1}\sum_i\partial U_i/\partial q^\top,\quad
+J=n^{-1}\sum_iU_iU_i^\top.
+\]
+
+`vcov()` returns only its named `alpha` block; `confint()` applies
+(\widehat\alpha_j \pm z_{1-\gamma/2}\operatorname{SE}(\widehat\alpha_j))
+coefficient by coefficient. For an intercept-only association,
+`confint(object, type = "eta")` transforms those endpoints through
+`0.999999 * tanh()`. For association regression, `predict()` combines the
+design row with the alpha covariance, applies the delta method to the eta
+standard error, and transforms the row-specific link-scale interval endpoints.
+
 Focused tests use an independent `mvtnorm::pmvnorm()` rectangle oracle,
 including zero-count, rare/high-tail, and response-order cases. The simulator
 draws correlated latent normals, thresholds the Bernoulli coordinate using the
 upper-tail threshold, and maps the other coordinate through a tail-stable NB2
-quantile. This is source-level construction evidence only: S0 recovery,
-intervals, coverage, random effects, missingness, weights, offsets, REML,
-Julia, and generic binary–count claims remain outside the contract. The one
-numeric association slope is beta point-estimate only; its full-refit bootstrap
-design is specified separately in
-`docs/design/240-arc6-staged-eta-uncertainty-followup.md` and does not make an
-interval available.
+quantile. The later F4R campaign adds coverage-backed
+`inference_ready_with_caveats` evidence for the alpha-scale Godambe-Wald
+interval over its exact 16-cell high-information grid (`n = 480` or `960`).
+Public `vcov()` and `confint()` expose both intercept and association-regression
+alpha blocks; the intercept has the stronger coverage-backed tier, while the regression is
+`interval_feasible` with an experimental-coverage warning. The failed lower-
+information F4 campaign remains a warning and availability caveat rather than
+nullifying F4R. Random effects, missingness, weights, offsets, REML, Julia,
+simultaneous eta bands, and generic binary–count claims remain outside the
+contract. The eta transformation contract is specified separately in
+`docs/design/240-arc6-staged-eta-uncertainty-followup.md`; a future full-refit
+bootstrap would be a separate calibration method, not a prerequisite for the
+current Godambe-Wald interval.

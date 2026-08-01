@@ -129,8 +129,14 @@ test_that("Bernoulli x Bernoulli diagnostics and fences are explicit", {
   expect_equal(sum(diagnostics$table), nrow(fits$binary_1$data))
   expect_true(is.finite(diagnostics$min_rectangle_mass))
   expect_snapshot(error = TRUE, rho12(association_fit))
-  expect_snapshot(error = TRUE, vcov(association_fit))
-  expect_snapshot(error = TRUE, confint(association_fit))
+  expect_warning(
+    expect_true(all(is.finite(vcov(association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    expect_true(all(is.finite(confint(association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
   expect_snapshot(error = TRUE, predict(association_fit, newdata = data.frame(x = 0)))
   expect_snapshot(error = TRUE, associate_pairs(
     fits$binary_1, fits$binary_1, kernel = latent_normal(), association = ~1

@@ -27,10 +27,13 @@ habitat, do rows that do better than expected for one outcome also tend to do
 better than expected for the other?
 
 The one-call tool on this page returns that association and its numerical
-diagnostics. It is a beta tool: it gives a point estimate, not a standard error,
-confidence interval, profile, coverage claim, or a general bivariate-family
-interface. If both outcomes are Gaussian and you need a jointly fitted model,
-use `biv_gaussian()` and its residual correlation `rho12` instead.
+diagnostics. For every admitted pair route it also provides two-stage Godambe
+standard errors and Wald confidence intervals for the association-link
+coefficients `alpha` when fit-specific diagnostics pass. This interval surface
+is beta and deliberately scoped; it is not a general bivariate-family
+interface. If
+both outcomes are Gaussian and you need a jointly fitted model, use
+`biv_gaussian()` and its residual correlation `rho12` instead.
 
 Behind the scenes, the tool fits each outcome model first, holds those fitted
 margins fixed, and estimates a latent-normal association called `eta`. You do
@@ -59,7 +62,31 @@ but it is still a two-stage estimator: it fits the two margins, freezes their
 estimated parameters, and estimates only `eta` in stage 2. Changing the stage-2
 association never refits the mean or scale parameters from either margin.
 
-```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. This is not a jointly fitted model and has no association interval in the current beta."}
+Start with the callable workflow; the diagram and equations below explain what
+that call does. Create one data frame containing both responses and every
+predictor, then remove incomplete rows once. A binary response must contain
+exactly one literal `0` or `1` per row.
+
+```{r one-call-example, eval = FALSE}
+paired_data <- na.omit(data.frame(
+  bred, offspring, habitat, habitat_score, season
+))
+
+assoc <- biv_associate(
+  bf(mu = bred ~ habitat),
+  bf(mu = offspring ~ habitat, sigma = ~ season),
+  family = list(binomial(), nbinom2()),
+  data = paired_data,
+  association = ~ 1
+)
+
+association(assoc)
+vcov(assoc)
+confint(assoc)
+confint(assoc, type = "eta")
+```
+
+```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. For every admitted route, the public Godambe covariance propagates uncertainty from both fitted margins into alpha-scale Wald intervals when fit-specific diagnostics pass."}
 old_par <- par(mar = c(0, 0, 1, 0))
 plot.new()
 plot.window(xlim = c(0, 12), ylim = c(0, 4))
@@ -97,9 +124,32 @@ For the usual constant association, \(X_A=1\), so every row has the same
 \(X_{A,i}=(1,x_i)\). In computation, `drmTMB` keeps `eta` infinitesimally
 inside -1 and 1, because exact endpoints make the latent-normal probability
 calculation unstable. This is a plug-in association criterion, not a joint
-maximum-likelihood fit.
-The stage-2 Hessian therefore cannot give an ordinary valid standard error for
-`eta`, because it treats stage-1 uncertainty as fixed.
+maximum-likelihood fit. The stage-2 Hessian alone therefore cannot give an
+ordinary valid standard error because it treats stage-1 uncertainty as fixed.
+Every admitted pair route instead uses the stacked stage-1 and stage-2
+estimating equations to form a Godambe covariance for its `alpha`
+coefficients. This establishes interval feasibility. The Bernoulli x
+ordinary-NB2 intercept route additionally has retained coverage calibration.
+
+Writing the full staged parameter as
+(q=(\theta_B^\top,\theta_N^\top,\alpha)^\top) and its per-row stacked score as
+(U_i(q)), drmTMB computes
+
+\[
+H=-\frac{1}{n}\sum_i\frac{\partial U_i}{\partial q^\top},\qquad
+J=\frac{1}{n}\sum_i U_iU_i^\top,\qquad
+\widehat{\operatorname{Var}}(\widehat q)=\frac{1}{n}H^{-1}JH^{-\top}.
+\]
+
+`vcov(assoc)` returns the `alpha` block of this matrix and `confint(assoc)`
+forms Wald intervals from that block. Thus the equations, R method, and
+reported target all use the same unbounded association-link scale.
+
+For a design row (x_i^\top), the bounded association is
+\(\eta_i=0.999999\tanh(x_i^\top\alpha)\). `predict()` obtains its standard error
+from the delta method and obtains its confidence limits by transforming the
+link-scale Wald endpoints. The transformed interval therefore remains inside
+the valid eta range.
 
 ## What a binary outcome contributes
 
@@ -120,28 +170,10 @@ residual. For a Gaussian outcome, the corresponding latent quantity is its
 standardized residual \((Y_i - \mu_i)/\sigma_i\). `eta` describes the
 correlation between these latent quantities after the margins are frozen.
 
-## Fit a reviewed pair in one call
+## Reviewed pair classes
 
-Create one data frame containing both responses and every predictor, then remove
-incomplete rows once. A binary response must contain exactly one literal `0` or
-`1` per row. It cannot be a proportion, a `cbind(successes, failures)` response,
-or a binomial count with multiple trials.
-
-```{r one-call-example, eval = FALSE}
-paired_data <- na.omit(data.frame(
-  bred, offspring, habitat, habitat_score, season
-))
-
-assoc <- biv_associate(
-  bf(mu = bred ~ habitat),
-  bf(mu = offspring ~ habitat, sigma = ~ season),
-  family = list(binomial(), nbinom2()),
-  data = paired_data,
-  association = ~ 1
-)
-
-association(assoc)
-```
+A binary response in a reviewed pair cannot be a proportion, a
+`cbind(successes, failures)` response, or a binomial count with multiple trials.
 
 The current reviewed classes are Gaussian x literal-Bernoulli, Gaussian x
 ordinary-NB2, literal-Bernoulli x literal-Bernoulli, literal-Bernoulli x
@@ -155,13 +187,70 @@ example, a positive value says that a greater latent tendency to breed is
 associated with a greater latent tendency for offspring after habitat and season
 have been accounted for. It is not a raw-data correlation.
 
+## Standard error and confidence interval
+
+For every admitted pair class, `vcov(assoc)` returns a named covariance matrix
+for the unbounded association-link coefficients `alpha` and `confint(assoc)`
+returns the corresponding alpha-scale Wald intervals when fit-specific
+diagnostics pass. These methods propagate fitted-margin uncertainty through a
+two-stage Godambe sandwich; they do not use the conditional stage-2 Hessian.
+
+Keep the reported scale visible. The coefficient interval and the derived eta
+interval answer related but different questions:
+
+```{r association-interval-example, eval = FALSE}
+association(assoc)       # bounded latent-normal eta point estimate
+sqrt(diag(vcov(assoc)))  # Godambe SE for alpha
+confint(assoc)           # Wald interval for alpha
+confint(assoc, type = "eta") # transformed interval for constant eta
+```
+
+All admitted routes are interval-feasible. Those without route-specific
+coverage calibration warn that their intervals are experimental. The
+intercept-only Bernoulli x ordinary-NB2 route is inference-ready with caveats.
+In its retained high-information
+campaign (`n = 480` or `960`), all 16 cells passed the predeclared bias,
+availability, SE-calibration, and 95% coverage gates; cell coverage ranged from
+0.935 to 0.957. The earlier lower-information campaign (`n = 120` or `240`)
+failed five primary coverage cells because some intervals were unavailable.
+Accordingly, lower-information fits are not blocked: a numerically valid
+covariance is returned with a warning, while an unstable or boundary result
+returns an informative error rather than a placeholder interval.
+
+That coverage evidence does not transfer automatically to association slopes,
+other family pairs, random effects, incomplete pairs, weights, offsets, or
+REML. The eta transformation inherits the underlying alpha method's tier; it
+does not create a new coverage claim. Association slopes and other family
+pairs remain interval-feasible, while the remaining features stay outside the
+current interval surface.
+
+## When the estimate or interval is withheld
+
+For pairs with two discrete outcomes, the calculation evaluates a bivariate
+normal probability region that corresponds to the observed outcome pair. Some
+extreme tail regions can be numerically unresolved. In that case `drmTMB`
+withholds `eta` and its interval rather than clipping a probability or reporting
+a repaired estimate.
+
+```{r unresolved-example, eval = FALSE}
+if (identical(assoc$status, "boundary_unresolved")) {
+  assoc$diagnostics
+  # Report that no association estimate was returned. Do not clip or repair it.
+}
+```
+
+Inspect the diagnostics and report that no association estimate was available.
+Use [Errors, warnings, and convergence](convergence.html) for the next checks;
+do not convert an unresolved tail calculation into a scientific conclusion.
+
 ## Can the association itself be modelled?
 
 Usually start with `association = ~ 1`: it estimates one common `eta` after the
 predictors in the two margins have been accounted for. In the beta
-literal-Bernoulli x ordinary-NB2 route only, you can also ask whether the
-association changes along one numeric environmental gradient. For example,
-suppose `habitat_score` is a numeric measure rather than a habitat category:
+literal-Bernoulli x ordinary-NB2 route only, you can instead use an
+intercept-bearing fixed-effect formula with multiple predictors, factors,
+interactions, or explicit transformations. For example, suppose
+`habitat_score` is a numeric environmental gradient:
 
 ```{r association-slope-example, eval = FALSE}
 assoc_by_habitat <- biv_associate(
@@ -174,21 +263,37 @@ assoc_by_habitat <- biv_associate(
 
 association(assoc_by_habitat)
 association(assoc_by_habitat, type = "fitted")
+
+new_habitats <- data.frame(habitat_score = c(-1, 0, 1))
+predict(
+  assoc_by_habitat,
+  newdata = new_habitats,
+  type = "eta",
+  se.fit = TRUE,
+  interval = "confidence"
+)
 ```
 
-This fits \(a_i=\beta_0+\beta_1\,\texttt{habitat_score}_i\) and converts it
+This simple formula fits \(a_i=\beta_0+\beta_1\,\texttt{habitat_score}_i\) and converts it
 to a row-specific latent association \(\eta_i=\tanh(a_i)\).
 `association()` first returns the two coefficients on the association-link
 scale; `type = "fitted"` returns the corresponding `eta_i` values for the
-rows used to fit the margins. These are point estimates only: no standard
-errors, intervals, profiles, or coverage claim is available.
+rows used to fit the margins. `vcov()` and `confint()` also return the two-by-
+two alpha covariance and coefficient intervals for this slope model. They are
+interval-feasible and explicitly uncalibrated for coverage.
+
+The same route accepts formulas such as `~ habitat_score + season`,
+`~ habitat`, or `~ habitat_score * habitat`, and `predict()` evaluates the
+fitted association link or bounded `eta` at compatible `newdata`. Its standard
+errors are pointwise delta-method results, and its eta confidence limits are
+transformed link-scale Wald intervals. They are not simultaneous bands.
 
 This is similar in spirit to allowing a predictor for a residual `rho12`, but
 it is not the same model or parameter. `rho12` belongs to a direct joint
 likelihood, whereas this beta route freezes two separately fitted margins before
-estimating its association link. A categorical habitat, multiple association
-predictors, interactions, random effects, new-data association prediction, and
-association regressions for the other pair classes remain unsupported.
+estimating its association link. Random effects, offsets, missing association
+predictors, aliased design columns, dot expansion, and association regressions
+for the other pair classes remain unsupported.
 
 | Question | Current beta answer |
 | --- | --- |
@@ -196,25 +301,7 @@ association regressions for the other pair classes remain unsupported.
 | Does season predict offspring variation? | Put `season` in the count `sigma` margin. |
 | Is there one remaining association after those effects? | Estimate `association = ~ 1`. |
 | Does association change along one numeric habitat score? | For beta Bernoulli x ordinary-NB2 only, use `association = ~ habitat_score`. |
-| Does association change among habitat categories or with several predictors? | Not yet supported. |
-
-## When the estimate is withheld
-
-For pairs with two discrete outcomes, the calculation evaluates a bivariate
-normal probability region that corresponds to the observed outcome pair. Some
-extreme tail regions can be numerically unresolved. In that case `drmTMB`
-withholds `eta` rather than clips a probability or reports a repaired estimate.
-
-```{r unresolved-example, eval = FALSE}
-if (identical(assoc$status, "boundary_unresolved")) {
-  assoc$diagnostics
-  # Report that no association estimate was returned. Do not clip or repair it.
-}
-```
-
-This is the correct development-boundary result. Inspect the diagnostics, report
-that no association estimate was available, and do not convert an unresolved
-tail calculation into a scientific conclusion.
+| Does association change among habitat categories or with several predictors? | For beta Bernoulli x ordinary-NB2 only, use an intercept-bearing fixed-effect formula and preserve its fitted factor levels for prediction. |
 
 ## How this differs from rho12
 

@@ -1,0 +1,2 @@
+cell_id	target_id	dgp_id	seed	lower	upper	profile_engine
+mc-0494	mc-0494::sd:mu:spatial(1 | id)	student_spatial_mu_one_slope_highinfo_n32	2026072902	0.37444427169264	0.639743383531393	tmbprofile

@@ -58,7 +58,49 @@ test_that("Arc 6.8 matrix preserves one post-fit contract across admitted pairs"
     expect_equal(fit$eta, reverse$eta, tolerance = 1e-7)
     expect_identical(names(fitted(fit)), unlist(c(left$model$response_name, right$model$response_name), use.names = FALSE))
     expect_equal(predict(fit), fitted(fit))
-    expect_error(vcov(fit), "unavailable")
+    expect_warning(
+      association_vcov <- vcov(fit),
+      class = "drmTMB_association_inference_warning"
+    )
+    expect_identical(
+      dim(association_vcov),
+      rep(length(fit$association_coefficients), 2L)
+    )
+    expect_true(all(is.finite(association_vcov)))
+    expect_warning(
+      association_interval <- confint(fit),
+      class = "drmTMB_association_inference_warning"
+    )
+    expect_identical(nrow(association_interval), length(fit$association_coefficients))
+    expect_warning(
+      eta_interval <- confint(fit, type = "eta"),
+      class = "drmTMB_association_inference_warning"
+    )
+    expect_identical(rownames(eta_interval), "eta")
+    expect_equal(
+      unname(eta_interval),
+      0.999999 * tanh(unname(association_interval)),
+      tolerance = 1e-12
+    )
+    expect_warning(
+      eta_prediction <- predict(
+        fit,
+        type = "eta",
+        se.fit = TRUE,
+        interval = "confidence"
+      ),
+      class = "drmTMB_association_inference_warning"
+    )
+    expect_identical(dim(eta_prediction$fit), c(nrow(fit$association_design$matrix), 3L))
+    expect_length(eta_prediction$se.fit, nrow(fit$association_design$matrix))
+    expect_true(all(is.finite(eta_prediction$se.fit)))
+    expect_true(all(eta_prediction$se.fit > 0))
+    expect_true(all(abs(eta_prediction$fit[, c("lwr", "upr")]) < 1))
+    expect_equal(
+      unname(eta_prediction$fit[1L, c("lwr", "upr")]),
+      as.vector(eta_interval),
+      tolerance = 1e-12
+    )
     expect_error(rho12(fit), "not mixed pair associations")
     if (identical(case$class, "bernoulli_nbinom2")) {
       expect_length(predict(fit, newdata = data.frame(x = 0)), 1L)

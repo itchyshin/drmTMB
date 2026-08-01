@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	profile_parameter	level	lower	upper	profile_engine
+mc-0386	mc-0386::sd:mu:phylo(1 | id)	20260727	low	sd:mu:phylo(1 | id)	0.95	0.361158006839116	0.61942884581199	tmbprofile

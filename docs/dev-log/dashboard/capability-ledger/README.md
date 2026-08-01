@@ -21,6 +21,10 @@ tranche summaries.
   intercept-only exception and adds `mc-0676` for the rejected remainder.
 - `missing_response`: 18 user-visible fitted routes tracked independently from
   model inference maturity.
+- `association`: six post-fit `associate_pairs()` routes tracked separately
+  from direct model cells. The Bernoulli x ordinary-NB2 intercept route carries
+  alpha-scale Godambe interval evidence; no association cell inherits evidence
+  from a direct family model or another pair class.
 
 The axes answer different questions. Completing missing-response validation
 does not promote `supported`, `inference_ready_with_caveats`, REML, structured

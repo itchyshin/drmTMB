@@ -10,24 +10,6 @@
 ---
 
     Code
-      vcov(association_fit)
-    Condition
-      Error in `vcov()`:
-      ! `vcov()` is unavailable for Arc 6 frozen-margin association estimates.
-      i A later Arc must validate two-stage sandwich or bootstrap uncertainty.
-
----
-
-    Code
-      confint(association_fit)
-    Condition
-      Error in `confint()`:
-      ! Confidence intervals are unavailable for Arc 6 frozen-margin association estimates.
-      i A later Arc must validate two-stage uncertainty before `confint()` is available.
-
----
-
-    Code
       quantile(association_fit)
     Condition
       Error in `quantile()`:

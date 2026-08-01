@@ -2,6 +2,7 @@
   "schema_version": 1,
   "axes": [
     "model_surface",
+    "association",
     "missing_response"
   ],
   "cell_fields": [
@@ -111,6 +112,7 @@
   },
   "expected_counts": {
     "model_surface": 687,
+    "association": 6,
     "missing_response": 18
   },
   "missing_response_verified_gate": "G3",

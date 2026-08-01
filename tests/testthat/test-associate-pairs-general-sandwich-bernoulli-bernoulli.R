@@ -168,8 +168,14 @@ test_that("Bernoulli sandwich fails closed for frozen provenance and boundary ch
     ),
     "literal Bernoulli"
   )
-  expect_error(vcov(fixture$association_fit), "unavailable")
-  expect_error(confint(fixture$association_fit), "unavailable")
+  expect_warning(
+    expect_true(all(is.finite(vcov(fixture$association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    expect_true(all(is.finite(confint(fixture$association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
   unstable <- drmTMB:::drm_pair_bernoulli_bernoulli_sandwich(
     fixture$fit_l, fixture$fit_r, fixture$association_fit,
     control = utils::modifyList(

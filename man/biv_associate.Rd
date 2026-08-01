@@ -30,8 +30,9 @@ by either margin.}
 \code{~ 1}, which estimates one constant association parameter. The beta
 Bernoulli x ordinary-NB2 route accepts an intercept-bearing fixed-effect
 model-matrix formula, including multiple predictors, factors,
-interactions, and explicit transformations. It supplies point estimates
-only: standard errors and intervals remain unavailable.}
+interactions, and explicit transformations. Alpha-scale standard errors
+and Wald intervals are available for every admitted association formula
+when its fit-specific Godambe covariance diagnostics pass.}
 
 \item{control_1, control_2}{Optional control lists passed to the corresponding
 marginal \code{\link[=drmTMB]{drmTMB()}} fits.}
@@ -40,8 +41,11 @@ marginal \code{\link[=drmTMB]{drmTMB()}} fits.}
 A \code{drm_pair_association} object that retains frozen snapshots of both
 fitted margins. \code{\link[=association]{association()}} returns the point estimate unless the
 numerical diagnostic is boundary-unresolved; a near-boundary status remains
-flagged. No standard error, confidence interval,
-or profile is available.
+flagged. Admitted routes have alpha-scale \code{\link[=vcov]{vcov()}} and \code{\link[=confint]{confint()}} methods
+when the fit-specific Godambe covariance succeeds. Intercept-only routes
+also have bounded eta intervals; \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}} returns
+eta-scale standard errors and pointwise confidence intervals. No profile
+is available.
 }
 \description{
 \code{biv_associate()} is the convenience front end for the reviewed Arc 6
@@ -72,4 +76,7 @@ assoc <- biv_associate(
   family = list(gaussian(), binomial()), data = dat
 )
 association(assoc)
+sqrt(diag(vcov(assoc)))
+confint(assoc)
+confint(assoc, type = "eta")
 }

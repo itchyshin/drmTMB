@@ -517,10 +517,14 @@ test_that("Bernoulli x ordinary-NB2 association predicts full fixed-effect desig
     predict(association_fit, type = "response"),
     0.999999 * tanh(predict(association_fit, type = "link"))
   )
+  expect_equal(
+    predict(association_fit, type = "eta"),
+    predict(association_fit, type = "response")
+  )
   expect_equal(predict(association_fit), fitted(association_fit))
   expect_error(
-    predict(association_fit, type = "response", se.fit = TRUE),
-    "uncertainty is unavailable"
+    predict(association_fit, se.fit = TRUE),
+    "Choose an association scale"
   )
 
   newdata <- data.frame(
@@ -538,6 +542,59 @@ test_that("Bernoulli x ordinary-NB2 association predicts full fixed-effect desig
     predict(association_fit, newdata = newdata),
     0.999999 * tanh(as.vector(new_design %*%
       association_fit$association_coefficients))
+  )
+  expect_warning(
+    eta_prediction <- predict(
+      association_fit,
+      newdata = newdata,
+      type = "eta",
+      se.fit = TRUE,
+      interval = "confidence"
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  alpha_covariance <- association_fit$alpha_inference$covariance
+  link <- as.vector(new_design %*% association_fit$association_coefficients)
+  link_se <- sqrt(rowSums((new_design %*% alpha_covariance) * new_design))
+  eta <- 0.999999 * tanh(link)
+  eta_se <- 0.999999 * (1 - tanh(link)^2) * link_se
+  critical <- stats::qnorm(0.975)
+  expected_fit <- cbind(
+    fit = eta,
+    lwr = 0.999999 * tanh(link - critical * link_se),
+    upr = 0.999999 * tanh(link + critical * link_se)
+  )
+  expect_equal(eta_prediction$fit, expected_fit, tolerance = 1e-12)
+  expect_equal(eta_prediction$se.fit, eta_se, tolerance = 1e-12)
+  expect_true(all(abs(eta_prediction$fit[, c("lwr", "upr")]) < 1))
+  expect_warning(
+    eta_interval_only <- predict(
+      association_fit,
+      newdata = newdata,
+      type = "eta",
+      interval = "confidence"
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_equal(eta_interval_only, expected_fit, tolerance = 1e-12)
+  expect_warning(
+    link_prediction <- predict(
+      association_fit,
+      newdata = newdata,
+      type = "link",
+      se.fit = TRUE
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_equal(link_prediction$fit, link, tolerance = 1e-12)
+  expect_equal(link_prediction$se.fit, link_se, tolerance = 1e-12)
+  expect_error(
+    predict(association_fit, type = "eta", level = 1),
+    "strictly between"
+  )
+  expect_error(
+    predict(association_fit, type = "eta", se.fit = NA),
+    "non-missing logical"
   )
   unseen <- newdata
   unseen$habitat <- factor("wetland")

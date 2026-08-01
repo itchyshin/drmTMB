@@ -66,8 +66,15 @@ sentences are recorded below rather than silently widening this task.
   code. The four evidence pointers were updated, and the focused
   `estimator-surface-conformance` rerun passed.
 - `python3 tools/capability_ledger.py --check`: pass, 30 generated outputs.
-- `python3 -m unittest tools.tests.test_capability_ledger`: pass, including a
-  tamper test for the narrow C17-C1 current-source C14 bridge.
+- After integrating canonical `main` at `5c9fa009` (merged PRs #885 and #886),
+  `python3 -m unittest tools.tests.test_capability_ledger
+  tools.tests.test_b4_ci_c1 tools.tests.test_b4_ci_c2`: 57 tests pass. This
+  includes a tamper test for the narrow C17-C1 current-source C14 bridge and
+  both source-bound Lane B closure checks.
+- The C2 closure check now counts `interval_feasible` cells only on the
+  `model_surface` axis. The combined ledger retains 97 model-surface interval
+  cells plus five separate association interval cells; no evidence transfers
+  between axes.
 - `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: pass.
   The immutable C14 receipt and fingerprint remain unchanged; the checker
   accepts the new model-15 fingerprint only when the separate three-cell,
@@ -84,6 +91,7 @@ phase after the full in-tree suite had already completed; it therefore has no
 final check Status and is not represented as a completed package check.
 - `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
   'pkgdown::check_pkgdown()'`: pass (`No problems found`).
+- Post-integration focused zero-one-beta and estimator-conformance tests: pass.
 CI and post-merge Mission Control read-back remain PR landing gates.
 
 ## Tests Of The Tests
@@ -166,8 +174,7 @@ shared check log is deferred until PR #869 lands or closes.
 
 ## Next Actions
 
-1. Obtain a fresh Rose landing reread after the overlapping foreign PRs are
-   integrated from canonical `main`.
+1. Obtain a fresh Rose landing reread of the canonical-main integration.
 2. Open a focused PR, require CI green on one unchanged head SHA, and request
    fresh merge authorization.
 3. After merge, verify canonical `origin/main`, the 329/340/18 ledger census,

@@ -2682,7 +2682,7 @@ The current dense-known-`V` implementation:
   either `cov12` or `cor12`;
 - documents sensitivity analysis when within-study correlations are unknown.
 
-## Implemented Post-Fit Gaussian × Bernoulli and Gaussian × NB2 Latent-Normal Association (Development)
+## Implemented Post-Fit Latent-Normal Association
 
 This implemented post-0.6 development route is a separate post-fit object, not
 a new TMB family or a joint `drmTMB()` likelihood. It starts from two
@@ -2744,21 +2744,45 @@ At `eta = 0`, `r_i = F_i(y_Ni) - F_i(y_Ni - 1)`, exactly the NB2 mass.
 Production constructs endpoints from log-CDF and log-survival values using the
 smaller tail, then evaluates the normal interval in log space. It never
 jitters, clips, floors, or replaces a collapsed CDF jump. Only the lower
-endpoint for `y_Ni = 0` is analytically infinite. The association predictor is
-intercept-only in these first slices.
+endpoint for `y_Ni = 0` is analytically infinite. The Gaussian pair slices are
+intercept-only. Separate reviewed adapters implement literal-Bernoulli x
+literal-Bernoulli, literal-Bernoulli x ordinary-NB2, and ordinary-NB2 x
+ordinary-NB2 rectangles. The Bernoulli x ordinary-NB2 route also admits an
+intercept-bearing fixed-effect association design
+`a_i = X_A[i, ] alpha`, with `eta_i = 0.999999 * tanh(a_i)`.
+
+Stage-2 curvature alone conditions on the fitted margins and is not the public
+uncertainty calculation. Let `q = (theta_1', theta_2', alpha')'` collect both
+margin parameter vectors and the association coefficients, and let `U_i(q)`
+stack the two margin scores with the association score. The implemented
+two-stage Godambe covariance is
+
+```text
+H = -n^-1 sum_i d U_i(q) / d q'
+J =  n^-1 sum_i U_i(q) U_i(q)'
+Var(q_hat) = n^-1 H^-1 J H^-T
+```
+
+`vcov()` returns the named `alpha` block and `confint()` forms coefficient-wise
+alpha-scale Wald intervals. Each adapter checks derivative stability, bread
+rank, covariance finiteness, and positive variances; a failed check returns no
+placeholder interval. This makes all admitted pair routes interval-feasible.
+The retained high-information Bernoulli x ordinary-NB2 intercept campaign adds
+coverage-backed `inference_ready_with_caveats` evidence for its named domain.
 
 `eta` is a latent-normal association conditional on the frozen margins. It is
 not bivariate-Gaussian residual coscale `rho12`, observed-scale correlation,
 or a `corpairs()` random-effect extractor (the `corpair()` formula marker is a
-different interface). The first output is limited to a
-point estimate and diagnostics, including boundary and response-pattern
-checks. It exposes no standard errors, intervals, profiles, `vcov()`,
-residuals, quantiles, or `emmeans` method. These implementations exclude
-random, phylogenetic, structured, or association-slope effects, partial/missing
-pairs, offsets, weights, `mi()`, `meta_V()`, REML, binomial trial-count
-responses, and zero-inflated, hurdle, or truncated NB2 responses. They are not
-a released 0.6.0 feature. No recovery campaign, interval or coverage result, or
-capability promotion follows from these development implementations.
+different interface). Public output includes point estimates, numerical and
+response-pattern diagnostics, and alpha-scale `vcov()` / `confint()` when the
+fit-specific Godambe calculation succeeds. Intercept-only models also expose
+`confint(object, type = "eta")`; `predict()` supplies delta-method eta standard
+errors and transformed pointwise intervals from the same alpha covariance.
+Profiles, simultaneous eta bands, residuals, quantiles, and `emmeans` remain
+unavailable. These implementations exclude random, phylogenetic, or
+structured association effects,
+partial/missing pairs, offsets, weights, `mi()`, `meta_V()`, REML, binomial
+trial-count responses, and zero-inflated, hurdle, or truncated NB2 responses.
 
 ## Implemented Bivariate Gaussian Location-Coscale
 
