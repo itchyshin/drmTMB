@@ -274,7 +274,8 @@ zoib_relmat_nll <- function(fit, par, K, species) {
   expected_node_index <- match(species, rownames(K))
   expect_equal(d$phylo_mu_node_index + 1L, unname(expected_node_index))
   eta <- as.vector(d$X_mu %*% par$beta_mu) + d$phylo_mu_value[, 1] * u[expected_node_index]
-  mu <- stats::plogis(eta); sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta)
+  sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
   zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo +
     as.numeric(determinant(K, logarithm = TRUE)$modulus) +
