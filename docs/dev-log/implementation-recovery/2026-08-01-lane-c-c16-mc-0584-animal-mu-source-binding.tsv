@@ -1,3 +1,3 @@
 artifact	source_sha	model15_r_blob	model15_cpp_blob	scope	result
-corrected_oracle	f59d43f0d0d18f9443555cf084d438ad114f617c	3770bf5d7639d040012c477e893a2fd12ad93e90	586eee0a8125f81a3038e82a7d5d21029be678c1	tests/testthat/test-zero-one-beta.R; corrected inward mu transform	PASS
+corrected_oracle	dcccd8b51a60c71c3bc56d51f9e49f5439007f61	3770bf5d7639d040012c477e893a2fd12ad93e90	586eee0a8125f81a3038e82a7d5d21029be678c1	tests/testthat/test-zero-one-beta.R; exact receipt source for corrected inward mu transform (unchanged through f59d43f)	PASS
 telemetry_recovery	8f61e3a6dc848a55114261b52e578a1ac0a6a1f7	3770bf5d7639d040012c477e893a2fd12ad93e90	586eee0a8125f81a3038e82a7d5d21029be678c1	tools/run-lane-c-zob-animal-q1-local-recovery.R; four retained post-repair attempts	PASS
