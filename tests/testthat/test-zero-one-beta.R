@@ -854,7 +854,7 @@ test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ x), family = zero_one_beta(), data = sim$data),
-    "requires fixed"
+    "zoi q1 gate requires"
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 | id), sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1), family = zero_one_beta(), data = sim$data),
