@@ -748,6 +748,25 @@ def missing_g4g5_summary() -> str:
     )
 
 
+MISSING_G5_ROUTE_SUMMARIES = {
+    "gaussian": "G5: 51/54 passing cells in the combined Gaussian cohort",
+    "biv_gaussian": "G5: 51/54 passing cells in the combined Gaussian cohort",
+    "binomial": "G5: 6/6 cells pass",
+    "poisson": "G5: 5/9 cells pass; 4 retained failures",
+    "nbinom2": "G5: 10/15 cells pass; 5 retained failures",
+    "student": "G5: 3/16 cells pass; 13 retained failures",
+    "lognormal": "G5: 11/15 cells pass; 4 retained failures",
+    "gamma": "G5: 12/15 cells pass; 3 retained failures",
+    "beta": "G5: cancelled after 2 unreconciled receipts",
+}
+
+
+def missing_route_g4g5_summary(route: str) -> str:
+    """Return a scoped, non-promotional G4/G5 line for a route-table cell."""
+    g5 = MISSING_G5_ROUTE_SUMMARIES.get(route, "G5: not run")
+    return f"G4: framework ready; {g5}"
+
+
 def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> str:
     lines = [
         "| Route | Runtime state | Evidence gate | Work state | Next gate |",
@@ -995,7 +1014,9 @@ def corrected_family_map_markdown(
             4: "✓ interval feasible",
             5: "✓ inference-ready",
         }
-        row["Miss-response"] = f"{gate} {labels[gate_num]}"
+        row["Miss-response"] = (
+            f"{gate} {labels[gate_num]}; {missing_route_g4g5_summary(row['family_route'])}"
+        )
         lines.append("| " + " | ".join(row[header] for header in headers) + " |")
     return "\n".join(lines) + "\n"
 
@@ -1039,6 +1060,7 @@ def family_map_html(
         missing_cell = (
             f'<span class="mr-state {gate_class}">{gate} {label}</span>'
             + (f"<small>{note}</small>" if note else "")
+            + f'<small class="mr-g4g5">{html.escape(missing_route_g4g5_summary(route))}</small>'
         )
         interval_class = (
             "inference"

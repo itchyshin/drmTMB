@@ -5,10 +5,12 @@ Record meaningful development checks here.
 ## 2026-08-01: Missing-response scoped-evidence reader surface
 
 - Replaced the duplicated 18-card execution board with a compact generated
-  target-rung G4/G5 summary. The per-family Missing response column remains the
-  route-grain detail: 295/306 G4-feasible records; 98/130 G5 calibration passes;
-  32 retained failures; binomial 6/6. This prevents the honest G3 badge from
-  hiding completed scoped evidence.
+  target-rung G4/G5 summary. Each per-family Missing response cell now retains
+  its honest route-wide G3 badge and adds its scoped G4 framework status plus
+  route-specific G5 calibration result (or `not run`/cancelled state): 295/306
+  G4-feasible records; 98/130 G5 calibration passes; 32 retained failures;
+  binomial 6/6. This prevents the G3 badge from hiding completed scoped evidence
+  without misrepresenting it as a route-wide G5 promotion.
 - `python3 tools/capability_ledger.py --write`, `--check`, focused generated-
   surface unit test, and `git diff --check`: PASS.
 
