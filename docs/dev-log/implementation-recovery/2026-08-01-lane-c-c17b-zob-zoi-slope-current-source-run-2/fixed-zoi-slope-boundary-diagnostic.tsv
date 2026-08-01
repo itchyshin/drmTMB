@@ -1,0 +1,2 @@
+source_sha	runner_sha256	status	convergence	pdHess	tau_hat	decision	error
+eddc1412962f91342a78f33c66a3d454a0679d8d	8f939dc6c3b95444354097bdf91061ec08eb1ca66ce139d13351f17829b256d6	fit_ok	0	TRUE	0.158425464782899	BOUNDARY_DIAGNOSTIC_ONLY	none

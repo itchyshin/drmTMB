@@ -158,6 +158,8 @@ drm_julia_capability_comparison <- function() {
   data.frame(
     capability_id = c(
       "base_gaussian_location_scale",
+      "biv_gaussian_residual",
+      "gaussian_phylo_mean",
       "gaussian_response_mask",
       "biv_q4_phylo_reml",
       "phylo_count_large_p",
@@ -170,6 +172,8 @@ drm_julia_capability_comparison <- function() {
     route = c(
       "base",
       "base",
+      "phylo",
+      "base",
       "bivariate_phylo",
       "phylo",
       "phylo",
@@ -180,6 +184,8 @@ drm_julia_capability_comparison <- function() {
     ),
     syntax = c(
       "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
+      "bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1), family = biv_gaussian(), engine = \"julia\"",
+      "bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1), family = gaussian(), engine = \"julia\"",
       "missing = miss_control(response = \"include\") for Gaussian cells",
       "biv_gaussian() q4 phylo on mu1, mu2, sigma1, sigma2 with REML = TRUE",
       "poisson()/nbinom2() with phylo(1 | group, tree = tree)",
@@ -191,6 +197,8 @@ drm_julia_capability_comparison <- function() {
     ),
     r_bridge_status = c(
       "supported",
+      "experimental",
+      "experimental",
       "supported",
       "experimental",
       "experimental",
@@ -202,6 +210,8 @@ drm_julia_capability_comparison <- function() {
     ),
     drmjl_status = c(
       "default DRM.jl Gaussian location-scale path",
+      "DRM.jl biv_gaussian residual rho12 path (Hopper Phase 1.5 #5)",
+      "DRM.jl first Gaussian phylo-mean path (Hopper Phase 1.5 #5)",
       "Gaussian observed-response mask path",
       "q4 PLSM REML path when installed DRM.jl supports it",
       "large-p sparse phylo path",
@@ -215,6 +225,8 @@ drm_julia_capability_comparison <- function() {
       "partial",
       "partial",
       "partial",
+      "partial",
+      "partial",
       "experimental",
       "experimental",
       "experimental",
@@ -223,13 +235,15 @@ drm_julia_capability_comparison <- function() {
       "planned"
     ),
     evidence_url = c(
-      rep("https://github.com/itchyshin/drmTMB/issues/544", 6),
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
       "https://github.com/itchyshin/gllvmTMB/issues/488",
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/569"
     ),
     claim_boundary = c(
-      "Uses the default DRM.jl fitting path; no Julia-side engine_control surface is exposed from R.",
+      "Phase 1.5 Hopper admitted cell (Route C): offline result-shape + optional live TMB parity; CRAN readers still use TMB  -  vignette keeps Julia deferred/experimental.",
+      "Phase 1.5 Hopper admitted cell (Route B): residual rho12 result-shape + optional live logLik parity; not a phylo or cross-family claim.",
+      "Phase 1.5 Hopper admitted cell (Route A): first phylo-mean (sigma ~ 1) marshalling/result-shape + optional live TMB parity; not loc-scale phylo or non-Gaussian phylo.",
       "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
       "Requires the full four-axis phylogenetic location-scale grammar; native TMB has separate q4 recovery evidence, but this Julia row does not establish same-target bridge parity, interval reliability, or HSquared AI-REML support.",
       "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
@@ -241,6 +255,8 @@ drm_julia_capability_comparison <- function() {
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
+      "Keep residual rho12 result-shape and Route B parity tests; do not promote beyond experimental.",
+      "Keep first phylo-mean result-shape and Route A parity tests; do not widen to sigma-phylo here.",
       "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
       "Bank fit-specific CI/status parity before release language.",
       "Keep non-phylo count bridge errors in the gate registry.",
@@ -251,11 +267,26 @@ drm_julia_capability_comparison <- function() {
       "Wait for #569 native parity plus a separate bridge parity PR."
     ),
     issue = c(
-      rep("drmTMB#544", 8),
+      rep("drmTMB#544", 10),
       "drmTMB#569"
     ),
     stringsAsFactors = FALSE
   )
+}
+
+# Hopper Phase 1.5 (#5 / DRM.jl twin) admitted cells only  -  not a family expansion list.
+drm_julia_phase15_admitted_cells <- function() {
+  caps <- drm_julia_capability_comparison()
+  caps[
+    caps$capability_id %in%
+      c(
+        "base_gaussian_location_scale",
+        "biv_gaussian_residual",
+        "gaussian_phylo_mean"
+      ),
+    ,
+    drop = FALSE
+  ]
 }
 
 drm_julia_setup_state <- new.env(parent = emptyenv())
@@ -361,7 +392,7 @@ drmTMB_julia_bridge <- function(
   # likelihood (Ayumi #2). The mean-only phylo Gaussian route (sigma ~ 1) and
   # the phylo-only families still return ML on the DRM.jl side, so warn and fit
   # ML rather than silently mislead. Bivariate q4 phylo
-  # (`biv_gaussian` with phylo on all four axes) IS now supported — DRM.jl's
+  # (`biv_gaussian` with phylo on all four axes) IS now supported  -  DRM.jl's
   # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
   # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
   reml_supported <- drm_julia_reml_supported(
@@ -1750,7 +1781,7 @@ drm_julia_profile_targets_biv <- function(object) {
   # Term label for the four axis rows. The phylo term shares ONE group across the
   # four axes; its rendered label ("phylo(1 | <group>)") is carried on the fit's
   # structured_sd_scales names, which the bridge populates on BOTH the live fit and
-  # the synthetic fixtures — so use that as the primary source. Fall back to the
+  # the synthetic fixtures  -  so use that as the primary source. Fall back to the
   # parsed formula's phylo group, then bp$group, then a literal. This labels the
   # confint() parm rows with the real grouping variable instead of "group".
   scales <- object$structured_sd_scales
@@ -2349,8 +2380,8 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
 # vectors: param ("sd_mu1", "sd_mu2", "sd_sigma1", "sd_sigma2"), lower, upper,
 # estimate, std_error (NaN for profile), bounded (profile only), status,
 # message, elapsed (scalar). We join by dpar: "sd_mu1" -> dpar "mu1", etc.
-# `upper` may be Inf on a flat/collapsed axis — left as-is, never coerced to NA.
-# `std_error` may be NaN for profile — ignored (only lower/upper matter).
+# `upper` may be Inf on a flat/collapsed axis  -  left as-is, never coerced to NA.
+# `std_error` may be NaN for profile  -  ignored (only lower/upper matter).
 drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   result <- as.list(result)
 
@@ -2398,7 +2429,7 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
         i = "Julia returned params: {.val {julia_params}}."
       ))
     }
-    # DRM.jl returns the among-axis SD bounds ALREADY on the SD scale (no exp() —
+    # DRM.jl returns the among-axis SD bounds ALREADY on the SD scale (no exp()  - 
     # that is the univariate log-SD convention), but on the RAW-Q scale (Q built
     # from raw branch lengths). To keep the CI on the same native (unit-height)
     # scale as the rescaled point estimate, multiply the bounds by the per-axis

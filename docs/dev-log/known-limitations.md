@@ -502,13 +502,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   random intercepts and independent numeric slopes. There are no `sigma`
   random effects, correlated beta-binomial slopes, known sampling covariance,
   phylogenetic terms, bivariate or mixed beta-binomial models, or
-  successes/trials response alias. Zero-one-inflated
-  bounded-response models for percentage or proportion data are planned:
-  fixed-effect `zoi` and `coi` likelihoods should come before random effects
-  or covariance among bounded-response distributional parameters, and current
-  `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
-  messages. Beta-binomial evidence does not promote plain binomial interval
-  calibration.
+  successes/trials response alias. For continuous proportions with exact
+  boundaries, `zero_one_beta()` implements fixed-effect `zoi` and `coi`.
+  Exact ordinary ML point-fit-only exceptions additionally admit one `zoi`
+  random intercept or one same-raw-symbol slope
+  `zoi ~ x + (0 + x | id)`; direct profiles, intervals, coverage, other atom
+  shapes, `coi` random effects, and covariance among bounded-response
+  distributional parameters remain unavailable. Beta-binomial evidence does
+  not promote plain binomial interval calibration.
 - Univariate Bernoulli/binomial logit models are implemented with
   `family = stats::binomial(link = "logit")`. The first path supports explicit
   0/1 event indicators and `cbind(successes, failures)` responses, stores
@@ -600,8 +601,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,
-  multiple, or labelled count structured slopes, labelled q=2/q=4 count
-  covariance, simultaneous structured count types beyond that exact crossed
+  multiple, or labelled count structured slopes outside the exact ordinary
+  Poisson q=2 intercept--slope routes for `phylo()`, `spatial()`, `animal()`,
+  and `relmat()`, labelled q=4+ count covariance, simultaneous structured count types beyond that exact crossed
   NB2 `mu` gate, bounded, ordinal, shape,
   inflation, hurdle, and one-inflation structured effects need ordinary
   family-specific random-effect recovery and interval evidence before entering

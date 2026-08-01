@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import json
 import re
@@ -26,18 +27,62 @@ TRANSITIONS = LEDGER / "transitions.tsv"
 SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 
+# C14 restores the package-boundary classification from the last ledger commit
+# that recorded it explicitly.  This is a taxonomy correction, not evidence for
+# an implementation: the immutable source set is deliberately named here so a
+# future rerun cannot infer boundaries from a broad formula heuristic.  The
+# committed snapshot keeps the check portable when the historical local-only
+# commit is not available to a fresh CI checkout.
+C14_BOUNDARY_SOURCE_COMMIT = "0ccffcb539e19c3b4eeabf394634ddbcfc930cd8"
+C14_BOUNDARY_SOURCE_PATH = "docs/dev-log/dashboard/capability-ledger/cells.tsv"
+C14_BOUNDARY_SOURCE_SNAPSHOT = LEDGER / "c14-boundary-source.tsv"
+C14_BOUNDARY_COUNT = 330
+C14_ZOB_LEAF_TAXONOMY = (
+    ("mc-0583", "mc-0695"), ("mc-0584", "mc-0696"),
+    ("mc-0585", "mc-0697"), ("mc-0586", "mc-0698"),
+    ("mc-0587", "mc-0699"), ("mc-0593", "mc-0700"),
+    ("mc-0594", "mc-0701"), ("mc-0595", "mc-0702"),
+    ("mc-0596", "mc-0703"), ("mc-0597", "mc-0704"),
+)
+C14_ZOB_LEAF_TAXONOMY_SOURCE = (
+    "docs/dev-log/dashboard/capability-ledger/"
+    "c14-zob-structured-leaf-taxonomy.md"
+)
+C14_RECEIPT_EQUIVALENCE = LEDGER / "c14-receipt-equivalence.tsv"
+C14_RECEIPT_EQUIVALENCE_TARGET = "e58d77119c3562cdfcede3191f2482b38b30f4af"
+C14_RECEIPT_EQUIVALENCE_PATHS = (
+    "R/drmTMB.R::zero_one_beta_spec",
+    "R/drmTMB.R::zero_one_beta_start_and_map",
+    "R/drmTMB.R::zero_one_beta_tmb_and_extractors",
+    "src/drmTMB.cpp::model_type_15",
+)
+
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
 # 676 frozen census rows + mc-0260m, the meta_V route row landed 2026-07-25 from the
 # approved draft docs/dev-log/handover/2026-07-21-mc-0260m-ledger-cell-draft.md. The row
 # is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
-MODEL_SURFACE_COUNT = 677
-# The frozen 2026-07-09 census: the original 676 model_surface rows and the 158 of them
-# at point_fit_recovery. Both are permanent. Approved inserts get a higher source_order,
-# so they never touch these; only a promotion or demotion of a frozen cell can.
+MODEL_SURFACE_COUNT = 687
+# The frozen 2026-07-09 census: the original 676 model_surface rows and their
+# recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
+# count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
+# mc-0454. With explicit user approval, C14 promotes only mc-0568, mc-0569,
+# and mc-0576 after source-equivalence verification and fresh three-lens GO.
+# Future changes require an explicit row-specific receipt; this is not a
+# blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 158
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 175
+B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
+B3_Q6_MU2_TARGETS = {
+    "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
+    "mc-0124": ("spatial", "mc-0123", "mc-0124::sd:mu:mu2:spatial(1 | p | site)"),
+    "mc-0146": ("animal", "mc-0145", "mc-0146::sd:mu:mu2:animal(1 | p | id)"),
+    "mc-0168": ("relmat", "mc-0167", "mc-0168::sd:mu:mu2:relmat(1 | p | id)"),
+}
+B3_Q6_MU2_PACKET = (
+    ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
+)
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -94,7 +139,7 @@ WORK_STATUSES = {
     "verified", "blocked", "deferred",
 }
 CAPABILITY_STATUSES = {
-    "rejected_by_design", "not_implemented", "scaffolded", "implemented",
+    "not_implemented", "rejected_by_design", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
 # evidence_class was previously unconstrained, so a typo silently produced zero badges
@@ -269,11 +314,11 @@ def bootstrap() -> None:
         cell_id = f"mc-{index:04d}"
         evidence_id = f"ev-{cell_id}-legacy" if old["evidence_source"] else ""
         status = old["status"]
-        work = (
-            "verified" if status == "implemented"
-            else "deferred" if status == "rejected_by_design"
-            else "backlog"
-        )
+        # The pre-ledger census used `rejected_by_design` for cells deliberately
+        # out of scope at the time. That was not a proof of impossibility: every
+        # unimplemented model cell belongs to the visible backlog.
+        status = "not_implemented" if status == "rejected_by_design" else status
+        work = "verified" if status == "implemented" else "backlog"
         cells.append({
             "cell_id": cell_id,
             "source_order": str(index),
@@ -366,7 +411,7 @@ def bootstrap() -> None:
             "dimension": "bivariate" if route == "biv_gaussian" else "univariate",
             "q_gate": "na",
             "estimator": "ML",
-            "capability_status": "implemented" if admitted else "rejected_by_design",
+            "capability_status": "implemented" if admitted else "not_implemented",
             "work_status": "implemented_unverified" if admitted else "backlog",
             "evidence_tier": "na",
             "test_gate": "G1" if admitted else "G0",
@@ -415,6 +460,400 @@ def bootstrap() -> None:
     TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
     SCHEMA.write_bytes(json_bytes(schema_value()))
     print(f"Bootstrapped {len(cells)} cells and {len(evidence)} evidence records")
+
+
+def c14_boundary_source_rows() -> list[dict[str, str]]:
+    """Return the immutable C14 package-boundary source set.
+
+    The prior MR-T0 import intentionally made all historical rows visible in a
+    single implementation backlog. C14 reverses only the 330 records that an
+    earlier committed ledger explicitly classified as package boundaries. The
+    source commit is part of the contract: a row must never be reclassified by
+    a pattern over its current formula fields.  Its checked-in ID snapshot is
+    deliberately used instead of ``git show`` so source verification is
+    available in a shallow CI checkout too.
+    """
+    rows = read_tsv(C14_BOUNDARY_SOURCE_SNAPSHOT)
+    if not rows or set(rows[0]) != {"cell_id"}:
+        raise SystemExit("C14 boundary source snapshot has an invalid schema")
+    if len(rows) != C14_BOUNDARY_COUNT:
+        raise SystemExit(
+            "C14 boundary source count changed: "
+            f"{len(rows)} (expected {C14_BOUNDARY_COUNT})"
+        )
+    ids = [row["cell_id"] for row in rows]
+    if len(ids) != len(set(ids)):
+        raise SystemExit("C14 boundary source contains duplicate cell IDs")
+    return rows
+
+
+def restore_c14_boundaries() -> None:
+    """Restore only the source-pinned C14 package-boundary classifications."""
+    source = c14_boundary_source_rows()
+    source_ids = {row["cell_id"] for row in source}
+    cells = read_tsv(CELLS)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    missing = source_ids - set(by_id)
+    if missing:
+        raise SystemExit(
+            "C14 boundary source IDs missing from the current ledger: "
+            + ", ".join(sorted(missing))
+        )
+
+    affected = [by_id[cell_id] for cell_id in source_ids]
+    if any(row["axis"] != "model_surface" for row in affected):
+        raise SystemExit("C14 boundary source attempted to alter a non-model row")
+    if any(row["capability_status"] == "implemented" for row in affected):
+        raise SystemExit("C14 taxonomy restoration would overwrite an implementation")
+    unexpected = {
+        (row["capability_status"], row["work_status"], row["evidence_tier"])
+        for row in affected
+        if (row["capability_status"], row["work_status"], row["evidence_tier"])
+        not in {
+            ("not_implemented", "backlog", "none"),
+            ("rejected_by_design", "deferred", "none"),
+        }
+    }
+    if unexpected:
+        raise SystemExit(
+            "C14 boundary source has non-taxonomy state in the current ledger: "
+            + repr(sorted(unexpected))
+        )
+
+    for row in affected:
+        row["capability_status"] = "rejected_by_design"
+        row["work_status"] = "deferred"
+        row["evidence_tier"] = "none"
+
+    transition_ids = {row["transition_id"] for row in transitions}
+    for cell_id in sorted(source_ids):
+        transition_id = f"tr-{cell_id}-c14-boundary-taxonomy"
+        if transition_id in transition_ids:
+            continue
+        transitions.append({
+            "transition_id": transition_id,
+            "cell_id": cell_id,
+            "from_work_status": "backlog",
+            "to_work_status": "deferred",
+            "evidence_ids": "",
+            "reason": (
+                "C14 source-pinned taxonomy restoration from the explicit "
+                f"package-boundary classification at {C14_BOUNDARY_SOURCE_COMMIT}; "
+                "this changes no implementation or evidence claim."
+            ),
+            "actor": "Codex C14 taxonomy restoration",
+            "commit_sha": C14_BOUNDARY_SOURCE_COMMIT,
+            "date": "2026-07-31",
+        })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print(
+        "C14 boundary taxonomy restored "
+        f"({len(affected)} rows from {C14_BOUNDARY_SOURCE_COMMIT})"
+    )
+
+
+def split_c14_zob_structured_leaves() -> None:
+    """Replace C14's lossy zero-one-beta structured rows with exact leaves.
+
+    Each original row becomes a q1 intercept leaf. A separate q2-plus boundary
+    row is added for the same provider and endpoint, so promotion of the q1
+    leaf can never silently inherit the untested higher-dimensional forms.
+    """
+    cells = read_tsv(CELLS)
+    evidence = read_tsv(EVIDENCE)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    evidence_ids = {row["evidence_id"] for row in evidence}
+    transition_ids = {row["transition_id"] for row in transitions}
+    sha = git_sha()
+
+    for original_id, boundary_id in C14_ZOB_LEAF_TAXONOMY:
+        if original_id not in by_id:
+            raise SystemExit(f"C14 q1 leaf source is missing: {original_id}")
+        original = by_id[original_id]
+        expected = {
+            "axis": "model_surface",
+            "family_route": "zero_one_beta",
+            "effect_type": "structured",
+            "capability_status": "not_implemented",
+            "work_status": "backlog",
+            "evidence_tier": "none",
+        }
+        if any(original[field] != value for field, value in expected.items()):
+            raise SystemExit(
+                f"C14 q1 leaf source has unexpected state: {original_id}"
+            )
+
+        q1_evidence_id = f"ev-{original_id}-c14-q1-leaf-taxonomy"
+        q1_transition_id = f"tr-{original_id}-c14-q1-leaf-taxonomy"
+        q1_boundary = (
+            "Exact C14 leaf for ordinary ML zero_one_beta(): one unlabelled "
+            f"structured {original['dpar']} intercept with provider "
+            f"`{original['structure_provider']}` and q1 only. This leaf carries "
+            "no point-fit evidence until its provider-specific oracle, retained "
+            "attempts, source SHA, and independent GO review are bound. Slopes, "
+            "labels, covariance, q2+, other random effects, profiles, intervals, "
+            "coverage, and inference claims remain outside this leaf."
+        )
+        if q1_evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": q1_evidence_id,
+                "cell_id": original_id,
+                "evidence_class": "contract_test",
+                "path_or_url": C14_ZOB_LEAF_TAXONOMY_SOURCE,
+                "commit_sha": sha,
+                "run_id": "c14-zob-structured-q1-leaf-taxonomy",
+                "command": "python3 tools/capability_ledger.py --split-c14-zob-structured-leaves",
+                "result": "q1_leaf_not_promoted",
+                "replicates": "",
+                "reviewed_by": "C14 taxonomy reconciliation",
+                "review_date": "2026-07-31",
+                "claim_boundary": q1_boundary,
+            })
+        original.update({
+            "route_variant": "c14_exact_q1_structured_intercept",
+            "q_gate": "q1",
+            "tranche_id": "lane-c-c14-leaf-taxonomy",
+            "owner": "Lane C",
+            "blocking_reviewers": "Noether; Fisher; Rose",
+            "primary_evidence_id": q1_evidence_id,
+            "claim_boundary": q1_boundary,
+            "next_gate": (
+                "Bind this exact q1 leaf to its current-source oracle, all-attempt "
+                "recovery receipt, and independent GO/BLOCK review before promotion."
+            ),
+            "updated_commit": sha,
+            "updated_date": "2026-07-31",
+            "notes": "C14 non-lossy q1 leaf; q2-plus boundary is " + boundary_id + ".",
+        })
+        if q1_transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": q1_transition_id,
+                "cell_id": original_id,
+                "from_work_status": "backlog",
+                "to_work_status": "backlog",
+                "evidence_ids": q1_evidence_id,
+                "reason": "C14 non-lossy taxonomy split; q1 remains unpromoted.",
+                "actor": "Codex C14 leaf taxonomy",
+                "commit_sha": sha,
+                "date": "2026-07-31",
+            })
+
+        q2_evidence_id = f"ev-{boundary_id}-c14-q2plus-boundary"
+        q2_transition_id = f"tr-{boundary_id}-c14-q2plus-boundary"
+        q2_boundary = (
+            "C14 q2-plus boundary paired with " + original_id + ": q2, q4, q6, "
+            "q8, q12, slopes, labels, covariance, additional structured or "
+            "ordinary random effects, profiles, intervals, coverage, and inference "
+            "claims are not currently supported by the exact q1 leaf."
+        )
+        if boundary_id not in by_id:
+            boundary = original.copy()
+            boundary.update({
+                "cell_id": boundary_id,
+                "source_order": str(695 + len([pair for pair in C14_ZOB_LEAF_TAXONOMY if pair[1] < boundary_id])),
+                "route_variant": "c14_q2plus_structured_boundary",
+                "q_gate": "q2plus",
+                "capability_status": "rejected_by_design",
+                "work_status": "deferred",
+                "evidence_tier": "none",
+                "tranche_id": "lane-c-c14-leaf-taxonomy",
+                "owner": "Lane C",
+                "blocking_reviewers": "Noether; Fisher; Rose",
+                "primary_evidence_id": q2_evidence_id,
+                "claim_boundary": q2_boundary,
+                "next_gate": (
+                    "A separately approved exact q2-plus target, implementation, "
+                    "oracle, and recovery programme is required."
+                ),
+                "updated_commit": sha,
+                "updated_date": "2026-07-31",
+                "notes": "C14 non-lossy q2-plus boundary paired with " + original_id + ".",
+            })
+            cells.append(boundary)
+            by_id[boundary_id] = boundary
+        if q2_evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": q2_evidence_id,
+                "cell_id": boundary_id,
+                "evidence_class": "contract_test",
+                "path_or_url": C14_ZOB_LEAF_TAXONOMY_SOURCE,
+                "commit_sha": sha,
+                "run_id": "c14-zob-structured-q2plus-boundary",
+                "command": "python3 tools/capability_ledger.py --split-c14-zob-structured-leaves",
+                "result": "q2plus_deferred",
+                "replicates": "",
+                "reviewed_by": "C14 taxonomy reconciliation",
+                "review_date": "2026-07-31",
+                "claim_boundary": q2_boundary,
+            })
+        if q2_transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": q2_transition_id,
+                "cell_id": boundary_id,
+                "from_work_status": "",
+                "to_work_status": "deferred",
+                "evidence_ids": q2_evidence_id,
+                "reason": "C14 non-lossy q2-plus boundary created beside a q1 leaf.",
+                "actor": "Codex C14 leaf taxonomy",
+                "commit_sha": sha,
+                "date": "2026-07-31",
+            })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    EVIDENCE.write_bytes(tsv_bytes(EVIDENCE_FIELDS, evidence))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print("C14 zero-one-beta structured q1/q2-plus leaves are current")
+
+
+def check_c14_receipt_equivalence() -> None:
+    """Verify C14's separate source-equivalence bridge for retained receipts.
+
+    Raw all-attempt receipt SHA values are immutable and remain their original
+    values. The source fingerprints were computed from those immutable
+    revisions during the local C14 audit. This check proves that the current
+    target matches the committed target fingerprint and is equal to (or
+    distinct from) the recorded execution source as declared. It never
+    promotes a cell or replaces the required independent completion review.
+    """
+    rows = read_tsv(C14_RECEIPT_EQUIVALENCE)
+    expected_ids = {
+        "mc-0568", "mc-0569", "mc-0576", "mc-0586", "mc-0587",
+        "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+    }
+    ids = {row["cell_id"] for row in rows}
+    if ids != expected_ids or len(rows) != len(expected_ids):
+        raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
+    current_fingerprint = c14_model15_source_fingerprint()
+    eligible_ids = set()
+    for row in rows:
+        if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
+            raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence target")
+        if row["compared_paths"] != ";".join(C14_RECEIPT_EQUIVALENCE_PATHS):
+            raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence path set")
+        raw_path = ROOT / row["raw_attempts_path"]
+        if not raw_path.is_file():
+            raise SystemExit(f"{row['cell_id']}: raw attempts receipt is unavailable")
+        raw_rows = read_tsv(raw_path)
+        raw_shas = {raw_row.get("source_sha", "") for raw_row in raw_rows}
+        if not raw_rows or raw_shas != {row["retained_source_sha"]}:
+            raise SystemExit(
+                f"{row['cell_id']}: manifest SHA does not match its raw attempts receipt"
+            )
+        if row["target_fingerprint"] != current_fingerprint:
+            raise SystemExit(f"{row['cell_id']}: C14 target fingerprint differs")
+        eligible = row["equivalence_eligible"] == "TRUE"
+        source_matches = row["source_fingerprint"] == row["target_fingerprint"]
+        if eligible and not source_matches:
+            raise SystemExit(f"{row['cell_id']}: eligible source fingerprint differs")
+        if not eligible and source_matches:
+            raise SystemExit(
+                f"{row['cell_id']}: ineligible receipt unexpectedly matches the C14 target"
+            )
+        if eligible:
+            eligible_ids.add(row["cell_id"])
+    if eligible_ids != {"mc-0568", "mc-0569", "mc-0576"}:
+        raise SystemExit("C14 receipt equivalence has an unexpected eligible cell set")
+    print(
+        f"C14 receipt equivalence: OK ({len(eligible_ids)} eligible, "
+        f"{len(rows) - len(eligible_ids)} source-different retained receipts)"
+    )
+
+
+def c14_model15_source_fingerprint() -> str:
+    """Hash the closed model-15 surface governing C14's ZOB receipts.
+
+    A model-9 ZINB routing repair must not invalidate a model-15 zero-one-beta
+    receipt.  Each named source anchor below is therefore part of this hash;
+    changing a builder, carrier, extractor, or the model-15 likelihood changes
+    it, while unrelated family code does not.
+    """
+    r_source = (ROOT / "R/drmTMB.R").read_text(encoding="utf-8")
+    cpp_source = (ROOT / "src/drmTMB.cpp").read_text(encoding="utf-8")
+
+    # C17-B widens only the missing-response diagnostic so it names the already
+    # fitted same-symbol zoi slope. Missing responses remain rejected before a
+    # likelihood object is built, so this prose-only abort must not invalidate
+    # C14's immutable fit-source equivalence receipts. Normalize that one abort
+    # block to its C14 wording before hashing; all builder/carrier/extractor and
+    # model-15 likelihood bytes remain fingerprinted exactly.
+    c17_diagnostic = '''  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
+    ))
+  }
+'''
+    c14_diagnostic = '''  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi random-intercept q1 gate does not support missing responses.",
+      "i" = "Use complete observed responses for {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)}."
+    ))
+  }
+'''
+    if c17_diagnostic not in r_source:
+        raise SystemExit("C17-B diagnostic normalization anchor is unavailable")
+    r_source = r_source.replace(c17_diagnostic, c14_diagnostic, 1)
+
+    def section(source: str, start: str, end: str, label: str) -> str:
+        start_index = source.find(start)
+        if start_index < 0:
+            raise SystemExit(f"C14 equivalence anchor is unavailable: {label}")
+        end_index = source.find(end, start_index)
+        if end_index < 0:
+            raise SystemExit(f"C14 equivalence endpoint is unavailable: {label}")
+        return source[start_index:end_index]
+
+    sections = (
+        section(
+            r_source,
+            "drm_build_zero_one_beta_spec <- function(",
+            "drm_build_beta_binomial_spec <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[0],
+        ),
+        section(
+            r_source,
+            "zero_one_beta_start <- function(",
+            "poisson_start <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[1],
+        ),
+        section(
+            r_source,
+            "zero_one_beta_atom_tmb_data <- function(",
+            "# TMB data for the scoped second structured location field",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        )
+        + section(
+            r_source,
+            "split_tmb_sdpars <- function(",
+            "split_tmb_corpars <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        )
+        + section(
+            r_source,
+            "split_tmb_random_effects <- function(",
+            "sd_mu_group_values <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        ),
+        section(
+            cpp_source,
+            "  } else if (model_type == 15) {",
+            "  } else if (model_type == 14) {",
+            C14_RECEIPT_EQUIVALENCE_PATHS[3],
+        ),
+    )
+    fingerprint = hashlib.sha256()
+    for label, source in zip(C14_RECEIPT_EQUIVALENCE_PATHS, sections):
+        fingerprint.update(label.encode())
+        fingerprint.update(b"\\0")
+        fingerprint.update(source.encode())
+        fingerprint.update(b"\\0")
+    return fingerprint.hexdigest()
 
 
 def source_path_exists(value: str) -> bool:
@@ -565,20 +1004,30 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    # implemented is 307, not the frozen census's 306, because mc-0260m (the meta_V route
-    # row) was inserted on 2026-07-25. It entered at point_fit_recovery, the tier its
-    # existing metafor comparator evidence already supports; no cell changed tier.
+    # C14 restores the 330 source-pinned package boundaries and then splits ten
+    # lossy structured zero-one-beta representatives into q1 and q2-plus leaves.
+    # C16 independently promotes ten exact q1 structured zero-one-beta leaves
+    # after source-bound recovery and fresh three-lens GO. C17-B promotes the
+    # exact ordinary zero-one-beta zoi same-symbol q1 slope after authenticated
+    # recovery and fresh Fisher/Noether/Rose GO. The remaining 19 rows
+    # are the actionable implementation backlog, not a claim that every
+    # boundary is mathematically impossible.
     expected = Counter(
-        {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40}
+        {
+            "implemented": 328,
+            "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
+            "not_implemented": 19,
+        }
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census -- the original 676 model_surface rows -- must keep exactly 158
-    # point_fit_recovery cells. Approved inserts take a higher source_order and so cannot
-    # disturb this number; a PROMOTION of any frozen cell breaks it immediately. Checking
-    # the frozen baseline separately from the total is what stops a promotion being
-    # laundered behind a simultaneous insert. Do not raise 158 to make a failure go away.
+    # The frozen census has 175 point_fit_recovery cells after C16's exact
+    # ten-leaf promotion, B3's exact four q6 mu2 target promotions, and C17-B's
+    # exact zero-one-beta zoi same-symbol q1 slope promotion.
+    # Approved inserts take a higher source_order and so cannot disturb this
+    # number; every frozen-cell promotion needs a named
+    # transition and evidence receipt.
     frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
     if len(frozen) != FROZEN_CENSUS_COUNT:
         errors.append(
@@ -593,6 +1042,65 @@ def validate(
             f"(expected {FROZEN_CENSUS_POINT_FIT_RECOVERY}); a frozen cell was promoted "
             "or demoted"
         )
+
+    by_cell = {row["cell_id"]: row for row in cells}
+    b3_observed = {
+        row["cell_id"]
+        for row in model
+        if row["q_gate"] == "q6"
+        and row["dpar"] == "mu2"
+        and row["effect_type"] == "structured"
+        and row["estimator"] == "ML"
+        and row["evidence_tier"] == "interval_feasible"
+    }
+    if b3_observed != set(B3_Q6_MU2_TARGETS):
+        errors.append(
+            "B3 q6 mu2 interval-feasible allowlist changed: "
+            f"{sorted(b3_observed)}"
+        )
+    b3_latest_transition = {
+        row["cell_id"]: row for row in transitions
+    }
+    for cell_id, (provider, paired_mu1, target_id) in B3_Q6_MU2_TARGETS.items():
+        cell = by_cell.get(cell_id, {})
+        evidence_id = f"ev-{cell_id}-b3-q6-mu2-interval"
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        expected_receipt = (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{B3_Q6_MU2_RUNNER_SHA}/b2-q6-proof-profile/{cell_id}/"
+            f"b2-q6-proof-{cell_id}-high-seed-20260731-receipt.tsv"
+        )
+        if (
+            cell.get("structure_provider") != provider
+            or cell.get("family_route") != "biv_gaussian"
+            or cell.get("dpar") != "mu2"
+            or cell.get("q_gate") != "q6"
+            or cell.get("estimator") != "ML"
+            or cell.get("capability_status") != "implemented"
+            or cell.get("work_status") != "verified"
+            or cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("primary_evidence_id") != evidence_id
+        ):
+            errors.append(f"{cell_id}: B3 canonical target row changed")
+        if by_cell.get(paired_mu1, {}).get("evidence_tier") != "point_fit_recovery":
+            errors.append(f"{paired_mu1}: paired mu1 row inherited B3 target promotion")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "estimator_diagnostic"
+            or evidence_row.get("path_or_url") != expected_receipt
+            or evidence_row.get("commit_sha") != B3_Q6_MU2_RUNNER_SHA
+            or evidence_row.get("result") != "interval_feasible"
+        ):
+            errors.append(f"{evidence_id}: B3 evidence binding changed")
+        if target_id not in B3_Q6_MU2_PACKET.read_text(encoding="utf-8"):
+            errors.append(f"{cell_id}: exact direct target missing from B3 packet")
+        transition = b3_latest_transition.get(cell_id, {})
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: B3 transition must remain verified-to-verified")
 
     missing = {row["family_route"]: row for row in cells if row["axis"] == "missing_response"}
     for route, row in missing.items():
@@ -679,6 +1187,7 @@ def model_projection(
         "q_gate": row["q_gate"],
         "estimator": row["estimator"],
         "status": row["capability_status"],
+        "planning_class": planning_class(row),
         "evidence_tier": row["evidence_tier"],
         "evidence_source": (
             evidence_by_id[row["primary_evidence_id"]]["path_or_url"]
@@ -687,6 +1196,21 @@ def model_projection(
         ),
         "notes": row["claim_boundary"] or row["notes"],
     } for row in rows]
+
+
+def planning_class(row: dict[str, str]) -> str:
+    """Return a visible scope class without treating an unimplemented cell as impossible.
+
+    It is a planning cue, not an effort estimate or an inference claim. REML is
+    a restricted-likelihood objective; an ML fit does not automatically supply it.
+    """
+    if row["capability_status"] == "implemented":
+        return "available"
+    if row["estimator"] in {"REML", "AI-REML"}:
+        return "estimator method"
+    if row["effect_type"] == "structured":
+        return "covariance / model method"
+    return "admission candidate"
 
 
 def widget_value(
@@ -713,7 +1237,7 @@ def widget_value(
         "rows": [
             {key: row[key] for key in (
                 "family", "dpar", "effect_type", "structure_provider",
-                "dimension", "q_gate", "estimator", "status", "evidence_tier",
+                "dimension", "q_gate", "estimator", "status", "planning_class", "evidence_tier",
             )}
             for row in model
         ],
@@ -839,8 +1363,8 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
     counts = Counter(row["capability_status"] for row in rows)
     labels = {
         "implemented": "implemented",
-        "rejected_by_design": "rejected",
         "not_implemented": "not implemented",
+        "rejected_by_design": "not currently supported",
         "scaffolded": "scaffolded",
     }
     if len(counts) == 1:
@@ -848,7 +1372,7 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
     details = "; ".join(
         f"{labels[status]} {counts[status]}"
         for status in (
-            "implemented", "rejected_by_design", "not_implemented", "scaffolded"
+            "implemented", "not_implemented", "rejected_by_design", "scaffolded"
         )
         if counts[status]
     )
@@ -1119,8 +1643,14 @@ def surface_markdown(
         "",
         f"- Model surface: **{len(model)} cells** across **{len(by_family)} routes**.",
         f"- Runtime status: **{status['implemented']} implemented**, "
-        f"**{status['rejected_by_design']} rejected by design**, "
-        f"**{status['not_implemented']} not implemented**.",
+        f"**{status['not_implemented']} actionable not implemented**, and "
+        f"**{status['rejected_by_design']} not currently supported**.",
+        "- Planning classes make the backlog visible without calling it impossible: "
+        "admission candidate, covariance/model method, or estimator method. "
+        "They are scope classes, not effort estimates or evidence claims.",
+        "- ML and REML are separate estimators. An ML implementation does not "
+        "automatically supply REML; REML cells require a valid restricted-likelihood "
+        "objective and their own validation.",
         f"- Evidence: **{tiers['supported']} supported**, "
         f"**{tiers['inference_ready_with_caveats']} inference-ready**, "
         f"**{tiers['interval_feasible']} interval-feasible**, "
@@ -1152,7 +1682,7 @@ def surface_markdown(
         "",
         "## Per-family model-surface summary",
         "",
-        "| Route | Cells | Implemented | Rejected | Not implemented | Highest evidence |",
+        "| Route | Cells | Implemented | Actionable backlog | Not currently supported | Highest evidence |",
         "|---|---:|---:|---:|---:|---|",
     ]
     for family in sorted(by_family):
@@ -1162,7 +1692,7 @@ def surface_markdown(
         highest = next((tier for tier in TIER_ORDER if tier in available), "none")
         lines.append(
             f"| `{family}` | {len(rows)} | {counts['implemented']} | "
-            f"{counts['rejected_by_design']} | {counts['not_implemented']} | "
+            f"{counts['not_implemented']} | {counts['rejected_by_design']} | "
             f"{highest.replace('_', ' ')} |"
         )
     lines.extend([
@@ -1267,6 +1797,7 @@ def surface_html(
                 "capability_status", "evidence_tier", "claim_boundary",
                 "primary_evidence_id",
             )},
+            "planning_class": planning_class(row),
             "external_comparator": comparators.get(row["cell_id"], ""),
         }
         for row in model
@@ -1280,6 +1811,7 @@ def surface_html(
         f"<td>{html.escape(row['effect_type'])}</td>"
         f"<td>{html.escape(row['structure_provider'])}</td>"
         f"<td>{html.escape(row['estimator'])}</td>"
+        f"<td>{html.escape(planning_class(row))}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
         f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
@@ -1304,7 +1836,7 @@ def surface_html(
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
-<div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
+<div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{status['not_implemented']}</b><span>actionable backlog cells</span></div><div class="stat"><b>{status['rejected_by_design']}</b><span>not currently supported</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
 <h2 id="missing-response">Missing-response evidence</h2>
@@ -1313,10 +1845,11 @@ def surface_html(
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
 <p class="scope"><strong>Missing-response column:</strong> route-level G3 is retained on purpose. {html.escape(missing_g4g5_summary())}</p>
+<p class="muted"><strong>Estimator:</strong> ML and REML are separate objectives. A working ML route does not automatically have a valid REML implementation. <strong>Planning class</strong> distinguishes an admission candidate from a covariance/model-method or estimator-method extension; it is a planning cue, not an effort estimate or a support claim.</p>
 <p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
@@ -1326,7 +1859,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
 for(const v of [...new Set(DATA.map(r=>r.family_route))].sort()) fam.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
 for(const v of [...new Set(DATA.map(r=>r.capability_status))].sort()) status.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
-function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
+function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td>${{esc(r.planning_class)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 
@@ -1450,12 +1983,24 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--bootstrap", action="store_true")
+    action.add_argument("--restore-c14-boundaries", action="store_true")
+    action.add_argument("--split-c14-zob-structured-leaves", action="store_true")
+    action.add_argument("--check-c14-receipt-equivalence", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
     action.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.bootstrap:
         bootstrap()
+        return
+    if args.restore_c14_boundaries:
+        restore_c14_boundaries()
+        return
+    if args.split_c14_zob_structured_leaves:
+        split_c14_zob_structured_leaves()
+        return
+    if args.check_c14_receipt_equivalence:
+        check_c14_receipt_equivalence()
         return
     cells, evidence, _ = load_sources()
     if args.write:

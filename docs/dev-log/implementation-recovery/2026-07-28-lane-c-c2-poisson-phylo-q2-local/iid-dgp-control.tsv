@@ -1,0 +1,2 @@
+control_id	source_sha	seed	n_draw	K	tau0_truth	tau1_truth	rho_truth	tau0_empirical	tau1_empirical	rho_empirical	decision
+lane_c_c2_poisson_phylo_q2_iid_dgp	781fbd6c339d3fb319d61389ea3d1d2a30cd2cad-dirty	2026072814	8192	identity	0.6	0.5	0.5	0.600114725732843	0.49968541767301	0.497410046068268	PASS_IID_DGP_CONTROL

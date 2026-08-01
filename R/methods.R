@@ -2494,9 +2494,7 @@ drm_standard_error_status <- function(object) {
 #' `logLik()` returns a `"logLik"` object with `df` and `nobs` attributes so
 #' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
 #' top-level parameter count, and fitted-row count consistently.
-#' `nobs()` returns the number of rows contributing to the fitted likelihood.
-#' With supported response masks, this excludes missing univariate responses;
-#' for bivariate Gaussian fits, a partial-response row contributes once.
+#' `nobs()` returns the number of fitted rows after complete-case filtering.
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
 #' `-2 * logLik`; for these likelihood-based distributional models this is an
@@ -5661,7 +5659,10 @@ coefficient_labels <- function(object) {
 
 has_mu_random_effects <- function(object) {
   has_ordinary_mu_random_effects(object) ||
-    has_structured_mu_effect(object) ||
+    (has_structured_mu_effect(object) &&
+      any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
+        object$model$structured$phylo_mu
+      )) == "mu")) ||
     has_mu_covariance_block_random_effects(object)
 }
 
@@ -5674,8 +5675,8 @@ has_mu_random_intercepts <- has_mu_random_effects
 has_phylo_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
-      "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
-      "gamma", "beta"
+      "gaussian", "biv_gaussian", "poisson", "nbinom2", "zi_nbinom2", "lognormal",
+      "gamma", "beta", "zero_one_beta"
     ) &&
     isTRUE(object$model$structured$phylo_mu$has) &&
     identical(structured_mu_type(object$model$structured$phylo_mu), "phylo")
@@ -5692,7 +5693,7 @@ has_structured_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
       "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
-      "gamma", "beta"
+      "gamma", "beta", "zero_one_beta"
     ) &&
     isTRUE(object$model$structured$phylo_mu$has)
 }
@@ -5700,7 +5701,10 @@ has_structured_mu_effect <- function(object) {
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
     n_mu_covariance_block_random_effect_terms(object) +
-    if (has_structured_mu_effect(object)) {
+    if (has_structured_mu_effect(object) &&
+      any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
+        object$model$structured$phylo_mu
+      )) == "mu")) {
       structured_mu_q(object$model$structured$phylo_mu)
     } else {
       0L
@@ -5709,8 +5713,12 @@ n_mu_random_effect_terms <- function(object) {
 
 has_sigma_random_effects <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian", "nbinom2", "lognormal", "gamma") &&
-    length(object$random_effects$sigma$values) > 0L
+    c("gaussian", "biv_gaussian", "nbinom2", "zi_nbinom2", "lognormal", "gamma") &&
+    (length(object$random_effects$sigma$values) > 0L ||
+      (isTRUE(object$model$structured$phylo_mu$has) &&
+        any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
+          object$model$structured$phylo_mu
+        )) == "sigma")))
 }
 
 has_covariance_block_random_effects <- function(object) {

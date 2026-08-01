@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	estimate	profile_engine
+mc-0146	mc-0146::sd:mu:mu2:animal(1 | p | id)	20260731	high_n72_each20	0.95	0.384577325004685	0.541341115816539	0.452598885101984	tmbprofile

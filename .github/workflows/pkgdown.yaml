@@ -14,7 +14,9 @@ permissions:
 
 concurrency:
   group: pkgdown
-  cancel-in-progress: true
+  # A main push may queue both workflow_run and manual dispatch events. Queue
+  # them so an in-progress Pages deployment is not cancelled before `deploy`.
+  cancel-in-progress: false
 
 jobs:
   pkgdown:

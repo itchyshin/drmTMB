@@ -1,0 +1,13 @@
+key	value
+run_status	COMPLETE
+source_sha	eddc1412962f91342a78f33c66a3d454a0679d8d
+runner_sha256	8f939dc6c3b95444354097bdf91061ec08eb1ca66ce139d13351f17829b256d6
+git_blob:R/drmTMB.R	a6d1245388997f2a94e44255c7f6d0f978550d06
+git_blob:src/drmTMB.cpp	586eee0a8125f81a3038e82a7d5d21029be678c1
+git_blob:tests/testthat/test-zero-one-beta.R	009b56731b843ac69009743952b82c47dd6d45eb
+loaded_namespace_path	/private/tmp/drmtmb-c17b-zoi-slope
+utc_start	2026-08-01 18:09:07 UTC
+utc_finish	2026-08-01 18:09:49 UTC
+exact_command	R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-lane-c-c17b-zob-zoi-slope-current-source-recovery.R
+command_args	/Library/Frameworks/R.framework/Resources/bin/exec/R --no-echo --no-restore --no-init-file --file=tools/run-lane-c-c17b-zob-zoi-slope-current-source-recovery.R
+dirty_state_path	dirty-state.txt

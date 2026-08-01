@@ -302,9 +302,20 @@ beta <- function() {
 #' `fitted()` returns the unconditional response mean
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
-#' `mu`. Correlated or labelled `mu` slopes, `sigma`, `zoi`, or `coi` random
-#' effects, structured effects, covariance blocks, and denominator syntax remain
-#' unsupported.
+#' `mu`. The point-fit-only q1 gates additionally admit one ordinary
+#' intercept-only random effect in `sigma` or `zoi`, separately, one ordinary
+#' slope-only `sigma` effect `(0 + x | id)`, and one ordinary slope-only `zoi`
+#' effect when the fixed and random terms use the same raw symbol, for example
+#' `zoi ~ x + (0 + x | id)`. These exact routes are point-fit recovery only:
+#' direct profiling, intervals, coverage, and broader recovery claims remain
+#' unavailable. Correlated or labelled effects, intercept-plus-slope `zoi`
+#' effects, transformed or mismatched `zoi` slope symbols, `coi` random effects,
+#' covariance blocks, and denominator syntax remain unsupported. One further
+#' point-fit-only structured route is
+#' available: an unlabelled q1 `phylo(1 | group, tree = tree)` intercept in
+#' `mu`. It does not license other providers, slopes, labels, covariance,
+#' q2-plus structured effects, profiling, intervals, coverage, or inference
+#' claims.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -414,8 +425,11 @@ cumulative_logit <- function() {
 #' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
 #' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
 #' (trust the point estimate, not the interval; not yet coverage-verified).
-#' NB2 `sigma` random slopes and zero-inflated NB2 `sigma` random effects
-#' remain planned.
+#' NB2 `sigma` random slopes remain planned. Zero-inflated NB2 supports only
+#' the point-fit-only IID control `bf(count ~ fixed_effects, sigma ~ 1 +
+#' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
+#' sigma predictors, slopes, labels, and other random-effect combinations
+#' remain unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export

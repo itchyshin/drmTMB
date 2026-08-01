@@ -151,7 +151,10 @@ remain consistent with the rest of `drmTMB`.
   exact structural zeroes or ones, using `zoi` for boundary probability and
   `coi` for the probability of an exact one conditional on the boundary;
   ordinary unlabelled `mu` random intercepts and independent numeric slopes are
-  recovery-grade, while `sigma`/`zoi`/`coi` random effects remain planned.
+  recovery-grade. Exact ordinary ML point-fit-only exceptions additionally
+  admit the separately evidenced `sigma`/`zoi` q1 intercepts and matching-raw-
+  symbol slopes; `coi` random effects, other atom slopes, joint/correlated atom
+  effects, and broader structured forms remain planned.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
 - `beta_binomial()`: implemented for counts of successes out of trials with
   overdispersion, including ordinary recovery-grade `mu` random intercepts and

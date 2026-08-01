@@ -28,9 +28,9 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_denominators_and_truthful_missing_response_state(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
-        # 677 = the 676 frozen census rows + mc-0260m, the meta_V route row inserted
-        # 2026-07-25. An insert, not a promotion: no pre-existing cell changed tier.
-        self.assertEqual(len(model), 677)
+        # 687 = the 676 frozen census rows, mc-0260m, and ten C14 q2-plus
+        # boundary leaves paired with the newly exact q1 structured leaves.
+        self.assertEqual(len(model), 687)
         self.assertEqual(len(missing), 18)
         self.assertEqual(
             {
@@ -53,6 +53,100 @@ class CapabilityLedgerTests(unittest.TestCase):
             len(ledger.ADMITTED),
         )
 
+    def test_c14_boundary_restoration_is_source_pinned_and_non_promoting(self):
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+        source_ids = {
+            row["cell_id"] for row in ledger.c14_boundary_source_rows()
+        }
+        self.assertEqual(len(source_ids), ledger.C14_BOUNDARY_COUNT)
+        self.assertTrue(source_ids <= set(by_id))
+        self.assertFalse(any(
+            by_id[cell_id]["capability_status"] == "implemented"
+            for cell_id in source_ids
+        ))
+        for cell_id in source_ids:
+            row = by_id[cell_id]
+            self.assertEqual(row["capability_status"], "rejected_by_design")
+            self.assertEqual(row["work_status"], "deferred")
+            self.assertEqual(row["evidence_tier"], "none")
+
+    def test_c14_structured_zero_one_beta_leaves_preserve_q2plus_boundaries(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        self.assertEqual(len(ledger.C14_ZOB_LEAF_TAXONOMY), 10)
+        for index, (q1_id, q2plus_id) in enumerate(ledger.C14_ZOB_LEAF_TAXONOMY):
+            q1 = by_id[q1_id]
+            q2plus = by_id[q2plus_id]
+            self.assertEqual(q1["q_gate"], "q1")
+            self.assertEqual(q1["route_variant"], "c14_exact_q1_structured_intercept")
+            if q1_id in {
+                "mc-0583", "mc-0584", "mc-0585", "mc-0586", "mc-0587",
+                "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+            }:
+                self.assertEqual(q1["capability_status"], "implemented")
+                self.assertEqual(q1["work_status"], "verified")
+                self.assertEqual(q1["evidence_tier"], "point_fit_recovery")
+            else:
+                self.assertEqual(q1["capability_status"], "not_implemented")
+                self.assertEqual(q1["work_status"], "backlog")
+            self.assertEqual(q2plus["q_gate"], "q2plus")
+            self.assertEqual(q2plus["route_variant"], "c14_q2plus_structured_boundary")
+            self.assertEqual(q2plus["capability_status"], "rejected_by_design")
+            self.assertEqual(q2plus["work_status"], "deferred")
+            self.assertEqual(q2plus["source_order"], str(695 + index))
+            self.assertEqual(q1["dpar"], q2plus["dpar"])
+            self.assertEqual(q1["structure_provider"], q2plus["structure_provider"])
+
+    def test_c14_candidate_manifest_is_complete_and_source_resolved(self):
+        manifest = (
+            ROOT / "docs/dev-log/dashboard/capability-ledger/"
+            "c14-candidate-evidence-manifest.tsv"
+        )
+        with manifest.open(newline="", encoding="utf-8") as handle:
+            rows = list(csv.DictReader(handle, delimiter="\t"))
+        expected = {
+            "mc-0418", "mc-0425", "mc-0436", "mc-0446", "mc-0450", "mc-0454",
+            "mc-0568", "mc-0569", "mc-0576", "mc-0577",
+            "mc-0583", "mc-0584", "mc-0585", "mc-0586", "mc-0587",
+            "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+        }
+        self.assertEqual({row["cell_id"] for row in rows}, expected)
+        self.assertTrue(all((ROOT / row["retained_receipt"]).exists() for row in rows))
+        self.assertTrue(all(row["c14_decision"] for row in rows))
+
+    def test_c14_receipt_equivalence_keeps_raw_sources_separate(self):
+        ledger.check_c14_receipt_equivalence()
+
+    def test_c17b_promotes_only_the_exact_same_symbol_zoi_slope(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        row = by_id["mc-0577"]
+        self.assertEqual(row["capability_status"], "implemented")
+        self.assertEqual(row["work_status"], "verified")
+        self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+        self.assertEqual(row["test_gate"], "G3")
+        self.assertEqual(row["primary_evidence_id"], "ev-mc-0577-c17b-recovery")
+        self.assertIn("same raw symbol", row["claim_boundary"])
+        self.assertIn("Profiles, intervals, coverage", row["next_gate"])
+
+        evidence = {
+            item["evidence_id"]: item
+            for item in self.evidence
+            if item["cell_id"] == "mc-0577"
+        }
+        for evidence_id in (
+            "ev-mc-0577-c17b-contract",
+            "ev-mc-0577-c17b-recovery",
+        ):
+            self.assertEqual(evidence[evidence_id]["reviewed_by"], "Fisher; Noether; Rose")
+
+        transitions = [
+            item for item in self.transitions
+            if item["transition_id"] == "tr-mc-0577-c17b-promote"
+        ]
+        self.assertEqual(len(transitions), 1)
+        self.assertEqual(transitions[0]["from_work_status"], "backlog")
+        self.assertEqual(transitions[0]["to_work_status"], "verified")
+
     def test_arc3a_cells_are_narrow_and_evidence_backed(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
@@ -60,8 +154,8 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
-             for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
+             for status in ("implemented", "not_implemented", "rejected_by_design")},
+            {"implemented": 328, "not_implemented": 19, "rejected_by_design": 340},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -92,7 +186,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(comparator["evidence_tier"], "point_fit_recovery")
         self.assertIn("90/90-converged", comparator["claim_boundary"])
 
-    def test_arc1b_s1_cells_are_exact_and_preserve_the_rejected_remainder(self):
+    def test_arc1b_s1_cells_are_exact_and_preserve_the_not_implemented_remainder(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
@@ -103,20 +197,23 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
-             for status in ("implemented", "rejected_by_design", "not_implemented")},
-            {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40},
+             for status in ("implemented", "not_implemented", "rejected_by_design")},
+            {"implemented": 328, "not_implemented": 19, "rejected_by_design": 340},
         )
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # must contain exactly 158 point_fit_recovery cells, forever. This is the
-        # load-bearing anti-promotion guard and it is NOT allowed to move. Raising it is
-        # how a promotion gets laundered.
+        # contains 175 point_fit_recovery cells after the explicit C12 mc-0653,
+        # six-cell count tranche, ten named C16 structured zero-one-beta
+        # promotions, four B3 q6 mu2 promotions, and the exact C17-B mc-0577
+        # promotion. Future changes require a
+        # named transition and evidence receipt;
+        # raising it without one is how a promotion gets laundered.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            158,
+            175,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -124,8 +221,30 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            159,
+            176,
         )
+
+        b3 = {
+            row["cell_id"]: row
+            for row in model
+            if row["q_gate"] == "q6"
+            and row["dpar"] == "mu2"
+            and row["effect_type"] == "structured"
+            and row["estimator"] == "ML"
+            and row["evidence_tier"] == "interval_feasible"
+        }
+        self.assertEqual(set(b3), set(ledger.B3_Q6_MU2_TARGETS))
+        for cell_id, (provider, paired_mu1, target_id) in ledger.B3_Q6_MU2_TARGETS.items():
+            self.assertEqual(b3[cell_id]["structure_provider"], provider)
+            self.assertEqual(b3[cell_id]["primary_evidence_id"], f"ev-{cell_id}-b3-q6-mu2-interval")
+            self.assertEqual(by_id[paired_mu1]["evidence_tier"], "point_fit_recovery")
+            self.assertIn(target_id, ledger.B3_Q6_MU2_PACKET.read_text(encoding="utf-8"))
+
+        c12 = by_id["mc-0653"]
+        self.assertEqual(c12["capability_status"], "implemented")
+        self.assertEqual(c12["work_status"], "verified")
+        self.assertEqual(c12["evidence_tier"], "point_fit_recovery")
+        self.assertEqual(c12["primary_evidence_id"], "ev-mc-0653-lane-c-c12")
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
             row = by_id[cell_id]
@@ -253,7 +372,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(by_id[cell_id]["evidence_tier"], "point_fit_recovery")
         self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
 
-    def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_rejected(self):
+    def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_not_implemented(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
@@ -336,7 +455,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for route in ("gamma", "lognormal"):
             self.assertIn(
-                "`sigma`: int implemented / slope rejected",
+                "`sigma`: int implemented / slope not currently supported",
                 rows[route]["Random (int/slope)"],
             )
 
@@ -344,24 +463,24 @@ class CapabilityLedgerTests(unittest.TestCase):
         status = lambda value: {"capability_status": value}
         self.assertEqual(ledger._aggregate_state([]), "absent")
         self.assertEqual(
-            ledger._aggregate_state([status("rejected_by_design")]),
-            "rejected",
-        )
-        self.assertEqual(
             ledger._aggregate_state([status("not_implemented")]),
             "not implemented",
         )
         self.assertEqual(
-            ledger._aggregate_state([
-                status("rejected_by_design"), status("not_implemented")
-            ]),
-            "mixed (rejected 1; not implemented 1)",
+            ledger._aggregate_state([status("rejected_by_design")]),
+            "not currently supported",
         )
         self.assertEqual(
             ledger._aggregate_state([
-                status("implemented"), status("rejected_by_design")
+                status("not_implemented"), status("scaffolded")
             ]),
-            "scope-limited (implemented 1; rejected 1)",
+            "mixed (not implemented 1; scaffolded 1)",
+        )
+        self.assertEqual(
+            ledger._aggregate_state([
+                status("implemented"), status("not_implemented")
+            ]),
+            "scope-limited (implemented 1; not implemented 1)",
         )
 
     def test_family_map_reml_is_not_inferred_from_ml(self):
@@ -377,13 +496,27 @@ class CapabilityLedgerTests(unittest.TestCase):
             and row["estimator"] == "ML"
             and row["effect_type"] == "ordinary_re_intercept"
         )
-        ml_binomial["capability_status"] = "rejected_by_design"
+        ml_binomial["capability_status"] = "not_implemented"
         after = {
             row["family_route"]: row["REML"]
             for row in ledger.family_map_rows(cells)
         }
         self.assertEqual(before["binomial"], after["binomial"])
-        self.assertIn("`mu`: rejected", before["binomial"])
+        self.assertIn("`mu`: not currently supported", before["binomial"])
+
+    def test_planning_class_keeps_unimplemented_work_visible(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        self.assertEqual(ledger.planning_class(by_id["mc-0001"]), "available")
+        self.assertEqual(
+            ledger.planning_class(by_id["mc-0002"]), "estimator method"
+        )
+        self.assertEqual(
+            ledger.planning_class(by_id["mc-0009"]), "admission candidate"
+        )
+        self.assertEqual(
+            ledger.planning_class(by_id["mc-0014"]),
+            "covariance / model method",
+        )
 
     def test_arc1a_reml_provider_promotions_are_live_and_discrete(self):
         by_id = {row["cell_id"]: row for row in self.cells}
@@ -422,7 +555,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             if row["family_route"] == "gaussian"
         )
         self.assertIn(
-            "`mu`: scope-limited (implemented 8; rejected 4)",
+            "`mu`: scope-limited (implemented 8; not currently supported 4)",
             gaussian["REML"],
         )
 
@@ -705,7 +838,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["34-validation-debt-register.md"],
         )
         self.assertIn(
-            "four exact diagnostic-only structured gates: q1 Poisson `zi ~ spatial()`, fixed-`zi` Poisson `mu ~ spatial()`, fixed-`zi` NB2 `mu ~ spatial()`, and truncated-NB2 `hu ~ relmat(K/Q)` intercepts",
+            "exact ordinary `zoi` q1 intercept and same-raw-symbol slope routes are point-fit-only",
             surfaces["46-pre-simulation-readiness-matrix.md"],
         )
         self.assertIn(
@@ -938,7 +1071,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn(stale, ordinal_combined)
         self.assertNotIn("skew-normal is a fixed-effect first slice", surfaces["README.md"])
         self.assertIn(
-            "Every fitted univariate\nnon-Gaussian family has at least recovery-grade ordinary `mu` random-intercept\nand independent numeric-slope evidence",
+            "Every fitted univariate\nnon-Gaussian family has an ordinary recovery-grade `mu` random intercept and\nindependent numeric slope",
             surfaces["README.md"],
         )
         self.assertIn(
