@@ -1,5 +1,18 @@
 # drmTMB 0.6.0
 
+## Association alpha intervals
+
+* `vcov()` and `confint()` now expose two-stage Godambe-Wald uncertainty for
+  the association-link coefficients `alpha` from every admitted fixed-effect,
+  complete-pair association route. These routes are interval-feasible whenever
+  their fit-specific covariance diagnostics pass; routes without coverage
+  calibration warn that their intervals remain experimental. The
+  literal-Bernoulli x ordinary-NB2 intercept route is inference-ready with
+  caveats: a retained 16-cell high-information campaign passed its bias,
+  availability, SE-calibration, and coverage gates. Lower-information fits
+  warn. Eta-scale intervals, profiles, random effects, missingness, weights,
+  offsets, and REML remain outside this method.
+
 ## `simulate()` redraws random effects (`re.form`) — corrected before first release
 
 * **Earlier `0.6.0` development builds held random effects frozen at their

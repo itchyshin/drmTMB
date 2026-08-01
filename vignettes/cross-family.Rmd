@@ -27,10 +27,13 @@ habitat, do rows that do better than expected for one outcome also tend to do
 better than expected for the other?
 
 The one-call tool on this page returns that association and its numerical
-diagnostics. It is a beta tool: it gives a point estimate, not a standard error,
-confidence interval, profile, coverage claim, or a general bivariate-family
-interface. If both outcomes are Gaussian and you need a jointly fitted model,
-use `biv_gaussian()` and its residual correlation `rho12` instead.
+diagnostics. For every admitted pair route it also provides two-stage Godambe
+standard errors and Wald confidence intervals for the association-link
+coefficients `alpha` when fit-specific diagnostics pass. This interval surface
+is beta and deliberately scoped; it is not a general bivariate-family
+interface. If
+both outcomes are Gaussian and you need a jointly fitted model, use
+`biv_gaussian()` and its residual correlation `rho12` instead.
 
 Behind the scenes, the tool fits each outcome model first, holds those fitted
 margins fixed, and estimates a latent-normal association called `eta`. You do
@@ -59,7 +62,7 @@ but it is still a two-stage estimator: it fits the two margins, freezes their
 estimated parameters, and estimates only `eta` in stage 2. Changing the stage-2
 association never refits the mean or scale parameters from either margin.
 
-```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. This is not a jointly fitted model and has no association interval in the current beta."}
+```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. For every admitted route, the public Godambe covariance propagates uncertainty from both fitted margins into alpha-scale Wald intervals when fit-specific diagnostics pass."}
 old_par <- par(mar = c(0, 0, 1, 0))
 plot.new()
 plot.window(xlim = c(0, 12), ylim = c(0, 4))
@@ -97,9 +100,26 @@ For the usual constant association, \(X_A=1\), so every row has the same
 \(X_{A,i}=(1,x_i)\). In computation, `drmTMB` keeps `eta` infinitesimally
 inside -1 and 1, because exact endpoints make the latent-normal probability
 calculation unstable. This is a plug-in association criterion, not a joint
-maximum-likelihood fit.
-The stage-2 Hessian therefore cannot give an ordinary valid standard error for
-`eta`, because it treats stage-1 uncertainty as fixed.
+maximum-likelihood fit. The stage-2 Hessian alone therefore cannot give an
+ordinary valid standard error because it treats stage-1 uncertainty as fixed.
+Every admitted pair route instead uses the stacked stage-1 and stage-2
+estimating equations to form a Godambe covariance for its `alpha`
+coefficients. This establishes interval feasibility. The Bernoulli x
+ordinary-NB2 intercept route additionally has retained coverage calibration.
+
+Writing the full staged parameter as
+(q=(\theta_B^\top,\theta_N^\top,\alpha)^\top) and its per-row stacked score as
+(U_i(q)), drmTMB computes
+
+\[
+H=-\frac{1}{n}\sum_i\frac{\partial U_i}{\partial q^\top},\qquad
+J=\frac{1}{n}\sum_i U_iU_i^\top,\qquad
+\widehat{\operatorname{Var}}(\widehat q)=\frac{1}{n}H^{-1}JH^{-\top}.
+\]
+
+`vcov(assoc)` returns the `alpha` block of this matrix and `confint(assoc)`
+forms Wald intervals from that block. Thus the equations, R method, and
+reported target all use the same unbounded association-link scale.
 
 ## What a binary outcome contributes
 
@@ -141,6 +161,8 @@ assoc <- biv_associate(
 )
 
 association(assoc)
+vcov(assoc)
+confint(assoc)
 ```
 
 The current reviewed classes are Gaussian x literal-Bernoulli, Gaussian x
@@ -154,6 +176,40 @@ frozen-margin machinery also has two reviewed same-family discrete classes.
 example, a positive value says that a greater latent tendency to breed is
 associated with a greater latent tendency for offspring after habitat and season
 have been accounted for. It is not a raw-data correlation.
+
+## Standard error and confidence interval
+
+For every admitted pair class, `vcov(assoc)` returns a named covariance matrix
+for the unbounded association-link coefficients `alpha` and `confint(assoc)`
+returns the corresponding alpha-scale Wald intervals when fit-specific
+diagnostics pass. These methods propagate fitted-margin uncertainty through a
+two-stage Godambe sandwich; they do not use the conditional stage-2 Hessian.
+
+The interval is **not** an interval for bounded `eta`. Keep the reported scale
+visible, for example:
+
+```{r association-interval-example, eval = FALSE}
+association(assoc)       # bounded latent-normal eta point estimate
+sqrt(diag(vcov(assoc)))  # Godambe SE for alpha
+confint(assoc)           # Wald interval for alpha
+```
+
+All admitted routes are interval-feasible. Those without route-specific
+coverage calibration warn that their intervals are experimental. The
+intercept-only Bernoulli x ordinary-NB2 route is inference-ready with caveats.
+In its retained high-information
+campaign (`n = 480` or `960`), all 16 cells passed the predeclared bias,
+availability, SE-calibration, and 95% coverage gates; cell coverage ranged from
+0.935 to 0.957. The earlier lower-information campaign (`n = 120` or `240`)
+failed five primary coverage cells because some intervals were unavailable.
+Accordingly, lower-information fits are not blocked: a numerically valid
+covariance is returned with a warning, while an unstable or boundary result
+returns an informative error rather than a placeholder interval.
+
+That coverage evidence does not transfer automatically to association slopes,
+other family pairs, eta-scale intervals, random effects, incomplete pairs,
+weights, offsets, or REML. The first two still have interval-feasible alpha
+methods; the others remain outside the current interval surface.
 
 ## Can the association itself be modelled?
 
@@ -180,8 +236,9 @@ This fits \(a_i=\beta_0+\beta_1\,\texttt{habitat_score}_i\) and converts it
 to a row-specific latent association \(\eta_i=\tanh(a_i)\).
 `association()` first returns the two coefficients on the association-link
 scale; `type = "fitted"` returns the corresponding `eta_i` values for the
-rows used to fit the margins. These are point estimates only: no standard
-errors, intervals, profiles, or coverage claim is available.
+rows used to fit the margins. `vcov()` and `confint()` also return the two-by-
+two alpha covariance and coefficient intervals for this slope model. They are
+interval-feasible and explicitly uncalibrated for coverage.
 
 This is similar in spirit to allowing a predictor for a residual `rho12`, but
 it is not the same model or parameter. `rho12` belongs to a direct joint

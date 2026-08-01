@@ -26,8 +26,13 @@ latent_normal <- function() {
 #' The fitted parameter `eta` is a Gaussian-copula latent-normal association.
 #' It is neither [rho12()], an observed-scale correlation, nor [corpairs()].
 #' The [corpair()] formula marker is a distinct interface.
-#' The stage-2 Hessian treats the margins as fixed, so no standard error,
-#' confidence interval, profile, or coverage claim is available.
+#' The stage-2 Hessian treats the margins as fixed and is not used for
+#' uncertainty. For every admitted pair route, [vcov()] and [confint()] instead
+#' use a two-stage Godambe covariance that propagates fitted-margin uncertainty
+#' when the fit-specific calculation succeeds. These alpha-scale routes are
+#' interval-feasible. The retained Bernoulli x ordinary-NB2 intercept campaign
+#' supports the stronger inference-ready-with-caveats tier. Eta-scale intervals
+#' and profiles remain unavailable.
 #'
 #' @param fit_1,fit_2 Two fitted `drmTMB` marginal models. They must use the
 #'   identical complete analysis data, in the same order.
@@ -216,7 +221,7 @@ associate_pairs <- function(
       fit_2 = if (model_types[[2L]] == "gaussian") "gaussian" else pair_role)
   }
 
-  structure(
+  out <- structure(
     list(
       call = match.call(),
       kernel = kernel,
@@ -247,6 +252,12 @@ associate_pairs <- function(
     ),
     class = "drm_pair_association"
   )
+  out$alpha_inference <- drm_pair_prepare_alpha_inference(
+    fit_1 = fit_1,
+    fit_2 = fit_2,
+    association_fit = out
+  )
+  out
 }
 
 #' Fit two margins and construct a frozen-margin association in one call
@@ -274,15 +285,17 @@ associate_pairs <- function(
 #'   `~ 1`, which estimates one constant association parameter. The beta
 #'   Bernoulli x ordinary-NB2 route accepts an intercept-bearing fixed-effect
 #'   model-matrix formula, including multiple predictors, factors,
-#'   interactions, and explicit transformations. It supplies point estimates
-#'   only: standard errors and intervals remain unavailable.
+#'   interactions, and explicit transformations. Alpha-scale standard errors
+#'   and Wald intervals are available for every admitted association formula
+#'   when its fit-specific Godambe covariance diagnostics pass.
 #' @param control_1,control_2 Optional control lists passed to the corresponding
 #'   marginal [drmTMB()] fits.
 #'
 #' @return A `drm_pair_association` object that retains frozen snapshots of both
 #'   fitted margins. [association()] returns the point estimate unless the
 #'   numerical diagnostic is boundary-unresolved; a near-boundary status remains
-#'   flagged. No standard error, confidence interval,
+#'   flagged. Admitted routes have alpha-scale [vcov()] and [confint()] methods
+#'   when the fit-specific Godambe covariance succeeds. No eta-scale interval
 #'   or profile is available.
 #' @export
 #'
@@ -352,7 +365,9 @@ biv_associate <- function(
 #' @return For a constant association, a one-row data frame with the
 #'   latent-normal association and diagnostic status. For a beta association
 #'   formula, a coefficient table or a frozen-row `eta` table according to
-#'   `type`. No standard error or interval is supplied.
+#'   `type`. The separate [vcov()] and [confint()] methods supply alpha-scale
+#'   uncertainty for admitted association routes whose fit-specific Godambe
+#'   covariance diagnostics pass.
 #' @export
 association <- function(object, ...) {
   UseMethod("association")
@@ -403,9 +418,11 @@ print.drm_pair_association <- function(x, ...) {
       cli::cli_text("  association coefficients: {length(x$association_coefficients)}; fitted eta range: {format(range(x$eta_internal), digits = 4)}")
     }
   }
-  cli::cli_text(
-    "  standard errors: unavailable; frozen-margin point estimate only"
-  )
+  if (identical(x$alpha_inference$status, "available")) {
+    cli::cli_text("  alpha uncertainty: available via vcov() and confint()")
+  } else {
+    cli::cli_text("  alpha uncertainty: unavailable for this route or fit")
+  }
   invisible(x)
 }
 
@@ -435,8 +452,13 @@ print.summary.drm_pair_association <- function(x, ...) {
   } else {
     cli::cli_text("  association coefficients: {nrow(x$association)}")
   }
-  cli::cli_text("  status: {x$association$status[[1L]]}")
-  cli::cli_text("  standard errors and intervals: unavailable")
+  status <- if (is.null(x$association)) {
+    "boundary_unresolved"
+  } else {
+    x$association$status[[1L]]
+  }
+  cli::cli_text("  status: {status}")
+  cli::cli_text("  use vcov() / confint() for an admitted alpha interval")
   invisible(x)
 }
 
@@ -655,10 +677,9 @@ residuals.drm_pair_association <- function(object, ...) {
 
 #' @export
 vcov.drm_pair_association <- function(object, ...) {
-  cli::cli_abort(c(
-    "{.fn vcov} is unavailable for Arc 6 frozen-margin association estimates.",
-    i = "A later Arc must validate two-stage sandwich or bootstrap uncertainty."
-  ))
+  inference <- drm_pair_public_alpha_inference(object)
+  drm_pair_warn_alpha_inference(object)
+  inference$covariance
 }
 
 #' @export
@@ -668,12 +689,74 @@ profile.drm_pair_association <- function(fitted, ...) {
   )
 }
 
+#' Alpha-scale confidence intervals for a frozen-margin association
+#'
+#' For admitted fixed-effect complete-pair association routes, [vcov()] returns
+#' the association-coefficient block of the two-stage Godambe sandwich and this
+#' method returns the corresponding Wald intervals. These intervals are on the
+#' association-link (`alpha`) scale, not the bounded latent-association (`eta`)
+#' scale. Every route is interval-feasible when its fit-specific covariance
+#' diagnostics pass. Coverage evidence currently promotes only the retained
+#' Bernoulli x ordinary-NB2 intercept domain to inference-ready with caveats;
+#' other routes receive an explicit experimental-coverage warning.
+#'
+#' @param object A fitted `drm_pair_association` object.
+#' @param parm Association coefficients to include. `NULL` (the default) or
+#'   `"alpha"` selects all association coefficients; a numeric or character
+#'   subset may also be supplied.
+#' @param level Confidence level in `(0, 1)`.
+#' @param ... Reserved for future options.
+#' @return A matrix with alpha-scale Wald confidence limits.
 #' @export
-confint.drm_pair_association <- function(object, ...) {
-  cli::cli_abort(c(
-    "Confidence intervals are unavailable for Arc 6 frozen-margin association estimates.",
-    i = "A later Arc must validate two-stage uncertainty before {.fn confint} is available."
-  ))
+confint.drm_pair_association <- function(
+  object,
+  parm = NULL,
+  level = 0.95,
+  ...
+) {
+  if (length(level) != 1L || !is.finite(level) || level <= 0 || level >= 1) {
+    cli::cli_abort("{.arg level} must be one finite number strictly between zero and one.")
+  }
+  inference <- drm_pair_public_alpha_inference(object)
+  coefficient_names <- rownames(inference$covariance)
+  if (is.null(parm) || identical(parm, "alpha")) {
+    index <- seq_along(coefficient_names)
+  } else if (is.numeric(parm)) {
+    index <- as.integer(parm)
+    if (any(!is.finite(parm)) || any(index != parm) || any(index < 1L) ||
+        any(index > length(coefficient_names))) {
+      cli::cli_abort("Numeric {.arg parm} values must index the available alpha coefficients.")
+    }
+  } else if (is.character(parm)) {
+    raw_terms <- names(object$association_coefficients)
+    index <- match(parm, coefficient_names)
+    missing <- is.na(index)
+    if (any(missing) && !is.null(raw_terms)) {
+      index[missing] <- match(parm[missing], raw_terms)
+    }
+    if (anyNA(index)) {
+      cli::cli_abort(c(
+        "Unknown association coefficient in {.arg parm}.",
+        i = "Available coefficients: {.val {coefficient_names}}. Eta-scale intervals are not returned by this method."
+      ))
+    }
+  } else {
+    cli::cli_abort("{.arg parm} must be NULL, numeric, or character.")
+  }
+  drm_pair_warn_alpha_inference(object)
+  alpha <- unname(object$association_coefficients[index])
+  se <- inference$se[index]
+  tail <- (1 - level) / 2
+  probabilities <- c(tail, 1 - tail)
+  limits <- cbind(
+    alpha + stats::qnorm(probabilities[[1L]]) * se,
+    alpha + stats::qnorm(probabilities[[2L]]) * se
+  )
+  dimnames(limits) <- list(
+    coefficient_names[index],
+    paste0(format(100 * probabilities, trim = TRUE), " %")
+  )
+  limits
 }
 
 #' @export

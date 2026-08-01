@@ -183,8 +183,14 @@ test_that("ordinary-NB2 sandwich fails closed for frozen provenance and boundary
     ),
     "ordinary-NB2"
   )
-  expect_error(vcov(fixture$association_fit), "unavailable")
-  expect_error(confint(fixture$association_fit), "unavailable")
+  expect_warning(
+    expect_true(all(is.finite(vcov(fixture$association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    expect_true(all(is.finite(confint(fixture$association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
   unstable <- drmTMB:::drm_pair_nbinom2_nbinom2_sandwich(
     fixture$fit_l, fixture$fit_r, fixture$association_fit,
     control = utils::modifyList(

@@ -178,6 +178,7 @@ reference:
       - associate_pairs
       - association
       - biv_associate
+      - confint.drm_pair_association
       - predict.drm_pair_association
   - title: Distributional outputs and adequacy
     desc: >

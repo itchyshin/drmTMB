@@ -1436,6 +1436,75 @@ test_that("staged sandwich supports the one admitted association slope", {
   expect_gt(diff(range(result$eta)), 0)
 })
 
+test_that("public vcov and confint expose the validated alpha Godambe interval", {
+  fixture <- staged_sandwich_fixture()
+  private <- drmTMB:::drm_pair_staged_eta_sandwich(
+    fixture$binary_fit,
+    fixture$nbinom2_fit,
+    fixture$association_fit
+  )
+  expect_identical(private$status, "ok")
+
+  expect_warning(
+    public_vcov <- vcov(fixture$association_fit),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_identical(dim(public_vcov), c(1L, 1L))
+  expect_identical(dimnames(public_vcov), list("alpha", "alpha"))
+  expected_vcov <- private$alpha_covariance
+  dimnames(expected_vcov) <- list("alpha", "alpha")
+  expect_equal(public_vcov, expected_vcov, tolerance = 1e-12)
+
+  expect_warning(
+    interval <- confint(fixture$association_fit),
+    class = "drmTMB_association_inference_warning"
+  )
+  alpha <- unname(fixture$association_fit$association_coefficients[[1L]])
+  se <- sqrt(unname(public_vcov[[1L]]))
+  expect_identical(rownames(interval), "alpha")
+  expect_identical(colnames(interval), c("2.5 %", "97.5 %"))
+  expect_equal(
+    unname(interval),
+    matrix(alpha + stats::qnorm(c(0.025, 0.975)) * se, nrow = 1L),
+    tolerance = 1e-12
+  )
+})
+
+test_that("public alpha inference keeps excluded targets and failures explicit", {
+  slope_fixture <- staged_sandwich_fixture(slope = TRUE)
+  expect_warning(
+    slope_vcov <- vcov(slope_fixture$association_fit),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_identical(dim(slope_vcov), c(2L, 2L))
+  expect_identical(rownames(slope_vcov), c("alpha:(Intercept)", "alpha:x"))
+  expect_warning(
+    slope_interval <- confint(slope_fixture$association_fit),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_identical(dim(slope_interval), c(2L, 2L))
+  expect_warning(
+    slope_subset <- confint(slope_fixture$association_fit, parm = "x"),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_identical(rownames(slope_subset), "alpha:x")
+
+  fixture <- staged_sandwich_fixture()
+  expect_error(confint(fixture$association_fit, parm = "eta"), "Unknown association")
+  expect_error(confint(fixture$association_fit, level = 1), "strictly between")
+
+  unavailable <- fixture$association_fit
+  unavailable$alpha_inference <- list(
+    status = "unavailable",
+    reason = "bread_or_meat_unstable"
+  )
+  expect_error(vcov(unavailable), "bread_or_meat_unstable")
+
+  legacy <- fixture$association_fit
+  legacy$alpha_inference <- NULL
+  expect_error(vcov(legacy), "predates stored")
+})
+
 test_that("staged sandwich fails closed before any public uncertainty interface", {
   fixture <- staged_sandwich_fixture()
   fixture$association_fit$status <- "boundary_unresolved"

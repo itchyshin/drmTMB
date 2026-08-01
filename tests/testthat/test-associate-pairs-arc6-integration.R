@@ -58,7 +58,20 @@ test_that("Arc 6.8 matrix preserves one post-fit contract across admitted pairs"
     expect_equal(fit$eta, reverse$eta, tolerance = 1e-7)
     expect_identical(names(fitted(fit)), unlist(c(left$model$response_name, right$model$response_name), use.names = FALSE))
     expect_equal(predict(fit), fitted(fit))
-    expect_error(vcov(fit), "unavailable")
+    expect_warning(
+      association_vcov <- vcov(fit),
+      class = "drmTMB_association_inference_warning"
+    )
+    expect_identical(
+      dim(association_vcov),
+      rep(length(fit$association_coefficients), 2L)
+    )
+    expect_true(all(is.finite(association_vcov)))
+    expect_warning(
+      association_interval <- confint(fit),
+      class = "drmTMB_association_inference_warning"
+    )
+    expect_identical(nrow(association_interval), length(fit$association_coefficients))
     expect_error(rho12(fit), "not mixed pair associations")
     if (identical(case$class, "bernoulli_nbinom2")) {
       expect_length(predict(fit, newdata = data.frame(x = 0)), 1L)

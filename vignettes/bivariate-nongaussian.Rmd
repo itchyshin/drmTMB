@@ -238,13 +238,18 @@ assoc <- biv_associate(
 )
 
 association(assoc)
+vcov(assoc)
+confint(assoc)
 ```
 
 This is one convenient R call, but not one jointly fitted model.
 `biv_associate()` fits the two margins, freezes them, and estimates only `eta`.
 The reported value is a latent-normal copula correlation conditional on those
 fitted margins. It is not `rho12`, a logit coefficient, an odds ratio, or an
-observed-scale correlation.
+observed-scale correlation. For every admitted association route, `vcov()` and
+`confint()` report two-stage Godambe uncertainty for the unbounded
+association-link coefficients `alpha`, not for bounded `eta`, whenever the
+fit-specific covariance diagnostics pass.
 
 For a binary response, the model observes whether a hidden tendency crossed a
 threshold. It does not observe an ordinary numeric residual. Read
@@ -266,8 +271,11 @@ beta exception is a single numeric association slope for literal-Bernoulli x
 ordinary-NB2. Its reviewed fixed-effect margins may include their explicitly
 supported covariates before they are frozen. Neither route currently adds random
 effects, general association-predictor grammar, missing-data support, or a
-general non-Gaussian bivariate claim. The staged route has no two-stage standard
-errors, profiles, confidence intervals, or coverage claim. The direct lognormal
+general non-Gaussian bivariate claim. The staged route's alpha-scale standard
+errors and Wald intervals are interval-feasible for every admitted pair class
+and for the Bernoulli x ordinary-NB2 association-slope formula. Routes without
+coverage calibration emit an experimental-interval warning. Profiles and eta
+intervals remain unavailable. The direct lognormal
 constant-`rho12` profile, Wald, and bootstrap methods have direct calibration
 evidence only for the fixed-effect DGP in the Arc 6 coverage artifact; they do
 not validate the staged route or a general non-Gaussian association claim.

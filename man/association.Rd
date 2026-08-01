@@ -23,7 +23,9 @@ returns the frozen-row latent-normal associations.}
 For a constant association, a one-row data frame with the
 latent-normal association and diagnostic status. For a beta association
 formula, a coefficient table or a frozen-row \code{eta} table according to
-\code{type}. No standard error or interval is supplied.
+\code{type}. The separate \code{\link[=vcov]{vcov()}} and \code{\link[=confint]{confint()}} methods supply alpha-scale
+uncertainty for admitted association routes whose fit-specific Godambe
+covariance diagnostics pass.
 }
 \description{
 Extract a pair association estimate

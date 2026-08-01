@@ -160,7 +160,7 @@ test_that("Gaussian x Bernoulli adapter has canonical labels and swap-equivalent
   )
 })
 
-test_that("Gaussian x Bernoulli adapter fails closed and exposes no public output", {
+test_that("Gaussian x Bernoulli adapter fails closed and exposes valid public intervals", {
   fixture <- gaussian_bernoulli_sandwich_fixture()
   successful <- drmTMB:::drm_pair_gaussian_bernoulli_eta_sandwich(
     fixture$gaussian_fit, fixture$binary_fit, fixture$association_fit
@@ -201,8 +201,14 @@ test_that("Gaussian x Bernoulli adapter fails closed and exposes no public outpu
     ),
     "Gaussian x literal-Bernoulli"
   )
-  expect_error(vcov(fixture$association_fit), "unavailable")
-  expect_error(confint(fixture$association_fit), "unavailable")
+  expect_warning(
+    expect_true(all(is.finite(vcov(fixture$association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_warning(
+    expect_true(all(is.finite(confint(fixture$association_fit)))),
+    class = "drmTMB_association_inference_warning"
+  )
   unstable <- drmTMB:::drm_pair_gaussian_bernoulli_eta_sandwich(
     fixture$gaussian_fit, fixture$binary_fit, fixture$association_fit,
     control = utils::modifyList(
