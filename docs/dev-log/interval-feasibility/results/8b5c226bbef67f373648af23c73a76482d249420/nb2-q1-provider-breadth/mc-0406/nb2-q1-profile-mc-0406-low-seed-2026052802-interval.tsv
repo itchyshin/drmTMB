@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	profile_engine
+mc-0406	mc-0406::sd:mu:spatial(1 | site)	2026052802	low	0.95	0.223206307269933	0.99197792457004	tmbprofile

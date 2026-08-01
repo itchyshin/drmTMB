@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	profile_engine
+mc-0407	mc-0407::sd:mu:animal(1 | id)	2026052802	low	0.95	0.312552834216283	1.0341003367627	tmbprofile

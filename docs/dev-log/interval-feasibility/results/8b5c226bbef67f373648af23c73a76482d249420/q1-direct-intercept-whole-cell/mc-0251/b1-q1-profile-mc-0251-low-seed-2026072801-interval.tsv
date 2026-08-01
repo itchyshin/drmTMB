@@ -1,0 +1,2 @@
+cell_id	seed	information_rung	target_id	profile_parameter	level	lower	upper	profile_engine	profile_source
+mc-0251	2026072801	low	mc-0251::sd:mu:phylo(1 | id)	sd:mu:phylo(1 | id)	0.95	0.2837553287017	0.516071406375421	tmbprofile	TMB::tmbprofile via stats::profile.drmTMB

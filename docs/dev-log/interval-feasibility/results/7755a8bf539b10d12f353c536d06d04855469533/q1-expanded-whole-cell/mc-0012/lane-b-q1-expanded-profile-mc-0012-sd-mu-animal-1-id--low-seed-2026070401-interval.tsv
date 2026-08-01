@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	profile_parameter	level	lower	upper	profile_engine
+mc-0012	mc-0012::sd:mu:animal(1 | id)	2026070401	low	sd:mu:animal(1 | id)	0.95	0.237133588709431	0.713588338465531	tmbprofile

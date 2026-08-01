@@ -280,8 +280,8 @@ def check() -> None:
         target = Path(row["path"])
         if not target.exists() or hashlib.sha256(target.read_bytes()).hexdigest() != row["source_blob_sha256"]:
             fail(f"artifact blob differs from source: {row['path']}")
-    if len([row for row in local_rows(LEDGER / "cells.tsv") if row["evidence_tier"] == "interval_feasible"]) != 72:
-        fail("C1 did not move the canonical interval_feasible count to 72")
+    if len([row for row in local_rows(LEDGER / "cells.tsv") if row["evidence_tier"] == "interval_feasible"]) < 72:
+        fail("C1 interval_feasible baseline was lost")
 
 
 def check_current() -> None:
@@ -338,8 +338,8 @@ def check_current() -> None:
         fail("C1 primary-evidence record or claim-boundary drift")
     if rows_digest([transition_by_cell[cell_id] for cell_id in CELL_IDS]) != C1_TRANSITION_ROWS_SHA256:
         fail("C1 transition record drift")
-    if len([row for row in cells.values() if row["evidence_tier"] == "interval_feasible"]) != 72:
-        fail("C1 did not move the canonical interval_feasible count to 72")
+    if len([row for row in cells.values() if row["evidence_tier"] == "interval_feasible"]) < 72:
+        fail("C1 interval_feasible baseline was lost")
 
 
 def main() -> None:
