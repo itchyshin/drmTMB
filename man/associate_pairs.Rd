@@ -63,4 +63,6 @@ assoc <- associate_pairs(
   kernel = latent_normal(), association = ~ 1
 )
 association(assoc)
+sqrt(diag(vcov(assoc)))
+confint(assoc)
 }

@@ -2,16 +2,30 @@
 
 _Generated 2026-08-01 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
 
-The model surface and missing-response execution axis answer different questions. The first records what a model cell fits and what inference evidence exists. The second records whether an exact user-visible route handles missing responses. A missing-response tick never promotes the model's inference tier.
+The model surface, staged-association surface, and missing-response execution axis answer different questions. Model cells describe direct drmTMB fits; association cells describe post-fit associate_pairs() estimators; missing-response cells describe response handling. Evidence never transfers automatically between axes.
 
 ## Snapshot
 
 - Model surface: **687 cells** across **18 routes**.
+- Staged association: **6 cells**; **5 interval-feasible** and **1 inference-ready with caveats**.
 - Runtime status: **328 implemented**, **19 actionable not implemented**, and **340 not currently supported**.
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
 - Evidence: **4 supported**, **27 inference-ready**, **48 interval-feasible**, **176 recovery-grade**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
+
+## Staged association capability
+
+The evidence ladder is point-fit recovery, interval feasible, inference-ready with caveats, then supported. Interval feasibility is sufficient to expose a scoped method; coverage evidence promotes the tested domain to inference-ready. Limits belong in the claim boundary unless evidence directly contradicts the route.
+
+| Cell | Pair route | Association shape | Status | Evidence tier | Claim boundary |
+|---|---|---|---|---|---|
+| `as-0001` | `gaussian_bernoulli` | `intercept` | implemented | interval feasible | Fixed-effect complete-pair Gaussian x literal-Bernoulli latent-normal association with association = ~ 1. Public vcov() and confint() report alpha-scale Godambe-Wald uncertainty when fit-specific covariance diagnostics pass. Coverage is not yet calibrated, so the method warns that the interval is experimental; eta-scale intervals, profiles, random effects, missingness, weights, offsets, and REML remain outside the claim. |
+| `as-0002` | `gaussian_nbinom2` | `intercept` | implemented | interval feasible | Fixed-effect complete-pair Gaussian x ordinary-NB2 latent-normal association with association = ~ 1. Public vcov() and confint() report alpha-scale Godambe-Wald uncertainty when fit-specific covariance diagnostics pass. Coverage is not yet calibrated, so the method warns that the interval is experimental; eta-scale intervals, profiles, random effects, missingness, weights, offsets, and REML remain outside the claim. |
+| `as-0003` | `bernoulli_bernoulli` | `intercept` | implemented | interval feasible | Fixed-effect complete-pair literal-Bernoulli x literal-Bernoulli latent-normal association with association = ~ 1. Public vcov() and confint() report alpha-scale Godambe-Wald uncertainty when fit-specific covariance diagnostics pass. The retained recovery campaign remains HOLD, so this is interval-method feasibility rather than recovery or coverage promotion; warnings and boundary failures remain visible. |
+| `as-0004` | `bernoulli_nbinom2` | `intercept` | implemented | inference ready with caveats | Fixed-effect complete-pair literal-Bernoulli x ordinary-NB2 latent-normal association with association = ~ 1. Public vcov() and confint() report alpha-scale Godambe-Wald uncertainty. The retained 16-cell high-information F4R campaign (n = 480 or 960; 16,000 attempts) passed bias, availability, SE/SD, and 95% coverage gates. The retained lower-information F4 failures require warnings and fit-specific fail-closed behavior; they do not nullify the positive high-information domain. Eta-scale intervals, profiles, slopes at this tier, random effects, missingness, weights, offsets, and REML remain outside the coverage claim. |
+| `as-0005` | `bernoulli_nbinom2` | `slope` | implemented | interval feasible | Fixed-effect complete-pair literal-Bernoulli x ordinary-NB2 latent-normal association regression with an admitted intercept-bearing fixed-effect association formula. Public vcov() returns the full alpha coefficient covariance and confint() returns coefficient-wise alpha-scale Godambe-Wald intervals when diagnostics pass. Coverage is not yet calibrated, so the method warns that intervals are experimental; eta-scale bands, profiles, random effects, missingness, weights, offsets, and REML remain outside the claim. |
+| `as-0006` | `nbinom2_nbinom2` | `intercept` | implemented | interval feasible | Fixed-effect complete-pair ordinary-NB2 x ordinary-NB2 latent-normal association with association = ~ 1. Public vcov() and confint() report alpha-scale Godambe-Wald uncertainty when fit-specific covariance diagnostics pass. Coverage is not yet calibrated, so the method warns that the interval is experimental; eta-scale intervals, profiles, random effects, missingness, weights, offsets, and REML remain outside the claim. |
 
 ## Missing-response execution board
 

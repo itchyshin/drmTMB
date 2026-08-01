@@ -146,7 +146,7 @@ diagnostics, and honest limits.
 | Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
 | I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
 | Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
-| The optimizer did not converge cleanly — what do I check? | [Improving convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
+| The optimizer did not converge cleanly — what do I check? | [Errors, warnings, and convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
 | My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE` |
 | What does `drmTMB` not support yet, and where is the line between fitted, first-slice, and planned syntax? | [What drmTMB can and can't do](capability-and-limits.html) | fitted, first-slice, and planned status |
 

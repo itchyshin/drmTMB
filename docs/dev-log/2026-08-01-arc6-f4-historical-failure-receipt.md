@@ -1,5 +1,12 @@
 # Arc 6 F4 historical failure receipt
 
+> **Supersession (2026-08-01).** The failure facts below remain authoritative.
+> The later product decision does not treat them as a blanket API veto: public
+> alpha-scale `vcov()` and `confint()` now warn on lower-information and
+> uncalibrated routes and fail closed when covariance diagnostics do not pass.
+> F4 continues to limit the coverage claim; it does not nullify the separate
+> positive F4R high-information domain.
+
 ## Purpose
 
 Preserve a current-main, retrievable record of the completed private F4

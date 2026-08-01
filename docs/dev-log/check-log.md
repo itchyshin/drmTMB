@@ -91913,3 +91913,28 @@ Shinichi grants a separate Gate A compute approval.
   inherited missing absolute paths into a historical DRM.jl worktree. B3
   records this baseline and does not alter the foreign dashboard/DRM.jl lane.
   See `docs/dev-log/after-task/2026-08-01-b3-q6-target-promotion.md`.
+
+## 2026-08-01: Arc 6 association public alpha intervals and reader-path repair
+
+- Released public alpha-scale two-stage Godambe `vcov()` and Wald `confint()`
+  for all five admitted frozen-margin association pair classes and the full
+  admitted Bernoulli x ordinary-NB2 fixed-effect association regression.
+- Added a separate six-cell association capability axis: five exact
+  `interval_feasible` cells and one Bernoulli x ordinary-NB2 intercept
+  `inference_ready_with_caveats` cell backed by the retained 16-cell F4R grid.
+  The failed lower-information F4 receipt remains retained as a warning and
+  availability caveat; no new compute was run.
+- The complete `associate-pairs` test family passed, all 46 capability-ledger
+  tests passed, all 30 generated ledger outputs checked current,
+  `pkgdown::build_site()` completed, and `pkgdown::check_pkgdown()` found no
+  problems.
+- The navigation audit now maps all 36 vignette sources to 36 unique navbar
+  targets. It restores the function map, rho12 and staged-association guides,
+  Errors/warnings, and the location-scale-scale Part 2 tutorial; it also fixes
+  misleading Julia/meta-analysis labels and user-versus-developer grouping.
+- The `associate_pairs()` and `biv_associate()` reference examples now execute
+  `sqrt(diag(vcov(assoc)))` and `confint(assoc)`, and a dedicated public
+  `vcov.drm_pair_association` reference page documents the alpha covariance.
+- Fisher, Pat, and Rose returned final PASS verdicts on the inference scope and
+  rebuilt reader surface. See
+  `docs/dev-log/after-task/2026-08-01-arc6-association-public-alpha-intervals.md`.

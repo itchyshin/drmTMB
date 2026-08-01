@@ -30,3 +30,6 @@ diagnostics pass. Coverage evidence currently promotes only the retained
 Bernoulli x ordinary-NB2 intercept domain to inference-ready with caveats;
 other routes receive an explicit experimental-coverage warning.
 }
+\seealso{
+\code{\link[=vcov]{vcov()}}
+}

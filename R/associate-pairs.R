@@ -67,6 +67,8 @@ latent_normal <- function() {
 #'   kernel = latent_normal(), association = ~ 1
 #' )
 #' association(assoc)
+#' sqrt(diag(vcov(assoc)))
+#' confint(assoc)
 associate_pairs <- function(
   fit_1,
   fit_2,
@@ -313,6 +315,8 @@ associate_pairs <- function(
 #'   family = list(gaussian(), binomial()), data = dat
 #' )
 #' association(assoc)
+#' sqrt(diag(vcov(assoc)))
+#' confint(assoc)
 biv_associate <- function(
   formula_1,
   formula_2,
@@ -675,6 +679,20 @@ residuals.drm_pair_association <- function(object, ...) {
   )
 }
 
+#' Alpha-scale covariance for a frozen-margin association
+#'
+#' Returns the association-coefficient block of the two-stage Godambe
+#' covariance for an admitted fixed-effect complete-pair association. Standard
+#' errors are `sqrt(diag(vcov(object)))`. The covariance and standard errors are
+#' on the unbounded association-link (`alpha`) scale, not the bounded latent
+#' association (`eta`) scale. The method warns when coverage is uncalibrated or
+#' the fit lies outside the retained coverage domain, and errors rather than
+#' manufacturing a covariance when fit-specific diagnostics fail.
+#'
+#' @param object A fitted `drm_pair_association` object.
+#' @param ... Reserved for future options.
+#' @return A named symmetric covariance matrix for the alpha coefficients.
+#' @seealso [confint.drm_pair_association()]
 #' @export
 vcov.drm_pair_association <- function(object, ...) {
   inference <- drm_pair_public_alpha_inference(object)
@@ -707,6 +725,7 @@ profile.drm_pair_association <- function(fitted, ...) {
 #' @param level Confidence level in `(0, 1)`.
 #' @param ... Reserved for future options.
 #' @return A matrix with alpha-scale Wald confidence limits.
+#' @seealso [vcov()]
 #' @export
 confint.drm_pair_association <- function(
   object,

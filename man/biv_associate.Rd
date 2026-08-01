@@ -74,4 +74,6 @@ assoc <- biv_associate(
   family = list(gaussian(), binomial()), data = dat
 )
 association(assoc)
+sqrt(diag(vcov(assoc)))
+confint(assoc)
 }

@@ -30,12 +30,20 @@ drm_pair_prepare_alpha_inference <- function(fit_1, fit_2, association_fit) {
     se = stats::setNames(sqrt(diag(covariance)), coefficient_names),
     n = nrow(association_fit$association_design$matrix),
     pair_class = association_fit$components$pair_class,
-    coverage_tier = if (
+    capability_tier = if (
       identical(association_fit$components$pair_class, "bernoulli_nbinom2") &&
         length(coefficient_names) == 1L &&
         identical(colnames(association_fit$association_design$matrix), "(Intercept)")
     ) "inference_ready_with_caveats" else "interval_feasible",
-    validation_domain = "admitted fixed-effect complete-pair latent-normal association route"
+    validation_domain = if (
+      identical(association_fit$components$pair_class, "bernoulli_nbinom2") &&
+        length(coefficient_names) == 1L &&
+        identical(colnames(association_fit$association_design$matrix), "(Intercept)")
+    ) {
+      "retained 16-cell high-information F4R grid (n = 480 or 960)"
+    } else {
+      "fit-specific numerical interval feasibility; coverage uncalibrated"
+    }
   )
 }
 
@@ -98,7 +106,7 @@ drm_pair_warn_alpha_inference <- function(object) {
       i = "The covariance calculation passed; interpret the Wald interval cautiously and inspect {.code object$diagnostics}."
     ), class = "drmTMB_association_inference_warning")
   } else if (
-    identical(inference$coverage_tier, "inference_ready_with_caveats") &&
+    identical(inference$capability_tier, "inference_ready_with_caveats") &&
       n < 480L
   ) {
     cli::cli_warn(c(
@@ -106,10 +114,10 @@ drm_pair_warn_alpha_inference <- function(object) {
       i = "The original lower-information campaign had unavailable intervals in some cells; this fit passed its numerical covariance diagnostics.",
       i = "The retained high-information calibration campaign used n = 480 or 960."
     ), class = "drmTMB_association_inference_warning")
-  } else if (identical(inference$coverage_tier, "inference_ready_with_caveats")) {
+  } else if (identical(inference$capability_tier, "inference_ready_with_caveats")) {
     cli::cli_warn(c(
-      "Association uncertainty is inference-ready with caveats.",
-      i = "Coverage was calibrated for a retained high-information Bernoulli x ordinary-NB2 intercept grid, not every prevalence, dispersion, or association strength."
+      "This Bernoulli x ordinary-NB2 intercept route is inference-ready with caveats in its retained validation domain.",
+      i = "The current data set is not classified as inside that domain merely because n >= 480; coverage was calibrated for a named 16-cell grid, not every prevalence, dispersion, or association strength."
     ), class = "drmTMB_association_inference_warning")
   } else {
     cli::cli_warn(c(

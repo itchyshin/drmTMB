@@ -64,6 +64,7 @@ IMPORTED_MODEL_COUNT = 668
 # is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
 MODEL_SURFACE_COUNT = 687
+ASSOCIATION_COUNT = 6
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
@@ -247,7 +248,7 @@ def compact_json_bytes(value: object) -> bytes:
 def schema_value() -> dict[str, object]:
     return {
         "schema_version": 1,
-        "axes": ["model_surface", "missing_response"],
+        "axes": ["model_surface", "association", "missing_response"],
         "cell_fields": CELL_FIELDS,
         "evidence_fields": EVIDENCE_FIELDS,
         "transition_fields": TRANSITION_FIELDS,
@@ -260,6 +261,7 @@ def schema_value() -> dict[str, object]:
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
+            "association": ASSOCIATION_COUNT,
             "missing_response": 18,
         },
         "missing_response_verified_gate": "G3",
@@ -888,12 +890,15 @@ def validate(
         errors.append("transition_id values are not unique")
 
     by_axis = Counter(row["axis"] for row in cells)
-    if by_axis != Counter(
-        {"model_surface": MODEL_SURFACE_COUNT, "missing_response": 18}
-    ):
+    if by_axis != Counter({
+        "model_surface": MODEL_SURFACE_COUNT,
+        "missing_response": 18,
+        "association": ASSOCIATION_COUNT,
+    }):
         errors.append(
             f"axis counts are {dict(by_axis)}, expected "
-            f"{MODEL_SURFACE_COUNT} + 18"
+            f"{MODEL_SURFACE_COUNT} model + 18 missing-response + "
+            f"{ASSOCIATION_COUNT} association"
         )
     route_names = {row["family_route"] for row in cells if row["axis"] == "missing_response"}
     if route_names != {route for _, route, _, _, _ in ROUTES}:
@@ -1618,6 +1623,10 @@ def surface_markdown(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
     )
+    association = sorted(
+        (row for row in cells if row["axis"] == "association"),
+        key=lambda row: int(row["source_order"]),
+    )
     status = Counter(row["capability_status"] for row in model)
     tiers = Counter(
         row["evidence_tier"] for row in model if row["capability_status"] == "implemented"
@@ -1633,15 +1642,18 @@ def surface_markdown(
         f"_Generated {ledger_updated_date(cells)} from `capability-ledger/` by "
         "`tools/capability_ledger.py`; do not hand-edit this file._",
         "",
-        "The model surface and missing-response execution axis answer different "
-        "questions. The first records what a model cell fits and what inference "
-        "evidence exists. The second records whether an exact user-visible route "
-        "handles missing responses. A missing-response tick never promotes the "
-        "model's inference tier.",
+        "The model surface, staged-association surface, and missing-response "
+        "execution axis answer different questions. Model cells describe direct "
+        "drmTMB fits; association cells describe post-fit associate_pairs() "
+        "estimators; missing-response cells describe response handling. Evidence "
+        "never transfers automatically between axes.",
         "",
         "## Snapshot",
         "",
         f"- Model surface: **{len(model)} cells** across **{len(by_family)} routes**.",
+        f"- Staged association: **{len(association)} cells**; "
+        f"**{sum(row['evidence_tier'] == 'interval_feasible' for row in association)} interval-feasible** and "
+        f"**{sum(row['evidence_tier'] == 'inference_ready_with_caveats' for row in association)} inference-ready with caveats**.",
         f"- Runtime status: **{status['implemented']} implemented**, "
         f"**{status['not_implemented']} actionable not implemented**, and "
         f"**{status['rejected_by_design']} not currently supported**.",
@@ -1658,6 +1670,23 @@ def surface_markdown(
         f"- Missing-response board: **{len(missing)} routes; "
         f"{missing_gates['G0']} G0; {missing_gates['G1']} G1; "
         f"{missing_gates['G2']} G2; {verified_missing} verified (G3+)**.",
+        "",
+        "## Staged association capability",
+        "",
+        "The evidence ladder is point-fit recovery, interval feasible, inference-"
+        "ready with caveats, then supported. Interval feasibility is sufficient "
+        "to expose a scoped method; coverage evidence promotes the tested domain "
+        "to inference-ready. Limits belong in the claim boundary unless evidence "
+        "directly contradicts the route.",
+        "",
+        "| Cell | Pair route | Association shape | Status | Evidence tier | Claim boundary |",
+        "|---|---|---|---|---|---|",
+        *[
+            f"| `{row['cell_id']}` | `{row['family_route']}` | "
+            f"`{row['route_variant']}` | {row['capability_status'].replace('_', ' ')} | "
+            f"{row['evidence_tier'].replace('_', ' ')} | {row['claim_boundary']} |"
+            for row in association
+        ],
         "",
         "## Missing-response execution board",
         "",
@@ -1782,6 +1811,10 @@ def surface_html(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
     )
+    association = sorted(
+        (row for row in cells if row["axis"] == "association"),
+        key=lambda row: int(row["source_order"]),
+    )
     status = Counter(row["capability_status"] for row in model)
     tiers = Counter(
         row["evidence_tier"] for row in model if row["capability_status"] == "implemented"
@@ -1819,6 +1852,17 @@ def surface_html(
         "</tr>"
         for row in model
     )
+    association_rows = "".join(
+        "<tr>"
+        f"<td><code>{html.escape(row['cell_id'])}</code></td>"
+        f"<td><code>{html.escape(row['family_route'])}</code></td>"
+        f"<td>{html.escape(row['route_variant'])}</td>"
+        f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
+        f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
+        f"<td>{html.escape(row['claim_boundary'])}</td>"
+        "</tr>"
+        for row in association
+    )
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>drmTMB capability surface</title>
@@ -1831,14 +1875,17 @@ def surface_html(
 </style></head><body><a class="skip" href="#model-cells">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
-<p class="lede">One model census, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
-<nav class="jump" aria-label="Capability surface sections"><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
-<p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
+<p class="lede">One model census, one staged-association surface, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence across axes.</p>
+<nav class="jump" aria-label="Capability surface sections"><a href="#association">Association</a><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
+<p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells, {len(association)} staged-association cells, and 18 missing-response routes. Evidence never transfers automatically between axes; a missing-response ✓ appears only at G3 recovery or above and never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
-<div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
+<div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(association)}</b><span>association cells</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'interval_feasible' for row in association)}</b><span>association interval-feasible</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'inference_ready_with_caveats' for row in association)}</b><span>association inference-ready</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
 <div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{status['not_implemented']}</b><span>actionable backlog cells</span></div><div class="stat"><b>{status['rejected_by_design']}</b><span>not currently supported</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
+<h2 id="association">Staged association capability</h2>
+<p>The evidence ladder is point-fit recovery → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
+<div class="table-wrap"><table><caption>{len(association)} post-fit <code>associate_pairs()</code> capability cells</caption><thead><tr><th scope="col">Cell</th><th scope="col">Pair route</th><th scope="col">Shape</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody>{association_rows}</tbody></table></div>
 <h2 id="missing-response">Missing-response evidence</h2>
 <p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>
 <p class="muted">The per-family reference below remains the route-level source: its Missing response column retains G3 recovery status, while this summary shows the additional G4/G5 evidence without implying a route-wide promotion.</p>

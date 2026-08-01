@@ -65,20 +65,21 @@ zero-modified NB2 variants are not included.
 `associate_pairs()` freezes every stage-1 margin vector rather than refitting,
 profiling, updating, or reweighting it. All reviewed classes accept the
 constant association predictor `association = ~ 1`. The literal Bernoulli x
-ordinary NB2 beta route additionally accepts `association = ~ x` for exactly
-one finite numeric column, defining \(\eta_i=\tanh(\beta_0+\beta_1x_i)\).
+ordinary NB2 beta route additionally accepts an intercept-bearing fixed-effect
+model-matrix formula such as `association = ~ x`, defining
+\(\eta_i=\tanh(X_{A,i}\boldsymbol\alpha)\).
 
 The output is a point estimate of latent-normal association `eta`
 and numerical/data diagnostics. It is not `rho12`, an observed-scale Pearson
 correlation, or `corpairs()`. The formula marker `corpair()` remains distinct
-from the extractor. Apart from that one beta numeric slope, association
-covariates, random, phylogenetic, and structured effects, missing or partial
-pairs, offsets, weights, `mi()`,
-`meta_V()`, REML, standard errors, intervals, profiles, `vcov()`, residuals,
-quantiles, and `emmeans` are all outside this contract. It is not a released
-0.6.0 analysis surface. Arc 6.1 regression and Arc 6.2 new-pair local smokes
-are recorded separately; they do not authorize recovery, interval or coverage
-claims, or capability promotion.
+from the extractor. For every admitted pair class, `vcov()` and `confint()`
+expose alpha-scale two-stage Godambe-Wald uncertainty when fit-specific
+covariance diagnostics pass. These routes are interval-feasible; the
+literal-Bernoulli x ordinary-NB2 intercept route is inference-ready with
+caveats from its retained high-information coverage campaign. Random,
+phylogenetic, and structured association effects, missing or partial pairs,
+offsets, weights, `mi()`, `meta_V()`, REML, eta-scale intervals, profiles,
+residuals, quantiles, and `emmeans` remain outside this contract.
 
 ### Exact bivariate Student-t development grammar
 
@@ -161,7 +162,7 @@ The parser reads each formula's left-hand side (LHS) as follows:
 | Syntax | Current status | Notes |
 | --- | --- | --- |
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
-| `associate_pairs(fit_1, fit_2, kernel = latent_normal(), association = ~ 1)` | Implemented beta slices | A post-fit, margin-first object for exactly matched complete rows and fixed-effect ML margins. Reviewed pairs are Gaussian × literal-Bernoulli, Gaussian × ordinary-NB2, literal-Bernoulli × literal-Bernoulli, literal-Bernoulli × ordinary-NB2, and ordinary-NB2 × ordinary-NB2, in either input order. Stage 1 is frozen; stage 2 estimates latent-normal `eta` with point estimate plus fail-closed numerical diagnostics only. The literal-Bernoulli × ordinary-NB2 beta route additionally accepts one numeric slope, `association = ~ x`, giving row-specific `eta_i`; it has no inference claim. It is neither a `drmTMB()` formula nor mixed-family `rho12`. Broader families, further association grammar, random/structured effects, partial pairs, offsets, weights, `mi()`, `meta_V()`, and REML are outside these slices; no recovery, interval, coverage, or capability claim follows. |
+| `associate_pairs(fit_1, fit_2, kernel = latent_normal(), association = ~ 1)` | Implemented beta slices; interval-feasible | A post-fit, margin-first object for exactly matched complete rows and fixed-effect ML margins. Reviewed pairs are Gaussian × literal-Bernoulli, Gaussian × ordinary-NB2, literal-Bernoulli × literal-Bernoulli, literal-Bernoulli × ordinary-NB2, and ordinary-NB2 × ordinary-NB2, in either input order. Stage 1 is frozen; stage 2 estimates latent-normal `eta`; public `vcov()` and `confint()` report alpha-scale Godambe-Wald uncertainty when diagnostics pass. The literal-Bernoulli × ordinary-NB2 beta route additionally accepts an intercept-bearing fixed-effect association formula, giving row-specific `eta_i`; its alpha coefficient intervals are interval-feasible. The intercept-only Bernoulli × ordinary-NB2 route is inference-ready with caveats from retained coverage evidence. It is neither a `drmTMB()` formula nor mixed-family `rho12`. Broader families, random/structured association effects, partial pairs, offsets, weights, `mi()`, `meta_V()`, REML, eta intervals, and profiles are outside these slices. |
 | `y ~ x1`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. One exact q1 `nu ~ phylo()` intercept is diagnostic-only; the q1 `mu ~ spatial()` intercept is also diagnostic-only, while its intercept-plus-one-slope route is recovery-grade. Other shape random effects, known sampling covariance, and structured providers are later. The separate `biv_student()` row below is a narrower exact source slice. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x1`, `nu ~ 1`, `family = student()` | Implemented first slice | Ordinary Student-t `mu` random intercepts and independent numeric slopes enter the identity-location predictor. The exact q1 `nu ~ phylo()` and intercept-only `mu ~ spatial()` gates are diagnostic-only; `mu ~ spatial(1 + x | ...)` is recovery-grade without interval or coverage promotion. Correlated slopes, labelled covariance blocks, `sigma` random effects, other `nu` random effects, other structured routes, and known covariance remain planned. |

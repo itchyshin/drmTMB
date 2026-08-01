@@ -70,22 +70,28 @@
   repair only: Julia cross-family fitting remains deferred, `rho_latent` is
   not `rho12`, and no cross-family inference claim is added.
 
-## Unreleased beta association-gradient extension
+## Unreleased beta association-gradient extension (superseded for intervals)
 
-* The frozen-margin literal-Bernoulli × ordinary-NB2 beta route now also
-  accepts one numeric `association = ~ x` predictor. It fits a row-specific
-  latent-normal association after the two margins have been fitted and frozen.
-  The coefficients and fitted associations are point estimates only: this is
-  not a direct `rho12` model and supplies no standard errors, intervals,
-  profiles, coverage, random effects, or generic association grammar.
+* Historical point-estimate note, superseded by **Association alpha intervals**
+  above: the frozen-margin literal-Bernoulli × ordinary-NB2 beta route now also
+  accepts an intercept-bearing fixed-effect `association` formula with multiple
+  predictors, factors, interactions, and explicit transformations. It fits a
+  row-specific latent-normal association after the two margins have been fitted
+  and frozen. The coefficients now have interval-feasible alpha-scale
+  Godambe-Wald uncertainty; fitted eta values and new-data predictions remain
+  point estimates. This is not a direct `rho12` model and supplies no eta
+  intervals, profiles, calibrated association-regression coverage, random
+  effects, offsets, missing association predictors, aliases, or dot expansion.
 
-## Arc 6.5 Bernoulli × Bernoulli development slice
+## Arc 6.5 Bernoulli × Bernoulli development slice (superseded for intervals)
 
-* `associate_pairs()` now admits two frozen literal Bernoulli-logit margins and
+* Historical point-estimate note, superseded by **Association alpha intervals**
+  above: `associate_pairs()` admits two frozen literal Bernoulli-logit margins and
   estimates a latent-normal `eta` using deterministic bivariate-normal
-  rectangle probabilities. This post-0.6 development surface retains only a
-  point estimate and diagnostics; it is neither `rho12` nor an observed-scale
-  correlation, odds ratio, interval, coverage, or capability claim.
+  rectangle probabilities. Its alpha-scale Godambe-Wald interval is now
+  interval-feasible when diagnostics pass, while its retained recovery campaign
+  remains HOLD and coverage remains uncalibrated. It is neither `rho12` nor an
+  observed-scale correlation or odds ratio.
 
 ## Arc 6.4 exact bivariate Student-t development slice
 
@@ -109,17 +115,20 @@
   effects, sigma/rho predictors, offsets, `meta_V`, `mi()`, REML, Julia,
   intervals, coverage, and capability claims remain deferred.
 
-## Cross-family association first implementation
+## Cross-family association first implementation (superseded for intervals)
 
-* Post-0.6 development now implements the bounded post-fit
+* Historical point-estimate note, superseded by **Association alpha intervals**
+  above: post-0.6 development implements the bounded post-fit
   `associate_pairs()` interface with `kernel = latent_normal()` for
   fixed-effect Gaussian × literal-Bernoulli, Gaussian × ordinary-NB2,
   literal-Bernoulli × ordinary-NB2, and ordinary-NB2 × ordinary-NB2 complete
   pairs. It freezes stage-1 margins
   (including NB2 `mu` and `sigma`),
-  then estimates intercept-only latent-normal association (`eta`) with point
-  estimate and diagnostics only. It is not a released 0.6.0 feature and does
-  not add mixed-family `rho12`, intervals, coverage, or capability claims.
+  then estimates latent-normal association (`eta`). Public alpha-scale
+  Godambe-Wald intervals are now interval-feasible for every admitted route,
+  with the exact Bernoulli × ordinary-NB2 intercept domain inference-ready with
+  caveats. The staged interface still does not add mixed-family `rho12` or
+  eta-scale intervals.
 
 ## First-impression formula surface (issue #776)
 

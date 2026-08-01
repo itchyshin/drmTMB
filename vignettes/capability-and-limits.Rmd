@@ -70,6 +70,8 @@ meaning above is the forward definition.
 
 | Model / effect | Tier | What you can trust |
 | --- | --- | --- |
+| Frozen-margin latent-normal association -- all five admitted pair classes, plus the Bernoulli x ordinary-NB2 fixed-effect association formula | Interval-feasible | Alpha-scale `vcov()` and Wald `confint()` when fit-specific Godambe diagnostics pass; coverage is uncalibrated outside the next row and the method warns accordingly |
+| Frozen-margin literal-Bernoulli x ordinary-NB2 intercept association | Inference-ready with caveats | Alpha point estimate and Godambe-Wald interval in the retained high-information `n = 480` or `960` domain; lower-information fits warn and fail closed if covariance diagnostics do not pass |
 | Census-supported ordinary Gaussian `mu` random effects and matching bivariate-Gaussian `mu1`/`mu2` intercepts | Point-trustworthy (census "supported", coverage planned) | Point estimate for the exact supported rows; their intervals are not yet coverage-verified |
 | Gaussian `mu` q1 intercept -- `phylo()`, `spatial()`, `relmat()` | Inference-ready | Point estimate and the default location-axis bias-corrected, small-sample-t Wald interval; coverage is mildly conservative in the tested campaigns |
 | Gaussian `sigma` q1 one-slope -- `phylo()`, `animal()`, `relmat()` | Inference-ready | Point estimate and raw uncorrected log-SD Wald-z interval; profile is diagnostic-only at `g = 8` |

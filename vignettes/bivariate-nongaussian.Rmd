@@ -19,11 +19,15 @@ two outcomes separately and then estimates a latent-normal association while
 holding the fitted margins fixed. These are different estimands.
 
 This article helps you choose a route for two outcomes measured on the same
-rows. The mixed-outcome route is a beta development interface: it does not
-provide interval, coverage, random-effect, or generic-pair claims. The exact
-direct lognormal route now has callable uncertainty methods for a constant
-`rho12`, with a retained fixed-effect calibration ladder for its tested domain;
-do not treat a finite interval as a validated general non-Gaussian claim.
+rows. The mixed-outcome route is a beta interface with alpha-scale Godambe
+standard errors and Wald intervals for every admitted pair class. The
+Bernoulli x ordinary-NB2 intercept route has coverage evidence and is
+inference-ready with caveats; the other admitted routes are interval-feasible
+and warn that coverage remains uncalibrated. Random effects and a generic
+family-pair interface remain outside this staged route. The exact direct
+lognormal route also has callable uncertainty methods for a constant `rho12`,
+with a retained fixed-effect calibration ladder for its tested domain; do not
+treat a finite interval as a validated general non-Gaussian claim.
 For a released direct Gaussian joint model, use `biv_gaussian()` and
 [Changing residual coupling with rho12](bivariate-coscale.html).
 
@@ -34,7 +38,7 @@ For a released direct Gaussian joint model, use `biv_gaussian()` and
 | Two Gaussian traits | Direct `biv_gaussian()` model | Gaussian residual `rho12` |
 | Two positive traits plausibly lognormal | Post-0.6 direct `biv_lognormal()` model | Log-response residual `rho12` |
 | Two heavy-tailed real-valued traits | Post-0.6 direct `biv_student()` model | Shared-Student-t residual/scatter `rho12` |
-| A reviewed mixed or discrete pair | `biv_associate()` staged route | Latent-normal copula `eta` after frozen margins; one numeric association slope is beta-supported for Bernoulli x NB2 |
+| A reviewed mixed or discrete pair | `biv_associate()` staged route | Latent-normal copula `eta` after frozen margins; an intercept-bearing fixed-effect association formula is interval-feasible for Bernoulli x NB2 |
 
 Neither `rho12` nor `eta` is automatically the Pearson correlation of the two
 raw response columns. The scale is part of the scientific interpretation, not
@@ -196,6 +200,10 @@ not itself establish coverage calibration or prove lognormal adequacy. Inspect
 residual diagnostics and compare scientifically defensible alternatives before
 reporting a substantive association.
 
+If a fit, covariance, or interval is withheld, follow [Errors, warnings, and
+convergence](convergence.html) rather than repairing, clipping, or hiding the
+diagnostic result.
+
 ## Direct joint model: two heavy-tailed traits
 
 For two real-valued traits with occasional extreme observations, the bivariate
@@ -257,23 +265,28 @@ threshold. It does not observe an ordinary numeric residual. Read
 binary-threshold explanation, the reviewed pair classes, and the rule for
 withheld estimates.
 
-For the literal-Bernoulli x ordinary-NB2 beta route, `association = ~ x` can
-also model one numeric association gradient. It estimates a row-specific
-latent-normal `eta_i`, after both margins have been fitted and frozen. See
+For the literal-Bernoulli x ordinary-NB2 beta route, an intercept-bearing
+fixed-effect formula such as `association = ~ x`, `~ habitat`, or
+`~ x * habitat` can model a row-specific latent-normal `eta_i` after both
+margins have been fitted and frozen. Multiple predictors, factors,
+interactions, and explicit transformations use the ordinary fixed-effect model
+matrix. See
 [Association between mixed outcome pairs](cross-family.html) for the exact
 syntax, output, and limits.
 
 ## What is currently outside these routes
 
 The direct same-family first slices keep `sigma1`, `sigma2`, `rho12`, and `nu`
-constant across rows. The staged route usually keeps `eta` constant; its one
-beta exception is a single numeric association slope for literal-Bernoulli x
-ordinary-NB2. Its reviewed fixed-effect margins may include their explicitly
+constant across rows. The staged route usually keeps `eta` constant; its beta
+exception is an intercept-bearing fixed-effect association formula for
+literal-Bernoulli x ordinary-NB2. Its reviewed fixed-effect margins may include their explicitly
 supported covariates before they are frozen. Neither route currently adds random
-effects, general association-predictor grammar, missing-data support, or a
-general non-Gaussian bivariate claim. The staged route's alpha-scale standard
+effects or missing-data support, and the staged formula rejects offsets,
+missing predictors, aliased columns, dot expansion, and random effects. Other
+pair classes remain intercept-only. Neither route is a general non-Gaussian
+bivariate claim. The staged route's alpha-scale standard
 errors and Wald intervals are interval-feasible for every admitted pair class
-and for the Bernoulli x ordinary-NB2 association-slope formula. Routes without
+and for the Bernoulli x ordinary-NB2 association-regression formula. Routes without
 coverage calibration emit an experimental-interval warning. Profiles and eta
 intervals remain unavailable. The direct lognormal
 constant-`rho12` profile, Wald, and bootstrap methods have direct calibration

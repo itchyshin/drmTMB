@@ -22,6 +22,9 @@ navbar:
     left: [intro, reference, model_guides, tutorials, diagnostics, developer, news]
     right: [search, github]
   components:
+    intro:
+      text: Get started
+      href: articles/function-map-cheatsheet.html
     model_guides:
       text: Model Guides
       menu:
@@ -29,6 +32,8 @@ navbar:
           href: articles/capability-and-limits.html
         - text: What can I fit today?
           href: articles/model-map.html
+        - text: Detailed implementation status
+          href: articles/implementation-map.html
         - text: Which scale are you modelling?
           href: articles/which-scale.html
         - text: Choosing response families
@@ -39,21 +44,27 @@ navbar:
           href: articles/model-workflow.html
         - text: Handling missing data
           href: articles/missing-data.html
-        - text: Improving convergence
-          href: articles/convergence.html
         - text: Working with large data
           href: articles/large-data.html
-        - text: Running models with the Julia engine
-          href: articles/julia-engine.html
-        - text: Cross-family bivariate (Julia)
+        - text: Residual correlation with rho12
+          href: articles/bivariate-coscale.html
+        - text: Joint and staged bivariate models
+          href: articles/bivariate-nongaussian.html
+        - text: Association between outcome pairs
           href: articles/cross-family.html
+        - text: Julia engine (future support)
+          href: articles/julia-engine.html
     tutorials:
       text: Tutorials
       menu:
-        - text: Getting started
+        - text: Full introductory tutorial
           href: articles/drmTMB.html
-        - text: When variance carries signal
+        - text: Errors, warnings, and convergence
+          href: articles/convergence.html
+        - text: When variance carries signal, Part 1
           href: articles/location-scale.html
+        - text: When variance carries signal, Part 2
+          href: articles/location-scale-scale.html
         - text: Distributional outputs and adequacy
           href: articles/distributional-outputs-and-adequacy.html
         - text: Robust continuous responses
@@ -62,9 +73,7 @@ navbar:
           href: articles/count-nbinom2.html
         - text: Proportions and success rates
           href: articles/proportion-beta-binomial.html
-        - text: Changing residual coupling with rho12
-          href: articles/bivariate-coscale.html
-        - text: Mean effects and residual heterogeneity
+        - text: Meta-analysis with known sampling variances
           href: articles/meta-analysis.html
         - text: Structural dependence overview
           href: articles/structural-dependence.html
@@ -83,14 +92,14 @@ navbar:
     diagnostics:
       text: Diagnostics & Validation
       menu:
+        - text: Errors, warnings, and convergence
+          href: articles/convergence.html
+        - text: Checking fitted models
+          href: articles/model-workflow.html
+        - text: Residual and distributional adequacy
+          href: articles/distributional-outputs-and-adequacy.html
         - text: Figure gallery
           href: articles/figure-gallery.html
-        - text: Implementation map
-          href: articles/implementation-map.html
-        - text: Testing likelihoods and comparators
-          href: articles/testing-likelihoods.html
-        - text: Simulation plot grammar
-          href: articles/simulation-plot-grammar.html
     developer:
       text: Developer Notes
       menu:
@@ -100,6 +109,10 @@ navbar:
           href: articles/adding-families.html
         - text: Implemented source map
           href: articles/source-map.html
+        - text: Validating likelihoods and comparators
+          href: articles/testing-likelihoods.html
+        - text: Simulation evidence plot grammar
+          href: articles/simulation-plot-grammar.html
         - text: Finish capability matrix
           href: https://github.com/itchyshin/drmTMB/blob/main/docs/design/168-r-julia-finish-capability-matrix.md
 
@@ -178,6 +191,7 @@ reference:
       - associate_pairs
       - association
       - biv_associate
+      - vcov.drm_pair_association
       - confint.drm_pair_association
       - predict.drm_pair_association
   - title: Distributional outputs and adequacy
@@ -190,8 +204,8 @@ reference:
       - centile_chart
       - worm_plot
       - qq_plot
-  - title: Julia engine
-    desc: Experimental Julia-engine methods and extractors for cross-family bivariate fits.
+  - title: Deferred Julia bridge compatibility
+    desc: Compatibility methods for legacy Julia-engine objects; Julia fitting is not a current analysis route.
     contents:
       - confint.drmTMB_julia
       - predict.drmTMB_julia
