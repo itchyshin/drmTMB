@@ -72,7 +72,7 @@ MODEL_SURFACE_COUNT = 687
 # Future changes require an explicit row-specific receipt; this is not a
 # blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 169
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 178
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -972,22 +972,22 @@ def validate(
     status_counts = Counter(row["capability_status"] for row in model)
     # C14 restores the 330 source-pinned package boundaries and then splits ten
     # lossy structured zero-one-beta representatives into q1 and q2-plus leaves.
-    # C16 independently promotes the exact mc-0583 q1 phylo-mu leaf after
-    # source-bound recovery and a fresh three-lens GO. The remaining 29 rows
+    # C16 independently promotes ten exact q1 structured zero-one-beta leaves
+    # after source-bound recovery and fresh three-lens GO. The remaining 20 rows
     # are the actionable implementation backlog, not a claim that every
     # boundary is mathematically impossible.
     expected = Counter(
         {
-            "implemented": 318,
+            "implemented": 327,
             "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
-            "not_implemented": 29,
+            "not_implemented": 20,
         }
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census has 169 point_fit_recovery cells after C16's exact
-    # mc-0583 promotion. Approved inserts take a higher source_order and so
+    # The frozen census has 178 point_fit_recovery cells after C16's exact
+    # ten-leaf promotion. Approved inserts take a higher source_order and so
     # cannot disturb this number; every frozen-cell promotion needs a named
     # transition and evidence receipt.
     frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]

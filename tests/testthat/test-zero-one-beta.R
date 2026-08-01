@@ -259,7 +259,8 @@ zoib_animal_nll <- function(fit, par, Ainv, species) {
   expected_node_index <- match(species, rownames(Ainv))
   expect_equal(d$phylo_mu_node_index + 1L, unname(expected_node_index))
   eta <- as.vector(d$X_mu %*% par$beta_mu) + d$phylo_mu_value[, 1] * u[expected_node_index]
-  mu <- stats::plogis(eta); sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta)
+  sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
   zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo -
     as.numeric(determinant(Ainv, logarithm = TRUE)$modulus) +
@@ -273,7 +274,8 @@ zoib_relmat_nll <- function(fit, par, K, species) {
   expected_node_index <- match(species, rownames(K))
   expect_equal(d$phylo_mu_node_index + 1L, unname(expected_node_index))
   eta <- as.vector(d$X_mu %*% par$beta_mu) + d$phylo_mu_value[, 1] * u[expected_node_index]
-  mu <- stats::plogis(eta); sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta)
+  sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
   zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo +
     as.numeric(determinant(K, logarithm = TRUE)$modulus) +
@@ -298,7 +300,8 @@ zoib_spatial_nll <- function(fit, par, coords, site) {
   expected_node_index <- match(site, precision$levels)
   expect_equal(d$phylo_mu_node_index + 1L, unname(expected_node_index))
   eta <- as.vector(d$X_mu %*% par$beta_mu) + d$phylo_mu_value[, 1] * u[expected_node_index]
-  mu <- stats::plogis(eta); sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta)
+  sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
   zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det_Q + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
@@ -323,7 +326,8 @@ zoib_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame) {
   index <- (node2 - 1L) * nrow(p1$Q) + node1
   expect_equal(d$phylo_mu_node_index + 1L, unname(index))
   eta <- as.vector(d$X_mu %*% par$beta_mu) + d$phylo_mu_value[, 1] * u[index]
-  mu <- stats::plogis(eta); sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma)); zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
+  mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta)
+  sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma)); zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2*pi) + 2 * length(u) * par$log_sd_phylo - (nrow(p2$Q) * p1$log_det + nrow(p1$Q) * p2$log_det) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
 }
