@@ -79,8 +79,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             q2plus = by_id[q2plus_id]
             self.assertEqual(q1["q_gate"], "q1")
             self.assertEqual(q1["route_variant"], "c14_exact_q1_structured_intercept")
-            self.assertEqual(q1["capability_status"], "not_implemented")
-            self.assertEqual(q1["work_status"], "backlog")
+            if q1_id == "mc-0583":
+                self.assertEqual(q1["capability_status"], "implemented")
+                self.assertEqual(q1["work_status"], "verified")
+                self.assertEqual(q1["evidence_tier"], "point_fit_recovery")
+            else:
+                self.assertEqual(q1["capability_status"], "not_implemented")
+                self.assertEqual(q1["work_status"], "backlog")
             self.assertEqual(q2plus["q_gate"], "q2plus")
             self.assertEqual(q2plus["route_variant"], "c14_q2plus_structured_boundary")
             self.assertEqual(q2plus["capability_status"], "rejected_by_design")
@@ -117,7 +122,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 317, "not_implemented": 30, "rejected_by_design": 340},
+            {"implemented": 318, "not_implemented": 29, "rejected_by_design": 340},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -160,19 +165,19 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 317, "not_implemented": 30, "rejected_by_design": 340},
+            {"implemented": 318, "not_implemented": 29, "rejected_by_design": 340},
         )
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 165 point_fit_recovery cells after the explicit C12 mc-0653
-        # and six-cell count-tranche promotions. Future changes require a named transition and evidence receipt;
+        # contains 169 point_fit_recovery cells after the explicit C12 mc-0653,
+        # six-cell count tranche, and C16 mc-0583 promotions. Future changes require a named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            168,
+            169,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -180,7 +185,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            169,
+            170,
         )
 
         c12 = by_id["mc-0653"]

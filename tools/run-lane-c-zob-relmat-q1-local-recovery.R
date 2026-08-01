@@ -30,7 +30,7 @@ run_one <- function(seed, source_sha, runner_sha) {
 }
 
 script <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); root <- normalizePath(file.path(dirname(script), "..")); setwd(root); pkgload::load_all(root, quiet = TRUE, export_all = FALSE)
-dir <- file.path(root, "docs/dev-log/implementation-recovery/2026-07-29-lane-c-zob-relmat-q1-local-run-3"); dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+dir <- Sys.getenv("DRMTMB_RECOVERY_OUT", unset = file.path(root, "docs/dev-log/implementation-recovery/2026-07-29-lane-c-zob-relmat-q1-local-run-3")); dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 sha <- trimws(system2("git", c("rev-parse", "HEAD"), stdout = TRUE)); runner_sha <- unname(tools::md5sum(script)); attempts <- do.call(rbind, lapply(2026073101:2026073104, run_one, source_sha = sha, runner_sha = runner_sha)); write_tsv(attempts, file.path(dir, "raw-attempts.tsv"))
 valid <- with(attempts, status == "fit_ok" & convergence == 0L & pdHess & is.finite(max_gradient) & max_gradient <= .01 & !boundary_hit)
 means <- if (any(valid)) colMeans(attempts[valid, c("beta0_hat", "beta1_hat", "sigma_hat", "zoi_hat", "coi_hat", "tau_hat")]) else rep(NA_real_, 6)
