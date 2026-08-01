@@ -1,0 +1,2 @@
+M	attempts	diagnostics_pass	support_pass	mean_beta_mu0_error	mean_beta_mu1_error	mean_beta_zoi0_error	mean_beta_coi0_error	mean_log_sigma_error	mean_tau_relative_error	max_glmer_difference	role	decision
+16	1	1	1	0.0560670305237677	0.0113713363512746	0.0411995898975115	0.324154952442397	0.0160369662786453	0.0516154908965634	1.07169990047895e-05	local_smoke	LOCAL_SMOKE_ONLY

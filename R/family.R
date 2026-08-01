@@ -303,13 +303,16 @@ beta <- function() {
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
 #' `mu`. The point-fit-only q1 gates additionally admit one ordinary
-#' intercept-only random effect in `sigma` or `zoi`, separately, one ordinary
+#' intercept-only random effect in `sigma`, `zoi`, or `coi`, separately, one ordinary
 #' slope-only `sigma` effect `(0 + x | id)`, and one ordinary slope-only `zoi`
 #' effect when the fixed and random terms use the same raw symbol, for example
-#' `zoi ~ x + (0 + x | id)`. These exact routes are point-fit recovery only:
+#' `zoi ~ x + (0 + x | id)`. The exact `coi` admission is
+#' `coi ~ 1 + (1 | id)` with fixed `sigma ~ 1` and `zoi ~ 1`. These routes are
+#' point-fit recovery only:
 #' direct profiling, intervals, coverage, and broader recovery claims remain
 #' unavailable. Correlated or labelled effects, intercept-plus-slope `zoi`
-#' effects, transformed or mismatched `zoi` slope symbols, `coi` random effects,
+#' effects, transformed or mismatched `zoi` slope symbols, `coi` slopes or
+#' structured effects,
 #' covariance blocks, and denominator syntax remain unsupported. One further
 #' point-fit-only structured route is
 #' available: an unlabelled q1 `phylo(1 | group, tree = tree)` intercept in
