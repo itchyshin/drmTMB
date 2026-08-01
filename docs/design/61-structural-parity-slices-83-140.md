@@ -76,7 +76,7 @@ No spawned subagents were running for this slice set.
 | 125 | Non-Gaussian slope covariance boundary | Completed as guardrail | Correlated count slopes and labelled count covariance remain planned. |
 | 126 | Non-Gaussian scale boundary | Completed as guardrail | Non-Gaussian `sigma` random effects remain blocked or planned by family. |
 | 127 | Shape and skew boundary | Completed as guardrail | Shape/skew random effects stay fixed-effect-first and simulation-gated. |
-| 128 | Inflation and hurdle boundary | Completed as guardrail | `zi`, `hu`, `zoi`, and `coi` random effects stay outside the fitted surface. |
+| 128 | Inflation and hurdle boundary | Historical guardrail, superseded by exact later gates | `zi`, `hu`, `zoi`, and `coi` random effects stay outside the fitted surface except for the row-specific gates recorded in the live ledger, including the ordinary q1 zero-one-beta atom-effect routes. |
 | 129 | Ordinal boundary | Historical guardrail, superseded in part | Ordinary cumulative-logit `mu` random intercepts and independent slopes are now recovery-grade, with one exact phylogenetic `mu` intercept gate; correlated/labelled and other structured neighbours remain blocked. |
 | 130 | Mixed-response boundary | Completed as guardrail | Non-Gaussian bivariate families remain planned until a joint likelihood contract exists. |
 | 131 | Structured count fallback | Completed as guardrail | Applied users should use ordinary count random effects when a plain grouping factor is enough. |

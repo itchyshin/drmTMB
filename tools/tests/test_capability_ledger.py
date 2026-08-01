@@ -175,6 +175,14 @@ class CapabilityLedgerTests(unittest.TestCase):
             "ev-mc-0570-c17c1-support-warning",
         ):
             self.assertEqual(evidence[evidence_id]["reviewed_by"], "Fisher; Noether; Rose")
+        warning_command = evidence["ev-mc-0570-c17c1-support-warning"]["command"]
+        self.assertIn(
+            "tools/check-lane-c-c17c1-support-floor-attainability.R",
+            warning_command,
+        )
+        self.assertTrue(
+            (ROOT / "tools/check-lane-c-c17c1-support-floor-attainability.R").is_file()
+        )
         self.assertIn(
             "strict current-source C14 landing guard remains pending explicit permission",
             evidence["ev-mc-0570-c17c1-compatibility"]["claim_boundary"],

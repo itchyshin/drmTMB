@@ -116,10 +116,12 @@ gate; the first runnable fixed-effect slice now separates three cases:
   `zero_one_beta()` when at least one interior response remains after
   missing-row filtering.
 
-The completed first code slice and first artifact lane are fixed-effect only.
-`zoi`/`coi` random effects, bounded-response covariance blocks, known sampling
-covariance, structured bounded responses, and bivariate or mixed
-bounded-response models remain future work.
+The completed first code slice and first artifact lane were fixed-effect only.
+Later exact gates now admit ordinary q1 `zoi` intercept/same-symbol slope and
+`coi` intercept effects at point-fit-recovery scope. Other atom random effects,
+bounded-response covariance blocks, known sampling covariance, structured
+bounded responses, and bivariate or mixed bounded-response models remain
+future work.
 
 ## Claim Boundary
 

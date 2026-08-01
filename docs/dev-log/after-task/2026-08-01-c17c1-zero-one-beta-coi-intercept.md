@@ -75,8 +75,12 @@ sentences are recorded below rather than silently widening this task.
   and fingerprint-equivalent for the relevant source files. It is evidence,
   not a claim that the persistent strict landing guard has been changed.
 
-Package check, pkgdown build/check, CI, and post-merge Mission Control read-back
-remain PR landing gates.
+`devtools::check(args = "--no-manual", error_on = "never")` compiled and
+installed the package, built vignettes, and passed documentation, examples,
+and `donttest` checks. It was manually interrupted during the long testthat
+phase after the full in-tree suite had already completed; it therefore has no
+final check Status and is not represented as a completed package check.
+Pkgdown, CI, and post-merge Mission Control read-back remain PR landing gates.
 
 ## Tests Of The Tests
 
@@ -97,11 +101,12 @@ rg -n 'coi.*(profile|interval|coverage|inference_ready|supported)|point-fit-only
 
 Current reader surfaces name `coi ~ 1 + (1 | id)` and keep `coi` slopes,
 profiles, intervals, coverage, and broader atom effects unavailable. Historical
-notes remain historical. Two locked current documents still have stale blanket
-wording: `docs/design/01-formula-grammar.md` / `vignettes/formula-grammar.Rmd`
-and `docs/design/03-likelihoods.md`. They require a separately authorized
-documentation-only synchronization because this arc explicitly forbids formula
-grammar and likelihood-parameterization document changes.
+notes remain historical. The remaining locked current documents with stale
+blanket wording are `docs/design/01-formula-grammar.md` /
+`vignettes/formula-grammar.Rmd` and `docs/design/03-likelihoods.md`. They require
+a separately authorized documentation-only synchronization because this arc
+explicitly forbids formula grammar and likelihood-parameterization document
+changes.
 
 The generated `man/drmTMB.Rd` missing-response paragraph was restored to the
 canonical `origin/main` artifact after roxygen work, without altering missingness
@@ -159,8 +164,8 @@ until PR #869 lands or closes.
 1. Obtain explicit permission, if desired, for the strict C17-C1 C14
    current-source compatibility bridge while keeping the immutable C14 receipt
    and fingerprint unchanged.
-2. Run package check and pkgdown verification, then obtain a fresh Rose landing
-   reread.
+2. Complete the package check and pkgdown verification, then obtain a fresh
+   Rose landing reread.
 3. Open a focused PR, require CI green on one unchanged head SHA, and request
    fresh merge authorization.
 4. After merge, verify canonical `origin/main`, the 329/340/18 ledger census,
