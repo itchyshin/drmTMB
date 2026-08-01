@@ -200,9 +200,12 @@ head(sigma(fit)^2) # fitted residual variances
   formulas. Here `zoi` is the probability of an exact boundary outcome and
   `coi` is the probability that a boundary outcome is exactly 1. Ordinary
   unlabelled `mu` random intercepts and independent numeric slopes are
-  recovery-grade. Correlated or labelled `mu` slopes, `sigma`/`zoi`/`coi`
-  random effects, denominator syntax, structured effects, and bivariate
-  bounded responses remain planned or blocked. Read
+  recovery-grade. Exact ordinary ML point-fit-only atom-side gates also admit
+  one `zoi` random intercept or one same-raw-symbol slope such as
+  `zoi ~ x + (0 + x | id)`; neither is profile-ready. `coi` random effects,
+  other `zoi` shapes, correlated or labelled atom effects, denominator syntax,
+  structured atom effects, and bivariate bounded responses remain planned or
+  blocked. Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Overdispersed, zero-heavy, truncated, or hurdle counts.** Use
   `poisson()`, `nbinom2()`, `truncated_nbinom2()`, `zi ~`, or `hu ~`.

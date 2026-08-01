@@ -29,6 +29,8 @@ new_zero_one_beta_data <- function(n = 1600, seed = 20260620) {
 
 dzoibeta_drm <- function(y, mu, sigma, zoi, coi, log = FALSE) {
   phi <- 1 / sigma^2
+  shape1 <- pmax(mu * phi, 1e-8)
+  shape2 <- pmax((1 - mu) * phi, 1e-8)
   out <- numeric(length(y))
   is_zero <- y == 0
   is_one <- y == 1
@@ -38,11 +40,20 @@ dzoibeta_drm <- function(y, mu, sigma, zoi, coi, log = FALSE) {
   out[is_interior] <- log1p(-zoi[is_interior]) +
     stats::dbeta(
       y[is_interior],
-      shape1 = mu[is_interior] * phi[is_interior],
-      shape2 = (1 - mu[is_interior]) * phi[is_interior],
+      shape1 = shape1[is_interior],
+      shape2 = shape2[is_interior],
       log = TRUE
     )
   if (isTRUE(log)) out else exp(out)
+}
+
+softclamp_logsigma_drm <- function(x, band) {
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  margin <- band[[3L]]
+  above <- hi + margin * tanh((x - hi) / margin)
+  below <- lo - margin * tanh((lo - x) / margin)
+  ifelse(x > hi, above, ifelse(x < lo, below, x))
 }
 
 new_zero_one_beta_phylo_data <- function(seed = 2026072901L, n_tip = 32L, n_each = 30L) {
@@ -372,6 +383,9 @@ zoib_zoi_random_intercept_nll <- function(fit, par) {
     d$zoi_re_value[, 1L] * exp(par$log_sd_zoi[term]) * u_zoi[index]
   eta_coi <- as.vector(d$X_nu %*% par$beta_coi)
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta_mu)
+  if (identical(as.integer(d$use_logsigma_clamp), 1L)) {
+    log_sigma <- softclamp_logsigma_drm(log_sigma, d$logsigma_clamp)
+  }
   sigma <- exp(log_sigma)
   -sum(stats::dnorm(u_zoi, log = TRUE)) -
     sum(d$weights * dzoibeta_drm(
@@ -882,6 +896,14 @@ test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
     ),
     "does not support missing responses"
   )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1),
+      family = zero_one_beta(), data = missing_data,
+      missing = miss_control(response = "include")
+    ),
+    "same-raw-symbol slope form"
+  )
   tree <- ape::stree(12L, type = "star")
   tree$edge.length <- rep(1, nrow(tree$edge))
   tree$tip.label <- levels(sim$data$id)
@@ -950,6 +972,11 @@ test_that("zero-one-beta admits only the exact zoi random-slope q1 gate", {
   probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_zoi_random_intercept_nll(fit, obj$env$parList(v))
   expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
   expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  expect_identical(fit$model$tmb_data$use_logsigma_clamp, 1L)
+  guard_probe <- probe
+  guard_probe[which(names(guard_probe) == "beta_mu")[[1L]]] <- -50
+  guard_probe[which(names(guard_probe) == "beta_sigma")[[1L]]] <- 20
+  expect_equal(obj$fn(guard_probe), oracle_fn(guard_probe), tolerance = 1e-8)
   i <- which(names(probe) == "log_sd_zoi"); changed <- probe; changed[[i]] <- changed[[i]] + .2
   expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })

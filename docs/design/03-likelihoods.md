@@ -2088,7 +2088,7 @@ log Pr(y_i = 0) = log(zoi_i) + log(1 - coi_i)
 log Pr(y_i = 1) = log(zoi_i) + log(coi_i)
 log f(0 < y_i < 1) =
   log(1 - zoi_i) +
-  log Gamma(phi_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
+  log Gamma(alpha_i + beta_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
   (alpha_i - 1) log(y_i) + (beta_i - 1) log(1 - y_i)
 ```
 

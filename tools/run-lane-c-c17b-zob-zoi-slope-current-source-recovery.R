@@ -89,7 +89,7 @@ root <- normalizePath(file.path(dirname(script), ".."))
 setwd(root)
 out <- file.path(
   root,
-  "docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-2"
+  "docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-3"
 )
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 
