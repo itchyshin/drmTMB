@@ -70,8 +70,8 @@ meaning above is the forward definition.
 
 | Model / effect | Tier | What you can trust |
 | --- | --- | --- |
-| Frozen-margin latent-normal association -- all five admitted pair classes, plus the Bernoulli x ordinary-NB2 fixed-effect association formula | Interval-feasible | Alpha-scale `vcov()` and Wald `confint()` when fit-specific Godambe diagnostics pass; coverage is uncalibrated outside the next row and the method warns accordingly |
-| Frozen-margin literal-Bernoulli x ordinary-NB2 intercept association | Inference-ready with caveats | Alpha point estimate and Godambe-Wald interval in the retained high-information `n = 480` or `960` domain; lower-information fits warn and fail closed if covariance diagnostics do not pass |
+| Frozen-margin latent-normal association -- all five admitted pair classes, plus the Bernoulli x ordinary-NB2 fixed-effect association formula | Interval-feasible | Alpha-scale `vcov()` and Wald `confint()`, plus derived eta standard errors and transformed pointwise intervals, when fit-specific Godambe diagnostics pass; coverage is uncalibrated outside the next row and the method warns accordingly |
+| Frozen-margin literal-Bernoulli x ordinary-NB2 intercept association | Inference-ready with caveats | Alpha and derived eta uncertainty in the retained high-information `n = 480` or `960` domain; lower-information fits warn and fail closed if covariance diagnostics do not pass |
 | Census-supported ordinary Gaussian `mu` random effects and matching bivariate-Gaussian `mu1`/`mu2` intercepts | Point-trustworthy (census "supported", coverage planned) | Point estimate for the exact supported rows; their intervals are not yet coverage-verified |
 | Gaussian `mu` q1 intercept -- `phylo()`, `spatial()`, `relmat()` | Inference-ready | Point estimate and the default location-axis bias-corrected, small-sample-t Wald interval; coverage is mildly conservative in the tested campaigns |
 | Gaussian `sigma` q1 one-slope -- `phylo()`, `animal()`, `relmat()` | Inference-ready | Point estimate and raw uncorrected log-SD Wald-z interval; profile is diagnostic-only at `g = 8` |
@@ -440,6 +440,14 @@ calculation succeeds. This includes the admitted Bernoulli x ordinary-NB2
 association-slope formula. Routes without a coverage campaign warn that the
 interval is experimental; they are not withheld.
 
+For an intercept-only association, `confint(object, type = "eta")` transforms
+the alpha interval to the bounded latent-association scale. For association
+regression, `predict(object, newdata = ..., type = "eta", se.fit = TRUE,
+interval = "confidence")` supplies pointwise delta-method eta standard errors
+and transformed confidence limits. These derived results inherit the alpha
+route's evidence tier; they do not add a new coverage or simultaneous-band
+claim.
+
 Within that surface, literal-Bernoulli x ordinary-NB2 with
 `association = ~ 1` is **inference-ready with caveats**. A 16-cell,
 16,000-attempt high-information campaign (`n = 480` or `960`) passed its
@@ -451,8 +459,8 @@ The earlier lower-information campaign found five primary coverage failures
 driven by unavailable intervals. drmTMB therefore warns on lower-information
 fits and returns an interval only when the fit-specific covariance diagnostics
 pass. It does not manufacture bounds for an unstable or unresolved result.
-Eta-scale intervals, profiles, random effects, missingness, weights, offsets,
-and REML remain outside this interval surface.
+Simultaneous eta bands, profiles, random effects, missingness, weights,
+offsets, and REML remain outside this interval surface.
 
 ## Missing data
 

@@ -1,6 +1,6 @@
 # drmTMB 0.6.0
 
-## Association alpha intervals
+## Association alpha and eta intervals
 
 * `vcov()` and `confint()` now expose two-stage Godambe-Wald uncertainty for
   the association-link coefficients `alpha` from every admitted fixed-effect,
@@ -10,8 +10,13 @@
   literal-Bernoulli x ordinary-NB2 intercept route is inference-ready with
   caveats: a retained 16-cell high-information campaign passed its bias,
   availability, SE-calibration, and coverage gates. Lower-information fits
-  warn. Eta-scale intervals, profiles, random effects, missingness, weights,
-  offsets, and REML remain outside this method.
+  warn. `confint(assoc, type = "eta")` transforms a constant-association
+  interval to the bounded eta scale. `predict(assoc, newdata = ..., type =
+  "eta", se.fit = TRUE, interval = "confidence")` returns row-specific eta
+  estimates, delta-method standard errors, and transformed pointwise limits.
+  These derived results inherit the alpha route's evidence tier; simultaneous
+  eta bands, profiles, random effects, missingness, weights, offsets, and REML
+  remain outside this method.
 
 ## `simulate()` redraws random effects (`re.form`) — corrected before first release
 
@@ -78,9 +83,9 @@
   predictors, factors, interactions, and explicit transformations. It fits a
   row-specific latent-normal association after the two margins have been fitted
   and frozen. The coefficients now have interval-feasible alpha-scale
-  Godambe-Wald uncertainty; fitted eta values and new-data predictions remain
-  point estimates. This is not a direct `rho12` model and supplies no eta
-  intervals, profiles, calibrated association-regression coverage, random
+  Godambe-Wald uncertainty; fitted eta values and new-data predictions now
+  have derived pointwise uncertainty as described above. This is not a direct
+  `rho12` model and supplies no simultaneous eta bands, profiles, calibrated association-regression coverage, random
   effects, offsets, missing association predictors, aliases, or dot expansion.
 
 ## Arc 6.5 Bernoulli × Bernoulli development slice (superseded for intervals)
@@ -127,8 +132,8 @@
   then estimates latent-normal association (`eta`). Public alpha-scale
   Godambe-Wald intervals are now interval-feasible for every admitted route,
   with the exact Bernoulli × ordinary-NB2 intercept domain inference-ready with
-  caveats. The staged interface still does not add mixed-family `rho12` or
-  eta-scale intervals.
+  caveats. The staged interface still does not add mixed-family `rho12`;
+  eta-scale uncertainty is a derived transformation of the alpha covariance.
 
 ## First-impression formula surface (issue #776)
 

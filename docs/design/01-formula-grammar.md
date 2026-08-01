@@ -67,18 +67,21 @@ profiling, updating, or reweighting it. All reviewed classes accept the
 constant association predictor `association = ~ 1`. The literal Bernoulli x
 ordinary NB2 beta route additionally accepts an intercept-bearing fixed-effect
 model-matrix formula such as `association = ~ x`, defining
-\(\eta_i=\tanh(X_{A,i}\boldsymbol\alpha)\).
+\(\eta_i=0.999999\tanh(X_{A,i}\boldsymbol\alpha)\).
 
-The output is a point estimate of latent-normal association `eta`
-and numerical/data diagnostics. It is not `rho12`, an observed-scale Pearson
+The output includes latent-normal association `eta`, numerical/data
+diagnostics, and derived uncertainty when the stored Godambe covariance passes
+its fit-specific checks. It is not `rho12`, an observed-scale Pearson
 correlation, or `corpairs()`. The formula marker `corpair()` remains distinct
 from the extractor. For every admitted pair class, `vcov()` and `confint()`
 expose alpha-scale two-stage Godambe-Wald uncertainty when fit-specific
 covariance diagnostics pass. These routes are interval-feasible; the
 literal-Bernoulli x ordinary-NB2 intercept route is inference-ready with
-caveats from its retained high-information coverage campaign. Random,
+caveats from its retained high-information coverage campaign. Constant models
+also expose `confint(type = "eta")`; `predict(type = "eta", se.fit = TRUE,
+interval = "confidence")` supplies pointwise eta uncertainty. Random,
 phylogenetic, and structured association effects, missing or partial pairs,
-offsets, weights, `mi()`, `meta_V()`, REML, eta-scale intervals, profiles,
+offsets, weights, `mi()`, `meta_V()`, REML, simultaneous eta bands, profiles,
 residuals, quantiles, and `emmeans` remain outside this contract.
 
 ### Exact bivariate Student-t development grammar

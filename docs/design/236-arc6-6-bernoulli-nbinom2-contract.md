@@ -12,7 +12,8 @@ rejects random effects, offsets, missing predictors, aliases, and dot expansion.
 The association is not `rho12`, an observed-scale correlation, or a joint-MLE
 association. The association-link coefficients `alpha` have a public two-stage
 Godambe covariance and Wald intervals for the full admitted coefficient block;
-`eta` itself remains a point estimand.
+the bounded `eta` scale has delta-method standard errors and monotonically
+transformed pointwise Wald intervals derived from that same covariance.
 
 For binary observation \(B_i\), define
 \(c_i=\Phi^{-1}(p_i;\mathrm{lower.tail}=FALSE)\), with interval
@@ -50,7 +51,11 @@ J=n^{-1}\sum_iU_iU_i^\top.
 
 `vcov()` returns only its named `alpha` block; `confint()` applies
 (\widehat\alpha_j \pm z_{1-\gamma/2}\operatorname{SE}(\widehat\alpha_j))
-coefficient by coefficient.
+coefficient by coefficient. For an intercept-only association,
+`confint(object, type = "eta")` transforms those endpoints through
+`0.999999 * tanh()`. For association regression, `predict()` combines the
+design row with the alpha covariance, applies the delta method to the eta
+standard error, and transforms the row-specific link-scale interval endpoints.
 
 Focused tests use an independent `mvtnorm::pmvnorm()` rectangle oracle,
 including zero-count, rare/high-tail, and response-order cases. The simulator
@@ -63,9 +68,9 @@ Public `vcov()` and `confint()` expose both intercept and association-regression
 alpha blocks; the intercept has the stronger coverage-backed tier, while the regression is
 `interval_feasible` with an experimental-coverage warning. The failed lower-
 information F4 campaign remains a warning and availability caveat rather than
-nullifying F4R. Random effects, missingness, weights, offsets, REML, Julia, eta
-intervals, and generic binary–count claims remain outside the contract. A
-full-refit bootstrap design for the slope remains specified separately in
-`docs/design/240-arc6-staged-eta-uncertainty-followup.md`; it is a possible
-future calibration method, not a prerequisite for the current Godambe-Wald
-interval.
+nullifying F4R. Random effects, missingness, weights, offsets, REML, Julia,
+simultaneous eta bands, and generic binary–count claims remain outside the
+contract. The eta transformation contract is specified separately in
+`docs/design/240-arc6-staged-eta-uncertainty-followup.md`; a future full-refit
+bootstrap would be a separate calibration method, not a prerequisite for the
+current Godambe-Wald interval.

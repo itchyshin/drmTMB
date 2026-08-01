@@ -2775,9 +2775,12 @@ not bivariate-Gaussian residual coscale `rho12`, observed-scale correlation,
 or a `corpairs()` random-effect extractor (the `corpair()` formula marker is a
 different interface). Public output includes point estimates, numerical and
 response-pattern diagnostics, and alpha-scale `vcov()` / `confint()` when the
-fit-specific Godambe calculation succeeds. Profiles, eta-scale intervals,
-residuals, quantiles, and `emmeans` remain unavailable. These implementations
-exclude random, phylogenetic, or structured association effects,
+fit-specific Godambe calculation succeeds. Intercept-only models also expose
+`confint(object, type = "eta")`; `predict()` supplies delta-method eta standard
+errors and transformed pointwise intervals from the same alpha covariance.
+Profiles, simultaneous eta bands, residuals, quantiles, and `emmeans` remain
+unavailable. These implementations exclude random, phylogenetic, or
+structured association effects,
 partial/missing pairs, offsets, weights, `mi()`, `meta_V()`, REML, binomial
 trial-count responses, and zero-inflated, hurdle, or truncated NB2 responses.
 

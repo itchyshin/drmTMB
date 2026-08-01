@@ -83,6 +83,7 @@ assoc <- biv_associate(
 association(assoc)
 vcov(assoc)
 confint(assoc)
+confint(assoc, type = "eta")
 ```
 
 ```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. For every admitted route, the public Godambe covariance propagates uncertainty from both fitted margins into alpha-scale Wald intervals when fit-specific diagnostics pass."}
@@ -144,6 +145,12 @@ J=\frac{1}{n}\sum_i U_iU_i^\top,\qquad
 forms Wald intervals from that block. Thus the equations, R method, and
 reported target all use the same unbounded association-link scale.
 
+For a design row (x_i^\top), the bounded association is
+\(\eta_i=0.999999\tanh(x_i^\top\alpha)\). `predict()` obtains its standard error
+from the delta method and obtains its confidence limits by transforming the
+link-scale Wald endpoints. The transformed interval therefore remains inside
+the valid eta range.
+
 ## What a binary outcome contributes
 
 A binary observation has no ordinary numeric residual. If the breeding margin
@@ -188,13 +195,14 @@ returns the corresponding alpha-scale Wald intervals when fit-specific
 diagnostics pass. These methods propagate fitted-margin uncertainty through a
 two-stage Godambe sandwich; they do not use the conditional stage-2 Hessian.
 
-The interval is **not** an interval for bounded `eta`. Keep the reported scale
-visible, for example:
+Keep the reported scale visible. The coefficient interval and the derived eta
+interval answer related but different questions:
 
 ```{r association-interval-example, eval = FALSE}
 association(assoc)       # bounded latent-normal eta point estimate
 sqrt(diag(vcov(assoc)))  # Godambe SE for alpha
 confint(assoc)           # Wald interval for alpha
+confint(assoc, type = "eta") # transformed interval for constant eta
 ```
 
 All admitted routes are interval-feasible. Those without route-specific
@@ -210,9 +218,11 @@ covariance is returned with a warning, while an unstable or boundary result
 returns an informative error rather than a placeholder interval.
 
 That coverage evidence does not transfer automatically to association slopes,
-other family pairs, eta-scale intervals, random effects, incomplete pairs,
-weights, offsets, or REML. The first two still have interval-feasible alpha
-methods; the others remain outside the current interval surface.
+other family pairs, random effects, incomplete pairs, weights, offsets, or
+REML. The eta transformation inherits the underlying alpha method's tier; it
+does not create a new coverage claim. Association slopes and other family
+pairs remain interval-feasible, while the remaining features stay outside the
+current interval surface.
 
 ## When the estimate or interval is withheld
 
@@ -253,6 +263,15 @@ assoc_by_habitat <- biv_associate(
 
 association(assoc_by_habitat)
 association(assoc_by_habitat, type = "fitted")
+
+new_habitats <- data.frame(habitat_score = c(-1, 0, 1))
+predict(
+  assoc_by_habitat,
+  newdata = new_habitats,
+  type = "eta",
+  se.fit = TRUE,
+  interval = "confidence"
+)
 ```
 
 This simple formula fits \(a_i=\beta_0+\beta_1\,\texttt{habitat_score}_i\) and converts it
@@ -264,10 +283,10 @@ two alpha covariance and coefficient intervals for this slope model. They are
 interval-feasible and explicitly uncalibrated for coverage.
 
 The same route accepts formulas such as `~ habitat_score + season`,
-`~ habitat`, or `~ habitat_score * habitat`, and `predict()` can evaluate the
-fitted association link or bounded `eta` at compatible `newdata`. Those
-predictions remain point-only; coefficient-level `vcov()` and `confint()` do
-not create simultaneous or eta-scale prediction bands.
+`~ habitat`, or `~ habitat_score * habitat`, and `predict()` evaluates the
+fitted association link or bounded `eta` at compatible `newdata`. Its standard
+errors are pointwise delta-method results, and its eta confidence limits are
+transformed link-scale Wald intervals. They are not simultaneous bands.
 
 This is similar in spirit to allowing a predictor for a residual `rho12`, but
 it is not the same model or parameter. `rho12` belongs to a direct joint

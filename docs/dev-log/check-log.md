@@ -91938,3 +91938,25 @@ Shinichi grants a separate Gate A compute approval.
 - Fisher, Pat, and Rose returned final PASS verdicts on the inference scope and
   rebuilt reader surface. See
   `docs/dev-log/after-task/2026-08-01-arc6-association-public-alpha-intervals.md`.
+
+## 2026-08-01: Arc 6 association eta uncertainty
+
+- Added `confint(assoc, type = "eta")` for intercept-only associations and
+  `predict(assoc, newdata = ..., type = "eta", se.fit = TRUE, interval =
+  "confidence")` for pointwise eta estimates, delta-method standard errors,
+  and monotonically transformed link-Wald limits.
+- The complete `associate-pairs` test family passed. Its first run caught two
+  message-only snapshots; the final rerun passed after preserving the existing
+  new-data error contract. Independent tests reproduce `sqrt(x' V_alpha x)`,
+  the eta derivative, and the transformed endpoints.
+- `devtools::document()` completed for the touched pages. A full
+  `pkgdown::build_site(new_process = FALSE)` and `pkgdown::check_pkgdown()`
+  passed; rendered articles and method references show both eta interfaces.
+- Capability ledger checks remain green: 46 Python tests passed and all 30
+  generated outputs are current. `git diff --check` and the after-task
+  structure validator passed.
+- Fisher returned PASS on the statistical transformation and evidence-tier
+  inheritance. Pat and Rose identified and then re-reviewed method examples,
+  constant-versus-varying reader guidance, current contract supersessions, and
+  rendered-site stale wording. See
+  `docs/dev-log/after-task/2026-08-01-arc6-association-eta-uncertainty.md`.

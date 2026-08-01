@@ -1468,6 +1468,35 @@ test_that("public vcov and confint expose the validated alpha Godambe interval",
     matrix(alpha + stats::qnorm(c(0.025, 0.975)) * se, nrow = 1L),
     tolerance = 1e-12
   )
+
+  expect_warning(
+    eta_interval <- confint(fixture$association_fit, type = "eta"),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_identical(rownames(eta_interval), "eta")
+  expect_identical(colnames(eta_interval), c("2.5 %", "97.5 %"))
+  expect_equal(
+    unname(eta_interval),
+    0.999999 * tanh(unname(interval)),
+    tolerance = 1e-12
+  )
+  expect_warning(
+    eta_prediction <- predict(
+      fixture$association_fit,
+      type = "eta",
+      se.fit = TRUE,
+      interval = "confidence"
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  expected_eta_se <- 0.999999 *
+    (1 - tanh(alpha)^2) * se
+  expect_equal(unique(eta_prediction$se.fit), expected_eta_se, tolerance = 1e-12)
+  expect_equal(
+    unname(eta_prediction$fit[1L, c("lwr", "upr")]),
+    as.vector(eta_interval),
+    tolerance = 1e-12
+  )
 })
 
 test_that("public alpha inference keeps excluded targets and failures explicit", {
@@ -1488,9 +1517,17 @@ test_that("public alpha inference keeps excluded targets and failures explicit",
     class = "drmTMB_association_inference_warning"
   )
   expect_identical(rownames(slope_subset), "alpha:x")
+  expect_error(
+    confint(slope_fixture$association_fit, type = "eta"),
+    "no single eta confidence interval"
+  )
 
   fixture <- staged_sandwich_fixture()
   expect_error(confint(fixture$association_fit, parm = "eta"), "Unknown association")
+  expect_error(
+    confint(fixture$association_fit, type = "eta", parm = "alpha"),
+    "must be NULL"
+  )
   expect_error(confint(fixture$association_fit, level = 1), "strictly between")
 
   unavailable <- fixture$association_fit
@@ -1499,6 +1536,10 @@ test_that("public alpha inference keeps excluded targets and failures explicit",
     reason = "bread_or_meat_unstable"
   )
   expect_error(vcov(unavailable), "bread_or_meat_unstable")
+  expect_error(
+    predict(unavailable, type = "eta", se.fit = TRUE),
+    "bread_or_meat_unstable"
+  )
 
   legacy <- fixture$association_fit
   legacy$alpha_inference <- NULL

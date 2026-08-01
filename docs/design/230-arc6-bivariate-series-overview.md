@@ -208,12 +208,14 @@ Each admitted pair or batch requires, before a public capability statement:
 6. fresh Boole, Emmy, Gauss, Curie, Fisher, and Rose review at the appropriate
    gate.
 
-For the first mixed lanes, the ceiling is a fixed-effect, complete-pair,
-intercept-only `eta` **point estimate plus diagnostics**. The stage-2 Hessian
-treats stage-1 margins as fixed and therefore cannot justify a standard error,
-Wald interval, profile interval, coverage assertion, or capability-tier
-promotion. Those require a later validated sandwich/Godambe route or a
-bootstrap that refits both stages.
+For the admitted mixed lanes, the fitted model remains fixed-effect,
+complete-pair, and usually intercept-only. The stage-2 Hessian treats stage-1
+margins as fixed and is not used for inference. A later two-stage Godambe route
+now supplies alpha covariance, alpha Wald intervals, and derived pointwise eta
+uncertainty. The exact Bernoulli x ordinary-NB2 intercept domain is
+inference-ready with caveats; the other admitted routes are interval-feasible
+with uncalibrated-coverage warnings. Profiles and simultaneous eta bands remain
+unavailable.
 
 ## Decision and compute gates
 
@@ -231,7 +233,10 @@ bootstrap that refits both stages.
 
 ## Explicit deferrals
 
-Until a later owner decision, Arc 6 excludes association slopes, random,
-phylogenetic, and structured effects; partial pairs; offsets; weights;
-`mi()`; `meta_V()`; REML; Julia; CRAN; generic family-pair claims; interval or
-coverage claims; and all capability promotion.
+The Bernoulli x ordinary-NB2 route now admits an intercept-bearing fixed-effect
+association formula, and every admitted pair route has fit-specific Godambe
+interval feasibility. The exact Bernoulli x ordinary-NB2 intercept domain is
+inference-ready with caveats. Arc 6 still excludes random, phylogenetic, and
+structured association effects; partial pairs; offsets; weights; `mi()`;
+`meta_V()`; REML; Julia; CRAN; generic family-pair claims; profiles;
+simultaneous eta bands; and unscoped capability promotion.

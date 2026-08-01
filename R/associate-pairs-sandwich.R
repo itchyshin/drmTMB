@@ -79,7 +79,8 @@ drm_pair_public_alpha_inference <- function(object) {
     reason <- if (is.null(inference$reason)) "unknown" else inference$reason
     cli::cli_abort(c(
       "The two-stage alpha covariance is unavailable for this fit.",
-      i = "Diagnostic reason: {.val {reason}}. No placeholder interval is returned."
+      i = "Diagnostic reason: {.val {reason}}. No placeholder interval is returned.",
+      i = "Inspect {.code object$diagnostics}; verify predictor variation and design rank, then simplify or refit the association model."
     ))
   }
   covariance <- inference$covariance
@@ -92,7 +93,10 @@ drm_pair_public_alpha_inference <- function(object) {
       any(!is.finite(inference$se)) ||
       any(inference$se <= 0)
   ) {
-    cli::cli_abort("The stored two-stage alpha covariance is invalid; no interval is returned.")
+    cli::cli_abort(c(
+      "The stored two-stage alpha covariance is invalid; no interval is returned.",
+      i = "Inspect {.code object$diagnostics} and {.code object$alpha_inference}, then reconstruct the association with the current drmTMB version."
+    ))
   }
   inference
 }

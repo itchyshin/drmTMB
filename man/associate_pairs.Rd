@@ -40,8 +40,11 @@ uncertainty. For every admitted pair route, \code{\link[=vcov]{vcov()}} and \cod
 use a two-stage Godambe covariance that propagates fitted-margin uncertainty
 when the fit-specific calculation succeeds. These alpha-scale routes are
 interval-feasible. The retained Bernoulli x ordinary-NB2 intercept campaign
-supports the stronger inference-ready-with-caveats tier. Eta-scale intervals
-and profiles remain unavailable.
+supports the stronger inference-ready-with-caveats tier. Intercept-only
+associations also expose bounded eta intervals through
+\code{confint(object, type = "eta")}; \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}} supplies
+delta-method eta standard errors and pointwise transformed intervals.
+Profiles remain unavailable.
 }
 \examples{
 set.seed(20260723)
@@ -65,4 +68,5 @@ assoc <- associate_pairs(
 association(assoc)
 sqrt(diag(vcov(assoc)))
 confint(assoc)
+confint(assoc, type = "eta")
 }

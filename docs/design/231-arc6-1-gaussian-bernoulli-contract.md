@@ -1,5 +1,12 @@
 # Arc 6.1 Gaussian × Bernoulli frozen-margin contract
 
+> **Supersession (2026-08-01).** The point-estimate implementation described
+> here now has public two-stage Godambe uncertainty. `vcov()` and plain
+> `confint()` report alpha-scale uncertainty; `confint(type = "eta")` and
+> `predict(type = "eta", se.fit = TRUE, interval = "confidence")` report
+> derived bounded eta uncertainty. Coverage remains uncalibrated for this pair,
+> so the route warns and remains `interval_feasible`.
+
 Arc 6.1 adds one deliberately narrow post-fit association object. It does not
 add a `biv_*()` family, change `drmTMB()` fitting, or broaden the established
 meaning of `rho12`.
@@ -54,9 +61,9 @@ near-boundary diagnostic, never an ordinary inference claim.
 | \(Y_B\), \(p_i\) | Literal 0/1 logit-binomial margin; frozen `components$binary_y` and `binary_p` | `y_b = 1(z_b > qnorm(1 - p))` | `fitted()` returns frozen `p`; response-pattern diagnostic retained | Bernoulli only; no `cbind()` trials |
 | \(Z_G\) | Standardized Gaussian response `z = (y_g - mu) / sigma` | `z_g = rnorm(n)` | Used directly by the conditional likelihood | Exact under the declared Gaussian margin |
 | \(Z_B\) and \(c_i\) | `threshold = qnorm(1 - binary_p)` | `z_b = eta * z_g + sqrt(1 - eta^2) * rnorm(n)` | Threshold is implicit in `drm_pair_gaussian_bernoulli_loglik()` | Latent liability is an association device, not a re-fitted Bernoulli model |
-| \(\alpha\), \(\eta\) | `drm_pair_fit_eta()` with `eta_internal = 0.999999 * tanh(alpha)` | The same `eta_internal` couples the two normal draws | `association()` exposes `eta`; multistart, score, curvature, and boundary flags are retained | Intercept-only `association = ~ 1`; point estimate plus diagnostics |
+| \(\alpha\), \(\eta\) | `drm_pair_fit_eta()` with `eta_internal = 0.999999 * tanh(alpha)` | The same `eta_internal` couples the two normal draws | `association()` exposes `eta`; `vcov()`, `confint()`, and `predict()` expose the admitted uncertainty; multistart, score, curvature, and boundary flags are retained | Intercept-only `association = ~ 1`; interval-feasible with uncalibrated-coverage warning |
 | \(r_i\) | Stable normal tail / CDF evaluation in `drm_pair_gaussian_bernoulli_loglik()` | Implied by the normal-threshold draw | Normalisation and zero-association tests independently integrate the conditional probability | Continuous-discrete exact likelihood |
-| \(\ell(\alpha)\) | `drm_pair_gaussian_bernoulli_loglik()` and `nlminb()` multistart optimisation | No recovery DGP is asserted | Stored `logLik`, convergence, score, curvature, and starts | No standard error, interval, profile, coverage, smoke, or recovery claim |
+| \(\ell(\alpha)\) | `drm_pair_gaussian_bernoulli_loglik()` and `nlminb()` multistart optimisation | No recovery DGP is asserted | Stored `logLik`, convergence, score, curvature, and starts | Godambe SE and pointwise interval available; no profile or calibrated-coverage claim |
 
 ## Public API and exclusions
 
@@ -78,12 +85,11 @@ or REML fits, unequal or incomplete analysis rows, weights, offsets, known
 covariance, random/structured effects, nonstandard Gaussian margins, and
 nonliteral Bernoulli inputs.
 
-`rho12()`, `corpairs()`, `sigma()`, `vcov()`, and `profile()` deliberately
-error for this object. The `corpair()` formula marker is a separate interface.
-These methods would imply an unsupported Gaussian-residual, random-effect, or
-uncertainty interpretation. A future Arc must separately
-validate any two-stage uncertainty method, association covariates, new-data
-association prediction, or additional margin class.
+`rho12()`, `corpairs()`, `sigma()`, and `profile()` deliberately error for this
+object. The `corpair()` formula marker is a separate interface. `vcov()` and
+`confint()` now use the validated two-stage Godambe calculation rather than the
+conditional stage-2 Hessian. Association covariates and new-data association
+prediction remain specific to the Bernoulli x ordinary-NB2 route.
 
 ## Validation boundary
 

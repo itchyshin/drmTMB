@@ -31,8 +31,11 @@ latent_normal <- function() {
 #' use a two-stage Godambe covariance that propagates fitted-margin uncertainty
 #' when the fit-specific calculation succeeds. These alpha-scale routes are
 #' interval-feasible. The retained Bernoulli x ordinary-NB2 intercept campaign
-#' supports the stronger inference-ready-with-caveats tier. Eta-scale intervals
-#' and profiles remain unavailable.
+#' supports the stronger inference-ready-with-caveats tier. Intercept-only
+#' associations also expose bounded eta intervals through
+#' `confint(object, type = "eta")`; [predict.drm_pair_association()] supplies
+#' delta-method eta standard errors and pointwise transformed intervals.
+#' Profiles remain unavailable.
 #'
 #' @param fit_1,fit_2 Two fitted `drmTMB` marginal models. They must use the
 #'   identical complete analysis data, in the same order.
@@ -69,6 +72,7 @@ latent_normal <- function() {
 #' association(assoc)
 #' sqrt(diag(vcov(assoc)))
 #' confint(assoc)
+#' confint(assoc, type = "eta")
 associate_pairs <- function(
   fit_1,
   fit_2,
@@ -297,8 +301,10 @@ associate_pairs <- function(
 #'   fitted margins. [association()] returns the point estimate unless the
 #'   numerical diagnostic is boundary-unresolved; a near-boundary status remains
 #'   flagged. Admitted routes have alpha-scale [vcov()] and [confint()] methods
-#'   when the fit-specific Godambe covariance succeeds. No eta-scale interval
-#'   or profile is available.
+#'   when the fit-specific Godambe covariance succeeds. Intercept-only routes
+#'   also have bounded eta intervals; [predict.drm_pair_association()] returns
+#'   eta-scale standard errors and pointwise confidence intervals. No profile
+#'   is available.
 #' @export
 #'
 #' @examples
@@ -317,6 +323,7 @@ associate_pairs <- function(
 #' association(assoc)
 #' sqrt(diag(vcov(assoc)))
 #' confint(assoc)
+#' confint(assoc, type = "eta")
 biv_associate <- function(
   formula_1,
   formula_2,
@@ -371,7 +378,8 @@ biv_associate <- function(
 #'   formula, a coefficient table or a frozen-row `eta` table according to
 #'   `type`. The separate [vcov()] and [confint()] methods supply alpha-scale
 #'   uncertainty for admitted association routes whose fit-specific Godambe
-#'   covariance diagnostics pass.
+#'   covariance diagnostics pass; `confint(object, type = "eta")` supplies the
+#'   transformed interval for a constant association.
 #' @export
 association <- function(object, ...) {
   UseMethod("association")
@@ -423,7 +431,7 @@ print.drm_pair_association <- function(x, ...) {
     }
   }
   if (identical(x$alpha_inference$status, "available")) {
-    cli::cli_text("  alpha uncertainty: available via vcov() and confint()")
+    cli::cli_text("  uncertainty: alpha via vcov()/confint(); eta via confint(type = \"eta\")/predict()")
   } else {
     cli::cli_text("  alpha uncertainty: unavailable for this route or fit")
   }
@@ -505,63 +513,171 @@ fitted.drm_pair_association <- function(object, ...) {
 #' Predict a frozen-margin pair association
 #'
 #' With no `newdata` or `type`, this method preserves the historical
-#' `fitted()`-style output of the two frozen margins. For the beta Bernoulli x
-#' ordinary-NB2 association route, `type = "link"` returns the association
-#' linear predictor and `type = "response"` returns its latent-normal
-#' association transform. These are point predictions only: no standard error,
-#' interval, or extrapolation diagnostic is supplied.
+#' `fitted()`-style output of the two frozen margins. `type = "link"` returns
+#' the association linear predictor and `type = "eta"` returns its bounded
+#' latent-normal association transform; `type = "response"` is a compatibility
+#' alias for `"eta"`. The beta Bernoulli x ordinary-NB2 route also admits
+#' new-data prediction from its fixed-effect association formula.
 #'
 #' @param object A `drm_pair_association` object.
 #' @param newdata Optional data frame for beta Bernoulli x ordinary-NB2
 #'   association prediction. Its terms, factor levels, contrasts, and columns
 #'   must match the fitted association formula.
-#' @param type Prediction scale: `"link"` for `X_A %*% alpha` or `"response"`
-#'   for `0.999999 * tanh(X_A %*% alpha)`. Omit `type` together with `newdata`
-#'   to retain the historical frozen-margin fitted output.
-#' @param ... Must be empty. Standard errors and intervals are unavailable for
-#'   frozen-margin association predictions.
+#' @param type Prediction scale: `"link"` for `X_A %*% alpha` or `"eta"` for
+#'   `0.999999 * tanh(X_A %*% alpha)`. `"response"` is an alias for `"eta"`.
+#'   Omit `type` together with `newdata` to retain the historical frozen-margin
+#'   fitted output.
+#' @param se.fit Logical; return pointwise standard errors on the requested
+#'   scale. Eta-scale standard errors use the delta method.
+#' @param interval `"none"` or `"confidence"`. Confidence limits are
+#'   pointwise link-scale Wald limits transformed monotonically to eta when
+#'   `type = "eta"`.
+#' @param level Confidence level in `(0, 1)`.
+#' @param ... Must be empty.
 #' @return With omitted `type` and `newdata`, the frozen marginal fitted values.
-#'   Otherwise a numeric association prediction on the requested scale.
+#'   Without uncertainty, a numeric association prediction on the requested
+#'   scale. With `interval = "confidence"`, a matrix with `fit`, `lwr`, and
+#'   `upr` columns. With `se.fit = TRUE`, a list containing `fit` and `se.fit`;
+#'   `fit` is the three-column matrix when an interval is requested.
+#' @seealso [vcov.drm_pair_association()], [confint.drm_pair_association()]
 #' @export
 #' @importFrom stats fitted
-predict.drm_pair_association <- function(object, newdata = NULL, type = NULL, ...) {
+#' @examples
+#' \dontrun{
+#' set.seed(20260801)
+#' n <- 160
+#' dat <- data.frame(
+#'   x1 = seq(-1.2, 1.2, length.out = n),
+#'   x2 = rep(c(-0.5, 0.5), length.out = n)
+#' )
+#' z_binary <- rnorm(n)
+#' eta <- 0.999999 * tanh(-0.1 + 0.4 * dat$x1 - 0.2 * dat$x2)
+#' z_count <- eta * z_binary + sqrt(1 - eta^2) * rnorm(n)
+#' dat$binary <- as.integer(
+#'   z_binary > qnorm(plogis(-0.2 + 0.3 * dat$x1), lower.tail = FALSE)
+#' )
+#' dat$count <- qnbinom(
+#'   pnorm(z_count), mu = exp(0.5 + 0.2 * dat$x2), size = 4
+#' )
+#' binary_fit <- drmTMB(bf(mu = binary ~ x1), binomial(), dat)
+#' count_fit <- drmTMB(
+#'   bf(mu = count ~ x2, sigma = ~ 1), nbinom2(), dat
+#' )
+#' assoc <- associate_pairs(
+#'   binary_fit, count_fit,
+#'   kernel = latent_normal(), association = ~ x1 + x2
+#' )
+#' new_dat <- data.frame(x1 = c(-1, 0, 1), x2 = 0)
+#' eta_prediction <- predict(
+#'   assoc,
+#'   newdata = new_dat,
+#'   type = "eta",
+#'   se.fit = TRUE,
+#'   interval = "confidence"
+#' )
+#' eta_prediction$fit
+#' eta_prediction$se.fit
+#' }
+predict.drm_pair_association <- function(
+  object,
+  newdata = NULL,
+  type = NULL,
+  se.fit = FALSE,
+  interval = c("none", "confidence"),
+  level = 0.95,
+  ...
+) {
   dots <- list(...)
   if (length(dots)) {
+    cli::cli_abort("Unused prediction argument{?s}: {.arg {names(dots)}}.")
+  }
+  if (length(se.fit) != 1L || is.na(se.fit) || !is.logical(se.fit)) {
+    cli::cli_abort("{.arg se.fit} must be one non-missing logical value.")
+  }
+  interval <- match.arg(interval)
+  if (length(level) != 1L || !is.finite(level) || level <= 0 || level >= 1) {
+    cli::cli_abort("{.arg level} must be one finite number strictly between zero and one.")
+  }
+  uncertainty_requested <- isTRUE(se.fit) || identical(interval, "confidence")
+  if (is.null(type) && is.null(newdata) && !uncertainty_requested) {
+    return(fitted(object))
+  }
+  if (is.null(type) && is.null(newdata)) {
     cli::cli_abort(c(
-      "Prediction uncertainty is unavailable for frozen-margin association estimates.",
-      i = "Do not supply {.arg se.fit}, {.arg interval}, or other prediction options."
+      "Choose an association scale before requesting prediction uncertainty.",
+      i = "Use {.code type = \"eta\"} for bounded latent-association estimates."
     ))
   }
-  if (is.null(type) && is.null(newdata)) return(fitted(object))
-  if (is.null(type)) type <- "response"
-  type <- match.arg(type, c("link", "response"))
-  if (!identical(object$components$pair_class, "bernoulli_nbinom2")) {
-    if (!is.null(newdata)) {
-      cli::cli_abort(c(
-        "Arc 6 association predictions are defined only for frozen analysis rows.",
-        i = "New-data association prediction needs a separate validated Arc."
-      ))
-    }
-    cli::cli_abort(c(
-      "Association link/response prediction is available only for beta Bernoulli x ordinary-NB2 fits.",
-      i = "Other Arc 6 pair classes support only a constant association."
-    ))
-  }
+  if (is.null(type)) type <- "eta"
+  type <- match.arg(type, c("link", "eta", "response"))
   if (identical(object$status, "boundary_unresolved")) {
     cli::cli_abort("Cannot predict from a boundary-unresolved association fit.")
   }
-  design <- if (is.null(newdata)) {
-    object$association_design$matrix
-  } else {
-    drm_pair_association_newdata_design(object, newdata)
+  if (!is.null(newdata) &&
+      !identical(object$components$pair_class, "bernoulli_nbinom2")) {
+    cli::cli_abort(c(
+      "Arc 6 association predictions are defined only for frozen analysis rows.",
+      i = "New-data association prediction needs a separate validated Arc."
+    ))
   }
+  design <- if (is.null(newdata)) object$association_design$matrix else
+    drm_pair_association_newdata_design(object, newdata)
   coefficients <- object$association_coefficients
   if (length(coefficients) != ncol(design)) {
     cli::cli_abort("Association prediction design does not match the fitted coefficients.")
   }
   link <- as.vector(design %*% coefficients)
-  if (identical(type, "link")) return(link)
-  0.999999 * tanh(link)
+  eta_scale <- type %in% c("eta", "response")
+  estimate <- if (eta_scale) 0.999999 * tanh(link) else link
+  if (!uncertainty_requested) return(estimate)
+
+  inference <- drm_pair_public_alpha_inference(object)
+  covariance <- inference$covariance
+  if (!identical(dim(covariance), c(ncol(design), ncol(design)))) {
+    cli::cli_abort("Association prediction design does not match the stored alpha covariance.")
+  }
+  link_variance <- rowSums((design %*% covariance) * design)
+  if (any(!is.finite(link_variance)) || any(link_variance <= 0)) {
+    cli::cli_abort(c(
+      "The derived association prediction variance is invalid.",
+      i = "No standard error or placeholder interval is returned.",
+      i = "Inspect {.code object$diagnostics}; verify predictor variation and design rank, then simplify or refit the association model."
+    ))
+  }
+  link_se <- sqrt(link_variance)
+  estimate_se <- if (eta_scale) {
+    0.999999 * (1 - tanh(link)^2) * link_se
+  } else {
+    link_se
+  }
+  if (any(!is.finite(estimate_se)) || any(estimate_se <= 0)) {
+    cli::cli_abort(c(
+      "The derived association prediction standard error is invalid.",
+      i = "No placeholder uncertainty is returned.",
+      i = "Inspect {.code object$diagnostics}, then simplify or refit the association model."
+    ))
+  }
+  drm_pair_warn_alpha_inference(object)
+
+  fit <- estimate
+  if (identical(interval, "confidence")) {
+    critical <- stats::qnorm(1 - (1 - level) / 2)
+    link_lwr <- link - critical * link_se
+    link_upr <- link + critical * link_se
+    limits <- if (eta_scale) {
+      cbind(
+        lwr = 0.999999 * tanh(link_lwr),
+        upr = 0.999999 * tanh(link_upr)
+      )
+    } else {
+      cbind(lwr = link_lwr, upr = link_upr)
+    }
+    fit <- cbind(fit = estimate, limits)
+  }
+  if (isTRUE(se.fit)) {
+    return(list(fit = fit, se.fit = estimate_se))
+  }
+  fit
 }
 
 #' @export
@@ -707,34 +823,85 @@ profile.drm_pair_association <- function(fitted, ...) {
   )
 }
 
-#' Alpha-scale confidence intervals for a frozen-margin association
+#' Confidence intervals for a frozen-margin association
 #'
 #' For admitted fixed-effect complete-pair association routes, [vcov()] returns
 #' the association-coefficient block of the two-stage Godambe sandwich and this
-#' method returns the corresponding Wald intervals. These intervals are on the
-#' association-link (`alpha`) scale, not the bounded latent-association (`eta`)
-#' scale. Every route is interval-feasible when its fit-specific covariance
-#' diagnostics pass. Coverage evidence currently promotes only the retained
-#' Bernoulli x ordinary-NB2 intercept domain to inference-ready with caveats;
-#' other routes receive an explicit experimental-coverage warning.
+#' method returns corresponding Wald intervals. `type = "alpha"` returns the
+#' coefficient-scale intervals. For an intercept-only association,
+#' `type = "eta"` monotonically transforms its link-scale limits to the bounded
+#' latent-association scale. A covariate-varying association has no single eta;
+#' use [predict.drm_pair_association()] with `newdata` for row-specific eta
+#' uncertainty. Every route is interval-feasible when its fit-specific
+#' covariance diagnostics pass. Coverage evidence currently promotes only the
+#' retained Bernoulli x ordinary-NB2 intercept domain to inference-ready with
+#' caveats; other routes receive an experimental-coverage warning.
 #'
 #' @param object A fitted `drm_pair_association` object.
 #' @param parm Association coefficients to include. `NULL` (the default) or
 #'   `"alpha"` selects all association coefficients; a numeric or character
 #'   subset may also be supplied.
 #' @param level Confidence level in `(0, 1)`.
+#' @param type `"alpha"` for coefficient-scale intervals or `"eta"` for the
+#'   bounded latent association of an intercept-only model.
 #' @param ... Reserved for future options.
-#' @return A matrix with alpha-scale Wald confidence limits.
-#' @seealso [vcov()]
+#' @return A matrix with Wald confidence limits on the requested scale.
+#' @seealso [vcov()], [predict.drm_pair_association()]
 #' @export
+#' @examples
+#' \dontrun{
+#' set.seed(20260801)
+#' dat <- data.frame(x = rnorm(100))
+#' z_1 <- rnorm(100)
+#' z_2 <- 0.35 * z_1 + sqrt(1 - 0.35^2) * rnorm(100)
+#' dat$continuous <- 0.2 + 0.4 * dat$x + z_1
+#' dat$binary <- as.integer(z_2 > qnorm(0.55))
+#' assoc <- biv_associate(
+#'   bf(mu = continuous ~ x, sigma = ~ 1),
+#'   bf(mu = binary ~ x),
+#'   family = list(gaussian(), binomial()), data = dat
+#' )
+#' confint(assoc, type = "eta")
+#' }
 confint.drm_pair_association <- function(
   object,
   parm = NULL,
   level = 0.95,
+  type = c("alpha", "eta"),
   ...
 ) {
+  type <- match.arg(type)
   if (length(level) != 1L || !is.finite(level) || level <= 0 || level >= 1) {
     cli::cli_abort("{.arg level} must be one finite number strictly between zero and one.")
+  }
+  if (identical(type, "eta")) {
+    if (isTRUE(object$association_design$varying)) {
+      cli::cli_abort(c(
+        "A covariate-varying association has no single eta confidence interval.",
+        i = "Use {.code predict(object, newdata = ..., type = \"eta\", se.fit = TRUE, interval = \"confidence\")} for row-specific estimates."
+      ))
+    }
+    if (!is.null(parm) &&
+        !identical(parm, "eta") &&
+        !(is.numeric(parm) && length(parm) == 1L && isTRUE(parm == 1))) {
+      cli::cli_abort("For {.code type = \"eta\"}, {.arg parm} must be NULL, {.val eta}, or 1.")
+    }
+    prediction <- predict(
+      object,
+      type = "eta",
+      se.fit = FALSE,
+      interval = "confidence",
+      level = level
+    )
+    limits <- matrix(
+      prediction[1L, c("lwr", "upr")],
+      nrow = 1L,
+      dimnames = list(
+        "eta",
+        paste0(format(100 * c((1 - level) / 2, 1 - (1 - level) / 2), trim = TRUE), " %")
+      )
+    )
+    return(limits)
   }
   inference <- drm_pair_public_alpha_inference(object)
   coefficient_names <- rownames(inference$covariance)
@@ -756,7 +923,8 @@ confint.drm_pair_association <- function(
     if (anyNA(index)) {
       cli::cli_abort(c(
         "Unknown association coefficient in {.arg parm}.",
-        i = "Available coefficients: {.val {coefficient_names}}. Eta-scale intervals are not returned by this method."
+        i = "Available alpha coefficients: {.val {coefficient_names}}.",
+        i = "For a constant bounded association interval, use {.code confint(object, type = \"eta\")} without an alpha {.arg parm}."
       ))
     }
   } else {

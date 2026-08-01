@@ -42,8 +42,10 @@ A \code{drm_pair_association} object that retains frozen snapshots of both
 fitted margins. \code{\link[=association]{association()}} returns the point estimate unless the
 numerical diagnostic is boundary-unresolved; a near-boundary status remains
 flagged. Admitted routes have alpha-scale \code{\link[=vcov]{vcov()}} and \code{\link[=confint]{confint()}} methods
-when the fit-specific Godambe covariance succeeds. No eta-scale interval
-or profile is available.
+when the fit-specific Godambe covariance succeeds. Intercept-only routes
+also have bounded eta intervals; \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}} returns
+eta-scale standard errors and pointwise confidence intervals. No profile
+is available.
 }
 \description{
 \code{biv_associate()} is the convenience front end for the reviewed Arc 6
@@ -76,4 +78,5 @@ assoc <- biv_associate(
 association(assoc)
 sqrt(diag(vcov(assoc)))
 confint(assoc)
+confint(assoc, type = "eta")
 }

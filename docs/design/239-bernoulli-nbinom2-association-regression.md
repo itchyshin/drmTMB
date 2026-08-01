@@ -1,5 +1,12 @@
 # Bernoulli x NB2 frozen-margin association regression
 
+> **Supersession (2026-08-01).** The implemented formula now accepts a full
+> intercept-bearing fixed-effect model matrix, including multiple predictors,
+> factors, interactions, and explicit transformations. Its alpha coefficients
+> have a two-stage Godambe covariance and Wald intervals. `predict()` supplies
+> pointwise eta standard errors and transformed confidence limits. The route
+> remains `interval_feasible`; association-regression coverage is uncalibrated.
+
 ## Scope
 
 This document specifies the first covariate-varying association extension for
@@ -17,8 +24,8 @@ For complete paired rows \(i=1,\ldots,n\), stage 1 fits and freezes
   \sigma_i = \exp(Z_{C,i}\widehat\gamma_C).
 \]
 
-Stage 2 accepts the association design \(X_{A,i}=(1,x_i)\), where \(x_i\) is
-one finite numeric covariate. It estimates
+Stage 2 accepts an intercept-bearing fixed-effect association design
+\(X_{A,i}\). It estimates
 
 \[
   a_i = X_{A,i}\beta_A,\qquad
@@ -41,16 +48,17 @@ latent-normal probability calculation.
 
 ## Public boundary
 
-`association = ~ x` is beta support only for this pair class and this one
-numeric fixed-effect slope. Other reviewed Arc 6 pair classes remain restricted
-to `association = ~ 1`. Factors, interactions, offsets, random effects,
-new-data prediction, standard errors, confidence intervals, profiles, coverage
-claims, and a generic discrete-pair association regression are all outside this
-slice.
+Association regression is available only for this pair class. Other reviewed
+Arc 6 pair classes remain restricted to `association = ~ 1`. Multiple
+predictors, factors, interactions, and explicit transformations are admitted;
+offsets, random effects, missing predictors, aliased columns, dot expansion,
+profiles, calibrated coverage, and a generic discrete-pair association
+regression remain outside this slice.
 
-The stage-2 objective conditions on fitted margins. Therefore its coefficients
-and fitted \(\eta_i\) values are point estimates only; they are not joint-MLE
-`rho12` estimates and do not account for uncertainty from stage 1.
+The stage-2 objective conditions on fitted margins, so its conditional Hessian
+is not used for uncertainty. The stacked two-stage Godambe covariance accounts
+for stage-1 estimation. The coefficients and fitted \(\eta_i\) are not
+joint-MLE `rho12` estimates.
 
 ## Validation contract
 
