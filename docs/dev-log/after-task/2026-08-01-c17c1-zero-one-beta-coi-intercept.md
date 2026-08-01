@@ -1,6 +1,6 @@
 # After Task: C17-C1 Zero-One-Beta `coi` Random Intercept
 
-## Goal
+## 1. Goal
 
 Implement and adjudicate only `mc-0570`: the complete-response ML-Laplace
 zero-one-beta model
@@ -14,7 +14,7 @@ does not claim profiles, intervals, coverage, inference readiness, `coi`
 slopes, joint atom effects, structured effects, q2-plus, missing responses,
 REML, or AGHQ.
 
-## Implemented
+## 2. Implemented
 
 The R specification, start/map machinery, TMB data, independent `u_coi` and
 `log_sd_coi` random-effect carrier, Gaussian penalty, reports, `sdpars()`,
@@ -27,7 +27,9 @@ The canonical ledger promotes only `mc-0570`. Its model-surface census becomes
 329 implemented, 340 rejected by design, and 18 not implemented. `mc-0578`
 remains not implemented for the separate C17-C2 slope milestone.
 
-## Mathematical Contract
+## 3a. Decisions and Rejected Alternatives
+
+### Mathematical Contract
 
 The implemented predictor is
 
@@ -43,7 +45,15 @@ For `y = 0`, the boundary contribution is
 The independent R oracle checks the full mixture, normalized Gaussian prior,
 objective, and finite-difference gradient.
 
-## Files Changed
+The task retains a separate `coi` carrier rather than sharing the existing
+`zoi` carrier, because the two atom predictors represent different conditional
+probabilities and must remain independently estimable. It rejects a broader
+atom-effect parser admission, joint `zoi` plus `coi` random effects, direct
+profiles, and a rewritten C14 historical receipt. The accepted alternative is
+the exact unlabelled q1 intercept plus a narrow current-source C14 compatibility
+bridge that leaves the immutable historical receipt and fingerprint unchanged.
+
+## 4. Files Touched
 
 Implementation and focused tests touch the existing zero-one-beta R/TMB,
 method, profile, and test paths. Ledger inputs and generated census files record
@@ -56,7 +66,7 @@ as explicitly requested. Formula grammar and likelihood-parameterization
 documents also remain untouched under the locked C17 boundary; their stale
 sentences are recorded below rather than silently widening this task.
 
-## Checks Run
+## 5. Checks Run
 
 - `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::document()'`:
   pass; `man/zero_one_beta.Rd` regenerated.
@@ -94,7 +104,7 @@ final check Status and is not represented as a completed package check.
 - Post-integration focused zero-one-beta and estimator-conformance tests: pass.
 CI and post-merge Mission Control read-back remain PR landing gates.
 
-## Tests Of The Tests
+## 6. Tests of the Tests
 
 The focused suite includes an independent full-likelihood and numerical-gradient
 oracle, verifies that `log_sd_coi` changes the objective, checks extractors and
@@ -102,7 +112,13 @@ prediction, and rejects malformed slopes, labels, covariance, simultaneous
 random components, structured effects, missing responses, and direct profiles.
 It therefore does not rely only on a self-comparison of package outputs.
 
-## Consistency Audit
+## 7a. Issue Ledger
+
+PR #869 was checked live and remains open. Its overlap keeps the shared
+check-log entry deferred. No issue was opened or closed because C17-C1 is being
+landed through its focused branch and forthcoming PR.
+
+## 8. Consistency Audit
 
 The exact stale-wording searches were:
 
@@ -124,13 +140,7 @@ The generated `man/drmTMB.Rd` missing-response paragraph was restored to the
 canonical `origin/main` artifact after roxygen work, without altering missingness
 implementation or claims.
 
-## GitHub Issue Maintenance
-
-PR #869 was checked live and remains open. Its overlap keeps the shared
-check-log entry deferred. No issue was opened or closed because C17-C1 is being
-landed through its focused branch and forthcoming PR.
-
-## What Did Not Go Smoothly
+## 9. What Did Not Go Smoothly
 
 The original prospective contract required every group in all four M=64
 attempts to contain at least two observed zeroes, two observed ones, and ten
@@ -149,7 +159,18 @@ narrow fail-closed bridge: it preserves the immutable C14 fingerprint and
 accepts the C17-C1 fingerprint only when the separate authenticated 12/12
 current-source compatibility receipt passes.
 
-## Team Learning
+## 10. Known Residuals
+
+The recovery claim is narrow: four retained M=64 attempts, 50 observations per
+group, at one frozen DGP. Groups with few observed zeroes or ones can have
+weakly identified conditional modes, so users should inspect within-group atom
+counts before interpreting individual modes. No interval, coverage, robustness,
+or broad family-level claim follows.
+
+Formula-grammar and likelihood-design wording is intentionally deferred. The
+shared check log is deferred until PR #869 lands or closes.
+
+## 11. Team Learning
 
 Support-count thresholds should be calibrated under the frozen DGP before they
 become all-attempt hard gates. A low-attainability group-support rule is useful
@@ -161,16 +182,13 @@ Line-number-pinned source evidence must be refreshed whenever a shared source
 file gains code above the cited region. The conformance test correctly caught
 four such drifts without exposing a REML behavioural regression.
 
-## Known Limitations
+## 12. Cross-Product Coverage
 
-The recovery claim is narrow: four retained M=64 attempts, 50 observations per
-group, at one frozen DGP. Groups with few observed zeroes or ones can have
-weakly identified conditional modes, so users should inspect within-group atom
-counts before interpreting individual modes. No interval, coverage, robustness,
-or broad family-level claim follows.
-
-Formula-grammar and likelihood-design wording is intentionally deferred. The
-shared check log is deferred until PR #869 lands or closes.
+This milestone changes only drmTMB's zero-one-beta `coi` point-fit surface. It
+does NOT cover DRM.jl, gllvmTMB, GLLVM.jl, missing-response routing, association
+intervals, or any Lane A/B capability. The canonical-main integration preserves
+the merged Lane B evidence and distinguishes its five association-axis interval
+cells from the 97 model-surface interval cells.
 
 ## Next Actions
 
