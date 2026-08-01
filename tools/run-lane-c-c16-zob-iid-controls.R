@@ -39,7 +39,7 @@ fit_one <- function(seed, endpoint, sha, runner_md5) {
   if (inherits(fit, "error")) return(out)
   key <- if (identical(endpoint, "mu")) "mu" else "sigma"
   term <- "(1 | id)"
-  mode <- ranef(fit, paste0("iid_", key))$terms[[term]]
+  mode <- ranef(fit, key)$terms[[term]]
   out$status <- "fit_ok"
   out$convergence <- fit$opt$convergence
   out$pdHess <- isTRUE(fit$sdr$pdHess)
