@@ -307,8 +307,12 @@ beta <- function() {
 #' ordinary slope-only `sigma` effect `(0 + x | id)`. These exact routes are
 #' point-fit recovery only: direct profiling, intervals, coverage, and broader
 #' recovery claims remain unavailable. Correlated or labelled effects, slopes
-#' in `zoi`/`coi`, `coi` random effects, structured effects, covariance blocks,
-#' and denominator syntax remain unsupported.
+#' in `zoi`/`coi`, `coi` random effects, covariance blocks, and denominator
+#' syntax remain unsupported. One further point-fit-only structured route is
+#' available: an unlabelled q1 `phylo(1 | group, tree = tree)` intercept in
+#' `mu`. It does not license other providers, slopes, labels, covariance,
+#' q2-plus structured effects, profiling, intervals, coverage, or inference
+#' claims.
 #'
 #' @return A `drm_family` object.
 #' @export
