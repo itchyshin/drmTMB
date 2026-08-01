@@ -744,8 +744,9 @@ def missing_next_gate(row: dict[str, str]) -> str:
     """Return current reader-facing next-step wording for a missing-response row."""
     if row["next_gate"] == "G4/G5 interval and coverage evidence are outside this arc.":
         return (
-            "G4/G5 evidence campaign is active; retain G3 until every frozen "
-            "route x target is reconciled and receives D-43 review."
+            "G4/G5 framework is ready and partial calibration evidence is retained; "
+            "all routes remain G3 because the campaign stopped before route-wide "
+            "reconciliation and promotion review."
         )
     return row["next_gate"]
 

@@ -1855,7 +1855,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn("original whole-package map", output.lower())
             self.assertNotIn("2026-07-11-capability-surface.md", output)
             self.assertNotIn("G4/G5 interval and coverage evidence are outside this arc.", output)
-            self.assertIn("G4/G5 evidence campaign is active", output)
+            self.assertIn("G4/G5 framework is ready and partial calibration evidence is retained", output)
         latest = max(row["updated_date"] for row in self.cells)
         self.assertIn(f"Generated {latest}", html)
         self.assertIn(f"Generated {latest}", markdown)

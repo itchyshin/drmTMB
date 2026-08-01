@@ -2,6 +2,22 @@
 
 Record meaningful development checks here.
 
+## 2026-08-01: Missing-response G4/G5 bounded closeout
+
+- The frozen remote manifest contains 18 routes and 102 targets. Its reconciled
+  G4 ledger has 306 target-rung records: 295 G4-feasible and 11 retained
+  non-eligible records. This makes the G4 framework ready for audited use; it
+  is not an all-target interval-feasibility claim.
+- Seven reconciled G5 artifacts cover eight cohorts and retain 156,000 planned
+  attempts. Of 130 exact cells, 98 pass `mr-g5-calibration-v1` and 32 fail.
+  Binomial is the only fully passing completed cohort (6/6); all public route
+  badges remain G3.
+- User-directed cancellation stopped Rorqual Beta array `18098606` after two
+  durable but unreconciled receipts. No later cohort was submitted. The durable
+  provenance inventory and hashes are in
+  `docs/dev-log/evidence/2026-08-01-mr-g4g5-bounded-closeout-receipt.md`.
+- `devtools::test(filter = "missing-response-g4g5-foundation")`: PASS.
+
 ## 2026-08-01: Missing-response G5 NB2 cohort receipt
 
 - Reconciled 15 frozen NB2 target-rung cells and all 18,000 planned Rorqual

@@ -10,10 +10,10 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `student` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `lognormal` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `gamma` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `skew_normal` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `student` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `lognormal` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `gamma` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `skew_normal` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
 
 ## Does not cover
 

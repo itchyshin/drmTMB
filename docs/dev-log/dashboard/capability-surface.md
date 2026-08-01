@@ -17,24 +17,24 @@ G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = int
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `gaussian` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `biv_gaussian` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `student` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `lognormal` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `gamma` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `poisson` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `nbinom2` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `zi_poisson` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `zi_nbinom2` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `beta` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `hurdle_nbinom2` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `zero_one_beta` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `tweedie` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `skew_normal` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
-| `binomial` | implemented | G3 ✓ | verified | G4/G5 evidence campaign is active; retain G3 until every frozen route x target is reconciled and receives D-43 review. |
+| `gaussian` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `biv_gaussian` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `student` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `lognormal` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `gamma` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `poisson` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `nbinom2` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `zi_poisson` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `zi_nbinom2` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `beta` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `hurdle_nbinom2` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `zero_one_beta` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `tweedie` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `skew_normal` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `binomial` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
 
 ### Route-level evidence rule
 
