@@ -751,6 +751,17 @@ def missing_next_gate(row: dict[str, str]) -> str:
     return row["next_gate"]
 
 
+def missing_g4g5_summary() -> str:
+    """Return the current, target-rung-grain missing-response evidence summary."""
+    return (
+        "G4 framework ready for all 18 routes: 295 of 306 frozen target-rung "
+        "records are feasible and 11 ineligible records are retained. G5 has "
+        "eight reconciled cohorts: 98 of 130 exact cells pass and 32 fail; "
+        "binomial is 6/6. This is target-rung calibration evidence, not a "
+        "route-wide G5 or model-inference promotion."
+    )
+
+
 def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> str:
     lines = [
         "| Route | Runtime state | Evidence gate | Work state | Next gate |",
@@ -1116,6 +1127,8 @@ def surface_markdown(
         "G4 = interval feasible; G5 = inference-ready. The verified tick begins "
         "at G3.",
         "",
+        f"> **Current G4/G5 evidence (target-rung grain):** {missing_g4g5_summary()}",
+        "",
         missing_markdown(missing).rstrip(),
         "",
         "### Route-level evidence rule",
@@ -1305,10 +1318,12 @@ def surface_html(
 </section>
 <h2 id="missing-response">Missing-response execution board</h2>
 <p>G0 rejected · G1 implemented · G2 masking validated · G3 recovery · G4 interval feasible · G5 inference-ready.</p>
+<p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>
 <div class="legend"><span><i style="background:var(--amber)"></i>implemented, audit pending</span><span><i style="background:var(--red)"></i>rejected, planned</span><span><i style="background:var(--green)"></i>verified only at G3+</span></div>
 <section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="scope"><strong>Missing-response column:</strong> route-level G3 is retained on purpose. {html.escape(missing_g4g5_summary())}</p>
 <p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>

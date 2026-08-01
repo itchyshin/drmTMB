@@ -2,6 +2,16 @@
 
 Record meaningful development checks here.
 
+## 2026-08-01: Missing-response scoped-evidence reader surface
+
+- Kept route badges at G3 because their ledger is route-grain recovery evidence,
+  but added a generated target-rung G4/G5 summary above both the execution board
+  and the per-family table: 295/306 G4-feasible records; 98/130 G5 calibration
+  passes; 32 retained failures; binomial 6/6. This prevents the honest G3 badge
+  from hiding completed scoped evidence.
+- `python3 tools/capability_ledger.py --write`, `--check`, focused generated-
+  surface unit test, and `git diff --check`: PASS.
+
 ## 2026-08-01: Missing-response G4/G5 bounded closeout
 
 - The frozen remote manifest contains 18 routes and 102 targets. Its reconciled

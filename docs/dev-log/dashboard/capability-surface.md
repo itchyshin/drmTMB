@@ -15,6 +15,8 @@ The model surface and missing-response execution axis answer different questions
 
 G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; G4 = interval feasible; G5 = inference-ready. The verified tick begins at G3.
 
+> **Current G4/G5 evidence (target-rung grain):** G4 framework ready for all 18 routes: 295 of 306 frozen target-rung records are feasible and 11 ineligible records are retained. G5 has eight reconciled cohorts: 98 of 130 exact cells pass and 32 fail; binomial is 6/6. This is target-rung calibration evidence, not a route-wide G5 or model-inference promotion.
+
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
 | `gaussian` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
