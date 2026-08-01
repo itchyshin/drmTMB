@@ -726,20 +726,6 @@ def widget_value(
     }
 
 
-def evidence_href(value: str) -> str:
-    if value.startswith(("http://", "https://")):
-        return value
-    first = value.split(";", 1)[0].strip()
-    path, separator, lines = first.partition(":")
-    anchor = ""
-    if separator and lines.replace("-", "").isdigit():
-        bounds = lines.split("-", 1)
-        anchor = f"#L{bounds[0]}"
-        if len(bounds) == 2:
-            anchor += f"-L{bounds[1]}"
-    return f"https://github.com/itchyshin/drmTMB/blob/main/{path}{anchor}"
-
-
 def missing_next_gate(row: dict[str, str]) -> str:
     """Return current reader-facing next-step wording for a missing-response row."""
     if row["next_gate"] == "G4/G5 interval and coverage evidence are outside this arc.":
@@ -1244,29 +1230,12 @@ def surface_html(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
     )
-    evidence_by_id = {row["evidence_id"]: row for row in evidence}
     status = Counter(row["capability_status"] for row in model)
     tiers = Counter(
         row["evidence_tier"] for row in model if row["capability_status"] == "implemented"
     )
     missing_gates = Counter(row["test_gate"] for row in missing)
     verified_missing = sum(int(row["test_gate"][1:]) >= 3 for row in missing)
-    cards = []
-    for row in missing:
-        gate_num = int(row["test_gate"][1:])
-        state_class = f"g{gate_num}"
-        evidence_row = evidence_by_id[row["primary_evidence_id"]]
-        link = evidence_href(evidence_row["path_or_url"])
-        verified = '<span class="verified" aria-label="verified">✓ verified</span>' if gate_num >= 3 else ""
-        cards.append(f"""
-<article class="route-card {state_class}" id="route-{html.escape(row['family_route'].replace('_', '-'))}">
-  <div class="route-head"><code>{html.escape(row['family_route'])}</code><span class="gate">{row['test_gate']}</span></div>
-  <div class="route-state">{html.escape(row['capability_status'].replace('_', ' '))} · {html.escape(row['work_status'].replace('_', ' '))} {verified}</div>
-  <div class="gate-track" aria-label="Evidence gate {gate_num} of 5"><span style="width:{gate_num * 20}%"></span></div>
-  <p>{html.escape(row['claim_boundary'])}</p>
-  <p class="next"><strong>Next:</strong> {html.escape(missing_next_gate(row))}</p>
-  <a href="{html.escape(link)}">Evidence: {html.escape(evidence_row['path_or_url'])}</a>
-</article>""")
     comparators = external_comparator_by_cell(evidence)
     model_data = json.dumps([
         {
@@ -1305,22 +1274,20 @@ def surface_html(
 :root[data-theme="light"]{{--bg:#eef3f4;--panel:#fff;--text:#162326;--muted:#617176;--line:#d4dfe2;--teal:#087d89;--green:#188653;--amber:#b77a13;--red:#b84436;--blue:#2f6fad;--shadow:0 8px 24px #17333a12}}
 :root[data-theme="dark"]{{--bg:#10181b;--panel:#182328;--text:#e8f0f2;--muted:#a3b2b7;--line:#304147;--teal:#48bdc8;--green:#4bc78b;--amber:#e4b45e;--red:#f07b6a;--blue:#78afe8;--shadow:none}}
 *{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}} a{{color:var(--teal)}} code{{font-family:var(--mono)}} .skip{{position:absolute;left:-9999px;top:8px;background:var(--panel);padding:8px 12px;z-index:10}} .skip:focus{{left:8px}} .page{{max-width:1440px;margin:auto;padding:34px 28px 80px}} .topline{{display:flex;justify-content:space-between;gap:16px;align-items:center}} .eyebrow{{font:700 13px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}} h1{{font-size:clamp(2.1rem,5vw,4.4rem);line-height:1.02;margin:.35rem 0 1rem}} h2{{font-size:1.55rem;margin:3rem 0 1rem;scroll-margin-top:18px}} .lede{{font-size:1.2rem;color:var(--muted);max-width:980px}} .jump{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0 1.5rem}} .jump a{{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 11px;text-decoration:none}} .scope{{border-left:4px solid var(--teal);padding:.8rem 1rem;background:var(--panel);box-shadow:var(--shadow)}} .stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:28px 0}} .stat{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--shadow)}} .stat b{{display:block;font:750 1.8rem var(--mono)}} .stat span{{color:var(--muted)}} .legend{{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:.6rem 0 1.4rem}} .legend i{{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}} .routes{{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px}} .route-card{{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--amber);border-radius:13px;padding:16px;box-shadow:var(--shadow);scroll-margin-top:20px}} .route-card.g0{{border-top-color:var(--red)}} .route-card.g2{{border-top-color:var(--blue)}} .route-card.g3,.route-card.g4,.route-card.g5{{border-top-color:var(--green)}} .route-head{{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:1.06rem;font-weight:750}} .gate{{font:750 .85rem var(--mono);border:1px solid currentColor;border-radius:99px;padding:2px 8px;color:var(--amber)}} .g0 .gate{{color:var(--red)}} .g2 .gate{{color:var(--blue)}} .g3 .gate,.g4 .gate,.g5 .gate{{color:var(--green)}} .route-state{{color:var(--muted);margin:.45rem 0}} .gate-track{{height:6px;border-radius:6px;background:var(--line);overflow:hidden}} .gate-track span{{display:block;height:100%;background:var(--amber)}} .g0 .gate-track span{{background:var(--red)}} .g2 .gate-track span{{background:var(--blue)}} .g3 .gate-track span,.g4 .gate-track span,.g5 .gate-track span{{background:var(--green)}} .route-card p{{font-size:.92rem}} .route-card .next{{min-height:4.1em}} .route-card a{{font-size:.82rem;overflow-wrap:anywhere}} .verified{{color:var(--green);font-weight:700}} .filters{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0}} input,select,button{{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}} button{{cursor:pointer}} .table-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;max-height:720px}} table{{border-collapse:collapse;width:100%;font-size:.84rem}} caption{{text-align:left;padding:12px;color:var(--muted)}} th,td{{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}} thead th{{position:sticky;top:0;background:var(--panel);z-index:1}} tbody tr:hover{{background:color-mix(in srgb,var(--teal) 7%,transparent)}} .pill{{display:inline-block;border-radius:99px;padding:2px 7px;background:var(--bg);white-space:nowrap}} .family-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}} .family-map{{min-width:1620px;font-size:.92rem}} .family-map th,.family-map td{{padding:18px 16px}} .family-map tbody th{{position:sticky;left:0;background:var(--panel);z-index:1;min-width:175px}} .family-map tbody th code{{font-size:1rem;font-weight:800}} .family-map small{{display:block;color:var(--muted);font-weight:400;margin-top:4px}} .family-map .fixed{{color:var(--green);font-weight:700;text-align:center;font-size:1.05rem}} .tier{{display:inline-block;border-radius:8px;padding:5px 7px}} .tier.inference{{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}} .tier.feasible{{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}} .mr-state{{font-weight:750;white-space:nowrap}} .mr-g1{{color:var(--amber)}} .mr-g0{{color:var(--red)}} .mr-g2{{color:var(--blue)}} .mr-verified{{color:var(--green)}} .muted{{color:var(--muted)}} footer{{margin-top:3rem;color:var(--muted)}} @media(max-width:650px){{.page{{padding:24px 14px 60px}} .route-card .next{{min-height:0}}}} @media(prefers-reduced-motion:reduce){{*{{scroll-behavior:auto!important}}}}
-</style></head><body><a class="skip" href="#missing-response">Skip to capability content</a><main class="page">
+</style></head><body><a class="skip" href="#model-cells">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
-<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
-<nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
+<p class="lede">One model census, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
+<nav class="jump" aria-label="Capability surface sections"><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
 <div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
-<h2 id="missing-response">Missing-response execution board</h2>
-<p>G0 rejected · G1 implemented · G2 masking validated · G3 recovery · G4 interval feasible · G5 inference-ready.</p>
+<h2 id="missing-response">Missing-response evidence</h2>
 <p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>
-<div class="legend"><span><i style="background:var(--amber)"></i>implemented, audit pending</span><span><i style="background:var(--red)"></i>rejected, planned</span><span><i style="background:var(--green)"></i>verified only at G3+</span></div>
-<section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
+<p class="muted">The per-family reference below remains the route-level source: its Missing response column retains G3 recovery status, while this summary shows the additional G4/G5 evidence without implying a route-wide promotion.</p>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
 <p class="scope"><strong>Missing-response column:</strong> route-level G3 is retained on purpose. {html.escape(missing_g4g5_summary())}</p>

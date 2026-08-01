@@ -7,166 +7,20 @@
 :root[data-theme="light"]{--bg:#eef3f4;--panel:#fff;--text:#162326;--muted:#617176;--line:#d4dfe2;--teal:#087d89;--green:#188653;--amber:#b77a13;--red:#b84436;--blue:#2f6fad;--shadow:0 8px 24px #17333a12}
 :root[data-theme="dark"]{--bg:#10181b;--panel:#182328;--text:#e8f0f2;--muted:#a3b2b7;--line:#304147;--teal:#48bdc8;--green:#4bc78b;--amber:#e4b45e;--red:#f07b6a;--blue:#78afe8;--shadow:none}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif} a{color:var(--teal)} code{font-family:var(--mono)} .skip{position:absolute;left:-9999px;top:8px;background:var(--panel);padding:8px 12px;z-index:10} .skip:focus{left:8px} .page{max-width:1440px;margin:auto;padding:34px 28px 80px} .topline{display:flex;justify-content:space-between;gap:16px;align-items:center} .eyebrow{font:700 13px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)} h1{font-size:clamp(2.1rem,5vw,4.4rem);line-height:1.02;margin:.35rem 0 1rem} h2{font-size:1.55rem;margin:3rem 0 1rem;scroll-margin-top:18px} .lede{font-size:1.2rem;color:var(--muted);max-width:980px} .jump{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0 1.5rem} .jump a{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 11px;text-decoration:none} .scope{border-left:4px solid var(--teal);padding:.8rem 1rem;background:var(--panel);box-shadow:var(--shadow)} .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:28px 0} .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--shadow)} .stat b{display:block;font:750 1.8rem var(--mono)} .stat span{color:var(--muted)} .legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:.6rem 0 1.4rem} .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px} .routes{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px} .route-card{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--amber);border-radius:13px;padding:16px;box-shadow:var(--shadow);scroll-margin-top:20px} .route-card.g0{border-top-color:var(--red)} .route-card.g2{border-top-color:var(--blue)} .route-card.g3,.route-card.g4,.route-card.g5{border-top-color:var(--green)} .route-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:1.06rem;font-weight:750} .gate{font:750 .85rem var(--mono);border:1px solid currentColor;border-radius:99px;padding:2px 8px;color:var(--amber)} .g0 .gate{color:var(--red)} .g2 .gate{color:var(--blue)} .g3 .gate,.g4 .gate,.g5 .gate{color:var(--green)} .route-state{color:var(--muted);margin:.45rem 0} .gate-track{height:6px;border-radius:6px;background:var(--line);overflow:hidden} .gate-track span{display:block;height:100%;background:var(--amber)} .g0 .gate-track span{background:var(--red)} .g2 .gate-track span{background:var(--blue)} .g3 .gate-track span,.g4 .gate-track span,.g5 .gate-track span{background:var(--green)} .route-card p{font-size:.92rem} .route-card .next{min-height:4.1em} .route-card a{font-size:.82rem;overflow-wrap:anywhere} .verified{color:var(--green);font-weight:700} .filters{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0} input,select,button{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px} button{cursor:pointer} .table-wrap{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;max-height:720px} table{border-collapse:collapse;width:100%;font-size:.84rem} caption{text-align:left;padding:12px;color:var(--muted)} th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top} thead th{position:sticky;top:0;background:var(--panel);z-index:1} tbody tr:hover{background:color-mix(in srgb,var(--teal) 7%,transparent)} .pill{display:inline-block;border-radius:99px;padding:2px 7px;background:var(--bg);white-space:nowrap} .family-wrap{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)} .family-map{min-width:1620px;font-size:.92rem} .family-map th,.family-map td{padding:18px 16px} .family-map tbody th{position:sticky;left:0;background:var(--panel);z-index:1;min-width:175px} .family-map tbody th code{font-size:1rem;font-weight:800} .family-map small{display:block;color:var(--muted);font-weight:400;margin-top:4px} .family-map .fixed{color:var(--green);font-weight:700;text-align:center;font-size:1.05rem} .tier{display:inline-block;border-radius:8px;padding:5px 7px} .tier.inference{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)} .tier.feasible{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)} .mr-state{font-weight:750;white-space:nowrap} .mr-g1{color:var(--amber)} .mr-g0{color:var(--red)} .mr-g2{color:var(--blue)} .mr-verified{color:var(--green)} .muted{color:var(--muted)} footer{margin-top:3rem;color:var(--muted)} @media(max-width:650px){.page{padding:24px 14px 60px} .route-card .next{min-height:0}} @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-</style></head><body><a class="skip" href="#missing-response">Skip to capability content</a><main class="page">
+</style></head><body><a class="skip" href="#model-cells">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
-<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
-<nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
+<p class="lede">One model census, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
+<nav class="jump" aria-label="Capability surface sections"><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
 <p class="scope"><strong>Scope:</strong> 677 model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>677</b><span>model cells</span></div><div class="stat"><b>18</b><span>missing-response routes</span></div>
 <div class="stat"><b>307</b><span>implemented model cells</span></div><div class="stat"><b>27</b><span>inference-ready cells</span></div>
 <div class="stat"><b>0</b><span>routes at G1</span></div><div class="stat"><b>18</b><span>routes verified at G3+</span></div>
 </section>
-<h2 id="missing-response">Missing-response execution board</h2>
-<p>G0 rejected · G1 implemented · G2 masking validated · G3 recovery · G4 interval feasible · G5 inference-ready.</p>
+<h2 id="missing-response">Missing-response evidence</h2>
 <p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> G4 framework ready for all 18 routes: 295 of 306 frozen target-rung records are feasible and 11 ineligible records are retained. G5 has eight reconciled cohorts: 98 of 130 exact cells pass and 32 fail; binomial is 6/6. This is target-rung calibration evidence, not a route-wide G5 or model-inference promotion.</p>
-<div class="legend"><span><i style="background:var(--amber)"></i>implemented, audit pending</span><span><i style="background:var(--red)"></i>rejected, planned</span><span><i style="background:var(--green)"></i>verified only at G3+</span></div>
-<section class="routes" aria-label="18 missing-response routes">
-<article class="route-card g3" id="route-gaussian">
-  <div class="route-head"><code>gaussian</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for this route. It does not claim intervals, coverage, or broader missing-predictor support.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-recovery.R">Evidence: tests/testthat/test-missing-response-recovery.R</a>
-</article>
-<article class="route-card g3" id="route-biv-gaussian">
-  <div class="route-head"><code>biv_gaussian</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for this route. It does not claim intervals, coverage, or broader missing-predictor support.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-recovery.R">Evidence: tests/testthat/test-missing-response-recovery.R</a>
-</article>
-<article class="route-card g3" id="route-student">
-  <div class="route-head"><code>student</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for the ordinary random-intercept route. It does not promote structured effects, intervals, or coverage.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-continuous.R">Evidence: tests/testthat/test-missing-response-continuous.R</a>
-</article>
-<article class="route-card g3" id="route-lognormal">
-  <div class="route-head"><code>lognormal</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, support-safe sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for the ordinary random-intercept route. It does not promote structured effects, intervals, or coverage.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-continuous.R">Evidence: tests/testthat/test-missing-response-continuous.R</a>
-</article>
-<article class="route-card g3" id="route-gamma">
-  <div class="route-head"><code>gamma</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, support-safe sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for the ordinary random-intercept route. It does not promote structured effects, intervals, or coverage.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-continuous.R">Evidence: tests/testthat/test-missing-response-continuous.R</a>
-</article>
-<article class="route-card g3" id="route-poisson">
-  <div class="route-head"><code>poisson</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for this route. It does not claim intervals, coverage, or broader missing-predictor support.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-recovery.R">Evidence: tests/testthat/test-missing-response-recovery.R</a>
-</article>
-<article class="route-card g3" id="route-nbinom2">
-  <div class="route-head"><code>nbinom2</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for this route. It does not claim intervals, coverage, or broader missing-predictor support.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-recovery.R">Evidence: tests/testthat/test-missing-response-recovery.R</a>
-</article>
-<article class="route-card g3" id="route-zi-poisson">
-  <div class="route-head"><code>zi_poisson</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, zero-versus-positive sentinel invariance, separate missing-zero and missing-positive parity, row/extractor contracts, and recovery of mu and zi. It does not promote random or structured zero-inflation routes.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-count-mixtures.R">Evidence: tests/testthat/test-missing-response-count-mixtures.R</a>
-</article>
-<article class="route-card g3" id="route-zi-nbinom2">
-  <div class="route-head"><code>zi_nbinom2</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, zero-versus-positive sentinel invariance, separate missing-zero and missing-positive parity, row/extractor contracts, and recovery of mu, sigma, and zi. It does not promote random or structured zero-inflation routes.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-count-mixtures.R">Evidence: tests/testthat/test-missing-response-count-mixtures.R</a>
-</article>
-<article class="route-card g3" id="route-beta">
-  <div class="route-head"><code>beta</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for this route. It does not claim intervals, coverage, or broader missing-predictor support.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-recovery.R">Evidence: tests/testthat/test-missing-response-recovery.R</a>
-</article>
-<article class="route-card g3" id="route-truncated-nbinom2">
-  <div class="route-head"><code>truncated_nbinom2</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, positive-count sentinel invariance, row/accounting/extractor contracts, and recovery of mu, sigma, and the ordinary random-intercept SD. It does not promote hurdle, sigma-random, or structured routes.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-truncated-nbinom2.R">Evidence: tests/testthat/test-missing-response-truncated-nbinom2.R</a>
-</article>
-<article class="route-card g3" id="route-hurdle-nbinom2">
-  <div class="route-head"><code>hurdle_nbinom2</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, zero-versus-positive sentinel invariance, separate missing-zero and missing-positive parity, row/extractor contracts, and recovery of mu, sigma, and hu. It does not promote structured hurdle effects.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-count-mixtures.R">Evidence: tests/testthat/test-missing-response-count-mixtures.R</a>
-</article>
-<article class="route-card g3" id="route-cumulative-logit">
-  <div class="route-head"><code>cumulative_logit</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR ordered-factor response masking, first-versus-last category sentinel invariance, retained declared levels, cutpoint-identifiability rejection, row/extractor contracts, and recovery of the fixed location slope and every cutpoint. It does not promote the phylogenetic route.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-encoded.R">Evidence: tests/testthat/test-missing-response-encoded.R</a>
-</article>
-<article class="route-card g3" id="route-beta-binomial">
-  <div class="route-head"><code>beta_binomial</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies whole-row masking when either count component is missing, coordinated success/trials sentinel invariance, row/accounting/extractor contracts, and recovery of mu, sigma, and the ordinary random-intercept SD. It does not promote sigma random effects or structured effects.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-encoded.R">Evidence: tests/testthat/test-missing-response-encoded.R</a>
-</article>
-<article class="route-card g3" id="route-zero-one-beta">
-  <div class="route-head"><code>zero_one_beta</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, zero/one-atom versus interior sentinel invariance, row/accounting/extractor contracts, and recovery of mu, sigma, zoi, and coi for the supported fixed-effect route. Random and structured effects remain outside the family implementation.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-boundary.R">Evidence: tests/testthat/test-missing-response-boundary.R</a>
-</article>
-<article class="route-card g3" id="route-tweedie">
-  <div class="route-head"><code>tweedie</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, zero-atom versus positive-continuous sentinel invariance, row/accounting/extractor contracts, and recovery of mu, sigma, and nu for the supported fixed-effect route. Random and structured effects remain outside the family implementation.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-boundary.R">Evidence: tests/testthat/test-missing-response-boundary.R</a>
-</article>
-<article class="route-card g3" id="route-skew-normal">
-  <div class="route-head"><code>skew_normal</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for the supported fixed-effect route. Random and structured effects remain outside the family implementation and this claim.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-continuous.R">Evidence: tests/testthat/test-missing-response-continuous.R</a>
-</article>
-<article class="route-card g3" id="route-binomial">
-  <div class="route-head"><code>binomial</code><span class="gate">G3</span></div>
-  <div class="route-state">implemented · verified <span class="verified" aria-label="verified">✓ verified</span></div>
-  <div class="gate-track" aria-label="Evidence gate 3 of 5"><span style="width:60%"></span></div>
-  <p>G3 verifies fixed-seed 25% MCAR response masking, direct taped-sentinel invariance, row/accounting/extractor contracts, and recovery of every fitted distributional parameter for this route. It does not claim intervals, coverage, or broader missing-predictor support.</p>
-  <p class="next"><strong>Next:</strong> G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review.</p>
-  <a href="https://github.com/itchyshin/drmTMB/blob/main/tests/testthat/test-missing-response-binomial.R">Evidence: tests/testthat/test-missing-response-binomial.R</a>
-</article></section>
+<p class="muted">The per-family reference below remains the route-level source: its Missing response column retains G3 recovery status, while this summary shows the additional G4/G5 evidence without implying a route-wide promotion.</p>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These 677 cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
 <p class="scope"><strong>Missing-response column:</strong> route-level G3 is retained on purpose. G4 framework ready for all 18 routes: 295 of 306 frozen target-rung records are feasible and 11 ineligible records are retained. G5 has eight reconciled cohorts: 98 of 130 exact cells pass and 32 fail; binomial is 6/6. This is target-rung calibration evidence, not a route-wide G5 or model-inference promotion.</p>
