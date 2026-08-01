@@ -24,7 +24,7 @@ sha256_file <- function(path) {
   strsplit(value, "[[:space:]]+")[[1L]][[1L]]
 }
 
-simulate_one <- function(M, seed, tau = 0.45) {
+simulate_one <- function(M, seed, sd_coi = 0.45) {
   set.seed(seed)
   n_each <- 50L
   group_levels <- paste0("g", seq_len(M))
@@ -33,7 +33,7 @@ simulate_one <- function(M, seed, tau = 0.45) {
   x <- stats::rnorm(length(id))
   x <- x - ave(x, id, FUN = mean)
   x <- x / stats::sd(x)
-  b <- stats::rnorm(M, sd = tau)
+  b <- stats::rnorm(M, sd = sd_coi)
   names(b) <- levels(id)
 
   mu <- stats::plogis(-0.15 + 0.35 * x)
@@ -74,25 +74,25 @@ fit_one <- function(M, seed, source_sha, runner_sha256) {
     M = M, seed = seed, source_sha = source_sha,
     runner_sha256 = runner_sha256, status = status,
     convergence = NA_integer_, pdHess = NA, max_gradient = NA_real_,
-    tau_truth = 0.45, tau_hat = NA_real_, mode_correlation = NA_real_,
+    sd_coi_truth = 0.45, sd_coi_hat = NA_real_, mode_correlation = NA_real_,
     beta_mu0_error = NA_real_, beta_mu1_error = NA_real_,
     beta_zoi0_error = NA_real_, beta_coi0_error = NA_real_,
-    log_sigma_error = NA_real_, tau_relative_error = NA_real_,
+    log_sigma_error = NA_real_, sd_coi_relative_error = NA_real_,
     min_group_zero = sim$min_group_zero,
     min_group_one = sim$min_group_one,
     min_group_interior = sim$min_group_interior,
     support_gate = sim$min_group_zero >= 2L &&
       sim$min_group_one >= 2L && sim$min_group_interior >= 10L,
     boundary_hit = NA,
-    glmer_beta_coi0 = NA_real_, glmer_tau = NA_real_,
-    glmer_beta_difference = NA_real_, glmer_tau_difference = NA_real_,
+    glmer_beta_coi0 = NA_real_, glmer_sd_coi = NA_real_,
+    glmer_beta_difference = NA_real_, glmer_sd_coi_difference = NA_real_,
     error = error
   )
   if (inherits(fit, "error")) {
     return(empty("fit_error", conditionMessage(fit)))
   }
 
-  tau_hat <- unname(fit$sdpars$coi[["(1 | id)"]])
+  sd_coi_hat <- unname(fit$sdpars$coi[["(1 | id)"]])
   modes <- ranef(fit, "coi")$terms[["(1 | id)"]]
   beta_mu <- coef(fit, "mu")
   beta_zoi <- coef(fit, "zoi")
@@ -116,7 +116,7 @@ fit_one <- function(M, seed, source_sha, runner_sha256) {
     return(empty("comparator_error", conditionMessage(glmer_fit)))
   }
   glmer_beta <- unname(lme4::fixef(glmer_fit)[[1L]])
-  glmer_tau <- unname(attr(lme4::VarCorr(glmer_fit)$id, "stddev")[[1L]])
+  glmer_sd_coi <- unname(attr(lme4::VarCorr(glmer_fit)$id, "stddev")[[1L]])
 
   data.frame(
     M = M, seed = seed, source_sha = source_sha,
@@ -124,23 +124,24 @@ fit_one <- function(M, seed, source_sha, runner_sha256) {
     convergence = fit$opt$convergence,
     pdHess = isTRUE(fit$sdr$pdHess),
     max_gradient = max(abs(fit$obj$gr(fit$opt$par)), na.rm = TRUE),
-    tau_truth = 0.45, tau_hat = tau_hat,
+    sd_coi_truth = 0.45, sd_coi_hat = sd_coi_hat,
     mode_correlation = stats::cor(modes[names(sim$b)], sim$b),
     beta_mu0_error = abs(unname(beta_mu[[1L]]) - (-0.15)),
     beta_mu1_error = abs(unname(beta_mu[["x"]]) - 0.35),
     beta_zoi0_error = abs(unname(beta_zoi[[1L]]) - (-0.40)),
     beta_coi0_error = abs(unname(beta_coi[[1L]]) - 0.10),
     log_sigma_error = abs(unname(beta_sigma[[1L]]) - (-1.0)),
-    tau_relative_error = abs(tau_hat / 0.45 - 1),
+    sd_coi_relative_error = abs(sd_coi_hat / 0.45 - 1),
     min_group_zero = sim$min_group_zero,
     min_group_one = sim$min_group_one,
     min_group_interior = sim$min_group_interior,
     support_gate = sim$min_group_zero >= 2L &&
       sim$min_group_one >= 2L && sim$min_group_interior >= 10L,
-    boundary_hit = !is.finite(tau_hat) || tau_hat <= 0.05 || tau_hat >= 2.5,
-    glmer_beta_coi0 = glmer_beta, glmer_tau = glmer_tau,
+    boundary_hit = !is.finite(sd_coi_hat) ||
+      sd_coi_hat <= 0.05 || sd_coi_hat >= 2.5,
+    glmer_beta_coi0 = glmer_beta, glmer_sd_coi = glmer_sd_coi,
     glmer_beta_difference = abs(unname(beta_coi[[1L]]) - glmer_beta),
-    glmer_tau_difference = abs(tau_hat - glmer_tau),
+    glmer_sd_coi_difference = abs(sd_coi_hat - glmer_sd_coi),
     error = "none"
   )
 }
@@ -199,9 +200,10 @@ on.exit(close(heartbeat), add = TRUE)
 writeLines(paste(utc_now(), "START", source_sha, runner_sha256), heartbeat)
 flush(heartbeat)
 smoke_only <- identical(Sys.getenv("C17_SMOKE", "0"), "1")
+prospective_seeds <- 2026081711:2026081714
 grid <- expand.grid(
   M = if (smoke_only) 16L else c(16L, 32L, 64L),
-  seed = if (smoke_only) 2026081701L else 2026081701:2026081704,
+  seed = if (smoke_only) prospective_seeds[[1L]] else prospective_seeds,
   KEEP.OUT.ATTRS = FALSE,
   stringsAsFactors = FALSE
 )
@@ -236,9 +238,9 @@ summary_rows <- do.call(rbind, lapply(split(attempts, attempts$M), function(x) {
     mean_beta_zoi0_error = mean(x$beta_zoi0_error),
     mean_beta_coi0_error = mean(x$beta_coi0_error),
     mean_log_sigma_error = mean(x$log_sigma_error),
-    mean_tau_relative_error = mean(x$tau_relative_error),
+    mean_sd_coi_relative_error = mean(x$sd_coi_relative_error),
     max_glmer_difference = max(
-      x$glmer_beta_difference, x$glmer_tau_difference, na.rm = TRUE
+      x$glmer_beta_difference, x$glmer_sd_coi_difference, na.rm = TRUE
     )
   )
 }))
@@ -254,7 +256,7 @@ if (smoke_only) {
     diagnostics_pass == 4L && support_pass == 4L &&
       mean_beta_mu0_error <= 0.20 && mean_beta_mu1_error <= 0.20 &&
       mean_beta_zoi0_error <= 0.20 && mean_beta_coi0_error <= 0.20 &&
-      mean_log_sigma_error <= 0.15 && mean_tau_relative_error <= 0.40 &&
+      mean_log_sigma_error <= 0.15 && mean_sd_coi_relative_error <= 0.40 &&
       max_glmer_difference <= 1e-3
   )
   summary_rows$role <- ifelse(
