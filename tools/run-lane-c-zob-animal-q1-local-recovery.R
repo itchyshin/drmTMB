@@ -17,8 +17,8 @@ new_data <- function(seed, n_group = 32L, n_each = 30L) {
 
 run_one <- function(seed, source_sha, runner_sha) {
   out <- data.frame(seed, source_sha, runner_sha, formula = "y ~ x + animal(1 | species, Ainv = Ainv)", tau_truth = .55, beta0_truth = -.10, beta1_truth = .35, sigma_truth = .45, zoi_truth = .12, coi_truth = .45, dgp_digest = NA_character_, status = NA_character_, warning = NA_character_, convergence = NA_integer_, pdHess = NA, max_gradient = NA_real_, boundary_hit = NA, beta0_hat = NA_real_, beta1_hat = NA_real_, sigma_hat = NA_real_, zoi_hat = NA_real_, coi_hat = NA_real_, tau_hat = NA_real_)
-  sim <- new_data(seed); out$dgp_digest <- sim$digest; warnings <- character()
-  fit <- tryCatch(withCallingHandlers(drmTMB::drmTMB(drmTMB::bf(y ~ x + animal(1 | species, Ainv = sim$Ainv)), family = drmTMB::zero_one_beta(), data = sim$data, control = list(eval.max = 1000, iter.max = 1000)), warning = function(w) { warnings <<- c(warnings, conditionMessage(w)); invokeRestart("muffleWarning") }), error = identity)
+  sim <- new_data(seed); out$dgp_digest <- sim$digest; warnings <- character(); Ainv <- sim$Ainv
+  fit <- tryCatch(withCallingHandlers(drmTMB::drmTMB(drmTMB::bf(y ~ x + animal(1 | species, Ainv = Ainv)), family = drmTMB::zero_one_beta(), data = sim$data, control = list(eval.max = 1000, iter.max = 1000)), warning = function(w) { warnings <<- c(warnings, conditionMessage(w)); invokeRestart("muffleWarning") }), error = identity)
   if (inherits(fit, "error")) { out$status <- "fit_error"; out$warning <- clean(c(warnings, conditionMessage(fit))); return(out) }
   grad <- fit$obj$gr(fit$opt$par); out$status <- "fit_ok"; out$warning <- clean(warnings); out$convergence <- fit$opt$convergence; out$pdHess <- isTRUE(fit$sdr$pdHess); out$max_gradient <- max(abs(grad))
   out$beta0_hat <- fit$coefficients$mu[["(Intercept)"]]; out$beta1_hat <- fit$coefficients$mu[["x"]]; out$sigma_hat <- exp(fit$coefficients$sigma[["(Intercept)"]]); out$zoi_hat <- plogis(fit$coefficients$zoi[["(Intercept)"]]); out$coi_hat <- plogis(fit$coefficients$coi[["(Intercept)"]]); out$tau_hat <- fit$sdpars$mu[["animal(1 | species)"]]
