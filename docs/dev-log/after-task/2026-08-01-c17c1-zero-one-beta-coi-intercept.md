@@ -80,7 +80,9 @@ installed the package, built vignettes, and passed documentation, examples,
 and `donttest` checks. It was manually interrupted during the long testthat
 phase after the full in-tree suite had already completed; it therefore has no
 final check Status and is not represented as a completed package check.
-Pkgdown, CI, and post-merge Mission Control read-back remain PR landing gates.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'pkgdown::check_pkgdown()'`: pass (`No problems found`).
+CI and post-merge Mission Control read-back remain PR landing gates.
 
 ## Tests Of The Tests
 
@@ -164,8 +166,8 @@ until PR #869 lands or closes.
 1. Obtain explicit permission, if desired, for the strict C17-C1 C14
    current-source compatibility bridge while keeping the immutable C14 receipt
    and fingerprint unchanged.
-2. Complete the package check and pkgdown verification, then obtain a fresh
-   Rose landing reread.
+2. Obtain a fresh Rose landing reread after the overlapping foreign PRs are
+   integrated from canonical `main`.
 3. Open a focused PR, require CI green on one unchanged head SHA, and request
    fresh merge authorization.
 4. After merge, verify canonical `origin/main`, the 329/340/18 ledger census,
