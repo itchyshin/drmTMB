@@ -2,6 +2,17 @@
 
 Record meaningful development checks here.
 
+## 2026-08-01: Missing-response G5 Student-t cohort receipt
+
+- Reconciled 16 frozen Student-t target-rung cells and all 19,200 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-student-reconciled-v1.rds`.
+- Three 2x cells pass `mr-g5-calibration-v1`: `fixef:mu:x`,
+  `fixef:sigma:z`, and `sd:mu:(1 | id)`. Thirteen cells fail; failures include
+  unusable intervals, fixed-intercept overcoverage, and the `nu` target's
+  0.81583 coverage with MCSE 0.01119. All attempts remain retained.
+- No test gate or inference tier is promoted; the frozen G3 design and public
+  G3 status remain unchanged.
+
 ## 2026-07-31: Missing-response G5 lognormal cohort receipt
 
 - Reconciled 15 frozen lognormal target-rung cells and all 18,000 planned DRAC
