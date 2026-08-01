@@ -33,7 +33,7 @@ cells <- data.frame(
   source_sha = sha,
   runner_md5 = runner_md5,
   test_file = "tests/testthat/test-zero-one-beta.R",
-  command = "testthat::test_file(..., StopReporter)",
+  command = "Rscript -e devtools::test(filter = '^zero-one-beta$')",
   result = status,
   stringsAsFactors = FALSE
 )
