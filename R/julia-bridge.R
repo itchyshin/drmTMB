@@ -196,10 +196,10 @@ drm_julia_capability_comparison <- function() {
       "stats::binomial() without phylo() through engine = \"julia\""
     ),
     r_bridge_status = c(
-      "supported",
       "experimental",
       "experimental",
-      "supported",
+      "experimental",
+      "experimental",
       "experimental",
       "experimental",
       "experimental",
