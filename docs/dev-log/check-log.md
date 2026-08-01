@@ -2,6 +2,24 @@
 
 Record meaningful development checks here.
 
+## 2026-08-01: Missing-response G5 NB2 cohort receipt
+
+- Reconciled 15 frozen NB2 target-rung cells and all 18,000 planned Rorqual
+  attempts from `~/g4g5/artifacts/g5-nbinom2-reconciled-v1.rds`. The durable
+  `mr-g4g5-v2` artifact records the runner, frozen manifest, G4 records, and
+  all 15 input-receipt hashes.
+- Ten exact route x target x information-rung cells pass
+  `mr-g5-calibration-v1`: all three `fixef:mu:(Intercept)` and `fixef:mu:x`
+  rungs; `fixef:sigma:(Intercept)` at 2x; `fixef:sigma:z` at 2x; and
+  `sd:mu:(1 | id)` at 2x. Their coverage is 0.93500--0.95417 with MCSE at
+  most 0.00712. These are positive scoped response-mask evidence for the
+  exact frozen cells.
+- Five cells fail because not every planned attempt produced a usable interval:
+  `fixef:sigma:(Intercept)` at 0.5x and 1x, `fixef:sigma:z` at 0.5x and 1x,
+  and `sd:mu:(1 | id)` at 0.5x and 1x. All failures remain in their
+  unconditional 1,200-attempt denominators. No route-wide capability or model
+  inference-tier claim is made from the partial cohort.
+
 ## 2026-08-01: Missing-response G5 Student-t cohort receipt
 
 - Reconciled 16 frozen Student-t target-rung cells and all 19,200 planned DRAC
