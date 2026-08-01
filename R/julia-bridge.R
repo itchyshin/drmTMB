@@ -158,6 +158,8 @@ drm_julia_capability_comparison <- function() {
   data.frame(
     capability_id = c(
       "base_gaussian_location_scale",
+      "biv_gaussian_residual",
+      "gaussian_phylo_mean",
       "gaussian_response_mask",
       "biv_q4_phylo_reml",
       "phylo_count_large_p",
@@ -170,6 +172,8 @@ drm_julia_capability_comparison <- function() {
     route = c(
       "base",
       "base",
+      "phylo",
+      "base",
       "bivariate_phylo",
       "phylo",
       "phylo",
@@ -180,6 +184,8 @@ drm_julia_capability_comparison <- function() {
     ),
     syntax = c(
       "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
+      "bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1), family = biv_gaussian(), engine = \"julia\"",
+      "bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1), family = gaussian(), engine = \"julia\"",
       "missing = miss_control(response = \"include\") for Gaussian cells",
       "biv_gaussian() q4 phylo on mu1, mu2, sigma1, sigma2 with REML = TRUE",
       "poisson()/nbinom2() with phylo(1 | group, tree = tree)",
@@ -191,6 +197,8 @@ drm_julia_capability_comparison <- function() {
     ),
     r_bridge_status = c(
       "supported",
+      "experimental",
+      "experimental",
       "supported",
       "experimental",
       "experimental",
@@ -202,6 +210,8 @@ drm_julia_capability_comparison <- function() {
     ),
     drmjl_status = c(
       "default DRM.jl Gaussian location-scale path",
+      "DRM.jl biv_gaussian residual rho12 path (Hopper Phase 1.5 #5)",
+      "DRM.jl first Gaussian phylo-mean path (Hopper Phase 1.5 #5)",
       "Gaussian observed-response mask path",
       "q4 PLSM REML path when installed DRM.jl supports it",
       "large-p sparse phylo path",
@@ -215,6 +225,8 @@ drm_julia_capability_comparison <- function() {
       "partial",
       "partial",
       "partial",
+      "partial",
+      "partial",
       "experimental",
       "experimental",
       "experimental",
@@ -223,13 +235,15 @@ drm_julia_capability_comparison <- function() {
       "planned"
     ),
     evidence_url = c(
-      rep("https://github.com/itchyshin/drmTMB/issues/544", 6),
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
       "https://github.com/itchyshin/gllvmTMB/issues/488",
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/569"
     ),
     claim_boundary = c(
-      "Uses the default DRM.jl fitting path; no Julia-side engine_control surface is exposed from R.",
+      "Phase 1.5 Hopper admitted cell (Route C): offline result-shape + optional live TMB parity; CRAN readers still use TMB — vignette keeps Julia deferred/experimental.",
+      "Phase 1.5 Hopper admitted cell (Route B): residual rho12 result-shape + optional live logLik parity; not a phylo or cross-family claim.",
+      "Phase 1.5 Hopper admitted cell (Route A): first phylo-mean (sigma ~ 1) marshalling/result-shape + optional live TMB parity; not loc-scale phylo or non-Gaussian phylo.",
       "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
       "Requires the full four-axis phylogenetic location-scale grammar; native TMB has separate q4 recovery evidence, but this Julia row does not establish same-target bridge parity, interval reliability, or HSquared AI-REML support.",
       "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
@@ -241,6 +255,8 @@ drm_julia_capability_comparison <- function() {
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
+      "Keep residual rho12 result-shape and Route B parity tests; do not promote beyond experimental.",
+      "Keep first phylo-mean result-shape and Route A parity tests; do not widen to sigma-phylo here.",
       "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
       "Bank fit-specific CI/status parity before release language.",
       "Keep non-phylo count bridge errors in the gate registry.",
@@ -251,11 +267,26 @@ drm_julia_capability_comparison <- function() {
       "Wait for #569 native parity plus a separate bridge parity PR."
     ),
     issue = c(
-      rep("drmTMB#544", 8),
+      rep("drmTMB#544", 10),
       "drmTMB#569"
     ),
     stringsAsFactors = FALSE
   )
+}
+
+# Hopper Phase 1.5 (#5 / DRM.jl twin) admitted cells only — not a family expansion list.
+drm_julia_phase15_admitted_cells <- function() {
+  caps <- drm_julia_capability_comparison()
+  caps[
+    caps$capability_id %in%
+      c(
+        "base_gaussian_location_scale",
+        "biv_gaussian_residual",
+        "gaussian_phylo_mean"
+      ),
+    ,
+    drop = FALSE
+  ]
 }
 
 drm_julia_setup_state <- new.env(parent = emptyenv())
