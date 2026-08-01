@@ -40,12 +40,8 @@ navbar:
           href: articles/distribution-families.html
         - text: Model selection with AIC and BIC
           href: articles/model-selection.html
-        - text: Checking and using fitted models
-          href: articles/model-workflow.html
         - text: Handling missing data
           href: articles/missing-data.html
-        - text: Working with large data
-          href: articles/large-data.html
         - text: Residual correlation with rho12
           href: articles/bivariate-coscale.html
         - text: Joint and staged bivariate models
@@ -59,14 +55,10 @@ navbar:
       menu:
         - text: Full introductory tutorial
           href: articles/drmTMB.html
-        - text: Errors, warnings, and convergence
-          href: articles/convergence.html
         - text: When variance carries signal, Part 1
           href: articles/location-scale.html
         - text: When variance carries signal, Part 2
           href: articles/location-scale-scale.html
-        - text: Distributional outputs and adequacy
-          href: articles/distributional-outputs-and-adequacy.html
         - text: Robust continuous responses
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
@@ -89,6 +81,8 @@ navbar:
           href: articles/relmat-known-matrices.html
         - text: Structural dependence details
           href: articles/phylogenetic-spatial.html
+        - text: Working with large data
+          href: articles/large-data.html
     diagnostics:
       text: Diagnostics & Validation
       menu:
@@ -223,31 +217,39 @@ reference:
 articles:
   - title: Getting Started
     contents:
+      - function-map-cheatsheet
       - drmTMB
-  - title: Start Here
+  - title: Capability and Model Choice
     contents:
       - capability-and-limits
       - model-map
-      - model-workflow
-      - missing-data
-      - function-map-cheatsheet
-  - title: Extended models
-    contents:
-      - bivariate-nongaussian
-      - location-scale-scale
-  - title: Choose Your Model
-    contents:
+      - implementation-map
       - which-scale
       - distribution-families
       - model-selection
+      - missing-data
+  - title: Location and Scale
+    contents:
       - location-scale
+      - location-scale-scale
+  - title: Bivariate Models and Association
+    contents:
       - bivariate-coscale
-      - meta-analysis
+      - bivariate-nongaussian
+      - cross-family
   - title: Applied Family Tutorials
     contents:
       - robust-student
       - count-nbinom2
       - proportion-beta-binomial
+      - meta-analysis
+  - title: Model Checking and Practical Workflow
+    contents:
+      - model-workflow
+      - distributional-outputs-and-adequacy
+      - convergence
+      - large-data
+      - figure-gallery
   - title: Structured Dependence
     contents:
       - structural-dependence
@@ -257,17 +259,11 @@ articles:
       - spatial-models
       - relmat-known-matrices
       - phylogenetic-spatial
-  - title: Inference, Diagnostics, and Figures
+  - title: Deferred Engine Compatibility
     contents:
-      - distributional-outputs-and-adequacy
-      - convergence
-      - large-data
       - julia-engine
-      - cross-family
-      - figure-gallery
   - title: Simulation and Validation
     contents:
-      - implementation-map
       - testing-likelihoods
       - simulation-plot-grammar
   - title: Developer Notes

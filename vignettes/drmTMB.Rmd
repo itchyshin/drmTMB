@@ -30,16 +30,22 @@ if (!"package:drmTMB" %in% search()) {
 }
 </style>
 
-`drmTMB` fits distributional regression models for one or two responses. Start
-here when you want to fit a first model, check that the fitted object matches
-your scientific question, and find the next article without reading the whole
-roadmap.
+`drmTMB` fits distributional regression models for one or two responses. This
+introduction explains the model components, fits a first model, and shows how
+to interpret it. If you only need to find a function or tutorial, use the
+shorter [Get started function map](function-map-cheatsheet.html).
 
 The central workflow is simple: write one formula for each parameter you want
 to estimate, then check that the fitted model matches the symbolic model you had
 in mind. The broader implemented map lives in
 [What can I fit today?](model-map.html), and family choice lives in
 [Choosing response families](distribution-families.html).
+
+The parameter names stay consistent across the site. Location describes the
+expected response; scale describes residual variability; shape describes
+distribution features beyond location and scale; and coscale means residual
+correlation such as `rho12` between two responses. A family may expose only a
+subset of these components.
 
 For example, an applied user might ask: do mean trait values and residual
 variability change with an environmental predictor, after accounting for
@@ -168,29 +174,7 @@ reaction norm, and `sd(group) ~ x_group` is a model for the SD of a group-level
 mean effect. Those four quantities can all involve a predictor, but they answer
 different biological questions.
 
-## What can I fit today?
-
-The detailed implementation map now lives in the model guide "What can I fit
-today?". This getting-started article keeps the first fitted example close to
-the top, then sends you to the right guide or worked tutorial.
-
-At a high level, the current public surface is:
-
-| Model family or component | Current status | Main article |
-| --- | --- | --- |
-| Gaussian location-scale fixed effects | stable | "When variance carries signal, Part 1" |
-| Gaussian `mu` random intercepts and one-slope blocks | stable | "When variance carries signal, Part 1" |
-| residual-scale random intercepts and independent slopes | stable or first slice, depending on term | "Which scale are you modelling?" |
-| unlabelled Gaussian `mu` random-intercept SD formulas | first slice | "Which scale are you modelling?" |
-| fixed-effect non-Gaussian families | stable for named fixed-effect paths | "Choosing response families" |
-| fixed-effect NB2 and zero-inflated NB2 count examples | stable for fixed effects | "Count abundance and extra zeros" |
-| bounded-response proportion examples | beta, beta-binomial, and zero-one beta fixed effects plus ordinary `mu` random intercepts and independent numeric slopes; its exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; zero-one beta handles structural exact boundaries | "Proportions and success rates" |
-| Gaussian meta-analysis with known sampling covariance | implemented/tested; capability tier unregistered, with no interval or coverage claim | "Mean effects and residual heterogeneity in meta-analysis" |
-| fixed-effect bivariate Gaussian `rho12` | implemented; interval-feasible, but CI coverage unregistered | "Changing residual coupling with rho12" |
-| ordinary bivariate covariance and `corpairs()` rows | first slice | "What can I fit today?" |
-| phylogenetic Gaussian `mu`, q=2, q=4, and direct-SD covariance slices | first slices | "Structural dependence" |
-| coordinate spatial Gaussian `mu` intercept, one numeric slope, and bivariate q=2 location covariance | first slices | "Structural dependence" |
-| fitted interval status and derived-summary flags | first slice | "Checking and using fitted models" |
+## Check before interpreting
 
 After fitting any model, run `check_drm()` before interpreting the estimates:
 
@@ -198,13 +182,11 @@ After fitting any model, run `check_drm()` before interpreting the estimates:
 check_drm(fit)
 ```
 
-The diagnostic table flags convergence, finite objective values, Hessian
-status, fixed-effect standard errors, dropped rows, positive scale values,
-near-zero random-effect SDs, residual `rho12` boundaries, Student-t `nu`
-boundary behaviour, known sampling covariance summaries, random-effect
-replication, and weak random-slope designs. A `note` marks something to
-inspect; a `warning` or `error` should be resolved before treating estimates as
-stable.
+The diagnostic table checks convergence, gradients, Hessian status, standard
+errors, dropped rows, scale values, random-effect replication, and relevant
+parameter boundaries. Inspect a `note`; resolve a `warning` or `error` before
+treating estimates as stable. The [errors, warnings, and convergence
+guide](convergence.html) explains what to try next.
 
 The key rule is to keep correlation layers separate. A bivariate residual
 `rho12` is within-observation coupling after the two means and residual SDs are
@@ -218,5 +200,8 @@ block is also fitted when matching labelled spatial terms appear in all four
 `corpair()` rows remain planned. Those layers should not be reported as if they
 were the same estimand.
 
-Once this first fit is checked, follow the Learning path table above in the
-order given, starting with [Checking and using fitted models](model-workflow.html).
+The model guide [What can I fit today?](model-map.html) is the source for exact
+family and component support; this introduction deliberately does not repeat
+that changing capability ledger. Once this first fit is checked, continue with
+[Checking and using fitted models](model-workflow.html) or choose a scientific
+question from the Learning path table above.
