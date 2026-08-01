@@ -47,6 +47,10 @@ Earlier oracle runner attempts are retained: run 2 records the shell-quoting
 failure and run 3 is superseded because its command label was inaccurate.  Run
 4 is the admissible oracle-command receipt.
 
+A separate eight-attempt IID control (four `mu`, four `sigma`) passes at source
+`a04f086bd`; it validates the shared endpoint carriers without substituting
+for any provider-specific structured recovery result.
+
 ## Next bounded repair
 
 1. Add a current-source oracle-command receipt and fixed/IID controls for the
