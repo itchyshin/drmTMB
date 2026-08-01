@@ -41,6 +41,12 @@ elements are source-bound full-oracle execution, complete control telemetry,
 and tracked receipt integration.  No review licenses profiles, intervals,
 coverage, or a q2-plus companion row.
 
+The source-pinned Wave A oracle/finite-difference/dependency suite now passes
+for every exact leaf in `2026-08-01-lane-c-c16-wave-a-oracle-tests-run-4`.
+Earlier oracle runner attempts are retained: run 2 records the shell-quoting
+failure and run 3 is superseded because its command label was inaccurate.  Run
+4 is the admissible oracle-command receipt.
+
 ## Next bounded repair
 
 1. Add a current-source oracle-command receipt and fixed/IID controls for the

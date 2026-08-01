@@ -1,0 +1,11 @@
+cell_id	dpar	provider	source_sha	runner_md5	test_file	command	result
+mc-0583	mu	phylo	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0584	mu	animal	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0585	mu	relmat	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0586	mu	spatial	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0587	mu	phylo_interaction	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0593	sigma	phylo	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0594	sigma	animal	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0595	sigma	relmat	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0596	sigma	spatial	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
+mc-0597	sigma	phylo_interaction	c25219f1057840c2376c20dc47c268b1b86cb807	7c34edd1c47bf0251d00c2ad901ffcc0	tests/testthat/test-zero-one-beta.R	testthat::test_file(..., StopReporter)	FAIL: child R exit status 2
