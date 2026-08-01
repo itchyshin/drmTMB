@@ -91702,6 +91702,19 @@ Shinichi grants a separate Gate A compute approval.
   changed. See
   `docs/dev-log/2026-07-29-arc6-f4r-completion-review.md` and
   `docs/dev-log/after-task/2026-07-29-arc6-f4r-completion-review.md`.
+
+## 2026-08-01: Arc 6 Association private-evidence closeout
+
+- Confirmed that current `main` already contains the three meaningful Arc 6
+  runtime-repair commits (`324a00233`, `b7f0ee442`, `38532e2ad`) and the
+  F4R completion review. The stale F3/F4R branch is retained but not merged
+  or rebased.
+- Preserved the failed lower-information F4 campaign through
+  `docs/dev-log/2026-08-01-arc6-f4-historical-failure-receipt.md` and the
+  narrow F4R private alpha-scale interval-feasibility result. Public association
+  `vcov()`/`confint()`, eta inference, F5, ledger/pkgdown changes, and new
+  compute remain outside this closeout.
+- See `docs/dev-log/after-task/2026-08-01-arc6-association-private-evidence-closeout.md`.
 ## 2026-07-30: Missing-data R claim reconciliation (#865–#867)
 
 - Isolated `codex/missing-data-claims-865-867` from `origin/main` at `aa599095f`; PR #869 is a separate documentation-only brief and was not modified.
