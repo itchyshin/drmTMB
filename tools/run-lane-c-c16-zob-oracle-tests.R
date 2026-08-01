@@ -20,10 +20,11 @@ dir.create(out, recursive = TRUE, showWarnings = FALSE)
 sha <- trimws(system2("git", c("rev-parse", "HEAD"), stdout = TRUE))
 runner_md5 <- unname(tools::md5sum(script))
 
-status <- tryCatch({
-  testthat::test_file("tests/testthat/test-zero-one-beta.R", reporter = testthat::StopReporter$new())
-  "PASS"
-}, error = function(e) paste0("FAIL: ", conditionMessage(e)))
+exit_status <- system2(
+  file.path(R.home("bin"), "Rscript"),
+  c("-e", "devtools::test(filter = '^zero-one-beta$')")
+)
+status <- if (identical(exit_status, 0L)) "PASS" else paste0("FAIL: child R exit status ", exit_status)
 
 cells <- data.frame(
   cell_id = c(sprintf("mc-%04d", 583:587), sprintf("mc-%04d", 593:597)),
