@@ -1086,7 +1086,8 @@ Phase 6d should be closed as small hardening slices:
   bounded-response Phase 18 artifact lane, and independent numeric slopes have
   focused source tests; correlated slopes, labelled covariance, `sigma` random
   effects, and zero-one beta random effects outside the fitted ordinary `mu`
-  intercept/slope gates remain later gates.
+  intercept/slope gates and exact point-fit-only ordinary `zoi` q1
+  intercept/same-raw-symbol slope gates remain later gates.
 - Use `tweedie()` for non-negative semicontinuous ecological responses such as
   biomass, cover, or abundance indices with exact zeros and positive continuous
   values. The base route is univariate:
@@ -1141,8 +1142,9 @@ Phase 6d should be closed as small hardening slices:
   and bivariate or mixed ordinal models require separate evidence.
 - Next family sequence: ordered beta and ordinal scale or discrimination
   formulas after their direction is documented; zero-one-beta random effects
-  outside ordinary `mu` and richer bounded-response covariance remain separate
-  gates after the fixed-effect `zoi`/`coi` route.
+  outside ordinary `mu` and the exact point-fit-only ordinary `zoi` q1
+  intercept/same-symbol slope gates, plus richer bounded-response covariance,
+  remain separate gates.
 - Add ordered logit/probit extensions, COM-Poisson, generalized Poisson, and
   related families according to the distribution roadmap after their
   parameter-link and comparator contracts are documented.
@@ -1169,7 +1171,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Historical `0.1.0` release decision: Phase 9 closed at this MVP boundary.
   Ordinal scale or discrimination formulae, denominator aliases beyond
   `cbind(successes, failures)`, ordered beta, and zero-one beta random effects
-  outside ordinary `mu` remain post-preview work unless they are implemented with tests before the
+  outside ordinary `mu` and the exact ordinary `zoi` q1 intercept/same-symbol
+  slope gates remain post-preview work unless they are implemented with tests before the
   version bump. The fixed-effect `zero_one_beta()` family is now implemented
   separately for structural exact-boundary continuous proportions.
 - Decide whether the next ordinal scale formula is exposed as `sigma ~ ...` or

@@ -72,7 +72,7 @@ MODEL_SURFACE_COUNT = 687
 # Future changes require an explicit row-specific receipt; this is not a
 # blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 174
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 175
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
@@ -983,21 +983,24 @@ def validate(
     # C14 restores the 330 source-pinned package boundaries and then splits ten
     # lossy structured zero-one-beta representatives into q1 and q2-plus leaves.
     # C16 independently promotes ten exact q1 structured zero-one-beta leaves
-    # after source-bound recovery and fresh three-lens GO. The remaining 20 rows
+    # after source-bound recovery and fresh three-lens GO. C17-B promotes the
+    # exact ordinary zero-one-beta zoi same-symbol q1 slope after authenticated
+    # recovery and fresh Fisher/Noether/Rose GO. The remaining 19 rows
     # are the actionable implementation backlog, not a claim that every
     # boundary is mathematically impossible.
     expected = Counter(
         {
-            "implemented": 327,
+            "implemented": 328,
             "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
-            "not_implemented": 20,
+            "not_implemented": 19,
         }
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census has 174 point_fit_recovery cells after C16's exact
-    # ten-leaf promotion and B3's exact four q6 mu2 target promotions.
+    # The frozen census has 175 point_fit_recovery cells after C16's exact
+    # ten-leaf promotion, B3's exact four q6 mu2 target promotions, and C17-B's
+    # exact zero-one-beta zoi same-symbol q1 slope promotion.
     # Approved inserts take a higher source_order and so cannot disturb this
     # number; every frozen-cell promotion needs a named
     # transition and evidence receipt.

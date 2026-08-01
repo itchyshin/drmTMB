@@ -176,15 +176,18 @@ The decision remains intentionally narrow:
 | 4 | Beta-binomial `mu` | Implemented as ordinary unlabelled `mu` random intercepts and independent numeric slopes for counted successes out of known trials; correlated slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, and structured routes need separate recovery checks. |
 | 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Historical boundary, superseded by the narrow fitted gates in the live table: Poisson-spatial `zi`, hurdle-relatedness `hu`, ordinal-phylo `mu`, Student-t-phylo `nu`, and Student-t intercept-only spatial `mu` are diagnostic-only; the Student-t spatial one-slope, Gamma-relatedness `mu`, and beta-animal `mu`/`sigma` routes retain recovery evidence. Unsupported neighbours still require focused evidence. |
 
-Slice 195 keeps `zi`, `hu`, `zoi`, and `coi` random effects out of the fitted
-surface, but gives them explicit unsupported messages. Fixed-effect
+Slice 195's historical blanket boundary is superseded only for the exact
+zero-one-beta ordinary `zoi ~ 1 + (1 | id)` q1 intercept and same-raw-symbol
+`zoi ~ x + (0 + x | id)` q1 slope; both are point-fit-only. Other `zi`, `hu`,
+`zoi`, and `coi` random effects remain outside the fitted surface and receive
+explicit unsupported messages. Fixed-effect
 zero-inflation and hurdle formulas are implemented where listed above;
 random effects in those formulas, count-side random effects in zero-inflated
 or hurdle routes, and covariance among `mu`, `sigma`, shape, and
 inflation/hurdle random effects need separate likelihood, extractor,
 interval, and simulation-recovery evidence. For bounded responses with exact
 0 or 1 values, fixed-effect `zoi`/`coi` likelihoods now exist only in
-`zero_one_beta()`; zero-one-inflation random-effect or cross-parameter
+`zero_one_beta()`; broader zero-one-inflation random-effect or cross-parameter
 covariance blocks still need a separate task.
 
 Unsupported formula messages should say that non-Gaussian random effects are
@@ -452,7 +455,9 @@ Here `mu` and `sigma` describe the interior beta component, `zoi` is the
 probability of an exact-boundary outcome, and `coi` is the probability that a
 boundary outcome is exactly one. The response must contain at least one
 interior value after missing-row filtering so the beta component is identified.
-Correlated or labelled `mu` slopes, `sigma`/`zoi`/`coi` random effects,
+Exact ordinary `zoi ~ 1 + (1 | id)` and same-raw-symbol
+`zoi ~ x + (0 + x | id)` q1 routes are point-fit-only. Correlated or labelled
+`mu` slopes, `sigma`/`coi` random effects, other `zoi` random effects,
 structured effects, known sampling covariance, denominator syntax, and
 bivariate or mixed bounded-response models are later phases.
 

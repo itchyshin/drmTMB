@@ -32,9 +32,10 @@ No spawned subagents were running for this planning slice.
 ## Slice 307 Decision
 
 This historical no-fit decision is superseded only for the exact ordinary
-zero-one-beta `zoi ~ 1 + (1 | id)` q1 intercept, which is point-fit-only with a
-direct target unavailable to profiling. Random effects in `zi`, `hu`, `coi`,
-atom slopes, joint/covariant atom effects, and structured atom forms remain
+zero-one-beta `zoi ~ 1 + (1 | id)` q1 intercept and same-raw-symbol
+`zoi ~ x + (0 + x | id)` q1 slope. Both are point-fit-only, with direct targets
+unavailable to profiling. Random effects in `zi`, `hu`, `coi`, other atom
+slopes, joint/covariant atom effects, and structured atom forms remain
 outside the near-term public surface: they add a second latent process whose
 identifiability can be weak even before structural dependence is introduced.
 The fixed-effect routes are:
@@ -46,7 +47,7 @@ zoi ~ predictors
 coi ~ predictors
 ```
 
-The revisit gate for random effects beyond that exact `zoi` q1 route should
+The revisit gate for random effects beyond those exact `zoi` q1 routes should
 require:
 
 - a clear applied use case that fixed effects cannot answer;
@@ -58,14 +59,15 @@ require:
 - a tutorial boundary that tells users when a simpler fixed-effect model is the
   right answer.
 
-Until then, the implementation map should call these components
-fixed-effect-only where fitted, or planned where the family itself is not yet
-implemented.
+Until then, the implementation map should call these components fixed-effect-only
+outside the two exact `zoi` exceptions, or planned where the family itself is
+not yet implemented.
 
 ## Next Useful Order
 
-The next coding work should not start by adding random effects to `zi`, `hu`,
-`zoi`, or `coi`. A more useful order is:
+The next coding work should not widen random effects in `zi`, `hu`, `zoi`, or
+`coi` beyond the exact admitted `zoi` gates without a separate evidence slice.
+A more useful order is:
 
 1. Design generic direct-SD syntax across structured layers.
 2. Plan the p8/q8 location-scale endpoint carefully before any likelihood work.
