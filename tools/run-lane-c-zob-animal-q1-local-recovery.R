@@ -21,7 +21,8 @@ run_one <- function(seed, source_sha, runner_sha) {
   fit <- tryCatch(withCallingHandlers(drmTMB::drmTMB(drmTMB::bf(y ~ x + animal(1 | species, Ainv = Ainv)), family = drmTMB::zero_one_beta(), data = sim$data, control = list(eval.max = 1000, iter.max = 1000)), warning = function(w) { warnings <<- c(warnings, conditionMessage(w)); invokeRestart("muffleWarning") }), error = identity)
   if (inherits(fit, "error")) { out$status <- "fit_error"; out$warning <- clean(c(warnings, conditionMessage(fit))); return(out) }
   grad <- fit$obj$gr(fit$opt$par); report <- fit$obj$report()
-  mode <- ranef(fit, "animal_mu")$terms[["animal(1 | species)"]]
+  mode <- as.numeric(ranef(fit, "animal_mu")$terms[["animal(1 | species)"]])
+  names(mode) <- fit$model$structured$phylo_mu$node_labels
   log_sigma <- as.numeric(report$log_sigma)
   out$status <- "fit_ok"; out$warning <- clean(warnings); out$convergence <- fit$opt$convergence; out$pdHess <- isTRUE(fit$sdr$pdHess); out$max_gradient <- max(abs(grad))
   out$mode_correlation <- suppressWarnings(stats::cor(mode[names(sim$u)], sim$u))
