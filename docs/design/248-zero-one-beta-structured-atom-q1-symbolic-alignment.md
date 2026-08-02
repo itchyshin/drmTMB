@@ -655,6 +655,17 @@ computes the model this document specifies*. It establishes nothing about whethe
 `log_sd_phylo` on an atom is recoverable, and no artifact from it may be described as
 recovery evidence.
 
+**Correction (owner decision, 2026-08-02): `spatial` is fenced OUT for C18.** The IN
+list above still names `spatial` as one of the five q1 providers; that was the original
+plan and is why the implementation initially admitted it. The owner has since deferred
+`spatial` for the `zoi`/`coi` atoms until the mesh/SPDE lane settles — `mc-0606`
+(`zoi`) and `mc-0616` (`coi`) stay `not_implemented` and are refused at fit time
+(`validate_zero_one_beta_atom_spatial_term`, `R/drmTMB.R:10050`), with no recovery
+evidence and no harness. This supersedes the `spatial` entry in the IN list for the
+`zoi`/`coi` atoms specifically; `spatial` remains implemented and in scope for the
+unrelated fitted-Gaussian `mu`/`sigma` structured slices. `phylo`, `animal`, `relmat`,
+and `phylo_interaction` are unaffected.
+
 ---
 
 ## 9. Sign-off

@@ -1886,3 +1886,102 @@ test_that("zero-one beta validates malformed and neighbouring inputs", {
     "mvbind"
   )
 })
+
+# --- C18 D-43 panel repair: F1/F2/F3 ------------------------------------
+# F1: every admitted structured zoi/coi provider must have a
+# profile_targets() note in the R/profile.R allowlist, and summary() must
+# not crash for a fit that carries that note.
+# F2: the spatial provider is deferred (owner decision) for the zoi/coi
+# atoms and must be refused at fit time, not admitted.
+# F3: missing responses combined with a structured zoi/coi atom effect must
+# be refused, mirroring the existing i.i.d. atom RE guard.
+
+test_that("zero-one-beta fences structured zoi/coi atoms for the animal provider without crashing summary()", {
+  sim <- new_zero_one_beta_animal_data(); Ainv <- sim$Ainv
+
+  zoi_fit <- drmTMB(bf(y ~ x, zoi ~ animal(1 | species, Ainv = Ainv)), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
+  expect_equal(zoi_fit$opt$convergence, 0)
+  zoi_target <- subset(profile_targets(zoi_fit), parm == "sd:zoi:animal(1 | species)")
+  expect_identical(zoi_target$profile_ready, FALSE)
+  expect_identical(zoi_target$profile_note, "point_fit_only_zero_one_beta_animal_zoi_q1")
+  expect_no_error(summary(zoi_fit))
+
+  coi_fit <- drmTMB(bf(y ~ x, coi ~ animal(1 | species, Ainv = Ainv)), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
+  expect_equal(coi_fit$opt$convergence, 0)
+  coi_target <- subset(profile_targets(coi_fit), parm == "sd:coi:animal(1 | species)")
+  expect_identical(coi_target$profile_ready, FALSE)
+  expect_identical(coi_target$profile_note, "point_fit_only_zero_one_beta_animal_coi_q1")
+  expect_no_error(summary(coi_fit))
+})
+
+test_that("zero-one-beta fences structured zoi/coi atoms for the relmat provider without crashing summary()", {
+  sim <- new_zero_one_beta_relmat_data(); K <- sim$K
+
+  zoi_fit <- drmTMB(bf(y ~ x, zoi ~ relmat(1 | species, K = K)), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
+  expect_equal(zoi_fit$opt$convergence, 0)
+  zoi_target <- subset(profile_targets(zoi_fit), parm == "sd:zoi:relmat(1 | species)")
+  expect_identical(zoi_target$profile_ready, FALSE)
+  expect_identical(zoi_target$profile_note, "point_fit_only_zero_one_beta_relmat_zoi_q1")
+  expect_no_error(summary(zoi_fit))
+
+  coi_fit <- drmTMB(bf(y ~ x, coi ~ relmat(1 | species, K = K)), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
+  expect_equal(coi_fit$opt$convergence, 0)
+  coi_target <- subset(profile_targets(coi_fit), parm == "sd:coi:relmat(1 | species)")
+  expect_identical(coi_target$profile_ready, FALSE)
+  expect_identical(coi_target$profile_note, "point_fit_only_zero_one_beta_relmat_coi_q1")
+  expect_no_error(summary(coi_fit))
+})
+
+test_that("zero-one-beta fences structured zoi/coi atoms for the phylo_interaction provider without crashing summary()", {
+  sim <- new_zero_one_beta_phylo_interaction_data()
+  plant_tree <- sim$plant_tree; pollinator_tree <- sim$pollinator_tree
+
+  zoi_fit <- drmTMB(bf(y ~ x, zoi ~ phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
+  expect_equal(zoi_fit$opt$convergence, 0)
+  zoi_target <- subset(profile_targets(zoi_fit), parm == "sd:zoi:phylo_interaction(1 | plant:pollinator)")
+  expect_identical(zoi_target$profile_ready, FALSE)
+  expect_identical(zoi_target$profile_note, "point_fit_only_zero_one_beta_phylo_interaction_zoi_q1")
+  expect_no_error(summary(zoi_fit))
+
+  coi_fit <- drmTMB(bf(y ~ x, coi ~ phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
+  expect_equal(coi_fit$opt$convergence, 0)
+  coi_target <- subset(profile_targets(coi_fit), parm == "sd:coi:phylo_interaction(1 | plant:pollinator)")
+  expect_identical(coi_target$profile_ready, FALSE)
+  expect_identical(coi_target$profile_note, "point_fit_only_zero_one_beta_phylo_interaction_coi_q1")
+  expect_no_error(summary(coi_fit))
+})
+
+test_that("zero-one-beta refuses the deferred spatial provider for zoi/coi q1 atoms", {
+  sim <- new_zero_one_beta_spatial_data(); coords <- sim$coords
+  expect_error(
+    drmTMB(bf(y ~ x, zoi ~ spatial(1 | site, coords = coords)), family = zero_one_beta(), data = sim$data),
+    "deferred, not implemented"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, coi ~ spatial(1 | site, coords = coords)), family = zero_one_beta(), data = sim$data),
+    "deferred, not implemented"
+  )
+})
+
+test_that("zero-one-beta refuses missing responses combined with a structured zoi/coi atom effect", {
+  sim <- new_zero_one_beta_animal_data(); Ainv <- sim$Ainv
+  missing_data <- sim$data
+  missing_data$y[[1L]] <- NA_real_
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x, zoi ~ animal(1 | species, Ainv = Ainv)),
+      family = zero_one_beta(), data = missing_data,
+      missing = miss_control(response = "include")
+    ),
+    "does not support missing responses"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, coi ~ animal(1 | species, Ainv = Ainv)),
+      family = zero_one_beta(), data = missing_data,
+      missing = miss_control(response = "include")
+    ),
+    "does not support missing responses"
+  )
+})

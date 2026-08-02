@@ -5620,6 +5620,19 @@ drm_build_zero_one_beta_spec <- function(
   }
   coi_structured <- if (!is.null(coi_phylo$term)) coi_phylo$term else if (!is.null(coi_animal$term)) coi_animal$term else if (!is.null(coi_relmat$term)) coi_relmat$term else if (!is.null(coi_spatial$term)) coi_spatial$term else coi_phylo_interaction$term
 
+  if (include_missing_response && !is.null(zoi_structured)) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 structured-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with a structured zoi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
+    ))
+  }
+  if (include_missing_response && !is.null(coi_structured)) {
+    cli::cli_abort(c(
+      "The zero-one-beta coi q1 structured-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with a structured coi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
+    ))
+  }
+
   structured_endpoints <- list(
     mu = mu_structured,
     sigma = sigma_structured,
@@ -8949,7 +8962,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, {.fn spatial}, and {.fn phylo_interaction}.",
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane).",
       "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
@@ -10049,14 +10062,11 @@ validate_zero_one_beta_atom_relmat_term <- function(term, dpar) {
 
 validate_zero_one_beta_atom_spatial_term <- function(term, dpar) {
   if (is.null(term)) return(invisible(term))
-  if (!identical(term$type, "spatial") || !identical(term$structure, "coords") ||
-      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
-    cli::cli_abort(c(
-      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code spatial(1 | site, coords = coords)} intercept.",
-      "i" = "Mesh/range inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
-    ))
-  }
-  invisible(term)
+  cli::cli_abort(c(
+    "Zero-one-beta structured {.code {dpar}} spatial atoms are deferred, not implemented.",
+    "i" = "The {.fn spatial} provider for zero-one-beta zoi/coi q1 atoms is fenced out pending the mesh/SPDE lane.",
+    "i" = "Use {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction} instead."
+  ))
 }
 
 validate_zero_one_beta_atom_phylo_interaction_term <- function(term, dpar) {
