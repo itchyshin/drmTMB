@@ -92083,3 +92083,5 @@ Shinichi grants a separate Gate A compute approval.
   readiness matrix now explicitly says that every later “mesh/SPDE planned”
   phrase excludes the one fixed-kappa Gaussian local-fit intercept. The
   rebuilt spatial article shows the corrected invariant and profile status.
+- The final model-map wording now qualifies both remaining generic mesh/SPDE
+  cells as neighbours beyond the fixed-kappa Gaussian `mu` intercept.
