@@ -1,0 +1,2 @@
+cell_id	target_id	estimate	lower	upper	profile_engine
+mc-0117	mc-0117::sd:mu:sigma1:spatial(1 | p | site)	1.34648864181355	0.9289569704353	1.84328869330678	tmbprofile
