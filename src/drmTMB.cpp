@@ -396,6 +396,13 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(phylo_mu2_value);
   DATA_SPARSE_MATRIX(Q_phylo2);
   DATA_SCALAR(log_det_Q_phylo2);
+  // Fixed-kappa mesh/SPDE Gaussian location field.  This is intentionally not
+  // the existing node-indexed coordinate/relatedness route: A contains one
+  // barycentric observation-to-vertex row per retained observation.
+  DATA_INTEGER(has_mesh_spatial_mu);
+  DATA_SPARSE_MATRIX(A_mesh_spatial);
+  DATA_SPARSE_MATRIX(Q_mesh_spatial);
+  DATA_SCALAR(log_det_Q_mesh_spatial);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -1106,6 +1113,32 @@ Type objective_function<Type>::operator()()
       vector<Type> sd_phylo2 = exp(log_sd_phylo2);
       REPORT(sd_phylo2);
       ADREPORT(sd_phylo2);
+    }
+
+    if (has_mesh_spatial_mu == 1) {
+      vector<Type> mesh_effect = A_mesh_spatial * u_phylo2;
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += mesh_effect(i);
+      }
+      vector<Type> Q_u_mesh = Q_mesh_spatial * u_phylo2;
+      Type quadratic_mesh = Type(0.0);
+      for (int j = 0; j < u_phylo2.size(); ++j) {
+        quadratic_mesh += u_phylo2(j) * Q_u_mesh(j);
+      }
+      nll += Type(0.5) * (
+        Type(u_phylo2.size()) * log(Type(2.0) * M_PI) +
+        Type(2.0) * Type(u_phylo2.size()) * log_sd_phylo2(0) -
+        log_det_Q_mesh_spatial +
+        exp(Type(-2.0) * log_sd_phylo2(0)) * quadratic_mesh
+      );
+      REPORT(mesh_effect);
+      REPORT(quadratic_mesh);
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_mesh_spatial = exp(log_sd_phylo2);
+      REPORT(sd_mesh_spatial);
+      ADREPORT(sd_mesh_spatial);
     }
 
     if (has_mi == 1 && mi_family == 0) {

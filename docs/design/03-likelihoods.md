@@ -1277,6 +1277,27 @@ r = median positive pairwise site distance
 Q_coords = K_coords^{-1}
 ```
 
+The separately routed fixed-kappa mesh/SPDE Gaussian location field does not
+use this dense coordinate covariance or a site-to-node lookup. Its metric
+coordinates are first created with `spatial_coords()` using an explicit
+projected CRS, and `make_mesh()` supplies a finite-element mesh, projection
+matrix, and matrices `C0`, `C1`, and `C2`:
+
+```text
+y = X beta + A_st omega + epsilon
+omega ~ Normal(0, s^2 Q(kappa)^(-1))
+Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2
+```
+
+Here `kappa > 0` is fixed configuration in inverse coordinate units, not an
+estimated or profiled range. The fitted `s` is the GMRF field scale. Since the
+projected marginal SD is `s sqrt(a_i' Q(kappa)^(-1) a_i)`, it is generally
+location-dependent and must not be described as one uniform field SD. The
+first mesh route is exactly univariate Gaussian `mu`, intercept-only, with
+`sigma ~ 1`; all mesh slopes, non-Gaussian and bivariate routes, range
+estimation, anisotropy, barriers, replicated and spatiotemporal fields remain
+outside this likelihood slice.
+
 Phylogenetic models use the tree-derived covariance, `animal()` uses a
 pedigree-derived or supplied additive relatedness matrix, and `relmat()` uses a
 supplied known covariance or precision. These routes reuse the same

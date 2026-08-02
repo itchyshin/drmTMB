@@ -139,9 +139,11 @@ simulate_spatial_q2_guide_data <- function(seed = 20260501) {
 
 Use `spatial()` when named sites have coordinates and nearby sites may have
 similar location deviations after fixed effects have been included. The fitted
-route uses a coordinate table supplied as `coords = coords`. Mesh and SPDE
-inputs remain planned. If distance between sites is not what couples your
-observations, the [structural-dependence
+coordinate route uses a table supplied as `coords = coords`. A separate,
+fixed-kappa mesh/SPDE route is now available for one univariate Gaussian
+location intercept: its observation field is `A_st %*% omega`, not the dense
+coordinate route or a site-to-mesh-node lookup. If distance between sites is
+not what couples your observations, the [structural-dependence
 overview](structural-dependence.html) compares this route against the
 relatedness- and tree-based ones.
 
@@ -150,6 +152,7 @@ relatedness- and tree-based ones.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have smooth site-level location deviations? | `spatial(1 | site, coords = coords)` in `mu` | Fitted first coordinate-spatial intercept slice. |
+| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Fixed-kappa, intercept-only local-fit slice. The fitted scale is a GMRF field scale; recovery, intervals, coverage, and range inference are not claimed yet. |
 | Does one predictor have a spatially varying slope? | `spatial(1 + depth | site, coords = coords)` in `mu` | Fitted one numeric-slope slice. The intercept and slope fields are independent and have separate SDs. |
 | Do two Gaussian response means share a coordinate-spatial correlation? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "spatial")` reports the latent spatial row separately from residual `rho12`. |
 | Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived and unavailable for intervals. |
@@ -165,6 +168,41 @@ fit_spatial <- drmTMB(
   family = gaussian()
 )
 ```
+
+## Geographic coordinates and the fixed-kappa mesh route
+
+Longitude and latitude are not model coordinates: decimal degrees are not a
+metric distance system. Choose a projected CRS appropriate for the study area,
+transform explicitly, and then make the mesh. `spatial_coords()` never chooses
+a UTM zone for you. `kappa` has inverse projected-coordinate units and remains
+fixed configuration in this first slice; it is not a fitted range parameter.
+
+```r
+coords_xy <- spatial_coords(dat, longitude, latitude, crs_out = "EPSG:32610")
+mesh <- make_mesh(coords_xy, kappa = 1 / 10000)
+
+fit_mesh <- drmTMB(
+  bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
+  data = dat,
+  family = gaussian()
+)
+
+sdpars(fit_mesh)$mu
+ranef(fit_mesh)$spatial_mu
+```
+
+The model is `y = X beta + A_st omega + epsilon`, with
+`omega ~ Normal(0, s^2 Q(kappa)^(-1))` and
+`Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2`. Thus `sdpars(fit_mesh)$mu`
+reports the fitted GMRF field scale `s`; after projection, the marginal SD at
+an observation generally varies with its row of `A_st`. Do not treat it as a
+single uniform marginal field SD. The existing `coords = coords` route remains
+a distinct dense covariance model and is unchanged.
+
+This mesh slice rejects raw geographic degrees, mesh slopes or labels,
+`sigma`/shape mesh effects, non-Gaussian or bivariate models, mesh-plus-coords
+formulas, extrapolation beyond the mesh, range estimation, anisotropy,
+barriers, replicated fields, and spatiotemporal fields.
 
 Add one numeric slope only when the scientific question is about spatial
 variation in that slope:

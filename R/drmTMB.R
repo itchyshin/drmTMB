@@ -505,6 +505,10 @@ drm_fit_spec <- function(
   # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
   spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
   spec <- drm_apply_start_override(spec)
+  # The C++ template declares the mesh fields globally.  Populate inert sparse
+  # placeholders for every family, rather than relying on the Gaussian builder
+  # alone to provide them.
+  spec$tmb_data <- add_mesh_spatial_tmb_data(spec$tmb_data, spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
   obj <- TMB::MakeADFun(
@@ -2993,7 +2997,7 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_phylo$rhs
   mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
   mu_entry$rhs <- mu_phylo_interaction$rhs
-  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
+  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry, allow_mesh = TRUE)
   mu_entry$rhs <- mu_spatial$rhs
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
@@ -3057,6 +3061,19 @@ drm_build_gaussian_ls_spec <- function(
   } else {
     NULL
   }
+  mesh_spatial_term <- if (
+    identical(active_structured, "spatial") &&
+      !is.null(structured_term) &&
+      identical(structured_term$structure, "mesh")
+  ) {
+    validate_gaussian_mesh_spatial_term(structured_term, sigma_entry)
+    structured_term
+  } else {
+    NULL
+  }
+  if (!is.null(mesh_spatial_term)) {
+    structured_term <- NULL
+  }
   mu_phylo$term <- structured_terms$phylo
   mu_phylo_interaction$term <- structured_terms$phylo_interaction
   mu_spatial$term <- structured_terms$spatial
@@ -3066,6 +3083,11 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  if (!is.null(mesh_spatial_term) && length(mu_re$terms) > 0L) {
+    cli::cli_abort(
+      "The first mesh spatial route cannot yet be combined with ordinary random effects."
+    )
+  }
   sd_mu_targets <- parse_sd_mu_entries(sd_mu_entries, mu_re$terms)
   active_mu_terms <- remove_qgt2_random_mu_terms(mu_re$terms)
   sd_phylo_targets <- parse_sd_phylo_entries(
@@ -3364,6 +3386,9 @@ drm_build_gaussian_ls_spec <- function(
     data_model
   )
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
+  mesh_spatial_mu <- build_mesh_spatial_mu_structure(
+    mesh_spatial_term, data_model, env
+  )
   sd_phylo <- build_sd_phylo_structure(
     sd_phylo_entries,
     sd_phylo_targets,
@@ -3397,6 +3422,10 @@ drm_build_gaussian_ls_spec <- function(
     observed_y = observed_y
   )
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y[observed_y]))
+  if (isTRUE(mesh_spatial_mu$has)) {
+    start$u_phylo2 <- numeric(mesh_spatial_mu$n_re)
+    start$log_sd_phylo2 <- log(max(0.25 * stats::sd(y[observed_y]), 1e-4))
+  }
   if (include_missing_predictor) {
     start$beta_mi <- missing_predictor$beta_start
     start$log_sigma_mi <- missing_predictor$log_sigma_start
@@ -3495,7 +3524,7 @@ drm_build_gaussian_ls_spec <- function(
     ),
     aggregation = list(gaussian = gaussian_aggregation),
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
-    structured = list(phylo_mu = phylo_mu),
+    structured = list(phylo_mu = phylo_mu, mesh_spatial_mu = mesh_spatial_mu),
     missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
@@ -3524,6 +3553,7 @@ drm_build_gaussian_ls_spec <- function(
       if (re_sigma$n_re > 0L) "u_sigma",
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo",
+      if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "gaussian")
@@ -3547,7 +3577,7 @@ drm_build_gaussian_ls_spec <- function(
   spec$missing_data <- missing_data
   check_weights_known_covariance(spec)
   spec$tmb_data <- add_covariance_block_tmb_data(
-    make_tmb_data(spec),
+    add_mesh_spatial_tmb_data(make_tmb_data(spec), spec),
     spec
   )
   spec$nobs <- spec$missing_data$counts$likelihood_rows
@@ -10785,7 +10815,11 @@ extract_gaussian_mu_phylo_term <- function(entry, dpar = entry$dpar) {
   list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
 }
 
-extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
+extract_gaussian_mu_spatial_term <- function(
+  entry,
+  dpar = entry$dpar,
+  allow_mesh = FALSE
+) {
   terms <- flatten_plus_terms(entry$rhs)
   is_spatial <- vapply(
     terms,
@@ -10823,7 +10857,7 @@ extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
       "i" = "Use {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)}."
     ))
   }
-  if (!identical(spatial_term$structure, "coords")) {
+  if (!identical(spatial_term$structure, "coords") && !isTRUE(allow_mesh)) {
     cli::cli_abort(c(
       "Precomputed spatial mesh fitting is planned but not implemented yet.",
       "x" = "Requested {.code spatial(1 | {spatial_term$group}, mesh = {spatial_term$object})}.",
@@ -12541,6 +12575,107 @@ build_spatial_mu_structure <- function(term, data, env) {
     species_levels = character(),
     group_levels = precision$site_levels
   )
+}
+
+empty_mesh_spatial_mu_structure <- function() {
+  list(
+    has = FALSE,
+    type = "spatial",
+    structure = "mesh",
+    label = "spatial(1 | site)",
+    n_re = 0L,
+    node_labels = character(),
+    projection = NULL,
+    precision = NULL,
+    kappa_fixed = NA_real_,
+    mesh = NULL
+  )
+}
+
+validate_gaussian_mesh_spatial_term <- function(term, sigma_entry) {
+  labelled <- is.character(term$covariance_label) &&
+    length(term$covariance_label) == 1L &&
+    !is.na(term$covariance_label) &&
+    nzchar(term$covariance_label)
+  if (!identical(term$dpar, "mu") ||
+      !structured_term_is_intercept_only(term) ||
+      labelled) {
+    cli::cli_abort(c(
+      "The first mesh spatial route is one unlabelled Gaussian {.code mu} intercept.",
+      "i" = "Use {.code bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)}."
+    ))
+  }
+  sigma_terms <- flatten_plus_terms(sigma_entry$rhs)
+  if (!identical(length(sigma_terms), 1L) || !identical(deparse1(sigma_terms[[1L]]), "1")) {
+    cli::cli_abort(
+      "The first mesh spatial route requires {.code sigma ~ 1}."
+    )
+  }
+  invisible(term)
+}
+
+build_mesh_spatial_mu_structure <- function(term, data, env) {
+  if (is.null(term)) return(empty_mesh_spatial_mu_structure())
+  if (!identical(term$type, "spatial") || !identical(term$structure, "mesh")) {
+    cli::cli_abort("Internal error: expected a mesh spatial term.")
+  }
+  mesh <- evaluate_spatial_coords(term$object, env)
+  .drm_validate_mesh(mesh)
+  model_ids <- rownames(data)
+  if (is.null(model_ids)) model_ids <- as.character(seq_len(nrow(data)))
+  mesh_rows <- match(as.character(model_ids), as.character(mesh$alignment_ids))
+  if (anyNA(mesh_rows)) {
+    cli::cli_abort(c(
+      "Mesh projection rows do not align with the retained model rows.",
+      "x" = "Every retained model-row identifier must occur once in {.code mesh$alignment_ids}.",
+      "i" = "Construct the mesh from the source data before model-frame omission, retaining its row names."
+    ))
+  }
+  A <- methods::as(mesh$A_st[mesh_rows, , drop = FALSE], "dgCMatrix")
+  if (any(Matrix::rowSums(A) <= 0) || any(abs(Matrix::rowSums(A) - 1) > 1e-8)) {
+    cli::cli_abort("Every retained observation must lie inside the mesh with projection weights summing to one.")
+  }
+  kappa <- mesh$kappa
+  Q <- kappa^4 * mesh$spde$c0 + 2 * kappa^2 * mesh$spde$g1 + mesh$spde$g2
+  Q <- methods::as((Q + Matrix::t(Q)) / 2, "dgCMatrix")
+  ch <- tryCatch(Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE), error = function(e) NULL)
+  if (is.null(ch)) {
+    cli::cli_abort("The fixed-kappa mesh precision is not sparse positive definite.")
+  }
+  determinant <- as.numeric(Matrix::determinant(Q, logarithm = TRUE)$modulus)
+  if (!is.finite(determinant)) {
+    cli::cli_abort("The fixed-kappa mesh precision has a non-finite log determinant.")
+  }
+  n_vertex <- ncol(A)
+  list(
+    has = TRUE,
+    type = "spatial",
+    structure = "mesh",
+    label = format_structured_label(
+      "spatial", "1", term$group, term$covariance_label
+    ),
+    group = term$group,
+    n_re = n_vertex,
+    node_labels = paste0("vertex_", seq_len(n_vertex)),
+    projection = A,
+    precision = list(precision = Q, log_det_precision = determinant),
+    kappa_fixed = kappa,
+    mesh = mesh,
+    observation_ids = as.character(model_ids)
+  )
+}
+
+add_mesh_spatial_tmb_data <- function(tmb_data, spec) {
+  dummy_sparse <- Matrix::sparseMatrix(
+    i = integer(), j = integer(), x = numeric(), dims = c(1L, 1L)
+  )
+  mesh <- if (is.list(spec$structured)) spec$structured$mesh_spatial_mu else NULL
+  has_mesh <- is.list(mesh) && isTRUE(mesh$has)
+  tmb_data$has_mesh_spatial_mu <- as.integer(has_mesh)
+  tmb_data$A_mesh_spatial <- if (has_mesh) mesh$projection else dummy_sparse
+  tmb_data$Q_mesh_spatial <- if (has_mesh) mesh$precision$precision else dummy_sparse
+  tmb_data$log_det_Q_mesh_spatial <- if (has_mesh) mesh$precision$log_det_precision else 0
+  tmb_data
 }
 
 build_known_precision_mu_structure <- function(term, data, env) {
@@ -18543,16 +18678,22 @@ add_covariance_probe_parameter <- function(spec) {
   has_phylo_mu2 <- is.list(spec$structured) &&
     is.list(spec$structured$phylo_mu2) &&
     isTRUE(spec$structured$phylo_mu2$has)
+  has_mesh_spatial_mu <- is.list(spec$structured) &&
+    is.list(spec$structured$mesh_spatial_mu) &&
+    isTRUE(spec$structured$mesh_spatial_mu$has)
+  if (has_phylo_mu2 && has_mesh_spatial_mu) {
+    cli::cli_abort("Internal error: mesh and second node-indexed fields cannot share {.code u_phylo2}.")
+  }
   if (is.null(spec$start$u_phylo2)) {
     spec$start$u_phylo2 <- 0
   }
   if (is.null(spec$start$log_sd_phylo2)) {
     spec$start$log_sd_phylo2 <- 0
   }
-  if (is.null(spec$map$u_phylo2) && !has_phylo_mu2) {
+  if (is.null(spec$map$u_phylo2) && !has_phylo_mu2 && !has_mesh_spatial_mu) {
     spec$map$u_phylo2 <- factor(NA)
   }
-  if (is.null(spec$map$log_sd_phylo2) && !has_phylo_mu2) {
+  if (is.null(spec$map$log_sd_phylo2) && !has_phylo_mu2 && !has_mesh_spatial_mu) {
     spec$map$log_sd_phylo2 <- factor(NA)
   }
   spec
@@ -20335,6 +20476,16 @@ split_tmb_sdpars <- function(par, spec) {
     )
     out$mu <- c(out$mu, sd_phylo2)
   }
+  if (isTRUE(spec$structured$mesh_spatial_mu$has)) {
+    # This is the fixed-kappa GMRF scale, not a spatially constant marginal
+    # SD after projection through A.  Keep it in sdpars for a stable public
+    # extractor while the name records the fitted spatial term.
+    mesh_label <- spec$structured$mesh_spatial_mu$label
+    out$mu <- c(
+      out$mu,
+      stats::setNames(exp(unname(par$log_sd_phylo2[[1L]])), mesh_label)
+    )
+  }
   out
 }
 
@@ -20761,6 +20912,22 @@ split_tmb_random_effects <- function(par, spec) {
       values = values2,
       latent = latent2,
       terms = terms2
+    )
+  }
+  if (isTRUE(spec$structured$mesh_spatial_mu$has)) {
+    mesh <- spec$structured$mesh_spatial_mu
+    latent <- unname(par$u_phylo2[seq_len(mesh$n_re)])
+    names(latent) <- mesh$node_labels
+    projected <- as.numeric(mesh$projection %*% latent)
+    names(projected) <- as.character(mesh$observation_ids)
+    terms <- list(latent)
+    names(terms) <- mesh$label
+    out$spatial_mu <- list(
+      values = latent,
+      latent = latent,
+      terms = terms,
+      projected = projected,
+      kappa_fixed = mesh$kappa_fixed
     )
   }
   out

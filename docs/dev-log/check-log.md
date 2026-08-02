@@ -92025,3 +92025,21 @@ Shinichi grants a separate Gate A compute approval.
   missing-response, association, Lane A/C, or external dashboard overlay
   changed. See
   `docs/dev-log/after-task/2026-08-02-b4-ci-c4-canonical-integration.md`.
+
+## 2026-08-02: Fixed-kappa mesh/SPDE Gaussian spatial contract
+
+- Added explicit geographic-to-projected coordinate preprocessing and a
+  fixed-kappa `drmTMBmesh` helper using `fmesher` FEM matrices and an
+  observation-to-vertex `A_st` projection. The existing dense `coords =`
+  spatial route remains separate and passed its focused regression tests.
+- The first fitted mesh path is intentionally restricted to univariate Gaussian
+  `mu` intercepts with `sigma ~ 1`. Its TMB field is `A_st %*% omega` with
+  `Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2`; kappa is fixed configuration and
+  the reported target is a GMRF field scale, not a universal projected marginal
+  SD or a range estimate.
+- Mesh contracts cover projected CRS validation, fixed positive kappa, FEM and
+  sparse-projection invariants, parser boundaries, real minimal fits, row-order
+  alignment, extractors, and an explicitly profile-unready field-scale target.
+  `devtools::test(filter = "mesh")`, the Gaussian location-scale family, and
+  the bivariate dense-spatial REML regression family passed. A local pkgdown
+  render confirmed the updated spatial-models reader article.
