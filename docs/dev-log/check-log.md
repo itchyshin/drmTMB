@@ -92120,3 +92120,9 @@ Shinichi grants a separate Gate A compute approval.
   the central DATA, group-validation, gradient, and stale row/site wording
   repairs. Neither review found a C++ likelihood, normalization, scaling,
   projection, or sparse-algebra defect.
+- Because the builder repair changed the authenticated `R/drmTMB.R` blob, the
+  fail-closed C17/C14 test correctly rejected the prior receipt. An isolated
+  Totoro checkout at `4bec20741` reran the frozen 12-fit compatibility control:
+  `mc-0568`, `mc-0569`, and `mc-0576` each passed 4/4. The active C17-C2
+  manifest now names the complete exact-source receipt; it does not promote a
+  mesh or model-15 capability.

@@ -87,6 +87,11 @@ group as a node index. Noether corrected the symbolic scale name and its use
 throughout the normalized prior. The repaired tree received Gauss and Noether
 GO verdicts.
 
+That R-source repair invalidated the model-15 compatibility blob by design. A
+fresh isolated Totoro checkout at `4bec20741` retained all 12 frozen attempts;
+`mc-0568`, `mc-0569`, and `mc-0576` passed 4/4, and the C17-C2 manifest now
+authenticates that exact source.
+
 ## Team Learning
 
 For a new structured route, update every status inventory and execute its
