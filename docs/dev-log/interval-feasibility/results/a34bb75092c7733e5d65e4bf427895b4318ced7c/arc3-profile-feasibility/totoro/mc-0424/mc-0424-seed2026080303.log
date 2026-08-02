@@ -1,33 +1,6 @@
-Warning messages:
-1: In nlminb(start, newfn, newgr, control = control) :
-  NA/NaN function evaluation
-2: In nlminb(start, newfn, newgr, control = control) :
-  NA/NaN function evaluation
-3: In nlminb(start, newfn, newgr, control = control) :
-  NA/NaN function evaluation
-4: In nlminb(start, newfn, newgr, control = control) :
-  NA/NaN function evaluation
-5: In nlminb(start, newfn, newgr, control = control) :
-  NA/NaN function evaluation
-6: In nlminb(start, newfn, newgr, control = control) :
-  NA/NaN function evaluation
-7: In regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
-  collapsing to unique 'x' values
-  cell_id                        target_id estimator
-1 mc-0424 mc-0424::sd:sigma:relmat(1 | id)        ML
-                   conf_status  estimate lower upper convergence pdHess
-1 profile_interval_unavailable 0.5168309    NA    NA           0   TRUE
-  profile_boundary trace_complete promotion_eligible
-1             TRUE           TRUE              FALSE
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            failure_reason
-1 Could not extract a profile confidence interval for target\n"sd:sigma:relmat(1 | id)".\nℹ The profile may not cross the likelihood-ratio threshold on both sides.\nℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object\n  interactively.\nℹ This can indicate a boundary, one-sided, non-monotone, or\n  failed-inner-optimization profile.\n✖ Original error: need at least two non-NA values to interpolate\nCaused by error in `approx()`:\n! need at least two non-NA values to interpolate
-Arc 2 contract FAILED for mc-0424 (stage=artifact_write): Could not extract a profile confidence interval for target
-"sd:sigma:relmat(1 | id)".
-ℹ The profile may not cross the likelihood-ratio threshold on both sides.
-ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
-  interactively.
-ℹ This can indicate a boundary, one-sided, non-monotone, or
-  failed-inner-optimization profile.
-✖ Original error: need at least two non-NA values to interpolate
-Caused by error in `approx()`:
-! need at least two non-NA values to interpolate
+  cell_id                        target_id estimator conf_status estimate
+1 mc-0424 mc-0424::sd:sigma:relmat(1 | id)        ML     profile 0.396217
+      lower     upper convergence pdHess profile_boundary trace_complete
+1 0.2705842 0.5530095           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               
