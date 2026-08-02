@@ -118,7 +118,7 @@ property and remain unchanged.
 | --- | --- | --- | --- | --- |
 | C17 PR #894, merge `c8e04258d` | yes | yes | #894 merged | LANDED |
 | `codex/lane-c-c17c2-coi-slope@b62b6427` | yes | yes | #894 merged; source retained | LANDED |
-| `codex/handover-2026-08-02-c18-to-claude` | yes after handover commit | yes after push | docs-only PR; do not auto-merge | CARRIED-OVER — Claude reads this branch/PR until human merge |
+| `codex/handover-2026-08-02-c18-to-claude@6bb4f6a71` | yes | yes | #895 open; do not auto-merge | CARRIED-OVER — Claude reads this branch/PR until human merge |
 | PR #893 / `codex/drmtmb-spatial-mesh` | foreign | foreign | #893 open draft | CARRIED-OVER — mesh owner; do not edit or merge |
 | PR #891 / mesh handover | foreign | foreign | #891 open | CARRIED-OVER — mesh owner; do not edit or merge |
 | PR #858 Lane B E0 | foreign | foreign | #858 open | CARRIED-OVER — preserve Lane B |

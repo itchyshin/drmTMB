@@ -43,6 +43,7 @@ files, direct promotion of collapsed rows from q1 evidence, and an assumed
 - `gh pr view 891`: docs-only mesh handover, both required checks green.
 - `gh pr view 893`: genuine shared-source overlap; `os-matrix` green and
   `ubuntu-latest (release)` failed at inspection time.
+- Handover PR #895 opened from the pushed docs-only branch; not merged.
 - `git diff --check`: pass before final staging; rerun after this report.
 - File existence/read-back for the snapshot, lane board, and handover: pass.
 
@@ -82,9 +83,9 @@ Rd, pkgdown navigation, or generated site artifact changed.
 
 ## 7a. Issue Ledger
 
-Inspected overlapping open PRs #893, #891, #858, and #869. No issue or PR was
-commented on, opened, closed, merged, or modified because this task only creates
-the handover lane and must not claim foreign work.
+Inspected overlapping open PRs #893, #891, #858, and #869. Opened docs-only PR
+#895 for this handover. No foreign PR was commented on, closed, merged, or
+modified.
 
 ## 9. What Did Not Go Smoothly
 
@@ -116,10 +117,9 @@ simple `330 + 10` ceiling would be misleading.
 
 ## Next Actions
 
-1. Commit and push the four explicit handover paths.
-2. Open a docs-only PR; do not auto-merge.
-3. Start a fresh Claude session and paste the exact prompt in the handover.
-4. Claude performs only the `OWED` read-only Ultra Plan steps until approval and
+1. Let PR #895 run CI; do not auto-merge it.
+2. Start a fresh Claude session and paste the exact prompt in the handover.
+3. Claude performs only the `OWED` read-only Ultra Plan steps until approval and
    the #893 overlap gate clear.
 
 ## 12. Cross-Product Coverage
