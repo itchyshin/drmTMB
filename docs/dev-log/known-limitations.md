@@ -513,12 +513,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   boundaries, `zero_one_beta()` implements fixed-effect `zoi` and `coi`.
   Exact ordinary ML point-fit-only exceptions additionally admit one `zoi`
   random intercept, one same-raw-symbol slope
-  `zoi ~ x + (0 + x | id)`, or one `coi ~ 1 + (1 | id)` random intercept.
-  The `coi` evidence is limited to population-level point recovery at `M = 64`
-  with 50 observations per group; conditional modes can be weak in groups with
-  sparse observed atoms. Direct profiles, intervals, coverage, other atom
-  shapes, `coi` slopes, and covariance among bounded-response distributional
-  parameters remain unavailable. Beta-binomial evidence does
+  `zoi ~ x + (0 + x | id)`, one `coi ~ 1 + (1 | id)` random intercept, or one
+  matching-raw-symbol `coi ~ x + (0 + x | id)` random slope. The `coi`
+  evidence is limited to population-level point recovery at `M = 64` with 50
+  observations per group; conditional modes can be weak in groups with sparse
+  observed atoms or weak boundary-row predictor spread. Direct profiles,
+  intervals, coverage, other atom shapes, transformed or mismatched slopes,
+  and covariance among bounded-response distributional parameters remain
+  unavailable. Beta-binomial evidence does
   not promote plain binomial interval calibration.
 - Univariate Bernoulli/binomial logit models are implemented with
   `family = stats::binomial(link = "logit")`. The first path supports explicit

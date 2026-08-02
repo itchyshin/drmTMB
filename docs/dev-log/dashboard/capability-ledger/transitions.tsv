@@ -583,6 +583,7 @@ tr-mc-0575-seed	mc-0575		backlog	ev-mc-0575-legacy	MR-T0 import of the unchanged
 tr-mc-0576-seed	mc-0576		backlog	ev-mc-0576-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
 tr-mc-0577-seed	mc-0577		backlog	ev-mc-0577-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
 tr-mc-0578-seed	mc-0578		backlog	ev-mc-0578-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
+tr-mc-0578-c17c2-promote	mc-0578	backlog	verified	ev-mc-0578-c17c2-contract;ev-mc-0578-c17c2-compatibility;ev-mc-0578-c17c2-recovery;ev-mc-0578-c17c2-boundary-spread-warning	Authenticated exact-source compatibility, independent full-likelihood oracle, four-of-four M=64 population recovery, external comparator, and documented boundary-row spread warning support only the same-raw-symbol ordinary coi q1 slope at point_fit_recovery.	Codex C17-C2	ac86a6429f67b738d9b2e21072b109c9c7681b79	2026-08-02
 tr-mc-0579-seed	mc-0579		backlog	ev-mc-0579-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
 tr-mc-0580-seed	mc-0580		backlog	ev-mc-0580-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11
 tr-mc-0581-seed	mc-0581		backlog	ev-mc-0581-legacy	MR-T0 import of the unchanged 668-cell census	Codex MR-T0	095409c0231d5f14e9abd4a0d986ff7486741e01	2026-07-11

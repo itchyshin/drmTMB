@@ -153,8 +153,9 @@ remain consistent with the rest of `drmTMB`.
   ordinary unlabelled `mu` random intercepts and independent numeric slopes are
   recovery-grade. Exact ordinary ML point-fit-only exceptions additionally
   admit the separately evidenced `sigma`/`zoi` q1 intercepts and matching-raw-
-  symbol slopes, plus one exact point-fit-only `coi ~ 1 + (1 | id)` intercept;
-  `coi` slopes, other atom slopes, joint/correlated atom
+  symbol slopes, plus exact point-fit-only `coi ~ 1 + (1 | id)` and
+  same-raw-symbol `coi ~ x + (0 + x | id)` routes; transformed or mismatched
+  atom slopes, other atom shapes, joint/correlated atom
   effects, and broader structured forms remain planned.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
 - `beta_binomial()`: implemented for counts of successes out of trials with

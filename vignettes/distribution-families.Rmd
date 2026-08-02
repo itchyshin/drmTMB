@@ -58,7 +58,7 @@ quantity each `sigma` formula models.
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | `mu` random intercepts/slopes and a `sigma` random intercept are fitted; its exact ordinary log-`sigma` intercept domain is inference-ready with caveats at true SD 0.40, `n_each=12`, and `M >= 32` (`M=16` borderline); `sigma` slopes and bivariate models are planned |
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | ordinary `mu` random intercepts and independent slopes are fitted; the exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; `nu ~ 1` remains intercept-only and other distributional random effects are planned |
 | Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | ordinary `mu` random intercepts/slopes and exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates are fitted; exact 0/1 boundary values use `zero_one_beta()` |
-| Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | ordinary `mu` random intercepts and independent slopes are fitted; exact ordinary `zoi` q1 intercept and same-raw-symbol slope routes plus one exact `coi` q1 intercept are fitted at point-fit recovery only; `coi` slopes and broader atom random effects are planned |
+| Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | ordinary `mu` random intercepts and independent slopes are fitted; exact ordinary `zoi` q1 intercept/same-raw-symbol slope plus `coi` q1 intercept/same-raw-symbol slope routes are fitted at point-fit recovery only; broader atom random effects are planned |
 | Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | ordinary `mu` random intercepts and independent slopes are fitted; use `cbind(successes, failures)` for trial totals |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma` random effects and bivariate models planned |
 | Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts and independent slopes plus q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` `mu` intercept-plus-one-slope routes are fitted; one diagnostic-only q=1 `zi ~ spatial(1 | id, coords = coords)` intercept is also fitted; pure, multiple, or labelled structured slopes and other `zi` random effects are planned |
@@ -482,13 +482,15 @@ response, and `predict(fit, dpar = "coi")` returns the probability that a
 boundary response is exactly 1. `fitted(fit)` returns the unconditional mean
 including boundary mass. Ordinary unlabelled `mu` random intercepts and
 independent numeric slopes are fitted at recovery grade. Exact ordinary
-`zoi ~ 1 + (1 | id)`, same-raw-symbol `zoi ~ x + (0 + x | id)`, and
-`coi ~ 1 + (1 | id)` q1 routes are also fitted at point-fit recovery only.
-For the `coi` intercept, retained population-level recovery used `M = 64` and
-50 observations per group; sparse observed zeroes or ones can weaken
-individual conditional modes, so inspect atom counts before interpreting them.
+`zoi ~ 1 + (1 | id)`, same-raw-symbol `zoi ~ x + (0 + x | id)`,
+`coi ~ 1 + (1 | id)`, and same-raw-symbol
+`coi ~ x + (0 + x | id)` q1 routes are also fitted at point-fit recovery
+only. For both `coi` routes, retained population-level recovery used `M = 64`
+and 50 observations per group; sparse observed atoms or weak boundary-row
+predictor spread can weaken individual conditional modes, so inspect both
+before interpreting them.
 Their limitations are reported as warnings: direct profiles, intervals,
-coverage, joint atom effects, `coi` slopes, broader `zoi` forms, structured
+coverage, joint atom effects, transformed or mismatched atom slopes, structured
 effects, known covariance, denominator syntax, and bivariate bounded-response
 models remain unavailable.
 

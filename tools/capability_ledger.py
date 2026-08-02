@@ -59,15 +59,15 @@ C14_RECEIPT_EQUIVALENCE_PATHS = (
     "R/drmTMB.R::zero_one_beta_tmb_and_extractors",
     "src/drmTMB.cpp::model_type_15",
 )
-C17C1_C14_CURRENT_SOURCE_COMPATIBILITY = (
-    LEDGER / "c17c1-c14-current-source-compatibility.tsv"
+C17_C14_CURRENT_SOURCE_COMPATIBILITY = (
+    LEDGER / "c17c2-c14-current-source-compatibility.tsv"
 )
-C17C1_C14_COMPATIBLE_SEEDS = {
+C17_C14_COMPATIBLE_SEEDS = {
     "mc-0568": {str(seed) for seed in range(2026073401, 2026073405)},
     "mc-0569": {str(seed) for seed in range(2026073501, 2026073505)},
     "mc-0576": {str(seed) for seed in range(2026073701, 2026073705)},
 }
-C17C1_C14_SOURCE_FILES = (
+C17_C14_SOURCE_FILES = (
     "R/drmTMB.R",
     "R/methods.R",
     "src/drmTMB.cpp",
@@ -92,7 +92,7 @@ ASSOCIATION_COUNT = 6
 # C4 moves eleven frozen point-fit cells and twelve diagnostic-only cells; this
 # is not a blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 80
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 81
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
@@ -754,9 +754,9 @@ def check_c14_receipt_equivalence() -> None:
     if ids != expected_ids or len(rows) != len(expected_ids):
         raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
     current_fingerprint = c14_model15_source_fingerprint()
-    c17c1_bridge = current_fingerprint != C14_RECEIPT_EQUIVALENCE_FINGERPRINT
-    if c17c1_bridge:
-        check_c17c1_c14_current_source_compatibility(current_fingerprint)
+    c17_bridge = current_fingerprint != C14_RECEIPT_EQUIVALENCE_FINGERPRINT
+    if c17_bridge:
+        check_c17_c14_current_source_compatibility(current_fingerprint)
     eligible_ids = set()
     for row in rows:
         if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
@@ -789,42 +789,42 @@ def check_c14_receipt_equivalence() -> None:
     print(
         f"C14 receipt equivalence: OK ({len(eligible_ids)} eligible, "
         f"{len(rows) - len(eligible_ids)} source-different retained receipts"
-        + ("; C17-C1 current-source compatibility PASS" if c17c1_bridge else "")
+        + ("; C17 current-source compatibility PASS" if c17_bridge else "")
         + ")"
     )
 
 
-def check_c17c1_c14_current_source_compatibility(
+def check_c17_c14_current_source_compatibility(
     current_fingerprint: str,
 ) -> None:
-    """Authenticate C17-C1's narrow current-source bridge for C14 receipts.
+    """Authenticate C17's narrow current-source bridge for C14 receipts.
 
     The historical C14 target and raw receipts stay immutable. This bridge
-    accepts only the separately authenticated C17-C1 model-15 fingerprint and
+    accepts only the separately authenticated latest C17 model-15 fingerprint and
     only when all retained attempts for the three previously promoted ordinary
     routes pass with the new ``coi`` carrier inert.
     """
-    rows = read_tsv(C17C1_C14_CURRENT_SOURCE_COMPATIBILITY)
-    expected_ids = set(C17C1_C14_COMPATIBLE_SEEDS)
+    rows = read_tsv(C17_C14_CURRENT_SOURCE_COMPATIBILITY)
+    expected_ids = set(C17_C14_COMPATIBLE_SEEDS)
     if len(rows) != len(expected_ids) or {row["cell_id"] for row in rows} != expected_ids:
         raise SystemExit(
-            "C17-C1 compatibility manifest must name exactly mc-0568, "
+            "C17 compatibility manifest must name exactly mc-0568, "
             "mc-0569, and mc-0576"
         )
 
     expected_paths = ";".join(C14_RECEIPT_EQUIVALENCE_PATHS)
-    expected_source_files = ";".join(C17C1_C14_SOURCE_FILES)
-    runner_path = ROOT / C17C1_C14_SOURCE_FILES[-1]
+    expected_source_files = ";".join(C17_C14_SOURCE_FILES)
+    runner_path = ROOT / C17_C14_SOURCE_FILES[-1]
     runner_hash = hashlib.sha256(runner_path.read_bytes()).hexdigest()
 
     for row in rows:
         cell_id = row["cell_id"]
         if row["compared_paths"] != expected_paths:
-            raise SystemExit(f"{cell_id}: wrong C17-C1 compatibility path set")
+            raise SystemExit(f"{cell_id}: wrong C17 compatibility path set")
         if row["source_fingerprint"] != current_fingerprint:
             raise SystemExit(f"{cell_id}: current model-15 fingerprint differs")
         if row["source_files"] != expected_source_files:
-            raise SystemExit(f"{cell_id}: wrong C17-C1 authenticated source-file set")
+            raise SystemExit(f"{cell_id}: wrong C17 authenticated source-file set")
         if (
             row["attempts"] != "4"
             or row["passed"] != "4"
@@ -838,18 +838,18 @@ def check_c17c1_c14_current_source_compatibility(
         provenance_path = ROOT / row["provenance_path"]
         summary_path = ROOT / row["summary_path"]
         if not all(path.is_file() for path in (raw_path, provenance_path, summary_path)):
-            raise SystemExit(f"{cell_id}: C17-C1 compatibility receipt is unavailable")
+            raise SystemExit(f"{cell_id}: C17 compatibility receipt is unavailable")
 
         provenance = {
             item["key"]: item["value"] for item in read_tsv(provenance_path)
         }
         if provenance.get("run_status") != "COMPLETE":
-            raise SystemExit(f"{cell_id}: C17-C1 compatibility run is incomplete")
+            raise SystemExit(f"{cell_id}: C17 compatibility run is incomplete")
         if provenance.get("source_sha") != row["current_source_sha"]:
             raise SystemExit(f"{cell_id}: compatibility source SHA differs")
         if provenance.get("runner_sha256") != row["runner_sha256"]:
             raise SystemExit(f"{cell_id}: compatibility runner hash differs")
-        for source_file in C17C1_C14_SOURCE_FILES:
+        for source_file in C17_C14_SOURCE_FILES:
             blob = subprocess.run(
                 ["git", "hash-object", source_file],
                 cwd=ROOT,
@@ -866,7 +866,7 @@ def check_c17c1_c14_current_source_compatibility(
         if (
             len(raw_rows) != 4
             or {item["seed"] for item in raw_rows}
-            != C17C1_C14_COMPATIBLE_SEEDS[cell_id]
+            != C17_C14_COMPATIBLE_SEEDS[cell_id]
         ):
             raise SystemExit(f"{cell_id}: compatibility seed set differs")
         for attempt in raw_rows:
@@ -1148,14 +1148,15 @@ def validate(
     # exact ordinary zero-one-beta zoi same-symbol q1 slope after authenticated
     # recovery and fresh Fisher/Noether/Rose GO. C17-C1 promotes the exact coi
     # q1 random intercept with a documented sparse-atom conditional-mode warning.
-    # The remaining 18 rows
+    # C17-C2 promotes the exact coi same-raw-symbol q1 random slope while retaining
+    # weak boundary-row predictor spread as a conditional-mode warning. The remaining 17 rows
     # are the actionable implementation backlog, not a claim that every
     # boundary is mathematically impossible.
     expected = Counter(
         {
-            "implemented": 329,
+            "implemented": 330,
             "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
-            "not_implemented": 18,
+            "not_implemented": 17,
         }
     )
     if status_counts != expected:
@@ -1165,9 +1166,10 @@ def validate(
     # ten-leaf promotion, B3's exact four q6 mu2 target promotions, C17-B's
     # exact zero-one-beta zoi same-symbol q1 slope promotion, C1's exact
     # 24-cell promotion, C2's exact 25-cell promotion to interval feasible,
-    # and C17-C1's exact zero-one-beta coi q1 random-intercept promotion.
-    # C3 then promotes 36 named cells and C4 promotes eleven more frozen
-    # point-fit cells (with twelve diagnostic-only companions).
+    # C3's exact 36-cell and C4's exact 23-cell promotions, C17-C1's exact
+    # zero-one-beta coi q1 random-intercept promotion, and C17-C2's exact
+    # same-raw-symbol coi q1 random-slope promotion. C4 moves eleven frozen
+    # point-fit cells and twelve diagnostic-only companions.
     # Approved inserts take a higher source_order and so cannot disturb this
     # number; every frozen-cell promotion needs a named
     # transition and evidence receipt.
