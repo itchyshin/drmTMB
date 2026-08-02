@@ -27,7 +27,7 @@ signal-bearing DGP (`tools/arc2-phylo-sigma-fixtures.R`, `n_tip = 60`, `n_each =
 satisfies the same contract 3/3, with the true value inside all three intervals. Had the manifest been
 followed, this cell would have been recorded as a permanent capability STOP.
 
-All nine runs: `convergence = 0`, `pdHess = TRUE`, `profile_boundary = FALSE`, `clamp_limited = FALSE`,
+All eighteen runs: `convergence = 0`, `pdHess = TRUE`, `profile_boundary = FALSE`, `clamp_limited = FALSE`,
 `trace_complete = TRUE`, `conf_status = "profile"`. True values: rho12 = 0.4; phylo SD = 0.6 (all three
 mc-0274 intervals contain it); mc-0263's x-coefficient on sigma is exactly 0.
 
@@ -44,19 +44,22 @@ where the asymptotics are non-regular. That distinction is what separates mc-026
 mc-0277/mc-0283 (withheld), and it is recorded in the claim boundary so no reader infers recovery.
 
 **The frozen-census guard was strengthened, not relaxed.** Promoting frozen cells required moving
-`FROZEN_CENSUS_POINT_FIT_RECOVERY` 77 → 74, following Arc 1's own precedent (`1b6fd3dbd`, 82 → 77).
+`FROZEN_CENSUS_POINT_FIT_RECOVERY` 77 → 71, following Arc 1's own precedent (`1b6fd3dbd`, 82 → 77).
 Rather than only lowering the number, `ARC2_TARGETS` now binds each promoted cell to its exact target,
-evidence row, and transition. Verified adversarially: flipping a fourth frozen cell still fails
-`--check`.
+evidence row, transition, and — where the receipts come from a later lane commit — its own `source_sha`.
+Verified adversarially at every step: flipping one extra frozen cell always fails `--check`.
 
-**Rejected:** promoting mc-0013/mc-0015 (pass locally but on an 8-individual pedigree; mc-0013 estimates
-0.280 against a true 0.55). Rejected: recording mc-0277/mc-0283 as capability STOPs (see §9).
+**A point-fit gate belongs ahead of every profile.** mc-0013/mc-0015 initially passed the interval
+contract on an 8-individual pedigree while mc-0013 recovered 0.280 against a true 0.55. Finite, ordered,
+unclamped endpoints around a badly biased estimate are not evidence. They were held, rebuilt at 40
+individuals, and only then promoted. **Rejected:** recording mc-0277/mc-0283 as capability STOPs (§9).
 
 ## 4. Files Touched
 
 `tools/run-arc2-*`, `tools/arc2_*`, `tools/capability_ledger.py` (guard), `tools/tests/test_capability_ledger.py`,
 the three ledger TSVs, `parity-triage.tsv`, and the regenerated census/surface artifacts, plus receipts
-under `docs/dev-log/interval-feasibility/results/83055ec5.../arc2-profile-feasibility/totoro/`.
+under `docs/dev-log/interval-feasibility/results/{83055ec5,43b4b2a7}.../arc2-profile-feasibility/totoro/`
+(two source commits: the first four cells at the arc base, mc-0013/mc-0015 at the rebuilt-fixture tip).
 
 **No `R/`, `src/`, `tests/testthat/`, `NEWS.md`, `README.md`, or vignette file was changed.** Package
 behaviour is untouched, which is why no `R CMD check` was required for this tranche.
@@ -65,8 +68,9 @@ behaviour is untouched, which is why no `R CMD check` was required for this tran
 
 - `python3 -B tools/capability_ledger.py --check` → `OK (30 generated outputs)`
 - `python3 -m unittest tools.tests.test_capability_ledger tools.tests.test_arc1_profile_reconcilers` → 53 tests, `OK`
-- Per-cell reconciliation → `3/3 PASS` for each of the three cells
-- Adversarial guard check → a fourth promotion fails: *"frozen census point_fit_recovery changed: 73 (expected 74)"*
+- Per-cell reconciliation → `3/3 PASS` for each of the six cells
+- Adversarial guard check, re-run after each promotion batch → one extra promotion always fails, most
+  recently *"frozen census point_fit_recovery changed: 70 (expected 71)"*
 - `git diff --check` → clean
 - Fisher: GO per target, with required claim wording. Rose: GO-WITH-CHANGES, all three blocking items addressed.
 
