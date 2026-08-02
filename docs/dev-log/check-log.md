@@ -92053,3 +92053,32 @@ Shinichi grants a separate Gate A compute approval.
   missing-response, q12, B4-source reuse, and public-claim expansion remain
   outside the slice. See
   `docs/dev-log/after-task/2026-08-02-arc1-first-interval-feasibility-cohort.md`.
+
+## 2026-07-30 — directed to the drmTMB team: gllvmTMB missing-data cross-brief
+
+Cross-package brief filed at
+`docs/dev-log/2026-07-30-gllvmtmb-missing-data-cross-brief.md`, with three
+companion issues (#865 bivariate row-vs-cell, #866 `include` family scope,
+#867 `engine=` signature).
+
+**No drmTMB code changed and no drmTMB fits were run.** All measurements are
+from gllvmTMB; every statement about drmTMB is a quotation from its own docs and
+should be read as a question.
+
+Headline for this team: gllvmTMB expected to find silent row-dropping in its
+missing-data layer and found the opposite — the machinery was cell-wise
+full-information and the *documentation* was what erred, in the under-claiming
+direction. `drop` and `include` reach the same optimum across 9 response
+families (max |dlogLik| 1.3e-9) because the mechanism is architectural
+(per-row conditional independence), not family-specific. That is why the
+Gaussian-only scope statement here is worth re-checking (#866).
+
+Also recorded: three bug classes transferred from gllvmTMB and checked CLEAN
+here (`offset()` handling, `docs/` paths under check, the `predict_missing()`
+attribution) — so nobody re-runs them.
+
+The transferable part is section 4, the traps: a prior claims audit had already
+passed this surface, so only *running fits* found anything; `devtools::test()`
+green is not evidence for path- or namespace-related bugs; prove an engine
+engaged before comparing policies under it; and Bernoulli, not Gaussian, is the
+family that can discriminate an engine that improves on Laplace.

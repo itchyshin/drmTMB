@@ -415,27 +415,36 @@ class CapabilityLedgerTests(unittest.TestCase):
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
         # promotion, the exact 24/25/36/23-cell B4-CI C1--C4 interval
         # promotions, the exact C17-C1 mc-0570 and C17-C2 mc-0578
-        # promotions, the target-specific Arc 1 mc-0260/mc-0262
-        # promotions, the target-specific Arc 1 mc-0266 and mc-0269
-        # promotions, and C18's seven exact q1 structured zero-one-beta
-        # ATOM (zoi/coi) promotions (mc-0603, mc-0604, mc-0605, mc-0607,
-        # mc-0613, mc-0614, mc-0617; mc-0615 stays not promoted).
+        # promotions, and the target-specific Arc 1 mc-0260/mc-0262
+        # promotions, plus the target-specific Arc 1 mc-0266 and mc-0269
+        # promotions, plus the target-specific Arc 2 mc-0186, mc-0263, and
+        # mc-0274 promotions.
+        # C18 then adds seven exact q1 structured zero-one-beta ATOM
+        # (zoi/coi) promotions (mc-0603, mc-0604, mc-0605, mc-0607, mc-0613,
+        # mc-0614, mc-0617); mc-0615 stays not promoted.
         # Future changes require a
         # named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
+        # This asserts against the module constant rather than a literal so the
+        # test and the validator cannot drift apart; capability_ledger.py binds
+        # each promoted frozen cell to its exact target in ARC1_*/ARC2_TARGETS,
+        # so lowering the constant alone still fails there.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            84,
+            ledger.FROZEN_CENSUS_POINT_FIT_RECOVERY,
         )
         # The TOTAL may differ from the frozen count only through approved row inserts.
         # mc-0260m is now interval_feasible for one exact pooled-effect target, so it no
         # longer contributes to this total. Checking both numbers catches a promotion
         # hidden behind a simultaneous insert, which either number alone would miss.
+        # Deliberately a literal, NOT the module constant: tying both assertions to
+        # one constant would destroy exactly the independence this check exists for.
+        # 77 -> 71 for the six Arc 2 promotions (mc-0186/0263/0274/0277 + mc-0013/0015).
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            84,
+            78,
         )
 
         by_id = {row["cell_id"]: row for row in model}

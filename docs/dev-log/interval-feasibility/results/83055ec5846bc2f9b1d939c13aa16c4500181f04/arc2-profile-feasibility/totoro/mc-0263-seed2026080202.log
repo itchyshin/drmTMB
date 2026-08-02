@@ -1,0 +1,6 @@
+  cell_id              target_id estimator conf_status    estimate      lower
+1 mc-0263 mc-0263::fixef:sigma:x      REML     profile -0.08122656 -0.2392002
+       upper convergence pdHess profile_boundary trace_complete
+1 0.07634547           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               
