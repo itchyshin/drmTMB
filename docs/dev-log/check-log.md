@@ -92179,3 +92179,16 @@ Shinichi grants a separate Gate A compute approval.
 - Opened gllvmTMB issue #904 to track its comparable absolute SPDE field-scale
   recovery, identifiability, and interval-evidence gap without widening either
   package's current model surface.
+- GitHub run `30760119838` correctly failed closed because the native-GMRF C++
+  edit changed the authenticated `src/drmTMB.cpp` blob. A fresh isolated
+  Totoro checkout at pushed head `ba5c1bcdb` reran the frozen model-15 control:
+  all 12 attempts passed, with `mc-0568`, `mc-0569`, and `mc-0576` each 4/4.
+  The active C17-C2 manifest now authenticates that exact receipt and current
+  source blobs; it does not promote a mesh or model-15 capability.
+- The same CI run caught the article's exact unit-string contract and two stray
+  plotting lines at EOF. The repaired article retains the unit-separated table,
+  uses `Response units per depth unit`, renders without emitted warnings, and
+  passed the 50-test capability-ledger suite.
+- Full local `devtools::check(args = "--no-manual", error_on = "never")`:
+  0 errors, 0 warnings, and two environmental notes (clock verification and
+  temporary `xcrun_db`).

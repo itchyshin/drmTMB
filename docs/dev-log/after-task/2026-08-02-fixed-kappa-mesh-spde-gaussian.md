@@ -122,9 +122,15 @@ throughout the normalized prior. The repaired tree received Gauss and Noether
 GO verdicts.
 
 That R-source repair invalidated the model-15 compatibility blob by design. A
-fresh isolated Totoro checkout at `4bec20741` retained all 12 frozen attempts;
-`mc-0568`, `mc-0569`, and `mc-0576` passed 4/4, and the C17-C2 manifest now
-authenticates that exact source.
+fresh isolated Totoro checkout at `4bec20741` retained all 12 frozen attempts.
+The later native-GMRF C++ repair invalidated the receipt again, also by design:
+GitHub CI rejected the old `src/drmTMB.cpp` blob before package checking. The
+final isolated checkout at `ba5c1bcdb` reran the frozen control; `mc-0568`,
+`mc-0569`, and `mc-0576` each passed 4/4, and the C17-C2 manifest now
+authenticates those exact source blobs. The same CI run exposed an exact
+article-unit string mismatch and two stray plotting lines at end of file;
+both reader-surface defects were removed without restoring the misleading
+shared quantitative axis.
 
 ## 10. Known Residuals
 
