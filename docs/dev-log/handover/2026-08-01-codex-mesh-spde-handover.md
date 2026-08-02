@@ -296,7 +296,7 @@ isolated worktree `/private/tmp/drmtmb-mesh-spde-handover-20260801` from
 
 | Artifact / branch | Committed | Pushed | PR | State |
 |---|---:|---:|---|---|
-| drmTMB `codex/drmtmb-mesh-spde-handover` | pending | pending | pending | CARRIED-OVER until this documentation PR is opened |
+| drmTMB `codex/drmtmb-mesh-spde-handover` | yes | yes | [#891](https://github.com/itchyshin/drmTMB/pull/891) open | CARRIED-OVER for human review; do not auto-merge |
 | gllvmTMB helper PR #886 / merge `01a3b110...` | yes | yes | #886 merged | LANDED source |
 | gllvmTMB spatial-guide PR #892 / merge `e51122c7...` | yes | yes | #892 merged | LANDED reader guide |
 
