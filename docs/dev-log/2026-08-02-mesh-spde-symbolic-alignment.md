@@ -11,10 +11,10 @@ same stochastic model.
 | Symbol in prose | Keyword / covstruct | DGP draw | Recovery extractor | Truth value |
 | --- | --- | --- | --- | --- |
 | `X_i beta` | ordinary fixed effects in `mu` | fixed linear predictor | `coef(fit)` | fitted |
-| `omega` | `spatial(1 \| site, mesh = mesh)` | mesh-vertex field | `ranef(fit, "spatial_mu")$latent` | planned until integration test |
-| `A omega` | mesh projection, never a node index | one barycentric projection row per retained observation | conditional `mu` contribution | planned until integration test |
+| `omega` | `spatial(1 \| site, mesh = mesh)` | mesh-vertex field | `ranef(fit, "spatial_mu")$latent` | fitted; local-fit capability only |
+| `A omega` | mesh projection, never a node index | one barycentric projection row per retained observation | conditional `mu` contribution | fitted and independently compared; local-fit capability only |
 | `Q(kappa_0)` | `mesh$spde$c0/g1/g2`, fixed `mesh$kappa` | `kappa_0^4 c0 + 2 kappa_0^2 g1 + g2` | internal contract only | fixed configuration, not an estimand |
-| `s = exp(log_sd)` | fixed-kappa GMRF field scale | positive precision-scale multiplier | `sdpars$mu[["spatial(1 | site)"]]` | planned until recovery smoke |
+| `s = exp(log_sd)` | fixed-kappa GMRF field scale | positive precision-scale multiplier | `sdpars$mu[["spatial(1 | site)"]]` | fitted; recovery gate blocked, not an inference claim |
 
 The fitted model is
 
