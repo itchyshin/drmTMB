@@ -92025,3 +92025,31 @@ Shinichi grants a separate Gate A compute approval.
   missing-response, association, Lane A/C, or external dashboard overlay
   changed. See
   `docs/dev-log/after-task/2026-08-02-b4-ci-c4-canonical-integration.md`.
+
+## 2026-08-02: Arc 1 current-source interval-feasibility cohort
+
+- Promoted only five exact targets from `point_fit_recovery` to
+  `interval_feasible`: `mc-0260::fixef:mu:x`,
+  `mc-0262::fixef:sigma:x`, `mc-0260m::fixef:mu:(Intercept)`, and
+  `mc-0266::sd:sigma:(1 | id)`, and
+  `mc-0269::sd:mu:(0 + x | id)` under Gaussian REML.
+- Retained 15/15 passing Totoro receipts with explicit source, estimator,
+  direct target, immutable fixture, runner, trace, and interval bindings. Fresh
+  semantic reconciliation equals the tracked tables byte-for-byte.
+- Retained `mc-0438` as a STOP: both current-source attempts converged but
+  returned nonfinite endpoints; Hessian diagnostics were deliberately not
+  requested and were not interpreted.
+- Froze the complete 82-cell source universe in
+  `docs/dev-log/interval-feasibility/arc0-candidate-manifest-c8e04258.md`:
+  5 promoted, 16 retained STOP, 18 remaining executable, 23 profile-fenced,
+  4 estimator/row-structure holds, and 16 q12-excluded; SHA-256
+  `c9bf43b167011a2b4f289ff24bd966cc688d29caf93b4f83317bdc60526f2ea2`.
+- The capability ledger reports 161 `interval_feasible` and 77
+  `point_fit_recovery` model cells. All 30 generated outputs, 53 Python tests,
+  the focused 861-pass R profile suite, and `git diff --check` pass. Six existing
+  legacy-syntax deprecation warnings remain in the R suite.
+- Fisher returned GO for all five exact targets. Rose's evidence concerns and
+  Grace's CI/provenance concern were repaired. Coverage, calibration,
+  missing-response, q12, B4-source reuse, and public-claim expansion remain
+  outside the slice. See
+  `docs/dev-log/after-task/2026-08-02-arc1-first-interval-feasibility-cohort.md`.

@@ -67,6 +67,7 @@ jobs:
         run: |
           python3 tools/capability_ledger.py --check
           python3 -m unittest tools/tests/test_capability_ledger.py
+          python3 -m unittest tools/tests/test_arc1_profile_reconcilers.py
           Rscript --no-init-file tools/check-capability-runtime.R
 
       - uses: r-lib/actions/check-r-package@v2
