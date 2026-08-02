@@ -1,0 +1,2 @@
+source_sha	runner_md5	status	convergence	pdHess	tau_hat	decision
+a8ea946cececa650371875e8c97a8567e358cb99	729e9f94654ee06dc2052deb3a358f74	fit_ok	0	TRUE	8.16498476790867e-05	BOUNDARY_DIAGNOSTIC_ONLY

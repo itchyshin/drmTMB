@@ -1,0 +1,2 @@
+cell_id	source_sha	runner_sha	status	convergence	pdHess	tau_hat	decision	error
+mc-0607	a8ea946cececa650371875e8c97a8567e358cb99	980033c54ab63651746a2eafe3ae3161	fit_ok	0	TRUE	5.86917076993214e-05	BOUNDARY_DIAGNOSTIC_ONLY	

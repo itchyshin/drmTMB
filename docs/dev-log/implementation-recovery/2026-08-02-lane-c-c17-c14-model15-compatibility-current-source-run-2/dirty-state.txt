@@ -1,0 +1,4 @@
+M R/drmTMB.R
+M R/profile.R
+M docs/design/248-zero-one-beta-structured-atom-q1-symbolic-alignment.md
+M tests/testthat/test-zero-one-beta.R
