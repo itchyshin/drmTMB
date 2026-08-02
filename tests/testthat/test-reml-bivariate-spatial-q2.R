@@ -423,7 +423,7 @@ test_that("bivariate spatial q2 REML keeps adjacent shapes rejected", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "mesh fitting is planned"
+    "Precomputed spatial mesh fitting requires the univariate Gaussian `mu` slice"
   )
   expect_error(
     drmTMB(

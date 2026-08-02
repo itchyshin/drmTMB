@@ -92098,3 +92098,9 @@ Shinichi grants a separate Gate A compute approval.
   `mc-0576`) and passed the frozen current-source compatibility rule. The
   C17-C2 manifest now points to that receipt; 50 ledger tests and the 50 mesh
   expectations pass on the rebased source.
+- GitHub R-CMD-check then exposed ten hand-built `TMB::MakeADFun()` fixtures
+  that bypass `drm_fit_spec()` and therefore lacked the new global mesh data
+  fields. The affected q4/q8, phylogenetic, and bivariate-REML fixtures now
+  supply the inert zero/empty mesh contract; the bivariate mesh rejection test
+  also asserts the current univariate-only diagnostic. The three focused
+  suites pass 410 expectations (0 failures), and the mesh suite remains 50/50.

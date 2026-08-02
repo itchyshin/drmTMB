@@ -717,6 +717,9 @@ test_that("hidden q=4 registry bridge feeds bivariate Gaussian likelihood", {
     allow_unimplemented = TRUE
   )
   tmb_data <- spec$tmb_data
+  # These low-level MakeADFun probes bypass drm_fit_spec(), which normally
+  # supplies inert global mesh fields for non-mesh models.
+  tmb_data <- drmTMB:::add_mesh_spatial_tmb_data(tmb_data, spec)
   tmb_data[names(cov_tmb)] <- cov_tmb
   theta <- c(0.12, -0.20, 0.08, 0.18, -0.14, 0.26)
   sd <- c(0.50, 0.35, 0.25, 0.30)
@@ -883,6 +886,9 @@ test_that("hidden q=4 bivariate likelihood can use TMB random effects", {
     allow_unimplemented = TRUE
   )
   tmb_data <- spec$tmb_data
+  # These low-level MakeADFun probes bypass drm_fit_spec(), which normally
+  # supplies inert global mesh fields for non-mesh models.
+  tmb_data <- drmTMB:::add_mesh_spatial_tmb_data(tmb_data, spec)
   tmb_data[names(cov_tmb)] <- cov_tmb
   tmb_data$model_type <- 95L
   tmb_data$re_cov_probe_theta <- theta
@@ -1100,6 +1106,9 @@ test_that("hidden q=4 bivariate likelihood recovers endpoint predictor signal", 
     allow_unimplemented = TRUE
   )
   tmb_data <- spec$tmb_data
+  # These low-level MakeADFun probes bypass drm_fit_spec(), which normally
+  # supplies inert global mesh fields for non-mesh models.
+  tmb_data <- drmTMB:::add_mesh_spatial_tmb_data(tmb_data, spec)
   tmb_data[names(cov_tmb)] <- cov_tmb
   tmb_data$model_type <- 95L
   tmb_data$re_cov_probe_theta <- theta
