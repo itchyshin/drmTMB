@@ -92067,3 +92067,7 @@ Shinichi grants a separate Gate A compute approval.
   source maps now name the current gllvmTMB PR #886 source paths, distinguish
   the protected dense `coords =` route from `A_st %*% omega`, and record the
   failed recovery gate rather than leaving the mesh route marked merely planned.
+- Added the missing mesh-specific `check_drm()` row: it reports the spatial
+  group, vertex count, fixed `kappa`, and raw GMRF field scale, while stating
+  the local-fit-only boundary. The contract test also exercises
+  `ranef(fit, "spatial_mu")`; the focused mesh suite passed 46 expectations.

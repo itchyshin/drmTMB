@@ -235,6 +235,7 @@ check_drm.drmTMB <- function(
     check_phylo_replication(object),
     check_phylo_mu_diagnostics(object),
     check_spatial_mu_diagnostics(object),
+    check_mesh_spatial_mu_diagnostics(object),
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
@@ -2905,6 +2906,37 @@ check_spatial_mu_diagnostics <- function(object) {
       weak_replication,
       weak_sd
     )
+  )
+}
+
+# Keep the mesh route distinct from the coordinate-spatial diagnostic above:
+# its field is projected from vertices and its reported scale is the raw GMRF
+# multiplier, not a coordinate-range or uniform marginal-SD estimate.
+check_mesh_spatial_mu_diagnostics <- function(object) {
+  mesh <- object$model$structured$mesh_spatial_mu
+  if (is.null(mesh) || !isTRUE(mesh$has)) {
+    return(NULL)
+  }
+  field_scale <- unname(object$sdpars$mu[[mesh$label]])
+  finite_positive <- length(field_scale) == 1L && is.finite(field_scale) &&
+    field_scale > 0
+  check_row(
+    "mesh_spatial_mu_diagnostics",
+    if (finite_positive) "note" else "error",
+    paste0(
+      "group=", mesh$group,
+      "; n_vertices=", mesh$n_re,
+      "; kappa_fixed=", format_check_number(mesh$kappa_fixed),
+      "; field_scale=", format_check_number(field_scale)
+    ),
+    if (finite_positive) {
+      paste(
+        "Fixed-kappa mesh spatial field is a projected GMRF field-scale fit",
+        "only; recovery, intervals, coverage, and range inference are not claimed."
+      )
+    } else {
+      "The fitted fixed-kappa mesh GMRF field scale is non-positive or non-finite; inspect convergence and the mesh contract."
+    }
   )
 }
 

@@ -49,6 +49,12 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
   expect_named(fit$random_effects, "spatial_mu")
   expect_length(fit$random_effects$spatial_mu$projected, nrow(dat))
   expect_identical(fit$random_effects$spatial_mu$kappa_fixed, 1 / 10000)
+  expect_length(ranef(fit, "spatial_mu")$projected, nrow(dat))
+  mesh_check <- check_drm(fit)
+  mesh_check <- mesh_check[mesh_check$check == "mesh_spatial_mu_diagnostics", , drop = FALSE]
+  expect_equal(nrow(mesh_check), 1L)
+  expect_match(mesh_check$value, "kappa_fixed=")
+  expect_match(mesh_check$message, "field-scale fit only")
   target <- profile_targets(fit)
   target <- target[target$parm == "sd:mu:spatial(1 | site)", , drop = FALSE]
   expect_identical(target$tmb_parameter, "log_sd_phylo2")
