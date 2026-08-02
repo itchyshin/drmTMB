@@ -80,6 +80,13 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
       drop(crossprod(residual, solve(marginal_cov, residual)))
   )
   expect_equal(fit$opt$objective, dense_nll, tolerance = 1e-7)
+  expect_error(
+    drmTMB(
+      bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
+      family = gaussian(), data = dat, REML = TRUE
+    ),
+    "REML = FALSE"
+  )
 })
 
 test_that("mesh projection follows retained model-row identifiers after permutation", {
@@ -140,4 +147,17 @@ test_that("fixed-kappa mesh smoke recovers an interior GMRF field scale", {
   expect_true(isTRUE(fit$sdr$pdHess))
   expect_gt(estimate, 1e-6)
   expect_lt(estimate, 4e-4)
+})
+
+test_that("mesh field-scale start calibration bounds projection solves", {
+  Q <- Matrix::Diagonal(4L)
+  A <- Matrix::sparseMatrix(
+    i = seq_len(80L), j = rep(seq_len(4L), length.out = 80L), x = 1,
+    dims = c(80L, 4L)
+  )
+  mesh <- list(projection = A, precision = list(precision = Q))
+  expect_equal(
+    drmTMB:::mesh_spatial_field_scale_start(mesh, rep(c(0, 1), 40L)),
+    0.25 * stats::sd(rep(c(0, 1), 40L)), tolerance = 1e-12
+  )
 })

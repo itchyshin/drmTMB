@@ -2210,6 +2210,17 @@ drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
   }
+  mesh_spatial_mu <- if (is.list(spec$structured)) {
+    spec$structured$mesh_spatial_mu
+  } else {
+    NULL
+  }
+  if (is.list(mesh_spatial_mu) && isTRUE(mesh_spatial_mu$has)) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented for fixed-kappa mesh spatial fields.",
+      "i" = "The current mesh/SPDE slice is ML-only; use {.code REML = FALSE}."
+    ))
+  }
   # Binomial O2 joint-Laplace restricted likelihood (doc 224): admitted alongside Gaussian.
   if (!spec$model_type %in% c("gaussian", "binomial")) {
     cli::cli_abort(
@@ -12673,19 +12684,28 @@ build_mesh_spatial_mu_structure <- function(term, data, env) {
 mesh_spatial_field_scale_start <- function(mesh, y) {
   A <- mesh$projection
   Q <- mesh$precision$precision
+  response_sd <- stats::sd(y)
+  fallback <- max(0.25 * response_sd, 1e-12)
+  if (!is.finite(fallback) || fallback <= 0) fallback <- 1e-12
+  # This is a start-value calibration only.  Solving for every observation can
+  # materialise an n_vertex by n_observation dense right-hand side for a large
+  # mesh, so use a deterministic, evenly spaced subset instead.
+  n_reference <- min(nrow(A), 32L)
+  reference_rows <- unique(round(seq.int(1L, nrow(A), length.out = n_reference)))
+  A_reference <- A[reference_rows, , drop = FALSE]
   qinv_a <- tryCatch(
-    Matrix::solve(Q, Matrix::t(A)),
+    Matrix::solve(Q, Matrix::t(A_reference)),
     error = function(e) NULL
   )
-  if (is.null(qinv_a)) return(max(0.25 * stats::sd(y), 1e-12))
+  if (is.null(qinv_a)) return(fallback)
   marginal_sd <- sqrt(pmax(
-    Matrix::rowSums(A * Matrix::t(qinv_a)), 0
+    Matrix::rowSums(A_reference * Matrix::t(qinv_a)), 0
   ))
   reference_sd <- stats::median(marginal_sd[is.finite(marginal_sd) & marginal_sd > 0])
   if (!is.finite(reference_sd) || reference_sd <= 0) {
-    return(max(0.25 * stats::sd(y), 1e-12))
+    return(fallback)
   }
-  max(0.25 * stats::sd(y) / reference_sd, 1e-12)
+  max(0.25 * response_sd / reference_sd, 1e-12)
 }
 
 add_mesh_spatial_tmb_data <- function(tmb_data, spec) {
