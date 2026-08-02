@@ -69,6 +69,22 @@ The tests now preserve the historical Arc 1b assertions against their retained
 non-portable local Git object.  All 47 ledger tests and the C1/C2/C3 focused
 integration tests pass after this correction.
 
+## Reconciliation onto current main
+
+PR #889 could not merge after the independently approved C17-C1 merge advanced
+`main`. The reconciled C3 branch is rebased on
+`ee9d855fc6754c19174fd74078f8e6f2f62a9631`, not merged with the historical
+Lane B branch. Generated capability surfaces were regenerated from the combined
+ledger rather than hand-merged. The C17-C1 `mc-0570` row is now protected
+byte-for-byte alongside C1, C2, B3, exclusions, and association rows; the C3
+focused tests mutate each boundary to prove that protection fails closed.
+
+The fresh Arc 0 packet is
+`115dd44155c53b7928c6be0ee28990435d114feab2cc45f68f7d1a565e18b22b`.
+The approved current-base frozen census is `127 -> 91`; the full model-surface
+point-fit count is consequently `128 -> 92`, while the global interval-feasible
+count remains `102 -> 138`.
+
 ## Risks and limits
 
 Every promoted claim remains per-cell computational interval feasibility for a

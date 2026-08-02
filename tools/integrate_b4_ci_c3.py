@@ -27,6 +27,7 @@ C2_IDS = """mc-0012 mc-0248 mc-0251 mc-0297 mc-0300 mc-0312 mc-0386 mc-0388 mc-0
 B3_IDS = {"mc-0102", "mc-0124", "mc-0146", "mc-0168"}
 EXCLUDED_IDS = {"mc-0182", "mc-0183", "mc-0207", "mc-0269"}
 ASSOCIATION_IDS = {"as-0001", "as-0002", "as-0003", "as-0004", "as-0005", "as-0006"}
+C17_C1_IDS = {"mc-0570"}
 LEDGER = Path("docs/dev-log/dashboard/capability-ledger")
 MANIFEST = Path("docs/dev-log/canonical-integration/2026-08-01-b4-ci-c3-manifest.tsv")
 
@@ -147,7 +148,7 @@ def base_cells(ids: set[str]) -> dict[str, dict[str, str]]:
 
 
 def protected_ids() -> set[str]:
-    return set(C1_IDS) | set(C2_IDS) | B3_IDS | EXCLUDED_IDS | ASSOCIATION_IDS
+    return set(C1_IDS) | set(C2_IDS) | B3_IDS | EXCLUDED_IDS | ASSOCIATION_IDS | C17_C1_IDS
 
 
 def apply() -> None:
@@ -159,7 +160,7 @@ def apply() -> None:
         fail("destination C3 cells are not eligible")
     protected = protected_ids()
     if any(cell_id not in local_by_id for cell_id in protected) or {cell_id: local_by_id[cell_id] for cell_id in protected} != base_cells(protected):
-        fail("prior cohorts, exclusions, or association base rows differ; refusing overwrite")
+        fail("prior cohorts, exclusions, association, or C17-C1 base rows differ; refusing overwrite")
     write_rows(LEDGER / "cells.tsv", [source_by_id.get(row["cell_id"], row) for row in current_cells])
     for name, records, key in (("evidence.tsv", evidence, "evidence_id"), ("transitions.tsv", transitions, "transition_id")):
         current = local_rows(LEDGER / name)

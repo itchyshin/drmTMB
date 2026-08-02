@@ -46,7 +46,7 @@ class B4CIC3Test(unittest.TestCase):
                 c3.selected_source()
         finally:
             c3.CELL_IDS[:] = original
-        for cell_id in ("mc-0102", "mc-0182", "as-0001"):
+        for cell_id in ("mc-0102", "mc-0182", "as-0001", "mc-0570"):
             with self.replace_once(c3.LEDGER / "cells.tsv", f"{cell_id}\t", f"{cell_id}-BROKEN\t"):
                 self.assert_rejected()
 
