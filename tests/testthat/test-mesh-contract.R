@@ -58,7 +58,8 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
   mesh_check <- mesh_check[mesh_check$check == "mesh_spatial_mu_diagnostics", , drop = FALSE]
   expect_equal(nrow(mesh_check), 1L)
   expect_match(mesh_check$value, "kappa_fixed=")
-  expect_match(mesh_check$message, "field-scale fit only")
+  expect_match(mesh_check$message, "point-recovery evidence only")
+  expect_match(mesh_check$message, "n=128 and n=256")
   target <- profile_targets(fit)
   target <- target[target$parm == "sd:mu:spatial(1 | site)", , drop = FALSE]
   expect_identical(target$tmb_parameter, "log_sd_phylo2")

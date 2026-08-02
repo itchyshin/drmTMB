@@ -92216,3 +92216,15 @@ Shinichi grants a separate Gate A compute approval.
   inference, range, and all broader mesh models remain outside the claim.
 - Local checks: mesh filters 86/86; protected dense coordinate-spatial
   intercept/slope filters 292/292; `git diff --check` clean.
+- The authenticated receipt and adjudication were committed and pushed before
+  issue action. Curie returned GO after reproducing every hash, design row,
+  heartbeat, diagnostic, and summary; Fisher returned PROMOTE. Issue #881 was
+  then closed with the exact claim and exclusions.
+- Public status wording now reports `point_fit_recovery` only for the exact
+  tested fixed-domain `n = 128, 256` designs and retains the `n = 64` failure.
+  `check_drm()` carries the same boundary. The rebuilt spatial-models article
+  emits no warning text. It does not draw confidence intervals: neither #881
+  nor the existing coordinate-spatial evidence calibrates those displayed
+  parameter intervals.
+- Post-synchronization mesh tests: 87/87 expectations. The status inventory
+  search and exact file list are recorded in the after-task report.

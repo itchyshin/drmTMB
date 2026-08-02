@@ -152,7 +152,7 @@ relatedness- and tree-based ones.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have smooth site-level location deviations? | `spatial(1 | site, coords = coords)` in `mu` | Fitted first coordinate-spatial intercept slice. |
-| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Fixed-kappa, intercept-only local-fit slice. The fitted scale is a GMRF field scale; recovery, intervals, coverage, and range inference are not claimed yet. |
+| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Fixed-kappa intercept at `point_fit_recovery` for the exact tested fixed-domain `n = 128, 256` designs. The retained `n = 64` rung failed; intervals, coverage, and range remain unclaimed. |
 | Does one predictor have a spatially varying slope? | `spatial(1 + depth | site, coords = coords)` in `mu` | Fitted one numeric-slope slice. The intercept and slope fields are independent and have separate SDs. |
 | Do two Gaussian response means share a coordinate-spatial correlation? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "spatial")` reports the latent spatial row separately from residual `rho12`. |
 | Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived and unavailable for intervals. |
@@ -214,7 +214,10 @@ vertices. Use `$projected` for the corresponding observation-level conditional
 field values. The displayed `profile_targets()` row is deliberately not ready:
 this local-fit slice does not claim a field-scale interval.
 
-This mesh slice rejects raw geographic degrees, mesh slopes or labels,
+The raw GMRF field scale has point-recovery evidence for the exact tested
+fixed-domain `n = 128` and `n = 256` designs. The retained `n = 64` rung
+failed, so this is not a universal `n >= 128` guarantee. The mesh slice rejects
+raw geographic degrees, mesh slopes or labels,
 `sigma`/shape mesh effects, non-Gaussian or bivariate models, mesh-plus-coords
 formulas, extrapolation beyond the mesh, range estimation, anisotropy,
 barriers, replicated fields, and spatiotemporal fields.
@@ -329,7 +332,7 @@ After fitting, inspect the spatial layer before interpreting it:
 
 | Output | Use |
 | --- | --- |
-| `check_drm(fit)` | Confirm the spatial layer was recognized. Mesh fits report vertex count, fixed `kappa`, and the local-fit-only field-scale boundary. |
+| `check_drm(fit)` | Confirm the spatial layer was recognized. Mesh fits report vertex count, fixed `kappa`, the exact tested point-recovery designs, and the remaining interval/range boundary. |
 | `fit$sdpars$mu` | Read fitted spatial location SDs, including separate intercept and slope SDs when a one-slope model is used. |
 | `ranef(fit, "spatial_mu")` | For `coords =`, inspect conditional site deviations. For a mesh, use `$projected` for observation-level field values and `$latent` for mesh vertices. |
 | `summary(fit)$covariance` | Check how spatial SDs and q=2 or q=4 spatial correlations are reported beside other covariance layers. |

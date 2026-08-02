@@ -566,18 +566,22 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   distinct from meta-analysis `meta_V(V = V)`, which supplies known sampling
   covariance.
 - Structured-effect markers outside the fitted paths, such as
-  `spatial(1 | site, mesh = mesh)`, multiple or labelled structured slopes,
+  multiple or labelled structured slopes,
   predictor-dependent q=4 correlations, and non-Gaussian structured effects
   outside the exact row-specific gates in the live ledger are parsed and
-  rejected clearly, but they are not yet
-  routed into fitted likelihoods. The coordinate-based spatial paths,
+  rejected clearly, but they are not yet routed into fitted likelihoods. The
+  separate fixed-kappa `spatial(1 | site, mesh = mesh)` Gaussian `mu` intercept
+  is fitted at `point_fit_recovery` for the exact tested fixed-domain
+  `n = 128, 256` designs; the retained `n = 64` rung failed, and intervals,
+  coverage, range, and broader mesh models remain unclaimed. The
+  coordinate-based spatial paths,
   `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`, are fitted for univariate Gaussian
   `mu`; matching labelled bivariate `mu1`/`mu2`
   `spatial(1 | p | site, coords = coords)` terms fit the first q=2 spatial
   location covariance; and matching labelled all-four terms fit the constant
   q=4 spatial location-scale block. They are not the scalable mesh/SPDE route.
-  The mesh/SPDE design gate is recorded in
+  The mesh/SPDE design and evidence gates are recorded in
   `docs/design/09-phylogenetic-and-spatial-speed.md`, while spatial slope
   correlations, spatial direct-SD surfaces, spatial `corpair()` regressions,
   pure, multiple, or labelled count spatial slopes, and zero-inflated spatial effects beyond the

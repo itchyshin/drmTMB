@@ -148,7 +148,7 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   paper preparation. Broad
   random-slope operating characteristics, structured bridge/inference for
   matched slope cells, multiple structured slopes, larger structured slope covariance/correlation, structured
-  residual `rho12`, mesh/SPDE spatial structure beyond the fixed-kappa Gaussian local-fit intercept, sparse large-pedigree speed
+  residual `rho12`, mesh/SPDE spatial structure beyond the fixed-kappa Gaussian point-recovery intercept, sparse large-pedigree speed
   claims, and the full double-hierarchical endpoint remain roadmap work for
   later releases.
 - Missing-data preview boundary: `miss_control(response = "include")` is G3
@@ -507,7 +507,7 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   location-scale blocks now use the same coordinate foundation and report through
   `corpairs(level = "spatial")`. Ordinary Poisson/NB2 now also fit q=1
   spatial `mu` intercept and unlabelled one-slope terms. Beyond the separate
-  fixed-kappa Gaussian mesh `mu` intercept at local-fit level, mesh/SPDE,
+  fixed-kappa Gaussian mesh `mu` intercept at exact-design point-recovery level, broader mesh/SPDE,
   multiple
   spatial slopes, spatial slope correlations, standalone spatial `sd(...)`,
   spatial `corpair()` regressions, pure, multiple, or labelled count spatial
@@ -596,7 +596,7 @@ Phase 5 closure boundary:
 | --- | --- | --- |
 | univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu` and/or `sigma`, matching `mu`/`sigma` structured correlation, one numeric `mu` slope, the first sigma-only and matched `mu+sigma` one-slope location-scale cells, deterministic same-target fixtures for the one-slope `mu`, `sigma`, and matched `mu+sigma` rows, `sd_phylo(species) ~ z`, ordinary Poisson/NB2 q1 `phylo()` count intercept and unlabelled one-slope cells, `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)` for one Gaussian/Poisson/NB2 pair-level Kronecker field, profile targets, and diagnostics | Additional Gaussian multiple-slope layouts outside the exact fitted bivariate ledger cells, pure, multiple, or labelled non-Gaussian phylogenetic count slopes, slope correlations, broad bridge/inference beyond deterministic same-target fixtures, additive partner main phylogenies plus `phylo_interaction()`, binary/Bernoulli incidence models, direct-SD formulas combined with structured `sigma`, and richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, the labelled two-slope `phylo(1 + x + z | p | species)` q=6 `mu1`/`mu2` location and q=12 all-four point-fit/recovery covariance cells (recovery evidence only; intervals/coverage route through profile/bootstrap), q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; broader predictor-dependent structured scale-scale covariance is not a near-term priority |
-| coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` and/or `sigma`, matching univariate `mu`/`sigma` structured correlation, one numeric `mu`, sigma-only, and matched `mu+sigma` one-slope cells for fixed-covariance coordinates with deterministic same-target fixtures, matching bivariate `mu1`/`mu2` q=2 covariance, constant all-four q=4 location-scale covariance with `corpairs(level = "spatial")`, the labelled two-slope `spatial(1 + x + z | p | site)` q=6 `mu1`/`mu2` location and q=12 all-four point-fit/recovery covariance cells (recovery evidence only; intervals/coverage planned), ordinary Poisson/NB2 q=1 `mu` intercept and unlabelled one-slope cells, the diagnostic-only Poisson spatial `zi` intercept, the diagnostic-only fixed-`zi` Poisson spatial `mu` intercept, and the diagnostic-only fixed-`zi` NB2 spatial `mu` intercept; `sdpars`, marker-specific `ranef()` blocks, profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, spatial slope correlations, spatial direct-SD, spatial `corpair()`, pure, multiple, or labelled count spatial slopes, broad bridge/inference beyond deterministic same-target fixtures, and zero-inflated spatial effects outside the exact Poisson spatial `zi`, Poisson fixed-`zi` spatial `mu`, and NB2 fixed-`zi` spatial `mu` local-fit gates |
+| coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` and/or `sigma`, matching univariate `mu`/`sigma` structured correlation, one numeric `mu`, sigma-only, and matched `mu+sigma` one-slope cells for fixed-covariance coordinates with deterministic same-target fixtures, matching bivariate `mu1`/`mu2` q=2 covariance, constant all-four q=4 location-scale covariance with `corpairs(level = "spatial")`, the labelled two-slope `spatial(1 + x + z | p | site)` q=6 `mu1`/`mu2` location and q=12 all-four point-fit/recovery covariance cells (recovery evidence only; intervals/coverage planned), ordinary Poisson/NB2 q=1 `mu` intercept and unlabelled one-slope cells, the diagnostic-only Poisson spatial `zi` intercept, the diagnostic-only fixed-`zi` Poisson spatial `mu` intercept, and the diagnostic-only fixed-`zi` NB2 spatial `mu` intercept; the separate fixed-kappa Gaussian mesh `mu` intercept has exact-design point-recovery evidence; `sdpars`, marker-specific `ranef()` blocks, profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE beyond the exact fixed-kappa Gaussian intercept, multiple spatial slopes, spatial slope correlations, spatial direct-SD, spatial `corpair()`, pure, multiple, or labelled count spatial slopes, broad bridge/inference beyond deterministic same-target fixtures, and zero-inflated spatial effects outside the exact Poisson spatial `zi`, Poisson fixed-`zi` spatial `mu`, and NB2 fixed-`zi` spatial `mu` local-fit gates |
 | animal and user-supplied relatedness | Gaussian `mu` and `sigma` intercepts for `animal(1 | id, pedigree/A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, matching univariate `mu`/`sigma` structured correlations, one numeric `mu`, sigma-only, and matched `mu+sigma` one-slope cells for A-matrix `animal()` and K/Q `relmat()` with deterministic same-target fixtures, matching labelled `mu1`/`mu2` q=2 location covariance, constant all-four q=4 location-scale covariance, the labelled two-slope `animal(1 + x + z | p | id)` / `relmat(1 + x + z | p | id)` q=6 `mu1`/`mu2` location and q=12 all-four point-fit/recovery covariance cells (recovery evidence only; intervals/coverage planned), the exact matching supplied-`K` bivariate `relmat()` q2 location-intercept REML cell at `point_fit_recovery`, and ordinary Poisson/NB2 q=1 `mu` intercept and unlabelled one-slope cells with `corpairs()`, `summary()$covariance`, profile-target status, diagnostics, and dense-likelihood tests where relevant | sparse large-pedigree construction, supplied-`Q` and animal-model bivariate REML, multiple structured slopes, slope correlations, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, pure, multiple, or labelled animal/`relmat()` count slopes, generic direct-SD naming design, and broad bridge/inference beyond deterministic same-target fixtures |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
 
@@ -1209,15 +1209,17 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `spatial(1 + x | site, coords = coords)`. The slope path uses two independent
   spatial fields, one for the intercept and one for the slope, with no fitted
   intercept-slope correlation.
-- Support `spatial(1 | site, mesh = mesh)` only after the coded mesh object
-  schema, projection path, and recovery tests are implemented. The design
-  contract and provenance policy are recorded in
+- The first `spatial(1 | site, mesh = mesh)` slice is implemented for a
+  fixed-kappa univariate Gaussian `mu` intercept. Its raw GMRF field scale is
+  at `point_fit_recovery` for the exact tested fixed-domain `n = 128, 256`
+  designs; the retained `n = 64` rung failed. The design contract and
+  provenance policy are recorded in
   `docs/design/09-phylogenetic-and-spatial-speed.md`. `coords` identify
   observation or site locations, while `mesh` is the SPDE/GMRF computational
-  scaffold.
+  scaffold. Intervals, range, and broader mesh models remain separate gates.
 - Treat `coords` as the friendly public input and `mesh` as optional expert
   control. A dense coordinate-only Gaussian-process path would not require a
-  mesh, but it is not the scalable route. The planned SPDE/GMRF route needs a
+  mesh, but it is not the scalable route. The fitted SPDE/GMRF route uses a
   mesh-like finite-element scaffold internally, even if `drmTMB` builds it from
   coordinates for the user.
 - Cite the SPDE/GMRF method literature and any software used for mesh or

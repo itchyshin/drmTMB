@@ -2931,8 +2931,9 @@ check_mesh_spatial_mu_diagnostics <- function(object) {
     ),
     if (finite_positive) {
       paste(
-        "Fixed-kappa mesh spatial field is a projected GMRF field-scale fit",
-        "only; recovery, intervals, coverage, and range inference are not claimed."
+        "Fixed-kappa mesh spatial field has point-recovery evidence only for",
+        "the exact tested n=128 and n=256 fixed-domain designs; intervals,",
+        "coverage, projected marginal-SD inference, and range are not claimed."
       )
     } else {
       paste(
