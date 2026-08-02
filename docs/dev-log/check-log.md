@@ -92062,3 +92062,8 @@ Shinichi grants a separate Gate A compute approval.
   solves against at most 32 deterministic projection rows rather than every
   observation, preventing a start-value-only vertex-by-observation allocation.
   The expanded mesh suite passed 42 expectations with zero failures.
+- Reconciled the planning handover against the implemented ML-only local-fit
+  slice in `2026-08-02-mesh-spde-handover-reconciliation.md`. The design
+  source maps now name the current gllvmTMB PR #886 source paths, distinguish
+  the protected dense `coords =` route from `A_st %*% omega`, and record the
+  failed recovery gate rather than leaving the mesh route marked merely planned.
