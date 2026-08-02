@@ -3,7 +3,19 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-02, ARC 0 + CURRENT-SOURCE INTERVAL ARC 1 LANDED FOR CLAUDE).**
+> **▶ ACTIVE LANE SPLIT — start here (2026-08-02).** C17 is closed through PR
+> #894 at `c8e04258d`, with canonical `330 implemented / 340 rejected by design /
+> 17 not implemented`. Current lanes and ownership boundaries are listed in
+> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md).
+> The new C18 structured zero-one-beta atom programme is **planning-only** until
+> overlapping mesh/SPDE PR #893 lands/closes or Shinichi authorizes overlap.
+> START HERE:
+> [`docs/dev-log/handover/2026-08-02-claude-c18-structured-atoms-handover.md`](docs/dev-log/handover/2026-08-02-claude-c18-structured-atoms-handover.md).
+> The 2026-07-26 lane split below is retained as historical context, not the
+> current coordination entrypoint.
+
+> **▶ INTERVAL-FEASIBILITY LANE (2026-08-02, ARC 0 + CURRENT-SOURCE INTERVAL ARC 1 LANDED).** One of
+> the two lanes named in the split above — read that first for ownership boundaries, then this.
 > Draft PR **#896** on `codex/q1-interval-contracts-arc1` freezes the complete
 > 82-cell current-source candidate denominator and promotes five exact direct
 > targets from `point_fit_recovery` to `interval_feasible` using 15 immutable
