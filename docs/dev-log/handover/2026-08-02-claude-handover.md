@@ -61,7 +61,9 @@ Shinichi before Phase 3. This Codex handoff task made no C18 source mutation.
 ## Current Working State
 
 - Working: canonical source and runtime are aligned at the PR #894 merge SHA.
-- In progress: C18 handover and read-only planning lane.
+- In progress: the clean C18 planning worktree is
+  `/private/tmp/drmtmb-c18-claude.gngYwq` on pushed branch
+  `claude/c18-structured-atoms-plan`.
 - Blocked for mutation: PR #893 overlap, unless it lands/closes or Shinichi
   explicitly authorizes concurrent overlap.
 - Not attempted: no C18 formula, carrier, TMB, extractor, prediction, test,
@@ -119,6 +121,7 @@ property and remain unchanged.
 | C17 PR #894, merge `c8e04258d` | yes | yes | #894 merged | LANDED |
 | `codex/lane-c-c17c2-coi-slope@b62b6427` | yes | yes | #894 merged; source retained | LANDED |
 | `codex/handover-2026-08-02-c18-to-claude@6bb4f6a71` | yes | yes | #895 open; do not auto-merge | CARRIED-OVER — Claude reads this branch/PR until human merge |
+| `claude/c18-structured-atoms-plan@557eb4276` | yes | yes | none; planning lane | CARRIED-OVER — resume in `/private/tmp/drmtmb-c18-claude.gngYwq`; read-only until approval and overlap clearance |
 | PR #893 / `codex/drmtmb-spatial-mesh` | foreign | foreign | #893 open draft | CARRIED-OVER — mesh owner; do not edit or merge |
 | PR #891 / mesh handover | foreign | foreign | #891 open | CARRIED-OVER — mesh owner; do not edit or merge |
 | PR #858 Lane B E0 | foreign | foreign | #858 open | CARRIED-OVER — preserve Lane B |
@@ -183,10 +186,10 @@ No external literature search is needed unless the plan makes a novelty claim.
 
 ## Claude Environment and Routing
 
-Working directory:
+Clean working directory:
 
 ```text
-/Users/z3437171/Dropbox/Github Local/drmTMB
+/private/tmp/drmtmb-c18-claude.gngYwq
 ```
 
 Claude reads `AGENTS.md` through `CLAUDE.md`. Use `.claude/agents/` for bounded
@@ -222,7 +225,7 @@ Start a fresh authenticated Claude session in the drmTMB repository. Interactive
 terminal form:
 
 ```sh
-claude "Read AGENTS.md and docs/dev-log/handover/2026-08-02-claude-handover.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps."
+cd '/private/tmp/drmtmb-c18-claude.gngYwq' && claude "Read AGENTS.md and docs/dev-log/handover/2026-08-02-claude-handover.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps."
 ```
 
 Paste-ready prompt:
