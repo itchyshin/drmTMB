@@ -47,15 +47,18 @@
 #   phylo:   80 tips  x 30 obs/tip  = 2400 obs
 #   spatial: 81 sites (9x9 grid) x 25 obs/site = 2025 obs
 #   animal:  40 individuals (3-gen pedigree) x 25 obs/id = 1000 obs
-#   relmat:  40 individuals (AR1 relatedness) x 25 obs/id = 1000 obs
+#   relmat:  80 individuals (AR1 relatedness) x 25 obs/id = 2000 obs
+#     (raised from 40/1000 -- see the 2026-08-02 DESIGN ITERATION note below)
 #
-# animal/relmat converged at the same 40-individual/n_each = 25-40 scale
-# that Arc 2's beta() sigma-side cells (mc-0015) already validated; phylo and
-# spatial needed substantially more (see DESIGN ITERATION NOTES) because
-# their group-level correlation structure is smooth/dense (a coalescent tree
-# correlation matrix, or an exponential spatial covariance), which reduces
-# the effective number of independent groups relative to their raw group
-# count.
+# animal converged at the same 40-individual/n_each = 25-40 scale that
+# Arc 2's beta() sigma-side cells (mc-0015) already validated; phylo and
+# spatial needed substantially more replication (see DESIGN ITERATION NOTES)
+# because their group-level correlation structure is smooth/dense (a
+# phylogenetic correlation matrix, or an exponential spatial covariance),
+# which reduces the effective number of independent groups relative to
+# their raw group count; relmat needed a larger group count for a
+# different reason (finite-sample intercept/slope confounding, not
+# structure smoothness -- see the 2026-08-02 DESIGN ITERATION note below).
 #
 # POINT-FIT GATE RESULTS (predeclared: mean relative error <= 0.35 across
 # seeds 421/521/621 for mc-0421, 422/522/622 for mc-0422, 423/523/623 for
@@ -66,6 +69,116 @@
 #   mc-0424 relmat:  0.083, 0.194, 0.191 -> mean 0.156  PASS
 # All twelve fits: convergence 0, pdHess TRUE, zero_cluster_rate 0.000 (no
 # group had every observation land on a zero count for any of these DGPs).
+#
+# 2026-08-02 TOTORO 3-SEED CONTRACT FAILURE AND RE-GATE (mc-0421, mc-0424)
+# -------------------------------------------------------------------------
+# mc-0421 and mc-0424 both passed the point-fit gate above and mc-0422/
+# mc-0423's own 3-seed Totoro interval-feasibility contract (seeds
+# 2026080301/02/03), but mc-0421 and mc-0424 each failed 1/3 seeds on
+# seed 2026080303: mc-0421 gave a boundary-limited profile (estimate 0.278,
+# lower NA, upper 0.675, profile_boundary TRUE); mc-0424 gave
+# conf_status = profile_interval_unavailable (estimate 0.517, lower NA,
+# upper NA, "profile may not cross the likelihood-ratio threshold on both
+# sides"). DIAGNOSIS (see docs/dev-log/interval-feasibility/ for the Curie
+# session that ran it) found two DIFFERENT mechanisms, not one shared cause:
+#
+# - mc-0421 (phylo): `ape::rcoal()` coalescent trees at n_tip = 80 are
+#   intrinsically ill-conditioned -- the frozen tree_seed = 909 topology's
+#   correlation matrix A had condition number 98563 (min eigenvalue
+#   0.00055, max off-diagonal 0.9995), a property of the coalescent
+#   process itself (near-tip coalescent events pile up, producing
+#   near-duplicate tip pairs), NOT a fixable property of that one
+#   tree_seed draw: a scan of 61 alternative tree_seeds at n_tip = 80 found
+#   condition numbers of 33000-540000 for ALL of them, and increasing
+#   n_tip to 100/120/140/160 (holding the coalescent family fixed) did not
+#   reduce the seed-to-seed variance of the realized structured-intercept
+#   draw either (sd-of-realized-sd stayed 0.07-0.14 across n_tip). This
+#   ill-conditioning inflates the SAMPLING variance of the fitted
+#   intercept SD across seeds -- the three original Totoro seeds
+#   (2026080301/02/03) gave point estimates 0.79/0.72/0.28 against a true
+#   0.55 (mean relative error 0.41, ABOVE the 0.35 gate; only the
+#   different point-fit-gate seeds 421/521/621 happened to average under
+#   the threshold). Seed 03's specific draw put the realized species
+#   effects in the flat, near-zero-SD region of an already-flat
+#   likelihood surface (profile trace: delta-deviance stays ~0.07,
+#   nowhere near the ~3.84 crossing threshold, as profile_value shrinks
+#   from 0.55 down to 1e-93, before nlminb hits NA/NaN evaluation at the
+#   numerical floor) -- a real, seed-dependent low-information failure
+#   caused by the tree's structural near-singularity, not a data-size
+#   problem answerable by more n_tip/n_each.
+#
+# - mc-0424 (relmat): the AR1-Toeplitz K (n_id = 40) is well-conditioned
+#   (condition number 3.5) and seed 03's realized structured-intercept
+#   draw (empirical SD 0.548) was close to the true 0.55 -- an information
+#   problem is ruled out here. The actual defect: with only 40 individuals,
+#   the FINITE-SAMPLE correlation between the independently-drawn
+#   intercept and slope structured effects (v0, v1; population correlation
+#   0 by construction) can be large by chance -- seed 03 realized
+#   cor(v0, v1) = -0.457, versus 0.196/-0.470/... for other seeds (a
+#   10-seed scan at n_id = 40 gave max|cor| = 0.457). The seed-03 profile
+#   trace shows a clean lower-side LR crossing near profile_value ~= 0.37
+#   (delta-deviance 5.7, above the 3.84 threshold) but an anomalous
+#   DISCONTINUOUS drop in the objective at the last upper-side profile
+#   point (profile_value = 0.768: objective drops by ~5.2 units, an
+#   alternate local optimum found mid-sweep) -- `stats::profile()`'s
+#   interpolation then fails with "need at least two non-NA values to
+#   interpolate" because the upper side never cleanly brackets the
+#   threshold. This is intercept/slope confounding amplified by small n,
+#   not a conditioning defect in K itself. A 10-seed scan showed
+#   max|cor(v0, v1)| shrinks from 0.457 (n_id = 40) to 0.356 (n_id = 60) to
+#   0.135 (n_id = 80), consistent with the expected ~1/sqrt(n) shrinkage of
+#   a finite-sample correlation between two independent draws.
+#
+# REDESIGN (both keep true_sd_intercept = 0.55 for comparability with the
+# passing mc-0422/mc-0423 siblings; true_sd_slope unchanged in both cells):
+# - mc-0421: replaced the `ape::rcoal()` coalescent tree with a random
+#   topology (`ape::rtree(n_tip, br = NULL, rooted = TRUE)`, same
+#   tree_seed = 909) plus `ape::compute.brlen(topology, method = "Grafen",
+#   power = 0.5)` branch lengths. Grafen's method is a standard
+#   deterministic (topology-shape-driven) ultrametric branch-length
+#   assignment in `ape`; power = 0.5 spaces node heights more evenly than
+#   the coalescent's tip-clustered event times, cutting the correlation
+#   matrix's condition number from 98563 to 183 (min eigenvalue 0.11) while
+#   keeping a genuine, non-identity, non-trivial random topology (mean
+#   off-diagonal correlation 0.22, comparable to before). Confirmed
+#   `ape::is.ultrametric()` TRUE (drmTMB's `phylo()` requires an
+#   ultrametric tree for the correlation-scale prior).
+# - mc-0424: increased n_id from 40 to 80 (n_each unchanged at 25, so
+#   2000 obs instead of 1000) specifically to shrink the finite-sample
+#   intercept/slope confounding diagnosed above, not as an undirected
+#   information boost.
+#
+# DESIGNS TRIED AND REJECTED FOR mc-0421 (phylo):
+# - Flooring only the terminal branch lengths of the existing rcoal tree at
+#   5%/10% of tree depth (condition number 1083/542, both much better) --
+#   REJECTED: breaks `ape::is.ultrametric()` (root-to-tip distances differ
+#   by construction once only terminal edges are lengthened), which
+#   `drm_phylo_augmented_precision()`'s `validate_phylo_tree()` rejects
+#   outright for a correlation-scale phylo() term.
+# - Scanning 61 alternative rcoal() tree_seeds at n_tip = 80 -- REJECTED:
+#   best condition number found was still 32893 (tree_seed = 46), no
+#   material improvement; the near-duplicate-tip pathology is intrinsic to
+#   the coalescent process at this n_tip, not a per-seed accident.
+# - Increasing n_tip to 100/120/140/160 holding the rcoal() family fixed --
+#   REJECTED: condition number gets WORSE (up to 540883 at n_tip = 160) and
+#   seed-to-seed variance of the realized structured effect did not shrink.
+#
+# RE-GATE RESULTS (5 seeds, 2026080301-05; ML; local only, current source;
+# both cells at true_sd_intercept = 0.55):
+#   mc-0421 phylo (Grafen tree):  rel. err. 0.019, 0.111, 0.314, 0.175,
+#     0.064 -> mean 0.137  PASS. Local interval smoke (same 5 seeds, one
+#     retained stats::profile() each): all 5 conf.status = "profile",
+#     lower < estimate < upper, convergence 0, pdHess TRUE, profile.boundary
+#     FALSE -- including seed 2026080303 (lower 0.228, upper 0.585), the
+#     seed that failed on Totoro under the old rcoal() tree.
+#   mc-0424 relmat (n_id = 80): rel. err. 0.325, 0.109, 0.280, 0.364, 0.177
+#     -> mean 0.251  PASS. Local interval smoke (same 5 seeds): all 5
+#     conf.status = "profile", lower < estimate < upper, convergence 0,
+#     pdHess TRUE, profile.boundary FALSE -- including seed 2026080303
+#     (lower 0.271, upper 0.553), the seed that failed on Totoro at
+#     n_id = 40.
+# Both cells are RE-GATED and ready for a Totoro re-run of the 3+ seed
+# interval-feasibility contract; no forced pass, no cell dropped.
 #
 # DESIGN ITERATION NOTES (do not shrink these without re-deriving)
 # --------------------------------------------------------------
@@ -97,6 +210,13 @@
 #' @param n_each Observations per tip. Default 30.
 #' @param seed RNG seed for the sampling draws (group effects, x, y).
 #' @param tree_seed RNG seed for the (frozen) tree topology. Default 909.
+#' @param grafen_power Power parameter for `ape::compute.brlen(method =
+#'   "Grafen")`. Default 0.5 -- see the 2026-08-02 DESIGN ITERATION note
+#'   above: a plain `ape::rcoal()` coalescent tree at this n_tip is too
+#'   ill-conditioned (near-duplicate tip pairs) for this cell's structured
+#'   sigma target to be seed-stable, so the tree topology is still random
+#'   (`ape::rtree()`) but its branch lengths come from Grafen's method
+#'   instead of coalescent event times.
 #' @param true_sd_intercept True SD of the structured intercept effect on
 #'   log(sigma) -- the profiled target.
 #' @param true_sd_slope True SD of the structured slope effect on
@@ -109,14 +229,16 @@ arc3_nbinom2_sigma_phylo_fixture <- function(n_tip = 80L,
                                               n_each = 30L,
                                               seed = 421L,
                                               tree_seed = 909L,
+                                              grafen_power = 0.5,
                                               true_sd_intercept = 0.55,
                                               true_sd_slope = 0.20,
                                               log_sigma0 = log(0.40),
                                               beta0 = 1.0,
                                               beta_x = 0.30) {
   set.seed(tree_seed)
-  tree <- ape::rcoal(n_tip)
-  tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  topology <- ape::rtree(n_tip, br = NULL, rooted = TRUE)
+  topology$tip.label <- paste0("sp_", seq_len(n_tip))
+  tree <- ape::compute.brlen(topology, method = "Grafen", power = grafen_power)
   A <- ape::vcv(tree, corr = TRUE)
   chol_A <- chol(A)
   set.seed(seed)
@@ -286,14 +408,20 @@ arc3_nbinom2_sigma_animal_fixture <- function(seed = 423L,
 #' nbinom2 fixture: relmat(1 + x | id) on sigma, target the intercept SD
 #'
 #' @param seed RNG seed.
-#' @param n_id Number of individuals. Default 40.
-#' @param n_each Observations per individual. Default 25 (1000 obs).
+#' @param n_id Number of individuals. Default 80 (raised from 40 -- see the
+#'   2026-08-02 DESIGN ITERATION note above: at n_id = 40 the finite-sample
+#'   correlation between the independently-drawn intercept and slope
+#'   structured effects can reach |cor| = 0.457 by chance, which destabilizes
+#'   the profile sweep; n_id = 80 shrinks that to |cor| <= 0.135 over a
+#'   10-seed scan).
+#' @param n_each Observations per individual. Default 25 (2000 obs at the
+#'   default n_id = 80).
 #' @param true_sd_intercept,true_sd_slope See
 #'   `arc3_nbinom2_sigma_phylo_fixture()`.
 #' @param log_sigma0,beta0,beta_x See `arc3_nbinom2_sigma_phylo_fixture()`.
 #' @return list(data, K, Q, true_sd_intercept, true_sd_slope, zero_cluster_rate)
 arc3_nbinom2_sigma_relmat_fixture <- function(seed = 424L,
-                                               n_id = 40L,
+                                               n_id = 80L,
                                                n_each = 25L,
                                                true_sd_intercept = 0.55,
                                                true_sd_slope = 0.25,

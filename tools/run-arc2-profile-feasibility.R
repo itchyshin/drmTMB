@@ -349,7 +349,7 @@ cell_registry <- list(
       "bf(y ~ x, sigma ~ phylo(1 + x | species, tree = tree)); nbinom2() (log/log); ML; ",
       "drm_control(optimizer_preset = \"robust\")"
     ),
-    true_parameter_scale = "0.55 phylogenetic random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.20 phylogenetic random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-tip frozen coalescent tree, 30 observations per tip, log-SD internal scale",
+    true_parameter_scale = "0.55 phylogenetic random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.20 phylogenetic random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-tip frozen random topology with Grafen branch lengths (power = 0.5, tree_seed = 909), 30 observations per tip, log-SD internal scale",
     cohort_id = "arc3-nbinom2-ml-phylo-sigma-sd-profile-feasibility"
   ),
   "mc-0422" = list(
@@ -427,13 +427,17 @@ cell_registry <- list(
     fixture_file = "tools/arc3-nbinom2-sigma-provider-fixtures.R",
     fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
     data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "id40_each25",
+    # 2026-08-02: raised from "id40_each25" -- see
+    # tools/arc3-nbinom2-sigma-provider-fixtures.R's DESIGN ITERATION note
+    # (n_id defaults 40 -> 80 to shrink finite-sample intercept/slope
+    # confounding diagnosed on the Totoro seed 2026080303 failure).
+    information_rung = function(seed) "id80_each25",
     dgp_id = "arc3_nbinom2_ml_relmat_sigma_sd",
     formula_label = paste0(
       "bf(y ~ x, sigma ~ relmat(1 + x | id, Q = Q)); nbinom2() (log/log); ML; ",
       "drm_control(optimizer_preset = \"robust\")"
     ),
-    true_parameter_scale = "0.55 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 relmat random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 40-individual relatedness structure, 25 observations per individual, log-SD internal scale",
+    true_parameter_scale = "0.55 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 relmat random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-individual relatedness structure, 25 observations per individual, log-SD internal scale",
     cohort_id = "arc3-nbinom2-ml-relmat-sigma-sd-profile-feasibility"
   )
 )
