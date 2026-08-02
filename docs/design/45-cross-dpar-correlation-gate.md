@@ -91,10 +91,13 @@ The comprehensive simulation should start with fitted surfaces:
 - Poisson `mu` random-effect pilots where zero inflation is absent.
 
 It should not simulate non-Gaussian cross-parameter covariance, shape random
-effects, `zoi`/`coi` random effects, random effects in `rho12`, animal-model
-slopes, or mixed-distribution bivariate models as if they are implemented.
-Those belong in `docs/design/34-validation-debt-register.md` until focused
-gates close.
+effects, broad `zoi`/`coi` random-effect surfaces, random effects in `rho12`,
+animal-model slopes, or mixed-distribution bivariate models as if they are
+implemented. The exact ordinary zero-one-beta `zoi` and `coi` q1
+intercept/same-raw-symbol slope gates are fitted only at point-fit-recovery
+grade and remain excluded from a broad Phase 18 operating-characteristic grid.
+Other forms belong in `docs/design/34-validation-debt-register.md` until their
+focused gates close.
 
 ## User-Facing Message
 
