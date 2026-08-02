@@ -1,0 +1,16 @@
+exit=0 mc-0283 seed=2026080301
+exit=0 mc-0283 seed=2026080303
+exit=0 mc-0283 seed=2026080302
+exit=0 mc-0423 seed=2026080302
+exit=0 mc-0424 seed=2026080302
+exit=0 mc-0423 seed=2026080301
+exit=0 mc-0423 seed=2026080303
+exit=0 mc-0424 seed=2026080301
+exit=2 mc-0424 seed=2026080303
+exit=0 mc-0421 seed=2026080302
+exit=0 mc-0422 seed=2026080301
+exit=2 mc-0421 seed=2026080303
+exit=0 mc-0422 seed=2026080302
+exit=0 mc-0421 seed=2026080301
+exit=0 mc-0422 seed=2026080303
+CAMPAIGN_COMPLETE

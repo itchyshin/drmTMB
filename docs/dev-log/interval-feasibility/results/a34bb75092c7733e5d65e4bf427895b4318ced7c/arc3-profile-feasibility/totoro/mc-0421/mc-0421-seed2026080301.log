@@ -1,0 +1,6 @@
+  cell_id                            target_id estimator conf_status  estimate
+1 mc-0421 mc-0421::sd:sigma:phylo(1 | species)        ML     profile 0.7903692
+      lower    upper convergence pdHess profile_boundary trace_complete
+1 0.5085759 1.204689           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               

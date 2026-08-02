@@ -1,0 +1,19 @@
+$ python3 tools/arc2_profile_reconcile.py --cell=mc-0424 \
+    --root=docs/dev-log/interval-feasibility/results/a34bb75092c7733e5d65e4bf427895b4318ced7c/arc3-profile-feasibility/totoro/mc-0424 \
+    --seeds=2026080301,2026080302,2026080303 \
+    --out=<discarded, run errored before writing an output file>
+
+Arc 2 reconciliation failed: docs/dev-log/interval-feasibility/results/a34bb75092c7733e5d65e4bf427895b4318ced7c/arc3-profile-feasibility/totoro/mc-0424/mc-0424-arc3_nbinom2_sigma_relmat_fixture-id40_each25-seed2026080303-receipt.tsv must contain exactly one row
+
+The reconciler's TSV row-count check trips because the receipt's own
+`failure_reason` field embeds literal newlines (a multi-line cli_abort()
+message), which read_one() (tools/arc1_profile_reconcile.py) parses as
+extra rows. The underlying seed result is a real failure, independent of
+that parsing artifact: profile() could not extract a confidence interval
+for seed 2026080303 (estimate=0.516831, lower=NA, upper=NA, convergence=0,
+pdHess=TRUE, profile_boundary=TRUE, conf_status=profile_interval_unavailable,
+promotion_eligible=FALSE) -- "need at least two non-NA values to
+interpolate" in approx(), i.e. the profile did not cross the LR threshold
+on both sides for this seed. Seeds 2026080301 and 2026080302 passed cleanly
+(see mc-0424's own receipts). Reported as FAIL per the campaign's honesty
+bar, not retried and cherry-picked.

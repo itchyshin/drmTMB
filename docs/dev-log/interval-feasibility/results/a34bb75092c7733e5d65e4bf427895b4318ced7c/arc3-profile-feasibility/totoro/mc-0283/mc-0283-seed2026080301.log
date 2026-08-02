@@ -1,0 +1,6 @@
+  cell_id                                      target_id estimator conf_status
+1 mc-0283 mc-0283::sd:sigma:sigma:phylo(1 | p | species)      REML     profile
+   estimate    lower  upper convergence pdHess profile_boundary trace_complete
+1 0.6733999 0.478981 0.9718           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               

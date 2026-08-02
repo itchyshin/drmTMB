@@ -1,0 +1,691 @@
+parm	target_class	dpar	term	level	profile_value	profile_value_link	objective	delta_objective	delta_deviance	estimate	link_estimate	profile_pass	elapsed	profile_controls	profile_source	conf.low	conf.high	conf.status	profile.message	scale	transformation	tmb_parameter	index	cell_id	target_id	seed	information_rung
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.347587254246975	-1.05673955413725	2061.80687582438	5.74301020570874	11.4860204114175	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.349818946471771	-1.05033955413725	2061.74351236367	5.67964674499945	11.3592934899989	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.352064967329522	-1.04393955413725	2061.68102482658	5.61715920791084	11.2343184158217	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.354325408817558	-1.03753955413725	2061.6194217007	5.5555560820294	11.1111121640588	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.356600363523877	-1.03113955413725	2061.55871126969	5.49484565102284	10.9896913020457	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.358889924630943	-1.02473955413725	2061.4989017108	5.43503609212712	10.8700721842542	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.361194185919497	-1.01833955413725	2061.44000100486	5.37613538618734	10.7522707723747	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.363513241772406	-1.01193955413725	2061.38201711514	5.31815149647355	10.6363029929471	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.365847187178521	-1.00553955413725	2061.32495773887	5.26109212019765	10.5221842403953	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.368196117736572	-0.999139554137248	2061.26883051293	5.20496489426387	10.4099297885277	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.370560129659083	-0.992739554137248	2061.21364284346	5.14977722479034	10.2995544495807	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.372939319776313	-0.986339554137248	2061.15940180683	5.09553618816335	10.1910723763267	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.375333785540221	-0.979939554137248	2061.10611480896	5.04224919029093	10.0844983805819	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.380168936948395	-0.967139554137248	2061.00243042842	4.93856480975137	9.87712961950274	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.385066376085626	-0.954339554137248	2060.90264327082	4.83877765215129	9.67755530430259	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.390026905359299	-0.941539554137248	2060.80680454281	4.74293892414425	9.48587784828851	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.395051337513626	-0.928739554137248	2060.71496252115	4.65109690248391	9.30219380496783	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.400140495762811	-0.915939554137248	2060.62716288464	4.56329726597232	9.12659453194465	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.405295213925926	-0.903139554137248	2060.54344809004	4.4795824713683	8.95916494273661	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.410516336563525	-0.890339554137248	2060.46385795888	4.39999234020797	8.79998468041595	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.415804719116022	-0.877539554137248	2060.38842911249	4.32456349382392	8.64912698764783	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.421161228043843	-0.864739554137248	2060.31719512893	4.25332951025575	8.50665902051151	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.426586740969393	-0.851939554137248	2060.2501864335	4.18632081482519	8.37264162965039	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.432082146820848	-0.839139554137248	2060.18743016829	4.123564549619	8.24712909923801	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.443286250418753	-0.813539554137248	2060.07476831136	4.01090269268661	8.02180538537323	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.454780881959913	-0.787939554137248	2059.97936348511	3.91549786643645	7.83099573287291	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.466573574977471	-0.762339554137248	2059.90131856366	3.83745294499022	7.67490588998044	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.478672058352811	-0.736739554137248	2059.84068650852	3.77682088984693	7.55364177969386	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.491084261381026	-0.711139554137248	2059.79747234827	3.73360672959916	7.46721345919832	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.503818318967755	-0.685539554137248	2059.77163567742	3.70777005875334	7.41554011750668	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.510308642909455	-0.672739554137248	2059.76520945716	3.70134383849199	7.40268767698399	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.513585091676526	-0.666339554137248	2059.76361355301	3.69974793434358	7.39949586868715	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.515231196332665	-0.663139554137248	2059.76321904456	3.69935342588542	7.39870685177084	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516056226094601	-0.661539554137248	2059.7631225814	3.69925696273367	7.39851392546734	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516469236257514	-0.660739554137248	2059.76309946324	3.69923384456615	7.3984676891323	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516675865275066	-0.660339554137248	2059.76309421407	3.69922859540384	7.39845719080768	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516779210782327	-0.660139554137248	2059.76309315006	3.69922753138508	7.39845506277015	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516830891287387	-0.660039554137248	2059.76309301108	3.69922739240883	7.39845478481766	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516830891287387	-0.660039554137248	2059.76309301108	3.69922739240883	7.39845478481766	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.516882576960757	-0.659939554137248	2059.7630931449	3.69922752623188	7.39845505246376	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.51698596381449	-0.659739554137248	2059.76309420181	3.69922858314385	7.3984571662877	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.517192799564408	-0.659339554137248	2059.76309943408	3.69923381540775	7.3984676308155	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.517606719349897	-0.658539554137248	2059.76312247487	3.69925685619637	7.39851371239274	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.518435552990952	-0.656939554137248	2059.76321886153	3.69935324286234	7.39870648572469	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.520097203984171	-0.653739554137248	2059.76361268566	3.69974706698667	7.39949413397335	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.523436500440205	-0.647339554137248	2059.76520297087	3.70133735219497	7.40267470438994	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.530179551105228	-0.634539554137248	2059.77158661875	3.70772100008162	7.41544200016324	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.543927368875022	-0.608939554137248	2059.79708155401	3.73321593534092	7.46643187068184	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.558031674353625	-0.583339554137248	2059.83934348176	3.77547786308878	7.55095572617756	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.572501711443501	-0.557739554137248	2059.8979605037	3.83409488503275	7.66818977006551	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.587346963746071	-0.532139554137248	2059.97166561855	3.90779999988081	7.81559999976162	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.602577160777227	-0.506539554137248	2060.05824443995	3.9943788212795	7.98875764255899	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.618202284344018	-0.480939554137248	2060.15696565797	4.09310003930477	8.18620007860955	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.634232575086681	-0.455339554137248	2060.26751200387	4.20364638520186	8.40729277040373	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.642402930771891	-0.442539554137248	2060.32708078125	4.26321516257849	8.52643032515698	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.650678539190317	-0.429739554137248	2060.3894169064	4.32555128773129	8.65110257546257	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.659060756236156	-0.416939554137248	2060.45443201963	4.39056640095896	8.78113280191792	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.667550955270598	-0.404139554137248	2060.52202212992	4.45815651125304	8.91631302250607	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.676150527346846	-0.391339554137248	2060.592064219	4.5281986003265	9.05639720065301	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.684860881438026	-0.378539554137248	2060.66441121419	4.60054559552282	9.20109119104563	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.693683444668037	-0.365739554137248	2060.73888431437	4.67501869570151	9.35003739140302	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.702619662545375	-0.352939554137248	2060.81526241413	4.75139679546464	9.50279359092929	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.711670999199966	-0.340139554137248	2060.89326387662	4.8293982579462	9.65879651589239	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.720838937623056	-0.327339554137248	2060.9725171489	4.9086515302306	9.8173030604612	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.730124979910184	-0.314539554137248	2061.05250631322	4.98864069455158	9.97728138910315	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.739530647507292	-0.301739554137248	2061.13245737596	5.06859175728914	10.1371835145783	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.749057481459998	-0.288939554137248	2061.21104337435	5.1471777556817	10.2943555113634	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.758707042666089	-0.276139554137248	2061.28513410665	5.22126848797689	10.4425369759538	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25
+sd:sigma:relmat(1 | id)	random-effect-sd	sigma	relmat(1 | id)	0.95	0.768480912131259	-0.263339554137248	2056.06386561867	0	0	0.516830891287387	-0.660039554137248	profile	140.059	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"sd:sigma:relmat(1 | id)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	exp	log_sd_phylo	1	mc-0424	mc-0424::sd:sigma:relmat(1 | id)	2026080303	id40_each25

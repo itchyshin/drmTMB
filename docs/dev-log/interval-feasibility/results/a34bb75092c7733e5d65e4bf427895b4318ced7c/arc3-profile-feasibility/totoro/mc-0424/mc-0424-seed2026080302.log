@@ -1,0 +1,6 @@
+  cell_id                        target_id estimator conf_status  estimate
+1 mc-0424 mc-0424::sd:sigma:relmat(1 | id)        ML     profile 0.3287438
+      lower    upper convergence pdHess profile_boundary trace_complete
+1 0.1860957 0.506311           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               

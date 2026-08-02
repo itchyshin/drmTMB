@@ -1,0 +1,10 @@
+Warning message:
+In nlminb(start, newfn, newgr, control = control) :
+  NA/NaN function evaluation
+  cell_id                            target_id estimator conf_status  estimate
+1 mc-0421 mc-0421::sd:sigma:phylo(1 | species)        ML     profile 0.2782284
+  lower     upper convergence pdHess profile_boundary trace_complete
+1    NA 0.6745109           0   TRUE             TRUE           TRUE
+  promotion_eligible failure_reason
+1              FALSE             ok
+Arc 2 contract FAILED for mc-0421 (stage=artifact_write): ok
