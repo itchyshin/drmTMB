@@ -19,6 +19,16 @@
 # hashed with the same field names Arc 1 uses, so a reconciler built on
 # tools/arc1_profile_reconcile.py continues to apply unmodified.
 #
+# `fixture_call` returns whatever object the fixture builder itself returns
+# (a bare data.frame for mc-0186/mc-0263; a list carrying `$data` plus a
+# `$tree` for the phylo cells mc-0274/mc-0277), never coerced. Two contract
+# fields then pull the data.frame and formula out of that fixture result:
+# `data_from_fixture(fixture_result)` -> data.frame, and
+# `formula(fixture_result)` -> a `drmTMB::bf()` object, so a formula that
+# needs fixture-specific structure (e.g. `phylo(1 | species, tree = ...)`)
+# can close over the same fixture result the data came from instead of being
+# built niladically.
+#
 # Any contract violation -- an unready target, a profile() error, a
 # non-finite or disordered interval, non-convergence, a non-PD Hessian, or a
 # boundary/clamp condition -- is retained as a FAILING receipt (never a
@@ -63,7 +73,7 @@ cell_registry <- list(
     target = "rho12",
     family_name = "biv_gaussian",
     family = function() drmTMB::biv_gaussian(),
-    formula = function() {
+    formula = function(fx) {
       drmTMB::bf(
         mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1
       )
@@ -81,6 +91,7 @@ cell_registry <- list(
     # differ across cells -- see mc-0263 below) behind one common interface:
     # (fixture_fn, seed) -> data.frame.
     fixture_call = function(fixture_fn, seed) fixture_fn(n = 150L, seed = seed),
+    data_from_fixture = function(fx) fx,
     information_rung = function(seed) "n150",
     dgp_id = "arc2_biv_gaussian_reml_residual_correlation",
     formula_label = paste0(
@@ -107,13 +118,14 @@ cell_registry <- list(
     # this is the closest-in-shape config to the fixture's intent that keeps
     # sigma's fixed effect exposed -- an assumption this runner's
     # target_lookup stage checks explicitly rather than assumes.
-    formula = function() drmTMB::bf(y ~ x + (1 | id), sigma ~ x),
+    formula = function(fx) drmTMB::bf(y ~ x + (1 | id), sigma ~ x),
     control = function() drmTMB::drm_control(optimizer_preset = "robust"),
     estimator = "REML",
     provider = "none",
     fixture_name = "reml_hetero_fixture",
     fixture_file = "tests/testthat/test-reml-heteroscedastic.R",
-    fixture_call = function(fixture_fn, seed) fixture_fn(n_id = 30L, n_each = 4L, seed = seed)$data,
+    fixture_call = function(fixture_fn, seed) fixture_fn(n_id = 30L, n_each = 4L, seed = seed),
+    data_from_fixture = function(fx) fx$data,
     information_rung = function(seed) "id30_each4",
     dgp_id = "arc2_gaussian_reml_heteroscedastic_sigma_fixed_effect",
     formula_label = paste0(
@@ -122,6 +134,74 @@ cell_registry <- list(
     ),
     true_parameter_scale = "sigma ~ x fixed coefficient (DGP true sigma effect is on z, not x; this fit tests profile feasibility of the fixef:sigma:x target only, not point recovery)",
     cohort_id = "arc2-gaussian-reml-heteroscedastic-sigma-fixef-profile-feasibility"
+  ),
+  "mc-0274" = list(
+    # Random-effect SD target (not fixed-effect): the target is on the
+    # internal log-SD scale (`log_sd_phylo`), so `profile_targets()` exposes
+    # it as `sd:mu:phylo(1 | species)`, mirroring mc-0266's `sd:sigma:(1 |
+    # id)` convention (tools/run-arc1-gaussian-sigma-re-profile-feasibility.R).
+    target = "sd:mu:phylo(1 | species)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    # Formula/control copied verbatim from
+    # tests/testthat/test-reml-phylo-location.R's first test_that() (the
+    # restricted-likelihood-matching test), the only validated config for
+    # this exact fixture/target combination.
+    # `phylo()` requires a bare symbol for `tree` (R/parse-formula.R's
+    # "must be the name of a phylogeny object" check), resolved later by
+    # `evaluate_phylo_tree()` via `get(name, envir = environment(formula),
+    # inherits = TRUE)`. So `tree` must be bound as a local variable named
+    # literally `tree` in this function's own execution environment (which
+    # becomes `environment(formula)`) -- passing `fx$tree` directly as the
+    # marker argument is a non-symbol and fails at parse time.
+    formula = function(fx) {
+      tree <- fx$tree
+      drmTMB::bf(y ~ x + drmTMB::phylo(1 | species, tree = tree), sigma ~ 1)
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "REML",
+    provider = "phylo",
+    fixture_name = "reml_phylo_location_fixture",
+    fixture_file = "tests/testthat/test-reml-phylo-location.R",
+    # Called at the fixture's own defaults (n_tip = 30, n_each = 3), which is
+    # also what the source test itself uses (`fx <- reml_phylo_location_fixture()`).
+    fixture_call = function(fixture_fn, seed) fixture_fn(n_tip = 30L, n_each = 3L, seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "tip30_each3",
+    dgp_id = "arc2_gaussian_reml_phylo_location_mu_sd",
+    formula_label = paste0(
+      "bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1); gaussian(identity/log); ",
+      "REML=TRUE; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.6 phylogenetic random-intercept SD on the mean (mu), log-SD internal scale",
+    cohort_id = "arc2-gaussian-reml-phylo-location-mu-sd-profile-feasibility"
+  ),
+  "mc-0277" = list(
+    target = "sd:sigma:phylo(1 | species)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    # Formula copied verbatim from test-reml-phylo-location.R's "REML admits
+    # a pure scale-side phylogenetic effect" test_that(), which uses NO
+    # optimizer preset override -- unlike mc-0274, this DGP/target
+    # combination is only validated with default drm_control().
+    formula = function(fx) {
+      tree <- fx$tree
+      drmTMB::bf(y ~ x, sigma ~ drmTMB::phylo(1 | species, tree = tree))
+    },
+    control = NULL,
+    estimator = "REML",
+    provider = "phylo",
+    fixture_name = "reml_phylo_location_fixture",
+    fixture_file = "tests/testthat/test-reml-phylo-location.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(n_tip = 30L, n_each = 3L, seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "tip30_each3",
+    dgp_id = "arc2_gaussian_reml_phylo_location_sigma_sd",
+    formula_label = paste0(
+      "bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)); gaussian(identity/log); REML=TRUE"
+    ),
+    true_parameter_scale = "phylogenetic random-intercept SD on sigma (DGP has no true sigma-phylo signal; this fit tests profile feasibility of the sd:sigma:phylo(1 | species) target only, not point recovery)",
+    cohort_id = "arc2-gaussian-reml-phylo-location-sigma-sd-profile-feasibility"
   )
 )
 
@@ -197,9 +277,10 @@ source_fixture_builder <- function(fixture_file, fn_name) {
 }
 
 fixture_fn <- source_fixture_builder(contract$fixture_file, contract$fixture_name)
-dat <- contract$fixture_call(fixture_fn, seed)
+fixture_result <- contract$fixture_call(fixture_fn, seed)
+dat <- contract$data_from_fixture(fixture_result)
 if (!is.data.frame(dat)) {
-  stop("fixture_call for --cell=", cell_id, " did not return a data.frame.", call. = FALSE)
+  stop("data_from_fixture for --cell=", cell_id, " did not return a data.frame.", call. = FALSE)
 }
 rung <- contract$information_rung(seed)
 
@@ -227,7 +308,7 @@ interval <- NULL
 
 tryCatch({
   fit_args <- list(
-    contract$formula(), family = contract$family(), data = dat,
+    contract$formula(fixture_result), family = contract$family(), data = dat,
     REML = identical(estimator, "REML")
   )
   if (!is.null(contract$control)) fit_args$control <- contract$control()
