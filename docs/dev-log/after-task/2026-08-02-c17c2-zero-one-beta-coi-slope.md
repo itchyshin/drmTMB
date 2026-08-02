@@ -24,9 +24,10 @@ profile block all reuse the independent `u_coi` and `log_sd_coi` carrier.
 
 The parser rejects mismatched or transformed symbols, labels, correlated
 intercept-plus-slope terms, multiple or simultaneous atom random components,
-structured providers, and missing responses. The canonical ledger promotion
-of only `mc-0578`, and the resulting `330 / 340 / 17` census, remain pending
-integration after foreign Lane B PR #889 lands or closes.
+structured providers, and missing responses. The canonical ledger promotes
+only `mc-0578`, producing exactly 330 implemented, 340 rejected-by-design, and
+17 not-implemented model-surface cells after integrating foreign Lane B PR
+#889.
 
 ## 3. Mathematical Contract
 
@@ -74,9 +75,17 @@ sentences are recorded below rather than silently widening this task.
 - `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
   'pkgdown::check_pkgdown()'`: pass (`No problems found`).
 - `git diff --check`: pass on the pushed implementation/evidence candidate.
-- Canonical ledger generation, the C17-C2 current-source bridge, final census,
-  fresh D-43 review, CI, and post-merge Mission Control read-back remain
-  landing gates after PR #889 clears the overlapping generated files.
+- `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: pass;
+  the immutable C14 receipt/fingerprint remains unchanged and the C17-C2
+  bridge authenticates the exact current fingerprint and source blobs.
+- `python3 -m unittest tools.tests.test_capability_ledger
+  tools.tests.test_b4_ci_c1 tools.tests.test_b4_ci_c2
+  tools.tests.test_b4_ci_c3`: 61 tests pass.
+- `python3 tools/capability_ledger.py --check`: pass, 30 generated outputs.
+- Filtered model-surface census: `687 = 330 / 340 / 17`.
+- Post-integration focused zero-one-beta and estimator-conformance tests: pass.
+- Fresh D-43 review, CI, and post-merge Mission Control read-back remain
+  landing gates.
 
 ## 6. Tests of the Tests
 
@@ -106,16 +115,18 @@ historical. The locked current documents with stale blanket wording are
 `docs/design/03-likelihoods.md`; this arc explicitly forbids changing formula
 grammar or likelihood-parameterization documents.
 
-The generated capability maps remain at the pre-promotion census until PR #889
-lands and its Lane B output becomes the canonical base. They must not be
-manually edited around that foreign branch.
+The generated capability maps were rebuilt from the authoritative ledger after
+PR #889 merged at `f41dfc01a812af1294ee86790dc3e8d39e412c50`. A direct
+cell-ledger diff against that canonical base changes only `mc-0578`; Lane B's
+merged classifications remain unchanged.
 
 ## 8. GitHub Issue Maintenance
 
 A live search for open issues matching zero-one-beta `coi` returned no issue.
 No issue was opened or closed because this feature is being landed through its
 focused branch and forthcoming PR. PR #869 remains the owner of the shared
-check log; PR #889 remains the owner of the overlapping Lane B ledger outputs.
+check log. PR #889 merged before C17-C2 ledger integration, resolving the
+generated-file overlap without changing Lane B classifications.
 
 ## 9. What Did Not Go Smoothly
 
@@ -128,8 +139,9 @@ warning while preserving the exact population-level point-recovery claim.
 
 The first full in-tree test run also exposed one mechanically stale source-line
 pointer. Refreshing that pointer fixed the conformance test without changing
-estimator behavior. Final ledger work is paused behind green draft PR #889
-rather than editing the same generated files concurrently.
+estimator behavior. Ledger integration waited for green draft PR #889 rather
+than editing the same generated files concurrently; after its authorized merge,
+the C17-C2 promotion applied cleanly on top of canonical main.
 
 ## 10. Team Learning
 
@@ -155,13 +167,9 @@ shared check log remains deferred until PR #869 lands or closes.
 
 ## 12. Next Actions
 
-1. Wait for foreign Lane B PR #889 to land or close, then integrate canonical
-   `origin/main` without altering its Lane B classifications.
-2. Authenticate the C17-C2 current-source C14 bridge, promote only `mc-0578`,
-   regenerate the ledger, and require `330 / 340 / 17` on the model surface.
-3. Run the final focused checks and fresh Fisher/Noether/Rose panel.
-4. Open a focused PR, require both CI jobs green on one unchanged head SHA,
+1. Run the fresh Fisher/Noether/Rose panel on the integrated candidate.
+2. Record the verdicts and rerun final ledger/diff checks.
+3. Open a focused PR, require both CI jobs green on one unchanged head SHA,
    then request fresh merge authorization.
-5. After merge, verify detached canonical main and Mission Control runtime at
+4. After merge, verify detached canonical main and Mission Control runtime at
    the merge SHA with no overlay.
-

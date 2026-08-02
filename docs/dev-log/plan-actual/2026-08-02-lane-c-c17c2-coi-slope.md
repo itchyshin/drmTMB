@@ -28,10 +28,10 @@ remaining at `point_fit_recovery`.
 | Recovery ladder | M=16/32 diagnostics, M=64 claim | M=16 3/4, M=32 4/4, M=64 4/4 population recovery | Claim rung passed |
 | Boundary-row predictor SD | At least 0.5 in every M=64 group | 3/4 attempts passed; seed 2026081781 minimum 0.403 | Retained warning; strong direct recovery did not support a block |
 | External comparator | `glmer()` common parameters within `1e-3` | Maximum difference `5.89e-4` | Passed |
-| C14 compatibility | Preserve immutable receipt/fingerprint | 12/12 current-source attempts passed; no historical receipt changed | Passed; ledger guard pending integration |
+| C14 compatibility | Preserve immutable receipt/fingerprint | 12/12 current-source attempts passed; the fail-closed ledger guard authenticates the C17-C2 fingerprint and source blobs | Passed |
 | Documentation | Exact scope plus limitations | Reader surfaces updated; formula grammar, likelihood docs, and check-log deferred by explicit boundary | As planned |
-| Ledger | Promote only `mc-0578` | Waiting for foreign Lane B PR #889, which owns overlapping generated outputs | Pending dependency |
-| Review and landing | D-43, focused PR, unchanged-head CI, fresh merge authority | Not yet run because the candidate ledger is not final | Pending |
+| Ledger | Promote only `mc-0578` | PR #889 merged at `f41dfc01a`; canonical integration changes only `mc-0578` and yields `330 / 340 / 17` | Passed |
+| Review and landing | D-43, focused PR, unchanged-head CI, fresh merge authority | Integrated candidate is ready for fresh D-43 review | Pending |
 
 ## Retained M=64 Receipt
 
@@ -50,6 +50,8 @@ inference-ready/support status, REML/AGHQ path, missing-response route, formula
 grammar, Lane A classification, Lane B classification, or foreign branch was
 changed. The package check and pkgdown check passed before ledger integration.
 
-This reconciliation remains open until it records the final ledger hash,
-review verdicts, PR/head/merge SHAs, detached-main ledger check, and Mission
-Control `330 / 340 / 17` read-back.
+The strict C14 current-source bridge, 61 combined ledger/Lane B unit tests, 30
+generated outputs, focused R tests, and filtered `330 / 340 / 17` census pass.
+This reconciliation remains open until it records the frozen candidate SHA,
+fresh review verdicts, PR/head/merge SHAs, detached-main ledger check, and
+Mission Control `330 / 340 / 17` read-back.
