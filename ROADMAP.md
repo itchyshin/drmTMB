@@ -148,7 +148,7 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   paper preparation. Broad
   random-slope operating characteristics, structured bridge/inference for
   matched slope cells, multiple structured slopes, larger structured slope covariance/correlation, structured
-  residual `rho12`, mesh/SPDE spatial structure, sparse large-pedigree speed
+  residual `rho12`, mesh/SPDE spatial structure beyond the fixed-kappa Gaussian local-fit intercept, sparse large-pedigree speed
   claims, and the full double-hierarchical endpoint remain roadmap work for
   later releases.
 - Missing-data preview boundary: `miss_control(response = "include")` is G3
@@ -506,7 +506,9 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   Matching bivariate q=2 spatial location and constant q=4 spatial
   location-scale blocks now use the same coordinate foundation and report through
   `corpairs(level = "spatial")`. Ordinary Poisson/NB2 now also fit q=1
-  spatial `mu` intercept and unlabelled one-slope terms. Mesh/SPDE, multiple
+  spatial `mu` intercept and unlabelled one-slope terms. Beyond the separate
+  fixed-kappa Gaussian mesh `mu` intercept at local-fit level, mesh/SPDE,
+  multiple
   spatial slopes, spatial slope correlations, standalone spatial `sd(...)`,
   spatial `corpair()` regressions, pure, multiple, or labelled count spatial
   slopes, and zero-inflated spatial effects outside the exact Poisson spatial

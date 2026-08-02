@@ -92061,7 +92061,7 @@ Shinichi grants a separate Gate A compute approval.
   direct `REML = FALSE` remedy. The field-scale start calibration also now
   solves against at most 32 deterministic projection rows rather than every
   observation, preventing a start-value-only vertex-by-observation allocation.
-  The expanded mesh suite passed 42 expectations with zero failures.
+  The expanded mesh suite passed 50 expectations with zero failures.
 - Reconciled the planning handover against the implemented ML-only local-fit
   slice in `2026-08-02-mesh-spde-handover-reconciliation.md`. The design
   source maps now name the current gllvmTMB PR #886 source paths, distinguish
@@ -92088,3 +92088,6 @@ Shinichi grants a separate Gate A compute approval.
 - Added `spatial_coords()` and `make_mesh()` to the pkgdown structured-effect
   reference group after the audit found both exported topics missing from the
   index. `pkgdown::check_pkgdown()` now reports no problems.
+- A final stale-wording audit also repaired the formula grammar and roadmap so
+  their broad mesh/SPDE deferrals explicitly exclude the fixed-kappa Gaussian
+  local-fit intercept.
