@@ -32,7 +32,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 697 = the 676 frozen census rows, mc-0260m, ten C14 q2-plus boundary
         # leaves paired with the exact q1 mu/sigma structured leaves, and ten
         # C18 q2-plus boundary leaves paired with the exact q1 zoi/coi atom
-        # leaves. Splitting promotes nothing: not_implemented stays at 17.
+        # leaves. Splitting itself promotes nothing (not_implemented stayed
+        # at 17 immediately after the split); C18 separately promotes seven
+        # of the ten atom leaves from recovery evidence, leaving 10.
         self.assertEqual(len(model), 697)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
@@ -286,6 +288,72 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(transitions[0]["from_work_status"], "backlog")
         self.assertEqual(transitions[0]["to_work_status"], "verified")
 
+    def test_c18_promotes_seven_of_ten_structured_atom_leaves(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
+        promoted = (
+            "mc-0603", "mc-0604", "mc-0605", "mc-0607",
+            "mc-0613", "mc-0614", "mc-0617",
+        )
+        for cell_id in promoted:
+            row = by_id[cell_id]
+            self.assertEqual(row["capability_status"], "implemented")
+            self.assertEqual(row["work_status"], "verified")
+            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+            self.assertEqual(row["test_gate"], "G3")
+            self.assertEqual(row["tranche_id"], "lane-c-c18-atom-promotion")
+            self.assertEqual(row["primary_evidence_id"], f"ev-{cell_id}-c18-recovery")
+            self.assertIn("Point-fit recovery only", row["claim_boundary"])
+            self.assertIn("NOT profile-, interval-, coverage-", row["claim_boundary"])
+            self.assertIn("Profiles, intervals, coverage", row["next_gate"])
+
+            evidence = evidence_by_id[row["primary_evidence_id"]]
+            self.assertEqual(evidence["cell_id"], cell_id)
+            self.assertEqual(evidence["evidence_class"], "recovery_test")
+            self.assertEqual(evidence["result"], "G3_pass")
+            self.assertEqual(evidence["replicates"], "4")
+            self.assertTrue((ROOT / evidence["path_or_url"]).is_file())
+
+            transitions = [
+                item for item in self.transitions
+                if item["transition_id"] == f"tr-{cell_id}-c18-promote"
+            ]
+            self.assertEqual(len(transitions), 1)
+            self.assertEqual(transitions[0]["from_work_status"], "backlog")
+            self.assertEqual(transitions[0]["to_work_status"], "verified")
+
+        # mc-0615 is not promoted; its blocked attempt is recorded but the
+        # cell stays not_implemented/backlog.
+        blocked = by_id["mc-0615"]
+        self.assertEqual(blocked["capability_status"], "not_implemented")
+        self.assertEqual(blocked["work_status"], "backlog")
+        self.assertEqual(blocked["evidence_tier"], "none")
+        blocked_evidence = evidence_by_id["ev-mc-0615-c18-blocked"]
+        self.assertEqual(blocked_evidence["result"], "BLOCKED_LOCAL_FIXTURE")
+        self.assertIn("0.324", blocked_evidence["claim_boundary"])
+        # The corrected mechanism is a GMRF variance-component boundary, not a
+        # repeated design-doc F3 attribution; the record must retract F3
+        # rather than assert it as the cause.
+        self.assertIn("retracted", blocked_evidence["claim_boundary"])
+        self.assertIn(
+            "not by finding F3", blocked_evidence["claim_boundary"]
+        )
+        blocked_transitions = [
+            item for item in self.transitions
+            if item["transition_id"] == "tr-mc-0615-c18-blocked"
+        ]
+        self.assertEqual(len(blocked_transitions), 1)
+        self.assertEqual(blocked_transitions[0]["from_work_status"], "backlog")
+        self.assertEqual(blocked_transitions[0]["to_work_status"], "backlog")
+
+        # Spatial atoms stay untouched: deferred by owner decision and refused
+        # in code, not part of this recovery/promotion tranche.
+        for cell_id in ("mc-0606", "mc-0616"):
+            spatial_row = by_id[cell_id]
+            self.assertEqual(spatial_row["capability_status"], "not_implemented")
+            self.assertEqual(spatial_row["work_status"], "backlog")
+            self.assertEqual(spatial_row["tranche_id"], "lane-c-c18-atom-leaf-taxonomy")
+
     def test_arc3a_cells_are_narrow_and_evidence_backed(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
@@ -294,7 +362,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 330, "not_implemented": 17, "rejected_by_design": 350},
+            {"implemented": 337, "not_implemented": 10, "rejected_by_design": 350},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -337,19 +405,21 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 330, "not_implemented": 17, "rejected_by_design": 350},
+            {"implemented": 337, "not_implemented": 10, "rejected_by_design": 350},
         )
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 77 point_fit_recovery cells after the explicit C12 mc-0653,
+        # contains 84 point_fit_recovery cells after the explicit C12 mc-0653,
         # six-cell count tranche, ten named C16 structured zero-one-beta
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
         # promotion, the exact 24/25/36/23-cell B4-CI C1--C4 interval
         # promotions, the exact C17-C1 mc-0570 and C17-C2 mc-0578
-        # promotions, and the target-specific Arc 1 mc-0260/mc-0262
-        # promotions, plus the target-specific Arc 1 mc-0266 and mc-0269
-        # promotions.
+        # promotions, the target-specific Arc 1 mc-0260/mc-0262
+        # promotions, the target-specific Arc 1 mc-0266 and mc-0269
+        # promotions, and C18's seven exact q1 structured zero-one-beta
+        # ATOM (zoi/coi) promotions (mc-0603, mc-0604, mc-0605, mc-0607,
+        # mc-0613, mc-0614, mc-0617; mc-0615 stays not promoted).
         # Future changes require a
         # named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
@@ -357,7 +427,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            77,
+            84,
         )
         # The TOTAL may differ from the frozen count only through approved row inserts.
         # mc-0260m is now interval_feasible for one exact pooled-effect target, so it no
@@ -365,7 +435,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # hidden behind a simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            77,
+            84,
         )
 
         by_id = {row["cell_id"]: row for row in model}

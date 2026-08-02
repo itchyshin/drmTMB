@@ -113,9 +113,15 @@ ASSOCIATION_COUNT = 6
 # is not a blanket re-baseline. Arc 1 subsequently promotes only five exact
 # targets after three current-source Totoro receipts per target: mc-0260,
 # mc-0262, mc-0260m's pooled effect, mc-0266's residual-scale RE SD, and
-# mc-0269's Gaussian REML independent random-slope SD.
+# mc-0269's Gaussian REML independent random-slope SD. C18 then promotes
+# seven exact q1 structured zero-one-beta ATOM (zoi/coi) leaves after
+# source-bound four-seed local recovery, a per-group separation filter,
+# and fresh three-lens GO following repair of the D-43 panel's three
+# blocking defects (mc-0603, mc-0604, mc-0605, mc-0607, mc-0613, mc-0614,
+# mc-0617; mc-0615 stays not_implemented/backlog after a documented
+# BLOCKED_LOCAL_FIXTURE attempt).
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 77
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 84
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -1285,18 +1291,24 @@ def validate(
     # recovery and fresh Fisher/Noether/Rose GO. C17-C1 promotes the exact coi
     # q1 random intercept with a documented sparse-atom conditional-mode warning.
     # C17-C2 promotes the exact coi same-raw-symbol q1 random slope while retaining
-    # weak boundary-row predictor spread as a conditional-mode warning. The remaining 17 rows
-    # are the actionable implementation backlog, not a claim that every
-    # boundary is mathematically impossible.
+    # weak boundary-row predictor spread as a conditional-mode warning. C18 then
+    # promotes seven of the ten structured zero-one-beta ATOM (zoi/coi) q1 leaves
+    # after source-bound four-seed local recovery, a per-group separation filter,
+    # and fresh three-lens GO following repair of the D-43 panel's three blocking
+    # defects; mc-0615 stays not_implemented after a documented
+    # BLOCKED_LOCAL_FIXTURE attempt, and mc-0606/mc-0616 (spatial) stay
+    # not_implemented and refused by design. The remaining 10 rows are the
+    # actionable implementation backlog, not a claim that every boundary is
+    # mathematically impossible.
     expected = Counter(
         {
-            "implemented": 330,
+            "implemented": 337,
             "rejected_by_design": (
                 C14_BOUNDARY_COUNT
                 + len(C14_ZOB_LEAF_TAXONOMY)
                 + len(C18_ZOB_ATOM_LEAF_TAXONOMY)
             ),
-            "not_implemented": 17,
+            "not_implemented": 10,
         }
     )
     if status_counts != expected:
@@ -1309,7 +1321,10 @@ def validate(
     # C3's exact 36-cell and C4's exact 23-cell promotions, C17-C1's exact
     # zero-one-beta coi q1 random-intercept promotion, and C17-C2's exact
     # same-raw-symbol coi q1 random-slope promotion. C4 moves eleven frozen
-    # point-fit cells and twelve diagnostic-only companions.
+    # point-fit cells and twelve diagnostic-only companions. C18 adds seven
+    # exact q1 structured zero-one-beta ATOM (zoi/coi) promotions (mc-0603,
+    # mc-0604, mc-0605, mc-0607, mc-0613, mc-0614, mc-0617); mc-0615 is not
+    # promoted.
     # Approved inserts take a higher source_order and so cannot disturb this
     # number; every frozen-cell promotion needs a named
     # transition and evidence receipt.
