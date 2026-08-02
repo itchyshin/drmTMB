@@ -21,14 +21,27 @@ For group index `g(i)`, let
 
 \[
 \begin{aligned}
-\operatorname{logit}(\mu_i) &= X_{\mu,i}\beta_\mu, \\
-\log(\sigma_i) &= X_{\sigma,i}\beta_\sigma, \\
-\operatorname{logit}(zoi_i) &= X_{zoi,i}\beta_{zoi}, \\
-\operatorname{logit}(coi_i) &= \beta_{coi,0}+\beta_{coi,1}x_i
+\eta_{\mu,i} &= X_{\mu,i}\beta_\mu, \\
+\mu_i^{raw} &= \operatorname{logit}^{-1}(\eta_{\mu,i}), \\
+\mu_i &= \epsilon_\mu+(1-2\epsilon_\mu)\mu_i^{raw},
+  \qquad \epsilon_\mu=10^{-12}, \\
+\widetilde\ell_{\sigma,i} &=
+  \mathcal C(X_{\sigma,i}\beta_\sigma),
+  \qquad \sigma_i=\exp(\widetilde\ell_{\sigma,i}), \\
+\eta_{zoi,i} &= X_{zoi,i}\beta_{zoi},
+  \qquad zoi_i=\operatorname{logit}^{-1}(\eta_{zoi,i}), \\
+\eta_{coi,i} &= \beta_{coi,0}+\beta_{coi,1}x_i
   + \exp(\ell_{coi})u_{coi,g(i)}x_i, \\
+coi_i &= \operatorname{logit}^{-1}(\eta_{coi,i}), \\
+\ell_{coi} &\equiv \mathtt{log\_sd\_coi}, \\
 u_{coi,g} &\stackrel{\mathrm{iid}}{\sim} N(0,1).
 \end{aligned}
 \]
+
+Here \(\mathcal C\) is the exact `drm_softclamp_log_sigma` transformation when
+the runtime log-`sigma` guard is enabled and the identity otherwise. Thus the
+symbolic scale uses the same post-guard `log_sigma` value as model type 15 in
+TMB rather than an unguarded shorthand.
 
 The fixed slope `beta_coi,1 x_i` must match `(0 + x | id)`; the ordinary fixed
 intercept `beta_coi,0` remains present. In carrier form,
@@ -45,22 +58,45 @@ carries no Jacobian term.
 
 ## Likelihood alignment
 
-The per-observation log likelihood remains
+Define the interior precision and the exact guarded beta shapes by
+
+\[
+\phi_i=\exp(-2\widetilde\ell_{\sigma,i}),\qquad
+\alpha_i=\max(\mu_i\phi_i,10^{-8}),\qquad
+\beta_i=\max((1-\mu_i)\phi_i,10^{-8}).
+\]
+
+The `max` notation is the mathematical equivalent of TMB's
+`CppAD::CondExpLt` shape floors. The per-observation log likelihood is
 
 \[
 \log p(y_i)=
 \begin{cases}
 \log(zoi_i)+\log(1-coi_i), & y_i=0,\\
 \log(zoi_i)+\log(coi_i), & y_i=1,\\
-\log(1-zoi_i)+\log f_{\mathrm{Beta}}(y_i;\mu_i,\sigma_i),
+\log(1-zoi_i)+\log f_{\mathrm{Beta}}(y_i;\alpha_i,\beta_i),
   & 0<y_i<1.
 \end{cases}
 \]
 
 `eta_coi` receives the row-specific random-slope contribution before the
-stable boundary calculations. Interior likelihood terms remain independent of
-`coi`. The objective contains the normalized latent penalty
-`-sum(dnorm(u_coi, 0, 1, log = TRUE))`.
+stable boundary calculations. In code, the four boundary log-probabilities use
+the corresponding `logspace_add` forms, which are algebraically the log terms
+shown above. Interior likelihood terms remain independent of `coi`.
+
+For complete responses with observation weights \(w_i\), the exact objective
+contribution for this carrier is
+
+\[
+\operatorname{NLL}
+=-\sum_i w_i\log p(y_i\mid u_{coi})
+-\sum_g\log\varphi(u_{coi,g};0,1),
+\]
+
+where \(\varphi(\cdot;0,1)\) is the normalized standard-normal density. The
+second term is exactly
+`-sum(dnorm(u_coi, 0, 1, log = TRUE))`; the non-centred carrier requires no
+Jacobian.
 
 ## R-to-TMB mapping
 
