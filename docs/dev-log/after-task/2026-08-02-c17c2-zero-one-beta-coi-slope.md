@@ -26,8 +26,8 @@ The parser rejects mismatched or transformed symbols, labels, correlated
 intercept-plus-slope terms, multiple or simultaneous atom random components,
 structured providers, and missing responses. The canonical ledger promotes
 only `mc-0578`, producing exactly 330 implemented, 340 rejected-by-design, and
-17 not-implemented model-surface cells after integrating foreign Lane B PR
-#889.
+17 not-implemented model-surface cells after integrating foreign Lane B PRs
+#889 and #892.
 
 ## 3. Mathematical Contract
 
@@ -91,7 +91,8 @@ sentences are recorded below rather than silently widening this task.
   bridge authenticates the exact current fingerprint and source blobs.
 - `python3 -m unittest tools.tests.test_capability_ledger
   tools.tests.test_b4_ci_c1 tools.tests.test_b4_ci_c2
-  tools.tests.test_b4_ci_c3`: 61 tests pass.
+  tools.tests.test_b4_ci_c3 tools.tests.test_b4_ci_c4`: 64 tests pass after
+  integrating PR #892.
 - `python3 tools/capability_ledger.py --check`: pass, 30 generated outputs.
 - Filtered model-surface census: `687 = 330 / 340 / 17`.
 - Post-integration focused zero-one-beta and estimator-conformance tests: pass.
@@ -128,17 +129,19 @@ historical. The locked current documents with stale blanket wording are
 grammar or likelihood-parameterization documents.
 
 The generated capability maps were rebuilt from the authoritative ledger after
-PR #889 merged at `f41dfc01a812af1294ee86790dc3e8d39e412c50`. A direct
-cell-ledger diff against that canonical base changes only `mc-0578`; Lane B's
-merged classifications remain unchanged.
+PR #889 merged at `f41dfc01a812af1294ee86790dc3e8d39e412c50` and PR #892
+merged at `a0f93b0bd9e1d2c3ea751f59902c9f59ab34fe6c`. A direct
+cell-ledger diff against the latter canonical base changes only `mc-0578`;
+Lane B's merged C1--C4 classifications remain unchanged.
 
 ## 7a. Issue Ledger
 
 A live search for open issues matching zero-one-beta `coi` returned no issue.
 No issue was opened or closed because this feature is being landed through its
 focused branch and forthcoming PR. PR #869 remains the owner of the shared
-check log. PR #889 merged before C17-C2 ledger integration, resolving the
-generated-file overlap without changing Lane B classifications.
+check log. PRs #889 and #892 merged before C17-C2 ledger integration,
+resolving their generated-file overlaps without changing Lane B
+classifications.
 
 ## 9. What Did Not Go Smoothly
 
@@ -151,9 +154,12 @@ warning while preserving the exact population-level point-recovery claim.
 
 The first full in-tree test run also exposed one mechanically stale source-line
 pointer. Refreshing that pointer fixed the conformance test without changing
-estimator behavior. Ledger integration waited for green draft PR #889 rather
-than editing the same generated files concurrently; after its authorized merge,
-the C17-C2 promotion applied cleanly on top of canonical main.
+estimator behavior. Ledger integration waited for green PRs #889 and #892
+rather than publishing competing generated files. The #892 integration
+required source-level reconciliation of the frozen point-fit guard: C4 moves
+eleven prior point-fit cells to interval-feasible, while C17-C2 adds one exact
+point-fit cell, yielding 81 frozen and 82 total point-fit-recovery cells. The
+combined 64-test suite and generator validate that reconciliation.
 
 ## 11. Team Learning
 
@@ -188,8 +194,8 @@ product mirror is changed here.
 
 ## 13. Next Actions
 
-1. Regenerate the reviewed ledger outputs and rerun final ledger/diff checks.
-2. Open a focused PR, require both CI jobs green on one unchanged head SHA,
+1. Open the focused C17-C2 PR from the PR #892-integrated candidate.
+2. Require both CI jobs green on one unchanged head SHA,
    then request fresh merge authorization.
 3. After merge, verify detached canonical main and Mission Control runtime at
    the merge SHA with no overlay.
