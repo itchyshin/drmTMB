@@ -44,6 +44,8 @@ files, direct promotion of collapsed rows from q1 evidence, and an assumed
 - `gh pr view 893`: genuine shared-source overlap; `os-matrix` green and
   `ubuntu-latest (release)` failed at inspection time.
 - Handover PR #895 opened from the pushed docs-only branch; not merged.
+- Clean planning worktree `/private/tmp/drmtmb-c18-claude.gngYwq` created on
+  pushed branch `claude/c18-structured-atoms-plan`.
 - `git diff --check`: pass before final staging; rerun after this report.
 - File existence/read-back for the snapshot, lane board, and handover: pass.
 
@@ -118,7 +120,8 @@ simple `330 + 10` ceiling would be misleading.
 ## Next Actions
 
 1. Let PR #895 run CI; do not auto-merge it.
-2. Start a fresh Claude session and paste the exact prompt in the handover.
+2. Start a fresh Claude session in `/private/tmp/drmtmb-c18-claude.gngYwq`
+   and paste the exact prompt in the handover.
 3. Claude performs only the `OWED` read-only Ultra Plan steps until approval and
    the #893 overlap gate clear.
 
