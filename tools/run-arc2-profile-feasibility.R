@@ -215,6 +215,51 @@ cell_registry <- list(
     true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma), log-SD internal scale",
     cohort_id = "arc2-gaussian-reml-phylo-sigma-sd-profile-feasibility"
   ),
+  "mc-0283" = list(
+    # Matched q2 sibling of mc-0277: the SAME labelled phylo() term
+    # (`phylo(1 | p | species)`) appears in BOTH mu and sigma, so `sd:sigma:
+    # ...` gets an extra "sigma:" prefix ahead of the term name (confirmed by
+    # inspecting `drm_profile_targets()` on a fitted q2 model -- this is real
+    # naming behaviour from the labelled-block term, not a typo), giving the
+    # doubled target string below.
+    target = "sd:sigma:sigma:phylo(1 | p | species)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    # Formula copied verbatim from test-reml-phylo-location.R:163-164 ("REML
+    # admits matched mean-and-scale phylogenetic effects (q2 block)"), the
+    # only validated syntax for this labelled q2 block. The FIXTURE is not
+    # that test's `reml_phylo_location_fixture()`: that fixture has NO true
+    # sigma-phylo signal (same defect mc-0277 replaces, see
+    # tools/arc2-phylo-sigma-fixtures.R's header). `arc2_phylo_sigma_q2_fixture()`
+    # instead places independent genuine phylogenetic signal on BOTH mu and
+    # log(sigma), each with its own known true SD.
+    formula = function(fx) {
+      tree <- fx$tree
+      drmTMB::bf(
+        y ~ x + drmTMB::phylo(1 | p | species, tree = tree),
+        sigma ~ 1 + drmTMB::phylo(1 | p | species, tree = tree)
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "REML",
+    provider = "phylo",
+    fixture_name = "arc2_phylo_sigma_q2_fixture",
+    fixture_file = "tools/arc2-phylo-sigma-fixtures.R",
+    # Defaults (n_tip = 60, n_each = 12) match mc-0277's validated replication
+    # ladder, comfortably above the Arc 0 manifest's N>=250 q2 information
+    # floor (n = 720).
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "tip60_each12",
+    dgp_id = "arc2_gaussian_reml_phylo_sigma_q2_sd",
+    formula_label = paste0(
+      "bf(y ~ x + phylo(1 | p | species, tree = tree), ",
+      "sigma ~ 1 + phylo(1 | p | species, tree = tree)); gaussian(identity/log); ",
+      "REML=TRUE; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma) in the matched q2 block (independent 0.6 SD phylo effect also present on mu, identity link), log-SD internal scale",
+    cohort_id = "arc2-gaussian-reml-phylo-sigma-q2-sd-profile-feasibility"
+  ),
   "mc-0013" = list(
     # Random-effect SD target: the independent random-SLOPE SD component of
     # an intercept+slope animal() block on mu (beta() has no slope-only
