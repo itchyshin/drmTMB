@@ -10,13 +10,20 @@ interval-**existence** claim only; coverage and calibration are withheld through
 
 ## 2. Implemented
 
-Three cells promoted, model-surface tiers **161/77 → 164/74**:
+Four cells promoted, model-surface tiers **161/77 → 165/73**:
 
 | Cell | Target | Estimator | Totoro seeds | Estimates | Intervals |
 |---|---|---|---|---|---|
 | mc-0186 | `rho12` | REML | 3/3 | 0.368 / 0.387 / 0.360 | [0.221,0.499] [0.242,0.515] [0.212,0.492] |
 | mc-0263 | `fixef:sigma:x` | REML | 3/3 | −0.020 / −0.081 / 0.048 | [−0.170,0.125] [−0.239,0.076] [−0.114,0.211] |
 | mc-0274 | `sd:mu:phylo(1 \| species)` | REML | 3/3 | 0.939 / 0.698 / 0.725 | [0.586,1.495] [0.419,1.107] [0.422,1.214] |
+| mc-0277 | `sd:sigma:phylo(1 \| species)` | REML | 3/3 | 0.860 / 0.477 / 0.556 | [0.598,1.221] [0.306,0.758] [0.370,0.851] |
+
+`mc-0277` is the payoff from the §9 defect finding. It was prescribed a fixture with **no true
+sigma-phylo signal**, under which its boundary-collapsing profile was a null-case artifact. Re-run on a
+signal-bearing DGP (`tools/arc2-phylo-sigma-fixtures.R`, `n_tip = 60`, `n_each = 12`, true log-SD 0.7) it
+satisfies the same contract 3/3, with the true value inside all three intervals. Had the manifest been
+followed, this cell would have been recorded as a permanent capability STOP.
 
 All nine runs: `convergence = 0`, `pdHess = TRUE`, `profile_boundary = FALSE`, `clamp_limited = FALSE`,
 `trace_complete = TRUE`, `conf_status = "profile"`. True values: rho12 = 0.4; phylo SD = 0.6 (all three
@@ -112,7 +119,8 @@ not change the public profile method.
 
 - **mc-0013 / mc-0015** — pass locally; the 8-individual pedigree must be rebuilt at a larger design
   (Arc 1's SD targets used 30–48 groups) before feasibility can be assessed.
-- **mc-0277 / mc-0283** — need a signal-bearing DGP; no ledger action yet; must not be STOPped.
+- **mc-0283** — the matched q2 sibling of mc-0277, same signal-free prescription. `arc2_phylo_sigma_fixture`
+  now exists and could plausibly serve it after a q2 extension; must not be STOPped in the meantime.
 - **mc-0123** — manifest binding must be corrected to mc-0124/`mu2` or a mu1 fixture written.
 - **mc-0321, mc-0409, mc-0421–0424, mc-0205, mc-0206** — fixtures must be built. `sim3()` additionally
   monkey-patches `drm_validate_reml_spec_biv`; determine why that gate exists before promoting it.
@@ -120,5 +128,20 @@ not change the public profile method.
 - **Prong B (zero-one-beta fences)** — recommend deferring to its own arc: 14 candidate cells (not 16;
   `coi` stays fenced), each needing `se = TRUE` and 30–50 seeds, roughly 420–700 fits. See
   `scratchpad/2026-08-02-arc2-s11-fence-audit.md`.
-- Three untracked `tools/fisher-mc0277-*.R` scratch diagnostics — move to `scratchpad/` or delete.
 - Branch is pushed; **no PR opened and nothing merged.**
+
+## 11. Compute state
+
+Totoro scratch is **cleaned up**: the truncated 176 MB transfer bundle, the 528 MB worktree, all logs,
+and the campaign outputs are removed (~705 MB reclaimed) after confirming all 79 evidence files and 4
+reconciliations were pushed to `origin/claude/arc2-interval-feasibility`.
+
+**One unintended side effect, recorded rather than glossed:** `R CMD INSTALL` ignored the
+`R_LIBS_USER=~/hsq_work/arc2-Rlib` I set and installed into the shared user library `~/R/lib/drmTMB`,
+overwriting whatever build was there. The replacement is built from `83055ec5`, which is current `main`,
+so the practical effect is that the shared library is now current. The arc6 lane's own
+`~/hsq_work/arc6-Rlib/drmTMB` (Jul 24) is untouched. To isolate properly next time, pass
+`-l <lib>` to `R CMD INSTALL` rather than relying on `R_LIBS_USER`.
+
+Re-creating the Totoro workspace costs one `git worktree add` plus three `scp`s; the compiled package
+persists in the shared library, so the expensive step does not need repeating.
