@@ -14,16 +14,16 @@ same stochastic model.
 | `omega` | `spatial(1 \| site, mesh = mesh)` | mesh-vertex field | `ranef(fit, "spatial_mu")$latent` | fitted; local-fit capability only |
 | `A omega` | mesh projection, never a node index | one barycentric projection row per retained observation | conditional `mu` contribution | fitted and independently compared; local-fit capability only |
 | `Q(kappa_0)` | `mesh$spde$c0/g1/g2`, fixed `mesh$kappa` | `kappa_0^4 c0 + 2 kappa_0^2 g1 + g2` | internal contract only | fixed configuration, not an estimand |
-| `s = exp(log_sd)` | fixed-kappa GMRF field scale | positive precision-scale multiplier | `sdpars$mu[["spatial(1 | site)"]]` | fitted; recovery gate blocked, not an inference claim |
+| `s = exp(log_sd)` | fixed-kappa GMRF field scale | positive covariance-scale multiplier (precision is `s^-2 Q`) | `sdpars$mu[["spatial(1 | site)"]]` | fitted; recovery gate blocked, not an inference claim |
 
 The fitted model is
 
 `y_i | omega ~ Normal(X_i beta + (A omega)_i, sigma_e^2)` and
-`omega | tau, kappa_0 ~ Normal(0, tau^2 Q(kappa_0)^-1)`.
+`omega | s, kappa_0 ~ Normal(0, s^2 Q(kappa_0)^-1)`.
 
 The field prior contributes
 
-`1/2 {m log(2 pi) + 2m log(tau) - log|Q(kappa_0)| + tau^-2 omega'Q(kappa_0)omega}`.
+`1/2 {m log(2 pi) + 2m log(s) - log|Q(kappa_0)| + s^-2 omega'Q(kappa_0)omega}`.
 
 `kappa_0` must be finite and positive, belongs to the mesh object, and is
 reported only as `kappa_fixed`.  There is no `log_kappa_spde`, range estimate,

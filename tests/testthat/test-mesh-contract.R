@@ -42,8 +42,11 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
     bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
     family = gaussian(), data = dat
   )
+  fixed_gradient <- fit$obj$gr(fit$opt$par)
 
   expect_true(isTRUE(fit$model$structured$mesh_spatial_mu$has))
+  expect_true(all(is.finite(fixed_gradient)))
+  expect_lt(max(abs(fixed_gradient)), 1e-3)
   expect_equal(nrow(fit$model$structured$mesh_spatial_mu$projection), nrow(dat))
   expect_true("spatial(1 | site)" %in% names(fit$sdpars$mu))
   expect_named(fit$random_effects, "spatial_mu")
@@ -113,6 +116,13 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
       family = gaussian(), data = dat
     ),
     "exactly one"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ spatial(1 | missing_site, mesh = mesh), sigma ~ 1),
+      family = gaussian(), data = dat
+    ),
+    "grouping variable.*missing_site.*not found"
   )
   missing_dat <- dat
   missing_dat$y[1] <- NA_real_

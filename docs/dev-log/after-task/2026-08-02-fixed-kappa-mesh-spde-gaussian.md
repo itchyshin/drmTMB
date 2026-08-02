@@ -31,7 +31,7 @@ phylogenetic-spatial, and model-map vignettes; pkgdown indexes both helpers.
 
 ## Checks Run
 
-- `devtools::test(filter = "mesh")`: 50 expectations, zero failures.
+- `devtools::test(filter = "mesh")`: 53 expectations, zero failures.
 - Dense marginal-objective comparator, row alignment, CRS, malformed mesh,
   non-Gaussian, labelled, mesh-plus-coordinates, REML, and missing-data
   boundaries are exercised by the mesh contracts.
@@ -77,6 +77,15 @@ fingerprint before package checking, and a second fresh 12-attempt Totoro
 receipt at `f0e7fbadf` passed before its C17-C2 manifest was refreshed. Final
 reviews also found stale public “mesh planned” wording and one incorrectly
 labelled article invariant; both were repaired.
+
+Fresh closeout review then found that the first CI-fixture repair was too
+narrow: seven tracked bivariate diagnostic tools also construct TMB objects
+below `drm_fit_spec()`. Inert mesh DATA now enter centrally at builder level.
+Gauss also required validation of the formula group as an observation label
+and an explicit finite/small-gradient test; both were added without using the
+group as a node index. Noether corrected the symbolic scale name and its use
+throughout the normalized prior. The repaired tree received Gauss and Noether
+GO verdicts.
 
 ## Team Learning
 

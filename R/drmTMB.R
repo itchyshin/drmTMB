@@ -505,10 +505,6 @@ drm_fit_spec <- function(
   # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
   spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
   spec <- drm_apply_start_override(spec)
-  # The C++ template declares the mesh fields globally.  Populate inert sparse
-  # placeholders for every family, rather than relying on the Gaussian builder
-  # alone to provide them.
-  spec$tmb_data <- add_mesh_spatial_tmb_data(spec$tmb_data, spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
   obj <- TMB::MakeADFun(
@@ -3077,7 +3073,7 @@ drm_build_gaussian_ls_spec <- function(
       !is.null(structured_term) &&
       identical(structured_term$structure, "mesh")
   ) {
-    validate_gaussian_mesh_spatial_term(structured_term, sigma_entry)
+    validate_gaussian_mesh_spatial_term(structured_term, sigma_entry, data)
     structured_term
   } else {
     NULL
@@ -3214,6 +3210,7 @@ drm_build_gaussian_ls_spec <- function(
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     structured_mu_vars(structured_term),
+    structured_mu_vars(mesh_spatial_term),
     vapply(sd_mu_targets, `[[`, character(1), "group"),
     vapply(sd_phylo_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
@@ -3597,7 +3594,7 @@ drm_build_gaussian_ls_spec <- function(
   spec$missing_data <- missing_data
   check_weights_known_covariance(spec)
   spec$tmb_data <- add_covariance_block_tmb_data(
-    add_mesh_spatial_tmb_data(make_tmb_data(spec), spec),
+    make_tmb_data(spec),
     spec
   )
   spec$nobs <- spec$missing_data$counts$likelihood_rows
@@ -12612,7 +12609,7 @@ empty_mesh_spatial_mu_structure <- function() {
   )
 }
 
-validate_gaussian_mesh_spatial_term <- function(term, sigma_entry) {
+validate_gaussian_mesh_spatial_term <- function(term, sigma_entry, data) {
   labelled <- is.character(term$covariance_label) &&
     length(term$covariance_label) == 1L &&
     !is.na(term$covariance_label) &&
@@ -12630,6 +12627,14 @@ validate_gaussian_mesh_spatial_term <- function(term, sigma_entry) {
     cli::cli_abort(
       "The first mesh spatial route requires {.code sigma ~ 1}."
     )
+  }
+  group <- term$group
+  if (length(group) != 1L || !is.character(group) || is.na(group) ||
+      !nzchar(group) || !group %in% names(data)) {
+    cli::cli_abort(c(
+      "Mesh spatial grouping variable {.val {group}} was not found in {.arg data}.",
+      "i" = "Use a real column name in {.code spatial(1 | site, mesh = mesh)}; it labels observations and is never treated as a mesh-node index."
+    ))
   }
   invisible(term)
 }
@@ -18771,7 +18776,7 @@ corpair_model_level_id <- function(model) {
   0L
 }
 
-make_tmb_data <- function(spec) {
+make_tmb_data_core <- function(spec) {
   dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
   dummy_sparse <- Matrix::sparseMatrix(
     i = integer(0),
@@ -20067,6 +20072,13 @@ make_tmb_data <- function(spec) {
   cli::cli_abort(
     "Internal error: unknown {.pkg drmTMB} model type {.val {model_type}}."
   )
+}
+
+make_tmb_data <- function(spec) {
+  # The TMB template declares mesh fields globally, so every builder-level
+  # data contract must carry them. This also protects tracked low-level tools
+  # that intentionally call MakeADFun() without passing through drm_fit_spec().
+  add_mesh_spatial_tmb_data(make_tmb_data_core(spec), spec)
 }
 
 split_tmb_parameters <- function(par, spec) {

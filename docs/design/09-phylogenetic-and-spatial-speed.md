@@ -223,8 +223,9 @@ only at local-fit level. It names:
   Matérn/SPDE ingredients needed to construct one;
 - the coordinate reference system or a clear statement that coordinates are
   already projected into a distance-preserving working scale;
-- the mapping from data rows to site levels and from site levels to projected
-  mesh rows;
+- retained model-row identifiers that align directly to projection-matrix
+  rows; the formula group is a validated observation label, never a vertex or
+  mesh-node index;
 - the fixed positive `kappa` and raw GMRF field scale (not a uniform projected
   marginal SD), with range, anisotropy, barriers, and replicate fields deferred.
 

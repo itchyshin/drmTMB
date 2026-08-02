@@ -92104,3 +92104,19 @@ Shinichi grants a separate Gate A compute approval.
   supply the inert zero/empty mesh contract; the bivariate mesh rejection test
   also asserts the current univariate-only diagnostic. The three focused
   suites pass 410 expectations (0 failures), and the mesh suite remains 50/50.
+- Fresh Gauss review found that the fixture-only repair missed seven tracked
+  bivariate diagnostic tools that call `MakeADFun()` below `drm_fit_spec()`.
+  Mesh DATA defaults now enter centrally through `make_tmb_data()` for every
+  builder, and a builder-level regression exercises the direct low-level path.
+  The mesh formula group is validated as a real observation-label column and
+  participates in complete-case row selection, but projection remains direct
+  retained-row-ID to `A_st` alignment and never node indexing. Mesh tests now
+  also require a finite fixed gradient below `1e-3` and reject an unknown
+  group. The affected mesh, covariance-registry, phylo, and bivariate-REML
+  suites pass 464 expectations with zero failures.
+- Noether returned mathematical GO after correcting the symbolic description
+  of `s` to a covariance-scale multiplier (precision is `s^-2 Q`) and using
+  that same symbol throughout the normalized prior. Gauss returned GO after
+  the central DATA, group-validation, gradient, and stale row/site wording
+  repairs. Neither review found a C++ likelihood, normalization, scaling,
+  projection, or sparse-algebra defect.
