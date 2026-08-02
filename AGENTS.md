@@ -14,7 +14,8 @@ regression using Template Model Builder.
 > The 2026-07-26 lane split below is retained as historical context, not the
 > current coordination entrypoint.
 
-> **▶ Latest — start here (2026-08-02, ARC 0 + CURRENT-SOURCE INTERVAL ARC 1 LANDED FOR CLAUDE).**
+> **▶ INTERVAL-FEASIBILITY LANE (2026-08-02, ARC 0 + CURRENT-SOURCE INTERVAL ARC 1 LANDED).** One of
+> the two lanes named in the split above — read that first for ownership boundaries, then this.
 > Draft PR **#896** on `codex/q1-interval-contracts-arc1` freezes the complete
 > 82-cell current-source candidate denominator and promotes five exact direct
 > targets from `point_fit_recovery` to `interval_feasible` using 15 immutable
