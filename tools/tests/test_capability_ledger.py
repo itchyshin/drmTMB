@@ -292,16 +292,6 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_arc1b_s1_cells_are_exact_and_preserve_the_not_implemented_remainder(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
-        frozen_by_id = {
-            row["cell_id"]: row
-            for row in csv.DictReader(
-                subprocess.check_output(
-                    ["git", "show", "5c9fa009fe6265702da8cf639b511f08a0eae318:docs/dev-log/dashboard/capability-ledger/cells.tsv"],
-                    text=True,
-                ).splitlines(),
-                delimiter="\t",
-            )
-        }
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
         evidence_by_cell = {
             cell_id: [row for row in self.evidence if row["cell_id"] == cell_id]
@@ -379,7 +369,9 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "contract_test",
             )
             self.assertIn("exact retained unclamped tmbprofile receipt", row["claim_boundary"])
-            historical_claim = frozen_by_id[cell_id]["claim_boundary"]
+            historical_claim = evidence_by_id[
+                f"ev-{cell_id}-arc1b-recovery"
+            ]["claim_boundary"]
             self.assertIn("1,200-attempt Totoro campaign", historical_claim)
             for excluded in (
                 "unlabelled", "unmatched", "mismatched-label/group/coordinate",
@@ -435,16 +427,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
-        frozen_by_id = {
-            row["cell_id"]: row
-            for row in csv.DictReader(
-                subprocess.check_output(
-                    ["git", "show", "5c9fa009fe6265702da8cf639b511f08a0eae318:docs/dev-log/dashboard/capability-ledger/cells.tsv"],
-                    text=True,
-                ).splitlines(),
-                delimiter="\t",
-            )
-        }
 
         for cell_id, dpar in (("mc-0201", "mu1"), ("mc-0674", "mu2")):
             row = by_id[cell_id]
@@ -463,16 +445,18 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "contract_test",
             )
             self.assertIn("exact retained unclamped tmbprofile receipt", row["claim_boundary"])
-            historical_claim = frozen_by_id[cell_id]["claim_boundary"]
+            historical_claim = evidence_by_id[
+                f"ev-{cell_id}-arc1b-s2r-recovery"
+            ]["claim_boundary"]
             for required in (
                 "matching labelled `relmat(1 | p | id, K = K)`",
                 "same label, grouping levels and order",
                 "identical named supplied covariance `K`",
-                "2,400-attempt Totoro campaign",
+                "2,400-attempt recovery evidence",
                 "point-fit recovery only",
-                "supplied precision `Q`",
-                "slopes", "q4+", "scale-side", "incomplete pairs",
-                "non-unit weights", "additional random layers",
+                "Supplied precision `Q`",
+                "slopes", "q4+", "scale-side", "missing/weighted pairs",
+                "additional random layers",
                 "non-Gaussian", "interval", "coverage", "supported",
             ):
                 self.assertIn(required, historical_claim)

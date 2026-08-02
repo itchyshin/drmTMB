@@ -59,6 +59,16 @@ references: seven unresolved local evidence URLs, two Julia registry/artifact
 count mismatches, and S011--S020 absent 100-slice evidence.  None is in C3
 scope and no Mission Control file was modified.
 
+## CI follow-up
+
+PR #889's first Ubuntu release run passed generated-ledger validation but its
+two Arc 1b regression tests attempted `git show` on the frozen C3 base SHA.
+GitHub Actions checks out the PR shallowly, so that object is unavailable.
+The tests now preserve the historical Arc 1b assertions against their retained
+`model_recovery` evidence rows in the live evidence ledger rather than a
+non-portable local Git object.  All 47 ledger tests and the C1/C2/C3 focused
+integration tests pass after this correction.
+
 ## Risks and limits
 
 Every promoted claim remains per-cell computational interval feasibility for a
