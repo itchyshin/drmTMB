@@ -47,6 +47,14 @@ CELL_CONTRACTS = {
         "estimator": "REML",
         "profile_parameter": "fixef:sigma:x",
     },
+    "mc-0274": {
+        "target_id": "mc-0274::sd:mu:phylo(1 | species)",
+        "cohort_id": "arc2-gaussian-reml-phylo-location-mu-sd-profile-feasibility",
+        "family": "gaussian",
+        "provider": "phylo",
+        "estimator": "REML",
+        "profile_parameter": "sd:mu:phylo(1 | species)",
+    },
 }
 
 

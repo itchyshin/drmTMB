@@ -1,0 +1,6 @@
+  cell_id      target_id estimator conf_status  estimate     lower     upper
+1 mc-0186 mc-0186::rho12      REML     profile 0.3873002 0.2422575 0.5154099
+  convergence pdHess profile_boundary trace_complete promotion_eligible
+1           0   TRUE            FALSE           TRUE               TRUE
+  failure_reason
+1               

@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+fixef:sigma:x	0.95	-0.169529272428306	0.124749938303271	link	linear_predictor	beta_sigma	2	profile	tmbprofile	profile	FALSE	ok	mc-0263	mc-0263::fixef:sigma:x	2026080201	id30_each4
