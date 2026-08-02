@@ -10,7 +10,7 @@ interval-**existence** claim only; coverage and calibration are withheld through
 
 ## 2. Implemented
 
-Four cells promoted, model-surface tiers **161/77 → 165/73**:
+Six cells promoted, model-surface tiers **161/77 → 167/71**:
 
 | Cell | Target | Estimator | Totoro seeds | Estimates | Intervals |
 |---|---|---|---|---|---|
@@ -18,6 +18,8 @@ Four cells promoted, model-surface tiers **161/77 → 165/73**:
 | mc-0263 | `fixef:sigma:x` | REML | 3/3 | −0.020 / −0.081 / 0.048 | [−0.170,0.125] [−0.239,0.076] [−0.114,0.211] |
 | mc-0274 | `sd:mu:phylo(1 \| species)` | REML | 3/3 | 0.939 / 0.698 / 0.725 | [0.586,1.495] [0.419,1.107] [0.422,1.214] |
 | mc-0277 | `sd:sigma:phylo(1 \| species)` | REML | 3/3 | 0.860 / 0.477 / 0.556 | [0.598,1.221] [0.306,0.758] [0.370,0.851] |
+| mc-0013 | `sd:mu:animal(0 + x \| id)` | ML | 3/3 | 0.517 / 0.544 / 0.463 | [0.404,0.677] [0.423,0.714] [0.357,0.611] |
+| mc-0015 | `sd:sigma:animal(1 \| id)` | ML | 3/3 | 0.576 / 0.586 / 0.508 | [0.462,0.739] [0.468,0.753] [0.403,0.657] |
 
 `mc-0277` is the payoff from the §9 defect finding. It was prescribed a fixture with **no true
 sigma-phylo signal**, under which its boundary-collapsing profile was a null-case artifact. Re-run on a
@@ -117,8 +119,11 @@ not change the public profile method.
 
 ## 10. Carried Over
 
-- **mc-0013 / mc-0015** — pass locally; the 8-individual pedigree must be rebuilt at a larger design
-  (Arc 1's SD targets used 30–48 groups) before feasibility can be assessed.
+- ~~mc-0013 / mc-0015~~ — **RESOLVED and promoted.** Rebuilt on a 40-individual three-generation
+  pedigree (20 obs/individual for the mu slope, 40 for the sigma intercept). Mean relative recovery
+  error fell from ~0.49 to 0.144 and 0.077 over five seeds, against a predeclared 0.35 gate. This is
+  the case for keeping a point-fit gate ahead of any profile: the 8-individual design produced finite,
+  ordered, unclamped intervals that passed the contract while the point estimate was half the truth.
 - **mc-0283** — the matched q2 sibling of mc-0277, same signal-free prescription. `arc2_phylo_sigma_fixture`
   now exists and could plausibly serve it after a q2 extension; must not be STOPped in the meantime.
 - **mc-0123** — manifest binding must be corrected to mc-0124/`mu2` or a mu1 fixture written.
