@@ -368,10 +368,10 @@ class CapabilityLedgerTests(unittest.TestCase):
         # hidden behind a simultaneous insert, which either number alone would miss.
         # Deliberately a literal, NOT the module constant: tying both assertions to
         # one constant would destroy exactly the independence this check exists for.
-        # 77 -> 73 for the four Arc 2 promotions (mc-0186, mc-0263, mc-0274, mc-0277).
+        # 77 -> 71 for the six Arc 2 promotions (mc-0186/0263/0274/0277 + mc-0013/0015).
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            73,
+            71,
         )
 
         by_id = {row["cell_id"]: row for row in model}
