@@ -665,3 +665,55 @@ recovery evidence.
 | Orchestrator | §2.4 arithmetic | **corrected** — see the correction note and F9 |
 | Fisher | information / recovery target | **pending** — owns §2.4 and the simulation design |
 | Rose | completeness | **pending** |
+
+## 10. Implementation status (Gauss, 2026-08-02)
+
+§3.3, §3.4, and §4 implemented as specified, plus the R-side extraction and
+guards of §8's IN scope.
+
+- **§3.3 exhaustive dispatch.** `src/drmTMB.cpp` model_type 15 now dispatches
+  `phylo_mu_dpar(0)` over an exhaustive `0/1/5/6` set with `error(...)` on any
+  other code (F1 resolved for block 15). The three sibling catch-alls named
+  in §3.3 (model_type 3 at the student `mu`/`sigma`/`nu` dispatch, model_type
+  8 at the `zi_poisson` `mu`/`zi` dispatch, model_type 12 at the
+  `hurdle_nbinom2` `mu`/`hu` dispatch) were each tightened to their own
+  currently-reachable code set plus an explicit `error(...)`, verified against
+  the R-side spec builders that only ever emit their currently-supported
+  codes for those model types — a pure tightening, not a routing change, for
+  every existing family.
+- **§3.4 q1 guard.** Block 15 now asserts `log_sd_phylo.size() == 1` and
+  `u_phylo.size() == Q_phylo.rows()` via `error(...)` before the carrier loop.
+- **§4 vocabulary.** `phylo_mu_dpar_codes()` (`R/drmTMB.R`) appends
+  `"zoi"`/`"coi"` as new codes 5/6, not aliases, exactly as recommended.
+- **R-side extraction and guards.** `drm_build_zero_one_beta_spec` now
+  extracts structured markers from `zoi_entry`/`coi_entry` via the same
+  shared extractor helpers used for `mu_entry`/`sigma_entry`
+  (`extract_gaussian_mu_phylo_term`, `extract_gaussian_mu_known_term`,
+  `extract_gaussian_mu_spatial_term`, `extract_gaussian_mu_phylo_interaction_term`),
+  tagging `$dpars <- "zoi"`/`"coi"`. The mutual-exclusion guard now requires
+  exactly one structured provider across `mu`/`sigma`/`zoi`/`coi` (extending
+  the pre-existing `mu` XOR `sigma` guard) and refuses combining a structured
+  atom effect with any ordinary random effect on any of the four dpars.
+  Simultaneous structured `zoi` and `coi` is refused by the same check.
+- **Oracle and routing verification.** `tests/testthat/test-zero-one-beta.R`
+  gained `zoib_zoi_phylo_nll`/`zoib_coi_phylo_nll` (§5.1/§5.2 oracles, with
+  the soft clamp applied per F5 and the `beta_mu_eps` compression per F6) and
+  two new gate tests, `"admits only the exact phylo q1 zoi gate"` and
+  `"...coi gate"`, each with the §5.3 mandatory checks: node-index bijection,
+  conditional clamp, mean compression, value + central-difference-gradient
+  agreement to the documented tolerances, and the §5.3 item 5 endpoint-swap
+  negative control (the mu-carrier oracle evaluated at the fitted zoi/coi
+  parameters must disagree with the actual objective — confirmed disagreeing
+  by ~1.9 nll units on an independent smoke fit, not merely in the unit test).
+- **Profile fence.** `R/profile.R` already carried
+  `point_fit_only_zero_one_beta_phylo_zoi_q1` /
+  `..._phylo_coi_q1` notes pre-dating this slice (forward-compatible
+  groundwork); the generic non-phylo-provider fallback was extended to also
+  produce a `{provider}_{zoi,coi}_q1` note instead of a dpar-blind
+  `{provider}_q1` note, satisfying the profile-fence requirement across all
+  five providers, not only `phylo`.
+- **Not implemented / deferred, per scope**: labelled/slope/q>=2 atom
+  structured effects, cross-dpar covariance, and any profile/interval/
+  coverage claim remain refused exactly as §8 requires. No `DATA_*`/
+  `PARAMETER_*` block was added; the shared `u_phylo`/`Q_phylo`/
+  `log_sd_phylo` carrier is reused unchanged.

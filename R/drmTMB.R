@@ -5550,6 +5550,105 @@ drm_build_zero_one_beta_spec <- function(
     cli::cli_abort("A zero-one-beta coi random effect cannot be combined with a structured mu effect in this q1 gate.")
   }
 
+  zoi_phylo <- extract_gaussian_mu_phylo_term(zoi_entry, dpar = "zoi")
+  zoi_entry$rhs <- zoi_phylo$rhs
+  zoi_animal <- extract_gaussian_mu_known_term(zoi_entry, "animal", dpar = "zoi")
+  zoi_entry$rhs <- zoi_animal$rhs
+  zoi_relmat <- extract_gaussian_mu_known_term(zoi_entry, "relmat", dpar = "zoi")
+  zoi_entry$rhs <- zoi_relmat$rhs
+  zoi_spatial <- extract_gaussian_mu_spatial_term(zoi_entry, dpar = "zoi")
+  zoi_entry$rhs <- zoi_spatial$rhs
+  zoi_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(zoi_entry, dpar = "zoi")
+  zoi_entry$rhs <- zoi_phylo_interaction$rhs
+  if (!is.null(zoi_phylo$term)) {
+    validate_zero_one_beta_atom_phylo_term(zoi_phylo$term, "zoi")
+    zoi_phylo$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_animal$term)) {
+    validate_zero_one_beta_atom_animal_term(zoi_animal$term, "zoi")
+    zoi_animal$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_relmat$term)) {
+    validate_zero_one_beta_atom_relmat_term(zoi_relmat$term, "zoi")
+    zoi_relmat$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_spatial$term)) {
+    validate_zero_one_beta_atom_spatial_term(zoi_spatial$term, "zoi")
+    zoi_spatial$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_phylo_interaction$term)) {
+    validate_zero_one_beta_atom_phylo_interaction_term(zoi_phylo_interaction$term, "zoi")
+    zoi_phylo_interaction$term$dpars <- "zoi"
+  }
+  if (sum(!vapply(list(zoi_phylo$term, zoi_animal$term, zoi_relmat$term, zoi_spatial$term, zoi_phylo_interaction$term), is.null, logical(1L))) > 1L) {
+    cli::cli_abort("A zero-one-beta zoi formula can use only one structured provider in this q1 gate.")
+  }
+  zoi_structured <- if (!is.null(zoi_phylo$term)) zoi_phylo$term else if (!is.null(zoi_animal$term)) zoi_animal$term else if (!is.null(zoi_relmat$term)) zoi_relmat$term else if (!is.null(zoi_spatial$term)) zoi_spatial$term else zoi_phylo_interaction$term
+
+  coi_phylo <- extract_gaussian_mu_phylo_term(coi_entry, dpar = "coi")
+  coi_entry$rhs <- coi_phylo$rhs
+  coi_animal <- extract_gaussian_mu_known_term(coi_entry, "animal", dpar = "coi")
+  coi_entry$rhs <- coi_animal$rhs
+  coi_relmat <- extract_gaussian_mu_known_term(coi_entry, "relmat", dpar = "coi")
+  coi_entry$rhs <- coi_relmat$rhs
+  coi_spatial <- extract_gaussian_mu_spatial_term(coi_entry, dpar = "coi")
+  coi_entry$rhs <- coi_spatial$rhs
+  coi_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(coi_entry, dpar = "coi")
+  coi_entry$rhs <- coi_phylo_interaction$rhs
+  if (!is.null(coi_phylo$term)) {
+    validate_zero_one_beta_atom_phylo_term(coi_phylo$term, "coi")
+    coi_phylo$term$dpars <- "coi"
+  }
+  if (!is.null(coi_animal$term)) {
+    validate_zero_one_beta_atom_animal_term(coi_animal$term, "coi")
+    coi_animal$term$dpars <- "coi"
+  }
+  if (!is.null(coi_relmat$term)) {
+    validate_zero_one_beta_atom_relmat_term(coi_relmat$term, "coi")
+    coi_relmat$term$dpars <- "coi"
+  }
+  if (!is.null(coi_spatial$term)) {
+    validate_zero_one_beta_atom_spatial_term(coi_spatial$term, "coi")
+    coi_spatial$term$dpars <- "coi"
+  }
+  if (!is.null(coi_phylo_interaction$term)) {
+    validate_zero_one_beta_atom_phylo_interaction_term(coi_phylo_interaction$term, "coi")
+    coi_phylo_interaction$term$dpars <- "coi"
+  }
+  if (sum(!vapply(list(coi_phylo$term, coi_animal$term, coi_relmat$term, coi_spatial$term, coi_phylo_interaction$term), is.null, logical(1L))) > 1L) {
+    cli::cli_abort("A zero-one-beta coi formula can use only one structured provider in this q1 gate.")
+  }
+  coi_structured <- if (!is.null(coi_phylo$term)) coi_phylo$term else if (!is.null(coi_animal$term)) coi_animal$term else if (!is.null(coi_relmat$term)) coi_relmat$term else if (!is.null(coi_spatial$term)) coi_spatial$term else coi_phylo_interaction$term
+
+  structured_endpoints <- list(
+    mu = mu_structured,
+    sigma = sigma_structured,
+    zoi = zoi_structured,
+    coi = coi_structured
+  )
+  n_structured_endpoints <- sum(
+    !vapply(structured_endpoints, is.null, logical(1L))
+  )
+  if (n_structured_endpoints > 1L) {
+    active <- names(structured_endpoints)[
+      !vapply(structured_endpoints, is.null, logical(1L))
+    ]
+    cli::cli_abort(c(
+      "A zero-one-beta model can use a structured effect on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} in this q1 gate.",
+      "x" = "Structured effects were found on {.val {active}} and cannot be combined."
+    ))
+  }
+  any_ordinary_re <- any(c(
+    length(mu_re$terms), length(sigma_re$terms),
+    length(zoi_re$terms), length(coi_re$terms)
+  ) > 0L)
+  if (!is.null(zoi_structured) && any_ordinary_re) {
+    cli::cli_abort("A zero-one-beta q1 structured zoi effect cannot be combined with ordinary random effects in this gate.")
+  }
+  if (!is.null(coi_structured) && any_ordinary_re) {
+    cli::cli_abort("A zero-one-beta q1 structured coi effect cannot be combined with ordinary random effects in this gate.")
+  }
+
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -5568,7 +5667,9 @@ drm_build_zero_one_beta_spec <- function(
     random_effect_vars(sigma_re$terms),
     random_effect_vars(zoi_re$terms),
     random_effect_vars(coi_re$terms),
-    structured_mu_vars(mu_structured)
+    structured_mu_vars(mu_structured),
+    structured_mu_vars(zoi_structured),
+    structured_mu_vars(coi_structured)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -5647,7 +5748,15 @@ drm_build_zero_one_beta_spec <- function(
   if (!is.null(sigma_structured) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re, re_coi$n_re) > 0L)) {
     cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with ordinary random effects in this gate.")
   }
-  structured_term <- if (!is.null(sigma_structured)) sigma_structured else mu_structured
+  structured_term <- if (!is.null(mu_structured)) {
+    mu_structured
+  } else if (!is.null(sigma_structured)) {
+    sigma_structured
+  } else if (!is.null(zoi_structured)) {
+    zoi_structured
+  } else {
+    coi_structured
+  }
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
 
   spec <- list(
@@ -8840,8 +8949,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
-      "i" = "Structured non-Gaussian paths beyond those count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, and structured count scale routes outside the NB2 one-slope gate, remain deferred until family-specific recovery evidence is stable."
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, {.fn spatial}, and {.fn phylo_interaction}.",
+      "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }
@@ -9899,6 +10008,64 @@ validate_zero_one_beta_mu_phylo_interaction_term <- function(term) {
   if (is.null(term)) return(invisible(term))
   if (!identical(term$type, "phylo_interaction") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
     cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 phylo_interaction intercept.")
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_phylo_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code phylo(1 | species, tree = tree)} intercept.",
+      "i" = "Structured {.code {dpar}} slopes, labels, non-phylogenetic providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_animal_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "animal") || !identical(term$structure, "Ainv") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code animal(1 | species, Ainv = Ainv)} intercept.",
+      "i" = "Pedigree/A inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_relmat_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "relmat") || !identical(term$structure, "K") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code relmat(1 | species, K = K)} intercept.",
+      "i" = "Q inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_spatial_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "spatial") || !identical(term$structure, "coords") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code spatial(1 | site, coords = coords)} intercept.",
+      "i" = "Mesh/range inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_phylo_interaction_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo_interaction") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)} intercept.",
+      "i" = "Slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
   }
   invisible(term)
 }
@@ -11372,7 +11539,7 @@ phylo_mu_dpar_codes <- function(phylo_mu) {
     return(0L)
   }
   family <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
-  codes <- match(family, c("mu", "sigma", "nu", "zi", "hu")) - 1L
+  codes <- match(family, c("mu", "sigma", "nu", "zi", "hu", "zoi", "coi")) - 1L
   if (anyNA(codes)) {
     cli::cli_abort(
       "Internal error: structured-effect endpoint has unknown distributional parameter {.val {family[is.na(codes)][[1L]]}}."
