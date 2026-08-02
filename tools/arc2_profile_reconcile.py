@@ -55,6 +55,14 @@ CELL_CONTRACTS = {
         "estimator": "REML",
         "profile_parameter": "sd:mu:phylo(1 | species)",
     },
+    "mc-0277": {
+        "target_id": "mc-0277::sd:sigma:phylo(1 | species)",
+        "cohort_id": "arc2-gaussian-reml-phylo-sigma-sd-profile-feasibility",
+        "family": "gaussian",
+        "provider": "phylo",
+        "estimator": "REML",
+        "profile_parameter": "sd:sigma:phylo(1 | species)",
+    },
 }
 
 

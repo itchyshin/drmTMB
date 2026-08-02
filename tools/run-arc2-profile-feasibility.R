@@ -180,10 +180,18 @@ cell_registry <- list(
     target = "sd:sigma:phylo(1 | species)",
     family_name = "gaussian",
     family = function() stats::gaussian(),
-    # Formula copied verbatim from test-reml-phylo-location.R's "REML admits
-    # a pure scale-side phylogenetic effect" test_that(), which uses NO
-    # optimizer preset override -- unlike mc-0274, this DGP/target
-    # combination is only validated with default drm_control().
+    # Formula shape matches test-reml-phylo-location.R's "REML admits a pure
+    # scale-side phylogenetic effect" test_that() (no optimizer preset
+    # override; validated with default drm_control()). The FIXTURE, however,
+    # is NOT that test's `reml_phylo_location_fixture()`: that fixture puts
+    # the phylogenetic effect only on the mean (mu), so the true sigma-phylo
+    # SD is exactly zero -- profiling a null variance component drives the
+    # lower endpoint to the [0, Inf) boundary by construction, which is
+    # correct profile behaviour under a null component, NOT a capability
+    # limit (see tools/arc2-phylo-sigma-fixtures.R's header for the manifest
+    # defect this replaces). `arc2_phylo_sigma_fixture()` instead places a
+    # genuine phylogenetic effect on log(sigma) itself, so this cell tests
+    # profile feasibility of a target with real signal.
     formula = function(fx) {
       tree <- fx$tree
       drmTMB::bf(y ~ x, sigma ~ drmTMB::phylo(1 | species, tree = tree))
@@ -191,17 +199,21 @@ cell_registry <- list(
     control = NULL,
     estimator = "REML",
     provider = "phylo",
-    fixture_name = "reml_phylo_location_fixture",
-    fixture_file = "tests/testthat/test-reml-phylo-location.R",
-    fixture_call = function(fixture_fn, seed) fixture_fn(n_tip = 30L, n_each = 3L, seed = seed),
+    fixture_name = "arc2_phylo_sigma_fixture",
+    fixture_file = "tools/arc2-phylo-sigma-fixtures.R",
+    # Defaults (n_tip = 60, n_each = 12, true_log_sd_phylo = 0.7) match the
+    # fixture builder's own validated defaults -- n_each = 12 gives the
+    # within-tip replication the scale-side component needs to be
+    # identified (see the fixture file's design-rationale comment).
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
     data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "tip30_each3",
-    dgp_id = "arc2_gaussian_reml_phylo_location_sigma_sd",
+    information_rung = function(seed) "tip60_each12",
+    dgp_id = "arc2_gaussian_reml_phylo_sigma_sd",
     formula_label = paste0(
       "bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)); gaussian(identity/log); REML=TRUE"
     ),
-    true_parameter_scale = "phylogenetic random-intercept SD on sigma (DGP has no true sigma-phylo signal; this fit tests profile feasibility of the sd:sigma:phylo(1 | species) target only, not point recovery)",
-    cohort_id = "arc2-gaussian-reml-phylo-location-sigma-sd-profile-feasibility"
+    true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma), log-SD internal scale",
+    cohort_id = "arc2-gaussian-reml-phylo-sigma-sd-profile-feasibility"
   ),
   "mc-0013" = list(
     # Random-effect SD target: the independent random-SLOPE SD component of
