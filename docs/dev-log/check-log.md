@@ -92056,3 +92056,9 @@ Shinichi grants a separate Gate A compute approval.
   maximum absolute log-scale difference 0.04409, but is a robustness control,
   not a substitute for the failed recovery rung. Receipts and exact frozen
   decision are recorded in `2026-08-02-mesh-spde-recovery-gate.md`.
+- Final Gauss review found and the branch now rejects an accidental
+  `REML = TRUE` admission for mesh fields: this ML-only local-fit slice emits a
+  direct `REML = FALSE` remedy. The field-scale start calibration also now
+  solves against at most 32 deterministic projection rows rather than every
+  observation, preventing a start-value-only vertex-by-observation allocation.
+  The expanded mesh suite passed 42 expectations with zero failures.
