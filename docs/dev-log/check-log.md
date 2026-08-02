@@ -92009,3 +92009,19 @@ Shinichi grants a separate Gate A compute approval.
   problems, `git diff --check` passed, and the deployment strip verified that
   internal `AGENTS`/`CLAUDE` pages remain absent. No model code, internal
   validation machinery, inference promotion, or new compute changed.
+
+## 2026-08-02: B4-CI C4 canonical Lane B integration
+
+- Applied the approved exact-23 C4 packet
+  `9b9f30f089214e160db1bb1344bbd313440c683c8f35056cf2b1c6b40f245525`
+  from immutable source `574c1108e16e3b0fe4ba88e254a34673508db901` to
+  frozen base `f41dfc01a812af1294ee86790dc3e8d39e412c50`: 23 cells,
+  23 evidence rows, 23 verified-to-verified transitions, and 69 distinct
+  receipt/trace/interval blobs. C4 moves the global interval-feasible count
+  from 138 to 161 (11 point-fit and 12 diagnostic-only destination rows).
+- C1/C2/C3/B3/exclusion/association/C17 guards, the C4 source verifier,
+  63 focused ledger/integration tests, ledger regeneration/checking, and
+  `git diff --check` passed. No package code, formula grammar, coverage,
+  missing-response, association, Lane A/C, or external dashboard overlay
+  changed. See
+  `docs/dev-log/after-task/2026-08-02-b4-ci-c4-canonical-integration.md`.

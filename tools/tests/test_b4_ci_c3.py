@@ -17,7 +17,7 @@ class B4CIC3Test(unittest.TestCase):
         cls.source = c3.selected_source()
 
     def test_source_bound_c3_closure(self):
-        subprocess.run([sys.executable, "tools/integrate_b4_ci_c3.py", "--check"], check=True)
+        subprocess.run([sys.executable, "tools/integrate_b4_ci_c3.py", "--check-with-later-cohorts"], check=True)
         _, _, _, closure = self.source
         self.assertEqual(len(closure), 108)
         self.assertEqual({row["role"] for row in closure}, {"receipt", "trace", "interval"})

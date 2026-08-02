@@ -88,11 +88,11 @@ ASSOCIATION_COUNT = 6
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
 # mc-0454. With explicit user approval, C14 promotes only mc-0568, mc-0569,
 # and mc-0576 after source-equivalence verification and fresh three-lens GO.
-# B4-CI C1 then C2 promote exactly the approved 24-cell ordinary/fixed cohort
-# and 25-cell structured cohort from point-fit recovery to interval feasible.
-# These are source-bound promotion receipts, not a blanket re-baseline.
+# B4-CI C1, C2, C3, then C4 promote only their approved source-bound cells.
+# C4 moves eleven frozen point-fit cells and twelve diagnostic-only cells; this
+# is not a blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 92
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 81
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
@@ -100,6 +100,9 @@ B3_Q6_MU2_TARGETS = {
     "mc-0146": ("animal", "mc-0145", "mc-0146::sd:mu:mu2:animal(1 | p | id)"),
     "mc-0168": ("relmat", "mc-0167", "mc-0168::sd:mu:mu2:relmat(1 | p | id)"),
 }
+# C4 separately promotes these three paired q6 mu1 rows.  The B3 target
+# receipt remains limited to mu2 and must not be treated as their evidence.
+C4_B3_PAIRED_MU1_IDS = {"mc-0101", "mc-0145", "mc-0167"}
 B3_Q6_MU2_PACKET = (
     ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
 )
@@ -1163,8 +1166,10 @@ def validate(
     # ten-leaf promotion, B3's exact four q6 mu2 target promotions, C17-B's
     # exact zero-one-beta zoi same-symbol q1 slope promotion, C1's exact
     # 24-cell promotion, C2's exact 25-cell promotion to interval feasible,
-    # C17-C1's exact zero-one-beta coi q1 random-intercept promotion, and
-    # C17-C2's exact same-raw-symbol coi q1 random-slope promotion.
+    # C3's exact 36-cell and C4's exact 23-cell promotions, C17-C1's exact
+    # zero-one-beta coi q1 random-intercept promotion, and C17-C2's exact
+    # same-raw-symbol coi q1 random-slope promotion. C4 moves eleven frozen
+    # point-fit cells and twelve diagnostic-only companions.
     # Approved inserts take a higher source_order and so cannot disturb this
     # number; every frozen-cell promotion needs a named
     # transition and evidence receipt.
@@ -1222,7 +1227,10 @@ def validate(
             or cell.get("primary_evidence_id") != evidence_id
         ):
             errors.append(f"{cell_id}: B3 canonical target row changed")
-        if by_cell.get(paired_mu1, {}).get("evidence_tier") != "point_fit_recovery":
+        allowed_paired_tiers = {"point_fit_recovery"}
+        if paired_mu1 in C4_B3_PAIRED_MU1_IDS:
+            allowed_paired_tiers.add("interval_feasible")
+        if by_cell.get(paired_mu1, {}).get("evidence_tier") not in allowed_paired_tiers:
             errors.append(f"{paired_mu1}: paired mu1 row inherited B3 target promotion")
         if (
             evidence_row.get("cell_id") != cell_id
