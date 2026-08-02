@@ -3,6 +3,17 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-08-02, ARC 0 + CURRENT-SOURCE INTERVAL ARC 1 LANDED FOR CLAUDE).**
+> Draft PR **#896** on `codex/q1-interval-contracts-arc1` freezes the complete
+> 82-cell current-source candidate denominator and promotes five exact direct
+> targets from `point_fit_recovery` to `interval_feasible` using 15 immutable
+> Totoro receipts. The ledger is now 161 `interval_feasible` / 77
+> `point_fit_recovery`. `mc-0438` remains STOP because both tested profiles had
+> nonfinite endpoints. Codex execution stops here; Claude starts with exactly one
+> Rank-2 target packet from the frozen manifest. No q12, coverage/calibration,
+> missing-response, B4-source reuse, or public-claim expansion. START HERE:
+> [`docs/dev-log/handover/2026-08-02-claude-handover.md`](docs/dev-log/handover/2026-08-02-claude-handover.md).
+
 > **▶ ACTIVE LANE SPLIT — start here (2026-07-26). TWO independent lanes; read YOUR lane's handover.**
 > Shinichi split these on 2026-07-26 because they kept bleeding into each other
 > (brain **`D-87`**: the "one platform at a time per repo" rule was already written down and
