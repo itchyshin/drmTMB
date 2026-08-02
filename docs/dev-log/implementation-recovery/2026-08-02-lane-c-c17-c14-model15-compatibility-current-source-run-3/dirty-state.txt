@@ -1,0 +1,1 @@
+M tests/testthat/test-zero-one-beta.R
