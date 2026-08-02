@@ -18,7 +18,13 @@ new_data <- function(seed, n_group = 32L, n_each = 50L, tau = .55) {
   set.seed(seed); labels <- paste0("sp", seq_len(n_group))
   Ainv <- diag(2, n_group); Ainv[cbind(seq_len(n_group - 1L), 2:n_group)] <- -.5; Ainv[cbind(2:n_group, seq_len(n_group - 1L))] <- -.5
   rownames(Ainv) <- colnames(Ainv) <- rev(labels)
-  u <- as.numeric(t(chol(solve(Ainv))) %*% rnorm(n_group, sd = tau)); names(u) <- labels
+  # `Ainv` is deliberately labelled in REVERSE order, so that the fit has to
+  # align the field by name rather than by position. The draw below therefore
+  # has to be named `rownames(Ainv)` -- naming it `labels` would silently
+  # permute the simulated field relative to the matrix that generated it,
+  # leaving tau recoverable (variance is permutation-invariant) while the
+  # mode correlation collapses to noise.
+  u <- as.numeric(t(chol(solve(Ainv))) %*% rnorm(n_group, sd = tau)); names(u) <- rownames(Ainv)
   data <- data.frame(species = rep(labels, each = n_each), x = rnorm(n_group * n_each))
   data$x <- data$x - ave(data$x, data$species, FUN = mean); data$x <- data$x / sd(data$x)
   mu <- plogis(-.15 + .35 * data$x); sigma <- exp(-1.0)

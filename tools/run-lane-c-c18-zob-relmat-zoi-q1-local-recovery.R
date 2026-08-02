@@ -79,11 +79,11 @@ group_diag <- function(y, species, n_group) {
 run_one <- function(seed, source_sha, runner_sha) {
   sim <- new_data(seed)
   gd <- group_diag(sim$data$y, sim$data$species, 32L)
-  Q <- sim$Q
+  K <- sim$K
 
   out <- data.frame(
     cell_id = "mc-0605", dpar = "zoi", seed, source_sha, runner_sha,
-    formula = "bf(y ~ x, sigma ~ 1, zoi ~ relmat(1 | species, Q = Q), coi ~ 1)",
+    formula = "bf(y ~ x, sigma ~ 1, zoi ~ relmat(1 | species, K = K), coi ~ 1)",
     tau_truth = .55, beta0_truth = -.15, beta1_truth = .35, log_sigma_truth = -1,
     zoi_truth = .5, coi_truth = .5, dgp_digest = sim$digest,
     min_group_zero = gd$min_group_zero, min_group_one = gd$min_group_one,
@@ -100,7 +100,7 @@ run_one <- function(seed, source_sha, runner_sha) {
 
   fit <- tryCatch(
     drmTMB::drmTMB(
-      drmTMB::bf(y ~ x, sigma ~ 1, zoi ~ drmTMB::relmat(1 | species, Q = Q), coi ~ 1),
+      drmTMB::bf(y ~ x, sigma ~ 1, zoi ~ drmTMB::relmat(1 | species, K = K), coi ~ 1),
       family = drmTMB::zero_one_beta(), data = sim$data,
       control = drmTMB::drm_control(se = TRUE, optimizer = list(eval.max = 3000L, iter.max = 3000L))
     ),
@@ -177,10 +177,10 @@ write_tsv(
 # ---- tau = 0 boundary diagnostic (NOT part of the gate) ---------------------
 
 fixed <- new_data(2026080599L, tau = 0)
-Q <- fixed$Q
+K <- fixed$K
 fixed_fit <- tryCatch(
   drmTMB::drmTMB(
-    drmTMB::bf(y ~ x, sigma ~ 1, zoi ~ drmTMB::relmat(1 | species, Q = Q), coi ~ 1),
+    drmTMB::bf(y ~ x, sigma ~ 1, zoi ~ drmTMB::relmat(1 | species, K = K), coi ~ 1),
     family = drmTMB::zero_one_beta(), data = fixed$data,
     control = drmTMB::drm_control(se = TRUE, optimizer = list(eval.max = 3000L, iter.max = 3000L))
   ),
