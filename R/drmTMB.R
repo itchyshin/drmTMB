@@ -3424,7 +3424,9 @@ drm_build_gaussian_ls_spec <- function(
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y[observed_y]))
   if (isTRUE(mesh_spatial_mu$has)) {
     start$u_phylo2 <- numeric(mesh_spatial_mu$n_re)
-    start$log_sd_phylo2 <- log(max(0.25 * stats::sd(y[observed_y]), 1e-4))
+    start$log_sd_phylo2 <- log(mesh_spatial_field_scale_start(
+      mesh_spatial_mu, y[observed_y]
+    ))
   }
   if (include_missing_predictor) {
     start$beta_mi <- missing_predictor$beta_start
@@ -12663,6 +12665,27 @@ build_mesh_spatial_mu_structure <- function(term, data, env) {
     mesh = mesh,
     observation_ids = as.character(model_ids)
   )
+}
+
+# Convert the observed-response scale into the raw SPDE/GMRF scale used by the
+# precision matrix.  With metric coordinates, this avoids a generic SD start
+# that can be orders of magnitude too large purely because of coordinate units.
+mesh_spatial_field_scale_start <- function(mesh, y) {
+  A <- mesh$projection
+  Q <- mesh$precision$precision
+  qinv_a <- tryCatch(
+    Matrix::solve(Q, Matrix::t(A)),
+    error = function(e) NULL
+  )
+  if (is.null(qinv_a)) return(max(0.25 * stats::sd(y), 1e-12))
+  marginal_sd <- sqrt(pmax(
+    Matrix::rowSums(A * Matrix::t(qinv_a)), 0
+  ))
+  reference_sd <- stats::median(marginal_sd[is.finite(marginal_sd) & marginal_sd > 0])
+  if (!is.finite(reference_sd) || reference_sd <= 0) {
+    return(max(0.25 * stats::sd(y), 1e-12))
+  }
+  max(0.25 * stats::sd(y) / reference_sd, 1e-12)
 }
 
 add_mesh_spatial_tmb_data <- function(tmb_data, spec) {

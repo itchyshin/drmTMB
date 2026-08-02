@@ -92,3 +92,38 @@ test_that("mesh projection follows retained model-row identifiers after permutat
   )
   expect_identical(names(fit$random_effects$spatial_mu$projected), rownames(shuffled))
 })
+
+test_that("fixed-kappa mesh smoke recovers an interior GMRF field scale", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("fmesher")
+  set.seed(20260802)
+  n_site <- 64L
+  coords <- cbind(runif(n_site, 0, 100000), runif(n_site, 0, 100000))
+  rownames(coords) <- as.character(seq_len(n_site))
+  attr(coords, "crs") <- sf::st_crs(3857)
+  class(coords) <- c("drmTMB_coords", class(coords))
+  mesh <- make_mesh(
+    coords, kappa = 1 / 20000,
+    max.edge = c(12000, 25000), offset = c(10000, 20000),
+    cutoff = 100, max.n = 160L
+  )
+  Q <- as.matrix(
+    (1 / 20000)^4 * mesh$spde$c0 +
+      2 * (1 / 20000)^2 * mesh$spde$g1 + mesh$spde$g2
+  )
+  field_scale <- 1e-4
+  omega <- field_scale * as.vector(backsolve(chol(Q), rnorm(ncol(Q))))
+  dat <- data.frame(
+    y = 1.2 + as.vector(mesh$A_st %*% omega) + rnorm(n_site, sd = 0.25),
+    site = paste0("obs", seq_len(n_site))
+  )
+  fit <- drmTMB(
+    bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
+    family = gaussian(), data = dat
+  )
+  estimate <- fit$sdpars$mu[["spatial(1 | site)"]]
+
+  expect_true(isTRUE(fit$sdr$pdHess))
+  expect_gt(estimate, 1e-6)
+  expect_lt(estimate, 4e-4)
+})
