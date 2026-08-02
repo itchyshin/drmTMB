@@ -1,11 +1,11 @@
 # After Task: Fixed-kappa mesh/SPDE Gaussian spatial capability
 
-## Goal
+## 1. Goal
 
 Add a projection-aware mesh/SPDE spatial route without changing the existing
 dense `coords =` model, and keep every claim at its earned evidence tier.
 
-## Implemented
+## 2. Implemented
 
 `spatial_coords()` converts longitude/latitude to an explicitly requested
 projected CRS. `make_mesh()` constructs a validated `drmTMBmesh` with sparse
@@ -13,7 +13,7 @@ FEM matrices and observation projection `A_st`. The admitted model is exactly
 univariate Gaussian ML `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)`.
 Its TMB contribution is `A_st %*% omega`; it never uses a mesh-node index.
 
-## Mathematical Contract
+## 3a. Decisions and Rejected Alternatives
 
 With fixed positive `kappa`, the raw precision is
 `Q = kappa^4 C0 + 2 kappa^2 C1 + C2` and
@@ -22,14 +22,20 @@ projected marginal SD is location dependent. `kappa` is fixed configuration,
 not an estimated range. The independent dense Gaussian marginal likelihood
 uses `V = sigma_e^2 I + s^2 A Q^-1 A^T`.
 
-## Files Changed
+The slice rejects silent geographic projection, estimated range, a node-index
+shortcut, mesh slopes, non-Gaussian or bivariate mesh likelihoods, REML, and
+interval claims. The existing dense planar `coords =` route remains the
+appropriate fitted alternative when its exponential covariance contract is
+the scientific target.
+
+## 4. Files Touched
 
 The implementation adds `R/mesh.R`, mesh parser/fit/TMB plumbing, tests,
 provenance, recovery receipts, and spatial documentation. Public reader paths
 include the spatial, formula-grammar, structural-dependence,
 phylogenetic-spatial, and model-map vignettes; pkgdown indexes both helpers.
 
-## Checks Run
+## 5. Checks Run
 
 - `devtools::test(filter = "mesh")`: 53 expectations, zero failures.
 - Dense marginal-objective comparator, row alignment, CRS, malformed mesh,
@@ -40,19 +46,29 @@ phylogenetic-spatial, and model-map vignettes; pkgdown indexes both helpers.
   observations, zero projection-row error, projected values, and profile status.
 - `pkgdown::check_pkgdown()`: passed after adding both new helpers to the
   reference index.
-- Capability ledger and its 49 Python tests: passed after the final-source
+- Capability ledger and its 50 Python tests: passed after the final-source
   Totoro receipt was installed.
-- Hosted R-CMD-check for source head `f7054884a`: in progress at report
-  creation; its terminal result is deliberately not inferred here.
+- Hosted PR Linux run 30753455095 passed on exact implementation head
+  `0407ee370`; its package-check job 91511468246 completed successfully.
+- On-demand three-OS run 30753479753 passed on the same head: Windows job
+  91511534286, macOS job 91511534299, and Ubuntu job 91511534306 all completed
+  successfully.
 
-## Tests Of The Tests
+## 6. Tests of the Tests
 
 The dense marginal likelihood is calculated outside the TMB random-effect
 objective. Boundary tests directly reject routes that would widen the slice,
 and the recovery receipt retains the clean-Hessian `n = 64` near-zero estimate
 that makes the predeclared RMSE gate fail.
 
-## Consistency Audit
+## 7a. Issue Ledger
+
+Issue #881 remains open. A comment records that the complete Totoro ladder
+withheld point-fit recovery. PR #893 passed its exact-implementation-head Linux
+and independent three-OS CI gates; the closeout-only commit is checked again
+before the PR boundary is declared complete.
+
+## 8. Consistency Audit
 
 `docs/dev-log/2026-08-02-mesh-spde-handover-reconciliation.md` records every
 handover item as DONE, RETRACTED, PROTECTED, or OWED. Current reader surfaces
@@ -60,13 +76,7 @@ distinguish the exact mesh exception from wider mesh/SPDE work. The old dense
 `coords =` route is separately documented and regression-protected. The article
 is executable and uses `$projected` rather than calling mesh vertices sites.
 
-## GitHub Issue Maintenance
-
-Issue #881 remains open. A comment records that the complete Totoro ladder
-withheld point-fit recovery; PR #893 remains draft until its final CI gate is
-green.
-
-## What Did Not Go Smoothly
+## 9. What Did Not Go Smoothly
 
 The initial C17-C1 compatibility receipt predates a later `R/drmTMB.R`
 missing-data rejection. The capability-ledger guard correctly failed CI. A
@@ -92,20 +102,35 @@ fresh isolated Totoro checkout at `4bec20741` retained all 12 frozen attempts;
 `mc-0568`, `mc-0569`, and `mc-0576` passed 4/4, and the C17-C2 manifest now
 authenticates that exact source.
 
-## Team Learning
-
-For a new structured route, update every status inventory and execute its
-public example before treating a focused implementation as ready. A source-wide
-receipt guard is useful only when it is rerun after every relevant source edit.
-
-## Known Limitations
+## 10. Known Residuals
 
 The route is ML-only, fixed-kappa, univariate Gaussian `mu`, intercept-only,
 and local-fit only. The recovery gate is **blocked** at `n = 64`; there are no
 range, uniform marginal-SD, interval, coverage, slope, non-Gaussian, bivariate,
 anisotropy, barrier, replicated, or spatiotemporal claims.
 
+## 11. Team Learning
+
+For a new structured route, update every status inventory and execute its
+public example before treating a focused implementation as ready. A source-wide
+receipt guard is useful only when it is rerun after every relevant source edit.
+
+## 12. Cross-Product Coverage
+
+The drmTMB source, tests, symbolic alignment, formula grammar, likelihood
+design, capability/debt surfaces, exported helper documentation, pkgdown
+article, gllvmTMB provenance, Totoro receipts, PR #893, and issue #881 all name
+the same local-fit-only contract. The compatibility ledger separately proves
+that central mesh DATA defaults leave its three authenticated model-15 routes
+working; it does not transfer their evidence tier to the mesh model.
+This arc does NOT cover REML, missing-response or predictor models,
+aggregation, penalty/MAP fitting, Julia or bridge engines, range estimation,
+scale/shape/coscale mesh fields, non-Gaussian or bivariate families, slopes,
+anisotropy, barriers, replicated fields, spatiotemporal fields, intervals, or
+coverage. Those providers and downstream surfaces remain at their prior status.
+
 ## Next Actions
 
-Record the terminal hosted R-CMD-check result. Keep #881 open and retain the
-local-fit boundary unless a separately approved recovery/design arc changes it.
+Keep #881 open and retain the local-fit boundary unless a separately approved
+recovery/design arc changes it. Merge and deploy PR #893 only after the final
+closeout-only head is green; then verify the hosted spatial article.

@@ -15,4 +15,4 @@ not broaden it.
 | Point-fit recovery promotion | RETRACTED | Complete Totoro ladder failed its frozen `n=64` RMSE gate; retain local fit. |
 | Range estimation, mesh slopes, non-Gaussian/bivariate fields, anisotropy, barriers, replicated and spatiotemporal fields | PROTECTED | Parser and public surface reject or omit them; each needs a separate symbolic and recovery gate. |
 | Intervals and coverage | PROTECTED | `profile_targets()` declares the mesh field-scale target unready; no inference claim. |
-| Full PR closeout (cross-platform CI, complete package check, after-task report) | OWED | Hosted R-CMD-check and final closeout remain pending. |
+| Full PR closeout (cross-platform CI, complete package check, after-task report) | DONE | Exact implementation head `0407ee370` passed hosted PR Linux run 30753455095 and independent Windows/macOS/Ubuntu run 30753479753; the structurally validated after-task report records the evidence and retained boundaries. |
