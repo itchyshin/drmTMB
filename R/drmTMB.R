@@ -3397,6 +3397,13 @@ drm_build_gaussian_ls_spec <- function(
     data_model
   )
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
+  if (!is.null(mesh_spatial_term) &&
+      (include_missing_response || include_missing_predictor)) {
+    cli::cli_abort(c(
+      "The first mesh spatial route does not support missing-data models.",
+      "i" = "Use complete rows with {.code missing = miss_control()} for this ML-only mesh slice."
+    ))
+  }
   mesh_spatial_mu <- build_mesh_spatial_mu_structure(
     mesh_spatial_term, data_model, env
   )
@@ -10872,9 +10879,9 @@ extract_gaussian_mu_spatial_term <- function(
   }
   if (!identical(spatial_term$structure, "coords") && !isTRUE(allow_mesh)) {
     cli::cli_abort(c(
-      "Precomputed spatial mesh fitting is planned but not implemented yet.",
+      "Precomputed spatial mesh fitting requires the univariate Gaussian {.code mu} slice.",
       "x" = "Requested {.code spatial(1 | {spatial_term$group}, mesh = {spatial_term$object})}.",
-      "i" = "Use {.code spatial(1 | {spatial_term$group}, coords = coords)} for the first fitted coordinate-based spatial path."
+      "i" = "Use {.code bf(y ~ spatial(1 | {spatial_term$group}, mesh = mesh), sigma ~ 1)} with {.code gaussian()}, or use {.code coords = coords} for another fitted spatial route."
     ))
   }
 

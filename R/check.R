@@ -2935,7 +2935,11 @@ check_mesh_spatial_mu_diagnostics <- function(object) {
         "only; recovery, intervals, coverage, and range inference are not claimed."
       )
     } else {
-      "The fitted fixed-kappa mesh GMRF field scale is non-positive or non-finite; inspect convergence and the mesh contract."
+      paste(
+        "The fitted fixed-kappa mesh GMRF field scale is non-positive or non-finite;",
+        "inspect convergence, the projected CRS, mesh-to-retained-row alignment,",
+        "and the fixed kappa/mesh construction."
+      )
     }
   )
 }

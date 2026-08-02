@@ -133,7 +133,8 @@ new distribution enters the package.
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent phylogenetic intercept and slope fields; ordinary Poisson and NB2 also fit one unlabelled q1 intercept-plus-one-slope phylogenetic `mu` route at recovery/source-test grade. Pure, multiple, or labelled count slopes and labelled structured slope blocks such as `phylo(1 + x | p | species, tree = tree)` remain rejected until their covariance and recovery contracts are designed. |
 | `animal(1 + x | id, pedigree = ped)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent animal-model intercept and slope fields; additional multiple-slope layouts and slope correlations remain planned outside the exact fitted bivariate ledger cells. A labelled block in this univariate q1 route is rejected; use only the exact labelled bivariate layouts recorded as fitted in the ledger. |
-| `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation; mesh/SPDE paths remain planned. |
+| `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed dense coordinate covariance foundation, separate from the mesh/SPDE route. |
+| `spatial(1 | site, mesh = mesh)` with `sigma ~ 1` | Implemented local-fit slice | Univariate Gaussian ML `mu` intercept using a fixed-kappa projected mesh field `A_st %*% omega`. The reported GMRF field scale is not a range or uniform marginal SD; recovery, intervals, and coverage remain unclaimed. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | Univariate Gaussian `mu` spatial random intercept plus one numeric spatial slope. The two coordinate fields are independent and have separate SDs. A labelled block in this univariate q1 route is rejected; use only the exact labelled bivariate layouts recorded as fitted in the ledger. |
 | `spatial(1 | p | site, coords = coords)` in matching bivariate `mu1` and `mu2` formulas | Implemented q=2 slice; exact intercept-only native REML cell at `point_fit_recovery` | Bivariate Gaussian location covariance for two coordinate-spatial random intercept fields. `corpairs(level = "spatial")` reports the spatial mean-mean row separately from residual `rho12`. Native `REML = TRUE` requires matching labels; intercept-only `sigma1`, `sigma2`, and `rho12`; complete response pairs; unit weights; no known `meta_V()` covariance; and no additional ordinary random, direct-SD, or `corpair()` layer. Slopes, range estimation, intervals, and coverage remain planned. |
 | `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant coordinate-spatial location-scale block estimates four endpoint SDs and six latent spatial correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
@@ -340,10 +341,10 @@ drmTMB(
 ```
 
 `coords` can have one row per site or one row per observation, but coordinates
-must be constant within each site. A precomputed `mesh` remains planned. Mesh is
-not the scientific sampling level. It is the computational scaffold that will
-keep a future SPDE/GMRF spatial field scalable. These structured effects are
-separate from residual `rho12`.
+must be constant within each site. A precomputed `mesh` is fitted only for the
+fixed-kappa Gaussian intercept documented above. Mesh is not the scientific
+sampling level; it is the computational scaffold for the projected SPDE/GMRF
+field. These structured effects are separate from residual `rho12`.
 
 For structured slopes, the fitted coordinate-spatial path now supports one
 numeric `mu` slope as independent intercept and slope fields with separate SDs.

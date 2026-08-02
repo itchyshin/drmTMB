@@ -241,7 +241,8 @@ response 2. `rho12` still describes within-observation residual coupling.
 Read structural-dependence syntax in biological order before reading the
 implementation order. Animal models use a known pedigree or additive
 relatedness matrix. Phylogenetic models use a tree or tree-derived covariance.
-Spatial models use coordinates or, in the future, mesh/SPDE structure. Some
+Spatial models use coordinates or the bounded fixed-kappa mesh/SPDE Gaussian
+intercept. Some
 analyses need phylogenetic and spatial layers in the same predictor, and some
 advanced users need a generic known relatedness or precision matrix through
 `relmat()`.

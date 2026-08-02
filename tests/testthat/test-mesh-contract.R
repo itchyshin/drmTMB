@@ -93,6 +93,37 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
     ),
     "REML = FALSE"
   )
+  expect_error(
+    drmTMB(
+      bf(y ~ spatial(1 | site, mesh = mesh)),
+      family = poisson(), data = dat
+    ),
+    "Gaussian"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ spatial(1 | p | site, mesh = mesh), sigma ~ 1),
+      family = gaussian(), data = dat
+    ),
+    "unlabelled"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ spatial(1 | site, mesh = mesh, coords = xy), sigma ~ 1),
+      family = gaussian(), data = dat
+    ),
+    "exactly one"
+  )
+  missing_dat <- dat
+  missing_dat$y[1] <- NA_real_
+  expect_error(
+    drmTMB(
+      bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
+      family = gaussian(), data = missing_dat,
+      missing = miss_control(response = "include")
+    ),
+    "missing-data"
+  )
 })
 
 test_that("mesh projection follows retained model-row identifiers after permutation", {

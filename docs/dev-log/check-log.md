@@ -92071,3 +92071,10 @@ Shinichi grants a separate Gate A compute approval.
   group, vertex count, fixed `kappa`, and raw GMRF field scale, while stating
   the local-fit-only boundary. The contract test also exercises
   `ranef(fit, "spatial_mu")`; the focused mesh suite passed 46 expectations.
+- Pat's reader review repaired stale “mesh planned” wording across the spatial,
+  formula-grammar, structural-dependence, phylogenetic-spatial, model-map,
+  README, and readiness surfaces. The spatial article now executes a compact
+  projected-CRS mesh fit and prints vertex/observation/projection invariants,
+  projected conditional values, and the profile-unready row. New contract
+  tests cover non-Gaussian, labelled, mesh-plus-coordinates, REML, and
+  missing-data boundaries; the focused mesh suite passed 50 expectations.
