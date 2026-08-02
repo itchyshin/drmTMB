@@ -26,6 +26,7 @@ class B4CIC1Test(unittest.TestCase):
             path.write_bytes(original)
 
     def assert_current_rejects(self):
+        c1._SOURCE_CLOSURE = None
         with self.assertRaises(SystemExit):
             c1.check_current()
 
@@ -52,7 +53,11 @@ class B4CIC1Test(unittest.TestCase):
         interval = next(Path(row["path"]) for row in c1.local_rows(c1.MANIFEST) if row["role"] == "interval")
         with self.replace_once(interval, "mc-0005::", "mc-9999::"):
             self.assert_current_rejects()
-        with self.replace_once(c1.LEDGER / "cells.tsv", "interval_feasible only for the named cell", "coverage-ready for every cell"):
+        with self.replace_once(
+            c1.LEDGER / "cells.tsv",
+            "interval_feasible only for the named cell x direct intercept-SD target x frozen low-rung fixture at seed 20260728",
+            "coverage-ready for every cell",
+        ):
             self.assert_current_rejects()
         with self.replace_once(c1.LEDGER / "evidence.tsv", "computational interval feasibility only", "coverage and public guidance established"):
             self.assert_current_rejects()
@@ -81,4 +86,3 @@ class B4CIC1Test(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -306,7 +306,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 127 point_fit_recovery cells after the explicit C12 mc-0653,
+        # contains 91 point_fit_recovery cells after the explicit C12 mc-0653,
         # six-cell count tranche, ten named C16 structured zero-one-beta
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
         # promotion, the exact 24-cell B4-CI C1 and 25-cell B4-CI C2 interval
@@ -317,7 +317,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            127,
+            91,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -325,7 +325,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            128,
+            92,
         )
 
         b3 = {
@@ -359,16 +359,20 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(row["estimator"], "REML")
             self.assertEqual(row["capability_status"], "implemented")
             self.assertEqual(row["work_status"], "verified")
-            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+            self.assertEqual(row["evidence_tier"], "interval_feasible")
             if cell_id == "mc-0199":
                 self.assertEqual(
                     row["legacy_evidence_source"], "R/drmTMB.R:2056-2113"
                 )
             self.assertEqual(
                 evidence_by_id[row["primary_evidence_id"]]["evidence_class"],
-                "model_recovery",
+                "contract_test",
             )
-            self.assertIn("1,200-attempt Totoro campaign", row["claim_boundary"])
+            self.assertIn("exact retained unclamped tmbprofile receipt", row["claim_boundary"])
+            historical_claim = evidence_by_id[
+                f"ev-{cell_id}-arc1b-recovery"
+            ]["claim_boundary"]
+            self.assertIn("1,200-attempt Totoro campaign", historical_claim)
             for excluded in (
                 "unlabelled", "unmatched", "mismatched-label/group/coordinate",
                 "multiple-label", "slope-only", "predictor-dependent",
@@ -379,13 +383,13 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "AI-REML", "interval", "coverage", "inference-ready",
                 "supported",
             ):
-                self.assertIn(excluded, row["claim_boundary"])
+                self.assertIn(excluded, historical_claim)
             for admitted_condition in (
                 "response pairs are complete", "weights are one",
                 "no known `meta_V()`", "no additional ordinary random effect",
                 "direct-SD formula", "`corpair()` regression",
             ):
-                self.assertIn(admitted_condition, row["claim_boundary"])
+                self.assertIn(admitted_condition, historical_claim)
             self.assertEqual(
                 {item["evidence_class"] for item in evidence_by_cell[cell_id]
                  if "arc1b" in item["evidence_id"]},
@@ -415,8 +419,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(comparator["dpar"], dpar)
             self.assertEqual(comparator["estimator"], "ML")
             self.assertEqual(
-                comparator["primary_evidence_id"], f"ev-{cell_id}-legacy"
+                comparator["primary_evidence_id"], f"ev-{cell_id}-q2-production-profile-low"
             )
+            self.assertEqual(comparator["evidence_tier"], "interval_feasible")
 
     def test_arc1b_s2r_cells_are_exact_and_preserve_relmat_rejections(self):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
@@ -434,23 +439,27 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(row["estimator"], "REML")
             self.assertEqual(row["capability_status"], "implemented")
             self.assertEqual(row["work_status"], "verified")
-            self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+            self.assertEqual(row["evidence_tier"], "interval_feasible")
             self.assertEqual(
                 evidence_by_id[row["primary_evidence_id"]]["evidence_class"],
-                "model_recovery",
+                "contract_test",
             )
+            self.assertIn("exact retained unclamped tmbprofile receipt", row["claim_boundary"])
+            historical_claim = evidence_by_id[
+                f"ev-{cell_id}-arc1b-s2r-recovery"
+            ]["claim_boundary"]
             for required in (
                 "matching labelled `relmat(1 | p | id, K = K)`",
                 "same label, grouping levels and order",
                 "identical named supplied covariance `K`",
-                "2,400-attempt Totoro campaign",
+                "2,400-attempt recovery evidence",
                 "point-fit recovery only",
-                "supplied precision `Q`",
-                "slopes", "q4+", "scale-side", "incomplete pairs",
-                "non-unit weights", "additional random layers",
+                "Supplied precision `Q`",
+                "slopes", "q4+", "scale-side", "missing/weighted pairs",
+                "additional random layers",
                 "non-Gaussian", "interval", "coverage", "supported",
             ):
-                self.assertIn(required, row["claim_boundary"])
+                self.assertIn(required, historical_claim)
 
         remainder = by_id["mc-0675"]
         self.assertEqual(
@@ -468,12 +477,13 @@ class CapabilityLedgerTests(unittest.TestCase):
         for cell_id in ("mc-0151", "mc-0152"):
             self.assertEqual(by_id[cell_id]["estimator"], "ML")
             self.assertEqual(
-                by_id[cell_id]["primary_evidence_id"], f"ev-{cell_id}-legacy"
+                by_id[cell_id]["primary_evidence_id"], f"ev-{cell_id}-q2-production-profile-low"
             )
+            self.assertEqual(by_id[cell_id]["evidence_tier"], "interval_feasible")
         self.assertEqual(by_id["mc-0200"]["capability_status"], "rejected_by_design")
         for cell_id in ("mc-0199", "mc-0672"):
             self.assertEqual(by_id[cell_id]["structure_provider"], "spatial")
-            self.assertEqual(by_id[cell_id]["evidence_tier"], "point_fit_recovery")
+            self.assertEqual(by_id[cell_id]["evidence_tier"], "interval_feasible")
         self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
 
     def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_not_implemented(self):

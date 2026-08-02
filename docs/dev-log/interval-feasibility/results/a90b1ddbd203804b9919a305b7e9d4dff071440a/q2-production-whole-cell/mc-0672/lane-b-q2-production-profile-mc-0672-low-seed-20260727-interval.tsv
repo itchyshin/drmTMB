@@ -1,0 +1,2 @@
+cell_id	target_id	seed	execution_information_rung	profile_parameter	level	lower	upper	profile_engine
+mc-0672	mc-0672::sd:mu:mu2:spatial(1 | p | site)	20260727	low	sd:mu:mu2:spatial(1 | p | site)	0.95	0.338566158229053	0.662489415990367	tmbprofile

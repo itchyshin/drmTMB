@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	estimate	profile_engine
+mc-0293	mc-0293::sd:mu:mu:spatial(0 + x | p | site)	2026072935	high	0.95	0.248608668151809	0.517404317055715	0.356437794398584	tmbprofile

@@ -195,13 +195,13 @@ def apply() -> None:
         writer.writeheader(); writer.writerows(manifest_rows(closure))
 
 
-def check_current() -> None:
+def check_current(*, allow_later_cohorts: bool = False) -> None:
     cells, evidence, transitions, closure = selected_source()
     local_cell_map = {row["cell_id"]: row for row in local_rows(LEDGER / "cells.tsv")}
-    if any(local_cell_map[cell["cell_id"]] != cell for cell in cells):
+    if any(cell["cell_id"] not in local_cell_map or local_cell_map[cell["cell_id"]] != cell for cell in cells):
         fail("C2 cell source or claim-boundary drift")
     protected = set(C1_IDS) | B3_IDS | EXCLUDED_IDS
-    if {cell_id: local_cell_map[cell_id] for cell_id in protected} != base_cells(protected):
+    if any(cell_id not in local_cell_map for cell_id in protected) or {cell_id: local_cell_map[cell_id] for cell_id in protected} != base_cells(protected):
         fail("C1, B3, or excluded base-row drift")
     local_evidence = {row["evidence_id"]: row for row in local_rows(LEDGER / "evidence.tsv")}
     local_transitions = {row["transition_id"]: row for row in local_rows(LEDGER / "transitions.tsv")}
@@ -213,11 +213,15 @@ def check_current() -> None:
         path = Path(row["path"])
         if not path.exists() or hashlib.sha256(path.read_bytes()).hexdigest() != row["source_blob_sha256"]:
             fail(f"artifact blob drift: {path}")
-    if len([
+    interval_count = len([
         row for row in local_cell_map.values()
         if row["axis"] == "model_surface"
         and row["evidence_tier"] == "interval_feasible"
-    ]) != 97:
+    ])
+    if allow_later_cohorts:
+        if interval_count < 97:
+            fail("C2 interval_feasible baseline was lost")
+    elif interval_count != 97:
         fail("C2 did not move the canonical interval_feasible count to 97")
 
 
@@ -225,10 +229,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--check-with-later-cohorts", action="store_true")
     args = parser.parse_args()
-    if args.apply == args.check:
-        fail("supply exactly one of --apply or --check")
-    apply() if args.apply else check_current()
+    if sum((args.apply, args.check, args.check_with_later_cohorts)) != 1:
+        fail("supply exactly one mode")
+    if args.apply:
+        apply()
+    else:
+        check_current(allow_later_cohorts=args.check_with_later_cohorts)
 
 
 if __name__ == "__main__":
