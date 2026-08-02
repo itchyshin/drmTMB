@@ -1,6 +1,9 @@
 helper_path <- testthat::test_path(
   "..", "..", "tools", "mesh-spde-recovery-v3-helpers.R"
 )
+if (!file.exists(helper_path)) {
+  skip("Top-level campaign tools are intentionally excluded from the source tarball")
+}
 sys.source(helper_path, envir = environment())
 
 mesh_v3_fixture <- function(estimate = 1e-4, n = 50L) {
