@@ -3,6 +3,17 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ ACTIVE CODEX HANDOVER — start here (2026-08-02, MESH CLOSEOUT → Q2 CONFIDENCE EYE).**
+> PR **#893** on `codex/drmtmb-spatial-mesh` implements the fixed-kappa
+> univariate-Gaussian mesh `mu` intercept, explicit projected geographic
+> coordinates, exact-domain field-SD point recovery, and closes #881 while
+> preserving dense `coords=`. The next requested Confidence Eye is a separate
+> dense coordinate-spatial q2 latent-correlation interval-calibration arc. Do
+> not start it on the mesh branch or expose an interval before prospective
+> coverage evidence. Finish #893, then begin from fresh `origin/main` and
+> reconcile merged PR #897. START HERE:
+> [`docs/dev-log/handover/2026-08-02-codex-handover.md`](docs/dev-log/handover/2026-08-02-codex-handover.md).
+
 > **▶ Latest — start here (2026-08-02, ARC 0 + CURRENT-SOURCE INTERVAL ARC 1 LANDED FOR CLAUDE).**
 > Draft PR **#896** on `codex/q1-interval-contracts-arc1` freezes the complete
 > 82-cell current-source candidate denominator and promotes five exact direct
