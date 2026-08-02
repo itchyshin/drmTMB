@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+fixef:mu:x	0.95	0.453613393543802	0.615876564240184	link	linear_predictor	beta_mu	2	profile	tmbprofile	profile	FALSE	ok	mc-0260	mc-0260::fixef:mu:x	2026080223	n240

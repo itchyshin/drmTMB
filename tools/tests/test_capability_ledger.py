@@ -340,28 +340,69 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 81 point_fit_recovery cells after the explicit C12 mc-0653,
+        # contains 77 point_fit_recovery cells after the explicit C12 mc-0653,
         # six-cell count tranche, ten named C16 structured zero-one-beta
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
         # promotion, the exact 24/25/36/23-cell B4-CI C1--C4 interval
-        # promotions, and the exact C17-C1 mc-0570 and C17-C2 mc-0578
-        # promotions. Future changes require a
+        # promotions, the exact C17-C1 mc-0570 and C17-C2 mc-0578
+        # promotions, and the target-specific Arc 1 mc-0260/mc-0262
+        # promotions, plus the target-specific Arc 1 mc-0266 and mc-0269
+        # promotions.
+        # Future changes require a
         # named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            81,
+            77,
         )
-        # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
-        # point_fit_recovery because that is the tier its metafor comparator evidence
-        # already supports. Checking both numbers catches a promotion hidden behind a
-        # simultaneous insert, which either number alone would miss.
+        # The TOTAL may differ from the frozen count only through approved row inserts.
+        # mc-0260m is now interval_feasible for one exact pooled-effect target, so it no
+        # longer contributes to this total. Checking both numbers catches a promotion
+        # hidden behind a simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            82,
+            77,
         )
+
+        by_id = {row["cell_id"]: row for row in model}
+        evidence = {row["evidence_id"]: row for row in self.evidence}
+        for cell_id, target_id in ledger.ARC1_GAUSSIAN_FIXED_TARGETS.items():
+            direct_target = target_id.split("::", 1)[1]
+            evidence_id = f"ev-{cell_id}-arc1-fixed-profile"
+            transition_id = f"tr-{cell_id}-arc1-fixed-profile"
+            transition = next(
+                row for row in self.transitions
+                if row["transition_id"] == transition_id
+            )
+            self.assertEqual(by_id[cell_id]["evidence_tier"], "interval_feasible")
+            self.assertEqual(by_id[cell_id]["primary_evidence_id"], evidence_id)
+            self.assertIn(direct_target, by_id[cell_id]["claim_boundary"])
+            self.assertEqual(
+                evidence[evidence_id]["path_or_url"],
+                ledger.ARC1_GAUSSIAN_FIXED_RECONCILIATION,
+            )
+            self.assertEqual(evidence[evidence_id]["result"], "interval_feasible")
+            self.assertIn(direct_target, evidence[evidence_id]["claim_boundary"])
+            self.assertEqual(transition["evidence_ids"], evidence_id)
+
+        for cell_id, contract in ledger.ARC1_ADDITIONAL_TARGETS.items():
+            direct_target = contract["target_id"].split("::", 1)[1]
+            evidence_id = contract["evidence_id"]
+            transition = next(
+                row for row in self.transitions
+                if row["transition_id"] == contract["transition_id"]
+            )
+            self.assertEqual(by_id[cell_id]["evidence_tier"], "interval_feasible")
+            self.assertEqual(by_id[cell_id]["primary_evidence_id"], evidence_id)
+            self.assertIn(direct_target, by_id[cell_id]["claim_boundary"])
+            self.assertEqual(
+                evidence[evidence_id]["path_or_url"], contract["reconciliation"]
+            )
+            self.assertEqual(evidence[evidence_id]["result"], "interval_feasible")
+            self.assertIn(direct_target, evidence[evidence_id]["claim_boundary"])
+            self.assertEqual(transition["evidence_ids"], evidence_id)
 
         b3 = {
             row["cell_id"]: row
