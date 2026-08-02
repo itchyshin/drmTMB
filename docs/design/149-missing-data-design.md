@@ -124,7 +124,8 @@ known sampling covariance matrix.
 Use likelihood language, not posterior-imputation language.
 
 `response = "drop"` is the current complete-case behaviour. It drops rows with
-missing response values before the TMB likelihood sees them.
+missing response values before the TMB likelihood sees them. For bivariate
+Gaussian fits, a row with either response missing is dropped as a complete pair.
 
 `response = "include"` is the observed-response likelihood policy. It keeps
 original row identity and uses an observed-response mask. Missing responses add
@@ -141,11 +142,10 @@ explicit `mi()` syntax and an `impute` formula. Missing predictor values become
 latent quantities integrated over by TMB/Laplace; they are not filled by silent
 single imputation.
 
-`engine = "laplace"` is the general TMB engine for latent missing predictors and
-other random effects. `engine = "em"` can be a later Gaussian helper or
-warm-start path, but it should not be the public default for distributional
-regression. `engine = "mcmc"`, priors, posterior draws, and credible intervals
-are out of scope for this lane.
+`engine = "laplace"` is the only implemented missing-data engine. Explicit
+`engine = "em"` and `engine = "profile"` requests fail intentionally because
+those names are reserved for later work. `engine = "mcmc"`, priors, posterior
+draws, and credible intervals are out of scope for this lane.
 
 Estimator choice should stay separate from missing-data engine choice. ML is the
 default estimator. The first ordinary Gaussian mixed-model REML route lives on
@@ -800,32 +800,30 @@ Positive and bounded continuous predictors are integrated by deterministic
 quadrature, with exact boundary masses where the family requires them.
 The non-Gaussian response routes support family = poisson(), binomial(),
 nbinom2(), and beta() with one fixed-effect binary mi() predictor and a
-Bernoulli/logit impute_model(); missing responses can also be masked for those
-same four families with miss_control(response = "include"). Multiple missing
-predictors, grouped or structured non-Gaussian predictor models, transformed or
-interacted mi() terms, non-binary missing predictors in non-Gaussian response
-models, hurdle count predictors, EM/profile engines, REML for explicit
-missing-data routes, simulated imputation summaries, response imputation,
-measurement-error models, and pigauto interoperability remain separate future
-lanes.
+Bernoulli/logit impute_model(). Separately, `miss_control(response = "include")`
+has route-specific observed-response masking evidence for every current
+univariate fitted response route; the 18-route inventory and boundaries are in
+the missing-data vignette. Multiple missing predictors, grouped or structured
+non-Gaussian predictor models, transformed or interacted mi() terms,
+non-binary missing predictors in non-Gaussian response models,
+zero-inflated/hurdle responses with `mi()`, EM/profile engines, REML for
+explicit missing-data routes, simulated imputation summaries, response
+imputation, measurement-error models, and pigauto interoperability remain
+separate future lanes.
 ```
 
-For the 0.5.0 release, treat the missing-data surface as done only in this
-bounded sense: the package has an explicit control API, response masks for
-Gaussian, bivariate Gaussian, binomial, Poisson, NB2, and beta responses,
-one-at-a-time modelled missing predictors for the implemented predictor-family
-set, `imputed()` summaries, tests of the likelihood contributions, reference
-documentation, and a worked article. It is not done as a general missing-data
-framework. The next missing-data work should be a separate feature slice, not
-cleanup for this release boundary.
+Historical 0.5.0 snapshot: the initial release claim covered the first six
+response-mask routes. MR-T2–MR-T6 subsequently extended the same
+observed-response contract to every current univariate fitted response route;
+the current inventory is the missing-data vignette. This remains a bounded
+missing-data surface, not a general missing-data framework.
 
 The non-Gaussian missing-predictor coverage is broad when the response is a
 univariate Gaussian location model. On the non-Gaussian response side it is
 deliberately narrow: Poisson, binomial, NB2, and beta responses each take one
 fixed-effect binary `mi()` predictor with complete responses (MD9a–MD9d), and
-those four families plus Gaussian, bivariate Gaussian, Student-t, skew-normal,
-lognormal, Gamma, Tweedie, zero-one beta, beta-binomial, cumulative logit, and
-non-hurdle truncated NB2 support response masking (MD10 and MR-T2–MR-T5).
+the current 18-route observed-response inventory supports response masking
+(MD10 and MR-T2–MR-T6).
 Non-binary missing predictors in non-Gaussian response models,
 zero-inflated/hurdle responses with `mi()`, random or structured response terms
 with `mi()`, and broader random or structured mixture masking remain planned.

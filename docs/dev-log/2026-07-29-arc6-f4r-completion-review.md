@@ -1,5 +1,13 @@
 # Arc 6 F4R completion review: high-information alpha interval screen
 
+> **Supersession (2026-08-01).** This document preserves the decision available
+> at the time of the private review. The later public-interval decision uses
+> the positive scoped F4R evidence to expose `vcov()` and `confint()` with
+> warnings and fit-specific fail-closed diagnostics. The Bernoulli x ordinary-
+> NB2 intercept route is now `inference_ready_with_caveats`; the other admitted
+> association routes are `interval_feasible`. The retained F4 failure is not
+> erased.
+
 ## Decision
 
 **PASS — private, high-information screen only.** Arc 6 F4R establishes that
@@ -69,4 +77,3 @@ packet should retain a compact post-processing summary plus its bootstrap seed
 for uncertainty around SE/SD and coverage summaries, and an explicit source
 manifest/library-build hash. Those are reproducibility improvements, not
 reasons to reverse this F4R verdict.
-

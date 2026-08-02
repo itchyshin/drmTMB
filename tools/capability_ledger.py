@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import json
 import re
@@ -25,6 +26,55 @@ EVIDENCE = LEDGER / "evidence.tsv"
 TRANSITIONS = LEDGER / "transitions.tsv"
 SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
+PARITY_TRIAGE = ROOT / "docs/dev-log/dashboard/parity-triage.tsv"
+
+# C14 restores the package-boundary classification from the last ledger commit
+# that recorded it explicitly.  This is a taxonomy correction, not evidence for
+# an implementation: the immutable source set is deliberately named here so a
+# future rerun cannot infer boundaries from a broad formula heuristic.  The
+# committed snapshot keeps the check portable when the historical local-only
+# commit is not available to a fresh CI checkout.
+C14_BOUNDARY_SOURCE_COMMIT = "0ccffcb539e19c3b4eeabf394634ddbcfc930cd8"
+C14_BOUNDARY_SOURCE_PATH = "docs/dev-log/dashboard/capability-ledger/cells.tsv"
+C14_BOUNDARY_SOURCE_SNAPSHOT = LEDGER / "c14-boundary-source.tsv"
+C14_BOUNDARY_COUNT = 330
+C14_ZOB_LEAF_TAXONOMY = (
+    ("mc-0583", "mc-0695"), ("mc-0584", "mc-0696"),
+    ("mc-0585", "mc-0697"), ("mc-0586", "mc-0698"),
+    ("mc-0587", "mc-0699"), ("mc-0593", "mc-0700"),
+    ("mc-0594", "mc-0701"), ("mc-0595", "mc-0702"),
+    ("mc-0596", "mc-0703"), ("mc-0597", "mc-0704"),
+)
+C14_ZOB_LEAF_TAXONOMY_SOURCE = (
+    "docs/dev-log/dashboard/capability-ledger/"
+    "c14-zob-structured-leaf-taxonomy.md"
+)
+C14_RECEIPT_EQUIVALENCE = LEDGER / "c14-receipt-equivalence.tsv"
+C14_RECEIPT_EQUIVALENCE_TARGET = "e58d77119c3562cdfcede3191f2482b38b30f4af"
+C14_RECEIPT_EQUIVALENCE_FINGERPRINT = (
+    "854d09453a44610c4d699bbb442331634b93852c2aecd024e45892904052470b"
+)
+C14_RECEIPT_EQUIVALENCE_PATHS = (
+    "R/drmTMB.R::zero_one_beta_spec",
+    "R/drmTMB.R::zero_one_beta_start_and_map",
+    "R/drmTMB.R::zero_one_beta_tmb_and_extractors",
+    "src/drmTMB.cpp::model_type_15",
+)
+C17_C14_CURRENT_SOURCE_COMPATIBILITY = (
+    LEDGER / "c17c2-c14-current-source-compatibility.tsv"
+)
+C17_C14_COMPATIBLE_SEEDS = {
+    "mc-0568": {str(seed) for seed in range(2026073401, 2026073405)},
+    "mc-0569": {str(seed) for seed in range(2026073501, 2026073505)},
+    "mc-0576": {str(seed) for seed in range(2026073701, 2026073705)},
+}
+C17_C14_SOURCE_FILES = (
+    "R/drmTMB.R",
+    "R/methods.R",
+    "src/drmTMB.cpp",
+    "tests/testthat/test-zero-one-beta.R",
+    "tools/run-lane-c-c17c1-c14-model15-compatibility.R",
+)
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
@@ -32,12 +82,76 @@ IMPORTED_MODEL_COUNT = 668
 # approved draft docs/dev-log/handover/2026-07-21-mc-0260m-ledger-cell-draft.md. The row
 # is an insert at the tier its evidence already supports (point_fit_recovery); nothing was
 # promoted. Bump this guard only for an approved row insert, never to silence drift.
-MODEL_SURFACE_COUNT = 677
-# The frozen 2026-07-09 census: the original 676 model_surface rows and the 158 of them
-# at point_fit_recovery. Both are permanent. Approved inserts get a higher source_order,
-# so they never touch these; only a promotion or demotion of a frozen cell can.
+MODEL_SURFACE_COUNT = 687
+ASSOCIATION_COUNT = 6
+# The frozen 2026-07-09 census: the original 676 model_surface rows and their
+# recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
+# count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
+# mc-0454. With explicit user approval, C14 promotes only mc-0568, mc-0569,
+# and mc-0576 after source-equivalence verification and fresh three-lens GO.
+# B4-CI C1, C2, C3, then C4 promote only their approved source-bound cells.
+# C4 moves eleven frozen point-fit cells and twelve diagnostic-only cells; this
+# is not a blanket re-baseline. Arc 1 subsequently promotes only five exact
+# targets after three current-source Totoro receipts per target: mc-0260,
+# mc-0262, mc-0260m's pooled effect, mc-0266's residual-scale RE SD, and
+# mc-0269's Gaussian REML independent random-slope SD.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 158
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 77
+ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
+ARC1_GAUSSIAN_FIXED_TARGETS = {
+    "mc-0260": "mc-0260::fixef:mu:x",
+    "mc-0262": "mc-0262::fixef:sigma:x",
+}
+ARC1_GAUSSIAN_FIXED_RECONCILIATION = (
+    "docs/dev-log/interval-feasibility/results/"
+    f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+    "arc1-gaussian-fixed-profile-feasibility/totoro/reconciliation.tsv"
+)
+ARC1_ADDITIONAL_TARGETS = {
+    "mc-0260m": {
+        "target_id": "mc-0260m::fixef:mu:(Intercept)",
+        "evidence_id": "ev-mc-0260m-arc1-meta-v-profile",
+        "transition_id": "tr-mc-0260m-arc1-meta-v-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+            "arc1-meta-v-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+    "mc-0266": {
+        "target_id": "mc-0266::sd:sigma:(1 | id)",
+        "evidence_id": "ev-mc-0266-arc1-sigma-re-profile",
+        "transition_id": "tr-mc-0266-arc1-sigma-re-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+            "arc1-gaussian-sigma-re-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+    "mc-0269": {
+        "target_id": "mc-0269::sd:mu:(0 + x | id)",
+        "evidence_id": "ev-mc-0269-arc1-reml-slope-profile",
+        "transition_id": "tr-mc-0269-arc1-reml-slope-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+            "arc1-gaussian-reml-slope-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+}
+B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
+B3_Q6_MU2_TARGETS = {
+    "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
+    "mc-0124": ("spatial", "mc-0123", "mc-0124::sd:mu:mu2:spatial(1 | p | site)"),
+    "mc-0146": ("animal", "mc-0145", "mc-0146::sd:mu:mu2:animal(1 | p | id)"),
+    "mc-0168": ("relmat", "mc-0167", "mc-0168::sd:mu:mu2:relmat(1 | p | id)"),
+}
+# C4 separately promotes these three paired q6 mu1 rows.  The B3 target
+# receipt remains limited to mu2 and must not be treated as their evidence.
+C4_B3_PAIRED_MU1_IDS = {"mc-0101", "mc-0145", "mc-0167"}
+B3_Q6_MU2_PACKET = (
+    ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
+)
 MODEL_FIELDS = [
     "family", "model_type", "dpar", "effect_type", "structure_provider",
     "dimension", "q_gate", "estimator", "status", "evidence_tier",
@@ -94,7 +208,7 @@ WORK_STATUSES = {
     "verified", "blocked", "deferred",
 }
 CAPABILITY_STATUSES = {
-    "rejected_by_design", "not_implemented", "scaffolded", "implemented",
+    "not_implemented", "rejected_by_design", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
 # evidence_class was previously unconstrained, so a typo silently produced zero badges
@@ -202,7 +316,7 @@ def compact_json_bytes(value: object) -> bytes:
 def schema_value() -> dict[str, object]:
     return {
         "schema_version": 1,
-        "axes": ["model_surface", "missing_response"],
+        "axes": ["model_surface", "association", "missing_response"],
         "cell_fields": CELL_FIELDS,
         "evidence_fields": EVIDENCE_FIELDS,
         "transition_fields": TRANSITION_FIELDS,
@@ -215,6 +329,7 @@ def schema_value() -> dict[str, object]:
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
+            "association": ASSOCIATION_COUNT,
             "missing_response": 18,
         },
         "missing_response_verified_gate": "G3",
@@ -269,11 +384,11 @@ def bootstrap() -> None:
         cell_id = f"mc-{index:04d}"
         evidence_id = f"ev-{cell_id}-legacy" if old["evidence_source"] else ""
         status = old["status"]
-        work = (
-            "verified" if status == "implemented"
-            else "deferred" if status == "rejected_by_design"
-            else "backlog"
-        )
+        # The pre-ledger census used `rejected_by_design` for cells deliberately
+        # out of scope at the time. That was not a proof of impossibility: every
+        # unimplemented model cell belongs to the visible backlog.
+        status = "not_implemented" if status == "rejected_by_design" else status
+        work = "verified" if status == "implemented" else "backlog"
         cells.append({
             "cell_id": cell_id,
             "source_order": str(index),
@@ -366,7 +481,7 @@ def bootstrap() -> None:
             "dimension": "bivariate" if route == "biv_gaussian" else "univariate",
             "q_gate": "na",
             "estimator": "ML",
-            "capability_status": "implemented" if admitted else "rejected_by_design",
+            "capability_status": "implemented" if admitted else "not_implemented",
             "work_status": "implemented_unverified" if admitted else "backlog",
             "evidence_tier": "na",
             "test_gate": "G1" if admitted else "G0",
@@ -417,6 +532,510 @@ def bootstrap() -> None:
     print(f"Bootstrapped {len(cells)} cells and {len(evidence)} evidence records")
 
 
+def c14_boundary_source_rows() -> list[dict[str, str]]:
+    """Return the immutable C14 package-boundary source set.
+
+    The prior MR-T0 import intentionally made all historical rows visible in a
+    single implementation backlog. C14 reverses only the 330 records that an
+    earlier committed ledger explicitly classified as package boundaries. The
+    source commit is part of the contract: a row must never be reclassified by
+    a pattern over its current formula fields.  Its checked-in ID snapshot is
+    deliberately used instead of ``git show`` so source verification is
+    available in a shallow CI checkout too.
+    """
+    rows = read_tsv(C14_BOUNDARY_SOURCE_SNAPSHOT)
+    if not rows or set(rows[0]) != {"cell_id"}:
+        raise SystemExit("C14 boundary source snapshot has an invalid schema")
+    if len(rows) != C14_BOUNDARY_COUNT:
+        raise SystemExit(
+            "C14 boundary source count changed: "
+            f"{len(rows)} (expected {C14_BOUNDARY_COUNT})"
+        )
+    ids = [row["cell_id"] for row in rows]
+    if len(ids) != len(set(ids)):
+        raise SystemExit("C14 boundary source contains duplicate cell IDs")
+    return rows
+
+
+def restore_c14_boundaries() -> None:
+    """Restore only the source-pinned C14 package-boundary classifications."""
+    source = c14_boundary_source_rows()
+    source_ids = {row["cell_id"] for row in source}
+    cells = read_tsv(CELLS)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    missing = source_ids - set(by_id)
+    if missing:
+        raise SystemExit(
+            "C14 boundary source IDs missing from the current ledger: "
+            + ", ".join(sorted(missing))
+        )
+
+    affected = [by_id[cell_id] for cell_id in source_ids]
+    if any(row["axis"] != "model_surface" for row in affected):
+        raise SystemExit("C14 boundary source attempted to alter a non-model row")
+    if any(row["capability_status"] == "implemented" for row in affected):
+        raise SystemExit("C14 taxonomy restoration would overwrite an implementation")
+    unexpected = {
+        (row["capability_status"], row["work_status"], row["evidence_tier"])
+        for row in affected
+        if (row["capability_status"], row["work_status"], row["evidence_tier"])
+        not in {
+            ("not_implemented", "backlog", "none"),
+            ("rejected_by_design", "deferred", "none"),
+        }
+    }
+    if unexpected:
+        raise SystemExit(
+            "C14 boundary source has non-taxonomy state in the current ledger: "
+            + repr(sorted(unexpected))
+        )
+
+    for row in affected:
+        row["capability_status"] = "rejected_by_design"
+        row["work_status"] = "deferred"
+        row["evidence_tier"] = "none"
+
+    transition_ids = {row["transition_id"] for row in transitions}
+    for cell_id in sorted(source_ids):
+        transition_id = f"tr-{cell_id}-c14-boundary-taxonomy"
+        if transition_id in transition_ids:
+            continue
+        transitions.append({
+            "transition_id": transition_id,
+            "cell_id": cell_id,
+            "from_work_status": "backlog",
+            "to_work_status": "deferred",
+            "evidence_ids": "",
+            "reason": (
+                "C14 source-pinned taxonomy restoration from the explicit "
+                f"package-boundary classification at {C14_BOUNDARY_SOURCE_COMMIT}; "
+                "this changes no implementation or evidence claim."
+            ),
+            "actor": "Codex C14 taxonomy restoration",
+            "commit_sha": C14_BOUNDARY_SOURCE_COMMIT,
+            "date": "2026-07-31",
+        })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print(
+        "C14 boundary taxonomy restored "
+        f"({len(affected)} rows from {C14_BOUNDARY_SOURCE_COMMIT})"
+    )
+
+
+def split_c14_zob_structured_leaves() -> None:
+    """Replace C14's lossy zero-one-beta structured rows with exact leaves.
+
+    Each original row becomes a q1 intercept leaf. A separate q2-plus boundary
+    row is added for the same provider and endpoint, so promotion of the q1
+    leaf can never silently inherit the untested higher-dimensional forms.
+    """
+    cells = read_tsv(CELLS)
+    evidence = read_tsv(EVIDENCE)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    evidence_ids = {row["evidence_id"] for row in evidence}
+    transition_ids = {row["transition_id"] for row in transitions}
+    sha = git_sha()
+
+    for original_id, boundary_id in C14_ZOB_LEAF_TAXONOMY:
+        if original_id not in by_id:
+            raise SystemExit(f"C14 q1 leaf source is missing: {original_id}")
+        original = by_id[original_id]
+        expected = {
+            "axis": "model_surface",
+            "family_route": "zero_one_beta",
+            "effect_type": "structured",
+            "capability_status": "not_implemented",
+            "work_status": "backlog",
+            "evidence_tier": "none",
+        }
+        if any(original[field] != value for field, value in expected.items()):
+            raise SystemExit(
+                f"C14 q1 leaf source has unexpected state: {original_id}"
+            )
+
+        q1_evidence_id = f"ev-{original_id}-c14-q1-leaf-taxonomy"
+        q1_transition_id = f"tr-{original_id}-c14-q1-leaf-taxonomy"
+        q1_boundary = (
+            "Exact C14 leaf for ordinary ML zero_one_beta(): one unlabelled "
+            f"structured {original['dpar']} intercept with provider "
+            f"`{original['structure_provider']}` and q1 only. This leaf carries "
+            "no point-fit evidence until its provider-specific oracle, retained "
+            "attempts, source SHA, and independent GO review are bound. Slopes, "
+            "labels, covariance, q2+, other random effects, profiles, intervals, "
+            "coverage, and inference claims remain outside this leaf."
+        )
+        if q1_evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": q1_evidence_id,
+                "cell_id": original_id,
+                "evidence_class": "contract_test",
+                "path_or_url": C14_ZOB_LEAF_TAXONOMY_SOURCE,
+                "commit_sha": sha,
+                "run_id": "c14-zob-structured-q1-leaf-taxonomy",
+                "command": "python3 tools/capability_ledger.py --split-c14-zob-structured-leaves",
+                "result": "q1_leaf_not_promoted",
+                "replicates": "",
+                "reviewed_by": "C14 taxonomy reconciliation",
+                "review_date": "2026-07-31",
+                "claim_boundary": q1_boundary,
+            })
+        original.update({
+            "route_variant": "c14_exact_q1_structured_intercept",
+            "q_gate": "q1",
+            "tranche_id": "lane-c-c14-leaf-taxonomy",
+            "owner": "Lane C",
+            "blocking_reviewers": "Noether; Fisher; Rose",
+            "primary_evidence_id": q1_evidence_id,
+            "claim_boundary": q1_boundary,
+            "next_gate": (
+                "Bind this exact q1 leaf to its current-source oracle, all-attempt "
+                "recovery receipt, and independent GO/BLOCK review before promotion."
+            ),
+            "updated_commit": sha,
+            "updated_date": "2026-07-31",
+            "notes": "C14 non-lossy q1 leaf; q2-plus boundary is " + boundary_id + ".",
+        })
+        if q1_transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": q1_transition_id,
+                "cell_id": original_id,
+                "from_work_status": "backlog",
+                "to_work_status": "backlog",
+                "evidence_ids": q1_evidence_id,
+                "reason": "C14 non-lossy taxonomy split; q1 remains unpromoted.",
+                "actor": "Codex C14 leaf taxonomy",
+                "commit_sha": sha,
+                "date": "2026-07-31",
+            })
+
+        q2_evidence_id = f"ev-{boundary_id}-c14-q2plus-boundary"
+        q2_transition_id = f"tr-{boundary_id}-c14-q2plus-boundary"
+        q2_boundary = (
+            "C14 q2-plus boundary paired with " + original_id + ": q2, q4, q6, "
+            "q8, q12, slopes, labels, covariance, additional structured or "
+            "ordinary random effects, profiles, intervals, coverage, and inference "
+            "claims are not currently supported by the exact q1 leaf."
+        )
+        if boundary_id not in by_id:
+            boundary = original.copy()
+            boundary.update({
+                "cell_id": boundary_id,
+                "source_order": str(695 + len([pair for pair in C14_ZOB_LEAF_TAXONOMY if pair[1] < boundary_id])),
+                "route_variant": "c14_q2plus_structured_boundary",
+                "q_gate": "q2plus",
+                "capability_status": "rejected_by_design",
+                "work_status": "deferred",
+                "evidence_tier": "none",
+                "tranche_id": "lane-c-c14-leaf-taxonomy",
+                "owner": "Lane C",
+                "blocking_reviewers": "Noether; Fisher; Rose",
+                "primary_evidence_id": q2_evidence_id,
+                "claim_boundary": q2_boundary,
+                "next_gate": (
+                    "A separately approved exact q2-plus target, implementation, "
+                    "oracle, and recovery programme is required."
+                ),
+                "updated_commit": sha,
+                "updated_date": "2026-07-31",
+                "notes": "C14 non-lossy q2-plus boundary paired with " + original_id + ".",
+            })
+            cells.append(boundary)
+            by_id[boundary_id] = boundary
+        if q2_evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": q2_evidence_id,
+                "cell_id": boundary_id,
+                "evidence_class": "contract_test",
+                "path_or_url": C14_ZOB_LEAF_TAXONOMY_SOURCE,
+                "commit_sha": sha,
+                "run_id": "c14-zob-structured-q2plus-boundary",
+                "command": "python3 tools/capability_ledger.py --split-c14-zob-structured-leaves",
+                "result": "q2plus_deferred",
+                "replicates": "",
+                "reviewed_by": "C14 taxonomy reconciliation",
+                "review_date": "2026-07-31",
+                "claim_boundary": q2_boundary,
+            })
+        if q2_transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": q2_transition_id,
+                "cell_id": boundary_id,
+                "from_work_status": "",
+                "to_work_status": "deferred",
+                "evidence_ids": q2_evidence_id,
+                "reason": "C14 non-lossy q2-plus boundary created beside a q1 leaf.",
+                "actor": "Codex C14 leaf taxonomy",
+                "commit_sha": sha,
+                "date": "2026-07-31",
+            })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    EVIDENCE.write_bytes(tsv_bytes(EVIDENCE_FIELDS, evidence))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print("C14 zero-one-beta structured q1/q2-plus leaves are current")
+
+
+def check_c14_receipt_equivalence() -> None:
+    """Verify C14's separate source-equivalence bridge for retained receipts.
+
+    Raw all-attempt receipt SHA values are immutable and remain their original
+    values. The source fingerprints were computed from those immutable
+    revisions during the local C14 audit. This check proves that the current
+    target matches the committed target fingerprint and is equal to (or
+    distinct from) the recorded execution source as declared. It never
+    promotes a cell or replaces the required independent completion review.
+    """
+    rows = read_tsv(C14_RECEIPT_EQUIVALENCE)
+    expected_ids = {
+        "mc-0568", "mc-0569", "mc-0576", "mc-0586", "mc-0587",
+        "mc-0593", "mc-0594", "mc-0595", "mc-0596", "mc-0597",
+    }
+    ids = {row["cell_id"] for row in rows}
+    if ids != expected_ids or len(rows) != len(expected_ids):
+        raise SystemExit("C14 receipt-equivalence manifest does not name exactly ten cells")
+    current_fingerprint = c14_model15_source_fingerprint()
+    c17_bridge = current_fingerprint != C14_RECEIPT_EQUIVALENCE_FINGERPRINT
+    if c17_bridge:
+        check_c17_c14_current_source_compatibility(current_fingerprint)
+    eligible_ids = set()
+    for row in rows:
+        if row["c14_target_sha"] != C14_RECEIPT_EQUIVALENCE_TARGET:
+            raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence target")
+        if row["compared_paths"] != ";".join(C14_RECEIPT_EQUIVALENCE_PATHS):
+            raise SystemExit(f"{row['cell_id']}: wrong C14 equivalence path set")
+        raw_path = ROOT / row["raw_attempts_path"]
+        if not raw_path.is_file():
+            raise SystemExit(f"{row['cell_id']}: raw attempts receipt is unavailable")
+        raw_rows = read_tsv(raw_path)
+        raw_shas = {raw_row.get("source_sha", "") for raw_row in raw_rows}
+        if not raw_rows or raw_shas != {row["retained_source_sha"]}:
+            raise SystemExit(
+                f"{row['cell_id']}: manifest SHA does not match its raw attempts receipt"
+            )
+        if row["target_fingerprint"] != C14_RECEIPT_EQUIVALENCE_FINGERPRINT:
+            raise SystemExit(f"{row['cell_id']}: immutable C14 target fingerprint differs")
+        eligible = row["equivalence_eligible"] == "TRUE"
+        source_matches = row["source_fingerprint"] == row["target_fingerprint"]
+        if eligible and not source_matches:
+            raise SystemExit(f"{row['cell_id']}: eligible source fingerprint differs")
+        if not eligible and source_matches:
+            raise SystemExit(
+                f"{row['cell_id']}: ineligible receipt unexpectedly matches the C14 target"
+            )
+        if eligible:
+            eligible_ids.add(row["cell_id"])
+    if eligible_ids != {"mc-0568", "mc-0569", "mc-0576"}:
+        raise SystemExit("C14 receipt equivalence has an unexpected eligible cell set")
+    print(
+        f"C14 receipt equivalence: OK ({len(eligible_ids)} eligible, "
+        f"{len(rows) - len(eligible_ids)} source-different retained receipts"
+        + ("; C17 current-source compatibility PASS" if c17_bridge else "")
+        + ")"
+    )
+
+
+def check_c17_c14_current_source_compatibility(
+    current_fingerprint: str,
+) -> None:
+    """Authenticate C17's narrow current-source bridge for C14 receipts.
+
+    The historical C14 target and raw receipts stay immutable. This bridge
+    accepts only the separately authenticated latest C17 model-15 fingerprint and
+    only when all retained attempts for the three previously promoted ordinary
+    routes pass with the new ``coi`` carrier inert.
+    """
+    rows = read_tsv(C17_C14_CURRENT_SOURCE_COMPATIBILITY)
+    expected_ids = set(C17_C14_COMPATIBLE_SEEDS)
+    if len(rows) != len(expected_ids) or {row["cell_id"] for row in rows} != expected_ids:
+        raise SystemExit(
+            "C17 compatibility manifest must name exactly mc-0568, "
+            "mc-0569, and mc-0576"
+        )
+
+    expected_paths = ";".join(C14_RECEIPT_EQUIVALENCE_PATHS)
+    expected_source_files = ";".join(C17_C14_SOURCE_FILES)
+    runner_path = ROOT / C17_C14_SOURCE_FILES[-1]
+    runner_hash = hashlib.sha256(runner_path.read_bytes()).hexdigest()
+
+    for row in rows:
+        cell_id = row["cell_id"]
+        if row["compared_paths"] != expected_paths:
+            raise SystemExit(f"{cell_id}: wrong C17 compatibility path set")
+        if row["source_fingerprint"] != current_fingerprint:
+            raise SystemExit(f"{cell_id}: current model-15 fingerprint differs")
+        if row["source_files"] != expected_source_files:
+            raise SystemExit(f"{cell_id}: wrong C17 authenticated source-file set")
+        if (
+            row["attempts"] != "4"
+            or row["passed"] != "4"
+            or row["compatibility_result"] != "PASS_CURRENT_SOURCE_COMPATIBILITY"
+        ):
+            raise SystemExit(f"{cell_id}: current-source compatibility did not pass 4/4")
+        if runner_hash != row["runner_sha256"]:
+            raise SystemExit(f"{cell_id}: committed compatibility runner differs")
+
+        raw_path = ROOT / row["raw_attempts_path"]
+        provenance_path = ROOT / row["provenance_path"]
+        summary_path = ROOT / row["summary_path"]
+        if not all(path.is_file() for path in (raw_path, provenance_path, summary_path)):
+            raise SystemExit(f"{cell_id}: C17 compatibility receipt is unavailable")
+
+        provenance = {
+            item["key"]: item["value"] for item in read_tsv(provenance_path)
+        }
+        if provenance.get("run_status") != "COMPLETE":
+            raise SystemExit(f"{cell_id}: C17 compatibility run is incomplete")
+        if provenance.get("source_sha") != row["current_source_sha"]:
+            raise SystemExit(f"{cell_id}: compatibility source SHA differs")
+        if provenance.get("runner_sha256") != row["runner_sha256"]:
+            raise SystemExit(f"{cell_id}: compatibility runner hash differs")
+        for source_file in C17_C14_SOURCE_FILES:
+            blob = subprocess.run(
+                ["git", "hash-object", source_file],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            if provenance.get(f"git_blob:{source_file}") != blob:
+                raise SystemExit(f"{cell_id}: current source blob differs for {source_file}")
+
+        raw_rows = [
+            item for item in read_tsv(raw_path) if item["cell_id"] == cell_id
+        ]
+        if (
+            len(raw_rows) != 4
+            or {item["seed"] for item in raw_rows}
+            != C17_C14_COMPATIBLE_SEEDS[cell_id]
+        ):
+            raise SystemExit(f"{cell_id}: compatibility seed set differs")
+        for attempt in raw_rows:
+            passed = (
+                attempt["source_sha"] == row["current_source_sha"]
+                and attempt["runner_sha256"] == row["runner_sha256"]
+                and attempt["status"] == "fit_ok"
+                and attempt["convergence"] == "0"
+                and attempt["pdHess"] == "TRUE"
+                and float(attempt["max_gradient"]) <= 0.01
+                and attempt["boundary_hit"] == "FALSE"
+                and attempt["support_gate"] == "TRUE"
+                and float(attempt["mode_correlation"]) > 0.45
+                and attempt["n_coi_re_terms"] == "0"
+                and attempt["error"] == "none"
+            )
+            if not passed:
+                raise SystemExit(f"{cell_id}: a compatibility attempt fails its contract")
+
+        summary = [
+            item for item in read_tsv(summary_path) if item["cell_id"] == cell_id
+        ]
+        if (
+            len(summary) != 1
+            or summary[0]["attempts"] != "4"
+            or summary[0]["passed"] != "4"
+            or summary[0]["decision"] != "PASS_CURRENT_SOURCE_COMPATIBILITY"
+            or float(summary[0]["mean_tau_relative_error"]) > 0.40
+        ):
+            raise SystemExit(f"{cell_id}: compatibility summary does not pass")
+
+
+def c14_model15_source_fingerprint() -> str:
+    """Hash the closed model-15 surface governing C14's ZOB receipts.
+
+    A model-9 ZINB routing repair must not invalidate a model-15 zero-one-beta
+    receipt.  Each named source anchor below is therefore part of this hash;
+    changing a builder, carrier, extractor, or the model-15 likelihood changes
+    it, while unrelated family code does not.
+    """
+    r_source = (ROOT / "R/drmTMB.R").read_text(encoding="utf-8")
+    cpp_source = (ROOT / "src/drmTMB.cpp").read_text(encoding="utf-8")
+
+    # C17-B widens only the missing-response diagnostic so it names the already
+    # fitted same-symbol zoi slope. Missing responses remain rejected before a
+    # likelihood object is built, so this prose-only abort must not invalidate
+    # C14's immutable fit-source equivalence receipts. Normalize that one abort
+    # block to its C14 wording before hashing; all builder/carrier/extractor and
+    # model-15 likelihood bytes remain fingerprinted exactly.
+    c17_diagnostic = '''  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
+    ))
+  }
+'''
+    c14_diagnostic = '''  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi random-intercept q1 gate does not support missing responses.",
+      "i" = "Use complete observed responses for {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)}."
+    ))
+  }
+'''
+    if c17_diagnostic not in r_source:
+        raise SystemExit("C17-B diagnostic normalization anchor is unavailable")
+    r_source = r_source.replace(c17_diagnostic, c14_diagnostic, 1)
+
+    def section(source: str, start: str, end: str, label: str) -> str:
+        start_index = source.find(start)
+        if start_index < 0:
+            raise SystemExit(f"C14 equivalence anchor is unavailable: {label}")
+        end_index = source.find(end, start_index)
+        if end_index < 0:
+            raise SystemExit(f"C14 equivalence endpoint is unavailable: {label}")
+        return source[start_index:end_index]
+
+    sections = (
+        section(
+            r_source,
+            "drm_build_zero_one_beta_spec <- function(",
+            "drm_build_beta_binomial_spec <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[0],
+        ),
+        section(
+            r_source,
+            "zero_one_beta_start <- function(",
+            "poisson_start <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[1],
+        ),
+        section(
+            r_source,
+            "zero_one_beta_atom_tmb_data <- function(",
+            "# TMB data for the scoped second structured location field",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        )
+        + section(
+            r_source,
+            "split_tmb_sdpars <- function(",
+            "split_tmb_corpars <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        )
+        + section(
+            r_source,
+            "split_tmb_random_effects <- function(",
+            "sd_mu_group_values <- function(",
+            C14_RECEIPT_EQUIVALENCE_PATHS[2],
+        ),
+        section(
+            cpp_source,
+            "  } else if (model_type == 15) {",
+            "  } else if (model_type == 14) {",
+            C14_RECEIPT_EQUIVALENCE_PATHS[3],
+        ),
+    )
+    fingerprint = hashlib.sha256()
+    for label, source in zip(C14_RECEIPT_EQUIVALENCE_PATHS, sections):
+        fingerprint.update(label.encode())
+        fingerprint.update(b"\\0")
+        fingerprint.update(source.encode())
+        fingerprint.update(b"\\0")
+    return fingerprint.hexdigest()
+
+
 def source_path_exists(value: str) -> bool:
     if not value or value.startswith(("http://", "https://")):
         return True
@@ -449,12 +1068,15 @@ def validate(
         errors.append("transition_id values are not unique")
 
     by_axis = Counter(row["axis"] for row in cells)
-    if by_axis != Counter(
-        {"model_surface": MODEL_SURFACE_COUNT, "missing_response": 18}
-    ):
+    if by_axis != Counter({
+        "model_surface": MODEL_SURFACE_COUNT,
+        "missing_response": 18,
+        "association": ASSOCIATION_COUNT,
+    }):
         errors.append(
             f"axis counts are {dict(by_axis)}, expected "
-            f"{MODEL_SURFACE_COUNT} + 18"
+            f"{MODEL_SURFACE_COUNT} model + 18 missing-response + "
+            f"{ASSOCIATION_COUNT} association"
         )
     route_names = {row["family_route"] for row in cells if row["axis"] == "missing_response"}
     if route_names != {route for _, route, _, _, _ in ROUTES}:
@@ -565,20 +1187,38 @@ def validate(
 
     model = [row for row in cells if row["axis"] == "model_surface"]
     status_counts = Counter(row["capability_status"] for row in model)
-    # implemented is 307, not the frozen census's 306, because mc-0260m (the meta_V route
-    # row) was inserted on 2026-07-25. It entered at point_fit_recovery, the tier its
-    # existing metafor comparator evidence already supports; no cell changed tier.
+    # C14 restores the 330 source-pinned package boundaries and then splits ten
+    # lossy structured zero-one-beta representatives into q1 and q2-plus leaves.
+    # C16 independently promotes ten exact q1 structured zero-one-beta leaves
+    # after source-bound recovery and fresh three-lens GO. C17-B promotes the
+    # exact ordinary zero-one-beta zoi same-symbol q1 slope after authenticated
+    # recovery and fresh Fisher/Noether/Rose GO. C17-C1 promotes the exact coi
+    # q1 random intercept with a documented sparse-atom conditional-mode warning.
+    # C17-C2 promotes the exact coi same-raw-symbol q1 random slope while retaining
+    # weak boundary-row predictor spread as a conditional-mode warning. The remaining 17 rows
+    # are the actionable implementation backlog, not a claim that every
+    # boundary is mathematically impossible.
     expected = Counter(
-        {"implemented": 307, "rejected_by_design": 330, "not_implemented": 40}
+        {
+            "implemented": 330,
+            "rejected_by_design": C14_BOUNDARY_COUNT + len(C14_ZOB_LEAF_TAXONOMY),
+            "not_implemented": 17,
+        }
     )
     if status_counts != expected:
         errors.append(f"model status counts changed: {dict(status_counts)}")
 
-    # The frozen census -- the original 676 model_surface rows -- must keep exactly 158
-    # point_fit_recovery cells. Approved inserts take a higher source_order and so cannot
-    # disturb this number; a PROMOTION of any frozen cell breaks it immediately. Checking
-    # the frozen baseline separately from the total is what stops a promotion being
-    # laundered behind a simultaneous insert. Do not raise 158 to make a failure go away.
+    # The frozen census has 127 point_fit_recovery cells after the exact
+    # ten-leaf promotion, B3's exact four q6 mu2 target promotions, C17-B's
+    # exact zero-one-beta zoi same-symbol q1 slope promotion, C1's exact
+    # 24-cell promotion, C2's exact 25-cell promotion to interval feasible,
+    # C3's exact 36-cell and C4's exact 23-cell promotions, C17-C1's exact
+    # zero-one-beta coi q1 random-intercept promotion, and C17-C2's exact
+    # same-raw-symbol coi q1 random-slope promotion. C4 moves eleven frozen
+    # point-fit cells and twelve diagnostic-only companions.
+    # Approved inserts take a higher source_order and so cannot disturb this
+    # number; every frozen-cell promotion needs a named
+    # transition and evidence receipt.
     frozen = [row for row in model if int(row["source_order"]) <= FROZEN_CENSUS_COUNT]
     if len(frozen) != FROZEN_CENSUS_COUNT:
         errors.append(
@@ -593,6 +1233,175 @@ def validate(
             f"(expected {FROZEN_CENSUS_POINT_FIT_RECOVERY}); a frozen cell was promoted "
             "or demoted"
         )
+
+    arc1_by_cell = {row["cell_id"]: row for row in cells}
+    for cell_id, target_id in ARC1_GAUSSIAN_FIXED_TARGETS.items():
+        direct_target = target_id.split("::", 1)[1]
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = f"ev-{cell_id}-arc1-fixed-profile"
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition_id = f"tr-{cell_id}-arc1-fixed-profile"
+        transition = next(
+            (row for row in transitions if row["transition_id"] == transition_id),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or direct_target not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 1 Gaussian fixed-target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("path_or_url") != ARC1_GAUSSIAN_FIXED_RECONCILIATION
+            or evidence_row.get("commit_sha") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 1 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 1 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC1_ADDITIONAL_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (
+                row for row in transitions
+                if row["transition_id"] == contract["transition_id"]
+            ),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or direct_target not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 1 additional target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("path_or_url") != contract["reconciliation"]
+            or evidence_row.get("commit_sha") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 1 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 1 transition must remain verified-to-verified")
+
+    parity_by_cell = {
+        row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)
+    }
+    arc1_parity_targets = {
+        **ARC1_GAUSSIAN_FIXED_TARGETS,
+        **{
+            cell_id: contract["target_id"]
+            for cell_id, contract in ARC1_ADDITIONAL_TARGETS.items()
+        },
+    }
+    for cell_id, target_id in arc1_parity_targets.items():
+        direct_target = target_id.split("::", 1)[1]
+        parity_text = " ".join(
+            parity_by_cell.get(cell_id, {}).get(field, "")
+            for field in ("not_covered", "rationale")
+        )
+        if (
+            "DATED SUPERSESSION (2026-08-02)" not in parity_text
+            or direct_target not in parity_text
+        ):
+            errors.append(
+                f"{cell_id}: parity triage must retain the dated exact-target "
+                "Arc 1 interval supersession"
+            )
+    mc0438_parity = " ".join(
+        parity_by_cell.get("mc-0438", {}).get(field, "")
+        for field in ("not_covered", "rationale")
+    )
+    if (
+        "DATED STOP (2026-08-02)" not in mc0438_parity
+        or "sd:mu:phylo_interaction(1 | plant:pollinator)" not in mc0438_parity
+        or "nonfinite" not in mc0438_parity
+    ):
+        errors.append("mc-0438: parity triage must retain the dated Arc 1 STOP")
+
+    by_cell = {row["cell_id"]: row for row in cells}
+    b3_observed = {
+        row["cell_id"]
+        for row in model
+        if row["q_gate"] == "q6"
+        and row["dpar"] == "mu2"
+        and row["effect_type"] == "structured"
+        and row["estimator"] == "ML"
+        and row["evidence_tier"] == "interval_feasible"
+    }
+    if b3_observed != set(B3_Q6_MU2_TARGETS):
+        errors.append(
+            "B3 q6 mu2 interval-feasible allowlist changed: "
+            f"{sorted(b3_observed)}"
+        )
+    b3_latest_transition = {
+        row["cell_id"]: row for row in transitions
+    }
+    for cell_id, (provider, paired_mu1, target_id) in B3_Q6_MU2_TARGETS.items():
+        cell = by_cell.get(cell_id, {})
+        evidence_id = f"ev-{cell_id}-b3-q6-mu2-interval"
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        expected_receipt = (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{B3_Q6_MU2_RUNNER_SHA}/b2-q6-proof-profile/{cell_id}/"
+            f"b2-q6-proof-{cell_id}-high-seed-20260731-receipt.tsv"
+        )
+        if (
+            cell.get("structure_provider") != provider
+            or cell.get("family_route") != "biv_gaussian"
+            or cell.get("dpar") != "mu2"
+            or cell.get("q_gate") != "q6"
+            or cell.get("estimator") != "ML"
+            or cell.get("capability_status") != "implemented"
+            or cell.get("work_status") != "verified"
+            or cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("primary_evidence_id") != evidence_id
+        ):
+            errors.append(f"{cell_id}: B3 canonical target row changed")
+        allowed_paired_tiers = {"point_fit_recovery"}
+        if paired_mu1 in C4_B3_PAIRED_MU1_IDS:
+            allowed_paired_tiers.add("interval_feasible")
+        if by_cell.get(paired_mu1, {}).get("evidence_tier") not in allowed_paired_tiers:
+            errors.append(f"{paired_mu1}: paired mu1 row inherited B3 target promotion")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "estimator_diagnostic"
+            or evidence_row.get("path_or_url") != expected_receipt
+            or evidence_row.get("commit_sha") != B3_Q6_MU2_RUNNER_SHA
+            or evidence_row.get("result") != "interval_feasible"
+        ):
+            errors.append(f"{evidence_id}: B3 evidence binding changed")
+        if target_id not in B3_Q6_MU2_PACKET.read_text(encoding="utf-8"):
+            errors.append(f"{cell_id}: exact direct target missing from B3 packet")
+        transition = b3_latest_transition.get(cell_id, {})
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: B3 transition must remain verified-to-verified")
 
     missing = {row["family_route"]: row for row in cells if row["axis"] == "missing_response"}
     for route, row in missing.items():
@@ -679,6 +1488,7 @@ def model_projection(
         "q_gate": row["q_gate"],
         "estimator": row["estimator"],
         "status": row["capability_status"],
+        "planning_class": planning_class(row),
         "evidence_tier": row["evidence_tier"],
         "evidence_source": (
             evidence_by_id[row["primary_evidence_id"]]["path_or_url"]
@@ -687,6 +1497,21 @@ def model_projection(
         ),
         "notes": row["claim_boundary"] or row["notes"],
     } for row in rows]
+
+
+def planning_class(row: dict[str, str]) -> str:
+    """Return a visible scope class without treating an unimplemented cell as impossible.
+
+    It is a planning cue, not an effort estimate or an inference claim. REML is
+    a restricted-likelihood objective; an ML fit does not automatically supply it.
+    """
+    if row["capability_status"] == "implemented":
+        return "available"
+    if row["estimator"] in {"REML", "AI-REML"}:
+        return "estimator method"
+    if row["effect_type"] == "structured":
+        return "covariance / model method"
+    return "admission candidate"
 
 
 def widget_value(
@@ -713,7 +1538,7 @@ def widget_value(
         "rows": [
             {key: row[key] for key in (
                 "family", "dpar", "effect_type", "structure_provider",
-                "dimension", "q_gate", "estimator", "status", "evidence_tier",
+                "dimension", "q_gate", "estimator", "status", "planning_class", "evidence_tier",
             )}
             for row in model
         ],
@@ -726,18 +1551,45 @@ def widget_value(
     }
 
 
-def evidence_href(value: str) -> str:
-    if value.startswith(("http://", "https://")):
-        return value
-    first = value.split(";", 1)[0].strip()
-    path, separator, lines = first.partition(":")
-    anchor = ""
-    if separator and lines.replace("-", "").isdigit():
-        bounds = lines.split("-", 1)
-        anchor = f"#L{bounds[0]}"
-        if len(bounds) == 2:
-            anchor += f"-L{bounds[1]}"
-    return f"https://github.com/itchyshin/drmTMB/blob/main/{path}{anchor}"
+def missing_next_gate(row: dict[str, str]) -> str:
+    """Return current reader-facing next-step wording for a missing-response row."""
+    if row["next_gate"] == "G4/G5 interval and coverage evidence are outside this arc.":
+        return (
+            "G4/G5 framework is ready and partial calibration evidence is retained; "
+            "all routes remain G3 because the campaign stopped before route-wide "
+            "reconciliation and promotion review."
+        )
+    return row["next_gate"]
+
+
+def missing_g4g5_summary() -> str:
+    """Return the current, target-rung-grain missing-response evidence summary."""
+    return (
+        "G4 framework ready for all 18 routes: 295 of 306 frozen target-rung "
+        "records are feasible and 11 ineligible records are retained. G5 has "
+        "eight reconciled cohorts: 98 of 130 exact cells pass and 32 fail; "
+        "binomial is 6/6. This is target-rung calibration evidence, not a "
+        "route-wide G5 or model-inference promotion."
+    )
+
+
+MISSING_G5_ROUTE_SUMMARIES = {
+    "gaussian": "G5: 51/54 passing cells in the combined Gaussian cohort",
+    "biv_gaussian": "G5: 51/54 passing cells in the combined Gaussian cohort",
+    "binomial": "G5: 6/6 cells pass",
+    "poisson": "G5: 5/9 cells pass; 4 retained failures",
+    "nbinom2": "G5: 10/15 cells pass; 5 retained failures",
+    "student": "G5: 3/16 cells pass; 13 retained failures",
+    "lognormal": "G5: 11/15 cells pass; 4 retained failures",
+    "gamma": "G5: 12/15 cells pass; 3 retained failures",
+    "beta": "G5: cancelled after 2 unreconciled receipts",
+}
+
+
+def missing_route_g4g5_summary(route: str) -> str:
+    """Return a scoped, non-promotional G4/G5 line for a route-table cell."""
+    g5 = MISSING_G5_ROUTE_SUMMARIES.get(route, "G5: not run")
+    return f"G4: framework ready; {g5}"
 
 
 def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> str:
@@ -750,7 +1602,7 @@ def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> st
         verified = " ✓" if int(row["test_gate"][1:]) >= 3 else ""
         lines.append(
             f"| `{row['family_route']}` | {runtime} | {row['test_gate']}{verified} | "
-            f"{row['work_status'].replace('_', ' ')} | {row['next_gate']} |"
+            f"{row['work_status'].replace('_', ' ')} | {missing_next_gate(row)} |"
         )
     if compact:
         lines.extend([
@@ -812,8 +1664,8 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
     counts = Counter(row["capability_status"] for row in rows)
     labels = {
         "implemented": "implemented",
-        "rejected_by_design": "rejected",
         "not_implemented": "not implemented",
+        "rejected_by_design": "not currently supported",
         "scaffolded": "scaffolded",
     }
     if len(counts) == 1:
@@ -821,7 +1673,7 @@ def _aggregate_state(rows: list[dict[str, str]]) -> str:
     details = "; ".join(
         f"{labels[status]} {counts[status]}"
         for status in (
-            "implemented", "rejected_by_design", "not_implemented", "scaffolded"
+            "implemented", "not_implemented", "rejected_by_design", "scaffolded"
         )
         if counts[status]
     )
@@ -987,7 +1839,9 @@ def corrected_family_map_markdown(
             4: "✓ interval feasible",
             5: "✓ inference-ready",
         }
-        row["Miss-response"] = f"{gate} {labels[gate_num]}"
+        row["Miss-response"] = (
+            f"{gate} {labels[gate_num]}; {missing_route_g4g5_summary(row['family_route'])}"
+        )
         lines.append("| " + " | ".join(row[header] for header in headers) + " |")
     return "\n".join(lines) + "\n"
 
@@ -1031,6 +1885,7 @@ def family_map_html(
         missing_cell = (
             f'<span class="mr-state {gate_class}">{gate} {label}</span>'
             + (f"<small>{note}</small>" if note else "")
+            + f'<small class="mr-g4g5">{html.escape(missing_route_g4g5_summary(route))}</small>'
         )
         interval_class = (
             "inference"
@@ -1064,6 +1919,10 @@ def surface_markdown(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
     )
+    association = sorted(
+        (row for row in cells if row["axis"] == "association"),
+        key=lambda row: int(row["source_order"]),
+    )
     status = Counter(row["capability_status"] for row in model)
     tiers = Counter(
         row["evidence_tier"] for row in model if row["capability_status"] == "implemented"
@@ -1079,18 +1938,27 @@ def surface_markdown(
         f"_Generated {ledger_updated_date(cells)} from `capability-ledger/` by "
         "`tools/capability_ledger.py`; do not hand-edit this file._",
         "",
-        "The model surface and missing-response execution axis answer different "
-        "questions. The first records what a model cell fits and what inference "
-        "evidence exists. The second records whether an exact user-visible route "
-        "handles missing responses. A missing-response tick never promotes the "
-        "model's inference tier.",
+        "The model surface, staged-association surface, and missing-response "
+        "execution axis answer different questions. Model cells describe direct "
+        "drmTMB fits; association cells describe post-fit associate_pairs() "
+        "estimators; missing-response cells describe response handling. Evidence "
+        "never transfers automatically between axes.",
         "",
         "## Snapshot",
         "",
         f"- Model surface: **{len(model)} cells** across **{len(by_family)} routes**.",
+        f"- Staged association: **{len(association)} cells**; "
+        f"**{sum(row['evidence_tier'] == 'interval_feasible' for row in association)} interval-feasible** and "
+        f"**{sum(row['evidence_tier'] == 'inference_ready_with_caveats' for row in association)} inference-ready with caveats**.",
         f"- Runtime status: **{status['implemented']} implemented**, "
-        f"**{status['rejected_by_design']} rejected by design**, "
-        f"**{status['not_implemented']} not implemented**.",
+        f"**{status['not_implemented']} actionable not implemented**, and "
+        f"**{status['rejected_by_design']} not currently supported**.",
+        "- Planning classes make the backlog visible without calling it impossible: "
+        "admission candidate, covariance/model method, or estimator method. "
+        "They are scope classes, not effort estimates or evidence claims.",
+        "- ML and REML are separate estimators. An ML implementation does not "
+        "automatically supply REML; REML cells require a valid restricted-likelihood "
+        "objective and their own validation.",
         f"- Evidence: **{tiers['supported']} supported**, "
         f"**{tiers['inference_ready_with_caveats']} inference-ready**, "
         f"**{tiers['interval_feasible']} interval-feasible**, "
@@ -1099,11 +1967,30 @@ def surface_markdown(
         f"{missing_gates['G0']} G0; {missing_gates['G1']} G1; "
         f"{missing_gates['G2']} G2; {verified_missing} verified (G3+)**.",
         "",
+        "## Staged association capability",
+        "",
+        "The evidence ladder is point-fit recovery, interval feasible, inference-"
+        "ready with caveats, then supported. Interval feasibility is sufficient "
+        "to expose a scoped method; coverage evidence promotes the tested domain "
+        "to inference-ready. Limits belong in the claim boundary unless evidence "
+        "directly contradicts the route.",
+        "",
+        "| Cell | Pair route | Association shape | Status | Evidence tier | Claim boundary |",
+        "|---|---|---|---|---|---|",
+        *[
+            f"| `{row['cell_id']}` | `{row['family_route']}` | "
+            f"`{row['route_variant']}` | {row['capability_status'].replace('_', ' ')} | "
+            f"{row['evidence_tier'].replace('_', ' ')} | {row['claim_boundary']} |"
+            for row in association
+        ],
+        "",
         "## Missing-response execution board",
         "",
         "G0 = rejected; G1 = implemented; G2 = masking validated; G3 = recovery; "
         "G4 = interval feasible; G5 = inference-ready. The verified tick begins "
         "at G3.",
+        "",
+        f"> **Current G4/G5 evidence (target-rung grain):** {missing_g4g5_summary()}",
         "",
         missing_markdown(missing).rstrip(),
         "",
@@ -1120,7 +2007,7 @@ def surface_markdown(
         "",
         "## Per-family model-surface summary",
         "",
-        "| Route | Cells | Implemented | Rejected | Not implemented | Highest evidence |",
+        "| Route | Cells | Implemented | Actionable backlog | Not currently supported | Highest evidence |",
         "|---|---:|---:|---:|---:|---|",
     ]
     for family in sorted(by_family):
@@ -1130,7 +2017,7 @@ def surface_markdown(
         highest = next((tier for tier in TIER_ORDER if tier in available), "none")
         lines.append(
             f"| `{family}` | {len(rows)} | {counts['implemented']} | "
-            f"{counts['rejected_by_design']} | {counts['not_implemented']} | "
+            f"{counts['not_implemented']} | {counts['rejected_by_design']} | "
             f"{highest.replace('_', ' ')} |"
         )
     lines.extend([
@@ -1220,29 +2107,16 @@ def surface_html(
         (row for row in cells if row["axis"] == "missing_response"),
         key=lambda row: int(row["model_type"]),
     )
-    evidence_by_id = {row["evidence_id"]: row for row in evidence}
+    association = sorted(
+        (row for row in cells if row["axis"] == "association"),
+        key=lambda row: int(row["source_order"]),
+    )
     status = Counter(row["capability_status"] for row in model)
     tiers = Counter(
         row["evidence_tier"] for row in model if row["capability_status"] == "implemented"
     )
     missing_gates = Counter(row["test_gate"] for row in missing)
     verified_missing = sum(int(row["test_gate"][1:]) >= 3 for row in missing)
-    cards = []
-    for row in missing:
-        gate_num = int(row["test_gate"][1:])
-        state_class = f"g{gate_num}"
-        evidence_row = evidence_by_id[row["primary_evidence_id"]]
-        link = evidence_href(evidence_row["path_or_url"])
-        verified = '<span class="verified" aria-label="verified">✓ verified</span>' if gate_num >= 3 else ""
-        cards.append(f"""
-<article class="route-card {state_class}" id="route-{html.escape(row['family_route'].replace('_', '-'))}">
-  <div class="route-head"><code>{html.escape(row['family_route'])}</code><span class="gate">{row['test_gate']}</span></div>
-  <div class="route-state">{html.escape(row['capability_status'].replace('_', ' '))} · {html.escape(row['work_status'].replace('_', ' '))} {verified}</div>
-  <div class="gate-track" aria-label="Evidence gate {gate_num} of 5"><span style="width:{gate_num * 20}%"></span></div>
-  <p>{html.escape(row['claim_boundary'])}</p>
-  <p class="next"><strong>Next:</strong> {html.escape(row['next_gate'])}</p>
-  <a href="{html.escape(link)}">Evidence: {html.escape(evidence_row['path_or_url'])}</a>
-</article>""")
     comparators = external_comparator_by_cell(evidence)
     model_data = json.dumps([
         {
@@ -1252,6 +2126,7 @@ def surface_html(
                 "capability_status", "evidence_tier", "claim_boundary",
                 "primary_evidence_id",
             )},
+            "planning_class": planning_class(row),
             "external_comparator": comparators.get(row["cell_id"], ""),
         }
         for row in model
@@ -1265,12 +2140,24 @@ def surface_html(
         f"<td>{html.escape(row['effect_type'])}</td>"
         f"<td>{html.escape(row['structure_provider'])}</td>"
         f"<td>{html.escape(row['estimator'])}</td>"
+        f"<td>{html.escape(planning_class(row))}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
         f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
         f"<td>{html.escape(row['claim_boundary'])}</td>"
         "</tr>"
         for row in model
+    )
+    association_rows = "".join(
+        "<tr>"
+        f"<td><code>{html.escape(row['cell_id'])}</code></td>"
+        f"<td><code>{html.escape(row['family_route'])}</code></td>"
+        f"<td>{html.escape(row['route_variant'])}</td>"
+        f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
+        f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
+        f"<td>{html.escape(row['claim_boundary'])}</td>"
+        "</tr>"
+        for row in association
     )
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1281,27 +2168,31 @@ def surface_html(
 :root[data-theme="light"]{{--bg:#eef3f4;--panel:#fff;--text:#162326;--muted:#617176;--line:#d4dfe2;--teal:#087d89;--green:#188653;--amber:#b77a13;--red:#b84436;--blue:#2f6fad;--shadow:0 8px 24px #17333a12}}
 :root[data-theme="dark"]{{--bg:#10181b;--panel:#182328;--text:#e8f0f2;--muted:#a3b2b7;--line:#304147;--teal:#48bdc8;--green:#4bc78b;--amber:#e4b45e;--red:#f07b6a;--blue:#78afe8;--shadow:none}}
 *{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}} a{{color:var(--teal)}} code{{font-family:var(--mono)}} .skip{{position:absolute;left:-9999px;top:8px;background:var(--panel);padding:8px 12px;z-index:10}} .skip:focus{{left:8px}} .page{{max-width:1440px;margin:auto;padding:34px 28px 80px}} .topline{{display:flex;justify-content:space-between;gap:16px;align-items:center}} .eyebrow{{font:700 13px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}} h1{{font-size:clamp(2.1rem,5vw,4.4rem);line-height:1.02;margin:.35rem 0 1rem}} h2{{font-size:1.55rem;margin:3rem 0 1rem;scroll-margin-top:18px}} .lede{{font-size:1.2rem;color:var(--muted);max-width:980px}} .jump{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0 1.5rem}} .jump a{{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 11px;text-decoration:none}} .scope{{border-left:4px solid var(--teal);padding:.8rem 1rem;background:var(--panel);box-shadow:var(--shadow)}} .stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:28px 0}} .stat{{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--shadow)}} .stat b{{display:block;font:750 1.8rem var(--mono)}} .stat span{{color:var(--muted)}} .legend{{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);margin:.6rem 0 1.4rem}} .legend i{{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}} .routes{{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px}} .route-card{{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--amber);border-radius:13px;padding:16px;box-shadow:var(--shadow);scroll-margin-top:20px}} .route-card.g0{{border-top-color:var(--red)}} .route-card.g2{{border-top-color:var(--blue)}} .route-card.g3,.route-card.g4,.route-card.g5{{border-top-color:var(--green)}} .route-head{{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:1.06rem;font-weight:750}} .gate{{font:750 .85rem var(--mono);border:1px solid currentColor;border-radius:99px;padding:2px 8px;color:var(--amber)}} .g0 .gate{{color:var(--red)}} .g2 .gate{{color:var(--blue)}} .g3 .gate,.g4 .gate,.g5 .gate{{color:var(--green)}} .route-state{{color:var(--muted);margin:.45rem 0}} .gate-track{{height:6px;border-radius:6px;background:var(--line);overflow:hidden}} .gate-track span{{display:block;height:100%;background:var(--amber)}} .g0 .gate-track span{{background:var(--red)}} .g2 .gate-track span{{background:var(--blue)}} .g3 .gate-track span,.g4 .gate-track span,.g5 .gate-track span{{background:var(--green)}} .route-card p{{font-size:.92rem}} .route-card .next{{min-height:4.1em}} .route-card a{{font-size:.82rem;overflow-wrap:anywhere}} .verified{{color:var(--green);font-weight:700}} .filters{{display:flex;gap:10px;flex-wrap:wrap;margin:1rem 0}} input,select,button{{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}} button{{cursor:pointer}} .table-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;max-height:720px}} table{{border-collapse:collapse;width:100%;font-size:.84rem}} caption{{text-align:left;padding:12px;color:var(--muted)}} th,td{{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}} thead th{{position:sticky;top:0;background:var(--panel);z-index:1}} tbody tr:hover{{background:color-mix(in srgb,var(--teal) 7%,transparent)}} .pill{{display:inline-block;border-radius:99px;padding:2px 7px;background:var(--bg);white-space:nowrap}} .family-wrap{{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}} .family-map{{min-width:1620px;font-size:.92rem}} .family-map th,.family-map td{{padding:18px 16px}} .family-map tbody th{{position:sticky;left:0;background:var(--panel);z-index:1;min-width:175px}} .family-map tbody th code{{font-size:1rem;font-weight:800}} .family-map small{{display:block;color:var(--muted);font-weight:400;margin-top:4px}} .family-map .fixed{{color:var(--green);font-weight:700;text-align:center;font-size:1.05rem}} .tier{{display:inline-block;border-radius:8px;padding:5px 7px}} .tier.inference{{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}} .tier.feasible{{background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)}} .mr-state{{font-weight:750;white-space:nowrap}} .mr-g1{{color:var(--amber)}} .mr-g0{{color:var(--red)}} .mr-g2{{color:var(--blue)}} .mr-verified{{color:var(--green)}} .muted{{color:var(--muted)}} footer{{margin-top:3rem;color:var(--muted)}} @media(max-width:650px){{.page{{padding:24px 14px 60px}} .route-card .next{{min-height:0}}}} @media(prefers-reduced-motion:reduce){{*{{scroll-behavior:auto!important}}}}
-</style></head><body><a class="skip" href="#missing-response">Skip to capability content</a><main class="page">
+</style></head><body><a class="skip" href="#model-cells">Skip to capability content</a><main class="page">
 <div class="topline"><div class="eyebrow">drmTMB · generated capability ledger · MR-T0</div><button id="theme" type="button" aria-label="Toggle light and dark theme">Theme</button></div>
 <h1>Capability surface</h1>
-<p class="lede">One model census, one separate missing-response execution board, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence.</p>
-<nav class="jump" aria-label="Capability surface sections"><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
-<p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells plus 18 missing-response routes. A missing-response ✓ appears only at G3 recovery or above; it never promotes the model's separate inference tier.</p>
+<p class="lede">One model census, one staged-association surface, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence across axes.</p>
+<nav class="jump" aria-label="Capability surface sections"><a href="#association">Association</a><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
+<p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells, {len(association)} staged-association cells, and 18 missing-response routes. Evidence never transfers automatically between axes; a missing-response ✓ appears only at G3 recovery or above and never promotes the model's separate inference tier.</p>
 <section class="stats" aria-label="Capability summary">
-<div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
-<div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
+<div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(association)}</b><span>association cells</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'interval_feasible' for row in association)}</b><span>association interval-feasible</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'inference_ready_with_caveats' for row in association)}</b><span>association inference-ready</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
+<div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{status['not_implemented']}</b><span>actionable backlog cells</span></div><div class="stat"><b>{status['rejected_by_design']}</b><span>not currently supported</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
-<h2 id="missing-response">Missing-response execution board</h2>
-<p>G0 rejected · G1 implemented · G2 masking validated · G3 recovery · G4 interval feasible · G5 inference-ready.</p>
-<div class="legend"><span><i style="background:var(--amber)"></i>implemented, audit pending</span><span><i style="background:var(--red)"></i>rejected, planned</span><span><i style="background:var(--green)"></i>verified only at G3+</span></div>
-<section class="routes" aria-label="18 missing-response routes">{''.join(cards)}</section>
+<h2 id="association">Staged association capability</h2>
+<p>The evidence ladder is point-fit recovery → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
+<div class="table-wrap"><table><caption>{len(association)} post-fit <code>associate_pairs()</code> capability cells</caption><thead><tr><th scope="col">Cell</th><th scope="col">Pair route</th><th scope="col">Shape</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody>{association_rows}</tbody></table></div>
+<h2 id="missing-response">Missing-response evidence</h2>
+<p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>
+<p class="muted">The per-family reference below remains the route-level source: its Missing response column retains G3 recovery status, while this summary shows the additional G4/G5 evidence without implying a route-wide promotion.</p>
 <h2 id="model-cells">Detailed model surface</h2>
 <p class="muted">These {len(model)} cells are the current model/inference census. Missing-response progress is not folded into these tiers.</p>
+<p class="scope"><strong>Missing-response column:</strong> route-level G3 is retained on purpose. {html.escape(missing_g4g5_summary())}</p>
+<p class="muted"><strong>Estimator:</strong> ML and REML are separate objectives. A working ML route does not automatically have a valid REML implementation. <strong>Planning class</strong> distinguishes an admission candidate from a covariance/model-method or estimator-method extension; it is a planning cue, not an effort estimate or a support claim.</p>
 <p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>
@@ -1311,7 +2202,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'
 const fam=document.querySelector('#family'),status=document.querySelector('#status'),query=document.querySelector('#query'),body=document.querySelector('#rows'),count=document.querySelector('#count');
 for(const v of [...new Set(DATA.map(r=>r.family_route))].sort()) fam.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
 for(const v of [...new Set(DATA.map(r=>r.capability_status))].sort()) status.insertAdjacentHTML('beforeend',`<option>${{esc(v)}}</option>`);
-function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
+function render(){{const q=query.value.toLowerCase();const out=DATA.filter(r=>(!fam.value||r.family_route===fam.value)&&(!status.value||r.capability_status===status.value)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q)));count.textContent=`${{out.length}} of {len(model)} cells`;body.innerHTML=out.map(r=>`<tr><td><code>${{esc(r.cell_id)}}</code></td><td><code>${{esc(r.family_route)}}</code></td><td>${{esc(r.route_variant)}}</td><td>${{esc(r.dpar)}}</td><td>${{esc(r.effect_type)}}</td><td>${{esc(r.structure_provider)}}</td><td>${{esc(r.estimator)}}</td><td>${{esc(r.planning_class)}}</td><td><span class="pill">${{esc(r.capability_status.replaceAll('_',' '))}}</span></td><td>${{esc(r.evidence_tier.replaceAll('_',' '))}}</td><td>${{esc(r.external_comparator)}}</td><td>${{esc(r.claim_boundary)}}</td></tr>`).join('')}}
 for(const el of [fam,status,query]) el.addEventListener('input',render);document.querySelector('#clear').addEventListener('click',()=>{{fam.value=status.value=query.value='';render()}});document.querySelector('#theme').addEventListener('click',()=>{{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark'}});render();</script></body></html>"""
 
 
@@ -1435,12 +2326,24 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--bootstrap", action="store_true")
+    action.add_argument("--restore-c14-boundaries", action="store_true")
+    action.add_argument("--split-c14-zob-structured-leaves", action="store_true")
+    action.add_argument("--check-c14-receipt-equivalence", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
     action.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.bootstrap:
         bootstrap()
+        return
+    if args.restore_c14_boundaries:
+        restore_c14_boundaries()
+        return
+    if args.split_c14_zob_structured_leaves:
+        split_c14_zob_structured_leaves()
+        return
+    if args.check_c14_receipt_equivalence:
+        check_c14_receipt_equivalence()
         return
     cells, evidence, _ = load_sources()
     if args.write:

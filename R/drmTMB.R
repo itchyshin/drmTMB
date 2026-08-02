@@ -505,6 +505,7 @@ drm_fit_spec <- function(
   # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
   spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
   spec <- drm_apply_start_override(spec)
+  spec <- drm_complete_shared_tmb_parameters(spec)
 
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
@@ -567,6 +568,26 @@ drm_fit_spec <- function(
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+drm_complete_shared_tmb_parameters <- function(spec) {
+  # The C++ objective has one shared parameter signature. Keep newly introduced
+  # atom-effect carriers inert outside their explicitly admitted model route.
+  has_zoi_re <- identical(spec$model_type, "zero_one_beta") &&
+    is.list(spec$random) && is.list(spec$random$zoi) &&
+    isTRUE(spec$random$zoi$n_re > 0L)
+  has_coi_re <- identical(spec$model_type, "zero_one_beta") &&
+    is.list(spec$random) && is.list(spec$random$coi) &&
+    isTRUE(spec$random$coi$n_re > 0L)
+  if (is.null(spec$start$u_zoi)) spec$start$u_zoi <- 0
+  if (is.null(spec$start$log_sd_zoi)) spec$start$log_sd_zoi <- 0
+  if (is.null(spec$map$u_zoi) && !has_zoi_re) spec$map$u_zoi <- factor(NA)
+  if (is.null(spec$map$log_sd_zoi) && !has_zoi_re) spec$map$log_sd_zoi <- factor(NA)
+  if (is.null(spec$start$u_coi)) spec$start$u_coi <- 0
+  if (is.null(spec$start$log_sd_coi)) spec$start$log_sd_coi <- 0
+  if (is.null(spec$map$u_coi) && !has_coi_re) spec$map$u_coi <- factor(NA)
+  if (is.null(spec$map$log_sd_coi) && !has_coi_re) spec$map$log_sd_coi <- factor(NA)
+  spec
 }
 
 # Build the starting points for a multi-start fit: the principled start
@@ -5400,6 +5421,134 @@ drm_build_zero_one_beta_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_zero_one_beta_mu_random_terms(mu_re$terms)
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  zoi_re <- extract_random_mu_terms(zoi_entry$rhs, "zoi")
+  zoi_entry$rhs <- zoi_re$rhs
+  coi_re <- extract_random_mu_terms(coi_entry$rhs, "coi")
+  coi_entry$rhs <- coi_re$rhs
+  validate_zero_one_beta_sigma_random_terms(
+    sigma_re$terms,
+    mu_terms = mu_re$terms,
+    zoi_terms = zoi_re$terms,
+    coi_terms = coi_re$terms
+  )
+  validate_zero_one_beta_zoi_random_terms(
+    zoi_re$terms,
+    mu_terms = mu_re$terms,
+    sigma_terms = sigma_re$terms,
+    coi_terms = coi_re$terms
+  )
+  validate_zero_one_beta_coi_random_terms(
+    coi_re$terms,
+    mu_terms = mu_re$terms,
+    sigma_terms = sigma_re$terms,
+    zoi_terms = zoi_re$terms
+  )
+  if (include_missing_response && length(zoi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
+    ))
+  }
+  if (include_missing_response && length(coi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta coi q1 random-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with {.code coi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
+    ))
+  }
+  if (length(sigma_re$terms) > 0L) {
+    validate_zero_one_beta_sigma_q1_fixed_rhs(
+      sigma_entry$rhs,
+      zoi_entry$rhs,
+      coi_entry$rhs,
+      sigma_terms = sigma_re$terms
+    )
+  }
+  if (length(zoi_re$terms) > 0L) {
+    validate_zero_one_beta_zoi_q1_fixed_rhs(
+      sigma_entry$rhs,
+      zoi_entry$rhs,
+      coi_entry$rhs,
+      zoi_terms = zoi_re$terms
+    )
+  }
+  if (length(coi_re$terms) > 0L) {
+    validate_zero_one_beta_coi_q1_fixed_rhs(
+      sigma_entry$rhs,
+      zoi_entry$rhs,
+      coi_entry$rhs,
+      coi_terms = coi_re$terms
+    )
+  }
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  validate_zero_one_beta_mu_phylo_term(mu_phylo$term)
+  mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
+  mu_entry$rhs <- mu_animal$rhs
+  validate_zero_one_beta_mu_animal_term(mu_animal$term)
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  validate_zero_one_beta_mu_relmat_term(mu_relmat$term)
+  mu_spatial <- extract_gaussian_mu_known_term(mu_entry, "spatial")
+  mu_entry$rhs <- mu_spatial$rhs
+  validate_zero_one_beta_mu_spatial_term(mu_spatial$term)
+  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
+  mu_entry$rhs <- mu_phylo_interaction$rhs
+  validate_zero_one_beta_mu_phylo_interaction_term(mu_phylo_interaction$term)
+  if (sum(!vapply(list(mu_phylo$term, mu_animal$term, mu_relmat$term, mu_spatial$term, mu_phylo_interaction$term), is.null, logical(1L))) > 1L) {
+    cli::cli_abort("A zero-one-beta model can use only one structured mu provider in this q1 gate.")
+  }
+  mu_structured <- if (!is.null(mu_phylo$term)) mu_phylo$term else if (!is.null(mu_animal$term)) mu_animal$term else if (!is.null(mu_relmat$term)) mu_relmat$term else if (!is.null(mu_spatial$term)) mu_spatial$term else mu_phylo_interaction$term
+  sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_phylo$rhs
+  sigma_animal <- extract_gaussian_mu_known_term(sigma_entry, "animal", dpar = "sigma")
+  sigma_entry$rhs <- sigma_animal$rhs
+  sigma_relmat <- extract_gaussian_mu_known_term(sigma_entry, "relmat", dpar = "sigma")
+  sigma_entry$rhs <- sigma_relmat$rhs
+  sigma_spatial <- extract_gaussian_mu_spatial_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_spatial$rhs
+  sigma_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_phylo_interaction$rhs
+  if (!is.null(sigma_phylo$term)) {
+    validate_zero_one_beta_sigma_phylo_term(sigma_phylo$term)
+    sigma_phylo$term$dpars <- "sigma"
+  }
+  if (!is.null(sigma_animal$term)) {
+    validate_zero_one_beta_sigma_animal_term(sigma_animal$term)
+    sigma_animal$term$dpars <- "sigma"
+  }
+  if (!is.null(sigma_relmat$term)) {
+    validate_zero_one_beta_sigma_relmat_term(sigma_relmat$term)
+    sigma_relmat$term$dpars <- "sigma"
+  }
+  if (!is.null(sigma_spatial$term)) {
+    validate_zero_one_beta_sigma_spatial_term(sigma_spatial$term)
+    sigma_spatial$term$dpars <- "sigma"
+  }
+  if (!is.null(sigma_phylo_interaction$term)) {
+    validate_zero_one_beta_sigma_phylo_interaction_term(sigma_phylo_interaction$term)
+    sigma_phylo_interaction$term$dpars <- "sigma"
+  }
+  if (sum(!vapply(list(sigma_phylo$term, sigma_animal$term, sigma_relmat$term, sigma_spatial$term, sigma_phylo_interaction$term), is.null, logical(1L))) > 1L) {
+    cli::cli_abort("A zero-one-beta sigma formula can use only one structured provider in this q1 gate.")
+  }
+  sigma_structured <- if (!is.null(sigma_phylo$term)) sigma_phylo$term else if (!is.null(sigma_animal$term)) sigma_animal$term else if (!is.null(sigma_relmat$term)) sigma_relmat$term else if (!is.null(sigma_spatial$term)) sigma_spatial$term else sigma_phylo_interaction$term
+  if (!is.null(mu_structured) && !is.null(sigma_structured)) {
+    cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with a structured mu effect in this gate.")
+  }
+  if (!is.null(mu_structured) && length(mu_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta structured mu effect cannot be combined with an ordinary mu random effect in this q1 gate.")
+  }
+  if (!is.null(mu_structured) && length(sigma_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta sigma random intercept cannot be combined with a structured mu effect in this q1 gate.")
+  }
+  if (!is.null(mu_structured) && length(zoi_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta zoi random intercept cannot be combined with a structured mu effect in this q1 gate.")
+  }
+  if (!is.null(mu_structured) && length(coi_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta coi random effect cannot be combined with a structured mu effect in this q1 gate.")
+  }
 
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
@@ -5415,7 +5564,11 @@ drm_build_zero_one_beta_spec <- function(
     all.vars(f_sigma),
     all.vars(f_zoi),
     all.vars(f_coi),
-    random_effect_vars(mu_re$terms)
+    random_effect_vars(mu_re$terms),
+    random_effect_vars(sigma_re$terms),
+    random_effect_vars(zoi_re$terms),
+    random_effect_vars(coi_re$terms),
+    structured_mu_vars(mu_structured)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -5488,6 +5641,14 @@ drm_build_zero_one_beta_spec <- function(
   }
 
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
+  re_zoi <- build_random_zoi_structure(zoi_re$terms, data_model)
+  re_coi <- build_random_coi_structure(coi_re$terms, data_model)
+  if (!is.null(sigma_structured) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re, re_coi$n_re) > 0L)) {
+    cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with ordinary random effects in this gate.")
+  }
+  structured_term <- if (!is.null(sigma_structured)) sigma_structured else mu_structured
+  phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
 
   spec <- list(
     model_type = "zero_one_beta",
@@ -5512,10 +5673,13 @@ drm_build_zero_one_beta_spec <- function(
     ),
     random = list(
       mu = re_mu,
-      sigma = empty_random_sigma_structure(nrow(data_model))
+      sigma = re_sigma,
+      zoi = re_zoi,
+      coi = re_coi,
+      mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     data = data_model,
     variables = vars,
     keep = keep,
@@ -5527,10 +5691,26 @@ drm_build_zero_one_beta_spec <- function(
       X_zoi,
       X_coi,
       re_mu = re_mu,
+      re_sigma = re_sigma,
+      re_zoi = re_zoi,
+      re_coi = re_coi,
+      phylo_mu = phylo_mu,
       observed_y = observed_y
     ),
-    map = zero_one_beta_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    map = zero_one_beta_map(
+      re_mu,
+      phylo_mu,
+      re_sigma = re_sigma,
+      re_zoi = re_zoi,
+      re_coi = re_coi
+    ),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (re_sigma$n_re > 0L) "u_sigma",
+      if (re_zoi$n_re > 0L) "u_zoi",
+      if (re_coi$n_re > 0L) "u_coi",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   spec$missing_data <- if (include_missing_response) {
     new_drm_missing_data(
@@ -6374,6 +6554,10 @@ drm_build_poisson_spec <- function(
     structured_plus_ordinary_types = "spatial",
     allow_labelled_scalar_structured_mu = TRUE,
     labelled_scalar_structured_mu_types = "spatial",
+    allow_labelled_intercept_slope_structured_mu = TRUE,
+    labelled_intercept_slope_structured_mu_types = c(
+      "phylo", "spatial", "animal", "relmat"
+    ),
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
     allow_slope_only_structured_mu = TRUE,
@@ -6818,6 +7002,11 @@ drm_build_nbinom2_spec <- function(
   }
   sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
   sigma_entry$rhs <- sigma_phylo$rhs
+  sigma_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(
+    sigma_entry,
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_phylo_interaction$rhs
   sigma_spatial <- extract_gaussian_mu_spatial_term(
     sigma_entry,
     dpar = "sigma"
@@ -6838,6 +7027,7 @@ drm_build_nbinom2_spec <- function(
   sigma_structured_term <- select_count_sigma_structured_term(
     list(
       phylo = sigma_phylo$term,
+      phylo_interaction = sigma_phylo_interaction$term,
       spatial = sigma_spatial$term,
       animal = sigma_animal$term,
       relmat = sigma_relmat$term
@@ -6861,6 +7051,8 @@ drm_build_nbinom2_spec <- function(
     has_zi = !is.null(zi_entry),
     allow_zero_inflated_structured_mu = TRUE,
     zero_inflated_structured_mu_types = "spatial",
+    allow_labelled_intercept_slope_structured_mu = TRUE,
+    labelled_intercept_slope_structured_mu_types = "phylo",
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -6878,12 +7070,17 @@ drm_build_nbinom2_spec <- function(
   }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  zi_is_intercept_only <- !is.null(zi_entry) &&
+    identical(deparse1(zi_entry$rhs), "1")
+  sigma_is_intercept_only <- identical(deparse1(sigma_entry$rhs), "1")
   validate_count_structured_sigma_term(
     sigma_structured_term,
     sigma_terms = sigma_re$terms,
     mu_terms = mu_re$terms,
     mu_structured_term = mu_structured_term,
     has_zi = !is.null(zi_entry),
+    zi_is_intercept_only = zi_is_intercept_only,
+    sigma_is_intercept_only = sigma_is_intercept_only,
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
@@ -6891,7 +7088,9 @@ drm_build_nbinom2_spec <- function(
     sigma_re$terms,
     mu_terms = mu_re$terms,
     structured_term = mu_structured_term,
-    has_zi = !is.null(zi_entry)
+    has_zi = !is.null(zi_entry),
+    zi_is_intercept_only = zi_is_intercept_only,
+    sigma_is_intercept_only = sigma_is_intercept_only
   )
 
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
@@ -7160,10 +7359,14 @@ drm_build_nbinom2_spec <- function(
         } else {
           offset_mu
         },
-        phylo_mu
+        phylo_mu,
+        re_sigma = re_sigma
       )
     } else if (has_zi) {
-      zi_nbinom2_start(y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu)
+      zi_nbinom2_start(
+        y, X_mu, X_sigma, X_zi, offset_mu, phylo_mu,
+        re_sigma = re_sigma
+      )
     } else if (include_missing_response) {
       nbinom2_start(
         y[observed_y],
@@ -7190,7 +7393,7 @@ drm_build_nbinom2_spec <- function(
       )
     },
     map = if (has_zi) {
-      zi_nbinom2_map(phylo_mu)
+      zi_nbinom2_map(phylo_mu, re_sigma = re_sigma)
     } else {
       nbinom2_map(re_mu, phylo_mu, re_sigma)
     },
@@ -8904,6 +9107,8 @@ validate_count_structured_mu_term <- function(
   structured_plus_ordinary_types = character(0),
   allow_labelled_scalar_structured_mu = FALSE,
   labelled_scalar_structured_mu_types = character(0),
+  allow_labelled_intercept_slope_structured_mu = FALSE,
+  labelled_intercept_slope_structured_mu_types = character(0),
   allow_zero_inflated_structured_mu = FALSE,
   zero_inflated_structured_mu_types = character(0),
   allow_slope_only_structured_mu = FALSE,
@@ -8940,6 +9145,12 @@ validate_count_structured_mu_term <- function(
     marker %in% labelled_scalar_structured_mu_types &&
     !isTRUE(has_zi) &&
     structured_term_is_intercept_only(term)
+  labelled_intercept_slope_structured_mu_allowed <- isTRUE(
+    allow_labelled_intercept_slope_structured_mu
+  ) &&
+    marker %in% labelled_intercept_slope_structured_mu_types &&
+    !isTRUE(has_zi) &&
+    structured_term_is_intercept_one_slope(term)
   slope_only_structured_mu_allowed <- isTRUE(
     allow_slope_only_structured_mu
   ) &&
@@ -8974,12 +9185,18 @@ validate_count_structured_mu_term <- function(
   }
   if (
     !is.null(term$covariance_label) &&
-      !isTRUE(labelled_scalar_structured_mu_allowed)
+      !isTRUE(labelled_scalar_structured_mu_allowed) &&
+      !isTRUE(labelled_intercept_slope_structured_mu_allowed)
   ) {
+    labelled_contract <- if (isTRUE(allow_labelled_intercept_slope_structured_mu)) {
+      "only the implemented labelled covariance forms"
+    } else {
+      "only unlabelled q=1 intercepts"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "{family_label} structured {.code mu} effects currently support {labelled_contract}.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
-      "i" = "Use {.code {example}}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
+      "i" = "Use {.code {example}}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned unless their exact family/provider route is implemented."
     ))
   }
   count_supported_term <- structured_term_is_intercept_only(term) ||
@@ -9044,7 +9261,7 @@ select_count_sigma_structured_term <- function(structured_terms, family_label) {
     cli::cli_abort(c(
       "Only one structured {.code sigma} effect type is implemented per {family_label} count model.",
       "x" = "The model contains structured effect types: {.val {active_structured}}.",
-      "i" = "Fit one of {.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured scale-dependence recovery tests exist."
+      "i" = "Fit one of {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured scale-dependence recovery tests exist."
     ))
   }
   if (length(active_structured) == 0L) {
@@ -9059,6 +9276,8 @@ validate_count_structured_sigma_term <- function(
   mu_terms,
   mu_structured_term = NULL,
   has_zi = FALSE,
+  zi_is_intercept_only = FALSE,
+  sigma_is_intercept_only = FALSE,
   family_label,
   inflated_label
 ) {
@@ -9074,13 +9293,18 @@ validate_count_structured_sigma_term <- function(
     spatial = "spatial(1 + x | site, coords = coords)",
     animal = "animal(1 + x | id, Ainv = Ainv)",
     relmat = "relmat(1 + x | id, Q = Q)",
+    phylo_interaction = "phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)",
     paste0(marker, "(1 + x | id, ...)")
   )
-  if (isTRUE(has_zi)) {
+  zi_phylo_interaction_gate <- isTRUE(has_zi) &&
+    identical(marker, "phylo_interaction") &&
+    isTRUE(zi_is_intercept_only) &&
+    isTRUE(sigma_is_intercept_only)
+  if (isTRUE(has_zi) && !zi_phylo_interaction_gate) {
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects are implemented only for ordinary {family_label} models.",
-      "x" = "{inflated_label} structured scale effects are planned but not implemented.",
-      "i" = "Fit {.code bf(count ~ x, sigma ~ {example})} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured-scale recovery tests exist."
+      "Only the exact zero-inflated {family_label} {.code sigma} phylo-interaction q1 gate is implemented.",
+      "x" = "{inflated_label} structured scale effects require {.code zi ~ 1}, fixed intercept-only {.code sigma}, and {.code phylo_interaction(1 | plant:pollinator, ...)}.",
+      "i" = "Fit {.code bf(count ~ x, sigma ~ phylo_interaction(1 | plant:pollinator, ...), zi ~ 1)} or remove {.code zi}."
     ))
   }
   if (length(mu_terms) > 0L || !is.null(mu_structured_term)) {
@@ -9098,17 +9322,32 @@ validate_count_structured_sigma_term <- function(
     ))
   }
   if (!is.null(term$covariance_label)) {
+    supported_label_form <- if (identical(marker, "phylo_interaction")) {
+      "unlabelled independent intercept-only terms"
+    } else {
+      "unlabelled independent one-slope terms"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects currently support only unlabelled independent one-slope terms.",
+      "{family_label} structured {.code sigma} effects currently support only {supported_label_form}.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
       "i" = "Use {.code {example}}; labelled scale covariance, q2/q4, and cross-parameter covariance routes remain planned."
     ))
   }
-  if (!structured_term_is_intercept_one_slope(term)) {
+  valid_structure <- if (identical(marker, "phylo_interaction")) {
+    structured_term_is_intercept_only(term)
+  } else {
+    structured_term_is_intercept_one_slope(term)
+  }
+  if (!valid_structure) {
+    supported_form <- if (identical(marker, "phylo_interaction")) {
+      "unlabelled q1 intercept-only"
+    } else {
+      "unlabelled intercept-plus-one-slope"
+    }
     cli::cli_abort(c(
-      "{family_label} structured {.code sigma} effects currently support only unlabelled intercept-plus-one-slope structured terms.",
+      "{family_label} structured {.code sigma} effects currently support only {supported_form} structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code {example}} for this count structured-scale gate; intercept-only, multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
+      "i" = "Use {.code {example}} for this count structured-scale gate; multiple slopes, labelled covariance, q2/q4, and structured count location-scale blocks remain planned."
     ))
   }
   invisible(NULL)
@@ -9118,16 +9357,25 @@ validate_nbinom2_sigma_random_terms <- function(
   terms,
   mu_terms = list(),
   structured_term = NULL,
-  has_zi = FALSE
+  has_zi = FALSE,
+  zi_is_intercept_only = FALSE,
+  sigma_is_intercept_only = FALSE
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
-  if (isTRUE(has_zi)) {
+  zi_iid_gate <- isTRUE(has_zi) &&
+    isTRUE(zi_is_intercept_only) &&
+    isTRUE(sigma_is_intercept_only) &&
+    length(terms) == 1L &&
+    identical(terms[[1L]]$type, "intercept") &&
+    is.null(terms[[1L]]$covariance_label) &&
+    length(mu_terms) == 0L && is.null(structured_term)
+  if (isTRUE(has_zi) && !zi_iid_gate) {
     cli::cli_abort(c(
-      "NB2 {.code sigma} random intercepts are implemented only for ordinary NB2 models.",
-      "x" = "Zero-inflated NB2 {.code sigma} random effects are planned but not implemented.",
-      "i" = "Fit {.code bf(count ~ x, sigma ~ z + (1 | id))} without a {.code zi} formula until zero-inflated overdispersion recovery tests exist."
+      "Only the exact zero-inflated NB2 {.code sigma} random-intercept q1 gate is implemented.",
+      "x" = "This gate requires fixed-effect {.code mu}, {.code sigma ~ 1 + (1 | id)}, and {.code zi ~ 1}.",
+      "i" = "Remove sigma slopes, labels, structured terms, and mu random effects."
     ))
   }
   if (length(mu_terms) > 0L || !is.null(structured_term)) {
@@ -9388,6 +9636,271 @@ validate_zero_one_beta_mu_random_terms <- function(terms) {
     ))
   }
   invisible(terms)
+}
+
+validate_zero_one_beta_sigma_random_terms <- function(
+  terms,
+  mu_terms = list(),
+  zoi_terms = list(),
+  coi_terms = list()
+) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  if (length(mu_terms) > 0L || length(zoi_terms) > 0L || length(coi_terms) > 0L) {
+    cli::cli_abort(c(
+      "Zero-one-beta {.code sigma} random intercepts cannot be combined with other random effects in this q1 gate.",
+      "x" = "The formula contains a {.code sigma} random effect and another random-effect component.",
+      "i" = "Fit either {.code y ~ x + (1 | id)} or {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)} until joint recovery tests exist."
+    ))
+  }
+  unsupported <- vapply(terms, function(term) {
+    !(term$type %in% c("intercept", "slope")) || !is.null(term$covariance_label)
+  }, logical(1L))
+  if (any(unsupported) || length(terms) != 1L) {
+    labels <- vapply(terms, `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only one independent {.fn zero_one_beta} {.code sigma} random intercept or slope is implemented in this q1 gate.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)} or the exact slope-only form {.code bf(y ~ x, sigma ~ x + (0 + x | id), zoi ~ 1, coi ~ 1)}.",
+      "i" = "Zero-one-beta {.code sigma} slopes, labelled covariance blocks, structured scale effects, and cross-parameter covariance remain deferred until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_zero_one_beta_zoi_random_terms <- function(
+  terms,
+  mu_terms = list(),
+  sigma_terms = list(),
+  coi_terms = list()
+) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  if (length(mu_terms) > 0L || length(sigma_terms) > 0L || length(coi_terms) > 0L) {
+    cli::cli_abort(c(
+      "Zero-one-beta {.code zoi} random effects cannot be combined with other random effects in this q1 gate.",
+      "x" = "The formula contains a {.code zoi} random effect and another random-effect component.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)}."
+    ))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) !(term$type %in% c("intercept", "slope")) || !is.null(term$covariance_label),
+    logical(1L)
+  )
+  if (any(unsupported) || length(terms) != 1L) {
+    labels <- vapply(terms, `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only one independent {.fn zero_one_beta} {.code zoi} random intercept or slope is implemented in this q1 gate.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use the exact slope-only form {.code bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1)}; labelled covariance, structured atom effects, and cross-parameter covariance remain deferred."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_zero_one_beta_coi_random_terms <- function(
+  terms,
+  mu_terms = list(),
+  sigma_terms = list(),
+  zoi_terms = list()
+) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  if (length(mu_terms) > 0L || length(sigma_terms) > 0L || length(zoi_terms) > 0L) {
+    cli::cli_abort(c(
+      "Zero-one-beta {.code coi} random effects cannot be combined with other random effects in this q1 gate.",
+      "x" = "The formula contains a {.code coi} random effect and another random-effect component.",
+      "i" = "Use {.code coi ~ 1 + (1 | id)} or the exact same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
+    ))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !(term$type %in% c("intercept", "slope")) || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported) || length(terms) != 1L) {
+    labels <- vapply(terms, `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only one independent {.fn zero_one_beta} {.code coi} random intercept or slope is implemented in this q1 gate.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code coi ~ 1 + (1 | id)} or the exact same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}.",
+      "i" = "Transformed or mismatched predictors, correlated or labelled terms, structured effects, and cross-parameter covariance remain deferred."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_zero_one_beta_coi_q1_fixed_rhs <- function(
+  sigma_rhs,
+  zoi_rhs,
+  coi_rhs,
+  coi_terms
+) {
+  is_slope <- identical(coi_terms[[1L]]$type, "slope")
+  coi_ok <- if (is_slope) {
+    is.symbol(coi_rhs) &&
+      identical(as.character(coi_rhs), coi_terms[[1L]]$variable)
+  } else {
+    is_intercept_one(coi_rhs)
+  }
+  if (
+    !is_intercept_one(sigma_rhs) ||
+      !is_intercept_one(zoi_rhs) ||
+      !coi_ok
+  ) {
+    cli::cli_abort(c(
+      "The zero-one-beta coi q1 gate requires {.code sigma ~ 1}, {.code zoi ~ 1}, and an exact matching fixed and random coi predictor.",
+      "x" = "Predictor-dependent scale, zero-inflation, or one-inflation terms need separate recovery evidence.",
+      "i" = "Use {.code coi ~ 1 + (1 | id)} or the exact same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs, sigma_terms) {
+  is_slope <- identical(sigma_terms[[1L]]$type, "slope")
+  sigma_ok <- if (is_slope) {
+    is.symbol(sigma_rhs) &&
+      identical(as.character(sigma_rhs), sigma_terms[[1L]]$variable)
+  } else {
+    is_intercept_one(sigma_rhs)
+  }
+  if (
+    !sigma_ok ||
+      !is_intercept_one(zoi_rhs) ||
+      !is_intercept_one(coi_rhs)
+  ) {
+    cli::cli_abort(c(
+      "The zero-one-beta sigma q1 gate requires fixed identical untransformed sigma predictors, {.code zoi ~ 1}, and {.code coi ~ 1} components.",
+      "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)}."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_zero_one_beta_zoi_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs, zoi_terms) {
+  is_slope <- identical(zoi_terms[[1L]]$type, "slope")
+  zoi_ok <- if (is_slope) {
+    is.symbol(zoi_rhs) && identical(as.character(zoi_rhs), zoi_terms[[1L]]$variable)
+  } else {
+    is_intercept_one(zoi_rhs)
+  }
+  if (!is_intercept_one(sigma_rhs) || !zoi_ok || !is_intercept_one(coi_rhs)) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 gate requires {.code sigma ~ 1}, an exact matching fixed and random zoi predictor, and {.code coi ~ 1}.",
+      "x" = "Predictor-dependent sigma, zero-inflation, or one-inflation terms need separate recovery evidence.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)} or the exact slope-only form {.code bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1)}."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_zero_one_beta_mu_phylo_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 phylo(1 | species, tree = tree) intercept.")
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_phylo_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code phylo(1 | species, tree = tree)} intercept.",
+      "i" = "Structured sigma slopes, labels, non-phylogenetic providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_animal_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "animal") || !identical(term$structure, "Ainv") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code animal(1 | species, Ainv = Ainv)} intercept.",
+      "i" = "Pedigree/A inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_relmat_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "relmat") || !identical(term$structure, "K") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code relmat(1 | species, K = K)} intercept.",
+      "i" = "Q inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_spatial_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "spatial") || !identical(term$structure, "coords") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code spatial(1 | site, coords = coords)} intercept.",
+      "i" = "Mesh/range inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_sigma_phylo_interaction_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo_interaction") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured sigma currently supports only one unlabelled q1 {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)} intercept.",
+      "i" = "Slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_mu_animal_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "animal") || !identical(term$structure, "Ainv") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 animal(1 | species, Ainv = Ainv) intercept.")
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_mu_relmat_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "relmat") || !identical(term$structure, "K") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 relmat(1 | species, K = K) intercept.")
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_mu_spatial_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "spatial") || !identical(term$structure, "coords") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 spatial(1 | site, coords = coords) intercept.")
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_mu_phylo_interaction_term <- function(term) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo_interaction") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort("Zero-one-beta structured mu currently supports only one unlabelled q1 phylo_interaction intercept.")
+  }
+  invisible(term)
 }
 
 validate_cumulative_logit_mu_random_terms <- function(terms) {
@@ -10885,6 +11398,27 @@ phylo_mu_has_cross_dpar <- function(phylo_mu) {
   length(unique(phylo_mu_dpar_codes(phylo_mu))) > 1L
 }
 
+# The count q2 profile-status contract applies only to one labelled,
+# same-endpoint intercept--slope covariance block.  Keep this predicate close
+# to the structured-effect accessors so validation and target construction use
+# the same representation-level definition.
+phylo_mu_has_labelled_mu_intercept_slope_q2 <- function(phylo_mu) {
+  if (!isTRUE(phylo_mu$has) || structured_mu_q(phylo_mu) != 2L) {
+    return(FALSE)
+  }
+  labels <- phylo_mu_endpoint_covariance_labels(phylo_mu)
+  coef_names <- structured_mu_endpoint_coef_names(phylo_mu)
+  endpoint_dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+  length(labels) == 2L &&
+    all(!is.na(labels) & nzchar(labels)) &&
+    identical(labels[[1L]], labels[[2L]]) &&
+    identical(phylo_mu_covariance_mode(phylo_mu), "scalar") &&
+    identical(endpoint_dpars, c("mu", "mu")) &&
+    length(coef_names) == 2L &&
+    identical(coef_names[[1L]], "(Intercept)") &&
+    nzchar(coef_names[[2L]])
+}
+
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(
@@ -10963,7 +11497,7 @@ structured_mu_endpoint_coef_names <- function(phylo_mu) {
 }
 
 phylo_mu_pair_table <- function(phylo_mu) {
-  dpars <- phylo_mu_dpars(phylo_mu)
+  dpars <- phylo_mu_endpoint_dpars(phylo_mu)
   if (length(dpars) < 2L) {
     return(data.frame(
       from_index = integer(),
@@ -12666,6 +13200,14 @@ empty_random_sigma_structure <- function(n) {
   empty_random_mu_structure(n)
 }
 
+# Atom-probability random effects deliberately use the same uncorrelated
+# intercept representation as the scoped zero-one-beta sigma q1 route, while
+# retaining a separate carrier and parameter name.  They must never inherit
+# sigma's cross-parameter covariance machinery.
+empty_random_zoi_structure <- function(n) {
+  empty_random_mu_structure(n)
+}
+
 empty_corpair_model <- function() {
   list(
     n_models = 0L,
@@ -12876,6 +13418,18 @@ build_random_sigma_structure <- function(terms, data) {
   re_sigma <- build_random_mu_structure(terms, data)
   re_sigma$dpars <- rep("sigma", re_sigma$n_terms)
   re_sigma
+}
+
+build_random_zoi_structure <- function(terms, data) {
+  re_zoi <- build_random_mu_structure(terms, data)
+  re_zoi$dpars <- rep("zoi", re_zoi$n_terms)
+  re_zoi
+}
+
+build_random_coi_structure <- function(terms, data) {
+  re_coi <- build_random_mu_structure(terms, data)
+  re_coi$dpars <- rep("coi", re_coi$n_terms)
+  re_coi
 }
 
 empty_mu_sigma_random_covariance <- function(n_sigma_re = 1L) {
@@ -16186,10 +16740,12 @@ beta_mu_re_start <- function(
 beta_ls_map <- function(
   re_mu = empty_random_mu_structure(1L),
   phylo_mu = empty_phylo_mu_structure(),
-  sd_phylo = empty_sd_phylo_structure()
+  sd_phylo = empty_sd_phylo_structure(),
+  re_sigma = empty_random_sigma_structure(1L)
 ) {
   out <- gaussian_ls_map(
     re_mu = re_mu,
+    re_sigma = re_sigma,
     phylo_mu = phylo_mu,
     sd_phylo = sd_phylo
   )
@@ -16372,6 +16928,10 @@ zero_one_beta_start <- function(
   X_zoi,
   X_coi,
   re_mu = empty_random_mu_structure(length(y)),
+  re_sigma = empty_random_sigma_structure(length(y)),
+  re_zoi = empty_random_sigma_structure(length(y)),
+  re_coi = empty_random_sigma_structure(length(y)),
+  phylo_mu = empty_phylo_mu_structure(),
   observed_y = rep(TRUE, length(y))
 ) {
   observed_y <- as.logical(observed_y)
@@ -16426,6 +16986,10 @@ zero_one_beta_start <- function(
     y_scale,
     observed_y = observed_y
   )
+  sigma_re_start <- gaussian_sigma_re_start(re_sigma)
+  zoi_re_start <- gaussian_sigma_re_start(re_zoi)
+  coi_re_start <- gaussian_sigma_re_start(re_coi)
+  phylo_start <- gaussian_phylo_start(resid[observed_y], phylo_mu)
 
   c(
     list(
@@ -16443,23 +17007,48 @@ zero_one_beta_start <- function(
       log_sd_mu = mu_re_start$log_sd_mu,
       eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
-      eta_cor_sigma = 0,
-      u_sigma = 0,
-      log_sd_sigma = 0,
+      eta_cor_sigma = sigma_re_start$eta_cor_sigma,
+      u_sigma = sigma_re_start$u_sigma,
+      log_sd_sigma = sigma_re_start$log_sd_sigma,
+      u_zoi = zoi_re_start$u_sigma,
+      log_sd_zoi = zoi_re_start$log_sd_sigma,
+      u_coi = coi_re_start$u_sigma,
+      log_sd_coi = coi_re_start$log_sd_sigma,
       beta_mu1 = 0,
       beta_mu2 = 0,
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
 }
 
-zero_one_beta_map <- function(re_mu = empty_random_mu_structure(1L)) {
-  beta_ls_map(re_mu = re_mu)
+zero_one_beta_map <- function(
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure(),
+  re_sigma = empty_random_sigma_structure(1L),
+  re_zoi = empty_random_sigma_structure(1L),
+  re_coi = empty_random_sigma_structure(1L)
+) {
+  out <- beta_ls_map(re_mu = re_mu, phylo_mu = phylo_mu, re_sigma = re_sigma)
+  if (re_zoi$n_re == 0L) {
+    out$u_zoi <- factor(NA)
+    out$log_sd_zoi <- factor(NA)
+  } else {
+    out$u_zoi <- factor(seq_len(re_zoi$n_re))
+    out$log_sd_zoi <- factor(seq_len(re_zoi$n_terms))
+  }
+  if (re_coi$n_re == 0L) {
+    out$u_coi <- factor(NA)
+    out$log_sd_coi <- factor(NA)
+  } else {
+    out$u_coi <- factor(seq_len(re_coi$n_re))
+    out$log_sd_coi <- factor(seq_len(re_coi$n_terms))
+  }
+  out
 }
 
 poisson_start <- function(
@@ -16744,9 +17333,13 @@ zi_nbinom2_start <- function(
   X_sigma,
   X_zi,
   offset_mu = rep(0, length(y)),
-  phylo_mu = empty_phylo_mu_structure()
+  phylo_mu = empty_phylo_mu_structure(),
+  re_sigma = empty_random_sigma_structure(length(y))
 ) {
-  nb <- nbinom2_start(y, X_mu, X_sigma, offset_mu, phylo_mu = phylo_mu)
+  nb <- nbinom2_start(
+    y, X_mu, X_sigma, offset_mu,
+    re_sigma = re_sigma, phylo_mu = phylo_mu
+  )
   beta_mu <- nb$beta_mu
   beta_sigma <- nb$beta_sigma
   mu <- exp(offset_mu + as.vector(X_mu %*% beta_mu))
@@ -16765,8 +17358,11 @@ zi_nbinom2_start <- function(
   nb
 }
 
-zi_nbinom2_map <- function(phylo_mu = empty_phylo_mu_structure()) {
-  out <- nbinom2_map(phylo_mu = phylo_mu)
+zi_nbinom2_map <- function(
+  phylo_mu = empty_phylo_mu_structure(),
+  re_sigma = empty_random_sigma_structure(1L)
+) {
+  out <- nbinom2_map(phylo_mu = phylo_mu, re_sigma = re_sigma)
   out$beta_zi <- NULL
   out
 }
@@ -17466,7 +18062,10 @@ gaussian_ls_map <- function(
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(NA)
   }
-  if (!phylo_mu_has_cross_dpar(phylo_mu)) {
+  if (
+    !phylo_mu_has_cross_dpar(phylo_mu) &&
+      !phylo_mu_has_labelled_mu_intercept_slope_q2(phylo_mu)
+  ) {
     out$eta_cor_phylo <- factor(NA)
   }
   if (re_mu$n_re == 0L) {
@@ -17634,8 +18233,15 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
     drm_tmb_missing_predictor_data(spec),
+    zero_one_beta_atom_tmb_data(spec),
     cov_tmb_data,
     list(
+      has_phylo_mu_q2_covariance = as.integer(
+        spec$model_type %in% c("nbinom2", "poisson") &&
+          phylo_mu_has_labelled_mu_intercept_slope_q2(
+            spec$structured$phylo_mu
+          )
+      ),
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),
@@ -17643,6 +18249,27 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
       logsigma_clamp = c(-12, 12, 3),
       qgt2_corr_parameterization = drm_qgt2_corr_parameterization()
     )
+  )
+}
+
+# Supplied for every model so the shared TMB signature remains stable.  Only
+# the deliberately narrow zero-one-beta atom q1 gates ever set these fields
+# live; all other model types receive inert placeholders.
+zero_one_beta_atom_tmb_data <- function(spec) {
+  if (identical(spec$model_type, "zero_one_beta")) {
+    return(list())
+  }
+  re_zoi <- empty_random_zoi_structure(length(spec$y))
+  re_coi <- empty_random_zoi_structure(length(spec$y))
+  list(
+    n_zoi_re_terms = re_zoi$n_terms,
+    zoi_re_index = re_zoi$index0,
+    zoi_re_value = re_zoi$value,
+    zoi_re_term = re_zoi$term_id0,
+    n_coi_re_terms = re_coi$n_terms,
+    coi_re_index = re_coi$index0,
+    coi_re_value = re_coi$value,
+    coi_re_term = re_coi$term_id0
   )
 }
 
@@ -18476,6 +19103,10 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "zero_one_beta")) {
+    phylo_mu <- spec$structured$phylo_mu
+    re_sigma <- spec$random$sigma
+    re_zoi <- spec$random$zoi
+    re_coi <- spec$random$coi
     return(list(
       model_type = 15L,
       y = spec$y,
@@ -18514,22 +19145,30 @@ make_tmb_data <- function(spec) {
       mu_re_cor_id = spec$random$mu$re_cor_id0,
       mu_re_pair_index = spec$random$mu$re_pair_index0,
       mu_re_sd_row = spec$random_scale$mu$re_sd_row0,
-      n_sigma_re_terms = 0L,
+      n_sigma_re_terms = re_sigma$n_terms,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      sigma_re_index = re_sigma$index0,
+      sigma_re_value = re_sigma$value,
+      sigma_re_term = re_sigma$term_id0,
+      sigma_re_dpar = re_sigma$dpar_id0,
+      sigma_re_cor_id = re_sigma$re_cor_id0,
+      sigma_re_pair_index = re_sigma$re_pair_index0,
+      sigma_re_cross_cor = rep.int(-1L, max(1L, re_sigma$n_re)),
+      sigma_re_cross_mu = rep.int(-1L, max(1L, re_sigma$n_re)),
+      n_zoi_re_terms = re_zoi$n_terms,
+      zoi_re_index = re_zoi$index0,
+      zoi_re_value = re_zoi$value,
+      zoi_re_term = re_zoi$term_id0,
+      n_coi_re_terms = re_coi$n_terms,
+      coi_re_index = re_coi$index0,
+      coi_re_value = re_coi$value,
+      coi_re_term = re_coi$term_id0,
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) phylo_mu$observation_node_index - 1L else 0L,
+      Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$precision else dummy_sparse,
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) phylo_mu$precision$log_det_precision else 0
     ))
   }
   if (identical(spec$model_type, "beta_binomial")) {
@@ -19062,6 +19701,7 @@ make_tmb_data <- function(spec) {
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
     phylo_mu <- spec$structured$phylo_mu
+    re_sigma <- spec$random$sigma
     return(list(
       model_type = 9L,
       y = spec$y,
@@ -19100,17 +19740,17 @@ make_tmb_data <- function(spec) {
       mu_re_cor_id = -1L,
       mu_re_pair_index = -1L,
       mu_re_sd_row = -1L,
-      n_sigma_re_terms = 0L,
+      n_sigma_re_terms = re_sigma$n_terms,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
-      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      sigma_re_value = dummy_matrix,
-      sigma_re_term = 0L,
-      sigma_re_dpar = 0L,
-      sigma_re_cor_id = -1L,
-      sigma_re_pair_index = -1L,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
+      sigma_re_index = re_sigma$index0,
+      sigma_re_value = re_sigma$value,
+      sigma_re_term = re_sigma$term_id0,
+      sigma_re_dpar = re_sigma$dpar_id0,
+      sigma_re_cor_id = re_sigma$re_cor_id0,
+      sigma_re_pair_index = re_sigma$re_pair_index0,
+      sigma_re_cross_cor = rep.int(-1L, max(1L, re_sigma$n_re)),
+      sigma_re_cross_mu = rep.int(-1L, max(1L, re_sigma$n_re)),
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
       phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
@@ -19592,6 +20232,26 @@ split_tmb_sdpars <- function(par, spec) {
     names(sd_sigma) <- spec$random$sigma$labels
     out$sigma <- sd_sigma
   }
+  if (
+    identical(spec$model_type, "zero_one_beta") &&
+      is.list(spec$random$zoi) && spec$random$zoi$n_re > 0L
+  ) {
+    sd_zoi <- exp(unname(par$log_sd_zoi[seq_len(
+      spec$random$zoi$n_terms
+    )]))
+    names(sd_zoi) <- spec$random$zoi$labels
+    out$zoi <- sd_zoi
+  }
+  if (
+    identical(spec$model_type, "zero_one_beta") &&
+      is.list(spec$random$coi) && spec$random$coi$n_re > 0L
+  ) {
+    sd_coi <- exp(unname(par$log_sd_coi[seq_len(
+      spec$random$coi$n_terms
+    )]))
+    names(sd_coi) <- spec$random$coi$labels
+    out$coi <- sd_coi
+  }
   if (is.list(spec$random$covariance_blocks)) {
     qgt2_members <- qgt2_covariance_members(spec$random$covariance_blocks)
     if (nrow(qgt2_members) > 0L) {
@@ -19679,11 +20339,23 @@ split_tmb_sdpars <- function(par, spec) {
 }
 
 split_tmb_corpars <- function(par, spec) {
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian")) {
+  count_phylo_q2 <- spec$model_type %in% c("nbinom2", "poisson") &&
+    phylo_mu_has_labelled_mu_intercept_slope_q2(
+      spec$structured$phylo_mu
+    )
+  if (!spec$model_type %in% c("gaussian", "biv_gaussian") && !count_phylo_q2) {
     return(list())
   }
 
   out <- list()
+  if (count_phylo_q2) {
+    phylo_pairs <- phylo_mu_pair_table(spec$structured$phylo_mu)
+    cor_key <- structured_mu_correlation_key(spec$structured$phylo_mu)
+    rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
+    names(rho_phylo) <- phylo_pairs$parameter
+    out[[cor_key]] <- rho_phylo
+    return(out)
+  }
   if (spec$random$mu$n_cors > 0L) {
     if (has_modelled_mu_correlation(spec)) {
       # Report one correlation per group level, not a scalar mean. Averaging
@@ -19957,6 +20629,26 @@ split_tmb_random_effects <- function(par, spec) {
       )
     }
     out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
+  }
+  if (
+    identical(spec$model_type, "zero_one_beta") &&
+      is.list(spec$random$zoi) && spec$random$zoi$n_re > 0L
+  ) {
+    latent <- unname(par$u_zoi[seq_len(spec$random$zoi$n_re)])
+    values <- transform_independent_random_effects(
+      latent, par$log_sd_zoi, spec$random$zoi
+    )
+    out$zoi <- format_random_effect_values(latent, values, spec$random$zoi)
+  }
+  if (
+    identical(spec$model_type, "zero_one_beta") &&
+      is.list(spec$random$coi) && spec$random$coi$n_re > 0L
+  ) {
+    latent <- unname(par$u_coi[seq_len(spec$random$coi$n_re)])
+    values <- transform_independent_random_effects(
+      latent, par$log_sd_coi, spec$random$coi
+    )
+    out$coi <- format_random_effect_values(latent, values, spec$random$coi)
   }
   if (is.list(spec$random$covariance_blocks)) {
     qgt2_re <- transform_covariance_block_random_effects(

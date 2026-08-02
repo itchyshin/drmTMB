@@ -2647,8 +2647,9 @@ deviance.drmTMB <- function(object, ...) {
 #' currently implemented conditional random-effect contributions for `mu`,
 #' including registry-backed q > 2 ordinary covariance blocks, bivariate
 #' `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma` including
-#' bivariate `sigma1`/`sigma2` blocks. When `newdata` is supplied, predictions
-#' are fixed-effect, population-level
+#' bivariate `sigma1`/`sigma2` blocks. Fitted-row predictions also include
+#' ordinary zero-one-beta `zoi` and `coi` random-effect contributions. When
+#' `newdata` is supplied, predictions are fixed-effect, population-level
 #' predictions for the supplied rows.
 #'
 #' `type = "quantile"` returns per-row conditional quantiles of the fitted
@@ -2760,6 +2761,16 @@ predict.drmTMB <- function(
       has_sigma_random_effects(object)
   ) {
     eta <- eta + sigma_random_effect_contribution(object, dpar = dpar)
+  }
+  if (
+    is.null(newdata) &&
+      dpar %in% c("zoi", "coi") &&
+      has_atom_probability_random_effects(object, dpar)
+  ) {
+    eta <- eta + atom_probability_random_effect_contribution(
+      object,
+      dpar = dpar
+    )
   }
   if (
     is.null(newdata) &&
@@ -5659,7 +5670,10 @@ coefficient_labels <- function(object) {
 
 has_mu_random_effects <- function(object) {
   has_ordinary_mu_random_effects(object) ||
-    has_structured_mu_effect(object) ||
+    (has_structured_mu_effect(object) &&
+      any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
+        object$model$structured$phylo_mu
+      )) == "mu")) ||
     has_mu_covariance_block_random_effects(object)
 }
 
@@ -5672,8 +5686,8 @@ has_mu_random_intercepts <- has_mu_random_effects
 has_phylo_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
-      "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
-      "gamma", "beta"
+      "gaussian", "biv_gaussian", "poisson", "nbinom2", "zi_nbinom2", "lognormal",
+      "gamma", "beta", "zero_one_beta"
     ) &&
     isTRUE(object$model$structured$phylo_mu$has) &&
     identical(structured_mu_type(object$model$structured$phylo_mu), "phylo")
@@ -5690,7 +5704,7 @@ has_structured_mu_effect <- function(object) {
   object$model$model_type %in%
     c(
       "gaussian", "biv_gaussian", "poisson", "nbinom2", "lognormal",
-      "gamma", "beta"
+      "gamma", "beta", "zero_one_beta"
     ) &&
     isTRUE(object$model$structured$phylo_mu$has)
 }
@@ -5698,7 +5712,10 @@ has_structured_mu_effect <- function(object) {
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
     n_mu_covariance_block_random_effect_terms(object) +
-    if (has_structured_mu_effect(object)) {
+    if (has_structured_mu_effect(object) &&
+      any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
+        object$model$structured$phylo_mu
+      )) == "mu")) {
       structured_mu_q(object$model$structured$phylo_mu)
     } else {
       0L
@@ -5707,14 +5724,25 @@ n_mu_random_effect_terms <- function(object) {
 
 has_sigma_random_effects <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian", "nbinom2", "lognormal", "gamma") &&
-    length(object$random_effects$sigma$values) > 0L
+    c("gaussian", "biv_gaussian", "nbinom2", "zi_nbinom2", "lognormal", "gamma") &&
+    (length(object$random_effects$sigma$values) > 0L ||
+      (isTRUE(object$model$structured$phylo_mu$has) &&
+        any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
+          object$model$structured$phylo_mu
+        )) == "sigma")))
 }
 
 has_covariance_block_random_effects <- function(object) {
   is.list(object$random_effects$covariance_blocks) &&
     !is.null(object$random_effects$covariance_blocks$contribution) &&
     ncol(object$random_effects$covariance_blocks$contribution) > 0L
+}
+
+has_atom_probability_random_effects <- function(object, dpar) {
+  identical(object$model$model_type, "zero_one_beta") &&
+    dpar %in% c("zoi", "coi") &&
+    is.list(object$random_effects[[dpar]]) &&
+    length(object$random_effects[[dpar]]$values) > 0L
 }
 
 has_mu_covariance_block_random_effects <- function(object) {
@@ -5877,6 +5905,15 @@ sigma_random_effect_contribution <- function(object, dpar = NULL) {
   rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
 }
 
+atom_probability_random_effect_contribution <- function(object, dpar) {
+  dpar <- match.arg(dpar, c("zoi", "coi"))
+  values <- object$random_effects[[dpar]]$values
+  re <- object$model$random[[dpar]]
+  rowSums(
+    matrix(values[re$index], nrow = nrow(re$index)) * re$value
+  )
+}
+
 covariance_block_random_effect_contribution <- function(object, dpar) {
   block_re <- object$random_effects$covariance_blocks
   members <- block_re$members
@@ -5907,6 +5944,12 @@ drm_simulate_marginal_unsupported <- function(object) {
   }
   if (has_covariance_block_random_effects(object)) {
     return("correlated covariance-block random effects")
+  }
+  if (
+    has_atom_probability_random_effects(object, "zoi") ||
+      has_atom_probability_random_effects(object, "coi")
+  ) {
+    return("zero-one-beta atom-probability random effects")
   }
   if (isTRUE(object$model$random$mu$cor_model$n_models > 0L)) {
     return("predictor-dependent random-effect correlation (corpair) regression")

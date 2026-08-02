@@ -5,6 +5,7 @@ test_that("miss_control() records MD1 defaults", {
   expect_equal(ctrl$response, "drop")
   expect_equal(ctrl$predictor, "fail")
   expect_equal(ctrl$engine, "laplace")
+  expect_identical(formals(miss_control)$engine, "laplace")
 })
 
 test_that("miss_control() validates implemented and reserved options", {
@@ -14,6 +15,7 @@ test_that("miss_control() validates implemented and reserved options", {
   expect_error(miss_control(response = "omit"), "should be one of")
   expect_error(miss_control(engine = "em"), "reserved")
   expect_error(miss_control(engine = "profile"), "reserved")
+  expect_error(miss_control(engine = "other"), "only supports")
 })
 
 test_that("drmTMB() parses missing-control lists and gates unsupported response masks", {

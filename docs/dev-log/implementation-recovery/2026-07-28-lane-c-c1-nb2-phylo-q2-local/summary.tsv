@@ -1,0 +1,2 @@
+fixture_id	planned_attempts	attempted_attempts	fit_ok	fit_error	nonconverged	pdhess_false	boundary_hits	mean_beta0_hat	mean_beta1_hat	mean_tau0_hat	mean_tau1_hat	mean_rho_hat	mean_sigma_hat	decision
+lane_c_c1_nb2_phylo_q2_local	3	3	3	0	0	0	0	1.1635988687967	0.44884152890495	0.546799164367	0.54298797193662	0.476327776399614	0.458102083283194	PASS_POINT_RECOVERY_LOCAL

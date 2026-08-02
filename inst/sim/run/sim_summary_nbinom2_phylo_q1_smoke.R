@@ -64,7 +64,7 @@ phase18_summarise_nbinom2_phylo_q1_smoke <- function(
     ,
     drop = FALSE
   ]
-  wald_coverage <- phase18_summarise_interval_coverage(
+  wald_coverage <- phase18_optional_interval_coverage(
     interval_ready,
     by = by
   )

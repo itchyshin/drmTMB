@@ -86,7 +86,7 @@ is the current routing contract:
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The narrow q1 phylogenetic successor route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. |
-| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. |
+| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, fixed latent logistic scale, ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
@@ -207,22 +207,25 @@ likelihood weights, random effects, direct-SD formulas, structured effects,
 known sampling covariance, bivariate models, non-Gaussian families, and
 combined sparse fixed-effect matrices before TMB is called.
 
-## Univariate Gaussian Response Masks
+## Observed-Response Masks
 
-When `missing = miss_control(response = "include")` is used for a univariate
-Gaussian model, the R builder keeps rows with missing response values only after
-it has verified that all predictors, grouping variables, structured-effect
-inputs, likelihood weights, and known sampling variances needed for retained
-rows are complete. It then stores:
+`missing = miss_control(response = "include")` uses an observed-response mask
+for every current univariate fitted response route. The R builder keeps a row
+with a missing response only after it has verified that all predictors,
+grouping variables, structured-effect inputs, likelihood weights, and known
+sampling variances needed for retained rows are complete. It then stores:
 
 ```text
 observed_y_i = 1 if y_i is observed
 observed_y_i = 0 if y_i is missing
 ```
 
-Missing responses are replaced by an internal finite sentinel after
-`observed_y` has been recorded. The sentinel is an implementation detail and is
-not part of the statistical model.
+Missing responses are replaced by a route-specific internal finite sentinel
+after `observed_y` has been recorded. The sentinel is an implementation detail
+and is not part of the statistical model. Bivariate Gaussian partial-response
+rows are a separate route: one observed response uses its marginal Gaussian
+density, while a row with both responses missing contributes zero response
+likelihood.
 
 For independent-row Gaussian likelihoods, the MD1 TMB branch evaluates:
 
@@ -450,8 +453,8 @@ log L_i =
 
 This is the same finite-state observed-data idea as MD6a, but the response term
 is the Poisson count density. The Poisson response must be observed in MD9a:
-`miss_control(response = "include")` is still limited to Gaussian response
-models. The route rejects zero-inflated Poisson formulas, Poisson response
+At the MD9a historical checkpoint, `miss_control(response = "include")` was
+limited to Gaussian response models. The route then rejected zero-inflated Poisson formulas, Poisson response
 random effects, structured Poisson response terms, non-binary missing predictor
 families, and ordinary missing predictors outside the explicit `mi()` term.
 
@@ -2038,17 +2041,45 @@ Pr(y_i = 1) = zoi_i coi_i
 Pr(0 < y_i < 1) = 1 - zoi_i
 eta_mu_i = X_mu[i, ] beta_mu
 eta_sigma_i = X_sigma[i, ] beta_sigma
-eta_zoi_i = X_zoi[i, ] beta_zoi
+eta_zoi_i = X_zoi[i, ] beta_zoi + Z_zoi[i, ] diag(sd_zoi) u_zoi
 eta_coi_i = X_coi[i, ] beta_coi
-mu_i = logit^{-1}(eta_mu_i)
+sd_zoi_j = exp(log_sd_zoi_j)
+u_zoi ~ Normal(0, I)
+mu_raw_i = logit^{-1}(eta_mu_i)
+mu_i = epsilon_mu + (1 - 2 epsilon_mu) mu_raw_i
 sigma_i = exp(eta_sigma_i)
 zoi_i = logit^{-1}(eta_zoi_i)
 coi_i = logit^{-1}(eta_coi_i)
 phi_i = 1 / sigma_i^2
-alpha_i = mu_i phi_i
-beta_i = (1 - mu_i) phi_i
+alpha_i = max(mu_i phi_i, epsilon_shape)
+beta_i = max((1 - mu_i) phi_i, epsilon_shape)
 E[y_i] = (1 - zoi_i) mu_i + zoi_i coi_i
 ```
+
+Here `epsilon_mu = 1e-12` and `epsilon_shape = 1e-8` are numerical guards in
+the fitted likelihood, not changes to the public mean-scale parameterization.
+The existing optional log-`sigma` soft clamp, when enabled, is applied before
+`sigma_i = exp(eta_sigma_i)`. For the exact `mc-0577` route,
+`Z_zoi[i, ] = x_i`, there is one grouping factor `id`, and
+
+```text
+eta_zoi_i = X_zoi[i, ] beta_zoi + x_i sd_zoi u_zoi,id[i]
+sd_zoi = exp(log_sd_zoi)
+u_zoi,g independently ~ Normal(0, 1).
+```
+
+The recovery runner calls this natural-scale standard deviation `tau`; thus
+`tau` and `sd_zoi` name the same estimand. Under ML, TMB treats `u_zoi` as a
+random parameter and uses its Laplace approximation to the marginal likelihood
+
+```text
+L_marginal(beta, log_sd_zoi) =
+  integral [product_i Pr(y_i | u_zoi) ^ weight_i]
+           phi(u_zoi; 0, I) du_zoi.
+```
+
+No Jacobian is added for `sd_zoi u_zoi`: this is the fitted non-centred
+Gaussian representation, with the standard-normal density included explicitly.
 
 The TMB likelihood is:
 
@@ -2057,7 +2088,7 @@ log Pr(y_i = 0) = log(zoi_i) + log(1 - coi_i)
 log Pr(y_i = 1) = log(zoi_i) + log(coi_i)
 log f(0 < y_i < 1) =
   log(1 - zoi_i) +
-  log Gamma(phi_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
+  log Gamma(alpha_i + beta_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
   (alpha_i - 1) log(y_i) + (beta_i - 1) log(1 - y_i)
 ```
 
@@ -2084,10 +2115,16 @@ for the independent `(0 + x | id)` slope SD under its frozen DGP at true SD
 and M >= 16. Rare beta-labelled draws rounded to exactly one in that campaign,
 so this evidence does not establish an exactly 15% observed-boundary design.
 See `docs/dev-log/simulation-artifacts/2026-07-19-arc4c-mu-slope-coverage/README.md`.
-Correlated or labelled `mu` slopes, `sigma`/`zoi`/`coi` random effects,
-structured effects, covariance blocks, known sampling covariance, denominator
-syntax, bivariate bounded responses, and mixed-response bounded models remain
-planned or unsupported.
+Exact ordinary q1 `sigma ~ 1 + (1 | id)` and, separately,
+`zoi ~ 1 + (1 | id)` random intercepts are point-fit-only, with direct targets
+that are not profile-ready. The exact slope-only `zoi` route is also
+point-fit-only and requires the same raw symbol in its fixed and random terms,
+for example `zoi ~ x + (0 + x | id)`. It does not admit transformed or
+mismatched symbols, an intercept-plus-slope term, labels, or covariance.
+Correlated or labelled `mu` slopes, `coi` random effects, other `sigma`/`zoi`
+slope shapes, joint/covariant and structured effects, profiles, intervals,
+coverage, known sampling covariance, denominator syntax, bivariate bounded
+responses, and mixed-response bounded models remain planned or unsupported.
 
 ## Implemented Beta-Binomial Mean-Overdispersion
 
@@ -2645,7 +2682,7 @@ The current dense-known-`V` implementation:
   either `cov12` or `cor12`;
 - documents sensitivity analysis when within-study correlations are unknown.
 
-## Implemented Post-Fit Gaussian × Bernoulli and Gaussian × NB2 Latent-Normal Association (Development)
+## Implemented Post-Fit Latent-Normal Association
 
 This implemented post-0.6 development route is a separate post-fit object, not
 a new TMB family or a joint `drmTMB()` likelihood. It starts from two
@@ -2707,21 +2744,45 @@ At `eta = 0`, `r_i = F_i(y_Ni) - F_i(y_Ni - 1)`, exactly the NB2 mass.
 Production constructs endpoints from log-CDF and log-survival values using the
 smaller tail, then evaluates the normal interval in log space. It never
 jitters, clips, floors, or replaces a collapsed CDF jump. Only the lower
-endpoint for `y_Ni = 0` is analytically infinite. The association predictor is
-intercept-only in these first slices.
+endpoint for `y_Ni = 0` is analytically infinite. The Gaussian pair slices are
+intercept-only. Separate reviewed adapters implement literal-Bernoulli x
+literal-Bernoulli, literal-Bernoulli x ordinary-NB2, and ordinary-NB2 x
+ordinary-NB2 rectangles. The Bernoulli x ordinary-NB2 route also admits an
+intercept-bearing fixed-effect association design
+`a_i = X_A[i, ] alpha`, with `eta_i = 0.999999 * tanh(a_i)`.
+
+Stage-2 curvature alone conditions on the fitted margins and is not the public
+uncertainty calculation. Let `q = (theta_1', theta_2', alpha')'` collect both
+margin parameter vectors and the association coefficients, and let `U_i(q)`
+stack the two margin scores with the association score. The implemented
+two-stage Godambe covariance is
+
+```text
+H = -n^-1 sum_i d U_i(q) / d q'
+J =  n^-1 sum_i U_i(q) U_i(q)'
+Var(q_hat) = n^-1 H^-1 J H^-T
+```
+
+`vcov()` returns the named `alpha` block and `confint()` forms coefficient-wise
+alpha-scale Wald intervals. Each adapter checks derivative stability, bread
+rank, covariance finiteness, and positive variances; a failed check returns no
+placeholder interval. This makes all admitted pair routes interval-feasible.
+The retained high-information Bernoulli x ordinary-NB2 intercept campaign adds
+coverage-backed `inference_ready_with_caveats` evidence for its named domain.
 
 `eta` is a latent-normal association conditional on the frozen margins. It is
 not bivariate-Gaussian residual coscale `rho12`, observed-scale correlation,
 or a `corpairs()` random-effect extractor (the `corpair()` formula marker is a
-different interface). The first output is limited to a
-point estimate and diagnostics, including boundary and response-pattern
-checks. It exposes no standard errors, intervals, profiles, `vcov()`,
-residuals, quantiles, or `emmeans` method. These implementations exclude
-random, phylogenetic, structured, or association-slope effects, partial/missing
-pairs, offsets, weights, `mi()`, `meta_V()`, REML, binomial trial-count
-responses, and zero-inflated, hurdle, or truncated NB2 responses. They are not
-a released 0.6.0 feature. No recovery campaign, interval or coverage result, or
-capability promotion follows from these development implementations.
+different interface). Public output includes point estimates, numerical and
+response-pattern diagnostics, and alpha-scale `vcov()` / `confint()` when the
+fit-specific Godambe calculation succeeds. Intercept-only models also expose
+`confint(object, type = "eta")`; `predict()` supplies delta-method eta standard
+errors and transformed pointwise intervals from the same alpha covariance.
+Profiles, simultaneous eta bands, residuals, quantiles, and `emmeans` remain
+unavailable. These implementations exclude random, phylogenetic, or
+structured association effects,
+partial/missing pairs, offsets, weights, `mi()`, `meta_V()`, REML, binomial
+trial-count responses, and zero-inflated, hurdle, or truncated NB2 responses.
 
 ## Implemented Bivariate Gaussian Location-Coscale
 

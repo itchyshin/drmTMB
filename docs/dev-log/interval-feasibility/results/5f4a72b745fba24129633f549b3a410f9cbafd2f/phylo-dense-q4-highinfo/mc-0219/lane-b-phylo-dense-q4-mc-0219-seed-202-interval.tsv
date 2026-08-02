@@ -1,0 +1,2 @@
+cell_id	target_id	dgp_id	seed	lower	upper	profile_engine
+mc-0219	mc-0219::sd:mu:sigma2:phylo(1 | p | sp)	lane_b_phylo_dense_q4_reml_highinfo_v1	202	0.207557087744474	0.478355628049384	tmbprofile

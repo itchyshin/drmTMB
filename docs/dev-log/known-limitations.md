@@ -18,14 +18,21 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `association = ~ 1`. The literal Bernoulli × ordinary NB2 beta route alone
   accepts an intercept-bearing fixed-effect association formula with multiple
   predictors, factors, interactions, and explicit transformations. Its stored
-  training design supports point-only `newdata` association predictions. It
+  training design supports pointwise `newdata` association predictions. It
   freezes all stage-1 margin vectors (including NB2 `mu` and `sigma`) and
   supplies point estimates only when optimisation and count-interval diagnostics
-  are acceptable. It is neither `rho12` nor an observed-scale correlation.
-  Other family pairs, random/structured effects, partial pairs, offsets, weights,
-  `mi()`, `meta_V()`, REML, standard errors, intervals, profiles, coverage,
-  capability promotion, Julia, and CRAN release
-  use remain outside this first contract. Arc 6.5 has retained Totoro recovery
+  are acceptable. Every admitted route also supplies alpha-scale two-stage
+  Godambe `vcov()` and Wald `confint()` output when fit-specific covariance
+  diagnostics pass. Those routes are interval-feasible and warn where coverage
+  is uncalibrated; Bernoulli × ordinary NB2 intercept is inference-ready with
+  caveats in its retained high-information F4R domain. Intercept-only
+  `confint(type = "eta")` and row-specific `predict(type = "eta", se.fit =
+  TRUE, interval = "confidence")` derive bounded eta uncertainty from the
+  alpha covariance and inherit the same warning and evidence tier. It is neither `rho12`
+  nor an observed-scale correlation. Other family pairs, random/structured
+  association effects, partial pairs, offsets, weights, `mi()`, `meta_V()`,
+  REML, simultaneous eta bands, profiles, Julia, and CRAN release use remain
+  outside this first contract. Arc 6.5 has retained Totoro recovery
   **HOLD** evidence, documented in
   `docs/dev-log/simulation-artifacts/2026-07-24-arc6-5-bernoulli-recovery/`:
   it is not a passing recovery result and makes no capability claim.
@@ -502,13 +509,19 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   random intercepts and independent numeric slopes. There are no `sigma`
   random effects, correlated beta-binomial slopes, known sampling covariance,
   phylogenetic terms, bivariate or mixed beta-binomial models, or
-  successes/trials response alias. Zero-one-inflated
-  bounded-response models for percentage or proportion data are planned:
-  fixed-effect `zoi` and `coi` likelihoods should come before random effects
-  or covariance among bounded-response distributional parameters, and current
-  `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
-  messages. Beta-binomial evidence does not promote plain binomial interval
-  calibration.
+  successes/trials response alias. For continuous proportions with exact
+  boundaries, `zero_one_beta()` implements fixed-effect `zoi` and `coi`.
+  Exact ordinary ML point-fit-only exceptions additionally admit one `zoi`
+  random intercept, one same-raw-symbol slope
+  `zoi ~ x + (0 + x | id)`, one `coi ~ 1 + (1 | id)` random intercept, or one
+  matching-raw-symbol `coi ~ x + (0 + x | id)` random slope. The `coi`
+  evidence is limited to population-level point recovery at `M = 64` with 50
+  observations per group; conditional modes can be weak in groups with sparse
+  observed atoms or weak boundary-row predictor spread. Direct profiles,
+  intervals, coverage, other atom shapes, transformed or mismatched slopes,
+  and covariance among bounded-response distributional parameters remain
+  unavailable. Beta-binomial evidence does
+  not promote plain binomial interval calibration.
 - Univariate Bernoulli/binomial logit models are implemented with
   `family = stats::binomial(link = "logit")`. The first path supports explicit
   0/1 event indicators and `cbind(successes, failures)` responses, stores
@@ -600,8 +613,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   The exact Poisson labelled-scalar spatial count route
   `mu ~ spatial(1 | p | site, coords = coords)` also fits locally, but it is
   not q2/q4 covariance support. Beyond the exact exceptions above, pure,
-  multiple, or labelled count structured slopes, labelled q=2/q=4 count
-  covariance, simultaneous structured count types beyond that exact crossed
+  multiple, or labelled count structured slopes outside the exact ordinary
+  Poisson q=2 intercept--slope routes for `phylo()`, `spatial()`, `animal()`,
+  and `relmat()`, labelled q=4+ count covariance, simultaneous structured count types beyond that exact crossed
   NB2 `mu` gate, bounded, ordinal, shape,
   inflation, hurdle, and one-inflation structured effects need ordinary
   family-specific random-effect recovery and interval evidence before entering

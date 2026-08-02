@@ -68,7 +68,7 @@ manual_biv_missing_loglik <- function(fit) {
 
 test_that("default missing policy matches complete-pair bivariate Gaussian fits", {
   dat <- missing_response_biv_gaussian_data()
-  dat$x[3] <- NA_real_
+  dat$y2[3] <- NA_real_
   keep <- stats::complete.cases(dat[, c("y1", "y2", "x")])
 
   fit_default <- drmTMB(
@@ -114,6 +114,7 @@ test_that("default missing policy matches complete-pair bivariate Gaussian fits"
     tolerance = 1e-8
   )
   expect_equal(as.numeric(logLik(fit_default)), as.numeric(logLik(fit_cc)))
+  expect_equal(nobs(fit_default), sum(keep))
   expect_equal(fit_default$missing_data$response_policy, "drop")
   expect_equal(fit_default$missing_data$original_row, which(keep))
   expect_true(all(fit_default$missing_data$observed_y1))

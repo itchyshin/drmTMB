@@ -7,13 +7,14 @@
 miss_control(
   response = c("drop", "include"),
   predictor = c("fail", "model"),
-  engine = c("laplace", "em", "profile")
+  engine = "laplace"
 )
 }
 \arguments{
 \item{response}{Response missingness policy. \code{"drop"} keeps existing
-complete-case fitting; \code{"include"} keeps rows with supported missing
-Gaussian responses and masks or marginalizes their likelihood contribution.}
+complete-case fitting; for a bivariate Gaussian model, a row with either
+response missing is omitted. \code{"include"} keeps rows with supported missing
+responses and masks their response likelihood contribution.}
 
 \item{predictor}{Predictor missingness policy. \code{"fail"} errors on missing
 predictors. \code{"model"} enables the current \code{mi()} predictor-model routes when
@@ -28,9 +29,11 @@ A \code{drm_missing_control} object.
 \description{
 \code{miss_control()} configures the first \code{drmTMB} missing-data slices. The
 default keeps the existing complete-case behaviour. In the current fitted
-slices, \code{response = "include"} is implemented for univariate Gaussian
-response masks and bivariate Gaussian partial-response rows without dense
-known covariance. \code{predictor = "model"} is implemented mainly for one \code{mi()}
+slices, \code{response = "include"} is implemented for every current univariate
+fitted response route and for bivariate Gaussian partial-response rows
+without dense known covariance. It uses an observed-response mask: a missing
+response contributes no direct response likelihood. \code{predictor = "model"}
+is implemented mainly for one \code{mi()}
 missing predictor at a time in a univariate Gaussian location model:
 numeric missing predictors can use Gaussian fixed-effect, grouped, or
 structured predictor models. Binary,

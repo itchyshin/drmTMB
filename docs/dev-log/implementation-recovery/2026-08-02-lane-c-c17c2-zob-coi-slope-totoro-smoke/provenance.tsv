@@ -1,0 +1,17 @@
+key	value
+run_status	COMPLETE
+source_sha	ac86a6429f67b738d9b2e21072b109c9c7681b79
+runner_sha256	01a762c641e13f6b90152b78df7d7d9a226ff3cb553876d0c12b247d5ed31414
+git_blob:R/drmTMB.R	8a98c58125bbb70c62797ad26908c753ad698068
+git_blob:R/family.R	937f0eb5a9c3bbb2122246670e4f01cea350e374
+git_blob:R/methods.R	f4cb4e68d3bc70c46cd73b75845e8e8cee28ddef
+git_blob:R/profile.R	c49451a8b448ed43a35bc289fce02fa526331450
+git_blob:src/drmTMB.cpp	c907a52c18768ac86f926656d02f5d31d2d8e4f7
+git_blob:tests/testthat/test-zero-one-beta.R	e8b47c3d90c5873193b25eb8a4985d52a52d94d9
+git_blob:tools/run-lane-c-c17c2-zob-coi-slope-recovery.R	1141cb6f806b5651374846a2191ae2ef0862be3a
+loaded_namespace_path	/home/snakagaw/hsq_work/drmTMB-c17c2-ac86a642
+utc_start	2026-08-02 03:05:40 UTC
+utc_finish	2026-08-02 03:06:14 UTC
+exact_command	R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-lane-c-c17c2-zob-coi-slope-recovery.R
+command_args	/usr/lib/R/bin/exec/R --no-echo --no-restore --no-init-file --file=tools/run-lane-c-c17c2-zob-coi-slope-recovery.R
+dirty_state_path	dirty-state.txt

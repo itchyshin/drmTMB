@@ -16,8 +16,89 @@ bernoulli_nb2_oracle <- function(binary_y, binary_p, count_y, mu, sigma, eta) {
   upper_count <- stable_quantile(count_y)
   lower <- c(if (binary_y == 0L) -Inf else threshold, lower_count)
   upper <- c(if (binary_y == 0L) threshold else Inf, upper_count)
-  as.numeric(mvtnorm::pmvnorm(lower = lower, upper = upper,
-    mean = c(0, 0), sigma = matrix(c(1, eta, eta, 1), 2, 2)))
+  as.numeric(mvtnorm::pmvnorm(
+    lower = lower, upper = upper, mean = c(0, 0),
+    sigma = matrix(c(1, eta, eta, 1), 2, 2),
+    algorithm = mvtnorm::GenzBretz(
+      maxpts = 250000L, abseps = 1e-12, releps = 1e-12
+    ),
+    keepAttr = FALSE
+  ))
+}
+
+# Independent of the production rectangle helper: condition on the NB2 latent
+# normal and integrate over its latent interval.  This deliberately uses the
+# opposite orientation from the production CDF-scale integral.  A tight
+# numerical maximum is available for finite intervals; the normal-density
+# maximum is an analytic bound for the count-zero half-line.
+bernoulli_nb2_conditional_oracle <- function(
+  binary_y, binary_p, count_y, mu, sigma, eta
+) {
+  size <- drmTMB:::drm_nbinom2_size(sigma)
+  if (identical(eta, 0)) {
+    return(list(
+      status = "ok",
+      log_probability = stats::dbinom(binary_y, 1, binary_p, log = TRUE) +
+        stats::dnbinom(count_y, size = size, mu = mu, log = TRUE),
+      relative_integration_error = 0
+    ))
+  }
+  endpoints <- tryCatch(
+    drmTMB:::drm_pair_nbinom2_endpoints(count_y, mu, sigma),
+    error = function(e) e
+  )
+  if (inherits(endpoints, "error")) {
+    return(list(status = "oracle_unresolved", log_probability = NA_real_))
+  }
+  threshold <- stats::qnorm(binary_p, lower.tail = FALSE)
+  s <- sqrt(1 - eta^2)
+  log_integrand <- function(z) {
+    if (binary_y == 1L) {
+      conditional <- stats::pnorm((eta * z - threshold) / s, log.p = TRUE)
+    } else {
+      conditional <- stats::pnorm((threshold - eta * z) / s, log.p = TRUE)
+    }
+    stats::dnorm(z, log = TRUE) + conditional
+  }
+  log_scale <- -0.5 * log(2 * pi)
+  if (is.finite(endpoints$lower) && is.finite(endpoints$upper)) {
+    maximum <- tryCatch(
+      stats::optimize(function(z) -log_integrand(z),
+        interval = c(endpoints$lower, endpoints$upper), tol = 1e-12
+      ),
+      error = function(e) e
+    )
+    if (inherits(maximum, "error") || !is.finite(maximum$objective)) {
+      return(list(status = "oracle_unresolved", log_probability = NA_real_))
+    }
+    log_scale <- -maximum$objective
+  }
+  integral <- tryCatch(
+    stats::integrate(
+      function(z) exp(log_integrand(z) - log_scale),
+      lower = endpoints$lower, upper = endpoints$upper,
+      subdivisions = 400L, rel.tol = 1e-11
+    ),
+    error = function(e) e
+  )
+  if (inherits(integral, "error") || !is.finite(log_scale) ||
+      !is.finite(integral$value) || !is.finite(integral$abs.error) ||
+      integral$value <= 0) {
+    return(list(status = "oracle_unresolved", log_probability = NA_real_))
+  }
+  list(
+    status = "ok",
+    log_probability = log_scale + log(integral$value),
+    relative_integration_error = integral$abs.error / integral$value
+  )
+}
+
+bernoulli_nb2_pinned_rectangle_oracle <- function(...) {
+  probability <- bernoulli_nb2_oracle(...)
+  if (!is.finite(probability) || probability <= 0) {
+    return(list(status = "oracle_unresolved", log_probability = NA_real_))
+  }
+  list(status = "ok", log_probability = log(probability))
 }
 
 test_that("Bernoulli x ordinary-NB2 descriptor is versioned and pair-private", {
@@ -97,6 +178,85 @@ test_that("Bernoulli x ordinary-NB2 rectangles factorize and match an independen
   }
 })
 
+test_that("Bernoulli x ordinary-NB2 CDF-scale kernel matches pinned tail oracles", {
+  skip_if_not_installed("mvtnorm")
+  cases <- list(
+    zero_binary_0 = list(binary_y = 0L, binary_p = 0.23, count_y = 0L, mu = 4.1, sigma = 0.55, alpha = 0),
+    zero_binary_1 = list(binary_y = 1L, binary_p = 0.23, count_y = 3L, mu = 4.1, sigma = 0.55, alpha = 0),
+    normal_negative = list(binary_y = 0L, binary_p = 0.23, count_y = 3L, mu = 4.1, sigma = 0.55, alpha = -0.35),
+    normal_positive = list(binary_y = 1L, binary_p = 0.23, count_y = 3L, mu = 4.1, sigma = 0.55, alpha = 0.35),
+    tail_negative = list(binary_y = 1L, binary_p = stats::plogis(-0.35), count_y = 3L, mu = exp(0.5), sigma = 0.62, alpha = -4),
+    tail_positive = list(binary_y = 0L, binary_p = stats::plogis(-0.35), count_y = 3L, mu = exp(0.5), sigma = 0.62, alpha = 4),
+    zero_count_negative = list(binary_y = 0L, binary_p = 0.23, count_y = 0L, mu = 4.1, sigma = 0.55, alpha = -0.35),
+    zero_count_positive = list(binary_y = 1L, binary_p = 0.23, count_y = 0L, mu = 4.1, sigma = 0.55, alpha = 0.35),
+    high_count_negative = list(binary_y = 1L, binary_p = 0.04, count_y = 35L, mu = 24, sigma = 0.25, alpha = -0.35),
+    high_count_positive = list(binary_y = 0L, binary_p = 0.04, count_y = 35L, mu = 24, sigma = 0.25, alpha = 0.35)
+  )
+  for (name in names(cases)) {
+    case <- cases[[name]]
+    eta <- 0.999999 * tanh(case$alpha)
+    actual <- do.call(
+      drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability,
+      c(unname(case[1:5]), list(eta = eta))
+    )
+    oracle <- do.call(
+      bernoulli_nb2_conditional_oracle,
+      c(unname(case[1:5]), list(eta = eta))
+    )
+    expect_identical(oracle$status, "ok", info = name)
+    expect_identical(actual$status, "ok", info = name)
+    expect_equal(actual$log_probability, oracle$log_probability,
+      tolerance = 1e-10, info = name)
+    rectangle <- do.call(
+      bernoulli_nb2_pinned_rectangle_oracle,
+      c(unname(case[1:5]), list(eta = eta))
+    )
+    if (identical(name, "tail_negative")) {
+      expect_identical(rectangle$status, "ok", info = name)
+      expect_equal(actual$log_probability, rectangle$log_probability,
+        tolerance = 1e-10, info = name)
+      next
+    }
+    if (identical(rectangle$status, "ok")) {
+      expect_equal(actual$log_probability, rectangle$log_probability,
+        tolerance = 1e-10, info = name)
+    } else {
+      expect_identical(rectangle$status, "oracle_unresolved", info = name)
+    }
+  }
+})
+
+test_that("Bernoulli x ordinary-NB2 near-boundary kernels agree or fail closed", {
+  skip_if_not_installed("mvtnorm")
+  for (alpha in c(-7, 7)) {
+    eta <- 0.999999 * tanh(alpha)
+    actual <- drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability(
+      1L, stats::plogis(-0.35), 3L, exp(0.5), 0.62, eta
+    )
+    oracle <- bernoulli_nb2_conditional_oracle(
+      1L, stats::plogis(-0.35), 3L, exp(0.5), 0.62, eta
+    )
+    if (identical(actual$status, "ok") && identical(oracle$status, "ok")) {
+      expect_equal(actual$log_probability, oracle$log_probability,
+        tolerance = 1e-10, info = paste("alpha", alpha))
+      rectangle <- bernoulli_nb2_pinned_rectangle_oracle(
+        1L, stats::plogis(-0.35), 3L, exp(0.5), 0.62, eta
+      )
+      if (identical(rectangle$status, "ok")) {
+        expect_equal(actual$log_probability, rectangle$log_probability,
+          tolerance = 1e-10, info = paste("alpha", alpha))
+      } else {
+        expect_identical(rectangle$status, "oracle_unresolved",
+          info = paste("alpha", alpha))
+      }
+    } else {
+      expect_true(actual$status %in% c(
+        "endpoint_failure", "integration_failure", "integration_error_exceeds_tolerance"
+      ), info = paste("alpha", alpha))
+    }
+  }
+})
+
 test_that("Bernoulli x ordinary-NB2 rectangles normalize and retain tail diagnostics", {
   probabilities <- outer(0:1, 0:40, Vectorize(function(binary_y, count_y) {
     drmTMB:::drm_pair_bernoulli_nbinom2_rectangle_probability(
@@ -113,10 +273,7 @@ test_that("Bernoulli x ordinary-NB2 rectangles normalize and retain tail diagnos
   )
   expect_identical(rare_high$status, "ok")
   expect_true(is.finite(rare_high$integration_error))
-  expect_true(rare_high$integration_error <= max(
-    rare_high$integration_abs_tol,
-    rare_high$integration_rel_tol * rare_high$probability
-  ))
+  expect_true(rare_high$relative_integration_error <= rare_high$integration_rel_tol)
   expect_true(rare_high$branch %in% c("lower", "upper", "straddle"))
 
   expect_true(is.finite(stats::qnorm(1e-12, lower.tail = FALSE)))
@@ -360,10 +517,14 @@ test_that("Bernoulli x ordinary-NB2 association predicts full fixed-effect desig
     predict(association_fit, type = "response"),
     0.999999 * tanh(predict(association_fit, type = "link"))
   )
+  expect_equal(
+    predict(association_fit, type = "eta"),
+    predict(association_fit, type = "response")
+  )
   expect_equal(predict(association_fit), fitted(association_fit))
   expect_error(
-    predict(association_fit, type = "response", se.fit = TRUE),
-    "uncertainty is unavailable"
+    predict(association_fit, se.fit = TRUE),
+    "Choose an association scale"
   )
 
   newdata <- data.frame(
@@ -381,6 +542,59 @@ test_that("Bernoulli x ordinary-NB2 association predicts full fixed-effect desig
     predict(association_fit, newdata = newdata),
     0.999999 * tanh(as.vector(new_design %*%
       association_fit$association_coefficients))
+  )
+  expect_warning(
+    eta_prediction <- predict(
+      association_fit,
+      newdata = newdata,
+      type = "eta",
+      se.fit = TRUE,
+      interval = "confidence"
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  alpha_covariance <- association_fit$alpha_inference$covariance
+  link <- as.vector(new_design %*% association_fit$association_coefficients)
+  link_se <- sqrt(rowSums((new_design %*% alpha_covariance) * new_design))
+  eta <- 0.999999 * tanh(link)
+  eta_se <- 0.999999 * (1 - tanh(link)^2) * link_se
+  critical <- stats::qnorm(0.975)
+  expected_fit <- cbind(
+    fit = eta,
+    lwr = 0.999999 * tanh(link - critical * link_se),
+    upr = 0.999999 * tanh(link + critical * link_se)
+  )
+  expect_equal(eta_prediction$fit, expected_fit, tolerance = 1e-12)
+  expect_equal(eta_prediction$se.fit, eta_se, tolerance = 1e-12)
+  expect_true(all(abs(eta_prediction$fit[, c("lwr", "upr")]) < 1))
+  expect_warning(
+    eta_interval_only <- predict(
+      association_fit,
+      newdata = newdata,
+      type = "eta",
+      interval = "confidence"
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_equal(eta_interval_only, expected_fit, tolerance = 1e-12)
+  expect_warning(
+    link_prediction <- predict(
+      association_fit,
+      newdata = newdata,
+      type = "link",
+      se.fit = TRUE
+    ),
+    class = "drmTMB_association_inference_warning"
+  )
+  expect_equal(link_prediction$fit, link, tolerance = 1e-12)
+  expect_equal(link_prediction$se.fit, link_se, tolerance = 1e-12)
+  expect_error(
+    predict(association_fit, type = "eta", level = 1),
+    "strictly between"
+  )
+  expect_error(
+    predict(association_fit, type = "eta", se.fit = NA),
+    "non-missing logical"
   )
   unseen <- newdata
   unseen$habitat <- factor("wetland")

@@ -1,0 +1,2 @@
+parm	level	lower	upper	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:mu:phylo_interaction(1 | plant:pollinator)	0.95	NA	NA	profile	tmbprofile	profile	TRUE	ok	mc-0438	mc-0438::sd:mu:phylo_interaction(1 | plant:pollinator)	2026080201	pair_groups_64_each_20

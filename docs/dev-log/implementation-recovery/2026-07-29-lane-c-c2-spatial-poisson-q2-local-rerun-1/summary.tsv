@@ -1,0 +1,2 @@
+fixture_id	planned_attempts	attempted_attempts	fit_ok	fit_error	nonconverged	pdhess_false	boundary_hits	mean_beta0_hat	mean_beta1_hat	mean_tau0_hat	mean_tau1_hat	mean_rho_hat	decision
+lane_c_c2_spatial_poisson_q2_local	3	3	3	0	0	0	0	0.931593502011975	0.512336227983907	0.526466906278836	0.499062636936103	0.66334189804219	PASS_POINT_RECOVERY_LOCAL

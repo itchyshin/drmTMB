@@ -1,8 +1,8 @@
 ---
-title: "Improving convergence"
+title: "Errors, warnings, and convergence"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Improving convergence}
+  %\VignetteIndexEntry{Errors, warnings, and convergence}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

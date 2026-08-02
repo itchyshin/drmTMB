@@ -1,5 +1,12 @@
 # Arc 6.2 contract: Gaussian × ordinary NB2 frozen-margin association
 
+> **Supersession (2026-08-01).** The point-estimate implementation described
+> here now has public two-stage Godambe uncertainty. `vcov()` and plain
+> `confint()` report alpha-scale uncertainty; `confint(type = "eta")` and
+> `predict(type = "eta", se.fit = TRUE, interval = "confidence")` report
+> derived bounded eta uncertainty. Coverage remains uncalibrated for this pair,
+> so the route warns and remains `interval_feasible`.
+
 This is the second bounded Arc 6 pair class. It extends the post-fit
 `associate_pairs()` architecture; it does not introduce a bivariate response
 family or change `biv_gaussian()`.
@@ -18,9 +25,10 @@ are frozen: Gaussian \(\mu_{Gi},\sigma_{Gi}\) and NB2
 \]
 
 The only fitted association quantity is
-\(\eta=0.999999\tanh(\alpha)\), a conditional latent-normal point estimate.
-It is not `rho12`, an observed-scale correlation, a joint-MLE parameter, or an
-inference claim.
+\(\eta=0.999999\tanh(\alpha)\), a conditional latent-normal association.
+It is not `rho12`, an observed-scale correlation, or a joint-MLE parameter.
+Its uncertainty comes from the two-stage Godambe covariance, not from the
+conditional stage-2 Hessian.
 
 ## Exact contribution and tails
 
@@ -48,10 +56,11 @@ Gaussian density and NB2 mass.
 
 ## Deliberate boundary
 
-The first slice rejects association slopes, non-ML fits, random/structured
+The route rejects association slopes, non-ML fits, random/structured
 effects, missing rows, weights, offsets, `mi()`, `meta_V`, zero-inflated,
-hurdle, and truncated count models. `vcov()`, profiling, `confint()`,
-residual extractors, and `rho12` extractors remain unavailable. Simulation is
+hurdle, and truncated count models. Profiling, residual extractors, and
+`rho12` extractors remain unavailable. `vcov()`, `confint()`, and eta-scale
+prediction uncertainty are available with an uncalibrated-coverage warning. Simulation is
 a coupled latent-normal construction with exact NB2 quantiles and is a model
 construction tool, not a recovery guarantee.
 

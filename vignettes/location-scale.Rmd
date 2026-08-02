@@ -531,10 +531,13 @@ If the `sigma` formula is omitted, `drmTMB` fits one intercept-only residual
 SD. Use that simpler model only when a common residual SD is scientifically
 and diagnostically adequate.
 
-## Where to continue
+## Continue to Part 2
 
-- Use [Part 2: location-scale-scale models](location-scale-scale.html) when
-  predictors model a grouped or phylogenetic random-effect SD through `sd()`.
+Part 1 has separated expected response `mu` from residual SD `sigma`. Continue
+to [Part 2: location-scale-scale models](location-scale-scale.html) when the
+scientific question also asks whether a predictor changes the SD of a grouped
+or phylogenetic location effect through `sd()`.
+
 - Use [Mean effects and residual heterogeneity](meta-analysis.html) for Gaussian
   meta-analysis with known sampling covariance through `meta_V(V = V)`.
 - Use [Changing residual coupling with rho12](bivariate-coscale.html) for two

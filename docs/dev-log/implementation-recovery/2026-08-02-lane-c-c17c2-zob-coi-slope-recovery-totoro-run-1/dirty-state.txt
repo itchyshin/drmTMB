@@ -1,0 +1,9 @@
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-c14-model15-compatibility-totoro-run-1/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-c14-model15-compatibility-totoro-run-1/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-c14-model15-compatibility-totoro-run-1/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-c14-model15-compatibility-totoro-run-1/summary.tsv
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-zob-coi-slope-totoro-smoke/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-zob-coi-slope-totoro-smoke/progress.log
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-zob-coi-slope-totoro-smoke/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-zob-coi-slope-totoro-smoke/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-zob-coi-slope-totoro-smoke/summary.tsv

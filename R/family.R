@@ -302,9 +302,28 @@ beta <- function() {
 #' `fitted()` returns the unconditional response mean
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
-#' `mu`. Correlated or labelled `mu` slopes, `sigma`, `zoi`, or `coi` random
-#' effects, structured effects, covariance blocks, and denominator syntax remain
-#' unsupported.
+#' `mu`. The point-fit-only q1 gates additionally admit one ordinary
+#' intercept-only random effect in `sigma`, `zoi`, or `coi`, separately, plus
+#' one ordinary slope-only effect in any one of those parameters when the fixed
+#' and random terms use the same raw symbol. Examples are
+#' `zoi ~ x + (0 + x | id)` and `coi ~ x + (0 + x | id)`. The exact `coi`
+#' admissions are that slope form and `coi ~ 1 + (1 | id)`, both with fixed
+#' `sigma ~ 1` and `zoi ~ 1`. These routes are
+#' point-fit recovery only:
+#' direct profiling, intervals, coverage, and broader recovery claims remain
+#' unavailable. In the retained `coi` recovery rung (`M = 64`, 50 observations
+#' per group), population-level point recovery remained stable when a few groups
+#' had fewer than two observed zeroes or ones, but those groups can have weakly
+#' identified conditional modes; inspect the within-group atom counts before
+#' interpreting individual modes. Correlated or labelled effects,
+#' intercept-plus-slope atom effects, transformed or mismatched `zoi` or `coi`
+#' slope symbols, structured atom effects,
+#' covariance blocks, and denominator syntax remain unsupported. One further
+#' point-fit-only structured route is
+#' available: an unlabelled q1 `phylo(1 | group, tree = tree)` intercept in
+#' `mu`. It does not license other providers, slopes, labels, covariance,
+#' q2-plus structured effects, profiling, intervals, coverage, or inference
+#' claims.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -414,8 +433,11 @@ cumulative_logit <- function() {
 #' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
 #' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
 #' (trust the point estimate, not the interval; not yet coverage-verified).
-#' NB2 `sigma` random slopes and zero-inflated NB2 `sigma` random effects
-#' remain planned.
+#' NB2 `sigma` random slopes remain planned. Zero-inflated NB2 supports only
+#' the point-fit-only IID control `bf(count ~ fixed_effects, sigma ~ 1 +
+#' (1 | group), zi ~ 1)` under ML with complete responses; zero-inflated
+#' sigma predictors, slopes, labels, and other random-effect combinations
+#' remain unsupported.
 #'
 #' @return A `drm_family` object.
 #' @export

@@ -1,0 +1,16 @@
+key	value
+run_status	COMPLETE
+source_sha	3645c9412f25667b15d4f10369d2864494ee70d4
+runner_sha256	b711ffe13097de00152c54d7bb8dfc9c16bae37b262c3ace6d4a777e90664767
+git_blob:R/drmTMB.R	851aaded5257c6613fc9a8cab3296842bc7ffa9f
+git_blob:R/methods.R	f4cb4e68d3bc70c46cd73b75845e8e8cee28ddef
+git_blob:R/profile.R	c49451a8b448ed43a35bc289fce02fa526331450
+git_blob:src/drmTMB.cpp	c907a52c18768ac86f926656d02f5d31d2d8e4f7
+git_blob:tests/testthat/test-zero-one-beta.R	40fc88cb800f4b732a31e345f21d40ed68ef6889
+git_blob:tools/run-lane-c-c17c1-zob-coi-intercept-recovery.R	0fde43f74c5347c8ec30fc86b4729d554132996f
+loaded_namespace_path	/home/snakagaw/hsq_work/drmTMB-c17c1-prospective-3645c941
+utc_start	2026-08-01 21:12:39 UTC
+utc_finish	2026-08-01 21:14:05 UTC
+exact_command	R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-lane-c-c17c1-zob-coi-intercept-recovery.R
+command_args	/usr/lib/R/bin/exec/R --no-echo --no-restore --no-init-file --file=tools/run-lane-c-c17c1-zob-coi-intercept-recovery.R
+dirty_state_path	dirty-state.txt

@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	profile_parameter	level	lower	upper	profile_engine
+mc-0248	mc-0248::sd:mu:relmat(1 | id)	20260727	low	sd:mu:relmat(1 | id)	0.95	0.397996733426569	0.664258394694467	tmbprofile

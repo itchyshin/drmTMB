@@ -1,0 +1,2 @@
+M	attempts	diagnostics_pass	support_pass	boundary_x_sd_pass	mean_beta_mu0_error	mean_beta_mu1_error	mean_beta_zoi0_error	mean_beta_coi0_error	mean_beta_coi1_error	mean_log_sigma_error	mean_sd_coi_relative_error	max_glmer_difference	role	decision
+16	1	1	1	1	0.0371156950328186	0.00532465603828924	0.0473110057248847	0.229464802753127	0.240196479399428	0.00319031294967509	0.379714261286727	8.55471076924852e-05	local_smoke	LOCAL_SMOKE_ONLY

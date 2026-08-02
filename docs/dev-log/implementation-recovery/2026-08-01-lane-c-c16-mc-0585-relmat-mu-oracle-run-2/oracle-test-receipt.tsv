@@ -1,0 +1,11 @@
+cell_id	dpar	provider	source_sha	runner_md5	test_file	command	result
+mc-0583	mu	phylo	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0584	mu	animal	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0585	mu	relmat	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0586	mu	spatial	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0587	mu	phylo_interaction	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0593	sigma	phylo	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0594	sigma	animal	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0595	sigma	relmat	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0596	sigma	spatial	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS
+mc-0597	sigma	phylo_interaction	0c3ce7de378180b8d040e054ad3b9193df22ab45	01d1e7b058b2d111c7f124fc9ffa9a69	tests/testthat/test-zero-one-beta.R	Rscript -e devtools::test(filter = '^zero-one-beta$')	PASS

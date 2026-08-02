@@ -2,6 +2,125 @@
 
 Record meaningful development checks here.
 
+## 2026-08-01: Missing-response scoped-evidence reader surface
+
+- Replaced the duplicated 18-card execution board with a compact generated
+  target-rung G4/G5 summary. Each per-family Missing response cell now retains
+  its honest route-wide G3 badge and adds its scoped G4 framework status plus
+  route-specific G5 calibration result (or `not run`/cancelled state): 295/306
+  G4-feasible records; 98/130 G5 calibration passes; 32 retained failures;
+  binomial 6/6. This prevents the G3 badge from hiding completed scoped evidence
+  without misrepresenting it as a route-wide G5 promotion.
+- `python3 tools/capability_ledger.py --write`, `--check`, focused generated-
+  surface unit test, and `git diff --check`: PASS.
+
+## 2026-08-01: Missing-response G4/G5 bounded closeout
+
+- The frozen remote manifest contains 18 routes and 102 targets. Its reconciled
+  G4 ledger has 306 target-rung records: 295 G4-feasible and 11 retained
+  non-eligible records. This makes the G4 framework ready for audited use; it
+  is not an all-target interval-feasibility claim.
+- Seven reconciled G5 artifacts cover eight cohorts and retain 156,000 planned
+  attempts. Of 130 exact cells, 98 pass `mr-g5-calibration-v1` and 32 fail.
+  Binomial is the only fully passing completed cohort (6/6); all public route
+  badges remain G3.
+- User-directed cancellation stopped Rorqual Beta array `18098606` after two
+  durable but unreconciled receipts. No later cohort was submitted. The durable
+  provenance inventory and hashes are in
+  `docs/dev-log/evidence/2026-08-01-mr-g4g5-bounded-closeout-receipt.md`.
+- `devtools::test(filter = "missing-response-g4g5-foundation")`: PASS.
+
+## 2026-08-01: Missing-response G5 NB2 cohort receipt
+
+- Reconciled 15 frozen NB2 target-rung cells and all 18,000 planned Rorqual
+  attempts from `~/g4g5/artifacts/g5-nbinom2-reconciled-v1.rds`. The durable
+  `mr-g4g5-v2` artifact records the runner, frozen manifest, G4 records, and
+  all 15 input-receipt hashes.
+- Ten exact route x target x information-rung cells pass
+  `mr-g5-calibration-v1`: all three `fixef:mu:(Intercept)` and `fixef:mu:x`
+  rungs; `fixef:sigma:(Intercept)` at 2x; `fixef:sigma:z` at 2x; and
+  `sd:mu:(1 | id)` at 2x. Their coverage is 0.93500--0.95417 with MCSE at
+  most 0.00712. These are positive scoped response-mask evidence for the
+  exact frozen cells.
+- Five cells fail because not every planned attempt produced a usable interval:
+  `fixef:sigma:(Intercept)` at 0.5x and 1x, `fixef:sigma:z` at 0.5x and 1x,
+  and `sd:mu:(1 | id)` at 0.5x and 1x. All failures remain in their
+  unconditional 1,200-attempt denominators. No route-wide capability or model
+  inference-tier claim is made from the partial cohort.
+
+## 2026-08-01: Missing-response G5 Student-t cohort receipt
+
+- Reconciled 16 frozen Student-t target-rung cells and all 19,200 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-student-reconciled-v1.rds`.
+- Three 2x cells pass `mr-g5-calibration-v1`: `fixef:mu:x`,
+  `fixef:sigma:z`, and `sd:mu:(1 | id)`. Thirteen cells fail; failures include
+  unusable intervals, fixed-intercept overcoverage, and the `nu` target's
+  0.81583 coverage with MCSE 0.01119. All attempts remain retained.
+- No test gate or inference tier is promoted; the frozen G3 design and public
+  G3 status remain unchanged.
+
+## 2026-07-31: Missing-response G5 lognormal cohort receipt
+
+- Reconciled 15 frozen lognormal target-rung cells and all 18,000 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-lognormal-reconciled-v1.rds`.
+- Eleven cells pass `mr-g5-calibration-v1`. The three fixed-`mu` intercept
+  rungs have coverage 1.000 and fail the policy band; the 0.5x `sd:mu:(1 | id)`
+  cell has one unusable interval and fails the all-interval-available rule.
+  All failures remain in their unconditional 1,200-attempt denominators.
+- No test gate or inference tier is promoted; the frozen G3 design and public
+  G3 status remain unchanged.
+
+## 2026-07-31: Missing-response G5 Gamma cohort receipt
+
+- Reconciled 15 frozen Gamma target-rung cells and all 18,000 planned DRAC
+  attempts from `~/g4g5/artifacts/g5-gamma-reconciled-v1.rds`. Every cell has
+  its complete 1,200-attempt denominator and 1,200 usable intervals.
+- Twelve cells pass `mr-g5-calibration-v1`. The three
+  `fixef:mu:(Intercept)` information rungs have coverage 1.000 and fail the
+  predeclared 0.925--0.975 band; they are retained as calibration failures.
+- This is a cohort receipt only: frozen G3 settings are unchanged, failures
+  remain in the denominator, and no test gate or inference tier is promoted.
+
+## 2026-07-31: Missing-response dashboard active-campaign wording
+
+- Kept all 18 public route badges at G3: partial G4/G5 calibration receipts
+  cannot promote a route-level test gate or its separate model inference tier.
+- Replaced the reader-facing stale "outside this arc" next-step text with the
+  active G4/G5 campaign boundary: every frozen route x target needs
+  reconciliation and fresh D-43 review before promotion.
+- `python3 tools/capability_ledger.py --write --check` and the focused
+  generated-surface unit test: PASS.
+
+## 2026-07-31: Missing-response G5 binomial and Poisson cohort receipts
+
+- The retained binomial cohort contains all 7,200 planned attempts across six
+  frozen target-rung cells. Its profile-interval calibration rows all pass the
+  prospective `mr-g5-calibration-v1` rule (coverage 0.946--0.962; MCSE below
+  0.01). Durable artifact:
+  `~/g4g5/artifacts/g5-binomial-reconciled-v1.rds`.
+- The retained Poisson cohort contains all 10,800 planned attempts across nine
+  frozen target-rung cells. The three fixed-intercept rows have coverage 1.000
+  and fail calibration; the `sd:mu:(1 | id)` 0.5x row fails because two
+  intervals were unusable. The remaining five exact rows pass. Durable
+  artifact: `~/g4g5/artifacts/g5-poisson-reconciled-v1.rds`.
+- These are calibration receipts, not a capability promotion: no test gate or
+  inference tier changes here. All failed attempts and non-finite/unusable
+  intervals remain in the unconditional 1,200-attempt denominators.
+
+## 2026-07-31: Missing-response G5 route-cohort DRAC runner
+
+- Added a route selector that can only subset the frozen G4-feasible registry;
+  it preserves the original cell IDs and deterministic attempt seeds and errors
+  for an unknown route.
+- Added one explicit three-attempt DRAC receipt smoke and one full route-array
+  entry point. Both source the checked-out G4/G5 runner, write durable RDS
+  receipts, and leave the frozen G3 DGP, target, interval-method, and
+  all-attempt denominator contract untouched.
+- Focused `missing-response-g4g5-foundation` tests, R-script parsing, shell
+  syntax checks, and `git diff --check`: PASS. This is execution plumbing only:
+  no G5 calibration result, test-gate change, or inference-tier promotion is
+  claimed.
+
 ## 2026-07-28: Bivariate non-Gaussian bootstrap-output repair
 
 - Repaired the direct-lognormal `rho12` vignette's bootstrap presentation:
@@ -91702,6 +91821,238 @@ Shinichi grants a separate Gate A compute approval.
   changed. See
   `docs/dev-log/2026-07-29-arc6-f4r-completion-review.md` and
   `docs/dev-log/after-task/2026-07-29-arc6-f4r-completion-review.md`.
+
+## 2026-08-01: Arc 6 Association private-evidence closeout
+
+- Confirmed that current `main` already contains the three meaningful Arc 6
+  runtime-repair commits (`324a00233`, `b7f0ee442`, `38532e2ad`) and the
+  F4R completion review. The stale F3/F4R branch is retained but not merged
+  or rebased.
+- Preserved the failed lower-information F4 campaign through
+  `docs/dev-log/2026-08-01-arc6-f4-historical-failure-receipt.md` and the
+  narrow F4R private alpha-scale interval-feasibility result. Public association
+  `vcov()`/`confint()`, eta inference, F5, ledger/pkgdown changes, and new
+  compute remain outside this closeout.
+- See `docs/dev-log/after-task/2026-08-01-arc6-association-private-evidence-closeout.md`.
+## 2026-07-30: Missing-data R claim reconciliation (#865–#867)
+
+- Isolated `codex/missing-data-claims-865-867` from `origin/main` at `aa599095f`; PR #869 is a separate documentation-only brief and was not modified.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::document()'` completed after Roxygen changes.
+- Focused `missing-(data-control|response-biv-gaussian|response-family-gate|data-capability-gate)` tests passed: 99 expectations, 0 failures, 0 warnings, 0 skips.
+- `R_PROFILE_USER=/dev/null R CMD build .` completed. The no-force-suggests installed-package check `NOT_CRAN=false _R_CHECK_FORCE_SUGGESTS_=false R CMD check --as-cran --no-manual drmTMB_0.6.0.tar.gz` completed with two pre-existing/environmental notes: unavailable optional `palmerpenguins` and `utils::head` missing from the namespace import list.
+- `pkgdown::check_pkgdown()` passed after adding the existing exported `predict.drm_pair_association` topic to the frozen-margin bivariate-association reference group.
+- Rose's claim audit required and then verified reconciliation of the current 18-route response-mask inventory, the unsupported-family message, and the historical 0.5.0 wording. A broad source suite was started and reached unrelated phase-18 contexts without failures, then intentionally stopped. PR #871 merged as `5e732894` on 2026-07-30 and automatically closed #865–#867; the focused suite and installed CRAN-safe suite remain the final evidence for this R claim-reconciliation arc.
+## 2026-07-31: MR-G5 Gaussian calibration policy and provenance receipt
+
+- The first reconciled G5 Gaussian/bivariate-Gaussian cohort remains
+  non-promotional. Its 54 cells retain all 64,800 planned attempts, but the
+  Gaussian `fixef:mu:(Intercept)` target has 3,600/3,600 containment across
+  its three rungs. This is recorded as a calibration failure, not discarded or
+  interpreted as inference evidence.
+- `mr-g5-calibration-v1` now requires complete all-attempt denominators,
+  all-attempt interval availability, MCSE <= 0.01, and prospective 0.925--0.975
+  coverage for every exact route x parameter x rung. The reconciler writes the
+  policy result plus hashes of the runner, frozen manifests, G4 records, and
+  all input receipts. No G3/G4/G5 test-gate or model inference-tier promotion
+  occurred.
+- Focused `missing-response-g4g5-foundation` tests passed under
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file`, including direct
+  overcoverage-rejection and provenance-receipt regression tests.
+- Reconciliation on Rorqual under the existing G5 module/library environment
+  produced `g5-gaussian-reconciled-v2.rds`: 51/54 exact cells pass the
+  prospective policy and the three Gaussian fixed-intercept rungs fail. This
+  artifact is eligible only for later review; it does not promote a test gate
+  or inference tier.
+## 2026-07-28: capability backlog taxonomy correction
+
+- Reclassified the 330 legacy `rejected_by_design` model-surface cells as
+  visible `not_implemented` backlog. The ledger now reports 307 implemented and
+  370 not-implemented model cells; no evidence tier changed.
+- Added deterministic planning classes to the generated detailed surface:
+  admission candidate, covariance/model method, and estimator method. The
+  rendered table explains that ML and REML are separate objectives, so an ML
+  route does not automatically imply a valid REML route.
+- `python3 -m unittest tools.tests.test_capability_ledger` passed 41 tests and
+  `python3 tools/capability_ledger.py --check` confirmed 30 current generated
+  outputs. No model implementation, simulation, inference promotion, or Arc 6
+  work occurred. See
+`docs/dev-log/after-task/2026-07-28-capability-backlog-taxonomy.md`.
+
+## 2026-08-01: B3 q6 direct-mu2 target promotion
+
+- With exact owner authority, promoted only `mc-0102`, `mc-0124`,
+  `mc-0146`, and `mc-0168` from `point_fit_recovery` to targetwise
+  `interval_feasible`.
+- The imported `a8d068e` serial cohort passes 4/4 independent receipt audits;
+  the 22 authorization/result artifacts plus the audit runner remain
+  byte-identical to the reviewed B2 source (23/23 immutable files).
+- The four-row packet corrects the immutable authorization's erroneous
+  `latent_log_sd` label: truth `0.4` is `response_sd`, and every retained
+  trace binds `scale=response`, `transformation=exp`,
+  `tmb_parameter=log_sd_phylo`, index `4`.
+- All four linked whole-q6 rows remain `point_fit / planned / planned`; paired
+  `mu1` cells remain `point_fit_recovery`. No profile rerun, coverage,
+  calibration, q12, E0, K=12, Lane A/C, missing-response, API, or compute work
+  occurred.
+- After `origin/main` advanced during B3, the lane refreshed to `5ff94d86`
+  and preserved all ten C16 promotions. Capability generation is current
+  (30 outputs); 46 ledger tests, 3 focused B3 tests, and 6 R receipt
+  expectations pass. A scoped `git diff --check` passes for all authored,
+  generated, and imported non-log files; the unscoped check flags only
+  historical trailing spaces in four immutable supervisor logs, retained to
+  preserve the 23/23 immutable byte-identity proof. Fresh
+  Fisher/Noether/Rose review is
+  3/3 PASS.
+- PR #879 run `30705835401` failed only because the focused R audit test tried
+  to source a top-level development tool from the built-package check tree,
+  where `.Rbuildignore` intentionally excludes `tools/`. The repaired test
+  still passes all six expectations in a source checkout and produces one
+  explicit expected skip in an extracted source tarball, following existing
+  repository practice for top-level-tool tests.
+- The global Mission Control and q-series commands remain red only for 15
+  inherited missing absolute paths into a historical DRM.jl worktree. B3
+  records this baseline and does not alter the foreign dashboard/DRM.jl lane.
+  See `docs/dev-log/after-task/2026-08-01-b3-q6-target-promotion.md`.
+
+## 2026-08-01: Arc 6 association public alpha intervals and reader-path repair
+
+- Released public alpha-scale two-stage Godambe `vcov()` and Wald `confint()`
+  for all five admitted frozen-margin association pair classes and the full
+  admitted Bernoulli x ordinary-NB2 fixed-effect association regression.
+- Added a separate six-cell association capability axis: five exact
+  `interval_feasible` cells and one Bernoulli x ordinary-NB2 intercept
+  `inference_ready_with_caveats` cell backed by the retained 16-cell F4R grid.
+  The failed lower-information F4 receipt remains retained as a warning and
+  availability caveat; no new compute was run.
+- The complete `associate-pairs` test family passed, all 46 capability-ledger
+  tests passed, all 30 generated ledger outputs checked current,
+  `pkgdown::build_site()` completed, and `pkgdown::check_pkgdown()` found no
+  problems.
+- The navigation audit now maps all 36 vignette sources to 36 unique navbar
+  targets. It restores the function map, rho12 and staged-association guides,
+  Errors/warnings, and the location-scale-scale Part 2 tutorial; it also fixes
+  misleading Julia/meta-analysis labels and user-versus-developer grouping.
+- The `associate_pairs()` and `biv_associate()` reference examples now execute
+  `sqrt(diag(vcov(assoc)))` and `confint(assoc)`, and a dedicated public
+  `vcov.drm_pair_association` reference page documents the alpha covariance.
+- Fisher, Pat, and Rose returned final PASS verdicts on the inference scope and
+  rebuilt reader surface. See
+  `docs/dev-log/after-task/2026-08-01-arc6-association-public-alpha-intervals.md`.
+
+## 2026-08-01: Arc 6 association eta uncertainty
+
+- Added `confint(assoc, type = "eta")` for intercept-only associations and
+  `predict(assoc, newdata = ..., type = "eta", se.fit = TRUE, interval =
+  "confidence")` for pointwise eta estimates, delta-method standard errors,
+  and monotonically transformed link-Wald limits.
+- The complete `associate-pairs` test family passed. Its first run caught two
+  message-only snapshots; the final rerun passed after preserving the existing
+  new-data error contract. Independent tests reproduce `sqrt(x' V_alpha x)`,
+  the eta derivative, and the transformed endpoints.
+- `devtools::document()` completed for the touched pages. A full
+  `pkgdown::build_site(new_process = FALSE)` and `pkgdown::check_pkgdown()`
+  passed; rendered articles and method references show both eta interfaces.
+- Capability ledger checks remain green: 46 Python tests passed and all 30
+  generated outputs are current. `git diff --check` and the after-task
+  structure validator passed.
+- Fisher returned PASS on the statistical transformation and evidence-tier
+  inheritance. Pat and Rose identified and then re-reviewed method examples,
+  constant-versus-varying reader guidance, current contract supersessions, and
+  rendered-site stale wording. See
+  `docs/dev-log/after-task/2026-08-01-arc6-association-eta-uncertainty.md`.
+
+## 2026-08-01: Function Map and location-scale reader-path repair
+
+- Repaired the remaining public article substance after the Arc 6 interval
+  implementation: the Function Map is a concise installed-user route chooser,
+  the full introduction owns the guided first fit, and Location-Scale Parts 1
+  and 2 now form one explicit sequence.
+- Part 2 now runs a clean `check_drm()` gate before inference, inventories the
+  residual- and group-SD targets, reports named Wald intervals with method and
+  status, transforms successful log-SD endpoints to SD-ratio intervals, and
+  keeps repeatability point-only.
+- Reorganized `_pkgdown.yml` so Getting Started, Location and Scale, and
+  Bivariate Models and Association are coherent; removed duplicate top-menu
+  destinations and isolated deferred Julia compatibility.
+- The article inventory has 36 entries, 36 unique targets, zero missing
+  sources, and zero unindexed vignettes. Full pkgdown build and
+  `pkgdown::check_pkgdown()` passed; rendered internal-link and public-only API
+  sweeps passed.
+- Pat caught a gradient warning in the first rendered Part 2 example. The
+  deterministic example was rerun with the same scientific design and now
+  reports 14/14 checks OK before interpretation. Pat and Rose returned final
+  PASS verdicts. See
+  `docs/dev-log/after-task/2026-08-01-reader-path-function-map-location-scale-part2.md`.
+- After rebasing onto current `origin/main`, all 30 generated capability outputs
+  remained current. One newly landed ledger test still expected the full
+  introduction to duplicate a zero-one-beta capability sentence; the guard now
+  verifies that the introduction delegates changing claims to the model map,
+  whose existing assertions retain the exact support check. All 47 ledger tests
+  pass on the rebased tree.
+- The complete post-rebase focused association suite passed 808/808 with zero
+  failures, warnings, or skips. A fresh full pkgdown build completed and
+  `pkgdown::check_pkgdown()` reported no problems.
+
+## 2026-08-01: Arc 6 association article visual follow-up
+
+- Added the staged association route to the Function Map and replaced the
+  non-evaluated placeholder in the mixed-outcome article with a deterministic
+  public-API example that prints `eta`, the alpha SE, the alpha interval, and
+  the transformed eta interval with one experimental warning.
+- Corrected the formula-grammar status row so constant and row-specific eta
+  uncertainty match the shipped `confint()` and `predict()` methods.
+- Rebuilt both articles. Florence's first rendered review caught exposed diagram
+  construction code and malformed inline mathematics; the repaired rebuild
+  hides the code, supplies figure alt text, and renders the affected expressions
+  as MathML. Florence and Tufte returned final PASS verdicts.
+- The focused `associate` test family passed, `pkgdown::check_pkgdown()` found no
+  problems, `git diff --check` passed, and the deployment strip verified that
+  internal `AGENTS`/`CLAUDE` pages remain absent. No model code, internal
+  validation machinery, inference promotion, or new compute changed.
+
+## 2026-08-02: B4-CI C4 canonical Lane B integration
+
+- Applied the approved exact-23 C4 packet
+  `9b9f30f089214e160db1bb1344bbd313440c683c8f35056cf2b1c6b40f245525`
+  from immutable source `574c1108e16e3b0fe4ba88e254a34673508db901` to
+  frozen base `f41dfc01a812af1294ee86790dc3e8d39e412c50`: 23 cells,
+  23 evidence rows, 23 verified-to-verified transitions, and 69 distinct
+  receipt/trace/interval blobs. C4 moves the global interval-feasible count
+  from 138 to 161 (11 point-fit and 12 diagnostic-only destination rows).
+- C1/C2/C3/B3/exclusion/association/C17 guards, the C4 source verifier,
+  63 focused ledger/integration tests, ledger regeneration/checking, and
+  `git diff --check` passed. No package code, formula grammar, coverage,
+  missing-response, association, Lane A/C, or external dashboard overlay
+  changed. See
+  `docs/dev-log/after-task/2026-08-02-b4-ci-c4-canonical-integration.md`.
+
+## 2026-08-02: Arc 1 current-source interval-feasibility cohort
+
+- Promoted only five exact targets from `point_fit_recovery` to
+  `interval_feasible`: `mc-0260::fixef:mu:x`,
+  `mc-0262::fixef:sigma:x`, `mc-0260m::fixef:mu:(Intercept)`, and
+  `mc-0266::sd:sigma:(1 | id)`, and
+  `mc-0269::sd:mu:(0 + x | id)` under Gaussian REML.
+- Retained 15/15 passing Totoro receipts with explicit source, estimator,
+  direct target, immutable fixture, runner, trace, and interval bindings. Fresh
+  semantic reconciliation equals the tracked tables byte-for-byte.
+- Retained `mc-0438` as a STOP: both current-source attempts converged but
+  returned nonfinite endpoints; Hessian diagnostics were deliberately not
+  requested and were not interpreted.
+- Froze the complete 82-cell source universe in
+  `docs/dev-log/interval-feasibility/arc0-candidate-manifest-c8e04258.md`:
+  5 promoted, 16 retained STOP, 18 remaining executable, 23 profile-fenced,
+  4 estimator/row-structure holds, and 16 q12-excluded; SHA-256
+  `c9bf43b167011a2b4f289ff24bd966cc688d29caf93b4f83317bdc60526f2ea2`.
+- The capability ledger reports 161 `interval_feasible` and 77
+  `point_fit_recovery` model cells. All 30 generated outputs, 53 Python tests,
+  the focused 861-pass R profile suite, and `git diff --check` pass. Six existing
+  legacy-syntax deprecation warnings remain in the R suite.
+- Fisher returned GO for all five exact targets. Rose's evidence concerns and
+  Grace's CI/provenance concern were repaired. Coverage, calibration,
+  missing-response, q12, B4-source reuse, and public-claim expansion remain
+  outside the slice. See
+  `docs/dev-log/after-task/2026-08-02-arc1-first-interval-feasibility-cohort.md`.
 
 ## 2026-07-30 — directed to the drmTMB team: gllvmTMB missing-data cross-brief
 

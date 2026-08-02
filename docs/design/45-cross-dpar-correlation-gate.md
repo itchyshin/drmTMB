@@ -44,7 +44,7 @@ implemented evidence.
 | Phylogenetic effects | The documented Gaussian routes are fitted. Exact non-Gaussian gates fit ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope, recovery-grade NB2 q1 phylogenetic `sigma`, Student-t q1 phylogenetic `nu`, and cumulative-logit q1 phylogenetic `mu`. Animal/relmat sibling gates are row-specific in the live ledger. | Multiple or labelled structured slopes, structured slope correlations, q4 predictor-dependent phylogenetic correlations, non-Gaussian phylogenetic random effects outside those exact gates, animal/`relmat()` predictor-dependent `corpair()` regressions, and generic direct-SD grammar remain outside Wave A. |
 | Coordinate spatial effects | Univariate Gaussian `mu` and `sigma` intercepts with optional matching `mu`/`sigma` correlation, one independent `mu` slope and one q1 `sigma` slope through `spatial(1 + x | site, coords = coords)`, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance through matching `spatial(1 | p | site, coords = coords)` terms. | The spatial `sigma`-slope interval gate, spatial slope correlations, multiple or labelled spatial slopes, spatial direct-SD models, spatial `corpair()` regressions, and non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates. |
 | Non-Gaussian `mu` | Poisson `mu` random intercepts and independent numeric slopes for non-zero-inflated Poisson models, plus the exact diagnostic-only fixed-`zi` Poisson and diagnostic-only fixed-`zi` NB2 `mu ~ spatial()` intercept gates. | Correlated non-Gaussian slope blocks, labelled non-Gaussian covariance, zero-inflated or hurdle count-side random effects and structured non-Gaussian random effects outside the exact named gates. |
-| Non-Gaussian `sigma`, `zi`, `hu`, `zoi`, `coi`, and `nu` | Fixed-effect scale, shape, zero-inflation, and hurdle formulas where the family likelihood is implemented, plus row-specific gates including diagnostic-only Poisson `zi ~ spatial()`, diagnostic-only Student-t `nu ~ phylo()`, and diagnostic-only truncated-NB2 `hu ~ relmat()`. Student-t `nu` is otherwise fixed-effect shape; `zoi` and `coi` are planned bounded-response parameters. | Random effects and covariance blocks in non-Gaussian scale, inflation, hurdle, one-inflation, and shape parameters outside the exact named gates. Fixed-effect zero-one-inflated bounded likelihoods must come before `zoi`/`coi` random effects. |
+| Non-Gaussian `sigma`, `zi`, `hu`, `zoi`, `coi`, and `nu` | Fixed-effect scale, shape, zero-inflation, and hurdle formulas where the family likelihood is implemented, plus row-specific gates including diagnostic-only Poisson `zi ~ spatial()`, diagnostic-only Student-t `nu ~ phylo()`, diagnostic-only truncated-NB2 `hu ~ relmat()`, and exact ordinary q1 zero-one-beta `zoi` and `coi` intercept/same-symbol slope effects at point-fit-recovery scope. Student-t `nu` is otherwise fixed-effect shape. | Random effects and covariance blocks in non-Gaussian scale, inflation, hurdle, one-inflation, and shape parameters outside the exact named gates. No cross-dpar covariance, profile, interval, or coverage claim follows from the ordinary zero-one-beta point-fit gates. |
 | Known sampling covariance | `meta_V(V = V)` for vector or matrix known sampling covariance. `V` is not estimated and is not an interval target. | Treating known `V` as a random-effect covariance, reusing `V` for relatedness matrices, or combining dense known `V` with unsupported bivariate/random-effect covariance surfaces. |
 
 ## Correlation Rules
@@ -91,10 +91,13 @@ The comprehensive simulation should start with fitted surfaces:
 - Poisson `mu` random-effect pilots where zero inflation is absent.
 
 It should not simulate non-Gaussian cross-parameter covariance, shape random
-effects, `zoi`/`coi` random effects, random effects in `rho12`, animal-model
-slopes, or mixed-distribution bivariate models as if they are implemented.
-Those belong in `docs/design/34-validation-debt-register.md` until focused
-gates close.
+effects, broad `zoi`/`coi` random-effect surfaces, random effects in `rho12`,
+animal-model slopes, or mixed-distribution bivariate models as if they are
+implemented. The exact ordinary zero-one-beta `zoi` and `coi` q1
+intercept/same-raw-symbol slope gates are fitted only at point-fit-recovery
+grade and remain excluded from a broad Phase 18 operating-characteristic grid.
+Other forms belong in `docs/design/34-validation-debt-register.md` until their
+focused gates close.
 
 ## User-Facing Message
 

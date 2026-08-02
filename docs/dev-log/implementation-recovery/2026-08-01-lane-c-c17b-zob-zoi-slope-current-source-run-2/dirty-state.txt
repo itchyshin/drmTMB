@@ -1,0 +1,13 @@
+M docs/dev-log/dashboard/capability-census/_master.tsv
+M docs/dev-log/dashboard/capability-census/zero_one_beta.tsv
+M docs/dev-log/dashboard/capability-ledger/cells.tsv
+M docs/dev-log/dashboard/capability-ledger/evidence.tsv
+M docs/dev-log/dashboard/capability-ledger/transitions.tsv
+M docs/dev-log/dashboard/capability-surface.html
+?? docs/dev-log/after-task/2026-08-01-lane-c-c17b-mc-0577-zoi-slope.md
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-1/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-1/fixed-zoi-slope-boundary-diagnostic.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-1/progress.log
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-1/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-1/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17b-zob-zoi-slope-current-source-run-1/summary.tsv

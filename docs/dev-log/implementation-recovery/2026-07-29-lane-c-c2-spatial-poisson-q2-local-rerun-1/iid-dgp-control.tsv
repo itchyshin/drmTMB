@@ -1,0 +1,2 @@
+control_id	source_sha	seed	n_draw	precision	tau0_truth	tau1_truth	rho_truth	tau0_empirical	tau1_empirical	rho_empirical	decision
+lane_c_c2_spatial_poisson_q2_iid_dgp	ea147cd077a49b45d05e1304eb88bd7ef85d700e	2026072999	8192	identity	0.6	0.5	0.5	0.594908730896013	0.497540013059641	0.490166945626992	PASS_IID_DGP_CONTROL

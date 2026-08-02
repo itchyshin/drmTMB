@@ -1,0 +1,2 @@
+cell_id	target_id	seed	information_rung	level	lower	upper	estimate	profile_engine
+mc-0281	mc-0281::sd:sigma:sigma:phylo(0 + x | p | species)	2026072932	high	0.95	0.221004086214828	0.561925749825758	0.348384682251351	tmbprofile
