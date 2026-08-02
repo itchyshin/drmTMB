@@ -63,6 +63,22 @@ CELL_CONTRACTS = {
         "estimator": "REML",
         "profile_parameter": "sd:sigma:phylo(1 | species)",
     },
+    "mc-0013": {
+        "target_id": "mc-0013::sd:mu:animal(0 + x | id)",
+        "cohort_id": "arc2-beta-animal-mu-slope-sd-profile-feasibility",
+        "family": "beta",
+        "provider": "animal",
+        "estimator": "ML",
+        "profile_parameter": "sd:mu:animal(0 + x | id)",
+    },
+    "mc-0015": {
+        "target_id": "mc-0015::sd:sigma:animal(1 | id)",
+        "cohort_id": "arc2-beta-animal-sigma-intercept-sd-profile-feasibility",
+        "family": "beta",
+        "provider": "animal",
+        "estimator": "ML",
+        "profile_parameter": "sd:sigma:animal(1 | id)",
+    },
 }
 
 
