@@ -71,8 +71,12 @@ green.
 The initial C17-C1 compatibility receipt predates a later `R/drmTMB.R`
 missing-data rejection. The capability-ledger guard correctly failed CI. A
 fresh final-source Totoro control retained all 12 attempts and passed, then the
-manifest was refreshed. Final reviews also found stale public “mesh planned”
-wording and one incorrectly labelled article invariant; both were repaired.
+manifest was refreshed. A later rebase incorporated C17-C2 model-15 source
+changes; GitHub's merge-ref guard again correctly rejected the stale
+fingerprint before package checking, and a second fresh 12-attempt Totoro
+receipt at `f0e7fbadf` passed before its C17-C2 manifest was refreshed. Final
+reviews also found stale public “mesh planned” wording and one incorrectly
+labelled article invariant; both were repaired.
 
 ## Team Learning
 

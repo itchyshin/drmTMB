@@ -92091,3 +92091,10 @@ Shinichi grants a separate Gate A compute approval.
 - A final stale-wording audit also repaired the formula grammar and roadmap so
   their broad mesh/SPDE deferrals explicitly exclude the fixed-kappa Gaussian
   local-fit intercept.
+- Rebasing onto `origin/main` incorporated C17-C2 model-15 source changes, so
+  GitHub's merge-ref ledger guard correctly rejected the stale compatibility
+  fingerprint before package checking. A fresh isolated Totoro receipt at
+  `f0e7fbadf` retained all 12 attempts (4/4 each for `mc-0568`, `mc-0569`, and
+  `mc-0576`) and passed the frozen current-source compatibility rule. The
+  C17-C2 manifest now points to that receipt; 50 ledger tests and the 50 mesh
+  expectations pass on the rebased source.
