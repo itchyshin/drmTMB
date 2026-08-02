@@ -3824,6 +3824,12 @@ validate_profile_targets <- function(targets) {
     "point_fit_only_zero_one_beta_phylo_q1",
     "point_fit_only_zero_one_beta_phylo_zoi_q1",
     "point_fit_only_zero_one_beta_phylo_coi_q1",
+    "point_fit_only_zero_one_beta_animal_zoi_q1",
+    "point_fit_only_zero_one_beta_animal_coi_q1",
+    "point_fit_only_zero_one_beta_relmat_zoi_q1",
+    "point_fit_only_zero_one_beta_relmat_coi_q1",
+    "point_fit_only_zero_one_beta_phylo_interaction_zoi_q1",
+    "point_fit_only_zero_one_beta_phylo_interaction_coi_q1",
     "point_fit_only_zero_one_beta_sigma_q1",
     "point_fit_only_zero_one_beta_zoi_q1",
     "point_fit_only_zero_one_beta_coi_q1",
@@ -4076,6 +4082,14 @@ count_point_fit_only_profile_restricted_status <- function(object, dpar) {
       return(list(
         profile_ready = FALSE,
         profile_note = "point_fit_only_zero_one_beta_phylo_coi_q1"
+      ))
+    }
+    if (dpar %in% c("zoi", "coi")) {
+      return(list(
+        profile_ready = FALSE,
+        profile_note = paste0(
+          "point_fit_only_zero_one_beta_", provider, "_", dpar, "_q1"
+        )
       ))
     }
     return(list(
