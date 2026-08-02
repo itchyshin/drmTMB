@@ -92085,3 +92085,6 @@ Shinichi grants a separate Gate A compute approval.
   rebuilt spatial article shows the corrected invariant and profile status.
 - The final model-map wording now qualifies both remaining generic mesh/SPDE
   cells as neighbours beyond the fixed-kappa Gaussian `mu` intercept.
+- Added `spatial_coords()` and `make_mesh()` to the pkgdown structured-effect
+  reference group after the audit found both exported topics missing from the
+  index. `pkgdown::check_pkgdown()` now reports no problems.

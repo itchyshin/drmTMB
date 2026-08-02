@@ -145,6 +145,8 @@ reference:
       - phylo
       - phylo_interaction
       - spatial
+      - spatial_coords
+      - make_mesh
       - relmat
       - corpair
   - title: Deprecated marker internals
