@@ -29,9 +29,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         model = [row for row in self.cells if row["axis"] == "model_surface"]
         missing = [row for row in self.cells if row["axis"] == "missing_response"]
         association = [row for row in self.cells if row["axis"] == "association"]
-        # 687 = the 676 frozen census rows, mc-0260m, and ten C14 q2-plus
-        # boundary leaves paired with the newly exact q1 structured leaves.
-        self.assertEqual(len(model), 687)
+        # 697 = the 676 frozen census rows, mc-0260m, ten C14 q2-plus boundary
+        # leaves paired with the exact q1 mu/sigma structured leaves, and ten
+        # C18 q2-plus boundary leaves paired with the exact q1 zoi/coi atom
+        # leaves. Splitting promotes nothing: not_implemented stays at 17.
+        self.assertEqual(len(model), 697)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -292,7 +294,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 330, "not_implemented": 17, "rejected_by_design": 340},
+            {"implemented": 330, "not_implemented": 17, "rejected_by_design": 350},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -335,7 +337,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 330, "not_implemented": 17, "rejected_by_design": 340},
+            {"implemented": 330, "not_implemented": 17, "rejected_by_design": 350},
         )
         # Two assertions, because one number cannot express both facts.
         #
