@@ -99,11 +99,16 @@ ASSOCIATION_COUNT = 6
 # current-source Totoro receipts reconciled 3/3 against the same one-profile
 # contract: mc-0186's bivariate REML rho12, mc-0263's heteroscedastic
 # sigma ~ x fixed effect, and mc-0274's phylogenetic mean random-intercept SD.
-# 77 -> 74 records exactly those three; ARC2_TARGETS below binds each one to
-# its exact target, evidence row, and transition, so a fourth silent promotion
+# Arc 2 then adds mc-0277 on a REPLACEMENT fixture. The manifest had prescribed
+# a mean-only phylogenetic DGP, under which the true sigma-phylo SD is exactly
+# zero, so its profile hit the [0, Inf) boundary by construction -- a null-case
+# artifact, not a capability limit. Re-run on a signal-bearing DGP
+# (arc2_phylo_sigma_fixture, true log-SD 0.7) it satisfies the same contract 3/3.
+# 77 -> 73 records exactly those four; ARC2_TARGETS below binds each one to
+# its exact target, evidence row, and transition, so a fifth silent promotion
 # still fails this guard.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 74
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 73
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -152,6 +157,7 @@ ARC2_TARGETS = {
         "target_id": "mc-0186::rho12",
         "evidence_id": "ev-mc-0186-arc2-rho12-profile",
         "transition_id": "tr-mc-0186-arc2-rho12-profile",
+        "claim_snippet": "biv_reml_fixture(n=150)",
         "reconciliation": (
             "docs/dev-log/interval-feasibility/results/"
             f"{ARC2_SOURCE_SHA}/"
@@ -162,6 +168,7 @@ ARC2_TARGETS = {
         "target_id": "mc-0263::fixef:sigma:x",
         "evidence_id": "ev-mc-0263-arc2-sigma-fixef-profile",
         "transition_id": "tr-mc-0263-arc2-sigma-fixef-profile",
+        "claim_snippet": "reml_hetero_fixture()",
         "reconciliation": (
             "docs/dev-log/interval-feasibility/results/"
             f"{ARC2_SOURCE_SHA}/"
@@ -172,10 +179,26 @@ ARC2_TARGETS = {
         "target_id": "mc-0274::sd:mu:phylo(1 | species)",
         "evidence_id": "ev-mc-0274-arc2-phylo-mu-sd-profile",
         "transition_id": "tr-mc-0274-arc2-phylo-mu-sd-profile",
+        "claim_snippet": "reml_phylo_location_fixture(n_tip=30, n_each=3)",
         "reconciliation": (
             "docs/dev-log/interval-feasibility/results/"
             f"{ARC2_SOURCE_SHA}/"
             "arc2-profile-feasibility/totoro/mc-0274-reconcile.tsv"
+        ),
+    },
+    # mc-0277 is bound to the REPLACEMENT signal-bearing fixture, not the
+    # manifest's mean-only prescription. The claim_snippet pins that fixture so
+    # the claim cannot silently drift back to the signal-free DGP, under which
+    # the profile hits the variance-component boundary by construction.
+    "mc-0277": {
+        "target_id": "mc-0277::sd:sigma:phylo(1 | species)",
+        "evidence_id": "ev-mc-0277-arc2-phylo-sigma-sd-profile",
+        "transition_id": "tr-mc-0277-arc2-phylo-sigma-sd-profile",
+        "claim_snippet": "arc2_phylo_sigma_fixture(n_tip=60, n_each=12)",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0277/mc-0277-reconcile.tsv"
         ),
     },
 }
@@ -1359,11 +1382,12 @@ def validate(
             ),
             {},
         )
+        claim_snippet = contract.get("claim_snippet", direct_target)
         if (
             cell.get("evidence_tier") != "interval_feasible"
             or cell.get("work_status") != "verified"
             or cell.get("primary_evidence_id") != evidence_id
-            or direct_target not in cell.get("claim_boundary", "")
+            or claim_snippet not in cell.get("claim_boundary", "")
             or cell.get("updated_commit") != ARC2_SOURCE_SHA
         ):
             errors.append(f"{cell_id}: Arc 2 target row changed")
