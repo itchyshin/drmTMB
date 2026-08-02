@@ -1,0 +1,4 @@
+exit=0 mc-0277 seed=2026080203
+exit=0 mc-0277 seed=2026080202
+exit=0 mc-0277 seed=2026080201
+CAMPAIGN_COMPLETE

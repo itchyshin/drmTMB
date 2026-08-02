@@ -95,8 +95,23 @@ ASSOCIATION_COUNT = 6
 # targets after three current-source Totoro receipts per target: mc-0260,
 # mc-0262, mc-0260m's pooled effect, mc-0266's residual-scale RE SD, and
 # mc-0269's Gaussian REML independent random-slope SD.
+# Arc 2 then promotes exactly three more frozen cells, each after three
+# current-source Totoro receipts reconciled 3/3 against the same one-profile
+# contract: mc-0186's bivariate REML rho12, mc-0263's heteroscedastic
+# sigma ~ x fixed effect, and mc-0274's phylogenetic mean random-intercept SD.
+# Arc 2 then adds mc-0277 on a REPLACEMENT fixture. The manifest had prescribed
+# a mean-only phylogenetic DGP, under which the true sigma-phylo SD is exactly
+# zero, so its profile hit the [0, Inf) boundary by construction -- a null-case
+# artifact, not a capability limit. Re-run on a signal-bearing DGP
+# (arc2_phylo_sigma_fixture, true log-SD 0.7) it satisfies the same contract 3/3.
+# Arc 2 finally adds mc-0013 and mc-0015 (Beta x animal() SD targets) after
+# REBUILDING their fixtures on a 40-individual pedigree; the original
+# 8-individual design recovered the slope SD at roughly half its true value.
+# 77 -> 71 records exactly those six; ARC2_TARGETS below binds each one to
+# its exact target, evidence row, and transition, so a seventh silent promotion
+# still fails this guard.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 77
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 71
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -136,6 +151,88 @@ ARC1_ADDITIONAL_TARGETS = {
             "docs/dev-log/interval-feasibility/results/"
             f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
             "arc1-gaussian-reml-slope-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+}
+ARC2_SOURCE_SHA = "83055ec5846bc2f9b1d939c13aa16c4500181f04"
+# Later lane commit: the mc-0013/mc-0015 rebuild on a 40-individual pedigree.
+ARC2_BETA_ANIMAL_SOURCE_SHA = "43b4b2a74ee26869cfc785d95ab26df5973ccc45"
+ARC2_TARGETS = {
+    "mc-0186": {
+        "target_id": "mc-0186::rho12",
+        "evidence_id": "ev-mc-0186-arc2-rho12-profile",
+        "transition_id": "tr-mc-0186-arc2-rho12-profile",
+        "claim_snippet": "biv_reml_fixture(n=150)",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0186-reconcile.tsv"
+        ),
+    },
+    "mc-0263": {
+        "target_id": "mc-0263::fixef:sigma:x",
+        "evidence_id": "ev-mc-0263-arc2-sigma-fixef-profile",
+        "transition_id": "tr-mc-0263-arc2-sigma-fixef-profile",
+        "claim_snippet": "reml_hetero_fixture()",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0263-reconcile.tsv"
+        ),
+    },
+    "mc-0274": {
+        "target_id": "mc-0274::sd:mu:phylo(1 | species)",
+        "evidence_id": "ev-mc-0274-arc2-phylo-mu-sd-profile",
+        "transition_id": "tr-mc-0274-arc2-phylo-mu-sd-profile",
+        "claim_snippet": "reml_phylo_location_fixture(n_tip=30, n_each=3)",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0274-reconcile.tsv"
+        ),
+    },
+    # mc-0277 is bound to the REPLACEMENT signal-bearing fixture, not the
+    # manifest's mean-only prescription. The claim_snippet pins that fixture so
+    # the claim cannot silently drift back to the signal-free DGP, under which
+    # the profile hits the variance-component boundary by construction.
+    "mc-0277": {
+        "target_id": "mc-0277::sd:sigma:phylo(1 | species)",
+        "evidence_id": "ev-mc-0277-arc2-phylo-sigma-sd-profile",
+        "transition_id": "tr-mc-0277-arc2-phylo-sigma-sd-profile",
+        "claim_snippet": "arc2_phylo_sigma_fixture(n_tip=60, n_each=12)",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0277/mc-0277-reconcile.tsv"
+        ),
+    },
+    # mc-0013 and mc-0015 were re-run on a REBUILT 40-individual pedigree. The
+    # original 8-individual design recovered the mc-0013 slope SD at ~0.28
+    # against a true 0.55 (~49% error), which Rose ruled not promotable. The
+    # rebuild recovers at 14.4% and 7.7% mean relative error over five seeds.
+    # Their receipts therefore come from a later lane commit than the first four.
+    "mc-0013": {
+        "target_id": "mc-0013::sd:mu:animal(0 + x | id)",
+        "evidence_id": "ev-mc-0013-arc2-beta-animal-mu-slope-profile",
+        "transition_id": "tr-mc-0013-arc2-beta-animal-mu-slope-profile",
+        "claim_snippet": "beta_animal_mu_slope_fixture",
+        "source_sha": ARC2_BETA_ANIMAL_SOURCE_SHA,
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_BETA_ANIMAL_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0013-reconcile.tsv"
+        ),
+    },
+    "mc-0015": {
+        "target_id": "mc-0015::sd:sigma:animal(1 | id)",
+        "evidence_id": "ev-mc-0015-arc2-beta-animal-sigma-profile",
+        "transition_id": "tr-mc-0015-arc2-beta-animal-sigma-profile",
+        "claim_snippet": "beta_animal_sigma_intercept_fixture",
+        "source_sha": ARC2_BETA_ANIMAL_SOURCE_SHA,
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_BETA_ANIMAL_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0015-reconcile.tsv"
         ),
     },
 }
@@ -1305,6 +1402,49 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 1 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC2_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (
+                row for row in transitions
+                if row["transition_id"] == contract["transition_id"]
+            ),
+            {},
+        )
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        # Cells whose receipts were produced at a later lane commit carry their
+        # own source sha. Receipts must always name a REAL, PUSHED commit: an
+        # earlier mc-0013/mc-0015 run recorded a detached sha that existed only
+        # inside the Totoro worktree, which is not reproducible, and was re-run.
+        cell_source_sha = contract.get("source_sha", ARC2_SOURCE_SHA)
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != cell_source_sha
+        ):
+            errors.append(f"{cell_id}: Arc 2 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("path_or_url") != contract["reconciliation"]
+            or evidence_row.get("commit_sha") != cell_source_sha
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 2 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 2 transition must remain verified-to-verified")
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)
