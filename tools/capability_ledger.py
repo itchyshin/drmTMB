@@ -116,8 +116,11 @@ FROZEN_CENSUS_COUNT = 676
 # phylogenetic log-sigma SD, and mc-0422/mc-0423's nbinom2 spatial and animal
 # log-sigma SDs on purpose-built provider-specific DGPs. mc-0421 and mc-0424 were
 # NOT promoted -- each passed only 2 of 3 seeds and is retained at
-# point_fit_recovery. 71 -> 68; ARC3_TARGETS binds each promoted cell.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 68
+# point_fit_recovery on their FIRST cohort. Both were then root-caused as DGP
+# numerical-conditioning defects (not estimator defects), redesigned, re-gated
+# over five seeds, and re-run: the same previously-failing seed now passes, so
+# both are promoted here too. 71 -> 66; ARC3_TARGETS binds each promoted cell.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 66
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -261,6 +264,18 @@ ARC3_TARGETS = {
         "evidence_id": "ev-mc-0423-arc3-profile",
         "transition_id": "tr-mc-0423-arc3-profile",
         "claim_snippet": "arc3_nbinom2_sigma_animal_fixture",
+    },
+    "mc-0421": {
+        "target_id": "mc-0421::sd:sigma:phylo(1 | species)",
+        "evidence_id": "ev-mc-0421-arc3-profile",
+        "transition_id": "tr-mc-0421-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_phylo_fixture",
+    },
+    "mc-0424": {
+        "target_id": "mc-0424::sd:sigma:relmat(1 | id)",
+        "evidence_id": "ev-mc-0424-arc3-profile",
+        "transition_id": "tr-mc-0424-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_relmat_fixture",
     },
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"

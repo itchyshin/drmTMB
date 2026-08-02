@@ -371,7 +371,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 77 -> 71 for the six Arc 2 promotions (mc-0186/0263/0274/0277 + mc-0013/0015).
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            68,
+            66,
         )
 
         by_id = {row["cell_id"]: row for row in model}
