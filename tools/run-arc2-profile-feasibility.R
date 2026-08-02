@@ -238,13 +238,13 @@ cell_registry <- list(
     fixture_file = "tools/arc2-beta-animal-fixtures.R",
     fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
     data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "id8_each30",
+    information_rung = function(seed) "id40_each20",
     dgp_id = "arc2_beta_animal_mu_slope_sd",
     formula_label = paste0(
       "bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1); ",
       "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
     ),
-    true_parameter_scale = "0.55 animal random-slope SD on mu (logit link), independent of a 0.50 animal random-intercept SD; 8-individual pedigree, log-SD internal scale",
+    true_parameter_scale = "0.55 animal random-slope SD on mu (logit link), independent of a 0.50 animal random-intercept SD; 40-individual (3-generation) pedigree, 20 observations per individual, log-SD internal scale",
     cohort_id = "arc2-beta-animal-mu-slope-sd-profile-feasibility"
   ),
   "mc-0015" = list(
@@ -264,13 +264,13 @@ cell_registry <- list(
     fixture_file = "tools/arc2-beta-animal-fixtures.R",
     fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
     data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "id8_each50",
+    information_rung = function(seed) "id40_each40",
     dgp_id = "arc2_beta_animal_sigma_intercept_sd",
     formula_label = paste0(
       "bf(y ~ x, sigma ~ animal(1 | id, pedigree = pedigree)); ",
       "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
     ),
-    true_parameter_scale = "0.55 animal random-intercept SD on sigma (log link); 8-individual pedigree, 50 observations per individual for within-group replication, log-SD internal scale",
+    true_parameter_scale = "0.55 animal random-intercept SD on sigma (log link); 40-individual (3-generation) pedigree, 40 observations per individual for within-group replication, log-SD internal scale",
     cohort_id = "arc2-beta-animal-sigma-intercept-sd-profile-feasibility"
   )
 )

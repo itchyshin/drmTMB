@@ -13,14 +13,36 @@
 # tools/ instead -- via the SAME `source_fixture_builder()` mechanism
 # `tools/run-arc2-profile-feasibility.R` already uses to pull fixtures out of
 # tests/testthat/ (it parses this file's top-level `<-` assignments, so no
-# change to that generic sourcing logic is needed).
+# change to that generic sourcing logic is needed). That mechanism only
+# `eval()`s the ONE top-level `<-` assignment matching the requested
+# `fn_name` -- a separate top-level `build_animal_pedigree_40 <- function()`
+# helper would silently never be sourced when the runner asks for
+# `beta_animal_mu_slope_fixture` alone. So the pedigree builder below is
+# nested INSIDE each fixture function (duplicated, not shared) rather than
+# hoisted to top level.
 #
-# Both DGPs reuse the 8-individual pedigree from
-# tests/testthat/test-animal-relmat-gaussian.R's
-# `new_animal_pedigree_gaussian_data()` (four founders, four descendants with
-# partial parentage), which is the only pedigree shape already proven
-# (elsewhere in the suite) to produce a well-conditioned, positive-definite
-# additive relationship matrix `A` for `drmTMB:::drm_pedigree_additive_relationship()`.
+# REBUILD (2026-08-02): the first version of this file reused the 8-individual
+# pedigree from tests/testthat/test-animal-relmat-gaussian.R's
+# `new_animal_pedigree_gaussian_data()` (four founders, four descendants).
+# That pedigree is too thin to identify a variance component -- mc-0013's
+# random-slope SD recovered at ~0.28 against a true 0.55 (a ~49% relative
+# error) across the mandatory point-fit gate, and Rose's closeout explicitly
+# ruled the design NOT promotable, citing Arc 1's own "n_id >= 30-48" bar for
+# SD targets. The nested `.build_animal_pedigree_40()` below replaces it with
+# a 40-individual, 3-generation synthetic pedigree built specifically for
+# this file (no existing test fixture in the suite has an animal() pedigree
+# this large). It is a genuine multi-generation relatedness structure, not an
+# identity matrix dressed up as one: 8 unrelated founders (4 dam-line x
+# 4 sire-line) produce 8 gen-1 offspring (2 per founder pair); gen-1
+# individuals are cross-mated (each dam paired with a sire from a
+# *different* founder pair, so gen-2 individuals are half- not full-sibs
+# across families) to produce 16 gen-2 offspring (4 per pair); two
+# non-adjacent gen-2 pairs produce a final 8 gen-3 offspring (4 per pair),
+# for 8 + 8 + 16 + 8 = 40 individuals total. The resulting additive
+# relationship matrix `A` is well-conditioned and positive definite (min
+# eigenvalue ~0.114, max ~7.58) with off-diagonal relatedness spanning 0
+# (unrelated founders) to 0.5 (full sibs) and a non-trivial mean of ~0.16 --
+# real pedigree structure, never collapsing to `diag(40)`.
 
 # --- mc-0013: beta() x animal(1 + x | id) on mu -----------------------------
 #
@@ -35,29 +57,62 @@
 # pedigree)` and simply target the slope component of it, leaving the
 # intercept component (`sd:mu:animal(1 | id)`) unregistered/unprofiled.
 #
-# True SD values (0.50 intercept, 0.55 slope) are set well away from zero per
-# the task's shape-parameter guidance; `n_each = 30` (240 observations across
-# 8 individuals) was chosen empirically after a smoke fit at
-# `n_each = 20`/`sd = 0.30/0.20` (test-nongaussian-structured-mu-slope.R's own
-# values) recovered acceptably but this task asked for SDs comfortably off
-# the null, which needs more replication per individual to keep the fit
-# well-behaved (pdHess = TRUE) at the larger true SD.
+# True SD values (0.50 intercept, 0.55 slope) stay well away from zero per
+# the task's shape-parameter guidance. `n_each = 20` (800 observations across
+# the 40-individual pedigree) was chosen from a single-seed pilot fit (~3.7s,
+# convergence 0, pdHess TRUE, slope estimate 0.52 against a true 0.55) before
+# committing to the mandatory 5-seed point-fit gate; that gate's actual
+# numbers are reported in this task's after-task record, not restated here.
 beta_animal_mu_slope_fixture <- function(
   seed = 20260013L,
-  n_each = 30L,
+  n_each = 20L,
   beta0 = -0.2,
   beta_x = 0.45,
   sd_intercept = 0.50,
   sd_slope = 0.55,
   phi = 10
 ) {
+  .build_animal_pedigree_40 <- function() {
+    n_f0 <- 4L
+    founders_f <- paste0("f0_", seq_len(n_f0))
+    founders_m <- paste0("m0_", seq_len(n_f0))
+    ped <- data.frame(
+      id = c(founders_f, founders_m), dam = NA_character_, sire = NA_character_,
+      stringsAsFactors = FALSE
+    )
+    gen1 <- do.call(rbind, lapply(seq_len(n_f0), function(i) {
+      data.frame(
+        id = paste0("g1_", i, "_", 1:2),
+        dam = founders_f[i], sire = founders_m[i],
+        stringsAsFactors = FALSE
+      )
+    }))
+    ped <- rbind(ped, gen1)
+    gen1_f <- gen1$id[seq(1, nrow(gen1), by = 2)]
+    gen1_m <- gen1$id[seq(2, nrow(gen1), by = 2)]
+    gen2 <- do.call(rbind, lapply(seq_len(n_f0), function(i) {
+      j <- (i %% n_f0) + 1L
+      data.frame(
+        id = paste0("g2_", i, "_", 1:4),
+        dam = gen1_f[i], sire = gen1_m[j],
+        stringsAsFactors = FALSE
+      )
+    }))
+    ped <- rbind(ped, gen2)
+    gen2_f <- gen2$id[seq(1, nrow(gen2), by = 4)]
+    gen2_m <- gen2$id[seq(2, nrow(gen2), by = 4)]
+    gen3 <- do.call(rbind, lapply(1:2, function(i) {
+      j <- i + 2L
+      data.frame(
+        id = paste0("g3_", i, "_", 1:4),
+        dam = gen2_f[i], sire = gen2_m[j],
+        stringsAsFactors = FALSE
+      )
+    }))
+    rbind(ped, gen3)
+  }
   set.seed(seed)
-  pedigree <- data.frame(
-    id = paste0("id", seq_len(8L)),
-    dam = c(NA, NA, NA, NA, "id1", "id3", "id5", "id1"),
-    sire = c(NA, NA, NA, NA, "id2", "id4", "id6", "id3"),
-    stringsAsFactors = FALSE
-  )
+  pedigree <- .build_animal_pedigree_40()
   A <- drmTMB:::drm_pedigree_additive_relationship(pedigree)
   id_levels <- rownames(A)
   n_id <- length(id_levels)
@@ -93,27 +148,59 @@ beta_animal_mu_slope_fixture <- function(
 # so it is only identifiable with substantial WITHIN-INDIVIDUAL REPLICATION:
 # each individual needs enough observations for its own beta-distributed
 # scatter to inform a per-individual sigma before the animal-effect variance
-# component can be separated from residual (beta sampling) noise. The
-# precedent in test-nongaussian-structured-boundary.R uses `n_each = 16`
-# across 8 individuals purely as a convergence smoke check (no true-SD
-# recovery claim); here `n_each = 50` (400 observations across 8 individuals)
-# was chosen to keep the fit well-behaved (pdHess = TRUE, profile-feasible)
-# at the larger true SD (0.55) this task asks for.
+# component can be separated from residual (beta sampling) noise. `n_each =
+# 40` (1600 observations across the 40-individual pedigree) was chosen from a
+# single-seed pilot fit (~4.8s, convergence 0, pdHess TRUE, SD estimate 0.53
+# against a true 0.55) before the mandatory 5-seed point-fit gate.
 beta_animal_sigma_intercept_fixture <- function(
   seed = 20260015L,
-  n_each = 50L,
+  n_each = 40L,
   beta0 = 0.10,
   beta_x = 0.35,
   sigma0 = 0.30,
   sd_animal_sigma = 0.55
 ) {
+  .build_animal_pedigree_40 <- function() {
+    n_f0 <- 4L
+    founders_f <- paste0("f0_", seq_len(n_f0))
+    founders_m <- paste0("m0_", seq_len(n_f0))
+    ped <- data.frame(
+      id = c(founders_f, founders_m), dam = NA_character_, sire = NA_character_,
+      stringsAsFactors = FALSE
+    )
+    gen1 <- do.call(rbind, lapply(seq_len(n_f0), function(i) {
+      data.frame(
+        id = paste0("g1_", i, "_", 1:2),
+        dam = founders_f[i], sire = founders_m[i],
+        stringsAsFactors = FALSE
+      )
+    }))
+    ped <- rbind(ped, gen1)
+    gen1_f <- gen1$id[seq(1, nrow(gen1), by = 2)]
+    gen1_m <- gen1$id[seq(2, nrow(gen1), by = 2)]
+    gen2 <- do.call(rbind, lapply(seq_len(n_f0), function(i) {
+      j <- (i %% n_f0) + 1L
+      data.frame(
+        id = paste0("g2_", i, "_", 1:4),
+        dam = gen1_f[i], sire = gen1_m[j],
+        stringsAsFactors = FALSE
+      )
+    }))
+    ped <- rbind(ped, gen2)
+    gen2_f <- gen2$id[seq(1, nrow(gen2), by = 4)]
+    gen2_m <- gen2$id[seq(2, nrow(gen2), by = 4)]
+    gen3 <- do.call(rbind, lapply(1:2, function(i) {
+      j <- i + 2L
+      data.frame(
+        id = paste0("g3_", i, "_", 1:4),
+        dam = gen2_f[i], sire = gen2_m[j],
+        stringsAsFactors = FALSE
+      )
+    }))
+    rbind(ped, gen3)
+  }
   set.seed(seed)
-  pedigree <- data.frame(
-    id = paste0("id", seq_len(8L)),
-    dam = c(NA, NA, NA, NA, "id1", "id3", "id5", "id1"),
-    sire = c(NA, NA, NA, NA, "id2", "id4", "id6", "id3"),
-    stringsAsFactors = FALSE
-  )
+  pedigree <- .build_animal_pedigree_40()
   A <- drmTMB:::drm_pedigree_additive_relationship(pedigree)
   id_levels <- rownames(A)
   n_id <- length(id_levels)
