@@ -313,6 +313,9 @@ zoib_sigma_phylo_nll <- function(fit, par, tree, species) {
   expect_equal(d$phylo_mu_node_index + 1L, unname(observation_node_index))
   eta_mu <- as.vector(d$X_mu %*% par$beta_mu)
   log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[observation_node_index]
+  if (identical(as.integer(d$use_logsigma_clamp), 1L)) {
+    log_sigma <- softclamp_logsigma_drm(log_sigma, d$logsigma_clamp)
+  }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta_mu)
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
@@ -356,6 +359,9 @@ zoib_sigma_animal_nll <- function(fit, par, Ainv, species) {
   d <- fit$model$tmb_data; u <- as.vector(par$u_phylo)
   node <- match(species, rownames(Ainv)); expect_equal(d$phylo_mu_node_index + 1L, unname(node))
   log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[node]
+  if (identical(as.integer(d$use_logsigma_clamp), 1L)) {
+    log_sigma <- softclamp_logsigma_drm(log_sigma, d$logsigma_clamp)
+  }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - as.numeric(determinant(Ainv, logarithm = TRUE)$modulus) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Ainv %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
@@ -365,6 +371,9 @@ zoib_sigma_relmat_nll <- function(fit, par, K, species) {
   d <- fit$model$tmb_data; u <- as.vector(par$u_phylo); Q <- solve(K)
   node <- match(species, rownames(K)); expect_equal(d$phylo_mu_node_index + 1L, unname(node))
   log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[node]
+  if (identical(as.integer(d$use_logsigma_clamp), 1L)) {
+    log_sigma <- softclamp_logsigma_drm(log_sigma, d$logsigma_clamp)
+  }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo + as.numeric(determinant(K, logarithm = TRUE)$modulus) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
@@ -438,6 +447,9 @@ zoib_sigma_spatial_nll <- function(fit, par, coords, site) {
   precision <- dense_zoib_spatial_precision(coords, unique(as.character(site)))
   node <- match(site, precision$levels); expect_equal(d$phylo_mu_node_index + 1L, unname(node))
   log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[node]
+  if (identical(as.integer(d$use_logsigma_clamp), 1L)) {
+    log_sigma <- softclamp_logsigma_drm(log_sigma, d$logsigma_clamp)
+  }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det_Q + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
@@ -464,6 +476,9 @@ zoib_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame)
   node1 <- p1$tip_index[match(data_frame$plant, tree1$tip.label)]; node2 <- p2$tip_index[match(data_frame$pollinator, tree2$tip.label)]; index <- (node2 - 1L) * nrow(p1$Q) + node1
   expect_equal(d$phylo_mu_node_index + 1L, unname(index))
   log_sigma <- as.vector(d$X_sigma %*% par$beta_sigma) + d$phylo_mu_value[, 1] * u[index]
+  if (identical(as.integer(d$use_logsigma_clamp), 1L)) {
+    log_sigma <- softclamp_logsigma_drm(log_sigma, d$logsigma_clamp)
+  }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu)); zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2*pi) + 2 * length(u) * par$log_sd_phylo - (nrow(p2$Q) * p1$log_det + nrow(p1$Q) * p2$log_det) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
   prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), zoi, coi, log = TRUE))
@@ -611,6 +626,60 @@ test_that("zero-one-beta admits only the exact phylo q1 sigma gate", {
   i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2
   expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
 })
+
+test_that("structured sigma oracles honour the log-sigma soft clamp out of band", {
+  # F5 (docs/design/248). The clamp is ON by default -- drm_control() defaults
+  # logsigma_clamp = c(-12, 12) -- and the engine applies it to log_sigma AFTER
+  # the structured contribution is added. The five sigma-structured oracles used
+  # to omit it, so they agreed with the engine only because every existing probe
+  # sat inside the band. Measured before the repair: 62% relative disagreement.
+  #
+  # The probe must go DOWN, not up. Above the ceiling phi = exp(-2 * log_sigma)
+  # collapses and both beta shapes hit the 1e-8 floor, so engine and oracle agree
+  # for the wrong reason and the defect is masked.
+  set.seed(2026074001L)
+  tree <- ape::stree(16L, type = "balanced")
+  tree$edge.length <- rep(1, nrow(tree$edge))
+  tree$tip.label <- paste0("sp", seq_len(16L))
+  precision <- dense_zoib_phylo_precision(tree)
+  u <- as.numeric(t(chol(solve(precision$Q))) %*% rnorm(nrow(precision$Q), sd = .45))
+  names(u) <- tree$tip.label
+  species <- rep(tree$tip.label, each = 40L)
+  x <- rnorm(length(species))
+  mu <- plogis(-.15 + .35 * x)
+  sigma <- exp(-1 + u[species])
+  zoi <- plogis(-1.1)
+  coi <- plogis(.1)
+  boundary <- rbinom(length(x), 1L, zoi)
+  y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2)
+  y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi)
+  d <- data.frame(y, x, species)
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ phylo(1 | species, tree = tree), zoi ~ 1, coi ~ 1),
+    family = zero_one_beta(), data = d, control = drm_control(se = FALSE)
+  )
+  expect_identical(as.integer(fit$model$tmb_data$use_logsigma_clamp), 1L)
+
+  obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = fit$model$start,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  oracle_fn <- function(v) zoib_sigma_phylo_nll(fit, obj$env$parList(v), tree, d$species)
+
+  in_band <- obj$par + seq(-.025, .025, length.out = length(obj$par))
+  expect_equal(obj$fn(in_band), oracle_fn(in_band), tolerance = 1e-8)
+
+  out_of_band <- in_band
+  out_of_band[names(out_of_band) == "u_phylo"] <- -13
+  node <- precision$tip_index[match(d$species, tree$tip.label)]
+  raw <- as.vector(fit$model$tmb_data$X_sigma %*% obj$env$parList(out_of_band)$beta_sigma) +
+    fit$model$tmb_data$phylo_mu_value[, 1] *
+      as.vector(obj$env$parList(out_of_band)$u_phylo)[node]
+  # the probe must actually leave the band, or this test proves nothing
+  expect_lt(max(raw), fit$model$tmb_data$logsigma_clamp[[1L]])
+  expect_equal(obj$fn(out_of_band), oracle_fn(out_of_band), tolerance = 1e-8)
+})
+
 
 test_that("zero-one-beta admits only the exact phylo q1 zoi gate", {
   set.seed(2026080101L)
