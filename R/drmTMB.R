@@ -5453,8 +5453,8 @@ drm_build_zero_one_beta_spec <- function(
   }
   if (include_missing_response && length(coi_re$terms) > 0L) {
     cli::cli_abort(c(
-      "The zero-one-beta coi q1 random-intercept gate does not support missing responses.",
-      "i" = "Use complete observed responses with {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}."
+      "The zero-one-beta coi q1 random-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with {.code coi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
     ))
   }
   if (length(sigma_re$terms) > 0L) {
@@ -5477,7 +5477,8 @@ drm_build_zero_one_beta_spec <- function(
     validate_zero_one_beta_coi_q1_fixed_rhs(
       sigma_entry$rhs,
       zoi_entry$rhs,
-      coi_entry$rhs
+      coi_entry$rhs,
+      coi_terms = coi_re$terms
     )
   }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
@@ -5546,7 +5547,7 @@ drm_build_zero_one_beta_spec <- function(
     cli::cli_abort("A zero-one-beta zoi random intercept cannot be combined with a structured mu effect in this q1 gate.")
   }
   if (!is.null(mu_structured) && length(coi_re$terms) > 0L) {
-    cli::cli_abort("A zero-one-beta coi random intercept cannot be combined with a structured mu effect in this q1 gate.")
+    cli::cli_abort("A zero-one-beta coi random effect cannot be combined with a structured mu effect in this q1 gate.")
   }
 
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
@@ -9713,38 +9714,50 @@ validate_zero_one_beta_coi_random_terms <- function(
     cli::cli_abort(c(
       "Zero-one-beta {.code coi} random effects cannot be combined with other random effects in this q1 gate.",
       "x" = "The formula contains a {.code coi} random effect and another random-effect component.",
-      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}."
+      "i" = "Use {.code coi ~ 1 + (1 | id)} or the exact same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
     ))
   }
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") || !is.null(term$covariance_label)
+      !(term$type %in% c("intercept", "slope")) || !is.null(term$covariance_label)
     },
     logical(1L)
   )
   if (any(unsupported) || length(terms) != 1L) {
     labels <- vapply(terms, `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only one unlabelled {.fn zero_one_beta} {.code coi} random intercept is implemented in this q1 gate.",
+      "Only one independent {.fn zero_one_beta} {.code coi} random intercept or slope is implemented in this q1 gate.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}.",
-      "i" = "Random slopes, transformed predictors, correlated or labelled terms, structured effects, and cross-parameter covariance remain deferred."
+      "i" = "Use {.code coi ~ 1 + (1 | id)} or the exact same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}.",
+      "i" = "Transformed or mismatched predictors, correlated or labelled terms, structured effects, and cross-parameter covariance remain deferred."
     ))
   }
   invisible(terms)
 }
 
-validate_zero_one_beta_coi_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs) {
+validate_zero_one_beta_coi_q1_fixed_rhs <- function(
+  sigma_rhs,
+  zoi_rhs,
+  coi_rhs,
+  coi_terms
+) {
+  is_slope <- identical(coi_terms[[1L]]$type, "slope")
+  coi_ok <- if (is_slope) {
+    is.symbol(coi_rhs) &&
+      identical(as.character(coi_rhs), coi_terms[[1L]]$variable)
+  } else {
+    is_intercept_one(coi_rhs)
+  }
   if (
     !is_intercept_one(sigma_rhs) ||
       !is_intercept_one(zoi_rhs) ||
-      !is_intercept_one(coi_rhs)
+      !coi_ok
   ) {
     cli::cli_abort(c(
-      "The zero-one-beta coi q1 gate requires {.code sigma ~ 1}, {.code zoi ~ 1}, and an intercept-only fixed {.code coi} component.",
+      "The zero-one-beta coi q1 gate requires {.code sigma ~ 1}, {.code zoi ~ 1}, and an exact matching fixed and random coi predictor.",
       "x" = "Predictor-dependent scale, zero-inflation, or one-inflation terms need separate recovery evidence.",
-      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}."
+      "i" = "Use {.code coi ~ 1 + (1 | id)} or the exact same-raw-symbol slope form {.code coi ~ x + (0 + x | id)}."
     ))
   }
   invisible(NULL)

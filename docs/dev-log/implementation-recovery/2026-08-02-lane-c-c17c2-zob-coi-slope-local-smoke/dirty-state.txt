@@ -1,0 +1,5 @@
+M R/drmTMB.R
+M R/family.R
+M tests/testthat/test-zero-one-beta.R
+?? docs/dev-log/2026-08-02-lane-c-c17c2-coi-slope-symbolic-alignment.md
+?? tools/run-lane-c-c17c2-zob-coi-slope-recovery.R

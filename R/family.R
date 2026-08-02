@@ -303,21 +303,21 @@ beta <- function() {
 #' `(1 - zoi) * mu + zoi * coi`. Ordinary unlabelled random intercepts and
 #' independent numeric slopes such as `(1 | id)` and `(0 + x | id)` may enter
 #' `mu`. The point-fit-only q1 gates additionally admit one ordinary
-#' intercept-only random effect in `sigma`, `zoi`, or `coi`, separately, one ordinary
-#' slope-only `sigma` effect `(0 + x | id)`, and one ordinary slope-only `zoi`
-#' effect when the fixed and random terms use the same raw symbol, for example
-#' `zoi ~ x + (0 + x | id)`. The exact `coi` admission is
-#' `coi ~ 1 + (1 | id)` with fixed `sigma ~ 1` and `zoi ~ 1`. These routes are
+#' intercept-only random effect in `sigma`, `zoi`, or `coi`, separately, plus
+#' one ordinary slope-only effect in any one of those parameters when the fixed
+#' and random terms use the same raw symbol. Examples are
+#' `zoi ~ x + (0 + x | id)` and `coi ~ x + (0 + x | id)`. The exact `coi`
+#' admissions are that slope form and `coi ~ 1 + (1 | id)`, both with fixed
+#' `sigma ~ 1` and `zoi ~ 1`. These routes are
 #' point-fit recovery only:
 #' direct profiling, intervals, coverage, and broader recovery claims remain
 #' unavailable. In the retained `coi` recovery rung (`M = 64`, 50 observations
 #' per group), population-level point recovery remained stable when a few groups
 #' had fewer than two observed zeroes or ones, but those groups can have weakly
 #' identified conditional modes; inspect the within-group atom counts before
-#' interpreting individual modes. Correlated or
-#' labelled effects, intercept-plus-slope `zoi`
-#' effects, transformed or mismatched `zoi` slope symbols, `coi` slopes or
-#' structured effects,
+#' interpreting individual modes. Correlated or labelled effects,
+#' intercept-plus-slope atom effects, transformed or mismatched `zoi` or `coi`
+#' slope symbols, structured atom effects,
 #' covariance blocks, and denominator syntax remain unsupported. One further
 #' point-fit-only structured route is
 #' available: an unlabelled q1 `phylo(1 | group, tree = tree)` intercept in
