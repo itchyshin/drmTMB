@@ -47,7 +47,18 @@ objective, and finite-difference gradient at perturbed parameters. A separate
 boundary-only `lme4::glmer()` fit compares the common `coi` intercept, slope,
 and random-slope SD without claiming equality of the full objectives.
 
-## 4. Files Changed
+## 3a. Decisions and Rejected Alternatives
+
+The implementation reuses the independent C17-C1 `coi` carrier because its
+non-centred TMB parameterization already matches the required slope model; a
+second carrier or covariance block would add an unsupported surface. The one
+boundary-spread diagnostic is retained as a warning because direct population
+recovery, the likelihood oracle, and the external comparator passed. Treating
+that diagnostic as proof of profile, interval, or coverage behavior was
+rejected. Formula-grammar, likelihood-design, and shared check-log edits were
+also rejected for this lane because the approved scope explicitly locks them.
+
+## 4. Files Touched
 
 Implementation and focused tests touch `R/drmTMB.R`, `R/family.R`,
 `tests/testthat/test-zero-one-beta.R`, and the C17-C2 recovery runner. Family
@@ -84,8 +95,9 @@ sentences are recorded below rather than silently widening this task.
 - `python3 tools/capability_ledger.py --check`: pass, 30 generated outputs.
 - Filtered model-surface census: `687 = 330 / 340 / 17`.
 - Post-integration focused zero-one-beta and estimator-conformance tests: pass.
-- Fresh D-43 review, CI, and post-merge Mission Control read-back remain
-  landing gates.
+- Fresh Fisher, Noether, and Rose D-43 review returned 3/3 GO on integrated
+  candidate `b9a2798bdd431155871aafcb8b26792bb718ef25`. CI and post-merge
+  Mission Control read-back remain landing gates.
 
 ## 6. Tests of the Tests
 
@@ -97,7 +109,7 @@ atom effects, structured providers, and missing responses. The recovery
 campaign also uses an independently fitted boundary-only binomial mixed-model
 comparator.
 
-## 7. Consistency Audit
+## 8. Consistency Audit
 
 The exact stale-wording searches were:
 
@@ -120,7 +132,7 @@ PR #889 merged at `f41dfc01a812af1294ee86790dc3e8d39e412c50`. A direct
 cell-ledger diff against that canonical base changes only `mc-0578`; Lane B's
 merged classifications remain unchanged.
 
-## 8. GitHub Issue Maintenance
+## 7a. Issue Ledger
 
 A live search for open issues matching zero-one-beta `coi` returned no issue.
 No issue was opened or closed because this feature is being landed through its
@@ -143,7 +155,7 @@ estimator behavior. Ledger integration waited for green draft PR #889 rather
 than editing the same generated files concurrently; after its authorized merge,
 the C17-C2 promotion applied cleanly on top of canonical main.
 
-## 10. Team Learning
+## 11. Team Learning
 
 Predictor-spread thresholds diagnose conditional group-mode information; they
 should not automatically erase strong population-level recovery when the
@@ -154,7 +166,7 @@ Line-number-pinned evidence remains useful because it fails visibly when a
 shared source file gains code above the cited route, but every scoped source
 change must include a focused pointer-refresh check.
 
-## 11. Known Limitations
+## 10. Known Residuals
 
 The recovery claim covers four retained M=64 attempts with 50 observations per
 group at one frozen DGP. Sparse observed boundary outcomes or little predictor
@@ -165,11 +177,19 @@ family-level claim follows.
 Formula-grammar and likelihood-design wording is intentionally deferred. The
 shared check log remains deferred until PR #869 lands or closes.
 
-## 12. Next Actions
+## 12. Cross-Product Coverage
 
-1. Run the fresh Fisher/Noether/Rose panel on the integrated candidate.
-2. Record the verdicts and rerun final ledger/diff checks.
-3. Open a focused PR, require both CI jobs green on one unchanged head SHA,
+This task changes only drmTMB's complete-response zero-one-beta ML-Laplace
+surface. It does NOT cover DRM.jl, gllvmTMB, another family, a multivariate
+route, a structured-effect provider, REML, AGHQ, missing responses, profiles,
+intervals, coverage, aggregation, or any inference-ready/support tier. Mission
+Control will read the drmTMB canonical ledger after landing; no separate
+product mirror is changed here.
+
+## 13. Next Actions
+
+1. Regenerate the reviewed ledger outputs and rerun final ledger/diff checks.
+2. Open a focused PR, require both CI jobs green on one unchanged head SHA,
    then request fresh merge authorization.
-4. After merge, verify detached canonical main and Mission Control runtime at
+3. After merge, verify detached canonical main and Mission Control runtime at
    the merge SHA with no overlay.

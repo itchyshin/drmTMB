@@ -11,6 +11,8 @@ remaining at `point_fit_recovery`.
 ## Source and Runner Receipt
 
 - Candidate source: `ac86a6429f67b738d9b2e21072b109c9c7681b79`.
+- Integrated review candidate:
+  `b9a2798bdd431155871aafcb8b26792bb718ef25`.
 - C17-C2 runner SHA-256:
   `01a762c641e13f6b90152b78df7d7d9a226ff3cb553876d0c12b247d5ed31414`.
 - C14 compatibility runner SHA-256:
@@ -31,7 +33,7 @@ remaining at `point_fit_recovery`.
 | C14 compatibility | Preserve immutable receipt/fingerprint | 12/12 current-source attempts passed; the fail-closed ledger guard authenticates the C17-C2 fingerprint and source blobs | Passed |
 | Documentation | Exact scope plus limitations | Reader surfaces updated; formula grammar, likelihood docs, and check-log deferred by explicit boundary | As planned |
 | Ledger | Promote only `mc-0578` | PR #889 merged at `f41dfc01a`; canonical integration changes only `mc-0578` and yields `330 / 340 / 17` | Passed |
-| Review and landing | D-43, focused PR, unchanged-head CI, fresh merge authority | Integrated candidate is ready for fresh D-43 review | Pending |
+| Review and landing | D-43, focused PR, unchanged-head CI, fresh merge authority | Fisher, Noether, and Rose returned 3/3 GO on `b9a2798b`; PR, CI, and fresh merge authority remain | Review passed; landing pending |
 
 ## Retained M=64 Receipt
 
@@ -52,6 +54,6 @@ changed. The package check and pkgdown check passed before ledger integration.
 
 The strict C14 current-source bridge, 61 combined ledger/Lane B unit tests, 30
 generated outputs, focused R tests, and filtered `330 / 340 / 17` census pass.
-This reconciliation remains open until it records the frozen candidate SHA,
-fresh review verdicts, PR/head/merge SHAs, detached-main ledger check, and
-Mission Control `330 / 340 / 17` read-back.
+This reconciliation records a 3/3 GO review on the integrated candidate. It
+remains open until it records the final PR head and merge SHAs, detached-main
+ledger check, and Mission Control `330 / 340 / 17` read-back.
