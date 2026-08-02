@@ -92192,3 +92192,27 @@ Shinichi grants a separate Gate A compute approval.
 - Full local `devtools::check(args = "--no-manual", error_on = "never")`:
   0 errors, 0 warnings, and two environmental notes (clock verification and
   temporary `xcrun_db`).
+
+## 2026-08-02: fixed-kappa mesh point-recovery confirmation
+
+- Froze a current-source V3 contract for the exact fixed-kappa Gaussian `mu`
+  mesh intercept at `n = 128` and `n = 256`, with 50 fresh attempts per rung,
+  all-attempt denominators, disjoint seed ledgers, source/DLL checksums,
+  streamed heartbeats, fail-closed diagnostics, and Monte Carlo uncertainty on
+  bias and log-RMSE.
+- Curie's pre-execution review caught that the first smoke reused two proposed
+  promotion seeds. The Totoro launch at `50770c579` was stopped and its entire
+  100-seed ledger was excluded. A replacement ledger and separate smoke seeds
+  passed 22 focused contract expectations.
+- The valid Totoro receipt at clean source `1e48e8d80` retained 100/100 usable
+  fits. At `n = 128`, relative bias was -0.0301 and log-RMSE 0.1444; at
+  `n = 256`, bias was -0.0096 and log-RMSE 0.1009. Both bias intervals and
+  RMSE upper Monte Carlo bounds remained inside the frozen gates. All fits had
+  convergence zero, `pdHess = TRUE`, finite objectives and estimates,
+  gradients below `1e-3`, no warning, and no near-zero estimate.
+- Curie independently authenticated and recomputed the complete receipt;
+  Fisher returned PROMOTE. The exact tested cell earns `point_fit_recovery`.
+  The retained `n = 64` failure, intervals, coverage, projected marginal-SD
+  inference, range, and all broader mesh models remain outside the claim.
+- Local checks: mesh filters 86/86; protected dense coordinate-spatial
+  intercept/slope filters 292/292; `git diff --check` clean.

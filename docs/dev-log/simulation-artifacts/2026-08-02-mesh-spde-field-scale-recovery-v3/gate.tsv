@@ -1,0 +1,2 @@
+expected_attempts	observed_attempts	all_rungs_pass	decision
+100	100	TRUE	PASS_POINT_RECOVERY_GATE
