@@ -423,8 +423,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-The intercept and slope standard deviations have different units, so placing
-them on one quantitative axis would imply a comparison that is not meaningful.
+Spatial intercept and slope SDs have different units, so placing them on one
+quantitative axis would imply a comparison that is not meaningful.
 The compact display below reports each estimate in its own unit instead.
 
 ```{r spatial-sd-summary}
@@ -437,7 +437,7 @@ spatial_sd <- data.frame(
     digits = 4,
     format = "g"
   ),
-  Unit = c("response units", "response units per unit depth"),
+  Unit = c("Response units", "Response units per depth unit"),
   Status = c(
     "Point estimate; interval not validated",
     "Near-zero boundary; interval not validated"
@@ -525,5 +525,3 @@ Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
 detailed [structural-dependence tutorial](phylogenetic-spatial.html) when you
 need the current worked examples, equations, and broader parity ladder.
-    ggplot2::facet_grid(unit ~ ., scales = "free_x", space = "free_y") +
-    ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0)) +
