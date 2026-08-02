@@ -92,7 +92,7 @@ ASSOCIATION_COUNT = 6
 # and 25-cell structured cohort from point-fit recovery to interval feasible.
 # These are source-bound promotion receipts, not a blanket re-baseline.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 127
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 91
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),

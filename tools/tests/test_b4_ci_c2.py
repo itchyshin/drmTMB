@@ -12,7 +12,7 @@ import integrate_b4_ci_c2 as c2
 
 class B4CIC2Test(unittest.TestCase):
     def test_source_bound_c2_closure(self):
-        subprocess.run([sys.executable, "tools/integrate_b4_ci_c2.py", "--check"], check=True)
+        subprocess.run([sys.executable, "tools/integrate_b4_ci_c2.py", "--check-with-later-cohorts"], check=True)
 
     @contextmanager
     def replace_once(self, path, old, new):
@@ -27,7 +27,7 @@ class B4CIC2Test(unittest.TestCase):
 
     def assert_rejected(self):
         with self.assertRaises(SystemExit):
-            c2.check_current()
+            c2.check_current(allow_later_cohorts=True)
 
     def test_rejects_unapproved_ids_and_protected_row_drift(self):
         original = c2.CELL_IDS[:]
@@ -47,7 +47,11 @@ class B4CIC2Test(unittest.TestCase):
                       if row["role"] == "direct_trace")
         with self.replace_once(direct, "mc-0297", "mc-9999"):
             self.assert_rejected()
-        with self.replace_once(c2.LEDGER / "cells.tsv", "interval_feasible only", "coverage-ready for every cell"):
+        with self.replace_once(
+            c2.LEDGER / "cells.tsv",
+            "interval_feasible only for mc-0297 x exact direct target sd:mu:animal(1 | id)",
+            "coverage-ready for every cell",
+        ):
             self.assert_rejected()
         evidence = c2.LEDGER / "evidence.tsv"
         original = evidence.read_text()
