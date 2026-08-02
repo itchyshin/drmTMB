@@ -213,7 +213,11 @@ def check_current() -> None:
         path = Path(row["path"])
         if not path.exists() or hashlib.sha256(path.read_bytes()).hexdigest() != row["source_blob_sha256"]:
             fail(f"artifact blob drift: {path}")
-    if len([row for row in local_cell_map.values() if row["evidence_tier"] == "interval_feasible"]) != 97:
+    if len([
+        row for row in local_cell_map.values()
+        if row["axis"] == "model_surface"
+        and row["evidence_tier"] == "interval_feasible"
+    ]) != 97:
         fail("C2 did not move the canonical interval_feasible count to 97")
 
 

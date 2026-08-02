@@ -1,0 +1,200 @@
+# After Task: C17-C1 Zero-One-Beta `coi` Random Intercept
+
+## 1. Goal
+
+Implement and adjudicate only `mc-0570`: the complete-response ML-Laplace
+zero-one-beta model
+
+```r
+bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))
+```
+
+The earned ceiling is `implemented / verified / point_fit_recovery`. This task
+does not claim profiles, intervals, coverage, inference readiness, `coi`
+slopes, joint atom effects, structured effects, q2-plus, missing responses,
+REML, or AGHQ.
+
+## 2. Implemented
+
+The R specification, start/map machinery, TMB data, independent `u_coi` and
+`log_sd_coi` random-effect carrier, Gaussian penalty, reports, `sdpars()`,
+`ranef()`, prediction, simulation boundary, and profile-target status now carry
+one unlabelled `coi` random intercept. The parser rejects slopes, labels,
+correlation, multiple or simultaneous random components, structured effects,
+missing responses, and other neighbouring forms.
+
+The canonical ledger promotes only `mc-0570`. Its model-surface census becomes
+329 implemented, 340 rejected by design, and 18 not implemented. `mc-0578`
+remains not implemented for the separate C17-C2 slope milestone.
+
+## 3a. Decisions and Rejected Alternatives
+
+### Mathematical Contract
+
+The implemented predictor is
+
+\[
+\operatorname{logit}(coi_i)=X_{coi,i}\beta_{coi}
++Z_{coi,i}\operatorname{diag}\{\exp(\ell_{coi})\}u_{coi},
+\qquad u_{coi}\sim N(0,I).
+\]
+
+For `y = 0`, the boundary contribution is
+`log(zoi) + log(1 - coi)`; for `y = 1`, it is
+`log(zoi) + log(coi)`. Interior beta likelihood terms do not depend on `coi`.
+The independent R oracle checks the full mixture, normalized Gaussian prior,
+objective, and finite-difference gradient.
+
+The task retains a separate `coi` carrier rather than sharing the existing
+`zoi` carrier, because the two atom predictors represent different conditional
+probabilities and must remain independently estimable. It rejects a broader
+atom-effect parser admission, joint `zoi` plus `coi` random effects, direct
+profiles, and a rewritten C14 historical receipt. The accepted alternative is
+the exact unlabelled q1 intercept plus a narrow current-source C14 compatibility
+bridge that leaves the immutable historical receipt and fingerprint unchanged.
+
+## 4. Files Touched
+
+Implementation and focused tests touch the existing zero-one-beta R/TMB,
+method, profile, and test paths. Ledger inputs and generated census files record
+the one-cell promotion. README, NEWS, ROADMAP, family documentation, source and
+implementation maps, family registry, evidence-goal, readiness, validation-debt,
+and known-limitation pages now describe the exact point-fit scope and warning.
+
+`docs/dev-log/check-log.md` remains untouched because PR #869 is still open,
+as explicitly requested. Formula grammar and likelihood-parameterization
+documents also remain untouched under the locked C17 boundary; their stale
+sentences are recorded below rather than silently widening this task.
+
+## 5. Checks Run
+
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::document()'`:
+  pass; `man/zero_one_beta.Rd` regenerated.
+- Focused zero-one-beta tests: pass.
+- Full `devtools::test(reporter = "summary")`: reached the end with only four
+  line-number-pinned estimator-conformance failures caused by the inserted C1
+  code. The four evidence pointers were updated, and the focused
+  `estimator-surface-conformance` rerun passed.
+- `python3 tools/capability_ledger.py --check`: pass, 30 generated outputs.
+- After integrating canonical `main` at `5c9fa009` (merged PRs #885 and #886),
+  `python3 -m unittest tools.tests.test_capability_ledger
+  tools.tests.test_b4_ci_c1 tools.tests.test_b4_ci_c2`: 57 tests pass. This
+  includes a tamper test for the narrow C17-C1 current-source C14 bridge and
+  both source-bound Lane B closure checks.
+- The C2 closure check now counts `interval_feasible` cells only on the
+  `model_surface` axis. The combined ledger retains 97 model-surface interval
+  cells plus five separate association interval cells; no evidence transfers
+  between axes.
+- `python3 tools/capability_ledger.py --check-c14-receipt-equivalence`: pass.
+  The immutable C14 receipt and fingerprint remain unchanged; the checker
+  accepts the new model-15 fingerprint only when the separate three-cell,
+  12-attempt current-source compatibility manifest passes.
+- The 12/12 authenticated C14 model-15 compatibility receipt remains retained
+  and fingerprint-equivalent for the relevant source files. The strict guard
+  consumes this separate current-source evidence without rewriting the
+  immutable historical C14 receipt or fingerprint.
+
+`devtools::check(args = "--no-manual", error_on = "never")` compiled and
+installed the package, built vignettes, and passed documentation, examples,
+and `donttest` checks. It was manually interrupted during the long testthat
+phase after the full in-tree suite had already completed; it therefore has no
+final check Status and is not represented as a completed package check.
+- `R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'pkgdown::check_pkgdown()'`: pass (`No problems found`).
+- Post-integration focused zero-one-beta and estimator-conformance tests: pass.
+CI and post-merge Mission Control read-back remain PR landing gates.
+
+## 6. Tests of the Tests
+
+The focused suite includes an independent full-likelihood and numerical-gradient
+oracle, verifies that `log_sd_coi` changes the objective, checks extractors and
+prediction, and rejects malformed slopes, labels, covariance, simultaneous
+random components, structured effects, missing responses, and direct profiles.
+It therefore does not rely only on a self-comparison of package outputs.
+
+## 7a. Issue Ledger
+
+PR #869 was checked live and remains open. Its overlap keeps the shared
+check-log entry deferred. No issue was opened or closed because C17-C1 is being
+landed through its focused branch and forthcoming PR.
+
+## 8. Consistency Audit
+
+The exact stale-wording searches were:
+
+```sh
+rg -n 'coi random effects|`coi` random effects|random effects in `coi`|other zero-one-beta random effects|other zero-one beta random effects|other atom random effects' README.md ROADMAP.md NEWS.md docs/design vignettes R man --glob '!docs/design/01-formula-grammar.md' --glob '!docs/design/03-likelihoods.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/handover/**' --glob '!*.html'
+rg -n 'coi.*(profile|interval|coverage|inference_ready|supported)|point-fit-only.*coi|coi.*point-fit-only' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R man --glob '!*.html'
+```
+
+Current reader surfaces name `coi ~ 1 + (1 | id)` and keep `coi` slopes,
+profiles, intervals, coverage, and broader atom effects unavailable. Historical
+notes remain historical. The remaining locked current documents with stale
+blanket wording are `docs/design/01-formula-grammar.md` /
+`vignettes/formula-grammar.Rmd` and `docs/design/03-likelihoods.md`. They require
+a separately authorized documentation-only synchronization because this arc
+explicitly forbids formula grammar and likelihood-parameterization document
+changes.
+
+The generated `man/drmTMB.Rd` missing-response paragraph was restored to the
+canonical `origin/main` artifact after roxygen work, without altering missingness
+implementation or claims.
+
+## 9. What Did Not Go Smoothly
+
+The original prospective contract required every group in all four M=64
+attempts to contain at least two observed zeroes, two observed ones, and ten
+interior observations. Only two of four attempts met that all-groups rule even
+though all four estimator and recovery attempts passed. The raw receipt remains
+`BLOCKED_POINT_RECOVERY`; it was not rewritten.
+
+An exact audit showed that a correct campaign meets that all-four rule with
+probability only 0.3700719. Shinichi therefore authorized promotion with a
+sample-information warning. Historical M=32 boundary failure and all sparse-
+support attempts remain retained.
+
+The existing C14 equivalence checker initially rejected the new model-15
+fingerprint. After explicit owner authorization, the landing guard gained a
+narrow fail-closed bridge: it preserves the immutable C14 fingerprint and
+accepts the C17-C1 fingerprint only when the separate authenticated 12/12
+current-source compatibility receipt passes.
+
+## 10. Known Residuals
+
+The recovery claim is narrow: four retained M=64 attempts, 50 observations per
+group, at one frozen DGP. Groups with few observed zeroes or ones can have
+weakly identified conditional modes, so users should inspect within-group atom
+counts before interpreting individual modes. No interval, coverage, robustness,
+or broad family-level claim follows.
+
+Formula-grammar and likelihood-design wording is intentionally deferred. The
+shared check log is deferred until PR #869 lands or closes.
+
+## 11. Team Learning
+
+Support-count thresholds should be calibrated under the frozen DGP before they
+become all-attempt hard gates. A low-attainability group-support rule is useful
+as an identifiability warning, but it should not erase otherwise stable
+population-level point recovery unless the sparse support directly breaks the
+declared estimand.
+
+Line-number-pinned source evidence must be refreshed whenever a shared source
+file gains code above the cited region. The conformance test correctly caught
+four such drifts without exposing a REML behavioural regression.
+
+## 12. Cross-Product Coverage
+
+This milestone changes only drmTMB's zero-one-beta `coi` point-fit surface. It
+does NOT cover DRM.jl, gllvmTMB, GLLVM.jl, missing-response routing, association
+intervals, or any Lane A/B capability. The canonical-main integration preserves
+the merged Lane B evidence and distinguishes its five association-axis interval
+cells from the 97 model-surface interval cells.
+
+## Next Actions
+
+1. Obtain a fresh Rose landing reread of the canonical-main integration.
+2. Open a focused PR, require CI green on one unchanged head SHA, and request
+   fresh merge authorization.
+3. After merge, verify canonical `origin/main`, the 329/340/18 ledger census,
+   and Mission Control runtime with no overlay.
+4. Begin `mc-0578` only as a separate C17-C2 milestone after C17-C1 merges.

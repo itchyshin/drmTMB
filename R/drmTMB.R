@@ -576,10 +576,17 @@ drm_complete_shared_tmb_parameters <- function(spec) {
   has_zoi_re <- identical(spec$model_type, "zero_one_beta") &&
     is.list(spec$random) && is.list(spec$random$zoi) &&
     isTRUE(spec$random$zoi$n_re > 0L)
+  has_coi_re <- identical(spec$model_type, "zero_one_beta") &&
+    is.list(spec$random) && is.list(spec$random$coi) &&
+    isTRUE(spec$random$coi$n_re > 0L)
   if (is.null(spec$start$u_zoi)) spec$start$u_zoi <- 0
   if (is.null(spec$start$log_sd_zoi)) spec$start$log_sd_zoi <- 0
   if (is.null(spec$map$u_zoi) && !has_zoi_re) spec$map$u_zoi <- factor(NA)
   if (is.null(spec$map$log_sd_zoi) && !has_zoi_re) spec$map$log_sd_zoi <- factor(NA)
+  if (is.null(spec$start$u_coi)) spec$start$u_coi <- 0
+  if (is.null(spec$start$log_sd_coi)) spec$start$log_sd_coi <- 0
+  if (is.null(spec$map$u_coi) && !has_coi_re) spec$map$u_coi <- factor(NA)
+  if (is.null(spec$map$log_sd_coi) && !has_coi_re) spec$map$log_sd_coi <- factor(NA)
   spec
 }
 
@@ -5418,7 +5425,7 @@ drm_build_zero_one_beta_spec <- function(
   sigma_entry$rhs <- sigma_re$rhs
   zoi_re <- extract_random_mu_terms(zoi_entry$rhs, "zoi")
   zoi_entry$rhs <- zoi_re$rhs
-  coi_re <- extract_random_sigma_terms(coi_entry$rhs, "coi")
+  coi_re <- extract_random_mu_terms(coi_entry$rhs, "coi")
   coi_entry$rhs <- coi_re$rhs
   validate_zero_one_beta_sigma_random_terms(
     sigma_re$terms,
@@ -5432,11 +5439,22 @@ drm_build_zero_one_beta_spec <- function(
     sigma_terms = sigma_re$terms,
     coi_terms = coi_re$terms
   )
-  validate_zero_one_beta_coi_random_terms(coi_re$terms)
+  validate_zero_one_beta_coi_random_terms(
+    coi_re$terms,
+    mu_terms = mu_re$terms,
+    sigma_terms = sigma_re$terms,
+    zoi_terms = zoi_re$terms
+  )
   if (include_missing_response && length(zoi_re$terms) > 0L) {
     cli::cli_abort(c(
       "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
       "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
+    ))
+  }
+  if (include_missing_response && length(coi_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The zero-one-beta coi q1 random-intercept gate does not support missing responses.",
+      "i" = "Use complete observed responses with {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}."
     ))
   }
   if (length(sigma_re$terms) > 0L) {
@@ -5453,6 +5471,13 @@ drm_build_zero_one_beta_spec <- function(
       zoi_entry$rhs,
       coi_entry$rhs,
       zoi_terms = zoi_re$terms
+    )
+  }
+  if (length(coi_re$terms) > 0L) {
+    validate_zero_one_beta_coi_q1_fixed_rhs(
+      sigma_entry$rhs,
+      zoi_entry$rhs,
+      coi_entry$rhs
     )
   }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
@@ -5519,6 +5544,9 @@ drm_build_zero_one_beta_spec <- function(
   }
   if (!is.null(mu_structured) && length(zoi_re$terms) > 0L) {
     cli::cli_abort("A zero-one-beta zoi random intercept cannot be combined with a structured mu effect in this q1 gate.")
+  }
+  if (!is.null(mu_structured) && length(coi_re$terms) > 0L) {
+    cli::cli_abort("A zero-one-beta coi random intercept cannot be combined with a structured mu effect in this q1 gate.")
   }
 
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
@@ -5614,7 +5642,8 @@ drm_build_zero_one_beta_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   re_zoi <- build_random_zoi_structure(zoi_re$terms, data_model)
-  if (!is.null(sigma_structured) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re) > 0L)) {
+  re_coi <- build_random_coi_structure(coi_re$terms, data_model)
+  if (!is.null(sigma_structured) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re, re_coi$n_re) > 0L)) {
     cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with ordinary random effects in this gate.")
   }
   structured_term <- if (!is.null(sigma_structured)) sigma_structured else mu_structured
@@ -5645,7 +5674,7 @@ drm_build_zero_one_beta_spec <- function(
       mu = re_mu,
       sigma = re_sigma,
       zoi = re_zoi,
-      coi = empty_random_zoi_structure(nrow(data_model)),
+      coi = re_coi,
       mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
@@ -5663,16 +5692,22 @@ drm_build_zero_one_beta_spec <- function(
       re_mu = re_mu,
       re_sigma = re_sigma,
       re_zoi = re_zoi,
+      re_coi = re_coi,
       phylo_mu = phylo_mu,
       observed_y = observed_y
     ),
     map = zero_one_beta_map(
-      re_mu, phylo_mu, re_sigma = re_sigma, re_zoi = re_zoi
+      re_mu,
+      phylo_mu,
+      re_sigma = re_sigma,
+      re_zoi = re_zoi,
+      re_coi = re_coi
     ),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
       if (re_zoi$n_re > 0L) "u_zoi",
+      if (re_coi$n_re > 0L) "u_coi",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
@@ -9665,14 +9700,54 @@ validate_zero_one_beta_zoi_random_terms <- function(
   invisible(terms)
 }
 
-validate_zero_one_beta_coi_random_terms <- function(terms) {
+validate_zero_one_beta_coi_random_terms <- function(
+  terms,
+  mu_terms = list(),
+  sigma_terms = list(),
+  zoi_terms = list()
+) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
-  cli::cli_abort(c(
-    "One-inflation random effects are not implemented in this zero-one-beta slice.",
-    "i" = "The separate {.code coi} q1 route requires its own estimand and recovery evidence."
-  ))
+  if (length(mu_terms) > 0L || length(sigma_terms) > 0L || length(zoi_terms) > 0L) {
+    cli::cli_abort(c(
+      "Zero-one-beta {.code coi} random effects cannot be combined with other random effects in this q1 gate.",
+      "x" = "The formula contains a {.code coi} random effect and another random-effect component.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}."
+    ))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !identical(term$type, "intercept") || !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported) || length(terms) != 1L) {
+    labels <- vapply(terms, `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only one unlabelled {.fn zero_one_beta} {.code coi} random intercept is implemented in this q1 gate.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}.",
+      "i" = "Random slopes, transformed predictors, correlated or labelled terms, structured effects, and cross-parameter covariance remain deferred."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_zero_one_beta_coi_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs) {
+  if (
+    !is_intercept_one(sigma_rhs) ||
+      !is_intercept_one(zoi_rhs) ||
+      !is_intercept_one(coi_rhs)
+  ) {
+    cli::cli_abort(c(
+      "The zero-one-beta coi q1 gate requires {.code sigma ~ 1}, {.code zoi ~ 1}, and an intercept-only fixed {.code coi} component.",
+      "x" = "Predictor-dependent scale, zero-inflation, or one-inflation terms need separate recovery evidence.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))}."
+    ))
+  }
+  invisible(NULL)
 }
 
 validate_zero_one_beta_sigma_q1_fixed_rhs <- function(sigma_rhs, zoi_rhs, coi_rhs, sigma_terms) {
@@ -13338,6 +13413,12 @@ build_random_zoi_structure <- function(terms, data) {
   re_zoi
 }
 
+build_random_coi_structure <- function(terms, data) {
+  re_coi <- build_random_mu_structure(terms, data)
+  re_coi$dpars <- rep("coi", re_coi$n_terms)
+  re_coi
+}
+
 empty_mu_sigma_random_covariance <- function(n_sigma_re = 1L) {
   list(
     n_cors = 0L,
@@ -16836,6 +16917,7 @@ zero_one_beta_start <- function(
   re_mu = empty_random_mu_structure(length(y)),
   re_sigma = empty_random_sigma_structure(length(y)),
   re_zoi = empty_random_sigma_structure(length(y)),
+  re_coi = empty_random_sigma_structure(length(y)),
   phylo_mu = empty_phylo_mu_structure(),
   observed_y = rep(TRUE, length(y))
 ) {
@@ -16893,6 +16975,7 @@ zero_one_beta_start <- function(
   )
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
   zoi_re_start <- gaussian_sigma_re_start(re_zoi)
+  coi_re_start <- gaussian_sigma_re_start(re_coi)
   phylo_start <- gaussian_phylo_start(resid[observed_y], phylo_mu)
 
   c(
@@ -16916,6 +16999,8 @@ zero_one_beta_start <- function(
       log_sd_sigma = sigma_re_start$log_sd_sigma,
       u_zoi = zoi_re_start$u_sigma,
       log_sd_zoi = zoi_re_start$log_sd_sigma,
+      u_coi = coi_re_start$u_sigma,
+      log_sd_coi = coi_re_start$log_sd_sigma,
       beta_mu1 = 0,
       beta_mu2 = 0,
       beta_sigma1 = 0,
@@ -16932,7 +17017,8 @@ zero_one_beta_map <- function(
   re_mu = empty_random_mu_structure(1L),
   phylo_mu = empty_phylo_mu_structure(),
   re_sigma = empty_random_sigma_structure(1L),
-  re_zoi = empty_random_sigma_structure(1L)
+  re_zoi = empty_random_sigma_structure(1L),
+  re_coi = empty_random_sigma_structure(1L)
 ) {
   out <- beta_ls_map(re_mu = re_mu, phylo_mu = phylo_mu, re_sigma = re_sigma)
   if (re_zoi$n_re == 0L) {
@@ -16941,6 +17027,13 @@ zero_one_beta_map <- function(
   } else {
     out$u_zoi <- factor(seq_len(re_zoi$n_re))
     out$log_sd_zoi <- factor(seq_len(re_zoi$n_terms))
+  }
+  if (re_coi$n_re == 0L) {
+    out$u_coi <- factor(NA)
+    out$log_sd_coi <- factor(NA)
+  } else {
+    out$u_coi <- factor(seq_len(re_coi$n_re))
+    out$log_sd_coi <- factor(seq_len(re_coi$n_terms))
   }
   out
 }
@@ -18147,18 +18240,23 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
 }
 
 # Supplied for every model so the shared TMB signature remains stable.  Only
-# the deliberately narrow zero-one-beta zoi q1 gate ever sets these fields
+# the deliberately narrow zero-one-beta atom q1 gates ever set these fields
 # live; all other model types receive inert placeholders.
 zero_one_beta_atom_tmb_data <- function(spec) {
   if (identical(spec$model_type, "zero_one_beta")) {
     return(list())
   }
   re_zoi <- empty_random_zoi_structure(length(spec$y))
+  re_coi <- empty_random_zoi_structure(length(spec$y))
   list(
     n_zoi_re_terms = re_zoi$n_terms,
     zoi_re_index = re_zoi$index0,
     zoi_re_value = re_zoi$value,
-    zoi_re_term = re_zoi$term_id0
+    zoi_re_term = re_zoi$term_id0,
+    n_coi_re_terms = re_coi$n_terms,
+    coi_re_index = re_coi$index0,
+    coi_re_value = re_coi$value,
+    coi_re_term = re_coi$term_id0
   )
 }
 
@@ -18995,6 +19093,7 @@ make_tmb_data <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     re_sigma <- spec$random$sigma
     re_zoi <- spec$random$zoi
+    re_coi <- spec$random$coi
     return(list(
       model_type = 15L,
       y = spec$y,
@@ -19048,6 +19147,10 @@ make_tmb_data <- function(spec) {
       zoi_re_index = re_zoi$index0,
       zoi_re_value = re_zoi$value,
       zoi_re_term = re_zoi$term_id0,
+      n_coi_re_terms = re_coi$n_terms,
+      coi_re_index = re_coi$index0,
+      coi_re_value = re_coi$value,
+      coi_re_term = re_coi$term_id0,
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
       phylo_mu_node_index = if (isTRUE(phylo_mu$has)) phylo_mu$observation_node_index - 1L else 0L,
@@ -20126,6 +20229,16 @@ split_tmb_sdpars <- function(par, spec) {
     names(sd_zoi) <- spec$random$zoi$labels
     out$zoi <- sd_zoi
   }
+  if (
+    identical(spec$model_type, "zero_one_beta") &&
+      is.list(spec$random$coi) && spec$random$coi$n_re > 0L
+  ) {
+    sd_coi <- exp(unname(par$log_sd_coi[seq_len(
+      spec$random$coi$n_terms
+    )]))
+    names(sd_coi) <- spec$random$coi$labels
+    out$coi <- sd_coi
+  }
   if (is.list(spec$random$covariance_blocks)) {
     qgt2_members <- qgt2_covariance_members(spec$random$covariance_blocks)
     if (nrow(qgt2_members) > 0L) {
@@ -20513,6 +20626,16 @@ split_tmb_random_effects <- function(par, spec) {
       latent, par$log_sd_zoi, spec$random$zoi
     )
     out$zoi <- format_random_effect_values(latent, values, spec$random$zoi)
+  }
+  if (
+    identical(spec$model_type, "zero_one_beta") &&
+      is.list(spec$random$coi) && spec$random$coi$n_re > 0L
+  ) {
+    latent <- unname(par$u_coi[seq_len(spec$random$coi$n_re)])
+    values <- transform_independent_random_effects(
+      latent, par$log_sd_coi, spec$random$coi
+    )
+    out$coi <- format_random_effect_values(latent, values, spec$random$coi)
   }
   if (is.list(spec$random$covariance_blocks)) {
     qgt2_re <- transform_covariance_block_random_effects(

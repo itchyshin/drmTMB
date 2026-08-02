@@ -2647,8 +2647,9 @@ deviance.drmTMB <- function(object, ...) {
 #' currently implemented conditional random-effect contributions for `mu`,
 #' including registry-backed q > 2 ordinary covariance blocks, bivariate
 #' `mu1`/`mu2`, phylogenetic `mu`, and residual-scale `sigma` including
-#' bivariate `sigma1`/`sigma2` blocks. When `newdata` is supplied, predictions
-#' are fixed-effect, population-level
+#' bivariate `sigma1`/`sigma2` blocks. Fitted-row predictions also include
+#' ordinary zero-one-beta `zoi` and `coi` random-effect contributions. When
+#' `newdata` is supplied, predictions are fixed-effect, population-level
 #' predictions for the supplied rows.
 #'
 #' `type = "quantile"` returns per-row conditional quantiles of the fitted
@@ -2760,6 +2761,16 @@ predict.drmTMB <- function(
       has_sigma_random_effects(object)
   ) {
     eta <- eta + sigma_random_effect_contribution(object, dpar = dpar)
+  }
+  if (
+    is.null(newdata) &&
+      dpar %in% c("zoi", "coi") &&
+      has_atom_probability_random_effects(object, dpar)
+  ) {
+    eta <- eta + atom_probability_random_effect_contribution(
+      object,
+      dpar = dpar
+    )
   }
   if (
     is.null(newdata) &&
@@ -5727,6 +5738,13 @@ has_covariance_block_random_effects <- function(object) {
     ncol(object$random_effects$covariance_blocks$contribution) > 0L
 }
 
+has_atom_probability_random_effects <- function(object, dpar) {
+  identical(object$model$model_type, "zero_one_beta") &&
+    dpar %in% c("zoi", "coi") &&
+    is.list(object$random_effects[[dpar]]) &&
+    length(object$random_effects[[dpar]]$values) > 0L
+}
+
 has_mu_covariance_block_random_effects <- function(object) {
   has_covariance_block_random_effects(object) &&
     n_mu_covariance_block_random_effect_terms(object) > 0L
@@ -5887,6 +5905,15 @@ sigma_random_effect_contribution <- function(object, dpar = NULL) {
   rowSums(matrix(values[index], nrow = nrow(index)) * design_value)
 }
 
+atom_probability_random_effect_contribution <- function(object, dpar) {
+  dpar <- match.arg(dpar, c("zoi", "coi"))
+  values <- object$random_effects[[dpar]]$values
+  re <- object$model$random[[dpar]]
+  rowSums(
+    matrix(values[re$index], nrow = nrow(re$index)) * re$value
+  )
+}
+
 covariance_block_random_effect_contribution <- function(object, dpar) {
   block_re <- object$random_effects$covariance_blocks
   members <- block_re$members
@@ -5917,6 +5944,12 @@ drm_simulate_marginal_unsupported <- function(object) {
   }
   if (has_covariance_block_random_effects(object)) {
     return("correlated covariance-block random effects")
+  }
+  if (
+    has_atom_probability_random_effects(object, "zoi") ||
+      has_atom_probability_random_effects(object, "coi")
+  ) {
+    return("zero-one-beta atom-probability random effects")
   }
   if (isTRUE(object$model$random$mu$cor_model$n_models > 0L)) {
     return("predictor-dependent random-effect correlation (corpair) regression")
