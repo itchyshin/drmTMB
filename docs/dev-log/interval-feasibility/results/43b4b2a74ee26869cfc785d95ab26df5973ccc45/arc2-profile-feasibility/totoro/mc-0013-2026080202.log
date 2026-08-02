@@ -1,0 +1,6 @@
+  cell_id                         target_id estimator conf_status estimate
+1 mc-0013 mc-0013::sd:mu:animal(0 + x | id)        ML     profile 0.544163
+      lower     upper convergence pdHess profile_boundary trace_complete
+1 0.4233145 0.7137306           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               

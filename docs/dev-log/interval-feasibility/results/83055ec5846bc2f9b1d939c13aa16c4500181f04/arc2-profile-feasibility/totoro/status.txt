@@ -1,0 +1,10 @@
+exit=0 mc-0186 seed=2026080202
+exit=0 mc-0186 seed=2026080201
+exit=0 mc-0186 seed=2026080203
+exit=0 mc-0274 seed=2026080201
+exit=0 mc-0274 seed=2026080203
+exit=0 mc-0263 seed=2026080201
+exit=0 mc-0274 seed=2026080202
+exit=0 mc-0263 seed=2026080202
+exit=0 mc-0263 seed=2026080203
+CAMPAIGN_COMPLETE

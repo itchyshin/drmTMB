@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+rho12	0.95	0.242257496440897	0.515409873539753	response	rho12_tanh	beta_rho12	1	profile	tmbprofile	profile	FALSE	ok	mc-0186	mc-0186::rho12	2026080202	n150
