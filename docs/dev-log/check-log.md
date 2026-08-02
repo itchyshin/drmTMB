@@ -91992,3 +91992,20 @@ Shinichi grants a separate Gate A compute approval.
 - The complete post-rebase focused association suite passed 808/808 with zero
   failures, warnings, or skips. A fresh full pkgdown build completed and
   `pkgdown::check_pkgdown()` reported no problems.
+
+## 2026-08-01: Arc 6 association article visual follow-up
+
+- Added the staged association route to the Function Map and replaced the
+  non-evaluated placeholder in the mixed-outcome article with a deterministic
+  public-API example that prints `eta`, the alpha SE, the alpha interval, and
+  the transformed eta interval with one experimental warning.
+- Corrected the formula-grammar status row so constant and row-specific eta
+  uncertainty match the shipped `confint()` and `predict()` methods.
+- Rebuilt both articles. Florence's first rendered review caught exposed diagram
+  construction code and malformed inline mathematics; the repaired rebuild
+  hides the code, supplies figure alt text, and renders the affected expressions
+  as MathML. Florence and Tufte returned final PASS verdicts.
+- The focused `associate` test family passed, `pkgdown::check_pkgdown()` found no
+  problems, `git diff --check` passed, and the deployment strip verified that
+  internal `AGENTS`/`CLAUDE` pages remain absent. No model code, internal
+  validation machinery, inference promotion, or new compute changed.

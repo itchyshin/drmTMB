@@ -180,3 +180,29 @@ family pairs, new compute, or live-site deployment.
 2. Present the complete branch diff for maintainer review before push or PR.
 3. Schedule a later whole-site audit for the remaining long menu and article
    sequencing after this focused reader path is landed.
+
+## 14. Post-Merge Association Article Visual Follow-Up
+
+After PR #885 merged, a live-site comparison showed that deployment had not yet
+reached the repaired source and exposed two remaining source-level reader gaps.
+The Function Map route table now names the staged association workflow and links
+directly to the mixed-outcome article. That article now executes a deterministic
+literal-Bernoulli x ordinary-NB2 example with exported functions only, prints the
+bounded `eta` estimate, Godambe alpha standard error, alpha confidence interval,
+and transformed eta confidence interval, and displays the lower-information
+experimental warning once. The formula-grammar status table now describes
+`confint(type = "eta")` and pointwise `predict(type = "eta", se.fit = TRUE,
+interval = "confidence")` rather than incorrectly placing eta intervals outside
+the implemented slice.
+
+Florence's rendered-page audit found three reader-visible defects that source
+inspection missed: the staged-diagram construction code was printed, and three
+inline mathematical expressions were malformed because they lacked math
+delimiters. The final rebuild hides the construction code, supplies explicit
+figure alt text, and renders all three expressions as MathML. Florence and Tufte
+then returned final PASS verdicts with no actionable visual or information-design
+findings. The complete focused association suite passed, both articles rendered,
+`pkgdown::check_pkgdown()` reported no problems, and the deployment stripping
+step left no `AGENTS.html` or `CLAUDE.html` page or search/sitemap entry. No
+likelihood, estimator, capability tier, internal validation code, or new compute
+changed in this follow-up.

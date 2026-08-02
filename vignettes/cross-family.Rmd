@@ -9,6 +9,9 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
 ```
 
 <style>
@@ -67,26 +70,46 @@ that call does. Create one data frame containing both responses and every
 predictor, then remove incomplete rows once. A binary response must contain
 exactly one literal `0` or `1` per row.
 
-```{r one-call-example, eval = FALSE}
-paired_data <- na.omit(data.frame(
-  bred, offspring, habitat, habitat_score, season
-))
+```{r one-call-example}
+set.seed(20260801)
+n <- 160L
+habitat_score <- seq(-1.5, 1.5, length.out = n)
+shared_tendency <- rnorm(n)
+
+paired_data <- data.frame(
+  habitat_score = habitat_score,
+  bred = rbinom(
+    n,
+    size = 1,
+    prob = plogis(-0.3 + 0.25 * habitat_score + 0.7 * shared_tendency)
+  ),
+  offspring = rnbinom(
+    n,
+    mu = exp(0.7 + 0.2 * habitat_score + 0.6 * shared_tendency),
+    size = 2
+  )
+)
 
 assoc <- biv_associate(
-  bf(mu = bred ~ habitat),
-  bf(mu = offspring ~ habitat, sigma = ~ season),
+  bf(mu = bred ~ habitat_score),
+  bf(mu = offspring ~ habitat_score, sigma = ~ 1),
   family = list(binomial(), nbinom2()),
   data = paired_data,
   association = ~ 1
 )
 
 association(assoc)
-vcov(assoc)
-confint(assoc)
-confint(assoc, type = "eta")
+alpha_se <- sqrt(diag(vcov(assoc)))
+alpha_se
+suppressWarnings(confint(assoc))
+suppressWarnings(confint(assoc, type = "eta"))
 ```
 
-```{r staged-diagram, fig.width = 8, fig.height = 3.1, fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. For every admitted route, the public Godambe covariance propagates uncertainty from both fitted margins into alpha-scale Wald intervals when fit-specific diagnostics pass."}
+The first uncertainty request prints the experimental interval warning once for
+this lower-information example. The later calls suppress the duplicate warning
+so the rendered page keeps the coefficient and `eta` intervals readable.
+
+```{r staged-diagram, echo = FALSE, fig.width = 8, fig.height = 3.1, fig.alt = "Flow diagram showing one complete paired data set splitting into a binary margin and a count margin in stage 1, then joining in stage 2 where both margins are frozen and eta is estimated.", fig.cap = "The frozen-margin workflow. The two response models are fitted first on the same complete rows. Their fitted probabilities or distributions are held fixed while stage 2 estimates a latent-normal association, eta. For every admitted route, the public Godambe covariance propagates uncertainty from both fitted margins into alpha-scale Wald intervals when fit-specific diagnostics pass."}
 old_par <- par(mar = c(0, 0, 1, 0))
 plot.new()
 plot.window(xlim = c(0, 12), ylim = c(0, 4))
@@ -132,8 +155,8 @@ coefficients. This establishes interval feasibility. The Bernoulli x
 ordinary-NB2 intercept route additionally has retained coverage calibration.
 
 Writing the full staged parameter as
-(q=(\theta_B^\top,\theta_N^\top,\alpha)^\top) and its per-row stacked score as
-(U_i(q)), drmTMB computes
+\(q=(\theta_B^\top,\theta_N^\top,\alpha)^\top\) and its per-row stacked score as
+\(U_i(q)\), drmTMB computes
 
 \[
 H=-\frac{1}{n}\sum_i\frac{\partial U_i}{\partial q^\top},\qquad
@@ -145,7 +168,7 @@ J=\frac{1}{n}\sum_i U_iU_i^\top,\qquad
 forms Wald intervals from that block. Thus the equations, R method, and
 reported target all use the same unbounded association-link scale.
 
-For a design row (x_i^\top), the bounded association is
+For a design row \(x_i^\top\), the bounded association is
 \(\eta_i=0.999999\tanh(x_i^\top\alpha)\). `predict()` obtains its standard error
 from the delta method and obtains its confidence limits by transforming the
 link-scale Wald endpoints. The transformed interval therefore remains inside
