@@ -66,6 +66,20 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
     sum(latent * as.numeric(Q %*% latent)), as.numeric(report$quadratic_mesh),
     tolerance = 1e-10
   )
+  # Gaussian integration gives an independent dense marginal likelihood:
+  # y ~ N(X beta, sigma^2 I + s^2 A Q^-1 A').  This does not reuse TMB's
+  # random-effect objective or its sparse factorization.
+  field_scale <- fit$sdpars$mu[["spatial(1 | site)"]]
+  residual_sd <- exp(unname(fit$coefficients$sigma[["(Intercept)"]]))
+  marginal_cov <- residual_sd^2 * diag(nrow(A)) +
+    field_scale^2 * as.matrix(A) %*% solve(as.matrix(Q), t(as.matrix(A)))
+  residual <- dat$y - unname(fit$coefficients$mu[["(Intercept)"]])
+  dense_nll <- 0.5 * (
+    length(residual) * log(2 * pi) +
+      as.numeric(determinant(marginal_cov, logarithm = TRUE)$modulus) +
+      drop(crossprod(residual, solve(marginal_cov, residual)))
+  )
+  expect_equal(fit$opt$objective, dense_nll, tolerance = 1e-7)
 })
 
 test_that("mesh projection follows retained model-row identifiers after permutation", {

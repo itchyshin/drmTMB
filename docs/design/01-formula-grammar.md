@@ -873,18 +873,22 @@ intercept and slope fields, labelled `spatial(1 | site)` and
 contain one row per site or one row per observation, provided coordinates are
 constant within site after model-row filtering.
 
-The planned mesh/SPDE syntax is:
+The separate fixed-kappa mesh/SPDE syntax is:
 
 ```r
-bf(y ~ x1 + spatial(1 | site, mesh = mesh), sigma ~ x2)
+bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)
 ```
 
-Here `mesh` names the object that will be used to build an SPDE/GMRF
-precision. Exactly one of `coords` or `mesh` should be supplied. `coords` is
+Here `mesh` names a validated `drmTMBmesh` containing an SPDE/GMRF precision
+and one barycentric `A_st` row per retained observation. Exactly one of
+`coords` or `mesh` should be supplied. `coords` is
 the friendly data-level input: observed or site coordinates. `mesh` is the
 expert-control input for users who already built the finite-element scaffold.
 Mesh is not a biological sampling level; it is the numerical support needed for
-the scalable SPDE/GMRF route.
+the scalable SPDE/GMRF route. The first fitted mesh route permits no mesh
+slopes and requires `sigma ~ 1`; ordinary fixed effects may remain in `mu`.
+`kappa` is
+positive fixed configuration, not a range estimate.
 
 The parser currently reserves intercept-only and one-slope forms. Fitted
 univariate Gaussian structured-slope forms are intercept-only and one
