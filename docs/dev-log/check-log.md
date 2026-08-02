@@ -92078,3 +92078,8 @@ Shinichi grants a separate Gate A compute approval.
   projected conditional values, and the profile-unready row. New contract
   tests cover non-Gaussian, labelled, mesh-plus-coordinates, REML, and
   missing-data boundaries; the focused mesh suite passed 50 expectations.
+- Pat's re-review corrected the executable article's vertex invariant to
+  `ncol(A_st)` and removed the remaining broad mesh-deferred wording. The
+  readiness matrix now explicitly says that every later “mesh/SPDE planned”
+  phrase excludes the one fixed-kappa Gaussian local-fit intercept. The
+  rebuilt spatial article shows the corrected invariant and profile status.

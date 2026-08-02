@@ -191,7 +191,7 @@ fit_mesh <- drmTMB(
   data = mesh_dat, family = gaussian()
 )
 c(
-  vertices = nrow(mesh$loc_xy),
+  vertices = ncol(mesh$A_st),
   observations = nrow(mesh$A_st),
   max_projection_row_error = max(abs(Matrix::rowSums(mesh$A_st) - 1))
 )

@@ -280,7 +280,8 @@ Artifact routing is narrower than fitted syntax. The one-slope routes have
 manual Phase 18 artifact tasks named `phylo_mu_slope`, `spatial_mu_slope`,
 `animal_mu_slope`, and `relmat_mu_slope`. These tasks are opt-in, excluded from
 `task = "all"`, and are not recovery, coverage, or power evidence.
-Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
+Mesh/SPDE fields beyond the fixed-kappa Gaussian intercept, combined
+phylogenetic-plus-spatial location models,
 additional multiple or labelled spatial-slope layouts outside the exact fitted
 ledger cells, spatial slope correlations,
 non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial
@@ -626,7 +627,8 @@ known-matrix Gaussian `mu` and `sigma` intercepts, matching univariate
 bivariate location covariance, and matching all-four constant q=4
 location-scale covariance. The exact A-matrix animal and K/Q relmat sigma
 slopes are inference-ready with caveats; the spatial sigma-slope interval gate
-remains blocked. Spatial `corpair()`, mesh/SPDE fields, pedigree/Ainv bridge
+remains blocked. Spatial `corpair()`, mesh/SPDE fields beyond the fixed-kappa
+Gaussian intercept, pedigree/Ainv bridge
 marshalling, sparse large-pedigree construction, additional multiple or
 labelled slope layouts outside the exact fitted ledger cells, and
 animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
@@ -681,7 +683,7 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented for q=2 `mu1`/`mu2` | Species-level predictors model the same-species latent phylogenetic location-location correlation through a positive-definite two-field loading contract. `corpairs(level = "phylogenetic")` reports the modelled response-scale mean, range, and number of species values. |
-| `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This is a fixed coordinate covariance foundation, not the future mesh/SPDE path. |
+| `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This fixed dense covariance foundation is separate from the fitted fixed-kappa mesh/SPDE intercept. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
 | Matching `spatial(1 | p | site, coords = coords)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated coordinate-spatial location deviations. `corpairs(level = "spatial")` and `summary()$covariance` report this mean-mean row separately from residual `rho12`. |
 | Matching labelled `spatial()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | Two Gaussian responses have a constant coordinate-spatial location-scale covariance block with four endpoint SDs and six derived latent spatial correlations. |
