@@ -26,6 +26,7 @@ EVIDENCE = LEDGER / "evidence.tsv"
 TRANSITIONS = LEDGER / "transitions.tsv"
 SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
+PARITY_TRIAGE = ROOT / "docs/dev-log/dashboard/parity-triage.tsv"
 
 # C14 restores the package-boundary classification from the last ledger commit
 # that recorded it explicitly.  This is a taxonomy correction, not evidence for
@@ -90,9 +91,54 @@ ASSOCIATION_COUNT = 6
 # and mc-0576 after source-equivalence verification and fresh three-lens GO.
 # B4-CI C1, C2, C3, then C4 promote only their approved source-bound cells.
 # C4 moves eleven frozen point-fit cells and twelve diagnostic-only cells; this
-# is not a blanket re-baseline.
+# is not a blanket re-baseline. Arc 1 subsequently promotes only five exact
+# targets after three current-source Totoro receipts per target: mc-0260,
+# mc-0262, mc-0260m's pooled effect, mc-0266's residual-scale RE SD, and
+# mc-0269's Gaussian REML independent random-slope SD.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 81
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 77
+ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
+ARC1_GAUSSIAN_FIXED_TARGETS = {
+    "mc-0260": "mc-0260::fixef:mu:x",
+    "mc-0262": "mc-0262::fixef:sigma:x",
+}
+ARC1_GAUSSIAN_FIXED_RECONCILIATION = (
+    "docs/dev-log/interval-feasibility/results/"
+    f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+    "arc1-gaussian-fixed-profile-feasibility/totoro/reconciliation.tsv"
+)
+ARC1_ADDITIONAL_TARGETS = {
+    "mc-0260m": {
+        "target_id": "mc-0260m::fixef:mu:(Intercept)",
+        "evidence_id": "ev-mc-0260m-arc1-meta-v-profile",
+        "transition_id": "tr-mc-0260m-arc1-meta-v-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+            "arc1-meta-v-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+    "mc-0266": {
+        "target_id": "mc-0266::sd:sigma:(1 | id)",
+        "evidence_id": "ev-mc-0266-arc1-sigma-re-profile",
+        "transition_id": "tr-mc-0266-arc1-sigma-re-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+            "arc1-gaussian-sigma-re-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+    "mc-0269": {
+        "target_id": "mc-0269::sd:mu:(0 + x | id)",
+        "evidence_id": "ev-mc-0269-arc1-reml-slope-profile",
+        "transition_id": "tr-mc-0269-arc1-reml-slope-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
+            "arc1-gaussian-reml-slope-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+}
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
@@ -1187,6 +1233,113 @@ def validate(
             f"(expected {FROZEN_CENSUS_POINT_FIT_RECOVERY}); a frozen cell was promoted "
             "or demoted"
         )
+
+    arc1_by_cell = {row["cell_id"]: row for row in cells}
+    for cell_id, target_id in ARC1_GAUSSIAN_FIXED_TARGETS.items():
+        direct_target = target_id.split("::", 1)[1]
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = f"ev-{cell_id}-arc1-fixed-profile"
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition_id = f"tr-{cell_id}-arc1-fixed-profile"
+        transition = next(
+            (row for row in transitions if row["transition_id"] == transition_id),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or direct_target not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 1 Gaussian fixed-target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("path_or_url") != ARC1_GAUSSIAN_FIXED_RECONCILIATION
+            or evidence_row.get("commit_sha") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 1 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 1 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC1_ADDITIONAL_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (
+                row for row in transitions
+                if row["transition_id"] == contract["transition_id"]
+            ),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or direct_target not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 1 additional target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("path_or_url") != contract["reconciliation"]
+            or evidence_row.get("commit_sha") != ARC1_GAUSSIAN_FIXED_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 1 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 1 transition must remain verified-to-verified")
+
+    parity_by_cell = {
+        row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)
+    }
+    arc1_parity_targets = {
+        **ARC1_GAUSSIAN_FIXED_TARGETS,
+        **{
+            cell_id: contract["target_id"]
+            for cell_id, contract in ARC1_ADDITIONAL_TARGETS.items()
+        },
+    }
+    for cell_id, target_id in arc1_parity_targets.items():
+        direct_target = target_id.split("::", 1)[1]
+        parity_text = " ".join(
+            parity_by_cell.get(cell_id, {}).get(field, "")
+            for field in ("not_covered", "rationale")
+        )
+        if (
+            "DATED SUPERSESSION (2026-08-02)" not in parity_text
+            or direct_target not in parity_text
+        ):
+            errors.append(
+                f"{cell_id}: parity triage must retain the dated exact-target "
+                "Arc 1 interval supersession"
+            )
+    mc0438_parity = " ".join(
+        parity_by_cell.get("mc-0438", {}).get(field, "")
+        for field in ("not_covered", "rationale")
+    )
+    if (
+        "DATED STOP (2026-08-02)" not in mc0438_parity
+        or "sd:mu:phylo_interaction(1 | plant:pollinator)" not in mc0438_parity
+        or "nonfinite" not in mc0438_parity
+    ):
+        errors.append("mc-0438: parity triage must retain the dated Arc 1 STOP")
 
     by_cell = {row["cell_id"]: row for row in cells}
     b3_observed = {
