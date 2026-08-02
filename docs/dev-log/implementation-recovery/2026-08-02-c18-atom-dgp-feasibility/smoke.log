@@ -1,0 +1,68 @@
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+C18 smoke: one representative cell, both atoms (zoi RE path, coi RE path)
+--- atom = zoi ---
+  row_id atom  zoi n_each coi  tau n_tip       seed
+1     NA  zoi 0.15     50 0.5 0.55    32 2026080201
+                                source_sha
+1 a61f23939c3ed0b3359f972d763236a539e3f417
+                                                     runner_sha256
+1 92bb093c133272c27a3cf6c881f35741da1312f1638cb165cd150d2527846e79
+  mean_boundary_group min_boundary_group n_separated_groups elapsed_sec status
+1              13.625                  4                  0       0.982 fit_ok
+  convergence pdHess max_gradient   tau_hat tau_relative_error mode_correlation
+1           0   TRUE 0.0003075803 0.6058203          0.1014914        0.8496531
+  boundary_hit error
+1        FALSE  none
+str(fit$opt):
+List of 6
+ $ par        : Named num [1:6] -0.14 0.326 -0.999 -1.057 -0.138 ...
+  ..- attr(*, "names")= chr [1:6] "beta_mu" "beta_mu" "beta_sigma" "beta_zoi" ...
+ $ objective  : num 774
+ $ convergence: int 0
+ $ iterations : int 38
+ $ evaluations: Named int [1:2] 51 39
+  ..- attr(*, "names")= chr [1:2] "function" "gradient"
+ $ message    : chr "relative convergence (4)"
+fit$sdr$pdHess: TRUE 
+summary sdpars[[atom]]:
+(1 | species) 
+    0.6058203 
+head(ranef):
+        sp1         sp2         sp3         sp4         sp5         sp6 
+0.599216334 0.801714153 1.197393415 1.397007818 0.088725425 0.008782557 
+--- atom = coi ---
+  row_id atom  zoi n_each coi  tau n_tip       seed
+1     NA  coi 0.15     50 0.5 0.55    32 2026080201
+                                source_sha
+1 a61f23939c3ed0b3359f972d763236a539e3f417
+                                                     runner_sha256
+1 92bb093c133272c27a3cf6c881f35741da1312f1638cb165cd150d2527846e79
+  mean_boundary_group min_boundary_group n_separated_groups elapsed_sec status
+1             7.90625                  3                  3       0.967 fit_ok
+  convergence pdHess max_gradient   tau_hat tau_relative_error mode_correlation
+1           0   TRUE  0.001695456 0.5983375          0.0878863        0.5282653
+  boundary_hit error
+1        FALSE  none
+str(fit$opt):
+List of 6
+ $ par        : Named num [1:6] -0.138 0.331 -0.992 -1.672 0.599 ...
+  ..- attr(*, "names")= chr [1:6] "beta_mu" "beta_mu" "beta_sigma" "beta_zoi" ...
+ $ objective  : num 369
+ $ convergence: int 0
+ $ iterations : int 36
+ $ evaluations: Named int [1:2] 61 37
+  ..- attr(*, "names")= chr [1:2] "function" "gradient"
+ $ message    : chr "relative convergence (4)"
+fit$sdr$pdHess: TRUE 
+summary sdpars[[atom]]:
+(1 | species) 
+    0.5983375 
+head(ranef):
+       sp1        sp2        sp3        sp4        sp5        sp6 
+ 0.1081030  0.1081030  0.5862791  0.3085134  0.2744458 -0.3870494 
