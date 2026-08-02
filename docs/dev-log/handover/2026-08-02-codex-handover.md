@@ -1,14 +1,23 @@
 # Codex handover — mesh closeout and spatial q2 Confidence Eye next arc
 
-Date: 2026-08-02  
-From: Codex  
-To: Codex  
-Repository: `drmTMB`  
-Platform/lane: `PLATFORM: Codex | CURRENT LANE: fixed-kappa Gaussian mesh | NEXT LANE: dense coordinate-spatial q2 correlation intervals`  
-Current branch: `codex/drmtmb-spatial-mesh`  
-Current head before this handover commit: `94224d5180c714a872fda0274b6a92029879fa1c`  
-Pull request: [#893](https://github.com/itchyshin/drmTMB/pull/893)  
-Issue closed by the current arc: [#881](https://github.com/itchyshin/drmTMB/issues/881)  
+Date: 2026-08-02
+
+From: Codex
+
+To: Codex
+
+Repository: `drmTMB`
+
+Platform/lane: `PLATFORM: Codex | CURRENT LANE: fixed-kappa Gaussian mesh | NEXT LANE: dense coordinate-spatial q2 correlation intervals`
+
+Current branch: `codex/drmtmb-spatial-mesh`
+
+Current head before this handover commit: `94224d5180c714a872fda0274b6a92029879fa1c`
+
+Pull request: [#893](https://github.com/itchyshin/drmTMB/pull/893)
+
+Issue closed by the current arc: [#881](https://github.com/itchyshin/drmTMB/issues/881)
+
 Sibling evidence issue: [gllvmTMB #904](https://github.com/itchyshin/gllvmTMB/issues/904)
 
 ## Critical context
