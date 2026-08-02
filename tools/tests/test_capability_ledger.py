@@ -347,23 +347,31 @@ class CapabilityLedgerTests(unittest.TestCase):
         # promotions, the exact C17-C1 mc-0570 and C17-C2 mc-0578
         # promotions, and the target-specific Arc 1 mc-0260/mc-0262
         # promotions, plus the target-specific Arc 1 mc-0266 and mc-0269
-        # promotions.
+        # promotions, plus the target-specific Arc 2 mc-0186, mc-0263, and
+        # mc-0274 promotions.
         # Future changes require a
         # named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
+        # This asserts against the module constant rather than a literal so the
+        # test and the validator cannot drift apart; capability_ledger.py binds
+        # each promoted frozen cell to its exact target in ARC1_*/ARC2_TARGETS,
+        # so lowering the constant alone still fails there.
         frozen = [row for row in model if int(row["source_order"]) <= 676]
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            77,
+            ledger.FROZEN_CENSUS_POINT_FIT_RECOVERY,
         )
         # The TOTAL may differ from the frozen count only through approved row inserts.
         # mc-0260m is now interval_feasible for one exact pooled-effect target, so it no
         # longer contributes to this total. Checking both numbers catches a promotion
         # hidden behind a simultaneous insert, which either number alone would miss.
+        # Deliberately a literal, NOT the module constant: tying both assertions to
+        # one constant would destroy exactly the independence this check exists for.
+        # 77 -> 74 for the three Arc 2 promotions (mc-0186, mc-0263, mc-0274).
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            77,
+            74,
         )
 
         by_id = {row["cell_id"]: row for row in model}

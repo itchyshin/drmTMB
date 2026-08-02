@@ -95,8 +95,15 @@ ASSOCIATION_COUNT = 6
 # targets after three current-source Totoro receipts per target: mc-0260,
 # mc-0262, mc-0260m's pooled effect, mc-0266's residual-scale RE SD, and
 # mc-0269's Gaussian REML independent random-slope SD.
+# Arc 2 then promotes exactly three more frozen cells, each after three
+# current-source Totoro receipts reconciled 3/3 against the same one-profile
+# contract: mc-0186's bivariate REML rho12, mc-0263's heteroscedastic
+# sigma ~ x fixed effect, and mc-0274's phylogenetic mean random-intercept SD.
+# 77 -> 74 records exactly those three; ARC2_TARGETS below binds each one to
+# its exact target, evidence row, and transition, so a fourth silent promotion
+# still fails this guard.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 77
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 74
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -136,6 +143,39 @@ ARC1_ADDITIONAL_TARGETS = {
             "docs/dev-log/interval-feasibility/results/"
             f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
             "arc1-gaussian-reml-slope-profile-feasibility/totoro/reconciliation.tsv"
+        ),
+    },
+}
+ARC2_SOURCE_SHA = "83055ec5846bc2f9b1d939c13aa16c4500181f04"
+ARC2_TARGETS = {
+    "mc-0186": {
+        "target_id": "mc-0186::rho12",
+        "evidence_id": "ev-mc-0186-arc2-rho12-profile",
+        "transition_id": "tr-mc-0186-arc2-rho12-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0186-reconcile.tsv"
+        ),
+    },
+    "mc-0263": {
+        "target_id": "mc-0263::fixef:sigma:x",
+        "evidence_id": "ev-mc-0263-arc2-sigma-fixef-profile",
+        "transition_id": "tr-mc-0263-arc2-sigma-fixef-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0263-reconcile.tsv"
+        ),
+    },
+    "mc-0274": {
+        "target_id": "mc-0274::sd:mu:phylo(1 | species)",
+        "evidence_id": "ev-mc-0274-arc2-phylo-mu-sd-profile",
+        "transition_id": "tr-mc-0274-arc2-phylo-mu-sd-profile",
+        "reconciliation": (
+            "docs/dev-log/interval-feasibility/results/"
+            f"{ARC2_SOURCE_SHA}/"
+            "arc2-profile-feasibility/totoro/mc-0274-reconcile.tsv"
         ),
     },
 }
@@ -1305,6 +1345,43 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 1 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC2_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (
+                row for row in transitions
+                if row["transition_id"] == contract["transition_id"]
+            ),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or direct_target not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC2_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 2 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("path_or_url") != contract["reconciliation"]
+            or evidence_row.get("commit_sha") != ARC2_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 2 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 2 transition must remain verified-to-verified")
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)
