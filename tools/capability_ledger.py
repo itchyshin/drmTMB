@@ -111,7 +111,13 @@ ASSOCIATION_COUNT = 6
 # its exact target, evidence row, and transition, so a seventh silent promotion
 # still fails this guard.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 71
+# Arc 3 then promotes three more frozen cells, each after a PREDECLARED POINT-FIT
+# RECOVERY GATE and three reconciled Totoro receipts: mc-0283's matched-q2
+# phylogenetic log-sigma SD, and mc-0422/mc-0423's nbinom2 spatial and animal
+# log-sigma SDs on purpose-built provider-specific DGPs. mc-0421 and mc-0424 were
+# NOT promoted -- each passed only 2 of 3 seeds and is retained at
+# point_fit_recovery. 71 -> 68; ARC3_TARGETS binds each promoted cell.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 68
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -234,6 +240,27 @@ ARC2_TARGETS = {
             f"{ARC2_BETA_ANIMAL_SOURCE_SHA}/"
             "arc2-profile-feasibility/totoro/mc-0015-reconcile.tsv"
         ),
+    },
+}
+ARC3_SOURCE_SHA = "a34bb75092c7733e5d65e4bf427895b4318ced7c"
+ARC3_TARGETS = {
+    "mc-0283": {
+        "target_id": "mc-0283::sd:sigma:sigma:phylo(1 | p | species)",
+        "evidence_id": "ev-mc-0283-arc3-profile",
+        "transition_id": "tr-mc-0283-arc3-profile",
+        "claim_snippet": "arc2_phylo_sigma_q2_fixture(n_tip=60, n_each=12)",
+    },
+    "mc-0422": {
+        "target_id": "mc-0422::sd:sigma:spatial(1 | site)",
+        "evidence_id": "ev-mc-0422-arc3-profile",
+        "transition_id": "tr-mc-0422-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_spatial_fixture",
+    },
+    "mc-0423": {
+        "target_id": "mc-0423::sd:sigma:animal(1 | id)",
+        "evidence_id": "ev-mc-0423-arc3-profile",
+        "transition_id": "tr-mc-0423-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_animal_fixture",
     },
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
@@ -1445,6 +1472,40 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 2 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC3_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC3_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 3 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC3_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 3 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 3 transition must remain verified-to-verified")
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)
