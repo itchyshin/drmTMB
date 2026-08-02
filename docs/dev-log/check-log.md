@@ -92043,3 +92043,16 @@ Shinichi grants a separate Gate A compute approval.
   `devtools::test(filter = "mesh")`, the Gaussian location-scale family, and
   the bivariate dense-spatial REML regression family passed. A local pkgdown
   render confirmed the updated spatial-models reader article.
+
+## 2026-08-02: Fixed-kappa mesh/SPDE recovery gate withheld
+
+- The complete 150-attempt Totoro V2 recovery ladder retained every attempt
+  and passed convergence/Hessian requirements at `n = 64, 128, 256`, but the
+  predeclared `n = 64` log-scale-RMSE gate failed (1.5490 > 0.30). The Gaussian
+  mesh field therefore remains `local_fit`; no point-fit recovery, interval,
+  coverage, marginal-SD, or range claim was promoted.
+- The independent dense marginal-likelihood comparator passes in the mesh
+  contract test. A 50-seed fixed-domain paired coarse/fine mesh control found
+  maximum absolute log-scale difference 0.04409, but is a robustness control,
+  not a substitute for the failed recovery rung. Receipts and exact frozen
+  decision are recorded in `2026-08-02-mesh-spde-recovery-gate.md`.

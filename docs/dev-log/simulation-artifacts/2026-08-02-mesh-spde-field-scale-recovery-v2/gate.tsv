@@ -1,0 +1,2 @@
+expected_attempts	observed_attempts	all_rungs_pass	decision
+150	150	FALSE	BLOCKED_POINT_RECOVERY_GATE
