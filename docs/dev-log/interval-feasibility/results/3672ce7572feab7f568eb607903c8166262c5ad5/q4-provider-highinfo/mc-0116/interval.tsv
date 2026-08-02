@@ -1,0 +1,2 @@
+cell_id	target_id	estimate	lower	upper	profile_engine
+mc-0116	mc-0116::sd:mu:mu2:spatial(1 | p | site)	2.05182864245319	1.67612938596841	2.54421734354165	tmbprofile

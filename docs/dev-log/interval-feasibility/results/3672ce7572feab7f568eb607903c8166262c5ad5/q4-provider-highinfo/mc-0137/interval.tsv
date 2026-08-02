@@ -1,0 +1,2 @@
+cell_id	target_id	estimate	lower	upper	profile_engine
+mc-0137	mc-0137::sd:mu:mu1:animal(1 | p | id)	0.485810878794534	0.402390228340393	0.596387398750311	tmbprofile

@@ -306,10 +306,10 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Two assertions, because one number cannot express both facts.
         #
         # The FROZEN CENSUS -- the original 676 model_surface rows, source_order <= 676 --
-        # contains 91 point_fit_recovery cells after the explicit C12 mc-0653,
+        # contains 80 point_fit_recovery cells after the explicit C12 mc-0653,
         # six-cell count tranche, ten named C16 structured zero-one-beta
         # promotions, four B3 q6 mu2 promotions, the exact C17-B mc-0577
-        # promotion, the exact 24-cell B4-CI C1 and 25-cell B4-CI C2 interval
+        # promotion, the exact 24/25/36/23-cell B4-CI C1--C4 interval
         # promotions, and the exact C17-C1 mc-0570 promotion. Future changes require a
         # named transition and evidence receipt;
         # raising it without one is how a promotion gets laundered.
@@ -317,7 +317,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(len(frozen), 676)
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in frozen),
-            91,
+            80,
         )
         # The TOTAL may exceed it only by an approved row insert. mc-0260m entered at
         # point_fit_recovery because that is the tier its metafor comparator evidence
@@ -325,7 +325,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # simultaneous insert, which either number alone would miss.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            92,
+            81,
         )
 
         b3 = {
@@ -341,7 +341,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         for cell_id, (provider, paired_mu1, target_id) in ledger.B3_Q6_MU2_TARGETS.items():
             self.assertEqual(b3[cell_id]["structure_provider"], provider)
             self.assertEqual(b3[cell_id]["primary_evidence_id"], f"ev-{cell_id}-b3-q6-mu2-interval")
-            self.assertEqual(by_id[paired_mu1]["evidence_tier"], "point_fit_recovery")
+            expected_tier = "interval_feasible" if paired_mu1 in ledger.C4_B3_PAIRED_MU1_IDS else "point_fit_recovery"
+            self.assertEqual(by_id[paired_mu1]["evidence_tier"], expected_tier)
             self.assertIn(target_id, ledger.B3_Q6_MU2_PACKET.read_text(encoding="utf-8"))
 
         c12 = by_id["mc-0653"]

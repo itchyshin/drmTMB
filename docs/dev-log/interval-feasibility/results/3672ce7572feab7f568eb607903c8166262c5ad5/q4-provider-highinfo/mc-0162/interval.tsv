@@ -1,0 +1,2 @@
+cell_id	target_id	estimate	lower	upper	profile_engine
+mc-0162	mc-0162::sd:mu:sigma2:relmat(1 | p | id)	0.270009599989636	0.20030994545803	0.355374992287373	tmbprofile

@@ -179,7 +179,7 @@ def apply() -> None:
         writer.writeheader(); writer.writerows(manifest_rows(closure))
 
 
-def check_current() -> None:
+def check_current(*, allow_later_cohorts: bool = False) -> None:
     cells, evidence, transitions, closure = selected_source()
     local_cell_map = {row["cell_id"]: row for row in local_rows(LEDGER / "cells.tsv")}
     if any(cell["cell_id"] not in local_cell_map or local_cell_map[cell["cell_id"]] != cell for cell in cells): fail("C3 cell source or claim-boundary drift")
@@ -192,13 +192,17 @@ def check_current() -> None:
     for row in closure:
         path = Path(row["path"])
         if not path.exists() or hashlib.sha256(path.read_bytes()).hexdigest() != row["source_blob_sha256"]: fail(f"artifact blob drift: {path}")
-    if sum(row["evidence_tier"] == "interval_feasible" for row in local_cell_map.values()) != 138: fail("C3 did not move global interval_feasible count to 138")
+    interval_count = sum(row["evidence_tier"] == "interval_feasible" for row in local_cell_map.values())
+    if allow_later_cohorts:
+        if interval_count < 138: fail("C3 global interval_feasible baseline was lost")
+    elif interval_count != 138:
+        fail("C3 did not move global interval_feasible count to 138")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(); parser.add_argument("--apply", action="store_true"); parser.add_argument("--check", action="store_true"); args = parser.parse_args()
-    if args.apply == args.check: fail("supply exactly one of --apply or --check")
-    apply() if args.apply else check_current()
+    parser = argparse.ArgumentParser(); parser.add_argument("--apply", action="store_true"); parser.add_argument("--check", action="store_true"); parser.add_argument("--check-with-later-cohorts", action="store_true"); args = parser.parse_args()
+    if sum((args.apply, args.check, args.check_with_later_cohorts)) != 1: fail("supply exactly one mode")
+    apply() if args.apply else check_current(allow_later_cohorts=args.check_with_later_cohorts)
 
 
 if __name__ == "__main__": main()
