@@ -317,6 +317,124 @@ cell_registry <- list(
     ),
     true_parameter_scale = "0.55 animal random-intercept SD on sigma (log link); 40-individual (3-generation) pedigree, 40 observations per individual for within-group replication, log-SD internal scale",
     cohort_id = "arc2-beta-animal-sigma-intercept-sd-profile-feasibility"
+  ),
+  "mc-0421" = list(
+    # Random-effect SD target: the structured INTERCEPT component of an
+    # intercept+slope phylo() block on sigma. NB2 (a count family) gates
+    # structured sigma terms to unlabelled intercept-plus-one-slope only
+    # (validate_*_sigma_random_terms(), R/drmTMB.R) -- the opposite of
+    # beta()'s intercept-only scale gate mc-0015 relies on -- so the fitted
+    # formula must include `1 + x` even though only the intercept SD is
+    # profiled here (mirrors mc-0013's slope-only targeting of an
+    # intercept+slope animal() block).
+    target = "sd:sigma:phylo(1 | species)",
+    family_name = "nbinom2",
+    family = function() drmTMB::nbinom2(),
+    # `phylo()` requires a bare symbol for `tree` -- same requirement as
+    # mc-0274/mc-0277.
+    formula = function(fx) {
+      tree <- fx$tree
+      drmTMB::bf(y ~ x, sigma ~ drmTMB::phylo(1 + x | species, tree = tree))
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "phylo",
+    fixture_name = "arc3_nbinom2_sigma_phylo_fixture",
+    fixture_file = "tools/arc3-nbinom2-sigma-provider-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "tip80_each30",
+    dgp_id = "arc3_nbinom2_ml_phylo_sigma_sd",
+    formula_label = paste0(
+      "bf(y ~ x, sigma ~ phylo(1 + x | species, tree = tree)); nbinom2() (log/log); ML; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.55 phylogenetic random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.20 phylogenetic random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-tip frozen coalescent tree, 30 observations per tip, log-SD internal scale",
+    cohort_id = "arc3-nbinom2-ml-phylo-sigma-sd-profile-feasibility"
+  ),
+  "mc-0422" = list(
+    # Random-effect SD target: the structured INTERCEPT component of an
+    # intercept+slope spatial() block on sigma (see mc-0421's NB2
+    # structured-sigma gate note).
+    target = "sd:sigma:spatial(1 | site)",
+    family_name = "nbinom2",
+    family = function() drmTMB::nbinom2(),
+    # `spatial()` requires a bare symbol for `coords`.
+    formula = function(fx) {
+      coords <- fx$coords
+      drmTMB::bf(y ~ x, sigma ~ drmTMB::spatial(1 + x | site, coords = coords))
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "spatial",
+    fixture_name = "arc3_nbinom2_sigma_spatial_fixture",
+    fixture_file = "tools/arc3-nbinom2-sigma-provider-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "site81_each25",
+    dgp_id = "arc3_nbinom2_ml_spatial_sigma_sd",
+    formula_label = paste0(
+      "bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords)); nbinom2() (log/log); ML; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.55 spatial random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.20 spatial random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 9x9 coordinate grid (81 sites), 25 observations per site, log-SD internal scale",
+    cohort_id = "arc3-nbinom2-ml-spatial-sigma-sd-profile-feasibility"
+  ),
+  "mc-0423" = list(
+    # Random-effect SD target: the structured INTERCEPT component of an
+    # intercept+slope animal() block on sigma (see mc-0421's NB2
+    # structured-sigma gate note).
+    target = "sd:sigma:animal(1 | id)",
+    family_name = "nbinom2",
+    family = function() drmTMB::nbinom2(),
+    # `animal()` requires a bare symbol for `pedigree`.
+    formula = function(fx) {
+      pedigree <- fx$pedigree
+      drmTMB::bf(y ~ x, sigma ~ drmTMB::animal(1 + x | id, pedigree = pedigree))
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "animal",
+    fixture_name = "arc3_nbinom2_sigma_animal_fixture",
+    fixture_file = "tools/arc3-nbinom2-sigma-provider-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id40_each25",
+    dgp_id = "arc3_nbinom2_ml_animal_sigma_sd",
+    formula_label = paste0(
+      "bf(y ~ x, sigma ~ animal(1 + x | id, pedigree = pedigree)); nbinom2() (log/log); ML; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.55 animal random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 animal random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 40-individual (3-generation) pedigree, 25 observations per individual, log-SD internal scale",
+    cohort_id = "arc3-nbinom2-ml-animal-sigma-sd-profile-feasibility"
+  ),
+  "mc-0424" = list(
+    # Random-effect SD target: the structured INTERCEPT component of an
+    # intercept+slope relmat() block on sigma (see mc-0421's NB2
+    # structured-sigma gate note).
+    target = "sd:sigma:relmat(1 | id)",
+    family_name = "nbinom2",
+    family = function() drmTMB::nbinom2(),
+    # `relmat()` requires a bare symbol for `Q` (or `K`).
+    formula = function(fx) {
+      Q <- fx$Q
+      drmTMB::bf(y ~ x, sigma ~ drmTMB::relmat(1 + x | id, Q = Q))
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "relmat",
+    fixture_name = "arc3_nbinom2_sigma_relmat_fixture",
+    fixture_file = "tools/arc3-nbinom2-sigma-provider-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id40_each25",
+    dgp_id = "arc3_nbinom2_ml_relmat_sigma_sd",
+    formula_label = paste0(
+      "bf(y ~ x, sigma ~ relmat(1 + x | id, Q = Q)); nbinom2() (log/log); ML; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.55 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 relmat random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 40-individual relatedness structure, 25 observations per individual, log-SD internal scale",
+    cohort_id = "arc3-nbinom2-ml-relmat-sigma-sd-profile-feasibility"
   )
 )
 

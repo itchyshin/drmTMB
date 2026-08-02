@@ -87,6 +87,38 @@ CELL_CONTRACTS = {
         "estimator": "ML",
         "profile_parameter": "sd:sigma:animal(1 | id)",
     },
+    "mc-0421": {
+        "target_id": "mc-0421::sd:sigma:phylo(1 | species)",
+        "cohort_id": "arc3-nbinom2-ml-phylo-sigma-sd-profile-feasibility",
+        "family": "nbinom2",
+        "provider": "phylo",
+        "estimator": "ML",
+        "profile_parameter": "sd:sigma:phylo(1 | species)",
+    },
+    "mc-0422": {
+        "target_id": "mc-0422::sd:sigma:spatial(1 | site)",
+        "cohort_id": "arc3-nbinom2-ml-spatial-sigma-sd-profile-feasibility",
+        "family": "nbinom2",
+        "provider": "spatial",
+        "estimator": "ML",
+        "profile_parameter": "sd:sigma:spatial(1 | site)",
+    },
+    "mc-0423": {
+        "target_id": "mc-0423::sd:sigma:animal(1 | id)",
+        "cohort_id": "arc3-nbinom2-ml-animal-sigma-sd-profile-feasibility",
+        "family": "nbinom2",
+        "provider": "animal",
+        "estimator": "ML",
+        "profile_parameter": "sd:sigma:animal(1 | id)",
+    },
+    "mc-0424": {
+        "target_id": "mc-0424::sd:sigma:relmat(1 | id)",
+        "cohort_id": "arc3-nbinom2-ml-relmat-sigma-sd-profile-feasibility",
+        "family": "nbinom2",
+        "provider": "relmat",
+        "estimator": "ML",
+        "profile_parameter": "sd:sigma:relmat(1 | id)",
+    },
 }
 
 
