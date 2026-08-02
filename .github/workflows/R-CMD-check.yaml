@@ -59,6 +59,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache: true
           extra-packages: any::rcmdcheck
           needs: check
 
@@ -71,4 +72,6 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
-          upload-snapshots: true
+          # Snapshots upload on failure via upload-results; avoid per-success
+          # artifacts at the 90-day default (D-50 / ci-pacing-discipline).
+          upload-snapshots: false
