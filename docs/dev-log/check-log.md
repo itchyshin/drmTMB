@@ -92154,3 +92154,28 @@ Shinichi grants a separate Gate A compute approval.
   missing-response, q12, B4-source reuse, and public-claim expansion remain
   outside the slice. See
   `docs/dev-log/after-task/2026-08-02-arc1-first-interval-feasibility-cohort.md`.
+
+## 2026-08-02: mesh native-density and spatial-article repair
+
+- Compared the fixed-kappa drmTMB mesh prior directly with gllvmTMB merge
+  `01a3b1103e1b3fe5fdf5d27826349d5bc6f4f040`. The models are algebraically
+  identical after translating gllvmTMB precision amplitude `tau` to drmTMB
+  covariance scale `s = 1 / tau`; gllvmTMB does not provide a comparable
+  absolute field-scale recovery gate.
+- With Gauss and Noether GO, replaced the manual normalized prior with
+  `density::SCALE(density::GMRF(Q, true), s)` and recorded exact GPL-3 C++
+  provenance, including originating commit `12a93bae7`. A direct nonzero-field,
+  off-optimum contract matches the full objective and analytic gradients at
+  three scales. This refactor does not change the fixed-kappa model or earn
+  recovery, interval, coverage, or range claims.
+- `devtools::test(filter = "mesh")`: 64 expectations, zero failures or
+  warnings. Covariance-registry, phylogenetic-utility, and bivariate-REML
+  filters: 510 expectations, zero failures or warnings.
+- Florence's rendered-page audit replaced the incomparable shared-axis SD
+  plot with a unit-labelled point-estimate table, explicitly marked the
+  near-zero boundary, removed the q2 unused-fill warning, shortened the q2
+  panel, and made the site-field colour scale symmetric. The rebuilt article
+  contains no emitted warning output and adds no unsupported interval.
+- Opened gllvmTMB issue #904 to track its comparable absolute SPDE field-scale
+  recovery, identifiability, and interval-evidence gap without widening either
+  package's current model surface.

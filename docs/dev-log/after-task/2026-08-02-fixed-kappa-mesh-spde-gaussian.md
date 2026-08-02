@@ -22,6 +22,13 @@ projected marginal SD is location dependent. `kappa` is fixed configuration,
 not an estimated range. The independent dense Gaussian marginal likelihood
 uses `V = sigma_e^2 I + s^2 A Q^-1 A^T`.
 
+The final implementation uses TMB's normalized
+`density::SCALE(density::GMRF(Q, true), s)` expression, closely adapted from
+gllvmTMB's GPL-3 SPDE prior with exact provenance in `inst/COPYRIGHTS`.  This is
+algebraically identical to the original manual normalized density; drmTMB uses
+direct covariance scale `s`, whereas gllvmTMB supplies reciprocal precision
+scale `1 / tau`.
+
 The slice rejects silent geographic projection, estimated range, a node-index
 shortcut, mesh slopes, non-Gaussian or bivariate mesh likelihoods, REML, and
 interval claims. The existing dense planar `coords =` route remains the
@@ -37,13 +44,21 @@ phylogenetic-spatial, and model-map vignettes; pkgdown indexes both helpers.
 
 ## 5. Checks Run
 
-- `devtools::test(filter = "mesh")`: 53 expectations, zero failures.
+- `devtools::test(filter = "mesh")`: 64 expectations, zero failures or warnings.
 - Dense marginal-objective comparator, row alignment, CRS, malformed mesh,
   non-Gaussian, labelled, mesh-plus-coordinates, REML, and missing-data
   boundaries are exercised by the mesh contracts.
+- An off-optimum joint-density contract compares the normalized native GMRF
+  objective and gradients with the complete manual formula at three field
+  scales, including its constants and both vertex and log-scale derivatives.
 - `pkgdown::build_article("spatial-models")` against a temporary install of
   the current source: passed; the rendered page shows 27 vertices, 4
-  observations, zero projection-row error, projected values, and profile status.
+  observations, zero projection-row error, projected values, and profile
+  status. Florence's follow-up audit replaced the invalid shared-unit SD axis,
+  removed the q2 manual-scale warning, and retained honest point-only displays.
+- The covariance registry, phylogenetic utility, and bivariate REML regression
+  suites passed 510 expectations with zero failures or warnings after the
+  native-density substitution.
 - `pkgdown::check_pkgdown()`: passed after adding both new helpers to the
   reference index.
 - Capability ledger and its 50 Python tests: passed after the final-source
@@ -61,12 +76,21 @@ objective. Boundary tests directly reject routes that would widen the slice,
 and the recovery receipt retains the clean-Hessian `n = 64` near-zero estimate
 that makes the predeclared RMSE gate fail.
 
+The direct density test keeps the latent field nonzero and evaluates multiple
+off-optimum scale values, so it would detect a missing normalizer, reciprocal
+scale, or derivative error even when an optimizer could compensate elsewhere.
+
 ## 7a. Issue Ledger
 
 Issue #881 remains open. A comment records that the complete Totoro ladder
 withheld point-fit recovery. PR #893 passed its exact-implementation-head Linux
 and independent three-OS CI gates; the closeout-only commit is checked again
 before the PR boundary is declared complete.
+
+The same absolute-scale evidence gap is tracked for the sibling implementation
+in gllvmTMB issue #904. Its current SPDE tests establish convergence, plausible
+range, or scale-free structure, not recovery or calibrated uncertainty for the
+absolute field scale.
 
 ## 8. Consistency Audit
 

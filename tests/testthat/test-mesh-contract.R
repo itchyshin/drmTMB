@@ -40,7 +40,8 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
   mesh <- make_mesh(xy, kappa = 1 / 10000)
   fit <- drmTMB(
     bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
-    family = gaussian(), data = dat
+    family = gaussian(), data = dat,
+    control = drm_control(se = FALSE)
   )
   fixed_gradient <- fit$obj$gr(fit$opt$par)
 
@@ -70,10 +71,6 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
   report <- fit$obj$report()
   expect_equal(
     as.numeric(A %*% latent), as.numeric(report$mesh_effect), tolerance = 1e-10
-  )
-  expect_equal(
-    sum(latent * as.numeric(Q %*% latent)), as.numeric(report$quadratic_mesh),
-    tolerance = 1e-10
   )
   # Gaussian integration gives an independent dense marginal likelihood:
   # y ~ N(X beta, sigma^2 I + s^2 A Q^-1 A').  This does not reuse TMB's
@@ -134,6 +131,81 @@ test_that("fixed-kappa mesh Gaussian fits use the projection field and public ex
     ),
     "missing-data"
   )
+})
+
+test_that("native normalized mesh GMRF matches the manual density and gradients", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("fmesher")
+  dat <- data.frame(
+    y = c(1.1, 1.7, 2.4, 2.0),
+    lon = c(-123.10, -123.05, -123.00, -123.07),
+    lat = c(49.20, 49.23, 49.21, 49.25),
+    site = letters[1:4]
+  )
+  xy <- spatial_coords(dat, lon, lat, crs_out = 32610)
+  mesh <- make_mesh(xy, kappa = 1 / 10000)
+  fit <- drmTMB(
+    bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
+    family = gaussian(), data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  parameters <- fit$obj$env$parList(fit$tmb_state$opt.par)
+  joint <- TMB::MakeADFun(
+    data = fit$obj$env$data,
+    parameters = parameters,
+    map = fit$obj$env$map,
+    random = NULL,
+    DLL = fit$obj$env$DLL,
+    silent = TRUE
+  )
+  par <- joint$par
+  u_index <- which(names(par) == "u_phylo2")
+  log_s_index <- which(names(par) == "log_sd_phylo2")
+  fitted_mesh <- fit$model$structured$mesh_spatial_mu
+  Q <- as.matrix(fitted_mesh$precision$precision)
+  A <- as.matrix(fitted_mesh$projection)
+  m <- nrow(Q)
+  z <- sin(seq_len(m)) + seq_len(m) / (10 * m)
+  omega <- 1e-4 * as.vector(backsolve(chol(Q), z))
+  beta <- 1.3
+  residual_sd <- 0.4
+  par[names(par) == "beta_mu"] <- beta
+  par[names(par) == "beta_sigma"] <- log(residual_sd)
+  par[u_index] <- omega
+  log_det_Q <- as.numeric(determinant(Q, logarithm = TRUE)$modulus)
+  eta <- beta + as.vector(A %*% omega)
+  likelihood_nll <- -sum(stats::dnorm(dat$y, eta, residual_sd, log = TRUE))
+  quadratic <- drop(crossprod(omega, Q %*% omega))
+
+  for (log_s in log(c(5e-5, 1e-4, 4e-4))) {
+    par[log_s_index] <- log_s
+    scale_inv_sq <- exp(-2 * log_s)
+    manual_prior <- 0.5 * (
+      m * log(2 * pi) + 2 * m * log_s - log_det_Q +
+        scale_inv_sq * quadratic
+    )
+    expect_equal(
+      joint$fn(par), likelihood_nll + manual_prior,
+      tolerance = 1e-8
+    )
+
+    gradient <- joint$gr(par)
+    likelihood_gradient_u <- as.vector(
+      crossprod(A, (eta - dat$y) / residual_sd^2)
+    )
+    expect_equal(
+      unname(gradient[u_index]),
+      likelihood_gradient_u + scale_inv_sq * as.vector(Q %*% omega),
+      tolerance = 1e-7
+    )
+    expect_equal(
+      unname(gradient[log_s_index]),
+      m - scale_inv_sq * quadratic,
+      tolerance = 1e-8
+    )
+    expect_true(all(is.finite(gradient[c(u_index, log_s_index)])))
+  }
 })
 
 test_that("mesh projection follows retained model-row identifiers after permutation", {

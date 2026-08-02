@@ -1289,6 +1289,17 @@ omega ~ Normal(0, s^2 Q(kappa)^(-1))
 Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2
 ```
 
+The normalized TMB prior is evaluated with
+`density::SCALE(density::GMRF(Q(kappa), true), s)(omega)`, which expands to
+
+```text
+0.5 * {m log(2 pi) + 2m log(s) - log|Q(kappa)|
+       + s^(-2) omega' Q(kappa) omega}.
+```
+
+Thus `s` is the direct covariance-scale multiplier, not a precision parameter
+and not the reciprocal of the value reported by drmTMB.
+
 Here `kappa > 0` is fixed configuration in inverse coordinate units, not an
 estimated or profiled range. The fitted `s` is the GMRF field scale. Since the
 projected marginal SD is `s sqrt(a_i' Q(kappa)^(-1) a_i)`, it is generally

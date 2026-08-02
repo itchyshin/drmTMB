@@ -25,6 +25,13 @@ The field prior contributes
 
 `1/2 {m log(2 pi) + 2m log(s) - log|Q(kappa_0)| + s^-2 omega'Q(kappa_0)omega}`.
 
+The TMB implementation evaluates this normalized density as
+`SCALE(GMRF(Q(kappa_0), normalize = TRUE), s)(omega)`.  Since
+`GMRF(Q)(omega / s) + m log(s)` expands to the expression above, the native
+density and the symbolic covariance `s^2 Q^-1` are exactly aligned.  The
+gllvmTMB source uses `1 / tau` because its `tau` is a precision multiplier;
+drmTMB supplies its covariance-scale multiplier `s` directly.
+
 `kappa_0` must be finite and positive, belongs to the mesh object, and is
 reported only as `kappa_fixed`.  There is no `log_kappa_spde`, range estimate,
 range profile, or interval claim in this arc.  Mesh units are the supplied

@@ -188,7 +188,8 @@ coords_xy <- spatial_coords(mesh_dat, longitude, latitude, crs_out = "EPSG:32610
 mesh <- make_mesh(coords_xy, kappa = 1 / 10000)
 fit_mesh <- drmTMB(
   bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1),
-  data = mesh_dat, family = gaussian()
+  data = mesh_dat, family = gaussian(),
+  control = drm_control(se = FALSE)
 )
 c(
   vertices = ncol(mesh$A_st),
@@ -375,7 +376,7 @@ fit_spatial_slope <- drmTMB(
 )
 ```
 
-```{r spatial-site-field-figure, fig.width = 6.6, fig.height = 4.4, fig.cap = "Coordinate-spatial fitted site deviations from `ranef(fit_spatial, \"spatial_mu\")`; points are conditional location-effect estimates, and no interval is drawn because this display is a site-level fitted field rather than a confidence-interval summary.", fig.alt = "Map of twelve sampled sites. Each point is positioned at the site coordinates and coloured by the fitted conditional spatial location deviation; positive deviations are teal and negative deviations are orange."}
+```{r spatial-site-field-figure, fig.width = 6.6, fig.height = 4.4, fig.cap = "Simulated example of coordinate-spatial fitted site deviations from `ranef(fit_spatial, \"spatial_mu\")`. Points are conditional location-effect estimates; uncertainty is not shown.", fig.alt = "Map of twelve simulated sampled sites. Each point is positioned at the site coordinates and coloured by the fitted conditional spatial location deviation; positive deviations are teal and negative deviations are orange."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   spatial_effect <- ranef(fit_spatial, "spatial_mu")$terms[[1]]
   spatial_field <- data.frame(
@@ -384,6 +385,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     coords[names(spatial_effect), , drop = FALSE],
     row.names = NULL
   )
+  field_limit <- max(abs(spatial_field$fitted_spatial_deviation))
+  if (!is.finite(field_limit) || field_limit == 0) field_limit <- 1
 
   ggplot2::ggplot(
     spatial_field,
@@ -399,62 +402,50 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
       shape = 21,
       size = 7,
       colour = "grey20",
-      linewidth = 0.35
+      stroke = 0.35
     ) +
     ggplot2::scale_fill_gradient2(
       low = "#D55E00",
       mid = "white",
       high = "#009E73",
       midpoint = 0,
+      limits = c(-field_limit, field_limit),
       name = "Fitted\nspatial deviation"
     ) +
     ggplot2::coord_equal() +
     spatial_guide_theme() +
     ggplot2::labs(
       title = "Fitted spatial location field",
-      subtitle = "Conditional deviations in mu",
+      subtitle = "Conditional fitted deviations; uncertainty not shown",
       x = "Coordinate x",
       y = "Coordinate y"
     )
 }
 ```
 
-```{r spatial-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted coordinate-spatial intercept-field SD (response units) and depth-slope field SD (response units per unit depth) from the one-slope model. Interval calibration for these exact rows is not validated, so no interval bars are drawn.", fig.alt = "Horizontal point display for the spatial intercept and depth-slope standard deviations, without interval bars."}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  spatial_sd <- data.frame(
-    estimate = unname(fit_spatial_slope$sdpars$mu[
+The intercept and slope standard deviations have different units, so placing
+them on one quantitative axis would imply a comparison that is not meaningful.
+The compact display below reports each estimate in its own unit instead.
+
+```{r spatial-sd-summary}
+spatial_sd <- data.frame(
+  Component = c("Spatial intercept SD", "Spatial depth-slope SD"),
+  Estimate = formatC(
+    unname(fit_spatial_slope$sdpars$mu[
       c("spatial(1 | site)", "spatial(0 + depth | site)")
     ]),
-    label = c("Spatial\nintercept SD", "Spatial\ndepth-slope SD"),
-    unit = c("Response units", "Response units per depth unit")
-  )
+    digits = 4,
+    format = "g"
+  ),
+  Unit = c("response units", "response units per unit depth"),
+  Status = c(
+    "Point estimate; interval not validated",
+    "Near-zero boundary; interval not validated"
+  ),
+  check.names = FALSE
+)
 
-  ggplot2::ggplot(spatial_sd, ggplot2::aes(y = label)) +
-    ggplot2::geom_vline(
-      xintercept = 0,
-      linewidth = 0.45,
-      linetype = "dashed",
-      colour = "grey55"
-    ) +
-    ggplot2::geom_point(
-      ggplot2::aes(x = estimate),
-      shape = 21,
-      size = 3.5,
-      stroke = 1,
-      fill = "white",
-      colour = "#0072B2"
-    ) +
-    ggplot2::scale_x_continuous(
-      expand = ggplot2::expansion(mult = c(0.01, 0.04))
-    ) +
-    spatial_eye_theme() +
-    ggplot2::labs(
-      title = "Spatial intercept and slope SDs have different units",
-      subtitle = "Point estimates only; interval validation remains planned",
-      x = "Fitted spatial standard deviation",
-      y = NULL
-    )
-}
+knitr::kable(spatial_sd, align = c("l", "r", "l", "l"))
 ```
 
 For bivariate spatial location models, the current intercept-only q2
@@ -491,23 +482,28 @@ spatial_q2_pairs <- suppressWarnings(
 spatial_q2_pairs
 ```
 
-```{r spatial-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Coordinate-spatial intercept-only q=2 location-location point estimate from `corpairs()`; the dotted vertical line marks zero correlation and no interval is shown because calibration remains planned.", fig.alt = "Single-row point plot for the coordinate-spatial mean-mean correlation, with a hollow point estimate slightly to the right of the dotted zero reference line."}
+```{r spatial-q2-point-estimate, fig.width = 6.4, fig.height = 1.8, fig.cap = "Coordinate-spatial intercept-only q=2 location-location point estimate from `corpairs()`. The dotted vertical line marks zero correlation; no interval is shown because calibration remains planned.", fig.alt = "Compact single-row point plot for the coordinate-spatial location-effect correlation, with a labelled hollow point estimate slightly to the right of the dotted zero reference line and no interval."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   spatial_q2_display <- spatial_q2_pairs
-  spatial_q2_display$display_label <- "Spatial\nmu1-mu2"
+  spatial_q2_display$display_label <- "Spatial location effects,\ny1-y2"
 
   plot_corpairs(
     spatial_q2_display,
-    colour = "level",
+    colour = NULL,
     label = "display_label",
-    facet = NULL
+    facet = NULL,
+    interval = FALSE
   ) +
-    ggplot2::scale_colour_manual(values = c("spatial" = "#009E73")) +
-    ggplot2::scale_fill_manual(values = c("spatial" = "#009E73")) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = sprintf("%.2f", estimate)),
+      nudge_x = 0.06,
+      hjust = 0,
+      size = 3.4
+    ) +
     spatial_eye_theme() +
     ggplot2::labs(
       title = "Spatial latent mean correlation",
-      subtitle = "Point estimate only; dotted line marks zero",
+      subtitle = "Point estimate only; interval calibration remains planned",
       x = "Correlation estimate"
     )
 }
