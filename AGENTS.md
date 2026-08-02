@@ -3,6 +3,17 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ ACTIVE LANE SPLIT — start here (2026-08-02).** C17 is closed through PR
+> #894 at `c8e04258d`, with canonical `330 implemented / 340 rejected by design /
+> 17 not implemented`. Current lanes and ownership boundaries are listed in
+> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md).
+> The new C18 structured zero-one-beta atom programme is **planning-only** until
+> overlapping mesh/SPDE PR #893 lands/closes or Shinichi authorizes overlap.
+> START HERE:
+> [`docs/dev-log/handover/2026-08-02-claude-handover.md`](docs/dev-log/handover/2026-08-02-claude-handover.md).
+> The 2026-07-26 lane split below is retained as historical context, not the
+> current coordination entrypoint.
+
 > **▶ ACTIVE LANE SPLIT — start here (2026-07-26). TWO independent lanes; read YOUR lane's handover.**
 > Shinichi split these on 2026-07-26 because they kept bleeding into each other
 > (brain **`D-87`**: the "one platform at a time per repo" rule was already written down and
