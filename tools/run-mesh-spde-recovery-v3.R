@@ -12,12 +12,17 @@ if (!smoke && Sys.getenv("DRMTMB_MESH_V3_MODE", "full") != "full") {
   stop("DRMTMB_MESH_V3_MODE must be exactly 'full' or 'smoke'.")
 }
 suffix <- if (smoke) "-smoke" else ""
-out <- Sys.getenv(
-  "DRMTMB_MESH_V3_OUT",
+default_out <- if (smoke) {
+  file.path(dirname(root), paste0(basename(root), "-mesh-v3-smoke-receipt"))
+} else {
   file.path(root, paste0(
     "docs/dev-log/simulation-artifacts/",
     "2026-08-02-mesh-spde-field-scale-recovery-v3", suffix
   ))
+}
+out <- Sys.getenv(
+  "DRMTMB_MESH_V3_OUT",
+  default_out
 )
 
 git_status <- system2("git", c("status", "--porcelain"), stdout = TRUE)

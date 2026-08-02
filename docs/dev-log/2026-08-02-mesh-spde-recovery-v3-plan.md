@@ -72,3 +72,11 @@ GO after requiring a disjoint seed ledger, clean-tree/source authentication,
 immutable output, dependency and DLL checksums, heartbeats, and fail-closed
 aggregation. Those conditions are implemented in the V3 helper and runner.
 
+Curie's implementation review then caught that the first smoke at source
+`50770c579` reused two entries from its proposed promotion ledger. The Totoro
+launch was stopped and no result from that ledger is admissible. All 100 seeds
+from the superseded ledger are now excluded, the replacement promotion ledger
+uses 100 wholly unseen seeds, smoke uses two separate nonpromotion seeds,
+warnings fail the gate, and validation rejects extra rungs or malformed
+replicate identifiers. Smoke output also defaults outside the checkout so it
+cannot compromise the clean-source check.

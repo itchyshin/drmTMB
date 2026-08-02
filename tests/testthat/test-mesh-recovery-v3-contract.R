@@ -7,7 +7,7 @@ mesh_v3_fixture <- function(estimate = 1e-4, n = 50L) {
   data.frame(
     n_site = rep(128L, n), fit_ok = TRUE, convergence = 0L,
     pdHess = TRUE, objective = rep(10, n), max_gradient = rep(1e-6, n),
-    estimate = rep(estimate, n)
+    estimate = rep(estimate, n), warning_count = 0L
   )
 }
 
@@ -17,7 +17,23 @@ test_that("V3 seed ledger is exact, unique, and independent", {
   expect_equal(as.integer(table(design$n_site)), c(50L, 50L))
   expect_equal(anyDuplicated(design$seed), 0L)
   expect_length(intersect(design$seed, mesh_v3_prior_seeds()), 0L)
-  expect_equal(nrow(mesh_v3_design(smoke = TRUE)), 2L)
+  smoke <- mesh_v3_design(smoke = TRUE)
+  expect_equal(nrow(smoke), 2L)
+  expect_length(intersect(smoke$seed, design$seed), 0L)
+})
+
+test_that("V3 validation rejects extra rungs and malformed replicate ledgers", {
+  design <- mesh_v3_design()
+  extra <- rbind(design, data.frame(n_site = 999L, replicate = 1L, seed = 2049991001L))
+  expect_error(mesh_v3_validate_design(extra), "out-of-domain")
+
+  bad_replicate <- design
+  bad_replicate$replicate[[1L]] <- 2L
+  expect_error(mesh_v3_validate_design(bad_replicate), "replicate identifiers")
+
+  bad_seed <- design
+  bad_seed$seed[[1L]] <- 1.5
+  expect_error(mesh_v3_validate_design(bad_seed), "integer-valued")
 })
 
 test_that("V3 aggregation passes only a complete precise recovery rung", {
@@ -47,6 +63,10 @@ test_that("V3 aggregation fails closed on missing or boundary evidence", {
 
   bad <- mesh_v3_fixture()
   bad$max_gradient[[1L]] <- 1
+  expect_false(mesh_v3_mc_summary(bad)$gate_pass)
+
+  bad <- mesh_v3_fixture()
+  bad$warning_count[[1L]] <- 1L
   expect_false(mesh_v3_mc_summary(bad)$gate_pass)
 })
 
