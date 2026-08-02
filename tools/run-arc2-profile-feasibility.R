@@ -202,6 +202,64 @@ cell_registry <- list(
     ),
     true_parameter_scale = "phylogenetic random-intercept SD on sigma (DGP has no true sigma-phylo signal; this fit tests profile feasibility of the sd:sigma:phylo(1 | species) target only, not point recovery)",
     cohort_id = "arc2-gaussian-reml-phylo-location-sigma-sd-profile-feasibility"
+  ),
+  "mc-0013" = list(
+    # Random-effect SD target: the independent random-SLOPE SD component of
+    # an intercept+slope animal() block on mu (beta() has no slope-only
+    # animal() grammar -- see tools/arc2-beta-animal-fixtures.R).
+    target = "sd:mu:animal(0 + x | id)",
+    family_name = "beta",
+    family = function() drmTMB::beta(),
+    # `animal()` requires a bare symbol for pedigree/A/Ainv (R/parse-formula.R
+    # ~line 760), resolved later from the formula's own environment -- same
+    # bare-symbol requirement mc-0274/mc-0277 solve for phylo()'s `tree`.
+    # `pedigree` must therefore be bound as a local variable named literally
+    # `pedigree` in this function's own execution environment.
+    formula = function(fx) {
+      pedigree <- fx$pedigree
+      drmTMB::bf(y ~ x + drmTMB::animal(1 + x | id, pedigree = pedigree), sigma ~ 1)
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "animal",
+    fixture_name = "beta_animal_mu_slope_fixture",
+    fixture_file = "tools/arc2-beta-animal-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id8_each30",
+    dgp_id = "arc2_beta_animal_mu_slope_sd",
+    formula_label = paste0(
+      "bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1); ",
+      "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.55 animal random-slope SD on mu (logit link), independent of a 0.50 animal random-intercept SD; 8-individual pedigree, log-SD internal scale",
+    cohort_id = "arc2-beta-animal-mu-slope-sd-profile-feasibility"
+  ),
+  "mc-0015" = list(
+    # Random-effect SD target: an intercept-only animal() block on sigma
+    # (beta()'s scale side only admits intercept-only structured terms).
+    target = "sd:sigma:animal(1 | id)",
+    family_name = "beta",
+    family = function() drmTMB::beta(),
+    formula = function(fx) {
+      pedigree <- fx$pedigree
+      drmTMB::bf(y ~ x, sigma ~ drmTMB::animal(1 | id, pedigree = pedigree))
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "animal",
+    fixture_name = "beta_animal_sigma_intercept_fixture",
+    fixture_file = "tools/arc2-beta-animal-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id8_each50",
+    dgp_id = "arc2_beta_animal_sigma_intercept_sd",
+    formula_label = paste0(
+      "bf(y ~ x, sigma ~ animal(1 | id, pedigree = pedigree)); ",
+      "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.55 animal random-intercept SD on sigma (log link); 8-individual pedigree, 50 observations per individual for within-group replication, log-SD internal scale",
+    cohort_id = "arc2-beta-animal-sigma-intercept-sd-profile-feasibility"
   )
 )
 
