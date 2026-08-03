@@ -1,8 +1,12 @@
 ---
-title: "Get started: function map and cheat sheet"
-output: rmarkdown::html_vignette
+title: "Function map and cheat sheet"
+description: "Choose the next drmTMB task: specify, fit, check, interpret, predict, or quantify uncertainty."
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{Get started: function map and cheat sheet}
+  %\VignetteIndexEntry{Function map and cheat sheet}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,22 +18,82 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
-Start here when `drmTMB` is already installed and you want the shortest route
-from a scientific question to a model, diagnostic, or worked example. For
-installation and a guided first fit, read the fuller [package
-introduction](drmTMB.html). If you already know the syntax and need to verify
-support, go directly to [What can I fit today?](model-map.html).
+<style>
+.drmtmb-function-map {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 52rem;
+  block-size: auto;
+  margin: 1rem auto 1.25rem;
+}
+.drmtmb-route-note {
+  margin: 0 0 1.5rem;
+  padding: .8rem 1rem;
+  border-left: 5px solid #147f88;
+  border-radius: 8px;
+  background: #f2f8f8;
+}
+.drmtmb-route-note p { margin: 0; }
+.drmtmb-route-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.drmtmb-route-table table {
+  min-inline-size: 46rem;
+  margin-block-end: 0;
+}
+</style>
 
-`drmTMB` can model location (the expected response), scale (residual
+Use this guide when `drmTMB` is installed and you know the scientific task you
+want to do next, but not which function starts it. For installation and a
+guided first fit, read the fuller [package introduction](drmTMB.html). If you
+already know the syntax and need to verify support, go directly to [What can I
+fit today?](model-map.html).
+
+This page is a navigation aid, not a claim that every displayed function,
+family, structured effect, or interval route is suitable for every model.
+
+`drmTMB` can model location (a family-specific centre or location parameter;
+for Gaussian models it is the expected response), scale (residual
 variability), shape (distribution features beyond location and scale), and
 coscale, meaning residual correlation such as `rho12` between two responses.
-Not every family exposes every parameter.
+Not every family exposes every parameter, and a location parameter need not be
+the unconditional response mean.
 
-```{r function-map, echo = FALSE, out.width = "100%", fig.alt = "Six-step drmTMB function map. Specify a model with bf(), family(), and formulas; fit with drmTMB() using the native TMB engine; inspect with summary(), coef(), fixef(), and vcov(); predict and diagnose with predict(), fitted(), residuals(), and check_drm(); use confint(), profile(), and simulate() for inference; and add structured effects with ranef(), sd(), phylo(), spatial(), and relmat(). The Julia bridge is halted/deferred future work, so this map uses the native R/TMB workflow only."}
+## Find the next step
+
+The ordinary route is **Specify model → Fit → Check fit health**. After checking
+the fit, choose the branch that answers the scientific question: interpret
+parameters, predict and assess, or quantify uncertainty and simulate. If the
+fit is not healthy, revise the specification and fit again. Structured terms
+such as `phylo()`, `spatial()`, and `relmat()` belong in the model
+specification; they are not a later analysis stage. The `gaussian()` and
+`nbinom2()` labels in the first box are examples of family constructors, not an
+exhaustive family list.
+
+```{r function-map, echo = FALSE, out.width = "100%", fig.class = "drmtmb-function-map", fig.align = "center", fig.alt = "Task-based drmTMB function map. The numbered primary route is Specify model, Fit, then Check fit health. Specify model includes bf(), family examples gaussian() and nbinom2(), and structured terms phylo(), spatial(), and relmat(), whose support varies. Fit uses drmTMB(). Check fit health uses check_drm() and summary(). After checking the fit, three unnumbered conditional branches lead to Interpret with coef(), fixef(), ranef(), corpairs(), and rho12(); Predict and assess with predict_parameters(), fitted_distribution(), and residuals(); or Uncertainty and simulation with profile_targets(), confint(), profile(), and simulate(). An arrow returns from Check fit health to Specify model when revision is needed."}
 knitr::include_graphics("function-map-cheatsheet.png")
 ```
 
+[Open the full-size function map](function-map-cheatsheet.png) when reading on
+a small screen.
+
+```{=html}
+<div class="drmtmb-route-note" role="note">
+  <p><strong>Typical route:</strong> Specify → Fit → Check. Interpretation,
+  prediction, assessment, uncertainty, and simulation are conditional next
+  tasks rather than compulsory stages.</p>
+</div>
+```
+
+The **Predict & assess** branch checks fitted-response and fixed-effect
+distributional form. It does not by itself establish adequacy of every random
+or structured component; follow [Distributional outputs and
+adequacy](distributional-outputs-and-adequacy.html) for that boundary.
+
 ## Choose a route
+
+<div class="drmtmb-route-table" role="region" aria-label="Scrollable drmTMB task route table" tabindex="0">
 
 | Goal | Start with | Read next |
 | --- | --- | --- |
@@ -38,10 +102,12 @@ knitr::include_graphics("function-map-cheatsheet.png")
 | Resolve an error, warning, or unstable fit | `check_drm()`, the original warning, and the fitted object | [Errors, warnings, and convergence](convergence.html) |
 | Extract a parameter or make a prediction table | `coef()`, `fixef()`, `predict_parameters()` | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) |
 | Study association between differently modelled paired outcomes | `biv_associate()`, `association()`, `vcov()`, `confint()` | [Association between outcome pairs](cross-family.html) |
-| Work with repeated, related, or spatially structured data | `ranef()`, `phylo()`, `spatial()`, `relmat()` | [Structural dependence overview](structural-dependence.html) |
+| Work with repeated, related, or spatially structured data | `bf()` with `phylo()`, `spatial()`, or `relmat()`; then `ranef()` | [Structural dependence overview](structural-dependence.html) |
 | Request an interval or profile a target | `confint()`, `profile_targets()`, `profile()` | [Checking and using fitted models](model-workflow.html) |
 | Fit when some values are missing | `miss_control()`, `mi()`, `imputed()` | [Handling missing data](missing-data.html) |
 | Confirm an unfamiliar route is supported | the model and capability guides | [What can I fit today?](model-map.html) |
+
+</div>
 
 ## The shortest useful workflow
 
@@ -96,13 +162,22 @@ status is unavailable, follow [Errors, warnings, and
 convergence](convergence.html) before reporting the result. A fixed-effect
 Wald interval does not establish calibrated coverage for a random-effect SD.
 
+If fitting stops before an object is returned, read the original error and
+confirm the exact family-component combination in [What can I fit
+today?](model-map.html). If a fit object is returned, run `check_drm(fit)`,
+address the flagged optimizer, gradient, Hessian, or design problem, then refit
+and rerun the check before interpreting.
+
 ## Keep the boundaries visible
 
-`engine = "tmb"` is the current workflow. The Julia bridge is halted/deferred
-future work: it is not required to fit, diagnose, or report the R/TMB models
-shown here, and it is not an alternate engine for a new analysis.
+`drmTMB()` is the primary R workflow shown here. Julia fitting remains
+future/deferred work; the current Julia methods provide compatibility for
+legacy Julia-engine objects and are not a route for a new analysis.
 
 This page chooses a route; it does not establish a claim tier. Before a
 substantive analysis, confirm the exact family, model component, and inference
 boundary in [What can I fit today?](model-map.html) and [What can I
 trust?](capability-and-limits.html).
+If the exact combination is absent or marked planned or diagnostic-only, do
+not treat a successful fit as supported inference; choose an implemented route
+or report the limitation.
