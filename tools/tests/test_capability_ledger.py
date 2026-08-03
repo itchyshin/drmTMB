@@ -2372,6 +2372,73 @@ class CapabilityLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "G2.*(requires|must cite)|G3.*requires"):
             ledger.validate(cells, self.evidence, transitions)
 
+    def _parity_promotion_claims(self):
+        """(cell_id, claimed_tier) for every parity-triage row asserting a promotion."""
+        import re
+
+        pattern = re.compile(
+            r"promoted this cell to (" + "|".join(sorted(ledger.EVIDENCE_TIERS)) + r")\b"
+        )
+        claims = []
+        for row in ledger.read_tsv(ledger.PARITY_TRIAGE):
+            match = pattern.search(row.get("rationale", ""))
+            if match:
+                claims.append((row["cell_id"], match.group(1)))
+        return claims
+
+    def test_parity_triage_promotion_claims_match_the_live_ledger(self):
+        """A rationale saying a campaign promoted a cell must be true of cells.tsv.
+
+        Nine rows once claimed promotion to interval_feasible while the ledger
+        still read point_fit_recovery: one PR wrote the rationale for twelve
+        cells but promoted only three. Nothing caught it.
+        """
+        claims = self._parity_promotion_claims()
+        self.assertGreater(len(claims), 0, "the promotion-claim phrasing has disappeared; "
+                                           "the guard in validate() is now dead code")
+        tiers = {row["cell_id"]: row["evidence_tier"] for row in self.cells}
+        mismatched = [
+            (cell_id, claimed, tiers.get(cell_id))
+            for cell_id, claimed in claims
+            if tiers.get(cell_id) != claimed
+        ]
+        self.assertEqual(mismatched, [])
+
+    def test_parity_triage_promotion_claim_contradicting_the_ledger_is_rejected(self):
+        claims = self._parity_promotion_claims()
+        target_id, claimed = claims[0]
+        cells = copy.deepcopy(self.cells)
+        target = next(row for row in cells if row["cell_id"] == target_id)
+        # Demote below what parity-triage asserts. The row keeps claiming the
+        # promotion, so validate() must reject the pair.
+        target["evidence_tier"] = "point_fit_recovery" if claimed != "point_fit_recovery" else "none"
+        with self.assertRaisesRegex(SystemExit, f"{target_id}: parity triage claims promotion"):
+            ledger.validate(cells, self.evidence, self.transitions)
+
+    def test_parked_parity_rationales_are_deliberately_unchecked(self):
+        """Guard against widening the check onto the parked template.
+
+        116 rows say "Parked: next_gate directs preserving the existing
+        model-surface evidence tier, so no comparator or interval/coverage
+        campaign is being pursued". As of 2026-08-03, 89 of them sit at
+        interval_feasible or above, so that clause is unmaintained boilerplate
+        rather than a live claim. Checking it would report ~89 failures on a
+        clean tree. If someone repairs that corpus and this test starts failing,
+        the check in validate() can be widened -- until then it must not be.
+        """
+        parked = "Parked: next_gate directs preserving the existing model-surface evidence tier"
+        tiers = {row["cell_id"]: row["evidence_tier"] for row in self.cells}
+        promoted_anyway = [
+            row["cell_id"] for row in ledger.read_tsv(ledger.PARITY_TRIAGE)
+            if row.get("rationale", "").startswith(parked)
+            and tiers.get(row["cell_id"]) in {"interval_feasible", "inference_ready_with_caveats", "supported"}
+        ]
+        self.assertGreater(
+            len(promoted_anyway), 1,
+            "the parked-rationale corpus appears to have been repaired; revisit whether "
+            "validate() should now also check the parked template",
+        )
+
     def test_check_detects_one_byte_stale_output(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "generated.txt"
