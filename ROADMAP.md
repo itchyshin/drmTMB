@@ -619,9 +619,12 @@ the two q2 `mu1:x`/`mu2:x` slope-SD rows (phylo, relmat). The q2 rows are
 Wald intervals fail coverage. The three q1 sigma one-slope rows (phylo,
 animal, relmat) instead use raw
 uncorrected log-SD Wald-z evidence, with one-sided miss asymmetry and
-conservative `sigma:x` coverage. Fixed-covariance spatial q2, animal q2,
-spatial sigma, q4/q8, count, and non-Gaussian structured rows remain
-separate future arcs.
+conservative `sigma:x` coverage. The exact fixed-covariance spatial q2
+location-intercept cell is now `inference_ready_with_caveats` at tested
+M = 36 sites x 3 and H = 36 x 8 baseline-ring configurations; L = 12 x 3
+failed, and other geometries or information configurations remain separate
+future arcs. Animal q2, spatial sigma, q4/q8, count, and non-Gaussian
+structured rows also remain separate future arcs.
 
 Spatial parity now has its own ladder. The smallest missing phylogenetic
 sibling has landed for the constant q=2 location layer:

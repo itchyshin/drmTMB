@@ -92257,3 +92257,21 @@ passed this surface, so only *running fits* found anything; `devtools::test()`
 green is not evidence for path- or namespace-related bugs; prove an engine
 engaged before comparing policies under it; and Bernoulli, not Gaussian, is the
 family that can discriminate an engine that improves on Laplace.
+
+## 2026-08-03 — spatial q2 Confidence Eye
+
+- Source contract: `docs/design/249-spatial-q2-confidence-eye-joint-calibration.md`.
+- Immutable compute source: `9e6804deb48436b328a41cf6dffe1eb007a3cb88`.
+- Fir smoke: 60/60 datasets and 180/180 target outcomes retained; Grace approved full launch.
+- Fir full campaign: setup `52570123`, array `52570124`, corrected closeout `52574025`; 1,500/1,500 datasets and 4,500/4,500 targets retained.
+- Joint verdict: M = 36 sites x 3 and H = 36 x 8 PASS; L = 12 x 3 FAIL; common floor M.
+- Full packet digest: `ace841f7054abcfff6c6ae3be935b6c6bc62b82830bbe314d579093b1cb3281a`.
+- Focused contract: 35 expectations PASS.
+- Capability-ledger suite: 51 tests PASS.
+- Live-source pkgdown: `spatial-models`, `formula-grammar`, and home surfaces PASS.
+- Reviews: Noether/Fisher pre-compute APPROVE; Grace APPROVE_SMOKE/APPROVE_FULL; same-panel D43 Noether/Fisher/Rose 3/3 PROMOTE; final image-fed Florence/Puff APPROVE/APPROVE after trademark-eye repair.
+- Figure repair: final spatial and association eyes use coloured pale tapered lenses, larger hollow estimates, no horizontal CI line/bar, and meaningful dotted zero only; both live-source articles rerendered successfully.
+- Promotion: `mc-0199` and `mc-0672` only, at `inference_ready_with_caveats` for exact M/H baseline-ring configurations.
+- Protected: L, `mc-0673`, mesh intervals, estimated range, slopes, q4+, non-Gaussian spatial models, spatial sigma, derived observed correlations, other geometry/information configurations, and `supported`.
+- Exact stale-wording scan:
+  `rg -n "point-only|Point estimate only|calibration remains planned|interval calibration.*planned|coverage remain planned|spatial q2|Confidence Eye|mc-0199|mc-0672" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml vignettes/spatial-models.Rmd pkgdown-site/articles/spatial-models.html`

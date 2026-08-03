@@ -1,0 +1,2 @@
+verdict	common_floor	attempts	target_outcomes	coverage_gate_lower	coverage_gate_upper	finite_rate_gate
+PASS	M	1500	4500	0.925	0.975	0.95

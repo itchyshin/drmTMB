@@ -1,0 +1,2 @@
+verdict	common_floor	attempts	target_outcomes	coverage_gate_lower	coverage_gate_upper	finite_rate_gate
+SMOKE_COMPLETE		60	180	NA	NA	NA

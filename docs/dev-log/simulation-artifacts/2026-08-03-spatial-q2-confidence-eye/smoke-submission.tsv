@@ -1,0 +1,10 @@
+key	value
+source_sha	9e6804deb48436b328a41cf6dffe1eb007a3cb88
+packet_sha256	f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66
+setup_job_id	52567473
+array_job_id	52567474
+array_contract	1-60%60
+account	def-snakagaw_cpu
+base_r_library	/project/def-snakagaw/snakagaw/drmTMB-arc4c/72a471196608d9b1b115db08266017ee1e93df80/rlib
+run_root	/project/def-snakagaw/snakagaw/drmtmb-confidence-eye/runs/spatial-q2-confidence-eye-f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66
+submitted_utc	2026-08-03T01:17:18Z

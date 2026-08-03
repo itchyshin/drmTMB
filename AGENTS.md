@@ -3,16 +3,16 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ ACTIVE CODEX HANDOVER — start here (2026-08-02, MESH CLOSEOUT → Q2 CONFIDENCE EYE).**
-> PR **#893** on `codex/drmtmb-spatial-mesh` implements the fixed-kappa
-> univariate-Gaussian mesh `mu` intercept, explicit projected geographic
-> coordinates, exact-domain field-SD point recovery, and closes #881 while
-> preserving dense `coords=`. The next requested Confidence Eye is a separate
-> dense coordinate-spatial q2 latent-correlation interval-calibration arc. Do
-> not start it on the mesh branch or expose an interval before prospective
-> coverage evidence. Finish #893, then begin from fresh `origin/main` and
-> reconcile merged PR #897. START HERE:
-> [`docs/dev-log/handover/2026-08-02-codex-handover.md`](docs/dev-log/handover/2026-08-02-codex-handover.md).
+> **▶ ACTIVE CODEX HANDOVER — start here (2026-08-03, Q2 CONFIDENCE EYE COMPLETE).**
+> PR **#893** is merged and supplied the fixed-kappa mesh point-recovery
+> prerequisite. The separate dense coordinate-spatial Gaussian q2 Confidence
+> Eye campaign retained all 1,500 datasets and 4,500 direct target outcomes.
+> Exact tested M = 36 sites x 3 and H = 36 x 8 baseline-ring configurations
+> pass jointly; L = 12 x 3 fails. Only `mc-0199` and `mc-0672` advance to
+> `inference_ready_with_caveats`; `mc-0673` and all broader spatial surfaces
+> remain protected. Noether/Fisher/Grace, the same D43 panel, and Florence have
+> approved the evidence-complete packet. START HERE:
+> [`docs/dev-log/handover/2026-08-03-spatial-q2-confidence-eye-codex-handover.md`](docs/dev-log/handover/2026-08-03-spatial-q2-confidence-eye-codex-handover.md).
 
 > **▶ ACTIVE LANE SPLIT — start here (2026-08-02).** C17 is closed through PR
 > #894 at `c8e04258d`, with canonical `330 implemented / 340 rejected by design /
