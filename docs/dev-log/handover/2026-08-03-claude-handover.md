@@ -37,7 +37,8 @@ the reconciler** — turns a human-memory step into a machine gate. **Until that
 
 ### 2. Prong B, Tier 1 — 14 cells, ~30 min compute
 
-Fully scoped in `scratchpad/2026-08-03-prong-b-scoping-decision.md`: exact `R/profile.R` edits with line
+**Execution-ready brief with a paste-able GOAL block:**
+[`2026-08-03-prong-b-next-lane-brief.md`](2026-08-03-prong-b-next-lane-brief.md). Fully scoped in `scratchpad/2026-08-03-prong-b-scoping-decision.md`: exact `R/profile.R` edits with line
 numbers, per-cell evidence contract, and the mandatory pre-merge gate. It is the **first `R/` change of
 the programme**, so it wants a fresh session with room for `R CMD check`, NEWS and docs.
 
