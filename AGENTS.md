@@ -3,6 +3,29 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-08-03, ARC 7a COMPLETE; ARC 7b IS THE NEXT ARC).**
+> `main` = `5aacb1425`. The `model_surface` surface moved **172 interval_feasible / 70
+> point_fit_recovery → 184 / 58** (`FROZEN_CENSUS_POINT_FIT_RECOVERY` 70 → 58) through PRs
+> #909, #907 (`mc-0123`/`0205`/`0206`) and #908 (nine Gaussian structured cells; `mc-0292`
+> deliberately withheld — **do not re-add it**). PRs #910 (B4-CI neighbour guards) and #911
+> (parity-triage claim check + the Arc 7b brief) close the arc.
+> **CI now runs 5 of the 7 files in `tools/tests/`, up from 2.** Three guard defects surfaced,
+> all the same shape — *a claim recorded in one place about the state of another, with no
+> mechanical link between them.* The standing lesson: **a guard's definition of done includes
+> the line in CI that runs it.**
+> **NEXT = Arc 7b, the truth gate**, design already settled and briefed at
+> [`docs/dev-log/handover/2026-08-03-arc7b-truth-gate-brief.md`](docs/dev-log/handover/2026-08-03-arc7b-truth-gate-brief.md).
+> `tools/arc2_profile_reconcile.py` validates interval SHAPE and is blind to interval
+> LOCATION; `mc-0424` and `mc-0260m` hold `interval_feasible` today on cohorts containing a
+> truth-excluding interval. **Expect the count to fall 184 → 182 — that is the gate working,
+> not a regression.** Prong B Tier 1 comes after 7b, not before: its 135-trace review burden is
+> exactly what the gate exists to carry.
+> Owner decisions outstanding: q12 (16 cells behind a policy fence, not a capability limit);
+> the B4-CI `SOURCE_COMMIT` route; the 89 stale "Parked … preserving the existing tier" parity
+> rationales; and a stale `.git/index.lock` in the primary checkout that needs a human `rm`.
+> START HERE:
+> [`docs/dev-log/after-task/2026-08-03-arc7a-land-and-wire.md`](docs/dev-log/after-task/2026-08-03-arc7a-land-and-wire.md).
+
 > **▶ ACTIVE CODEX HANDOVER — start here (2026-08-03, Q2 CONFIDENCE EYE COMPLETE).**
 > PR **#893** is merged and supplied the fixed-kappa mesh point-recovery
 > prerequisite. The separate dense coordinate-spatial Gaussian q2 Confidence

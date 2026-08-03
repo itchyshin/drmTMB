@@ -92313,3 +92313,35 @@ family that can discriminate an engine that improves on Laplace.
   The paired-outcome row now names admitted latent-normal association scope.
 - Full source-installed pkgdown build: PASS, including `cross-family.Rmd` and
   both rebuilt Get started destinations. Fisher final rendered re-review: PASS.
+
+## 2026-08-03 — Arc 7a: land the earned twelve, wire the unrun guards
+
+- `main` `ca46559f3` → `5aacb1425`. `model_surface` evidence tiers
+  **172 interval_feasible / 70 point_fit_recovery → 184 / 58**;
+  `FROZEN_CENSUS_POINT_FIT_RECOVERY` 70 → 58.
+- PRs #909 (docs), #907 (mc-0123/0205/0206), #908 (nine Gaussian structured cells,
+  `mc-0292` deliberately withheld), #910 (B4-CI guards), #911 (parity-triage claim check).
+- Both promotion merges gated on a green `ubuntu-latest (release)` R-CMD-check
+  (#907 37m48s, #908 43m13s).
+- `python3 tools/capability_ledger.py --check`: PASS, `OK (30 generated outputs)`.
+- `python3 -m unittest tools.tests.test_capability_ledger`: PASS, 54 tests.
+- Adversarial frozen-cell flip at both merges: `frozen census point_fit_recovery
+  changed: 66 (expected 67)` and `... 57 (expected 58)`; reverted clean each time.
+- The frozen constant was **derived from the generator's own projection**, not counted.
+  A raw `awk` over `cells.tsv` returns 71 against a true 70 — it includes the one
+  `missing_response` row inside the frozen window. Four independent derivations agreed
+  on 58 before it was accepted.
+- Three-way merge per branch against its own merge-base, never a union: a union would
+  have resurrected `mc-0207` into the frozen census at `point_fit_recovery` and dropped
+  `mc-0715`/`mc-0716`, producing a self-consistent but wrong 59/60 that passes both
+  assertions.
+- CI now runs 5 of 7 `tools/tests/` files, up from 2. `test_b3_q6_target_promotion.py`
+  (which #907 broke, and which no runner invoked) and the new B4-CI guard tests are wired
+  in. `test_b4_ci_c2/c3/c4` remain excluded with the cause named in the workflow:
+  their `SOURCE_COMMIT 574c1108e` is not on `origin`.
+- Removed a duplicate `mc-0123` entry in `tools/run-arc2-profile-feasibility.R`, latent
+  since #907's auto-merge; both copies verified byte-identical before removal.
+- Deferred to Arc 7b with evidence recorded: `mc-0424` and `mc-0260m` hold
+  `interval_feasible` on cohorts containing a truth-excluding interval; and all four
+  nbinom2 structured-sigma cells are biased low (11/12 estimates below truth, sign test
+  p = 0.0032).
