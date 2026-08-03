@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1536" height="1024" viewBox="0 0 1536 1024">
+  <title>drmTMB function map with reviewer-corrected public API labels</title>
+  <desc>
+    Image 2.0 base artwork with deterministic text overlays that remove
+    sequential numbering from conditional branches, distinguish family
+    examples from structured terms, and place each function under its correct
+    task.
+  </desc>
+  <image x="0" y="0" width="1536" height="1024"
+         xlink:href="image2-base.png" />
+
+  <!-- Specify model: separate family examples from structured terms. -->
+  <rect x="110" y="352" width="347" height="74" fill="#fffefd" />
+  <g text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#10284c">
+    <text x="283" y="364" font-size="18" font-weight="700">Formula: bf()</text>
+    <text x="283" y="384" font-size="17" font-weight="700">Family examples: gaussian()   nbinom2()</text>
+    <text x="283" y="405" font-size="17" font-weight="700">Structured terms — support varies</text>
+    <text x="283" y="426" font-size="21">phylo()   spatial()   relmat()</text>
+  </g>
+
+  <!-- Check fit health: keep diagnostics only. -->
+  <rect x="1067" y="352" width="348" height="72" fill="#fffefd" />
+  <text x="1241" y="398" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="23"
+        fill="#10284c">check_drm()   summary()</text>
+
+  <!-- Conditional branches are unnumbered alternatives. -->
+  <rect x="190" y="665" width="82" height="82" fill="#fffefd" />
+  <rect x="1018" y="665" width="88" height="82" fill="#fffefd" />
+
+  <!-- Interpret: use functions callable from the ordinary fitted object. -->
+  <rect x="205" y="753" width="282" height="92" fill="#fffefd" />
+  <g text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#10284c">
+    <text x="348" y="798" font-size="24">coef()   fixef()   ranef()</text>
+    <text x="348" y="832" font-size="24">corpairs()   rho12()</text>
+  </g>
+
+  <!-- Predict and assess: enlarge the function labels. -->
+  <rect x="679" y="753" width="255" height="48" fill="#fffefd" />
+  <rect x="568" y="800" width="366" height="45" fill="#fffefd" />
+  <g text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#10284c">
+    <text x="806" y="792" font-size="23">predict_parameters()</text>
+    <text x="806" y="826" font-size="20">fitted_distribution()   residuals()</text>
+  </g>
+
+  <!-- Uncertainty: target inventory belongs here, not in fit health. -->
+  <rect x="1134" y="753" width="297" height="92" fill="#fffefd" />
+  <g text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#10284c">
+    <text x="1283" y="788" font-size="23">profile_targets()</text>
+    <text x="1283" y="823" font-size="20">confint()   profile()   simulate()</text>
+  </g>
+</svg>

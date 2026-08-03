@@ -24,7 +24,11 @@ navbar:
   components:
     intro:
       text: Get started
-      href: articles/function-map-cheatsheet.html
+      menu:
+        - text: Get started with drmTMB
+          href: articles/drmTMB.html
+        - text: Function map and cheat sheet
+          href: articles/function-map-cheatsheet.html
     model_guides:
       text: Model Guides
       menu:
@@ -219,8 +223,8 @@ reference:
 articles:
   - title: Getting Started
     contents:
-      - function-map-cheatsheet
       - drmTMB
+      - function-map-cheatsheet
   - title: Capability and Model Choice
     contents:
       - capability-and-limits
