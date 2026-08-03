@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:mu:phylo_interaction(1 | plant:pollinator)	0.95	0.510872370111982	0.774512403785158	response	exp	log_sd_phylo	1	profile	tmbprofile	profile	FALSE	ok	mc-0409	mc-0409::sd:mu:phylo_interaction(1 | plant:pollinator)	2026080404	star_np8_npo8_each8

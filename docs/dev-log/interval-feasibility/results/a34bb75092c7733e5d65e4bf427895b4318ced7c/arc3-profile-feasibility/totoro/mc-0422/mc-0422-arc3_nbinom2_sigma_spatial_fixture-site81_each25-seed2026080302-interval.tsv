@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:sigma:spatial(1 | site)	0.95	0.24574051207289	0.648751810785647	response	exp	log_sd_phylo	1	profile	tmbprofile	profile	FALSE	ok	mc-0422	mc-0422::sd:sigma:spatial(1 | site)	2026080302	site81_each25

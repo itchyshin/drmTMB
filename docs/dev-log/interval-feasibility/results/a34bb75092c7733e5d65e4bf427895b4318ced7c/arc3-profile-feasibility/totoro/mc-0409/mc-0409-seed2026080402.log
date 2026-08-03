@@ -1,0 +1,6 @@
+  cell_id                                              target_id estimator
+1 mc-0409 mc-0409::sd:mu:phylo_interaction(1 | plant:pollinator)        ML
+  conf_status estimate     lower     upper convergence pdHess profile_boundary
+1     profile 0.518548 0.4162352 0.6500248           0   TRUE            FALSE
+  trace_complete promotion_eligible failure_reason
+1           TRUE               TRUE               

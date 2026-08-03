@@ -140,7 +140,27 @@ ASSOCIATION_COUNT = 6
 # frozen-census total is derived from cells.tsv, not from either lane's
 # arithmetic in isolation.
 FROZEN_CENSUS_COUNT = 676
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 78
+# Arc 3 then promotes three more frozen cells, each after a PREDECLARED POINT-FIT
+# RECOVERY GATE and three reconciled Totoro receipts: mc-0283's matched-q2
+# phylogenetic log-sigma SD, and mc-0422/mc-0423's nbinom2 spatial and animal
+# log-sigma SDs on purpose-built provider-specific DGPs. mc-0421 and mc-0424 were
+# NOT promoted -- each passed only 2 of 3 seeds and is retained at
+# point_fit_recovery on their FIRST cohort. Both were then root-caused as DGP
+# numerical-conditioning defects (not estimator defects), redesigned, re-gated
+# over five seeds, and re-run: the same previously-failing seed now passes, so
+# both are promoted here too. 78 -> 73 after rebasing onto main's new baseline; ARC3_TARGETS binds each promoted cell.
+# mc-0321 (gaussian mu-side phylo_interaction SD) then passes Fisher's tightened
+# five-seed, truth-bracketing gate (seed family 2026080401-2026080405) 5/5: every
+# relative error <0.35 and every profile interval brackets the true 0.6. Its NB2
+# sibling mc-0409 (same exact target and geometry) was initially NOT promoted
+# under the same gate -- seed 2026080405's interval excluded the true 0.6 despite
+# passing the mean-error gate and the mechanical reconciler. A follow-up
+# diagnostic found a confirmed NB2 dispersion/interaction-SD confound
+# (cor(sigma_hat, sd_hat) = -0.74 at n_each = 8, no count sparsity); raising
+# n_each 8 -> 24 fixed it, and a re-run five-seed Totoro campaign (same shared
+# seed family) now passes both the relative-error and bracketing checks on
+# every seed, so mc-0409 is promoted here too. 73 -> 72.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 72
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -263,6 +283,52 @@ ARC2_TARGETS = {
             f"{ARC2_BETA_ANIMAL_SOURCE_SHA}/"
             "arc2-profile-feasibility/totoro/mc-0015-reconcile.tsv"
         ),
+    },
+}
+ARC3_SOURCE_SHA = "a34bb75092c7733e5d65e4bf427895b4318ced7c"
+ARC3_TARGETS = {
+    "mc-0283": {
+        "target_id": "mc-0283::sd:sigma:sigma:phylo(1 | p | species)",
+        "evidence_id": "ev-mc-0283-arc3-profile",
+        "transition_id": "tr-mc-0283-arc3-profile",
+        "claim_snippet": "arc2_phylo_sigma_q2_fixture(n_tip=60, n_each=12)",
+    },
+    "mc-0422": {
+        "target_id": "mc-0422::sd:sigma:spatial(1 | site)",
+        "evidence_id": "ev-mc-0422-arc3-profile",
+        "transition_id": "tr-mc-0422-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_spatial_fixture",
+    },
+    "mc-0421": {
+        "target_id": "mc-0421::sd:sigma:phylo(1 | species)",
+        "evidence_id": "ev-mc-0421-arc3-profile",
+        "transition_id": "tr-mc-0421-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_phylo_fixture",
+    },
+    "mc-0424": {
+        "target_id": "mc-0424::sd:sigma:relmat(1 | id)",
+        "evidence_id": "ev-mc-0424-arc3-profile",
+        "transition_id": "tr-mc-0424-arc3-profile",
+        "claim_snippet": "arc3_nbinom2_sigma_relmat_fixture",
+    },
+    "mc-0321": {
+        "target_id": "mc-0321::sd:mu:phylo_interaction(1 | plant:pollinator)",
+        "evidence_id": "ev-mc-0321-arc3-profile",
+        "transition_id": "tr-mc-0321-arc3-profile",
+        "claim_snippet": "arc3_phylo_interaction_gaussian_fixture",
+    },
+    # mc-0409 (NB2 sibling, same exact target/geometry) was initially withheld:
+    # seed 2026080405's profile interval excluded the true 0.6 at n_each = 8
+    # despite a passing mean relative error. A diagnosed NB2 dispersion/
+    # interaction-SD confound (cor(sigma_hat, sd_hat) = -0.74) was fixed by
+    # raising n_each 8 -> 24; a re-run five-seed campaign passes both the
+    # relative-error and bracketing checks on every seed -- see cells.tsv's
+    # mc-0409 claim_boundary.
+    "mc-0409": {
+        "target_id": "mc-0409::sd:mu:phylo_interaction(1 | plant:pollinator)",
+        "evidence_id": "ev-mc-0409-arc3-profile",
+        "transition_id": "tr-mc-0409-arc3-profile",
+        "claim_snippet": "arc3_phylo_interaction_nbinom2_fixture",
     },
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
@@ -1558,6 +1624,40 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 2 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC3_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC3_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 3 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC3_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 3 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 3 transition must remain verified-to-verified")
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)

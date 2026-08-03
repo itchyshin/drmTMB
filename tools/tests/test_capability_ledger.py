@@ -444,9 +444,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Deliberately a literal, NOT the module constant: tying both assertions to
         # one constant would destroy exactly the independence this check exists for.
         # 77 -> 71 for the six Arc 2 promotions (mc-0186/0263/0274/0277 + mc-0013/0015).
+        # 67 -> 66 for mc-0321's Arc 3 phylo_interaction mu-SD promotion; its NB2
+        # sibling mc-0409 was withheld on Fisher's tightened gate and stayed counted.
+        # 73 -> 72: mc-0409 was then re-gated at n_each = 24 (fixing a diagnosed NB2
+        # dispersion/interaction-SD confound) and promoted on a fresh five-seed
+        # Totoro campaign that brackets the truth on every seed.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            78,
+            72,
         )
 
         by_id = {row["cell_id"]: row for row in model}
