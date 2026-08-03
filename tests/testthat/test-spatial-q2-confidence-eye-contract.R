@@ -83,6 +83,11 @@ test_that("all-attempt target summary applies both frozen gates", {
   rows$finite_interval[[475L]] <- FALSE
   summary <- ce_target_summary(rows, 500L)
   expect_false(summary$target_pass)
+
+  rows$fit_warning <- NA_character_
+  rows$profile_warning <- NA_character_
+  summary <- ce_target_summary(rows, 500L)
+  expect_equal(summary$warning_count, 0L)
 })
 
 test_that("invalid point fits have a deterministic terminal class", {
