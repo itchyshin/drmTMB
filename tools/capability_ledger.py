@@ -99,9 +99,12 @@ IMPORTED_MODEL_COUNT = 668
 # promoted. C14 then split ten lossy structured zero-one-beta mu/sigma rows into exact
 # q1 leaves plus ten new q2-plus boundary rows (677 -> 687). C18 splits ten further lossy
 # structured zero-one-beta ATOM (zoi/coi) rows the same source-bound, non-promoting way,
-# appending ten more q2-plus boundary rows (687 -> 697). Bump this guard only for an
-# approved row insert or split, never to silence drift.
-MODEL_SURFACE_COUNT = 697
+# appending ten more q2-plus boundary rows (687 -> 697). Arc 4b then splits mc-0207 (a
+# single legacy row representing q4/q6/q8 ordinary bivariate REML blocks with no unique
+# formula/target) into exact per-q leaves: mc-0207 becomes the q4 leaf in place, and
+# mc-0715 (q6) / mc-0716 (q8) are new leaves (697 -> 699). The split promotes nothing.
+# Bump this guard only for an approved row insert or split, never to silence drift.
+MODEL_SURFACE_COUNT = 699
 ASSOCIATION_COUNT = 6
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
@@ -160,16 +163,39 @@ FROZEN_CENSUS_COUNT = 676
 # n_each 8 -> 24 fixed it, and a re-run five-seed Totoro campaign (same shared
 # seed family) now passes both the relative-error and bracketing checks on
 # every seed, so mc-0409 is promoted here too. 73 -> 72.
+# Arc 4b then DEMOTES mc-0207 (still frozen: source_order 207 <= 676) from
+# point_fit_recovery to none. mc-0207 was a single legacy row claiming q4/q6/q8
+# bivariate ordinary REML blocks are recoverable, citing only
+# scratchpad/reml_parity_gaps_3A_ladder.R -- but that ladder tests a q2
+# bivariate mu-sigma block (mc-0205/mc-0206's territory) and a q3 UNIVARIATE
+# mu-only block, never a bivariate mu1+mu2 q4/q6/q8 block. Splitting the row
+# into its three per-q leaves (mc-0207/mc-0715/mc-0716) exposes that none of
+# them has dimension-matched evidence, so all three are born/kept at
+# evidence_tier=none pending a matching recovery fixture. 72 -> 71 in this
+# lane alone.
 # Arc 4 then promotes mc-0417 (the two-provider AGGREGATE count cell, BOUND to
 # its ONE pair with recovery evidence -- spatial+relmat) on its primary
 # target sd:mu:spatial(1 | site): a five-seed Totoro campaign (shared seed
 # family 2026080501-2026080505, the same family as the local point-fit gate)
 # passes both the relative-error (<0.35 every seed) and truth-bracketing
-# checks on every seed. 72 -> 71.
-# Arc 6 then promotes nine more frozen Gaussian structured cells after five-seed
-# Totoro campaigns (shared base commit 75b212cf9db45aeb2fa3181049e663e772e01e7a) that
-# bracket the truth on every seed: mc-0286/mc-0298 (q1 one-slope mu spatial/animal,
-# ML), mc-0282 (q2 matched mu phylo, REML), mc-0291/mc-0303/mc-0315 (q2 matched mu
+# checks on every seed. 72 -> 71 in this lane alone.
+# Arc 4b's demotion and Arc 4's promotion land in the same merge and both
+# apply, one frozen cell moving out of point_fit_recovery each: the merged
+# frozen-census total is derived from cells.tsv, not from either lane's
+# arithmetic in isolation. 72 -> 70.
+# Arc 5 then promotes the final three Prong A cells on top of that merged
+# baseline of 70: mc-0123 (q6 spatial mu1 SD, the sibling of mc-0124's
+# already-promoted mu2 SD, on an independent fixture) and mc-0205/mc-0206
+# (the mu1/sigma1 marginal SDs of ONE labelled bivariate REML `(1 | p | id)`
+# mu-sigma correlated block, on a fixture that replaces the point-estimate-only
+# sim3() harness). None of the three overlaps the mc-0207/mc-0715/mc-0716
+# split cells. All three pass Fisher's tightened five-seed, truth-bracketing
+# gate 5/5. 70 -> 67 (derived from the merged cells.tsv, not assumed).
+# Arc 6 then promotes nine more frozen Gaussian structured cells on top of
+# that merged baseline of 67, after five-seed Totoro campaigns (shared base
+# commit 75b212cf9db45aeb2fa3181049e663e772e01e7a) that bracket the truth on
+# every seed: mc-0286/mc-0298 (q1 one-slope mu spatial/animal, ML), mc-0282
+# (q2 matched mu phylo, REML), mc-0291/mc-0303/mc-0315 (q2 matched mu
 # spatial/animal/relmat, ML, labelled provider(1 | p | group) spelling), and
 # mc-0279/mc-0304/mc-0316 (q2 matched sigma phylo/animal/relmat, ML, unlabelled
 # auto-linked spelling). A tenth sibling, mc-0292 (q2 matched sigma spatial), was
@@ -177,8 +203,10 @@ FROZEN_CENSUS_COUNT = 676
 # excludes the true 0.7, so 4/5 not 5/5 seeds bracket the truth. The mechanical
 # reconciler (tools/arc2_profile_reconcile.py) still recorded PASS_INTERVAL_FEASIBLE_
 # TARGET for that seed, because reconcile() never reads a true value -- only a human
-# check against the DGP's known truth caught this. 71 -> 62.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 62
+# check against the DGP's known truth caught this. None of the nine overlaps the
+# mc-0207/mc-0715/mc-0716 split cells or Arc 5's three. 67 -> 58 (derived from the
+# merged cells.tsv, not assumed).
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 58
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -368,6 +396,39 @@ ARC4_TARGETS = {
         "claim_snippet": "arc4_nbinom2_mu_spatial_relmat_fixture",
     },
 }
+# Arc 5 promotes the final three Prong A cells: mc-0123 (the mu1 sibling of
+# mc-0124's already-promoted q6 spatial mu2 SD, on an INDEPENDENT fixture
+# because B3's own runner is unreachable from this tree), and mc-0205/
+# mc-0206 (the mu1/sigma1 marginal SDs of ONE labelled bivariate REML
+# `(1 | p | id)` mu-sigma correlated block, on a committed fixture that
+# REPLACES sim3() -- sim3() returned point estimates only and could never
+# support an interval claim). All three share the SAME source commit as
+# Arc 4 (the checkout both lanes' worktrees were built from) and Fisher's
+# tightened five-seed, truth-bracketing gate: every seed's relative error
+# <0.35 and every profile interval brackets the true value. 71 -> 68 in
+# this lane alone (70 -> 67 once merged with Arc 4b's mc-0207 split, see
+# FROZEN_CENSUS_POINT_FIT_RECOVERY above).
+ARC5_SOURCE_SHA = "095b9e3b1933f9b066365f92ddd4cb3d412a9dad"
+ARC5_TARGETS = {
+    "mc-0123": {
+        "target_id": "mc-0123::sd:mu:mu1:spatial(1 | p | site)",
+        "evidence_id": "ev-mc-0123-arc5-profile",
+        "transition_id": "tr-mc-0123-arc5-profile",
+        "claim_snippet": "arc4_q6_spatial_mu1_fixture",
+    },
+    "mc-0205": {
+        "target_id": "mc-0205::sd:mu:mu1:(1 | p | id)",
+        "evidence_id": "ev-mc-0205-arc5-profile",
+        "transition_id": "tr-mc-0205-arc5-profile",
+        "claim_snippet": "arc2_biv_musigma_fixture(n_id=60, n_each=8)",
+    },
+    "mc-0206": {
+        "target_id": "mc-0206::sd:sigma:sigma1:(1 | p | id)",
+        "evidence_id": "ev-mc-0206-arc5-profile",
+        "transition_id": "tr-mc-0206-arc5-profile",
+        "claim_snippet": "arc2_biv_musigma_fixture(n_id=60, n_each=8)",
+    },
+}
 # Arc 6 consolidates nine Fisher-approved Gaussian structured cells from three
 # parallel lanes (q1 one-slope mu, q2 matched mu, q2 matched sigma) into one
 # promotion. All nine share ARC6_SOURCE_SHA -- the merge-base commit the
@@ -441,9 +502,11 @@ B3_Q6_MU2_TARGETS = {
     "mc-0146": ("animal", "mc-0145", "mc-0146::sd:mu:mu2:animal(1 | p | id)"),
     "mc-0168": ("relmat", "mc-0167", "mc-0168::sd:mu:mu2:relmat(1 | p | id)"),
 }
-# C4 separately promotes these three paired q6 mu1 rows.  The B3 target
-# receipt remains limited to mu2 and must not be treated as their evidence.
-C4_B3_PAIRED_MU1_IDS = {"mc-0101", "mc-0145", "mc-0167"}
+# C4 separately promotes these three paired q6 mu1 rows.  Arc 5 separately
+# promotes a fourth, mc-0123, on its own INDEPENDENT fixture (B3's own
+# runner is unreachable from this tree). The B3 target receipt remains
+# limited to mu2 and must not be treated as any of these four rows' evidence.
+C4_B3_PAIRED_MU1_IDS = {"mc-0101", "mc-0145", "mc-0167", "mc-0123"}
 B3_Q6_MU2_PACKET = (
     ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
 )
@@ -1144,6 +1207,170 @@ def split_c18_zob_atom_leaves() -> None:
     print(message)
 
 
+# mc-0207 was one legacy row representing q4/q6/q8 labelled ORDINARY (no
+# structure_provider) bivariate REML random-slope covariance blocks, with
+# q_gate="na", no unique formula/target, and evidence limited to an
+# uncommitted scratchpad probe (scratchpad/reml_parity_gaps_3A_ladder.R).
+# That ladder tests a q2 bivariate mu-sigma block (already mc-0205/mc-0206's
+# exact territory) and a q3 UNIVARIATE mu-only block; it never fits a
+# bivariate mu1+mu2 q4/q6/q8 block, so the original row's "representative
+# across q4/q6/q8" claim was an extrapolation across untested dimensions.
+MC_0207_ORIGINAL_STATE = {
+    "route_variant": "legacy_02",
+    "q_gate": "na",
+    "capability_status": "implemented",
+    "work_status": "verified",
+    "evidence_tier": "point_fit_recovery",
+    "tranche_id": "legacy-census",
+}
+MC_0207_Q_LEAF_TAXONOMY = (
+    ("mc-0207", "q4", "one correlated slope each on mu1 and mu2 (intercept + 1 slope per response)"),
+    ("mc-0715", "q6", "the row's own worked example: a mu1+mu2 two-slope block (intercept + 2 slopes per response)"),
+    ("mc-0716", "q8", "a mu1+mu2 three-slope block (intercept + 3 slopes per response)"),
+)
+
+
+def split_mc0207_ordinary_q_leaves() -> None:
+    """Replace mc-0207's lossy q4/q6/q8 representative claim with exact leaves.
+
+    mc-0207 becomes the q4 leaf in place; mc-0715 (q6) and mc-0716 (q8) are new
+    leaves. This is a taxonomy correction, not new evidence: none of the three
+    leaves has dimension-matched point-fit evidence (the bound scratchpad
+    ladder tests adjacent shapes only -- see MC_0207_ORIGINAL_STATE's
+    docstring), so all three are demoted from point_fit_recovery to
+    evidence_tier=none and from work_status=verified to
+    implemented_unverified. capability_status stays implemented because the
+    REML gate code does not reject these ordinary q>2 blocks; the split
+    changes evidence scope, not code behaviour, and it promotes nothing.
+    """
+    cells = read_tsv(CELLS)
+    evidence = read_tsv(EVIDENCE)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    evidence_ids = {row["evidence_id"] for row in evidence}
+    transition_ids = {row["transition_id"] for row in transitions}
+    sha = git_sha()
+    date = "2026-08-03"
+    tranche_id = "arc4b-mc0207-split"
+
+    if "mc-0207" not in by_id:
+        raise SystemExit("mc-0207 split source is missing")
+    original = by_id["mc-0207"]
+    if any(original[field] != value for field, value in MC_0207_ORIGINAL_STATE.items()):
+        raise SystemExit("mc-0207 has unexpected state; refusing to split")
+    base = original.copy()
+
+    for cell_id, q_gate, shape_example in MC_0207_Q_LEAF_TAXONOMY:
+        evidence_id = f"ev-{cell_id}-arc4b-{q_gate}-split"
+        transition_id = f"tr-{cell_id}-arc4b-{q_gate}-split"
+        claim_boundary = (
+            f"Exact {q_gate} leaf split from the former mc-0207 q4/q6/q8 "
+            "representative row: an unlabelled bivariate ordinary REML "
+            f"random-slope covariance block of total dimension {q_gate[1:]} "
+            f"({shape_example}) for biv_gaussian. The REML gate code applies "
+            "no q-gate-specific restriction, so this shape is not rejected by "
+            "the validator, but no point-fit or recovery evidence exists at "
+            "this exact dimension: the source scratchpad ladder "
+            "(scratchpad/reml_parity_gaps_3A_ladder.R) tests only a q2 "
+            "bivariate mu-sigma block (mc-0205/mc-0206's territory) and a q3 "
+            "UNIVARIATE mu-only block, neither of which is this bivariate "
+            f"{q_gate} shape. Sibling ordinary leaves are recorded separately "
+            "at " + "/".join(sibling for sibling, _, _ in MC_0207_Q_LEAF_TAXONOMY if sibling != cell_id) + ". "
+            "Slope count, labels, structured providers, intervals, coverage, "
+            "and any inference-ready or public-support claim remain outside "
+            "this leaf."
+        )
+        next_gate = (
+            f"Bind this exact bivariate {q_gate} ordinary REML leaf to a "
+            "dimension-matched recovery fixture and independent GO/BLOCK "
+            "review before any promotion above evidence_tier=none."
+        )
+        notes = (
+            "Arc 4b split of the former mc-0207 q4/q6/q8 representative "
+            "claim; siblings are " + "; ".join(
+                f"{sibling} ({sibling_q})"
+                for sibling, sibling_q, _ in MC_0207_Q_LEAF_TAXONOMY
+                if sibling != cell_id
+            ) + ". Born/kept at evidence_tier=none because the bound "
+            "scratchpad evidence tests a UNIVARIATE q3 block and a bivariate "
+            f"q2 mu-sigma block, not this bivariate {q_gate} mu1+mu2 shape."
+        )
+
+        if cell_id == "mc-0207":
+            row = original
+            from_work_status = MC_0207_ORIGINAL_STATE["work_status"]
+        elif cell_id in by_id:
+            row = by_id[cell_id]
+            from_work_status = ""
+        else:
+            row = base.copy()
+            row["cell_id"] = cell_id
+            row["source_order"] = str(int(cell_id.split("-")[1]))
+            cells.append(row)
+            by_id[cell_id] = row
+            from_work_status = ""
+
+        row.update({
+            "route_variant": f"arc4b_ordinary_reml_{q_gate}_block",
+            "q_gate": q_gate,
+            "capability_status": "implemented",
+            "work_status": "implemented_unverified",
+            "evidence_tier": "none",
+            "tranche_id": tranche_id,
+            "owner": "",
+            "blocking_reviewers": "Noether; Fisher; Rose",
+            "primary_evidence_id": evidence_id,
+            "claim_boundary": claim_boundary,
+            "next_gate": next_gate,
+            "updated_commit": sha,
+            "updated_date": date,
+            "notes": notes,
+        })
+
+        if evidence_id not in evidence_ids:
+            evidence.append({
+                "evidence_id": evidence_id,
+                "cell_id": cell_id,
+                "evidence_class": "contract_test",
+                "path_or_url": "scratchpad/reml_parity_gaps_3A_ladder.R",
+                "commit_sha": sha,
+                "run_id": f"arc4b-mc0207-split-{q_gate}",
+                "command": "python3 tools/capability_ledger.py --split-mc0207-ordinary-q-leaves",
+                "result": f"{q_gate}_leaf_not_promoted",
+                "replicates": "",
+                "reviewed_by": "Arc4b taxonomy split",
+                "review_date": date,
+                "claim_boundary": claim_boundary,
+            })
+            evidence_ids.add(evidence_id)
+
+        if transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": transition_id,
+                "cell_id": cell_id,
+                "from_work_status": from_work_status,
+                "to_work_status": "implemented_unverified",
+                "evidence_ids": evidence_id,
+                "reason": (
+                    "Arc 4b split of the q4/q6/q8 representative row into "
+                    "exact per-q leaves; demoted from point_fit_recovery/"
+                    "verified because the bound scratchpad evidence covers "
+                    "adjacent shapes (q2 bivariate mu-sigma, q3 univariate), "
+                    f"not this bivariate {q_gate} mu1+mu2 shape."
+                ),
+                "actor": "Claude Arc4b taxonomy split",
+                "commit_sha": sha,
+                "date": date,
+            })
+            transition_ids.add(transition_id)
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    EVIDENCE.write_bytes(tsv_bytes(EVIDENCE_FIELDS, evidence))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    SCHEMA.write_bytes(json_bytes(schema_value()))
+    print("mc-0207 q4/q6/q8 ordinary leaves are current")
+
+
 def check_c14_receipt_equivalence() -> None:
     """Verify C14's separate source-equivalence bridge for retained receipts.
 
@@ -1570,9 +1797,14 @@ def validate(
     # not_implemented and refused by design. The remaining 10 rows are the
     # actionable implementation backlog, not a claim that every boundary is
     # mathematically impossible.
+    # Arc 4b's mc-0207 split adds two new implemented leaves (mc-0715, mc-0716);
+    # the original mc-0207 stays implemented (the REML gate code does not reject
+    # these shapes), so implemented rises 337 -> 339 while rejected_by_design and
+    # not_implemented are untouched -- the split changes evidence_tier, not
+    # capability_status.
     expected = Counter(
         {
-            "implemented": 337,
+            "implemented": 339,
             "rejected_by_design": (
                 C14_BOUNDARY_COUNT
                 + len(C14_ZOB_LEAF_TAXONOMY)
@@ -1795,6 +2027,40 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 4 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC5_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC5_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 5 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC5_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 5 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 5 transition must remain verified-to-verified")
 
     for cell_id, contract in ARC6_TARGETS.items():
         target_id = contract["target_id"]
@@ -2860,6 +3126,7 @@ def main() -> None:
     action.add_argument("--restore-c14-boundaries", action="store_true")
     action.add_argument("--split-c14-zob-structured-leaves", action="store_true")
     action.add_argument("--split-c18-zob-atom-leaves", action="store_true")
+    action.add_argument("--split-mc0207-ordinary-q-leaves", action="store_true")
     action.add_argument("--check-c14-receipt-equivalence", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
@@ -2876,6 +3143,9 @@ def main() -> None:
         return
     if args.split_c18_zob_atom_leaves:
         split_c18_zob_atom_leaves()
+        return
+    if args.split_mc0207_ordinary_q_leaves:
+        split_mc0207_ordinary_q_leaves()
         return
     if args.check_c14_receipt_equivalence:
         check_c14_receipt_equivalence()

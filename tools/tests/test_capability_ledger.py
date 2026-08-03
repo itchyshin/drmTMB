@@ -35,7 +35,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # leaves. Splitting itself promotes nothing (not_implemented stayed
         # at 17 immediately after the split); C18 separately promotes seven
         # of the ten atom leaves from recovery evidence, leaving 10.
-        self.assertEqual(len(model), 697)
+        # 697 -> 699: Arc 4b splits mc-0207 (a single legacy row representing
+        # q4/q6/q8 ordinary bivariate REML blocks) into exact per-q leaves;
+        # mc-0207 becomes the q4 leaf in place, mc-0715/mc-0716 are new q6/q8
+        # leaves. The split promotes nothing.
+        self.assertEqual(len(model), 699)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -359,10 +363,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
 
+        # implemented 337 -> 339: Arc 4b's mc-0207 split adds two new
+        # implemented leaves (mc-0715, mc-0716); rejected_by_design and
+        # not_implemented are untouched since the split changes evidence_tier,
+        # not capability_status.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 337, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -404,10 +412,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             for cell_id in ("mc-0199", "mc-0672", "mc-0673")
         }
 
+        # implemented 337 -> 339: Arc 4b's mc-0207 split (see above).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 337, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -449,18 +458,38 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 73 -> 72: mc-0409 was then re-gated at n_each = 24 (fixing a diagnosed NB2
         # dispersion/interaction-SD confound) and promoted on a fresh five-seed
         # Totoro campaign that brackets the truth on every seed.
+        # 72 -> 71: Arc 4b demotes mc-0207 from point_fit_recovery to none (see
+        # FROZEN_CENSUS_POINT_FIT_RECOVERY); its two new sibling leaves
+        # (mc-0715, mc-0716) are born at evidence_tier=none, so they add zero.
         # 72 -> 71: mc-0417 (the two-provider AGGREGATE count cell, BOUND to its
         # spatial+relmat pair) is promoted on its primary target
         # sd:mu:spatial(1 | site) after a fresh five-seed Totoro campaign that
         # brackets the truth on every seed.
-        # 71 -> 62: Arc 6 promotes nine Gaussian structured cells (mc-0286, mc-0298,
+        # Both land in the same merge: 72 -> 70. This literal is computed
+        # directly from cells.tsv (all model_surface rows, not just the
+        # frozen 676), independently of ledger.FROZEN_CENSUS_POINT_FIT_RECOVERY,
+        # so a promotion hidden behind a simultaneous row insert cannot slip
+        # through both checks at once.
+        # 70 -> 67: Arc 5 promotes the final three Prong A cells -- mc-0123
+        # (q6 spatial mu1 SD, the independently-fixtured sibling of mc-0124's
+        # already-promoted mu2 SD) and mc-0205/mc-0206 (the mu1/sigma1
+        # marginal SDs of one labelled bivariate REML mu-sigma correlated
+        # block, replacing the point-estimate-only sim3() harness) -- each
+        # after Fisher's tightened five-seed, truth-bracketing gate passes
+        # 5/5. All three sit inside the frozen window, so this TOTAL and the
+        # frozen-only count above move together; recounted directly from the
+        # merged cells.tsv, not derived from the module constant.
+        # 67 -> 58: Arc 6 promotes nine Gaussian structured cells (mc-0286, mc-0298,
         # mc-0282, mc-0291, mc-0303, mc-0315, mc-0279, mc-0304, mc-0316), each after a
         # five-seed Totoro campaign that brackets the truth on every seed. A tenth
         # sibling, mc-0292 (q2 matched sigma spatial), is WITHHELD -- its seed-303
-        # receipt excludes the true 0.7 -- and stays counted here.
+        # receipt excludes the true 0.7 -- and stays counted here. All nine sit inside
+        # the frozen window and none overlaps Arc 5's three or the mc-0207 split, so
+        # this TOTAL and the frozen-only count above move together again; recounted
+        # directly from the merged cells.tsv, not derived from the module constant.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            62,
+            58,
         )
 
         by_id = {row["cell_id"]: row for row in model}

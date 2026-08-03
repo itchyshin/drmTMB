@@ -215,55 +215,6 @@ cell_registry <- list(
     true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma), log-SD internal scale",
     cohort_id = "arc2-gaussian-reml-phylo-sigma-sd-profile-feasibility"
   ),
-  "mc-0282" = list(
-    # Mu-side sibling of mc-0283, and matched q2 sibling of mc-0274: the SAME
-    # labelled `phylo(1 | p | species)` term appears in both mu and sigma of
-    # the matched q2 block, so the mu-dpar row gets an extra "mu:" prefix
-    # ahead of the term name (confirmed empirically via
-    # `drmTMB::profile_targets()` on a fitted q2 model -- run once at seed
-    # 101 during this cell's construction; see the g12 dev-log entry), giving
-    # the doubled target string below (parallel to mc-0283's doubled
-    # "sd:sigma:sigma:..."). Was AGENT-INFERRED before that check per Curie's
-    # brief; now confirmed, not assumed.
-    target = "sd:mu:mu:phylo(1 | p | species)",
-    family_name = "gaussian",
-    family = function() stats::gaussian(),
-    # Formula copied verbatim from test-reml-phylo-location.R:163-164 ("REML
-    # admits matched mean-and-scale phylogenetic effects (q2 block)"), the
-    # only validated syntax for this labelled q2 block -- identical to
-    # mc-0283's formula (same fixture, same fit, different profiled target).
-    # The FIXTURE is not that test's `reml_phylo_location_fixture()` (no true
-    # sigma-phylo signal, see tools/arc2-phylo-sigma-fixtures.R's header).
-    # `arc2_phylo_sigma_q2_fixture()` instead places independent genuine
-    # phylogenetic signal on BOTH mu and log(sigma), each with its own known
-    # true SD; this cell targets the mu-side SD (mc-0283 targets sigma-side).
-    formula = function(fx) {
-      tree <- fx$tree
-      drmTMB::bf(
-        y ~ x + drmTMB::phylo(1 | p | species, tree = tree),
-        sigma ~ 1 + drmTMB::phylo(1 | p | species, tree = tree)
-      )
-    },
-    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
-    estimator = "REML",
-    provider = "phylo",
-    fixture_name = "arc2_phylo_sigma_q2_fixture",
-    fixture_file = "tools/arc2-phylo-sigma-fixtures.R",
-    # Defaults (n_tip = 60, n_each = 12) match mc-0277/mc-0283's validated
-    # replication ladder, comfortably above the Arc 0 manifest's N>=250 q2
-    # information floor (n = 720).
-    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
-    data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "tip60_each12",
-    dgp_id = "arc2_gaussian_reml_phylo_mu_q2_sd",
-    formula_label = paste0(
-      "bf(y ~ x + phylo(1 | p | species, tree = tree), ",
-      "sigma ~ 1 + phylo(1 | p | species, tree = tree)); gaussian(identity/log); ",
-      "REML=TRUE; drm_control(optimizer_preset = \"robust\")"
-    ),
-    true_parameter_scale = "0.6 phylogenetic random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD phylo effect also present on log(sigma)); marginal claim only, mu/sigma cross-block correlation unclaimed (zero by construction in this DGP)",
-    cohort_id = "arc2-gaussian-reml-phylo-mu-q2-sd-profile-feasibility"
-  ),
   "mc-0283" = list(
     # Matched q2 sibling of mc-0277: the SAME labelled phylo() term
     # (`phylo(1 | p | species)`) appears in BOTH mu and sigma, so `sd:sigma:
@@ -628,6 +579,46 @@ cell_registry <- list(
     true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (log link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 24 observations per pair, log-SD internal scale",
     cohort_id = "arc3-nbinom2-ml-phylo-interaction-mu-sd-profile-feasibility"
   ),
+  "mc-0123" = list(
+    # Random-effect SD target: the mu1 intercept-level component of the
+    # SAME labelled bivariate q6 spatial block (`spatial(1 + x + z | p |
+    # site, coords = coords)` in both mu1 and mu2) whose mu2 endpoint,
+    # mc-0124, B3 already promoted to interval_feasible
+    # (ev-mc-0124-b3-q6-mu2-interval). B3's own runner
+    # (tools/run-b2-q6-proof-profile-cohort.R) is unreachable from this tree
+    # (see tools/arc4-q6-spatial-mu1-fixture.R's header), so this is an
+    # independent fixture for the same target family, not a replay of
+    # mc-0124's exact DGP.
+    target = "sd:mu:mu1:spatial(1 | p | site)",
+    family_name = "biv_gaussian",
+    family = function() drmTMB::biv_gaussian(),
+    # `spatial()` requires a bare symbol for `coords`.
+    formula = function(fx) {
+      coords <- fx$coords
+      drmTMB::bf(
+        mu1 = y1 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords),
+        mu2 = y2 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "spatial",
+    fixture_name = "arc4_q6_spatial_mu1_fixture",
+    fixture_file = "tools/arc4-q6-spatial-mu1-fixture.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "n72_each20",
+    dgp_id = "arc4b_biv_gaussian_ml_spatial_q6_mu1_sd",
+    formula_label = paste0(
+      "bf(mu1 = y1 ~ x + z + spatial(1 + x + z | p | site, coords = coords), ",
+      "mu2 = y2 ~ x + z + spatial(1 + x + z | p | site, coords = coords), ",
+      "sigma1 = ~1, sigma2 = ~1, rho12 = ~1); biv_gaussian(); ML; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.45 spatial random-intercept SD on mu1 (identity link) within the labelled q6 block, independent of 0.30/0.25 mu1 random-slope SDs (x/z) and 0.40/0.28/0.22 mu2 random-intercept/slope SDs required by the labelled two-slope q6 grammar; 8x9 coordinate grid (72 sites), 20 observations per site, log-SD internal scale",
+    cohort_id = "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility"
+  ),
   "mc-0417" = list(
     # AGGREGATE cell (docs/dev-log/dashboard/capability-ledger/cells.tsv):
     # "exactly two intercept-only providers drawn from {phylo, spatial,
@@ -672,6 +663,120 @@ cell_registry <- list(
     ),
     true_parameter_scale = "0.6 spatial random-intercept SD on mu (log link; PRIMARY target), simultaneous with an independent 0.5 relmat random-intercept SD on mu (COMPANION, not gated); 20-site coordinate-arc GMRF (kappa = 66.2) crossed with 24-individual AR(1)-relatedness GMRF (kappa = 3.5), 5 observations per (site, id) cell, log-SD internal scale",
     cohort_id = "arc4-nbinom2-ml-spatial-relmat-mu-sd-profile-feasibility"
+  ),
+  "mc-0123" = list(
+    # Random-effect SD target: the mu1 intercept-level component of the
+    # SAME labelled bivariate q6 spatial block (`spatial(1 + x + z | p |
+    # site, coords = coords)` in both mu1 and mu2) whose mu2 endpoint,
+    # mc-0124, B3 already promoted to interval_feasible
+    # (ev-mc-0124-b3-q6-mu2-interval). B3's own runner
+    # (tools/run-b2-q6-proof-profile-cohort.R) is unreachable from this tree
+    # (see tools/arc4-q6-spatial-mu1-fixture.R's header), so this is an
+    # independent fixture for the same target family, not a replay of
+    # mc-0124's exact DGP.
+    target = "sd:mu:mu1:spatial(1 | p | site)",
+    family_name = "biv_gaussian",
+    family = function() drmTMB::biv_gaussian(),
+    # `spatial()` requires a bare symbol for `coords`.
+    formula = function(fx) {
+      coords <- fx$coords
+      drmTMB::bf(
+        mu1 = y1 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords),
+        mu2 = y2 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "spatial",
+    fixture_name = "arc4_q6_spatial_mu1_fixture",
+    fixture_file = "tools/arc4-q6-spatial-mu1-fixture.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "n72_each20",
+    dgp_id = "arc4b_biv_gaussian_ml_spatial_q6_mu1_sd",
+    formula_label = paste0(
+      "bf(mu1 = y1 ~ x + z + spatial(1 + x + z | p | site, coords = coords), ",
+      "mu2 = y2 ~ x + z + spatial(1 + x + z | p | site, coords = coords), ",
+      "sigma1 = ~1, sigma2 = ~1, rho12 = ~1); biv_gaussian(); ML; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.45 spatial random-intercept SD on mu1 (identity link) within the labelled q6 block, independent of 0.30/0.25 mu1 random-slope SDs (x/z) and 0.40/0.28/0.22 mu2 random-intercept/slope SDs required by the labelled two-slope q6 grammar; 8x9 coordinate grid (72 sites), 20 observations per site, log-SD internal scale",
+    cohort_id = "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility"
+  ),
+  "mc-0205" = list(
+    # Random-effect SD target: the MEAN-scale (mu1) marginal SD of a
+    # labelled `(1 | p | id)` block that correlates mu1's and sigma1's
+    # random intercepts in a bivariate Gaussian REML fit. mc-0206 below is
+    # the matched sigma-scale sibling of the SAME block (one fixture, two
+    # targets -- the same pattern as mc-0277/mc-0283). Gate question
+    # (whether the REML validator blocks this spec) was resolved NO: the
+    # gate branch added by commit 99138cfa7 was removed 34 minutes later by
+    # commit 1b3e852bb (2026-07-08), which also documents the admission
+    # inline at R/drmTMB.R:2359-2363. The DGP is copied verbatim from
+    # `sim3()` in scratchpad/reml_parity_gaps_3A_ladder.R, but that script's
+    # harness returns POINT ESTIMATES ONLY (no SE/CI/convergence/pdHess) and
+    # so cannot support an interval-feasibility claim; `arc2_biv_musigma_
+    # fixture()` replaces it with a fixture returning a plain data.frame.
+    target = "sd:mu:mu1:(1 | p | id)",
+    family_name = "biv_gaussian",
+    family = function() drmTMB::biv_gaussian(),
+    formula = function(fx) {
+      drmTMB::bf(
+        mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x,
+        sigma1 = ~1 + (1 | p | id), sigma2 = ~1, rho12 = ~1
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "REML",
+    provider = "none",
+    fixture_name = "arc2_biv_musigma_fixture",
+    fixture_file = "tools/arc2-biv-musigma-fixtures.R",
+    # n_id = 60, n_each = 8 reused unchanged from sim3()'s own design, at the
+    # within-group-replication floor already validated for this block shape
+    # (R/drmTMB.R:2254-2257; known-limitations.md:245-249). See the fixture
+    # file's header for the full 5-seed point-fit and profile evidence.
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id60_each8",
+    dgp_id = "arc2_biv_gaussian_reml_musigma_mu1_sd",
+    formula_label = paste0(
+      "bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x, sigma1 = ~1 + (1 | p | id), ",
+      "sigma2 = ~1, rho12 = ~1); biv_gaussian(); REML=TRUE; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.6 mu1 random-intercept SD in a labelled mu1/sigma1 correlated (1 | p | id) block (true correlation 0.3, matched sigma1 SD 0.4), untransformed internal scale",
+    cohort_id = "arc2-biv-gaussian-reml-musigma-mu1-sd-profile-feasibility"
+  ),
+  "mc-0206" = list(
+    # Scale-side (sigma1, log-scale) marginal SD sibling of mc-0205's SAME
+    # labelled (1 | p | id) block -- see mc-0205 above for the shared gate
+    # resolution, DGP provenance, and design rationale.
+    target = "sd:sigma:sigma1:(1 | p | id)",
+    family_name = "biv_gaussian",
+    family = function() drmTMB::biv_gaussian(),
+    formula = function(fx) {
+      drmTMB::bf(
+        mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x,
+        sigma1 = ~1 + (1 | p | id), sigma2 = ~1, rho12 = ~1
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "REML",
+    provider = "none",
+    fixture_name = "arc2_biv_musigma_fixture",
+    fixture_file = "tools/arc2-biv-musigma-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id60_each8",
+    dgp_id = "arc2_biv_gaussian_reml_musigma_sigma1_sd",
+    formula_label = paste0(
+      "bf(mu1 = y1 ~ x + (1 | p | id), mu2 = y2 ~ x, sigma1 = ~1 + (1 | p | id), ",
+      "sigma2 = ~1, rho12 = ~1); biv_gaussian(); REML=TRUE; ",
+      "drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.4 sigma1 (log-scale) random-intercept SD in a labelled mu1/sigma1 correlated (1 | p | id) block (true correlation 0.3, matched mu1 SD 0.6), log-SD internal scale",
+    cohort_id = "arc2-biv-gaussian-reml-musigma-sigma1-sd-profile-feasibility"
   ),
   "mc-0286" = list(
     # `route_variant="legacy_02"` (one-slope ML) sibling of the already-

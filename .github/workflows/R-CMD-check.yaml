@@ -62,12 +62,25 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      # tools/tests/ has seven test_*.py files; only three are wired in below.
+      # test_b4_ci_c1.py through test_b4_ci_c4.py are deliberately EXCLUDED:
+      # all four pin docs/dev-log/dashboard/capability-ledger/cells.tsv rows
+      # for mc-0182/mc-0183/mc-0207/mc-0269 (their EXCLUDED_IDS) against a
+      # frozen BASE_COMMIT, and PR #905's Arc 4b split legitimately changed
+      # mc-0207's row -- so all four fail --check/--check-current even on
+      # unmodified main today (confirmed in a clean worktree, independent of
+      # any other change). Reconciling them needs an owner decision on
+      # whether the reviewed split is an approved base change for the B4-CI
+      # C1-C4 closures; see docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-
+      # pin-drift.md. Do not switch this to `unittest discover` until that
+      # decision lands -- discovery would silently re-include all four.
       - name: Validate generated capability ledger
         if: runner.os == 'Linux'
         run: |
           python3 tools/capability_ledger.py --check
           python3 -m unittest tools/tests/test_capability_ledger.py
           python3 -m unittest tools/tests/test_arc1_profile_reconcilers.py
+          python3 -m unittest tools/tests/test_b3_q6_target_promotion.py
           Rscript --no-init-file tools/check-capability-runtime.R
 
       - uses: r-lib/actions/check-r-package@v2
