@@ -62,18 +62,25 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      # tools/tests/ has seven test_*.py files; only three are wired in below.
-      # test_b4_ci_c1.py through test_b4_ci_c4.py are deliberately EXCLUDED:
-      # all four pin docs/dev-log/dashboard/capability-ledger/cells.tsv rows
-      # for mc-0182/mc-0183/mc-0207/mc-0269 (their EXCLUDED_IDS) against a
-      # frozen BASE_COMMIT, and PR #905's Arc 4b split legitimately changed
-      # mc-0207's row -- so all four fail --check/--check-current even on
-      # unmodified main today (confirmed in a clean worktree, independent of
-      # any other change). Reconciling them needs an owner decision on
-      # whether the reviewed split is an approved base change for the B4-CI
-      # C1-C4 closures; see docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-
-      # pin-drift.md. Do not switch this to `unittest discover` until that
-      # decision lands -- discovery would silently re-include all four.
+      # Files under tools/tests/ are listed explicitly rather than run via
+      # `unittest discover`, so that adding one to CI is a deliberate act and a
+      # guard cannot rejoin -- or silently leave -- without review. A guard that
+      # no runner invokes is worse than no guard, because the evidence record
+      # still credits it. See
+      # docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-pin-drift.md.
+      #
+      # 5 of 7 run. test_b4_ci_c2/c3/c4 are still EXCLUDED, for a reason that is
+      # NOT the mc-0207 pin drift (that is fixed -- all four pass locally):
+      # their check paths call selected_source(), which reads
+      # `git show 574c1108e...:<ledger>` -- and SOURCE_COMMIT 574c1108e is not
+      # on origin at all. It exists only on a local-only branch
+      # (codex/lane-b-q1-preflight-admission), so no fetch can make it reachable
+      # from a CI runner. c1 is wired because its check_current() was written
+      # "without source-history access" and needs no such lookup; that is the
+      # pattern c2/c3/c4 would have to adopt. Resolving this needs an owner
+      # decision -- push the source branch to origin, or port c1's no-git path
+      # to the other three -- and until then the exclusion stays named here
+      # rather than hidden behind `discover`.
       - name: Validate generated capability ledger
         if: runner.os == 'Linux'
         run: |
@@ -81,6 +88,8 @@ jobs:
           python3 -m unittest tools/tests/test_capability_ledger.py
           python3 -m unittest tools/tests/test_arc1_profile_reconcilers.py
           python3 -m unittest tools/tests/test_b3_q6_target_promotion.py
+          python3 -m unittest tools/tests/test_b4_ci_guard.py
+          python3 -m unittest tools/tests/test_b4_ci_c1.py
           Rscript --no-init-file tools/check-capability-runtime.R
 
       - uses: r-lib/actions/check-r-package@v2

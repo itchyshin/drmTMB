@@ -9,6 +9,8 @@ import hashlib
 import io
 import math
 import subprocess
+
+import b4_ci_guard
 from pathlib import Path, PurePosixPath
 
 SOURCE_COMMIT = "574c1108e16e3b0fe4ba88e254a34673508db901"
@@ -182,11 +184,32 @@ def apply() -> None:
 def check_current(*, allow_later_cohorts: bool = False) -> None:
     cells, evidence, transitions, closure = selected_source()
     local_cell_map = {row["cell_id"]: row for row in local_rows(LEDGER / "cells.tsv")}
-    if any(cell["cell_id"] not in local_cell_map or local_cell_map[cell["cell_id"]] != cell for cell in cells): fail("C3 cell source or claim-boundary drift")
+    all_transitions = local_rows(LEDGER / "transitions.tsv")
+    cohort_transition_ids = {row["transition_id"] for row in transitions}
+    # C3's own cells may be moved further by a LATER arc (mc-0199 and mc-0672 were
+    # taken to inference_ready_with_caveats by the spatial-q2 confidence-eye work).
+    # That is legitimate provided the transitions ledger accounts for it; an
+    # unexplained edit to a C3 row still fails.
+    own = b4_ci_guard.unexplained_drift(
+        protected_ids={cell["cell_id"] for cell in cells},
+        base_cells={cell["cell_id"]: cell for cell in cells},
+        local_cells=local_cell_map,
+        transitions=all_transitions,
+        cohort_transition_ids=cohort_transition_ids,
+    )
+    if own: fail(f"C3 cell source or claim-boundary drift -- {b4_ci_guard.describe(own)}")
     protected = protected_ids()
-    if any(cell_id not in local_cell_map for cell_id in protected) or {cell_id: local_cell_map[cell_id] for cell_id in protected} != base_cells(protected): fail("protected base-row drift")
+    neighbours = b4_ci_guard.unexplained_drift(
+        protected_ids=protected,
+        base_cells=base_cells(protected),
+        local_cells=local_cell_map,
+        transitions=all_transitions,
+        cohort_evidence_ids={row["evidence_id"] for row in evidence},
+        cohort_transition_ids=cohort_transition_ids,
+    )
+    if neighbours: fail(f"protected base-row drift -- {b4_ci_guard.describe(neighbours)}")
     local_evidence = {row["evidence_id"]: row for row in local_rows(LEDGER / "evidence.tsv")}
-    local_transitions = {row["transition_id"]: row for row in local_rows(LEDGER / "transitions.tsv")}
+    local_transitions = {row["transition_id"]: row for row in all_transitions}
     if any(local_evidence.get(row["evidence_id"]) != row for row in evidence) or any(local_transitions.get(row["transition_id"]) != row for row in transitions): fail("C3 evidence or transition source drift")
     if not MANIFEST.exists() or local_rows(MANIFEST) != manifest_rows(closure): fail("manifest closure or provenance drift")
     for row in closure:

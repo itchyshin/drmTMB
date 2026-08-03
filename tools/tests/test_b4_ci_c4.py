@@ -17,7 +17,11 @@ class B4CIC4Test(unittest.TestCase):
         cls.source = c4.selected_source()
 
     def test_source_bound_c4_closure(self):
-        subprocess.run([sys.executable, "tools/integrate_b4_ci_c4.py", "--check"], check=True)
+        # --check-with-later-cohorts, matching C2's and C3's tests: strict --check
+        # asserts the global interval_feasible count is still exactly what it was the
+        # day C4 landed (161), which every later arc invalidates. The durable claim is
+        # that C4's contribution has not been lost.
+        subprocess.run([sys.executable, "tools/integrate_b4_ci_c4.py", "--check-with-later-cohorts"], check=True)
         _, _, _, closure = self.source
         self.assertEqual(len(closure), 69)
         self.assertEqual({row["role"] for row in closure}, {"receipt", "trace", "interval"})
