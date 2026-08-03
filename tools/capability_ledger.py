@@ -160,7 +160,13 @@ FROZEN_CENSUS_COUNT = 676
 # n_each 8 -> 24 fixed it, and a re-run five-seed Totoro campaign (same shared
 # seed family) now passes both the relative-error and bracketing checks on
 # every seed, so mc-0409 is promoted here too. 73 -> 72.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 72
+# Arc 4 then promotes mc-0417 (the two-provider AGGREGATE count cell, BOUND to
+# its ONE pair with recovery evidence -- spatial+relmat) on its primary
+# target sd:mu:spatial(1 | site): a five-seed Totoro campaign (shared seed
+# family 2026080501-2026080505, the same family as the local point-fit gate)
+# passes both the relative-error (<0.35 every seed) and truth-bracketing
+# checks on every seed. 72 -> 71.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 71
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -329,6 +335,25 @@ ARC3_TARGETS = {
         "evidence_id": "ev-mc-0409-arc3-profile",
         "transition_id": "tr-mc-0409-arc3-profile",
         "claim_snippet": "arc3_phylo_interaction_nbinom2_fixture",
+    },
+}
+# mc-0417 is an AGGREGATE cell ("exactly two intercept-only providers drawn
+# from {phylo, spatial, animal, relmat} ... may co-occur as primary+secondary
+# q1 fields", C(4,2) = 6 possible pairs). Boole's BIND decision pins it to the
+# ONE pair with recovery evidence on record -- spatial+relmat -- rather than
+# splitting into six pair-specific cells. A five-seed Totoro campaign on the
+# BIND-selected pair's primary target (sd:mu:spatial(1 | site)) satisfies
+# Fisher's tightened truth-bracketing gate 5/5 (shared seed family
+# 2026080501-2026080505, the same family used for the local point-fit gate);
+# the other five provider pairs remain unevaluated and the companion
+# relmat(1 | id) SD is surfaced but not part of this claim.
+ARC4_SOURCE_SHA = "095b9e3b1933f9b066365f92ddd4cb3d412a9dad"
+ARC4_TARGETS = {
+    "mc-0417": {
+        "target_id": "mc-0417::sd:mu:spatial(1 | site)",
+        "evidence_id": "ev-mc-0417-arc4-profile",
+        "transition_id": "tr-mc-0417-arc4-profile",
+        "claim_snippet": "arc4_nbinom2_mu_spatial_relmat_fixture",
     },
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
@@ -1658,6 +1683,40 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 3 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC4_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC4_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 4 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC4_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 4 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 4 transition must remain verified-to-verified")
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)
