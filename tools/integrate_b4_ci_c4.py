@@ -9,6 +9,8 @@ import hashlib
 import io
 import math
 import subprocess
+
+import b4_ci_guard
 from pathlib import Path, PurePosixPath
 
 SOURCE_COMMIT = "574c1108e16e3b0fe4ba88e254a34673508db901"
@@ -162,22 +164,46 @@ def apply() -> None:
         writer.writeheader(); writer.writerows(manifest_rows(closure))
 
 
-def check() -> None:
+def check(*, allow_later_cohorts: bool = False) -> None:
     cells, evidence, transitions, closure = selected_source(); local = {row["cell_id"]: row for row in local_rows(LEDGER / "cells.tsv")}
-    if any(local.get(row["cell_id"]) != row for row in cells): fail("C4 cell source or claim-boundary drift")
+    all_transitions = local_rows(LEDGER / "transitions.tsv")
+    cohort_transition_ids = {row["transition_id"] for row in transitions}
+    own = b4_ci_guard.unexplained_drift(
+        protected_ids={row["cell_id"] for row in cells},
+        base_cells={row["cell_id"]: row for row in cells},
+        local_cells=local,
+        transitions=all_transitions,
+        cohort_transition_ids=cohort_transition_ids,
+    )
+    if own: fail(f"C4 cell source or claim-boundary drift -- {b4_ci_guard.describe(own)}")
     protected = protected_ids()
-    if any(cell_id not in local for cell_id in protected) or {cell_id: local[cell_id] for cell_id in protected} != base_cells(protected): fail("protected base-row drift")
-    local_evidence = {row["evidence_id"]: row for row in local_rows(LEDGER / "evidence.tsv")}; local_transitions = {row["transition_id"]: row for row in local_rows(LEDGER / "transitions.tsv")}
+    neighbours = b4_ci_guard.unexplained_drift(
+        protected_ids=protected,
+        base_cells=base_cells(protected),
+        local_cells=local,
+        transitions=all_transitions,
+        cohort_evidence_ids={row["evidence_id"] for row in evidence},
+        cohort_transition_ids=cohort_transition_ids,
+    )
+    if neighbours: fail(f"protected base-row drift -- {b4_ci_guard.describe(neighbours)}")
+    local_evidence = {row["evidence_id"]: row for row in local_rows(LEDGER / "evidence.tsv")}; local_transitions = {row["transition_id"]: row for row in all_transitions}
     if any(local_evidence.get(row["evidence_id"]) != row for row in evidence) or any(local_transitions.get(row["transition_id"]) != row for row in transitions): fail("C4 evidence or transition source drift")
     if not MANIFEST.exists() or local_rows(MANIFEST) != manifest_rows(closure): fail("manifest closure or provenance drift")
     if any(not Path(row["path"]).exists() or hashlib.sha256(Path(row["path"]).read_bytes()).hexdigest() != row["source_blob_sha256"] for row in closure): fail("artifact blob drift")
-    if sum(row["evidence_tier"] == "interval_feasible" for row in local.values()) != 161: fail("C4 did not move global interval_feasible count to 161")
+    interval_count = sum(row["evidence_tier"] == "interval_feasible" for row in local.values())
+    # C4 moved the global interval_feasible count to 161. Later arcs move it again,
+    # so the durable claim is that C4's contribution has not been lost, not that the
+    # count is still exactly what it was the day C4 landed.
+    if allow_later_cohorts:
+        if interval_count < 161: fail(f"C4 global interval_feasible baseline was lost ({interval_count} < 161)")
+    elif interval_count != 161:
+        fail(f"C4 did not move global interval_feasible count to 161 (found {interval_count})")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(); parser.add_argument("--apply", action="store_true"); parser.add_argument("--check", action="store_true"); args = parser.parse_args()
-    if args.apply == args.check: fail("supply exactly one of --apply or --check")
-    apply() if args.apply else check()
+    parser = argparse.ArgumentParser(); parser.add_argument("--apply", action="store_true"); parser.add_argument("--check", action="store_true"); parser.add_argument("--check-with-later-cohorts", action="store_true"); args = parser.parse_args()
+    if sum((args.apply, args.check, args.check_with_later_cohorts)) != 1: fail("supply exactly one mode")
+    apply() if args.apply else check(allow_later_cohorts=args.check_with_later_cohorts)
 
 
 if __name__ == "__main__":

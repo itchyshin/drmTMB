@@ -14,6 +14,8 @@ import hashlib
 import io
 import math
 import subprocess
+
+import b4_ci_guard
 from pathlib import Path
 
 SOURCE_COMMIT = "574c1108e16e3b0fe4ba88e254a34673508db901"
@@ -201,10 +203,19 @@ def check_current(*, allow_later_cohorts: bool = False) -> None:
     if any(cell["cell_id"] not in local_cell_map or local_cell_map[cell["cell_id"]] != cell for cell in cells):
         fail("C2 cell source or claim-boundary drift")
     protected = set(C1_IDS) | B3_IDS | EXCLUDED_IDS
-    if any(cell_id not in local_cell_map for cell_id in protected) or {cell_id: local_cell_map[cell_id] for cell_id in protected} != base_cells(protected):
-        fail("C1, B3, or excluded base-row drift")
+    all_transitions = local_rows(LEDGER / "transitions.tsv")
+    neighbours = b4_ci_guard.unexplained_drift(
+        protected_ids=protected,
+        base_cells=base_cells(protected),
+        local_cells=local_cell_map,
+        transitions=all_transitions,
+        cohort_evidence_ids={row["evidence_id"] for row in evidence},
+        cohort_transition_ids={row["transition_id"] for row in transitions},
+    )
+    if neighbours:
+        fail(f"C1, B3, or excluded base-row drift -- {b4_ci_guard.describe(neighbours)}")
     local_evidence = {row["evidence_id"]: row for row in local_rows(LEDGER / "evidence.tsv")}
-    local_transitions = {row["transition_id"]: row for row in local_rows(LEDGER / "transitions.tsv")}
+    local_transitions = {row["transition_id"]: row for row in all_transitions}
     if any(local_evidence.get(row["evidence_id"]) != row for row in evidence) or any(local_transitions.get(row["transition_id"]) != row for row in transitions):
         fail("C2 evidence or transition source drift")
     if not MANIFEST.exists() or local_rows(MANIFEST) != manifest_rows(closure):

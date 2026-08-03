@@ -13,6 +13,8 @@ import csv
 import hashlib
 import io
 import subprocess
+
+import b4_ci_guard
 from pathlib import Path
 
 
@@ -22,7 +24,12 @@ PACKET_SHA256 = "e7bfdd77ec92351df7ea0f7a874eba69e7f9aab9e8bcf6abc0c97b5bb7d97ef
 ALLOWLIST_SHA256 = "659f5a660c60dc48e67981406e9d9e68af9565b52fd19bf00f115bd715e4f907"
 B3_BASE_ROWS_SHA256 = "9fcd839a8f5f15d18016c0280193a5de928eae5af98f53e672948ce6fc71a7ac"
 C1_CELL_ROWS_SHA256 = "396b4b9452c9408a3ec09dd440b3dc26dd42e4c64033e9375b487fc49032096a"
-EXCLUDED_BASE_ROWS_SHA256 = "6db7bfca0d88e9e06deb269a1868e72521f3c91c986e7663c7a4f966754eb1fa"
+# Identity (not full row) of the four hard-excluded neighbours. Their evidence-bearing
+# fields legitimately move under later arcs -- mc-0207 was split by Arc 4b and mc-0269
+# promoted by the Arc 1 REML-slope campaign -- but their identity never may. Paired with
+# a provenance check below, this needs no BASE_COMMIT lookup, which keeps check_current()
+# runnable in a shallow CI clone.
+EXCLUDED_IDENTITY_SHA256 = "73b541a0a943a5289c9b57910fe61356a88a0464f38cef084eb2eadc54685041"
 C1_EVIDENCE_ROWS_SHA256 = "49a27d57dbff815e38700ed29f8c7947af55e219d3bde2e0b48dc2bc4c0e5937"
 C1_TRANSITION_ROWS_SHA256 = "5fcd085ddccfc444744d1a547bb6f23596abf33c2e87138d0838e3613a00b0ab"
 CELL_IDS = """
@@ -293,12 +300,24 @@ def check_current() -> None:
         fail("B3 changed from the frozen C1 base")
     if rows_digest([cells[cell_id] for cell_id in CELL_IDS]) != C1_CELL_ROWS_SHA256:
         fail("C1 target, scale, or claim-boundary row drift")
-    if rows_digest([cells[cell_id] for cell_id in sorted(EXCLUDED_IDS)]) != EXCLUDED_BASE_ROWS_SHA256:
-        fail("a hard-excluded C1 neighbour changed from the frozen base")
+    excluded_rows = [cells[cell_id] for cell_id in sorted(EXCLUDED_IDS)]
+    if b4_ci_guard.identity_digest(excluded_rows) != EXCLUDED_IDENTITY_SHA256:
+        fail("a hard-excluded C1 neighbour changed identity from the frozen base")
     if any(cells[cell_id]["evidence_tier"] != "interval_feasible" or cells[cell_id]["work_status"] != "verified" for cell_id in CELL_IDS):
         fail("C1 cell tier or work status drift")
     evidence = {row["evidence_id"]: row for row in local_rows(LEDGER / "evidence.tsv")}
     transitions = local_rows(LEDGER / "transitions.tsv")
+    # A hard-excluded neighbour may move under a LATER arc, but only with a recorded
+    # transition accounting for the evidence it now cites. C1 never claims one, so any
+    # C1 transition here would itself be the violation.
+    excluded_problems = b4_ci_guard.unaccounted_provenance(
+        cell_ids=EXCLUDED_IDS,
+        local_cells=cells,
+        transitions=transitions,
+        cohort_transition_ids={row["cell_id"] for row in transitions if row["cell_id"] in CELL_IDS},
+    )
+    if excluded_problems:
+        fail(f"a hard-excluded C1 neighbour moved without provenance -- {b4_ci_guard.describe(excluded_problems)}")
     manifest = local_rows(MANIFEST) if MANIFEST.exists() else []
     if len(manifest) != 72 or {row["role"] for row in manifest} != {"receipt", "trace", "interval"}:
         fail("C1 manifest is incomplete")
