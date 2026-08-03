@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:mu:mu:relmat(1 | p | id)	0.95	0.485405268695114	0.67594259483755	response	exp	log_sd_phylo	1	profile	tmbprofile	profile	FALSE	ok	mc-0315	mc-0315::sd:mu:mu:relmat(1 | p | id)	404	id80_each25

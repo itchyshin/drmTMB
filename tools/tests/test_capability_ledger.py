@@ -453,9 +453,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         # spatial+relmat pair) is promoted on its primary target
         # sd:mu:spatial(1 | site) after a fresh five-seed Totoro campaign that
         # brackets the truth on every seed.
+        # 71 -> 62: Arc 6 promotes nine Gaussian structured cells (mc-0286, mc-0298,
+        # mc-0282, mc-0291, mc-0303, mc-0315, mc-0279, mc-0304, mc-0316), each after a
+        # five-seed Totoro campaign that brackets the truth on every seed. A tenth
+        # sibling, mc-0292 (q2 matched sigma spatial), is WITHHELD -- its seed-303
+        # receipt excludes the true 0.7 -- and stays counted here.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            71,
+            62,
         )
 
         by_id = {row["cell_id"]: row for row in model}

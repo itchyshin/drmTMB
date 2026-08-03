@@ -215,6 +215,55 @@ cell_registry <- list(
     true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma), log-SD internal scale",
     cohort_id = "arc2-gaussian-reml-phylo-sigma-sd-profile-feasibility"
   ),
+  "mc-0282" = list(
+    # Mu-side sibling of mc-0283, and matched q2 sibling of mc-0274: the SAME
+    # labelled `phylo(1 | p | species)` term appears in both mu and sigma of
+    # the matched q2 block, so the mu-dpar row gets an extra "mu:" prefix
+    # ahead of the term name (confirmed empirically via
+    # `drmTMB::profile_targets()` on a fitted q2 model -- run once at seed
+    # 101 during this cell's construction; see the g12 dev-log entry), giving
+    # the doubled target string below (parallel to mc-0283's doubled
+    # "sd:sigma:sigma:..."). Was AGENT-INFERRED before that check per Curie's
+    # brief; now confirmed, not assumed.
+    target = "sd:mu:mu:phylo(1 | p | species)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    # Formula copied verbatim from test-reml-phylo-location.R:163-164 ("REML
+    # admits matched mean-and-scale phylogenetic effects (q2 block)"), the
+    # only validated syntax for this labelled q2 block -- identical to
+    # mc-0283's formula (same fixture, same fit, different profiled target).
+    # The FIXTURE is not that test's `reml_phylo_location_fixture()` (no true
+    # sigma-phylo signal, see tools/arc2-phylo-sigma-fixtures.R's header).
+    # `arc2_phylo_sigma_q2_fixture()` instead places independent genuine
+    # phylogenetic signal on BOTH mu and log(sigma), each with its own known
+    # true SD; this cell targets the mu-side SD (mc-0283 targets sigma-side).
+    formula = function(fx) {
+      tree <- fx$tree
+      drmTMB::bf(
+        y ~ x + drmTMB::phylo(1 | p | species, tree = tree),
+        sigma ~ 1 + drmTMB::phylo(1 | p | species, tree = tree)
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "REML",
+    provider = "phylo",
+    fixture_name = "arc2_phylo_sigma_q2_fixture",
+    fixture_file = "tools/arc2-phylo-sigma-fixtures.R",
+    # Defaults (n_tip = 60, n_each = 12) match mc-0277/mc-0283's validated
+    # replication ladder, comfortably above the Arc 0 manifest's N>=250 q2
+    # information floor (n = 720).
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "tip60_each12",
+    dgp_id = "arc2_gaussian_reml_phylo_mu_q2_sd",
+    formula_label = paste0(
+      "bf(y ~ x + phylo(1 | p | species, tree = tree), ",
+      "sigma ~ 1 + phylo(1 | p | species, tree = tree)); gaussian(identity/log); ",
+      "REML=TRUE; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.6 phylogenetic random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD phylo effect also present on log(sigma)); marginal claim only, mu/sigma cross-block correlation unclaimed (zero by construction in this DGP)",
+    cohort_id = "arc2-gaussian-reml-phylo-mu-q2-sd-profile-feasibility"
+  ),
   "mc-0283" = list(
     # Matched q2 sibling of mc-0277: the SAME labelled phylo() term
     # (`phylo(1 | p | species)`) appears in BOTH mu and sigma, so `sd:sigma:
@@ -623,6 +672,334 @@ cell_registry <- list(
     ),
     true_parameter_scale = "0.6 spatial random-intercept SD on mu (log link; PRIMARY target), simultaneous with an independent 0.5 relmat random-intercept SD on mu (COMPANION, not gated); 20-site coordinate-arc GMRF (kappa = 66.2) crossed with 24-individual AR(1)-relatedness GMRF (kappa = 3.5), 5 observations per (site, id) cell, log-SD internal scale",
     cohort_id = "arc4-nbinom2-ml-spatial-relmat-mu-sd-profile-feasibility"
+  ),
+  "mc-0286" = list(
+    # `route_variant="legacy_02"` (one-slope ML) sibling of the already-
+    # promoted mc-0417 (spatial+relmat, one-slope) and the REML sibling
+    # mc-0287 (same provider/shape, estimator=REML, inference_ready_with_
+    # caveats). Never previously attempted under stats::profile() -- its
+    # only prior evidence was imported `legacy_model_evidence` from the
+    # MR-T0 migration (commit 095409c0), a bespoke hybrid interval rule, not
+    # this framework. See tools/arc5-gaussian-q1-one-slope-fixtures.R's
+    # header for the full provenance/reuse rationale and
+    # tools/arc5-gaussian-q1-one-slope-point-fit-gate.R for the 5-seed gate
+    # (mean rel.err. 0.0947, PASS) and interval smoke (5/5 clean: conf.status
+    # = "profile", lower < estimate < upper, convergence 0, pdHess TRUE,
+    # interval brackets truth on every seed).
+    target = "sd:mu:spatial(1 | site)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      coords <- fx$object$coords
+      drmTMB::bf(y ~ x + drmTMB::spatial(1 + x | site, coords = coords), sigma ~ 1)
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "spatial",
+    fixture_name = "arc5_gaussian_mu_one_slope_fixture",
+    fixture_file = "tools/arc5-gaussian-q1-one-slope-fixtures.R",
+    # M = 16 -- one rung above the M = 8 that arc1a's own REML profile
+    # campaign showed reaches 1000/1000 finite profiles for the identical
+    # provider/shape (docs/dev-log/simulation-artifacts/2026-07-13-arc1a-
+    # gaussian-reml-providers/profile-summary.tsv); n_each = 20 matches
+    # arc1a's own design.
+    fixture_call = function(fixture_fn, seed) {
+      fixture_fn(provider = "spatial", M = 16L, n_each = 20L, seed = seed)
+    },
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "site16_each20",
+    dgp_id = "arc5_gaussian_ml_spatial_mu_one_slope_sd",
+    formula_label = paste0(
+      "bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1); ",
+      "gaussian() (identity/log); ML"
+    ),
+    true_parameter_scale = "0.5 spatial random-intercept SD on mu (identity link; PRIMARY target), simultaneous with an independent 0.38 spatial random-slope SD on mu (COMPANION, not gated); 16-site circular-arc GMRF (kappa = 66.97), 20 observations per site, log-SD internal scale",
+    cohort_id = "arc5-gaussian-ml-spatial-mu-one-slope-sd-profile-feasibility"
+  ),
+  "mc-0298" = list(
+    # `route_variant="legacy_02"` (one-slope ML) sibling of the REML mc-0299
+    # (inference_ready_with_caveats). Never previously attempted under
+    # stats::profile() -- see mc-0286's note above for the shared provenance
+    # story. Unlike spatial/relmat, arc1a's own `animal_K()` is hard-capped
+    # at M = 8 (a fixed, non-parameterized pedigree literal), and the legacy
+    # SR150 hybrid campaign showed a genuine, unexplained 0.88-coverage
+    # defect for animal at n_each = 7 -- so this cell uses a NEW,
+    # parameterized pedigree (tools/arc5-gaussian-q1-one-slope-fixtures.R),
+    # scaled to n_founders = 8 (80 individuals) following
+    # tools/arc3-nbinom2-sigma-provider-fixtures.R's diagnosed animal fix
+    # (doubling founders shrinks the finite-sample intercept/slope
+    # correlation that destabilizes small pedigrees). 5-seed gate: mean
+    # rel.err. 0.0569, PASS. Interval smoke: 5/5 clean, interval brackets
+    # truth on every seed.
+    target = "sd:mu:animal(1 | id)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      A <- fx$object$A
+      drmTMB::bf(y ~ x + drmTMB::animal(1 + x | id, A = A), sigma ~ 1)
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "animal",
+    fixture_name = "arc5_gaussian_mu_one_slope_fixture",
+    fixture_file = "tools/arc5-gaussian-q1-one-slope-fixtures.R",
+    fixture_call = function(fixture_fn, seed) {
+      fixture_fn(provider = "animal", n_founders = 8L, n_each = 20L, seed = seed)
+    },
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "animal_nf8_each20",
+    dgp_id = "arc5_gaussian_ml_animal_mu_one_slope_sd",
+    formula_label = paste0(
+      "bf(y ~ x + animal(1 + x | id, A = A), sigma ~ 1); ",
+      "gaussian() (identity/log); ML"
+    ),
+    true_parameter_scale = "0.5 animal random-intercept SD on mu (identity link; PRIMARY target), simultaneous with an independent 0.38 animal random-slope SD on mu (COMPANION, not gated); 80-individual (8-founder-pair, 3-generation pedigree) additive relationship matrix (kappa = 66.70), 20 observations per individual, log-SD internal scale",
+    cohort_id = "arc5-gaussian-ml-animal-mu-one-slope-sd-profile-feasibility"
+  ),
+  "mc-0291" = list(
+    # Matched-q2 sibling of mc-0292 (mu-side vs sigma-side of the SAME
+    # labelled spatial() block; mc-0292 not attempted in this session --
+    # see the g12 dev-log entry). cells.tsv's legacy_evidence_source
+    # ("qseries_spatial_q1_mu_sigma_intercept") resolves to a Q1 artifact
+    # (docs/dev-log/simulation-artifacts/2026-06-30-gaussian-lowq-mu-sigma-
+    # intercept-n5-local/...) whose own claim_boundary column disclaims any
+    # Q2 relevance ("promotes exactly no Q-Series row"). The fixture behind
+    # that park (n_group=10/n_each=10, spiral spatial layout) was also
+    # independently shown defective by
+    # tools/arc3-nbinom2-sigma-provider-fixtures.R's DESIGN ITERATION NOTES
+    # (spiral layout "too smooth to separate the structured intercept and
+    # slope SDs"). R/drmTMB.R:2300-2309 forbids this matched-mean-scale
+    # shape under REML=TRUE for spatial/animal/relmat (only phylo() is
+    # admitted there), so this cell is ML (unlike mc-0282/mc-0283).
+    # Target string confirmed empirically via `drmTMB::profile_targets()`
+    # on a fitted q2 model (see
+    # tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R and the g12
+    # dev-log entry) -- the labelled spatial() term gets the same doubled
+    # "mu:"/"sigma:" prefix pattern as the phylo q2 cells.
+    target = "sd:mu:mu:spatial(1 | p | site)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    # Formula shape (`provider(1 | p | group)` in BOTH mu and sigma) copied
+    # verbatim from the `matched_mean_scale` element of
+    # tests/testthat/test-reml-structured-location.R's spatial block (used
+    # there only to prove REML rejects it); reused here unmodified as the
+    # ML-fit skeleton.
+    formula = function(fx) {
+      coords <- fx$coords
+      drmTMB::bf(
+        y ~ x + drmTMB::spatial(1 | p | site, coords = coords),
+        sigma ~ drmTMB::spatial(1 | p | site, coords = coords)
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "spatial",
+    fixture_name = "arc2_spatial_mu_sigma_q2_fixture",
+    fixture_file = "tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R",
+    # Regular 9x9 grid (81 sites), n_each=25 (N=2025) -- the well-conditioned
+    # scale tools/arc3-nbinom2-sigma-provider-fixtures.R validated (spatial
+    # covariance condition number confirmed 344.95 for this two-independent-
+    # draw Gaussian q2 use at seed 101, well short of the 33000+ range that
+    # motivated that file's own layout replacement).
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "site81_each25",
+    dgp_id = "arc2_gaussian_ml_spatial_mu_q2_sd",
+    formula_label = paste0(
+      "bf(y ~ x + spatial(1 | p | site, coords = coords), ",
+      "sigma ~ spatial(1 | p | site, coords = coords)); gaussian(identity/log); ",
+      "ML; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.6 spatial random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD spatial effect also present on log(sigma)); 9x9 coordinate grid (81 sites, spatial covariance condition number 344.95), 25 observations per site; marginal claim only, mu/sigma cross-block correlation unclaimed (zero by construction in this DGP)",
+    cohort_id = "arc2-gaussian-ml-spatial-mu-q2-sd-profile-feasibility"
+  ),
+  "mc-0303" = list(
+    # Matched-q2 sibling of mc-0304 (mu-side vs sigma-side; mc-0304 not
+    # attempted in this session). See mc-0291's comment for the shared
+    # cells.tsv mislabelled-evidence and REML-gate rationale (applies
+    # identically here, provider swapped to animal). HIGH RISK: the closest
+    # real precedent, mc-0423 (NB2 sigma-only intercept SD, same
+    # n_founders=8/80-individual pedigree), is a DOCUMENTED, DIAGNOSED
+    # RETAINED STOP even after doubling founders (4/5 seeds pass; seed
+    # 2026080304 fails both the relative-error gate and bracketing -- see
+    # mc-0423's own comment above). This Gaussian q2 cell asks for TWO
+    # simultaneous structured intercepts (mu and sigma) sharing the same
+    # pedigree A matrix, at least as hard. The point-fit gate below PASSED
+    # 5/5 seeds (see the g12 dev-log entry for per-seed numbers), but that
+    # is not evidence the profile-interval gate will also clear -- report,
+    # do not assume.
+    target = "sd:mu:mu:animal(1 | p | id)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      A <- fx$A
+      drmTMB::bf(
+        y ~ x + drmTMB::animal(1 | p | id, A = A),
+        sigma ~ drmTMB::animal(1 | p | id, A = A)
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "animal",
+    fixture_name = "arc2_animal_mu_sigma_q2_fixture",
+    fixture_file = "tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R",
+    # n_founders=8 (80-individual, 3-generation synthetic pedigree), n_each=25
+    # (N=2000) -- the scale mc-0423's diagnosis found necessary. A condition
+    # number confirmed 66.70 at seed 101 (well short of mc-0421 (phylo)'s
+    # 98563-level ill-conditioning).
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id80_each25",
+    dgp_id = "arc2_gaussian_ml_animal_mu_q2_sd",
+    formula_label = paste0(
+      "bf(y ~ x + animal(1 | p | id, A = A), ",
+      "sigma ~ animal(1 | p | id, A = A)); gaussian(identity/log); ",
+      "ML; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.6 animal random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD animal effect also present on log(sigma)); 80-individual (3-generation, 8-founder-pair) pedigree, A-matrix condition number 66.70, 25 observations per individual; marginal claim only, mu/sigma cross-block correlation unclaimed (zero by construction in this DGP)",
+    cohort_id = "arc2-gaussian-ml-animal-mu-q2-sd-profile-feasibility"
+  ),
+  "mc-0315" = list(
+    # Matched-q2 sibling of mc-0316 (mu-side vs sigma-side; mc-0316 not
+    # attempted in this session). See mc-0291's comment for the shared
+    # cells.tsv mislabelled-evidence and REML-gate rationale (applies
+    # identically here, provider swapped to relmat).
+    target = "sd:mu:mu:relmat(1 | p | id)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      K <- fx$K
+      drmTMB::bf(
+        y ~ x + drmTMB::relmat(1 | p | id, K = K),
+        sigma ~ drmTMB::relmat(1 | p | id, K = K)
+      )
+    },
+    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
+    estimator = "ML",
+    provider = "relmat",
+    fixture_name = "arc2_relmat_mu_sigma_q2_fixture",
+    fixture_file = "tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R",
+    # n_id=80 AR1-Toeplitz relatedness, n_each=25 (N=2000) -- the scale
+    # tools/arc3-nbinom2-sigma-provider-fixtures.R found necessary to shrink
+    # finite-sample intercept/slope correlation. K condition number
+    # confirmed 3.52 at seed 101; |cor(u_mu, u_sigma)| <= 0.22 across the
+    # 101/202/303/404/505 seed family for these two INDEPENDENT Gaussian
+    # draw pairs (checked directly, not assumed to transfer from the NB2
+    # single-draw-pair diagnosis).
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id80_each25",
+    dgp_id = "arc2_gaussian_ml_relmat_mu_q2_sd",
+    formula_label = paste0(
+      "bf(y ~ x + relmat(1 | p | id, K = K), ",
+      "sigma ~ relmat(1 | p | id, K = K)); gaussian(identity/log); ",
+      "ML; drm_control(optimizer_preset = \"robust\")"
+    ),
+    true_parameter_scale = "0.6 relmat (AR1-Toeplitz relatedness) random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD relmat effect also present on log(sigma)); 80-individual relatedness structure, K condition number 3.52, 25 observations per individual; marginal claim only, mu/sigma cross-block correlation unclaimed (near-zero by construction in this DGP, |cor| <= 0.22 across the gate seed family)",
+    cohort_id = "arc2-gaussian-ml-relmat-mu-q2-sd-profile-feasibility"
+  ),
+  "mc-0279" = list(
+    # NOT a duplicate of mc-0283: mc-0279's own capability-ledger row is
+    # estimator=ML, route_variant="legacy_01" (mc-0283 is REML, "base"). Its
+    # real fitted formula (verified against tools/run-structured-re-gaussian-
+    # lowq-mu-sigma-intercept-smoke.R:377-383) is two UNLABELLED matching
+    # `phylo(1 | species)` terms, one in mu and one in sigma -- NOT mc-0283's
+    # explicit `phylo(1 | p | species)` label. A live toy fit confirms drmTMB
+    # auto-links the matching unlabelled pair into a joint q2 block anyway,
+    # giving the doubled-prefix target below (no "p" in the term name,
+    # distinguishing it from mc-0283's target string). See
+    # tools/arc2-phylo-sigma-fixtures.R's header for the full duplicate-risk
+    # resolution and the disqualified n=1/N=100/Wald/zero-truth-correlation
+    # evidence this fixture replaces.
+    target = "sd:sigma:sigma:phylo(1 | species)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      tree <- fx$tree
+      drmTMB::bf(
+        y ~ drmTMB::phylo(1 | species, tree = tree),
+        sigma ~ drmTMB::phylo(1 | species, tree = tree)
+      )
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "phylo",
+    fixture_name = "arc2_phylo_sigma_q2_nolabel_fixture",
+    fixture_file = "tools/arc2-phylo-sigma-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "tip60_each12",
+    dgp_id = "arc2_gaussian_ml_phylo_sigma_q2_nolabel_sd",
+    formula_label = paste0(
+      "bf(y ~ phylo(1 | species, tree = tree), ",
+      "sigma ~ phylo(1 | species, tree = tree)); gaussian(identity/log); ML"
+    ),
+    true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma) in an auto-linked (unlabelled-term) q2 block, independent of a 0.6 SD phylo effect on mu (identity link); log-SD internal scale",
+    cohort_id = "arc2-gaussian-ml-phylo-sigma-q2-nolabel-sd-profile-feasibility"
+  ),
+  "mc-0304" = list(
+    # Animal sibling of mc-0279: same auto-linked unlabelled q2 shape, same
+    # disqualified n=1/N=100/Wald/zero-truth-correlation legacy evidence (see
+    # tools/arc2-animal-sigma-q2-fixtures.R's header). Real fitted formula
+    # verified against tools/run-structured-re-gaussian-lowq-mu-sigma-
+    # intercept-smoke.R:391-398. `animal()` requires a bare symbol for `A`.
+    target = "sd:sigma:sigma:animal(1 | id)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      A <- fx$A
+      drmTMB::bf(
+        y ~ drmTMB::animal(1 | id, A = A),
+        sigma ~ drmTMB::animal(1 | id, A = A)
+      )
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "animal",
+    fixture_name = "arc2_animal_sigma_q2_fixture",
+    fixture_file = "tools/arc2-animal-sigma-q2-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "founders4_id40_each12",
+    dgp_id = "arc2_gaussian_ml_animal_sigma_q2_nolabel_sd",
+    formula_label = paste0(
+      "bf(y ~ animal(1 | id, A = A), sigma ~ animal(1 | id, A = A)); ",
+      "gaussian(identity/log); ML"
+    ),
+    true_parameter_scale = "0.7 animal random-intercept SD on log(sigma) in an auto-linked (unlabelled-term) q2 block, independent of a 0.6 SD animal effect on mu (identity link); 40-individual (3-generation, 4-founder-pair) pedigree, log-SD internal scale",
+    cohort_id = "arc2-gaussian-ml-animal-sigma-q2-nolabel-sd-profile-feasibility"
+  ),
+  "mc-0316" = list(
+    # Relmat sibling of mc-0279: same auto-linked unlabelled q2 shape, same
+    # disqualified n=1/N=100/Wald/zero-truth-correlation legacy evidence (see
+    # tools/arc2-relmat-sigma-q2-fixtures.R's header). Real fitted formula
+    # verified against tools/run-structured-re-gaussian-lowq-mu-sigma-
+    # intercept-smoke.R:399-406. `relmat()` requires a bare symbol for `K`.
+    target = "sd:sigma:sigma:relmat(1 | id)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      K <- fx$K
+      drmTMB::bf(
+        y ~ drmTMB::relmat(1 | id, K = K),
+        sigma ~ drmTMB::relmat(1 | id, K = K)
+      )
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "relmat",
+    fixture_name = "arc2_relmat_sigma_q2_fixture",
+    fixture_file = "tools/arc2-relmat-sigma-q2-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "id80_each12",
+    dgp_id = "arc2_gaussian_ml_relmat_sigma_q2_nolabel_sd",
+    formula_label = paste0(
+      "bf(y ~ relmat(1 | id, K = K), sigma ~ relmat(1 | id, K = K)); ",
+      "gaussian(identity/log); ML"
+    ),
+    true_parameter_scale = "0.7 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) in an auto-linked (unlabelled-term) q2 block, independent of a 0.6 SD relmat effect on mu (identity link); 80-individual relatedness structure, log-SD internal scale",
+    cohort_id = "arc2-gaussian-ml-relmat-sigma-q2-nolabel-sd-profile-feasibility"
   )
 )
 

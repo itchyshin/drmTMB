@@ -166,7 +166,19 @@ FROZEN_CENSUS_COUNT = 676
 # family 2026080501-2026080505, the same family as the local point-fit gate)
 # passes both the relative-error (<0.35 every seed) and truth-bracketing
 # checks on every seed. 72 -> 71.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 71
+# Arc 6 then promotes nine more frozen Gaussian structured cells after five-seed
+# Totoro campaigns (shared base commit 75b212cf9db45aeb2fa3181049e663e772e01e7a) that
+# bracket the truth on every seed: mc-0286/mc-0298 (q1 one-slope mu spatial/animal,
+# ML), mc-0282 (q2 matched mu phylo, REML), mc-0291/mc-0303/mc-0315 (q2 matched mu
+# spatial/animal/relmat, ML, labelled provider(1 | p | group) spelling), and
+# mc-0279/mc-0304/mc-0316 (q2 matched sigma phylo/animal/relmat, ML, unlabelled
+# auto-linked spelling). A tenth sibling, mc-0292 (q2 matched sigma spatial), was
+# WITHHELD: its seed-303 receipt (estimate 0.53386, interval [0.40397, 0.69375])
+# excludes the true 0.7, so 4/5 not 5/5 seeds bracket the truth. The mechanical
+# reconciler (tools/arc2_profile_reconcile.py) still recorded PASS_INTERVAL_FEASIBLE_
+# TARGET for that seed, because reconcile() never reads a true value -- only a human
+# check against the DGP's known truth caught this. 71 -> 62.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 62
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -354,6 +366,72 @@ ARC4_TARGETS = {
         "evidence_id": "ev-mc-0417-arc4-profile",
         "transition_id": "tr-mc-0417-arc4-profile",
         "claim_snippet": "arc4_nbinom2_mu_spatial_relmat_fixture",
+    },
+}
+# Arc 6 consolidates nine Fisher-approved Gaussian structured cells from three
+# parallel lanes (q1 one-slope mu, q2 matched mu, q2 matched sigma) into one
+# promotion. All nine share ARC6_SOURCE_SHA -- the merge-base commit the
+# five-seed Totoro campaigns were run against -- and all nine bracket the true
+# parameter on every one of five seeds. A tenth sibling in the same q2 matched
+# sigma group, mc-0292 (spatial), was WITHHELD after independent verification:
+# its seed-303 receipt (estimate 0.53386, interval [0.40397, 0.69375]) excludes
+# the true 0.7. mc-0292's registry entries are deliberately absent from
+# tools/run-arc2-profile-feasibility.R and tools/arc2_profile_reconcile.py.
+ARC6_SOURCE_SHA = "75b212cf9db45aeb2fa3181049e663e772e01e7a"
+ARC6_TARGETS = {
+    "mc-0286": {
+        "target_id": "mc-0286::sd:mu:spatial(1 | site)",
+        "evidence_id": "ev-mc-0286-arc6-profile",
+        "transition_id": "tr-mc-0286-arc6-profile",
+        "claim_snippet": "arc5_gaussian_ml_spatial_mu_one_slope_sd",
+    },
+    "mc-0298": {
+        "target_id": "mc-0298::sd:mu:animal(1 | id)",
+        "evidence_id": "ev-mc-0298-arc6-profile",
+        "transition_id": "tr-mc-0298-arc6-profile",
+        "claim_snippet": "arc5_gaussian_ml_animal_mu_one_slope_sd",
+    },
+    "mc-0282": {
+        "target_id": "mc-0282::sd:mu:mu:phylo(1 | p | species)",
+        "evidence_id": "ev-mc-0282-arc6-profile",
+        "transition_id": "tr-mc-0282-arc6-profile",
+        "claim_snippet": "arc2_gaussian_reml_phylo_mu_q2_sd",
+    },
+    "mc-0291": {
+        "target_id": "mc-0291::sd:mu:mu:spatial(1 | p | site)",
+        "evidence_id": "ev-mc-0291-arc6-profile",
+        "transition_id": "tr-mc-0291-arc6-profile",
+        "claim_snippet": "arc2_gaussian_ml_spatial_mu_q2_sd",
+    },
+    "mc-0303": {
+        "target_id": "mc-0303::sd:mu:mu:animal(1 | p | id)",
+        "evidence_id": "ev-mc-0303-arc6-profile",
+        "transition_id": "tr-mc-0303-arc6-profile",
+        "claim_snippet": "arc2_gaussian_ml_animal_mu_q2_sd",
+    },
+    "mc-0315": {
+        "target_id": "mc-0315::sd:mu:mu:relmat(1 | p | id)",
+        "evidence_id": "ev-mc-0315-arc6-profile",
+        "transition_id": "tr-mc-0315-arc6-profile",
+        "claim_snippet": "arc2_gaussian_ml_relmat_mu_q2_sd",
+    },
+    "mc-0279": {
+        "target_id": "mc-0279::sd:sigma:sigma:phylo(1 | species)",
+        "evidence_id": "ev-mc-0279-arc6-profile",
+        "transition_id": "tr-mc-0279-arc6-profile",
+        "claim_snippet": "arc2_gaussian_ml_phylo_sigma_q2_nolabel_sd",
+    },
+    "mc-0304": {
+        "target_id": "mc-0304::sd:sigma:sigma:animal(1 | id)",
+        "evidence_id": "ev-mc-0304-arc6-profile",
+        "transition_id": "tr-mc-0304-arc6-profile",
+        "claim_snippet": "arc2_gaussian_ml_animal_sigma_q2_nolabel_sd",
+    },
+    "mc-0316": {
+        "target_id": "mc-0316::sd:sigma:sigma:relmat(1 | id)",
+        "evidence_id": "ev-mc-0316-arc6-profile",
+        "transition_id": "tr-mc-0316-arc6-profile",
+        "claim_snippet": "arc2_gaussian_ml_relmat_sigma_q2_nolabel_sd",
     },
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
@@ -1717,6 +1795,47 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 4 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC6_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC6_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 6 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC6_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 6 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 6 transition must remain verified-to-verified")
+
+    mc0292 = arc1_by_cell.get("mc-0292", {})
+    if mc0292.get("evidence_tier") == "interval_feasible":
+        errors.append(
+            "mc-0292: WITHHELD cell (seed-303 receipt excludes the true 0.7) must not "
+            "be promoted to interval_feasible"
+        )
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)

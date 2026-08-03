@@ -3,3 +3,10 @@
 docs/dev-log/simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/profile-raw.tsv whitespace=-blank-at-eol
 docs/dev-log/simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/*.log whitespace=-blank-at-eol
 docs/dev-log/simulation-artifacts/2026-07-13-arc1a-gaussian-reml-providers/session-info.txt whitespace=-blank-at-eol
+
+# Arc 6 interval-feasibility receipts: tools/arc2_profile_reconcile.py writes
+# its per-cell reconcile.tsv summary with Python csv's default \r\n line
+# terminator (unmodified tool behaviour, matching every earlier arc's own
+# reconcile.tsv, e.g. mc-0417's). Preserve those exact hash-verified bytes
+# rather than flagging them as whitespace defects.
+docs/dev-log/interval-feasibility/results/75b212cf9db45aeb2fa3181049e663e772e01e7a/arc6-profile-feasibility/totoro/*/*-reconcile.tsv whitespace=cr-at-eol
