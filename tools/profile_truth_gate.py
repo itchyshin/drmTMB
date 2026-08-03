@@ -138,6 +138,21 @@ def miss_scale(true_value: float, lower: float, upper: float) -> float:
     Normally |truth|. When truth is a structural zero (mc-0263, whose DGP puts
     the sigma effect on z rather than x) a relative miss is undefined, so fall
     back to the interval's own half-width -- the only scale available.
+
+    Do not read the fallback as the lenient branch: it is the STRICTEST setting
+    on the current surface. Expressed in half-widths, the |truth| tolerance
+    spans roughly 0.05 to 0.34 across the 30 cells, driven by each cell's
+    accidental ratio of |truth| to precision; the zero-truth path is pinned at
+    exactly 0.05 half-widths, the tight end of that range.
+
+    That spread is a known limitation of denominating the tolerance in |truth|
+    rather than in interval half-widths: an identical absolute miss is judged
+    ~3.4x more harshly at truth 0.2 than at truth 0.7, and both are SDs on
+    internal linear-predictor scales, so no unit argument rescues it. Switching
+    the whole rule to half-widths would make the tolerance mean the same thing
+    in every cell. It is deliberately NOT changed here, because it would alter
+    which cells pass and therefore the published census, which is an owner
+    decision rather than a refactor. See the Arc 7b after-task report.
     """
     if abs(true_value) > 0.0:
         return abs(true_value)

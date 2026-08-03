@@ -172,6 +172,69 @@ Arc 1 scripts do — rather than requiring the live file to match — is an owne
 decision and is **not** resolved here. It is the same class of question as the
 un-wired B4-CI `BASE_COMMIT` pins.
 
+## What an Adversarial Review Found (and what it did not)
+
+A fresh reviewer was asked to *break* the gate rather than confirm it, on the
+grounds that the gate is now itself the load-bearing claim and a guard that
+passes what it should fail is worse than no guard. It returned four demonstrated
+holes, all fixed here, and one design objection that is **not** fixed here.
+
+**Fixed — the escape that mattered.** The standing guard filtered on
+`tier != "interval_feasible"` and the red tests asserted
+`assertNotEqual(tier, "interval_feasible")`. But `interval_feasible` is the
+third rung of `TIER_ORDER`, not the top, and this same change removed
+`mc-0424`/`mc-0260m` from the ledger's tier-pinning dicts. Promoting a
+gate-failing cell *upward* satisfied every check: the reviewer set all three
+failing cells to `inference_ready_with_caveats` and all 19 tests still passed.
+The guard now compares tier **rank** against the ledger's own `TIER_ORDER`, and
+a new test asserts the general rule rather than three named cells.
+
+**Fixed — three mutants that survived the suite.** Deleting the miss-count
+clause, deleting the truth-gate call from `arc2_profile_reconcile.reconcile()`,
+and neutralising the zero-truth half-width fallback each left all 19 tests
+green. No retained cohort has two misses, none reaches the fallback, and no test
+exercised the reconciler path at all. Three synthetic tests plus one end-to-end
+reconciler test now cover them; all four mutations were replayed and all four
+now fail the suite.
+
+**Not fixed, and flagged for a decision — the tolerance's units.** The
+tolerance is `0.05 * |truth|`. Re-expressed in each cell's own interval
+half-width that is 0.05 to 0.34 — a 6.8x spread driven by the accidental ratio
+of `|truth|` to precision, not by anything statistical. Consequences the
+reviewer quantified: an identical absolute miss is FAIL at truth 0.2
+(`mc-0260m`) and PASS at truth 0.7 (`mc-0277`); a well-informed cohort can miss
+truth by 4.5 SE and still pass; and against a pure location shift the gate has
+33-95% power depending on cell, so it is a coarse screen for gross mislocation
+(delta >~ 2 SE), not a fine location check. Scaling every miss by the half-width
+would fix it in one line. It is deliberately left alone because it would change
+which cells pass, and therefore the published census — an owner decision, not a
+refactor.
+
+**Not fixed — these demotions are screening statistics, not verdicts.** Under
+correct 95% coverage the per-cell p-values for the three misses are `mc-0424`
+0.039, `mc-0260m` 0.024, `mc-0423` 0.017. A miss as extreme as `mc-0424`'s is
+expected in about 1.2 of 30 honest cells, and none survives multiplicity
+correction over the surface. This does not make the demotions wrong — withdrawing
+a claim is the conservative direction — but this report applies exactly that
+discipline to the family-level sign test below (p 0.003 -> 0.06) and owes the
+same standard to the gate's own verdicts. **A cell failing this gate means "this
+claim is not currently supported", not "this interval is proven mislocated."**
+
+**Held up under attack, stated because a clean result is also a result.** The
+derivation is sound: all 25 registry fixture builders were called at two seeds
+and none returns a seed-dependent truth, so the manifest is a parameter record,
+not a realized-statistic record. `mc-0282`'s exemption is argued honestly and
+its manual claim re-verified (all five seeds bracket 0.6). The prose-drift test
+reaches 29 of 30 cells. The magnitude rule is genuinely tested — four separate
+mutations of it were killed. The `information_rung` pin does exclude the
+superseded `mc-0409` cohort. Fail-closed behaviour on unusable truth is correct.
+
+One thing the reviewer could not settle read-only, recorded rather than
+dismissed: whether `MISS_MAGNITUDE_TOL = 0.05` was chosen before or after
+observing `mc-0424`'s 6.3% miss. The margin is only 1.25x. For the record, it
+was calibrated against the observed surface — so it is a threshold fitted to
+include these cases, not independent evidence about them.
+
 ## Consistency Audit
 
 Exact patterns run:

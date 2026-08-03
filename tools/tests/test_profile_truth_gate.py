@@ -32,6 +32,7 @@ import csv
 import importlib.util
 import math
 import re
+import sys
 import unittest
 from pathlib import Path
 
@@ -71,6 +72,18 @@ def _load(name: str, filename: str):
 
 gate = _load("profile_truth_gate", "profile_truth_gate.py")
 arc2 = _load("arc2_profile_reconcile", "arc2_profile_reconcile.py")
+# Imported for TIER_ORDER, so the rank comparison below cannot drift from the
+# ledger's own ordering (the idiom test_b3_q6_target_promotion.py uses).
+ledger = _load("capability_ledger", "capability_ledger.py")
+
+
+def tier_rank(tier: str) -> int:
+    """Position in the ledger's TIER_ORDER; lower index = stronger claim."""
+    order = list(ledger.TIER_ORDER)
+    return order.index(tier) if tier in order else len(order)
+
+
+GATED_FROM = tier_rank("interval_feasible")
 
 # The four frozen Arc 1 reconcilers. Their SEEDS/target constants are the
 # authority for which receipts back each cell's claim.
@@ -221,39 +234,76 @@ class ProfileTruthGateTests(unittest.TestCase):
 
     # ---- the standing guard ---------------------------------------------
 
-    def test_every_interval_feasible_contract_cell_passes_the_gate(self):
-        """The invariant this whole arc exists to enforce."""
+    def test_every_gated_contract_cell_passes_the_gate(self):
+        """The invariant this whole arc exists to enforce.
+
+        Scoped by tier RANK, not by equality with "interval_feasible".
+        `interval_feasible` is the third rung of TIER_ORDER, not the top: an
+        equality filter would let a gate-failing cell escape by being promoted
+        UPWARD to inference_ready_with_caveats or supported. That is not
+        hypothetical — this same change removed mc-0424 and mc-0260m from the
+        ledger's tier-pinning dicts, so nothing else pins their tier either,
+        and an adversarial review demonstrated all 19 tests still passing with
+        all three gate-failing cells promoted to inference_ready_with_caveats.
+        """
         for cell in sorted((set(self.arc2_contracts) | set(self.arc1)) - UNGATED):
-            if self.tiers.get(cell) != "interval_feasible":
-                continue
-            with self.subTest(cell=cell):
+            if tier_rank(self.tiers.get(cell, "na")) > GATED_FROM:
+                continue  # strictly weaker than interval_feasible: not gated
+            with self.subTest(cell=cell, tier=self.tiers.get(cell)):
                 verdict = self.verdict_for(cell)
                 self.assertTrue(
                     verdict["passed"],
-                    f"{cell} claims interval_feasible but fails the truth gate: "
-                    f"{verdict['reasons']}",
+                    f"{cell} claims {self.tiers.get(cell)} (>= interval_feasible) "
+                    f"but fails the truth gate: {verdict['reasons']}",
                 )
 
     # ---- red tests: prove the gate actually bites ------------------------
+
+    def assert_below_interval_feasible(self, cell: str) -> None:
+        """A gate-failing cell must sit strictly BELOW interval_feasible.
+
+        Not `assertNotEqual(tier, "interval_feasible")` — that is satisfied by
+        promoting the cell above it, which is the wrong direction entirely.
+        """
+        tier = self.tiers[cell]
+        self.assertGreater(
+            tier_rank(tier),
+            GATED_FROM,
+            f"{cell} fails the truth gate but is recorded at {tier}, which is "
+            "interval_feasible or stronger",
+        )
 
     def test_gate_rejects_mc0423_the_documented_truth_miss(self):
         verdict = self.verdict_for("mc-0423")
         self.assertFalse(verdict["passed"])
         self.assertEqual(verdict["n_misses"], 1)
         self.assertGreater(verdict["worst_relative_miss"], gate.MISS_MAGNITUDE_TOL)
-        self.assertNotEqual(self.tiers["mc-0423"], "interval_feasible")
+        self.assert_below_interval_feasible("mc-0423")
 
     def test_gate_rejects_mc0424_the_cell_this_arc_demotes(self):
         verdict = self.verdict_for("mc-0424")
         self.assertFalse(verdict["passed"])
         self.assertFalse(verdict["per_seed"]["2026080301"]["brackets_truth"])
-        self.assertNotEqual(self.tiers["mc-0424"], "interval_feasible")
+        self.assert_below_interval_feasible("mc-0424")
 
     def test_gate_rejects_mc0260m_the_meta_v_truth_miss(self):
         verdict = self.verdict_for("mc-0260m")
         self.assertFalse(verdict["passed"])
         self.assertFalse(verdict["per_seed"]["2026080233"]["brackets_truth"])
-        self.assertNotEqual(self.tiers["mc-0260m"], "interval_feasible")
+        self.assert_below_interval_feasible("mc-0260m")
+
+    def test_no_gate_failing_cell_sits_at_interval_feasible_or_above(self):
+        """The general form of the three red tests above.
+
+        Evaluates every gateable cell and asserts the ledger agrees with the
+        verdict. This is what actually closes the promote-upward escape: the
+        three named tests pin three known cells, this pins the rule.
+        """
+        for cell in sorted((set(self.arc2_contracts) | set(self.arc1)) - UNGATED):
+            with self.subTest(cell=cell):
+                if self.verdict_for(cell)["passed"]:
+                    continue
+                self.assert_below_interval_feasible(cell)
 
     def test_gate_accepts_the_repaired_mc0409_family(self):
         """The n_each 8->24 repair produced five seeds that all bracket truth."""
@@ -307,6 +357,117 @@ class ProfileTruthGateTests(unittest.TestCase):
         verdict = self.verdict_for("mc-0263")
         self.assertEqual(verdict["n_seeds"], len(self.arc2_contracts["mc-0263"]["seeds"]))
         self.assertTrue(verdict["passed"], verdict["reasons"])
+
+    # ---- the rate clause, which no live cohort exercises ------------------
+
+    def test_two_narrow_misses_fail_by_the_count_rule_alone(self):
+        """The MISS_COUNT_TOL half of the rule.
+
+        No retained cohort on disk has two misses, so without a synthetic case
+        this clause is dead: an adversarial mutation deleting it survived all
+        prior tests. Both misses here are well inside MISS_MAGNITUDE_TOL, so
+        only the count clause can fail this cell.
+        """
+        truth = 1.0
+        seeds = {
+            "s1": (1.01, 1.20),   # misses low by 1% of truth
+            "s2": (0.80, 0.99),   # misses high by 1% of truth
+            "s3": (0.90, 1.10),   # brackets
+        }
+        verdict = gate.evaluate_cell("mc-synthetic", truth, seeds)
+        self.assertEqual(verdict["n_misses"], 2)
+        self.assertLess(verdict["worst_relative_miss"], gate.MISS_MAGNITUDE_TOL)
+        self.assertFalse(verdict["passed"], "two misses must fail on count alone")
+        self.assertTrue(
+            any("retained seeds miss truth" in str(r) for r in verdict["reasons"]),
+            verdict["reasons"],
+        )
+
+    def test_one_narrow_miss_still_passes(self):
+        """The boundary of the count rule: one narrow miss is tolerated."""
+        verdict = gate.evaluate_cell(
+            "mc-synthetic", 1.0, {"s1": (1.01, 1.20), "s2": (0.90, 1.10)}
+        )
+        self.assertEqual(verdict["n_misses"], 1)
+        self.assertTrue(verdict["passed"])
+
+    def test_zero_truth_fallback_is_exercised(self):
+        """The half-width fallback in miss_scale().
+
+        mc-0263's three intervals all bracket 0, so the live surface returns
+        early and never reaches this branch — it was dead code. A structural
+        zero that is MISSED is the only thing that exercises it.
+        """
+        verdict = gate.evaluate_cell("mc-synthetic-zero", 0.0, {"s1": (0.10, 0.30)})
+        self.assertEqual(verdict["n_misses"], 1)
+        # half-width 0.10, missed by 0.10 -> exactly 1.0 on the half-width scale
+        self.assertAlmostEqual(
+            float(verdict["per_seed"]["s1"]["relative_miss"]), 1.0, places=9
+        )
+        self.assertFalse(verdict["passed"])
+
+    # ---- the reconciler actually calls the gate ---------------------------
+
+    def test_reconciler_fails_closed_on_a_truth_missing_cohort(self):
+        """End-to-end: the gate is reached inside arc2 reconcile(), not just unit-tested.
+
+        Without this, deleting the gate call from reconcile() leaves every other
+        test green — an adversarial mutation confirmed exactly that. Retained
+        receipts cannot be reconciled as-is because their runner_sha256 predates
+        the current runner (a pre-existing condition, unrelated to this change),
+        so only that one field is repointed in a throwaway copy; every
+        fixture/trace/interval hash is left untouched and self-consistent.
+        """
+        import hashlib
+        import shutil
+        import subprocess
+        import tempfile
+
+        cell = "mc-0424"
+        contract = self.arc2_contracts[cell]
+        src = None
+        for path in RESULTS.rglob(f"{cell}-*-receipt.tsv"):
+            if path.parent.name == cell:
+                src = path.parent
+                break
+        if src is None:
+            self.skipTest(f"no retained receipt directory for {cell}")
+
+        runner = TOOLS / "run-arc2-profile-feasibility.R"
+        current = hashlib.sha256(runner.read_bytes()).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp) / cell
+            shutil.copytree(src, work)
+            for receipt in work.glob("*-receipt.tsv"):
+                with receipt.open(newline="") as stream:
+                    rows = list(csv.DictReader(stream, delimiter="\t"))
+                for row in rows:
+                    row["runner_sha256"] = current
+                with receipt.open("w", newline="") as stream:
+                    writer = csv.DictWriter(
+                        stream, fieldnames=list(rows[0]), delimiter="\t"
+                    )
+                    writer.writeheader()
+                    writer.writerows(rows)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(TOOLS / "arc2_profile_reconcile.py"),
+                    "--cell", cell,
+                    "--root", str(work),
+                    "--out", str(Path(tmp) / "out.tsv"),
+                ],
+                capture_output=True,
+                text=True,
+                cwd=ROOT,
+            )
+        self.assertNotEqual(result.returncode, 0, "reconciler accepted a truth-missing cohort")
+        self.assertIn(
+            "truth gate",
+            (result.stdout + result.stderr).lower(),
+            f"reconciler failed, but not at the truth gate: {result.stderr[:300]}",
+        )
+        self.assertIn(contract["seeds"][0], result.stdout + result.stderr)
 
     # ---- fail-closed -----------------------------------------------------
 
