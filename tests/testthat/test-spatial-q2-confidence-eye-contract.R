@@ -1,4 +1,23 @@
-source(testthat::test_path("..", "..", "tools", "spatial-q2-confidence-eye-common.R"))
+fixture_path <- testthat::test_path(
+  "fixtures",
+  "spatial-q2-confidence-eye-common.R"
+)
+source(fixture_path)
+
+canonical_path <- testthat::test_path(
+  "..",
+  "..",
+  "tools",
+  "spatial-q2-confidence-eye-common.R"
+)
+if (file.exists(canonical_path)) {
+  test_that("packaged Confidence Eye helper matches the campaign source", {
+    expect_identical(
+      readBin(fixture_path, what = "raw", n = file.info(fixture_path)$size),
+      readBin(canonical_path, what = "raw", n = file.info(canonical_path)$size)
+    )
+  })
+}
 
 test_that("Confidence Eye designs are frozen and disjoint", {
   smoke <- ce_design("smoke")
