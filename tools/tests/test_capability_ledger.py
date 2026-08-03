@@ -479,9 +479,17 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 5/5. All three sit inside the frozen window, so this TOTAL and the
         # frozen-only count above move together; recounted directly from the
         # merged cells.tsv, not derived from the module constant.
+        # 67 -> 58: Arc 6 promotes nine Gaussian structured cells (mc-0286, mc-0298,
+        # mc-0282, mc-0291, mc-0303, mc-0315, mc-0279, mc-0304, mc-0316), each after a
+        # five-seed Totoro campaign that brackets the truth on every seed. A tenth
+        # sibling, mc-0292 (q2 matched sigma spatial), is WITHHELD -- its seed-303
+        # receipt excludes the true 0.7 -- and stays counted here. All nine sit inside
+        # the frozen window and none overlaps Arc 5's three or the mc-0207 split, so
+        # this TOTAL and the frozen-only count above move together again; recounted
+        # directly from the merged cells.tsv, not derived from the module constant.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            67,
+            58,
         )
 
         by_id = {row["cell_id"]: row for row in model}

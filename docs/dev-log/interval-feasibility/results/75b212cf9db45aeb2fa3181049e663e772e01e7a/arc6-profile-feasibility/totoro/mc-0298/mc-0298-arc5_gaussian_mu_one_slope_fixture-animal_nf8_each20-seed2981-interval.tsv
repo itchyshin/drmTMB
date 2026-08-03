@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:mu:animal(1 | id)	0.95	0.447015261092976	0.632477163448688	response	exp	log_sd_phylo	1	profile	tmbprofile	profile	FALSE	ok	mc-0298	mc-0298::sd:mu:animal(1 | id)	2981	animal_nf8_each20

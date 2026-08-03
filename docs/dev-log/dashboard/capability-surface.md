@@ -11,7 +11,7 @@ The model surface, staged-association surface, and missing-response execution ax
 - Runtime status: **339 implemented**, **10 actionable not implemented**, and **350 not currently supported**.
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
-- Evidence: **4 supported**, **29 inference-ready**, **175 interval-feasible**, **67 recovery-grade**.
+- Evidence: **4 supported**, **29 inference-ready**, **184 interval-feasible**, **58 recovery-grade**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Staged association capability

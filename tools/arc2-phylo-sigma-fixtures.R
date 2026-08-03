@@ -165,3 +165,108 @@ arc2_phylo_sigma_q2_fixture <- function(n_tip = 60L,
     true_log_sd_sigma = true_log_sd_sigma
   )
 }
+
+# mc-0279 -- the OTHER q2 phylo sigma cell, NOT a duplicate of mc-0283
+# ----------------------------------------------------------------------
+# mc-0279's own capability-ledger row (docs/dev-log/dashboard/capability-
+# ledger/cells.tsv) is estimator=ML, route_variant="legacy_01", and its
+# `legacy_evidence_source` points at "qseries_phylo_q1_mu_sigma_intercept" --
+# tools/run-structured-re-gaussian-lowq-mu-sigma-intercept-smoke.R's UNLABELLED
+# matched-intercept smoke, NOT test-reml-phylo-location.R's LABELLED
+# `phylo(1 | p | species)` REML block that mc-0283 (route_variant="base",
+# estimator=REML) is built on. The two cells differ on BOTH route_variant and
+# estimator; they are genuinely different targets, not the same target under
+# two ledger IDs.
+#
+# The smoke tool's actual fitted formula (verified by reading
+# tools/run-structured-re-gaussian-lowq-mu-sigma-intercept-smoke.R:377-383) is
+#
+#     y ~ phylo(1 | species, tree = tree), sigma ~ phylo(1 | species, tree = tree)
+#
+# i.e. the SAME unlabelled term `phylo(1 | species)` in both mu and sigma,
+# with NO explicit "p"/correlation label and no fixed-effect `x` in either
+# dpar. A live toy fit (Curie, 2026-08-03) confirms drmTMB auto-links two
+# matching unlabelled structured terms across mu and sigma into a joint q2
+# covariance block WITHOUT an explicit label -- `profile_targets()` exposes
+# `sd:mu:mu:phylo(1 | species)`, `sd:sigma:sigma:phylo(1 | species)` (the same
+# doubled-prefix convention mc-0283's labelled block uses), AND a
+# `cor:phylo:cor(mu:(Intercept),sigma:(Intercept) | phylo | species)` target
+# -- so this IS a genuine q2 correlation block, just reached by matching group
+# name rather than an explicit `p` label. This confirms the ledger's own
+# claim_boundary text for mc-0278/mc-0279 ("matched intercept-only 2x2
+# location-scale phylo block") rather than the `q1_plus_q1` /
+# "separate_structured_scalars" language in
+# docs/dev-log/dashboard/structured-re-gaussian-lowq-row-selection.tsv, which
+# describes the DGP's independent draws, not the fitted model's parameter
+# structure.
+#
+# The existing evidence for mc-0279 (the local n=1 smoke,
+# docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-sigma-intercept-local-
+# smoke.tsv) is disqualifying on its own terms: n_group=10/n_each=10 (N=100,
+# far below the validated N=720 replication ladder), n_rep=1 (not evidence for
+# a point-fit gate let alone a profile campaign), a Wald (not
+# `stats::profile()`) confidence interval, and a bundled mu-sigma correlation
+# target with TRUE value exactly 0 (`rho_mu_sigma = 0.00` in the smoke tool's
+# `provider_defaults`) that drove the phylo row to
+# `local_smoke_diagnostic_blocked` when that zero-truth correlation landed at
+# its [-1, 1] boundary in the one replicate drawn -- the same defect class
+# already diagnosed for mc-0277/mc-0283's SD targets, here on the correlation
+# dimension of the SAME shape. None of this is genuine profile-failure
+# evidence; `run` was never even attempted at an adequate N.
+#
+# `arc2_phylo_sigma_q2_nolabel_fixture()` supplies a signal-bearing DGP at the
+# SAME validated n_tip=60/n_each=12 replication ladder as
+# `arc2_phylo_sigma_q2_fixture()`, with independent structured draws on mu
+# (identity link) and log(sigma) (log link) -- but WITHOUT the "p" label, so
+# the fitted formula matches mc-0279's real (ML, unlabelled) shape rather than
+# mc-0283's (REML, labelled) one. The point-fit gate targets ONLY the two
+# marginal SDs; the auto-linked `cor:phylo:...` target is reported for
+# information but never gated, mirroring mc-0283's scoping of its own
+# correlation target exactly.
+#
+# Point-fit gate (predeclared: mean relative error <= 0.35 over 5 seeds, on
+# BOTH the mu-side and sigma-side phylo SD) -- see the runner-independent gate
+# script's output for the full per-seed table this header summarizes.
+
+#' Gaussian ML fixture with genuine phylogenetic signal on BOTH mu and
+#' log(sigma) via two UNLABELLED matching `phylo(1 | species)` terms (mc-0279
+#' shape: drmTMB auto-links matching unlabelled structured terms across mu and
+#' sigma into a joint q2 block).
+#'
+#' @param n_tip Number of tips (species). Default 60.
+#' @param n_each Observations per tip. Default 12 -- see file header.
+#' @param seed RNG seed.
+#' @param true_sd_mu True SD of the phylogenetic effect on mu (identity link,
+#'   additive on the response scale).
+#' @param true_log_sd_sigma True SD of the phylogenetic effect on log(sigma).
+#' @param mu0 Intercept on mu.
+#' @param log_sigma0 Baseline log residual SD.
+#' @return list(data, tree, true_sd_mu, true_log_sd_sigma)
+arc2_phylo_sigma_q2_nolabel_fixture <- function(n_tip = 60L,
+                                                n_each = 12L,
+                                                seed = 101L,
+                                                true_sd_mu = 0.6,
+                                                true_log_sd_sigma = 0.7,
+                                                mu0 = 0.4,
+                                                log_sigma0 = log(0.5)) {
+  set.seed(seed)
+  tree <- ape::rcoal(n_tip)
+  tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE)
+  L <- t(chol(A))
+  u_mu <- as.vector(L %*% stats::rnorm(n_tip)) * true_sd_mu
+  u_sigma <- as.vector(L %*% stats::rnorm(n_tip)) * true_log_sd_sigma
+  tip <- rep(seq_len(n_tip), each = n_each)
+  n <- n_tip * n_each
+  sigma_tip <- exp(log_sigma0 + u_sigma[tip])
+  y <- mu0 + u_mu[tip] + stats::rnorm(n, 0, sigma_tip)
+  list(
+    data = data.frame(
+      y = y,
+      species = factor(tree$tip.label[tip], levels = tree$tip.label)
+    ),
+    tree = tree,
+    true_sd_mu = true_sd_mu,
+    true_log_sd_sigma = true_log_sd_sigma
+  )
+}

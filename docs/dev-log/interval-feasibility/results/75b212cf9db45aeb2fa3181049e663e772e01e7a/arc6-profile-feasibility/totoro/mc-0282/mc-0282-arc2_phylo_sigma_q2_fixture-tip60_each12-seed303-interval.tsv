@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:mu:mu:phylo(1 | p | species)	0.95	0.435426852224364	0.820229426397686	response	exp	log_sd_phylo	1	profile	tmbprofile	profile	FALSE	ok	mc-0282	mc-0282::sd:mu:mu:phylo(1 | p | species)	303	tip60_each12
