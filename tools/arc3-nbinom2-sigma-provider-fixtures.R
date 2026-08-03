@@ -180,6 +180,44 @@
 # Both cells are RE-GATED and ready for a Totoro re-run of the 3+ seed
 # interval-feasibility contract; no forced pass, no cell dropped.
 #
+# 2026-08-02 mc-0423 (animal) SEED-2026080302 WITHHOLD: DIAGNOSED, RETAINED
+# STOP (Curie session; NOT re-gated)
+# -----------------------------------------------------------------------
+# mc-0423 passed its own point-fit gate and mc-0423's Totoro 3-seed
+# interval-feasibility contract (seeds 2026080301/02/03), but seed
+# 2026080302 gave estimate 0.283 against true 0.55 (49% relative error)
+# with a 95% profile interval [0.137, 0.479] EXCLUDING the true value.
+# Fisher's withhold flagged that, unlike mc-0424, the finite-sample
+# cor(v0, v1) diagnostic had never been run for the animal provider.
+# Running it (10+ seeds, `arc3_nbinom2_sigma_animal_fixture()`'s A matrix at
+# the default `n_founders = 4`): max|cor(v0, v1)| = 0.51 (seed 423), but
+# seed 2026080302 itself is -0.14 -- NOT an outlier. The A matrix condition
+# number is 66.7 (well-conditioned; nowhere near mc-0421 (phylo)'s
+# 98563-level ill-conditioning). The relmat mechanism is therefore RULED
+# OUT for this cell -- tested directly, not assumed.
+# `n_founders` was added to `arc3_nbinom2_sigma_animal_fixture()` so the
+# pedigree can be doubled (4 -> 8 founder pairs, 40 -> 80 individuals,
+# n_each unchanged at 25) as a direct information-count fix on the axis
+# that remained open (more independent pedigree units). Re-gating the
+# shared 2026080301-05 seed family at `n_founders = 8`:
+#   seed 2026080301: estimate 0.434, rel.err. 0.211, CI [0.300, 0.609] brackets 0.55
+#   seed 2026080302: estimate 0.420, rel.err. 0.236, CI [0.264, 0.605] brackets 0.55
+#   seed 2026080303: estimate 0.419, rel.err. 0.238, CI [0.297, 0.581] brackets 0.55
+#   seed 2026080304: estimate 0.329, rel.err. 0.402, CI [0.207, 0.488] EXCLUDES 0.55
+#   seed 2026080305: estimate 0.584, rel.err. 0.062, CI [0.426, 0.792] brackets 0.55
+# The originally-failing seed (2026080302) is fixed, but a DIFFERENT seed
+# (2026080304) now fails both the 0.35 relative-error gate and the
+# bracketing check. 4/5, not 5/5. `n_founders = 8` is kept as this file's
+# default for mc-0423 because it is a genuine, diagnosis-driven improvement
+# (worst-case relative error over the family: 49% at n_founders = 4 -> 40%
+# at n_founders = 8), but the cell is NOT promoted: it stays at
+# `point_fit_recovery`. This is a well-diagnosed, non-forced STOP -- the
+# animal-provider NB2 structured-sigma intercept SD shows real
+# seed-to-seed sampling fragility at this scale that is not explained by
+# the relmat cor(v0, v1) mechanism and is not eliminated by one round of
+# n_id doubling. No Totoro campaign is recommended for mc-0423 without
+# either a further diagnosed fix or an explicit decision to accept the STOP.
+#
 # DESIGN ITERATION NOTES (do not shrink these without re-deriving)
 # --------------------------------------------------------------
 # - spatial: an early spiral coordinate layout (borrowed from
@@ -318,20 +356,32 @@ arc3_nbinom2_sigma_spatial_fixture <- function(n_side = 9L,
 #'
 #' @param seed RNG seed.
 #' @param n_each Observations per individual. Default 25 (1000 obs across
-#'   the 40-individual pedigree).
+#'   the 40-individual pedigree at the default `n_founders = 4`).
+#' @param n_founders Number of founder pairs (f0/m0) seeding the synthetic
+#'   3-generation pedigree. Default 4 (40 individuals total: 8 founders + 8
+#'   gen1 + 16 gen2 + 8 gen3). `n_founders = 8` doubles every generation
+#'   (16 founders + 16 gen1 + 32 gen2 + 16 gen3 = 80 individuals) -- see the
+#'   2026-08-02 DESIGN ITERATION note below (mc-0423 seed-2026080302
+#'   diagnosis): unlike mc-0424 (relmat), the failing seed's cor(v0, v1) was
+#'   NOT an outlier, but n_founders = 8 still shrinks the family's max|cor|
+#'   and, more importantly, its point-fit sampling variance, by giving the
+#'   between-individual variance component more independent pedigree units
+#'   to be estimated from.
 #' @param true_sd_intercept,true_sd_slope See
 #'   `arc3_nbinom2_sigma_phylo_fixture()`.
 #' @param log_sigma0,beta0,beta_x See `arc3_nbinom2_sigma_phylo_fixture()`.
 #' @return list(data, pedigree, A, true_sd_intercept, true_sd_slope, zero_cluster_rate)
 arc3_nbinom2_sigma_animal_fixture <- function(seed = 423L,
                                                n_each = 25L,
+                                               n_founders = 4L,
                                                true_sd_intercept = 0.55,
                                                true_sd_slope = 0.25,
                                                log_sigma0 = log(0.40),
                                                beta0 = 1.0,
                                                beta_x = 0.30) {
-  # 40-individual, 3-generation synthetic pedigree -- same construction as
-  # tools/arc2-beta-animal-fixtures.R's `.build_animal_pedigree_40()`,
+  # `n_founders`-founder-pair, 3-generation synthetic pedigree -- same
+  # construction as tools/arc2-beta-animal-fixtures.R's
+  # `.build_animal_pedigree_40()` at the default `n_founders = 4`,
   # duplicated here (not shared) and NESTED inside this function body (not
   # top level) for the same reason documented there:
   # tools/run-arc2-profile-feasibility.R's `source_fixture_builder()` only
@@ -341,7 +391,7 @@ arc3_nbinom2_sigma_animal_fixture <- function(seed = 423L,
   # produced "could not find function .build_animal_pedigree_40" when the
   # runner requested `arc3_nbinom2_sigma_animal_fixture` alone.
   .build_animal_pedigree_40 <- function() {
-    n_f0 <- 4L
+    n_f0 <- n_founders
     founders_f <- paste0("f0_", seq_len(n_f0))
     founders_m <- paste0("m0_", seq_len(n_f0))
     ped <- data.frame(
@@ -369,8 +419,13 @@ arc3_nbinom2_sigma_animal_fixture <- function(seed = 423L,
     ped <- rbind(ped, gen2)
     gen2_f <- gen2$id[seq(1, nrow(gen2), by = 4)]
     gen2_m <- gen2$id[seq(2, nrow(gen2), by = 4)]
-    gen3 <- do.call(rbind, lapply(1:2, function(i) {
-      j <- i + 2L
+    # Generalizes the original n_f0 = 4 case's `lapply(1:2, ...)` /
+    # `j <- i + 2L`: half of the n_f0 gen2 founder-pairs continue to gen3,
+    # each mated with the "other half"'s sire (n_f0 = 4 -> 1:2, j = i + 2;
+    # n_f0 = 8 -> 1:4, j = i + 4).
+    half_f0 <- n_f0 %/% 2L
+    gen3 <- do.call(rbind, lapply(seq_len(half_f0), function(i) {
+      j <- i + half_f0
       data.frame(
         id = paste0("g3_", i, "_", 1:4),
         dam = gen2_f[i], sire = gen2_m[j],

@@ -397,15 +397,44 @@ cell_registry <- list(
     provider = "animal",
     fixture_name = "arc3_nbinom2_sigma_animal_fixture",
     fixture_file = "tools/arc3-nbinom2-sigma-provider-fixtures.R",
-    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    # 2026-08-02 CELL REMAINS A RETAINED STOP (Curie diagnostic session on
+    # Fisher's withhold of seed 2026080302, estimate 0.283, 49% relative
+    # error, interval [0.137, 0.479] excluding true 0.55):
+    # - The mc-0424 (relmat) mechanism was TESTED, not assumed, and does NOT
+    #   transfer: seed 2026080302's finite-sample cor(v0, v1) is -0.14, not
+    #   an outlier (max|cor| over a 10-seed scan at n_founders = 4 is 0.51,
+    #   at seed 423, a DIFFERENT and passing seed). The A-matrix condition
+    #   number is 66.7 -- well short of mc-0421 (phylo)'s 98563-level
+    #   ill-conditioning.
+    # - n_founders raised 4 -> 8 (40 -> 80 individuals, n_each unchanged at
+    #   25) as a direct information-count fix, mirroring mc-0424's n_id
+    #   enlargement logic on the axis that WAS still open (more independent
+    #   pedigree units, not less cor(v0, v1)). This reduces the *previously
+    #   failing* seed 2026080302's relative error from 49% to 24% (now
+    #   bracketing 0.55) -- but the shared 2026080301-05 family's re-gate at
+    #   n_founders = 8 shows a DIFFERENT seed, 2026080304, now fails BOTH
+    #   checks (relative error 40.2%, interval [0.207, 0.488] EXCLUDES 0.55).
+    #   4/5 seeds pass; Fisher's tightened gate requires 5/5. See the Curie
+    #   session notes for the full per-seed table (n_founders = 4 and
+    #   n_founders = 8, both reported, no cell dropped from the record).
+    # - CONCLUSION: this is not a forced pass. n_founders = 8 is kept as the
+    #   contract default because it is a genuine, diagnosis-driven
+    #   improvement over n_founders = 4 (worst-case relative error 49% -> 40%
+    #   across the family), but mc-0423 stays at `point_fit_recovery`, NOT
+    #   `interval_feasible` -- the animal-provider NB2 structured-sigma
+    #   intercept SD shows real seed-to-seed sampling fragility at this scale
+    #   that a single doubling of n_id does not eliminate. A Totoro campaign
+    #   is NOT recommended for this cell without either a further diagnosed
+    #   fix or an explicit decision to accept a retained STOP.
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed, n_founders = 8L),
     data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "id40_each25",
+    information_rung = function(seed) "id80_each25",
     dgp_id = "arc3_nbinom2_ml_animal_sigma_sd",
     formula_label = paste0(
       "bf(y ~ x, sigma ~ animal(1 + x | id, pedigree = pedigree)); nbinom2() (log/log); ML; ",
       "drm_control(optimizer_preset = \"robust\")"
     ),
-    true_parameter_scale = "0.55 animal random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 animal random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 40-individual (3-generation) pedigree, 25 observations per individual, log-SD internal scale",
+    true_parameter_scale = "0.55 animal random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 animal random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-individual (3-generation, 8-founder-pair) pedigree, 25 observations per individual, log-SD internal scale",
     cohort_id = "arc3-nbinom2-ml-animal-sigma-sd-profile-feasibility"
   ),
   "mc-0424" = list(
@@ -513,20 +542,41 @@ cell_registry <- list(
     provider = "phylo_interaction",
     fixture_name = "arc3_phylo_interaction_nbinom2_fixture",
     fixture_file = "tools/arc3-phylo-interaction-fixtures.R",
+    # 2026-08-02: n_each raised from 8 to 24 -- see the Curie diagnostic
+    # session for seed 2026080405 (Fisher's withhold: a truth-excluding
+    # interval [0.610, 0.902] against true 0.6 despite every relative error
+    # passing the mechanical gate). Diagnosis found TWO compounding, tested
+    # (not assumed) causes, neither of which is per-pair count sparsity
+    # (zero-pair rate 0.000 at every seed): (1) the realized latent
+    # pair-effect draw itself (identical RNG stream to the Gaussian sibling
+    # mc-0321, since it is drawn before the family-specific x/y draws) has
+    # empirical SD 0.706 at seed 2026080405 vs true 0.6 -- an ordinary ~2 SD
+    # finite-sample outcome for only 64 iid pair levels (star tree = identity
+    # tip covariance on each side) that also nudges mc-0321's own interval to
+    # barely bracket truth (lower 0.575); (2) a genuine NB2-specific
+    # dispersion/interaction-SD confound -- cor(sigma_hat, sd_hat) = -0.74
+    # across the shared 2026080401-05 family at n_each = 8, and seed
+    # 2026080405 combines a below-median sigma_hat with the family's highest
+    # sd_hat, amplifying cause (1). Tripling n_each to 24 (1536 obs instead
+    # of 512) gives the dispersion parameter more direct per-pair
+    # information, shrinking seed 2026080405's relative error from 0.227 to
+    # 0.134 and its profile interval to [0.572, 0.824] (brackets 0.6) -- see
+    # the RE-GATE RESULTS in the fixture-file-adjacent Curie session notes
+    # for the full 5-seed table this contract now reflects.
     fixture_call = function(fixture_fn, seed) {
       fixture_fn(
-        n_plant = 8L, n_pollinator = 8L, n_each = 8L, sd_pair = 0.6,
+        n_plant = 8L, n_pollinator = 8L, n_each = 24L, sd_pair = 0.6,
         tree_type = "star", seed = seed
       )
     },
     data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "star_np8_npo8_each8",
+    information_rung = function(seed) "star_np8_npo8_each24",
     dgp_id = "arc3_nbinom2_ml_phylo_interaction_mu_sd",
     formula_label = paste0(
       "bf(nb2 ~ x + phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, ",
       "tree2 = pollinator_tree), sigma ~ 1); nbinom2() (log/log); ML"
     ),
-    true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (log link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 8 observations per pair, log-SD internal scale",
+    true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (log link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 24 observations per pair, log-SD internal scale",
     cohort_id = "arc3-nbinom2-ml-phylo-interaction-mu-sd-profile-feasibility"
   )
 )

@@ -51,6 +51,41 @@
 # none calling a shared top-level helper). The tree-building and pair-level
 # DGP logic is therefore nested INSIDE each of the two public functions below
 # rather than factored out.
+#
+# 2026-08-02 mc-0409 SEED-2026080405 WITHHOLD: DIAGNOSED AND FIXED (Curie
+# session)
+# -----------------------------------------------------------------------
+# mc-0409 reconciled 5/5 on the mechanical contract (every seed's relative
+# error < 0.35) but seed 2026080405 gave estimate 0.736 against true 0.6
+# with interval [0.610, 0.902] EXCLUDING the truth on the low side. Its
+# Gaussian sibling mc-0321 (same seed, same star-tree geometry) passed
+# 5/5, so the mechanism is NB2-specific. Three candidate leads were tested,
+# not assumed:
+# - Per-pair count sparsity: REJECTED. Zero-pair rate (a pair with every
+#   observation = 0) is 0.000 at every one of the 5 seeds; mean count/obs
+#   is 2.5-3.9, no pathological sparsity.
+# - The realized latent pair-effect draw itself: the SAME draw (identical
+#   RNG stream before the family-specific x/y calls) feeds both mc-0321 and
+#   mc-0409. At seed 2026080405 its empirical SD is 0.706 against a true
+#   0.6 -- an ordinary ~2 SD finite-sample outcome for only 64 iid pair
+#   levels (a star tree gives identity tip covariance on each side). This
+#   also nudges mc-0321's own interval to barely bracket truth (lower
+#   0.575) -- the realized draw is a real, shared, non-NB2-specific
+#   contributor.
+# - NB2 dispersion (sigma)/interaction-SD confound: CONFIRMED. Across the
+#   shared 2026080401-05 family at n_each = 8, cor(sigma_hat, sd_hat) =
+#   -0.74; seed 2026080405 combines a below-median sigma_hat (0.325, true
+#   0.35) with the family's highest sd_hat (0.736) -- the same class of
+#   second-moment confound diagnosed for mc-0424.
+# FIX: n_each raised 8 -> 24 (1536 obs instead of 512), giving the
+# dispersion parameter more direct per-pair information. Point-fit at
+# n_each = 24 shrinks seed 2026080405's relative error from 0.227 to 0.134,
+# and its profile interval becomes [0.572, 0.824] (brackets 0.6). Re-gating
+# ALL 5 shared-family seeds at n_each = 24 (see
+# tools/run-arc2-profile-feasibility.R's mc-0409 contract): every seed now
+# passes BOTH the relative-error and bracketing checks (relative errors
+# 0.123/0.106/0.056/0.064/0.134, mean 0.097). 5/5 PASS, no forced tuning --
+# n_each = 8 and n_each = 24 are both reported above, not just the winner.
 
 #' Gaussian mu-side bipartite phylogenetic-interaction fixture (mc-0321)
 #'
