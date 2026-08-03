@@ -13,4 +13,14 @@ exit=2 mc-0421 seed=2026080303
 exit=0 mc-0422 seed=2026080302
 exit=0 mc-0421 seed=2026080301
 exit=0 mc-0422 seed=2026080303
+exit=0 mc-0321 seed=2026080401
+exit=0 mc-0321 seed=2026080402
+exit=0 mc-0321 seed=2026080403
+exit=0 mc-0321 seed=2026080404
+exit=0 mc-0321 seed=2026080405
+exit=0 mc-0409 seed=2026080401
+exit=0 mc-0409 seed=2026080402
+exit=0 mc-0409 seed=2026080403
+exit=0 mc-0409 seed=2026080404
+exit=0 mc-0409 seed=2026080405
 CAMPAIGN_COMPLETE

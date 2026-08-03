@@ -120,7 +120,14 @@ FROZEN_CENSUS_COUNT = 676
 # numerical-conditioning defects (not estimator defects), redesigned, re-gated
 # over five seeds, and re-run: the same previously-failing seed now passes, so
 # both are promoted here too. 71 -> 66; ARC3_TARGETS binds each promoted cell.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 67
+# mc-0321 (gaussian mu-side phylo_interaction SD) then passes Fisher's tightened
+# five-seed, truth-bracketing gate (seed family 2026080401-2026080405) 5/5: every
+# relative error <0.35 and every profile interval brackets the true 0.6. Its NB2
+# sibling mc-0409 (same exact target and geometry) is NOT promoted under the same
+# gate -- seed 2026080405's interval excludes the true 0.6 despite passing the
+# mean-error gate and the mechanical reconciler, so it stays at
+# point_fit_recovery pending a root-cause diagnostic. 67 -> 66.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 66
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -270,6 +277,16 @@ ARC3_TARGETS = {
         "evidence_id": "ev-mc-0424-arc3-profile",
         "transition_id": "tr-mc-0424-arc3-profile",
         "claim_snippet": "arc3_nbinom2_sigma_relmat_fixture",
+    },
+    # mc-0409 (NB2 sibling, same exact target/geometry) is deliberately NOT
+    # bound here: seed 2026080405's profile interval excluded the true 0.6
+    # despite a passing mean relative error, so it remains at
+    # point_fit_recovery -- see cells.tsv's mc-0409 claim_boundary.
+    "mc-0321": {
+        "target_id": "mc-0321::sd:mu:phylo_interaction(1 | plant:pollinator)",
+        "evidence_id": "ev-mc-0321-arc3-profile",
+        "transition_id": "tr-mc-0321-arc3-profile",
+        "claim_snippet": "arc3_phylo_interaction_gaussian_fixture",
     },
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
