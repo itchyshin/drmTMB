@@ -72,6 +72,37 @@ own frozen-census validation. A raw `awk` over `cells.tsv` returns 71 against a 
 the one `missing_response` row inside the frozen window — which is exactly why derivation-by-projection
 was mandated rather than counting.
 
+## Independent Verification (Rose, fresh context)
+
+Verdict: **CLEAN WITH FINDINGS.** Rose reviewed the *plan* before execution and returned four
+blockers; this pass re-checked whether the *output* closed them, deriving every number herself
+rather than accepting the report.
+
+All four closed. `mc-0207` = `none`, `mc-0715`/`mc-0716` present, `mc-0292` withheld — no union
+occurred. `test_b3_q6_target_promotion.py` passes and is wired at `R-CMD-check.yaml:83`, and it
+now conditions on `C4_B3_PAIRED_MU1_IDS` so it cannot drift from `test_capability_ledger.py`.
+Her independent derivation of the frozen constant gives **58**, matching both the module constant
+and the deliberately-separate literal — and she reproduced the counting trap, noting the naive
+all-axis count gives 59, inflated by one `missing_response` row. `model_surface` confirmed at
+184/58, with transitions accounting for exactly twelve promoted cells. The frozen-census guard
+still bites (`57 (expected 58)`), restored byte-identical. No duplicate cell keys, no live stale
+tier claims across all 177 parity rows.
+
+Her findings, all gaps rather than regressions:
+
+- **F1 — the arc was landing without its record.** The after-task report and the arc's only new
+  guard both sat in unmerged #911 while `main` already carried the promotions. Merging #911
+  closes it, and the point stands: *a landed arc whose guard is unmerged is the exact failure
+  that guard exists to prevent.*
+- **F2 — #911's check reads only `rationale`.** Seven rows name a tier in `not_covered`. **Acted
+  on**: the check now searches both columns. Verified a no-op today (no row carries the claim
+  phrase there) and a guard against the phrasing migrating.
+- **F3 — the team discloses debt well and retires it slowly.** 89 stale parked rationales and
+  four CI-excluded tests are both honestly named, both need an owner decision, neither has a
+  deadline.
+- **Missing owner** — the B4-CI base-commit question (is #905's Arc-4b split an approved base
+  change for those closures?) is a one-line call blocking four tests, and nobody holds it.
+
 ## What Did Not Go Smoothly
 
 - **Nine premature parity-triage claims were my error.** The brief for #907 listed all twelve

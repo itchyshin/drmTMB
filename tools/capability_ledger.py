@@ -2161,7 +2161,21 @@ def validate(
     )
     cells_by_id = {row["cell_id"]: row for row in cells}
     for cell_id, parity_row in sorted(parity_by_cell.items()):
-        match = promotion_claim.search(parity_row.get("rationale", ""))
+        # Search both free-text columns, not just `rationale`. Seven rows already
+        # name a tier in `not_covered`, and nothing stops the claim phrasing
+        # migrating there. No row carries the phrase in that column today, so
+        # widening the search costs nothing now and guards later.
+        match = next(
+            (
+                found
+                for found in (
+                    promotion_claim.search(parity_row.get(field, ""))
+                    for field in ("rationale", "not_covered")
+                )
+                if found
+            ),
+            None,
+        )
         if not match:
             continue
         claimed_tier = match.group(1)
