@@ -20,6 +20,17 @@ centres it at a readable desktop width, links directly to the full-size image
 on small screens, and keeps the exact route table searchable. The route table
 is horizontally scrollable and keyboard-focusable on narrow viewports.
 
+The site navbar now restores a two-item **Get started** menu, following the
+gllvmTMB reader pattern: **Get started with drmTMB** opens the guided first-fit
+tutorial, while **Function map and cheat sheet** opens the task lookup page.
+The articles index uses the same introductory-guide-first order.
+
+The introductory guide now uses the same family-specific definition of
+location as the function map. The route table describes `check_drm()` as a
+numerical-health check rather than a decision that inference is valid, and it
+names the frozen-margin association route as latent-normal association for an
+admitted paired-outcome class.
+
 ## 3a. Decisions and Rejected Alternatives
 
 The graphic shows only functions that can sensibly begin from an ordinary
@@ -39,6 +50,8 @@ footnote inside the graphic.
 
 - `vignettes/function-map-cheatsheet.Rmd`
 - `vignettes/function-map-cheatsheet.png`
+- `vignettes/drmTMB.Rmd`
+- `_pkgdown.yml`
 - `docs/dev-log/figure-audits/2026-08-03-function-map/audit.md`
 - `docs/dev-log/figure-audits/2026-08-03-function-map/image2-base.png`
 - `docs/dev-log/figure-audits/2026-08-03-function-map/function-map-final-overlay.svg`
@@ -52,13 +65,19 @@ footnote inside the graphic.
 - `pkgdown::build_article("function-map-cheatsheet", lazy = FALSE)`: PASS; the
   Gaussian location-scale example executed.
 - `pkgdown::check_pkgdown()`: PASS, no problems.
+- Focused builds of `drmTMB` and `function-map-cheatsheet`: PASS; the rendered
+  navbar contains both Get started destinations and both generated article
+  files exist. The generated articles index lists them in the same order.
+- Full source-installed `pkgdown::build_site(lazy = TRUE, install = TRUE)`:
+  PASS, including the association article and both Get started destinations.
 - Desktop Chromium render at 1440 px: inspected directly.
 - Mobile Chromium render at 390 × 844: inspected directly.
 - Displayed-function audit against `NAMESPACE`: PASS for exports and registered
   `drmTMB` S3 methods.
 - SVG-to-PNG rasterization at 1536 × 1024: PASS.
 - `git diff --check`: PASS.
-- Florence: PASS. Pat: PASS. Rose: PASS.
+- Florence: PASS. Pat: PASS. Rose: PASS. Fisher's two initial claim-boundary
+  blockers were repaired; final source and rendered-page re-review: PASS.
 
 ## 6. Tests of the Tests
 
@@ -72,7 +91,7 @@ asset and CSS changes.
 
 ## 8. Consistency Audit
 
-The image, alt text, explanatory prose, and route table agree on:
+The navbar, image, alt text, explanatory prose, and route table agree on:
 
 - `profile_targets()` as an uncertainty route;
 - `check_drm()` and `summary()` as fit-health functions;
@@ -80,9 +99,17 @@ The image, alt text, explanatory prose, and route table agree on:
 - `biv_associate()` → `association()` only in the paired-outcome table row;
 - structured terms as model specification;
 - family-specific location rather than a universal expected response;
+- numerical fit health as a prerequisite rather than proof of interpretable
+  inference;
+- admitted latent-normal paired-outcome association rather than an arbitrary
+  paired-family claim;
 - fixed-effect distributional scope for the Predict & assess branch;
 - Julia fitting as future/deferred, with current methods limited to legacy
   object compatibility.
+
+The first navbar destination is the guided first-fit tutorial; the second is
+the task lookup page. Neither is duplicated under a misleading single-link
+Get started label.
 
 ## 7a. Issue Ledger
 
@@ -102,6 +129,12 @@ kept the visual design while making the public API text exact and reproducible.
 The first mobile render also showed the route table collapsing into one-word
 lines. A labelled scroll region with a minimum table width fixed that reader
 friction.
+
+An initial full-site build used `install = FALSE` and therefore picked up an
+older installed package; it stopped when `cross-family.Rmd` called the newer
+Arc 6 `vcov()` method. This was an invalid build configuration for the current
+source, not evidence that the public association route is unavailable. The
+final site build was rerun from a fresh source installation and passed.
 
 ## 11. Team Learning
 

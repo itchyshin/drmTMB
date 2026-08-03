@@ -92300,3 +92300,16 @@ family that can discriminate an engine that improves on Laplace.
   exported.
 - `git diff --check`: PASS.
 - Final independent review: Florence PASS; Pat PASS; Rose PASS.
+- Restored the two-item `Get started` navbar menu: `Get started with drmTMB`
+  then `Function map and cheat sheet`, matching the reader path used by
+  gllvmTMB. The Getting Started article index uses the same order.
+- Focused builds for both destinations and `pkgdown::check_pkgdown()` PASS.
+  An initial `install = FALSE` full-site run picked up an older installed
+  package and stopped at the newer `cross-family.Rmd` Arc 6 `vcov()` example;
+  this stale-runtime result was not treated as package evidence.
+- Fisher found and prompted repairs to two claim boundaries: location is now
+  family-specific on both Get started pages, and `check_drm()` is described as
+  a numerical-health prerequisite rather than proof that inference is valid.
+  The paired-outcome row now names admitted latent-normal association scope.
+- Full source-installed pkgdown build: PASS, including `cross-family.Rmd` and
+  both rebuilt Get started destinations. Fisher final rendered re-review: PASS.

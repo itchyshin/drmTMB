@@ -43,8 +43,9 @@ composition.
 
 ## Render inspection
 
-- `rendered-desktop.png`: full pkgdown page at a 1440 px desktop viewport.
-- `rendered-mobile-390x844.png`: full page at a 390 px mobile viewport.
+- `rendered-desktop.png`: top-and-figure viewport capture at 1440 × 1800 px.
+- `rendered-mobile-390x844.png`: top-of-page viewport capture under true
+  390 × 844 px mobile emulation.
 - The mobile figure has an adjacent full-size-image link. The route table uses
   a labelled, keyboard-focusable horizontal scroll region with a 46 rem minimum
   width, so its columns do not collapse into one-word lines.
@@ -68,9 +69,9 @@ composition.
 ad709c25d9942ed8e03b08d0e24ffece20f3161e81587e25b04dad12f287729d  vignettes/function-map-cheatsheet.png
 d1533d12e166f74e450f4189805fa9c267e473ef7aa68d5d840390423a4d388d  image2-base.png
 8e4c5f1729413dfe9d8feb82c5e6ba19e74e3cb87bd05724c272690f20e132a3  function-map-final-overlay.svg
-3c758185a13edbf04397684b7b242b5196151a02625a192b5e67a84f19b1d9d2  rendered-desktop.png
-589e24438c9f1659991df18f29ddb3d111d17fefea074c73248c05676957d831  rendered-mobile-390x844.png
+747a62b5c962180ae0a720a10dd8e680e5260d224d3f242154a76782570cd7a7  rendered-desktop.png
+94154d63466faabc9d04a4586aaca1463d91041fb7e07452c80010aaf13902d8  rendered-mobile-390x844.png
 ```
 
-These are the final synchronized values after the label-size and responsive
-table corrections.
+These are the final synchronized values after the label-size, responsive-table,
+and two-destination Get started navigation corrections.
