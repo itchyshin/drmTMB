@@ -453,9 +453,16 @@ class CapabilityLedgerTests(unittest.TestCase):
         # spatial+relmat pair) is promoted on its primary target
         # sd:mu:spatial(1 | site) after a fresh five-seed Totoro campaign that
         # brackets the truth on every seed.
+        # 71 -> 68: Arc 5 promotes the final three Prong A cells -- mc-0123
+        # (q6 spatial mu1 SD, the independently-fixtured sibling of mc-0124's
+        # already-promoted mu2 SD) and mc-0205/mc-0206 (the mu1/sigma1
+        # marginal SDs of one labelled bivariate REML mu-sigma correlated
+        # block, replacing the point-estimate-only sim3() harness) -- each
+        # after Fisher's tightened five-seed, truth-bracketing gate passes
+        # 5/5.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            71,
+            68,
         )
 
         by_id = {row["cell_id"]: row for row in model}

@@ -143,6 +143,30 @@ CELL_CONTRACTS = {
         "estimator": "ML",
         "profile_parameter": "sd:mu:spatial(1 | site)",
     },
+    "mc-0123": {
+        "target_id": "mc-0123::sd:mu:mu1:spatial(1 | p | site)",
+        "cohort_id": "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility",
+        "family": "biv_gaussian",
+        "provider": "spatial",
+        "estimator": "ML",
+        "profile_parameter": "sd:mu:mu1:spatial(1 | p | site)",
+    },
+    "mc-0205": {
+        "target_id": "mc-0205::sd:mu:mu1:(1 | p | id)",
+        "cohort_id": "arc2-biv-gaussian-reml-musigma-mu1-sd-profile-feasibility",
+        "family": "biv_gaussian",
+        "provider": "none",
+        "estimator": "REML",
+        "profile_parameter": "sd:mu:mu1:(1 | p | id)",
+    },
+    "mc-0206": {
+        "target_id": "mc-0206::sd:sigma:sigma1:(1 | p | id)",
+        "cohort_id": "arc2-biv-gaussian-reml-musigma-sigma1-sd-profile-feasibility",
+        "family": "biv_gaussian",
+        "provider": "none",
+        "estimator": "REML",
+        "profile_parameter": "sd:sigma:sigma1:(1 | p | id)",
+    },
 }
 
 
