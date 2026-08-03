@@ -62,25 +62,25 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      # The B4-CI C2/C3/C4 cohort guards read their frozen BASE_COMMIT through
-      # `git show <sha>:...`, and actions/checkout defaults to a shallow clone,
-      # so those commits must be fetched before they can run. Fetch only those
-      # four -- `fetch-depth: 0` would pull ~691 MB of history on every PR.
-      # The SHAs are read out of the scripts so the two cannot drift apart.
-      - name: Fetch B4-CI cohort base commits
-        if: runner.os == 'Linux'
-        run: |
-          for sha in $(grep -h '^BASE_COMMIT' tools/integrate_b4_ci_c*.py | cut -d'"' -f2 | sort -u); do
-            echo "fetching $sha"
-            git fetch --depth=1 origin "$sha"
-          done
-
-      # All seven test_*.py files under tools/tests/ are invoked here, listed
-      # explicitly rather than via `unittest discover` so that adding a file
-      # is a deliberate act and a guard cannot rejoin CI unnoticed. A guard
-      # that no runner invokes is worse than no guard, because the evidence
-      # record still credits it -- see
+      # Files under tools/tests/ are listed explicitly rather than run via
+      # `unittest discover`, so that adding one to CI is a deliberate act and a
+      # guard cannot rejoin -- or silently leave -- without review. A guard that
+      # no runner invokes is worse than no guard, because the evidence record
+      # still credits it. See
       # docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-pin-drift.md.
+      #
+      # 5 of 7 run. test_b4_ci_c2/c3/c4 are still EXCLUDED, for a reason that is
+      # NOT the mc-0207 pin drift (that is fixed -- all four pass locally):
+      # their check paths call selected_source(), which reads
+      # `git show 574c1108e...:<ledger>` -- and SOURCE_COMMIT 574c1108e is not
+      # on origin at all. It exists only on a local-only branch
+      # (codex/lane-b-q1-preflight-admission), so no fetch can make it reachable
+      # from a CI runner. c1 is wired because its check_current() was written
+      # "without source-history access" and needs no such lookup; that is the
+      # pattern c2/c3/c4 would have to adopt. Resolving this needs an owner
+      # decision -- push the source branch to origin, or port c1's no-git path
+      # to the other three -- and until then the exclusion stays named here
+      # rather than hidden behind `discover`.
       - name: Validate generated capability ledger
         if: runner.os == 'Linux'
         run: |
@@ -90,9 +90,6 @@ jobs:
           python3 -m unittest tools/tests/test_b3_q6_target_promotion.py
           python3 -m unittest tools/tests/test_b4_ci_guard.py
           python3 -m unittest tools/tests/test_b4_ci_c1.py
-          python3 -m unittest tools/tests/test_b4_ci_c2.py
-          python3 -m unittest tools/tests/test_b4_ci_c3.py
-          python3 -m unittest tools/tests/test_b4_ci_c4.py
           Rscript --no-init-file tools/check-capability-runtime.R
 
       - uses: r-lib/actions/check-r-package@v2
