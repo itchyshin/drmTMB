@@ -183,7 +183,15 @@ FROZEN_CENSUS_COUNT = 676
 # apply, one frozen cell moving out of point_fit_recovery each: the merged
 # frozen-census total is derived from cells.tsv, not from either lane's
 # arithmetic in isolation. 72 -> 70.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 70
+# Arc 5 then promotes the final three Prong A cells on top of that merged
+# baseline of 70: mc-0123 (q6 spatial mu1 SD, the sibling of mc-0124's
+# already-promoted mu2 SD, on an independent fixture) and mc-0205/mc-0206
+# (the mu1/sigma1 marginal SDs of ONE labelled bivariate REML `(1 | p | id)`
+# mu-sigma correlated block, on a fixture that replaces the point-estimate-only
+# sim3() harness). None of the three overlaps the mc-0207/mc-0715/mc-0716
+# split cells. All three pass Fisher's tightened five-seed, truth-bracketing
+# gate 5/5. 70 -> 67 (derived from the merged cells.tsv, not assumed).
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 67
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -373,6 +381,37 @@ ARC4_TARGETS = {
         "claim_snippet": "arc4_nbinom2_mu_spatial_relmat_fixture",
     },
 }
+# Arc 5 promotes the final three Prong A cells: mc-0123 (the mu1 sibling of
+# mc-0124's already-promoted q6 spatial mu2 SD, on an INDEPENDENT fixture
+# because B3's own runner is unreachable from this tree), and mc-0205/
+# mc-0206 (the mu1/sigma1 marginal SDs of ONE labelled bivariate REML
+# `(1 | p | id)` mu-sigma correlated block, on a committed fixture that
+# REPLACES sim3() -- sim3() returned point estimates only and could never
+# support an interval claim). All three share the SAME source commit as
+# Arc 4 (the checkout both lanes' worktrees were built from) and Fisher's
+# tightened five-seed, truth-bracketing gate: every seed's relative error
+# <0.35 and every profile interval brackets the true value. 71 -> 68.
+ARC5_SOURCE_SHA = "095b9e3b1933f9b066365f92ddd4cb3d412a9dad"
+ARC5_TARGETS = {
+    "mc-0123": {
+        "target_id": "mc-0123::sd:mu:mu1:spatial(1 | p | site)",
+        "evidence_id": "ev-mc-0123-arc5-profile",
+        "transition_id": "tr-mc-0123-arc5-profile",
+        "claim_snippet": "arc4_q6_spatial_mu1_fixture",
+    },
+    "mc-0205": {
+        "target_id": "mc-0205::sd:mu:mu1:(1 | p | id)",
+        "evidence_id": "ev-mc-0205-arc5-profile",
+        "transition_id": "tr-mc-0205-arc5-profile",
+        "claim_snippet": "arc2_biv_musigma_fixture(n_id=60, n_each=8)",
+    },
+    "mc-0206": {
+        "target_id": "mc-0206::sd:sigma:sigma1:(1 | p | id)",
+        "evidence_id": "ev-mc-0206-arc5-profile",
+        "transition_id": "tr-mc-0206-arc5-profile",
+        "claim_snippet": "arc2_biv_musigma_fixture(n_id=60, n_each=8)",
+    },
+}
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
     "mc-0102": ("phylo", "mc-0101", "mc-0102::sd:mu:mu2:phylo(1 | p | species)"),
@@ -380,9 +419,11 @@ B3_Q6_MU2_TARGETS = {
     "mc-0146": ("animal", "mc-0145", "mc-0146::sd:mu:mu2:animal(1 | p | id)"),
     "mc-0168": ("relmat", "mc-0167", "mc-0168::sd:mu:mu2:relmat(1 | p | id)"),
 }
-# C4 separately promotes these three paired q6 mu1 rows.  The B3 target
-# receipt remains limited to mu2 and must not be treated as their evidence.
-C4_B3_PAIRED_MU1_IDS = {"mc-0101", "mc-0145", "mc-0167"}
+# C4 separately promotes these three paired q6 mu1 rows.  Arc 5 separately
+# promotes a fourth, mc-0123, on its own INDEPENDENT fixture (B3's own
+# runner is unreachable from this tree). The B3 target receipt remains
+# limited to mu2 and must not be treated as any of these four rows' evidence.
+C4_B3_PAIRED_MU1_IDS = {"mc-0101", "mc-0145", "mc-0167", "mc-0123"}
 B3_Q6_MU2_PACKET = (
     ROOT / "docs/dev-log/evidence/2026-08-01-b3-q6-target-promotion-packet.tsv"
 )
@@ -1903,6 +1944,40 @@ def validate(
             or transition.get("evidence_ids") != evidence_id
         ):
             errors.append(f"{cell_id}: Arc 4 transition must remain verified-to-verified")
+
+    for cell_id, contract in ARC5_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC5_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: Arc 5 target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC5_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: Arc 5 evidence binding changed")
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: Arc 5 transition must remain verified-to-verified")
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)

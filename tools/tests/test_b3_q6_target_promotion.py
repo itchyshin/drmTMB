@@ -4,12 +4,19 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import importlib.util
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
 DASHBOARD = ROOT / "docs/dev-log/dashboard"
+SPEC = importlib.util.spec_from_file_location(
+    "capability_ledger", ROOT / "tools/capability_ledger.py"
+)
+assert SPEC and SPEC.loader
+ledger = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(ledger)
 EXPECTED = {
     "mc-0102": ("phylo", "qseries_phylo_q6_planned", "mc-0102::sd:mu:mu2:phylo(1 | p | species)", "4573d5b76c0bd342fb382991fd5ab62005d3efa375139a4df33dda0c10492917", "174c96a1809caec6b8e6ce1ec872e290578844ce563d03266cecb46d8edce839"),
     "mc-0124": ("spatial", "qseries_spatial_q6_planned", "mc-0124::sd:mu:mu2:spatial(1 | p | site)", "ea0c6a064f54807546ae1fcb1a9b40a01b7b085359691d6f8e28532f811c9b56", "395ee46e5000fca21be1dea88ea55cb93a6d01406315bbf7ae5a89515c0d28e5"),
@@ -87,7 +94,17 @@ class B3Q6TargetPromotionTests(unittest.TestCase):
             self.assertEqual(support[whole]["fit_status"], "point_fit")
             self.assertEqual(support[whole]["interval_status"], "planned")
             self.assertEqual(support[whole]["coverage_status"], "planned")
-            self.assertEqual(cells[paired_mu1[cell_id]]["evidence_tier"], "point_fit_recovery")
+            # mc-0123 (mc-0124's paired mu1 target) was promoted to
+            # interval_feasible by Arc 5; the other three paired mu1 rows
+            # remain point_fit_recovery. Condition on the same
+            # C4_B3_PAIRED_MU1_IDS set test_capability_ledger.py uses so the
+            # two tests cannot silently drift apart.
+            expected_tier = (
+                "interval_feasible"
+                if paired_mu1[cell_id] in ledger.C4_B3_PAIRED_MU1_IDS
+                else "point_fit_recovery"
+            )
+            self.assertEqual(cells[paired_mu1[cell_id]]["evidence_tier"], expected_tier)
 
     def test_exactly_four_evidence_and_transition_rows_are_bound(self):
         evidence = {

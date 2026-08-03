@@ -470,9 +470,18 @@ class CapabilityLedgerTests(unittest.TestCase):
         # frozen 676), independently of ledger.FROZEN_CENSUS_POINT_FIT_RECOVERY,
         # so a promotion hidden behind a simultaneous row insert cannot slip
         # through both checks at once.
+        # 70 -> 67: Arc 5 promotes the final three Prong A cells -- mc-0123
+        # (q6 spatial mu1 SD, the independently-fixtured sibling of mc-0124's
+        # already-promoted mu2 SD) and mc-0205/mc-0206 (the mu1/sigma1
+        # marginal SDs of one labelled bivariate REML mu-sigma correlated
+        # block, replacing the point-estimate-only sim3() harness) -- each
+        # after Fisher's tightened five-seed, truth-bracketing gate passes
+        # 5/5. All three sit inside the frozen window, so this TOTAL and the
+        # frozen-only count above move together; recounted directly from the
+        # merged cells.tsv, not derived from the module constant.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            70,
+            67,
         )
 
         by_id = {row["cell_id"]: row for row in model}

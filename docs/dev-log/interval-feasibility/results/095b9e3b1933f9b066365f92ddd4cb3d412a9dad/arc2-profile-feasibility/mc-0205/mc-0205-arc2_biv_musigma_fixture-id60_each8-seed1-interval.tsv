@@ -1,0 +1,2 @@
+parm	level	lower	upper	scale	transformation	tmb_parameter	index	method	profile.engine	conf.status	profile.boundary	profile.message	cell_id	target_id	seed	information_rung
+sd:mu:mu1:(1 | p | id)	0.95	0.52460435497837	0.789877267661509	response	exp	log_sd_mu	1	profile	tmbprofile	profile	FALSE	ok	mc-0205	mc-0205::sd:mu:mu1:(1 | p | id)	1	id60_each8
