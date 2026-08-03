@@ -1,0 +1,6 @@
+exit=0 mc-0417 seed=2026080501
+exit=0 mc-0417 seed=2026080505
+exit=0 mc-0417 seed=2026080504
+exit=0 mc-0417 seed=2026080502
+exit=0 mc-0417 seed=2026080503
+CAMPAIGN_COMPLETE

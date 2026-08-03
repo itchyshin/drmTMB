@@ -461,9 +461,18 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 72 -> 71: Arc 4b demotes mc-0207 from point_fit_recovery to none (see
         # FROZEN_CENSUS_POINT_FIT_RECOVERY); its two new sibling leaves
         # (mc-0715, mc-0716) are born at evidence_tier=none, so they add zero.
+        # 72 -> 71: mc-0417 (the two-provider AGGREGATE count cell, BOUND to its
+        # spatial+relmat pair) is promoted on its primary target
+        # sd:mu:spatial(1 | site) after a fresh five-seed Totoro campaign that
+        # brackets the truth on every seed.
+        # Both land in the same merge: 72 -> 70. This literal is computed
+        # directly from cells.tsv (all model_surface rows, not just the
+        # frozen 676), independently of ledger.FROZEN_CENSUS_POINT_FIT_RECOVERY,
+        # so a promotion hidden behind a simultaneous row insert cannot slip
+        # through both checks at once.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            71,
+            70,
         )
 
         by_id = {row["cell_id"]: row for row in model}

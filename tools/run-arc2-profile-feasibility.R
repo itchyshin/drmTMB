@@ -618,6 +618,51 @@ cell_registry <- list(
     ),
     true_parameter_scale = "0.45 spatial random-intercept SD on mu1 (identity link) within the labelled q6 block, independent of 0.30/0.25 mu1 random-slope SDs (x/z) and 0.40/0.28/0.22 mu2 random-intercept/slope SDs required by the labelled two-slope q6 grammar; 8x9 coordinate grid (72 sites), 20 observations per site, log-SD internal scale",
     cohort_id = "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility"
+  ),
+  "mc-0417" = list(
+    # AGGREGATE cell (docs/dev-log/dashboard/capability-ledger/cells.tsv):
+    # "exactly two intercept-only providers drawn from {phylo, spatial,
+    # animal, relmat} ... may co-occur as primary+secondary q1 fields" has
+    # C(4,2) = 6 possible pairs. Boole's BIND decision pins mc-0417 to the
+    # ONE pair with recovery evidence on record -- spatial+relmat, per
+    # docs/dev-log/after-task/2026-07-05-count-multiprovider-structured-mu.md
+    # -- rather than splitting into five more zero-evidence cells. PRIMARY
+    # target: sd:mu:spatial(1 | site). Companion (surfaced, not gated):
+    # sd:mu:relmat(1 | id). Formula shape copied from
+    # tests/testthat/test-count-multiprovider-structured-mu.R:65-69, the only
+    # place in the tree that builds a simultaneous two-provider structured
+    # NB2 mean. Both `coords` and `Q` must be bare local symbols (spatial()/
+    # relmat()'s formula-parser requirement). See tools/arc4-multiprovider-
+    # mu-fixtures.R's header for the full point-fit gate record (5/5 seeds
+    # PASS at n_site=20/n_id=24/n_rep=5, after a smaller n_site=12/n_id=15
+    # design failed 1/5 on the primary target).
+    target = "sd:mu:spatial(1 | site)",
+    family_name = "nbinom2",
+    family = function() drmTMB::nbinom2(),
+    formula = function(fx) {
+      coords <- fx$coords
+      Q <- fx$Q
+      drmTMB::bf(
+        y ~ x + drmTMB::spatial(1 | site, coords = coords) +
+          drmTMB::relmat(1 | id, Q = Q),
+        sigma ~ 1
+      )
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "spatial+relmat",
+    fixture_name = "arc4_nbinom2_mu_spatial_relmat_fixture",
+    fixture_file = "tools/arc4-multiprovider-mu-fixtures.R",
+    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "site20_id24_each5",
+    dgp_id = "arc4_nbinom2_ml_spatial_relmat_mu_sd",
+    formula_label = paste0(
+      "bf(y ~ x + spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q), ",
+      "sigma ~ 1); nbinom2() (log/log); ML"
+    ),
+    true_parameter_scale = "0.6 spatial random-intercept SD on mu (log link; PRIMARY target), simultaneous with an independent 0.5 relmat random-intercept SD on mu (COMPANION, not gated); 20-site coordinate-arc GMRF (kappa = 66.2) crossed with 24-individual AR(1)-relatedness GMRF (kappa = 3.5), 5 observations per (site, id) cell, log-SD internal scale",
+    cohort_id = "arc4-nbinom2-ml-spatial-relmat-mu-sd-profile-feasibility"
   )
 )
 
