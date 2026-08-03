@@ -280,7 +280,8 @@ Artifact routing is narrower than fitted syntax. The one-slope routes have
 manual Phase 18 artifact tasks named `phylo_mu_slope`, `spatial_mu_slope`,
 `animal_mu_slope`, and `relmat_mu_slope`. These tasks are opt-in, excluded from
 `task = "all"`, and are not recovery, coverage, or power evidence.
-Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
+Mesh/SPDE fields beyond the fixed-kappa Gaussian intercept, combined
+phylogenetic-plus-spatial location models,
 additional multiple or labelled spatial-slope layouts outside the exact fitted
 ledger cells, spatial slope correlations,
 non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1 spatial
@@ -626,7 +627,8 @@ known-matrix Gaussian `mu` and `sigma` intercepts, matching univariate
 bivariate location covariance, and matching all-four constant q=4
 location-scale covariance. The exact A-matrix animal and K/Q relmat sigma
 slopes are inference-ready with caveats; the spatial sigma-slope interval gate
-remains blocked. Spatial `corpair()`, mesh/SPDE fields, pedigree/Ainv bridge
+remains blocked. Spatial `corpair()`, mesh/SPDE fields beyond the fixed-kappa
+Gaussian intercept, pedigree/Ainv bridge
 marshalling, sparse large-pedigree construction, additional multiple or
 labelled slope layouts outside the exact fitted ledger cells, and
 animal/`relmat()` predictor-dependent `corpair()` routes remain planned.
@@ -681,7 +683,7 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
 | `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented for q=2 `mu1`/`mu2` | Species-level predictors model the same-species latent phylogenetic location-location correlation through a positive-definite two-field loading contract. `corpairs(level = "phylogenetic")` reports the modelled response-scale mean, range, and number of species values. |
-| `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This is a fixed coordinate covariance foundation, not the future mesh/SPDE path. |
+| `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This fixed dense covariance foundation is separate from the fitted fixed-kappa mesh/SPDE intercept. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
 | Matching `spatial(1 | p | site, coords = coords)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated coordinate-spatial location deviations. `corpairs(level = "spatial")` and `summary()$covariance` report this mean-mean row separately from residual `rho12`. |
 | Matching labelled `spatial()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | Two Gaussian responses have a constant coordinate-spatial location-scale covariance block with four endpoint SDs and six derived latent spatial correlations. |
@@ -689,7 +691,7 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | A lower-level Gaussian `mu` random intercept for user-supplied latent relatedness covariance or precision matrices. |
 | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | Implemented first one-slope slice | One trait has independent known-matrix intercept and numeric slope fields in the location predictor. The two fields have separate SDs and do not estimate an intercept-slope correlation. |
 | Matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated lower-level known-relatedness location deviations from the same matrix. `corpairs(level = "relmat")` reports this mean-mean row separately from residual `rho12`. |
-| `spatial(1 | site, mesh = mesh)` | Planned | Mesh inputs will provide expert control for the scalable SPDE/GMRF spatial path. |
+| `spatial(1 | site, mesh = mesh)` with `sigma ~ 1` | Implemented local-fit slice | A projected-coordinate, fixed-kappa Gaussian `mu` intercept uses `A_st %*% omega`. Its raw GMRF field scale is not a range or uniform marginal SD; recovery, intervals, and coverage remain unclaimed. |
 
 The fitted q=2 phylogenetic correlation-regression syntax is:
 
@@ -1611,15 +1613,17 @@ target, not the scalable mesh/SPDE implementation. The conditional spatial
 effects from `ranef()` are shrunken site deviations in the location predictor
 after the fixed effects and the spatial covariance have been estimated.
 
-The planned `mesh` argument plays a different role. A `mesh` is the
+The fitted fixed-kappa `mesh` argument plays a different role. A `mesh` is the
 computational scaffold for an SPDE/GMRF field: a triangular network of vertices
 where the latent spatial field is represented and then projected back to
 observations. Users should not interpret mesh vertices as biological sampling
 units; they are numerical support points for the spatial surface. In other
 words, a mesh is not required by the idea of spatial dependence itself. It is
 required by the scalable SPDE/GMRF approximation. The friendly API should let
-users start with `coords = coords`; `mesh = mesh` is the expert route for
-reproducible control over boundaries, barriers, coastlines, or uneven sampling.
+users start with `coords = coords`; the current `mesh = mesh` route is the
+expert fixed-kappa Gaussian intercept for a projected mesh. Boundaries,
+barriers, coastlines, anisotropy, and uneven-sampling refinements remain
+separate future contracts.
 
 The spatial term is deliberately parallel to the phylogenetic term:
 
@@ -1640,8 +1644,8 @@ The mathematical role is the same: add structured Gaussian coefficient fields
 to a distributional predictor. The computational route differs. `phylo()`
 starts from an ultrametric tree with branch lengths and builds a sparse
 tree-derived precision. The first `spatial()` slice starts from coordinates and
-builds a fixed coordinate precision; the future mesh path will build an
-SPDE/GMRF precision.
+builds a fixed coordinate precision; the separate mesh path builds an
+SPDE/GMRF precision for its fixed-kappa Gaussian intercept.
 
 The computational plan is to keep using sparse A-inverse ideas for phylogeny
 and add SPDE/GMRF structure for spatial fields. The spatial route should cite

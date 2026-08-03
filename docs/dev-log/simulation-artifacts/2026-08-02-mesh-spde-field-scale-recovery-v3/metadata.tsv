@@ -1,0 +1,28 @@
+key	value
+run_status	COMPLETE
+run_mode	FULL_PROMOTION_GATE
+source_sha	1e48e8d80a7267354ae7b5a58adfec2dd67b2a21
+source_tree_at_start	clean
+runner_sha256	93af759959e1fdec4d72206b1a0f8630677e1c3240529f8d37d24bce6efeb79a
+helper_sha256	5d3c3da1248bfcfc368896d0cd2b06aa08c6c5e60e0642e58388bb3d345f4f86
+design_sha256	b9764d42f0f346e997c63602539b1ecf66917913e5cecaddc8aea5d84fc7c3e2
+host	totoro
+platform	x86_64-pc-linux-gnu
+r_version	R version 4.5.3 (2026-03-11)
+started_utc	2026-08-02 19:20:27 UTC
+kappa_fixed	5e-05
+field_scale_truth	1e-04
+residual_sd_truth	0.25
+n_sites	128,256
+replicates_per_rung	50
+attempts_expected	100
+max_abs_relative_bias	0.15
+max_rmse_log_scale	0.3
+max_gradient	0.001
+monte_carlo_confidence	0.95
+dll_path	/tmp/Rtmp5K46U9/pkgload3912b529a77448/drmTMB.so
+dll_sha256	316bae6527632c55b9cb9542a9094753a3acc3ef63c4f8dd7d75874865890432
+raw_attempts_sha256	128d73635b415837245d3840ce57e91c5689fcaca84ce7c84b726e1c9366914f
+summary_sha256	0612ec6a8dd255196c9bbe2f67c31ad1060073965ac4d4cbc290f3ac5070bada
+gate_sha256	8113d88af3d313e868a39962c9264268acc399f2fe0891c8e57df6596518bd70
+finished_utc	2026-08-02 19:21:44 UTC

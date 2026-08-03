@@ -1,0 +1,8 @@
+source_sha	ae3f21f8c62240d28cfceb3433afbf53fd97156c
+runner_md5	75550d14ec6ec6a540d8614257845c87
+host	totoro
+n_site	128
+replicates	50
+kappa_fixed	5e-05
+field_scale_truth	1e-04
+design	same_observations_and_DGP_per_seed;fine_vs_coarse_fit

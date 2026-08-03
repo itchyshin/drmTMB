@@ -717,6 +717,10 @@ test_that("hidden q=4 registry bridge feeds bivariate Gaussian likelihood", {
     allow_unimplemented = TRUE
   )
   tmb_data <- spec$tmb_data
+  expect_true(all(c(
+    "has_mesh_spatial_mu", "A_mesh_spatial", "Q_mesh_spatial",
+    "log_det_Q_mesh_spatial"
+  ) %in% names(tmb_data)))
   tmb_data[names(cov_tmb)] <- cov_tmb
   theta <- c(0.12, -0.20, 0.08, 0.18, -0.14, 0.26)
   sd <- c(0.50, 0.35, 0.25, 0.30)

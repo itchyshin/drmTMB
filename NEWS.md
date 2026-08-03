@@ -1,5 +1,18 @@
 # drmTMB 0.6.0
 
+## Fixed-kappa Gaussian mesh intercept at point-fit recovery
+
+* `spatial(1 | site, mesh = mesh)` now has authenticated current-source
+  point-recovery evidence for its exact tested fixed-domain `n = 128` and
+  `n = 256` designs. A fresh 100-fit Totoro campaign retained 50/50 usable
+  fits per rung; relative bias was -0.0301 and -0.0096, and log-scale RMSE was
+  0.1444 and 0.1009, with both Monte Carlo uncertainty bounds inside the
+  frozen gates. The earlier `n = 64` failure remains the lower tested boundary,
+  so this is not a universal `n >= 128` guarantee. `kappa` remains fixed;
+  field-scale intervals, coverage, projected marginal-SD inference, range,
+  slopes, non-Gaussian or bivariate meshes, anisotropy, barriers, replicated
+  fields, and spatiotemporal fields remain unavailable.
+
 ## Zero-one-beta ordinary `coi` random effects at point-fit recovery
 
 * `zero_one_beta()` now admits the exact complete-response ML-Laplace routes

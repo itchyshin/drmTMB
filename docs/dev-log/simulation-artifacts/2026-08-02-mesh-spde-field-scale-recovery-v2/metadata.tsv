@@ -1,0 +1,18 @@
+run_status	COMPLETE
+source_sha	ae3f21f8c62240d28cfceb3433afbf53fd97156c
+runner_md5	f08365908841ec768a44c46391ff96dc
+host	totoro
+platform	x86_64-pc-linux-gnu
+r_version	R version 4.5.3 (2026-03-11)
+kappa_fixed	5e-05
+field_scale_truth	1e-04
+residual_sd_truth	0.25
+n_sites	64,128,256
+replicates_per_rung	50
+attempts_expected	150
+attempt_policy	append_each_attempt
+gate_min_convergence_and_pdHess_rate	1
+gate_max_abs_relative_bias	0.15
+gate_max_rmse_log_scale	0.3
+finished_utc	2026-08-02 12:24:18 UTC
+raw_attempts_md5	c9453171a30d75f0a35b7e923ecb16f8
