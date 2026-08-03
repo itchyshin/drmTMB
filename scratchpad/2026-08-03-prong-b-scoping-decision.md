@@ -29,6 +29,19 @@ Common property: every one of these 14 profiles a **scale parameter estimated fr
 (`log_sd_sigma` / `log_sd_phylo`), and every spiked representative produced a clean two-sided
 profile whose interval covered the truth on the first seed tried.
 
+**(ADDED 2026-08-03, Arc 7b owner decision.)** Two of these four groups — zob `sigma` structured
+(mc-0593–mc-0597) and count `sigma` phylo_interaction (mc-0425, mc-0653) — are structured-sigma cells
+fit under ML. A same-day Arc 7b finding
+(`docs/dev-log/after-task/2026-08-03-nbinom2-structured-sigma-family-low-bias.md`) documents a
+family-level ML sigma-axis low bias in the sibling nbinom2 structured-sigma provider cells
+(mc-0421–mc-0424): 11 of 12 retained ML point estimates fall below truth (fit-level one-sided sign test
+p=0.0032; cell-level, respecting the shared DGP and shared random-number stream, p=0.0625). REML would
+fix this but is not reachable: `drm_validate_reml_spec` (`R/drmTMB.R:2221-2225`) admits only Gaussian
+and binomial. Owner decision: fund all 14 cells as scoped — `interval_feasible` is a claim about
+interval existence and truth-bracketing, which the new truth gate checks directly, not about
+point-estimate bias — but every structured-sigma cell's `claim_boundary` must name the bias and REML's
+unavailability for its family. See §3 point 5 (Ledger) for where this lands.
+
 ### Tier 2 — HOLD, do not fund in this arc (11 cells): calibration pilot required first
 
 | group | cells | n | blocking signal |
@@ -162,7 +175,9 @@ Because this is the first `R/` change, the downstream surface is larger than the
 5. **Ledger** — `docs/dev-log/dashboard/capability-ledger/cells.tsv`: `evidence_tier`
    `point_fit_recovery → interval_feasible` for exactly the 14 (col 17), plus `claim_boundary`
    (23), `next_gate` (24), `primary_evidence_id` (22), `updated_commit`/`updated_date` (27/28).
-   New `evidence.tsv` rows for the campaign receipts.
+   New `evidence.tsv` rows for the campaign receipts. *(ADDED 2026-08-03, Arc 7b owner decision: the
+   `claim_boundary` text for mc-0593–mc-0597 and mc-0425/mc-0653 specifically must name the documented
+   ML sigma-axis low bias and state that REML is unavailable for their family — see §1's Tier 1 note.)*
 6. **`R CMD check --as-cran` + full `devtools::test()` locally** before any push (per the
    local-checks-over-CI rule). Expect snapshot churn in `tests/testthat/_snaps` wherever a
    profile note is printed.
