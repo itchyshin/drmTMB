@@ -8,15 +8,18 @@
 # residual correlation (the (n-p) factor cancels, so REML rho12 = ML rho12).
 # drmTMB's bivariate REML must match this exact reference.
 
-biv_reml_fixture <- function(n = 150L, seed = 3L) {
+biv_reml_fixture <- function(n = 150L, seed = 3L, rho12 = 0.4) {
   set.seed(seed)
   x <- stats::rnorm(n)
-  S <- chol(matrix(c(1, 0.4, 0.4, 1), 2, 2))
+  S <- chol(matrix(c(1, rho12, rho12, 1), 2, 2))
   e <- matrix(stats::rnorm(2 * n), n, 2) %*% S
-  data.frame(
-    y1 = 0.3 + 0.5 * x + 0.8 * e[, 1],
-    y2 = 0.1 + 0.2 * x + 0.9 * e[, 2],
-    x = x
+  list(
+    data = data.frame(
+      y1 = 0.3 + 0.5 * x + 0.8 * e[, 1],
+      y2 = 0.1 + 0.2 * x + 0.9 * e[, 2],
+      x = x
+    ),
+    true_rho12 = rho12
   )
 }
 
@@ -39,7 +42,7 @@ biv_reml_reference <- function(y1, y2, X) {
 
 test_that("bivariate fixed-effect REML matches an exact restricted-likelihood reference", {
   skip_on_cran()
-  dat <- biv_reml_fixture()
+  dat <- biv_reml_fixture()$data
   fit <- drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
     family = biv_gaussian(),
@@ -75,7 +78,7 @@ test_that("bivariate fixed-effect REML matches an exact restricted-likelihood re
 
 test_that("bivariate REML df counts both marginalised mean blocks", {
   skip_on_cran()
-  dat <- biv_reml_fixture()
+  dat <- biv_reml_fixture()$data
   fit <- drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
     family = biv_gaussian(),

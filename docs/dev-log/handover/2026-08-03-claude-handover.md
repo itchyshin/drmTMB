@@ -21,10 +21,16 @@ cells), #904 (`mc-0417`), #905 (`mc-0207` split **and demotion**).
 
 ### 1. Fix the reconciler blind spot — before any more promotions
 
+**DONE (Arc 7b, 2026-08-03).** `tools/profile_truth_gate.py` now checks interval location and is wired
+into `reconcile()` across the 31-cell contract surface; see
+`docs/dev-log/after-task/2026-08-03-arc7b-profile-truth-gate.md`. The paragraph below is the historical
+record of the gap as it stood when this handover was written.
+
 **This outranks every remaining cell.** `tools/arc2_profile_reconcile.py::reconcile()` has **no truth
-field**, so it validates interval *shape* and is structurally blind to interval *location*. Three
-promotions today reconciled **5/5 PASS** while containing an interval that missed the true value, and in
-one case the build agent **printed the correct endpoints and then wrote "YES"**.
+field**, so it validates interval *shape* and is structurally blind to interval *location*. *(CORRECTED
+2026-08-03, Arc 7b: no longer true — see the DONE note above.)* Three promotions today reconciled **5/5
+PASS** while containing an interval that missed the true value, and in one case the build agent
+**printed the correct endpoints and then wrote "YES"**.
 
 | Cell | Receipt | Truth | Failure |
 |---|---|---|---|
@@ -34,6 +40,7 @@ one case the build agent **printed the correct endpoints and then wrote "YES"**.
 
 Making `true_value` and `brackets_truth` recorded receipt fields — **written by the runner, checked by
 the reconciler** — turns a human-memory step into a machine gate. **Until that lands, this recurs.**
+*(CORRECTED 2026-08-03, Arc 7b: this landed. No longer OWED.)*
 
 ### 2. Prong B, Tier 1 — 14 cells, ~30 min compute
 
@@ -49,6 +56,12 @@ flipping TRUE outside the 14 gets re-fenced.**
 Tier 1 cells: `mc-0568`, `mc-0576` (sigma ordinary) · `mc-0593`–`mc-0597` (sigma structured) ·
 `mc-0418`, `mc-0436`, `mc-0446`, `mc-0450`, `mc-0454` (count mu labelled q2) · `mc-0425`, `mc-0653`
 (count sigma phylo_interaction).
+
+*(ADDED 2026-08-03, Arc 7b owner decision: the sigma-structured and count-sigma-phylo_interaction
+groups are ML-fit structured-sigma cells; a sibling nbinom2 cohort shows a family-level ML sigma-axis
+low bias (`docs/dev-log/after-task/2026-08-03-nbinom2-structured-sigma-family-low-bias.md`, fit-level
+p=0.0032, cell-level p=0.0625) and REML does not reach either family (`R/drmTMB.R:2221-2225`). Decision:
+fund all 14, but name both facts in each structured-sigma cell's `claim_boundary`.)*
 
 ### 3. The `zoi` pilot — 11 cells, short
 

@@ -6,17 +6,41 @@ Programme handover: [`2026-08-03-claude-handover.md`](2026-08-03-claude-handover
 
 ---
 
+## Arc 7b changed these premises (read first)
+
+This brief was written before Arc 7b landed (`bf57e2b4d`, 2026-08-03). Arc 7b invalidated three
+things below; each is corrected in place and marked `(CORRECTED 2026-08-03, Arc 7b: ...)`. Summary:
+
+1. **Task 1 is DONE**, not the next lane's job. `tools/profile_truth_gate.py` now checks interval
+   *location* and is wired into `tools/arc2_profile_reconcile.py::reconcile()` across the 31-cell
+   contract surface. Authoritative account:
+   `docs/dev-log/after-task/2026-08-03-arc7b-profile-truth-gate.md`. Start execution at Task 2.
+2. **The "184/58" ceiling is stale.** Arc 7b demoted `mc-0424` and `mc-0260m` from `interval_feasible`
+   to `point_fit_recovery`. The verified current surface is 182 interval_feasible / 60
+   point_fit_recovery (whole model_surface), not the projected 184/58 — recomputed below in
+   "Carried-over PRs to land first".
+3. **A new caveat on two of Tier 1's four groups.** `mc-0593`–`mc-0597` (zob `sigma` structured) and
+   `mc-0425`/`mc-0653` (count `sigma` phylo_interaction) are structured-sigma cells fit under ML. Arc
+   7b surfaced a family-level ML sigma-axis low-bias finding for exactly this class
+   (`docs/dev-log/after-task/2026-08-03-nbinom2-structured-sigma-family-low-bias.md`). Owner decision:
+   proceed with all 14 cells, but the `claim_boundary` for every structured-sigma cell must name the
+   bias and REML's unavailability for these families. Detail under Task 2.
+
+---
+
 ## 🎯 GOAL — paste this to start the lane
 
 ```text
 🎯 GOAL
 PLATFORM: Claude (runs the live R/TMB fits, the Totoro campaign, and R CMD check itself).
-DELIVERABLE: (1) FIRST, make interval LOCATION machine-checked: add `true_value` and `brackets_truth`
-as recorded receipt fields written by tools/run-arc2-profile-feasibility.R and CHECKED by
-tools/arc2_profile_reconcile.py. (2) THEN execute Prong B Tier 1: open the 14 zero-one-beta and count
-profile fences in R/profile.R and promote the cells the evidence earns.
-HEADLINE: the reconciler is blind to whether an interval CONTAINS the truth — three promotions
-reconciled 5/5 PASS while missing it. Fix the gate before adding cells behind it.
+DELIVERABLE: (1) DONE (Arc 7b, 2026-08-03) — interval LOCATION is now machine-checked by
+tools/profile_truth_gate.py, wired into tools/arc2_profile_reconcile.py::reconcile(). See
+docs/dev-log/after-task/2026-08-03-arc7b-profile-truth-gate.md. (2) THE REMAINING DELIVERABLE: execute
+Prong B Tier 1: open the 14 zero-one-beta and count profile fences in R/profile.R and promote the cells
+the evidence earns.
+HEADLINE (CORRECTED 2026-08-03, Arc 7b): the gate now enforces truth-bracketing on all 31 contract
+cells via tools/profile_truth_gate.py. Two of Tier 1's four groups are structured-sigma under ML with a
+documented low-bias caveat — proceed with all 14, but name it in each claim_boundary (see Task 2).
 IN PARALLEL: the 11-cell `zoi` calibration pilot; the one-fit labelled-vs-unlabelled spelling experiment.
 DEFER: q12 (16 cells — a POLICY fence; Shinichi's call, not the agent's); the 3 estimator holds
 (mc-0182/0183/0261, where REML marginalizes the mean fixed effects so there is no direct target); the 4
@@ -35,11 +59,17 @@ promotion even when the mean passes. Compute on Totoro, never GitHub Actions.
 
 ## Task 1 — the reconciler gate (do this first)
 
+**(DONE, Arc 7b, 2026-08-03.)** This task is now complete — skip to Task 2.
+`tools/profile_truth_gate.py` checks interval location and is wired into `reconcile()`; see
+`docs/dev-log/after-task/2026-08-03-arc7b-profile-truth-gate.md`. The rest of this task's description is
+kept as the historical record of the gap as it stood before the fix.
+
 **Why it comes first.** `tools/arc2_profile_reconcile.py::reconcile()` validates target, cohort, family,
 estimator, `conf_status`, convergence, `pdHess`, boundary, clamp, trace and artifact hashes. Its
 `required` dict has **no truth field**. It therefore checks interval *shape* and cannot check interval
-*location*. Three promotions were caught only because a human recomputed bracketing by hand, and all
-three had reconciled **5/5 PASS**:
+*location*. *(CORRECTED 2026-08-03, Arc 7b: no longer true — see the DONE note above.)* Three
+promotions were caught only because a human recomputed bracketing by hand, and all three had reconciled
+**5/5 PASS**:
 
 | Cell | Receipt | Truth | Failure |
 |---|---|---|---|
@@ -75,6 +105,20 @@ representative gave a clean two-sided profile covering truth on the first seed:
 | zero_one_beta `sigma` structured | `mc-0593`, `mc-0594`, `mc-0595`, `mc-0596`, `mc-0597` |
 | count `mu` labelled q2 | `mc-0418`, `mc-0436`, `mc-0446`, `mc-0450`, `mc-0454` |
 | count `sigma` phylo_interaction | `mc-0425`, `mc-0653` |
+
+**(ADDED 2026-08-03, Arc 7b owner decision.)** Two of these four groups — zero_one_beta `sigma`
+structured (`mc-0593`–`mc-0597`) and count `sigma` phylo_interaction (`mc-0425`, `mc-0653`) — are
+structured-sigma cells fit under ML.
+`docs/dev-log/after-task/2026-08-03-nbinom2-structured-sigma-family-low-bias.md` documents a
+family-level ML sigma-axis low bias in the sibling nbinom2 structured-sigma provider cells
+(mc-0421–mc-0424): 11 of 12 retained ML point estimates fall below truth (fit-level one-sided sign test
+p=0.0032; the honest cell-level figure, respecting the shared DGP and shared random-number stream, is
+p=0.0625). Native scale-side REML would correct this, but `drm_validate_reml_spec`
+(`R/drmTMB.R:2221-2225`) admits only Gaussian and binomial models, so REML does not reach nbinom2 or
+zero_one_beta. Owner decision: Prong B proceeds with all 14 cells — `interval_feasible` claims interval
+existence and truth-bracketing, which the gate now checks directly, and the point-estimate bias is a
+separate, disclosed fact, not a reason to withhold — but every structured-sigma cell's `claim_boundary`
+must name this bias and state that REML is unavailable for its family.
 
 **Compute is trivial: ~70 fits, 135 profile runs, ≤30 min Totoro** under the 100-core cap. The real
 budget is reviewing 135 traces.
@@ -149,11 +193,21 @@ Two independent reasons:
 
 ## Carried-over PRs to land first
 
+**(DONE, Arc 7b, 2026-08-03.)** #907 and #908 are now merged — `d82d2b539` merges #907, `5aacb1425`
+merges #908, both confirmed ancestors of the current HEAD (`git merge-base --is-ancestor`). This
+section's rebase-and-merge instructions are historical/moot.
+
 **#907** (`claude/arc5-final-three`) and **#908** (`claude/arc6-gaussian-nine`) were both CI-green and
 were conflicted by #905 merging. Rebase onto current `main`, re-run CI, merge. **#908 deliberately
 withholds `mc-0292` — do not re-add it.**
 
 Landing these moves the surface from 172/70 to roughly **184/58**.
+
+*(CORRECTED 2026-08-03, Arc 7b: that 184 projection landed as expected, but Arc 7b then demoted
+`mc-0424` and `mc-0260m` from `interval_feasible` to `point_fit_recovery`. The verified current surface
+is 182 interval_feasible / 60 point_fit_recovery — whole model_surface; 59 in the frozen ≤676-window
+count — recomputed from 182, not 184, as directed. Landing Prong B's 14 cells from this baseline would
+move the surface to roughly 196/46, not 198/44.)*
 
 ## Operational notes
 

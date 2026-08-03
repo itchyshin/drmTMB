@@ -206,7 +206,16 @@ FROZEN_CENSUS_COUNT = 676
 # check against the DGP's known truth caught this. None of the nine overlaps the
 # mc-0207/mc-0715/mc-0716 split cells or Arc 5's three. 67 -> 58 (derived from the
 # merged cells.tsv, not assumed).
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 58
+#
+# Arc 7b: 58 -> 59. mc-0424 fell back from interval_feasible to point_fit_recovery
+# when the truth gate (tools/profile_truth_gate.py) was installed: its seed
+# 2026080301 interval [0.257, 0.516] excludes the DGP's true 0.55 by 6.3%. Its
+# point-fit evidence is untouched, so it lands one rung down rather than at none.
+# mc-0260m demoted in the same change but is source_order 694, outside this
+# frozen <=676 window, so it does not move this constant. The gap the note above
+# describes -- "reconcile() never reads a true value" -- is now closed
+# mechanically; that is what found these two.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 59
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -217,17 +226,13 @@ ARC1_GAUSSIAN_FIXED_RECONCILIATION = (
     f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
     "arc1-gaussian-fixed-profile-feasibility/totoro/reconciliation.tsv"
 )
+# mc-0260m was removed from this dict in Arc 7b. The loop below asserts that
+# every member still holds evidence_tier=interval_feasible, and mc-0260m no
+# longer does: its retained seed 2026080233 interval [0.234, 0.423] excludes the
+# meta_V DGP's true pooled mean of 0.20 by 16.8%. Its metafor parity evidence is
+# unaffected, so it sits at point_fit_recovery. See
+# docs/dev-log/dashboard/parity-triage.tsv for the corrected supersession text.
 ARC1_ADDITIONAL_TARGETS = {
-    "mc-0260m": {
-        "target_id": "mc-0260m::fixef:mu:(Intercept)",
-        "evidence_id": "ev-mc-0260m-arc1-meta-v-profile",
-        "transition_id": "tr-mc-0260m-arc1-meta-v-profile",
-        "reconciliation": (
-            "docs/dev-log/interval-feasibility/results/"
-            f"{ARC1_GAUSSIAN_FIXED_SOURCE_SHA}/"
-            "arc1-meta-v-profile-feasibility/totoro/reconciliation.tsv"
-        ),
-    },
     "mc-0266": {
         "target_id": "mc-0266::sd:sigma:(1 | id)",
         "evidence_id": "ev-mc-0266-arc1-sigma-re-profile",
@@ -351,12 +356,11 @@ ARC3_TARGETS = {
         "transition_id": "tr-mc-0421-arc3-profile",
         "claim_snippet": "arc3_nbinom2_sigma_phylo_fixture",
     },
-    "mc-0424": {
-        "target_id": "mc-0424::sd:sigma:relmat(1 | id)",
-        "evidence_id": "ev-mc-0424-arc3-profile",
-        "transition_id": "tr-mc-0424-arc3-profile",
-        "claim_snippet": "arc3_nbinom2_sigma_relmat_fixture",
-    },
+    # mc-0424 was removed from this dict in Arc 7b, for the same reason mc-0409
+    # (below) was once withheld and the same reason mc-0423 still is: its seed
+    # 2026080301 profile interval [0.257, 0.516] excludes the true 0.55. mc-0409
+    # was caught by a human; mc-0424 was not, and shipped as interval_feasible.
+    # tools/profile_truth_gate.py now makes that check mechanical.
     "mc-0321": {
         "target_id": "mc-0321::sd:mu:phylo_interaction(1 | plant:pollinator)",
         "evidence_id": "ev-mc-0321-arc3-profile",

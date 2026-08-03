@@ -91,7 +91,11 @@ cell_registry <- list(
     # differ across cells -- see mc-0263 below) behind one common interface:
     # (fixture_fn, seed) -> data.frame.
     fixture_call = function(fixture_fn, seed) fixture_fn(n = 150L, seed = seed),
-    data_from_fixture = function(fx) fx,
+    # 2026-08-03: biv_reml_fixture() now returns list(data, true_rho12) (it
+    # used to return a bare data.frame) so its true residual correlation is
+    # mechanically derivable rather than hand-typed a second time in
+    # `true_parameter_scale` below -- see tests/testthat/test-reml-bivariate.R.
+    data_from_fixture = function(fx) fx$data,
     information_rung = function(seed) "n150",
     dgp_id = "arc2_biv_gaussian_reml_residual_correlation",
     formula_label = paste0(
@@ -99,6 +103,7 @@ cell_registry <- list(
       "biv_gaussian(); REML=TRUE; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.4 residual correlation (rho12), constant across observations",
+    true_value = function(fx) fx$true_rho12,
     cohort_id = "arc2-biv-gaussian-reml-rho12-profile-feasibility"
   ),
   "mc-0263" = list(
@@ -133,6 +138,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "sigma ~ x fixed coefficient (DGP true sigma effect is on z, not x; this fit tests profile feasibility of the fixef:sigma:x target only, not point recovery)",
+    true_value = function(fx) fx$true_sigma_x_coef,
     cohort_id = "arc2-gaussian-reml-heteroscedastic-sigma-fixef-profile-feasibility"
   ),
   "mc-0274" = list(
@@ -174,6 +180,7 @@ cell_registry <- list(
       "REML=TRUE; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.6 phylogenetic random-intercept SD on the mean (mu), log-SD internal scale",
+    true_value = function(fx) fx$true_sd_phylo,
     cohort_id = "arc2-gaussian-reml-phylo-location-mu-sd-profile-feasibility"
   ),
   "mc-0277" = list(
@@ -213,6 +220,7 @@ cell_registry <- list(
       "bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)); gaussian(identity/log); REML=TRUE"
     ),
     true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma), log-SD internal scale",
+    true_value = function(fx) fx$true_log_sd_phylo,
     cohort_id = "arc2-gaussian-reml-phylo-sigma-sd-profile-feasibility"
   ),
   "mc-0283" = list(
@@ -258,6 +266,7 @@ cell_registry <- list(
       "REML=TRUE; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma) in the matched q2 block (independent 0.6 SD phylo effect also present on mu, identity link), log-SD internal scale",
+    true_value = function(fx) fx$true_log_sd_sigma,
     cohort_id = "arc2-gaussian-reml-phylo-sigma-q2-sd-profile-feasibility"
   ),
   "mc-0013" = list(
@@ -290,6 +299,7 @@ cell_registry <- list(
       "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 animal random-slope SD on mu (logit link), independent of a 0.50 animal random-intercept SD; 40-individual (3-generation) pedigree, 20 observations per individual, log-SD internal scale",
+    true_value = function(fx) fx$sd_slope,
     cohort_id = "arc2-beta-animal-mu-slope-sd-profile-feasibility"
   ),
   "mc-0015" = list(
@@ -316,6 +326,7 @@ cell_registry <- list(
       "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 animal random-intercept SD on sigma (log link); 40-individual (3-generation) pedigree, 40 observations per individual for within-group replication, log-SD internal scale",
+    true_value = function(fx) fx$sd_animal_sigma,
     cohort_id = "arc2-beta-animal-sigma-intercept-sd-profile-feasibility"
   ),
   "mc-0421" = list(
@@ -350,6 +361,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 phylogenetic random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.20 phylogenetic random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-tip frozen random topology with Grafen branch lengths (power = 0.5, tree_seed = 909), 30 observations per tip, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_intercept,
     cohort_id = "arc3-nbinom2-ml-phylo-sigma-sd-profile-feasibility"
   ),
   "mc-0422" = list(
@@ -378,6 +390,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 spatial random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.20 spatial random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 9x9 coordinate grid (81 sites), 25 observations per site, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_intercept,
     cohort_id = "arc3-nbinom2-ml-spatial-sigma-sd-profile-feasibility"
   ),
   "mc-0423" = list(
@@ -435,6 +448,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 animal random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 animal random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-individual (3-generation, 8-founder-pair) pedigree, 25 observations per individual, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_intercept,
     cohort_id = "arc3-nbinom2-ml-animal-sigma-sd-profile-feasibility"
   ),
   "mc-0424" = list(
@@ -467,6 +481,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 relmat random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-individual relatedness structure, 25 observations per individual, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_intercept,
     cohort_id = "arc3-nbinom2-ml-relmat-sigma-sd-profile-feasibility"
   ),
   "mc-0321" = list(
@@ -515,6 +530,7 @@ cell_registry <- list(
       "tree2 = pollinator_tree), sigma ~ 1); gaussian(identity/log); ML"
     ),
     true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (identity link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 8 observations per pair, log-SD internal scale",
+    true_value = function(fx) fx$sd_pair,
     cohort_id = "arc3-gaussian-ml-phylo-interaction-mu-sd-profile-feasibility"
   ),
   "mc-0409" = list(
@@ -577,6 +593,7 @@ cell_registry <- list(
       "tree2 = pollinator_tree), sigma ~ 1); nbinom2() (log/log); ML"
     ),
     true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (log link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 24 observations per pair, log-SD internal scale",
+    true_value = function(fx) fx$sd_pair,
     cohort_id = "arc3-nbinom2-ml-phylo-interaction-mu-sd-profile-feasibility"
   ),
   "mc-0123" = list(
@@ -617,6 +634,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.45 spatial random-intercept SD on mu1 (identity link) within the labelled q6 block, independent of 0.30/0.25 mu1 random-slope SDs (x/z) and 0.40/0.28/0.22 mu2 random-intercept/slope SDs required by the labelled two-slope q6 grammar; 8x9 coordinate grid (72 sites), 20 observations per site, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_mu1_intercept,
     cohort_id = "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility"
   ),
   "mc-0417" = list(
@@ -662,6 +680,10 @@ cell_registry <- list(
       "sigma ~ 1); nbinom2() (log/log); ML"
     ),
     true_parameter_scale = "0.6 spatial random-intercept SD on mu (log link; PRIMARY target), simultaneous with an independent 0.5 relmat random-intercept SD on mu (COMPANION, not gated); 20-site coordinate-arc GMRF (kappa = 66.2) crossed with 24-individual AR(1)-relatedness GMRF (kappa = 3.5), 5 observations per (site, id) cell, log-SD internal scale",
+    # `truth` is a named vector (sd_spatial, sd_relmat, sigma_nb2) -- the
+    # PRIMARY gated target is sd_spatial; sd_relmat is a reported companion,
+    # not gated (see the header comment above).
+    true_value = function(fx) fx$truth[["sd_spatial"]],
     cohort_id = "arc4-nbinom2-ml-spatial-relmat-mu-sd-profile-feasibility"
   ),
   "mc-0205" = list(
@@ -706,6 +728,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.6 mu1 random-intercept SD in a labelled mu1/sigma1 correlated (1 | p | id) block (true correlation 0.3, matched sigma1 SD 0.4), untransformed internal scale",
+    true_value = function(fx) fx$true_sd_mu1,
     cohort_id = "arc2-biv-gaussian-reml-musigma-mu1-sd-profile-feasibility"
   ),
   "mc-0206" = list(
@@ -736,6 +759,7 @@ cell_registry <- list(
       "drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.4 sigma1 (log-scale) random-intercept SD in a labelled mu1/sigma1 correlated (1 | p | id) block (true correlation 0.3, matched mu1 SD 0.6), log-SD internal scale",
+    true_value = function(fx) fx$true_sd_sig1,
     cohort_id = "arc2-biv-gaussian-reml-musigma-sigma1-sd-profile-feasibility"
   ),
   "mc-0286" = list(
@@ -779,6 +803,7 @@ cell_registry <- list(
       "gaussian() (identity/log); ML"
     ),
     true_parameter_scale = "0.5 spatial random-intercept SD on mu (identity link; PRIMARY target), simultaneous with an independent 0.38 spatial random-slope SD on mu (COMPANION, not gated); 16-site circular-arc GMRF (kappa = 66.97), 20 observations per site, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_intercept,
     cohort_id = "arc5-gaussian-ml-spatial-mu-one-slope-sd-profile-feasibility"
   ),
   "mc-0298" = list(
@@ -819,6 +844,7 @@ cell_registry <- list(
       "gaussian() (identity/log); ML"
     ),
     true_parameter_scale = "0.5 animal random-intercept SD on mu (identity link; PRIMARY target), simultaneous with an independent 0.38 animal random-slope SD on mu (COMPANION, not gated); 80-individual (8-founder-pair, 3-generation pedigree) additive relationship matrix (kappa = 66.70), 20 observations per individual, log-SD internal scale",
+    true_value = function(fx) fx$true_sd_intercept,
     cohort_id = "arc5-gaussian-ml-animal-mu-one-slope-sd-profile-feasibility"
   ),
   "mc-0291" = list(
@@ -876,6 +902,7 @@ cell_registry <- list(
       "ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.6 spatial random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD spatial effect also present on log(sigma)); 9x9 coordinate grid (81 sites, spatial covariance condition number 344.95), 25 observations per site; marginal claim only, mu/sigma cross-block correlation unclaimed (zero by construction in this DGP)",
+    true_value = function(fx) fx$true_sd_mu,
     cohort_id = "arc2-gaussian-ml-spatial-mu-q2-sd-profile-feasibility"
   ),
   "mc-0303" = list(
@@ -922,6 +949,7 @@ cell_registry <- list(
       "ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.6 animal random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD animal effect also present on log(sigma)); 80-individual (3-generation, 8-founder-pair) pedigree, A-matrix condition number 66.70, 25 observations per individual; marginal claim only, mu/sigma cross-block correlation unclaimed (zero by construction in this DGP)",
+    true_value = function(fx) fx$true_sd_mu,
     cohort_id = "arc2-gaussian-ml-animal-mu-q2-sd-profile-feasibility"
   ),
   "mc-0315" = list(
@@ -961,6 +989,7 @@ cell_registry <- list(
       "ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.6 relmat (AR1-Toeplitz relatedness) random-intercept SD on mu (identity link) in the matched q2 block (independent 0.7 log-SD relmat effect also present on log(sigma)); 80-individual relatedness structure, K condition number 3.52, 25 observations per individual; marginal claim only, mu/sigma cross-block correlation unclaimed (near-zero by construction in this DGP, |cor| <= 0.22 across the gate seed family)",
+    true_value = function(fx) fx$true_sd_mu,
     cohort_id = "arc2-gaussian-ml-relmat-mu-q2-sd-profile-feasibility"
   ),
   "mc-0279" = list(
@@ -1000,6 +1029,7 @@ cell_registry <- list(
       "sigma ~ phylo(1 | species, tree = tree)); gaussian(identity/log); ML"
     ),
     true_parameter_scale = "0.7 phylogenetic random-intercept SD on log(sigma) in an auto-linked (unlabelled-term) q2 block, independent of a 0.6 SD phylo effect on mu (identity link); log-SD internal scale",
+    true_value = function(fx) fx$true_log_sd_sigma,
     cohort_id = "arc2-gaussian-ml-phylo-sigma-q2-nolabel-sd-profile-feasibility"
   ),
   "mc-0304" = list(
@@ -1032,6 +1062,7 @@ cell_registry <- list(
       "gaussian(identity/log); ML"
     ),
     true_parameter_scale = "0.7 animal random-intercept SD on log(sigma) in an auto-linked (unlabelled-term) q2 block, independent of a 0.6 SD animal effect on mu (identity link); 40-individual (3-generation, 4-founder-pair) pedigree, log-SD internal scale",
+    true_value = function(fx) fx$true_log_sd_sigma,
     cohort_id = "arc2-gaussian-ml-animal-sigma-q2-nolabel-sd-profile-feasibility"
   ),
   "mc-0316" = list(
@@ -1064,6 +1095,7 @@ cell_registry <- list(
       "gaussian(identity/log); ML"
     ),
     true_parameter_scale = "0.7 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) in an auto-linked (unlabelled-term) q2 block, independent of a 0.6 SD relmat effect on mu (identity link); 80-individual relatedness structure, log-SD internal scale",
+    true_value = function(fx) fx$true_log_sd_sigma,
     cohort_id = "arc2-gaussian-ml-relmat-sigma-q2-nolabel-sd-profile-feasibility"
   )
 )
@@ -1243,6 +1275,16 @@ boundary <- if (!is.null(interval)) interval$profile.boundary[[1L]] else NA
 convergence <- if (!is.null(fit)) fit$opt$convergence else NA_integer_
 pdHess <- if (!is.null(fit)) isTRUE(fit$sdr$pdHess) else NA
 
+# `true_value` is derived from the SAME fixture result the fit was built on
+# (never re-typed from `true_parameter_scale`'s prose) via each contract's
+# `true_value(fx)` accessor; `brackets_truth` is informational only -- it is
+# never wired into `promotion_eligible`/`clean` below, so it cannot loosen or
+# tighten the mechanical profile-feasibility gate. It mechanically checks
+# what the receipt's free-text `true_parameter_scale` prose could not.
+true_value <- contract$true_value(fixture_result)
+brackets_truth <- is.finite(true_value) && is.finite(lower) && is.finite(upper) &&
+  lower <= true_value && true_value <= upper
+
 clean <- !failed && !is.null(interval) &&
   identical(conf_status, "profile") && all(is.finite(c(lower, estimate, upper))) &&
   lower < estimate && estimate < upper && !isTRUE(boundary) &&
@@ -1265,6 +1307,7 @@ receipt <- data.frame(
   dgp_version = sprintf("%s_seed%d_current_source_v1", rung, seed),
   formula = contract$formula_label,
   true_parameter_scale = contract$true_parameter_scale,
+  true_value = true_value, brackets_truth = brackets_truth,
   profile_parameter = target_name, seed = seed,
   execution_information_rung = rung,
   binding_source = "tools/run-arc2-profile-feasibility.R",
@@ -1290,7 +1333,7 @@ utils::write.table(receipt, receipt_path, sep = "\t", quote = FALSE, row.names =
 print(receipt[c(
   "cell_id", "target_id", "estimator", "conf_status", "estimate", "lower", "upper",
   "convergence", "pdHess", "profile_boundary", "trace_complete", "promotion_eligible",
-  "failure_reason"
+  "true_value", "brackets_truth", "failure_reason"
 )])
 
 if (!clean) {

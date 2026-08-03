@@ -14,11 +14,16 @@ In flight: **#907** (`mc-0123`, `mc-0205`, `mc-0206`), **#908** (nine Gaussian c
 
 ## The one finding that outranks every cell
 
+**(DONE, Arc 7b, 2026-08-03.)** This finding is fixed, not outstanding — see the corrected paragraphs
+below and `docs/dev-log/after-task/2026-08-03-arc7b-profile-truth-gate.md` for the authoritative
+account. The rest of this section is retained as the historical record of the gap.
+
 **The mechanical reconciler cannot detect a mislocated interval.**
 `tools/arc2_profile_reconcile.py::reconcile()` validates target, cohort, family, estimator,
 `conf_status`, convergence, `pdHess`, boundary, clamp, trace, and artifact hashes. Its `required` dict
 has **no truth field**. It therefore checks interval *shape* and is structurally blind to interval
-*location*.
+*location*. *(CORRECTED 2026-08-03, Arc 7b: no longer true — `tools/profile_truth_gate.py` now checks
+interval location and is wired into `reconcile()`.)*
 
 Three promotions were caught **only** because a human-lens reviewer recomputed bracketing from the raw
 receipts, and all three had reconciled **5/5 PASS**:
@@ -35,7 +40,9 @@ bracketing. That is a false claim, not a transcription slip.
 **THE FIX, and it should be the next lane's first task:** make `true_value` and `brackets_truth`
 recorded receipt fields, written by `tools/run-arc2-profile-feasibility.R` and *checked* by the
 reconciler. Until that exists, every promotion depends on a human remembering to do arithmetic the
-machine could do. It will recur.
+machine could do. It will recur. *(CORRECTED 2026-08-03, Arc 7b: this fix landed — `true_value` and
+`brackets_truth` are recorded and checked, alongside a separate derived-truth manifest and gate. It is
+no longer the next lane's task; see the DONE note at the top of this section.)*
 
 ## The contract as it now stands
 
@@ -64,6 +71,12 @@ The 30 fenced cells partition by **`dpar` physics, not by family or fence token*
   spiked representative gave a clean two-sided profile covering truth on the first seed.
   `sigma` ordinary (mc-0568, mc-0576) · `sigma` structured (mc-0593-0597) · count `mu` labelled q2
   (mc-0418, mc-0436, mc-0446, mc-0450, mc-0454) · count `sigma` phylo_interaction (mc-0425, mc-0653).
+  *(ADDED 2026-08-03, Arc 7b owner decision: the `sigma` structured and count `sigma`
+  phylo_interaction groups are ML-fit structured-sigma cells; a sibling nbinom2 cohort shows a
+  family-level ML sigma-axis low bias
+  (`docs/dev-log/after-task/2026-08-03-nbinom2-structured-sigma-family-low-bias.md`, fit-level
+  p=0.0032, cell-level p=0.0625) and REML does not reach either family (`R/drmTMB.R:2221-2225`).
+  Decision: fund all 14, but name both facts in each structured-sigma cell's `claim_boundary`.)*
 - **Tier 2, PILOT FIRST (11).** `zoi` failed two different ways at two sample sizes — at n=288 the NLL
   was flat to `log_sd_zoi = -1.5e22`; at n=1600 it profiled cleanly but with 46.4% point-fit error and
   truth *below* the lower bound. Structured `mu` returned a CI excluding truth. Fixture problems, not
