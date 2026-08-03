@@ -285,6 +285,15 @@
   `supported` claims remain outside this spatial arc. Arc 1b-S2R subsequently
   admits only the exact matching supplied-`K` `relmat()` q2 location-intercept
   cell at the same evidence tier.
+* A subsequent prospective Confidence Eye campaign promoted the two direct
+  spatial-SD cells and their joint latent spatial correlation target to
+  `inference_ready_with_caveats` for exact tested M = 36 sites x 3 and
+  H = 36 x 8 baseline-ring configurations. All 1,500 datasets and 4,500 target
+  outcomes remained in the denominator. M and H passed jointly; L = 12 x 3
+  failed. Mesh intervals, estimated range, slopes, q4+, non-Gaussian spatial
+  models, spatial scale models, derived observed correlations, other
+  geometries or information configurations, and `supported` remain outside
+  the claim.
 
 ## Positive-continuous q1 structured location intercepts (Arc 3a)
 

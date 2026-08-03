@@ -81,12 +81,12 @@ simulate_spatial_guide_data <- function(seed = 20260534) {
   )
 }
 
-simulate_spatial_q2_guide_data <- function(seed = 20260501) {
+simulate_spatial_q2_guide_data <- function(seed = 20260803) {
   set.seed(seed)
-  sites <- paste0("site_", seq_len(16))
-  theta <- seq(0, 1.9 * pi, length.out = length(sites))
+  sites <- paste0("site_", seq_len(36))
+  theta <- seq(0, 1.5 * pi, length.out = length(sites))
   coords <- data.frame(
-    x = cos(theta) + seq_along(sites) / 40,
+    x = cos(theta) + seq_along(sites) / (3 * length(sites)),
     y = sin(theta)
   )
   rownames(coords) <- sites
@@ -97,23 +97,25 @@ simulate_spatial_q2_guide_data <- function(seed = 20260501) {
   diag(spatial_cov) <- diag(spatial_cov) + 1e-6
 
   z1 <- rnorm(length(sites))
-  z2 <- 0.55 * z1 + sqrt(1 - 0.55^2) * rnorm(length(sites))
+  z2 <- 0.45 * z1 + sqrt(1 - 0.45^2) * rnorm(length(sites))
   u1 <- as.vector(t(chol(spatial_cov)) %*% z1) * 0.55
-  u2 <- as.vector(t(chol(spatial_cov)) %*% z2) * 0.45
+  u2 <- as.vector(t(chol(spatial_cov)) %*% z2) * 0.55
   names(u1) <- sites
   names(u2) <- sites
 
-  site <- rep(sites, each = 8)
-  x <- rnorm(length(site))
+  site <- rep(sites, each = 3)
+  x1 <- rnorm(length(site))
+  x2 <- rnorm(length(site))
   e1 <- rnorm(length(site))
-  e2 <- 0.10 * e1 + sqrt(1 - 0.10^2) * rnorm(length(site))
+  e2 <- -0.10 * e1 + sqrt(1 - (-0.10)^2) * rnorm(length(site))
 
   list(
     data = data.frame(
       site = site,
-      x = x,
-      y1 = 0.30 + 0.35 * x + u1[site] + 0.25 * e1,
-      y2 = -0.10 - 0.25 * x + u2[site] + 0.24 * e2
+      x1 = x1,
+      x2 = x2,
+      y1 = 0.35 + 0.25 * x1 + u1[site] + 0.18 * e1,
+      y2 = -0.20 - 0.30 * x2 + u2[site] + 0.20 * e2
     ),
     coords = coords
   )
@@ -451,13 +453,12 @@ spatial_sd <- data.frame(
 knitr::kable(spatial_sd, align = c("l", "r", "l", "l"))
 ```
 
-For bivariate spatial location models, the current intercept-only q2
-`corpairs()` row is point-only: profile mechanics exist, but interval calibration
-and coverage remain planned. Native REML for this exact cell requires complete
-response pairs, unit weights, intercept-only `sigma1`, `sigma2`, and `rho12`, no
-known `meta_V()` covariance, and no additional ordinary random effect, direct-SD
-formula, or `corpair()` regression. The raw paired responses do not belong on
-this axis.
+For the exact fixed-kappa bivariate Gaussian location model, the calibrated
+**M rung** has 36 sites with three complete response pairs per site and the
+baseline ring geometry. Native REML for this cell requires unit weights,
+intercept-only `sigma1`, `sigma2`, and `rho12`, no known `meta_V()` covariance,
+and no additional ordinary random effect, direct-SD formula, or `corpair()`
+regression.
 
 ```{r spatial-q2-correlation-fit}
 spatial_q2_example <- simulate_spatial_q2_guide_data()
@@ -466,51 +467,185 @@ spatial_q2_coords <- spatial_q2_example$coords
 
 fit_spatial_q2_example <- drmTMB(
   drm_formula(
-    mu1 = y1 ~ x + spatial(1 | p | site, coords = spatial_q2_coords),
-    mu2 = y2 ~ x + spatial(1 | p | site, coords = spatial_q2_coords),
+    mu1 = y1 ~ x1 + spatial(1 | p | site, coords = spatial_q2_coords),
+    mu2 = y2 ~ x2 + spatial(1 | p | site, coords = spatial_q2_coords),
     sigma1 = ~ 1,
     sigma2 = ~ 1,
     rho12 = ~ 1
   ),
   family = c(gaussian(), gaussian()),
-  data = spatial_q2_dat
+  data = spatial_q2_dat,
+  REML = TRUE
 )
-
-spatial_q2_pairs <- suppressWarnings(
-  corpairs(
-    fit_spatial_q2_example,
-    level = "spatial"
-  )
-)
-spatial_q2_pairs
 ```
 
-```{r spatial-q2-point-estimate, fig.width = 6.4, fig.height = 1.8, fig.cap = "Coordinate-spatial intercept-only q=2 location-location point estimate from `corpairs()`. The dotted vertical line marks zero correlation; no interval is shown because calibration remains planned.", fig.alt = "Compact single-row point plot for the coordinate-spatial location-effect correlation, with a labelled hollow point estimate slightly to the right of the dotted zero reference line and no interval."}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  spatial_q2_display <- spatial_q2_pairs
-  spatial_q2_display$display_label <- "Spatial location effects,\ny1-y2"
+The prospective campaign retained every attempted dataset. At M, all-attempt
+coverage was 0.938, 0.932, and 0.938 for the first spatial SD, second spatial
+SD, and latent spatial correlation; finite-profile rates were 1.000, 1.000,
+and 0.986. The higher H rung (36 sites x 8 observations) also passed jointly.
+The smaller L rung (12 x 3) failed and is not part of the interval claim.
 
-  plot_corpairs(
-    spatial_q2_display,
-    colour = NULL,
-    label = "display_label",
-    facet = NULL,
-    interval = FALSE
-  ) +
-    ggplot2::geom_text(
-      ggplot2::aes(label = sprintf("%.2f", estimate)),
-      nudge_x = 0.06,
-      hjust = 0,
-      size = 3.4
+```{r spatial-q2-profile-intervals}
+spatial_q2_targets <- c(
+  "sd:mu:mu1:spatial(1 | p | site)",
+  "sd:mu:mu2:spatial(1 | p | site)",
+  "cor:spatial:cor(mu1:(Intercept),mu2:(Intercept) | p | site)"
+)
+
+spatial_q2_profile <- stats::confint(
+  fit_spatial_q2_example,
+  parm = spatial_q2_targets,
+  method = "profile",
+  profile_engine = "endpoint"
+)
+spatial_q2_target_table <- profile_targets(fit_spatial_q2_example)
+spatial_q2_estimate <- spatial_q2_target_table$estimate[
+  match(spatial_q2_targets, spatial_q2_target_table$parm)
+]
+spatial_q2_eye <- data.frame(
+  target = factor(
+    c(
+      "Spatial SD: response 1",
+      "Spatial SD: response 2",
+      "Latent spatial correlation"
+    ),
+    levels = c(
+      "Spatial SD: response 1",
+      "Spatial SD: response 2",
+      "Latent spatial correlation"
+    )
+  ),
+  estimate = unname(spatial_q2_estimate),
+  lower = spatial_q2_profile$lower,
+  upper = spatial_q2_profile$upper
+)
+spatial_q2_eye_region <- do.call(
+  rbind,
+  lapply(seq_len(nrow(spatial_q2_eye)), function(i) {
+    eye_x <- seq(
+      spatial_q2_eye$lower[i],
+      spatial_q2_eye$upper[i],
+      length.out = 101
+    )
+    left_width <- max(
+      spatial_q2_eye$estimate[i] - spatial_q2_eye$lower[i],
+      .Machine$double.eps
+    )
+    right_width <- max(
+      spatial_q2_eye$upper[i] - spatial_q2_eye$estimate[i],
+      .Machine$double.eps
+    )
+    taper <- ifelse(
+      eye_x <= spatial_q2_eye$estimate[i],
+      (eye_x - spatial_q2_eye$lower[i]) / left_width,
+      (spatial_q2_eye$upper[i] - eye_x) / right_width
+    )
+    half_height <- 0.10 * sqrt(pmax(taper, 0))
+    data.frame(
+      target = spatial_q2_eye$target[i],
+      eye_x = c(eye_x, rev(eye_x)),
+      eye_y = c(half_height, rev(-half_height))
+    )
+  })
+)
+```
+
+The Confidence Eye treats each interval as a small pale tapered region and
+marks the estimate with a hollow circle. The eye's horizontal span is the
+interval; there is no separate interval bar. Separate facet scales keep
+standard deviations and correlation on their own units.
+
+```{r spatial-q2-confidence-eye, fig.width = 9.2, fig.height = 3.1, fig.cap = "Confidence Eye for the three direct fixed-kappa Gaussian q2 spatial targets at the tested M rung (36 sites x 3 observations, baseline ring geometry). Each coloured pale eye spans a 95% endpoint profile-likelihood interval; the larger hollow circle is the point estimate. Calibration passed jointly at the exact M and H rungs and failed at L.", fig.alt = "Three side-by-side facets show coloured tapered confidence eyes for two spatial standard deviations and one latent spatial correlation. Each eye's horizontal width is its 95 percent profile interval, and a large hollow circle marks the estimate. Each facet uses its own horizontal scale."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(spatial_q2_eye) +
+    ggplot2::geom_vline(
+      data = data.frame(
+        target = factor(
+          "Latent spatial correlation",
+          levels = levels(spatial_q2_eye$target)
+        ),
+        zero = 0
+      ),
+      ggplot2::aes(xintercept = zero),
+      inherit.aes = FALSE,
+      linetype = "dotted",
+      linewidth = 0.5,
+      colour = "grey55"
     ) +
-    spatial_eye_theme() +
+    ggplot2::geom_polygon(
+      data = spatial_q2_eye_region,
+      ggplot2::aes(
+        x = eye_x,
+        y = eye_y,
+        group = target,
+        fill = target
+      ),
+      inherit.aes = FALSE,
+      alpha = 0.24,
+      colour = NA
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(
+        x = estimate,
+        y = 0,
+        colour = target
+      ),
+      shape = 21,
+      fill = "white",
+      size = 4.2,
+      stroke = 1.2
+    ) +
+    ggplot2::facet_wrap(~target, scales = "free_x", nrow = 1) +
+    ggplot2::scale_x_continuous(
+      expand = ggplot2::expansion(mult = c(0.20, 0.20))
+    ) +
+    ggplot2::scale_y_continuous(
+      NULL,
+      breaks = NULL,
+      limits = c(-0.22, 0.32),
+      expand = c(0, 0)
+    ) +
+    ggplot2::scale_fill_manual(
+      values = c(
+        "Spatial SD: response 1" = "#0072B2",
+        "Spatial SD: response 2" = "#D55E00",
+        "Latent spatial correlation" = "#009E73"
+      ),
+      guide = "none"
+    ) +
+    ggplot2::scale_colour_manual(
+      values = c(
+        "Spatial SD: response 1" = "#0072B2",
+        "Spatial SD: response 2" = "#D55E00",
+        "Latent spatial correlation" = "#009E73"
+      ),
+      guide = "none"
+    ) +
     ggplot2::labs(
-      title = "Spatial latent mean correlation",
-      subtitle = "Point estimate only; interval calibration remains planned",
-      x = "Correlation estimate"
+      x = "Target value (facet-specific scale)",
+      title = "Profile uncertainty for the calibrated spatial q2 target set",
+      subtitle = "Each eye is a 95% endpoint profile interval; hollow circle marks the estimate"
+    ) +
+    ggplot2::theme_minimal(base_size = 12) +
+    ggplot2::theme(
+      panel.grid.major.x = ggplot2::element_line(
+        colour = "grey90",
+        linewidth = 0.35
+      ),
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.spacing.x = grid::unit(1.3, "lines"),
+      strip.text = ggplot2::element_text(face = "bold"),
+      plot.title.position = "plot"
     )
 }
 ```
+
+This result supports `inference_ready_with_caveats` only for the exact tested
+M/H fixed-kappa ring configurations. It does not establish mesh intervals,
+estimated range, spatial slopes, q4+, non-Gaussian spatial models, spatial
+scale models, derived observed correlations, geometry robustness, or the
+`supported` tier.
 
 ## Boundaries
 

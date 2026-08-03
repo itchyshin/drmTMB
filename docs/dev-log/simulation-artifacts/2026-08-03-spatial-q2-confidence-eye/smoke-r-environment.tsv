@@ -1,0 +1,7 @@
+package	version	library
+drmTMB	0.6.0	/project/6098264/snakagaw/drmtmb-confidence-eye/runs/spatial-q2-confidence-eye-f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66/lib
+TMB	1.9.21	/project/6098264/snakagaw/drmTMB-arc4c/72a471196608d9b1b115db08266017ee1e93df80/rlib
+RcppEigen	0.3.4.0.2	/project/6098264/snakagaw/drmTMB-arc4c/72a471196608d9b1b115db08266017ee1e93df80/rlib
+cli	3.6.6	/project/6098264/snakagaw/drmTMB-arc4c/72a471196608d9b1b115db08266017ee1e93df80/rlib
+lifecycle	1.0.5	/project/6098264/snakagaw/drmTMB-arc4c/72a471196608d9b1b115db08266017ee1e93df80/rlib
+Matrix	1.7.0	/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcccore/r/4.4.0/lib64/R/library

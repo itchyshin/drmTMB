@@ -1,0 +1,7 @@
+artifact	location	sha256_or_identity	disposition
+full_packet	/private/tmp/drmtmb-ce-full-packet-6260e4849	ace841f7054abcfff6c6ae3be935b6c6bc62b82830bbe314d579093b1cb3281a	Immutable local packet containing manifest metadata SOURCE_SHA source archive controls and bundled smoke evidence
+full_source_archive	/private/tmp/drmtmb-ce-full-packet-6260e4849/drmTMB-source.tar.gz	be72034c0ef3e50ba0483388ecea3c61a7d0eeb52de46e1c03f223510b7accab	Executed source archive with embedded SOURCE_SHA
+smoke_packet	/private/tmp/drmtmb-ce-packet-9e6804deb	f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66	Immutable local smoke packet
+full_packet_remote	/project/def-snakagaw/snakagaw/drmtmb-confidence-eye/packets/ace841f7054abcfff6c6ae3be935b6c6bc62b82830bbe314d579093b1cb3281a	ace841f7054abcfff6c6ae3be935b6c6bc62b82830bbe314d579093b1cb3281a	Project-backed Fir keeper
+full_run_remote	/project/def-snakagaw/snakagaw/drmtmb-confidence-eye/runs/spatial-q2-confidence-eye-full-ace841f7054abcfff6c6ae3be935b6c6bc62b82830bbe314d579093b1cb3281a	1500 attempts 4500 target outcomes	Project-backed Fir keeper
+timestamp_receipt_tool	/project/def-snakagaw/snakagaw/drmtmb-confidence-eye/receipt-tools/655f948e4568b3c715c3bb0e126acd5726a12b91	655f948e4568b3c715c3bb0e126acd5726a12b91	Hash-manifested post-run UTC timestamp parser only

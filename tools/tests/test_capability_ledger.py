@@ -370,7 +370,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(row["estimator"], "ML")
             self.assertEqual(row["capability_status"], "implemented")
             self.assertEqual(row["work_status"], "verified")
-            self.assertEqual(row["evidence_tier"], "interval_feasible")
+            self.assertEqual(
+                row["evidence_tier"], "interval_feasible"
+            )
             self.assertIn("interval_feasible only", row["claim_boundary"])
             for excluded in ("reml", "coverage", "inference readiness"):
                 self.assertIn(excluded, row["claim_boundary"].lower())
@@ -517,16 +519,32 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertEqual(row["estimator"], "REML")
             self.assertEqual(row["capability_status"], "implemented")
             self.assertEqual(row["work_status"], "verified")
-            self.assertEqual(row["evidence_tier"], "interval_feasible")
+            self.assertEqual(
+                row["evidence_tier"], "inference_ready_with_caveats"
+            )
+            self.assertEqual(
+                row["primary_evidence_id"],
+                f"ev-{cell_id}-spatial-q2-confidence-eye",
+            )
             if cell_id == "mc-0199":
                 self.assertEqual(
                     row["legacy_evidence_source"], "R/drmTMB.R:2056-2113"
                 )
             self.assertEqual(
                 evidence_by_id[row["primary_evidence_id"]]["evidence_class"],
-                "contract_test",
+                "coverage_study",
             )
-            self.assertIn("exact retained unclamped tmbprofile receipt", row["claim_boundary"])
+            for earned_boundary in (
+                "M (36 sites x 3)",
+                "H (36 x 8)",
+                "L (12 x 3) failed",
+                "baseline-ring",
+                "Fixed-kappa bivariate-Gaussian REML only",
+                "no mesh intervals",
+                "geometry robustness",
+                "supported-tier claim",
+            ):
+                self.assertIn(earned_boundary, row["claim_boundary"])
             historical_claim = evidence_by_id[
                 f"ev-{cell_id}-arc1b-recovery"
             ]["claim_boundary"]
@@ -641,7 +659,10 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(by_id["mc-0200"]["capability_status"], "rejected_by_design")
         for cell_id in ("mc-0199", "mc-0672"):
             self.assertEqual(by_id[cell_id]["structure_provider"], "spatial")
-            self.assertEqual(by_id[cell_id]["evidence_tier"], "interval_feasible")
+            self.assertEqual(
+                by_id[cell_id]["evidence_tier"],
+                "inference_ready_with_caveats",
+            )
         self.assertEqual(by_id["mc-0673"]["capability_status"], "rejected_by_design")
 
     def test_beta_phylo_q1_cell_is_exact_and_remainder_stays_not_implemented(self):

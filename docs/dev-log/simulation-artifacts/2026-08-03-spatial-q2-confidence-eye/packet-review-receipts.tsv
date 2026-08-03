@@ -1,0 +1,5 @@
+gate	role	model	thread_id	verdict	source_sha	packet_sha256	note
+pre_implementation	Noether	gpt-5.6-terra	019fc43d-52fb-7351-988f-965105304aea	APPROVE	9e6804deb48436b328a41cf6dffe1eb007a3cb88	f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66	Five-row symbolic alignment and direct target transforms approved before implementation
+pre_implementation	Fisher	gpt-5.6-terra	019fc43d-5415-7522-a6ff-d322f58392cf	APPROVE	9e6804deb48436b328a41cf6dffe1eb007a3cb88	f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66	Prospective all-attempt joint gate approved before implementation
+smoke_packet	Grace	gpt-5.6-terra	019fc43a-4b06-7cb3-b563-95a04ca9e242	APPROVE_SMOKE	9e6804deb48436b328a41cf6dffe1eb007a3cb88	f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66	Replacement immutable smoke packet approved after provenance repair
+full_packet	Grace	gpt-5.6-terra	019fc43a-4b06-7cb3-b563-95a04ca9e242	APPROVE_FULL	9e6804deb48436b328a41cf6dffe1eb007a3cb88	ace841f7054abcfff6c6ae3be935b6c6bc62b82830bbe314d579093b1cb3281a	Full packet approved after exact 1500-child closeout gate

@@ -1192,8 +1192,10 @@ Not every parameter should accept random effects at the same development stage.
   intercept-plus-one-slope domains. Arc 1b-S1 additionally admits the exact
   matching labelled fixed-covariance spatial q2 location-intercept cell in
   bivariate `mu1`/`mu2`, with intercept-only residual parameters, at
-  `point_fit_recovery`. Do not infer interval, coverage, or
-  `supported` promotion for the scale-side, q2, or q4 rows, and do not transfer
+  `inference_ready_with_caveats` for the exact tested M = 36 sites x 3 and
+  H = 36 x 8 baseline-ring configurations. The smaller L = 12 x 3 rung failed.
+  Do not transfer this interval and coverage result to other geometries,
+  information configurations, the scale-side, q4, or `supported`, and do not transfer
   HSquared AI-REML or direct DRM.jl q4 profile/bootstrap claims into R grammar.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and

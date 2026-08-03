@@ -1,0 +1,2 @@
+source_sha	packet_sha256	setup_job_id	array_job_id	array_contract	expected_array_tasks	observed_array_tasks	completed_array_tasks	median_elapsed_seconds	p90_elapsed_seconds	max_rss_bytes	projected_full_concurrency	projected_full_cpu_hours	projected_full_wall_hours	within_cpu_hour_bound	within_wall_hour_bound	recorded_utc
+9e6804deb48436b328a41cf6dffe1eb007a3cb88	f0b558f6c56b4818967a23788a42eeb66a57cd1ec3f70d8ee46a499304c40d66	52567473	52567474	1-60%60	60	60	60	8	9.1	3392319488	100	3.33333333333333	0.0379166666666667	TRUE	TRUE	2026-08-03 01:29:52 UTC
