@@ -65,8 +65,11 @@ if (any(tasks$State != "COMPLETED") || any(tasks$ExitCode != "0:0")) {
 }
 elapsed <- suppressWarnings(as.numeric(tasks$ElapsedRaw))
 rss_values <- vapply(scheduler$MaxRSS, slurm_bytes, numeric(1L))
-starts <- as.POSIXct(tasks$Start, tz = "UTC")
-ends <- as.POSIXct(tasks$End, tz = "UTC")
+starts <- as.POSIXct(tasks$Start, format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+ends <- as.POSIXct(tasks$End, format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
+if (any(!is.finite(as.numeric(starts))) || any(!is.finite(as.numeric(ends)))) {
+  stop("Scheduler Start/End timestamps are not complete UTC ISO timestamps.", call. = FALSE)
+}
 receipt <- data.frame(
   source_sha = packet$source_sha,
   packet_sha256 = packet$packet_sha256,
