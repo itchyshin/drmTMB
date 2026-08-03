@@ -2138,6 +2138,45 @@ def validate(
     ):
         errors.append("mc-0438: parity triage must retain the dated Arc 1 STOP")
 
+    # parity-triage.tsv rationales are free text, and most of them make no
+    # checkable claim. One phrasing does: when a rationale says a campaign
+    # "promoted this cell to <tier>", that is an assertion about cells.tsv and
+    # it can be false. On 2026-08-03 nine rows (mc-0279/0282/0286/0291/0298/
+    # 0303/0304/0315/0316) claimed promotion to interval_feasible while the
+    # ledger still read point_fit_recovery, because one PR wrote the rationale
+    # for twelve cells but promoted only three. Nothing caught it; the next PR
+    # happened to make the claims true.
+    #
+    # Deliberately narrow. It fires ONLY on that exact phrase, so the other
+    # rationale templates -- the 116 "Parked: next_gate directs preserving the
+    # existing model-surface evidence tier" rows, the "Frontier per governing
+    # rule" rows, the one-offs -- are untouched. Do NOT widen it to the parked
+    # template without first repairing that corpus: as of 2026-08-03, 89 of
+    # those 116 rows sit at interval_feasible or above while still asserting
+    # that no interval campaign is being pursued, so any check over them would
+    # report 89 failures on a clean tree. See
+    # docs/dev-log/after-task/2026-08-03-parity-triage-claim-check.md.
+    promotion_claim = re.compile(
+        r"promoted this cell to (" + "|".join(sorted(EVIDENCE_TIERS)) + r")\b"
+    )
+    cells_by_id = {row["cell_id"]: row for row in cells}
+    for cell_id, parity_row in sorted(parity_by_cell.items()):
+        match = promotion_claim.search(parity_row.get("rationale", ""))
+        if not match:
+            continue
+        claimed_tier = match.group(1)
+        cell = cells_by_id.get(cell_id)
+        if cell is None:
+            errors.append(
+                f"{cell_id}: parity triage claims promotion to {claimed_tier} "
+                "but the cell is absent from the ledger"
+            )
+        elif cell.get("evidence_tier") != claimed_tier:
+            errors.append(
+                f"{cell_id}: parity triage claims promotion to {claimed_tier}, "
+                f"ledger evidence_tier is {cell.get('evidence_tier')}"
+            )
+
     by_cell = {row["cell_id"]: row for row in cells}
     b3_observed = {
         row["cell_id"]
