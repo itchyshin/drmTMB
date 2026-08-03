@@ -1,0 +1,6 @@
+  cell_id                        target_id estimator conf_status  estimate
+1 mc-0417 mc-0417::sd:mu:spatial(1 | site)        ML     profile 0.6882731
+      lower     upper convergence pdHess profile_boundary trace_complete
+1 0.4996203 0.9986556           0   TRUE            FALSE           TRUE
+  promotion_eligible failure_reason
+1               TRUE               
