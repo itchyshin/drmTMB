@@ -1,5 +1,21 @@
 # After Task: nbinom2 structured-sigma random-intercept SD skews low across all four provider cells (mc-0421-mc-0424)
 
+> **CORRECTED 2026-08-03, after a prior-work sweep of Shinichi's second brain.** A sweep run
+> after this note was first written surfaced a drmTMB-native, already-measured result Candidate
+> Explanation 1 did not have when first drafted: native scale-side REML (commit `b9446fd7`, on
+> `origin/main`) measurably debiases a structured random-intercept SD on `log(sigma)` under ML,
+> and -- independently re-verified here in the current codebase -- has been extended past its
+> original phylo-only Gaussian demonstration to all four of this note's provider geometries
+> (`R/drmTMB.R:2277-2291`). Candidate 1 is rewritten below: what was "a plausible mechanism, not
+> cheap to test here" is now "a known, measured mechanism, already fixed for a sibling
+> configuration, currently unreachable for this family" (the family gate at `R/drmTMB.R:2221`
+> admits only `gaussian`/`binomial`, not `nbinom2`). This also corrects a flatly wrong sentence
+> in the original Candidate 1 -- "no dispersion-side random-effect REML-style fold exists yet
+> for any family" -- one does exist, for a different family. Next Actions is re-ranked
+> accordingly, and the Issue Ledger draft's mechanism summary is updated to match. Nothing else
+> changed: the twelve-estimate table, both sign tests, the independence critique, and the
+> cell-level p = 0.0625 figure are unaffected and stand as originally verified.
+
 ## Goal
 
 Not a new feature, and not a resolution. This is a finding, surfaced while working the Arc 7b
@@ -185,9 +201,11 @@ of the evidence: a consistent, unusual-looking directional pattern that is not y
 established at the level the twelve raw numbers alone make it look like it is.
 
 **SPECULATION, labeled as such.** It is tempting to read this as "NB2 structured-sigma
-random-intercept SDs on a log link are downward-biased under ML," full stop. That is one candidate
-explanation among several below, and this note does not have the evidence to select it over the
-others.
+random-intercept SDs on a log link are downward-biased under ML," full stop. Candidate explanation 1
+below now gives that reading real, measured support for the *direction*, on a sibling (Gaussian)
+configuration -- but this note still has no NB2-specific evidence for the *magnitude*, and
+candidates 2, 3, and 5 are not ruled out as additional contributors. Treat the direction as expected;
+treat the size of the effect for this family as still open.
 
 One more descriptive (not statistically tested) observation: among the ten intervals that do
 bracket 0.55, the two closest calls both sit near the *upper* endpoint rather than centered --
@@ -200,29 +218,70 @@ not a new test and should not be read as one.
 For each candidate, what already-available evidence bears on it, and the cheapest experiment that
 would help discriminate it from the others.
 
-1. **ML variance-component downward bias (vs REML).** Independently documented in this repo for a
-   different family (`docs/design/224...md:40`, "~42% of the ML variance bias" removed by REML-style
-   folding for a binomial mean-side random intercept). Checked, and not cheap to test directly here:
-   that same design record scopes its REML-style objects (O2, O3) to a *mean*-side random-intercept
-   SD for binomial (model_type 18) and cumulative_logit (model_type 13) only; for binomial's O2,
-   `scale_fixed` is explicitly "empty (no dispersion)" (`:182`). No dispersion-side (`sigma`)
-   random-effect REML-style fold exists yet for any family, let alone nbinom2 (model_type 7).
-   Cheapest available experiment: strip the phylogenetic/spatial/pedigree covariance structure down
-   to a plain `(1 | group)` random intercept-plus-slope on NB2 dispersion, and compare drmTMB ML
-   against an external comparator -- `glmmTMB(dispformula = ~ ..., REML = TRUE/FALSE)` -- on that
-   simplified, structurally comparable DGP. No such comparator run exists yet for any of these four
-   cells (checked: not in the fixtures file, the runner, or the ledger rows), which is itself worth
-   flagging: a claim about a family-wide estimation bias is exactly the kind of claim that needs an
-   external check. glmmTMB's current robustness for `dispformula` random effects under
-   `REML = TRUE` has not been verified in this session and should be confirmed before treating it as
-   ground truth.
-2. **Laplace/AGHQ integration error specific to the NB2 dispersion nonlinearity.** `size = 1/sigma^2`
-   makes the dispersion-side random effect enter the NB2 likelihood highly nonlinearly, and this
-   repo's own O3 record documents a comparable, non-negligible Laplace-vs-AGHQ gap for a different
-   nonlinear link (`docs/design/224...md`, "~2.3 pt at M=40" for cumulative_logit). Cheapest
-   experiment: refit a small subset (e.g. one cell, all three seeds) with drmTMB's AGHQ integrator
-   instead of the default Laplace approximation, holding data, seeds, and estimator (ML) fixed, and
-   check whether the point estimates move toward 0.55.
+1. **ML variance-component downward bias (vs REML) -- measured on a sibling configuration,
+   currently unreachable for this family.** This is now the leading candidate, and not because it
+   happens to fit the twelve-estimate pattern: it is the least speculative of the five, because it
+   is a specific, already-measured, drmTMB-native result rather than a general mechanism imported
+   for this note. `~/shinichi-brain/Shinichi/methods/Native scale-side REML debiases sigma-phylo
+   variance components (drmTMB + DRM.jl) -- and the Ayumi bird-data probe.md` (2026-07-06, corrected
+   2026-07-08) reports that drmTMB's native scale-side REML (`b9446fd7`, on `origin/main`; adds
+   `beta_sigma` to TMB's Laplace `random` block via `drm_apply_estimator_spec`) measurably debiases a
+   structured random-intercept SD on `log(sigma)` under ML on a Gaussian phylo sigma-intercept DGP
+   (truth SD 0.60, 480 reps/group): bias ML->REML g8 -0.092 -> -0.029, g16 -0.041 -> -0.008, g32
+   -0.030 -> -0.007, with `tmbprofile` coverage improving alongside it (g8 0.960 -> 0.968; g16
+   0.951 -> 0.960; g32 0.933 -> 0.938). The direction this note's table shows -- a structured
+   scale-side intercept SD reading low under ML -- is the expected direction under a mechanism this
+   repository has already measured, not an unexplained anomaly needing a first hypothesis.
+
+   That evidence is on a sibling configuration, not this one, and the gap matters: it is Gaussian,
+   not NB2 (an exact joint-Laplace restricted likelihood, unlike NB2's Laplace-approximated one --
+   see candidate 2), and the cited note alone is univariate phylo only. I re-verified the current
+   validator, `drm_validate_reml_spec` (`R/drmTMB.R:2205-2329`), independently of that note, and the
+   sibling is closer than it alone suggests: an inline comment (`R/drmTMB.R:2277-2291`, dated
+   2026-07-08) records that Gaussian scale-side structured REML was extended past phylo to all four
+   of this family's provider geometries -- spatial, animal, and relmat, not phylo alone -- with its
+   own campaign ("REML debiases the scale-side intercept SD 400/400 across spatial/animal/relmat
+   with bias -> 0 as g grows, and REML profile-CI coverage clears the small-g inference_ready floor
+   in every cell, >= 0.926"). I have read that claim in the validator's own comment and have not
+   re-run the underlying campaign myself. Even so, this is now a provider-for-provider match on all
+   four cells reviewed here -- still Gaussian, not NB2, but no longer a single-provider analogy.
+
+   The constraint blocking it is precise, not diffuse. `drm_validate_reml_spec` checks family before
+   it checks provider or shape (`R/drmTMB.R:2220-2225`): `if (!spec$model_type %in% c("gaussian",
+   "binomial")) cli_abort(...)`. NB2 is neither, so all four cells are rejected at that one line
+   regardless of how favorably their provider and shape would otherwise be treated -- the same
+   pure-scale-side-intercept shape that clears the Gaussian gate. `docs/design/224`'s binomial O2
+   fold ("~42% of the ML variance bias" removed for a MEAN-side random intercept,
+   `docs/design/224-aghq-coxreid-nongaussian-reml-alignment.md:40`) is a second, corroborating data
+   point that the general mechanism operates elsewhere in this codebase, but it is the weaker
+   citation for this specific candidate: O2/O3 fold a mean-side random intercept for
+   binomial/cumulative_logit only (`scale_fixed` is explicitly "empty (no dispersion)" for O2,
+   `:182`), so it says nothing directly about a dispersion-side SD. This also corrects a claim in
+   this note's first draft: "no dispersion-side random-effect REML-style fold exists yet for any
+   family" was wrong -- one exists, natively, for Gaussian; it simply does not reach NB2.
+
+   Cheapest experiment, revised: extending `drm_validate_reml_spec`'s family gate to admit nbinom2
+   (or building an nbinom2 analogue of the same `beta_sigma`-in-`random` idiom) is a scoped
+   engineering task with two family precedents already on record (Gaussian phylo, then Gaussian
+   spatial/animal/relmat), not an open research question. That is cheaper and more direct than the
+   external-comparator route this note originally proposed (`glmmTMB(dispformula = ~ ...,
+   REML = TRUE/FALSE)` on a simplified, unstructured DGP), which remains a fallback if an internal
+   extension is not prioritized. See "Next Actions" for how this changes what to do first.
+2. **Laplace/AGHQ integration error specific to the NB2 dispersion nonlinearity -- complementary
+   to candidate 1, not competing with it.** `size = 1/sigma^2` makes the dispersion-side random
+   effect enter the NB2 likelihood highly nonlinearly, and this repo's own O3 record documents a
+   comparable, non-negligible Laplace-vs-AGHQ gap for a different nonlinear link
+   (`docs/design/224...md`, "~2.3 pt at M=40" for cumulative_logit). A distilled literature review in
+   Shinichi's second brain (`dr20-reml-vs-aghq-distilled`, harvested 2026-08-03 for the drmTMB 0.7.0
+   coverage gate; not independently re-checked against its ~90 primary sources in this session) is
+   explicit that REML and AGHQ correct two *different* downward biases -- degrees-of-freedom loss and
+   integration approximation -- so fixing one leaves the other, and even REML-corrected methods still
+   show non-negligible bias at m = 25 clusters in the general literature. Candidates 1 and 2 are
+   therefore not alternatives to discriminate between: candidate 1 being real does not rule candidate
+   2 out, and an experiment that only partially closes the gap is evidence for both operating, not
+   evidence against either. Cheapest experiment: refit a small subset (e.g. one cell, all three
+   seeds) with drmTMB's AGHQ integrator instead of the default Laplace approximation, holding data,
+   seeds, and estimator (ML) fixed, and check whether the point estimates move toward 0.55.
 3. **Finite-sample intercept/slope confounding** (the mechanism the fixtures file already
    investigated for `mc-0424` and `mc-0423`). Already tested and *ruled out* for `mc-0423`'s single
    worst-offending seed specifically (realized cor(v0, v1) = -0.14, not an outlier over a 10-seed
@@ -314,36 +373,54 @@ Recommendation: open a new issue if that search turns up nothing closer. Draft b
 > explanations with proposed cheap discriminating experiments:
 > `docs/dev-log/after-task/2026-08-03-nbinom2-structured-sigma-family-low-bias.md`.
 >
-> This is a flagged pattern, not a proven bias: the evidence does not establish a bias magnitude
-> or a cause, and the only defensible unit of replication (4 independent DGP designs) is too small
-> for any method to give a well-calibrated p-value. No cell's `evidence_tier` should move on this
-> issue alone.
+> This is a flagged pattern with a leading, measured explanation for its *direction* (see below)
+> but no magnitude estimate for this family yet: the only defensible unit of replication (4
+> independent DGP designs) is too small for any method to give a well-calibrated p-value, and the
+> leading mechanism is measured on a sibling (Gaussian) configuration, not NB2 itself. No cell's
+> `evidence_tier` should move on this issue alone.
 >
 > Candidate mechanisms (see the linked note for detail and proposed experiments): ML-vs-REML
-> downward bias in variance-component estimation (well established generally; drmTMB's own
-> `docs/design/224` already documents and partially corrects an analogous ~42% ML bias for a
-> different family's mean-side random intercept, but no REML-style machinery exists yet for a
-> dispersion-side random effect on any family); Laplace/AGHQ integration error specific to the NB2
-> dispersion nonlinearity; finite-sample intercept/slope confounding (already tested and ruled out
-> for one seed; not yet tested family-wide); an optimizer/parameterization artifact (partially
-> downgraded: the "robust" preset only raises iteration/evaluation budgets); and a selection effect
-> from the iterative, look-then-adjust fixture-design process.
+> downward bias in variance-component estimation -- now the leading candidate. drmTMB's native
+> scale-side REML (`b9446fd7`, on `origin/main`) already measures this exact debiasing for a
+> structured scale-side intercept SD and, verified independently, has been extended under Gaussian to
+> all four of this family's provider geometries (phylo/spatial/animal/relmat) -- but a family gate
+> (`R/drmTMB.R:2221`) admits only gaussian/binomial, so it does not reach NB2 yet. `docs/design/224`'s
+> ~42% ML-bias figure for a different, mean-side object is corroborating, not primary, evidence.
+> Complementary, not competing: Laplace/AGHQ integration error specific to the NB2 dispersion
+> nonlinearity (a distilled literature review finds REML and AGHQ correct different biases, so
+> evidence for one does not rule out the other). Also open: finite-sample intercept/slope confounding
+> (already tested and ruled out for one seed; not yet tested family-wide); an optimizer/
+> parameterization artifact (partially downgraded: the "robust" preset only raises
+> iteration/evaluation budgets); and a selection effect from the iterative, look-then-adjust
+> fixture-design process.
 >
-> Owner decision needed: which candidate explanation, if any, to chase, and whether/when to
-> reconsider `mc-0423` or re-open an interval claim for `mc-0424` pending that work.
+> Owner decision needed: whether to prioritize extending the existing native scale-side REML family
+> gate to nbinom2 over further causal-diagnosis experiments, and whether/when to reconsider
+> `mc-0423` or re-open an interval claim for `mc-0424` pending that work.
 
 ## Next Actions
 
-1. An owner reviews this note and either commissions one or more of the five candidate-explanation
-   experiments above, or explicitly declines to pursue the question further for now.
-2. If pursued, the cheapest and most informative next steps are candidate explanations 3 (the
-   cor(v0, v1) regression, which reuses receipts and fixture files already on disk and needs no new
-   fits) and 5 (fresh, never-tuned-against seeds); both are cheaper than 1 (needs new estimator
-   development or an external comparator) and are more targeted than 4 (already partly downgraded
-   by the code check above).
-3. Open the GitHub issue drafted above, or fold this into an existing issue if a human search turns
-   up a better match than the weak candidate noted there.
-4. Do not re-open `mc-0424`'s interval claim, promote `mc-0423`, or otherwise move any cell's
+1. **Re-ranked, and defended.** The highest-value next step is no longer a diagnostic experiment --
+   it is disclosure plus a reachability decision. This note now documents that the observed direction
+   is expected under a known, measured, drmTMB-native mechanism (candidate 1) that simply is not
+   reachable for NB2 yet. An owner should decide whether to prioritize extending
+   `drm_validate_reml_spec`'s family gate (`R/drmTMB.R:2221`) to admit nbinom2 -- a scoped engineering
+   task with two family precedents already on record -- over further causal-diagnosis experiments.
+   The causal question ("is there a plausible mechanism, and does it point this way?") is now
+   substantially answered; the reachability question ("can this family use the fix that already
+   exists?") is not, and closing it would do more for this pattern than another round of
+   bias-hunting.
+2. Candidates 3 (the cor(v0, v1) regression) and 5 (fresh, never-tuned-against seeds) are downgraded,
+   not dropped: they remain worth running, but as narrower follow-ups aimed at seed- or cell-specific
+   anomalies that a general, now-expected downward tilt does not obviously explain by itself -- most
+   notably `mc-0423` seed 2026080302's 49% miss, which is larger than a modest dof-loss tilt alone
+   would predict. They are no longer the first thing to reach for.
+3. Candidate 4 (optimizer/parameterization artifact) stays downgraded, per the code check already in
+   this note (`R/control.R:294-300`).
+4. Open the GitHub issue drafted above (its mechanism summary is updated to match this correction),
+   or fold this into an existing issue if a human search turns up a better match than the weak
+   candidate noted there.
+5. Do not re-open `mc-0424`'s interval claim, promote `mc-0423`, or otherwise move any cell's
    `evidence_tier` on the basis of this note alone -- `tools/profile_truth_gate.py`'s per-cell
    location/rate rule remains the mechanical gate for that, and nothing in this document changes
    it.
