@@ -5,10 +5,11 @@ WHY THIS TEST EXISTS
 --------------------
 The reconcilers check interval SHAPE exhaustively but historically checked
 nothing about interval LOCATION, because the runner recorded the true
-parameter value only as prose. Three cells reached review holding intervals
-that excluded their own true value; all three were caught by a human reading
-that prose, not by any check. tools/profile_truth_gate.py supplies the missing
-half, and this file is what makes it run.
+parameter value only as prose. Five cells reached review holding intervals
+that excluded their own true value. Three were caught by a human reading that
+prose; TWO WERE NOT, and shipped as interval_feasible until this arc withdrew
+them. tools/profile_truth_gate.py supplies the missing half, and this file is
+what makes it run.
 
 It sweeps the full 31-cell contract surface independently of the reconcilers:
 the 26 cells in arc2_profile_reconcile.CELL_CONTRACTS plus the 5 frozen Arc 1
@@ -39,19 +40,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS = ROOT / "tools"
 
-# The one contract cell whose truth cannot be DERIVED, and therefore cannot be
-# gated. mc-0282 holds an interval_feasible claim on five retained receipts
-# whose binding_source names tools/run-arc2-profile-feasibility.R -- but that
-# runner has never, in any commit, carried an mc-0282 registry entry (verified
-# across the runner's history). Its receipts were produced by a contract that
-# was never committed, so there is no committed accessor to derive truth from
-# and writing one here would be declaring a truth, not deriving it.
+# The one contract cell whose truth cannot be DERIVED from the CURRENT runner,
+# and therefore cannot be gated yet. mc-0282 holds an interval_feasible claim on
+# five retained receipts whose binding_source names
+# tools/run-arc2-profile-feasibility.R, but the runner on this branch carries no
+# mc-0282 registry entry, so there is no accessor to derive truth from.
+#
+# The entry is NOT lost. Commit 0a7d3172c ("promote nine Gaussian structured
+# cells") added a complete `"mc-0282" = list(...)` contract, including the
+# true_parameter_scale prose; it is an ancestor of HEAD but did not survive the
+# Arc 6 merge 324aed7c1. Recovering it is a bounded job -- read the entry out of
+# 0a7d3172c and re-add it -- not an archaeology problem. It is deliberately NOT
+# done in this arc: re-adding a runner contract is a claim that this is the code
+# that produced those receipts, and that deserves its own review rather than
+# being slipped into a guard change.
 #
 # Checked manually against the truth its fixture DOES expose
 # (arc2_phylo_sigma_q2_fixture's true_sd_mu = 0.6, the mu-side sibling of the
 # value mc-0283 uses): all five seeds bracket it, so the claim is not in doubt.
-# The gap is reproducibility, not correctness. Restoring the runner entry is
-# tracked separately; see the Arc 7b after-task report.
+# The gap is reproducibility, not correctness.
 UNGATED = {"mc-0282"}
 RESULTS = ROOT / "docs/dev-log/interval-feasibility/results"
 CELLS_TSV = ROOT / "docs/dev-log/dashboard/capability-ledger/cells.tsv"

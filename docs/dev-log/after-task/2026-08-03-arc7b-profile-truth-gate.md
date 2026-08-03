@@ -337,14 +337,25 @@ opening them is the owner's call:
 
 ## Known Limitations and Next Actions
 
-**`mc-0282` is ungated, and the reason is a real gap.** It holds an
-`interval_feasible` claim on five retained receipts whose `binding_source`
-names `tools/run-arc2-profile-feasibility.R` — but that runner has **never**,
-in any commit, carried an `mc-0282` registry entry (verified across the
-runner's history). Its receipts were produced by a contract that was never
-committed, so there is no committed accessor to derive truth from, and writing
-one here would be *declaring* a truth rather than deriving it — the exact
-practice this arc removes.
+**`mc-0282` is ungated, and the entry is recoverable — an earlier draft of this
+report got that wrong.** It holds an `interval_feasible` claim on five retained
+receipts whose `binding_source` names `tools/run-arc2-profile-feasibility.R`,
+and the runner on this branch carries no `mc-0282` entry, so there is no
+accessor to derive truth from.
+
+This report originally said the runner had "never, in any commit" carried one.
+**That was false**, and a claims audit caught it. Commit `0a7d3172c` ("promote
+nine Gaussian structured cells") adds a complete `"mc-0282" = list(...)`
+contract including its `true_parameter_scale`; it *is* an ancestor of HEAD but
+did not survive the Arc 6 merge `324aed7c1`. My check missed it because the
+entry died in a merge, so `git log -- tools/run-arc2-profile-feasibility.R`
+never surfaced it — a reminder that file-scoped history hides exactly this.
+
+The correction matters for what happens next: the action is not "find someone
+who can reconstruct what ran", it is "read the entry out of `0a7d3172c` and
+re-add it." That is deliberately not done here — re-adding a runner contract
+asserts that this is the code that produced those receipts, which deserves its
+own review rather than being slipped into a guard change.
 
 Checked by hand against the truth its fixture does expose
 (`arc2_phylo_sigma_q2_fixture`'s `true_sd_mu = 0.6`, the mu-side sibling of the

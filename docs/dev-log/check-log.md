@@ -22,7 +22,7 @@ Record meaningful development checks here.
   Both retain their point-level evidence. `model_surface` `interval_feasible`
   **184 -> 182**; `point_fit_recovery` 58 -> 60 whole-model, 58 -> 59 frozen.
 - `python3 tools/capability_ledger.py --check`: OK (30 generated outputs).
-  `test_capability_ledger.py` 51 PASS, `test_arc1_profile_reconcilers.py` 3
+  `test_capability_ledger.py` 54 PASS, `test_arc1_profile_reconcilers.py` 3
   PASS, `test_b3_q6_target_promotion.py` 3 PASS, new
   `test_profile_truth_gate.py` 19 PASS, `emit-profile-truth-manifest.R --check`
   OK, `check-capability-runtime.R` OK (18 routes).
@@ -32,11 +32,13 @@ Record meaningful development checks here.
   manifest `--check` exit 2 and trips the prose-vs-derived test; deleting the
   manifest exits 2. Exit codes verified directly, not through a pipe.
 - Wired into `.github/workflows/R-CMD-check.yaml` in the same change, per the
-  `2026-08-03-b4-ci-mc-0207-pin-drift.md` lesson. CI now runs 4 of 8
+  `2026-08-03-b4-ci-mc-0207-pin-drift.md` lesson. CI now runs 6 of 9
   `tools/tests/` files.
 - Known gap: `mc-0282` is ungated. It holds an `interval_feasible` claim on
-  receipts whose binding runner contract was never committed, so its truth
-  cannot be derived. Checked by hand against `true_sd_mu = 0.6`: all five seeds
+  receipts whose runner contract is absent from this branch, so its truth cannot
+  be derived here. The entry is recoverable: commit `0a7d3172c` added a complete
+  one and it was lost in the Arc 6 merge `324aed7c1` (an earlier draft of this
+  entry wrongly said it was never committed; a claims audit caught that). Checked by hand against `true_sd_mu = 0.6`: all five seeds
   bracket it, so the count is unaffected. Recorded as a bounded `UNGATED` set
   with a test pinning it to exactly that one cell.
 
