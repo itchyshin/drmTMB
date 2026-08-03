@@ -142,7 +142,7 @@ is optimistic on at least four counts, so "n = 12" overstates the evidence:
 **FACT, with a provenance correction.** The `mc-0423` (animal) receipts analyzed here were
 generated under the fixture's original `n_founders = 4` (40-individual pedigree) configuration,
 not the `n_founders = 8` (80-individual) configuration the runner now uses by default for this
-cell (`tools/run-arc2-profile-feasibility.R:429`, added in commit `438f873c20`, 2026-08-02
+cell (`tools/run-arc2-profile-feasibility.R:442`, added in commit `438f873c20`, 2026-08-02
 19:37:36 -0600 -- several hours after the receipts under review were produced). Three checks
 confirm this: the receipts' own `information_rung` field and filenames read `id40_each25`; their
 `true_parameter_scale` prose says "40-individual (3-generation) pedigree"; and receipt seed
@@ -151,7 +151,7 @@ own documented diagnosis of the `n_founders = 4` failure (`:186-189`). The recei
 field (`a34bb75092c7733e5d65e4bf427895b4318ced7c`) cannot be used to tell the two configurations
 apart on its own: that commit predates even the commit that first added the `mc-0421`-`mc-0424`
 cells to the runner (`393216d2d`), confirming `source_sha` records `git rev-parse HEAD` at run
-time (`tools/run-arc2-profile-feasibility.R:1102`) on a working tree that had local, uncommitted
+time (`tools/run-arc2-profile-feasibility.R:1134`) on a working tree that had local, uncommitted
 edits, not a guarantee that the checked-out commit's code produced the receipt. This matters for
 how much weight `mc-0423`'s leg of the pattern should carry, but it does not obviously explain the
 direction away: `tools/arc3-nbinom2-sigma-provider-fixtures.R:199-207` reports that the same
@@ -159,7 +159,13 @@ five-seed family, re-run under the corrected `n_founders = 8` configuration, sti
 five estimates below 0.55 (0.434, 0.420, 0.419, 0.329; one above, 0.584) -- smaller errors, but
 still a below-truth majority. Those five numbers are reported here as documented in the file's own
 header; unlike the twelve in the main table, I have not independently re-verified them against a
-raw receipt file.
+raw receipt file. (`tools/run-arc2-profile-feasibility.R` was itself under active,
+unrelated concurrent revision in this shared worktree while this note was being
+written -- `git status`/`git diff --stat` showed insertions elsewhere in the file
+partway through this review. The line numbers cited above were re-checked against
+its content at the time this note was finished, but could drift further; the quoted
+text they point to is the load-bearing part of each citation, not the line number
+alone.)
 
 **Quantifying the clustering concern.** Given points 1-4, the defensible unit of replication is
 closer to the *cell* (four provider designs) than the *fit* (twelve seeds). Collapsing each cell
@@ -220,7 +226,7 @@ would help discriminate it from the others.
 3. **Finite-sample intercept/slope confounding** (the mechanism the fixtures file already
    investigated for `mc-0424` and `mc-0423`). Already tested and *ruled out* for `mc-0423`'s single
    worst-offending seed specifically (realized cor(v0, v1) = -0.14, not an outlier over a 10-seed
-   scan; `tools/run-arc2-profile-feasibility.R:404-406`), so it is not a family-wide default
+   scan; `tools/run-arc2-profile-feasibility.R:417-418`), so it is not a family-wide default
    explanation. Cheapest experiment: compute realized cor(v0, v1) for all twelve fixture draws (each
    receipt's `fixture_path` names the saved fixture `.tsv`, though these currently live on the
    Totoro host, not in this worktree) and regress signed relative deviation on it across the twelve
