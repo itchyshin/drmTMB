@@ -135,6 +135,14 @@ CELL_CONTRACTS = {
         "estimator": "ML",
         "profile_parameter": "sd:mu:phylo_interaction(1 | plant:pollinator)",
     },
+    "mc-0123": {
+        "target_id": "mc-0123::sd:mu:mu1:spatial(1 | p | site)",
+        "cohort_id": "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility",
+        "family": "biv_gaussian",
+        "provider": "spatial",
+        "estimator": "ML",
+        "profile_parameter": "sd:mu:mu1:spatial(1 | p | site)",
+    },
     "mc-0417": {
         "target_id": "mc-0417::sd:mu:spatial(1 | site)",
         "cohort_id": "arc4-nbinom2-ml-spatial-relmat-mu-sd-profile-feasibility",
