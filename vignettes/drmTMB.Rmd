@@ -41,11 +41,12 @@ in mind. The broader implemented map lives in
 [What can I fit today?](model-map.html), and family choice lives in
 [Choosing response families](distribution-families.html).
 
-The parameter names stay consistent across the site. Location describes the
-expected response; scale describes residual variability; shape describes
-distribution features beyond location and scale; and coscale means residual
-correlation such as `rho12` between two responses. A family may expose only a
-subset of these components.
+The parameter names stay consistent across the site. Location is a
+family-specific centre or location parameter; for Gaussian models it is the
+expected response, but it need not be the unconditional response mean. Scale
+describes residual variability; shape describes distribution features beyond
+location and scale; and coscale means residual correlation such as `rho12`
+between two responses. A family may expose only a subset of these components.
 
 For example, an applied user might ask: do mean trait values and residual
 variability change with an environmental predictor, after accounting for

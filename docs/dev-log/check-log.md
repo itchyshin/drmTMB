@@ -92275,3 +92275,41 @@ family that can discriminate an engine that improves on Laplace.
 - Protected: L, `mc-0673`, mesh intervals, estimated range, slopes, q4+, non-Gaussian spatial models, spatial sigma, derived observed correlations, other geometry/information configurations, and `supported`.
 - Exact stale-wording scan:
   `rg -n "point-only|Point estimate only|calibration remains planned|interval calibration.*planned|coverage remain planned|spatial q2|Confidence Eye|mc-0199|mc-0672" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml vignettes/spatial-models.Rmd pkgdown-site/articles/spatial-models.html`
+
+## 2026-08-03 — function-map reader-path and Image 2.0 repair
+
+- Replaced the circular six-stage function map with an Image 2.0 task map:
+  numbered Specify → Fit → Check, then unnumbered Interpret, Predict & assess,
+  and Uncertainty & simulate branches.
+- Corrected visual/API semantics: structured terms remain in specification;
+  `profile_targets()` is an uncertainty-target inventory; the ordinary
+  interpret branch uses `rho12()` rather than the object-specific
+  `association()` method; formula, family examples, and structured-term scope
+  are visually distinct.
+- Revised `vignettes/function-map-cheatsheet.Rmd` with a navigation-not-claim
+  boundary, family-specific location wording, fixed-effect adequacy scope,
+  failed-fit recovery, unsupported-route guidance, precise deferred-Julia
+  wording, detailed alt text, a full-size mobile link, and a keyboard-focusable
+  horizontally scrollable route table.
+- Preserved Image 2.0 generation provenance, the auditable SVG text overlay,
+  desktop/mobile screenshots, hashes, and the per-figure audit under
+  `docs/dev-log/figure-audits/2026-08-03-function-map/`.
+- Focused article render: PASS. `pkgdown::check_pkgdown()`: PASS, no problems.
+- Public-function audit: displayed drmTMB exports/S3 methods present; base
+  `gaussian()` is explicitly an example family constructor and `nbinom2()` is
+  exported.
+- `git diff --check`: PASS.
+- Final independent review: Florence PASS; Pat PASS; Rose PASS.
+- Restored the two-item `Get started` navbar menu: `Get started with drmTMB`
+  then `Function map and cheat sheet`, matching the reader path used by
+  gllvmTMB. The Getting Started article index uses the same order.
+- Focused builds for both destinations and `pkgdown::check_pkgdown()` PASS.
+  An initial `install = FALSE` full-site run picked up an older installed
+  package and stopped at the newer `cross-family.Rmd` Arc 6 `vcov()` example;
+  this stale-runtime result was not treated as package evidence.
+- Fisher found and prompted repairs to two claim boundaries: location is now
+  family-specific on both Get started pages, and `check_drm()` is described as
+  a numerical-health prerequisite rather than proof that inference is valid.
+  The paired-outcome row now names admitted latent-normal association scope.
+- Full source-installed pkgdown build: PASS, including `cross-family.Rmd` and
+  both rebuilt Get started destinations. Fisher final rendered re-review: PASS.
