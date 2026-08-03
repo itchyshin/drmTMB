@@ -20,6 +20,10 @@ raw_rows <- do.call(rbind, lapply(raw_paths, function(path) {
 if (nrow(raw_rows) != 4500L || any(raw_rows$slurm_array_job_id != opts[["array-job"]])) {
   stop("Raw scheduler provenance does not match the full array.", call. = FALSE)
 }
+task_ids <- sort(unique(as.integer(raw_rows$slurm_array_task_id)))
+if (!identical(task_ids, seq_len(1500L))) {
+  stop("Raw scheduler task IDs do not cover exactly 1:1500.", call. = FALSE)
+}
 child_jobs <- unique(as.character(raw_rows$slurm_job_id))
 if (length(child_jobs) != 1500L || any(!nzchar(child_jobs))) {
   stop("Expected exactly 1,500 recorded child SLURM job IDs.", call. = FALSE)
@@ -52,6 +56,13 @@ slurm_bytes <- function(x) {
 }
 
 tasks <- scheduler[scheduler$JobIDRaw %in% child_jobs, , drop = FALSE]
+if (nrow(tasks) != 1500L || !setequal(tasks$JobIDRaw, child_jobs) ||
+    anyDuplicated(tasks$JobIDRaw)) {
+  stop("Scheduler accounting does not contain exactly the 1,500 recorded child jobs.", call. = FALSE)
+}
+if (any(tasks$State != "COMPLETED") || any(tasks$ExitCode != "0:0")) {
+  stop("At least one recorded full-array child is not COMPLETED with exit 0:0.", call. = FALSE)
+}
 elapsed <- suppressWarnings(as.numeric(tasks$ElapsedRaw))
 rss_values <- vapply(scheduler$MaxRSS, slurm_bytes, numeric(1L))
 starts <- as.POSIXct(tasks$Start, tz = "UTC")
@@ -75,4 +86,19 @@ receipt <- data.frame(
   stringsAsFactors = FALSE
 )
 ce_atomic_write_tsv(receipt, file.path(run_root, "receipts", "resource-actual.tsv"))
+ce_reconcile("full", opts$raw, file.path(run_root, "reconciled"), packet)
+writeLines(
+  c(
+    paste0("source_sha=", packet$source_sha),
+    paste0("packet_sha256=", packet$packet_sha256),
+    paste0("array_job_id=", opts[["array-job"]]),
+    "scheduler_children=1500",
+    "scheduler_state=COMPLETED",
+    "scheduler_exit=0:0",
+    "raw_task_ids=1:1500",
+    "reconciliation=complete"
+  ),
+  file.path(run_root, "receipts", "full-closeout-complete.txt"),
+  useBytes = TRUE
+)
 message("wrote full scheduler receipt under ", file.path(run_root, "receipts"))
