@@ -334,8 +334,11 @@ for univariate Gaussian `mu`. `spatial(1 + depth | site, coords = coords)` is
 also fitted for one numeric `mu` slope by estimating independent intercept and
 slope fields with the same coordinate precision. `coords` supplies observed
 coordinates with one row per site or one row per observation. `mesh = mesh` is
-the planned route for users who have already built an SPDE mesh. Multiple
-spatial slopes and spatial slope correlations remain planned.
+fitted only for a Gaussian `mu` intercept with `sigma ~ 1`, fixed positive
+`kappa`, and projected coordinates. It uses `A_st %*% omega`, not the
+site-node route. Its raw GMRF field scale is local-fit only after a failed
+predeclared recovery rung; multiple spatial slopes and spatial slope
+correlations remain planned.
 
 The mesh is not the ecological object of inference. It is a numerical scaffold
 for the sparse SPDE/GMRF approximation. The current coordinate covariance path
@@ -344,18 +347,20 @@ rather than the main scalable path. The public API should therefore make
 coordinates easy for ordinary users while preserving `mesh = mesh` for advanced
 users who need control over boundaries, barriers, or reproducibility.
 
-The sibling `gllvmTMB` implementation already follows this broad idea. The
-files to study when implementation begins are:
+The bounded helper adaptation records gllvmTMB PR #886 merge
+`01a3b1103e1b3fe5fdf5d27826349d5bc6f4f040` in `inst/COPYRIGHTS`. Relevant
+source paths are:
 
 - `../gllvmTMB/R/fit-multi.R` for R-side phylogenetic VCV, A-inverse, SPDE,
   TMB-input, and parameter-map preparation;
-- `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` for sparse phylogenetic penalties
+- `../gllvmTMB/src/gllvmTMB.cpp` for sparse projected-field data
   and SPDE precision blocks;
-- `../gllvmTMB/R/mesh.R` and `../gllvmTMB/R/spde-keyword.R` for mesh helpers
-  and Matérn/SPDE documentation;
+- `../gllvmTMB/R/mesh.R` and `../gllvmTMB/R/crs.R` for mesh and projected-CRS
+  helpers;
 - `../gllvmTMB/tests/testthat/test-phylo-hadfield.R` for sparse-versus-dense
   phylogenetic validation;
-- `../gllvmTMB/tests/testthat/test-stage4-spde.R` for early SPDE tests.
+- `../gllvmTMB/tests/testthat/test-mesh.R` and `test-utm-conversions.R` for
+  mesh and CRS tests.
 
 Those sources should be used as a design and validation map, not as a reason to
 import high-dimensional GLLVM assumptions into `drmTMB`.

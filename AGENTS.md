@@ -3,12 +3,28 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ ACTIVE CODEX HANDOVER — start here (2026-08-02, MESH CLOSEOUT → Q2 CONFIDENCE EYE).**
+> PR **#893** on `codex/drmtmb-spatial-mesh` implements the fixed-kappa
+> univariate-Gaussian mesh `mu` intercept, explicit projected geographic
+> coordinates, exact-domain field-SD point recovery, and closes #881 while
+> preserving dense `coords=`. The next requested Confidence Eye is a separate
+> dense coordinate-spatial q2 latent-correlation interval-calibration arc. Do
+> not start it on the mesh branch or expose an interval before prospective
+> coverage evidence. Finish #893, then begin from fresh `origin/main` and
+> reconcile merged PR #897. START HERE:
+> [`docs/dev-log/handover/2026-08-02-codex-handover.md`](docs/dev-log/handover/2026-08-02-codex-handover.md).
+
 > **▶ ACTIVE LANE SPLIT — start here (2026-08-02).** C17 is closed through PR
 > #894 at `c8e04258d`, with canonical `330 implemented / 340 rejected by design /
 > 17 not implemented`. Current lanes and ownership boundaries are listed in
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md).
-> The new C18 structured zero-one-beta atom programme is **planning-only** until
-> overlapping mesh/SPDE PR #893 lands/closes or Shinichi authorizes overlap.
+> The C18 structured zero-one-beta atom programme has **LANDED on its lane**
+> (PR #898): seven exact q1 structured ATOM cells promoted to
+> `point_fit_recovery` — `zoi`/`coi` x {phylo, animal, relmat} plus both
+> phylo_interaction cells. `mc-0615` (coi x relmat) is withheld at 3/4 after a
+> variance-component boundary collapse, and spatial `mc-0606`/`mc-0616` are
+> deferred to the mesh/SPDE lane **and refused in code** so they cannot be fitted
+> without evidence. Lane census 337/350/10 = 697.
 > START HERE:
 > [`docs/dev-log/handover/2026-08-02-claude-c18-structured-atoms-handover.md`](docs/dev-log/handover/2026-08-02-claude-c18-structured-atoms-handover.md).
 > The 2026-07-26 lane split below is retained as historical context, not the

@@ -1,7 +1,8 @@
 drmTMB copyright and provenance notes
 
-drmTMB is currently a clean package scaffold. No source code has been ported
-from gllvmTMB, glmmTMB, sdmTMB, brms, or other modelling packages.
+Except for the documented mesh/helper and normalized-GMRF adaptations below,
+drmTMB contains no ported source code from gllvmTMB, glmmTMB, sdmTMB, brms, or
+other modelling packages.
 
 Future selective reuse of GPL-compatible A-inverse, SPDE, mesh, projection, or
 TMB utility code must be recorded here before the reused code is treated as
@@ -16,3 +17,35 @@ Spatial citation policy:
 - If `drmTMB` ports or closely adapts code from `gllvmTMB`, `sdmTMB`,
   `fmesher`, INLA-related sources, or another project, record the source file,
   license, and adaptation here in the same slice that introduces the code.
+
+## Mesh/SPDE helper baseline (2026-08-02)
+
+The mesh and geographic-coordinate helper contract is closely adapted from
+gllvmTMB pull request #886, merged as
+`01a3b1103e1b3fe5fdf5d27826349d5bc6f4f040` (GPL-3).  The reviewed source
+baseline is `R/mesh.R`, `R/crs.R`, and their focused mesh/UTM tests at that
+exact commit.  drmTMB adapts only the public-fmesher helper behaviour:
+projected-coordinate validation, explicit longitude/latitude transformation,
+finite-element matrices, and sparse observation-to-mesh projection.
+
+drmTMB does not adapt gllvmTMB's multivariate latent-variable, slope-field,
+anisotropy, barrier, or spatiotemporal machinery.  It also does not copy
+sdmTMB source: sdmTMB is a possible post-implementation comparator and a
+courtesy acknowledgement, not a dependency or code provenance entry.
+
+## Normalized mesh GMRF density (2026-08-02)
+
+The normalized TMB expression for the mesh field prior is closely adapted from
+gllvmTMB merge `01a3b1103e1b3fe5fdf5d27826349d5bc6f4f040`, GPL-3,
+`src/gllvmTMB.cpp` lines 1562--1591.  The originating gllvmTMB implementation
+commit is `12a93bae77bc7feb74ea8f46d892d795fda5d2e1`.  drmTMB adopts the native
+`density::SCALE(density::GMRF(Q, true), scale)` construction while retaining
+its independently designed univariate Gaussian fit plumbing and fixed-kappa
+mesh contract.
+
+The scale translation is intentional: gllvmTMB parameterizes a positive
+precision multiplier `tau` and supplies `1 / tau` to `SCALE`; drmTMB
+parameterizes the covariance-scale multiplier `s = exp(log_sd)` directly and
+supplies `s`.  Both give covariance `s^2 Q^-1` after identifying
+`s = 1 / tau`.  No gllvmTMB range, multivariate, slope, non-Gaussian,
+anisotropy, barrier, or spatiotemporal implementation is adopted here.

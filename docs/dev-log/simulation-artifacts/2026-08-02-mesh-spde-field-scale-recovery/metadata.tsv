@@ -1,0 +1,6 @@
+source_sha	3edbbe646b5a0dc26f092883fbc67b416a81a2ce
+runner_md5	5a12654fa39b28fa7fdbf9f057b294be
+kappa_fixed	5e-05
+field_scale_truth	1e-04
+residual_sd_truth	0.25
+attempt_policy	retain_all_attempts

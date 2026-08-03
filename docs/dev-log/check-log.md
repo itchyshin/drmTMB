@@ -92026,6 +92026,107 @@ Shinichi grants a separate Gate A compute approval.
   changed. See
   `docs/dev-log/after-task/2026-08-02-b4-ci-c4-canonical-integration.md`.
 
+## 2026-08-02: Fixed-kappa mesh/SPDE Gaussian spatial contract
+
+- Added explicit geographic-to-projected coordinate preprocessing and a
+  fixed-kappa `drmTMBmesh` helper using `fmesher` FEM matrices and an
+  observation-to-vertex `A_st` projection. The existing dense `coords =`
+  spatial route remains separate and passed its focused regression tests.
+- The first fitted mesh path is intentionally restricted to univariate Gaussian
+  `mu` intercepts with `sigma ~ 1`. Its TMB field is `A_st %*% omega` with
+  `Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2`; kappa is fixed configuration and
+  the reported target is a GMRF field scale, not a universal projected marginal
+  SD or a range estimate.
+- Mesh contracts cover projected CRS validation, fixed positive kappa, FEM and
+  sparse-projection invariants, parser boundaries, real minimal fits, row-order
+  alignment, extractors, and an explicitly profile-unready field-scale target.
+  `devtools::test(filter = "mesh")`, the Gaussian location-scale family, and
+  the bivariate dense-spatial REML regression family passed. A local pkgdown
+  render confirmed the updated spatial-models reader article.
+
+## 2026-08-02: Fixed-kappa mesh/SPDE recovery gate withheld
+
+- The complete 150-attempt Totoro V2 recovery ladder retained every attempt
+  and passed convergence/Hessian requirements at `n = 64, 128, 256`, but the
+  predeclared `n = 64` log-scale-RMSE gate failed (1.5490 > 0.30). The Gaussian
+  mesh field therefore remains `local_fit`; no point-fit recovery, interval,
+  coverage, marginal-SD, or range claim was promoted.
+- The independent dense marginal-likelihood comparator passes in the mesh
+  contract test. A 50-seed fixed-domain paired coarse/fine mesh control found
+  maximum absolute log-scale difference 0.04409, but is a robustness control,
+  not a substitute for the failed recovery rung. Receipts and exact frozen
+  decision are recorded in `2026-08-02-mesh-spde-recovery-gate.md`.
+- Final Gauss review found and the branch now rejects an accidental
+  `REML = TRUE` admission for mesh fields: this ML-only local-fit slice emits a
+  direct `REML = FALSE` remedy. The field-scale start calibration also now
+  solves against at most 32 deterministic projection rows rather than every
+  observation, preventing a start-value-only vertex-by-observation allocation.
+  The expanded mesh suite passed 50 expectations with zero failures.
+- Reconciled the planning handover against the implemented ML-only local-fit
+  slice in `2026-08-02-mesh-spde-handover-reconciliation.md`. The design
+  source maps now name the current gllvmTMB PR #886 source paths, distinguish
+  the protected dense `coords =` route from `A_st %*% omega`, and record the
+  failed recovery gate rather than leaving the mesh route marked merely planned.
+- Added the missing mesh-specific `check_drm()` row: it reports the spatial
+  group, vertex count, fixed `kappa`, and raw GMRF field scale, while stating
+  the local-fit-only boundary. The contract test also exercises
+  `ranef(fit, "spatial_mu")`; the focused mesh suite passed 46 expectations.
+- Pat's reader review repaired stale “mesh planned” wording across the spatial,
+  formula-grammar, structural-dependence, phylogenetic-spatial, model-map,
+  README, and readiness surfaces. The spatial article now executes a compact
+  projected-CRS mesh fit and prints vertex/observation/projection invariants,
+  projected conditional values, and the profile-unready row. New contract
+  tests cover non-Gaussian, labelled, mesh-plus-coordinates, REML, and
+  missing-data boundaries; the focused mesh suite passed 50 expectations.
+- Pat's re-review corrected the executable article's vertex invariant to
+  `ncol(A_st)` and removed the remaining broad mesh-deferred wording. The
+  readiness matrix now explicitly says that every later “mesh/SPDE planned”
+  phrase excludes the one fixed-kappa Gaussian local-fit intercept. The
+  rebuilt spatial article shows the corrected invariant and profile status.
+- The final model-map wording now qualifies both remaining generic mesh/SPDE
+  cells as neighbours beyond the fixed-kappa Gaussian `mu` intercept.
+- Added `spatial_coords()` and `make_mesh()` to the pkgdown structured-effect
+  reference group after the audit found both exported topics missing from the
+  index. `pkgdown::check_pkgdown()` now reports no problems.
+- A final stale-wording audit also repaired the formula grammar and roadmap so
+  their broad mesh/SPDE deferrals explicitly exclude the fixed-kappa Gaussian
+  local-fit intercept.
+- Rebasing onto `origin/main` incorporated C17-C2 model-15 source changes, so
+  GitHub's merge-ref ledger guard correctly rejected the stale compatibility
+  fingerprint before package checking. A fresh isolated Totoro receipt at
+  `f0e7fbadf` retained all 12 attempts (4/4 each for `mc-0568`, `mc-0569`, and
+  `mc-0576`) and passed the frozen current-source compatibility rule. The
+  C17-C2 manifest now points to that receipt; 50 ledger tests and the 50 mesh
+  expectations pass on the rebased source.
+- GitHub R-CMD-check then exposed ten hand-built `TMB::MakeADFun()` fixtures
+  that bypass `drm_fit_spec()` and therefore lacked the new global mesh data
+  fields. The affected q4/q8, phylogenetic, and bivariate-REML fixtures now
+  supply the inert zero/empty mesh contract; the bivariate mesh rejection test
+  also asserts the current univariate-only diagnostic. The three focused
+  suites pass 410 expectations (0 failures), and the mesh suite remains 50/50.
+- Fresh Gauss review found that the fixture-only repair missed seven tracked
+  bivariate diagnostic tools that call `MakeADFun()` below `drm_fit_spec()`.
+  Mesh DATA defaults now enter centrally through `make_tmb_data()` for every
+  builder, and a builder-level regression exercises the direct low-level path.
+  The mesh formula group is validated as a real observation-label column and
+  participates in complete-case row selection, but projection remains direct
+  retained-row-ID to `A_st` alignment and never node indexing. Mesh tests now
+  also require a finite fixed gradient below `1e-3` and reject an unknown
+  group. The affected mesh, covariance-registry, phylo, and bivariate-REML
+  suites pass 464 expectations with zero failures.
+- Noether returned mathematical GO after correcting the symbolic description
+  of `s` to a covariance-scale multiplier (precision is `s^-2 Q`) and using
+  that same symbol throughout the normalized prior. Gauss returned GO after
+  the central DATA, group-validation, gradient, and stale row/site wording
+  repairs. Neither review found a C++ likelihood, normalization, scaling,
+  projection, or sparse-algebra defect.
+- Because the builder repair changed the authenticated `R/drmTMB.R` blob, the
+  fail-closed C17/C14 test correctly rejected the prior receipt. An isolated
+  Totoro checkout at `4bec20741` reran the frozen 12-fit compatibility control:
+  `mc-0568`, `mc-0569`, and `mc-0576` each passed 4/4. The active C17-C2
+  manifest now names the complete exact-source receipt; it does not promote a
+  mesh or model-15 capability.
+
 ## 2026-08-02: Arc 1 current-source interval-feasibility cohort
 
 - Promoted only five exact targets from `point_fit_recovery` to
@@ -92054,6 +92155,80 @@ Shinichi grants a separate Gate A compute approval.
   outside the slice. See
   `docs/dev-log/after-task/2026-08-02-arc1-first-interval-feasibility-cohort.md`.
 
+## 2026-08-02: mesh native-density and spatial-article repair
+
+- Compared the fixed-kappa drmTMB mesh prior directly with gllvmTMB merge
+  `01a3b1103e1b3fe5fdf5d27826349d5bc6f4f040`. The models are algebraically
+  identical after translating gllvmTMB precision amplitude `tau` to drmTMB
+  covariance scale `s = 1 / tau`; gllvmTMB does not provide a comparable
+  absolute field-scale recovery gate.
+- With Gauss and Noether GO, replaced the manual normalized prior with
+  `density::SCALE(density::GMRF(Q, true), s)` and recorded exact GPL-3 C++
+  provenance, including originating commit `12a93bae7`. A direct nonzero-field,
+  off-optimum contract matches the full objective and analytic gradients at
+  three scales. This refactor does not change the fixed-kappa model or earn
+  recovery, interval, coverage, or range claims.
+- `devtools::test(filter = "mesh")`: 64 expectations, zero failures or
+  warnings. Covariance-registry, phylogenetic-utility, and bivariate-REML
+  filters: 510 expectations, zero failures or warnings.
+- Florence's rendered-page audit replaced the incomparable shared-axis SD
+  plot with a unit-labelled point-estimate table, explicitly marked the
+  near-zero boundary, removed the q2 unused-fill warning, shortened the q2
+  panel, and made the site-field colour scale symmetric. The rebuilt article
+  contains no emitted warning output and adds no unsupported interval.
+- Opened gllvmTMB issue #904 to track its comparable absolute SPDE field-scale
+  recovery, identifiability, and interval-evidence gap without widening either
+  package's current model surface.
+- GitHub run `30760119838` correctly failed closed because the native-GMRF C++
+  edit changed the authenticated `src/drmTMB.cpp` blob. A fresh isolated
+  Totoro checkout at pushed head `ba5c1bcdb` reran the frozen model-15 control:
+  all 12 attempts passed, with `mc-0568`, `mc-0569`, and `mc-0576` each 4/4.
+  The active C17-C2 manifest now authenticates that exact receipt and current
+  source blobs; it does not promote a mesh or model-15 capability.
+- The same CI run caught the article's exact unit-string contract and two stray
+  plotting lines at EOF. The repaired article retains the unit-separated table,
+  uses `Response units per depth unit`, renders without emitted warnings, and
+  passed the 50-test capability-ledger suite.
+- Full local `devtools::check(args = "--no-manual", error_on = "never")`:
+  0 errors, 0 warnings, and two environmental notes (clock verification and
+  temporary `xcrun_db`).
+
+## 2026-08-02: fixed-kappa mesh point-recovery confirmation
+
+- Froze a current-source V3 contract for the exact fixed-kappa Gaussian `mu`
+  mesh intercept at `n = 128` and `n = 256`, with 50 fresh attempts per rung,
+  all-attempt denominators, disjoint seed ledgers, source/DLL checksums,
+  streamed heartbeats, fail-closed diagnostics, and Monte Carlo uncertainty on
+  bias and log-RMSE.
+- Curie's pre-execution review caught that the first smoke reused two proposed
+  promotion seeds. The Totoro launch at `50770c579` was stopped and its entire
+  100-seed ledger was excluded. A replacement ledger and separate smoke seeds
+  passed 22 focused contract expectations.
+- The valid Totoro receipt at clean source `1e48e8d80` retained 100/100 usable
+  fits. At `n = 128`, relative bias was -0.0301 and log-RMSE 0.1444; at
+  `n = 256`, bias was -0.0096 and log-RMSE 0.1009. Both bias intervals and
+  RMSE upper Monte Carlo bounds remained inside the frozen gates. All fits had
+  convergence zero, `pdHess = TRUE`, finite objectives and estimates,
+  gradients below `1e-3`, no warning, and no near-zero estimate.
+- Curie independently authenticated and recomputed the complete receipt;
+  Fisher returned PROMOTE. The exact tested cell earns `point_fit_recovery`.
+  The retained `n = 64` failure, intervals, coverage, projected marginal-SD
+  inference, range, and all broader mesh models remain outside the claim.
+- Local checks: mesh filters 86/86; protected dense coordinate-spatial
+  intercept/slope filters 292/292; `git diff --check` clean.
+- The authenticated receipt and adjudication were committed and pushed before
+  issue action. Curie returned GO after reproducing every hash, design row,
+  heartbeat, diagnostic, and summary; Fisher returned PROMOTE. Issue #881 was
+  then closed with the exact claim and exclusions.
+- Public status wording now reports `point_fit_recovery` only for the exact
+  tested fixed-domain `n = 128, 256` designs and retains the `n = 64` failure.
+  `check_drm()` carries the same boundary. The rebuilt spatial-models article
+  emits no warning text. It does not draw confidence intervals: neither #881
+  nor the existing coordinate-spatial evidence calibrates those displayed
+  parameter intervals.
+- Post-synchronization mesh tests: 87/87 expectations. The status inventory
+  search and exact file list are recorded in the after-task report.
+=======
 ## 2026-07-30 — directed to the drmTMB team: gllvmTMB missing-data cross-brief
 
 Cross-package brief filed at

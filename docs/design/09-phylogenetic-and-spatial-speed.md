@@ -161,8 +161,8 @@ needs to rewrite the implemented sparse precision path. Specific files to study:
 | Formula AST parsing | `../gllvmTMB/R/parse-multi-formula.R` functions `parse_multi_formula()`, `parse_covstruct_call()`, and `parse_re_int_call()` | Split fixed terms, ordinary random effects, and structured effects before building TMB data. |
 | Sparse phylogenetic A-inverse setup | `../gllvmTMB/R/fit-multi.R` around the `Ainv_phy_rr` construction | Build a small univariate `phylo(1 | species, tree = tree)` data-preparation path first. |
 | TMB data and maps | `../gllvmTMB/R/fit-multi.R` sections on phylogenetic VCV preparation, SPDE preparation, TMB inputs, and maps | Keep structured-effect variants explicit in R-side data and parameter maps. |
-| Sparse A-inverse TMB data contract | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` A-inverse data declarations | Define minimal sparse precision inputs for one random-effect term before bivariate use. |
-| Sparse phylogenetic prior | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` Stage-35/Stage-40 phylogenetic blocks | Add a tested GMRF/prior block that can attach to `mu`, later `sigma`. |
+| Sparse A-inverse TMB data contract | `../gllvmTMB/src/gllvmTMB.cpp` A-inverse data declarations | Define minimal sparse precision inputs for one random-effect term before bivariate use. |
+| Sparse phylogenetic prior | `../gllvmTMB/src/gllvmTMB.cpp` phylogenetic blocks | Add a tested GMRF/prior block that can attach to `mu`, later `sigma`. |
 | Phylogenetic tests | `../gllvmTMB/tests/testthat/test-phylo-hadfield.R` | Use sparse-vs-dense equivalence and parameter-recovery tests. |
 
 ## Spatial Dependence
@@ -184,10 +184,10 @@ bf(
 )
 ```
 
-`coords` and `mesh` should be treated as two entry points to the same spatial
-field, not as two biological model types. The first fitted coordinate path uses
+`coords` and `mesh` are two numerical representations of a spatial field, not
+two biological model types. The fitted coordinate path uses
 pairwise site distances to build a fixed exponential covariance, then inverts
-that covariance to a precision matrix. `mesh` remains the scalable SPDE/GMRF
+that covariance to a precision matrix. `mesh` is the separate sparse SPDE/GMRF
 path: it supplies an already-built finite-element scaffold plus projection
 information needed to map mesh vertices back to observations. In both cases,
 the fitted quantity is a structured spatial random effect; the mesh itself is a
@@ -197,26 +197,25 @@ interpret biologically.
 Mesh is therefore not required by the scientific idea of spatial dependence.
 It is required by the scalable SPDE/GMRF approximation. The current
 coordinate-covariance implementation is a small-data foundation and recovery
-target; it forms dense matrices before converting to a precision and does not
-yet share the large-data path with future sparse mesh work. The default user
-experience should remain `coords = coords`; the R layer can later build or
-validate a mesh-like object internally. The explicit `mesh = mesh` form is for
-users who need reproducible control over boundaries, coastlines, barriers, or
-highly uneven sampling.
+target; it forms dense matrices before converting to a precision. It remains
+protected and is not a mesh shortcut. The first mesh implementation has a
+smaller surface: its explicit `mesh = mesh` form is for a supplied or
+`make_mesh()` mesh on projected coordinates, not for barriers, anisotropy, or
+range estimation.
 
-Planned mesh-explicit syntax:
+Current mesh-explicit syntax is deliberately narrower:
 
 ```r
 bf(
-  y ~ depth + temp + spatial(1 | site, mesh = mesh),
-  sigma ~ temp
+  y ~ spatial(1 | site, mesh = mesh),
+  sigma ~ 1
 )
 ```
 
 ### Mesh/SPDE Implementation Gate
 
-Do not turn `mesh = mesh` into fitted syntax until the mesh object contract is
-explicit. The first acceptable contract should name:
+The mesh object contract is explicit and the fitted syntax above is admitted
+only at local-fit level. It names:
 
 - the mesh vertices and triangle topology;
 - the observation-to-mesh projection matrix or enough information to build it;
@@ -224,17 +223,18 @@ explicit. The first acceptable contract should name:
   Matérn/SPDE ingredients needed to construct one;
 - the coordinate reference system or a clear statement that coordinates are
   already projected into a distance-preserving working scale;
-- the mapping from data rows to site levels and from site levels to projected
-  mesh rows;
-- the fitted parameters that belong to the spatial field, starting with one
-  field SD and only then adding range, anisotropy, barriers, or replicate
-  fields.
+- retained model-row identifiers that align directly to projection-matrix
+  rows; the formula group is a validated observation label, never a vertex or
+  mesh-node index;
+- the fixed positive `kappa` and raw GMRF field scale (not a uniform projected
+  marginal SD), with range, anisotropy, barriers, and replicate fields deferred.
 
-The first mesh implementation should still fit only a univariate Gaussian `mu`
-random intercept. That keeps the comparator close to the current
-`coords = coords` path: both estimate one structured spatial SD, but the mesh
-route should use a sparse SPDE/GMRF precision and a projection matrix rather
-than a dense coordinate covariance. Mesh-based residual-scale slopes,
+The first mesh implementation fits only a univariate Gaussian `mu` random
+intercept under ML with fixed `kappa`. Its TMB contribution is `A_st %*% omega`,
+not a mesh-node index. The independent dense marginal-likelihood comparator
+tests `V = sigma_e^2 I + s^2 A Q^-1 A^T`. The Totoro recovery gate is retained
+as negative evidence: its `n = 64` log-scale RMSE failed the frozen threshold,
+so this is not a point-fit-recovery claim. Mesh-based residual-scale slopes,
 direct-SD models, spatial `corpair()` regressions, and non-Gaussian mesh routes
 should wait until the mesh intercept has recovery evidence and diagnostics.
 That mesh boundary does not erase the exact fitted coordinate-covariance gates:
@@ -245,7 +245,8 @@ fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu`.
 Dependency and citation decisions are part of the gate. If `drmTMB` accepts
 `fmesher` objects or uses `fmesher` to build meshes, the package website,
 article, and manuscript should tell users to cite `fmesher` in addition to the
-SPDE method literature and `sdmTMB` precedent. If `fmesher` is optional, start
+SPDE method literature. `sdmTMB` is an optional courtesy acknowledgement, not
+a code source or required citation. If `fmesher` is optional, start
 with `Suggests` and clear errors when it is missing; do not make it a hard
 dependency until ordinary coordinate users need it. If any mesh helper, SPDE
 matrix builder, projection code, or test fixture is copied or closely adapted
@@ -282,10 +283,10 @@ the mesh intercept path has its own recovery and diagnostics.
 | Purpose | gllvmTMB source | drmTMB translation |
 | --- | --- | --- |
 | Mesh construction | `../gllvmTMB/R/mesh.R` | Provide a small mesh helper or accept a prepared mesh object. |
-| SPDE keyword documentation | `../gllvmTMB/R/spde-keyword.R` | Reuse the teaching structure for Matérn/SPDE parameters without importing gllvmTMB's latent-factor API. |
+| CRS helpers | `../gllvmTMB/R/crs.R` | Adapt explicit projected-CRS validation; never silently choose UTM. |
 | Mesh validation and TMB data | `../gllvmTMB/R/fit-multi.R` spatial mesh validation and data passing | Start with one location-field term for one response. |
-| SPDE precision | `../gllvmTMB/inst/tmb/gllvmTMB_multi.cpp` SPDE data contract, `Q_base` construction, and spatial projected fields | Build a focused SPDE module before allowing scale fields. |
-| SPDE tests | `../gllvmTMB/tests/testthat/test-stage4-spde.R` and `../gllvmTMB/tests/testthat/test-spatial-latent-recovery.R` | Use recovery tests for location fields before adding bivariate or scale models. |
+| SPDE precision | `../gllvmTMB/src/gllvmTMB.cpp` projected-field data contract | Keep one focused projected Gaussian field before any scale fields. |
+| SPDE tests | `../gllvmTMB/tests/testthat/test-mesh.R` and `test-utm-conversions.R` | Adapt helper and malformed-input contracts before new fields. |
 | API keyword grid | `../gllvmTMB/vignettes/articles/api-keyword-grid.Rmd` | Read for semantics, then simplify for `drmTMB`'s univariate/bivariate scope. |
 
 The most useful implementation abstraction is a structured random-effect block
@@ -300,9 +301,10 @@ If the first spatial implementation only follows the published SPDE/GMRF idea,
 the user-facing docs should cite the methodological and software sources that
 made the route practical. At minimum, cite Lindgren, Rue, and Lindstrom (2011)
 for the SPDE link between Gaussian fields and GMRFs
-(`doi:10.1111/j.1467-9868.2011.00777.x`), and cite the `sdmTMB`
+(`doi:10.1111/j.1467-9868.2011.00777.x`). An `sdmTMB`
 [Journal of Statistical Software paper](https://www.jstatsoft.org/article/view/v115i02)
-when explaining the ecological TMB-plus-SPDE precedent. If `drmTMB` asks users
+may be acknowledged as ecological TMB-plus-SPDE precedent, but is not a
+required citation or source of adapted code. If `drmTMB` asks users
 to pass meshes or if it imports `fmesher`, also cite `fmesher` as software and
 ask users to cite it via `citation("fmesher")`.
 
@@ -422,8 +424,9 @@ selective and traceable:
 - add simulation or equivalence tests around ported numerical code;
 - avoid importing high-dimensional GLLVM assumptions into the `drmTMB` API.
 
-No `gllvmTMB` code has been ported into `drmTMB` at this stage; the paths above
-are source maps for later design and review.
+The bounded helper adaptation is recorded in `inst/COPYRIGHTS`: gllvmTMB PR
+#886, merge `01a3b1103e1b3fe5fdf5d27826349d5bc6f4f040`, GPL-3, and the adapted
+paths are the authoritative provenance record.
 
 ## Implementation Order
 

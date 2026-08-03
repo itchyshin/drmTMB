@@ -2206,6 +2206,17 @@ drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
   }
+  mesh_spatial_mu <- if (is.list(spec$structured)) {
+    spec$structured$mesh_spatial_mu
+  } else {
+    NULL
+  }
+  if (is.list(mesh_spatial_mu) && isTRUE(mesh_spatial_mu$has)) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented for fixed-kappa mesh spatial fields.",
+      "i" = "The current mesh/SPDE slice is ML-only; use {.code REML = FALSE}."
+    ))
+  }
   # Binomial O2 joint-Laplace restricted likelihood (doc 224): admitted alongside Gaussian.
   if (!spec$model_type %in% c("gaussian", "binomial")) {
     cli::cli_abort(
@@ -2993,7 +3004,7 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_phylo$rhs
   mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
   mu_entry$rhs <- mu_phylo_interaction$rhs
-  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
+  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry, allow_mesh = TRUE)
   mu_entry$rhs <- mu_spatial$rhs
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
@@ -3057,6 +3068,19 @@ drm_build_gaussian_ls_spec <- function(
   } else {
     NULL
   }
+  mesh_spatial_term <- if (
+    identical(active_structured, "spatial") &&
+      !is.null(structured_term) &&
+      identical(structured_term$structure, "mesh")
+  ) {
+    validate_gaussian_mesh_spatial_term(structured_term, sigma_entry, data)
+    structured_term
+  } else {
+    NULL
+  }
+  if (!is.null(mesh_spatial_term)) {
+    structured_term <- NULL
+  }
   mu_phylo$term <- structured_terms$phylo
   mu_phylo_interaction$term <- structured_terms$phylo_interaction
   mu_spatial$term <- structured_terms$spatial
@@ -3066,6 +3090,11 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  if (!is.null(mesh_spatial_term) && length(mu_re$terms) > 0L) {
+    cli::cli_abort(
+      "The first mesh spatial route cannot yet be combined with ordinary random effects."
+    )
+  }
   sd_mu_targets <- parse_sd_mu_entries(sd_mu_entries, mu_re$terms)
   active_mu_terms <- remove_qgt2_random_mu_terms(mu_re$terms)
   sd_phylo_targets <- parse_sd_phylo_entries(
@@ -3181,6 +3210,7 @@ drm_build_gaussian_ls_spec <- function(
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     structured_mu_vars(structured_term),
+    structured_mu_vars(mesh_spatial_term),
     vapply(sd_mu_targets, `[[`, character(1), "group"),
     vapply(sd_phylo_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
@@ -3364,6 +3394,16 @@ drm_build_gaussian_ls_spec <- function(
     data_model
   )
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
+  if (!is.null(mesh_spatial_term) &&
+      (include_missing_response || include_missing_predictor)) {
+    cli::cli_abort(c(
+      "The first mesh spatial route does not support missing-data models.",
+      "i" = "Use complete rows with {.code missing = miss_control()} for this ML-only mesh slice."
+    ))
+  }
+  mesh_spatial_mu <- build_mesh_spatial_mu_structure(
+    mesh_spatial_term, data_model, env
+  )
   sd_phylo <- build_sd_phylo_structure(
     sd_phylo_entries,
     sd_phylo_targets,
@@ -3397,6 +3437,12 @@ drm_build_gaussian_ls_spec <- function(
     observed_y = observed_y
   )
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y[observed_y]))
+  if (isTRUE(mesh_spatial_mu$has)) {
+    start$u_phylo2 <- numeric(mesh_spatial_mu$n_re)
+    start$log_sd_phylo2 <- log(mesh_spatial_field_scale_start(
+      mesh_spatial_mu, y[observed_y]
+    ))
+  }
   if (include_missing_predictor) {
     start$beta_mi <- missing_predictor$beta_start
     start$log_sigma_mi <- missing_predictor$log_sigma_start
@@ -3495,7 +3541,7 @@ drm_build_gaussian_ls_spec <- function(
     ),
     aggregation = list(gaussian = gaussian_aggregation),
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
-    structured = list(phylo_mu = phylo_mu),
+    structured = list(phylo_mu = phylo_mu, mesh_spatial_mu = mesh_spatial_mu),
     missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
@@ -3524,6 +3570,7 @@ drm_build_gaussian_ls_spec <- function(
       if (re_sigma$n_re > 0L) "u_sigma",
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo",
+      if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "gaussian")
@@ -5550,6 +5597,118 @@ drm_build_zero_one_beta_spec <- function(
     cli::cli_abort("A zero-one-beta coi random effect cannot be combined with a structured mu effect in this q1 gate.")
   }
 
+  zoi_phylo <- extract_gaussian_mu_phylo_term(zoi_entry, dpar = "zoi")
+  zoi_entry$rhs <- zoi_phylo$rhs
+  zoi_animal <- extract_gaussian_mu_known_term(zoi_entry, "animal", dpar = "zoi")
+  zoi_entry$rhs <- zoi_animal$rhs
+  zoi_relmat <- extract_gaussian_mu_known_term(zoi_entry, "relmat", dpar = "zoi")
+  zoi_entry$rhs <- zoi_relmat$rhs
+  zoi_spatial <- extract_gaussian_mu_spatial_term(zoi_entry, dpar = "zoi")
+  zoi_entry$rhs <- zoi_spatial$rhs
+  zoi_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(zoi_entry, dpar = "zoi")
+  zoi_entry$rhs <- zoi_phylo_interaction$rhs
+  if (!is.null(zoi_phylo$term)) {
+    validate_zero_one_beta_atom_phylo_term(zoi_phylo$term, "zoi")
+    zoi_phylo$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_animal$term)) {
+    validate_zero_one_beta_atom_animal_term(zoi_animal$term, "zoi")
+    zoi_animal$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_relmat$term)) {
+    validate_zero_one_beta_atom_relmat_term(zoi_relmat$term, "zoi")
+    zoi_relmat$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_spatial$term)) {
+    validate_zero_one_beta_atom_spatial_term(zoi_spatial$term, "zoi")
+    zoi_spatial$term$dpars <- "zoi"
+  }
+  if (!is.null(zoi_phylo_interaction$term)) {
+    validate_zero_one_beta_atom_phylo_interaction_term(zoi_phylo_interaction$term, "zoi")
+    zoi_phylo_interaction$term$dpars <- "zoi"
+  }
+  if (sum(!vapply(list(zoi_phylo$term, zoi_animal$term, zoi_relmat$term, zoi_spatial$term, zoi_phylo_interaction$term), is.null, logical(1L))) > 1L) {
+    cli::cli_abort("A zero-one-beta zoi formula can use only one structured provider in this q1 gate.")
+  }
+  zoi_structured <- if (!is.null(zoi_phylo$term)) zoi_phylo$term else if (!is.null(zoi_animal$term)) zoi_animal$term else if (!is.null(zoi_relmat$term)) zoi_relmat$term else if (!is.null(zoi_spatial$term)) zoi_spatial$term else zoi_phylo_interaction$term
+
+  coi_phylo <- extract_gaussian_mu_phylo_term(coi_entry, dpar = "coi")
+  coi_entry$rhs <- coi_phylo$rhs
+  coi_animal <- extract_gaussian_mu_known_term(coi_entry, "animal", dpar = "coi")
+  coi_entry$rhs <- coi_animal$rhs
+  coi_relmat <- extract_gaussian_mu_known_term(coi_entry, "relmat", dpar = "coi")
+  coi_entry$rhs <- coi_relmat$rhs
+  coi_spatial <- extract_gaussian_mu_spatial_term(coi_entry, dpar = "coi")
+  coi_entry$rhs <- coi_spatial$rhs
+  coi_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(coi_entry, dpar = "coi")
+  coi_entry$rhs <- coi_phylo_interaction$rhs
+  if (!is.null(coi_phylo$term)) {
+    validate_zero_one_beta_atom_phylo_term(coi_phylo$term, "coi")
+    coi_phylo$term$dpars <- "coi"
+  }
+  if (!is.null(coi_animal$term)) {
+    validate_zero_one_beta_atom_animal_term(coi_animal$term, "coi")
+    coi_animal$term$dpars <- "coi"
+  }
+  if (!is.null(coi_relmat$term)) {
+    validate_zero_one_beta_atom_relmat_term(coi_relmat$term, "coi")
+    coi_relmat$term$dpars <- "coi"
+  }
+  if (!is.null(coi_spatial$term)) {
+    validate_zero_one_beta_atom_spatial_term(coi_spatial$term, "coi")
+    coi_spatial$term$dpars <- "coi"
+  }
+  if (!is.null(coi_phylo_interaction$term)) {
+    validate_zero_one_beta_atom_phylo_interaction_term(coi_phylo_interaction$term, "coi")
+    coi_phylo_interaction$term$dpars <- "coi"
+  }
+  if (sum(!vapply(list(coi_phylo$term, coi_animal$term, coi_relmat$term, coi_spatial$term, coi_phylo_interaction$term), is.null, logical(1L))) > 1L) {
+    cli::cli_abort("A zero-one-beta coi formula can use only one structured provider in this q1 gate.")
+  }
+  coi_structured <- if (!is.null(coi_phylo$term)) coi_phylo$term else if (!is.null(coi_animal$term)) coi_animal$term else if (!is.null(coi_relmat$term)) coi_relmat$term else if (!is.null(coi_spatial$term)) coi_spatial$term else coi_phylo_interaction$term
+
+  if (include_missing_response && !is.null(zoi_structured)) {
+    cli::cli_abort(c(
+      "The zero-one-beta zoi q1 structured-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with a structured zoi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
+    ))
+  }
+  if (include_missing_response && !is.null(coi_structured)) {
+    cli::cli_abort(c(
+      "The zero-one-beta coi q1 structured-effect gate does not support missing responses.",
+      "i" = "Use complete observed responses with a structured coi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
+    ))
+  }
+
+  structured_endpoints <- list(
+    mu = mu_structured,
+    sigma = sigma_structured,
+    zoi = zoi_structured,
+    coi = coi_structured
+  )
+  n_structured_endpoints <- sum(
+    !vapply(structured_endpoints, is.null, logical(1L))
+  )
+  if (n_structured_endpoints > 1L) {
+    active <- names(structured_endpoints)[
+      !vapply(structured_endpoints, is.null, logical(1L))
+    ]
+    cli::cli_abort(c(
+      "A zero-one-beta model can use a structured effect on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} in this q1 gate.",
+      "x" = "Structured effects were found on {.val {active}} and cannot be combined."
+    ))
+  }
+  any_ordinary_re <- any(c(
+    length(mu_re$terms), length(sigma_re$terms),
+    length(zoi_re$terms), length(coi_re$terms)
+  ) > 0L)
+  if (!is.null(zoi_structured) && any_ordinary_re) {
+    cli::cli_abort("A zero-one-beta q1 structured zoi effect cannot be combined with ordinary random effects in this gate.")
+  }
+  if (!is.null(coi_structured) && any_ordinary_re) {
+    cli::cli_abort("A zero-one-beta q1 structured coi effect cannot be combined with ordinary random effects in this gate.")
+  }
+
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -5568,7 +5727,9 @@ drm_build_zero_one_beta_spec <- function(
     random_effect_vars(sigma_re$terms),
     random_effect_vars(zoi_re$terms),
     random_effect_vars(coi_re$terms),
-    structured_mu_vars(mu_structured)
+    structured_mu_vars(mu_structured),
+    structured_mu_vars(zoi_structured),
+    structured_mu_vars(coi_structured)
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
@@ -5647,7 +5808,15 @@ drm_build_zero_one_beta_spec <- function(
   if (!is.null(sigma_structured) && any(c(re_mu$n_re, re_sigma$n_re, re_zoi$n_re, re_coi$n_re) > 0L)) {
     cli::cli_abort("A zero-one-beta q1 structured sigma effect cannot be combined with ordinary random effects in this gate.")
   }
-  structured_term <- if (!is.null(sigma_structured)) sigma_structured else mu_structured
+  structured_term <- if (!is.null(mu_structured)) {
+    mu_structured
+  } else if (!is.null(sigma_structured)) {
+    sigma_structured
+  } else if (!is.null(zoi_structured)) {
+    zoi_structured
+  } else {
+    coi_structured
+  }
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
 
   spec <- list(
@@ -8840,8 +9009,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
-      "i" = "Structured non-Gaussian paths beyond those count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, and structured count scale routes outside the NB2 one-slope gate, remain deferred until family-specific recovery evidence is stable."
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane).",
+      "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }
@@ -9903,6 +10072,61 @@ validate_zero_one_beta_mu_phylo_interaction_term <- function(term) {
   invisible(term)
 }
 
+validate_zero_one_beta_atom_phylo_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code phylo(1 | species, tree = tree)} intercept.",
+      "i" = "Structured {.code {dpar}} slopes, labels, non-phylogenetic providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_animal_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "animal") || !identical(term$structure, "Ainv") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code animal(1 | species, Ainv = Ainv)} intercept.",
+      "i" = "Pedigree/A inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_relmat_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "relmat") || !identical(term$structure, "K") ||
+      !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code relmat(1 | species, K = K)} intercept.",
+      "i" = "Q inputs, slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
+validate_zero_one_beta_atom_spatial_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  cli::cli_abort(c(
+    "Zero-one-beta structured {.code {dpar}} spatial atoms are deferred, not implemented.",
+    "i" = "The {.fn spatial} provider for zero-one-beta zoi/coi q1 atoms is fenced out pending the mesh/SPDE lane.",
+    "i" = "Use {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction} instead."
+  ))
+}
+
+validate_zero_one_beta_atom_phylo_interaction_term <- function(term, dpar) {
+  if (is.null(term)) return(invisible(term))
+  if (!identical(term$type, "phylo_interaction") || !structured_term_is_intercept_only(term) || !is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Zero-one-beta structured {.code {dpar}} currently supports only one unlabelled q1 {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)} intercept.",
+      "i" = "Slopes, labels, other providers, and cross-parameter effects need separate recovery evidence."
+    ))
+  }
+  invisible(term)
+}
+
 validate_cumulative_logit_mu_random_terms <- function(terms) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -10785,7 +11009,11 @@ extract_gaussian_mu_phylo_term <- function(entry, dpar = entry$dpar) {
   list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
 }
 
-extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
+extract_gaussian_mu_spatial_term <- function(
+  entry,
+  dpar = entry$dpar,
+  allow_mesh = FALSE
+) {
   terms <- flatten_plus_terms(entry$rhs)
   is_spatial <- vapply(
     terms,
@@ -10823,11 +11051,11 @@ extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
       "i" = "Use {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)}."
     ))
   }
-  if (!identical(spatial_term$structure, "coords")) {
+  if (!identical(spatial_term$structure, "coords") && !isTRUE(allow_mesh)) {
     cli::cli_abort(c(
-      "Precomputed spatial mesh fitting is planned but not implemented yet.",
+      "Precomputed spatial mesh fitting requires the univariate Gaussian {.code mu} slice.",
       "x" = "Requested {.code spatial(1 | {spatial_term$group}, mesh = {spatial_term$object})}.",
-      "i" = "Use {.code spatial(1 | {spatial_term$group}, coords = coords)} for the first fitted coordinate-based spatial path."
+      "i" = "Use {.code bf(y ~ spatial(1 | {spatial_term$group}, mesh = mesh), sigma ~ 1)} with {.code gaussian()}, or use {.code coords = coords} for another fitted spatial route."
     ))
   }
 
@@ -11372,7 +11600,7 @@ phylo_mu_dpar_codes <- function(phylo_mu) {
     return(0L)
   }
   family <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
-  codes <- match(family, c("mu", "sigma", "nu", "zi", "hu")) - 1L
+  codes <- match(family, c("mu", "sigma", "nu", "zi", "hu", "zoi", "coi")) - 1L
   if (anyNA(codes)) {
     cli::cli_abort(
       "Internal error: structured-effect endpoint has unknown distributional parameter {.val {family[is.na(codes)][[1L]]}}."
@@ -12541,6 +12769,145 @@ build_spatial_mu_structure <- function(term, data, env) {
     species_levels = character(),
     group_levels = precision$site_levels
   )
+}
+
+empty_mesh_spatial_mu_structure <- function() {
+  list(
+    has = FALSE,
+    type = "spatial",
+    structure = "mesh",
+    label = "spatial(1 | site)",
+    n_re = 0L,
+    node_labels = character(),
+    projection = NULL,
+    precision = NULL,
+    kappa_fixed = NA_real_,
+    mesh = NULL
+  )
+}
+
+validate_gaussian_mesh_spatial_term <- function(term, sigma_entry, data) {
+  labelled <- is.character(term$covariance_label) &&
+    length(term$covariance_label) == 1L &&
+    !is.na(term$covariance_label) &&
+    nzchar(term$covariance_label)
+  if (!identical(term$dpar, "mu") ||
+      !structured_term_is_intercept_only(term) ||
+      labelled) {
+    cli::cli_abort(c(
+      "The first mesh spatial route is one unlabelled Gaussian {.code mu} intercept.",
+      "i" = "Use {.code bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)}."
+    ))
+  }
+  sigma_terms <- flatten_plus_terms(sigma_entry$rhs)
+  if (!identical(length(sigma_terms), 1L) || !identical(deparse1(sigma_terms[[1L]]), "1")) {
+    cli::cli_abort(
+      "The first mesh spatial route requires {.code sigma ~ 1}."
+    )
+  }
+  group <- term$group
+  if (length(group) != 1L || !is.character(group) || is.na(group) ||
+      !nzchar(group) || !group %in% names(data)) {
+    cli::cli_abort(c(
+      "Mesh spatial grouping variable {.val {group}} was not found in {.arg data}.",
+      "i" = "Use a real column name in {.code spatial(1 | site, mesh = mesh)}; it labels observations and is never treated as a mesh-node index."
+    ))
+  }
+  invisible(term)
+}
+
+build_mesh_spatial_mu_structure <- function(term, data, env) {
+  if (is.null(term)) return(empty_mesh_spatial_mu_structure())
+  if (!identical(term$type, "spatial") || !identical(term$structure, "mesh")) {
+    cli::cli_abort("Internal error: expected a mesh spatial term.")
+  }
+  mesh <- evaluate_spatial_coords(term$object, env)
+  .drm_validate_mesh(mesh)
+  model_ids <- rownames(data)
+  if (is.null(model_ids)) model_ids <- as.character(seq_len(nrow(data)))
+  mesh_rows <- match(as.character(model_ids), as.character(mesh$alignment_ids))
+  if (anyNA(mesh_rows)) {
+    cli::cli_abort(c(
+      "Mesh projection rows do not align with the retained model rows.",
+      "x" = "Every retained model-row identifier must occur once in {.code mesh$alignment_ids}.",
+      "i" = "Construct the mesh from the source data before model-frame omission, retaining its row names."
+    ))
+  }
+  A <- methods::as(mesh$A_st[mesh_rows, , drop = FALSE], "dgCMatrix")
+  if (any(Matrix::rowSums(A) <= 0) || any(abs(Matrix::rowSums(A) - 1) > 1e-8)) {
+    cli::cli_abort("Every retained observation must lie inside the mesh with projection weights summing to one.")
+  }
+  kappa <- mesh$kappa
+  Q <- kappa^4 * mesh$spde$c0 + 2 * kappa^2 * mesh$spde$g1 + mesh$spde$g2
+  Q <- methods::as((Q + Matrix::t(Q)) / 2, "dgCMatrix")
+  ch <- tryCatch(Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE), error = function(e) NULL)
+  if (is.null(ch)) {
+    cli::cli_abort("The fixed-kappa mesh precision is not sparse positive definite.")
+  }
+  determinant <- as.numeric(Matrix::determinant(Q, logarithm = TRUE)$modulus)
+  if (!is.finite(determinant)) {
+    cli::cli_abort("The fixed-kappa mesh precision has a non-finite log determinant.")
+  }
+  n_vertex <- ncol(A)
+  list(
+    has = TRUE,
+    type = "spatial",
+    structure = "mesh",
+    label = format_structured_label(
+      "spatial", "1", term$group, term$covariance_label
+    ),
+    group = term$group,
+    n_re = n_vertex,
+    node_labels = paste0("vertex_", seq_len(n_vertex)),
+    projection = A,
+    precision = list(precision = Q, log_det_precision = determinant),
+    kappa_fixed = kappa,
+    mesh = mesh,
+    observation_ids = as.character(model_ids)
+  )
+}
+
+# Convert the observed-response scale into the raw SPDE/GMRF scale used by the
+# precision matrix.  With metric coordinates, this avoids a generic SD start
+# that can be orders of magnitude too large purely because of coordinate units.
+mesh_spatial_field_scale_start <- function(mesh, y) {
+  A <- mesh$projection
+  Q <- mesh$precision$precision
+  response_sd <- stats::sd(y)
+  fallback <- max(0.25 * response_sd, 1e-12)
+  if (!is.finite(fallback) || fallback <= 0) fallback <- 1e-12
+  # This is a start-value calibration only.  Solving for every observation can
+  # materialise an n_vertex by n_observation dense right-hand side for a large
+  # mesh, so use a deterministic, evenly spaced subset instead.
+  n_reference <- min(nrow(A), 32L)
+  reference_rows <- unique(round(seq.int(1L, nrow(A), length.out = n_reference)))
+  A_reference <- A[reference_rows, , drop = FALSE]
+  qinv_a <- tryCatch(
+    Matrix::solve(Q, Matrix::t(A_reference)),
+    error = function(e) NULL
+  )
+  if (is.null(qinv_a)) return(fallback)
+  marginal_sd <- sqrt(pmax(
+    Matrix::rowSums(A_reference * Matrix::t(qinv_a)), 0
+  ))
+  reference_sd <- stats::median(marginal_sd[is.finite(marginal_sd) & marginal_sd > 0])
+  if (!is.finite(reference_sd) || reference_sd <= 0) {
+    return(fallback)
+  }
+  max(0.25 * response_sd / reference_sd, 1e-12)
+}
+
+add_mesh_spatial_tmb_data <- function(tmb_data, spec) {
+  dummy_sparse <- Matrix::sparseMatrix(
+    i = integer(), j = integer(), x = numeric(), dims = c(1L, 1L)
+  )
+  mesh <- if (is.list(spec$structured)) spec$structured$mesh_spatial_mu else NULL
+  has_mesh <- is.list(mesh) && isTRUE(mesh$has)
+  tmb_data$has_mesh_spatial_mu <- as.integer(has_mesh)
+  tmb_data$A_mesh_spatial <- if (has_mesh) mesh$projection else dummy_sparse
+  tmb_data$Q_mesh_spatial <- if (has_mesh) mesh$precision$precision else dummy_sparse
+  tmb_data$log_det_Q_mesh_spatial <- if (has_mesh) mesh$precision$log_det_precision else 0
+  tmb_data
 }
 
 build_known_precision_mu_structure <- function(term, data, env) {
@@ -18543,16 +18910,22 @@ add_covariance_probe_parameter <- function(spec) {
   has_phylo_mu2 <- is.list(spec$structured) &&
     is.list(spec$structured$phylo_mu2) &&
     isTRUE(spec$structured$phylo_mu2$has)
+  has_mesh_spatial_mu <- is.list(spec$structured) &&
+    is.list(spec$structured$mesh_spatial_mu) &&
+    isTRUE(spec$structured$mesh_spatial_mu$has)
+  if (has_phylo_mu2 && has_mesh_spatial_mu) {
+    cli::cli_abort("Internal error: mesh and second node-indexed fields cannot share {.code u_phylo2}.")
+  }
   if (is.null(spec$start$u_phylo2)) {
     spec$start$u_phylo2 <- 0
   }
   if (is.null(spec$start$log_sd_phylo2)) {
     spec$start$log_sd_phylo2 <- 0
   }
-  if (is.null(spec$map$u_phylo2) && !has_phylo_mu2) {
+  if (is.null(spec$map$u_phylo2) && !has_phylo_mu2 && !has_mesh_spatial_mu) {
     spec$map$u_phylo2 <- factor(NA)
   }
-  if (is.null(spec$map$log_sd_phylo2) && !has_phylo_mu2) {
+  if (is.null(spec$map$log_sd_phylo2) && !has_phylo_mu2 && !has_mesh_spatial_mu) {
     spec$map$log_sd_phylo2 <- factor(NA)
   }
   spec
@@ -18580,7 +18953,7 @@ corpair_model_level_id <- function(model) {
   0L
 }
 
-make_tmb_data <- function(spec) {
+make_tmb_data_core <- function(spec) {
   dummy_matrix <- matrix(0, nrow = 1, ncol = 1)
   dummy_sparse <- Matrix::sparseMatrix(
     i = integer(0),
@@ -19878,6 +20251,13 @@ make_tmb_data <- function(spec) {
   )
 }
 
+make_tmb_data <- function(spec) {
+  # The TMB template declares mesh fields globally, so every builder-level
+  # data contract must carry them. This also protects tracked low-level tools
+  # that intentionally call MakeADFun() without passing through drm_fit_spec().
+  add_mesh_spatial_tmb_data(make_tmb_data_core(spec), spec)
+}
+
 split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "poisson")) {
     beta_mu <- unname(par$beta_mu)
@@ -20335,6 +20715,16 @@ split_tmb_sdpars <- function(par, spec) {
     )
     out$mu <- c(out$mu, sd_phylo2)
   }
+  if (isTRUE(spec$structured$mesh_spatial_mu$has)) {
+    # This is the fixed-kappa GMRF scale, not a spatially constant marginal
+    # SD after projection through A.  Keep it in sdpars for a stable public
+    # extractor while the name records the fitted spatial term.
+    mesh_label <- spec$structured$mesh_spatial_mu$label
+    out$mu <- c(
+      out$mu,
+      stats::setNames(exp(unname(par$log_sd_phylo2[[1L]])), mesh_label)
+    )
+  }
   out
 }
 
@@ -20761,6 +21151,22 @@ split_tmb_random_effects <- function(par, spec) {
       values = values2,
       latent = latent2,
       terms = terms2
+    )
+  }
+  if (isTRUE(spec$structured$mesh_spatial_mu$has)) {
+    mesh <- spec$structured$mesh_spatial_mu
+    latent <- unname(par$u_phylo2[seq_len(mesh$n_re)])
+    names(latent) <- mesh$node_labels
+    projected <- as.numeric(mesh$projection %*% latent)
+    names(projected) <- as.character(mesh$observation_ids)
+    terms <- list(latent)
+    names(terms) <- mesh$label
+    out$spatial_mu <- list(
+      values = latent,
+      latent = latent,
+      terms = terms,
+      projected = projected,
+      kappa_fixed = mesh$kappa_fixed
     )
   }
   out

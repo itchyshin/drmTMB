@@ -708,3 +708,13 @@ scouting belongs to Jason).
   canonical-map equality or record a local source object for the remote source.
   The final gate and bundle made that provenance auditable without concealing
   the original failed serialization.
+
+## 2026-08-02 - Separate Smoke And Promotion Seed Universes
+
+- Improvement implemented: every confirmatory campaign now needs explicit,
+  machine-tested disjoint seed universes for earlier receipts, local smoke,
+  aborted/superseded designs, and promotion attempts. A clean source SHA does
+  not make an already previewed seed confirmatory.
+- Trigger: the first mesh V3 smoke reused two proposed promotion seeds. Curie
+  caught the overlap after launch; the run was stopped, the complete proposed
+  ledger was excluded, and the valid campaign used 100 wholly fresh seeds.

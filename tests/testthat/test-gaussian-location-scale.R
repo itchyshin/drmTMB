@@ -438,7 +438,7 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
       family = gaussian(),
       data = dat
     ),
-    "mesh fitting is planned"
+    "Could not find spatial coordinate object"
   )
   expect_error(
     drmTMB(

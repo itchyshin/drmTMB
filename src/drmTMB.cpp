@@ -396,6 +396,15 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(phylo_mu2_value);
   DATA_SPARSE_MATRIX(Q_phylo2);
   DATA_SCALAR(log_det_Q_phylo2);
+  // Fixed-kappa mesh/SPDE Gaussian location field.  This is intentionally not
+  // the existing node-indexed coordinate/relatedness route: A contains one
+  // barycentric observation-to-vertex row per retained observation.
+  DATA_INTEGER(has_mesh_spatial_mu);
+  DATA_SPARSE_MATRIX(A_mesh_spatial);
+  DATA_SPARSE_MATRIX(Q_mesh_spatial);
+  // Retained as R-side validated mesh metadata. The normalized density below
+  // obtains the log determinant from Q directly.
+  DATA_SCALAR(log_det_Q_mesh_spatial);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -483,6 +492,7 @@ Type objective_function<Type>::operator()()
   (void)re_cov_member_coef_pos;
   (void)re_cov_member_latent_index;
   (void)re_cov_member_design_value;
+  (void)log_det_Q_mesh_spatial;
   (void)re_cov_pair_from_member;
   (void)re_cov_pair_to_member;
   (void)re_cov_pair_parameter;
@@ -1106,6 +1116,24 @@ Type objective_function<Type>::operator()()
       vector<Type> sd_phylo2 = exp(log_sd_phylo2);
       REPORT(sd_phylo2);
       ADREPORT(sd_phylo2);
+    }
+
+    if (has_mesh_spatial_mu == 1) {
+      vector<Type> mesh_effect = A_mesh_spatial * u_phylo2;
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += mesh_effect(i);
+      }
+      Type mesh_field_scale = exp(log_sd_phylo2(0));
+      nll += density::SCALE(
+        density::GMRF(Q_mesh_spatial, true), mesh_field_scale
+      )(u_phylo2);
+      REPORT(mesh_effect);
+      REPORT(u_phylo2);
+      REPORT(log_sd_phylo2);
+      ADREPORT(log_sd_phylo2);
+      vector<Type> sd_mesh_spatial = exp(log_sd_phylo2);
+      REPORT(sd_mesh_spatial);
+      ADREPORT(sd_mesh_spatial);
     }
 
     if (has_mi == 1 && mi_family == 0) {
@@ -2414,12 +2442,17 @@ Type objective_function<Type>::operator()()
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
           Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
-          if (phylo_mu_dpar(k) == 2) {
+          int code = phylo_mu_dpar(k);
+          if (code == 2) {
             eta_nu(i) += contribution;
-          } else if (phylo_mu_dpar(k) == 1) {
+          } else if (code == 1) {
             log_sigma(i) += contribution;
-          } else {
+          } else if (code == 0) {
             mu(i) += contribution;
+          } else {
+            error(
+              "student: unsupported structured endpoint code for "
+              "phylo_mu_dpar (expected 0=mu, 1=sigma, 2=nu)");
           }
         }
       }
@@ -3080,12 +3113,33 @@ Type objective_function<Type>::operator()()
     }
     if (has_phylo_mu == 1) {
       int n_phylo = Q_phylo.rows();
+      // Block 15 is written for q1 only (no k-loop, single log_sd_phylo,
+      // single u_phylo field). See design doc 248 S3.4 / F2.
+      if (log_sd_phylo.size() != 1) {
+        error(
+          "zero_one_beta: structured atom effects support exactly one "
+          "field (q1); log_sd_phylo must have size 1");
+      }
+      if (u_phylo.size() != n_phylo) {
+        error(
+          "zero_one_beta: structured atom effects support exactly one "
+          "field (q1); u_phylo must have length Q_phylo.rows()");
+      }
       for (int i = 0; i < y.size(); ++i) {
         Type contribution = phylo_mu_value(i, 0) * u_phylo(phylo_mu_node_index(i));
-        if (phylo_mu_dpar(0) == 1) {
-          log_sigma(i) += contribution;
-        } else {
+        int code = phylo_mu_dpar(0);
+        if (code == 0) {
           eta_mu(i) += contribution;
+        } else if (code == 1) {
+          log_sigma(i) += contribution;
+        } else if (code == 5) {
+          eta_zoi(i) += contribution;
+        } else if (code == 6) {
+          eta_coi(i) += contribution;
+        } else {
+          error(
+            "zero_one_beta: unsupported structured endpoint code for "
+            "phylo_mu_dpar (expected 0=mu, 1=sigma, 5=zoi, 6=coi)");
         }
       }
       vector<Type> Q_u = Q_phylo * u_phylo;
@@ -3600,10 +3654,15 @@ Type objective_function<Type>::operator()()
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
           Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
-          if (phylo_mu_dpar(k) == 3) {
+          int code = phylo_mu_dpar(k);
+          if (code == 3) {
             eta_zi(i) += contribution;
-          } else {
+          } else if (code == 0) {
             eta_mu(i) += contribution;
+          } else {
+            error(
+              "zi_poisson: unsupported structured endpoint code for "
+              "phylo_mu_dpar (expected 0=mu, 3=zi)");
           }
         }
       }
@@ -3957,10 +4016,15 @@ Type objective_function<Type>::operator()()
         for (int k = 0; k < q_phylo; ++k) {
           int effect_index = k * n_phylo + phylo_mu_node_index(i);
           Type contribution = phylo_mu_value(i, k) * u_phylo(effect_index);
-          if (phylo_mu_dpar(k) == 4) {
+          int code = phylo_mu_dpar(k);
+          if (code == 4) {
             eta_hu(i) += contribution;
-          } else {
+          } else if (code == 0) {
             eta_mu(i) += contribution;
+          } else {
+            error(
+              "hurdle_nbinom2: unsupported structured endpoint code for "
+              "phylo_mu_dpar (expected 0=mu, 4=hu)");
           }
         }
       }

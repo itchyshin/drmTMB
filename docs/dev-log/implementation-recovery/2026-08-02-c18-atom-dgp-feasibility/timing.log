@@ -1,0 +1,19 @@
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+C18 time: sampling 8 fits spanning small/large grid corners
+corner=small atom=zoi n=960 elapsed=0.53s status=fit_ok
+corner=small atom=coi n=960 elapsed=0.55s status=fit_ok
+corner=small atom=zoi n=960 elapsed=0.51s status=fit_ok
+corner=small atom=coi n=960 elapsed=0.54s status=fit_ok
+corner=large atom=zoi n=12800 elapsed=9.57s status=fit_ok
+corner=large atom=coi n=12800 elapsed=9.19s status=fit_ok
+corner=large atom=zoi n=12800 elapsed=11.22s status=fit_ok
+corner=large atom=coi n=12800 elapsed=7.74s status=fit_ok
+
+mean elapsed=4.98s min=0.51s max=11.22s (n=8)
+projected SERIAL wall time for full grid (28800 fits): 2390.2 min

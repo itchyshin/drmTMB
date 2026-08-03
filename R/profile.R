@@ -1397,6 +1397,14 @@ drm_profile_targets <- function(object) {
       }
       status <- if (is_direct) {
         if (
+          identical(internal, "log_sd_phylo2") &&
+            isTRUE(object$model$structured$mesh_spatial_mu$has)
+        ) {
+          list(
+            profile_ready = FALSE,
+            profile_note = "mesh_field_scale_intervals_unvalidated"
+          )
+        } else if (
           ((identical(internal, "log_sd_phylo") ||
             identical(internal, "log_sd_sigma")) &&
             count_point_fit_only_profile_restricted(object, dpar)) ||
@@ -3816,9 +3824,16 @@ validate_profile_targets <- function(targets) {
     "point_fit_only_zero_one_beta_phylo_q1",
     "point_fit_only_zero_one_beta_phylo_zoi_q1",
     "point_fit_only_zero_one_beta_phylo_coi_q1",
+    "point_fit_only_zero_one_beta_animal_zoi_q1",
+    "point_fit_only_zero_one_beta_animal_coi_q1",
+    "point_fit_only_zero_one_beta_relmat_zoi_q1",
+    "point_fit_only_zero_one_beta_relmat_coi_q1",
+    "point_fit_only_zero_one_beta_phylo_interaction_zoi_q1",
+    "point_fit_only_zero_one_beta_phylo_interaction_coi_q1",
     "point_fit_only_zero_one_beta_sigma_q1",
     "point_fit_only_zero_one_beta_zoi_q1",
     "point_fit_only_zero_one_beta_coi_q1",
+    "mesh_field_scale_intervals_unvalidated",
     "derived_target",
     "derived_unstructured_correlation"
   )
@@ -3892,6 +3907,13 @@ profile_sd_internal <- function(object, dpar, term) {
       )
   ) {
     return("log_sd_re_cov")
+  }
+  if (
+    identical(dpar, "mu") &&
+      isTRUE(object$model$structured$mesh_spatial_mu$has) &&
+      identical(term, object$model$structured$mesh_spatial_mu$label)
+  ) {
+    return("log_sd_phylo2")
   }
   if (
     identical(dpar, "mu") &&
@@ -4060,6 +4082,14 @@ count_point_fit_only_profile_restricted_status <- function(object, dpar) {
       return(list(
         profile_ready = FALSE,
         profile_note = "point_fit_only_zero_one_beta_phylo_coi_q1"
+      ))
+    }
+    if (dpar %in% c("zoi", "coi")) {
+      return(list(
+        profile_ready = FALSE,
+        profile_note = paste0(
+          "point_fit_only_zero_one_beta_", provider, "_", dpar, "_q1"
+        )
       ))
     }
     return(list(
