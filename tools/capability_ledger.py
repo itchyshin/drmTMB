@@ -120,7 +120,7 @@ FROZEN_CENSUS_COUNT = 676
 # numerical-conditioning defects (not estimator defects), redesigned, re-gated
 # over five seeds, and re-run: the same previously-failing seed now passes, so
 # both are promoted here too. 71 -> 66; ARC3_TARGETS binds each promoted cell.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 66
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 67
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -258,12 +258,6 @@ ARC3_TARGETS = {
         "evidence_id": "ev-mc-0422-arc3-profile",
         "transition_id": "tr-mc-0422-arc3-profile",
         "claim_snippet": "arc3_nbinom2_sigma_spatial_fixture",
-    },
-    "mc-0423": {
-        "target_id": "mc-0423::sd:sigma:animal(1 | id)",
-        "evidence_id": "ev-mc-0423-arc3-profile",
-        "transition_id": "tr-mc-0423-arc3-profile",
-        "claim_snippet": "arc3_nbinom2_sigma_animal_fixture",
     },
     "mc-0421": {
         "target_id": "mc-0421::sd:sigma:phylo(1 | species)",
