@@ -664,46 +664,6 @@ cell_registry <- list(
     true_parameter_scale = "0.6 spatial random-intercept SD on mu (log link; PRIMARY target), simultaneous with an independent 0.5 relmat random-intercept SD on mu (COMPANION, not gated); 20-site coordinate-arc GMRF (kappa = 66.2) crossed with 24-individual AR(1)-relatedness GMRF (kappa = 3.5), 5 observations per (site, id) cell, log-SD internal scale",
     cohort_id = "arc4-nbinom2-ml-spatial-relmat-mu-sd-profile-feasibility"
   ),
-  "mc-0123" = list(
-    # Random-effect SD target: the mu1 intercept-level component of the
-    # SAME labelled bivariate q6 spatial block (`spatial(1 + x + z | p |
-    # site, coords = coords)` in both mu1 and mu2) whose mu2 endpoint,
-    # mc-0124, B3 already promoted to interval_feasible
-    # (ev-mc-0124-b3-q6-mu2-interval). B3's own runner
-    # (tools/run-b2-q6-proof-profile-cohort.R) is unreachable from this tree
-    # (see tools/arc4-q6-spatial-mu1-fixture.R's header), so this is an
-    # independent fixture for the same target family, not a replay of
-    # mc-0124's exact DGP.
-    target = "sd:mu:mu1:spatial(1 | p | site)",
-    family_name = "biv_gaussian",
-    family = function() drmTMB::biv_gaussian(),
-    # `spatial()` requires a bare symbol for `coords`.
-    formula = function(fx) {
-      coords <- fx$coords
-      drmTMB::bf(
-        mu1 = y1 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords),
-        mu2 = y2 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords),
-        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
-      )
-    },
-    control = function() drmTMB::drm_control(optimizer_preset = "robust"),
-    estimator = "ML",
-    provider = "spatial",
-    fixture_name = "arc4_q6_spatial_mu1_fixture",
-    fixture_file = "tools/arc4-q6-spatial-mu1-fixture.R",
-    fixture_call = function(fixture_fn, seed) fixture_fn(seed = seed),
-    data_from_fixture = function(fx) fx$data,
-    information_rung = function(seed) "n72_each20",
-    dgp_id = "arc4b_biv_gaussian_ml_spatial_q6_mu1_sd",
-    formula_label = paste0(
-      "bf(mu1 = y1 ~ x + z + spatial(1 + x + z | p | site, coords = coords), ",
-      "mu2 = y2 ~ x + z + spatial(1 + x + z | p | site, coords = coords), ",
-      "sigma1 = ~1, sigma2 = ~1, rho12 = ~1); biv_gaussian(); ML; ",
-      "drm_control(optimizer_preset = \"robust\")"
-    ),
-    true_parameter_scale = "0.45 spatial random-intercept SD on mu1 (identity link) within the labelled q6 block, independent of 0.30/0.25 mu1 random-slope SDs (x/z) and 0.40/0.28/0.22 mu2 random-intercept/slope SDs required by the labelled two-slope q6 grammar; 8x9 coordinate grid (72 sites), 20 observations per site, log-SD internal scale",
-    cohort_id = "arc4b-biv-gaussian-ml-spatial-q6-mu1-sd-profile-feasibility"
-  ),
   "mc-0205" = list(
     # Random-effect SD target: the MEAN-scale (mu1) marginal SD of a
     # labelled `(1 | p | id)` block that correlates mu1's and sigma1's
