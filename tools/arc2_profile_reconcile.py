@@ -119,6 +119,22 @@ CELL_CONTRACTS = {
         "estimator": "ML",
         "profile_parameter": "sd:sigma:relmat(1 | id)",
     },
+    "mc-0321": {
+        "target_id": "mc-0321::sd:mu:phylo_interaction(1 | plant:pollinator)",
+        "cohort_id": "arc3-gaussian-ml-phylo-interaction-mu-sd-profile-feasibility",
+        "family": "gaussian",
+        "provider": "phylo_interaction",
+        "estimator": "ML",
+        "profile_parameter": "sd:mu:phylo_interaction(1 | plant:pollinator)",
+    },
+    "mc-0409": {
+        "target_id": "mc-0409::sd:mu:phylo_interaction(1 | plant:pollinator)",
+        "cohort_id": "arc3-nbinom2-ml-phylo-interaction-mu-sd-profile-feasibility",
+        "family": "nbinom2",
+        "provider": "phylo_interaction",
+        "estimator": "ML",
+        "profile_parameter": "sd:mu:phylo_interaction(1 | plant:pollinator)",
+    },
 }
 
 

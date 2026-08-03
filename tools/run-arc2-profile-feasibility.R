@@ -439,6 +439,95 @@ cell_registry <- list(
     ),
     true_parameter_scale = "0.55 relmat (AR1-Toeplitz relatedness) random-intercept SD on log(sigma) (NB2 dispersion), independent of a 0.25 relmat random-slope SD required by the intercept-plus-one-slope structured-sigma grammar for count families; 80-individual relatedness structure, 25 observations per individual, log-SD internal scale",
     cohort_id = "arc3-nbinom2-ml-relmat-sigma-sd-profile-feasibility"
+  ),
+  "mc-0321" = list(
+    # Random-effect SD target: the SAME target string, `sd:mu:phylo_
+    # interaction(1 | plant:pollinator)`, that mc-0438 (Poisson) STOPPED on
+    # (nonfinite profile endpoints at both npair64-each8 and npair64-each20;
+    # see docs/dev-log/interval-feasibility/results/c8e04258.../arc1-mc0438-
+    # profile-feasibility/mc-0438/*-receipt.tsv). tools/arc3-phylo-
+    # interaction-fixtures.R's header explains why mc-0438's STAR-tree, 64-
+    # pair geometry is deliberately reused here rather than the balanced-tree
+    # shape test-phylo-interaction.R validates for point-fit: it is the
+    # directly comparable geometry. A local point-fit + single-profile gate
+    # (tools/arc3-phylo-interaction-point-fit-gate.R) found this EXACT
+    # geometry profiles cleanly for gaussian across 3 seeds (rel_err 0.089,
+    # 0.024, 0.064; conf_status "profile", finite/ordered every time) -- the
+    # Poisson STOP does not generalise to gaussian mu.
+    target = "sd:mu:phylo_interaction(1 | plant:pollinator)",
+    family_name = "gaussian",
+    family = function() stats::gaussian(),
+    formula = function(fx) {
+      plant_tree <- fx$plant_tree
+      pollinator_tree <- fx$pollinator_tree
+      drmTMB::bf(
+        y ~ x + drmTMB::phylo_interaction(
+          1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
+        ),
+        sigma ~ 1
+      )
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "phylo_interaction",
+    fixture_name = "arc3_phylo_interaction_gaussian_fixture",
+    fixture_file = "tools/arc3-phylo-interaction-fixtures.R",
+    fixture_call = function(fixture_fn, seed) {
+      fixture_fn(
+        n_plant = 8L, n_pollinator = 8L, n_each = 8L, sd_pair = 0.6,
+        tree_type = "star", seed = seed
+      )
+    },
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "star_np8_npo8_each8",
+    dgp_id = "arc3_gaussian_ml_phylo_interaction_mu_sd",
+    formula_label = paste0(
+      "bf(y ~ x + phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, ",
+      "tree2 = pollinator_tree), sigma ~ 1); gaussian(identity/log); ML"
+    ),
+    true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (identity link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 8 observations per pair, log-SD internal scale",
+    cohort_id = "arc3-gaussian-ml-phylo-interaction-mu-sd-profile-feasibility"
+  ),
+  "mc-0409" = list(
+    # NB2 sibling of mc-0321: same target string, same STAR-tree geometry,
+    # same point-fit + single-profile gate result (rel_err 0.160, 0.006,
+    # 0.159 across 3 seeds; conf_status "profile", finite/ordered every
+    # time) -- the Poisson STOP does not generalise to NB2 mu either. See
+    # tools/arc3-phylo-interaction-fixtures.R's header and mc-0321's comment
+    # above for the full rationale.
+    target = "sd:mu:phylo_interaction(1 | plant:pollinator)",
+    family_name = "nbinom2",
+    family = function() drmTMB::nbinom2(),
+    formula = function(fx) {
+      plant_tree <- fx$plant_tree
+      pollinator_tree <- fx$pollinator_tree
+      drmTMB::bf(
+        nb2 ~ x + drmTMB::phylo_interaction(
+          1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
+        ),
+        sigma ~ 1
+      )
+    },
+    control = NULL,
+    estimator = "ML",
+    provider = "phylo_interaction",
+    fixture_name = "arc3_phylo_interaction_nbinom2_fixture",
+    fixture_file = "tools/arc3-phylo-interaction-fixtures.R",
+    fixture_call = function(fixture_fn, seed) {
+      fixture_fn(
+        n_plant = 8L, n_pollinator = 8L, n_each = 8L, sd_pair = 0.6,
+        tree_type = "star", seed = seed
+      )
+    },
+    data_from_fixture = function(fx) fx$data,
+    information_rung = function(seed) "star_np8_npo8_each8",
+    dgp_id = "arc3_nbinom2_ml_phylo_interaction_mu_sd",
+    formula_label = paste0(
+      "bf(nb2 ~ x + phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, ",
+      "tree2 = pollinator_tree), sigma ~ 1); nbinom2() (log/log); ML"
+    ),
+    true_parameter_scale = "0.6 bipartite phylogenetic-interaction random-intercept SD on mu (log link); 8-tip star plant tree x 8-tip star pollinator tree (64 pairs, tip covariance = identity on each side -- the same iid-pair geometry mc-0438 used), 8 observations per pair, log-SD internal scale",
+    cohort_id = "arc3-nbinom2-ml-phylo-interaction-mu-sd-profile-feasibility"
   )
 )
 
