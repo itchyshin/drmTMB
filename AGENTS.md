@@ -3,28 +3,40 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-03, ARC 7a COMPLETE; ARC 7b IS THE NEXT ARC).**
-> `main` = `5aacb1425`. The `model_surface` surface moved **172 interval_feasible / 70
-> point_fit_recovery → 184 / 58** (`FROZEN_CENSUS_POINT_FIT_RECOVERY` 70 → 58) through PRs
-> #909, #907 (`mc-0123`/`0205`/`0206`) and #908 (nine Gaussian structured cells; `mc-0292`
-> deliberately withheld — **do not re-add it**). PRs #910 (B4-CI neighbour guards) and #911
-> (parity-triage claim check + the Arc 7b brief) close the arc.
-> **CI now runs 5 of the 7 files in `tools/tests/`, up from 2.** Three guard defects surfaced,
-> all the same shape — *a claim recorded in one place about the state of another, with no
-> mechanical link between them.* The standing lesson: **a guard's definition of done includes
-> the line in CI that runs it.**
-> **NEXT = Arc 7b, the truth gate**, design already settled and briefed at
-> [`docs/dev-log/handover/2026-08-03-arc7b-truth-gate-brief.md`](docs/dev-log/handover/2026-08-03-arc7b-truth-gate-brief.md).
-> `tools/arc2_profile_reconcile.py` validates interval SHAPE and is blind to interval
-> LOCATION; `mc-0424` and `mc-0260m` hold `interval_feasible` today on cohorts containing a
-> truth-excluding interval. **Expect the count to fall 184 → 182 — that is the gate working,
-> not a regression.** Prong B Tier 1 comes after 7b, not before: its 135-trace review burden is
-> exactly what the gate exists to carry.
-> Owner decisions outstanding: q12 (16 cells behind a policy fence, not a capability limit);
-> the B4-CI `SOURCE_COMMIT` route; the 89 stale "Parked … preserving the existing tier" parity
-> rationales; and a stale `.git/index.lock` in the primary checkout that needs a human `rm`.
+> **▶ Latest — start here (2026-08-03, ARC 7b COMPLETE; PRONG B TIER 1 IS THE NEXT ARC).**
+> `main` = `b1b5ade3d`. The `model_surface` surface moved **184 interval_feasible / 58
+> point_fit_recovery → 182 / 60** through PR #912. **The count went DOWN on purpose** — that
+> is the truth gate working, not a regression. `FROZEN_CENSUS_POINT_FIT_RECOVERY` 58 → 59; the
+> deliberately-independent whole-model literal 58 → 60. The two diverge for the first time
+> because `mc-0260m` (source_order 694) sits outside the frozen ≤676 window.
+> **What Arc 7b installed.** `tools/profile_truth_gate.py` checks interval LOCATION across the
+> 31-cell contract surface (26 arc2 `CELL_CONTRACTS` + 5 arc1). Truth is **derived** from the
+> fixture builders into `tools/profile-truth-manifest.tsv` (30 rows) by
+> `tools/emit-profile-truth-manifest.R`, never declared twice. Cohorts pin
+> `(information_rung, seeds)` — seeds alone are insufficient, because `mc-0409`'s superseded
+> `each8` and repaired `each24` families reuse the same seed numbers.
+> **CI now runs 6 of the 9 files in `tools/tests/`.** Five cells had reached review holding an
+> interval that excluded their own true value; three were caught by a human, **two were not** —
+> `mc-0424` and `mc-0260m`, now withdrawn to `point_fit_recovery` with their point evidence
+> intact. `mc-0292` remains deliberately withheld — **do not re-add it**.
+> The standing lesson from 7a still holds and 7b paid for it twice: **a guard's definition of
+> done includes the line in CI that runs it** — and a guard that cannot fail is not a guard.
+> An adversarial review of 7b's own gate found it defeatable by promoting a failing cell
+> *upward*; red-test every guard against the thing it protects before trusting its green.
+> **NEXT = Prong B Tier 1** — the first `R/` source change of the programme (`R/profile.R`
+> E1–E4), unfencing `confint(method="profile")` for 14 cells, target **196 / 46**. The brief is
+> refreshed and turnkey at
+> [`docs/dev-log/handover/2026-08-03-prong-b-next-lane-brief.md`](docs/dev-log/handover/2026-08-03-prong-b-next-lane-brief.md);
+> ship the code change and its tests as one arc, the 135-trace Totoro campaign as the next.
+> Owner decisions outstanding: **the truth gate's tolerance units** (`0.05 × |truth|` gives a
+> 6.8× spread in strictness across cells; scaling by interval half-width fixes it in one line
+> but changes which cells pass, so it changes the census); q12 (16 cells behind a policy fence,
+> not a capability limit); the B4-CI `SOURCE_COMMIT` route (note
+> `codex/lane-b-q1-preflight-admission` has 226 unpushed commits, so publishing it is an option
+> alongside porting c1's no-git pattern); the 89 stale "Parked … preserving the existing tier"
+> parity rationales; and a stale `.git/index.lock` in the primary checkout needing a human `rm`.
 > START HERE:
-> [`docs/dev-log/after-task/2026-08-03-arc7a-land-and-wire.md`](docs/dev-log/after-task/2026-08-03-arc7a-land-and-wire.md).
+> [`docs/dev-log/handover/2026-08-03-arc7b-close-prong-b-handover.md`](docs/dev-log/handover/2026-08-03-arc7b-close-prong-b-handover.md).
 
 > **▶ ACTIVE CODEX HANDOVER — start here (2026-08-03, Q2 CONFIDENCE EYE COMPLETE).**
 > PR **#893** is merged and supplied the fixed-kappa mesh point-recovery
