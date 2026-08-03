@@ -154,6 +154,13 @@ The full campaign contains exactly 1,500 dataset attempts and 4,500 target
 outcomes. Compute runs as a DRAC job array, never on a login node or GitHub
 Actions.
 
+The smoke submission is fenced to `--array=1-60%60`. A compute-node setup job
+first verifies and extracts the source archive, checks its embedded source-SHA
+attestation, and installs that exact source into a new per-packet R library.
+The smoke array has an `afterok` dependency on setup and executes only the
+verified extracted runner. No full-stage submission wrapper exists before the
+reconciled smoke receipt and its separate packet review.
+
 ## Per-attempt outcome contract
 
 Each dataset is attempted exactly once under its ledger seed. Each of the three

@@ -26,6 +26,21 @@ test_that("Confidence Eye target identities preserve latent correlation", {
   expect_false(any(grepl("rho12", targets$target, fixed = TRUE)))
 })
 
+test_that("raw rows retain scheduler provenance", {
+  design <- ce_design("smoke")[1L, , drop = FALSE]
+  packet <- list(source_sha = "source", packet_sha256 = "packet")
+  withr::local_envvar(c(
+    SLURM_JOB_ID = "1001",
+    SLURM_ARRAY_JOB_ID = "1000",
+    SLURM_ARRAY_TASK_ID = "1"
+  ))
+  rows <- ce_base_rows(design, packet)
+
+  expect_equal(unique(rows$slurm_job_id), "1001")
+  expect_equal(unique(rows$slurm_array_job_id), "1000")
+  expect_equal(unique(rows$slurm_array_task_id), "1")
+})
+
 test_that("common floor requires all targets at that and higher rungs", {
   summary <- expand.grid(
     rung = c("L", "M", "H"),

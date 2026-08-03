@@ -261,6 +261,10 @@ ce_base_rows <- function(design_row, packet, dgp = NULL) {
   data.frame(
     source_sha = packet$source_sha,
     packet_sha256 = packet$packet_sha256,
+    host = Sys.info()[["nodename"]],
+    slurm_job_id = Sys.getenv("SLURM_JOB_ID", unset = ""),
+    slurm_array_job_id = Sys.getenv("SLURM_ARRAY_JOB_ID", unset = ""),
+    slurm_array_task_id = Sys.getenv("SLURM_ARRAY_TASK_ID", unset = ""),
     stage = as.character(design_row$stage[[1L]]),
     rung = as.character(design_row$rung[[1L]]),
     replicate = as.integer(design_row$replicate[[1L]]),

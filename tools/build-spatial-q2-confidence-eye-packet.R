@@ -18,6 +18,9 @@ members <- c(
   "tools/spatial-q2-confidence-eye-common.R",
   "tools/run-spatial-q2-confidence-eye-task.R",
   "tools/reconcile-spatial-q2-confidence-eye.R",
+  "tools/collect-spatial-q2-confidence-eye-smoke-receipt.R",
+  "tools/submit-spatial-q2-confidence-eye-smoke.sh",
+  "tools/slurm/setup-spatial-q2-confidence-eye.sbatch",
   "tools/slurm/spatial-q2-confidence-eye.sbatch"
 )
 for (member in members) {
@@ -27,13 +30,23 @@ for (member in members) {
     stop("Could not copy packet member: ", member, call. = FALSE)
   }
 }
-archive <- file.path(output, "drmTMB-source.tar.gz")
+archive_tar <- file.path(output, "drmTMB-source.tar")
 status_code <- system2(
   "git",
-  c("-C", root, "archive", "--format=tar.gz", paste0("--output=", archive), source_sha)
+  c("-C", root, "archive", "--format=tar", paste0("--output=", archive_tar), source_sha)
 )
 if (!identical(status_code, 0L)) stop("git archive failed.", call. = FALSE)
-manifest_members <- c(members, "drmTMB-source.tar.gz")
+attestation <- file.path(output, "SOURCE_SHA")
+writeLines(source_sha, attestation, useBytes = TRUE)
+status_code <- system2(
+  "tar",
+  c("-rf", archive_tar, "-C", output, "SOURCE_SHA")
+)
+if (!identical(status_code, 0L)) stop("Could not append source attestation.", call. = FALSE)
+status_code <- system2("gzip", c("-n", "-f", archive_tar))
+if (!identical(status_code, 0L)) stop("Could not compress source archive.", call. = FALSE)
+archive <- paste0(archive_tar, ".gz")
+manifest_members <- c(members, "SOURCE_SHA", "drmTMB-source.tar.gz")
 manifest <- data.frame(
   path = manifest_members,
   sha256 = vapply(file.path(output, manifest_members), ce_sha256_file, character(1L)),
