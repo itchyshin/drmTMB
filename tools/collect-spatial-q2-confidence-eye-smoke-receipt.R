@@ -6,17 +6,29 @@ script <- normalizePath(sub("^--file=", "", script_arg[[1L]]), mustWork = TRUE)
 root <- normalizePath(file.path(dirname(script), ".."), mustWork = TRUE)
 source(file.path(root, "tools", "spatial-q2-confidence-eye-common.R"))
 opts <- ce_parse_args(args)
-required <- c("setup-job", "array-job", "run-root", "packet")
+required <- c("setup-job", "array-job", "run-root", "packet", "raw")
 if (!all(required %in% names(opts))) {
-  stop("Required: --setup-job --array-job --run-root --packet", call. = FALSE)
+  stop("Required: --setup-job --array-job --run-root --packet --raw", call. = FALSE)
 }
 packet <- ce_validate_packet(opts$packet)
 run_root <- normalizePath(opts[["run-root"]], mustWork = TRUE)
+raw_paths <- list.files(opts$raw, pattern = "^smoke-[LMH]-[0-9]{3}\\.tsv$", full.names = TRUE)
+if (length(raw_paths) != 60L) stop("Expected exactly 60 smoke raw files.", call. = FALSE)
+raw_rows <- do.call(rbind, lapply(raw_paths, function(path) {
+  utils::read.delim(path, stringsAsFactors = FALSE, check.names = FALSE)
+}))
+if (nrow(raw_rows) != 180L || any(raw_rows$slurm_array_job_id != opts[["array-job"]])) {
+  stop("Raw scheduler provenance does not match the smoke array.", call. = FALSE)
+}
+child_jobs <- unique(as.character(raw_rows$slurm_job_id))
+if (length(child_jobs) != 60L || any(!nzchar(child_jobs))) {
+  stop("Expected exactly 60 recorded child SLURM job IDs.", call. = FALSE)
+}
 
 fields <- "JobIDRaw,State,ElapsedRaw,TotalCPU,MaxRSS,ExitCode,NodeList"
 sacct <- system2(
   "sacct",
-  c("-j", paste(opts[["setup-job"]], opts[["array-job"]], sep = ","),
+  c("-j", paste(c(opts[["setup-job"]], child_jobs), collapse = ","),
     "--parsable2", "--noheader", paste0("--format=", fields)),
   stdout = TRUE
 )
@@ -39,8 +51,7 @@ slurm_bytes <- function(x) {
   suppressWarnings(as.numeric(number)) * multiplier
 }
 
-array_pattern <- paste0("^", opts[["array-job"]], "_[0-9]+$")
-tasks <- scheduler[grepl(array_pattern, scheduler$JobIDRaw), , drop = FALSE]
+tasks <- scheduler[scheduler$JobIDRaw %in% child_jobs, , drop = FALSE]
 elapsed <- suppressWarnings(as.numeric(tasks$ElapsedRaw))
 completed <- sum(tasks$State == "COMPLETED")
 median_elapsed <- stats::median(elapsed, na.rm = TRUE)
