@@ -449,9 +449,13 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 73 -> 72: mc-0409 was then re-gated at n_each = 24 (fixing a diagnosed NB2
         # dispersion/interaction-SD confound) and promoted on a fresh five-seed
         # Totoro campaign that brackets the truth on every seed.
+        # 72 -> 71: mc-0417 (the two-provider AGGREGATE count cell, BOUND to its
+        # spatial+relmat pair) is promoted on its primary target
+        # sd:mu:spatial(1 | site) after a fresh five-seed Totoro campaign that
+        # brackets the truth on every seed.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            72,
+            71,
         )
 
         by_id = {row["cell_id"]: row for row in model}
