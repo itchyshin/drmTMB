@@ -17,9 +17,11 @@ sd_spatial1, sd_spatial2, rho_spatial
 ```
 
 A campaign result is evidence-complete whether the verdict is `PASS` or
-`HOLD`. `PASS` permits the bounded article uncertainty claim at and above the
-common floor. `HOLD` preserves the point-only article and records every failed
-attempt without retry substitution.
+`HOLD`. `PASS` permits the bounded article uncertainty claim only at the tested
+passing rungs M `(36 sites, 3 each)` and H `(36 sites, 8 each)`, with M named
+as the lowest tested jointly passing rung. It does not authorize interpolation
+or extrapolation to another information configuration. `HOLD` preserves the
+point-only article and records every failed attempt without retry substitution.
 
 ## Reconciliation ledger
 
@@ -276,7 +278,10 @@ for fresh explicit authorization.
 
 At maximum, `PASS` supports 95% profile uncertainty for the exact dense
 coordinate-spatial Gaussian q2 REML intercept cell, under the baseline ring
-geometry and at or above the certified common information floor. It does not
-support mesh intervals, spatial range estimation, slopes, q4+, non-Gaussian
-families, spatial scale models, derived observed correlations, geometry
-robustness, or the `supported` tier.
+geometry, at the two tested rungs M `(36 sites, 3 each)` and H
+`(36 sites, 8 each)` only. M is the lowest tested jointly passing rung; L
+`(12 sites, 3 each)` failed, and no untested larger, intermediate, or
+alternative information configuration is covered. It does not support mesh
+intervals, spatial range estimation, slopes, q4+, non-Gaussian families,
+spatial scale models, derived observed correlations, geometry robustness, or
+the `supported` tier.
