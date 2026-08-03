@@ -14,7 +14,13 @@ reml_hetero_fixture <- function(n_id = 30L, n_each = 4L, seed = 11L) {
   u <- stats::rnorm(n_id, 0, 0.6) # true mean random-intercept SD
   sigma <- exp(-0.5 + 0.3 * z) # heteroscedastic residual
   y <- 0.4 + 0.7 * x + u[id] + stats::rnorm(n, 0, sigma)
-  list(data = data.frame(y = y, x = x, z = z, id = id), id = id)
+  list(
+    data = data.frame(y = y, x = x, z = z, id = id), id = id,
+    # Structural zero: x does not appear in the sigma DGP above (sigma is a
+    # function of z only), so the true `fixef:sigma:x` coefficient is exactly
+    # 0 by construction, not an estimated/rounded value.
+    true_sigma_x_coef = 0
+  )
 }
 
 det_log <- function(m) as.numeric(determinant(m, logarithm = TRUE)$modulus)

@@ -69,7 +69,12 @@ jobs:
       # still credits it. See
       # docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-pin-drift.md.
       #
-      # 5 of 7 run. test_b4_ci_c2/c3/c4 are still EXCLUDED, for a reason that is
+      # 6 of 9 run. (This count read "5 of 7" before Arc 7b: it had missed
+      # test_b4_ci_guard.py, which already existed and was already wired. A
+      # stale count in the comment whose whole purpose is to stop guards going
+      # stale is worth correcting rather than propagating.)
+      #
+      # test_b4_ci_c2/c3/c4 are still EXCLUDED, for a reason that is
       # NOT the mc-0207 pin drift (that is fixed -- all four pass locally):
       # their check paths call selected_source(), which reads
       # `git show 574c1108e...:<ledger>` -- and SOURCE_COMMIT 574c1108e is not
@@ -81,6 +86,15 @@ jobs:
       # decision -- push the source branch to origin, or port c1's no-git path
       # to the other three -- and until then the exclusion stays named here
       # rather than hidden behind `discover`.
+      #
+      # test_profile_truth_gate.py (Arc 7b) sweeps the 31-cell profile contract
+      # surface for interval LOCATION -- whether each retained interval actually
+      # contains its DGP's true value. It is wired here in the same change that
+      # created it, for the reason the pin-drift note above records. The
+      # emit-profile-truth-manifest.R --check step guards the derived truth
+      # manifest it reads: if a fixture builder's true value changes and the
+      # manifest is not regenerated, that step fails rather than the gate
+      # silently checking against a stale truth.
       - name: Validate generated capability ledger
         if: runner.os == 'Linux'
         run: |
@@ -90,6 +104,8 @@ jobs:
           python3 -m unittest tools/tests/test_b3_q6_target_promotion.py
           python3 -m unittest tools/tests/test_b4_ci_guard.py
           python3 -m unittest tools/tests/test_b4_ci_c1.py
+          python3 -m unittest tools/tests/test_profile_truth_gate.py
+          Rscript --no-init-file tools/emit-profile-truth-manifest.R --check
           Rscript --no-init-file tools/check-capability-runtime.R
 
       - uses: r-lib/actions/check-r-package@v2

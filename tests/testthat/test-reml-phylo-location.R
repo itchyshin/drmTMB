@@ -6,12 +6,12 @@
 # restricted-likelihood reference, and the phylo SD must be no more
 # downward-biased than ML (REML corrects ML's variance-component bias).
 
-reml_phylo_location_fixture <- function(n_tip = 30L, n_each = 3L, seed = 7L) {
+reml_phylo_location_fixture <- function(n_tip = 30L, n_each = 3L, seed = 7L, true_sd_phylo = 0.6) {
   set.seed(seed)
   tree <- ape::rcoal(n_tip)
   tree$tip.label <- paste0("sp_", seq_len(n_tip))
   A <- ape::vcv(tree, corr = TRUE)
-  u <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * 0.6 # true phylo SD ~ 0.6
+  u <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * true_sd_phylo # true phylo SD ~ 0.6
   tip <- rep(seq_len(n_tip), each = n_each)
   n <- n_tip * n_each
   x <- stats::rnorm(n)
@@ -24,7 +24,8 @@ reml_phylo_location_fixture <- function(n_tip = 30L, n_each = 3L, seed = 7L) {
     ),
     tree = tree,
     A = A,
-    tip = tip
+    tip = tip,
+    true_sd_phylo = true_sd_phylo
   )
 }
 

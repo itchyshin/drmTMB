@@ -447,9 +447,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             ledger.FROZEN_CENSUS_POINT_FIT_RECOVERY,
         )
         # The TOTAL may differ from the frozen count only through approved row inserts.
-        # mc-0260m is now interval_feasible for one exact pooled-effect target, so it no
-        # longer contributes to this total. Checking both numbers catches a promotion
-        # hidden behind a simultaneous insert, which either number alone would miss.
+        # mc-0260m (source_order 694) is such an insert: it sits outside the frozen
+        # window, so it moves this total without moving the constant above. Arc 7b's
+        # truth gate returned it to point_fit_recovery, so it contributes again.
+        # Checking both numbers catches a promotion hidden behind a simultaneous
+        # insert, which either number alone would miss.
         # Deliberately a literal, NOT the module constant: tying both assertions to
         # one constant would destroy exactly the independence this check exists for.
         # 77 -> 71 for the six Arc 2 promotions (mc-0186/0263/0274/0277 + mc-0013/0015).
@@ -487,9 +489,20 @@ class CapabilityLedgerTests(unittest.TestCase):
         # the frozen window and none overlaps Arc 5's three or the mc-0207 split, so
         # this TOTAL and the frozen-only count above move together again; recounted
         # directly from the merged cells.tsv, not derived from the module constant.
+        # 58 -> 60: Arc 7b installs a mechanical truth gate over the profile-interval
+        # contract surface (tools/profile_truth_gate.py) and TWO cells fail it, falling
+        # back from interval_feasible to point_fit_recovery. mc-0424's seed 2026080301
+        # interval [0.2567, 0.5156] excludes the true 0.55; mc-0260m's seed 2026080233
+        # interval [0.2335, 0.4232] excludes the true pooled mean 0.20. Both had passed
+        # every shape check, which is why no reconciler caught them -- the same failure
+        # mc-0292 and mc-0409 hit, but those two were caught by a human reading the
+        # prose. Note this TOTAL and the frozen-only count DIVERGE here for the first
+        # time: mc-0424 is source_order 424 (inside the frozen <=676 window) but
+        # mc-0260m is 694 (outside it), so FROZEN_CENSUS_POINT_FIT_RECOVERY moves
+        # 58 -> 59 while this literal moves 58 -> 60. Recounted directly from cells.tsv.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            58,
+            60,
         )
 
         by_id = {row["cell_id"]: row for row in model}

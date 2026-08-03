@@ -1,0 +1,31 @@
+cell_id	target_id	profile_parameter	true_value	source_kind	source_file	truth_element
+mc-0013	mc-0013::sd:mu:animal(0 + x | id)	sd:mu:animal(0 + x | id)	0.55	fixture_builder	tools/arc2-beta-animal-fixtures.R	fx$sd_slope
+mc-0015	mc-0015::sd:sigma:animal(1 | id)	sd:sigma:animal(1 | id)	0.55	fixture_builder	tools/arc2-beta-animal-fixtures.R	fx$sd_animal_sigma
+mc-0123	mc-0123::sd:mu:mu1:spatial(1 | p | site)	sd:mu:mu1:spatial(1 | p | site)	0.45	fixture_builder	tools/arc4-q6-spatial-mu1-fixture.R	fx$true_sd_mu1_intercept
+mc-0186	mc-0186::rho12	rho12	0.4	fixture_builder	tests/testthat/test-reml-bivariate.R	fx$true_rho12
+mc-0205	mc-0205::sd:mu:mu1:(1 | p | id)	sd:mu:mu1:(1 | p | id)	0.6	fixture_builder	tools/arc2-biv-musigma-fixtures.R	fx$true_sd_mu1
+mc-0206	mc-0206::sd:sigma:sigma1:(1 | p | id)	sd:sigma:sigma1:(1 | p | id)	0.4	fixture_builder	tools/arc2-biv-musigma-fixtures.R	fx$true_sd_sig1
+mc-0260	mc-0260::fixef:mu:x	fixef:mu:x	0.55	arc1_runner_constant	tools/run-arc1-gaussian-fixed-profile-feasibility.R	truth_mu_x
+mc-0260m	mc-0260m::fixef:mu:(Intercept)	fixef:mu:(Intercept)	0.2	arc1_runner_constant	tools/run-arc1-meta-v-profile-feasibility.R	truth_mu
+mc-0262	mc-0262::fixef:sigma:x	fixef:sigma:x	0.18	arc1_runner_constant	tools/run-arc1-gaussian-fixed-profile-feasibility.R	truth_sigma_x
+mc-0263	mc-0263::fixef:sigma:x	fixef:sigma:x	0	fixture_builder	tests/testthat/test-reml-heteroscedastic.R	fx$true_sigma_x_coef
+mc-0266	mc-0266::sd:sigma:(1 | id)	sd:sigma:(1 | id)	0.35	arc1_runner_constant	tools/run-arc1-gaussian-sigma-re-profile-feasibility.R	truth_sd
+mc-0269	mc-0269::sd:mu:(0 + x | id)	sd:mu:(0 + x | id)	0.35	arc1_runner_constant	tools/run-arc1-gaussian-reml-slope-profile-feasibility.R	truth_sd
+mc-0274	mc-0274::sd:mu:phylo(1 | species)	sd:mu:phylo(1 | species)	0.6	fixture_builder	tests/testthat/test-reml-phylo-location.R	fx$true_sd_phylo
+mc-0277	mc-0277::sd:sigma:phylo(1 | species)	sd:sigma:phylo(1 | species)	0.7	fixture_builder	tools/arc2-phylo-sigma-fixtures.R	fx$true_log_sd_phylo
+mc-0279	mc-0279::sd:sigma:sigma:phylo(1 | species)	sd:sigma:sigma:phylo(1 | species)	0.7	fixture_builder	tools/arc2-phylo-sigma-fixtures.R	fx$true_log_sd_sigma
+mc-0283	mc-0283::sd:sigma:sigma:phylo(1 | p | species)	sd:sigma:sigma:phylo(1 | p | species)	0.7	fixture_builder	tools/arc2-phylo-sigma-fixtures.R	fx$true_log_sd_sigma
+mc-0286	mc-0286::sd:mu:spatial(1 | site)	sd:mu:spatial(1 | site)	0.5	fixture_builder	tools/arc5-gaussian-q1-one-slope-fixtures.R	fx$true_sd_intercept
+mc-0291	mc-0291::sd:mu:mu:spatial(1 | p | site)	sd:mu:mu:spatial(1 | p | site)	0.6	fixture_builder	tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R	fx$true_sd_mu
+mc-0298	mc-0298::sd:mu:animal(1 | id)	sd:mu:animal(1 | id)	0.5	fixture_builder	tools/arc5-gaussian-q1-one-slope-fixtures.R	fx$true_sd_intercept
+mc-0303	mc-0303::sd:mu:mu:animal(1 | p | id)	sd:mu:mu:animal(1 | p | id)	0.6	fixture_builder	tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R	fx$true_sd_mu
+mc-0304	mc-0304::sd:sigma:sigma:animal(1 | id)	sd:sigma:sigma:animal(1 | id)	0.7	fixture_builder	tools/arc2-animal-sigma-q2-fixtures.R	fx$true_log_sd_sigma
+mc-0315	mc-0315::sd:mu:mu:relmat(1 | p | id)	sd:mu:mu:relmat(1 | p | id)	0.6	fixture_builder	tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R	fx$true_sd_mu
+mc-0316	mc-0316::sd:sigma:sigma:relmat(1 | id)	sd:sigma:sigma:relmat(1 | id)	0.7	fixture_builder	tools/arc2-relmat-sigma-q2-fixtures.R	fx$true_log_sd_sigma
+mc-0321	mc-0321::sd:mu:phylo_interaction(1 | plant:pollinator)	sd:mu:phylo_interaction(1 | plant:pollinator)	0.6	fixture_builder	tools/arc3-phylo-interaction-fixtures.R	fx$sd_pair
+mc-0409	mc-0409::sd:mu:phylo_interaction(1 | plant:pollinator)	sd:mu:phylo_interaction(1 | plant:pollinator)	0.6	fixture_builder	tools/arc3-phylo-interaction-fixtures.R	fx$sd_pair
+mc-0417	mc-0417::sd:mu:spatial(1 | site)	sd:mu:spatial(1 | site)	0.6	fixture_builder	tools/arc4-multiprovider-mu-fixtures.R	fx$truth[["sd_spatial"]]
+mc-0421	mc-0421::sd:sigma:phylo(1 | species)	sd:sigma:phylo(1 | species)	0.55	fixture_builder	tools/arc3-nbinom2-sigma-provider-fixtures.R	fx$true_sd_intercept
+mc-0422	mc-0422::sd:sigma:spatial(1 | site)	sd:sigma:spatial(1 | site)	0.55	fixture_builder	tools/arc3-nbinom2-sigma-provider-fixtures.R	fx$true_sd_intercept
+mc-0423	mc-0423::sd:sigma:animal(1 | id)	sd:sigma:animal(1 | id)	0.55	fixture_builder	tools/arc3-nbinom2-sigma-provider-fixtures.R	fx$true_sd_intercept
+mc-0424	mc-0424::sd:sigma:relmat(1 | id)	sd:sigma:relmat(1 | id)	0.55	fixture_builder	tools/arc3-nbinom2-sigma-provider-fixtures.R	fx$true_sd_intercept

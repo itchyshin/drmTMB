@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-08-03: Arc 7b profile-interval truth gate
+
+- Installed `tools/profile_truth_gate.py` over the 31-cell profile contract
+  surface (26 arc2 `CELL_CONTRACTS` + 5 arc1 cells). The reconcilers checked
+  interval shape exhaustively and interval location not at all, because the
+  runner recorded truth only as prose. Truth is now DERIVED from the fixture
+  builders into `tools/profile-truth-manifest.tsv` (30 rows) by
+  `tools/emit-profile-truth-manifest.R`; zero disagreements between the 24
+  numeric-leading prose values and their derived counterparts.
+- Gate rule: a cell fails if any retained seed misses truth by more than 5% of
+  scale, or if more than one seed misses at any magnitude. Cohorts are pinned
+  by `(information_rung, seeds)` — seed alone is insufficient, because
+  `mc-0409`'s superseded `each8` and repaired `each24` families share seeds
+  2026080401-05.
+- Two cells failed and were demoted `interval_feasible` -> `point_fit_recovery`:
+  `mc-0424` (seed 2026080301, [0.2567, 0.5156] excludes true 0.55 by 6.3%) and
+  `mc-0260m` (seed 2026080233, [0.2335, 0.4232] excludes true 0.20 by 16.8%).
+  Both retain their point-level evidence. `model_surface` `interval_feasible`
+  **184 -> 182**; `point_fit_recovery` 58 -> 60 whole-model, 58 -> 59 frozen.
+- `python3 tools/capability_ledger.py --check`: OK (30 generated outputs).
+  `test_capability_ledger.py` 51 PASS, `test_arc1_profile_reconcilers.py` 3
+  PASS, `test_b3_q6_target_promotion.py` 3 PASS, new
+  `test_profile_truth_gate.py` 19 PASS, `emit-profile-truth-manifest.R --check`
+  OK, `check-capability-runtime.R` OK (18 routes).
+  `NOT_CRAN=true` testthat on the three touched fixtures: 33/9/12 PASS.
+- Adversarial: promoting `mc-0422` in `cells.tsv` fails `--check`
+  (`Arc 3 target row changed`); mutating a fixture's true value makes the
+  manifest `--check` exit 2 and trips the prose-vs-derived test; deleting the
+  manifest exits 2. Exit codes verified directly, not through a pipe.
+- Wired into `.github/workflows/R-CMD-check.yaml` in the same change, per the
+  `2026-08-03-b4-ci-mc-0207-pin-drift.md` lesson. CI now runs 4 of 8
+  `tools/tests/` files.
+- Known gap: `mc-0282` is ungated. It holds an `interval_feasible` claim on
+  receipts whose binding runner contract was never committed, so its truth
+  cannot be derived. Checked by hand against `true_sd_mu = 0.6`: all five seeds
+  bracket it, so the count is unaffected. Recorded as a bounded `UNGATED` set
+  with a test pinning it to exactly that one cell.
+
 ## 2026-08-01: Missing-response scoped-evidence reader surface
 
 - Replaced the duplicated 18-card execution board with a compact generated

@@ -1,5 +1,30 @@
 #!/usr/bin/env python3
-"""Shared fail-closed artifact checks for Arc 1 profile receipts."""
+"""Shared fail-closed artifact checks for Arc 1 profile receipts.
+
+WHERE THE TRUTH GATE LIVES, AND WHY NOT HERE
+--------------------------------------------
+tools/profile_truth_gate.py checks that a retained interval actually contains
+its DGP's true value. The Arc 2 reconciler calls it inline, because Arc 2 is
+an ACTIVE contract that still mints promotions and a bad one must never be
+minted in the first place.
+
+The four reconcile-arc1-*.py scripts deliberately do NOT call it. They are
+frozen provenance checks over already-merged cohorts: their job is to prove the
+retained bytes are the bytes that were run, and their committed
+reconciliation.tsv outputs are historical artifacts that
+tools/tests/test_arc1_profile_reconcilers.py byte-compares. Adding a claim gate
+here would conflate "these bytes are authentic" with "these bytes support the
+claim" and would force rewriting frozen history to record a changed verdict.
+
+The Arc 1 cells are gated instead by tools/tests/test_profile_truth_gate.py,
+which sweeps all 31 contract cells independently of any reconciler -- and which
+asserts that every reconcile-arc1-*.py on disk is covered, so a future Arc 1
+cohort cannot be added without being swept. This split is intentional; it is
+not an un-wired guard of the kind
+docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-pin-drift.md warns about.
+mc-0260m is the worked example: its provenance is intact and its reconciler
+still passes, but its interval misses truth, so the ledger demoted it.
+"""
 
 from __future__ import annotations
 
