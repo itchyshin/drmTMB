@@ -35,7 +35,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # leaves. Splitting itself promotes nothing (not_implemented stayed
         # at 17 immediately after the split); C18 separately promotes seven
         # of the ten atom leaves from recovery evidence, leaving 10.
-        self.assertEqual(len(model), 697)
+        # 697 -> 699: Arc 4b splits mc-0207 (a single legacy row representing
+        # q4/q6/q8 ordinary bivariate REML blocks) into exact per-q leaves;
+        # mc-0207 becomes the q4 leaf in place, mc-0715/mc-0716 are new q6/q8
+        # leaves. The split promotes nothing.
+        self.assertEqual(len(model), 699)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -359,10 +363,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
 
+        # implemented 337 -> 339: Arc 4b's mc-0207 split adds two new
+        # implemented leaves (mc-0715, mc-0716); rejected_by_design and
+        # not_implemented are untouched since the split changes evidence_tier,
+        # not capability_status.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 337, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -404,10 +412,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             for cell_id in ("mc-0199", "mc-0672", "mc-0673")
         }
 
+        # implemented 337 -> 339: Arc 4b's mc-0207 split (see above).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 337, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -449,9 +458,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 73 -> 72: mc-0409 was then re-gated at n_each = 24 (fixing a diagnosed NB2
         # dispersion/interaction-SD confound) and promoted on a fresh five-seed
         # Totoro campaign that brackets the truth on every seed.
+        # 72 -> 71: Arc 4b demotes mc-0207 from point_fit_recovery to none (see
+        # FROZEN_CENSUS_POINT_FIT_RECOVERY); its two new sibling leaves
+        # (mc-0715, mc-0716) are born at evidence_tier=none, so they add zero.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            72,
+            71,
         )
 
         by_id = {row["cell_id"]: row for row in model}
