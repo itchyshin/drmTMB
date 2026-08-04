@@ -137,8 +137,28 @@ contains zero occurrences of "profile", and its `parm` is `fixef:mu:x`), and the
 **Either** D-97's pooled figure genuinely spans 12 profile cells — in which case
 three of this arc's four cells are reproductions rather than firsts, and the
 reframing the arc rests on is wrong — **or** the number Shinichi accepted as
-adequate for the default has a mis-stated provenance nobody has caught. This must
-be resolved before the 0.9368 figure is used again.
+adequate for the default has a mis-stated provenance nobody has caught.
+
+> **RESOLVED — it is the second. See `D97-PROVENANCE.md`.**
+> The committed profile campaign is **3 cells / 3,000 attempts**, pooling to
+> **0.9400**, not 0.9368. "12 A1 cells" correctly describes the *bootstrap-only*
+> campaign (0.8714, n = 12,000), and 11,988 = 12 × 999 where **999 is the bootstrap
+> resample count**, not a retained-attempt count — every real campaign retained
+> exactly 1,000 per cell with zero attrition. The 0.9368 figure traces to a single
+> after-task report that exists **only in the brain vault**, describing a run in a
+> now-deleted temp directory with a script matching nothing in this repo.
+>
+> **This arc's premise survives:** the committed profile campaign varies only
+> `n_groups`, holding `n_per = 10` and `sd_mu = 0.5` fixed, so `n_per = 4` and
+> `sd_mu = 1.0` genuinely were measured here for the first time.
+>
+> **§2.3's conclusion is unchanged and slightly strengthened.** Against the real
+> committed comparator (0.9400) rather than 0.9368, the worst cell's gap is
+> −0.026 with combined SE 0.00987, **z ≈ 2.63** (was 2.49).
+>
+> D-97's *direction* is not overturned — profile beats marginal on either figure.
+> **Correcting the decision record is the owner's call**; do not cite 0.9368 again
+> until it is settled.
 
 ## 4. The most actionable output, currently invisible to users
 
