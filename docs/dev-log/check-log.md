@@ -2,7 +2,40 @@
 
 Record meaningful development checks here.
 
-## 2026-08-04: D-117 10-group profile coverage gate — measured, PASS with caveats
+## 2026-08-04: D-117 10-group profile coverage gate — measured; PASS claim WITHHELD
+
+- **Outcome: the measurement stands, the claim does not.** The pre-registered rule
+  returned PASS on all four cells; a **D-43 panel then returned 2 of 3 NOT-DONE**
+  (the third was tool-limited — mis-dispatched to an agent type without Bash), which
+  under the arc's own rule **withholds the claim**. `VERDICT.md` was rewritten to
+  state what the evidence supports rather than what the rule alone returned.
+- **The panel fired LATE.** It was in the approved plan, positioned *before* the
+  claim, and did not run; the PASS had already been committed, written to this log,
+  and opened as PR #919 when plan-vs-actual reconciliation caught the omission.
+  Firing late inverts the burden from *earn the claim* to *unpublish it*.
+- **The finding that withheld it.** `profile.boundary` is a column `confint()`
+  returns — a user can see it. Applying the arc's **own gate** to that
+  sub-population: `g10_n04_sd05` **BORDERLINE** (cov 0.8566 | boundary, 495/1000
+  fits), `g10_n04_sd10` **FAIL** (0.0732), `g10_n10_sd05` **FAIL** (0.2540), against
+  non-boundary 0.9703 / 0.9656 / 0.9829. At `sd_mu = 1.0` that is **worse than the
+  0.829 that disqualified the marginal route** in D-117's own framing.
+- **Unreported in v1, now reported:** RE-SD point bias **−16.9% / −9.1% / −9.1% /
+  −9.2%**, significant in every cell (p < 1e-23). Expected for ML (`REML = FALSE`
+  default) at small `g`, and the mechanism behind the upper-miss asymmetry that v1
+  reported without its cause.
+- **Retracted claim:** "the 10-group corner is not materially worse than the pooled
+  figure". Worst cell 0.9140 vs D-97's 0.9368 is a 2.3 pp gap at **z ≈ 2.5,
+  p = 0.013**; all four cells sit at or below pooled. The supported claim is
+  narrower: the profile route does not inherit the marginal route's *collapse*
+  (0.829 vs 0.914–0.937), and the gradient the gate was built to detect **is
+  present** at 1–2 pp rather than 5–12 pp.
+- **Unresolved:** D-97 records 0.9368 "across all 12 A1 cells (11,988 retained
+  attempts)", but the 12-cell campaign is **bootstrap-only** and the profile campaign
+  was 3 cells × 1000 — neither yields 11,988. Either three of this arc's cells are
+  reproductions rather than firsts, or the accepted number's provenance is
+  mis-stated. Must be settled before 0.9368 is cited again.
+
+## 2026-08-04: D-117 10-group profile coverage gate — the measurement itself
 
 - Four 10-group cells, `n_rep = 1000` each, on **Totoro** (90 cores, ≤100 cap,
   `OPENBLAS_NUM_THREADS=1`; D-50 honoured — never GitHub Actions, results local).

@@ -1,135 +1,197 @@
 # After-task — D-117, the 10-group profile RE-SD coverage gate
 
 **Date:** 2026-08-04 · **Platform:** Claude (Claude Code), solo — Claude ran the
-live R/TMB and Totoro compute · **Lane:** drmTMB D-117 gate, reassigned to Claude
-this session · **Foreign lane:** codex draft PR #858; its files untouched.
+live R/TMB and Totoro compute · **Lane:** drmTMB D-117 gate ·
+**Foreign lane:** codex draft PR #858; its files untouched.
+
+> **Headline: the measurement stands; the PASS claim is WITHHELD.** The
+> pre-registered rule returned PASS on all four cells. A D-43 panel then returned
+> **2 of 3 NOT-DONE** (the third was tool-limited, see §9), which under the arc's
+> own rule withholds the claim. Full reasoning in
+> `docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md`.
 
 ## 1. Goal
 
 Produce the number D-117 requires — a fixed-seed 10-group coverage figure for the
 **profile** random-effect SD interval — with an immutable receipt and a written
-verdict. **The deliverable was the measurement, not a pass.** drmTMB 0.7.0 had
-been held since 2026-08-03 until this number existed.
+verdict. The deliverable was the **measurement, not a pass**. drmTMB 0.7.0 had been
+held since 2026-08-03 until this number existed.
 
-## 2. Outcome
+## 2. Implemented
 
-**PASS**, by a rule frozen and committed before any production fit ran.
+Four 10-group cells, `n_rep = 1000` each, on Totoro (90 cores). Gaussian scalar A1
+DGP, estimand `sd:mu:(1 | g)`, nominal 95%, all-attempt coverage.
 
-| Cell | N | truth | coverage | exact 95% CI | verdict |
+| Cell | N | truth | coverage | exact 95% CI | rule says |
 |---|---:|---:|---:|---|---|
-| `g10_n04_sd05` **worst corner** | 40 | 0.5 | **0.9140** | (0.8949, 0.9306) | PASS |
+| `g10_n04_sd05` worst corner | 40 | 0.5 | 0.9140 | (0.8949, 0.9306) | PASS |
 | `g10_n04_sd10` | 40 | 1.0 | 0.9290 | (0.9113, 0.9441) | PASS |
 | `g10_n10_sd10` | 100 | 1.0 | 0.9310 | (0.9135, 0.9459) | PASS |
-| `g10_n10_sd05` *reproduction* | 100 | 0.5 | 0.9370 | (0.9201, 0.9513) | PASS |
+| `g10_n10_sd05` reproduction | 100 | 0.5 | 0.9370 | (0.9201, 0.9513) | PASS |
 
-The corner is **not materially worse than D-97's pooled 0.9368**. The failure mode
-D-117 feared is real but belongs to the **marginal** route (0.829 at 10 groups);
-the profile route does not inherit it. Full detail and caveats in
-`docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md`.
+Three cells are new; `g10_n10_sd05` reproduces the banked 2026-07-26 cell and
+matches it on **five** independent statistics (coverage, exact CI, 1000/1000 valid,
+misses 10/53, 63 boundary endpoints).
 
-## 3. What the prior-work sweep changed
+## 3a. Decisions and Rejected Alternatives
 
-The sweep is why this arc cost ~40 minutes of compute instead of a campaign build.
-A deterministic grep of `projects/deep-research/README.md` surfaced **`dr20`**
-(~90 sources, 2026-08-03) — an external prior-art harvest done *for this gate* —
-so no literature sweep was re-run. A grep of `DECISIONS.md` surfaced D-97's
-pooled figure and, critically, that **a 10-group profile measurement already
-existed** on the unpushed local branch `codex/sd-bootstrap-r999-diagnosis`.
+- **Pre-register before measuring**, committed `e9bccb26b` at 17:35:16 UTC, first
+  fit 17:49:08 UTC. Scored with the repo's **existing** gate
+  (`tools/gate-inference-ready.R`, 2026-07-08) rather than a rule invented here.
+- **Rejected: re-running a literature sweep.** `dr20` (~90 sources, 2026-08-03) was
+  harvested for this gate; reused.
+- **Rejected: building a campaign.** The prior-work sweep found the gate had been
+  answered for 1 of 4 cells, so the work was 3 missing cells, not a new harness.
+- **Rejected: the R = 999 bootstrap.** ~99% of compute; its 10-group behaviour is
+  already measured (0.829) and D-117 asks about the profile route.
+- **Chose n = 1000** (not the plan's recommended 1,200) for comparability with the
+  banked cell. Defensible, but the smaller n is the **more permissive** choice
+  under a non-rejection test, and the deviation was not flagged at the time.
+- **Rejected: reusing `~/drm_work/drmTMB` on Totoro** — found in a broken state
+  (git root resolving to `$HOME`, no commits on `main`). Used an isolated rsync.
 
-That reframed the arc: not "build a campaign" but "**the gate was answered from
-one cell out of four**". The A1 grid crosses `n_per ∈ {4, 10}` with
-`sd_mu ∈ {0.5, 1.0}`, so the 10-group corner has four cells and only
-`n_per = 10, sd_mu = 0.5` had been measured — leaving **`n_per = 4` (N = 40), the
-genuinely worst corner, unmeasured**. Measuring the three missing cells was the
-real gap.
+## 4. Files Touched
 
-Also corrected: `claude/profile-coverage-remeasure-20260718`, cited in the brain's
-`DECISIONS.md:1628`, **does not exist**.
+New, all under `docs/dev-log/`:
+`simulation-artifacts/2026-08-04-d117-10group-profile-gate/{PREREGISTRATION.md,
+VERDICT.md, d117_profile_gate.R, score_d117_gate.R, a1_profile_common.R,
+results/*.csv, results/campaign.log}`, this report, and
+`plan-actual/2026-08-04-*.md`. Modified: `docs/dev-log/check-log.md`.
 
-## 4. Pre-registration — and why it still mattered
+**No `R/`, `src/`, `tools/`, or capability-ledger file was touched.** PR #919 is
+docs-only.
 
-`PREREGISTRATION.md` was committed (`e9bccb26b`) **before any production fit**, so
-git history proves the rule preceded the number. It disclosed honestly that I was
-**not blind** to the already-banked cell, and scored with the repo's own two-tier
-gate (`ss_floor(10) = 0.918`, tested as `coverage + 2·MCSE ≥ floor`) rather than a
-rule invented for the occasion. It fixed PASS / BORDERLINE / FAIL and bound four
-anti-rationalisation clauses, including *"`n_per = 4` is not exempt"* and *"the
-floor is not re-tuned if the answer lands borderline."*
+## 5. Checks Run
 
-None of those clauses had to be invoked — but that is only knowable afterwards,
-which is the point of writing them first.
+| Check | Result |
+|---|---|
+| Local smoke (1 cell, 3 seeds), inspected past the guards | PASS — actual `estimate_sd`, endpoints, boundary flags per replicate |
+| Totoro smoke, same seeds | PASS — agrees with macOS to ~1e-12 on `estimate_sd` |
+| Harness reproduction of the banked cell | PASS — 5 statistics match exactly |
+| `capability_ledger.py --check` | OK (30 generated outputs) |
+| Census invariant | 182 / 60, unchanged |
+| Diff scope | docs-only, verified by `git diff --name-only` |
+| **D-43 completion panel** | **RUN LATE — 2 of 3 NOT-DONE; claim withheld** (see §9) |
+| `check-after-task.R` on this report | run to clean exit (this rewrite) |
 
-## 5. The finding that corrected me
+## 6. Tests of the Tests
 
-At smoke time, two of three replicates showed `profile_lower = 0`, and I expected
-a zero-pinned lower bound to cover any positive truth **trivially** — i.e. that
-boundary contact would *inflate* coverage. **The full data says the opposite.**
+- The reproduction cell is the test of the harness: a wrong harness would not match
+  the banked run's **miss decomposition and boundary count** exactly.
+- Panel reviewers recomputed coverage **bypassing the stored `profile_covers`
+  column**, deriving it from `profile_lower`/`profile_upper`/`truth_sd`. Zero
+  mismatches across 4,000 rows.
+- The pre-registration's abort rule was live: failure to reproduce the banked cell
+  would have stopped the arc before the new cells were reported.
+- **Gap found by the panel:** `a1_profile_common.R:63` sets `status = "valid"` from
+  finiteness alone and never checks `lower <= upper`, though the pre-registration
+  says "finite **ordered**". No disordered interval occurred (0/4000), so nothing
+  was inflated — a latent diagnostic gap, not an observed defect.
 
-| Cell | at boundary | coverage \| boundary | coverage \| non-boundary |
-|---|---:|---:|---:|
-| `g10_n04_sd05` | **495 / 1000** | 0.8566 | 0.9703 |
-| `g10_n04_sd10` | 41 | **0.0732** | 0.9656 |
-| `g10_n10_sd05` | 63 | 0.2540 | 0.9829 |
+## 7a. Issue Ledger
 
-When the variance component collapses, the **whole** interval shrinks toward zero,
-so `[0, small]` misses the truth from **above**. At `sd_mu = 1.0` boundary cases
-cover only 7% of the time. At N = 40 with `sd_mu = 0.5`, **half of all fits** land
-on the boundary, and coverage holds at 0.914 only because the non-boundary half
-covers at 0.970.
+| # | Issue | Status |
+|---|---|---|
+| 1 | Conditional-on-boundary coverage is BORDERLINE/FAIL/FAIL by this arc's own gate | **OPEN — drove the withheld claim** |
+| 2 | RE-SD point bias −9% to −17%, p < 1e-23 in every cell, unreported in v1 | **FIXED** in VERDICT §2.2 |
+| 3 | "Not materially worse than pooled" contradicted at z ≈ 2.5 | **FIXED** in VERDICT §2.3 |
+| 4 | D-97's "12 A1 cells / 11,988 attempts" contradicts this arc's premise | **OPEN — unresolved** |
+| 5 | No user-facing warning for `profile.boundary = TRUE` | **OPEN — highest-value follow-up** |
+| 6 | D-43 panel omitted, then run late | **CLOSED, disclosed** (§9) |
+| 7 | No smoke receipt committed | **OPEN** |
 
-This is why the pre-registration made the boundary diagnostic mandatory
-*regardless of verdict*: the headline number is fine, and the mechanism underneath
-it is not what a reader would assume.
+## 8. Consistency Audit
 
-## 6. Honest caveats carried into the verdict
+- Census **182 / 60** on branch tip and merge base — identical, verified twice.
+- No ledger cell promoted; `transitions.tsv` untouched.
+- Estimand consistent across prose, code, and data: `truth_sd` is 0.5/1.0
+  (the RE SD), never 0.7 (`TRUE_SIGMA`) — no location/scale mix-up.
+- Seed algebra verified analytically and empirically: cells 4/5/6 occupy blocks
+  disjoint from banked 1/2/3.
+- **Inconsistency found and fixed:** v1 of this report said "~40 minutes of
+  compute" while the check-log said "~21 s". The supported figures are **21 s wall
+  / ~21 core-minutes** (1,251 core-seconds summed over 4,000 replicates).
 
-- **The worst corner's point estimate (0.9140) is BELOW the 0.918 floor.** It
-  passes because the gate tests *"not significantly below"*, not *"at or above"*.
-  The pass comes from the confidence margin.
-- **Upper-miss asymmetry in every cell** (71:15, 63:8, 53:10, 60:9). Expected
-  small-`g` skew under the two-tier doctrine — `INFERENCE_READY` passes,
-  `SUPPORTED` fails. **This arc claims no `supported` tier.**
+## 9. What Did Not Go Smoothly
 
-## 7. Verification
+**The D-43 panel was in the approved plan, positioned before the claim, and did not
+fire.** The plan said *"D-43 PANEL: fires — this IS a milestone claim (a release
+gate) … ≥2 NOT-DONE verdicts withhold the claim."* The PASS was instead committed
+(`f7e822fbb`), written into the permanent check-log, and opened as PR #919 with no
+panel in existence. It was caught by plan-vs-actual reconciliation and fired
+afterwards. **Firing late materially weakens the gate**: you cannot withhold a
+claim already committed and published, so the burden inverts from *earn it* to
+*unpublish it*. That is the same failure shape D-43 exists to prevent, one level up.
 
-- **Smoke before scale**, twice: locally, then on Totoro. Both inspected *past the
-  guards* — actual `estimate_sd`, interval endpoints, and boundary flags per
-  replicate, not just summary counts.
-- **Cross-platform reproducibility:** the three smoke replicates agree between
-  macOS and Totoro to ~1e-12 on `estimate_sd`.
-- **Harness validation:** `g10_n10_sd05` reproduces the 2026-07-26 banked result
-  **exactly — 0.9370 vs 0.937** — same seed family, different platform, package
-  eight days newer. Per `PREREGISTRATION.md` §8, failure here would have stopped
-  the arc before the new cells were reported.
-- 1000/1000 finite ordered intervals in every cell; convergence and `pdHess`
-  1.000 throughout.
+**The first version of this report failed the hub's own validator** — 11 of 12
+required headers absent, and the missing ones were precisely those whose job is to
+surface failure (`Checks Run`, `What Did Not Go Smoothly`, `Known Residuals`,
+`Cross-Product Coverage`). Bespoke headings let an otherwise honest report omit the
+one disclosure it did not think to make. The sibling report in this same lineage
+(2026-07-26) used the correct headers; the discipline existed eight days earlier and
+was dropped.
 
-## 8. Provenance
+**One panel reviewer was mis-dispatched.** The math-consistency lens was given a
+brief requiring `git show`, but that agent type has no Bash — it could not read the
+branch at all and returned NOT-DONE on inaccessibility rather than on a defect. A
+dispatch error by the orchestrator; its numerical recomputation from staged data
+still matched everything.
 
-Totoro, 90 cores (≤100 cap), `OPENBLAS_NUM_THREADS=1`; **D-50 honoured** — never
-GitHub Actions, results local and in this dev-log. Package rsynced from the arc
-branch to an isolated path and loaded with `pkgload::load_all`, so no stale
-installed build could shadow it — the existing `~/drm_work/drmTMB` checkout was
-found in a broken state (git root resolving to `$HOME`, no commits on `main`) and
-deliberately **not** used. Seeds `20260727 + 100000 × cell_i + r`, new indices
-4/5/6 so none collides with banked cells. SHA-256 of all four result files
-recorded in `VERDICT.md`.
+**No smoke receipt was committed**, unlike the 2026-07-26 lineage which committed
+smoke, launch, protocol and rerun receipts. Three claims in this report therefore
+rest on narrative rather than artifact: the cross-platform ~1e-12 agreement, the
+broken Totoro checkout, and the package provenance (`DRMTMB_COMMIT` is a label the
+runner is told, not a hash it verifies).
 
-## 9. Scope held
+## 10. Known Residuals
 
-**Census unchanged: 182 `interval_feasible` / 60 `point_fit_recovery`.** No ledger
-cell promoted, D-97 not reopened. DEFER fence held — the 135-trace interval
-campaign, the `predict()` scale-axis defect, the CI job split, the B4-CI
-`SOURCE_COMMIT` port, and mc-0282's runner contract were all left untouched.
+1. **The D-97 provenance contradiction.** D-97 records 0.9368 *"across all 12 A1
+   cells (11,988 retained attempts)"*, but the 12-cell campaign is bootstrap-only
+   and the profile campaign was 3 cells × 1000. Neither yields 11,988. Either three
+   of this arc's cells are reproductions rather than firsts, or the accepted
+   number's provenance is mis-stated. **Must be resolved before 0.9368 is used again.**
+2. **No user-facing boundary warning.** `confint()` warns on *Wald* at a boundary and
+   steers users to profile — where this arc measures 7–25% coverage. Nothing in
+   `NEWS.md`, `man/confint*`, or the vignettes says so.
+3. **Correctness vs stability.** The reproduction check is a drift check; a
+   systematically wrong profile interval reproduces itself perfectly. No external
+   comparator (`lme4`, `glmmTMB`) was run at the same design.
+4. **Lane authority uncited.** D-117 says assigning the gate is Shinichi's call
+   (D-87); this arc records the reassignment in passive voice with no citation.
 
-## 10. Open for the owner
+## 11. Team Learning
 
-1. **Publication of 0.7.0.** D-117 held it until this number existed. It exists.
-   The decision is D-93 / CI-17 and remains Shinichi's.
-2. **Whether this gate covers the 14 newly-reachable Prong B routes.** This arc
-   measured the A1 **scalar Gaussian** corner; the Prong B routes are count and
-   zero-one-beta families. Still unresolved.
-3. **The 2026-07-26 evidence is still unpushed** on
-   `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`), on no remote. This arc
-   independently reproduces its headline number, which reduces the cost of losing
-   it — but does not back it up.
+- **A pre-registered sentence is not a true sentence.** The wording "not materially
+  worse than pooled" was frozen in advance and still turned out false, because it
+  silently equated *"not significantly below a 0.918 floor"* with *"agrees with
+  0.9368"*. Pre-registration makes an error **earlier and harder to see**, not
+  impossible. Pre-register the *test*, and let the prose follow the result.
+- **A gate that fires after the claim is published is a different, weaker
+  instrument.** Position matters as much as existence.
+- **When a conditioning variable is observable to the user, the conditional is the
+  user-relevant number**, not the aggregate. This arc reported the boundary split
+  but never gated it — the finding was reachable from data already collected.
+- **Report the mechanism, not only the symptom.** The upper-miss asymmetry was
+  reported; the −9% to −17% bias that causes it was sitting unanalysed in the same
+  file.
+
+## 12. Cross-Product Coverage
+
+This measured the **A1 scalar Gaussian** corner only. It does NOT cover:
+
+- The **14 newly-reachable Prong B routes** (count and zero-one-beta families) —
+  whether D-117's gate extends to them is unresolved and is the owner's call.
+- Non-Gaussian families generally; `dr20`'s scope line is *non-Gaussian* GLMM
+  variance components while this arc measured a Gaussian ML profile.
+- REML — the runner uses the package default `REML = FALSE` (`R/drmTMB.R:184`). If
+  D-97's comparator used REML, the pooled comparison compares two estimators.
+- Group counts other than 10, and `n_per` / `sd_mu` outside the four tested cells.
+
+## Next Actions
+
+1. **Owner:** decide whether D-117 is discharged. Recommend **not** treating it as
+   discharged until residual 1 is resolved and residual 2 has a user-facing warning.
+2. Resolve the D-97 provenance contradiction — one targeted search.
+3. Add the `profile.boundary` warning to `NEWS.md` and `?confint.drmTMB` (code/doc
+   arc, outside this measurement arc).
+4. Commit a smoke receipt and a verified package hash for future campaigns.
