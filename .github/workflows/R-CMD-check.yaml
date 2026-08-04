@@ -108,6 +108,23 @@ jobs:
           Rscript --no-init-file tools/emit-profile-truth-manifest.R --check
           Rscript --no-init-file tools/check-capability-runtime.R
 
+      # Prong B Tier 1 fence-integrity guard (docs/dev-log/handover/
+      # 2026-08-03-prong-b-next-lane-brief.md). R/profile.R's profile-status
+      # predicates decide, per random-effect target, whether
+      # `confint(method = "profile")` may run at all. This guard checks that
+      # decision surface directly rather than trusting a diff review: a
+      # pure-R predicate-domain enumeration (no TMB fitting, sub-second) plus
+      # a real drmTMB() fitted battery, both checked against a hard-coded
+      # intended-outcome table (14 named routes open, zi_nbinom2 ordinary
+      # sigma q1 and zero_one_beta structured mu/zoi/coi stay fenced). Run
+      # after tools/check-capability-runtime.R so the TMB shared object it
+      # just (re)built is already current -- this step then loads the
+      # package in place with pkgload::load_all() and does not recompile.
+      - name: Profile-fence integrity (Prong B Tier 1)
+        if: runner.os == 'Linux'
+        run: |
+          Rscript --no-init-file tools/check-profile-fence-integrity.R
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true

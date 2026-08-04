@@ -222,6 +222,26 @@ Use \code{profile_engine = "tmbprofile"} or \code{profile_precision = "fast"} wh
 want the previous full-curve \code{TMB::tmbprofile()} route for comparison,
 diagnostics, or control tuning.
 }
+\section{Profiling a structured \code{sigma} random-effect SD}{
+
+A profile of a \code{sigma}-axis random-effect SD under \code{phylo()}, \code{animal()},
+\code{relmat()}, \code{spatial()}, or \code{phylo_interaction()} is computable for
+\code{zero_one_beta()}, \code{nbinom2()}, and \code{zi_nbinom2()}, but the maximum
+likelihood point estimate it is built around is \strong{biased low} for this
+class of cell: eleven of twelve retained ML estimates fell below truth in
+the sibling \code{nbinom2} provider cells (fit-level one-sided sign test
+\code{p = 0.0032}; \code{p = 0.0625} at cell level, once the shared data-generating
+process and random-number stream are respected). Two corrections that exist
+elsewhere for this bias do not reach these routes: \code{bias_correct} shifts
+only the \code{method = "wald"} centre and never a profile endpoint, and native
+scale-side REML is unavailable here because \code{drm_validate_reml_spec()}
+admits only Gaussian and binomial models. The profile interval therefore
+inherits the bias of its centre uncorrected. These routes carry point-fit
+recovery evidence only, and no seeded campaign has yet measured the
+coverage of a profile interval built on them, so treat the endpoints as a
+computed profile rather than calibrated inference.
+}
+
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)

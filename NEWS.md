@@ -1,5 +1,57 @@
 # drmTMB 0.6.0
 
+## Direct profile targets for fourteen count and zero-one-beta routes
+
+* `confint(fit, method = "profile")` and `profile(fit)` now reach the
+  random-effect SD targets of fourteen routes that previously returned
+  `profile_ready = FALSE` with a `point_fit_only_*` note: the
+  `zero_one_beta()` ordinary `sigma` intercept and slope routes; the same
+  family's `sigma` routes under `phylo()`, `animal()`, `relmat()`,
+  `spatial()`, and `phylo_interaction()`; the labelled intercept-slope
+  covariance blocks of `poisson()` and `nbinom2()` `mu`, including their
+  correlation target; and the `nbinom2()` and `zi_nbinom2()` `sigma` routes
+  under `phylo_interaction()`. The retired notes are
+  `point_fit_only_count_q2`, `point_fit_only_count_sigma_interaction`,
+  `point_fit_only_zi_nbinom2_sigma_interaction`, and
+  `point_fit_only_zero_one_beta_sigma_q1`.
+
+* This change makes a profile *computable* on these routes. It is not a claim
+  that the resulting interval attains nominal coverage, and it promotes no
+  capability-ledger cell: all fourteen stay at `point_fit_recovery`. Read an
+  interval from these routes as "the profile traversed and returned two
+  finite ordered endpoints", not as calibrated inference. The seeded
+  multi-seed campaign that would support an interval claim has not been run.
+
+* Seven of the fourteen profile a `sigma`-axis random-effect SD under a
+  structure: `zero_one_beta()` with `phylo()`, `animal()`, `relmat()`,
+  `spatial()`, or `phylo_interaction()`, and `nbinom2()` or `zi_nbinom2()`
+  with `phylo_interaction()`. For this class of cell the underlying maximum
+  likelihood point estimate is documented as biased low — eleven of twelve
+  retained ML estimates fell below truth in the sibling `nbinom2` provider
+  cells, with a fit-level one-sided sign test at `p = 0.0032` and a
+  cell-level figure of `p = 0.0625` once the shared data-generating process
+  and shared random-number stream are respected. Neither existing correction
+  reaches these routes: `bias_correct` shifts only the `method = "wald"`
+  centre, never a profile endpoint, and native scale-side REML is unavailable
+  because `drm_validate_reml_spec()` admits only Gaussian and binomial
+  models. A profile interval built around a low-biased point estimate
+  inherits that bias uncorrected; interpret these seven routes accordingly.
+
+* Reaching a profile target is not the same as obtaining an interval from it.
+  The change makes these targets eligible for `stats::profile()`; whether a
+  given dataset yields two finite endpoints still depends on that fit. The
+  `zi_nbinom2()` `phylo_interaction()` `sigma` route is a known case in point:
+  on the fixture used for its point-fit evidence the variance component
+  collapses to the lower boundary (estimate `5e-05` against a generating value
+  of `0.60`), and its profile returns `conf.status = "profile_failed"` at some
+  `ystep` settings and a lower endpoint of zero with a `near_sd_boundary`
+  message at others. That degeneracy predates this change and is a property of
+  the fixture, not of the profile machinery, but it is the reason this entry
+  claims reachability rather than intervals.
+
+* `zi_nbinom2()` ordinary `sigma` q1, `zero_one_beta()` structured `mu`, and
+  every `zero_one_beta()` `zoi` and `coi` route remain fenced and unchanged.
+
 ## Fixed-kappa Gaussian mesh intercept at point-fit recovery
 
 * `spatial(1 | site, mesh = mesh)` now has authenticated current-source

@@ -2,6 +2,89 @@
 
 Record meaningful development checks here.
 
+## 2026-08-03: Prong B Tier 1 — four profile fences deleted, 14 cells reachable
+
+- Deleted four boolean fence predicates in `R/profile.R` (edits E1-E4):
+  `count_labelled_q2_profile_restricted()`,
+  `count_sigma_interaction_profile_restricted()`, and
+  `zero_one_beta_sigma_q1_profile_restricted()` outright; narrowed
+  `count_point_fit_only_profile_restricted()`'s `zero_one_beta` `dpar` set
+  from `c("mu", "sigma", "zoi", "coi")` to `c("mu", "zoi", "coi")`. Makes
+  `confint(method = "profile")` reachable for exactly 14 cells: mc-0568,
+  mc-0576 (`zero_one_beta` `sigma` ordinary intercept/slope); mc-0593..0597
+  (`zero_one_beta` `sigma` structured, 5 providers); mc-0418, mc-0436,
+  mc-0446, mc-0450, mc-0454 (`poisson`/`nbinom2` `mu` labelled q2, 2 SD + 1
+  `cor:` target each); mc-0425, mc-0653 (`nbinom2`/`zi_nbinom2` `sigma`
+  `phylo_interaction` q1). Promotes nothing: `model_surface` census stays
+  182 `interval_feasible` / 60 `point_fit_recovery` (frozen subset 59).
+  `python3 tools/capability_ledger.py --check`: OK (30 generated outputs) —
+  re-verified live at closeout.
+- New CI-wired guard `tools/check-profile-fence-integrity.R` (+
+  `profile-fence-fixtures.R`, `profile-fence-worker.R`, one OS process per
+  library): 61-row predicate enumeration + 24-route/34-check fitted battery,
+  checked against a hard-coded intended-outcome table.
+  `Rscript --no-init-file tools/check-profile-fence-integrity.R`:
+  enumeration rows=61, battery rows=34, violations=0, 22.5s — re-run live at
+  closeout. Red-tested: re-adding one deleted disjunct produced 10
+  violations and exit 1; revert returned violations=0, exit 0. An
+  independent ~3,757,600-point exhaustive sweep (adversarial review)
+  reproduced the identical 14-cell flip set and zero unintended flips in
+  either direction.
+- Flipped 12 pinned test call-sites across `test-count-structured-mu.R` (3,
+  via one shared helper covering 5 cells), `test-phylo-interaction.R` (2),
+  `test-zero-one-beta.R` (7); a 4th file, `test-profile-targets.R`, got a
+  pure allow-list hygiene edit. Added the package's first `se = TRUE`
+  profile-interval tests (4, one per opened group) plus 1 internal
+  `cli_abort()` fall-through test. Targeted run:
+  `[ FAIL 0 | WARN 6 | SKIP 0 | PASS 3136 ]`, 93.4s (6 pre-existing
+  `sd_phylo1()`/`sd_phylo2()` deprecation warnings, unrelated).
+- Collateral verdict (load-bearing): the *unmodified* suite run against both
+  pre- and post-edit builds. Pre-edit: 2 failing tests / 2 files
+  (`test-estimator-surface-conformance.R`, `test-phase18-structured-workflow-registry.R`,
+  both pre-existing on `main`). Post-edit: 14 failing tests / 5 files. The
+  difference — exactly 12 tests / 3 files — is precisely the intended
+  routes; none of the 12 fail on baseline, and nothing outside those 3 files
+  moved.
+- `R CMD check --as-cran` (`NOT_CRAN=true`): 0 ERRORS, 0 WARNINGS, 1 NOTE
+  (benign "New submission"). Reconfirmed on the fully settled tree after the
+  late repairs below — second run also 0 ERRORS, 0 WARNINGS, 1 NOTE, so the
+  result covers the tree as it now stands.
+- Fixed en route, all pre-existing-in-arc defects, not new capability
+  changes: 3 stale `R/profile.R:LINE` citations in
+  `estimator-surface-conformance.tsv` and 3 line-range citations in
+  `capability-ledger/{cells,evidence}.tsv` (both broken by this arc's own
+  net line-shift; census regenerated with `--write`; `status`/`evidence_tier`
+  unchanged in every row); 2 stale "not profile-ready" claims (`R/family.R`
+  roxygen -> `man/zero_one_beta.Rd`; `vignettes/formula-grammar.Rmd`, 2
+  rows); a guard defect that silently substituted R's default library for a
+  caller's non-default `R_LIBS_USER`; 29 fragile test-file line-number pins
+  inside the new guard's own fixture file, most already stale by the time it
+  shipped (the same commit's test edits moved the cited lines), replaced
+  with file-name + cell-id citations.
+- Systemic finding: `tests/testthat/test-estimator-surface-conformance.R`
+  exists specifically to catch citation rot, but `.Rbuildignore:10` excludes
+  `^docs$`, so its TSV is absent from the built tarball and the test SKIPs
+  under `R CMD check` — the only checked environment CI runs. The guard is
+  invisible exactly where enforcement matters. This is the same TSV that
+  needed a 7-anchor repair on 2026-07-25
+  (`docs/dev-log/after-task/2026-07-25-estimator-surface-anchor-hygiene.md`),
+  whose own closing recommendation — prefer a durable citation form over
+  another manual line-number refresh — was not acted on before this arc
+  produced a second, 6-span drift event. 4 pre-existing `R/drmTMB.R`
+  citation rots (unrelated to this arc) were left as-is; no matching
+  GitHub issue was found for either that or the CI-invisibility finding.
+- Known limitation carried to the campaign arc: opening a fence grants
+  eligibility, not an interval. mc-0653's fixture is degenerate (ML sigma
+  `4.95e-05` vs generating value `0.60`; `profile_failed` or
+  `near_sd_boundary` depending on `ystep`) and needs repair before that cell
+  can promote. 7 of the 14 cells profile a `sigma`-axis RE SD with a
+  documented ML low bias and no REML route
+  (`drm_validate_reml_spec()` admits only Gaussian/binomial); every
+  structured-`sigma` cell's eventual `claim_boundary` text must name both,
+  per the Arc 7b owner decision this arc inherits. Full detail:
+  `docs/dev-log/after-task/2026-08-03-prong-b-tier1-profile-fences.md` and
+  `docs/dev-log/handover/2026-08-03-prong-b-tier1-to-campaign-handover.md`.
+
 ## 2026-08-03: Arc 7b profile-interval truth gate
 
 - Installed `tools/profile_truth_gate.py` over the 31-cell profile contract

@@ -308,8 +308,11 @@ beta <- function() {
 #' and random terms use the same raw symbol. Examples are
 #' `zoi ~ x + (0 + x | id)` and `coi ~ x + (0 + x | id)`. The exact `coi`
 #' admissions are that slope form and `coi ~ 1 + (1 | id)`, both with fixed
-#' `sigma ~ 1` and `zoi ~ 1`. These routes are
-#' point-fit recovery only:
+#' `sigma ~ 1` and `zoi ~ 1`. All of these routes carry point-fit recovery
+#' evidence only. The two `sigma` routes now admit direct profiling, so
+#' `confint(method = "profile")` reaches their SD target; that makes an
+#' interval computable, not calibrated, and no interval, coverage, or broader
+#' recovery claim is established for them. For the `zoi` and `coi` routes,
 #' direct profiling, intervals, coverage, and broader recovery claims remain
 #' unavailable. In the retained `coi` recovery rung (`M = 64`, 50 observations
 #' per group), population-level point recovery remained stable when a few groups

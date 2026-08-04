@@ -1,0 +1,62 @@
+id	group	kind	dpar	internal	result	error
+open-zob-sigma-structured-phylo	open-14	count_point_fit_only	sigma		TRUE	
+open-zob-sigma-structured-animal	open-14	count_point_fit_only	sigma		TRUE	
+open-zob-sigma-structured-relmat	open-14	count_point_fit_only	sigma		TRUE	
+open-zob-sigma-structured-spatial	open-14	count_point_fit_only	sigma		TRUE	
+open-zob-sigma-structured-phylo_interaction	open-14	count_point_fit_only	sigma		TRUE	
+open-nbinom2-mu-q2-phylo	open-14	count_point_fit_only	mu		FALSE	
+open-poisson-mu-q2-phylo	open-14	count_point_fit_only	mu		FALSE	
+open-poisson-mu-q2-spatial	open-14	count_point_fit_only	mu		FALSE	
+open-poisson-mu-q2-animal	open-14	count_point_fit_only	mu		FALSE	
+open-poisson-mu-q2-relmat	open-14	count_point_fit_only	mu		FALSE	
+open-nbinom2-sigma-phylo-interaction	open-14	count_point_fit_only	sigma		FALSE	
+open-zi-nbinom2-sigma-phylo-interaction	open-14	count_point_fit_only	sigma		FALSE	
+open-zob-sigma-ordinary-intercept	open-14	zero_one_beta_sigma_q1_deleted	sigma	log_sd_sigma	ABSENT	
+open-zob-sigma-ordinary-slope	open-14	zero_one_beta_sigma_q1_deleted	sigma	log_sd_sigma	ABSENT	
+fenced-zi-nbinom2-sigma-q1	fenced	count_point_fit_only	sigma		TRUE	
+fenced-zob-mu-structured-phylo	fenced	count_point_fit_only	mu		TRUE	
+fenced-zob-zoi-structured-phylo	fenced	count_point_fit_only	zoi		TRUE	
+fenced-zob-coi-structured-phylo	fenced	count_point_fit_only	coi		TRUE	
+fenced-zob-mu-structured-animal	fenced	count_point_fit_only	mu		TRUE	
+fenced-zob-zoi-structured-animal	fenced	count_point_fit_only	zoi		TRUE	
+fenced-zob-coi-structured-animal	fenced	count_point_fit_only	coi		TRUE	
+fenced-zob-mu-structured-relmat	fenced	count_point_fit_only	mu		TRUE	
+fenced-zob-zoi-structured-relmat	fenced	count_point_fit_only	zoi		TRUE	
+fenced-zob-coi-structured-relmat	fenced	count_point_fit_only	coi		TRUE	
+fenced-zob-mu-structured-spatial	fenced	count_point_fit_only	mu		TRUE	
+fenced-zob-zoi-structured-spatial	fenced	count_point_fit_only	zoi		TRUE	
+fenced-zob-coi-structured-spatial	fenced	count_point_fit_only	coi		TRUE	
+fenced-zob-mu-structured-phylo_interaction	fenced	count_point_fit_only	mu		TRUE	
+fenced-zob-zoi-structured-phylo_interaction	fenced	count_point_fit_only	zoi		TRUE	
+fenced-zob-coi-structured-phylo_interaction	fenced	count_point_fit_only	coi		TRUE	
+neg-gaussian-mu-q2-phylo	negative	count_point_fit_only	mu		FALSE	
+neg-biv-gaussian-mu-q2-phylo	negative	count_point_fit_only	mu		FALSE	
+neg-zob-mu-no-structure	negative	count_point_fit_only	mu		FALSE	
+neg-zob-sigma-structured-q2	negative	count_point_fit_only	sigma		FALSE	
+neg-zob-sigma-structured-unknown-provider	negative	count_point_fit_only	sigma		FALSE	
+neg-nbinom2-mu-q2-spatial-not-permitted	negative	count_point_fit_only	mu		FALSE	
+neg-poisson-mu-q2-phylo-unlabelled	negative	count_point_fit_only	mu		FALSE	
+neg-poisson-mu-q2-phylo-cross-dpar	negative	count_point_fit_only	mu		FALSE	
+neg-nbinom2-sigma-phylo-not-interaction	negative	count_point_fit_only	sigma		FALSE	
+neg-nbinom2-mu-phylo-interaction-wrong-dpar	negative	count_point_fit_only	mu		FALSE	
+neg-hurdle-nbinom2-sigma-phylo-interaction	negative	count_point_fit_only	sigma		FALSE	
+neg-zi-poisson-mu-q2-phylo	negative	count_point_fit_only	mu		FALSE	
+neg-zob-rho12-structured	negative	count_point_fit_only	rho12		FALSE	
+zi-ctrl-sigma-q1-true	retained-control	zi_nbinom2_sigma_q1	sigma		TRUE	
+zi-ctrl-wrong-dpar	retained-control	zi_nbinom2_sigma_q1	mu		FALSE	
+zi-ctrl-two-terms	retained-control	zi_nbinom2_sigma_q1	sigma		FALSE	
+zi-ctrl-slope-not-intercept	retained-control	zi_nbinom2_sigma_q1	sigma		FALSE	
+zi-ctrl-labelled-not-iid	retained-control	zi_nbinom2_sigma_q1	sigma		FALSE	
+zi-ctrl-structured-excludes-ordinary	retained-control	zi_nbinom2_sigma_q1	sigma		FALSE	
+zoi-ctrl-clean	retained-control	zero_one_beta_zoi_q1	zoi	log_sd_zoi	TRUE	
+zoi-ctrl-mu-re-present	retained-control	zero_one_beta_zoi_q1	zoi	log_sd_zoi	FALSE	
+zoi-ctrl-sigma-re-present	retained-control	zero_one_beta_zoi_q1	zoi	log_sd_zoi	FALSE	
+zoi-ctrl-wrong-dpar	retained-control	zero_one_beta_zoi_q1	coi	log_sd_zoi	FALSE	
+zoi-ctrl-wrong-internal	retained-control	zero_one_beta_zoi_q1	zoi	log_sd_sigma	FALSE	
+coi-ctrl-clean	retained-control	zero_one_beta_coi_q1	coi	log_sd_coi	TRUE	
+coi-ctrl-mu-re-present	retained-control	zero_one_beta_coi_q1	coi	log_sd_coi	FALSE	
+coi-ctrl-zoi-re-present	retained-control	zero_one_beta_coi_q1	coi	log_sd_coi	FALSE	
+coi-ctrl-wrong-dpar	retained-control	zero_one_beta_coi_q1	zoi	log_sd_coi	FALSE	
+exists:count_labelled_q2_profile_restricted	deleted_fn_probe	exists_only			FALSE	
+exists:count_labelled_q2_profile_restricted_status	deleted_fn_probe	exists_only			FALSE	
+exists:count_sigma_interaction_profile_restricted	deleted_fn_probe	exists_only			FALSE	

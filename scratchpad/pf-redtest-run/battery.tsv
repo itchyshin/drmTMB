@@ -1,0 +1,35 @@
+route_id	status	parm	dpar	old_ready	old_note	new_ready	new_note	expect_tmb_parameter	fit_status	fit_error	convergence	pdhess	has_obj	se_success	profile_targets_status	profile_targets_error	observed_ready	observed_note	observed_tmb_parameter	observed_target_type
+mc-0568	open	sd:sigma:(1 | id)	sigma	FALSE	point_fit_only_zero_one_beta_sigma_q1	TRUE	ready	log_sd_sigma	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_sigma	direct
+mc-0576	open	sd:sigma:(0 + x | id)	sigma	FALSE	point_fit_only_zero_one_beta_sigma_q1	TRUE	ready	log_sd_sigma	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_sigma	direct
+mc-0593	open	sd:sigma:phylo(1 | species)	sigma	FALSE	point_fit_only_zero_one_beta_phylo_q1	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_phylo_q1	log_sd_phylo	direct
+mc-0594	open	sd:sigma:animal(1 | species)	sigma	FALSE	point_fit_only_zero_one_beta_animal_q1	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_animal_q1	log_sd_phylo	direct
+mc-0595	open	sd:sigma:relmat(1 | species)	sigma	FALSE	point_fit_only_zero_one_beta_relmat_q1	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_relmat_q1	log_sd_phylo	direct
+mc-0596	open	sd:sigma:spatial(1 | site)	sigma	FALSE	point_fit_only_zero_one_beta_spatial_q1	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_spatial_q1	log_sd_phylo	direct
+mc-0597	open	sd:sigma:phylo_interaction(1 | plant:pollinator)	sigma	FALSE	point_fit_only_zero_one_beta_phylo_interaction_q1	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_phylo_interaction_q1	log_sd_phylo	direct
+mc-0418	open	sd:mu:phylo(1 | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0418	open	sd:mu:phylo(0 + x | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0418	open	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	eta_cor_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	eta_cor_phylo	direct
+mc-0436	open	sd:mu:phylo(1 | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0436	open	sd:mu:phylo(0 + x | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0436	open	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	eta_cor_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	eta_cor_phylo	direct
+mc-0446	open	sd:mu:spatial(1 | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0446	open	sd:mu:spatial(0 + x | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0446	open	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	eta_cor_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	eta_cor_phylo	direct
+mc-0450	open	sd:mu:animal(1 | p | id)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0450	open	sd:mu:animal(0 + x | p | id)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0450	open	cor:animal:cor(mu:(Intercept),mu:x | p | id)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	eta_cor_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	eta_cor_phylo	direct
+mc-0454	open	sd:mu:relmat(1 | p | id)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0454	open	sd:mu:relmat(0 + x | p | id)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0454	open	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	mu	FALSE	point_fit_only_count_q2	TRUE	ready	eta_cor_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	eta_cor_phylo	direct
+mc-0425	open	sd:sigma:phylo_interaction(1 | plant:pollinator)	sigma	FALSE	point_fit_only_count_sigma_interaction	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+mc-0653	open	sd:sigma:phylo_interaction(1 | plant:pollinator)	sigma	FALSE	point_fit_only_zi_nbinom2_sigma_interaction	TRUE	ready	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		TRUE	ready	log_sd_phylo	direct
+fenced-zi-nbinom2-sigma-q1	fenced	sd:sigma:(1 | pair)	sigma	FALSE	point_fit_only_zi_nbinom2_sigma_q1	FALSE	point_fit_only_zi_nbinom2_sigma_q1	log_sd_sigma	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zi_nbinom2_sigma_q1	log_sd_sigma	direct
+fenced-zob-mu-phylo	fenced	sd:mu:phylo(1 | species)	mu	FALSE	point_fit_only_zero_one_beta_phylo_q1	FALSE	point_fit_only_zero_one_beta_phylo_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_phylo_q1	log_sd_phylo	direct
+fenced-zob-mu-animal	fenced	sd:mu:animal(1 | species)	mu	FALSE	point_fit_only_zero_one_beta_animal_q1	FALSE	point_fit_only_zero_one_beta_animal_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_animal_q1	log_sd_phylo	direct
+fenced-zob-mu-relmat	fenced	sd:mu:relmat(1 | species)	mu	FALSE	point_fit_only_zero_one_beta_relmat_q1	FALSE	point_fit_only_zero_one_beta_relmat_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_relmat_q1	log_sd_phylo	direct
+fenced-zob-mu-spatial	fenced	sd:mu:spatial(1 | site)	mu	FALSE	point_fit_only_zero_one_beta_spatial_q1	FALSE	point_fit_only_zero_one_beta_spatial_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_spatial_q1	log_sd_phylo	direct
+fenced-zob-mu-phylo-interaction	fenced	sd:mu:phylo_interaction(1 | plant:pollinator)	mu	FALSE	point_fit_only_zero_one_beta_phylo_interaction_q1	FALSE	point_fit_only_zero_one_beta_phylo_interaction_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_phylo_interaction_q1	log_sd_phylo	direct
+fenced-zob-zoi-ordinary	fenced	sd:zoi:(1 | id)	zoi	FALSE	point_fit_only_zero_one_beta_zoi_q1	FALSE	point_fit_only_zero_one_beta_zoi_q1	log_sd_zoi	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_zoi_q1	log_sd_zoi	direct
+fenced-zob-zoi-phylo	fenced	sd:zoi:phylo(1 | species)	zoi	FALSE	point_fit_only_zero_one_beta_phylo_zoi_q1	FALSE	point_fit_only_zero_one_beta_phylo_zoi_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_phylo_zoi_q1	log_sd_phylo	direct
+fenced-zob-coi-ordinary	fenced	sd:coi:(1 | id)	coi	FALSE	point_fit_only_zero_one_beta_coi_q1	FALSE	point_fit_only_zero_one_beta_coi_q1	log_sd_coi	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_coi_q1	log_sd_coi	direct
+fenced-zob-coi-phylo	fenced	sd:coi:phylo(1 | species)	coi	FALSE	point_fit_only_zero_one_beta_phylo_coi_q1	FALSE	point_fit_only_zero_one_beta_phylo_coi_q1	log_sd_phylo	fit_ok		0	TRUE	TRUE	TRUE	ok		FALSE	point_fit_only_zero_one_beta_phylo_coi_q1	log_sd_phylo	direct

@@ -600,20 +600,19 @@ expect_count_labelled_q2_profile_restriction <- function(
     c("log_sd_phylo", "log_sd_phylo", "eta_cor_phylo")
   )
   expect_equal(restricted$target_type, rep("direct", length(target_names)))
-  expect_false(any(restricted$profile_ready))
+  expect_true(all(restricted$profile_ready))
   expect_equal(
     restricted$profile_note,
-    rep("point_fit_only_count_q2", length(target_names))
+    rep("ready", length(target_names))
   )
-  expect_false(any(target_names %in% profile_targets(fit, ready_only = TRUE)$parm))
-  expect_error(
-    stats::confint(fit, parm = target_names[[1L]], method = "profile"),
-    "not ready for direct profiling"
-  )
-  expect_error(
-    stats::profile(fit, parm = target_names[[1L]]),
-    "not ready for direct profiling"
-  )
+  expect_true(all(target_names %in% profile_targets(fit, ready_only = TRUE)$parm))
+  # The fence that forced these targets point-fit-only is gone (profile.R),
+  # so the "not ready for direct profiling" negative control no longer
+  # applies. A cheap mock-based check replaces it: the endpoint engine now
+  # reaches drm_profile_target_endpoint_confint() for this target instead of
+  # short-circuiting to "unsupported", and the mock aborts immediately so
+  # this stays fast (no real profile optimization runs here; see the
+  # dedicated se = TRUE profile-interval test for a real fit).
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(
     drm_profile_target_endpoint_confint = function(...) {
@@ -628,9 +627,9 @@ expect_count_labelled_q2_profile_restriction <- function(
     method = "profile",
     profile_engine = "endpoint"
   )
-  expect_false(endpoint_called)
+  expect_true(endpoint_called)
   expect_equal(endpoint$conf.status, "profile_failed")
-  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_match(endpoint$profile.message, "endpoint profile must not start")
 }
 
 expect_count_structured_mu_slope_only_fit <- function(fit, type, group) {
@@ -883,6 +882,54 @@ test_that("Poisson phylo admits one labelled intercept-slope covariance block", 
   rho_report <- fit$obj$report()$rho_phylo
   expect_true(is.finite(rho_report))
   expect_count_labelled_q2_profile_restriction(fit)
+})
+
+test_that("Poisson phylo labelled q2 intercept SD computes a finite ordered profile interval", {
+  # Happy-path smoke test, not a boundary probe: a single-seed se = TRUE fit
+  # of the same labelled q2 covariance route as the block test above, with
+  # one of its three newly-ready targets (the intercept SD) checked for a
+  # finite, correctly-ordered profile interval plus a Wald cross-check on the
+  # same fit. This is not a coverage or recovery claim -- a single seed
+  # carries no error bar for that.
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    seed = 2026072811,
+    n_level = 16L,
+    n_each = 24L,
+    rho_phylo = 0.35
+  )
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree)),
+    family = stats::poisson(link = "log"),
+    data = sim$data,
+    control = list(eval.max = 900, iter.max = 900)
+  )
+  expect_true(fit$sdr$pdHess)
+
+  target <- profile_targets(fit)
+  target <- target[target$parm == "sd:mu:phylo(1 | p | site)", , drop = FALSE]
+  expect_true(target$profile_ready)
+
+  profile_ci <- stats::confint(
+    fit, parm = target$parm, level = 0.70, method = "profile", trace = FALSE, ystep = 0.50
+  )
+  expect_true(is.finite(profile_ci$lower))
+  expect_true(is.finite(profile_ci$upper))
+  expect_lt(profile_ci$lower, target$estimate)
+  expect_gt(profile_ci$upper, target$estimate)
+  expect_identical(profile_ci$conf.status, "profile")
+
+  # Wald cross-check on the same fit: catches a wrong-scale transform or a
+  # mislabelled row using an already-computed comparator, not a coverage
+  # claim.
+  wald_ci <- stats::confint(fit, parm = target$parm, level = 0.70, method = "wald")
+  expect_identical(wald_ci$conf.status, "wald")
+  expect_true(is.finite(wald_ci$lower))
+  expect_true(is.finite(wald_ci$upper))
+  expect_lt(profile_ci$lower, wald_ci$upper)
+  expect_gt(profile_ci$upper, wald_ci$lower)
 })
 
 test_that("Poisson phylo q2 covariance penalty matches the dense joint oracle", {

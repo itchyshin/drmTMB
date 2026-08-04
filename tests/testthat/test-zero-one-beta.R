@@ -609,14 +609,18 @@ test_that("zero-one-beta admits only the exact phylo q1 sigma gate", {
   expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "phylo(1 | species)")
   target <- subset(profile_targets(fit), parm == "sd:sigma:phylo(1 | species)")
   expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct")
-  expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_phylo_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
-  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
-  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  expect_true(target$profile_ready); expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence dropped "sigma" from its
+  # dpar set (profile.R); the "not ready for direct profiling" negative
+  # control no longer applies to this structured-sigma q1 route. A cheap
+  # mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting, and
+  # the mock aborts immediately so this stays fast.
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB")
   endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
-  expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed"); expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_true(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed"); expect_match(endpoint$profile.message, "endpoint profile must not start")
   expect_error(drmTMB(bf(y ~ x, sigma ~ phylo(1 + x | species, tree = tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
   expect_error(drmTMB(bf(y ~ x, sigma ~ phylo(1 | species, tree = tree), zoi ~ 1 + (1 | species), coi ~ 1), family = zero_one_beta(), data = d), "requires")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
@@ -625,6 +629,45 @@ test_that("zero-one-beta admits only the exact phylo q1 sigma gate", {
   expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
   i <- which(names(probe) == "log_sd_phylo"); changed <- probe; changed[[i]] <- changed[[i]] + .2
   expect_gt(abs(obj$fn(changed) - obj$fn(probe)), 1e-5)
+})
+
+test_that("zero-one-beta structured phylo sigma computes a finite ordered profile interval", {
+  # Happy-path smoke test, not a boundary probe: a single-seed se = TRUE fit
+  # of the same structured-sigma phylo q1 route as the gate test above,
+  # checked for a finite, correctly-ordered profile interval plus a Wald
+  # cross-check on the same fit. This is not a coverage or recovery claim --
+  # a single seed carries no error bar for that, and R/profile.R documents a
+  # low-ML-estimate bias risk for structured-sigma routes in this family.
+  set.seed(2026074001L)
+  tree <- ape::stree(16L, type = "balanced"); tree$edge.length <- rep(1, nrow(tree$edge)); tree$tip.label <- paste0("sp", seq_len(16L))
+  precision <- dense_zoib_phylo_precision(tree); u <- as.numeric(t(chol(solve(precision$Q))) %*% rnorm(nrow(precision$Q), sd = .45)); names(u) <- tree$tip.label
+  species <- rep(tree$tip.label, each = 40L); x <- rnorm(length(species)); mu <- plogis(-.15 + .35 * x); sigma <- exp(-1 + u[species]); zoi <- plogis(-1.1); coi <- plogis(.1)
+  boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi)
+  d <- data.frame(y, x, species)
+  fit <- drmTMB(bf(y ~ x, sigma ~ phylo(1 | species, tree = tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d)
+  expect_true(fit$sdr$pdHess)
+
+  target <- subset(profile_targets(fit), parm == "sd:sigma:phylo(1 | species)")
+  expect_true(target$profile_ready)
+
+  profile_ci <- stats::confint(
+    fit, parm = target$parm, level = 0.70, method = "profile", trace = FALSE, ystep = 0.50
+  )
+  expect_true(is.finite(profile_ci$lower))
+  expect_true(is.finite(profile_ci$upper))
+  expect_lt(profile_ci$lower, target$estimate)
+  expect_gt(profile_ci$upper, target$estimate)
+  expect_identical(profile_ci$conf.status, "profile")
+
+  # Wald cross-check on the same fit: catches a wrong-scale transform or a
+  # mislabelled row using an already-computed comparator, not a coverage
+  # claim.
+  wald_ci <- stats::confint(fit, parm = target$parm, level = 0.70, method = "wald")
+  expect_identical(wald_ci$conf.status, "wald")
+  expect_true(is.finite(wald_ci$lower))
+  expect_true(is.finite(wald_ci$upper))
+  expect_lt(profile_ci$lower, wald_ci$upper)
+  expect_gt(profile_ci$upper, wald_ci$lower)
 })
 
 test_that("structured sigma oracles honour the log-sigma soft clamp out of band", {
@@ -779,8 +822,14 @@ test_that("zero-one-beta admits only the exact animal Ainv q1 sigma gate", {
   boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi); d <- data.frame(y, x, species)
   fit <- drmTMB(bf(y ~ x, sigma ~ animal(1 | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
   expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "animal(1 | species)"); expect_named(ranef(fit, "animal_sigma")$terms, "animal(1 | species)")
-  target <- subset(profile_targets(fit), parm == "sd:sigma:animal(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_animal_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:animal(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_true(target$profile_ready); expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence dropped "sigma" from its
+  # dpar set (profile.R); the "not ready for direct profiling" negative
+  # control no longer applies to this structured-sigma q1 route. A cheap
+  # mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting, and
+  # the mock aborts immediately so this stays fast.
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(
     drm_profile_target_endpoint_confint = function(...) {
@@ -790,7 +839,7 @@ test_that("zero-one-beta admits only the exact animal Ainv q1 sigma gate", {
     .package = "drmTMB"
   )
   endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
-  expect_false(endpoint_called)
+  expect_true(endpoint_called)
   expect_identical(endpoint$conf.status, "profile_failed")
   expect_error(drmTMB(bf(y ~ x, sigma ~ animal(1 + x | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
   expect_error(drmTMB(bf(y ~ x + animal(1 | species, Ainv = Ainv), sigma ~ animal(1 | species, Ainv = Ainv), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
@@ -808,11 +857,17 @@ test_that("zero-one-beta admits only the exact relmat K q1 sigma gate", {
   boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi); d <- data.frame(y, x, species)
   fit <- drmTMB(bf(y ~ x, sigma ~ relmat(1 | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
   expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "relmat(1 | species)"); expect_named(ranef(fit, "relmat_sigma")$terms, "relmat(1 | species)")
-  target <- subset(profile_targets(fit), parm == "sd:sigma:relmat(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_relmat_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:relmat(1 | species)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_true(target$profile_ready); expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence dropped "sigma" from its
+  # dpar set (profile.R); the "not ready for direct profiling" negative
+  # control no longer applies to this structured-sigma q1 route. A cheap
+  # mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting, and
+  # the mock aborts immediately so this stays fast.
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB")
-  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
+  endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_true(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
   expect_error(drmTMB(bf(y ~ x, sigma ~ relmat(1 + x | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
   expect_error(drmTMB(bf(y ~ x, sigma ~ relmat(1 | species, Q = Q), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "K")
   expect_error(drmTMB(bf(y ~ x + relmat(1 | species, K = K), sigma ~ relmat(1 | species, K = K), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
@@ -827,9 +882,15 @@ test_that("zero-one-beta admits only the exact spatial coords q1 sigma gate", {
   boundary <- rbinom(length(x), 1L, zoi); y <- rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2); y[boundary == 1L] <- rbinom(sum(boundary), 1L, coi); d <- data.frame(y, x, site)
   fit <- drmTMB(bf(y ~ x, sigma ~ spatial(1 | site, coords = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d, control = drm_control(se = FALSE))
   expect_equal(fit$opt$convergence, 0); expect_named(fit$sdpars$sigma, "spatial(1 | site)"); expect_named(ranef(fit, "spatial_sigma")$terms, "spatial(1 | site)")
-  target <- subset(profile_targets(fit), parm == "sd:sigma:spatial(1 | site)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_spatial_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
-  endpoint_called <- FALSE; testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB"); endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:spatial(1 | site)"); expect_identical(target$tmb_parameter, "log_sd_phylo"); expect_identical(target$target_type, "direct"); expect_true(target$profile_ready); expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence dropped "sigma" from its
+  # dpar set (profile.R); the "not ready for direct profiling" negative
+  # control no longer applies to this structured-sigma q1 route. A cheap
+  # mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting, and
+  # the mock aborts immediately so this stays fast.
+  endpoint_called <- FALSE; testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB"); endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_true(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
   expect_error(drmTMB(bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "currently supports")
   expect_error(drmTMB(bf(y ~ x, sigma ~ spatial(1 | site, mesh = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "coords")
   expect_error(drmTMB(bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ spatial(1 | site, coords = coords), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "cannot be combined")
@@ -959,9 +1020,15 @@ test_that("zero-one-beta admits only the exact phylo-interaction q1 sigma gate",
   sim <- new_zero_one_beta_phylo_interaction_data(); plant_tree <- sim$plant_tree; pollinator_tree <- sim$pollinator_tree
   fit <- drmTMB(bf(y ~ x, sigma ~ phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = sim$data, control = drm_control(se = FALSE))
   expect_equal(fit$opt$convergence, 0); expect_identical(fit$model$structured$phylo_mu$dpars, "sigma"); expect_named(fit$sdpars$sigma, "phylo_interaction(1 | plant:pollinator)")
-  target <- subset(profile_targets(fit), parm == "sd:sigma:phylo_interaction(1 | plant:pollinator)"); expect_identical(target$target_type, "direct"); expect_false(target$profile_ready); expect_identical(target$profile_note, "point_fit_only_zero_one_beta_phylo_interaction_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm); expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling"); expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
-  endpoint_called <- FALSE; testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB"); endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_false(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
+  target <- subset(profile_targets(fit), parm == "sd:sigma:phylo_interaction(1 | plant:pollinator)"); expect_identical(target$target_type, "direct"); expect_true(target$profile_ready); expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence dropped "sigma" from its
+  # dpar set (profile.R); the "not ready for direct profiling" negative
+  # control no longer applies to this structured-sigma q1 route. A cheap
+  # mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting, and
+  # the mock aborts immediately so this stays fast.
+  endpoint_called <- FALSE; testthat::local_mocked_bindings(drm_profile_target_endpoint_confint = function(...) { endpoint_called <<- TRUE; stop("endpoint profile must not start", call. = FALSE) }, .package = "drmTMB"); endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint"); expect_true(endpoint_called); expect_identical(endpoint$conf.status, "profile_failed")
   expect_error(drmTMB(bf(y ~ x, sigma ~ phylo_interaction(1 + x | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = sim$data), "intercept-only")
   expect_error(drmTMB(bf(y ~ x + phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), sigma ~ phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = sim$data), "cannot be combined")
   obj <- TMB::MakeADFun(data = fit$model$tmb_data, parameters = fit$model$start, map = fit$model$map, DLL = "drmTMB", silent = TRUE); probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_phylo_interaction_nll(fit, obj$env$parList(v), plant_tree, pollinator_tree, sim$data)
@@ -987,11 +1054,17 @@ test_that("zero-one-beta admits only the exact sigma random-intercept q1 gate", 
   expect_equal(nrow(target), 1L)
   expect_identical(target$tmb_parameter, "log_sd_sigma")
   expect_identical(target$target_type, "direct")
-  expect_identical(target$profile_ready, FALSE)
-  expect_identical(target$profile_note, "point_fit_only_zero_one_beta_sigma_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
-  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
-  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  expect_identical(target$profile_ready, TRUE)
+  expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence and the dedicated ordinary-
+  # sigma fence (zero_one_beta_sigma_q1_profile_restricted()) are both gone
+  # (profile.R); the "not ready for direct profiling" negative control no
+  # longer applies. A cheap mock-based check replaces it: the endpoint engine
+  # now reaches drm_profile_target_endpoint_confint() instead of short-
+  # circuiting, and the mock aborts immediately so this stays fast (no real
+  # profile optimization runs here; see the dedicated se = TRUE profile-
+  # interval test for a real fit).
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(
     drm_profile_target_endpoint_confint = function(...) {
@@ -1001,9 +1074,9 @@ test_that("zero-one-beta admits only the exact sigma random-intercept q1 gate", 
     .package = "drmTMB"
   )
   endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
-  expect_false(endpoint_called)
+  expect_true(endpoint_called)
   expect_identical(endpoint$conf.status, "profile_failed")
-  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_match(endpoint$profile.message, "endpoint profile must not start")
 
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1 + (1 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = sim$data),
@@ -1086,11 +1159,31 @@ test_that("zero-one-beta admits only the exact sigma random-slope q1 gate", {
   expect_equal(nrow(target), 1L)
   expect_identical(target$tmb_parameter, "log_sd_sigma")
   expect_identical(target$target_type, "direct")
-  expect_identical(target$profile_ready, FALSE)
-  expect_identical(target$profile_note, "point_fit_only_zero_one_beta_sigma_q1")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
-  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
-  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
+  expect_identical(target$profile_ready, TRUE)
+  expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The generic zero-one-beta point-fit-only fence and the dedicated ordinary-
+  # sigma fence (zero_one_beta_sigma_q1_profile_restricted()) are both gone
+  # (profile.R), so the "not ready for direct profiling" negative control no
+  # longer applies. Replaced with a real (not mocked) profile interval on the
+  # se = FALSE fit above -- this is a happy-path smoke test (finite, ordered,
+  # ~4-5 s at these speed knobs), not a coverage claim; see docstring below.
+  sigma_ci <- stats::confint(
+    fit,
+    parm = target$parm,
+    level = 0.70,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.50
+  )
+  expect_equal(sigma_ci$parm, target$parm)
+  expect_identical(sigma_ci$conf.status, "profile")
+  expect_true(is.finite(sigma_ci$lower))
+  expect_true(is.finite(sigma_ci$upper))
+  expect_lt(sigma_ci$lower, target$estimate)
+  expect_gt(sigma_ci$upper, target$estimate)
+  # profile()'s bare curve path is exercised for real by the dedicated
+  # se = TRUE profile-interval test instead of a second real profile here.
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(
     drm_profile_target_endpoint_confint = function(...) {
@@ -1100,9 +1193,9 @@ test_that("zero-one-beta admits only the exact sigma random-slope q1 gate", {
     .package = "drmTMB"
   )
   endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
-  expect_false(endpoint_called)
+  expect_true(endpoint_called)
   expect_identical(endpoint$conf.status, "profile_failed")
-  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_match(endpoint$profile.message, "endpoint profile must not start")
   expect_error(drmTMB(bf(y ~ x, sigma ~ x + z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ z + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = transform(d, z = x)), "requires")
   expect_error(drmTMB(bf(y ~ x, sigma ~ I(x^2) + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d), "requires")
@@ -1111,6 +1204,45 @@ test_that("zero-one-beta admits only the exact sigma random-slope q1 gate", {
   probe <- obj$par + seq(-.025, .025, length.out = length(obj$par)); oracle_fn <- function(v) zoib_sigma_random_intercept_nll(fit, obj$env$parList(v))
   expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
   expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+})
+
+test_that("zero-one-beta ordinary sigma random-slope computes a finite ordered profile interval", {
+  # Happy-path smoke test, not a boundary probe: a single-seed se = TRUE fit
+  # of the same route as the q1 gate test above, checked for a finite,
+  # correctly-ordered profile interval plus a Wald cross-check on the same
+  # fit. This is not a coverage or recovery claim -- a single seed carries no
+  # error bar for that.
+  set.seed(2026073701L)
+  id <- factor(rep(seq_len(12L), each = 30L)); x <- stats::rnorm(length(id)); u <- stats::rnorm(12L)
+  mu <- stats::plogis(.2 * x); sigma <- exp(-1 + .35 * u[id] * x); zoi <- stats::plogis(-.7); coi <- stats::plogis(.1)
+  boundary <- stats::rbinom(length(id), 1L, zoi); y <- stats::rbeta(length(id), mu / sigma^2, (1 - mu) / sigma^2)
+  y[boundary == 1L] <- stats::rbinom(sum(boundary), 1L, coi)
+  d <- data.frame(y, x, id)
+  fit <- drmTMB(bf(y ~ x, sigma ~ x + (0 + x | id), zoi ~ 1, coi ~ 1), family = zero_one_beta(), data = d)
+  expect_true(fit$sdr$pdHess)
+
+  target <- profile_targets(fit)
+  target <- target[target$parm == "sd:sigma:(0 + x | id)", , drop = FALSE]
+  expect_true(target$profile_ready)
+
+  profile_ci <- stats::confint(
+    fit, parm = target$parm, level = 0.70, method = "profile", trace = FALSE, ystep = 0.50
+  )
+  expect_true(is.finite(profile_ci$lower))
+  expect_true(is.finite(profile_ci$upper))
+  expect_lt(profile_ci$lower, target$estimate)
+  expect_gt(profile_ci$upper, target$estimate)
+  expect_identical(profile_ci$conf.status, "profile")
+
+  # Wald cross-check on the same fit: catches a wrong-scale transform or a
+  # mislabelled row using an already-computed comparator, not a coverage
+  # claim.
+  wald_ci <- stats::confint(fit, parm = target$parm, level = 0.70, method = "wald")
+  expect_identical(wald_ci$conf.status, "wald")
+  expect_true(is.finite(wald_ci$lower))
+  expect_true(is.finite(wald_ci$upper))
+  expect_lt(profile_ci$lower, wald_ci$upper)
+  expect_gt(profile_ci$upper, wald_ci$lower)
 })
 
 test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
