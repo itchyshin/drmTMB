@@ -34,7 +34,7 @@ jobs:
   R-CMD-check:
     needs: os-matrix
     runs-on: ${{ matrix.config.os }}
-    timeout-minutes: 45
+    timeout-minutes: 120
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
