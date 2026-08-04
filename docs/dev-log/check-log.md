@@ -2,6 +2,43 @@
 
 Record meaningful development checks here.
 
+## 2026-08-04: Prong B stack landed; R-CMD-check ceiling set from measurement
+
+- All three stacked branches merged in order, each gated on a green
+  `ubuntu-latest (release)` R-CMD-check: #915 `claude/prong-b-tier1` (`12e94657f`,
+  43m35s), #916 `claude/citation-durability` (`c976e7316`, 44m36s), #917
+  `claude/mc0653-fixture` (`71ce9e544`, 44m34s). `main` = `71ce9e544`.
+- **Census unchanged at 182 `interval_feasible` / 60 `point_fit_recovery`**,
+  re-verified on merged `main` after each merge. The stack promotes nothing.
+- `python3 tools/capability_ledger.py --check`: PASS, `OK (30 generated outputs)`
+  at every stage. All six wired `tools/tests/*.py`: PASS. `check-capability-runtime`
+  18 routes G0=G1=G2=0. Fence integrity and evidence citations: 0 violations.
+- **The 45-minute `timeout-minutes` was a repo-wide latent failure, not this arc's
+  regression.** Six completed ubuntu jobs today ran 43m35s / 43m51s / 44m34s /
+  44m36s / 45m49s / 46m34s — the suite *straddles* 45 rather than exceeding it, so
+  runs were a coin flip. `main` itself was killed at 45.1 min on 2026-08-03 (run
+  30847977891 at `95b8ea34e`). Two of today's six, including `main`'s own
+  post-#915 check at 46m34s, would have died under the old cap.
+- **Why it went unnoticed:** GitHub logs a timeout kill as `conclusion: cancelled`,
+  the same string as a concurrency cancel — which this repo also genuinely suffers.
+  Distinguishing them requires comparing job duration against the limit. Observed
+  concurrency cancels landed at 9.6 / 18.3 / 28.6 / 34.8 / 37.8 min; the timeout at
+  45.1.
+- Ceiling raised 45 → 120 as an interim measuring device (`c1da21b7a`), then set to
+  **75** here from the six measurements — ~28 min over the observed maximum.
+- Pre-merge gates both clean: stack tip `ad39bacbc` re-verified 10/10 (the recorded
+  green sat at `cab6c6faa`, three commits stale); R1 collateral-unlock diff found
+  **0 unbacked routes**, with `zi_nbinom2` and both `coi` fences retained.
+- No rebase needed for the upper branches: `git merge-tree --write-tree` confirmed
+  both merges yield `timeout-minutes: 120` with 0 conflicts.
+- `gh pr merge` was refused on #916 for lack of `workflow` OAuth scope, because that
+  merge had to synthesise a new workflow blob (head still at 45, base at 120).
+  Resolved by the ordinary "update branch" step — merge `main` into the branch, push
+  over SSH, then merge — after confirming the updated branch's tree hash was
+  byte-identical to the merge result CI had already passed.
+- Sibling instance flagged, not fixed: `drmSEM/.github/workflows/R-CMD-check.yaml:22`
+  carries the identical `timeout-minutes: 45`.
+
 ## 2026-08-03: Prong B Tier 1 — four profile fences deleted, 14 cells reachable
 
 - Deleted four boolean fence predicates in `R/profile.R` (edits E1-E4):

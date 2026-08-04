@@ -3,7 +3,47 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-03, ARC 7b COMPLETE; PRONG B TIER 1 IS THE NEXT ARC).**
+> **▶ Latest — start here (2026-08-04, PRONG B STACK LANDED; CI CEILING SET FROM MEASUREMENT).**
+> `main` = `71ce9e544`. All three stacked branches merged in order — #915
+> `claude/prong-b-tier1` (`12e94657f`), #916 `claude/citation-durability` (`c976e7316`),
+> #917 `claude/mc0653-fixture` (`71ce9e544`). **The census is UNCHANGED at 182
+> `interval_feasible` / 60 `point_fit_recovery`**, re-verified on merged `main` after every
+> merge. This stack **promotes nothing** — it makes `confint(method="profile")` *reachable*
+> for 14 cells, which earns no interval or coverage claim. **196 / 46 needs the campaign,
+> not this.**
+> **The CI ceiling was a repo-wide latent failure, not this arc's regression.** Six completed
+> ubuntu jobs on 2026-08-04 ran 43m35s / 43m51s / 44m34s / 44m36s / 45m49s / 46m34s: the suite
+> **straddles** 45 rather than exceeding it, so every run was a coin flip. `main` itself was
+> killed at 45.1 min on 2026-08-03 (run `30847977891` at `95b8ea34e`), and **two of today's
+> six — including `main`'s own post-#915 check — would have died under the old cap.**
+> It went unnoticed because **GitHub logs a timeout kill as `conclusion: cancelled`**, the same
+> string as a concurrency cancel, which this repo also genuinely suffers. **Distinguish them by
+> comparing job duration against the limit, never by reading the conclusion.** Ceiling now
+> **75**, measured (~28 min over the observed maximum), after an interim 120 used purely to let
+> a run finish and be measured. `drmSEM` carries the identical 45 — same fault, not yet fired.
+> **Merge mechanics worth knowing:** `gh pr merge` is refused for lack of `workflow` OAuth scope
+> whenever the merge must *synthesise* a new workflow blob (head and base differ there). Fix is
+> the ordinary **update-branch** step — merge `main` into the branch, push over SSH, then merge —
+> after checking the updated branch's tree hash matches the merge result CI already passed.
+> **NEXT = the 135-trace interval campaign** (14 cells → 24 targets → ~120 fits, Totoro, D-50;
+> moves 182→196 and `FROZEN_CENSUS_POINT_FIT_RECOVERY` 59→45). Before planning it, read
+> `docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md` §9: **two of the
+> ten contract clauses are currently enforced by code that cannot fail** — `clamp_limited` is
+> hard-coded `FALSE` in every arc1/arc2 runner, and the unimodality / two-sided LR-crossing
+> check does not exist anywhere in `tools/`.
+> **D-117 — the number ALREADY EXISTS and is UNPUSHED.** The 10-group profile RE-SD coverage
+> holding 0.7.0 was measured 2026-07-26: **0.937 (0.920, 0.951)**, n=1000, cap-compliant clean
+> rerun — i.e. the corner is *not* materially worse than D-97's pooled 0.9368; the bad behaviour
+> (0.829) belongs to the **marginal** route. It lives only on
+> `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`), which is **on no remote**. Caveats: the
+> predeclared directional-miss fence failed (53 upper vs 10 lower misses; 63/1000 at the zero
+> boundary), and only `n_per = 10` was measured — **`n_per = 4` at 10 groups, the worst corner,
+> is unmeasured**. Note `claude/profile-coverage-remeasure-20260718`, cited in the brain's
+> `DECISIONS.md:1628`, **does not exist**.
+> START HERE:
+> [`docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md`](docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md).
+
+> **▶ Prior (2026-08-03, ARC 7b COMPLETE; PRONG B TIER 1 WAS THE NEXT ARC).**
 > `main` = `b1b5ade3d`. The `model_surface` surface moved **184 interval_feasible / 58
 > point_fit_recovery → 182 / 60** through PR #912. **The count went DOWN on purpose** — that
 > is the truth gate working, not a regression. `FROZEN_CENSUS_POINT_FIT_RECOVERY` 58 → 59; the
