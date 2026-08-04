@@ -31,17 +31,34 @@ regression using Template Model Builder.
 > ten contract clauses are currently enforced by code that cannot fail** — `clamp_limited` is
 > hard-coded `FALSE` in every arc1/arc2 runner, and the unimodality / two-sided LR-crossing
 > check does not exist anywhere in `tools/`.
-> **D-117 — the number ALREADY EXISTS and is UNPUSHED.** The 10-group profile RE-SD coverage
-> holding 0.7.0 was measured 2026-07-26: **0.937 (0.920, 0.951)**, n=1000, cap-compliant clean
-> rerun — i.e. the corner is *not* materially worse than D-97's pooled 0.9368; the bad behaviour
-> (0.829) belongs to the **marginal** route. It lives only on
-> `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`), which is **on no remote**. Caveats: the
-> predeclared directional-miss fence failed (53 upper vs 10 lower misses; 63/1000 at the zero
-> boundary), and only `n_per = 10` was measured — **`n_per = 4` at 10 groups, the worst corner,
-> is unmeasured**. Note `claude/profile-coverage-remeasure-20260718`, cited in the brain's
+> **D-117 — MEASURED 2026-08-04; the measurement stands, the PASS claim is WITHHELD.**
+> All four 10-group cells now exist (`n_rep = 1000` each, Totoro, D-50): coverage **0.9140**
+> (`n_per=4, sd=0.5`, N=40 — the worst corner, previously unmeasured), **0.9290**, **0.9310**,
+> and **0.9370** (reproducing the banked 2026-07-26 cell on five statistics). All four clear the
+> pre-registered floor `ss_floor(10) = 0.918`.
+> **But a D-43 panel returned 2 of 3 NOT-DONE and the claim is withheld.** `profile.boundary` is
+> a column `confint()` RETURNS — a user sees it. Gating that sub-population with the arc's own
+> rule gives **BORDERLINE / FAIL / FAIL**: conditional coverage **0.8566 / 0.0732 / 0.2540**
+> against non-boundary 0.9703 / 0.9656 / 0.9829. At `sd_mu = 1.0` that is **worse than the 0.829
+> which disqualified the marginal route** in D-117's own framing, and at N=40 the boundary is
+> **495/1000 fits**. Also newly reported: RE-SD point bias **−16.9% / −9.1% / −9.1% / −9.2%**
+> (p < 1e-23), the mechanism behind the upper-miss asymmetry.
+> **RETRACTED:** "the corner is not materially worse than D-97's pooled 0.9368" — contradicted at
+> **z ≈ 2.5**. The supported claim is narrower: the profile route does not inherit the marginal
+> route's *collapse*, and the gradient the gate was built to detect **is present at 1–2 pp**.
+> **Two items are OPEN and gate any "discharged" claim.** (1) D-97 records 0.9368 "across all 12
+> A1 cells (11,988 retained attempts)", but the 12-cell campaign is **bootstrap-only** and the
+> profile campaign was 3 cells × 1000 — neither yields 11,988. Settle this before citing 0.9368
+> again. (2) `confint()` warns on **Wald**-at-boundary and steers users to profile — into the
+> 7–25% regime above — with **no warning** in `NEWS.md`, `man/`, or the vignettes. **Do NOT treat
+> D-117 as discharged until both are settled.**
+> The 2026-07-26 evidence still lives only on `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`),
+> **on no remote**. Note `claude/profile-coverage-remeasure-20260718`, cited in the brain's
 > `DECISIONS.md:1628`, **does not exist**.
 > START HERE:
-> [`docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md`](docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md).
+> [`docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md)
+> · panel record: [`D43-PANEL.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D43-PANEL.md)
+> · CI ceiling arc: [`2026-08-04-prong-b-stack-landing-and-ci-ceiling.md`](docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md).
 
 > **▶ Prior (2026-08-03, ARC 7b COMPLETE; PRONG B TIER 1 WAS THE NEXT ARC).**
 > `main` = `b1b5ade3d`. The `model_surface` surface moved **184 interval_feasible / 58
