@@ -137,8 +137,28 @@ contains zero occurrences of "profile", and its `parm` is `fixef:mu:x`), and the
 **Either** D-97's pooled figure genuinely spans 12 profile cells — in which case
 three of this arc's four cells are reproductions rather than firsts, and the
 reframing the arc rests on is wrong — **or** the number Shinichi accepted as
-adequate for the default has a mis-stated provenance nobody has caught. This must
-be resolved before the 0.9368 figure is used again.
+adequate for the default has a mis-stated provenance nobody has caught.
+
+> **RESOLVED — it is the second. See `D97-PROVENANCE.md`.**
+> The committed profile campaign is **3 cells / 3,000 attempts**, pooling to
+> **0.9400**, not 0.9368. "12 A1 cells" correctly describes the *bootstrap-only*
+> campaign (0.8714, n = 12,000), and 11,988 = 12 × 999 where **999 is the bootstrap
+> resample count**, not a retained-attempt count — every real campaign retained
+> exactly 1,000 per cell with zero attrition. The 0.9368 figure traces to a single
+> after-task report that exists **only in the brain vault**, describing a run in a
+> now-deleted temp directory with a script matching nothing in this repo.
+>
+> **This arc's premise survives:** the committed profile campaign varies only
+> `n_groups`, holding `n_per = 10` and `sd_mu = 0.5` fixed, so `n_per = 4` and
+> `sd_mu = 1.0` genuinely were measured here for the first time.
+>
+> **§2.3's conclusion is unchanged and slightly strengthened.** Against the real
+> committed comparator (0.9400) rather than 0.9368, the worst cell's gap is
+> −0.026 with combined SE 0.00987, **z ≈ 2.63** (was 2.49).
+>
+> D-97's *direction* is not overturned — profile beats marginal on either figure.
+> **Correcting the decision record is the owner's call**; do not cite 0.9368 again
+> until it is settled.
 
 ## 4. The most actionable output, currently invisible to users
 
@@ -173,9 +193,21 @@ code/doc change outside this measurement arc's scope.
 - That the profile interval is **correct**, as opposed to *stable*. The
   reproduction check is a drift check; a systematically wrong interval reproduces
   itself perfectly.
-- Any comparison against an external implementation (`lme4`, `glmmTMB`) at the same
-  design, which would separate "universal small-sample GLMM behaviour" from
-  "specific to this profile root-finder near the boundary".
+
+> **UPDATE — the external comparator has now been run; see `COMPARATOR.md`.**
+> `lme4` on the same DGP and the **same seeds** reproduces drmTMB's boundary
+> behaviour essentially exactly: boundary incidence agrees on **4000/4000**
+> replicates, conditional coverage is identical to four decimals (0.8566 / 0.0732 /
+> 0.2540 in both engines), and coverage outcomes agree on 3999/4000. The one
+> disagreement is an lme4 profile-bracketing failure that returned an interval
+> **excluding its own point estimate**; drmTMB was correct there.
+>
+> **So §2.1's finding stands as a statistical fact but is NOT a drmTMB defect** — it
+> is a property of profile-likelihood intervals for a variance component near zero,
+> reproduced by the reference implementation. That refutes the competing
+> "root-finder bug" hypothesis and means **the remedy is the user-facing warning in
+> §4, not an engine fix.** It does not establish that the method is *correct* in an
+> absolute sense: two implementations agreeing shows the implementations agree.
 
 ## 7. Provenance
 
