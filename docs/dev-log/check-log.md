@@ -2,6 +2,80 @@
 
 Record meaningful development checks here.
 
+## 2026-08-04: D-117 10-group profile coverage gate — measured; PASS claim WITHHELD
+
+- **Outcome: the measurement stands, the claim does not.** The pre-registered rule
+  returned PASS on all four cells; a **D-43 panel then returned 2 of 3 NOT-DONE**
+  (the third was tool-limited — mis-dispatched to an agent type without Bash), which
+  under the arc's own rule **withholds the claim**. `VERDICT.md` was rewritten to
+  state what the evidence supports rather than what the rule alone returned.
+- **The panel fired LATE.** It was in the approved plan, positioned *before* the
+  claim, and did not run; the PASS had already been committed, written to this log,
+  and opened as PR #919 when plan-vs-actual reconciliation caught the omission.
+  Firing late inverts the burden from *earn the claim* to *unpublish it*.
+- **The finding that withheld it.** `profile.boundary` is a column `confint()`
+  returns — a user can see it. Applying the arc's **own gate** to that
+  sub-population: `g10_n04_sd05` **BORDERLINE** (cov 0.8566 | boundary, 495/1000
+  fits), `g10_n04_sd10` **FAIL** (0.0732), `g10_n10_sd05` **FAIL** (0.2540), against
+  non-boundary 0.9703 / 0.9656 / 0.9829. At `sd_mu = 1.0` that is **worse than the
+  0.829 that disqualified the marginal route** in D-117's own framing.
+- **Unreported in v1, now reported:** RE-SD point bias **−16.9% / −9.1% / −9.1% /
+  −9.2%**, significant in every cell (p < 1e-23). Expected for ML (`REML = FALSE`
+  default) at small `g`, and the mechanism behind the upper-miss asymmetry that v1
+  reported without its cause.
+- **Retracted claim:** "the 10-group corner is not materially worse than the pooled
+  figure". Worst cell 0.9140 vs D-97's 0.9368 is a 2.3 pp gap at **z ≈ 2.5,
+  p = 0.013**; all four cells sit at or below pooled. The supported claim is
+  narrower: the profile route does not inherit the marginal route's *collapse*
+  (0.829 vs 0.914–0.937), and the gradient the gate was built to detect **is
+  present** at 1–2 pp rather than 5–12 pp.
+- **Unresolved:** D-97 records 0.9368 "across all 12 A1 cells (11,988 retained
+  attempts)", but the 12-cell campaign is **bootstrap-only** and the profile campaign
+  was 3 cells × 1000 — neither yields 11,988. Either three of this arc's cells are
+  reproductions rather than firsts, or the accepted number's provenance is
+  mis-stated. Must be settled before 0.9368 is cited again.
+
+## 2026-08-04: D-117 10-group profile coverage gate — the measurement itself
+
+- Four 10-group cells, `n_rep = 1000` each, on **Totoro** (90 cores, ≤100 cap,
+  `OPENBLAS_NUM_THREADS=1`; D-50 honoured — never GitHub Actions, results local).
+  Total compute ~21 s.
+- Coverage (all-attempt, exact binomial CI): `g10_n04_sd05` **0.9140**
+  (0.8949, 0.9306); `g10_n04_sd10` 0.9290 (0.9113, 0.9441); `g10_n10_sd10` 0.9310
+  (0.9135, 0.9459); `g10_n10_sd05` 0.9370 (0.9201, 0.9513).
+- **All PASS** the rule frozen in `PREREGISTRATION.md` and committed `e9bccb26b`
+  **before any production fit**: `ss_floor(10) = 0.918`, tested as
+  `coverage + 2·MCSE ≥ floor`. 1000/1000 finite ordered intervals per cell;
+  convergence and `pdHess` 1.000 throughout.
+- **Harness validated by reproduction:** `g10_n10_sd05` reproduces the 2026-07-26
+  banked result **exactly — 0.9370 vs 0.937** — same seed family, different
+  platform, package eight days newer. Cross-platform smoke agrees to ~1e-12 on
+  `estimate_sd` between macOS and Totoro.
+- **Caveat 1:** the worst corner's POINT ESTIMATE (0.9140) sits **below** the
+  0.918 floor; it passes because the gate tests *"not significantly below"*, not
+  *"at or above"*.
+- **Caveat 2 — a hypothesis the data corrected.** At smoke time, `profile_lower = 0`
+  on 2/3 replicates suggested boundary contact would *inflate* coverage (a
+  zero-pinned lower bound covers any positive truth). The full data shows the
+  opposite: boundary cases cover 0.8566 / 0.0732 / 0.2540 against non-boundary
+  0.9703 / 0.9656 / 0.9829. When the variance component collapses the WHOLE
+  interval shrinks toward zero, so `[0, small]` misses from ABOVE. At N=40,
+  `sd_mu=0.5`, **495/1000 fits are on the boundary**; coverage holds at 0.914 only
+  because the non-boundary half covers at 0.970.
+- Upper-miss asymmetry in every cell (71:15, 63:8, 53:10, 60:9) — expected small-`g`
+  skew; `INFERENCE_READY` passes, `SUPPORTED` fails. **No `supported` claim made.**
+- Package rsynced to an isolated Totoro path and loaded via `pkgload::load_all`;
+  the existing `~/drm_work/drmTMB` checkout was found broken (git root resolving to
+  `$HOME`, no commits on `main`) and deliberately not used.
+- **Census unchanged: 182 `interval_feasible` / 60 `point_fit_recovery`.** No cell
+  promoted; D-97 not reopened. 0.7.0's publish decision returns to Shinichi
+  (D-93 / CI-17).
+- Prior-work sweep saved the campaign: `dr20` (~90 sources) already covered the
+  literature, and the gate turned out to have been answered from **one cell out of
+  four** — `n_per = 4` (N=40), the worst corner, was unmeasured. Also corrected:
+  `claude/profile-coverage-remeasure-20260718` (cited in the brain's
+  `DECISIONS.md:1628`) does not exist.
+
 ## 2026-08-04: Prong B stack landed; R-CMD-check ceiling set from measurement
 
 - All three stacked branches merged in order, each gated on a green
