@@ -432,17 +432,16 @@ test_that("NB2 sigma supports only the point-fit q1 phylo-interaction gate", {
   expect_identical(target$tmb_parameter, "log_sd_phylo")
   expect_identical(target$target_type, "direct")
   expect_identical(target$transformation, "exp")
-  expect_false(target$profile_ready)
-  expect_identical(target$profile_note, "point_fit_only_count_sigma_interaction")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
-  expect_error(
-    confint(fit, parm = target$parm, method = "profile"),
-    "not ready for direct profiling"
-  )
-  expect_error(
-    profile(fit, parm = target$parm),
-    "not ready for direct profiling"
-  )
+  expect_true(target$profile_ready)
+  expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The fence that made this route point-fit-only is gone (profile.R); the
+  # "not ready for direct profiling" negative control no longer applies. A
+  # cheap mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting to
+  # "unsupported", and the mock aborts immediately so this stays fast (no
+  # real profile optimization runs here; see the dedicated se = TRUE
+  # profile-interval test for a real fit).
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(
     drm_profile_target_endpoint_confint = function(...) {
@@ -454,9 +453,9 @@ test_that("NB2 sigma supports only the point-fit q1 phylo-interaction gate", {
   endpoint <- confint(
     fit, parm = target$parm, method = "profile", profile_engine = "endpoint"
   )
-  expect_false(endpoint_called)
+  expect_true(endpoint_called)
   expect_identical(endpoint$conf.status, "profile_failed")
-  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_match(endpoint$profile.message, "endpoint profile must not start")
 
   expect_error(
     drmTMB(
@@ -506,6 +505,57 @@ test_that("NB2 sigma supports only the point-fit q1 phylo-interaction gate", {
   )
 })
 
+test_that("NB2 sigma phylo-interaction computes a finite ordered profile interval", {
+  # Happy-path smoke test, not a boundary probe: a single-seed se = TRUE fit
+  # of the same structured-sigma phylo-interaction q1 route as the gate test
+  # above, checked for a finite, correctly-ordered profile interval plus a
+  # Wald cross-check on the same fit. This is not a coverage or recovery
+  # claim -- a single seed carries no error bar for that, and R/profile.R
+  # documents a low-ML-estimate bias risk for structured-sigma routes in
+  # this family of count models.
+  skip_on_cran()
+  sim <- new_phylo_interaction_sigma_nb2_data()
+  plant_tree <- sim$plant_tree
+  pollinator_tree <- sim$pollinator_tree
+  fit <- drmTMB(
+    bf(
+      nb2 ~ x,
+      sigma ~ phylo_interaction(
+        1 | plant:pollinator,
+        tree1 = plant_tree,
+        tree2 = pollinator_tree
+      )
+    ),
+    family = nbinom2(),
+    data = sim$data
+  )
+  expect_true(fit$sdr$pdHess)
+
+  term <- "phylo_interaction(1 | plant:pollinator)"
+  target <- profile_targets(fit)
+  target <- target[target$parm == paste0("sd:sigma:", term), , drop = FALSE]
+  expect_true(target$profile_ready)
+
+  profile_ci <- stats::confint(
+    fit, parm = target$parm, level = 0.70, method = "profile", trace = FALSE, ystep = 0.50
+  )
+  expect_true(is.finite(profile_ci$lower))
+  expect_true(is.finite(profile_ci$upper))
+  expect_lt(profile_ci$lower, target$estimate)
+  expect_gt(profile_ci$upper, target$estimate)
+  expect_identical(profile_ci$conf.status, "profile")
+
+  # Wald cross-check on the same fit: catches a wrong-scale transform or a
+  # mislabelled row using an already-computed comparator, not a coverage
+  # claim.
+  wald_ci <- stats::confint(fit, parm = target$parm, level = 0.70, method = "wald")
+  expect_identical(wald_ci$conf.status, "wald")
+  expect_true(is.finite(wald_ci$lower))
+  expect_true(is.finite(wald_ci$upper))
+  expect_lt(profile_ci$lower, wald_ci$upper)
+  expect_gt(profile_ci$upper, wald_ci$lower)
+})
+
 test_that("zero-inflated NB2 sigma supports only the point-fit q1 phylo-interaction gate", {
   skip_on_cran()
   sim <- new_zi_nbinom2_sigma_phylo_interaction_data()
@@ -537,12 +587,16 @@ test_that("zero-inflated NB2 sigma supports only the point-fit q1 phylo-interact
   expect_identical(target$tmb_parameter, "log_sd_phylo")
   expect_identical(target$target_type, "direct")
   expect_identical(target$transformation, "exp")
-  expect_false(target$profile_ready)
-  expect_identical(target$profile_note, "point_fit_only_zi_nbinom2_sigma_interaction")
-  expect_false(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
-  expect_error(confint(fit, parm = target$parm, method = "profile"), "not ready for direct profiling")
-  expect_error(profile(fit, parm = target$parm), "not ready for direct profiling")
-
+  expect_true(target$profile_ready)
+  expect_identical(target$profile_note, "ready")
+  expect_true(target$parm %in% profile_targets(fit, ready_only = TRUE)$parm)
+  # The fence that made this route point-fit-only is gone (profile.R); the
+  # "not ready for direct profiling" negative control no longer applies. A
+  # cheap mock-based check replaces it: the endpoint engine now reaches
+  # drm_profile_target_endpoint_confint() instead of short-circuiting to
+  # "unsupported", and the mock aborts immediately so this stays fast (no
+  # real profile optimization runs here; see the dedicated se = TRUE
+  # profile-interval test for a real fit).
   endpoint_called <- FALSE
   testthat::local_mocked_bindings(
     drm_profile_target_endpoint_confint = function(...) {
@@ -552,9 +606,9 @@ test_that("zero-inflated NB2 sigma supports only the point-fit q1 phylo-interact
     .package = "drmTMB"
   )
   endpoint <- confint(fit, parm = target$parm, method = "profile", profile_engine = "endpoint")
-  expect_false(endpoint_called)
+  expect_true(endpoint_called)
   expect_identical(endpoint$conf.status, "profile_failed")
-  expect_match(endpoint$profile.message, "endpoint engine unsupported")
+  expect_match(endpoint$profile.message, "endpoint profile must not start")
 
   fixed_mu <- as.vector(fit$model$tmb_data$offset_mu + fit$model$tmb_data$X_mu %*% coef(fit, "mu"))
   fixed_sigma <- as.vector(fit$model$tmb_data$X_sigma %*% coef(fit, "sigma"))

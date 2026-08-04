@@ -1,0 +1,69 @@
+route	cell	expect	parm	pre_governed	post_ready	post_note	pre_ready	flipped
+zob sigma ordinary intercept	mc-0568	FLIP	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma ordinary intercept	mc-0568	FLIP	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob sigma ordinary intercept	mc-0568	FLIP	fixef:sigma:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma ordinary intercept	mc-0568	FLIP	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma ordinary intercept	mc-0568	FLIP	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma ordinary intercept	mc-0568	FLIP	sigma	NA	TRUE	ready	TRUE	FALSE
+zob sigma ordinary intercept	mc-0568	FLIP	sd:sigma:(1 | id)	E3:zob_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma ordinary slope	mc-0576	FLIP	NA	NA	NA	<fit error>	NA	FALSE
+zob sigma structured phylo	mc-0593..0597	FLIP	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured phylo	mc-0593..0597	FLIP	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured phylo	mc-0593..0597	FLIP	fixef:sigma:(Intercept)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured phylo	mc-0593..0597	FLIP	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured phylo	mc-0593..0597	FLIP	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured phylo	mc-0593..0597	FLIP	sigma	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured phylo	mc-0593..0597	FLIP	sd:sigma:phylo(1 | species)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured animal	mc-0593..0597	FLIP	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured animal	mc-0593..0597	FLIP	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured animal	mc-0593..0597	FLIP	fixef:sigma:(Intercept)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured animal	mc-0593..0597	FLIP	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured animal	mc-0593..0597	FLIP	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured animal	mc-0593..0597	FLIP	sigma	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured animal	mc-0593..0597	FLIP	sd:sigma:animal(1 | species)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured relmat	mc-0593..0597	FLIP	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured relmat	mc-0593..0597	FLIP	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured relmat	mc-0593..0597	FLIP	fixef:sigma:(Intercept)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured relmat	mc-0593..0597	FLIP	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured relmat	mc-0593..0597	FLIP	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured relmat	mc-0593..0597	FLIP	sigma	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured relmat	mc-0593..0597	FLIP	sd:sigma:relmat(1 | species)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured spatial	mc-0593..0597	FLIP	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured spatial	mc-0593..0597	FLIP	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured spatial	mc-0593..0597	FLIP	fixef:sigma:(Intercept)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured spatial	mc-0593..0597	FLIP	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured spatial	mc-0593..0597	FLIP	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob sigma structured spatial	mc-0593..0597	FLIP	sigma	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+zob sigma structured spatial	mc-0593..0597	FLIP	sd:sigma:spatial(1 | site)	E1:zob_structured_sigma_q1	TRUE	ready	FALSE	TRUE
+poisson mu labelled q2 phylo	mc-0436	FLIP	fixef:mu:(Intercept)	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+poisson mu labelled q2 phylo	mc-0436	FLIP	fixef:mu:x	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+poisson mu labelled q2 phylo	mc-0436	FLIP	sd:mu:phylo(1 | p | species)	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+poisson mu labelled q2 phylo	mc-0436	FLIP	sd:mu:phylo(0 + x | p | species)	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+poisson mu labelled q2 phylo	mc-0436	FLIP	cor:phylo:cor(mu:(Intercept),mu:x | p | species)	NA	TRUE	ready	TRUE	FALSE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	fixef:mu:(Intercept)	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	fixef:mu:x	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	fixef:sigma:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	sigma	NA	TRUE	ready	TRUE	FALSE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	sd:mu:phylo(1 | p | species)	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	sd:mu:phylo(0 + x | p | species)	E1/E2:count_labelled_q2	TRUE	ready	FALSE	TRUE
+nbinom2 mu labelled q2 phylo	mc-0418	FLIP	cor:phylo:cor(mu:(Intercept),mu:x | p | species)	NA	TRUE	ready	TRUE	FALSE
+nbinom2 sigma phylo_interaction q1	mc-0425	FLIP	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+nbinom2 sigma phylo_interaction q1	mc-0425	FLIP	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+nbinom2 sigma phylo_interaction q1	mc-0425	FLIP	fixef:sigma:(Intercept)	E1:count_sigma_interaction	TRUE	ready	FALSE	TRUE
+nbinom2 sigma phylo_interaction q1	mc-0425	FLIP	sigma	E1:count_sigma_interaction	TRUE	ready	FALSE	TRUE
+nbinom2 sigma phylo_interaction q1	mc-0425	FLIP	sd:sigma:phylo_interaction(1 | plant:pollinator)	E1:count_sigma_interaction	TRUE	ready	FALSE	TRUE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	fixef:sigma:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	sigma	NA	TRUE	ready	TRUE	FALSE
+zob structured mu q1 phylo (Tier 2)	mc-0583..0587	FENCED	sd:mu:phylo(1 | species)	NA	FALSE	point_fit_only_zero_one_beta_phylo_q1	FALSE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	fixef:mu:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	fixef:mu:x	NA	TRUE	ready	TRUE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	fixef:sigma:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	fixef:zoi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	fixef:coi:(Intercept)	NA	TRUE	ready	TRUE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	sigma	NA	TRUE	ready	TRUE	FALSE
+zob ordinary zoi q1 (Tier 2)	mc-0569	FENCED	sd:zoi:(1 | id)	NA	FALSE	point_fit_only_zero_one_beta_zoi_q1	FALSE	FALSE
+zob sigma RE + co-present mu RE (COLLATERAL)	<no cell>	PROBE	NA	NA	NA	<fit error>	NA	FALSE

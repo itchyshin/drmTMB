@@ -22,25 +22,28 @@ transformed or multi-parameter quantity. \code{profile_ready = TRUE} means the
 target is direct and the fitted object retained the TMB object needed for
 \code{\link[=confint.drmTMB]{confint.drmTMB()}} with \code{method = "profile"}. Common \code{profile_note}
 values are \code{"ready"}, \code{"tmb_object_required"}, \code{"missing_tmb_parameter"},
-\code{"point_fit_only_count_q2"}, \code{"point_fit_only_count_sigma_interaction"},
-\code{"point_fit_only_zi_nbinom2_sigma_interaction"},
 \code{"point_fit_only_zi_nbinom2_sigma_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_zoi_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_coi_q1"},
 \code{"point_fit_only_zero_one_beta_animal_q1"},
+\code{"point_fit_only_zero_one_beta_animal_zoi_q1"},
+\code{"point_fit_only_zero_one_beta_animal_coi_q1"},
 \code{"point_fit_only_zero_one_beta_relmat_q1"},
+\code{"point_fit_only_zero_one_beta_relmat_zoi_q1"},
+\code{"point_fit_only_zero_one_beta_relmat_coi_q1"},
 \code{"point_fit_only_zero_one_beta_spatial_q1"},
 \code{"point_fit_only_zero_one_beta_phylo_interaction_q1"},
-\code{"point_fit_only_zero_one_beta_sigma_q1"},
+\code{"point_fit_only_zero_one_beta_phylo_interaction_zoi_q1"},
+\code{"point_fit_only_zero_one_beta_phylo_interaction_coi_q1"},
 \code{"point_fit_only_zero_one_beta_zoi_q1"},
 \code{"point_fit_only_zero_one_beta_coi_q1"},
 \code{"derived_target"}, and
-\code{"derived_unstructured_correlation"}. The count-q2 note records a direct
-point-estimate target that is deliberately unavailable to profiling; the
-count-sigma-interaction note has the same point-fit-only meaning for the
-NB2 q1 phylo-interaction scale route; the zero-one-beta note does so for
-its bounded-family phylogenetic mean q1 route.
+\code{"derived_unstructured_correlation"}. A \verb{point_fit_only_*} note records a
+direct point-estimate target that is deliberately unavailable to
+profiling: the zi-nbinom2 note covers the ordinary q1 scale route, and the
+zero-one-beta notes cover that bounded family's structured q1 mean route
+and its zero- and one-inflation routes.
 Derived variance-ratio summaries such as repeatability and phylogenetic
 signal are listed as point-estimate targets with
 \code{profile_ready = FALSE}.

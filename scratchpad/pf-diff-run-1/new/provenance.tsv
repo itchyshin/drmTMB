@@ -1,0 +1,12 @@
+key	value
+lib_path	/private/tmp
+so_md5	370c1bcd5c727b5307a5add1fe1cc9a8
+built	R 4.6.0; aarch64-apple-darwin23; 2026-08-03 23:20:28 UTC; unix
+exists:count_labelled_q2_profile_restricted	FALSE
+exists:count_labelled_q2_profile_restricted_status	FALSE
+exists:count_sigma_interaction_profile_restricted	FALSE
+exists:zero_one_beta_sigma_q1_profile_restricted	FALSE
+exists:count_point_fit_only_profile_restricted	TRUE
+exists:zi_nbinom2_sigma_q1_profile_restricted	TRUE
+exists:zero_one_beta_zoi_q1_profile_restricted	TRUE
+exists:zero_one_beta_coi_q1_profile_restricted	TRUE

@@ -459,8 +459,6 @@ expect_profile_target_contract <- function(targets) {
         "ready",
         "tmb_object_required",
         "missing_tmb_parameter",
-        "point_fit_only_count_q2",
-        "point_fit_only_count_sigma_interaction",
         "point_fit_only_zero_one_beta_phylo_q1",
         "derived_target",
         "derived_unstructured_correlation"
@@ -3877,4 +3875,22 @@ test_that("profile target inventory lists residual rho12 and ordinal internals",
   expect_equal(theta_rows$transformation, rep("ordered_cutpoint", 2))
   expect_true(all(theta_rows$profile_ready))
   expect_equal(theta_rows$profile_note, rep("ready", 2))
+})
+
+test_that("count_point_fit_only_profile_restricted_status() aborts on an unreachable model_type/dpar combination", {
+  # This branch is unreachable from any public call today: every path that
+  # can make drm_profile_targets() invoke this function is mirrored by one
+  # of this function's own if-branches (zoi q1, coi q1, zi_nbinom2 sigma q1,
+  # or a zero_one_beta model_type), so a real fit can never reach the final
+  # cli_abort(). It is a hand-maintained invariant between the caller's
+  # guard (count_point_fit_only_profile_restricted() and its zoi/coi/
+  # zi_nbinom2 siblings) and this callee's case list, so it can only be
+  # exercised by calling the internal directly with a synthetic object that
+  # deliberately breaks that invariant -- here, a model_type that is neither
+  # "zero_one_beta" nor "zi_nbinom2", so every internal case falls through.
+  broken_object <- list(model = list(model_type = "gaussian"))
+  expect_error(
+    drmTMB:::count_point_fit_only_profile_restricted_status(broken_object, "sigma"),
+    "Internal error: no point-fit-only profile note"
+  )
 })
