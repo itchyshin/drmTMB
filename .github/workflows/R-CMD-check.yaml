@@ -34,7 +34,15 @@ jobs:
   R-CMD-check:
     needs: os-matrix
     runs-on: ${{ matrix.config.os }}
-    timeout-minutes: 120
+    # Measured, not guessed. Six completed ubuntu jobs on 2026-08-04 ran
+    # 43m35s / 43m51s / 44m34s / 44m36s / 45m49s / 46m34s -- a ~44-47 min suite.
+    # The former 45 was INSIDE that band, so runs were a coin flip: main itself was
+    # killed at 45.1 min (run 30847977891 at 95b8ea34e) and GitHub logged it as
+    # "cancelled", the same string as a concurrency cancel, which is why it was
+    # misread as concurrency for days. 75 leaves ~28 min over the observed maximum
+    # -- room for runner variance and suite growth -- while still killing a genuinely
+    # hung job in half the time the interim 120 allowed.
+    timeout-minutes: 75
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
