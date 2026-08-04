@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-08-04: D-117 10-group profile coverage gate — measured, PASS with caveats
+
+- Four 10-group cells, `n_rep = 1000` each, on **Totoro** (90 cores, ≤100 cap,
+  `OPENBLAS_NUM_THREADS=1`; D-50 honoured — never GitHub Actions, results local).
+  Total compute ~21 s.
+- Coverage (all-attempt, exact binomial CI): `g10_n04_sd05` **0.9140**
+  (0.8949, 0.9306); `g10_n04_sd10` 0.9290 (0.9113, 0.9441); `g10_n10_sd10` 0.9310
+  (0.9135, 0.9459); `g10_n10_sd05` 0.9370 (0.9201, 0.9513).
+- **All PASS** the rule frozen in `PREREGISTRATION.md` and committed `e9bccb26b`
+  **before any production fit**: `ss_floor(10) = 0.918`, tested as
+  `coverage + 2·MCSE ≥ floor`. 1000/1000 finite ordered intervals per cell;
+  convergence and `pdHess` 1.000 throughout.
+- **Harness validated by reproduction:** `g10_n10_sd05` reproduces the 2026-07-26
+  banked result **exactly — 0.9370 vs 0.937** — same seed family, different
+  platform, package eight days newer. Cross-platform smoke agrees to ~1e-12 on
+  `estimate_sd` between macOS and Totoro.
+- **Caveat 1:** the worst corner's POINT ESTIMATE (0.9140) sits **below** the
+  0.918 floor; it passes because the gate tests *"not significantly below"*, not
+  *"at or above"*.
+- **Caveat 2 — a hypothesis the data corrected.** At smoke time, `profile_lower = 0`
+  on 2/3 replicates suggested boundary contact would *inflate* coverage (a
+  zero-pinned lower bound covers any positive truth). The full data shows the
+  opposite: boundary cases cover 0.8566 / 0.0732 / 0.2540 against non-boundary
+  0.9703 / 0.9656 / 0.9829. When the variance component collapses the WHOLE
+  interval shrinks toward zero, so `[0, small]` misses from ABOVE. At N=40,
+  `sd_mu=0.5`, **495/1000 fits are on the boundary**; coverage holds at 0.914 only
+  because the non-boundary half covers at 0.970.
+- Upper-miss asymmetry in every cell (71:15, 63:8, 53:10, 60:9) — expected small-`g`
+  skew; `INFERENCE_READY` passes, `SUPPORTED` fails. **No `supported` claim made.**
+- Package rsynced to an isolated Totoro path and loaded via `pkgload::load_all`;
+  the existing `~/drm_work/drmTMB` checkout was found broken (git root resolving to
+  `$HOME`, no commits on `main`) and deliberately not used.
+- **Census unchanged: 182 `interval_feasible` / 60 `point_fit_recovery`.** No cell
+  promoted; D-97 not reopened. 0.7.0's publish decision returns to Shinichi
+  (D-93 / CI-17).
+- Prior-work sweep saved the campaign: `dr20` (~90 sources) already covered the
+  literature, and the gate turned out to have been answered from **one cell out of
+  four** — `n_per = 4` (N=40), the worst corner, was unmeasured. Also corrected:
+  `claude/profile-coverage-remeasure-20260718` (cited in the brain's
+  `DECISIONS.md:1628`) does not exist.
+
 ## 2026-08-04: Prong B stack landed; R-CMD-check ceiling set from measurement
 
 - All three stacked branches merged in order, each gated on a green
