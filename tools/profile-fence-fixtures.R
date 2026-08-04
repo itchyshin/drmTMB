@@ -803,6 +803,10 @@ profile_fence_routes <- function() {
     dat$nb2 <- stats::rnbinom(nrow(dat), mu = exp(1.4 + 0.3 * dat$x), size = exp(-2 * log_sigma))
     list(data = dat, plant_tree = plant_tree, pollinator_tree = pollinator_tree)
   }
+  # Deliberately 4 x 4 = 16 pairs, unlike the test fixture's new 8 x 8 default.
+  # This battery checks CLASSIFICATION (is the target profile-ready), which does
+  # not depend on whether the variance component is well identified, so the
+  # cheaper design is correct here and keeps the CI guard fast.
   new_zi_nbinom2_sigma_phylo_interaction_data <- function(seed, n_plant = 4L, n_pollinator = 4L, n_each = 18L, sd_pair = 0.60, sigma_intercept = -0.20, zi_probability = 0.20) {
     set.seed(seed)
     plant_tree <- phylo_interaction_balanced_tree(n_plant, "plant"); pollinator_tree <- phylo_interaction_balanced_tree(n_pollinator, "poll")
