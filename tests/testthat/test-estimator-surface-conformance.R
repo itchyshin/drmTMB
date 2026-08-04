@@ -23,9 +23,23 @@
 # registry below, or a new admission gate, forces you to say what happens.
 
 conformance_table <- function() {
-  path <- testthat::test_path("..", "..", "docs", "dev-log", "dashboard",
-                              "estimator-surface-conformance.tsv")
-  skip_if_not(file.exists(path), "conformance TSV not found")
+  root <- testthat::test_path("..", "..")
+  path <- file.path(root, "docs", "dev-log", "dashboard",
+                    "estimator-surface-conformance.tsv")
+  # Skip ONLY in a genuine built tarball, where `.Rbuildignore`'s `^docs$`
+  # exclusion means docs/ is absent by design. If docs/ IS present we are in a
+  # source checkout, and a missing TSV is a real defect that must fail rather
+  # than skip -- an unconditional skip_if_not() here is how this test stayed
+  # silent under `R CMD check` while four of its citations rotted on main.
+  # CI coverage for the source-checkout path is tools/check-evidence-citations.R,
+  # wired into .github/workflows/R-CMD-check.yaml.
+  if (!dir.exists(file.path(root, "docs"))) {
+    skip("built tarball: docs/ excluded by .Rbuildignore, conformance TSV not shipped")
+  }
+  expect_true(
+    file.exists(path),
+    info = "docs/ is present (source checkout) but the conformance TSV is missing"
+  )
   # colClasses = "character": otherwise `flag_value` is coerced to logical and
   # `fits[["TRUE"]]` silently becomes `fits[[TRUE]]`.
   utils::read.delim(
@@ -182,9 +196,23 @@ test_that("the conformance TSV's evidence citations are real and current", {
   # numbers. The test passed anyway -- it never checked its own citations. A
   # conformance table whose evidence rots is a table nobody can trust.
   #
-  # So: every `file:line` must exist, and for a declared REJECTION the cited lines
-  # must actually contain the `detail` string the test matches on. That makes a
-  # line-number shift a TEST FAILURE, not silent decay.
+  # The 2026-07-25 repair (docs/dev-log/after-task/2026-07-25-estimator-surface-
+  # anchor-hygiene.md:79-80) recommended "a more durable citation form (a stable
+  # marker or a grep-based locator) over another manual line-number refresh".
+  # That was not built, the anchors drifted a second time on 2026-08-03 when an
+  # unrelated arc shifted R/profile.R by ~70 lines, and they were hand-refreshed
+  # again. Line numbers are the defect, not the symptom -- so the contract is now:
+  #
+  #   `evidence` is FILE-ANCHORED. A rejection row's `detail` string must exist
+  #   SOMEWHERE in the cited file. A trailing `:line` is an optional reading
+  #   HINT, range-checked but NEVER authoritative -- a line shift cannot fail
+  #   this test, and deleting or rewording the cited message still does.
+  #
+  # Deliberate trade-off: a whole-file search cannot tell WHICH cli_abort() it
+  # matched when a phrase occurs more than once (several do). That is acceptable
+  # because this test guards PROVENANCE -- "does the message this row cites still
+  # exist" -- while the semantic gate is the conformance run above, which actually
+  # triggers each scenario and matches its error against the same `detail`.
   tab <- conformance_table()
   root <- testthat::test_path("..", "..")
 
@@ -198,26 +226,33 @@ test_that("the conformance TSV's evidence citations are real and current", {
       file.exists(path),
       info = paste0(row$cell_id, ": evidence file does not exist: ", file)
     )
-    if (length(parts) < 2L) next
-
+    if (!file.exists(path)) next
     lines <- readLines(path, warn = FALSE)
-    span <- as.integer(strsplit(parts[[2L]], "-", fixed = TRUE)[[1L]])
-    expect_true(
-      all(span >= 1L) && all(span <= length(lines)),
-      info = paste0(row$cell_id, ": evidence line out of range for ", ev)
-    )
+
+    # Optional hint. Range-checked only, so a stale hint is visible without
+    # being fatal; correctness never depends on it.
+    if (length(parts) >= 2L) {
+      span <- suppressWarnings(
+        as.integer(strsplit(parts[[2L]], "-", fixed = TRUE)[[1L]])
+      )
+      expect_true(
+        all(!is.na(span)) && all(span >= 1L) && all(span <= length(lines)),
+        info = paste0(row$cell_id, ": evidence line hint out of range for ", ev)
+      )
+    }
     if (!identical(row$expected, "error") || !nzchar(row$detail)) next
 
-    # A cited rejection must be findable at the cited place. Widen slightly: a
-    # cli_abort() header sits within a few lines of its `cli::cli_abort(c(` call.
-    lo <- max(1L, min(span) - 3L)
-    hi <- min(length(lines), max(span) + 6L)
-    region <- paste(lines[lo:hi], collapse = "\n")
+    hits <- which(vapply(
+      lines, function(l) grepl(row$detail, l, fixed = TRUE), logical(1L),
+      USE.NAMES = FALSE
+    ))
     expect_true(
-      grepl(row$detail, region, fixed = TRUE),
+      length(hits) > 0L,
       info = paste0(
-        row$cell_id, ": evidence ", ev, " does not contain the detail string \"",
-        row$detail, "\". The line numbers have drifted -- update the TSV."
+        row$cell_id, ": ", file, " no longer contains the detail string \"",
+        row$detail, "\". The cited rejection was deleted or reworded -- fix the ",
+        "code or the TSV, whichever is wrong. (This is NOT line drift; the ",
+        "citation is file-anchored.)"
       )
     )
   }

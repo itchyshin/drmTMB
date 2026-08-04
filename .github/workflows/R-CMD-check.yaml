@@ -125,6 +125,20 @@ jobs:
         run: |
           Rscript --no-init-file tools/check-profile-fence-integrity.R
 
+      # Evidence-citation guard. The equivalent assertion in
+      # tests/testthat/test-estimator-surface-conformance.R CANNOT FAIL under
+      # `R CMD check`: .Rbuildignore excludes ^docs$, so the conformance TSV is
+      # absent from the built tarball and that test's skip_if_not() skips the
+      # whole block. That is precisely why four citations rotted on main while
+      # CI stayed green. This step runs from the SOURCE CHECKOUT, where docs/
+      # exists. It reads files only -- no package load, no fits -- so it costs
+      # milliseconds, and it sits before check-r-package deliberately: a broken
+      # citation should fail the job in seconds, not after a 40-minute check.
+      - name: Evidence citations resolve
+        if: runner.os == 'Linux'
+        run: |
+          Rscript --no-init-file tools/check-evidence-citations.R
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
