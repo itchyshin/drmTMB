@@ -91,6 +91,37 @@ Claude lane only.
 
 ---
 
+## BLOCKER FOUND AFTER WRITING — PR #915 cannot go green as configured
+
+**Do not merge #915 until this is fixed.** Both re-runs died at ~45 minutes
+(45m06s, 45m27s) and report `conclusion = cancelled`. That is not concurrency —
+it is **`timeout-minutes: 45`** at `.github/workflows/R-CMD-check.yaml:37`.
+
+Main's last green run (#913) took **36m12s**. This arc adds `se = TRUE`
+profile-interval tests, and profiles are slow, which pushes the job past the
+limit. So the check is not flaky and merging would not "get past" it — it would
+move the timeout onto `main`.
+
+Pick one, with evidence:
+
+- **(a) Raise `timeout-minutes`** (say 45 → 75). One line, honest if the suite has
+  genuinely grown. Confirm the real runtime first so the new number is measured,
+  not guessed.
+- **(b) Make the new tests cheaper.** The `se = TRUE` tests already use `level`
+  and `ystep` knobs; tighten further, or `skip_on_ci()` the slowest one and run
+  it locally. Cheaper CI, but it removes the coverage the arc just added.
+- **(c) Split the workflow** so the guards and the long `R CMD check` are separate
+  jobs. Best long-term shape — the fast guards then fail fast instead of dying
+  with the slow job — but it is the largest change.
+
+Recommended: **(a)**, after measuring the actual runtime from a completed run.
+Local `--as-cran` was ~28 min on this Mac with `testthat.R` alone at 17–18 min;
+CI runners are slower, so 75 is a defensible ceiling rather than a guess.
+
+Note for whoever fixes this: `claude/mc0653-fixture` raises that fixture from 16
+to 64 pairs, which makes its own tests ~4× the rows. Measure the timeout against
+the **top of the stack**, not just against `claude/prong-b-tier1`.
+
 ## Next Immediate Steps
 
 Run `tools/lane_preflight.sh`, diff against current `git state`, and classify
