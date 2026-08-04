@@ -173,9 +173,21 @@ code/doc change outside this measurement arc's scope.
 - That the profile interval is **correct**, as opposed to *stable*. The
   reproduction check is a drift check; a systematically wrong interval reproduces
   itself perfectly.
-- Any comparison against an external implementation (`lme4`, `glmmTMB`) at the same
-  design, which would separate "universal small-sample GLMM behaviour" from
-  "specific to this profile root-finder near the boundary".
+
+> **UPDATE — the external comparator has now been run; see `COMPARATOR.md`.**
+> `lme4` on the same DGP and the **same seeds** reproduces drmTMB's boundary
+> behaviour essentially exactly: boundary incidence agrees on **4000/4000**
+> replicates, conditional coverage is identical to four decimals (0.8566 / 0.0732 /
+> 0.2540 in both engines), and coverage outcomes agree on 3999/4000. The one
+> disagreement is an lme4 profile-bracketing failure that returned an interval
+> **excluding its own point estimate**; drmTMB was correct there.
+>
+> **So §2.1's finding stands as a statistical fact but is NOT a drmTMB defect** — it
+> is a property of profile-likelihood intervals for a variance component near zero,
+> reproduced by the reference implementation. That refutes the competing
+> "root-finder bug" hypothesis and means **the remedy is the user-facing warning in
+> §4, not an engine fix.** It does not establish that the method is *correct* in an
+> absolute sense: two implementations agreeing shows the implementations agree.
 
 ## 7. Provenance
 
