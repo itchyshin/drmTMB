@@ -1,0 +1,25 @@
+=== cell 4 start 17:49:07 ===
+WROTE out/full/g10_n04_sd05.csv rows 1000 
+  coverage(profile, all-attempt) = 0.9140 
+  finite intervals = 1000 / 1000 
+  estimate_sd < 1e-3 (boundary) = 63 
+=== cell 4 rc=0 end 17:49:12 ===
+=== cell 5 start 17:49:12 ===
+WROTE out/full/g10_n04_sd10.csv rows 1000 
+  coverage(profile, all-attempt) = 0.9290 
+  finite intervals = 1000 / 1000 
+  estimate_sd < 1e-3 (boundary) = 1 
+=== cell 5 rc=0 end 17:49:16 ===
+=== cell 6 start 17:49:16 ===
+WROTE out/full/g10_n10_sd10.csv rows 1000 
+  coverage(profile, all-attempt) = 0.9310 
+  finite intervals = 1000 / 1000 
+  estimate_sd < 1e-3 (boundary) = 0 
+=== cell 6 rc=0 end 17:49:22 ===
+=== cell 1 start 17:49:22 ===
+WROTE out/full/g10_n10_sd05.csv rows 1000 
+  coverage(profile, all-attempt) = 0.9370 
+  finite intervals = 1000 / 1000 
+  estimate_sd < 1e-3 (boundary) = 3 
+=== cell 1 rc=0 end 17:49:28 ===
+CAMPAIGN_COMPLETE
