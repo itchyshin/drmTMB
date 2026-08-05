@@ -2277,12 +2277,16 @@ test_that("endpoint q1 sigma hard seed keeps zero boundary on production path", 
   )
 
   for (provider in names(fits)) {
-    ci <- confint(
-      fits[[provider]],
-      parm = targets[[provider]],
-      method = "profile",
-      profile_engine = "endpoint",
-      profile_endpoint_max_eval = 48
+    # The interval reaches the SD boundary, so `confint()` must say so.
+    expect_warning(
+      ci <- confint(
+        fits[[provider]],
+        parm = targets[[provider]],
+        method = "profile",
+        profile_engine = "endpoint",
+        profile_endpoint_max_eval = 48
+      ),
+      class = "drmTMB_profile_boundary_warning"
     )
     hit <- ci$parm == targets[[provider]]
     expect_true(any(hit), info = provider)
@@ -3174,6 +3178,64 @@ test_that("profile interval diagnostics flag boundary-like intervals", {
   expect_equal(cor_diag$message, "near_correlation_boundary")
   expect_false(ok_diag$boundary)
   expect_equal(ok_diag$message, "ok")
+})
+
+test_that("a usable profile interval at a boundary warns the user", {
+  boundary_row <- data.frame(
+    parm = "sd:sigma:(1 | id)",
+    lower = 0,
+    upper = 0.31,
+    conf.status = "profile",
+    profile.boundary = TRUE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_warning(
+    drmTMB:::warn_profile_boundary(boundary_row),
+    class = "drmTMB_profile_boundary_warning"
+  )
+  expect_warning(
+    drmTMB:::warn_profile_boundary(boundary_row),
+    "variance-component or correlation boundary"
+  )
+})
+
+test_that("the profile boundary warning stays silent where it would mislead", {
+  base_row <- data.frame(
+    parm = "sd:sigma:(1 | id)",
+    lower = 0,
+    upper = 0.31,
+    conf.status = "profile",
+    profile.boundary = TRUE,
+    stringsAsFactors = FALSE
+  )
+
+  interior <- base_row
+  interior$profile.boundary <- FALSE
+  interior$lower <- 0.11
+
+  # `profile_failed` and `clamp_limited` rows carry `profile.boundary = TRUE`
+  # but return NA endpoints; a coverage warning about a missing interval is noise.
+  failed <- base_row
+  failed$conf.status <- "profile_failed"
+  failed$lower <- NA_real_
+  failed$upper <- NA_real_
+
+  clamp_limited <- base_row
+  clamp_limited$conf.status <- "clamp_limited"
+  clamp_limited$lower <- NA_real_
+  clamp_limited$upper <- NA_real_
+
+  # Wald rows leave `profile.boundary` as NA and have their own warning.
+  wald <- base_row
+  wald$conf.status <- "wald_at_boundary"
+  wald$profile.boundary <- NA
+
+  expect_no_warning(drmTMB:::warn_profile_boundary(interior))
+  expect_no_warning(drmTMB:::warn_profile_boundary(failed))
+  expect_no_warning(drmTMB:::warn_profile_boundary(clamp_limited))
+  expect_no_warning(drmTMB:::warn_profile_boundary(wald))
+  expect_no_warning(drmTMB:::warn_profile_boundary(base_row[0L, , drop = FALSE]))
 })
 
 test_that("interval status vocabulary is shared across interval outputs", {

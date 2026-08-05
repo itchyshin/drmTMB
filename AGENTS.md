@@ -26,7 +26,10 @@ regression using Template Model Builder.
 > the ordinary **update-branch** step — merge `main` into the branch, push over SSH, then merge —
 > after checking the updated branch's tree hash matches the merge result CI already passed.
 > **NEXT = the 135-trace interval campaign** (14 cells → 24 targets → ~120 fits, Totoro, D-50;
-> moves 182→196 and `FROZEN_CENSUS_POINT_FIT_RECOVERY` 59→45). Before planning it, read
+> moves 182→196 and `FROZEN_CENSUS_POINT_FIT_RECOVERY` 59→45) — **but it stays FENCED until the
+> owner rules on D-117 (below). Do not start it on the strength of this line alone**: it promotes
+> cells on interval evidence whose reliability at a boundary is the open question.
+> Before planning it, read
 > `docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md` §9: **two of the
 > ten contract clauses are currently enforced by code that cannot fail** — `clamp_limited` is
 > hard-coded `FALSE` in every arc1/arc2 runner, and the unimodality / two-sided LR-crossing
@@ -63,28 +66,49 @@ regression using Template Model Builder.
 > The figure traces to one after-task report existing **only in the brain vault**, from a
 > now-deleted temp dir, via a script matching nothing here. This arc's premise **survives**
 > (`n_per=4`, `sd_mu=1.0` genuinely were unmeasured) and §2.3's gap **widens to z ≈ 2.63** against
-> the real number. D-97's *direction* is not overturned. **Do not cite 0.9368 again**; correcting
-> `DECISIONS.md` is the owner's call. See `D97-PROVENANCE.md`.
-> **STILL OPEN, and it gates any "discharged" claim:** `confint()` warns on **Wald**-at-boundary
-> and steers users to profile — into the 7–25% regime above — with **no warning** in `NEWS.md`,
-> `man/`, or the vignettes. Now unambiguously the right fix, since the comparator ruled out an
-> engine cause. **Do NOT treat D-117 as discharged until it is closed.**
-> The 2026-07-26 evidence still lives only on `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`),
-> **on no remote** — the second load-bearing artifact found outside git in one day. Note
+> the real number. D-97's *direction* is not overturned. **CORRECTED by the owner (brain
+> `bbe643b`), additively, with the original paragraph preserved.** Cite **0.9400 / 3 cells /
+> committed and hashed**; **do not cite 0.9368 again**. See `D97-PROVENANCE.md`.
+> **CLOSED (2026-08-05) — the `profile.boundary` warning shipped.** `confint(method = "profile")`
+> now warns (class `drmTMB_profile_boundary_warning`) when it returns a *usable* interval at a
+> boundary, with a `NEWS.md` entry and a **Boundary intervals** section in `?confint.drmTMB`.
+> The Wald path no longer steers users into an unflagged 7–25% regime. Deliberately narrower than
+> `profile.boundary == TRUE`: `profile_failed` and `clamp_limited` rows carry the same flag but
+> return NA endpoints and report through `conf.status`, so they are not warned about.
+> The 2026-07-26 evidence on `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`) is now **PUSHED to
+> origin** — all 29 evidence files fetchable; no longer single-disk. Note
 > `claude/profile-coverage-remeasure-20260718`, cited in the brain's `DECISIONS.md:1628`,
 > **does not exist**.
-> **NEXT = the `profile.boundary` user warning — the ONLY item still gating a "discharged"
-> verdict.** Mirror the existing Wald-boundary warning at `R/profile.R:1941-1957`: emit a
-> `cli::cli_warn()` when a *profile* interval returns `profile.boundary = TRUE`, plus a
-> `NEWS.md` bullet and a line in `?confint.drmTMB`. Wording in `VERDICT.md` §4. **A live
-> R/TMB change — ship it with a test.**
+> **NEXT = the owner's call, not a code task.** Every *item* gating a "D-117 discharged" verdict
+> is now closed; whether the **gate** is satisfied is a judgement, because the conditional finding
+> stays adverse. **The withheld PASS remains withheld either way — do NOT reinstate it.**
+> **REFUTED — do NOT rebuild (see the arc report §10b).** The `qchisq(level, 1)` cutoff at
+> `R/profile.R:3117` is *not* a Self–Liang χ̄² bug. The mixture is the null for **testing** a VC at
+> zero; a CI inverts the LR at *interior* values where χ²₁ is right. The "corrected" cutoff
+> `qchisq(2*level-1, 1)` is **smaller** (2.706 vs 3.841 at 0.95), so it narrows intervals and makes
+> conditional coverage **worse**. And the 0.0732 is a **selection effect** — conditioning on
+> `profile.boundary` picks replicates whose SD collapsed — i.e. post-selection inference, which no
+> cutoff repairs. This challenge **strengthens** D-117's "not a drmTMB defect". Issue **#680**
+> (`qchisq → qt²`, small-sample *width*) is a DIFFERENT problem; D-12 separates them — do not merge.
+> **Separate live lead — and it is NOT D-117's mechanism.** The vault note *"Log-parameterised
+> variances have an attracting boundary at zero — warm starts can inherit a collapse"*
+> (gllvmTMB, 2026-08-03) is real and generic to `exp(log_sd)`. But it does **not** explain D-117:
+> `lme4` does not parameterise the SD on the log scale, yet matched boundary incidence 4000/4000
+> and conditional coverage to four decimals. A log-coordinate optimiser artifact would have made
+> the engines diverge; they did not. **Read D-117's bias and undercoverage as genuine small-sample
+> ML behaviour, not an optimiser pathology.** The note's real bite here is elsewhere:
+> `R/profile.R:3303-3308`'s endpoint solver warm-starts from a bracket point and retries from the
+> free optimum **only when convergence is not accepted** — and an attracting-boundary collapse
+> *reports clean convergence*, so that fallback cannot see it. Structural blind spot, untested,
+> independent of D-117.
 > START HERE (Claude lane):
 > [`docs/dev-log/handover/2026-08-05-claude-handover.md`](docs/dev-log/handover/2026-08-05-claude-handover.md)
 > · evidence: [`VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md)
 > · panel record: [`D43-PANEL.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D43-PANEL.md)
 > · comparator: [`COMPARATOR.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/COMPARATOR.md)
 > · provenance: [`D97-PROVENANCE.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D97-PROVENANCE.md)
-> · CI ceiling arc: [`2026-08-04-prong-b-stack-landing-and-ci-ceiling.md`](docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md).
+> · CI ceiling arc: [`2026-08-04-prong-b-stack-landing-and-ci-ceiling.md`](docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md)
+> · **warning arc (2026-08-05):** [`2026-08-05-d117-profile-boundary-warning.md`](docs/dev-log/after-task/2026-08-05-d117-profile-boundary-warning.md).
 
 > **▶ Prior (2026-08-03, ARC 7b COMPLETE; PRONG B TIER 1 WAS THE NEXT ARC).**
 > `main` = `b1b5ade3d`. The `model_surface` surface moved **184 interval_feasible / 58

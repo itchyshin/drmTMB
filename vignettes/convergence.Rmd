@@ -97,7 +97,7 @@ The diagnostic table separates several questions that are easy to confuse:
 | `fixed_gradient` | Is the fixed-parameter gradient small at the selected optimum, and which component is largest? | Treat large gradients as an optimization problem before using Wald inference. |
 | `hessian_positive_definite` | Did `TMB::sdreport()` report a positive-definite Hessian? | Look for boundary SDs, correlations, shape, dispersion, or inflation parameters. |
 | `standard_errors_finite` | Are fixed-effect standard errors finite? | If not, do not use Wald intervals until the Hessian problem is understood. |
-| boundary rows | Are fitted SDs, `rho12`, or shape parameters near a boundary? | Consider a simpler model, profile intervals, or a fixed/removal decision. |
+| boundary rows | Are fitted SDs, `rho12`, or shape parameters near a boundary? | Consider a simpler model, more groups, or a fixed/removal decision. A profile interval is **not** a repair for a boundary: it undercovers there too, and `confint(method = "profile")` now warns when it returns one. |
 
 A warning is not automatically a failed analysis. It is a prompt to decide
 whether the problem is unfinished optimization, weak identifiability, or an

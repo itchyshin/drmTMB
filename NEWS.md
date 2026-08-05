@@ -1,5 +1,32 @@
 # drmTMB 0.6.0
 
+## Profile intervals now warn at a variance-component boundary
+
+* `confint(fit, method = "profile")` now warns when it returns a usable interval
+  whose `profile.boundary` flag is `TRUE`, with condition class
+  `drmTMB_profile_boundary_warning`. Until now only the *Wald* path warned at a
+  boundary (`drmTMB_wald_boundary_warning`), and it steers the user to
+  `method = "profile"` -- into a regime the package had measured as worse, with no
+  signal. Conditional on the boundary flag, the D-117 10-group random-effect SD
+  gate measured profile coverage at **0.0732**, **0.2540**, and **0.8566** against a
+  nominal 0.95, driven by a random-effect SD point estimate biased 9.1%-16.9% low
+  (`p < 1e-23`), which anchors the interval low and makes it miss from above.
+
+* This is **not** a drmTMB defect, and the warning does not report one.
+  `lme4::lmer` on the same data-generating process and the same seeds agreed on
+  boundary incidence for 4000/4000 replicates and matched the conditional coverage
+  to four decimal places; in the single divergence, `lme4` returned an interval that
+  excluded its own maximum likelihood estimate. Sub-nominal coverage here is a
+  property of profile intervals near a variance boundary, not of this
+  implementation. Evidence:
+  `docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/`.
+
+* The interval is still returned -- a boundary is a warning, not an auto-discard,
+  matching the Wald path. Only usable intervals are flagged: `profile_failed` and
+  `clamp_limited` rows also carry `profile.boundary = TRUE` but return missing
+  endpoints, and they already report themselves through `conf.status`, so warning
+  about the coverage of an interval that was never returned would be noise.
+
 ## Direct profile targets for fourteen count and zero-one-beta routes
 
 * `confint(fit, method = "profile")` and `profile(fit)` now reach the
