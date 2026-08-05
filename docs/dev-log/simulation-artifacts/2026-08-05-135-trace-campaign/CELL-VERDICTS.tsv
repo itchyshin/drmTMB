@@ -1,0 +1,15 @@
+cell_id	n_receipts	n_targets	n_seed_pass	n_truth_bracket	mean_rel_err	max_rel_err	any_clamp	any_boundary	any_lr_fail	any_unimodal_fail	structured_sigma_claim_required	verdict	fail_notes
+mc-0568	5	1	5	5	0.1122	0.1616	FALSE	FALSE	FALSE	FALSE	FALSE	PASS	
+mc-0576	5	1	5	5	0.1012	0.2507	FALSE	FALSE	FALSE	FALSE	FALSE	PASS	
+mc-0593	5	1	4	4	0.241	0.2866	FALSE	FALSE	TRUE	TRUE	TRUE	WITHHOLD	c2_seed_count_or_fail,c3_status,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0594	5	1	4	4	0.1918	0.4062	FALSE	FALSE	FALSE	FALSE	TRUE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c8_truth
+mc-0595	5	1	5	5	0.1017	0.2338	FALSE	FALSE	FALSE	FALSE	TRUE	PASS	
+mc-0596	5	1	5	5	0.0868	0.3085	FALSE	FALSE	FALSE	FALSE	TRUE	PASS	
+mc-0597	5	1	0	0	0.9065	1	FALSE	TRUE	TRUE	TRUE	TRUE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c3_status,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0418	18	3	6	8	0.7394	3	FALSE	TRUE	TRUE	TRUE	FALSE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c3_status,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0436	18	3	5	9	0.5545	1.5849	FALSE	TRUE	TRUE	TRUE	FALSE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c3_status,c4_fit,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0446	18	3	8	9	0.5191	1	FALSE	TRUE	TRUE	TRUE	FALSE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c3_status,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0450	18	3	12	16	0.3233	0.9284	FALSE	TRUE	TRUE	FALSE	FALSE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c3_status,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0454	18	3	9	14	0.3629	0.9971	FALSE	TRUE	TRUE	TRUE	FALSE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail,c3_status,c5_boundary_clamp,c6_lr_unimodal,c8_truth
+mc-0425	5	1	4	5	0.2262	0.3546	FALSE	FALSE	FALSE	FALSE	TRUE	WITHHOLD	c1_rel_err,c2_seed_count_or_fail
+mc-0653	5	1	5	5	0.0941	0.1273	FALSE	FALSE	FALSE	FALSE	TRUE	PASS	

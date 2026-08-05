@@ -215,7 +215,7 @@ FROZEN_CENSUS_COUNT = 676
 # frozen <=676 window, so it does not move this constant. The gap the note above
 # describes -- "reconcile() never reads a true value" -- is now closed
 # mechanically; that is what found these two.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 59
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 54
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -498,6 +498,55 @@ ARC6_TARGETS = {
         "transition_id": "tr-mc-0316-arc6-profile",
         "claim_snippet": "arc2_gaussian_ml_relmat_sigma_q2_nolabel_sd",
     },
+}
+# 135-trace Prong B campaign: five of fourteen candidate cells cleared the
+# ten-clause contract on Totoro (source SHA below). Nine siblings withheld
+# (mc-0593/0594/0597, five q2 labelled-mu cells, mc-0425). Census move is
+# +5 only: model_surface interval_feasible 182→187; frozen PFR 59→54.
+ARC135_SOURCE_SHA = "6618e4b30303f7815b272f709ac2c8d09089132d"
+ARC135_TARGETS = {
+    "mc-0568": {
+        "target_id": "mc-0568::sd:sigma:(1 | id)",
+        "evidence_id": "ev-mc-0568-135trace-profile",
+        "transition_id": "tr-mc-0568-135trace-profile",
+        "claim_snippet": "zero_one_beta ordinary sigma intercept q1",
+    },
+    "mc-0576": {
+        "target_id": "mc-0576::sd:sigma:(0 + x | id)",
+        "evidence_id": "ev-mc-0576-135trace-profile",
+        "transition_id": "tr-mc-0576-135trace-profile",
+        "claim_snippet": "zero_one_beta ordinary sigma slope q1",
+    },
+    "mc-0595": {
+        "target_id": "mc-0595::sd:sigma:relmat(1 | species)",
+        "evidence_id": "ev-mc-0595-135trace-profile",
+        "transition_id": "tr-mc-0595-135trace-profile",
+        "claim_snippet": "zero_one_beta sigma relmat q1",
+    },
+    "mc-0596": {
+        "target_id": "mc-0596::sd:sigma:spatial(1 | site)",
+        "evidence_id": "ev-mc-0596-135trace-profile",
+        "transition_id": "tr-mc-0596-135trace-profile",
+        "claim_snippet": "zero_one_beta sigma spatial q1",
+    },
+    "mc-0653": {
+        "target_id": "mc-0653::sd:sigma:phylo_interaction(1 | plant:pollinator)",
+        "evidence_id": "ev-mc-0653-135trace-profile",
+        "transition_id": "tr-mc-0653-135trace-profile",
+        "claim_snippet": "zi_nbinom2 sigma phylo_interaction q1",
+    },
+}
+# Deliberately withheld 135-trace siblings — must stay below interval_feasible.
+ARC135_WITHHELD = {
+    "mc-0593",
+    "mc-0594",
+    "mc-0597",
+    "mc-0418",
+    "mc-0436",
+    "mc-0446",
+    "mc-0450",
+    "mc-0454",
+    "mc-0425",
 }
 B3_Q6_MU2_RUNNER_SHA = "a8d068e641105473b3f30723a92c909467a46fac"
 B3_Q6_MU2_TARGETS = {
@@ -2106,6 +2155,53 @@ def validate(
             "mc-0292: WITHHELD cell (seed-303 receipt excludes the true 0.7) must not "
             "be promoted to interval_feasible"
         )
+
+    for cell_id, contract in ARC135_TARGETS.items():
+        target_id = contract["target_id"]
+        direct_target = target_id.split("::", 1)[1]
+        claim_snippet = contract.get("claim_snippet", direct_target)
+        cell = arc1_by_cell.get(cell_id, {})
+        evidence_id = contract["evidence_id"]
+        evidence_row = evidence_by_id.get(evidence_id, {})
+        transition = next(
+            (row for row in transitions if row["transition_id"] == contract["transition_id"]),
+            {},
+        )
+        if (
+            cell.get("evidence_tier") != "interval_feasible"
+            or cell.get("work_status") != "verified"
+            or cell.get("primary_evidence_id") != evidence_id
+            or claim_snippet not in cell.get("claim_boundary", "")
+            or cell.get("updated_commit") != ARC135_SOURCE_SHA
+        ):
+            errors.append(f"{cell_id}: 135-trace target row changed")
+        if (
+            evidence_row.get("cell_id") != cell_id
+            or evidence_row.get("evidence_class") != "contract_test"
+            or evidence_row.get("commit_sha") != ARC135_SOURCE_SHA
+            or evidence_row.get("result") != "interval_feasible"
+            or direct_target not in evidence_row.get("claim_boundary", "")
+        ):
+            errors.append(f"{evidence_id}: 135-trace evidence binding changed")
+        if cell_id in {"mc-0595", "mc-0596", "mc-0653"}:
+            boundary = cell.get("claim_boundary", "")
+            if "REML is unavailable" not in boundary or "ML sigma-axis low bias" not in boundary:
+                errors.append(
+                    f"{cell_id}: structured-sigma claim_boundary must name ML bias and REML unavailable"
+                )
+        if (
+            transition.get("from_work_status") != "verified"
+            or transition.get("to_work_status") != "verified"
+            or transition.get("evidence_ids") != evidence_id
+        ):
+            errors.append(f"{cell_id}: 135-trace transition must remain verified-to-verified")
+
+    for cell_id in ARC135_WITHHELD:
+        cell = arc1_by_cell.get(cell_id, {})
+        if cell.get("evidence_tier") == "interval_feasible":
+            errors.append(
+                f"{cell_id}: 135-trace WITHHOLD cell must not be promoted to interval_feasible"
+            )
 
     parity_by_cell = {
         row["cell_id"]: row for row in read_tsv(PARITY_TRIAGE)

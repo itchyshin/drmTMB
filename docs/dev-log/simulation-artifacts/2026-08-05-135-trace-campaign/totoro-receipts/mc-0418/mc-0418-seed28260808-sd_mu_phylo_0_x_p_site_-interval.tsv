@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+sd:mu:phylo(0 + x | p | site)	0.95	0.364906569215144	0.815505750931881	0.528981129229232	0.45	profile	tmbprofile	profile	FALSE	ok	FALSE	TRUE	2.06244565716599	2.04419397261915	1.92072941034706	TRUE	TRUE	mc-0418	mc-0418::sd:mu:phylo(0 + x | p | site)	28260808

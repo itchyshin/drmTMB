@@ -92579,3 +92579,11 @@ family that can discriminate an engine that improves on Laplace.
   `interval_feasible` on cohorts containing a truth-excluding interval; and all four
   nbinom2 structured-sigma cells are biased low (11/12 estimates below truth, sign test
   p = 0.0032).
+
+## 2026-08-05 — 135-trace Prong B campaign (Cursor)
+
+- Totoro parallel -j64: 135/135 receipts ok (source SHA 6618e4b30).
+- Promoted 5 cells to interval_feasible (mc-0568, mc-0576, mc-0595, mc-0596, mc-0653);
+  withheld 9. Census IF 182→187; FROZEN_CENSUS_POINT_FIT_RECOVERY 59→54.
+- Evidence: docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/
+- After-task: docs/dev-log/after-task/2026-08-05-135-trace-campaign.md

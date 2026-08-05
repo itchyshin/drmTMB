@@ -1,0 +1,6 @@
+SMOKE start cell=mc-0568 seed=21260806
+loading package...
+profile_ready=TRUE note=
+point estimate=0.387869283738784 rel_err=0.138068258358257
+confint columns: parm, level, lower, upper, scale, transformation, tmb_parameter, index, method, profile.engine, conf.status, profile.boundary, profile.message
+SMOKE_PASS cell=mc-0568 seed=21260806 brackets=TRUE rel_err=0.1381 CI=[0.2991, 0.5179] clamp=FALSE boundary=FALSE engine=endpoint status=profile

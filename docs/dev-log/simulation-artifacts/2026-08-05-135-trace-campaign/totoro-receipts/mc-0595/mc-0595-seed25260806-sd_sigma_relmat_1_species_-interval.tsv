@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+sd:sigma:relmat(1 | species)	0.95	0.390660912618511	0.841052406494321	0.555216537552372	0.45	profile	tmbprofile	profile	FALSE	ok	FALSE	TRUE	2.00040123315705	2.0340795264737	1.92072941034706	TRUE	TRUE	mc-0595	mc-0595::sd:sigma:relmat(1 | species)	25260806

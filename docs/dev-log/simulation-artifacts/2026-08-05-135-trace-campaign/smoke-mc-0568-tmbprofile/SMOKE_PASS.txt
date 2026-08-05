@@ -1,0 +1,4 @@
+SMOKE_PASS cell=mc-0568 seed=21260806 engine=tmbprofile
+brackets_truth=TRUE clamp_limited=FALSE(computed) lr_both_sides=TRUE unimodal=TRUE
+estimate=0.3878693 CI=[0.2991532, 0.5178916] true=0.45 promotion_eligible=TRUE
+Endpoint cross-check (prior Arc0 smoke): CI=[0.2991495, 0.5178961] — agreement << 1e-2.

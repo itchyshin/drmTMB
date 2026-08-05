@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.95	-0.714604523638316	0.620299938622926	-0.0926850095024186	0.5	profile	tmbprofile	profile	FALSE	ok	FALSE	TRUE	2.05500144244968	2.04126968606192	1.92072941034706	TRUE	TRUE	mc-0418	mc-0418::cor:phylo:cor(mu:(Intercept),mu:x | p | site)	28260811

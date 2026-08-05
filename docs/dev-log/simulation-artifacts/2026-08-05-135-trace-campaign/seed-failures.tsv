@@ -1,0 +1,59 @@
+cell_id	seed	profile_parameter	rel_err	conf_status	brackets_truth	clamp_limited	profile_boundary	lr_both_sides	unimodal	failure_reason
+mc-0418	28260806	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.999997649232873	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260806	sd:mu:phylo(1 | p | site)	0.784793006830648	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260807	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.818638259560205	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260807	sd:mu:phylo(0 + x | p | site)	0.462692524681382	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0418	28260807	sd:mu:phylo(1 | p | site)	0.395056730436161	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0418	28260808	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	1.38411253575069	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260808	sd:mu:phylo(1 | p | site)	0.573666519624034	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260809	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	2.99999302564505	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260809	sd:mu:phylo(1 | p | site)	0.925548816367798	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260810	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.807725399531895	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0418	28260811	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	1.18537001900484	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0418	28260813	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	1.32866492710103	profile	FALSE	FALSE	TRUE	FALSE	FALSE	contract:  boundary  lr_both_sides_fail unimodal_fail truth_miss 
+mc-0425	33260808	sd:sigma:phylo_interaction(1 | plant:pollinator)	0.354624127816505	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0436	29260806	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	1.58488729511722	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0436	29260806	sd:mu:phylo(0 + x | p | site)	0.485181884042479	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0436	29260806	sd:mu:phylo(1 | p | site)	0.153606631202859	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0436	29260807	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.776043534276619	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0436	29260807	sd:mu:phylo(1 | p | site)	0.443348195957407	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0436	29260808	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.999997820434293	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss fit_gate
+mc-0436	29260808	sd:mu:phylo(0 + x | p | site)	0.0988141144101937	profile	TRUE	FALSE	FALSE	TRUE	TRUE	contract:       fit_gate
+mc-0436	29260808	sd:mu:phylo(1 | p | site)	0.67235759501272	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss fit_gate
+mc-0436	29260809	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.767031194505231	profile	FALSE	FALSE	TRUE	FALSE	FALSE	contract:  boundary  lr_both_sides_fail unimodal_fail truth_miss 
+mc-0436	29260809	sd:mu:phylo(1 | p | site)	0.556989031898924	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0436	29260810	sd:mu:phylo(1 | p | site)	0.434261763848004	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0436	29260811	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	0.555511989391577	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0436	29260813	cor:phylo:cor(mu:(Intercept),mu:x | p | site)	1.52819331484204	profile	FALSE	FALSE	TRUE	FALSE	FALSE	contract:  boundary  lr_both_sides_fail unimodal_fail truth_miss 
+mc-0446	30260806	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.99999790970368	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0446	30260806	sd:mu:spatial(1 | p | site)	0.528768390459378	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0446	30260808	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.999997991914287	profile_interval_unavailable	FALSE	FALSE	TRUE	FALSE	TRUE	contract: conf_status=profile_interval_unavailable boundary  lr_both_sides_fail  truth_miss 
+mc-0446	30260809	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.99999799373218	profile_interval_unavailable	FALSE	FALSE	TRUE	FALSE	TRUE	contract: conf_status=profile_interval_unavailable boundary  lr_both_sides_fail  truth_miss 
+mc-0446	30260810	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.745896396163037	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0446	30260810	sd:mu:spatial(0 + x | p | site)	0.636413012289259	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0446	30260810	sd:mu:spatial(1 | p | site)	0.753449560201618	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0446	30260811	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.669931632913132	profile	FALSE	FALSE	TRUE	FALSE	FALSE	contract:  boundary  lr_both_sides_fail unimodal_fail truth_miss 
+mc-0446	30260812	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.743323644504471	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0446	30260813	cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.999997973085725	profile_interval_unavailable	FALSE	FALSE	TRUE	FALSE	TRUE	contract: conf_status=profile_interval_unavailable boundary  lr_both_sides_fail  truth_miss 
+mc-0450	31260806	cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.431326604303422	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0450	31260807	cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.571156452575356	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0450	31260809	cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.463801735440797	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0450	31260810	cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.681413041105941	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0450	31260811	cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.928447441535108	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0450	31260812	cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.909014899473069	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0454	32260806	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.824674564313724	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0454	32260808	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.693404862721398	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0454	32260809	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.997141887131577	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0454	32260810	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.502270436874851	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0454	32260810	sd:mu:relmat(0 + x | p | id)	0.564650907415292	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0454	32260810	sd:mu:relmat(1 | p | id)	0.469193061503933	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0454	32260811	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.142474653951966	profile	FALSE	FALSE	TRUE	FALSE	FALSE	contract:  boundary  lr_both_sides_fail unimodal_fail truth_miss 
+mc-0454	32260812	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.448595310333868	profile	FALSE	FALSE	TRUE	FALSE	FALSE	contract:  boundary  lr_both_sides_fail unimodal_fail truth_miss 
+mc-0454	32260813	cor:relmat:cor(mu:(Intercept),mu:x | p | id)	0.518015264329786	profile	TRUE	FALSE	FALSE	TRUE	TRUE	
+mc-0593	23260806	sd:sigma:phylo(1 | species)	0.286603457522707	not_attempted	FALSE	NA	NA	FALSE	FALSE	target_lookup: EARLY_STOP: seed1 relative error 0.2866 > 0.25 for structured provider mc-0593
+mc-0594	24260807	sd:sigma:animal(1 | species)	0.406189263823948	profile	FALSE	FALSE	FALSE	TRUE	TRUE	contract:      truth_miss 
+mc-0597	27260806	sd:sigma:phylo_interaction(1 | plant:pollinator)	0.999979165017614	not_attempted	FALSE	NA	NA	FALSE	FALSE	target_lookup: EARLY_STOP: seed1 relative error 1.0000 > 0.25 for structured provider mc-0597
+mc-0597	27260807	sd:sigma:phylo_interaction(1 | plant:pollinator)	0.999937318973694	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0597	27260808	sd:sigma:phylo_interaction(1 | plant:pollinator)	0.8144790151763	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0597	27260809	sd:sigma:phylo_interaction(1 | plant:pollinator)	0.813014994496964	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 
+mc-0597	27260810	sd:sigma:phylo_interaction(1 | plant:pollinator)	0.904993356884677	profile	FALSE	FALSE	TRUE	FALSE	TRUE	contract:  boundary  lr_both_sides_fail  truth_miss 

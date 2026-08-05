@@ -1,0 +1,1 @@
+SMOKE_PASS cell=mc-0568 seed=21260806 brackets=TRUE rel_err=0.1381 CI=[0.2991, 0.5179] clamp=FALSE boundary=FALSE engine=endpoint status=profile

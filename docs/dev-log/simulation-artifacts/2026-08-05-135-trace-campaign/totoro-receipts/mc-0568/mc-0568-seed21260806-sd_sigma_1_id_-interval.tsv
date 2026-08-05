@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+sd:sigma:(1 | id)	0.95	0.299153203990652	0.517891561265486	0.387869284115797	0.45	profile	tmbprofile	profile	FALSE	ok	FALSE	TRUE	2.06157626379104	2.06752493003745	1.92072941034706	TRUE	TRUE	mc-0568	mc-0568::sd:sigma:(1 | id)	21260806

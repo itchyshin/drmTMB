@@ -126,7 +126,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             }:
                 self.assertEqual(q1["capability_status"], "implemented")
                 self.assertEqual(q1["work_status"], "verified")
-                self.assertEqual(q1["evidence_tier"], "point_fit_recovery")
+                # 135-trace promoted relmat/spatial sigma leaves only
+                # (mc-0595, mc-0596). Sibling structured-sigma leaves stay
+                # point_fit_recovery after honest WITHHOLD.
+                if q1_id in {"mc-0595", "mc-0596"}:
+                    self.assertEqual(q1["evidence_tier"], "interval_feasible")
+                else:
+                    self.assertEqual(q1["evidence_tier"], "point_fit_recovery")
             else:
                 self.assertEqual(q1["capability_status"], "not_implemented")
                 self.assertEqual(q1["work_status"], "backlog")
@@ -500,9 +506,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         # time: mc-0424 is source_order 424 (inside the frozen <=676 window) but
         # mc-0260m is 694 (outside it), so FROZEN_CENSUS_POINT_FIT_RECOVERY moves
         # 58 -> 59 while this literal moves 58 -> 60. Recounted directly from cells.tsv.
+        # 60 -> 55: 135-trace Prong B promotes five PASS cells (mc-0568, mc-0576,
+        # mc-0595, mc-0596, mc-0653) after Totoro five-seed receipts clear the
+        # ten-clause contract; nine siblings withheld. All five sit inside the
+        # frozen window, so FROZEN_CENSUS_POINT_FIT_RECOVERY moves 59 -> 54 with
+        # this total. Recounted directly from cells.tsv.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            60,
+            55,
         )
 
         by_id = {row["cell_id"]: row for row in model}
@@ -563,8 +574,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         c12 = by_id["mc-0653"]
         self.assertEqual(c12["capability_status"], "implemented")
         self.assertEqual(c12["work_status"], "verified")
-        self.assertEqual(c12["evidence_tier"], "point_fit_recovery")
-        self.assertEqual(c12["primary_evidence_id"], "ev-mc-0653-lane-c-c12")
+        # 135-trace promoted this C12 leaf after five-seed Totoro receipts.
+        self.assertEqual(c12["evidence_tier"], "interval_feasible")
+        self.assertEqual(c12["primary_evidence_id"], "ev-mc-0653-135trace-profile")
 
         for cell_id, dpar in (("mc-0199", "mu1"), ("mc-0672", "mu2")):
             row = by_id[cell_id]
