@@ -25,11 +25,16 @@ regression using Template Model Builder.
 > whenever the merge must *synthesise* a new workflow blob (head and base differ there). Fix is
 > the ordinary **update-branch** step — merge `main` into the branch, push over SSH, then merge —
 > after checking the updated branch's tree hash matches the merge result CI already passed.
-> **NEXT = the 135-trace interval campaign** (14 cells → 24 targets → ~120 fits, Totoro, D-50;
-> moves 182→196 and `FROZEN_CENSUS_POINT_FIT_RECOVERY` 59→45) — **but it stays FENCED until the
-> owner rules on D-117 (below). Do not start it on the strength of this line alone**: it promotes
-> cells on interval evidence whose reliability at a boundary is the open question.
-> Before planning it, read
+> **NEXT = the 135-trace interval campaign — UNFENCED by the owner, 2026-08-05.** 14 cells → 24
+> targets → ~120 fits, Totoro, D-50; moves **182→196** and `FROZEN_CENSUS_POINT_FIT_RECOVERY` 59→45.
+> It was fenced earlier the same day pending the D-117 boundary question; **Shinichi unfenced it
+> directly, which supersedes that condition.** D-117's *discharge* remains an open owner call, but
+> it no longer blocks this campaign — the boundary behaviour is now characterised (measured), warned
+> about at the user surface (`drmTMB_profile_boundary_warning`, PR #924), and correctly attributed
+> (not a drmTMB defect; the χ̄² cutoff was measured and REJECTED, PR #925).
+> **This campaign PROMOTES ledger cells — the first census move in this programme.** So: run the
+> truth gate, keep the pre-registration discipline, and do not promote a cell whose interval
+> evidence does not clear its own contract. Before planning it, read
 > `docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md` §9: **two of the
 > ten contract clauses are currently enforced by code that cannot fail** — `clamp_limited` is
 > hard-coded `FALSE` in every arc1/arc2 runner, and the unimodality / two-sided LR-crossing
@@ -79,9 +84,10 @@ regression using Template Model Builder.
 > origin** — all 29 evidence files fetchable; no longer single-disk. Note
 > `claude/profile-coverage-remeasure-20260718`, cited in the brain's `DECISIONS.md:1628`,
 > **does not exist**.
-> **NEXT = the owner's call, not a code task.** Every *item* gating a "D-117 discharged" verdict
-> is now closed; whether the **gate** is satisfied is a judgement, because the conditional finding
-> stays adverse. **The withheld PASS remains withheld either way — do NOT reinstate it.**
+> **D-117 status: every *item* is closed; the DISCHARGE is still an open owner call** — a judgement,
+> because the conditional finding stays adverse. **The withheld PASS remains withheld either way —
+> do NOT reinstate it.** This no longer blocks the 135-trace campaign (unfenced above, and that
+> campaign is the actual NEXT arc).
 > **REFUTED AND NOW MEASURED (2026-08-05) — do NOT rebuild.** 4×1000 replicates on D-117's exact
 > DGP and seeds: the χ²₁ arm reproduces D-117 **exactly** (boundary 495/41/63/0, conditional
 > 0.8566/0.0732/0.2540), and the χ̄² arm is **WORSE everywhere** — the headline **0.0732 → 0.0488**,
