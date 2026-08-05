@@ -1,0 +1,149 @@
+
+########## g10_ne03  (n = 991) ##########
+
+-- miss decomposition (profile) --
+     covered lower_miss upper_miss nonfinite
+ML       900         37         54         0
+REML     949         15         27         0
+
+-- endpoint location (mean) --
+  lower : ML 0.1184  REML 0.0937   (REML - ML = -0.0247)
+  upper : ML 1.1046  REML 0.9669   (REML - ML = -0.1377)
+  point : ML 0.4202  REML 0.4006   (REML - ML = -0.0196)
+
+-- AT boundary (n = 599) --
+  profile coverage : ML 0.9098   REML 0.9549   (delta +0.0451)
+  mean upper       : ML 0.8842   REML 0.8018
+  mean lower       : ML 0.0000   REML 0.0001
+
+-- NOT at boundary (n = 392) --
+  profile coverage : ML 0.9056   REML 0.9617   (delta +0.0561)
+  mean upper       : ML 1.4414   REML 1.2192
+  mean lower       : ML 0.2993   REML 0.2367
+
+-- survivorship -- usable ML-only 9, REML-only 0, both 991, of 1000
+
+########## g20_ne03  (n = 1000) ##########
+
+-- miss decomposition (profile) --
+     covered lower_miss upper_miss nonfinite
+ML       922         21         57         0
+REML     943         13         44         0
+
+-- endpoint location (mean) --
+  lower : ML 0.1935  REML 0.1813   (REML - ML = -0.0123)
+  upper : ML 0.8281  REML 0.8067   (REML - ML = -0.0214)
+  point : ML 0.4590  REML 0.4495   (REML - ML = -0.0095)
+
+-- AT boundary (n = 278) --
+  profile coverage : ML 0.7950   REML 0.8417   (delta +0.0468)
+  mean upper       : ML 0.6125   REML 0.6130
+  mean lower       : ML 0.0000   REML 0.0000
+
+-- NOT at boundary (n = 722) --
+  profile coverage : ML 0.9709   REML 0.9820   (delta +0.0111)
+  mean upper       : ML 0.9112   REML 0.8813
+  mean lower       : ML 0.2681   REML 0.2511
+
+-- survivorship -- usable ML-only 0, REML-only 0, both 1000, of 1000
+
+########## g40_ne03  (n = 1000) ##########
+
+-- miss decomposition (profile) --
+     covered lower_miss upper_miss nonfinite
+ML       944         11         45         0
+REML     940         10         50         0
+
+-- endpoint location (mean) --
+  lower : ML 0.2817  REML 0.2710   (REML - ML = -0.0107)
+  upper : ML 0.6954  REML 0.6918   (REML - ML = -0.0035)
+  point : ML 0.4718  REML 0.4630   (REML - ML = -0.0087)
+
+-- AT boundary (n = 57) --
+  profile coverage : ML 0.2982   REML 0.2456   (delta -0.0526)
+  mean upper       : ML 0.4735   REML 0.4638
+  mean lower       : ML 0.0000   REML 0.0000
+
+-- NOT at boundary (n = 943) --
+  profile coverage : ML 0.9830   REML 0.9820   (delta -0.0011)
+  mean upper       : ML 0.7088   REML 0.7056
+  mean lower       : ML 0.2987   REML 0.2874
+
+-- survivorship -- usable ML-only 0, REML-only 0, both 1000, of 1000
+
+########## g10_ne10  (n = 1000) ##########
+
+-- miss decomposition (profile) --
+     covered lower_miss upper_miss nonfinite
+ML       924         10         66         0
+REML     951         13         36         0
+
+-- endpoint location (mean) --
+  lower : ML 0.2356  REML 0.2441   (REML - ML = +0.0085)
+  upper : ML 0.8084  REML 0.8727   (REML - ML = +0.0643)
+  point : ML 0.4410  REML 0.4625   (REML - ML = +0.0215)
+
+-- AT boundary (n = 82) --
+  profile coverage : ML 0.2927   REML 0.5610   (delta +0.2683)
+  mean upper       : ML 0.4567   REML 0.5003
+  mean lower       : ML 0.0000   REML 0.0048
+
+-- NOT at boundary (n = 918) --
+  profile coverage : ML 0.9804   REML 0.9858   (delta +0.0054)
+  mean upper       : ML 0.8398   REML 0.9060
+  mean lower       : ML 0.2567   REML 0.2655
+
+-- survivorship -- usable ML-only 0, REML-only 0, both 1000, of 1000
+
+########## g20_ne10  (n = 1000) ##########
+
+-- miss decomposition (profile) --
+     covered lower_miss upper_miss nonfinite
+ML       928         20         52         0
+REML     937         24         39         0
+
+-- endpoint location (mean) --
+  lower : ML 0.3263  REML 0.3314   (REML - ML = +0.0051)
+  upper : ML 0.7231  REML 0.7463   (REML - ML = +0.0232)
+  point : ML 0.4826  REML 0.4933   (REML - ML = +0.0106)
+
+-- AT boundary (n = 2) --
+  profile coverage : ML 0.0000   REML 0.0000   (delta +0.0000)
+  mean upper       : ML 0.3563   REML 0.3729
+  mean lower       : ML 0.0000   REML 0.0148
+
+-- NOT at boundary (n = 998) --
+  profile coverage : ML 0.9299   REML 0.9389   (delta +0.0090)
+  mean upper       : ML 0.7238   REML 0.7470
+  mean lower       : ML 0.3270   REML 0.3320
+
+-- survivorship -- usable ML-only 0, REML-only 0, both 1000, of 1000
+
+########## g40_ne10  (n = 1000) ##########
+
+-- miss decomposition (profile) --
+     covered lower_miss upper_miss nonfinite
+ML       953         12         35         0
+REML     960         15         25         0
+
+-- endpoint location (mean) --
+  lower : ML 0.3706  REML 0.3740   (REML - ML = +0.0034)
+  upper : ML 0.6411  REML 0.6511   (REML - ML = +0.0099)
+  point : ML 0.4850  REML 0.4909   (REML - ML = +0.0059)
+
+-- NOT at boundary (n = 1000) --
+  profile coverage : ML 0.9530   REML 0.9600   (delta +0.0070)
+  mean upper       : ML 0.6411   REML 0.6511
+  mean lower       : ML 0.3706   REML 0.3740
+
+-- survivorship -- usable ML-only 0, REML-only 0, both 1000, of 1000
+
+
+########## SUMMARY ##########
+     cell    n cov_ml cov_re upper_shift lower_shift point_shift
+ g10_ne03  991 0.9082 0.9576   -0.137746   -0.024707   -0.019589
+ g20_ne03 1000 0.9220 0.9430   -0.021390   -0.012264   -0.009480
+ g40_ne03 1000 0.9440 0.9400   -0.003545   -0.010663   -0.008742
+ g10_ne10 1000 0.9240 0.9510    0.064314    0.008471    0.021500
+ g20_ne10 1000 0.9280 0.9370    0.023216    0.005070    0.010648
+ g40_ne10 1000 0.9530 0.9600    0.009949    0.003443    0.005876
