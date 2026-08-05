@@ -82,6 +82,16 @@ regression using Template Model Builder.
 > **NEXT = the owner's call, not a code task.** Every *item* gating a "D-117 discharged" verdict
 > is now closed; whether the **gate** is satisfied is a judgement, because the conditional finding
 > stays adverse. **The withheld PASS remains withheld either way — do NOT reinstate it.**
+> **REFUTED AND NOW MEASURED (2026-08-05) — do NOT rebuild.** 4×1000 replicates on D-117's exact
+> DGP and seeds: the χ²₁ arm reproduces D-117 **exactly** (boundary 495/41/63/0, conditional
+> 0.8566/0.0732/0.2540), and the χ̄² arm is **WORSE everywhere** — the headline **0.0732 → 0.0488**,
+> and 0.2540 → 0.0159. Nesting held **4000/4000**, so coverage(χ̄²) ≤ coverage(χ²₁) is guaranteed
+> replicate-by-replicate. The identity that made this two `confint()` calls rather than a prototype:
+> **the χ̄²-corrected 95% interval IS the ordinary 90% interval** (both are the level set at
+> `qchisq(0.90,1)/2`). Evidence:
+> [`2026-08-05-d117-chibar-cutoff-arm/VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-05-d117-chibar-cutoff-arm/VERDICT.md).
+> **D-117's "not a drmTMB defect" is STRENGTHENED — it survived a measured challenge.** The
+> reasoning that predicted this, committed before the run:
 > **REFUTED — do NOT rebuild (see the arc report §10b).** The `qchisq(level, 1)` cutoff at
 > `R/profile.R:3117` is *not* a Self–Liang χ̄² bug. The mixture is the null for **testing** a VC at
 > zero; a CI inverts the LR at *interior* values where χ²₁ is right. The "corrected" cutoff
