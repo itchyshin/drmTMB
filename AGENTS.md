@@ -3,7 +3,21 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-04, PRONG B STACK LANDED; CI CEILING SET FROM MEASUREMENT).**
+> **▶ Latest — start here (2026-08-05, 135-TRACE CAMPAIGN DONE ON BRANCH; LAND PUSH/PR).**
+> Branch `cursor/135-trace-campaign` @ `8e1af270d` (worktree
+> `~/local-scratch/worktrees/drmTMB-135trace`). Totoro 135/135; **5/14 cells** promoted
+> `point_fit_recovery` → `interval_feasible` (`mc-0568`, `mc-0576`, `mc-0595`, `mc-0596`,
+> `mc-0653`). Census on branch **187 IF / 55 PFR**; `FROZEN_CENSUS_POINT_FIT_RECOVERY` **54**.
+> Nine WITHHOLD stay PFR. **Do not re-run Totoro under the old prereg.** Multi-lane board:
+> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
+> on `claude/handover-freshness-0718` remains dirty/stale — **never work there**.
+> START HERE:
+> [`docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md`](docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md)
+> (morning run-the-campaign doc
+> [`2026-08-05-cursor-handover.md`](docs/dev-log/handover/2026-08-05-cursor-handover.md)
+> is historical — campaign step is DONE).
+>
+> **▶ Prior — (2026-08-04, PRONG B STACK LANDED; CI CEILING SET FROM MEASUREMENT).**
 > `main` = `71ce9e544`. All three stacked branches merged in order — #915
 > `claude/prong-b-tier1` (`12e94657f`), #916 `claude/citation-durability` (`c976e7316`),
 > #917 `claude/mc0653-fixture` (`71ce9e544`). **The census is UNCHANGED at 182
