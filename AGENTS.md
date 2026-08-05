@@ -73,8 +73,14 @@ regression using Template Model Builder.
 > **on no remote** — the second load-bearing artifact found outside git in one day. Note
 > `claude/profile-coverage-remeasure-20260718`, cited in the brain's `DECISIONS.md:1628`,
 > **does not exist**.
-> START HERE:
-> [`docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md)
+> **NEXT = the `profile.boundary` user warning — the ONLY item still gating a "discharged"
+> verdict.** Mirror the existing Wald-boundary warning at `R/profile.R:1941-1957`: emit a
+> `cli::cli_warn()` when a *profile* interval returns `profile.boundary = TRUE`, plus a
+> `NEWS.md` bullet and a line in `?confint.drmTMB`. Wording in `VERDICT.md` §4. **A live
+> R/TMB change — ship it with a test.**
+> START HERE (Claude lane):
+> [`docs/dev-log/handover/2026-08-05-claude-handover.md`](docs/dev-log/handover/2026-08-05-claude-handover.md)
+> · evidence: [`VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md)
 > · panel record: [`D43-PANEL.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D43-PANEL.md)
 > · comparator: [`COMPARATOR.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/COMPARATOR.md)
 > · provenance: [`D97-PROVENANCE.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D97-PROVENANCE.md)
