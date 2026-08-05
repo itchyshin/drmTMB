@@ -159,6 +159,45 @@ separate lane.
   is a structural blind spot worth a targeted test, independent of D-117. The note is
   left uncommitted, as it belongs to another session.
 
+## 10b. A hypothesis raised and REFUTED — do not rebuild it
+
+Recorded so a future session does not spend a Totoro campaign on it.
+
+**The hypothesis.** `R/profile.R:3117` uses `stats::qchisq(level, df = 1) / 2`. A variance
+component *at a boundary* has a chi-bar-square LR reference, not χ²₁ (Self & Liang 1987;
+Stram & Lee 1994). The brain has documented this since 2026-07-22 and had already flagged the
+identical `qchisq(level, 1)` as a defect in **gllvmTMB**; drmTMB was never connected to it
+(`grep -rin "self-liang\|chi-bar" R/ docs/design/ NEWS.md` → zero hits). That made the lme4
+agreement look like two engines sharing one wrong assumption rather than exoneration.
+
+**Why it does not hold.** Three reasons, increasingly decisive:
+
+1. **Scope.** The 50:50 χ²₀:χ²₁ mixture is the null for *testing* a variance component at zero.
+   A confidence interval inverts the LR test at *interior* candidate values, where the null is not
+   on the boundary and ordinary χ²₁ applies. The sources treat it as an LRT property and never
+   warrant the transfer to interval inversion.
+2. **Direction.** Even granting the transfer, the corrected cutoff is
+   `qchisq(2 * level - 1, df = 1)` — at 0.95 that is `qchisq(0.90, 1) = 2.706` against the current
+   `qchisq(0.95, 1) = 3.841`. It is **smaller**, so intervals get **narrower** and conditional
+   coverage gets **worse**. The proposed fix moves the number the wrong way.
+3. **It is a selection effect, not a calibration error.** Conditioning on
+   `profile.boundary = TRUE` selects replicates whose SD estimate collapsed toward zero; those same
+   replicates have low upper endpoints and so miss a non-zero truth almost by construction.
+   Unconditional coverage is fine (0.914–0.937) *because* the interior over-covers (0.966–0.983)
+   while the boundary sub-population under-covers. `VERDICT.md` §2.1 already framed this correctly.
+   This is post-selection inference; no cutoff choice repairs it.
+
+**What this does to D-117's verdict: it strengthens it.** "Not a drmTMB defect" has now survived a
+concrete mechanistic challenge naming a specific line and a specific correction. It also confirms
+the user-facing warning is the *right* remedy rather than a stopgap — the boundary sub-population
+genuinely cannot be handed a nominal interval by adjusting the cutoff.
+
+**Still open, and NOT this:** the small-sample *width* correction
+(`qchisq(1-a,1) -> qt(1-a,df)^2`, issue **#680**, D-12(b)) is a different fix for a different
+problem. D-12 separates them deliberately; do not merge them. Separately, gllvmTMB's flagged
+`qchisq(level, 1)` is untouched by this finding — whether it is a real defect there depends on
+whether that call sits in a test or an interval, which nobody has checked.
+
 ## 11. Resolved during this session by the owner
 
 - `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`) **pushed** — the release-gating

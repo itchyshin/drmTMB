@@ -82,6 +82,14 @@ regression using Template Model Builder.
 > **NEXT = the owner's call, not a code task.** Every *item* gating a "D-117 discharged" verdict
 > is now closed; whether the **gate** is satisfied is a judgement, because the conditional finding
 > stays adverse. **The withheld PASS remains withheld either way — do NOT reinstate it.**
+> **REFUTED — do NOT rebuild (see the arc report §10b).** The `qchisq(level, 1)` cutoff at
+> `R/profile.R:3117` is *not* a Self–Liang χ̄² bug. The mixture is the null for **testing** a VC at
+> zero; a CI inverts the LR at *interior* values where χ²₁ is right. The "corrected" cutoff
+> `qchisq(2*level-1, 1)` is **smaller** (2.706 vs 3.841 at 0.95), so it narrows intervals and makes
+> conditional coverage **worse**. And the 0.0732 is a **selection effect** — conditioning on
+> `profile.boundary` picks replicates whose SD collapsed — i.e. post-selection inference, which no
+> cutoff repairs. This challenge **strengthens** D-117's "not a drmTMB defect". Issue **#680**
+> (`qchisq → qt²`, small-sample *width*) is a DIFFERENT problem; D-12 separates them — do not merge.
 > **Separate live lead — and it is NOT D-117's mechanism.** The vault note *"Log-parameterised
 > variances have an attracting boundary at zero — warm starts can inherit a collapse"*
 > (gllvmTMB, 2026-08-03) is real and generic to `exp(log_sd)`. But it does **not** explain D-117:
