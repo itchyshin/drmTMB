@@ -117,7 +117,17 @@ regression using Template Model Builder.
 > free optimum **only when convergence is not accepted** — and an attracting-boundary collapse
 > *reports clean convergence*, so that fallback cannot see it. Structural blind spot, untested,
 > independent of D-117.
-> **START HERE (Claude lane) — 2026-08-05 EVENING, the current one:**
+> **▶ LANE HANDED TO CURSOR — 2026-08-05. START HERE if you are Cursor:**
+> [`docs/dev-log/handover/2026-08-05-cursor-handover.md`](docs/dev-log/handover/2026-08-05-cursor-handover.md)
+> — the interval-evidence lane (the **135-trace campaign**, unfenced) now belongs to **Cursor**;
+> the Claude lane has STOPPED. **Sequential, never concurrent (D-87/D-88).** Sibling lanes are
+> UNCHANGED and are listed in [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md)
+> — Lane B E0 (#858, codex), Mesh/SPDE (#893, codex), missing-data cross brief (#869). This pointer
+> does **not** supersede them.
+> **⚠ The primary checkout is 715 commits behind `main` on a July branch with 88 uncommitted files —
+> work in a fresh worktree, and read files with `git show origin/main:<path>`.**
+>
+> **START HERE (Claude lane) — 2026-08-05 EVENING, the prior session's record:**
 > [`docs/dev-log/handover/2026-08-05-claude-handover-evening.md`](docs/dev-log/handover/2026-08-05-claude-handover-evening.md)
 > · arcs: [`2026-08-05-d117-profile-boundary-warning.md`](docs/dev-log/after-task/2026-08-05-d117-profile-boundary-warning.md)
 > · [`2026-08-05-d117-chibar-cutoff-measured.md`](docs/dev-log/after-task/2026-08-05-d117-chibar-cutoff-measured.md)
