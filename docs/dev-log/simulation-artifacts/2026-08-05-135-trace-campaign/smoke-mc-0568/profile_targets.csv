@@ -1,0 +1,8 @@
+"parm","target_class","dpar","term","tmb_parameter","index","estimate","link_estimate","scale","transformation","target_type","profile_ready","profile_note"
+"fixef:mu:(Intercept)","fixed-effect","mu","(Intercept)","beta_mu",1,-0.126612222949113,-0.126612222949113,"link","linear_predictor","direct",TRUE,"ready"
+"fixef:mu:x","fixed-effect","mu","x","beta_mu",2,0.365852601840616,0.365852601840616,"link","linear_predictor","direct",TRUE,"ready"
+"fixef:sigma:(Intercept)","fixed-effect","sigma","(Intercept)","beta_sigma",1,-0.874741156589511,-0.874741156589511,"link","linear_predictor","direct",TRUE,"ready"
+"fixef:zoi:(Intercept)","fixed-effect","zoi","(Intercept)","beta_zoi",1,-1.98457076055147,-1.98457076055147,"link","linear_predictor","direct",TRUE,"ready"
+"fixef:coi:(Intercept)","fixed-effect","coi","(Intercept)","beta_coi",1,-0.277631736120348,-0.277631736120348,"link","linear_predictor","direct",TRUE,"ready"
+"sigma","distributional-scale","sigma","(constant)","beta_sigma",1,0.416969935631449,-0.874741156589511,"response","exp","direct",TRUE,"ready"
+"sd:sigma:(1 | id)","random-effect-sd","sigma","(1 | id)","log_sd_sigma",1,0.387869283738784,-0.947086893702055,"response","exp","direct",TRUE,"ready"

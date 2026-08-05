@@ -1,0 +1,2 @@
+"cell_id","seed","target","true_value","estimate","lower","upper","rel_err","convergence","pdHess","conf_status","profile_boundary","clamp_limited","message","brackets_truth","profile_engine"
+"mc-0568",21260806,"sd:sigma:(1 | id)",0.45,0.387869283738784,0.299149549895615,0.517896081226072,0.138068258358257,0,TRUE,"profile",FALSE,FALSE,"ok",TRUE,"endpoint"
