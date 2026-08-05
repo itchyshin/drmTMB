@@ -117,7 +117,12 @@ regression using Template Model Builder.
 > free optimum **only when convergence is not accepted** — and an attracting-boundary collapse
 > *reports clean convergence*, so that fallback cannot see it. Structural blind spot, untested,
 > independent of D-117.
-> START HERE (Claude lane):
+> **START HERE (Claude lane) — 2026-08-05 EVENING, the current one:**
+> [`docs/dev-log/handover/2026-08-05-claude-handover-evening.md`](docs/dev-log/handover/2026-08-05-claude-handover-evening.md)
+> · arcs: [`2026-08-05-d117-profile-boundary-warning.md`](docs/dev-log/after-task/2026-08-05-d117-profile-boundary-warning.md)
+> · [`2026-08-05-d117-chibar-cutoff-measured.md`](docs/dev-log/after-task/2026-08-05-d117-chibar-cutoff-measured.md)
+> · [`2026-08-05-reml-interval-coverage.md`](docs/dev-log/after-task/2026-08-05-reml-interval-coverage.md)
+> · superseded morning handover:
 > [`docs/dev-log/handover/2026-08-05-claude-handover.md`](docs/dev-log/handover/2026-08-05-claude-handover.md)
 > · evidence: [`VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md)
 > · panel record: [`D43-PANEL.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D43-PANEL.md)
