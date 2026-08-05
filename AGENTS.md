@@ -46,18 +46,38 @@ regression using Template Model Builder.
 > **RETRACTED:** "the corner is not materially worse than D-97's pooled 0.9368" — contradicted at
 > **z ≈ 2.5**. The supported claim is narrower: the profile route does not inherit the marginal
 > route's *collapse*, and the gradient the gate was built to detect **is present at 1–2 pp**.
-> **Two items are OPEN and gate any "discharged" claim.** (1) D-97 records 0.9368 "across all 12
-> A1 cells (11,988 retained attempts)", but the 12-cell campaign is **bootstrap-only** and the
-> profile campaign was 3 cells × 1000 — neither yields 11,988. Settle this before citing 0.9368
-> again. (2) `confint()` warns on **Wald**-at-boundary and steers users to profile — into the
-> 7–25% regime above — with **no warning** in `NEWS.md`, `man/`, or the vignettes. **Do NOT treat
-> D-117 as discharged until both are settled.**
+> **BUT IT IS NOT A drmTMB DEFECT — settled by comparator.** `lme4` on the **same DGP with the
+> same seeds** (paired, `REML = FALSE` to match drmTMB's ML default) reproduces the behaviour
+> essentially exactly: boundary incidence agrees on **4000/4000** replicates (495/41/63/0 in
+> both), conditional coverage is **identical to four decimals** including the 0.0732, and
+> coverage outcomes agree on 3999/4000. The single divergence goes **drmTMB's way** — lme4
+> returned an interval excluding its own MLE. So the finding stands as a *statistical fact about
+> profile intervals near a variance boundary*, and **the remedy is the user-facing warning, not
+> an engine fix**. General principle, now in the brain: *imperfect coverage is the norm — very
+> famous packages undercover too*; never infer our bug from a sub-nominal number without a
+> paired reference run. See `COMPARATOR.md`.
+> **D-97's 0.9368 HAS NO COMMITTED EVIDENCE — resolved, and it is the provenance that is wrong.**
+> The committed profile campaign is **3 cells / 3,000 attempts pooling to 0.9400**, not 12 cells
+> / 11,988 / 0.9368. "12 A1 cells" describes the **bootstrap-only** campaign (0.8714, n=12,000),
+> and 11,988 = 12 × 999 where **999 is the bootstrap *resample* count**, not retained attempts.
+> The figure traces to one after-task report existing **only in the brain vault**, from a
+> now-deleted temp dir, via a script matching nothing here. This arc's premise **survives**
+> (`n_per=4`, `sd_mu=1.0` genuinely were unmeasured) and §2.3's gap **widens to z ≈ 2.63** against
+> the real number. D-97's *direction* is not overturned. **Do not cite 0.9368 again**; correcting
+> `DECISIONS.md` is the owner's call. See `D97-PROVENANCE.md`.
+> **STILL OPEN, and it gates any "discharged" claim:** `confint()` warns on **Wald**-at-boundary
+> and steers users to profile — into the 7–25% regime above — with **no warning** in `NEWS.md`,
+> `man/`, or the vignettes. Now unambiguously the right fix, since the comparator ruled out an
+> engine cause. **Do NOT treat D-117 as discharged until it is closed.**
 > The 2026-07-26 evidence still lives only on `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`),
-> **on no remote**. Note `claude/profile-coverage-remeasure-20260718`, cited in the brain's
-> `DECISIONS.md:1628`, **does not exist**.
+> **on no remote** — the second load-bearing artifact found outside git in one day. Note
+> `claude/profile-coverage-remeasure-20260718`, cited in the brain's `DECISIONS.md:1628`,
+> **does not exist**.
 > START HERE:
 > [`docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/VERDICT.md)
 > · panel record: [`D43-PANEL.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D43-PANEL.md)
+> · comparator: [`COMPARATOR.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/COMPARATOR.md)
+> · provenance: [`D97-PROVENANCE.md`](docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/D97-PROVENANCE.md)
 > · CI ceiling arc: [`2026-08-04-prong-b-stack-landing-and-ci-ceiling.md`](docs/dev-log/after-task/2026-08-04-prong-b-stack-landing-and-ci-ceiling.md).
 
 > **▶ Prior (2026-08-03, ARC 7b COMPLETE; PRONG B TIER 1 WAS THE NEXT ARC).**
