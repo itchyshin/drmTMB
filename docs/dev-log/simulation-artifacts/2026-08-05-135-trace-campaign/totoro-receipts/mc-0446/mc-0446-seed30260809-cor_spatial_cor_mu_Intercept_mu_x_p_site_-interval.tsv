@@ -1,0 +1,11 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	0.95	NA	NA	0.99999899686609	0.5	profile	tmbprofile	profile_interval_unavailable	TRUE	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	FALSE	FALSE	5.83153601219328	8.37901552586118e-08	1.92072941034706	TRUE	FALSE	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260809

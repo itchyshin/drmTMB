@@ -1,5 +1,27 @@
 # drmTMB 0.6.0
 
+## Five Prong B routes now have interval-feasible profile evidence
+
+* A Totoro 135-trace campaign (source SHA `6618e4b30`, GNU parallel, ≤100 cores)
+  retained five-seed `stats::profile()` / `TMB::tmbprofile` receipts for fourteen
+  Prong B Tier-1 candidates. **Five cells** cleared the preregistered ten-clause
+  contract on every seed and are promoted `point_fit_recovery` →
+  `interval_feasible`: `mc-0568` and `mc-0576` (ordinary `zero_one_beta()` `sigma`
+  intercept and slope), `mc-0595` and `mc-0596` (`zero_one_beta()` `sigma` under
+  `relmat()` and `spatial()`), and `mc-0653` (`zi_nbinom2()` `sigma` under
+  `phylo_interaction()`, 8×8 campaign DGP). Census move: model_surface
+  `interval_feasible` 182→187; frozen `point_fit_recovery` 59→54.
+
+* Nine siblings stay at `point_fit_recovery` after honest WITHHOLD
+  (`mc-0593`, `mc-0594`, `mc-0597`, the five labelled count-`mu` q2 cells, and
+  `mc-0425` at 4/5). Per the preregistration, 4/5 truth-bracketing is a block,
+  not an 80% pass. This is still not coverage or calibration.
+
+* Structured-sigma promotions (`mc-0595`, `mc-0596`, `mc-0653`) name in
+  `claim_boundary` the documented ML sigma-axis low bias and that REML is
+  unavailable for these families. Evidence:
+  `docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/`.
+
 ## Profile intervals now warn at a variance-component boundary
 
 * `confint(fit, method = "profile")` now warns when it returns a usable interval
@@ -43,11 +65,12 @@
   `point_fit_only_zero_one_beta_sigma_q1`.
 
 * This change makes a profile *computable* on these routes. It is not a claim
-  that the resulting interval attains nominal coverage, and it promotes no
-  capability-ledger cell: all fourteen stay at `point_fit_recovery`. Read an
-  interval from these routes as "the profile traversed and returned two
-  finite ordered endpoints", not as calibrated inference. The seeded
-  multi-seed campaign that would support an interval claim has not been run.
+  that the resulting interval attains nominal coverage. Five of the fourteen
+  routes later cleared a seeded Totoro campaign and are now
+  `interval_feasible` (see the Prong B section above); the other nine remain
+  `point_fit_recovery`. Read an interval from an unpromoted route as "the
+  profile traversed and returned two finite ordered endpoints", not as
+  calibrated inference.
 
 * Seven of the fourteen profile a `sigma`-axis random-effect SD under a
   structure: `zero_one_beta()` with `phylo()`, `animal()`, `relmat()`,

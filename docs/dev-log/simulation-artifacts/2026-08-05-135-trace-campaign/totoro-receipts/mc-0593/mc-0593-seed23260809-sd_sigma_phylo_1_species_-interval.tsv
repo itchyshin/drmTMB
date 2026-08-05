@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+sd:sigma:phylo(1 | species)	0.95	0.230250792530902	0.536887947667808	0.344132280805218	0.45	profile	tmbprofile	profile	FALSE	ok	FALSE	TRUE	2.05959428505935	2.04952561419071	1.92072941034706	TRUE	TRUE	mc-0593	mc-0593::sd:sigma:phylo(1 | species)	23260809

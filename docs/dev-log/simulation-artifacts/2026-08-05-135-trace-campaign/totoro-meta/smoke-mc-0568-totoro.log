@@ -1,0 +1,9 @@
+loading package from /home/snakagaw/hsq_work/drmTMB-135trace-cursor
+RUN cell=mc-0568 seed_index=1 seed=21260806 n_targets=1
+  cell_id     seed profile_parameter conf_status  estimate     lower     upper
+1 mc-0568 21260806 sd:sigma:(1 | id)     profile 0.3878693 0.2991532 0.5178916
+  brackets_truth clamp_limited lr_both_sides unimodal promotion_eligible
+1           TRUE         FALSE          TRUE     TRUE               TRUE
+  failure_reason
+1               
+wrote /home/snakagaw/hsq_work/drmTMB-135trace-cursor/campaign-out/receipts/mc-0568/mc-0568-seed21260806-sd_sigma_1_id_-receipt.tsv

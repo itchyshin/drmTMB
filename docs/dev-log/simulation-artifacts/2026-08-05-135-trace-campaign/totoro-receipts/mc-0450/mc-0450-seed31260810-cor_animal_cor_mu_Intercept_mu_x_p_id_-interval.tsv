@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+cor:animal:cor(mu:(Intercept),mu:x | p | id)	0.95	0.182022510362733	NA	0.840706520552971	0.5	profile	tmbprofile	profile	TRUE	ok	FALSE	FALSE	2.0238611874862	0.421294465221649	1.92072941034706	TRUE	FALSE	mc-0450	mc-0450::cor:animal:cor(mu:(Intercept),mu:x | p | id)	31260810

@@ -1,0 +1,2 @@
+parm	level	lower	upper	estimate	true_value	method	profile.engine	conf.status	profile.boundary	profile.message	clamp_limited	lr_both_sides	lr_left_max	lr_right_max	lr_threshold	unimodal	brackets_truth	cell_id	target_id	seed
+sd:sigma:phylo_interaction(1 | plant:pollinator)	0.95	NA	0.191582192852405	0.0834844431706652	0.45	profile	tmbprofile	profile	TRUE	ok	FALSE	FALSE	0.780300692707158	2.0731486693241	1.92072941034706	TRUE	FALSE	mc-0597	mc-0597::sd:sigma:phylo_interaction(1 | plant:pollinator)	27260808

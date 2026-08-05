@@ -1,0 +1,1191 @@
+parm	target_class	dpar	term	level	profile_value	profile_value_link	objective	delta_objective	delta_deviance	estimate	link_estimate	profile_pass	elapsed	profile_controls	profile_source	conf.low	conf.high	conf.status	profile.message	scale	transformation	tmb_parameter	index	cell_id	target_id	seed
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	-0.398486411885826	-0.421848809131673	656.045436088128	6.03000395334709	12.0600079066942	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.993394894125877	2.85495119086833	650.049116766153	0.0336846313723527	0.0673692627447053	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999989558171713	6.13175119086833	650.015481536454	4.94016733227909e-05	9.88033466455818e-05	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998643580126	7.77015119086833	650.015433997164	1.86238287369633e-06	3.72476574739267e-06	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998930750938	8.58935119086833	650.015432498288	3.63506956091442e-07	7.27013912182883e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998969476111	8.99895119086833	650.01543229475	1.5996954516595e-07	3.199390903319e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998979734709	9.20375119086833	650.01543224201	1.07229652712704e-07	2.14459305425407e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998983487633	9.30615119086833	650.015432220832	8.60509317135438e-08	1.72101863427088e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998985094808	9.35735119086833	650.015432213699	7.89185605754028e-08	1.57837121150806e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998985838746	9.38295119086833	650.015432209584	7.48033244235558e-08	1.49606648847112e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986196673	9.39575119086833	650.015432207117	7.23365474186721e-08	1.44673094837344e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.99999898637223	9.40215119086833	650.015432208748	7.3967271418951e-08	1.47934542837902e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986459169	9.40535119086833	650.015432206224	7.14434236215311e-08	1.42886847243062e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986502431	9.40695119086833	650.015432207211	7.24304527466302e-08	1.4486090549326e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986524009	9.40775119086833	650.015432204968	7.01870703778695e-08	1.40374140755739e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986534786	9.40815119086833	650.015432204729	6.99486690791673e-08	1.39897338158335e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986540171	9.40835119086833	650.015432204142	6.93609081281465e-08	1.38721816256293e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986542863	9.40845119086833	650.01543220613	7.13495182935731e-08	1.42699036587146e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986542863	9.40845119086833	650.01543220613	7.13495182935731e-08	1.42699036587146e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986545554	9.40855119086833	650.015432203948	6.9166731009318e-08	1.38333462018636e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986550934	9.40875119086833	650.015432205303	7.05219918017974e-08	1.41043983603595e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986561689	9.40915119086833	650.015432207812	7.3030832936638e-08	1.46061665873276e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986583173	9.40995119086833	650.015432207238	7.24573965271702e-08	1.4491479305434e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986626039	9.41155119086833	650.015432204294	6.95137032380444e-08	1.39027406476089e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986711359	9.41475119086833	650.015432206733	7.19521722203353e-08	1.43904344440671e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998986880369	9.42115119086833	650.015432202208	6.7427436079015e-08	1.3485487215803e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998987211969	9.43395119086833	650.015432201724	6.69430164634832e-08	1.33886032926966e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998987850237	9.45955119086833	650.015432198249	6.3468178268522e-08	1.26936356537044e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998989032793	9.51075119086833	650.015432194011	5.92300466450979e-08	1.18460093290196e-07	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998991063807	9.61315119086833	650.015432180622	4.58414888271363e-08	9.16829776542727e-08	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998994067121	9.81795119086833	650.01543216402	2.9238890419947e-08	5.8477780839894e-08	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998997384881	10.2275511908683	650.015432148898	1.41175178214326e-08	2.82350356428651e-08	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998999491907	11.0467511908683	650.015432138701	3.9198084778036e-09	7.8396169556072e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.99999899998082	12.6851511908683	650.015432136819	2.03783656615997e-09	4.07567313231993e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999998999999973	15.9619511908683	650.015432134781	0	0	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	22.5155511908683	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	35.6227511908683	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	61.8371511908683	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	114.265951190868	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	219.123551190868	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	428.838751190868	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	848.269151190868	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1687.12995119087	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3364.85155119087	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	6720.29475119087	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	13431.1811511909	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	26852.9539511909	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	53696.4995511909	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	107383.590751191	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	214757.773151191	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	429506.137951191	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	859002.867551191	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1717996.32675119	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3435983.24515119	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	6871957.08195119	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	13743904.7555512	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	27487800.1027512	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	54975590.7971512	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	109951172.185951	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	219902334.963551	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	439804660.518751	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	879609311.629151	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1759218613.84995	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3518437218.29155	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	7036874427.17475	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	14073748844.9412	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	28147497680.4739	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	56294995351.5396	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	112589990693.671	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	225179981377.933	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	450359962746.458	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	900719925483.508	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1801439850957.61	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3602879701905.81	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	7205759403802.2	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	14411518807595	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	28823037615180.6	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	57646075230351.8	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	115292150460694	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	230584300921379	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	461168601842748	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	922337203685487	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1844674407370964	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3689348814741920	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	7378697629483829	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	14757395258967650	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	29514790517935288	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	59029581035870568	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	118059162071741136	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	236118324143482240	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	472236648286964480	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	944473296573928960	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1888946593147857920	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3777893186295715840	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	7555786372591431680	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	15111572745182863360	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	30223145490365726720	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	60446290980731453440	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.20892581961463e+20	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	2.41785163922926e+20	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	4.83570327845852e+20	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	9.67140655691703e+20	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.93428131138341e+21	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3.86856262276681e+21	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	7.73712524553363e+21	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.54742504910673e+22	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3.09485009821345e+22	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	6.1897001964269e+22	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.23794003928538e+23	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	2.47588007857076e+23	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	4.95176015714152e+23	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	9.90352031428304e+23	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.98070406285661e+24	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3.96140812571322e+24	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	7.92281625142643e+24	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.58456325028529e+25	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	3.16912650057057e+25	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	6.33825300114115e+25	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
+cor:spatial:cor(mu:(Intercept),mu:x | p | site)	random-effect-correlation	spatial	cor(mu:(Intercept),mu:x | p | site)	0.95	0.999999	1.26765060022823e+26	650.015432135675	8.94374352355953e-10	1.78874870471191e-09	0.999998986542863	9.40845119259257	profile	0.53	TMB defaults	TMB::tmbprofile via stats::profile.drmTMB	NA	NA	profile_interval_unavailable	Could not extract a profile confidence interval for target
+"cor:spatial:cor(mu:(Intercept),mu:x | p | site)".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate	response	tanh	eta_cor_phylo	1	mc-0446	mc-0446::cor:spatial:cor(mu:(Intercept),mu:x | p | site)	30260813
