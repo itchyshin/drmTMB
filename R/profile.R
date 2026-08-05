@@ -171,6 +171,33 @@
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
 #'
+#' @section Boundary intervals:
+#' Both interval methods are unreliable when a variance component approaches zero
+#' or a correlation approaches `+/-1`, and each warns about its own case.
+#'
+#' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
+#' (class `drmTMB_wald_boundary_warning`), because a symmetric Wald interval
+#' undercovers under boundary (chi-square-mixture) inference. That warning
+#' recommends `method = "profile"`.
+#'
+#' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
+#' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
+#' reaches a boundary. **A profile interval is not a repair for a boundary.**
+#' Conditional on that flag, a seeded 10-group random-effect SD gate measured
+#' coverage at 0.0732, 0.2540, and 0.8566 against a nominal 0.95. The mechanism is
+#' a maximum likelihood random-effect SD biased 9.1%-16.9% low at small group
+#' counts, which anchors the interval low so that it misses from above.
+#'
+#' This is a property of profile intervals near a variance boundary rather than of
+#' `drmTMB`: `lme4::lmer` on the same data-generating process and seeds agreed on
+#' boundary incidence for 4000/4000 replicates and matched the conditional coverage
+#' to four decimal places. Treat a flagged interval as indicative of scale, not as a
+#' calibrated `level` interval, and prefer more groups where the design allows it.
+#'
+#' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
+#' `profile.boundary = TRUE`, but return missing endpoints and are not warned about
+#' separately; read their `conf.status` and `profile.message` instead.
+#'
 #' @section Profiling a structured `sigma` random-effect SD:
 #' A profile of a `sigma`-axis random-effect SD under `phylo()`, `animal()`,
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
@@ -1649,6 +1676,7 @@ drm_profile_confint <- function(
   rows <- profile_lapply(seq_len(nrow(targets)), worker, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
+  warn_profile_boundary(out)
   out
 }
 
@@ -1797,7 +1825,44 @@ drm_profile_response_newdata_confint <- function(
   rows <- profile_lapply(seq_len(nrow(X)), worker, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
+  warn_profile_boundary(out)
   out
+}
+
+# The Wald path warns at a variance-component or correlation boundary and sends
+# the user to `method = "profile"`. Measured coverage shows the profile route is
+# also unreliable there -- conditional on `profile.boundary`, 10-group RE-SD
+# coverage was 0.07-0.86 against a nominal 0.95 -- so leaving this direction
+# silent steers users out of one bad regime into another. `lme4` reproduces the
+# same numbers on the same seeds, so this is a property of profile intervals at
+# a boundary, not of drmTMB's root-finder. Evidence:
+# docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/.
+#
+# Only usable intervals are flagged. `profile_failed` and `clamp_limited` rows
+# return NA endpoints and already report themselves through `conf.status`;
+# warning about their coverage would be meaningless.
+warn_profile_boundary <- function(out) {
+  if (is.null(out) || nrow(out) == 0L) {
+    return(invisible(out))
+  }
+  at_boundary <- !is.na(out$profile.boundary) &
+    out$profile.boundary &
+    !is.na(out$conf.status) &
+    out$conf.status == "profile" &
+    is.finite(out$lower) &
+    is.finite(out$upper)
+  if (any(at_boundary)) {
+    n_boundary <- sum(at_boundary)
+    cli::cli_warn(
+      c(
+        "{cli::qty(n_boundary)}Profile interval{?s} for {.val {out$parm[at_boundary]}} {?is/are} at a variance-component or correlation boundary.",
+        "!" = "{cli::qty(n_boundary)}Profile coverage is well below nominal there, so {?this interval is/these intervals are} not a reliable {.arg level} interval.",
+        "i" = "See the {.strong Boundary intervals} section of {.code ?confint.drmTMB}."
+      ),
+      class = "drmTMB_profile_boundary_warning"
+    )
+  }
+  invisible(out)
 }
 
 skew_normal_slant_targets <- function(object, targets) {

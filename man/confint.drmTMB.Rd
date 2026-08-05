@@ -222,6 +222,35 @@ Use \code{profile_engine = "tmbprofile"} or \code{profile_precision = "fast"} wh
 want the previous full-curve \code{TMB::tmbprofile()} route for comparison,
 diagnostics, or control tuning.
 }
+\section{Boundary intervals}{
+
+Both interval methods are unreliable when a variance component approaches zero
+or a correlation approaches \verb{+/-1}, and each warns about its own case.
+
+\code{method = "wald"} flags a row with \code{conf.status = "wald_at_boundary"} and warns
+(class \code{drmTMB_wald_boundary_warning}), because a symmetric Wald interval
+undercovers under boundary (chi-square-mixture) inference. That warning
+recommends \code{method = "profile"}.
+
+\code{method = "profile"} sets \code{profile.boundary = TRUE} and warns (class
+\code{drmTMB_profile_boundary_warning}) when it returns a usable interval that
+reaches a boundary. \strong{A profile interval is not a repair for a boundary.}
+Conditional on that flag, a seeded 10-group random-effect SD gate measured
+coverage at 0.0732, 0.2540, and 0.8566 against a nominal 0.95. The mechanism is
+a maximum likelihood random-effect SD biased 9.1\%-16.9\% low at small group
+counts, which anchors the interval low so that it misses from above.
+
+This is a property of profile intervals near a variance boundary rather than of
+\code{drmTMB}: \code{lme4::lmer} on the same data-generating process and seeds agreed on
+boundary incidence for 4000/4000 replicates and matched the conditional coverage
+to four decimal places. Treat a flagged interval as indicative of scale, not as a
+calibrated \code{level} interval, and prefer more groups where the design allows it.
+
+Rows with \code{conf.status = "profile_failed"} or \code{"clamp_limited"} also carry
+\code{profile.boundary = TRUE}, but return missing endpoints and are not warned about
+separately; read their \code{conf.status} and \code{profile.message} instead.
+}
+
 \section{Profiling a structured \code{sigma} random-effect SD}{
 
 A profile of a \code{sigma}-axis random-effect SD under \code{phylo()}, \code{animal()},
