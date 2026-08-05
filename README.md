@@ -63,7 +63,7 @@ pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
 roadmap work rather than hidden features.
 
-The first CRAN release is numbered **0.5.0**, not 1.0 — an honest reflection
+The first CRAN release is targeted at **0.7.0**, not 1.0 — an honest reflection
 that much of the family and inference surface is still scaffolded or
 recovery-grade. "v1.0" throughout the dev-log denotes the later
 complete-capability maturity milestone. The contributor-facing
