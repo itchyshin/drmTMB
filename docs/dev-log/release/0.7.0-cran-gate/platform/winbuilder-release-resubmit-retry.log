@@ -1,0 +1,3 @@
+curl: (25) Failed FTP upload: 550
+
+curl_exit:25 http:550
