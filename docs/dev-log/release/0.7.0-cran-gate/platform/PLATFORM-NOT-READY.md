@@ -84,3 +84,18 @@ return without ERROR on a tarball that includes this repair.
 
 Fixed tarball R-release curl still **FTP 550**. Highest proven rung remains **`tarball-clean`**. No `platform-clean` claim.
 
+## Blackout update 2026-08-07T23:00Z
+
+**Still NOT READY for `platform-clean`.** Highest proven rung remains
+`tarball-clean`.
+
+- CondExp path repair is on `main` via #941 (`13e8cafb0`).
+- Fixed win-builder tarball re-uploaded successfully to **both** R-release and
+  R-devel (FTP 226; SHA-256 `f9b9588e…`, size 9818425).
+- Prior morning ERROR receipts (`XhAiv0jf1AUd`, `nF44JzoI2nZ9`) remain the last
+  adjudicated results; they used the unrepaired layout.
+- **Await** new win-builder result emails for the fixed tarball. Do not advance
+  the ledger without ERROR-free evidence **and** explicit owner authorization.
+- CRAN submit UI offline until ~2026-08-19 — no CRAN upload. DESCRIPTION stays
+  **0.6.0**.
+

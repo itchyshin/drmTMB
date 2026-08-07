@@ -53,3 +53,17 @@ only — do not re-upload the frozen probe SHA `c787ee40…` (9817096 bytes).
 - Fixed tarball still present: size **9818425**, SHA-256 `f9b9588e…`, contains `drm_src_candidates`.
 - R-release FTP **still 550** (`winbuilder-release-resubmit-retry.log`). Queue not clear yet.
 - Do **not** advance `platform-clean`. Wait for prior same-name upload result email, then upload fixed tarball only.
+
+## Retry 2026-08-07T23:00Z (blackout must-do)
+
+- Fixed tarball verified in place: size **9818425**, SHA-256
+  `f9b9588e31c15040ad6b4b4eafa7ffeb1e7eb64a2379d1a6a3859670109a8065`.
+- Proven inside tarball: `drm_src_candidates` /
+  `drm_src_path` in `drmTMB/tests/testthat/test-guard-branch-continuity.R`.
+- **R-release FTP: 226 Transfer complete** (`winbuilder-release-resubmit-retry2.log`).
+- **R-devel FTP: 226 Transfer complete** (`winbuilder-devel-resubmit-retry2.log`).
+- Result emails: **not yet adjudicated** in this session (Gmail MCP unavailable
+  to the command subagent). Leave ledger at **`tarball-clean`** until ERROR-free
+  emails are confirmed and owner authorizes any `platform-clean` advance.
+- Do **not** re-upload stale morning tarball `c787ee40…` / 9817096.
+

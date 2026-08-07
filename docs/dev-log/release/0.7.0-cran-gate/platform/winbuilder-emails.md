@@ -15,3 +15,10 @@
 - Email 2026-08-07T17:20:58Z
 
 Gmail thread id: `19fdd3b95ebe5f0b`
+
+## Pending — fixed-tarball reupload (2026-08-07T23:00Z)
+
+FTP **226** for R-release and R-devel of fixed SHA `f9b9588e…` (9818425).
+No new result email adjudicated in this session. Search Gmail for
+`from:ligges@statistik.tu-dortmund.de subject:drmTMB` after ~1–2 hours.
+
