@@ -36,6 +36,9 @@ first-week spine and the D-117 “when not to trust” story lived mainly in
 - Prose restates measured behaviour; no “CRAN ready”; no ledger promotions.
 - Fences held: no `docs/dev-log/release/` edits; no
   `test-guard-branch-continuity.R`; DESCRIPTION Version remains 0.6.0.
+- **CI repair (PR #942):** vignette column subset corrected from
+  `estimate`/`conf.low`/`conf.high` to `parm`/`lower`/`upper` (actual
+  `confint()` names); local knit OK before push.
 
 ## Not covered
 

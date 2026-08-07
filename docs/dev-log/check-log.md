@@ -1,6 +1,15 @@
 # Check Log
 
 
+## 2026-08-07 — useful-0.7 CI fix (first-week-intervals columns)
+
+- PR #942 `ubuntu-latest (release)` failed at R CMD build vignette step (~8.5m,
+  not a 75m timeout): `first-week-intervals.Rmd` selected
+  `estimate`/`conf.low`/`conf.high`, but `confint()` returns `lower`/`upper`
+  (no `estimate` column) → `undefined columns selected`.
+- Fixed column subset to `parm`/`lower`/`upper`/`conf.status`/`profile.boundary`;
+  local `rmarkdown::render("vignettes/first-week-intervals.Rmd")` OK.
+
 ## 2026-08-07 — useful-0.7 user-facing (docs honesty)
 
 - Lane `cursor/useful-07-user-facing`: NEWS + `?confint` default uncertainty story; vignette `first-week-intervals`; capability skim in `capability-and-limits`; `se_group_sd` in `large-data`.

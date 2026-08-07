@@ -106,7 +106,7 @@ near a variance-component boundary, `profile.boundary` is `TRUE` and
 `drmTMB_profile_boundary_warning`.
 
 ```{r}
-ci_site[, c("estimate", "conf.low", "conf.high", "conf.status", "profile.boundary")]
+ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
 ```
 
 **When not to trust a returned interval**
