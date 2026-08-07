@@ -3,14 +3,14 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-07, 0.7 MULTI-LANE: tarball-clean + useful/#942 + platform/#941).**
-> `main` @ `8004fc058`. Highest proven CRAN rung = **`tarball-clean`** (#939). Packaging
-> **#930/#931/#938/#939/#940** merged; DESCRIPTION still **0.6.0**; **no upload**. Live Cursor
-> lanes: **useful-0.7** draft [#942](https://github.com/itchyshin/drmTMB/pull/942)
-> (`cursor/useful-07-user-facing` @ `e6f781388`, watch CI `31214014701`) and
-> **platform-clean** draft [#941](https://github.com/itchyshin/drmTMB/pull/941)
-> @ `fb30d60ff` (**NOT READY** — CondExp path fix + resubmit receipts; R-release
-> FTP still 550; email adjudication owed; watch CI `31215197798`).
+> **▶ Latest — start here (2026-08-07 evening, 0.7: #942/#943/#941 merged; still tarball-clean).**
+> `main` @ `13e8cafb0`. Highest proven CRAN rung = **`tarball-clean`** (#939). DESCRIPTION
+> still **0.6.0**; **no upload**; **not platform-clean**; **not CRAN-ready**. Merged this
+> session: [#942](https://github.com/itchyshin/drmTMB/pull/942) useful-0.7 (`9e85ff91d`),
+> [#943](https://github.com/itchyshin/drmTMB/pull/943) handover (`80573f987`),
+> [#941](https://github.com/itchyshin/drmTMB/pull/941) CondExp path repair + honest NOT READY
+> platform docs (`13e8cafb0`) — ledger `status_claim` remains **`tarball-clean`**. win-builder
+> R-release+R-devel ERROR-free adjudication still owed (FTP-550 / missing results).
 > Multi-lane board (read every live row — do not orphan siblings):
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
 > on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.
