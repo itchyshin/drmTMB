@@ -56,15 +56,15 @@ git worktree add ~/local-scratch/worktrees/drmTMB-<slice> -b cursor/<slice> orig
    Human skim for claim honesty remains open on the PR checklist.
 
 3. **`platform-clean` is NOT READY.** Draft PR **#941**
-   (`cursor/07-platform-clean` @ `c5053b6fb`) records the win-builder ERROR in
+   (`cursor/07-platform-clean` @ `fb30d60ff`) records the win-builder ERROR in
    `test-guard-branch-continuity.R` (CondExp `drm_src_path`), lands the path
    repair (`25e38cc74`), and records the win-builder resubmit receipt
-   (`c5053b6fb`). GHA 3-OS + R-hub ASAN/UBSAN/gcc-ASAN were green on the freeze
+   (`fb30d60ff`). GHA 3-OS + R-hub ASAN/UBSAN/gcc-ASAN were green on the freeze
    tip; win-builder R-release + R-devel were **1 ERROR**. Resubmit ~2026-08-07
    19:54 UTC — **results not yet adjudicated into a `platform-clean` claim**.
    Some raw logs may still be untracked in the platform worktree (declare
    below). GHA on #941 tip: watch
-   [31214642847](https://github.com/itchyshin/drmTMB/actions/runs/31214642847)
+   [31215197798](https://github.com/itchyshin/drmTMB/actions/runs/31215197798)
    (prior run `31212472502` was cancelled by the resubmit-docs push — pacing,
    not a code failure).
 
@@ -102,7 +102,7 @@ the closed 135-trace prereg.
 | `tarball-clean` ledger + freeze notes | LANDED (#939 → `744b9fbee`) |
 | useful-0.7 arc card on `main` | LANDED (#940 → `8004fc058`) |
 | useful-0.7 user-facing surfaces + vignette CI fix | Pushed on #942 @ `e6f781388` — **not merged** |
-| platform-clean attempt doc + CondExp src-path fix + resubmit receipt | Pushed on #941 @ `c5053b6fb` — **not merged**; rung **not** advanced |
+| platform-clean attempt doc + CondExp src-path fix + resubmit receipt | Pushed on #941 @ `fb30d60ff` — **not merged**; rung **not** advanced |
 
 ---
 
@@ -139,7 +139,7 @@ cran-exec returns **FAIL**. Annotated ledger:
 |---|---|---|---|---|
 | `origin/main` @ `8004fc058` (packaging through #940) | y | y | #930–#940 merged | **LANDED** |
 | `cursor/useful-07-user-facing` @ `e6f781388` | y | y | **#942 draft** | **CARRIED-OVER** — CI watch / human skim / merge decision |
-| `cursor/07-platform-clean` @ `c5053b6fb` (path fix `25e38cc74` + resubmit receipt) | y | y | **#941 draft** | **CARRIED-OVER** — NOT READY; win-builder email adjudication owed |
+| `cursor/07-platform-clean` @ `fb30d60ff` (path fix `25e38cc74` + resubmit receipt) | y | y | **#941 draft** | **CARRIED-OVER** — NOT READY; win-builder email adjudication owed |
 | Platform worktree leftover untracked raw logs (`*.raw.log`, valgrind poll, etc.) | n | n | — | **CARRIED-OVER** — receipt/logs for resubmit already on branch tip; remaining raw logs optional |
 | `cursor/07-cran-readiness` (cran-exec worktree) tip vs main | y (superseded by #938/#939) | y | historical | **DONE** for source-clean; do not reopen as current tip |
 | Primary `claude/handover-freshness-0718` dirty + 2 unpushed | mixed | n | — | **PROTECTED** — never stage |
@@ -164,9 +164,9 @@ gh run watch 31214014701 --repo itchyshin/drmTMB   # if still running
 cd ~/local-scratch/worktrees/drmTMB-07-platform
 git fetch origin && git checkout cursor/07-platform-clean && git pull --ff-only
 gh pr checks 941 --repo itchyshin/drmTMB
-gh run watch 31214642847 --repo itchyshin/drmTMB   # if still running
+gh run watch 31215197798 --repo itchyshin/drmTMB   # if still running
 # Poll win-builder emails / https://win-builder.r-project.org/ for the
-# resubmitted tarball recorded in winbuilder-resubmit-RECEIPT.md (tip c5053b6fb).
+# resubmitted tarball recorded in winbuilder-resubmit-RECEIPT.md (tip fb30d60ff).
 # Only after R-release + R-devel have 0 ERROR: consider advancing ledger claim.
 # Until then: status_claim stays tarball-clean.
 ```
@@ -180,7 +180,7 @@ gh run watch 31214642847 --repo itchyshin/drmTMB   # if still running
 | 1 | Rehydrate: `AGENTS.md` → this doc → `active-lane-split.md` → `git status` on the worktree you will use | **OWED** |
 | 2 | Watch / finish **#942** CI (`31214014701`); if red, fix only useful-0.7 surfaces | **OWED** (CI may complete to DONE before you start — re-check) |
 | 3 | Human claim-honesty skim of useful-0.7 vignette + capability skim; then merge decision (human) | **OWED** |
-| 4 | Watch **#941** CI (`31214642847`); adjudicate win-builder resubmit results; **do not** set `platform-clean` until both release+devel are ERROR-free | **OWED** |
+| 4 | Watch **#941** CI (`31215197798`); adjudicate win-builder resubmit results; **do not** set `platform-clean` until both release+devel are ERROR-free | **OWED** |
 | 5 | Optionally commit platform raw/resubmit logs onto #941 with explicit paths | **OWED** (optional) |
 | 6 | Claim packaging rungs `source-clean` / `tarball-clean` as already proven | **DONE** |
 | 7 | Claim `platform-clean` or CRAN readiness / upload | **RETRACTED** until evidence |
@@ -261,7 +261,7 @@ gh run watch 31214642847 --repo itchyshin/drmTMB   # if still running
 |---|---|---|---|---|
 | drmTMB | `main` `8004fc058` | packaging merged | tarball-clean proven | do not upload |
 | drmTMB | #942 useful | watch 31214014701 | user-facing surfaces pushed | merge after green+skim |
-| drmTMB | #941 platform | watch 31214642847 + win-builder | path fix + resubmit receipt; rung NOT READY | re-green then ledger |
+| drmTMB | #941 platform | watch 31215197798 + win-builder | path fix + resubmit receipt; rung NOT READY | re-green then ledger |
 
 ---
 
@@ -276,3 +276,23 @@ gh run watch 31214642847 --repo itchyshin/drmTMB   # if still running
 ```text
 Read AGENTS.md and docs/dev-log/handover/2026-08-07-cursor-handover.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
 ```
+
+---
+
+## Resume classification (2026-08-07 Cursor rehydrate)
+
+Reconciled against live git/`gh` after switching to worktree
+`~/local-scratch/worktrees/drmTMB-handover-0807` (primary checkout remains
+**PROTECTED**).
+
+| # | Item | Class now | Evidence |
+|---|---|---|---|
+| 1 | Rehydrate | **DONE** | Read AGENTS + this doc + active-lane-split; worktree on `cursor/handover-0807` @ `bd4bdc17a+`; `origin/main` still `8004fc058` |
+| 2 | Watch #942 CI | **OWED** (in flight) | run `31214014701` on `e6f781388` — ubuntu-latest still pending |
+| 3 | useful-0.7 claim-honesty skim | **DONE** | PASS posted on #942 comment; no overclaim; fences held |
+| 4 | Watch #941 + win-builder adjudicate | **OWED** | tip now `fb30d60ff` (FTP-550 retry receipt); new GHA `31215197798` (prior `31214642847` cancelled by docs push — pacing). R-release FTP **still 550**; Gmail search returned no win-builder result threads yet. **No `platform-clean` claim.** |
+| 5 | Optional platform raw logs | **DONE** (narrow) | Committed retry receipt + retry log only; left ~4.5 MB ASAN raw logs untracked as CARRIED-OVER |
+| 6–10 | DONE / RETRACTED / PROTECTED | unchanged | packaging rungs proven; no upload; no primary clean; no #858 |
+
+Primary `claude/handover-freshness-0718` remains dirty/PROTECTED. Foreign unpushed branches remain CARRIED-OVER.
+

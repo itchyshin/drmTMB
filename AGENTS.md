@@ -9,8 +9,8 @@ regression using Template Model Builder.
 > lanes: **useful-0.7** draft [#942](https://github.com/itchyshin/drmTMB/pull/942)
 > (`cursor/useful-07-user-facing` @ `e6f781388`, watch CI `31214014701`) and
 > **platform-clean** draft [#941](https://github.com/itchyshin/drmTMB/pull/941)
-> @ `c5053b6fb` (**NOT READY** — win-builder CondExp ERROR; path fix + resubmit
-> receipt pushed; email adjudication owed; watch CI `31214642847`).
+> @ `fb30d60ff` (**NOT READY** — CondExp path fix + resubmit receipts; R-release
+> FTP still 550; email adjudication owed; watch CI `31215197798`).
 > Multi-lane board (read every live row — do not orphan siblings):
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
 > on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.

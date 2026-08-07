@@ -25,7 +25,7 @@ census; capability counts belong in the ledger and Mission Control.
 ## Status
 - 2026-08-07 — Packaging **#930/#931/#938/#939/#940** on `main`; rung
   **`tarball-clean`**. Live drafts: **#942** (useful @ `e6f781388`; CI watch
-  `31214014701`) and **#941** (platform @ `c5053b6fb`; path fix + resubmit
-  receipt; win-builder adjudication owed; CI `31214642847`).
+  `31214014701`) and **#941** (platform @ `fb30d60ff`; path fix + resubmit
+  receipt; win-builder adjudication owed; CI `31215197798`).
 - START HERE for Cursor:
   [`handover/2026-08-07-cursor-handover.md`](handover/2026-08-07-cursor-handover.md).
