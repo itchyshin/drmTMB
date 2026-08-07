@@ -56,14 +56,17 @@ git worktree add ~/local-scratch/worktrees/drmTMB-<slice> -b cursor/<slice> orig
    Human skim for claim honesty remains open on the PR checklist.
 
 3. **`platform-clean` is NOT READY.** Draft PR **#941**
-   (`cursor/07-platform-clean` @ `25e38cc74`) records the win-builder ERROR in
-   `test-guard-branch-continuity.R` (CondExp `drm_src_path`) and lands a path
-   repair. GHA 3-OS + R-hub ASAN/UBSAN/gcc-ASAN were green on the freeze tip;
-   win-builder R-release + R-devel were **1 ERROR**. A resubmit of the repaired
-   tarball was attempted (~2026-08-07 19:54 UTC) — **results not yet adjudicated
-   into a `platform-clean` claim**. Untracked raw logs sit in the platform
-   worktree (declare below). GHA on #941 may also still be running
-   ([31212472502](https://github.com/itchyshin/drmTMB/actions/runs/31212472502)).
+   (`cursor/07-platform-clean` @ `c5053b6fb`) records the win-builder ERROR in
+   `test-guard-branch-continuity.R` (CondExp `drm_src_path`), lands the path
+   repair (`25e38cc74`), and records the win-builder resubmit receipt
+   (`c5053b6fb`). GHA 3-OS + R-hub ASAN/UBSAN/gcc-ASAN were green on the freeze
+   tip; win-builder R-release + R-devel were **1 ERROR**. Resubmit ~2026-08-07
+   19:54 UTC — **results not yet adjudicated into a `platform-clean` claim**.
+   Some raw logs may still be untracked in the platform worktree (declare
+   below). GHA on #941 tip: watch
+   [31214642847](https://github.com/itchyshin/drmTMB/actions/runs/31214642847)
+   (prior run `31212472502` was cancelled by the resubmit-docs push — pacing,
+   not a code failure).
 
 4. **Handoff gate FAILS on every tree** — mostly because the shared object store
    still has many **foreign unpushed branches** and the primary is dirty. That
@@ -99,7 +102,7 @@ the closed 135-trace prereg.
 | `tarball-clean` ledger + freeze notes | LANDED (#939 → `744b9fbee`) |
 | useful-0.7 arc card on `main` | LANDED (#940 → `8004fc058`) |
 | useful-0.7 user-facing surfaces + vignette CI fix | Pushed on #942 @ `e6f781388` — **not merged** |
-| platform-clean attempt doc + CondExp src-path fix | Pushed on #941 @ `25e38cc74` — **not merged**; rung **not** advanced |
+| platform-clean attempt doc + CondExp src-path fix + resubmit receipt | Pushed on #941 @ `c5053b6fb` — **not merged**; rung **not** advanced |
 
 ---
 
@@ -136,8 +139,8 @@ cran-exec returns **FAIL**. Annotated ledger:
 |---|---|---|---|---|
 | `origin/main` @ `8004fc058` (packaging through #940) | y | y | #930–#940 merged | **LANDED** |
 | `cursor/useful-07-user-facing` @ `e6f781388` | y | y | **#942 draft** | **CARRIED-OVER** — CI watch / human skim / merge decision |
-| `cursor/07-platform-clean` @ `25e38cc74` | y | y | **#941 draft** | **CARRIED-OVER** — NOT READY; win-builder re-green owed |
-| Platform worktree untracked raw logs under `docs/dev-log/release/0.7.0-cran-gate/platform/*.raw.log` (+ resubmit/poll logs) | n | n | — | **CARRIED-OVER** — commit only if next session wants them on the PR; not required to read email results |
+| `cursor/07-platform-clean` @ `c5053b6fb` (path fix `25e38cc74` + resubmit receipt) | y | y | **#941 draft** | **CARRIED-OVER** — NOT READY; win-builder email adjudication owed |
+| Platform worktree leftover untracked raw logs (`*.raw.log`, valgrind poll, etc.) | n | n | — | **CARRIED-OVER** — receipt/logs for resubmit already on branch tip; remaining raw logs optional |
 | `cursor/07-cran-readiness` (cran-exec worktree) tip vs main | y (superseded by #938/#939) | y | historical | **DONE** for source-clean; do not reopen as current tip |
 | Primary `claude/handover-freshness-0718` dirty + 2 unpushed | mixed | n | — | **PROTECTED** — never stage |
 | Foreign unpushed branches (`codex/lane-b-q1-…`, `codex/aoi2-…`, etc.) | y | n | various | **CARRIED-OVER / foreign** — do not push or clean from this lane |
@@ -159,10 +162,11 @@ gh run watch 31214014701 --repo itchyshin/drmTMB   # if still running
 
 ```bash
 cd ~/local-scratch/worktrees/drmTMB-07-platform
-git fetch origin && git status -sb
+git fetch origin && git checkout cursor/07-platform-clean && git pull --ff-only
 gh pr checks 941 --repo itchyshin/drmTMB
+gh run watch 31214642847 --repo itchyshin/drmTMB   # if still running
 # Poll win-builder emails / https://win-builder.r-project.org/ for the
-# resubmitted drmTMB_0.6.0.tar.gz built from 25e38cc74 (or rebuild+resubmit).
+# resubmitted tarball recorded in winbuilder-resubmit-RECEIPT.md (tip c5053b6fb).
 # Only after R-release + R-devel have 0 ERROR: consider advancing ledger claim.
 # Until then: status_claim stays tarball-clean.
 ```
@@ -176,7 +180,7 @@ gh pr checks 941 --repo itchyshin/drmTMB
 | 1 | Rehydrate: `AGENTS.md` → this doc → `active-lane-split.md` → `git status` on the worktree you will use | **OWED** |
 | 2 | Watch / finish **#942** CI (`31214014701`); if red, fix only useful-0.7 surfaces | **OWED** (CI may complete to DONE before you start — re-check) |
 | 3 | Human claim-honesty skim of useful-0.7 vignette + capability skim; then merge decision (human) | **OWED** |
-| 4 | Watch **#941** CI; adjudicate win-builder resubmit results; **do not** set `platform-clean` until both release+devel are ERROR-free | **OWED** |
+| 4 | Watch **#941** CI (`31214642847`); adjudicate win-builder resubmit results; **do not** set `platform-clean` until both release+devel are ERROR-free | **OWED** |
 | 5 | Optionally commit platform raw/resubmit logs onto #941 with explicit paths | **OWED** (optional) |
 | 6 | Claim packaging rungs `source-clean` / `tarball-clean` as already proven | **DONE** |
 | 7 | Claim `platform-clean` or CRAN readiness / upload | **RETRACTED** until evidence |
@@ -257,7 +261,7 @@ gh pr checks 941 --repo itchyshin/drmTMB
 |---|---|---|---|---|
 | drmTMB | `main` `8004fc058` | packaging merged | tarball-clean proven | do not upload |
 | drmTMB | #942 useful | watch 31214014701 | user-facing surfaces pushed | merge after green+skim |
-| drmTMB | #941 platform | watch 31212472502 + win-builder | path fix pushed; rung NOT READY | re-green then ledger |
+| drmTMB | #941 platform | watch 31214642847 + win-builder | path fix + resubmit receipt; rung NOT READY | re-green then ledger |
 
 ---
 
