@@ -1,3 +1,30 @@
+# drmTMB (unreleased notes toward 0.7.0)
+
+User-facing honesty notes for the next CRAN-facing cycle. `DESCRIPTION` remains
+**0.6.0** until an explicit freeze bumps the version; these bullets freeze the
+default story readers should follow, not a release claim.
+
+## Default uncertainty story
+
+* **Fixed effects / routine Wald targets:** start with `confint(fit)`
+  (`method = "wald"`). It is the fastest fitted-object route when
+  `TMB::sdreport()` succeeded.
+* **Random-effect SDs / variance components:** prefer
+  `confint(fit, parm = ..., method = "profile")` after `profile_targets(fit)`
+  lists the row as profile-ready.
+* **Boundary rows:** read `profile.boundary` and `conf.status`. A usable profile
+  interval at a variance-component boundary warns with class
+  `drmTMB_profile_boundary_warning`. That warning does **not** repair coverage;
+  treat the interval as indicative of scale, not as a calibrated `level`
+  interval (see `?confint.drmTMB` Boundary intervals; D-117 evidence).
+* **No nominal-coverage-everywhere claim.** A computable interval is not
+  coverage certification. Report a route as inference-ready only when the
+  capability guide names that exact cell.
+
+See also the vignette *First-week intervals: fit, profile, and boundary*.
+
+---
+
 # drmTMB 0.6.0
 
 ## Five Prong B routes now have interval-feasible profile evidence

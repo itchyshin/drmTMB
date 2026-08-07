@@ -29,6 +29,8 @@ navbar:
           href: articles/drmTMB.html
         - text: Function map and cheat sheet
           href: articles/function-map-cheatsheet.html
+        - text: First-week intervals
+          href: articles/first-week-intervals.html
     model_guides:
       text: Model Guides
       menu:
@@ -225,6 +227,7 @@ articles:
     contents:
       - drmTMB
       - function-map-cheatsheet
+      - first-week-intervals
   - title: Capability and Model Choice
     contents:
       - capability-and-limits
