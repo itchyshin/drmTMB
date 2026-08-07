@@ -432,11 +432,11 @@ drmTMB/inst/trust-dossier/R/s4_coverage_smoke.R
 drmTMB/inst/trust-dossier/README.md
 drmTMB/inst/trust-dossier/report/
 drmTMB/inst/trust-dossier/report/trust-dossier-1.html
-drmTMB/inst/trust-dossier/results/
 drmTMB/inst/trust-dossier/results-grid/
 drmTMB/inst/trust-dossier/results-grid/README.md
 drmTMB/inst/trust-dossier/results-grid/grid-coverage-bycell.csv
 drmTMB/inst/trust-dossier/results-grid/grid-coverage-summary.csv
+drmTMB/inst/trust-dossier/results/
 drmTMB/inst/trust-dossier/results/badge.json
 drmTMB/inst/trust-dossier/results/measured_tolerances.csv
 drmTMB/inst/trust-dossier/results/s1_multilevel_parity.csv
@@ -546,8 +546,8 @@ drmTMB/src/drm_response_kernels.h
 drmTMB/src/init.c
 drmTMB/tests/
 drmTMB/tests/spelling.R
-drmTMB/tests/testthat/
 drmTMB/tests/testthat.R
+drmTMB/tests/testthat/
 drmTMB/tests/testthat/_snaps/
 drmTMB/tests/testthat/_snaps/associate-pairs-bernoulli-bernoulli.md
 drmTMB/tests/testthat/_snaps/associate-pairs-gaussian-bernoulli.md

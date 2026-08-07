@@ -2,6 +2,17 @@
 
 Record meaningful development checks here.
 
+## 2026-08-07: 0.7 CRAN gate — tarball-clean freeze
+
+- Merged PR #938 → `main` `459bd3fa9`. Clean worktree rebuild at
+  `~/local-scratch/worktrees/drmTMB-07-tarball`.
+- Tarball SHA-256 `c787ee40b8895d15609e77dd8024c3520efb333c657ba5bc98bc0388aa156cbb`
+  (9817096 bytes); inventory has no `LOOP` paths (`^LOOP$` in `.Rbuildignore`).
+- `R CMD check --as-cran --no-manual`: **Status: 1 NOTE** (New submission only);
+  0 ERROR / 0 WARNING.
+- Ledger `status_claim: tarball-clean`; `cran_release_gate.py` → READY FOR CLAIMED RUNG.
+- **STOP** before platform-clean and upload. DESCRIPTION remains 0.6.0.
+
 ## 2026-08-04: D-117 10-group profile coverage gate — measured; PASS claim WITHHELD
 
 - **Outcome: the measurement stands, the claim does not.** The pre-registered rule
