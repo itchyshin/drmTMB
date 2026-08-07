@@ -1,0 +1,9 @@
+Building windows version of drmTMB (0.6.0)
+ℹ Using R-devel with win-builder.r-project.org.
+── R CMD build ─────────────────────────────────────────────────────────────────
+* building ‘drmTMB_0.6.0.tar.gz’
+Submitted 2026-08-07 ~10:06 MDT from worktree drmTMB-07-platform @ 744b9fbe
+(source tip; frozen probe SHA c787ee40…; DESCRIPTION 0.6.0)
+ℹ Check <'itchyshin@gmail.com'> for the results in 15-30 mins (~10:36 AM).
+Poll: inbox itchyshin@gmail.com for subject containing win-builder / drmTMB;
+also https://win-builder.r-project.org/

@@ -1,0 +1,307 @@
+* using log directory 'd:/RCompile/CRANguest/R-release/drmTMB.Rcheck'
+* using R version 4.6.1 (2026-06-24 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.3.0
+    GNU Fortran (GCC) 14.3.0
+* running under: Windows Server 2022 x64 (build 20348)
+* using session charset: UTF-8
+* current time: 2026-08-07 16:35:09 UTC
+* checking for file 'drmTMB/DESCRIPTION' ... OK
+* this is package 'drmTMB' version '0.6.0'
+* package encoding: UTF-8
+* checking CRAN incoming feasibility ... [15s] NOTE
+Maintainer: 'Shinichi Nakagawa <itchyshin@gmail.com>'
+
+New submission
+
+Possibly misspelled words in DESCRIPTION:
+  centile (23:43)
+  mis (22:40)
+  uncalibrated (24:6)
+
+Found the following (possibly) invalid file URI:
+  URI: function-map-cheatsheet.png
+    From: inst/doc/function-map-cheatsheet.html
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking whether package 'drmTMB' can be installed ... OK
+* used C compiler: 'gcc.exe (GCC) 14.3.0'
+* used C++ compiler: 'g++.exe (GCC) 14.3.0'
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking 'build' directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking use of S3 registration ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [104s] OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking pragmas in C/C++ headers and code ... OK
+* checking compilation flags used ... OK
+* checking compiled code ... OK
+* checking installed files from 'inst/doc' ... OK
+* checking files in 'vignettes' ... OK
+* checking examples ... [29s] OK
+* checking for unstated dependencies in 'tests' ... OK
+* checking tests ... [38m] ERROR
+  Running 'spelling.R'
+  Running 'testthat.R' [38m]
+Running the tests in 'tests/testthat.R' failed.
+Complete output:
+  > library(testthat)
+  > library(drmTMB)
+  
+  Attaching package: 'drmTMB'
+  
+  The following object is masked from 'package:base':
+  
+      beta
+  
+  > 
+  > # Phase 18 is the package's exhaustive simulation/reporting harness, and the
+  > # structured-conversion contract is a generated 22,000-assertion audit. Keep
+  > # both in repository CI, but do not rerun them during routine CRAN checks.
+  > not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
+  > if (not_cran) {
+  +   test_check("drmTMB")
+  + } else {
+  +   test_check(
+  +     "drmTMB",
+  +     filter = "phase18|structured-re-conversion-contracts",
+  +     invert = TRUE
+  +   )
+  + }
+  <summary.drmTMB>
+  estimator: ML
+  Distributional, random-effect, scale, and correlation parameters:
+  logLik: 184.2
+  convergence: 0
+  pin verification: bit-identical repeats confirmed; inner_grad_norm=2.934e-15
+  gradient-conformance: gaussian mu+sigma typical                               stat=5.476e-10 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: gaussian mu+sigma extreme                               stat=2.301e-12 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: poisson mu typical                                      stat=1.072e-08 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: poisson mu extreme                                      stat=1.349e-11 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: binomial mu typical                                     stat=8.911e-08 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: binomial mu boundary(|eta| large)                       stat=1.921e-10 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: Gamma mu+sigma typical                                  stat=7.969e-10 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: Gamma mu+sigma extreme                                  stat=1.004e-11 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: beta mu+sigma typical                                   stat=2.737e-09 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: beta mu+sigma boundary(mu->0/1)                         stat=5.662e-10 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: biv_lognormal typical                                   stat=4.091e-08 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: biv_lognormal rho12-boundary                            stat=8.922e-10 tol=1e-06 inner_grad_norm=NA
+  gradient-conformance: mu random-intercept typical                             stat=2.673e-10 tol=1e-04 inner_grad_norm=4.956e-15
+  gradient-conformance: mu random-intercept extreme                             stat=3.429e-09 tol=1e-04 inner_grad_norm=4.367e-15
+  gradient-conformance: mu random-intercept boundary(sd->0)                     stat=9.819e-09 tol=1e-04 inner_grad_norm=1.907e-18
+  gradient-conformance: relmat mu typical                                       stat=4.118e-10 tol=1e-04 inner_grad_norm=1.243e-14
+  gradient-conformance: relmat mu extreme                                       stat=4.439e-10 tol=1e-04 inner_grad_norm=1.259e-14
+  gradient-conformance: spatial mu (poisson) typical                            stat=1.744e-09 tol=1e-04 inner_grad_norm=1.804e-13
+  gradient-conformance: spatial mu (poisson) extreme                            stat=1.268e-09 tol=1e-04 inner_grad_norm=6.840e-13
+  gradient-conformance: sigma random-intercept typical                          stat=8.606e-09 tol=1e-04 inner_grad_norm=1.802e-15
+  gradient-conformance: sigma random-intercept extreme                          stat=9.243e-09 tol=1e-04 inner_grad_norm=1.802e-15
+  gradient-conformance: phylo mu + sd() regression typical                      stat=4.184e-09 tol=1e-04 inner_grad_norm=6.380e-13
+  gradient-conformance: phylo mu + sd() regression extreme                      stat=2.860e-09 tol=1e-04 inner_grad_norm=6.721e-13
+  gradient-conformance: phylo sigma (residual log-SD) typical                   stat=3.612e-08 tol=1e-04 inner_grad_norm=1.233e-13
+  gradient-conformance: phylo sigma (residual log-SD) extreme                   stat=1.147e-08 tol=1e-04 inner_grad_norm=2.124e-13
+  second-step-size: Richardson stat=2.673e-10; simple(eps=1e-5) stat=1.158e-05
+  Saving _problems/test-guard-branch-continuity-68.R
+  <drmTMB Julia-engine fit summary>
+  observations: 30
+  logLik: -123.4
+  convergence: converged
+  uncertainty: ok
+  
+  Fixed effects (link scale):
+    dpar        term estimate std.error statistic      p.value   conf.low
+      mu (Intercept)      0.5 0.2000000   2.50000 1.241933e-02  0.1080072
+      mu           x      0.4 0.1000000   4.00000 6.334248e-05  0.2040036
+   sigma (Intercept)     -0.3 0.1414214  -2.12132 3.389485e-02 -0.5771808
+     conf.high conf.level
+    0.89199280       0.95
+    0.59599640       0.95
+   -0.02281924       0.95
+  
+  Random effects (SD, response scale):
+   dpar               term       sd
+     mu phylo(1 | species) 2.404163
+  [ FAIL 1 | WARN 64 | SKIP 147 | PASS 15427 ]
+  
+  ══ Skipped tests (147) ═════════════════════════════════════════════════════════
+  • Arc 1b-S1 recovery runner requires a source checkout (1):
+    'test-arc1b-spatial-q2-reml-recovery.R:40:3'
+  • Arc 1b-S2R recovery runner requires a source checkout (2):
+    'test-arc1b-s2r-relmat-q2-recovery-runner.R:56:3',
+    'test-arc1b-s2r-relmat-q2-recovery-runner.R:112:3'
+  • Arc 3a campaign tools require a source checkout (1):
+    'test-positive-continuous-structured-mu.R:51:3'
+  • DRM.jl Tier-2 engine not available (2): 'test-xfam-bridge.R:421:3',
+    'test-xfam-bridge.R:464:3'
+  • DRM.jl covariate-sigma engine not available (1): 'test-xfam-bridge.R:571:3'
+  • DRM.jl cross-family engine not available (1): 'test-xfam-bridge.R:261:3'
+  • DRM.jl engine path not available (7): 'test-julia-missing.R:21:3',
+    'test-julia-tmb-parity.R:71:3', 'test-julia-tmb-parity.R:153:3',
+    'test-julia-tmb-parity.R:284:3', 'test-julia-tmb-parity.R:483:3',
+    'test-julia-tmb-parity.R:619:3', 'test-julia-tmb-parity.R:1343:3'
+  • DRM.jl general-covariance engine not available (4):
+    'test-julia-structured.R:454:3', 'test-julia-tmb-parity.R:770:3',
+    'test-julia-tmb-parity.R:935:3', 'test-julia-tmb-parity.R:1109:3'
+  • DRM.jl phylo engine not available (3): 'test-julia-inference.R:337:3',
+    'test-julia-phylo-nongaussian.R:221:3',
+    'test-julia-phylo-nongaussian.R:257:3'
+  • DRM.jl phylo-count engine not available (1): 'test-julia-phylo-count.R:167:3'
+  • DRM.jl q2 diagnostic engine path not available (1):
+    'test-julia-q2-phylo-point-export.R:68:3'
+  • DRM.jl sigma-phylo REML engine not available (1):
+    'test-julia-sigma-phylo-reml.R:462:3'
+  • On CRAN (99): 'test-aghq-coxreid.R:6:1',
+    'test-animal-relmat-gaussian.R:1386:3',
+    'test-animal-relmat-gaussian.R:1499:3', 'test-arc-c-clamp-hardening.R:33:3',
+    'test-arc1b-s2r-relmat-q2-recovery-runner.R:13:3',
+    'test-arc1b-spatial-q2-reml-recovery.R:13:3',
+    'test-associate-pairs-bernoulli-bernoulli.R:125:1',
+    'test-associate-pairs-gaussian-bernoulli.R:198:1',
+    'test-associate-pairs-gaussian-bernoulli.R:234:1', 'test-check-drm.R:904:3',
+    'test-control.R:567:3', 'test-control.R:627:3', 'test-control.R:671:3',
+    'test-control.R:742:3', 'test-distributional-outputs.R:39:3',
+    'test-distributional-outputs.R:78:3', 'test-distributional-outputs.R:101:3',
+    'test-estimator-surface-conformance.R:294:3',
+    'test-estimator-surface-conformance.R:340:3',
+    'test-family-dpq-batchD.R:380:3', 'test-family-dpq-batchD.R:412:3',
+    'test-formula-double-bar.R:130:3', 'test-formula-double-bar.R:155:3',
+    'test-formula-grouping-guard.R:79:3', 'test-formula-smooth-terms.R:83:3',
+    'test-gaussian-aggregation.R:189:1', 'test-gaussian-location-scale.R:15:1',
+    'test-gaussian-random-intercepts.R:518:1', 'test-julia-missing.R:161:3',
+    'test-julia-phylo-q4-corpairs.R:292:3',
+    'test-julia-slope-nongaussian.R:55:3', 'test-logsigma-clamp.R:29:3',
+    'test-logsigma-clamp.R:103:3', 'test-missing-predictor-beta-binomial.R:95:3',
+    'test-missing-predictor-beta-binomial.R:133:3',
+    'test-nbinom2-sigma-structured-recovery.R:37:3',
+    'test-nbinom2-sigma-structured-recovery.R:63:3',
+    'test-nongaussian-structured-boundary.R:524:3',
+    'test-nongaussian-structured-recovery.R:11:3',
+    'test-nongaussian-structured-recovery.R:60:3',
+    'test-nongaussian-structured-recovery.R:103:3',
+    'test-nongaussian-structured-recovery.R:145:3',
+    'test-optimizer-contract.R:41:1', 'test-optimizer-contract.R:83:1',
+    'test-optimizer-contract.R:108:1', 'test-phylo-gaussian.R:1630:3',
+    'test-phylo-gaussian.R:2078:3', 'test-phylo-interaction.R:417:3',
+    'test-phylo-interaction.R:528:3', 'test-phylo-interaction.R:572:3',
+    'test-phylo-interaction.R:754:3', 'test-phylo-penalized-map.R:46:3',
+    'test-phylo-penalized-map.R:62:3', 'test-phylo-penalty-sweep.R:27:3',
+    'test-phylo-penalty-sweep.R:77:3', 'test-phylo-penalty-sweep.R:103:3',
+    'test-profile-targets.R:3425:3', 'test-reml-bias-simulation.R:9:3',
+    'test-reml-bivariate-relmat-q2.R:159:3',
+    'test-reml-bivariate-relmat-q2.R:273:3',
+    'test-reml-bivariate-spatial-q2.R:166:3',
+    'test-reml-bivariate-spatial-q2.R:254:3', 'test-reml-bivariate.R:44:3',
+    'test-reml-bivariate.R:80:3', 'test-reml-bivariate.R:93:3',
+    'test-reml-bivariate.R:167:3', 'test-reml-bivariate.R:194:3',
+    'test-reml-bivariate.R:217:3', 'test-reml-bivariate.R:282:3',
+    'test-reml-direct-sd-phylo.R:38:3', 'test-reml-direct-sd-phylo.R:57:3',
+    'test-reml-heteroscedastic.R:64:3', 'test-reml-heteroscedastic.R:88:3',
+    'test-reml-heteroscedastic.R:102:3', 'test-reml-ordinary-sigma.R:29:3',
+    'test-reml-ordinary-sigma.R:44:3', 'test-reml-ordinary-sigma.R:56:3',
+    'test-reml-ordinary-sigma.R:70:3', 'test-reml-ordinary-sigma.R:89:3',
+    'test-reml-ordinary-sigma.R:103:3', 'test-reml-phylo-location.R:68:3',
+    'test-reml-phylo-location.R:100:3', 'test-reml-phylo-location.R:126:3',
+    'test-reml-phylo-location.R:148:3', 'test-reml-scale-structured.R:37:3',
+    'test-reml-scale-structured.R:59:3', 'test-reml-scale-structured.R:72:3',
+    'test-reml-structured-location.R:228:3',
+    'test-reml-structured-location.R:307:3',
+    'test-reml-structured-location.R:348:3',
+    'test-scale-phylo-identifiability.R:40:3',
+    'test-scale-phylo-identifiability.R:70:3',
+    'test-scale-phylo-identifiability.R:81:3',
+    'test-scale-phylo-identifiability.R:93:3',
+    'test-scale-phylo-identifiability.R:115:3',
+    'test-simulate-re-form-phylo-interaction.R:160:3',
+    'test-sparse-fixed-effects.R:163:1', 'test-sparse-fixed-effects.R:173:1',
+    'test-spatial-gaussian.R:639:3'
+  • On Windows (4): 'test-profile-targets.R:1154:3',
+    'test-profile-targets.R:1528:3', 'test-profile-targets.R:2314:3',
+    'test-profile-targets.R:2525:3'
+  • The source-only coverage driver is unavailable in an installed-package check.
+    (1): 'test-biv-lognormal-rho12-coverage-driver.R:4:3'
+  • The source-only documentation surfaces are unavailable in an
+    installed-package check. (1): 'test-biv-lognormal-rho12-coverage-docs.R:9:3'
+  • Top-level campaign tools are intentionally excluded from the source tarball
+    (1): 'test-mesh-recovery-v3-contract.R:5:3'
+  • Top-level development tools are intentionally excluded from the source
+    package (2): 'test-beta-phylo-q1-recovery-runner.R:417:5',
+    'test-beta-phylo-q1-successor-runners.R:497:5'
+  • Top-level tools are intentionally excluded from the source tarball (6):
+    'test-arc4c-drac-dispatch.R:4:5',
+    'test-arc4c-mu-slope-coverage-runner.R:6:5',
+    'test-b1-breadth-adapters.R:5:5', 'test-b1-breadth-contract.R:5:5',
+    'test-b1-breadth-dispatch.R:5:5',
+    'test-b2-q6-serial-proof-receipt-audit.R:5:5'
+  • artifact source file not available:
+    docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/tables/structured-coverage-pilot-rows.csv
+    (1): 'test-structured-re-ademp-scaffold.R:284:3'
+  • built tarball: docs/ excluded by .Rbuildignore, conformance TSV not shipped
+    (2): 'test-estimator-surface-conformance.R:216:3',
+    'test-estimator-surface-conformance.R:263:3'
+  • public docs are not available in this installed-package context (1):
+    'test-julia-gate-vs-engine.R:230:3'
+  • requires the development-only F3 provenance runner (1):
+    'test-arc6-f3-provenance-smoke-runner.R:2:1'
+  • requires the development-only coverage and interior-DGP runners (1):
+    'test-beta-phylo-q1-sd-coverage-runner.R:15:1'
+  • requires the development-only frozen PR2 runner (1):
+    'test-beta-phylo-q1-sd-regression-runner.R:8:1'
+  • requires the development-only interior-DGP runner (1):
+    'test-beta-phylo-q1-sd-interior-recovery-runner.R:8:1'
+  
+  ══ Failed tests ════════════════════════════════════════════════════════════════
+  ── Error ('test-guard-branch-continuity.R:68:3'): the CondExp enumeration this suite audits has not silently drifted ──
+  Error: Cannot locate C++ source 'drmTMB.cpp'. Tried:
+    ../../src/drmTMB.cpp
+    ../../00_pkg_src/drmTMB/src/drmTMB.cpp
+  Backtrace:
+      ▆
+   1. ├─base::grepl("CppAD::CondExp", read_src("drmTMB.cpp")) at test-guard-branch-continuity.R:68:3
+   2. │ └─base::is.factor(x)
+   3. └─drmTMB (local) read_src("drmTMB.cpp")
+   4.   ├─base::readLines(drm_src_path(rel), warn = FALSE) at test-guard-branch-continuity.R:58:3
+   5.   └─drmTMB (local) drm_src_path(rel)
+  
+  [ FAIL 1 | WARN 64 | SKIP 147 | PASS 15427 ]
+  Error:
+  ! Test failures.
+  Execution halted
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... [168s] OK
+* checking PDF version of manual ... [24s] OK
+* checking HTML version of manual ... [25s] OK
+* DONE
+Status: 1 ERROR, 1 NOTE

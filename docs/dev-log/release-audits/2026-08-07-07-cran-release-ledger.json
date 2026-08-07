@@ -3,7 +3,7 @@
   "version": "0.6.0",
   "release_type": "first_submission",
   "target_cran_version": "0.7.0",
-  "note": "DESCRIPTION remains 0.6.0 (D-86). status_claim advanced to tarball-clean after clean-worktree rebuild from merge #938 (459bd3fa9). Local --as-cran Status: 1 NOTE (New submission only). STOP before platform-clean and upload.",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). Highest proven rung remains tarball-clean. 2026-08-07 platform-clean attempt NOT READY: win-builder R-release and R-devel both Status 1 ERROR (test-guard-branch-continuity cannot find src/drmTMB.cpp). GHA 3-OS workflow_dispatch 31195187084 success. R-hub ASAN/UBSAN/gcc-ASAN OK; rchk noise; valgrind incomplete at ledger write. Evidence under docs/dev-log/release/0.7.0-cran-gate/platform/. STOP before platform-clean claim, DESCRIPTION 0.7 bump, and upload.",
   "profile": {
     "compiled_code": true,
     "reverse_dependencies": false,

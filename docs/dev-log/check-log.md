@@ -2,6 +2,22 @@
 
 Record meaningful development checks here.
 
+## 2026-08-07: 0.7 CRAN gate — platform-clean attempt (NOT READY)
+
+- Worktree `drmTMB-07-platform` / `cursor/07-platform-clean` from `main` @ `744b9fbe`.
+- Frozen SHA re-verified `c787ee40…aa156cbb`. DESCRIPTION still 0.6.0.
+- GHA 3-OS `workflow_dispatch` [31195187084](https://github.com/itchyshin/drmTMB/actions/runs/31195187084):
+  ubuntu/macOS/windows **success** (46.5 / 31.7 / 58.8 min; <75m ceiling).
+- win-builder R-release + R-devel: **1 ERROR, 1 NOTE**
+  ([XhAiv0jf1AUd](https://win-builder.r-project.org/XhAiv0jf1AUd),
+  [nF44JzoI2nZ9](https://win-builder.r-project.org/nF44JzoI2nZ9)) —
+  `test-guard-branch-continuity.R` cannot locate `src/drmTMB.cpp`.
+- R-hub [31195195196](https://github.com/itchyshin/drmTMB/actions/runs/31195195196):
+  clang-asan/ubsan + gcc-asan OK; rchk FAIL adjudicated TMB-framework noise;
+  valgrind still in progress at write.
+- Ledger `status_claim` stays **`tarball-clean`** (honest NOT READY for platform-clean).
+- Evidence: `docs/dev-log/release/0.7.0-cran-gate/platform/`.
+
 ## 2026-08-07: 0.7 CRAN gate — tarball-clean freeze
 
 - Merged PR #938 → `main` `459bd3fa9`. Clean worktree rebuild at

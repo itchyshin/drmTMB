@@ -1,11 +1,17 @@
-GOAL: see GOAL.md.   STATE: **source-clean proven**; this slice complete.
+GOAL: see GOAL.md.   STATE: **tarball-clean proven**; platform-clean attempt **NOT READY**.
 ARCS DONE (verified):
-- A0 — G0 approved; D-93/D-117 discharged for readiness.
-- A1 — #930 merged; CI run 31043189202 success.
-- A2 — claim-freeze at `c2b9d6cd6` (README + cran-comments + audit).
-- A3 — product contract + rights skim + policy + rendered-site evidence; ledger JSON.
-- A4 — Probe 1 (2 NOTEs, LOOP) → `.Rbuildignore ^LOOP$` → Probe 2 **Status: 1 NOTE** (New submission only); SHA `5db0111a683fd91d42ba11d66eb4ed83b2b4ba61dd7d58f5e2fb493b4f9662d3`, 9817128 bytes, 917 inventory entries; LOOP absent.
-- A5 — after-task + Melissa reconcile written; gate script READY FOR CLAIMED RUNG at `source-clean`.
-OPEN GATES (need human): CRAN **upload** only. Do **not** claim `tarball-clean` until a clean-worktree commit includes `.Rbuildignore` and a rebuild is re-bound. Do **not** bump DESCRIPTION to 0.7.0.
-TRUTH LIVES IN: worktree `~/local-scratch/worktrees/drmTMB-07-cran-exec` · branch `cursor/07-cran-readiness` · ledger `docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json` · probes `docs/dev-log/release/0.7.0-cran-gate/`
-RESUME: You are drmTMB-0.7-cran-readiness — STOPPED at source-clean. Highest proven rung = source-clean. Next owner action = upload decision (out of agent scope). Do NOT upload. Do NOT bump DESCRIPTION to 0.7.0.
+- A0–A5 — source-clean / probe-2 / ledger (prior).
+- Tarball-clean — #938/#939; freeze SHA `c787ee40…aa156cbb`; local --as-cran 1 NOTE.
+- Platform attempt (2026-08-07) — GHA 3-OS green (run 31195187084); win-builder
+  R-release+R-devel **1 ERROR** (CondExp `drm_src_path`); R-hub sanitizers OK /
+  rchk noise; valgrind incomplete. Ledger claim **not** advanced.
+OPEN GATES (need human / repair):
+- Fix CRAN-lane CondExp source path for win-builder; re-run win-builder.
+- Finish valgrind adjudication; then re-evaluate `platform-clean`.
+- Submission-ready / DESCRIPTION 0.7.0 / upload — owner only.
+TRUTH LIVES IN: worktree `~/local-scratch/worktrees/drmTMB-07-platform` · branch
+`cursor/07-platform-clean` · ledger
+`docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json` ·
+`docs/dev-log/release/0.7.0-cran-gate/platform/PLATFORM-NOT-READY.md`
+RESUME: Highest proven rung = **tarball-clean**. Do NOT claim platform-clean.
+Do NOT upload. Do NOT bump DESCRIPTION to 0.7.0.
