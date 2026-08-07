@@ -47,12 +47,24 @@ CRAN incoming feasibility also flagged: New submission; possible DESCRIPTION
 spellings (`centile`, `mis`, `uncalibrated`); possibly invalid file URI
 `function-map-cheatsheet.png` from `inst/doc/function-map-cheatsheet.html`.
 
-## Next (owner / repair lane)
+## Repair landed (awaiting win-builder re-green)
 
-1. Fix `drm_src_path()` (or skip-with-loud-fail policy) so CondExp guard resolves
-   sources under win-builder / CRAN Windows `R CMD check`, **or** move the
-   source-text audit to a tools/ CI-only guard (same class as citation guards).
-2. Re-submit win-builder R-release + R-devel; require Status without ERROR.
-3. Finish valgrind adjudication if still pending.
-4. Only then advance ledger `status_claim` → `platform-clean`.
-5. **STOP** before DESCRIPTION 0.7.0 bump / CRAN upload.
+`drm_src_path()` now resolves:
+
+- checkout `tests/testthat` → `../../src`
+- R CMD check `*.Rcheck/tests` → `../00_pkg_src/drmTMB/src`
+- win-builder sibling → `../../drmTMB/src` (+ short upward/sibling walk)
+
+Local fixture: old two-candidate helper **misses**; new helper **hits**.
+Focused continuity suite: `FAIL 0 | PASS 51`. See after-task
+`2026-08-07-winbuilder-drm-src-path-fix.md`.
+
+**Still NOT READY for `platform-clean`** until win-builder R-release + R-devel
+return without ERROR on a tarball that includes this repair.
+
+## Next
+
+1. Re-submit win-builder R-release + R-devel; require Status without ERROR.
+2. Finish valgrind adjudication if still pending.
+3. Only then advance ledger `status_claim` → `platform-clean`.
+4. **STOP** before DESCRIPTION 0.7.0 bump / CRAN upload.

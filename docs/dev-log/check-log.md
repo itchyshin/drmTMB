@@ -2,6 +2,17 @@
 
 Record meaningful development checks here.
 
+## 2026-08-07: win-builder CondExp `drm_src_path` repair (platform-clean still NOT READY)
+
+- Root cause: under `test_check()`, `test_path()` is relative to
+  `*.Rcheck/tests/`; old `../../00_pkg_src/...` overshoots. Local freeze passed
+  only via accidental checkout `../../src`.
+- Fix: `tests/testthat/test-guard-branch-continuity.R` candidates + layout unit
+  test (checkout / `00_pkg_src` / win-builder sibling).
+- Focused continuity: `FAIL 0 | PASS 51`. Pure win-builder fixture: old miss /
+  new hit.
+- Highest proven rung remains **`tarball-clean`** until win-builder re-green.
+
 ## 2026-08-07: 0.7 CRAN gate — platform-clean attempt (NOT READY)
 
 - Worktree `drmTMB-07-platform` / `cursor/07-platform-clean` from `main` @ `744b9fbe`.

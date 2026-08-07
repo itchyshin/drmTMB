@@ -29,21 +29,78 @@ DERIV_TOL <- 1e-6
 rel_diff <- function(a, b) abs(a - b) / abs(b)
 
 # The C++ sources sit at different relative locations depending on how this
-# suite is invoked: `../../src` from a source checkout (devtools::test,
-# test_dir), but `../../00_pkg_src/<pkg>/src` under `R CMD check`, which runs
-# tests from `<pkg>.Rcheck/tests/`. Resolve against both rather than assuming
-# the checkout layout -- assuming it passed under test_dir and ERRORed under
-# R CMD check, which is exactly how this was caught.
+# suite is invoked. Under `test_check()` (R CMD check), `testthat::test_path()`
+# returns paths relative to getwd(), and getwd() is `<pkg>.Rcheck/tests/` — not
+# `tests/testthat/`. The historical `../../00_pkg_src/...` candidate therefore
+# overshoots the Rcheck tree (it looks beside Rcheck, not inside it). Local
+# macOS checks still "passed" only when the Rcheck lived inside a source
+# checkout, so `../../src` accidentally hit that checkout's `src/`; win-builder
+# has no such sibling and both candidates missed.
 #
-# Deliberately no skip_*(): if no candidate resolves, fail loudly. A drift
-# guard that quietly opts out when it cannot find its subject is worse than no
-# guard at all.
-drm_src_path <- function(rel) {
-  candidates <- c(
-    testthat::test_path("..", "..", "src", rel),
-    testthat::test_path("..", "..", "00_pkg_src", "drmTMB", "src", rel)
+# Layouts we must hit:
+#   - source checkout, cwd = pkg/tests/testthat  -> ../../src
+#   - Unix/macOS R CMD check, cwd = *.Rcheck/tests -> ../00_pkg_src/drmTMB/src
+#   - win-builder, cwd = *.Rcheck/tests, often no usable 00_pkg_src under the
+#     relative path the old helper tried -> ../../drmTMB/src (unpacked tarball
+#     sibling of *.Rcheck)
+#
+# Deliberately no skip_*() when the file is absent: if no candidate resolves,
+# fail loudly. A drift guard that quietly opts out when it cannot find its
+# subject is worse than no guard at all.
+drm_src_candidates <- function(rel, start_dir = getwd()) {
+  rel <- as.character(rel)[[1L]]
+  start_dir <- normalizePath(start_dir, winslash = "/", mustWork = FALSE)
+
+  out <- c(
+    # Relative to tests/testthat (devtools::test / test_dir).
+    file.path(start_dir, "..", "..", "src", rel),
+    file.path(start_dir, "..", "..", "00_pkg_src", "drmTMB", "src", rel),
+    # Relative to *.Rcheck/tests (test_check / R CMD check).
+    file.path(start_dir, "..", "src", rel),
+    file.path(start_dir, "..", "00_pkg_src", "drmTMB", "src", rel),
+    # win-builder / CRAN Windows: unpacked source sits beside *.Rcheck.
+    file.path(start_dir, "..", "..", "drmTMB", "src", rel),
+    file.path(start_dir, "..", "..", "..", "drmTMB", "src", rel)
   )
-  hit <- candidates[file.exists(candidates)]
+
+  # Walk upward: prefer dir/src/<rel>, then 00_pkg_src, then a non-Rcheck
+  # sibling named drmTMB* (the unpacked tarball next to *.Rcheck).
+  dir <- start_dir
+  for (i in seq_len(6L)) {
+    out <- c(
+      out,
+      file.path(dir, "src", rel),
+      file.path(dir, "00_pkg_src", "drmTMB", "src", rel)
+    )
+    parent <- dirname(dir)
+    if (!identical(parent, dir) && dir.exists(parent)) {
+      sibs <- list.files(parent, full.names = TRUE)
+      sibs <- sibs[basename(sibs) == "drmTMB" | startsWith(basename(sibs), "drmTMB_")]
+      sibs <- sibs[!grepl("\\.Rcheck$", sibs)]
+      out <- c(out, file.path(sibs, "src", rel))
+    }
+    if (identical(parent, dir)) {
+      break
+    }
+    dir <- parent
+  }
+
+  # Keep raw relatives from test_path for the error message / older callers.
+  out <- c(
+    out,
+    testthat::test_path("..", "..", "src", rel),
+    testthat::test_path("..", "..", "00_pkg_src", "drmTMB", "src", rel),
+    testthat::test_path("..", "00_pkg_src", "drmTMB", "src", rel),
+    testthat::test_path("..", "..", "drmTMB", "src", rel)
+  )
+
+  unique(out)
+}
+
+drm_src_path <- function(rel, start_dir = getwd()) {
+  candidates <- drm_src_candidates(rel, start_dir = start_dir)
+  exists <- file.exists(candidates)
+  hit <- candidates[exists]
   if (length(hit) == 0L) {
     stop(
       "Cannot locate C++ source '", rel, "'. Tried:\n  ",
@@ -51,12 +108,52 @@ drm_src_path <- function(rel) {
       call. = FALSE
     )
   }
-  hit[[1L]]
+  normalizePath(hit[[1L]], winslash = "/", mustWork = TRUE)
 }
 
 read_src <- function(rel) {
   readLines(drm_src_path(rel), warn = FALSE)
 }
+
+test_that("drm_src_path resolves checkout, Rcheck 00_pkg_src, and win-builder sibling layouts", {
+  tmp <- tempfile("drm-src-layouts-")
+  dir.create(tmp)
+  on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
+
+  write_cpp <- function(path) {
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    writeLines("// layout probe", path)
+    normalizePath(path, winslash = "/", mustWork = TRUE)
+  }
+
+  # A: source checkout; cwd = pkg/tests/testthat
+  pkg_a <- file.path(tmp, "checkout", "drmTMB")
+  src_a <- write_cpp(file.path(pkg_a, "src", "drmTMB.cpp"))
+  dir.create(file.path(pkg_a, "tests", "testthat"), recursive = TRUE)
+  expect_equal(
+    drm_src_path("drmTMB.cpp", start_dir = file.path(pkg_a, "tests", "testthat")),
+    src_a
+  )
+
+  # B: Unix/macOS R CMD check; cwd = *.Rcheck/tests; sources in 00_pkg_src
+  rcheck_b <- file.path(tmp, "unix", "drmTMB.Rcheck")
+  src_b <- write_cpp(file.path(rcheck_b, "00_pkg_src", "drmTMB", "src", "drmTMB.cpp"))
+  dir.create(file.path(rcheck_b, "tests", "testthat"), recursive = TRUE)
+  expect_equal(
+    drm_src_path("drmTMB.cpp", start_dir = file.path(rcheck_b, "tests")),
+    src_b
+  )
+
+  # C: win-builder; cwd = *.Rcheck/tests; no 00_pkg_src; sibling unpacked src
+  root_c <- file.path(tmp, "winbuilder")
+  src_c <- write_cpp(file.path(root_c, "drmTMB", "src", "drmTMB.cpp"))
+  rcheck_c <- file.path(root_c, "drmTMB.Rcheck")
+  dir.create(file.path(rcheck_c, "tests", "testthat"), recursive = TRUE)
+  expect_equal(
+    drm_src_path("drmTMB.cpp", start_dir = file.path(rcheck_c, "tests")),
+    src_c
+  )
+})
 
 # ---------------------------------------------------------------------------
 # Part A anchor: the enumeration this suite is built against. If a future

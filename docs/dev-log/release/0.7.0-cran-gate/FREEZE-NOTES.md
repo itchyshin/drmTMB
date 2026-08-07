@@ -15,7 +15,10 @@
   (`workflow_dispatch` run 31195187084); win-builder R-release + R-devel **1 ERROR**
   (CondExp source-path guard); R-hub sanitizers OK / rchk noise / valgrind incomplete.
   Do **not** claim `platform-clean` until win-builder is clean.
-- **Next:** repair win-builder CondExp `drm_src_path` (or move guard out of CRAN-lane
-  tests), re-run win-builder, finish valgrind, then re-evaluate. No upload.
+- **Path repair (2026-08-07):** CondExp `drm_src_path` fixed on
+  `cursor/07-platform-clean` (PR #941) for win-builder sibling / correct
+  `../00_pkg_src` layouts. **Does not yet reclaim `platform-clean`** — re-run
+  win-builder on a tarball that includes the repair; finish valgrind; then
+  re-evaluate. No upload.
 
 Do not commit the `.tar.gz` binary (root `/*.tar.gz` is gitignored).
