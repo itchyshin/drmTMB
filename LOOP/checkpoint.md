@@ -1,10 +1,11 @@
-GOAL: see GOAL.md.   STATE: claim-freeze WIP committed next; gate ledger + tarball owed.
+GOAL: see GOAL.md.   STATE: **source-clean proven**; this slice complete.
 ARCS DONE (verified):
 - A0 — G0 approved; D-93/D-117 discharged for readiness.
 - A1 — #930 merged; CI run 31043189202 success.
-- A2 — claim audit written; README + cran-comments edits present (uncommitted until this checkpoint lands).
-ARC IN PROGRESS: A3-gate-ledger — product contract + cran_release_gate ledger JSON.
-NEXT: A4-tarball-probe — local build + R CMD check --as-cran + SHA.
-OPEN GATES (need human): CRAN **upload** (out of scope); optional merge of PR #931 if not already on this branch (docs already FF'd @ 7bacb9e2c).
-TRUTH LIVES IN: worktree `~/local-scratch/worktrees/drmTMB-07-cran-exec` · branch `cursor/07-cran-readiness` @ `7bacb9e2c`+WIP · plan `~/.cursor/plans/0.7_cran_ultra-plan_42828b75.plan.md`
-RESUME: You are drmTMB-0.7-cran-readiness — RESUME. READ LOOP/GOAL.md → checkpoint.md → ultra-plan.md. WORKSPACE: ~/local-scratch/worktrees/drmTMB-07-cran-exec on cursor/07-cran-readiness. CONTINUE FROM: A3/A4. Do NOT upload. Do NOT bump DESCRIPTION to 0.7.0.
+- A2 — claim-freeze at `c2b9d6cd6` (README + cran-comments + audit).
+- A3 — product contract + rights skim + policy + rendered-site evidence; ledger JSON.
+- A4 — Probe 1 (2 NOTEs, LOOP) → `.Rbuildignore ^LOOP$` → Probe 2 **Status: 1 NOTE** (New submission only); SHA `5db0111a683fd91d42ba11d66eb4ed83b2b4ba61dd7d58f5e2fb493b4f9662d3`, 9817128 bytes, 917 inventory entries; LOOP absent.
+- A5 — after-task + Melissa reconcile written; gate script READY FOR CLAIMED RUNG at `source-clean`.
+OPEN GATES (need human): CRAN **upload** only. Do **not** claim `tarball-clean` until a clean-worktree commit includes `.Rbuildignore` and a rebuild is re-bound. Do **not** bump DESCRIPTION to 0.7.0.
+TRUTH LIVES IN: worktree `~/local-scratch/worktrees/drmTMB-07-cran-exec` · branch `cursor/07-cran-readiness` · ledger `docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json` · probes `docs/dev-log/release/0.7.0-cran-gate/`
+RESUME: You are drmTMB-0.7-cran-readiness — STOPPED at source-clean. Highest proven rung = source-clean. Next owner action = upload decision (out of agent scope). Do NOT upload. Do NOT bump DESCRIPTION to 0.7.0.

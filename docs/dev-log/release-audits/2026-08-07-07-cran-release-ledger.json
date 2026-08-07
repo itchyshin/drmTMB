@@ -3,7 +3,7 @@
   "version": "0.6.0",
   "release_type": "first_submission",
   "target_cran_version": "0.7.0",
-  "note": "DESCRIPTION remains 0.6.0 (D-86). status_claim is source-clean only. Tarball SHA recorded as a probe under docs/dev-log/release/0.7.0-cran-gate/ when built; do not claim tarball-clean until --as-cran log + inventory exist for that SHA.",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). status_claim is source-clean only. Probe-2 tarball SHA/size/inventory recorded under docs/dev-log/release/0.7.0-cran-gate/; LOOP excluded via .Rbuildignore. Do not claim tarball-clean until a clean-worktree commit includes that ignore and a matching --as-cran log is bound for a rebuild from that commit.",
   "profile": {
     "compiled_code": true,
     "reverse_dependencies": false,
@@ -11,13 +11,18 @@
     "large_data_or_vignettes": true
   },
   "artifact": {
-    "path": "",
-    "sha256": "",
-    "size_bytes": 0,
-    "source_commit": "7bacb9e2c96926bea606a190dff3c14c9acbdf61",
+    "path": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/drmTMB_0.6.0.tar.gz",
+    "sha256": "5db0111a683fd91d42ba11d66eb4ed83b2b4ba61dd7d58f5e2fb493b4f9662d3",
+    "size_bytes": 9817128,
+    "source_commit": "c2b9d6cd604234805a480cce8b1212a34fe92f7b",
     "clean_worktree": false,
-    "inventory_evidence": {"kind": "rationale", "value": "NOT_APPLICABLE: source-clean rung; tarball probe pending"},
-    "forbidden_entries": []
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release/0.7.0-cran-gate/tarball-inventory.txt"
+    },
+    "forbidden_entries": [],
+    "probe_as_cran_status": "Status: 1 NOTE (New submission only)",
+    "probe_log": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
   },
   "evidence": {
     "product_contract": {
