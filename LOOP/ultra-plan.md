@@ -1,180 +1,156 @@
 ---
-name: 135-trace campaign
-overview: Outcome-first arc to move up to 14 Prong B cells from point_fit_recovery to interval_feasible (182→196) via a grid-engine campaign runner, Totoro ≤100 cores, ten-clause review, and promotion only of cells that clear. Smoke already PASS; Arc 0 is mostly done.
+name: 0.7 CRAN ultra-plan
+overview: "PR #930 is already merged to main (`8df6f240`). This ultra-plan executes the remaining 0.7.0 CRAN readiness arc (Arc Card: 5h) from a clean worktree: discharge D-93/D-117 by plan approval, claim-freeze, then cran-release-gate through source-clean and a local tarball probe. No AGHQ, no missing-data expansion, no CRAN upload."
 todos:
-  - id: s1-runner
-    content: "S1: Build grid-engine 14-cell campaign runner + Totoro driver (real clamp/LR/truth fields)"
+  - id: s0-watch-ci
+    content: Watch post-merge main CI run 31043189202 (75m ceiling)
+    status: completed
+  - id: s1-worktree
+    content: Create clean worktree drmTMB-07-cran from origin/main
+    status: completed
+  - id: s2-claim-audit
+    content: Rose claim-surface audit vs ledger 187 IF
+    status: completed
+  - id: s3-claim-freeze
+    content: Apply claim-freeze edits + refresh cran-comments.md
+    status: completed
+  - id: s4-gate-ledger
+    content: Init cran-release-gate ledger Gates -1/0/1
     status: in_progress
-  - id: s2-c1-smoke
-    content: "S2: C1 re-smoke mc-0568 with profile_engine=grid; gate Totoro"
+  - id: s5-tarball
+    content: Local tarball + --as-cran + cran_release_gate.py; record SHA
     status: pending
-  - id: s3-totoro
-    content: "S3: Totoro ≤100-core grid after explicit go; land receipts"
-    status: pending
-  - id: s4-review
-    content: "S4: Ten-clause + Fisher review → PASS/WITHHOLD per cell"
-    status: pending
-  - id: s5-promote
-    content: "S5: Promote PASSes only (ledger, FROZEN 59→45, NEWS, claim_boundary)"
-    status: pending
-  - id: verify-close
-    content: Mechanical verify + Rose claim check + Melissa plan-actual + after-task
+  - id: s6-verify-close
+    content: Mechanical verify + after-task + Melissa reconcile; STOP before upload
     status: pending
 isProject: false
 ---
 
-# ARC CARD + ULTRA PLAN — 135-trace Prong B campaign
+# Ultra-plan: drmTMB 0.7.0 CRAN readiness (post-#930)
+
+## GOAL (paste-ready)
 
 ```text
-GOAL
-PLATFORM: Cursor (this session plans; after G0 approval hand to /goal for execution — same worktree).
-DELIVERABLE: Up to 14 cells promoted point_fit_recovery → interval_feasible with retained
-receipts, truth-gate pass, ten-clause review, and structured-sigma claim_boundary text where required.
-HEADLINE: Build the grid-engine campaign runner (fixing the endpoint-engine smoke gap), run Totoro
-≤100 cores, review all ~135 traces, promote only cells that clear.
-IN PARALLEL: none for compute (embarrassingly parallel inside Totoro job); lane #858 preserved unread.
-DEFER (fenced): D-117 discharge; PR #926 re-score; REML design doc; coi/Tier-2 fences; 7-method
-coverage grid; predict() scale-axis; CI split; B4-CI; mc-0282.
-DISCIPLINE: preregistration already written; smoke-first already green for mc-0568; never hard-code
-clamp_limited=FALSE; recorded endpoints from grid engine only; 4/5 truth-bracketing = BLOCK;
-Totoro never Actions (D-50); FROZEN_CENSUS 59→45 only at actual promotion.
+PLATFORM: Cursor
+LANE: drmTMB-0.7-cran-readiness
+DELIVERABLE: cran-release-gate highest proven rung = source-clean; local candidate tarball SHA recorded; after-task + LOOP checkpoint
+HEADLINE: Claim-freeze + D-49 source-clean after #930 (already MERGED at 8df6f240)
+IN PARALLEL: claim-surface audit vs ledger · Gate −1/0/1 inventory draft · watch post-merge main CI
+DEFER: CRAN upload · full 3-OS/R-hub platform-clean · AGHQ · missing-data G4+ · WITHHOLD re-prereg · primary-checkout cleanup · #858/#893/#869
+DISCIPLINE: work only in a fresh worktree off origin/main · never stage primary debris · bump DESCRIPTION to 0.7.0 only at freeze (D-86) · never claim "CRAN ready" — report highest proven rung · verify with cran_release_gate.py + local --as-cran · Totoro/DRAC N/A · close via /goal LOOP
 ```
 
-**Default end-state (override if you want receipts-only):** promote every cell that clears the ten-clause contract in this arc. That is the only path that can move the census metric.
+## ARC PROGRAM
 
----
+From [scratchpad/2026-08-05-arc-07-cran-release-readiness.md](/Users/z3437171/local-scratch/worktrees/drmTMB-135trace/scratchpad/2026-08-05-arc-07-cran-release-readiness.md):
 
-## ARC CARD — 135-trace Prong B
-
-**Mode:** outcome-first (with measured compute ceiling)  
-**Requested outcome:** up to **+14** `interval_feasible` cells (182→196; frozen PFR 59→45)  
-**Mechanism authority:** worktree `~/local-scratch/worktrees/drmTMB-135trace` · branch `cursor/135-trace-campaign` · Totoro ≤100 cores · grid-engine profiles · truth gate · ledger promotion of cleared cells only · **exclude** primary-checkout debris · **exclude** #858 / mesh / missing-data  
-**Recommended arc:** **6–10 h wall-clock** (range; not a pad)  
-**Time contract:** outcome-first / no hard time-box; Totoro compute ≤30 min once launched  
-**Estimate confidence:** **measured** for compute (scoping memo + mc-0568 smoke ~30 s profile after load); **inferred** for review (135 traces)  
-**Arc 0 outcome:** DONE — preregistration + mc-0568 smoke PASS (engine=endpoint catch recorded)  
-**State transition:** `point_fit_recovery` → `interval_feasible` for cleared subset of the 14  
-**Executable rung and evidence:** Totoro retained receipts + truth gate + Fisher location review + ledger/evidence edits
-
-### Outcome cohort ladder
-
-| Cohort | Candidates | Shared mechanism | Required action | Acceptance evidence | Expected yield / stop |
-| --- | ---: | --- | --- | --- | --- |
-| C0 smoke | 1 (`mc-0568`) | local fit+profile | already run | SMOKE_PASS + receipt | **DONE** |
-| C1 grid smoke | 1 (`mc-0568`) | same DGP, **grid** engine | force `profile_engine=grid` | brackets + real clamp/LR fields | fail → fix runner before Totoro |
-| C2 ordinary zob | 2 | ordinary sigma RE | Totoro 5 seeds | ten-clause + truth gate | best 2 / credible 1–2 / fail→WITHHOLD |
-| C3 structured zob σ | 5 | structured σ ML | Totoro 5 seeds + claim_boundary text | ten-clause + bias disclosure | best 5 / credible 3–5; R3 early-stop |
-| C4 count mu q2 | 5 | labelled q2 (2 SD + cor) | Totoro 5 seeds; **8 for cor** | ten-clause; R2 cor warnings | best 5 / credible 2–4; cor often WITHHOLD |
-| C5 count σ interaction | 2 | phylo_interaction σ | Totoro 5 seeds | ten-clause + bias disclosure | best 2 / credible 1–2 |
-| **Goal** | **14** | | | | **credible ~8–12 promoted; failures stay PFR** |
-
-### Budget (Arc 0 already spent ~45–60 min)
-
-| Segment | Minutes | Output / stop |
+| Rung | Budget | Status after this plan starts |
 | --- | ---: | --- |
-| Orient (spent) | 45 | worktree, classify, prereg, smoke |
-| Core — runner + grid smoke | 90–120 | `tools/run-135-trace-campaign.R` (+ Totoro driver); C1 PASS |
-| Core — Totoro grid | 30–45 | ~135 receipts under artifact dir |
-| Verify — trace review | 180–240 | per-cell PASS/WITHHOLD + Fisher notes |
-| Repair reserve | 60–90 | provider early-stops, cor failures, clamp/LR bugs |
-| Closeout — promote + PR | 60–90 | ledger, FROZEN 59→45, NEWS, after-task, PR |
-| **Total remaining** | **~7–10 h** | |
-
-**In scope:** runner (grid + real clamp/LR), Totoro campaign, review, promote cleared cells.  
-**Not in this arc:** owner D-117/#926/REML-doc decisions; Tier-2/zoi/coi; Actions compute.  
-**Evidence used:** [PREREGISTRATION.md](docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/PREREGISTRATION.md); smoke PASS; [scoping §4](scratchpad/2026-08-03-prong-b-scoping-decision.md); Arc 2 runner pattern in [tools/run-arc2-profile-feasibility.R](tools/run-arc2-profile-feasibility.R); DGP sources in fence fixtures / Lane C recovery scripts.  
-**Risk branch:** If C1 grid smoke fails by minute 30 of runner work, stop Totoro and repair engine wiring. If any provider seed-1 rel_err >0.25, pilot that provider alone (R3).
-
-**Done when:** every one of the 14 has a retained PASS or WITHHOLD with reasons; every PASS is promoted with claim_boundary (structured-σ disclosure where required); census/frozen constant updated only for promotions; after-task + plan-actual written.  
-**First action after G0:** implement grid-engine path in campaign runner and re-smoke mc-0568 with `profile_engine=grid`.
-
-### Actuals (fill at close)
-*(empty until execution)*
-
----
+| Arc 0 discharge | 45 min | **Locked by approving this plan** (see DECISIONS LOCKED) |
+| Rung 1 #930 merge | 75 min | **DONE** — MERGED `8df6f240` · post-merge CI run `31043189202` must be watched |
+| Rung 2 claim freeze | 90 min | OWED |
+| Rung 3 source-clean + tarball probe | 75 min | OWED |
+| Closeout | 15 min | OWED |
+| Remaining capacity | ~180 min | |
 
 ## Phase 0.25 sweep receipt
 
 | Surface | Evidence | Finding | Call |
 | --- | --- | --- | --- |
-| repo git | `git status -sb`; `branch_drift_check.sh` → 0 ahead/0 behind `origin/main` | worktree clean except this lane’s uncommitted prereg/smoke/lane-split; tip `56449fd64` | **resume** `cursor/135-trace-campaign` |
-| twin/sister | gllvmTMB not owning these 14 cells; #858 foreign | no co-opt for this slate | n/a |
-| brain | `search_notes` 135-trace/Prong B; `grep DECISIONS` D-117 | campaign **UNFENCED** 2026-08-05; D-117 **not discharged** (PASS withheld) | reuse unfence; **do not** reopen D-117 in this arc |
-| log/journal | `grep AGENT_LOG/DECISIONS/journal` | Prong B stack landed 2026-08-04; campaign next | build-the-gap = **runner + Totoro + review + promote** |
-| **Verdict** | | | **Gap:** full 14-cell grid-engine campaign + promotion. Reuse Arc2 receipt shape, Lane C DGPs, existing truth gate. |
+| repo git | `gh pr view 930` → MERGED; `git fetch`; `origin/main` = `8df6f240`; `branch_drift_check` campaign branch 0 ahead / 1 behind main | #930 landed; campaign worktree tip is parent of merge | resume from **new worktree on main**, not dirty primary |
+| twin/sister | DRM.jl / gllvmTMB not needed for claim freeze | n/a | n/a |
+| brain `search_notes` | query `drmTMB 0.7.0 CRAN release readiness source-clean` | D-86/D-93/D-117/D-122/D-125; dossier LOAD-FIRST says gate RUN, publish call remains | reuse decisions; build gate ledger gap |
+| grep AGENT_LOG / DECISIONS / OPEN_QUESTIONS / journal / deep-research | `grep D-117\|0.7\|CRAN` | CI-17 still open for publish half; D-125 claim mend done; dr20 is AGHQ literature (DEFER) | build-the-gap = source-clean only |
+| Verdict | | | **reuse** protocol + prior audits; **resume** nothing half-built for 0.7 gate; **build** claim-freeze + gate ledger + tarball probe |
 
-Foreign lane: PR **#858** draft — preserve; no overlap.
+## WHAT THE BRAIN ALREADY KNOWS
 
----
+- First CRAN number is **0.7.0**; 0.6 never submits (D-86).
+- D-93 hold was about RE-SD coverage; profile accepted (D-97); 10-group gate ran (D-117); PASS withheld; warning shipped; **publish half never said**.
+- D-122: "0.7 coming later" (urgency off) — this plan **reopens readiness work**, not upload.
+- D-49 / [`~/shinichi-brain/protocols/cran-release-gate.md`](/Users/z3437171/shinichi-brain/protocols/cran-release-gate.md): fail-closed rungs; `cran_release_gate.py` lives in **brain** `tools/`, not the repo.
+- Experimental banner already on README; `cran-comments.md` exists but is stale vs current evidence.
+- Post-merge `main` CI is **ubuntu-only**; full 3-OS is tag/`workflow_dispatch` only — platform-clean is a **later** arc.
 
-## Phase 0.4 — questions for you (1–2)
+## WHAT SHINICHI TOLD US
 
-**Already defaulted:** promote cleared cells in this arc (not receipts-only). Say if you want receipts-only instead.
+- Leave D-117 discussion for now earlier, then asked for CRAN-facing arc + arc-creation.
+- Explicit: **merge #930** (done).
+- Explicit: **/ultra-plan the arc**.
 
-**Still needed before Totoro launch (execution trigger):** explicit **Totoro go** after C1 grid smoke is green. Unfence authorizes the campaign; launching ≤100 cores still wants a spoken go under D-50 habit.
+## WHAT THE TEAM RAISED
 
-Owner decisions (D-117 / #926 / REML design doc) stay **surfaced, not assumed** — out of this arc.
+```
+TEAM RAISED
+  Rose   — Do not say "CRAN ready"; report source-clean / NOT READY. · Overclaim risk on IF census vs experimental. · Recommend rung language only. · Q: discharge? · Default: discharge via plan approval.
+  Fisher — D-117 PASS stays WITHHELD; profile+warning is the honest position, not a coverage claim. · Publish ≠ coverage PASS. · Recommend discharge without reinstating PASS. · Default: same.
+  Grace  — Watch post-merge run 31043189202; local --as-cran on frozen hash; no DESCRIPTION bump until freeze. · Platform-clean later. · Default: ubuntu watch now, 3-OS later.
+  Ada    — Merge done; lock discharge on plan approval; execute Rungs 2–3 via /goal; STOP before upload.
+```
 
----
+## ADA'S RECOMMENDATION
 
-## TEAM RAISED (compact)
+Approve this plan = discharge D-93/D-117 under **profile RE-SD + `profile.boundary` warning** as the honest 0.7.0 position (PASS remains withheld). Then run claim-freeze + source-clean. Do **not** upload.
 
-- **Fisher** — clause 8 + Fisher location review are load-bearing; endpoint-only smoke is not contract-complete until grid C1 passes. · Recommend: C1 gate before Totoro.  
-- **Rose** — do not promote on mean stats; structured-σ cells need claim_boundary bias text; do not touch #858.  
-- **Gauss** — clamp_limited must be computed; never copy arc1/arc2 `clamp_limited=FALSE`.  
-- **Ada** — outcome-first; Arc 0 done; remaining work is runner → Totoro → review → promote; after G0 hand to `/goal`.
+## DECISIONS LOCKED
 
----
+1. Approving this plan **discharges** D-93/D-117 for readiness work as above.
+2. #930 is on `main`; do not re-run Totoro / re-promote WITHHOLD.
+3. No CRAN upload in this arc.
+4. No AGHQ / missing-data expansion / primary cleanup.
+5. `DESCRIPTION` stays `0.6.0` until an explicit freeze slice bumps to `0.7.0` (D-86) — this arc may draft NEWS for 0.7 but does not tag.
+6. After G0 approval, execution continues via **`/goal`** (not this planning chat).
 
-## ULTRA PLAN — slice table (post-G0 via `/goal`)
+## QUESTIONS STILL OPEN
+
+None that block Rungs 2–3. Upload word remains future-only.
+
+## SLICE TABLE
 
 | Slice | Member | Model+effort | Bar | Time | Detail | Dep |
-| --- | --- | --- | --- | --- | --- | --- |
-| RECON (done) | Ada | — | Cursor Models | done | classify, prereg, smoke | — |
-| S1 runner+registry | Gauss/build | Composer or Sonnet med | Cursor Models | 90–120m | New `tools/run-135-trace-campaign.R` (+ bash Totoro driver): 14-cell registry from Lane C / fence DGPs; one `se=TRUE` fit per (cell,seed); **grid** endpoints; compute clamp_limited + both-sides LR; emit Arc2-shaped receipts + `true_value`/`brackets_truth` | — |
-| S2 C1 grid smoke | Curie | Composer | Cursor Models | 20–30m | Re-smoke mc-0568 with grid; abort Totoro on fail | S1 |
-| S3 Totoro grid | Ada+Curie | Cursor parent + SSH | Cursor / hand HPC | 30–45m | ≤100 cores; artifact dir under `simulation-artifacts/2026-08-05-135-trace-campaign/` | S2 + Totoro go |
-| S4 review panel | Fisher+Rose | Other Models (judgment) | Other Models | 180–240m | Ten-clause + location review per cell; PASS/WITHHOLD table | S3 |
-| S5 promote | Ada+Emmy | Sonnet/Composer | Cursor Models | 60–90m | Ledger/evidence/NEWS/`FROZEN` only for PASSes; structured-σ claim_boundary | S4 |
-| MECHANICAL-VERIFY | Luna/Haiku | Composer | Cursor Models | 20m | `capability_ledger.py --check`; adversarial frozen flip; fence integrity | S5 |
-| VERIFY (judgment) | Rose | Other Models | Other Models | 30m | D-43-style claim vs evidence on promotions | S5 |
-| RECONCILE | Melissa | Sonnet med | Other Models | 20m | `docs/dev-log/plan-actual/2026-08-05-135-trace-campaign.md` | close |
+| --- | --- | --- | --- | ---: | --- | --- |
+| S0 Watch post-merge CI | Grace | Composer / low | Cursor Models | 5+async | `gh run watch 31043189202`; cancelled≠fail (duration vs 75m) | — |
+| S1 Fresh worktree | Ada | Composer / low | Cursor Models | 10 | `git worktree add … origin/main` @ `8df6f240`+; never primary | S0 green or noted |
+| S2 Claim-surface audit | Rose | Auto Cost / medium | Other Models | 40 | Diff README/NEWS/`?confint`/capability-surface vs ledger 187 IF; list overclaims | S1 |
+| S3 Claim freeze edits | docs + Rose | Composer / medium | Cursor Models | 50 | Fix only audit hits; refresh `cran-comments.md` evidence dates; experimental banner already present — verify only | S2 |
+| S4 Gate −1/0/1 ledger | Grace | Auto Cost / medium | Other Models | 35 | Init release ledger JSON for Gate −1 (compiled TMB, first submission), Gate 0 product contract, Gate 1 rights skim | S1 |
+| S5 Local tarball probe | Grace | Composer / medium | Cursor Models | 60 | document → build → `R CMD check --as-cran` on tarball; record SHA; run `python3 ~/shinichi-brain/tools/cran_release_gate.py` | S3, S4 |
+| S6 Mechanical verify | Curie-style | Composer / low | Cursor Models | 15 | ledger `--check` if touched; census 187/55; CI conclusion | S5 |
+| S7 Closeout | Rose | Auto Cost / medium | Other Models | 15 | after-task; update arc Actuals; `/goal` checkpoint; DECISIONS discharge note draft for brain (owner paste) | S6 |
+| RECONCILE | Melissa | Auto Cost / low | Other Models | 10 | plan-vs-actual → `docs/dev-log/plan-actual/2026-08-05-07-cran-readiness.md` | S7 |
 
-**FAN-OUT BUDGET:** checkpoint=`135-trace` · children ≤4 · scout 0–1 · build 2–3 · ceiling 0–1 (Fisher/Rose review)  
-**LUNA SUITABILITY:** yes — mechanical verify + receipt inventory  
-**ULTRA EFFORT:** no  
-**CONTEXT BRAKE:** after S3 or S4 milestone → prefer `/goal` fresh task if context heavy  
-**D-43 PANEL:** fire once before any public promotion claim
+**PARALLEL:** {S2, S4} after S1 · S0 async with S1–S2  
+**SEQUENTIAL:** S3←S2 · S5←S3,S4 · S6←S5 · S7←S6  
+**FAN-OUT BUDGET:** checkpoint=`07-cran` · children ≤4 · scout=1 (S2) · build=2 · ceiling=0  
+**LUNA SUITABILITY:** yes — S2/S6 mechanical audit on cheap bar  
+**SEARCH:** none (no novelty claim)  
+**ESTIMATE:** ~3 h wall remaining · fits one `/goal` session if CI already green  
+**VERIFY:** highest rung language + tarball SHA + post-merge CI conclusion  
+**CONSOLIDATE:** after-task under `docs/dev-log/after-task/` + arc Actuals
 
-### Architecture (execution)
+## Execution cwd
 
-```mermaid
-flowchart LR
-  prereg[PREREGISTRATION]
-  runner[CampaignRunner_grid]
-  c1[C1_grid_smoke]
-  totoro[Totoro_le_100]
-  review[TenClause_Fisher]
-  promo[Ledger_promote]
-  prereg --> runner --> c1 --> totoro --> review --> promo
+```bash
+# after G0 — in /goal, not here
+cd /Users/z3437171/Dropbox/Github\ Local/drmTMB
+git fetch origin
+git worktree add ~/local-scratch/worktrees/drmTMB-07-cran origin/main
+cd ~/local-scratch/worktrees/drmTMB-07-cran
 ```
 
-### Key implementation pins
+## Risk branch
 
-- Work only in [~/local-scratch/worktrees/drmTMB-135trace](~/local-scratch/worktrees/drmTMB-135trace); never stage primary-checkout debris.
-- Reuse DGP constructors from [tools/profile-fence-fixtures.R](tools/profile-fence-fixtures.R) / [tools/run-lane-c-c17c1-c14-model15-compatibility.R](tools/run-lane-c-c17c1-c14-model15-compatibility.R) and Lane C recovery scripts named in scoping turnkey step 3.
-- Receipt contract: extend Arc2 fields with **computed** `clamp_limited`, LR both-sides, unimodality, `true_value`, `brackets_truth`; wire [tools/profile_truth_gate.py](tools/profile_truth_gate.py).
-- Seeds: `20260805 + 1000000 * cell_index + seed_index` (32-bit safe).
-- Delimiter `^` in Totoro driver (never `|`).
+If post-merge CI fails: stop claim freeze; diagnose from logs; no DESCRIPTION bump.  
+If `--as-cran` ERROR/WARNING: leave gate **NOT READY**; open repair sub-arc.  
+If claim audit finds a live overclaim that needs owner wording: pause only that sentence; continue ledger init.
 
----
-
-## After G0 approval
-
-Do **not** continue Phase 3 in this planning chat. Paste a `/goal` prompt:
+## After G0 — paste into `/goal`
 
 ```text
-/goal Execute the approved 135-trace plan in ~/local-scratch/worktrees/drmTMB-135trace on branch cursor/135-trace-campaign. Start at S1 (grid-engine campaign runner), then C1 grid smoke of mc-0568. STOP for Totoro go before S3. Promote only cells that clear the preregistered ten-clause contract. Do not touch primary-checkout debris or PR #858.
+Execute approved ultra-plan: drmTMB 0.7.0 CRAN readiness (post-#930).
+Read scratchpad/2026-08-05-arc-07-cran-release-readiness.md and the plan.
+Worktree: ~/local-scratch/worktrees/drmTMB-07-cran from origin/main.
+Do Rungs 2–3 only: claim freeze + source-clean + local tarball probe.
+Do NOT upload to CRAN. Do NOT touch AGHQ/missing-data/primary checkout/#858.
+Watch main CI run 31043189202. Report highest proven cran-release-gate rung.
 ```
-
-**HAND TO ULTRA PLAN / GOAL:** outcome-first 135-trace campaign · ~7–10 h remaining · promote cleared cells · Totoro after C1 · Cursor platform.

@@ -58,7 +58,7 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Preview status
 
-This site is built from the `0.5.0` development version. The package is still
+This site is built from the `0.6.0` development cycle (`DESCRIPTION` Version: 0.6.0). The package is still
 pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
 roadmap work rather than hidden features.

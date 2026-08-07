@@ -1,0 +1,64 @@
+{
+  "package": "drmTMB",
+  "version": "0.6.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). status_claim is source-clean only. Probe-2 tarball SHA/size/inventory recorded under docs/dev-log/release/0.7.0-cran-gate/; LOOP excluded via .Rbuildignore. Do not claim tarball-clean until a clean-worktree commit includes that ignore and a matching --as-cran log is bound for a rebuild from that commit.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/drmTMB_0.6.0.tar.gz",
+    "sha256": "5db0111a683fd91d42ba11d66eb4ed83b2b4ba61dd7d58f5e2fb493b4f9662d3",
+    "size_bytes": 9817128,
+    "source_commit": "c2b9d6cd604234805a480cce8b1212a34fe92f7b",
+    "clean_worktree": false,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release/0.7.0-cran-gate/tarball-inventory.txt"
+    },
+    "forbidden_entries": [],
+    "probe_as_cran_status": "Status: 1 NOTE (New submission only)",
+    "probe_log": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-product-contract.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-rights-skim.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-rendered-site-evidence.md"
+    }
+  },
+  "panel": {
+    "grace": "NOT_RUN",
+    "rose": "NOT_RUN",
+    "pat": "NOT_RUN",
+    "note": "D-43 panel required only at submission-ready; not claimed here."
+  },
+  "status_claim": "source-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  }
+}

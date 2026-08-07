@@ -1,11 +1,10 @@
-# Arcs — 135-trace Prong B
+# Arcs — drmTMB 0.7.0 CRAN readiness
 
 | id | status | gate | one-line |
 |---|---|---|---|
-| S0-scaffold | done | — | LOOP kit from approved ultra-plan |
-| S1-runner | done | — | `tools/run-135-trace-campaign.R` + Totoro bash driver; 135 jobs |
-| S2-c1-smoke | done | — | `mc-0568` tmbprofile PASS local + Totoro |
-| S3-totoro | done | cleared | parallel -j64; 135/135 ok |
-| S4-review | done | — | 5 PASS / 9 WITHHOLD + Fisher location |
-| S5-promote | done | — | +5 IF (182→187); FROZEN 59→54; NEWS; claim_boundary |
-| verify-close | done | — | ledger check, unittest, after-task, plan-vs-actual |
+| A0-discharge | done | — | G0 2026-08-07: D-93/D-117 discharged (PASS withheld) |
+| A1-930-merge | done | — | #930 on main; post-merge CI green |
+| A2-claim-freeze | done | — | README 0.6 cycle fix; cran-comments refreshed; audit note |
+| A3-gate-ledger | done | — | Gates −1/0/1 product contract + ledger JSON; gate READY |
+| A4-tarball-probe | done | — | Probe 2: SHA `5db0111a…`; Status 1 NOTE (New submission); LOOP excluded |
+| A5-closeout | done | upload | after-task + Melissa; STOP (no CRAN upload) |

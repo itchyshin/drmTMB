@@ -1,45 +1,36 @@
-# GOAL — 135-trace Prong B campaign (IMMUTABLE — re-read at the top of EVERY arc)
+# GOAL — drmTMB-0.7-cran-readiness (IMMUTABLE — re-read at the top of EVERY arc)
 
 ## Mission
 
-Promote up to 14 Prong B Tier-1 cells from `point_fit_recovery` →
-`interval_feasible` **iff** each clears the preregistered ten-clause contract
-with retained grid-engine (`tmbprofile`) receipts. Target census: **182 → 196**
-`interval_feasible`; `FROZEN_CENSUS_POINT_FIT_RECOVERY` **59 → 45** only at
-actual promotion.
+Advance cran-release-gate to highest proven rung **source-clean** (or honest
+**NOT READY**), record a local candidate tarball SHA, write after-task + LOOP
+checkpoint. Do **not** upload to CRAN.
 
 ## Headline
 
-Build the grid-engine 14-cell campaign runner (real clamp/LR/truth fields),
-re-smoke `mc-0568` with `profile_engine="tmbprofile"`, run Totoro ≤100 cores
-**only after explicit owner approval**, review every result, promote only
-PASSes.
+Claim-freeze + D-49 source-clean after #930 (`8df6f240` on main; this branch
+includes docs from #931 @ `7bacb9e2c`).
 
 ## Invariants
 
-- One lane: this worktree `cursor/135-trace-campaign`. Sequential vs Claude/Codex (D-87/D-88).
-- Recorded endpoints from **grid** engine only (`stats::profile` → `TMB::tmbprofile`). Endpoint is cross-check only.
-- Never hard-code `clamp_limited = FALSE`; compute from profile message / clamp trace.
-- Clause 6 (both-sides LR + unimodality) must be enforced before promotion.
-- 4/5 truth-bracketing = **BLOCK**, not an 80% pass.
-- Totoro / local compute only — never GitHub Actions (D-50).
-- Structured-σ cells need ML-bias + REML-unavailable `claim_boundary` text on promotion.
-- **OPEN GATE:** explicit Totoro go before ≤100-core grid.
-
-## Fences (do not touch)
-
-Primary-checkout debris; PR **#858**; coi/Tier-2 cells; D-117 discharge; PR **#926**;
-REML design doc; other deferred work named in the ultra-plan.
+- One lane: worktree `~/local-scratch/worktrees/drmTMB-07-cran-exec`, branch
+  `cursor/07-cran-readiness`. Never the dirty primary checkout.
+- Never claim "CRAN ready" — report highest proven rung only.
+- `DESCRIPTION` stays `0.6.0` until an explicit freeze slice bumps to `0.7.0` (D-86).
+- D-93/D-117 discharged for readiness (G0 2026-08-07): profile RE-SD +
+  `profile.boundary` warning; PASS claim remains withheld.
+- No Totoro/DRAC in this goal. No AGHQ / missing-data G4+ / WITHHOLD re-prereg.
+- Do not touch #858 / #893 / #869.
 
 ## Authoritative WHAT
 
-→ `LOOP/ultra-plan.md` (approved G0 copy) ·
-`docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/PREREGISTRATION.md`
+→ `LOOP/ultra-plan.md` · `~/.cursor/plans/0.7_cran_ultra-plan_42828b75.plan.md` ·
+`scratchpad/2026-08-05-arc-07-cran-release-readiness.md`
 
 ## Definition of done
 
-1. Campaign runner + Totoro driver land and refuse wrong cell/target pairs.
-2. C1 tmbprofile smoke for `mc-0568` PASSes.
-3. After Totoro approval: receipts for all retained seeds/targets.
-4. Ten-clause + Fisher review → PASS/WITHHOLD per cell; promote only PASSes.
-5. Verification, after-task, and plan-vs-actual records written.
+1. Claim surfaces honest vs ledger (187 IF / 55 PFR).
+2. cran-release-gate ledger for Gates −1/0/1 exists; `cran_release_gate.py`
+   reports READY FOR CLAIMED RUNG at **source-clean** (or lists honest failures).
+3. Local candidate tarball SHA recorded under `docs/dev-log/release/0.7.0-cran-gate/`.
+4. After-task + Melissa plan-vs-actual written; STOP before upload.
