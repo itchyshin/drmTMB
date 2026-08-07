@@ -79,3 +79,8 @@ return without ERROR on a tarball that includes this repair.
 2. Finish valgrind adjudication if still pending.
 3. Only then advance ledger `status_claim` → `platform-clean`.
 4. **STOP** before DESCRIPTION 0.7.0 bump / CRAN upload.
+
+### Retry note (2026-08-07 ~20:16 UTC)
+
+Fixed tarball R-release curl still **FTP 550**. Highest proven rung remains **`tarball-clean`**. No `platform-clean` claim.
+

@@ -47,3 +47,9 @@ only — do not re-upload the frozen probe SHA `c787ee40…` (9817096 bytes).
 ### R-devel
 30:> STOR drmTMB_0.6.0.tar.gz
 35:< 226 Transfer complete.
+
+## Retry 2026-08-07T20:16Z (Cursor handover resume)
+
+- Fixed tarball still present: size **9818425**, SHA-256 `f9b9588e…`, contains `drm_src_candidates`.
+- R-release FTP **still 550** (`winbuilder-release-resubmit-retry.log`). Queue not clear yet.
+- Do **not** advance `platform-clean`. Wait for prior same-name upload result email, then upload fixed tarball only.
