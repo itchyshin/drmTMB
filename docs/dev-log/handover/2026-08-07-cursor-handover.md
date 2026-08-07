@@ -1,5 +1,11 @@
 # Cursor Handover — drmTMB 0.7: useful-0.7 CI + platform-clean (NOT READY)
 
+> **POST-MERGE (2026-08-07 evening).** `#942` / `#943` / `#941` are on `main`
+> (`13e8cafb0`). Highest proven rung remains **`tarball-clean`**. DESCRIPTION **0.6.0**.
+> **Do not upload.** **Do not claim platform-clean** until win-builder R-release +
+> R-devel are ERROR-free on the repaired tarball. Next owner work = adjudicate
+> win-builder results / re-submit if needed, then re-evaluate the rung.
+
 **You are Cursor**, picking up drmTMB after the 0.7 packaging ladder reached
 **`tarball-clean`** and two live Cursor lanes (`useful-0.7`, `platform-clean`)
 were left mid-flight. You inherit **no chat context**. This document plus
