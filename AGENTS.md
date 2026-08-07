@@ -3,19 +3,23 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-05, 135-TRACE CAMPAIGN DONE ON BRANCH; LAND PUSH/PR).**
-> Branch `cursor/135-trace-campaign` @ `8e1af270d` (worktree
-> `~/local-scratch/worktrees/drmTMB-135trace`). Totoro 135/135; **5/14 cells** promoted
-> `point_fit_recovery` → `interval_feasible` (`mc-0568`, `mc-0576`, `mc-0595`, `mc-0596`,
-> `mc-0653`). Census on branch **187 IF / 55 PFR**; `FROZEN_CENSUS_POINT_FIT_RECOVERY` **54**.
-> Nine WITHHOLD stay PFR. **Do not re-run Totoro under the old prereg.** Multi-lane board:
+> **▶ Latest — start here (2026-08-07, 0.7 MULTI-LANE: tarball-clean + useful/#942 + platform/#941).**
+> `main` @ `8004fc058`. Highest proven CRAN rung = **`tarball-clean`** (#939). Packaging
+> **#930/#931/#938/#939/#940** merged; DESCRIPTION still **0.6.0**; **no upload**. Live Cursor
+> lanes: **useful-0.7** draft [#942](https://github.com/itchyshin/drmTMB/pull/942)
+> (`cursor/useful-07-user-facing` @ `e6f781388`, watch CI `31214014701`) and
+> **platform-clean** draft [#941](https://github.com/itchyshin/drmTMB/pull/941)
+> (**NOT READY** — win-builder CondExp src-path ERROR; repair pushed, re-green owed).
+> Multi-lane board (read every live row — do not orphan siblings):
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
-> on `claude/handover-freshness-0718` remains dirty/stale — **never work there**.
+> on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.
 > START HERE:
-> [`docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md`](docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md)
-> (morning run-the-campaign doc
-> [`2026-08-05-cursor-handover.md`](docs/dev-log/handover/2026-08-05-cursor-handover.md)
-> is historical — campaign step is DONE).
+> [`docs/dev-log/handover/2026-08-07-cursor-handover.md`](docs/dev-log/handover/2026-08-07-cursor-handover.md).
+>
+> **▶ Prior — (2026-08-05, 135-TRACE CAMPAIGN LANDED ON MAIN via #930).**
+> Totoro 135/135; **5/14 cells** promoted to `interval_feasible`. Post-campaign doc
+> [`2026-08-05-cursor-handover-post-135.md`](docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md)
+> is historical — land step is DONE on `main`. **Do not re-run Totoro under the old prereg.**
 >
 > **▶ Prior — (2026-08-04, PRONG B STACK LANDED; CI CEILING SET FROM MEASUREMENT).**
 > `main` = `71ce9e544`. All three stacked branches merged in order — #915
