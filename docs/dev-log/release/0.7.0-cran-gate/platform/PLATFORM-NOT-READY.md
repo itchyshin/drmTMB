@@ -62,6 +62,17 @@ Focused continuity suite: `FAIL 0 | PASS 51`. See after-task
 **Still NOT READY for `platform-clean`** until win-builder R-release + R-devel
 return without ERROR on a tarball that includes this repair.
 
+### Resubmit status (2026-08-07 afternoon)
+
+- Repair commit: `25e38cc74` on PR #941.
+- Fixed tarball rebuilt: size **9818425**, SHA-256 `f9b9588e…` (see
+  `winbuilder-resubmit-RECEIPT.md`).
+- **R-devel:** submitted from HEAD (`check_win_devel`) + fixed tarball curl OK.
+- **R-release:** FTP **550** while a same-name upload is queued; an earlier curl
+  accidentally sent the *stale* morning tarball (9817096). Re-upload the fixed
+  tarball after that queue clears — commands in the receipt.
+
+
 ## Next
 
 1. Re-submit win-builder R-release + R-devel; require Status without ERROR.
