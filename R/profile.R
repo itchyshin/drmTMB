@@ -171,6 +171,31 @@
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
 #'
+#' @section Default uncertainty story:
+#' Use this recipe for ordinary first-week inference; it restates measured
+#' behaviour and does **not** claim nominal coverage on every route.
+#' \itemize{
+#'   \item Fixed effects and other routine Wald-ready targets: start with
+#'     \code{confint(fit)} (\code{method = "wald"}). It is the fastest
+#'     fitted-object route when \code{TMB::sdreport()} succeeded.
+#'   \item Random-effect SDs and other direct variance-component targets: prefer
+#'     \code{confint(fit, parm = ..., method = "profile")} after
+#'     \code{profile_targets(fit)} shows the row is profile-ready. Profile
+#'     re-optimizes nuisance parameters and is slower than Wald.
+#'   \item Always read \code{conf.status} and \code{profile.boundary} on the
+#'     returned table. A usable profile interval that lands on a variance-component
+#'     boundary warns with class \code{drmTMB_profile_boundary_warning}; treat
+#'     that interval as indicative of scale, not as a calibrated
+#'     \code{level} interval (see Boundary intervals below).
+#'   \item A computable interval is not coverage certification. Check the
+#'     exact cell in
+#'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
+#'     before reporting a route as inference-ready.
+#' }
+#'
+#' For a short applied walkthrough, see the vignette
+#' \emph{First-week intervals: fit, profile, and boundary}.
+#'
 #' @section Boundary intervals:
 #' Both interval methods are unreliable when a variance component approaches zero
 #' or a correlation approaches `+/-1`, and each warns about its own case.

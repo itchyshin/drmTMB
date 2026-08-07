@@ -139,6 +139,7 @@ diagnostics, and honest limits.
 
 | If your question is... | Read this first | Main parameter |
 | --- | --- | --- |
+| How do I profile a random-effect SD and know when not to trust the interval? | [First-week intervals: fit, profile, and boundary](first-week-intervals.html) | `profile_targets()`, `confint(method = "profile")`, `profile.boundary` |
 | After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
 | Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
 | Which family fits my response — continuous, count, proportion, or robust? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
@@ -154,7 +155,7 @@ diagnostics, and honest limits.
 | I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
 | Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
 | The optimizer did not converge cleanly — what do I check? | [Errors, warnings, and convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
-| My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE` |
+| My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE`, `se_group_sd` |
 | What does `drmTMB` not support yet, and where is the line between fitted, first-slice, and planned syntax? | [What drmTMB can and can't do](capability-and-limits.html) | fitted, first-slice, and planned status |
 
 Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and

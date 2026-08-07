@@ -1,0 +1,133 @@
+---
+title: "First-week intervals: fit, profile, and boundary"
+description: "Fit a small random-intercept model, inventory profile targets, profile an RE-SD, and read profile.boundary before trusting the interval."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{First-week intervals: fit, profile, and boundary}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This page is for an applied ecology or evolution user in the first week with
+`drmTMB`. It walks one short path: fit → inventory targets → profile a
+random-effect SD → read `profile.boundary` → decide when not to trust the
+interval. It restates the default uncertainty story in `?confint.drmTMB`; it
+does **not** claim nominal coverage on every route.
+
+For the longer post-fit toolbox (`check_drm()`, Wald shortcuts, bootstrap,
+`newdata` profiles), read
+[Checking and using fitted models](model-workflow.html). For which cells have
+coverage evidence, read
+[What drmTMB can and can't do](capability-and-limits.html).
+
+## Default recipe (read once)
+
+1. Fixed effects and other routine Wald-ready targets: start with
+   `confint(fit)`.
+2. Random-effect SDs and other direct variance components: prefer
+   `confint(..., method = "profile")` after `profile_targets()` shows the row
+   is profile-ready.
+3. Always read `conf.status` and `profile.boundary` on the returned table.
+4. A computable interval is not coverage certification.
+
+## Fit a small random-intercept model
+
+The example is intentionally tiny and non-phylogenetic so it stays CRAN-safe
+and fast:
+
+```{r}
+library(drmTMB)
+
+set.seed(13)
+n_site <- 18
+n_per_site <- 6
+site <- factor(rep(seq_len(n_site), each = n_per_site))
+site_effect <- rnorm(n_site, sd = 0.45)
+
+fish_site <- data.frame(
+  site = site,
+  temperature = runif(n_site * n_per_site, -1.5, 1.5),
+  habitat = factor(
+    sample(c("reef", "kelp"), n_site * n_per_site, replace = TRUE)
+  )
+)
+
+site_mu <- site_effect[as.integer(fish_site$site)]
+fish_site$growth <- rnorm(
+  nrow(fish_site),
+  mean = 1 + 0.7 * fish_site$temperature +
+    0.35 * (fish_site$habitat == "kelp") + site_mu,
+  sd = 0.35
+)
+
+fit_site <- drmTMB(
+  bf(growth ~ temperature + habitat + (1 | site), sigma ~ 1),
+  family = gaussian(),
+  data = fish_site
+)
+```
+
+Run `check_drm(fit_site)` before interpreting estimates. A clean diagnostic
+table catches optimizer and Hessian problems; it does not certify coverage.
+
+## Inventory targets, then profile the RE-SD
+
+```{r}
+profile_targets(fit_site)
+```
+
+Wald is the fast first pass for fixed effects and other Wald-ready rows:
+
+```{r}
+confint(fit_site, parm = "fixed_effects")
+```
+
+For the site random-intercept SD, prefer the profile route and copy the exact
+target name from `profile_targets()`:
+
+```{r}
+ci_site <- confint(
+  fit_site,
+  parm = "sd:mu:(1 | site)",
+  method = "profile"
+)
+ci_site
+```
+
+## Read `profile.boundary` before you trust the interval
+
+Successful profile rows use `conf.status = "profile"`. When the profile lands
+near a variance-component boundary, `profile.boundary` is `TRUE` and
+`confint(method = "profile")` warns with class
+`drmTMB_profile_boundary_warning`.
+
+```{r}
+ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
+```
+
+**When not to trust a returned interval**
+
+- `profile.boundary == TRUE` on a usable interval: treat the interval as
+  indicative of scale, not as a calibrated `level` interval. The D-117
+  10-group random-effect SD gate measured conditional coverage as low as
+  0.0732 against a nominal 0.95 when that flag was set; the same behaviour
+  appears in `lme4` on the same seeds (see `?confint.drmTMB` Boundary
+  intervals). Prefer more groups when the design allows it.
+- `conf.status` is `profile_failed`, `clamp_limited`, `wald_at_boundary`,
+  `newdata_required`, or `derived_interval_unavailable`: there is no usable
+  calibrated interval on that row — follow the action implied by the status.
+- The capability guide does not name the exact cell as inference-ready: report
+  the point estimate only, or keep the interval experimental.
+
+## What to read next
+
+| Next question | Go here |
+| --- | --- |
+| Full post-fit toolbox and `conf.status` table | [Checking and using fitted models](model-workflow.html) |
+| Which family × effect rows have coverage evidence | [What drmTMB can and can't do](capability-and-limits.html) |
+| Large tip counts and `se_group_sd` | [Working with large data](large-data.html) |
+| Reference detail for Wald, profile, and boundary warnings | `?confint.drmTMB` |

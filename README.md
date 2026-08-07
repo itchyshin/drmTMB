@@ -52,6 +52,12 @@ with a precision parameter such as `phi` or `theta`.
   [Changing residual coupling with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html).
 - Working with effect sizes or study-level sampling uncertainty? See
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
+- Need a one-screen family × dpar × RE × interval-tier skim? Read
+  [Capabilities and limits — Capability skim](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html#capability-skim-family--dpar--re--interval-tier)
+  (snapshot of existing ledger tiers; no new promotions).
+- First-week uncertainty path (fit → profile an RE-SD → read `profile.boundary`)?
+  See
+  [First-week intervals](https://itchyshin.github.io/drmTMB/articles/first-week-intervals.html).
 - Checking a fitted model? See
   [Model workflow](https://itchyshin.github.io/drmTMB/articles/model-workflow.html)
   and the [`check_drm()` reference](https://itchyshin.github.io/drmTMB/reference/check_drm.html).

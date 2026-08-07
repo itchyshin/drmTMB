@@ -126,6 +126,35 @@ Exploratory memory-light fits can therefore use `se = FALSE` and
 standard-error covariance, TMB object, or model data that the chosen interval
 method needs.
 
+
+## Large tip counts and `se_group_sd`
+
+For phylogenetic or other high-cardinality direct-SD surfaces such as
+`sd(species, level = "phylogenetic") ~ ...`, keep the default
+`drm_control(se_group_sd = FALSE)`.
+
+The fitted per-group standard deviations are always available (they are
+recomputed from the parameters). What `se_group_sd = TRUE` adds is a
+delta-method standard-error surface with one SD per group, so the joint
+`ADREPORT` covariance is `n_group × n_group`. Under `REML = TRUE` the fixed
+effects enter the Laplace `random` block and `vcov()` reads that joint
+covariance, so at about ten thousand tips a bivariate fit can need tens of
+gigabytes for the covariance alone.
+
+**Default advice for Ayumi-scale tip counts (~10k tips):**
+
+- Leave `se_group_sd = FALSE` for exploratory and most final fits.
+- Set `se_group_sd = TRUE` only when you have measured that you need
+  per-group SD standard errors **and** the machine can hold the
+  `n_group × n_group` covariance.
+- Pair large-phylo fits with the memory-light controls above (`se = FALSE`
+  for exploratory fits; restore `se = TRUE` / `keep_tmb_object = TRUE` for
+  the interval method you will report). Prefer Wald for routine fixed-effect
+  rows; profile only the variance-component targets you need.
+
+See `?drm_control` for the formal argument and the NEWS entry that recorded
+the default.
+
 For factor-heavy fixed-effect Gaussian location models, the first sparse
 fixed-effect path is also available:
 
