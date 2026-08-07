@@ -1,47 +1,49 @@
 ## Submission summary
 
-This is a new submission of drmTMB, a package for fast distributional
-regression models (univariate and bivariate) built on Template Model Builder
-(TMB).
+This is a **planned** first CRAN submission of drmTMB (target version **0.7.0**).
+The package is still on the `0.6.0` development cycle in `DESCRIPTION` and is
+**not** being uploaded in this readiness slice. These comments will be finalised
+against the frozen `0.7.0` tarball immediately before upload.
 
 ## R CMD check results
 
-`R CMD check --as-cran` on local macOS (R 4.6.0): 0 errors | 0 warnings | 1 note.
+Post-merge GitHub Actions on `main` @ `8df6f2402` (PR #930 merge, 2026-08-05):
 
-The note is:
+* R-CMD-check ubuntu-latest (release): **success** (~50 min; under the 75 min
+  ceiling). Run: https://github.com/itchyshin/drmTMB/actions/runs/31043189202
+* pkgdown: **success**. Run: https://github.com/itchyshin/drmTMB/actions/runs/31047116604
 
-* **New submission.** This is the first CRAN submission of the package.
+Local `R CMD check --as-cran` on the candidate tarball is recorded under
+`docs/dev-log/release/0.7.0-cran-gate/` when the readiness probe completes.
+Until that log exists, do **not** treat this file as submission-ready evidence.
 
-CRAN's own build machines may additionally report an **installed size** note: the
-installed package is ~25 Mb, of which ~13 Mb is the compiled TMB C++ in `libs/`.
-The C++ holds the automatic-differentiation likelihood templates that the
-package's speed depends on; the size is intrinsic to TMB-based packages (the same
-pattern as the existing CRAN package `glmmTMB`) and cannot be reduced without
-removing functionality.
+Expected CRAN-lane notes (from prior 0.5.0-era probes; re-confirm on the frozen
+0.7.0 tarball):
+
+* **New submission.**
+* Possible **installed size** note (~25 Mb with ~13 Mb compiled TMB `libs/`),
+  intrinsic to TMB packages (same pattern as CRAN `glmmTMB`).
 
 ## Submission notes
 
 * DESCRIPTION quotes the method name 'Tweedie' and hyphenates "semi-continuous"
-  to resolve the two possible-spelling flags.
+  to resolve possible-spelling flags.
 * Routine CRAN check time is bounded by keeping the exhaustive Phase 18
-  simulation/reporting harness, its generated ~22,000-assertion conversion
-  audit, and two high-dimensional diagnostics in the package's non-CRAN test
-  lane (run in repository CI with `NOT_CRAN=true`). Fast unit, likelihood, API,
-  malformed-input, extractor, and representative recovery tests run in the
-  routine CRAN suite.
+  simulation harness and heavy diagnostics in the non-CRAN test lane
+  (`NOT_CRAN=true` in repository CI).
+* Random-effect SD profile intervals warn at variance-component boundaries
+  (`drmTMB_profile_boundary_warning`). The D-117 10-group gate measured
+  conditional undercoverage that matches `lme4` on the same seeds; this is
+  documented in `?confint.drmTMB` and is **not** claimed as a packaging defect.
+* First CRAN number is **0.7.0** (D-86). Experimental lifecycle labelling is
+  intentional (D-41).
 
 ## Test environments
 
-* local macOS (aarch64-apple-darwin), R 4.6.0 — `R CMD check --as-cran`
-  (0 errors | 0 warnings | 1 note, the new-submission note only), plus a local
-  clang UBSAN compile of the compiled TMB C++.
-
-Cross-platform confirmation is a separate step that has **not yet been run** and
-is not reflected above; it will be completed immediately before upload. The
-GitHub Actions ubuntu/macOS/windows matrix, win-builder (R-release and R-devel),
-and R-hub v2 (including the gcc/clang UBSAN and valgrind/rchk configurations
-relevant to the compiled TMB C++) will be run, and their logs recorded here,
-before submission.
+* GitHub Actions ubuntu-latest, R-release — green on `8df6f2402` (above).
+* Full ubuntu + macOS + windows matrix, win-builder, and R-hub (including
+  sanitizers / valgrind / rchk for compiled TMB) are **deferred** to the
+  platform-clean rung and will be recorded here before upload.
 
 ## Reverse dependencies
 
@@ -49,9 +51,5 @@ This is a new package; there are no reverse dependencies.
 
 ## Notes for the CRAN team
 
-* `JuliaCall` is a Suggested dependency only. It powers an optional,
-  experimental `engine = "julia"` back end. All tests that would invoke it are
-  guarded with `skip_if_not_installed()` and additionally require a local
-  development checkout of the (not-yet-registered) companion Julia package, so
-  they are skipped on CRAN. The default and only required engine is the
-  bundled TMB code.
+* `JuliaCall` is Suggested only (optional experimental `engine = "julia"`).
+  Julia-backed tests are skipped on CRAN. The required engine is bundled TMB.

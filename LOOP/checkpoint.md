@@ -1,12 +1,10 @@
-GOAL: see GOAL.md.   STATE: COMPLETE — 5/14 promoted; 9 withheld.
+GOAL: see GOAL.md.   STATE: claim-freeze WIP committed next; gate ledger + tarball owed.
 ARCS DONE (verified):
-- S0–S2 — LOOP, runner, tmbprofile smoke.
-- S3-totoro — 135/135 ok on Totoro parallel -j64; receipts synced.
-- S4-review — CELL-VERDICTS + FISHER-REVIEW; 5 PASS / 9 WITHHOLD.
-- S5-promote — mc-0568/0576/0595/0596/0653 → interval_feasible; FROZEN 59→54; NEWS; ledger --check OK; unittest OK.
-- verify-close — after-task + plan-vs-actual written.
-ARC IN PROGRESS: none.
-NEXT: owner push/PR for `cursor/135-trace-campaign` (not auto-pushed). Optional new prereg for WITHHOLD re-pilot — separate goal.
-OPEN GATES (need human): push/PR only.
-TRUTH LIVES IN: worktree @ cursor/135-trace-campaign; artifacts under docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/; ledger cells.tsv; LOOP/.
-RESUME: Goal complete. Do not re-run Totoro or re-promote. For a WITHHOLD re-pilot, open a new ultra-plan/prereg.
+- A0 — G0 approved; D-93/D-117 discharged for readiness.
+- A1 — #930 merged; CI run 31043189202 success.
+- A2 — claim audit written; README + cran-comments edits present (uncommitted until this checkpoint lands).
+ARC IN PROGRESS: A3-gate-ledger — product contract + cran_release_gate ledger JSON.
+NEXT: A4-tarball-probe — local build + R CMD check --as-cran + SHA.
+OPEN GATES (need human): CRAN **upload** (out of scope); optional merge of PR #931 if not already on this branch (docs already FF'd @ 7bacb9e2c).
+TRUTH LIVES IN: worktree `~/local-scratch/worktrees/drmTMB-07-cran-exec` · branch `cursor/07-cran-readiness` @ `7bacb9e2c`+WIP · plan `~/.cursor/plans/0.7_cran_ultra-plan_42828b75.plan.md`
+RESUME: You are drmTMB-0.7-cran-readiness — RESUME. READ LOOP/GOAL.md → checkpoint.md → ultra-plan.md. WORKSPACE: ~/local-scratch/worktrees/drmTMB-07-cran-exec on cursor/07-cran-readiness. CONTINUE FROM: A3/A4. Do NOT upload. Do NOT bump DESCRIPTION to 0.7.0.

@@ -1,0 +1,59 @@
+{
+  "package": "drmTMB",
+  "version": "0.6.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). status_claim is source-clean only. Tarball SHA recorded as a probe under docs/dev-log/release/0.7.0-cran-gate/ when built; do not claim tarball-clean until --as-cran log + inventory exist for that SHA.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "",
+    "sha256": "",
+    "size_bytes": 0,
+    "source_commit": "7bacb9e2c96926bea606a190dff3c14c9acbdf61",
+    "clean_worktree": false,
+    "inventory_evidence": {"kind": "rationale", "value": "NOT_APPLICABLE: source-clean rung; tarball probe pending"},
+    "forbidden_entries": []
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-product-contract.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-rights-skim.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-cran-exec/docs/dev-log/release-audits/2026-08-07-07-rendered-site-evidence.md"
+    }
+  },
+  "panel": {
+    "grace": "NOT_RUN",
+    "rose": "NOT_RUN",
+    "pat": "NOT_RUN",
+    "note": "D-43 panel required only at submission-ready; not claimed here."
+  },
+  "status_claim": "source-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  }
+}
