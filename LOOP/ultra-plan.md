@@ -1,156 +1,138 @@
+# ARC CARD — Really useful 0.7 (user-facing onboarding + honesty)
+
+Created 2026-08-07 by Cursor via `arc-creation` (size mode), after Shinichi
+approved a “really useful 0.7” user-facing programme distinct from the CRAN
+packaging ladder. Written in worktree
+`~/local-scratch/worktrees/drmTMB-07-tarball` (`cursor/07-tarball-clean` @
+`f065fc905`). Scratchpad is `.Rbuildignore`d; `scratchpad/*.md` is not
+gitignored (only `*.log` / `*.rds`).
+
+**Mode:** size  
+**Requested outcome:** not quantified — land the four first-week user-facing
+deliverables Shinichi listed (onboarding vignette path; frozen default
+uncertainty story; parseable capability surface; Ayumi-scale ergonomics
+advice), with optional non-Gaussian REML/AGHQ corner deferred post-submit.  
+**Mechanism authority:** reversible docs / pkgdown / README / NEWS / roxygen
+edits that **restate existing evidence**; CRAN-safe vignette smoke only if a
+new article needs it.  
+**Excluded:** platform-clean; CRAN upload; DESCRIPTION `0.7` bump; Totoro /
+DRAC campaigns; ledger promotions; AGHQ/Cox-Reid as Arc 0 or a CRAN blocker;
+duplicating the packaging lane already at **tarball-clean** (#939 / check-log
+2026-08-07).  
+**Recommended arc:** **5.5 h** capacity programme (range **4.5–7 h**; Arc 0 =
+40 min)  
+**Time contract:** ceiling ~6 h for the four landed deliverables; later AGHQ
+rung is optional and separately stoppable  
+**Estimate confidence:** **inferred** — prior pkgdown/vignette honesty arcs
+and the existing `model-workflow` / `capability-and-limits` / `?confint`
+Boundary section are direct reuse surfaces; no measured end-to-end timing for
+this exact programme.  
+**Arc 0 outcome:** written gap map that cites what already exists and decides
+**thin new vignette vs tighten + link** for the onboarding path (no blank-page
+rebuild).  
+**State transition:** packaging at **tarball-clean**; first-week
+onboarding / default-uncertainty / parseable capability matrix incomplete →
+those four doc/API-honesty deliverables landed and linked from README +
+pkgdown Getting Started; AGHQ deferred unless a trivial doc-only pointer.  
+**Executable rung and evidence:** prose + vignette + pkgdown/_pkgdown.yml +
+README links; optional `R CMD check` vignette smoke / focused test only if a
+new vignette is added. No campaign receipts. No public tier promotion without
+citing an existing ledger cell.
+
 ---
-name: 0.7 CRAN ultra-plan
-overview: "PR #930 is already merged to main (`8df6f240`). This ultra-plan executes the remaining 0.7.0 CRAN readiness arc (Arc Card: 5h) from a clean worktree: discharge D-93/D-117 by plan approval, claim-freeze, then cran-release-gate through source-clean and a local tarball probe. No AGHQ, no missing-data expansion, no CRAN upload."
-todos:
-  - id: s0-watch-ci
-    content: Watch post-merge main CI run 31043189202 (75m ceiling)
-    status: completed
-  - id: s1-worktree
-    content: Create clean worktree drmTMB-07-cran from origin/main
-    status: completed
-  - id: s2-claim-audit
-    content: Rose claim-surface audit vs ledger 187 IF
-    status: completed
-  - id: s3-claim-freeze
-    content: Apply claim-freeze edits + refresh cran-comments.md
-    status: completed
-  - id: s4-gate-ledger
-    content: Init cran-release-gate ledger Gates -1/0/1
-    status: in_progress
-  - id: s5-tarball
-    content: Local tarball + --as-cran + cran_release_gate.py; record SHA
-    status: pending
-  - id: s6-verify-close
-    content: Mechanical verify + after-task + Melissa reconcile; STOP before upload
-    status: pending
-isProject: false
----
 
-# Ultra-plan: drmTMB 0.7.0 CRAN readiness (post-#930)
+## Why this arc (and why not packaging / AGHQ)
 
-## GOAL (paste-ready)
+Highest proven CRAN rung is already **tarball-clean** on main (#939). Another
+agent may own **platform-clean**; this card must not duplicate that or upload.
+Shinichi’s approved “really useful 0.7” list is **user-week usefulness**: can a
+new ecology/evolution user fit → inventory targets → profile an RE-SD → read
+`profile.boundary` → know when not to trust the interval, and find a
+family × dpar × RE × interval-tier surface without reading the ledger TSV.
+AGHQ / non-Gaussian REML is a **science corner**, not a first-week doc gap —
+keep it post-submit or as a final optional rung after the four deliverables.
 
-```text
-PLATFORM: Cursor
-LANE: drmTMB-0.7-cran-readiness
-DELIVERABLE: cran-release-gate highest proven rung = source-clean; local candidate tarball SHA recorded; after-task + LOOP checkpoint
-HEADLINE: Claim-freeze + D-49 source-clean after #930 (already MERGED at 8df6f240)
-IN PARALLEL: claim-surface audit vs ledger · Gate −1/0/1 inventory draft · watch post-merge main CI
-DEFER: CRAN upload · full 3-OS/R-hub platform-clean · AGHQ · missing-data G4+ · WITHHOLD re-prereg · primary-checkout cleanup · #858/#893/#869
-DISCIPLINE: work only in a fresh worktree off origin/main · never stage primary debris · bump DESCRIPTION to 0.7.0 only at freeze (D-86) · never claim "CRAN ready" — report highest proven rung · verify with cran_release_gate.py + local --as-cran · Totoro/DRAC N/A · close via /goal LOOP
-```
+## State-transition gate
 
-## ARC PROGRAM
+| Step | Content |
+| --- | --- |
+| 1. Current | Packaging **tarball-clean**; `?confint` has **Boundary intervals**; NEWS has profile-boundary + Prong B honesty; `model-workflow` already walks `profile_targets()` / `confint` / `conf.status`; `capability-and-limits` defines tiers; generated `docs/dev-log/dashboard/capability-surface.md` exists but is **not** a first-week pkgdown article; `se_group_sd` is documented in `?drm_control` / NEWS but **absent** from `large-data.Rmd` learning-path advice; DESCRIPTION still **0.6.0**. |
+| 2. Intended | Four deliverables landed + linked from README/pkgdown Getting Started; default uncertainty story frozen in NEWS + `?confint` without claiming nominal coverage everywhere; Ayumi-scale default advice visible; AGHQ deferred. |
+| 3. Intervention | Gap-aware vignette (or short article) + roxygen/NEWS freeze + README/pkgdown parseable capability surface + `large-data` / phylo ergonomics paragraphs. |
+| 4. Approval | Shinichi already approved this list. **Do not** bump version, upload, or promote ledger cells. Capability-surface edits must **cite existing tiers** (reversible docs) and not invent new public claims. |
 
-From [scratchpad/2026-08-05-arc-07-cran-release-readiness.md](/Users/z3437171/local-scratch/worktrees/drmTMB-135trace/scratchpad/2026-08-05-arc-07-cran-release-readiness.md):
+## Prior-work sweep (do not rebuild)
 
-| Rung | Budget | Status after this plan starts |
+| Surface | What already exists | Gap for this arc |
+| --- | --- | --- |
+| `man/confint.drmTMB.Rd` §Boundary intervals | Full D-117 story: profile warns with `drmTMB_profile_boundary_warning`; coverage 0.0732 / 0.2540 / 0.8566; lme4 comparator; “not a repair for a boundary” | Needs a short **default uncertainty recipe** (profile RE-SD; Wald FE; boundary warn; no nominal-coverage-everywhere) near the top of Details / a dedicated subsection, not only deep in Boundary |
+| `NEWS.md` (top) | Profile boundary warning + Prong B “computable ≠ coverage” | Freeze an explicit **default uncertainty story** bullet block for 0.7 readers (may live under unreleased / 0.7 draft notes without bumping DESCRIPTION) |
+| `vignettes/model-workflow.Rmd` | Long “Checking and using fitted models”: `profile_targets()`, Wald/`profile`/`bootstrap`, `conf.status` table, mentions `profile.boundary` | Too long for first week; D-117 “when not to trust” is thin vs `?confint`; needs a **short onboarding spine** (new vignette *or* a front-loaded section + Getting Started link) |
+| `vignettes/drmTMB.Rmd` | Learning-path table → model-workflow / capability-and-limits / large-data | No single row for “fit → profile RE-SD → read boundary” |
+| `vignettes/capability-and-limits.Rmd` | Tier definitions + “at a glance” tables; points at `capability-census/` | Not a parseable **family × dpar × RE × interval tier** matrix for README/pkgdown skim |
+| `docs/dev-log/dashboard/capability-surface.md` (+ `.html`) | Generated snapshot (699 model cells; 187 IF / 55 recovery / 29 IR as of 2026-08-05) | Dev-log only; not in `_pkgdown.yml` articles; first-week users never see it |
+| `_pkgdown.yml` articles | Getting Started = `drmTMB`, `function-map-cheatsheet`; Capability = `capability-and-limits`, …; Workflow = `model-workflow`, `large-data`, … | Slot for onboarding uncertainty article missing; no compact matrix article |
+| `vignettes/large-data.Rmd` | Memory-light `drm_control()`, `se = FALSE`, large-phylo Wald-first advice | **`se_group_sd` never named**; Ayumi 10,440-tip path not default advice |
+| `man/drm_control.Rd` / NEWS ~L794 | `se_group_sd = FALSE` default; n_group×n_group ADREPORT / REML GB warning | Need vignette + learning-path pointer so users find it without reading Rd |
+| Packaging | check-log: tarball-clean freeze; STOP before platform-clean/upload | Out of scope here |
+
+## Capacity ladder
+
+| Order | Budget | Outcome | Trigger / definition of done |
+| --- | ---: | --- | --- |
+| Arc 0 | 40 min | Gap map + decision: **new short vignette** vs **tighten model-workflow + drmTMB learning-path** (prefer reuse; new article only if a ≤~150-line spine is cleaner) | Start now. Cite the prior-work table above. |
+| Rung 1 | 70 min | **Default uncertainty story frozen** in NEWS + `?confint` (profile for RE-SD / variance components; Wald for FE routine; read `profile.boundary`; no nominal-coverage-everywhere). Docs-only; no claim expansion. | After Arc 0. Reversible prose. |
+| Rung 2 | 100 min | **Onboarding path landed**: fit → `profile_targets()` → `confint(method="profile")` → read `profile.boundary` → when not to trust; linked from `_pkgdown.yml` Getting Started + `drmTMB.Rmd` learning path. Prefer CRAN-safe tiny example (no long phylo). | After Rung 1 so vignette can cite the frozen story. |
+| Rung 3 | 80 min | **Parseable capability surface** for users: compact family × dpar × RE × interval tier (fit / `interval_feasible` / `inference_ready`) on README and/or a pkgdown-facing page that **summarises** existing `capability-and-limits` + ledger snapshot — no new promotions. | After Arc 0 decision on where the matrix lives. |
+| Rung 4 | 50 min | **Ayumi-scale ergonomics**: `large-data.Rmd` (+ learning-path row) default advice for big tip counts — keep `se_group_sd = FALSE`; when to set `TRUE`; point at `?drm_control`. | Independent of Rung 2 once Arc 0 confirms gap. |
+| Integrate/close | 30 min | Links consistent; after-task or check-log note; Actuals; HAND TO next (platform-clean owner / AGHQ post-submit). | Always reserve. |
+| *(optional later)* | — | One non-Gaussian REML/AGHQ supported corner (binomial or cumlogit) | **Post-submit / separate arc** — not Arc 0; not a CRAN blocker. |
+| **Total** | **370 min (~6.2 h)** | Shortest credible programme that lands all four; trim to ~5.5 h if Arc 0 chooses reuse-only (no new vignette file). | |
+
+**Reversible docs vs public claims:** Rungs 1–2 and 4 are reversible documentation if they only restate measured behaviour. Rung 3 is reversible **only while it cites existing ledger tiers**; inventing “supported” / expanding domains is a public-claim change and is **out of scope**.
+
+## Budget — Arc 0
+
+| Segment | Minutes | Output / stop point |
 | --- | ---: | --- |
-| Arc 0 discharge | 45 min | **Locked by approving this plan** (see DECISIONS LOCKED) |
-| Rung 1 #930 merge | 75 min | **DONE** — MERGED `8df6f240` · post-merge CI run `31043189202` must be watched |
-| Rung 2 claim freeze | 90 min | OWED |
-| Rung 3 source-clean + tarball probe | 75 min | OWED |
-| Closeout | 15 min | OWED |
-| Remaining capacity | ~180 min | |
+| Orient | 15 | Re-read `?confint` Boundary, `model-workflow` confint section, `capability-and-limits` tiers, `large-data` memory section, `_pkgdown.yml` Getting Started |
+| Core | 15 | Write gap map (files + 1-sentence gap each) + decide vignette strategy |
+| Verify | 5 | Confirm platform-clean / upload still foreign; DESCRIPTION stays 0.6.0 |
+| Repair reserve | 0 | External packaging wait is not this arc |
+| Closeout | 5 | Record decision on this card; start Rung 1 or Rung 4 if Rung 1 blocked |
+| **Total** | **40** | |
 
-## Phase 0.25 sweep receipt
+**In scope:** onboarding uncertainty path; NEWS/`?confint` default story; parseable capability surface linked for users; Ayumi `se_group_sd` advice.  
+**Not in this arc:** platform-clean; CRAN upload; DESCRIPTION version bump; Totoro; ledger promotions; AGHQ/Cox-Reid implementation; rebuilding `capability-and-limits` from scratch; touching the dirty primary checkout.  
+**Evidence used:** `man/confint.drmTMB.Rd` §Boundary intervals; NEWS profile-boundary + Prong B entries; `vignettes/model-workflow.Rmd` (`profile_targets` / `conf.status`); `vignettes/capability-and-limits.Rmd`; `docs/dev-log/dashboard/capability-surface.md` (2026-08-05 snapshot); `man/drm_control.Rd` `se_group_sd`; absence of `se_group_sd` in `vignettes/large-data.Rmd`; `_pkgdown.yml` articles; check-log tarball-clean freeze; prior Arc Card `scratchpad/2026-08-05-arc-07-cran-release-readiness.md` (packaging — complementary, not overlapping).  
+**Risk branch:** If Arc 0 finds the onboarding path is already first-week complete in `model-workflow` after a short front-load, **do not** add a new vignette — spend the Rung 2 budget on linking + Boundary cross-refs + capability matrix instead. If Rung 3 tempts a ledger regeneration or tier rewrite, **stop** and ship a skim table that cites existing statuses only. If another agent’s platform-clean PR conflicts on README/`_pkgdown.yml`, rebase in a useful-07 worktree off `origin/main` — never dirty primary.
 
-| Surface | Evidence | Finding | Call |
-| --- | --- | --- | --- |
-| repo git | `gh pr view 930` → MERGED; `git fetch`; `origin/main` = `8df6f240`; `branch_drift_check` campaign branch 0 ahead / 1 behind main | #930 landed; campaign worktree tip is parent of merge | resume from **new worktree on main**, not dirty primary |
-| twin/sister | DRM.jl / gllvmTMB not needed for claim freeze | n/a | n/a |
-| brain `search_notes` | query `drmTMB 0.7.0 CRAN release readiness source-clean` | D-86/D-93/D-117/D-122/D-125; dossier LOAD-FIRST says gate RUN, publish call remains | reuse decisions; build gate ledger gap |
-| grep AGENT_LOG / DECISIONS / OPEN_QUESTIONS / journal / deep-research | `grep D-117\|0.7\|CRAN` | CI-17 still open for publish half; D-125 claim mend done; dr20 is AGHQ literature (DEFER) | build-the-gap = source-clean only |
-| Verdict | | | **reuse** protocol + prior audits; **resume** nothing half-built for 0.7 gate; **build** claim-freeze + gate ledger + tarball probe |
-
-## WHAT THE BRAIN ALREADY KNOWS
-
-- First CRAN number is **0.7.0**; 0.6 never submits (D-86).
-- D-93 hold was about RE-SD coverage; profile accepted (D-97); 10-group gate ran (D-117); PASS withheld; warning shipped; **publish half never said**.
-- D-122: "0.7 coming later" (urgency off) — this plan **reopens readiness work**, not upload.
-- D-49 / [`~/shinichi-brain/protocols/cran-release-gate.md`](/Users/z3437171/shinichi-brain/protocols/cran-release-gate.md): fail-closed rungs; `cran_release_gate.py` lives in **brain** `tools/`, not the repo.
-- Experimental banner already on README; `cran-comments.md` exists but is stale vs current evidence.
-- Post-merge `main` CI is **ubuntu-only**; full 3-OS is tag/`workflow_dispatch` only — platform-clean is a **later** arc.
-
-## WHAT SHINICHI TOLD US
-
-- Leave D-117 discussion for now earlier, then asked for CRAN-facing arc + arc-creation.
-- Explicit: **merge #930** (done).
-- Explicit: **/ultra-plan the arc**.
-
-## WHAT THE TEAM RAISED
-
-```
-TEAM RAISED
-  Rose   — Do not say "CRAN ready"; report source-clean / NOT READY. · Overclaim risk on IF census vs experimental. · Recommend rung language only. · Q: discharge? · Default: discharge via plan approval.
-  Fisher — D-117 PASS stays WITHHELD; profile+warning is the honest position, not a coverage claim. · Publish ≠ coverage PASS. · Recommend discharge without reinstating PASS. · Default: same.
-  Grace  — Watch post-merge run 31043189202; local --as-cran on frozen hash; no DESCRIPTION bump until freeze. · Platform-clean later. · Default: ubuntu watch now, 3-OS later.
-  Ada    — Merge done; lock discharge on plan approval; execute Rungs 2–3 via /goal; STOP before upload.
-```
-
-## ADA'S RECOMMENDATION
-
-Approve this plan = discharge D-93/D-117 under **profile RE-SD + `profile.boundary` warning** as the honest 0.7.0 position (PASS remains withheld). Then run claim-freeze + source-clean. Do **not** upload.
-
-## DECISIONS LOCKED
-
-1. Approving this plan **discharges** D-93/D-117 for readiness work as above.
-2. #930 is on `main`; do not re-run Totoro / re-promote WITHHOLD.
-3. No CRAN upload in this arc.
-4. No AGHQ / missing-data expansion / primary cleanup.
-5. `DESCRIPTION` stays `0.6.0` until an explicit freeze slice bumps to `0.7.0` (D-86) — this arc may draft NEWS for 0.7 but does not tag.
-6. After G0 approval, execution continues via **`/goal`** (not this planning chat).
-
-## QUESTIONS STILL OPEN
-
-None that block Rungs 2–3. Upload word remains future-only.
-
-## SLICE TABLE
-
-| Slice | Member | Model+effort | Bar | Time | Detail | Dep |
-| --- | --- | --- | --- | ---: | --- | --- |
-| S0 Watch post-merge CI | Grace | Composer / low | Cursor Models | 5+async | `gh run watch 31043189202`; cancelled≠fail (duration vs 75m) | — |
-| S1 Fresh worktree | Ada | Composer / low | Cursor Models | 10 | `git worktree add … origin/main` @ `8df6f240`+; never primary | S0 green or noted |
-| S2 Claim-surface audit | Rose | Auto Cost / medium | Other Models | 40 | Diff README/NEWS/`?confint`/capability-surface vs ledger 187 IF; list overclaims | S1 |
-| S3 Claim freeze edits | docs + Rose | Composer / medium | Cursor Models | 50 | Fix only audit hits; refresh `cran-comments.md` evidence dates; experimental banner already present — verify only | S2 |
-| S4 Gate −1/0/1 ledger | Grace | Auto Cost / medium | Other Models | 35 | Init release ledger JSON for Gate −1 (compiled TMB, first submission), Gate 0 product contract, Gate 1 rights skim | S1 |
-| S5 Local tarball probe | Grace | Composer / medium | Cursor Models | 60 | document → build → `R CMD check --as-cran` on tarball; record SHA; run `python3 ~/shinichi-brain/tools/cran_release_gate.py` | S3, S4 |
-| S6 Mechanical verify | Curie-style | Composer / low | Cursor Models | 15 | ledger `--check` if touched; census 187/55; CI conclusion | S5 |
-| S7 Closeout | Rose | Auto Cost / medium | Other Models | 15 | after-task; update arc Actuals; `/goal` checkpoint; DECISIONS discharge note draft for brain (owner paste) | S6 |
-| RECONCILE | Melissa | Auto Cost / low | Other Models | 10 | plan-vs-actual → `docs/dev-log/plan-actual/2026-08-05-07-cran-readiness.md` | S7 |
-
-**PARALLEL:** {S2, S4} after S1 · S0 async with S1–S2  
-**SEQUENTIAL:** S3←S2 · S5←S3,S4 · S6←S5 · S7←S6  
-**FAN-OUT BUDGET:** checkpoint=`07-cran` · children ≤4 · scout=1 (S2) · build=2 · ceiling=0  
-**LUNA SUITABILITY:** yes — S2/S6 mechanical audit on cheap bar  
-**SEARCH:** none (no novelty claim)  
-**ESTIMATE:** ~3 h wall remaining · fits one `/goal` session if CI already green  
-**VERIFY:** highest rung language + tarball SHA + post-merge CI conclusion  
-**CONSOLIDATE:** after-task under `docs/dev-log/after-task/` + arc Actuals
-
-## Execution cwd
-
-```bash
-# after G0 — in /goal, not here
-cd /Users/z3437171/Dropbox/Github\ Local/drmTMB
-git fetch origin
-git worktree add ~/local-scratch/worktrees/drmTMB-07-cran origin/main
-cd ~/local-scratch/worktrees/drmTMB-07-cran
-```
-
-## Risk branch
-
-If post-merge CI fails: stop claim freeze; diagnose from logs; no DESCRIPTION bump.  
-If `--as-cran` ERROR/WARNING: leave gate **NOT READY**; open repair sub-arc.  
-If claim audit finds a live overclaim that needs owner wording: pause only that sentence; continue ledger init.
-
-## After G0 — paste into `/goal`
+**Done when:** (size-mode programme) (1) onboarding path exists and is linked from Getting Started; (2) NEWS + `?confint` state the default uncertainty story without nominal-coverage-everywhere; (3) users can parse family × dpar × RE × interval tier from README/pkgdown without opening the ledger TSV; (4) Ayumi-scale `se_group_sd` advice is in `large-data` (or equivalent user surface); AGHQ remains deferred; no version bump / upload / campaign.  
+**First action:**
 
 ```text
-Execute approved ultra-plan: drmTMB 0.7.0 CRAN readiness (post-#930).
-Read scratchpad/2026-08-05-arc-07-cran-release-readiness.md and the plan.
-Worktree: ~/local-scratch/worktrees/drmTMB-07-cran from origin/main.
-Do Rungs 2–3 only: claim freeze + source-clean + local tarball probe.
-Do NOT upload to CRAN. Do NOT touch AGHQ/missing-data/primary checkout/#858.
-Watch main CI run 31043189202. Report highest proven cran-release-gate rung.
+In ~/local-scratch/worktrees/drmTMB-07-tarball (or a fresh useful-07 worktree
+off origin/main): open man/confint.drmTMB.Rd §Boundary intervals,
+vignettes/model-workflow.Rmd (confint / profile_targets),
+vignettes/capability-and-limits.Rmd (tier defs), vignettes/large-data.Rmd,
+and _pkgdown.yml Getting Started — then record Arc 0 decision on this card:
+new short vignette vs reuse+link only.
 ```
+
+### Actuals (complete at close)
+**Recommended / actual:** 370 / _ · **Requested / used:** N/A / _ · **Rungs completed:** _  
+**Under-run event:** _  
+**Calibration:** _  
+**Metric movement:** first-week user surfaces incomplete → _ (four deliverables: _) · AGHQ: deferred  
+**Result:** _ · **Next arc:** platform-clean (other owner) **or** post-submit AGHQ corner (binomial / cumlogit) as a separate science arc
+
+---
+
+HAND TO ULTRA PLAN: 5.5h drmTMB “really useful 0.7” user-facing programme —
+Arc 0 = 40 min gap map (reuse vs thin new vignette); then freeze default
+uncertainty story in NEWS+?confint; land fit→profile_targets→confint(profile)→
+profile.boundary onboarding linked from Getting Started; ship parseable
+family×dpar×RE×tier surface from existing ledger (no promotions); add
+Ayumi-scale se_group_sd advice to large-data; no platform-clean, no upload,
+no DESCRIPTION 0.7 bump, no Totoro, AGHQ deferred post-submit; work from
+clean worktree off origin/main / tarball worktree, never dirty primary.

@@ -64,6 +64,47 @@ audited against this ladder. Read the evidence and caveat columns when a legacy
 `supported` label conflicts with an interval or coverage note; the stricter
 meaning above is the forward definition.
 
+
+## Capability skim (family × dpar × RE × interval tier)
+
+Use this skim when you need a **parseable** first answer without opening the
+capability ledger TSV. Counts and highest-evidence labels are a snapshot of the
+generated model surface dated **2026-08-05**
+(`docs/dev-log/dashboard/capability-surface.md`). They are **not** a promotion,
+and they are not a claim that every cell in a family sits at the family's
+highest tier — read the exact cell and claim boundary before reporting an
+interval as inference-ready.
+
+**Evidence ladder (same definitions as above):** supported >
+inference-ready with caveats > interval-feasible > point-fit recovery >
+diagnostic-only. Model-surface snapshot: **699** cells; evidence counts
+**4** supported / **29** inference-ready / **187** interval-feasible /
+**55** recovery-grade; runtime **339** implemented / **350** not currently
+supported / **10** actionable not implemented.
+
+::: {.table-responsive}
+
+| Family / route | Main dpars | Ordinary RE (`mu`) | Structured RE | Highest model-surface evidence |
+| --- | --- | --- | --- | --- |
+| `gaussian` | `mu`, `sigma` | intercept + independent slope | `phylo` / `spatial` / `animal` / `relmat` (scoped) | supported (exact ordinary-RE cells) |
+| `biv_gaussian` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | matching labelled intercepts / slopes (scoped) | matching structured q2+ (scoped) | supported (exact ordinary-RE cells) |
+| `student` | `mu`, `sigma`, `nu` | `mu` intercept + slope | limited spatial / phylo-`nu` gates | interval-feasible |
+| `lognormal` | `mu`, `sigma` | `mu` + `sigma` intercept | limited `phylo` / `relmat` on `mu` | inference-ready with caveats (`sigma` RE) |
+| `gamma` | `mu`, `sigma` | `mu` + `sigma` intercept | limited `phylo` / `relmat` | inference-ready with caveats (`sigma` RE) |
+| `poisson` / `nbinom2` | `mu`, `sigma` (NB2) | `mu` intercept + slope; NB2 `sigma` intercept | q1 structured `mu` (scoped) | inference-ready with caveats (unstructured) |
+| `binomial` | `mu` | `mu` intercept + slope | not generally available | inference-ready with caveats |
+| `beta` / `beta_binomial` / `zero_one_beta` | family-specific `mu`/`sigma`/(atoms) | ordinary `mu` gates; atom gates scoped | mostly unavailable / recovery exceptions | inference-ready with caveats (scoped) |
+| `tweedie` / `skew_normal` / `cumulative_logit` | family-specific | ordinary `mu` intercept + slope | mostly unavailable | inference-ready with caveats (scoped) |
+| zero-inflated / hurdle / truncated counts | `mu`, `sigma`, `zi`/`hu` | limited diagnostic or recovery gates | mostly unavailable | interval-feasible or recovery-only |
+
+:::
+
+**How to read the last column.** "Highest evidence" is the best tier present
+for that route on the model surface, not a blanket family claim. Interval
+feasibility means a public interval method exists for some cells; it does not
+imply coverage. For the long caveat table, stay on this page; for the full
+generated census, see the dashboard snapshot linked above.
+
 ## At a glance
 
 ::: {.table-responsive}

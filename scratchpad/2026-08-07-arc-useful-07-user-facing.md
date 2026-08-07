@@ -120,11 +120,11 @@ new short vignette vs reuse+link only.
 ```
 
 ### Actuals (complete at close)
-**Recommended / actual:** 370 / _ · **Requested / used:** N/A / _ · **Rungs completed:** _  
-**Under-run event:** _  
-**Calibration:** _  
-**Metric movement:** first-week user surfaces incomplete → _ (four deliverables: _) · AGHQ: deferred  
-**Result:** _ · **Next arc:** platform-clean (other owner) **or** post-submit AGHQ corner (binomial / cumlogit) as a separate science arc
+**Recommended / actual:** 370 / ~session · **Requested / used:** N/A / N/A · **Rungs completed:** A0 + R1–R4 + closeout  
+**Under-run event:** Arc 0 chose thin new vignette (cleaner first-week spine than only front-loading model-workflow)  
+**Calibration:** inferred budget held as docs-only programme  
+**Metric movement:** first-week user surfaces incomplete → four deliverables landed (uncertainty freeze; onboarding vignette; capability skim; se_group_sd advice) · AGHQ: deferred  
+**Result:** draft PR from `cursor/useful-07-user-facing` · **Next arc:** platform-clean (other owner) **or** post-submit AGHQ corner (binomial / cumlogit) as a separate science arc
 
 ---
 

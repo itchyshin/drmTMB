@@ -1,10 +1,10 @@
-# Arcs — drmTMB 0.7.0 CRAN readiness
+# Arcs — useful-0.7 user-facing
 
 | id | status | gate | one-line |
 |---|---|---|---|
-| A0-discharge | done | — | G0 2026-08-07: D-93/D-117 discharged (PASS withheld) |
-| A1-930-merge | done | — | #930 on main; post-merge CI green |
-| A2-claim-freeze | done | — | README 0.6 cycle fix; cran-comments refreshed; audit note |
-| A3-gate-ledger | done | — | Gates −1/0/1 product contract + ledger JSON; gate READY |
-| A4-tarball-probe | done | — | Probe 2: SHA `5db0111a…`; Status 1 NOTE (New submission); LOOP excluded |
-| A5-closeout | done | upload | after-task + Melissa; STOP (no CRAN upload) |
+| A0-gap-map | done | — | Thin new vignette `first-week-intervals` (reuse model-workflow as deep link) |
+| R1-uncertainty-freeze | done | — | NEWS + `?confint` default uncertainty story |
+| R2-onboarding | done | — | Vignette + Getting Started + learning-path links |
+| R3-capability-skim | done | — | Skim table in capability-and-limits + README links |
+| R4-ayumi-se | done | — | `se_group_sd` advice in `large-data` + learning path |
+| Closeout | done | draft-PR | after-task + pkgdown check OK; draft PR |

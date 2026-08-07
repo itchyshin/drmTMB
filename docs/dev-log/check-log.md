@@ -1,5 +1,14 @@
 # Check Log
 
+
+## 2026-08-07 — useful-0.7 user-facing (docs honesty)
+
+- Lane `cursor/useful-07-user-facing`: NEWS + `?confint` default uncertainty story; vignette `first-week-intervals`; capability skim in `capability-and-limits`; `se_group_sd` in `large-data`.
+- `devtools::document()` wrote `man/confint.drmTMB.Rd` (§Default uncertainty story).
+- `pkgdown::check_pkgdown()` after `_pkgdown.yml` / article changes.
+- DESCRIPTION remains 0.6.0; no packaging / release-ledger edits; no ledger promotions.
+- After-task: `docs/dev-log/after-task/2026-08-07-useful-07-user-facing.md`.
+
 Record meaningful development checks here.
 
 ## 2026-08-07: 0.7 CRAN gate — tarball-clean freeze
