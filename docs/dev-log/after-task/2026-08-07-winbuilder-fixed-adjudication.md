@@ -38,3 +38,4 @@ Under `docs/dev-log/release/0.7.0-cran-gate/platform/`:
 `winbuilder-release-fixed-00check.log`, `winbuilder-devel-fixed-00check.log`.
 PR #945 on `cursor/07-winbuilder-adjudicate`.
 
+Updated: 2026-08-08T00:25Z (CI re-trigger after cancel stale/full-matrix runs).
