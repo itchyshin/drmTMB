@@ -26,8 +26,10 @@ census; capability counts belong in the ledger and Mission Control.
 - Evidence ≠ ledger: ERROR-free win-builder does not auto-advance `status_claim`.
 
 ## Status
-- 2026-08-07 night — `origin/main` @ `5affb962b` (#946). Rung **`tarball-clean`**.
-  useful-0.7 #942, CondExp #941, and win-builder ERROR-free docs #946 **merged**.
-  CRAN submit UI offline until ~19 Aug 2026.
-- START HERE for Codex:
+- 2026-08-08 morning verify — `origin/main` @ `5affb962b` (#946). Rung
+  **`tarball-clean`**. useful-0.7 #942, CondExp #941, and win-builder ERROR-free
+  docs #946 **merged**. Post-merge ubuntu R-CMD-check + pkgdown **green**.
+  CRAN submit UI offline until ~19 Aug 2026. Draft **#947** (do not auto-merge).
+  Sibling **#937** / **#858** still open.
+- START HERE for Codex (same 2026-08-07 filename):
   [`handover/2026-08-07-codex-handover.md`](handover/2026-08-07-codex-handover.md).

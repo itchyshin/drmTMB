@@ -1,6 +1,24 @@
 # Check Log
 
 
+## 2026-08-08 — Codex handover live verify (still tarball-clean)
+
+- Re-fetched `origin/main` = `5affb962b` (unchanged since #946). Ledger
+  `status_claim` still **`tarball-clean`**. DESCRIPTION **0.6.0**.
+- Post-merge `main` CI now **green**: R-CMD-check
+  https://github.com/itchyshin/drmTMB/actions/runs/31231949532 and pkgdown
+  https://github.com/itchyshin/drmTMB/actions/runs/31233577522.
+- Win-builder logs re-read: R-devel
+  https://win-builder.r-project.org/qS15UqA2O00A/00check.log and R-release
+  https://win-builder.r-project.org/BQVnXOH066rJ/00check.log both **Status: 1 NOTE**.
+- Handoff gate FAIL (foreign unpushed + primary dirty + WT `.tmp-941-merge/`)
+  declared CARRIED-OVER / PROTECTED; not mass-pushed. #937 / #858 left open.
+- Draft #947 refreshed in place; same START HERE filename
+  `docs/dev-log/handover/2026-08-07-codex-handover.md`. No competing 2026-08-08
+  handover. After-task:
+  `docs/dev-log/after-task/2026-08-08-codex-handover-live-verify.md`.
+
+
 ## 2026-08-07 — Codex handover + #946 merge (still tarball-clean)
 
 - Merged [#946](https://github.com/itchyshin/drmTMB/pull/946) → `5affb962b`

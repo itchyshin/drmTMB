@@ -1,6 +1,8 @@
 # Session Handoff: drmTMB 0.7 rescope + pre-19 Aug CRAN ladder → Codex
 
-Meta: 2026-08-07 evening (MDT) · from **Cursor** → to **Codex** · live-toolchain lane.
+Meta: 2026-08-07 evening (MDT) authored · **verified live 2026-08-08 morning MDT**
+(Cursor → Codex refresh; same filename — **not** a second competing START HERE).
+Live-toolchain lane.
 
 **You are Codex**, picking up drmTMB after Cursor closed the useful-0.7 / CondExp / board
 slice on `main` and a sibling Cursor agent adjudicated win-builder on the **fixed**
@@ -34,9 +36,16 @@ Multi-lane board (read **every** live row — do not orphan siblings):
 
 3. **#946 is MERGED** → `origin/main` **`5affb962b`** (2026-08-08T01:08Z).
    Docs-only win-builder adjudication; GHA **never started** on the PR; Shinichi
-   asked to merge anyway. #945 was CLOSED without merge (superseded). Receipts
-   now live on `main` under `docs/dev-log/release/0.7.0-cran-gate/platform/`.
-   Do **not** rewrite them. **`platform-clean` is still NOT claimed.**
+   asked to merge anyway. **Post-merge `main` CI is now green** (verified
+   2026-08-08): R-CMD-check
+   [31231949532](https://github.com/itchyshin/drmTMB/actions/runs/31231949532)
+   (`ubuntu-latest (release)` success ~41 min) + pkgdown
+   [31233577522](https://github.com/itchyshin/drmTMB/actions/runs/31233577522).
+   #945 was CLOSED without merge (superseded). Receipts now live on `main` under
+   `docs/dev-log/release/0.7.0-cran-gate/platform/`. Do **not** rewrite them.
+   **`platform-clean` is still NOT claimed.** Live re-read of win-builder
+   `00check.log` (2026-08-08): both URLs still **Status: 1 NOTE**, tests OK,
+   CondExp path ERROR absent.
 
 4. **CRAN submit UI is offline 5–19 Aug 2026.** Upload is impossible until ~20 Aug
    **and** still requires owner word after that. Use the blackout for freeze /
@@ -97,8 +106,10 @@ or later), never a reuse of `c787ee40…`.
 ## Current Working State
 
 - **Working:** `origin/main` @ `5affb962b` (DESCRIPTION 0.6.0; useful-0.7 + CondExp
-  repair + win-builder ERROR-free docs on main; ledger `tarball-clean`). CRAN UI
-  offline until ~19 Aug.
+  repair + win-builder ERROR-free docs on main; post-merge ubuntu R-CMD-check +
+  pkgdown **success**; ledger `status_claim` still `tarball-clean`). CRAN UI
+  offline until ~19 Aug. Draft handover PR **#947** open (CI green; do not
+  auto-merge).
 - **In progress:** owner authorize of `platform-clean`; freeze / pkgdown / D-43 /
   cran-comments before ~19 Aug.
 - **Not working / blocked:** `platform-clean` **claim**; `submission-ready`;
@@ -162,20 +173,33 @@ shrink 0.7 to docs-only without platform-clean (that would violate D-49).
 
 ## Landing State
 
-`bash ~/shinichi-brain/tools/handoff_gate.sh` on the primary Dropbox checkout
-**FAILS** (dirty `claude/handover-freshness-0718` + many foreign unpushed
-branches). That is expected. **Declare CARRIED-OVER; do not mass-push.**
+`bash ~/shinichi-brain/tools/handoff_gate.sh` **FAILS** on both the primary
+Dropbox checkout and this shared-`.git` worktree estate. Expected. **Declare
+CARRIED-OVER; do not mass-push; do not clean primary.**
+
+Re-ran 2026-08-08 morning:
+
+- Handover WT `drmTMB-codex-handover-0807` @ `cursor/codex-handover-0807`:
+  branch itself clean vs `origin/cursor/codex-handover-0807`; gate still FAIL
+  because ~428 foreign local unpushed tips share the `.git`.
+- Cursor WT `drmTMB-handover-0807` @ `cursor/board-post-942-943-941`: 8 behind
+  `origin/main`; untracked `.tmp-941-merge/` — **CARRIED-OVER debris**, never
+  stage.
+- Primary `/Users/z3437171/Dropbox/Github Local/drmTMB` @
+  `claude/handover-freshness-0718`: dirty (AGHQ/REML + many untracked) and
+  **ahead 2 unpushed** — **PROTECTED**.
 
 | Artifact / branch | Committed | Pushed | PR | State |
 |---|---|---|---|---|
-| `origin/main` @ `5affb962b` (#930–#946) | y | y | merged | **LANDED** |
-| `#946` win-builder ERROR-free docs | y | y | **MERGED** `5affb962b` | **DONE** — GHA never started; docs-only merge authorized; ledger still `tarball-clean` |
+| `origin/main` @ `5affb962b` (#930–#946) | y | y | merged | **LANDED**; post-merge ubuntu + pkgdown **green** |
+| `#946` win-builder ERROR-free docs | y | y | **MERGED** `5affb962b` | **DONE** — PR GHA never started; merge-commit CI succeeded; ledger still `tarball-clean` |
 | `#945` earlier FTP-receipt draft | y | y | **CLOSED**, not merged | **DONE / superseded** by #946 |
-| This handover `cursor/codex-handover-0807` | this PR | land with PR | draft | **OWED → LAND** (docs only) |
+| This handover `cursor/codex-handover-0807` | y | y | draft **#947** | **OWED → human merge** (docs only; keep draft) |
 | `#937` `claude/land-gva-decision` | y | y | open | **CARRIED-OVER / foreign-optional** — docs only; not CRAN-blocking |
 | `#858` `codex/lane-b-e0-readiness` | y | y | draft open | **PROTECTED / foreign** |
-| Primary `claude/handover-freshness-0718` dirty + unpushed | mixed | n | — | **PROTECTED** |
-| Other local unpushed `codex/*` / agent branches | mixed | n | various | **CARRIED-OVER / foreign** — do not push from this lane |
+| Primary `claude/handover-freshness-0718` dirty + 2 unpushed | mixed | n | — | **PROTECTED** — resume only if Shinichi reopens AGHQ lane |
+| WT `cursor/board-post-942-943-941` + `.tmp-941-merge/` | n | n | — | **CARRIED-OVER debris** — `rm` only after confirming not a nested worktree still needed |
+| Other local unpushed `codex/*` / agent branches (~428) | mixed | n | various | **CARRIED-OVER / foreign** — do not push from this lane |
 
 ### CARRIED-OVER resume commands
 
@@ -206,7 +230,7 @@ export NOT_CRAN=true   # ordinary tests only; CRAN-lane checks run WITHOUT this
 |---|---|---|
 | 1 | Rehydrate: `AGENTS.md` → this doc → `active-lane-split.md` → `git fetch` / confirm `origin/main` includes #946 | **OWED** |
 | 2 | Ask Shinichi: authorize `platform-clean` ledger write? bump/upload still STOP until after ~19 Aug + his word? | **OWED** |
-| 3 | Merge #946 | **DONE** (`5affb962b`; GHA never started; docs-only) |
+| 3 | Merge #946 | **DONE** (`5affb962b`; PR GHA never started; merge-commit ubuntu [31231949532](https://github.com/itchyshin/drmTMB/actions/runs/31231949532) + pkgdown [31233577522](https://github.com/itchyshin/drmTMB/actions/runs/31233577522) **success**) |
 | 4 | If `platform-clean` authorized: update ledger + freeze notes on a **fresh** worktree; still no DESCRIPTION bump / no upload | **OWED** (gated) |
 | 5 | Re-freeze post-#946 `main` (new SHA / size / inventory + local `R CMD check --as-cran --no-manual`). Must include CondExp repair + useful-0.7 + #946 docs. Never reuse `c787ee40…` / 9817096 | **OWED** |
 | 6 | Pkgdown Gate 2/4: `pkgdown::check_pkgdown()` + full rendered-site + human skim | **OWED** (blocks submission-ready, not platform-clean) |
@@ -239,8 +263,10 @@ no 135-trace rerun.
 
 1. **Owner authorize `platform-clean`?** Evidence exists (ERROR-free R-release +
    R-devel on `f9b9588e…`). Ledger must not move without yes.
-2. **#946 merge-without-GHA:** DONE. Checks never started; owner asked to merge
-   docs-only. Main ubuntu `R-CMD-check` will still fire on the merge commit.
+2. **#946 merge-without-GHA on the PR:** DONE. Checks never started on #946
+   itself; owner asked to merge docs-only. **Merge-commit `main` CI later
+   succeeded** (ubuntu-latest release + pkgdown). That does **not** authorize
+   `platform-clean`.
 3. **Valgrind / residual R-hub:** earlier platform attempt left valgrind
    incomplete; rchk adjudicated TMB-header noise. Ask whether that still gates
    `platform-clean` or only `submission-ready`.
@@ -274,16 +300,16 @@ no 135-trace rerun.
 
 ## Files Created / Modified (this handover PR)
 
-From `git diff --name-only origin/main...HEAD` after commit (plus this PR’s
-own files):
+From `git diff --name-only origin/main...HEAD` (refresh commit included):
 
-- `docs/dev-log/handover/2026-08-07-codex-handover.md` (this file)
+- `docs/dev-log/handover/2026-08-07-codex-handover.md` (this file; 2026-08-08 live verify)
 - `AGENTS.md` — Latest pointer → multi-lane board + this doc
 - `docs/dev-log/active-lane-split.md`
 - `docs/dev-log/coordination-board.md`
 - `docs/dev-log/phase-snapshot.md` + `phase-snapshot-archive.md`
 - `docs/dev-log/check-log.md`
 - `docs/dev-log/after-task/2026-08-07-codex-handover-rescope.md`
+- `docs/dev-log/after-task/2026-08-08-codex-handover-live-verify.md`
 
 ---
 
@@ -326,23 +352,33 @@ keep planning/prose unless Shinichi reassigns. Do not start Totoro.
 
 | Repo | Branch / main | CI | Shipped | Plan by leverage |
 |---|---|---|---|---|
-| drmTMB | `main` `5affb962b` | packaging + useful + CondExp + #946 merged | `tarball-clean` proven; DESCRIPTION 0.6.0 | no upload |
-| drmTMB | #946 win-builder docs | GHA never started; **merged** anyway | ERROR-free R-rel+R-devel on `f9b9588e…` | owner: `platform-clean`? |
-| drmTMB | this handover PR | docs-only draft | rescope + before-19th cadence | Codex executes freeze → pkgdown → D-43 → cran-comments |
+| drmTMB | `main` `5affb962b` | ubuntu + pkgdown **green** after #946 | `tarball-clean` proven; DESCRIPTION 0.6.0 | no upload |
+| drmTMB | #946 win-builder docs | PR GHA never started; merge-commit CI **success** | ERROR-free R-rel+R-devel on `f9b9588e…` (logs re-read 2026-08-08) | owner: `platform-clean`? |
+| drmTMB | this handover PR **#947** draft | PR CI green; keep draft | rescope + before-19th cadence | Codex executes freeze → pkgdown → D-43 → cran-comments |
 
 ---
 
 ## How to Resume
 
 1. Start Codex in a **fresh** drmTMB worktree off `origin/main` (not the Dropbox
-   primary).
-2. Paste the prompt below.
-3. Classify every Next Immediate Step as OWED / DONE / RETRACTED / PROTECTED
-   against **live** `gh pr view 946` / `origin/main` before acting.
-4. Execute **only OWED**. Ask Shinichi before writing `platform-clean`. #946 is
-   already merged.
-5. Rose (`.codex/agents/systems-auditor.toml`) before any public rung claim.
+   primary). Example:
+   `git worktree add ~/local-scratch/worktrees/drmTMB-07-codex -b codex/07-submission-ready origin/main`
+2. Live env:
+   `export R_PROFILE_USER=/dev/null` then `Rscript --no-init-file`;
+   `NOT_CRAN=true` for ordinary tests; CRAN-lane `R CMD check --as-cran`
+   **without** `NOT_CRAN`. Rose via `.codex/agents/systems-auditor.toml`.
+3. Paste the prompt below.
+4. Classify every Next Immediate Step as OWED / DONE / RETRACTED / PROTECTED
+   against **live** `gh pr view 946` / `gh pr view 947` / `origin/main` before
+   acting.
+5. Execute **only OWED**. Ask Shinichi before writing `platform-clean`. #946 is
+   already merged. Keep draft **#947** until a human merges it.
+6. Rose before any public rung claim.
 
 ```text
-Rehydrate from docs/dev-log/handover/2026-08-07-codex-handover.md + the AGENTS.md snapshot, then continue with the Next Immediate Steps.
+Rehydrate from docs/dev-log/handover/2026-08-07-codex-handover.md + the AGENTS.md snapshot, then continue with the Next Immediate Steps. origin/main is 5affb962b (#946 merged; post-merge ubuntu+pkgdown green). Highest proven rung stays tarball-clean. Ask Shinichi before writing platform-clean. No DESCRIPTION bump, no CRAN upload. Do not touch #858, #937, or the dirty primary claude/handover-freshness-0718 checkout.
 ```
+
+Cursor could not start an automatic Codex thread (no `list_projects` /
+`create_thread` MCP in this environment). Paste the block above into a new
+Codex session yourself.

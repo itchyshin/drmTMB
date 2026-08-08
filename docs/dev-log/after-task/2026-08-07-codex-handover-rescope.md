@@ -83,3 +83,6 @@ owed. DESCRIPTION remains 0.6.0.
 
 Codex: rehydrate → ask Shinichi to authorize `platform-clean` (bump/upload still
 STOP until after ~19 Aug) → freeze → pkgdown → D-43 → `cran-comments` → hold.
+
+Live verify 2026-08-08 (post-merge ubuntu + pkgdown green; same START HERE
+filename): `2026-08-08-codex-handover-live-verify.md`.
