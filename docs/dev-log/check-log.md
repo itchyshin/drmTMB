@@ -1,6 +1,34 @@
 # Check Log
 
 
+## 2026-08-08 — Reader boundary live + exact current-main tarball-clean
+
+- Merged PR [#948](https://github.com/itchyshin/drmTMB/pull/948) at
+  `ad475cc39f62f47a346c77aa17c3d20bf3fc9bae`. Post-merge main R-CMD-check
+  [31266713858](https://github.com/itchyshin/drmTMB/actions/runs/31266713858)
+  and pkgdown/Pages
+  [31268615909](https://github.com/itchyshin/drmTMB/actions/runs/31268615909)
+  passed. Live homepage, capability page, one-hop `ROADMAP.html` redirect,
+  search, sitemap, and desktop/mobile layouts were verified.
+- The public page **Can I fit and report this model?** separates fit, point,
+  named-interval, exact-scope, and fallback decisions. Its reader summary is
+  generated from the canonical capability ledger; generator check, 64 Python
+  tests, full source tests, tarball-contained rendering, and Pat/Florence/Grace/
+  Rose reviews passed.
+- Fresh source `ad475cc39` produced `drmTMB_0.6.0.tar.gz`, SHA-256
+  `2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea`,
+  size 9,831,204 bytes, 922 paths. Exact `R CMD check --as-cran
+  --run-donttest`: **0 ERROR, 0 WARNING, 1 NOTE** (`New submission` only).
+- A fresh Luna verifier reproduced the artifact/check identity. Its strict
+  read-only extraction attempt was preserved as FAIL because `mktemp` was
+  blocked; a narrowed scratch-write rerun freshly extracted and rendered the
+  capability article using tarball-contained inputs, SHA-256
+  `0cff046d1211e5b0c9baf442653d88e3854573643579ba9d27b469f571d9edbc`.
+- Highest proven rung: **`tarball-clean`**. Earlier Windows/platform evidence is
+  predecessor evidence only. DESCRIPTION remains 0.6.0; no `platform-clean`
+  write, CRAN upload, D-43 panel, or `cran-comments.md` finalization occurred.
+
+
 ## 2026-08-08 — Codex handover live verify (still tarball-clean)
 
 - Re-fetched `origin/main` = `5affb962b` (unchanged since #946). Ledger
