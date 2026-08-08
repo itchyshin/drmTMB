@@ -42,6 +42,24 @@ parameter, grouping structure, or sample size.
 cat(readLines("includes/capability-ledger-summary.md", warn = FALSE), sep = "\n")
 ```
 
+## Before reporting
+
+Apply the page's evidence boundary literally:
+
+- An inference-ready exact scope permits the point estimate and only the
+  specifically named interval.
+- A recovery-only scope permits the point estimate, but not a calibrated-
+  interval claim.
+- A diagnostic-only scope is for feasibility or debugging, not a scientific
+  estimate.
+- An unsupported scope should not be fitted; use the named fallback.
+
+Before copying a result, run `check_drm(fit)`. Check convergence, the fixed-
+effect gradient, and Hessian diagnostics; then inspect `conf.status`,
+`profile.boundary`, and any failed bootstrap refits for the interval you plan
+to report. A printed interval is not permission to ignore a boundary or failed
+refit warning.
+
 ## Evidence and exact tested scopes
 
 The sections below retain the technical evidence behind the reader summary.

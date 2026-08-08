@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import copy
 import csv
+import re
 import subprocess
 import tempfile
 import unittest
@@ -878,6 +879,56 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("capability-ledger: OK", result.stdout)
+
+    def test_reader_navigation_redirect_and_public_language_contract(self):
+        config = (ROOT / "_pkgdown.yml").read_text()
+        self.assertIn(
+            '- ["ROADMAP.html", "articles/capability-and-limits.html"]',
+            config,
+        )
+        intro = config.split("    intro:", 1)[1].split("    model_guides:", 1)[0]
+        labels = (
+            "Overview and first model",
+            "Can I fit and report this?",
+            "Choose a family",
+            "Model map",
+            "Check and report a fitted model",
+        )
+        positions = [intro.index(label) for label in labels]
+        self.assertEqual(positions, sorted(positions))
+        self.assertNotIn("Function map and cheat sheet", intro)
+        model_guides = config.split("    model_guides:", 1)[1].split("    tutorials:", 1)[0]
+        self.assertNotIn("capability-and-limits", model_guides)
+        getting_started = config.split("  - title: Getting Started", 1)[1].split(
+            "  - title: Capability and Model Choice", 1
+        )[0]
+        self.assertLess(
+            getting_started.index("- drmTMB"),
+            getting_started.index("- capability-and-limits"),
+        )
+
+        public_paths = [ROOT / "README.md", *sorted((ROOT / "vignettes").glob("*.Rmd"))]
+        public_text = "\n".join(path.read_text() for path in public_paths)
+        for stale in (
+            "ROADMAP.html", "ROADMAP.md", "check the roadmap",
+            "What drmTMB can and can't do", "What can I trust?",
+        ):
+            self.assertNotIn(stale, public_text)
+
+    def test_capability_article_has_reporting_rule_and_stable_terms(self):
+        article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
+        self.assertIn('title: "Can I fit and report this model?"', article)
+        self.assertIn("## Before reporting", article)
+        self.assertIn("## Evidence and exact tested scopes", article)
+        for token in (
+            "`mu`", "`sigma`", "`nu`", "`rho12`", "`sd(group)`",
+            "`phylo()`", "`spatial()`", "`meta_V(V = V)`",
+            "`check_drm(fit)`", "`conf.status`", "`profile.boundary`",
+            "failed bootstrap refits",
+        ):
+            self.assertIn(token, article)
+        self.assertEqual(article.count("meta_known_V(V = V)"), 1)
+        self.assertEqual(len(re.findall(r"\btau\b", article)), 1)
 
     def test_model_projection_uses_current_primary_evidence_and_claim(self):
         evidence_by_id = {
