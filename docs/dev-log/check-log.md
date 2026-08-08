@@ -1,6 +1,19 @@
 # Check Log
 
 
+## 2026-08-07 — Codex handover + #946 merge (still tarball-clean)
+
+- Merged [#946](https://github.com/itchyshin/drmTMB/pull/946) → `5affb962b`
+  (docs-only; GHA never started on the PR; owner asked to merge anyway).
+- Win-builder fixed SHA `f9b9588e…` / 9818425: R-devel
+  https://win-builder.r-project.org/qS15UqA2O00A and R-release
+  https://win-builder.r-project.org/BQVnXOH066rJ both **1 NOTE**, CondExp ERROR
+  **cleared**. Ledger `status_claim` remains **`tarball-clean`**.
+- Did not merge #937 / #858. Did not bump DESCRIPTION. Did not upload.
+- Codex handover: `docs/dev-log/handover/2026-08-07-codex-handover.md`.
+  After-task: `docs/dev-log/after-task/2026-08-07-codex-handover-rescope.md`.
+
+
 ## 2026-08-07 — win-builder fixed-tarball adjudication (still tarball-clean)
 
 - Gmail thread `19fdd3b95ebe5f0b` (ligges): fixed SHA `f9b9588e…` / 9818425

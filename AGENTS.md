@@ -3,19 +3,20 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-07 evening, 0.7: #942/#943/#941 merged; still tarball-clean).**
-> `main` @ `13e8cafb0`. Highest proven CRAN rung = **`tarball-clean`** (#939). DESCRIPTION
-> still **0.6.0**; **no upload**; **not platform-clean**; **not CRAN-ready**. Merged this
-> session: [#942](https://github.com/itchyshin/drmTMB/pull/942) useful-0.7 (`9e85ff91d`),
-> [#943](https://github.com/itchyshin/drmTMB/pull/943) handover (`80573f987`),
-> [#941](https://github.com/itchyshin/drmTMB/pull/941) CondExp path repair + honest NOT READY
-> platform docs (`13e8cafb0`) — ledger `status_claim` remains **`tarball-clean`**. win-builder
-> R-release+R-devel ERROR-free adjudication still owed (FTP-550 / missing results).
+> **▶ Latest — start here (2026-08-07 night, Codex 0.7 rescope + pre-19 Aug ladder).**
+> `main` @ `5affb962b` (#946 merged). Highest proven CRAN rung = **`tarball-clean`**. DESCRIPTION
+> still **0.6.0**; **no upload**; **not platform-clean**; **not CRAN-ready**. useful-0.7
+> [#942](https://github.com/itchyshin/drmTMB/pull/942), CondExp path [#941](https://github.com/itchyshin/drmTMB/pull/941),
+> and win-builder ERROR-free docs [#946](https://github.com/itchyshin/drmTMB/pull/946) are on `main`.
+> Win-builder on **fixed** SHA `f9b9588e…` / 9818425 is ERROR-free
+> (R-release [BQVnXOH066rJ](https://win-builder.r-project.org/BQVnXOH066rJ) + R-devel
+> [qS15UqA2O00A](https://win-builder.r-project.org/qS15UqA2O00A), 1 NOTE each). Ledger stays
+> `tarball-clean` until owner authorizes `platform-clean`. CRAN submit UI offline until ~19 Aug 2026.
 > Multi-lane board (read every live row — do not orphan siblings):
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
 > on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.
-> START HERE:
-> [`docs/dev-log/handover/2026-08-07-cursor-handover.md`](docs/dev-log/handover/2026-08-07-cursor-handover.md).
+> START HERE (Codex):
+> [`docs/dev-log/handover/2026-08-07-codex-handover.md`](docs/dev-log/handover/2026-08-07-codex-handover.md).
 >
 > **▶ Prior — (2026-08-05, 135-TRACE CAMPAIGN LANDED ON MAIN via #930).**
 > Totoro 135/135; **5/14 cells** promoted to `interval_feasible`. Post-campaign doc
