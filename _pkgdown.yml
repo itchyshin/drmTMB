@@ -34,8 +34,8 @@ navbar:
           href: articles/capability-and-limits.html
         - text: Choose a family
           href: articles/distribution-families.html
-        - text: Model map
-          href: articles/model-map.html
+        - text: Function map and cheat sheet
+          href: articles/function-map-cheatsheet.html
         - text: Check and report a fitted model
           href: articles/model-workflow.html
     model_guides:

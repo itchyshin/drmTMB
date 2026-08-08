@@ -1,6 +1,22 @@
 # Check Log
 
 
+## 2026-08-08 — pkgdown function-map route restored and model-map deduplicated
+
+- Restored **Function map and cheat sheet** to the Get started menu and kept
+  **What can I fit today?** under Model Guides. Both source articles and the
+  function-map PNG remain tracked; no reader page or asset was deleted.
+- Synchronized the introductory learning-path table and the canonical design
+  inventory (37 vignettes, including `first-week-intervals` and
+  `bivariate-nongaussian`).
+- Added regression checks for exact navbar label-to-href pairs, intended
+  article-group membership, introductory route order, and the design inventory.
+- Passed: 64 capability-ledger Python tests, generator `--check`,
+  `pkgdown::check_pkgdown()`, focused renders of `model-map`, `drmTMB`, and
+  `function-map-cheatsheet`, and `git diff --check`. Pat, Rose, and Ada reviewed
+  the repaired reader/navigation surface independently.
+
+
 ## 2026-08-08 — Reader boundary live + exact current-main tarball-clean
 
 - Merged PR [#948](https://github.com/itchyshin/drmTMB/pull/948) at
