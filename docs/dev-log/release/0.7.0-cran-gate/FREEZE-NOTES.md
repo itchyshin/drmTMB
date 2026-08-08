@@ -10,15 +10,16 @@
 - **Inventory:** `tarball-inventory.txt` (917 paths; no `LOOP` entries)
 - **Local CRAN lane:** `R CMD check --as-cran --no-manual` → **Status: 1 NOTE** (New submission only); 0 ERROR / 0 WARNING
 - **Logs:** `local-as-cran-check.log`, `00check.log`
-- **Highest proven rung:** `tarball-clean` (unchanged after 2026-08-07 platform attempt)
+- **Highest proven rung (ledger):** `tarball-clean` (owner must authorize any
+  `platform-clean` advance even after ERROR-free win-builder evidence)
 - **Platform attempt (2026-08-07):** see `platform/PLATFORM-NOT-READY.md`. GHA 3-OS green
-  (`workflow_dispatch` run 31195187084); win-builder R-release + R-devel **1 ERROR**
-  (CondExp source-path guard); R-hub sanitizers OK / rchk noise / valgrind incomplete.
-  Do **not** claim `platform-clean` until win-builder is clean.
-- **Path repair (2026-08-07):** CondExp `drm_src_path` fixed on
-  `cursor/07-platform-clean` (PR #941) for win-builder sibling / correct
-  `../00_pkg_src` layouts. **Does not yet reclaim `platform-clean`** — re-run
-  win-builder on a tarball that includes the repair; finish valgrind; then
-  re-evaluate. No upload.
+  (`workflow_dispatch` run 31195187084); morning win-builder **1 ERROR** (CondExp
+  path); R-hub sanitizers OK / rchk noise / valgrind incomplete at first write.
+- **Path repair + fixed win-builder (2026-08-07):** CondExp `drm_src_path` on
+  `main` via #941. Fixed tarball SHA `f9b9588e…` (9818425) FTP 226 to R-release
+  + R-devel; result emails **1 NOTE** each
+  ([release](https://win-builder.r-project.org/BQVnXOH066rJ),
+  [devel](https://win-builder.r-project.org/qS15UqA2O00A)) — CondExp ERROR
+  **cleared**. Ledger claim **not** auto-advanced. No upload.
 
 Do not commit the `.tar.gz` binary (root `/*.tar.gz` is gitignored).

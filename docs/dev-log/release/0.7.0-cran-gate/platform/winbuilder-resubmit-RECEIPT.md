@@ -62,8 +62,21 @@ only — do not re-upload the frozen probe SHA `c787ee40…` (9817096 bytes).
   `drm_src_path` in `drmTMB/tests/testthat/test-guard-branch-continuity.R`.
 - **R-release FTP: 226 Transfer complete** (`winbuilder-release-resubmit-retry2.log`).
 - **R-devel FTP: 226 Transfer complete** (`winbuilder-devel-resubmit-retry2.log`).
-- Result emails: **not yet adjudicated** in this session (Gmail MCP unavailable
-  to the command subagent). Leave ledger at **`tarball-clean`** until ERROR-free
-  emails are confirmed and owner authorizes any `platform-clean` advance.
 - Do **not** re-upload stale morning tarball `c787ee40…` / 9817096.
+
+## Adjudication 2026-08-07T~24:00Z (Gmail MCP)
+
+Result emails for the fixed upload (thread `19fdd3b95ebe5f0b`):
+
+| Flavor | URL | Status | CondExp ERROR |
+| --- | --- | --- | --- |
+| R-devel | https://win-builder.r-project.org/qS15UqA2O00A | **1 NOTE** | cleared |
+| R-release | https://win-builder.r-project.org/BQVnXOH066rJ | **1 NOTE** | cleared |
+
+Logs: `winbuilder-devel-fixed-00check.log`,
+`winbuilder-release-fixed-00check.log`. Full table:
+`winbuilder-emails.md`.
+
+**Ledger still `tarball-clean`.** ERROR-free evidence is ready for owner
+authorize of `platform-clean`; do not write that claim without owner word.
 
