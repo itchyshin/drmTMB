@@ -14,7 +14,7 @@ OPEN GATES (need human):
 - Finish valgrind adjudication if still owed.
 - Submission-ready / DESCRIPTION 0.7.0 / upload — owner only.
 TRUTH LIVES IN: worktree `~/local-scratch/worktrees/drmTMB-07-platform` · branch
-`cursor/07-winbuilder-adjudicate` · PR #945 · ledger
+`cursor/07-winbuilder-adjudicate` · PR #946 (replaces #945) · ledger
 `docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json` ·
 `docs/dev-log/release/0.7.0-cran-gate/platform/PLATFORM-NOT-READY.md`
 RESUME: Highest proven rung = **tarball-clean**. Do NOT claim platform-clean

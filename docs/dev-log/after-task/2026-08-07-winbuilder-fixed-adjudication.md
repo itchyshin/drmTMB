@@ -36,6 +36,7 @@ URI. Tests OK on both flavors.
 Under `docs/dev-log/release/0.7.0-cran-gate/platform/`:
 `winbuilder-emails.md`, `PLATFORM-NOT-READY.md`,
 `winbuilder-release-fixed-00check.log`, `winbuilder-devel-fixed-00check.log`.
-PR #945 on `cursor/07-winbuilder-adjudicate`.
+PR **#946** on `cursor/07-winbuilder-adjudicate` (replaces closed #945 after
+`pull_request` R-CMD-check failed to start on later tips).
 
 Updated: 2026-08-08T00:25Z (CI re-trigger after cancel stale/full-matrix runs).
