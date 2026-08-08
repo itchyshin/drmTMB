@@ -37,3 +37,4 @@ Under `docs/dev-log/release/0.7.0-cran-gate/platform/`:
 `winbuilder-emails.md`, `PLATFORM-NOT-READY.md`,
 `winbuilder-release-fixed-00check.log`, `winbuilder-devel-fixed-00check.log`.
 PR #945 on `cursor/07-winbuilder-adjudicate`.
+
