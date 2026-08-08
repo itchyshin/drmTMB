@@ -64,6 +64,7 @@ support, REML, AI-REML, or public support from this release status.
 ## Next Gates
 
 Before v1.0 release wording is final, keep `README.md`, `NEWS.md`,
-`ROADMAP.md`, and `docs/dev-log/known-limitations.md` aligned with this file.
+`docs/dev-log/internal-roadmap.md`, and `docs/dev-log/known-limitations.md`
+aligned with this file.
 Post-v1.0 validation can reopen full `inference_ready` and `supported` work one
 row at a time.

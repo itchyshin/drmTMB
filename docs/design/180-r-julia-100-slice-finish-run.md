@@ -55,7 +55,7 @@ or posting anything to `Ayumi-495/LS_ecogeographical-rules#2`.
    separate from unrelated structural or non-Gaussian claims.
 9. **Validation and benchmarks.** Standardize ADEMP, comparator, profile,
    bootstrap, runtime, and CI artifact rows.
-10. **Public finish.** Synchronize README, ROADMAP, NEWS, pkgdown, Documenter,
+10. **Public finish.** Synchronize README, `docs/dev-log/internal-roadmap.md`, NEWS, pkgdown, Documenter,
     dashboard, release-gate audit, and recovery checkpoint.
 
 ## Bridge Dependency Graph

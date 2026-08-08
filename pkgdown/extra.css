@@ -79,3 +79,97 @@
     width: 132px;
   }
 }
+
+/* Reader-first capability cards: keep fit and inference decisions glanceable. */
+.drmtmb-reader-routes {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.drmtmb-reader-routes > h2,
+.drmtmb-reader-routes > details {
+  grid-column: 1 / -1;
+}
+
+.drmtmb-reader-routes > .section.level3 {
+  background: #fff;
+  border: 1px solid #d6e3e6;
+  border-left: 0.35rem solid #5d747a;
+  border-radius: 0.45rem;
+  box-shadow: 0 0.12rem 0.35rem rgba(17, 38, 56, 0.07);
+  margin: 0;
+  padding: 1rem 1.1rem;
+}
+
+.drmtmb-reader-routes > .drmtmb-route-interval {
+  border-left-color: #278a67;
+}
+
+.drmtmb-reader-routes > .drmtmb-route-point {
+  border-left-color: #ca8a04;
+}
+
+.drmtmb-reader-routes > .drmtmb-route-unavailable {
+  border-left-color: #b64949;
+}
+
+.drmtmb-reader-routes > .section.level3 h3 {
+  font-size: 1.08rem;
+  margin-top: 0;
+}
+
+.drmtmb-reader-routes > .section.level3 p {
+  margin-bottom: 0.7rem;
+}
+
+.drmtmb-notation {
+  background: #f2f7f8;
+  border: 1px solid #d6e3e6;
+  border-radius: 0.35rem;
+  margin: 0.8rem 0 1rem;
+  padding: 0.45rem 0.7rem;
+}
+
+@media (max-width: 767.98px) {
+  .drmtmb-reader-routes {
+    grid-template-columns: 1fr;
+  }
+
+  .drmtmb-reader-routes > .section.level3 {
+    padding: 0.85rem 0.9rem;
+  }
+
+  body:has(#reader-routes) .page-header .dont-index {
+    display: none;
+  }
+
+  .navbar-collapse.show .nav-link,
+  .navbar-collapse.show .dropdown-item {
+    color: #fff;
+  }
+
+  body:has(#reader-routes) table {
+    scrollbar-gutter: stable;
+  }
+
+  body:has(#reader-routes) table::before {
+    color: #496168;
+    content: "Scroll horizontally to see all columns \2192";
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    left: 0;
+    padding: 0.25rem 0;
+    position: sticky;
+    width: max-content;
+  }
+
+  body:has(#reader-routes) table th,
+  body:has(#reader-routes) table td {
+    hyphens: none;
+    min-width: 9rem;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}

@@ -27,6 +27,145 @@ TRANSITIONS = LEDGER / "transitions.tsv"
 SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 PARITY_TRIAGE = ROOT / "docs/dev-log/dashboard/parity-triage.tsv"
+READER_SUMMARY = ROOT / "vignettes/includes/capability-ledger-summary.md"
+
+# These are deliberately exact ledger cells, not per-family representatives.
+# A family has multiple model-surface cells with different parameters,
+# structures, estimators, and evidence. Keeping the reader table at cell grain
+# makes each reporting permission auditable and prevents a model-surface claim
+# from inheriting evidence from the association or missing-response axes.
+READER_SUMMARY_SPECS = (
+    {
+        "cell_id": "mc-0001",
+        "claim_boundary_sha256": "5bcfcd9f8a57837ce0891b554e0a897e2174a783bcacff98b393da0e2ffeae5f",
+        "reader_route": "Beta location (`mu`) with fixed effects",
+        "scope_caveat": (
+            "An ML fixed-effect Beta location coefficient at tested sample sizes "
+            "50, 150, or 500. Wald mean-coefficient intervals have calibration "
+            "evidence in those designs; random effects, other parameters, other "
+            "sample sizes, and other families are not covered."
+        ),
+        "interval_method": "Wald mean-coefficient interval",
+        "fallback": (
+            "For a different structure, use a fixed-effect `beta()` location "
+            "model without `phylo()` or random terms."
+        ),
+    },
+    {
+        "cell_id": "mc-0061",
+        "claim_boundary_sha256": "71c7e37a8b7aef178fc58cb15f2f27a8dd45cecf6a51c4b1bf964b0a25fbe1a4",
+        "reader_route": "Binomial location (`mu`) random slope",
+        "scope_caveat": (
+            "Use the ML-Laplace profile interval only for a comparable design: "
+            "32 or 64 groups, 12 observations per group, 12 trials per "
+            "observation, and a clean `check_drm()` result with no profile "
+            "boundary. In the calibration study, the true slope SD was 0.6 and "
+            "coverage was 94.9% and 95.3%, with more upper- than lower-tail "
+            "misses. Other group counts, replication, trial sizes, SD values, "
+            "correlated or labelled slopes, and REML are not covered; state this "
+            "calibration limit when reporting."
+        ),
+        "interval_method": "profile-likelihood interval",
+        "fallback": (
+            "Use a binomial model with a random intercept or fixed effect only "
+            "when the tested random-slope design does not match the study."
+        ),
+    },
+    {
+        "cell_id": "mc-0436",
+        "claim_boundary_sha256": "0faf5812e8165674ee406188f35513f277403b12c11ab15022145472eb989b7b",
+        "reader_route": "Poisson phylogenetic location (`mu`) intercept and slope",
+        "scope_caveat": (
+            "An ML univariate `poisson()` location model with a phylogenetic intercept "
+            "and slope; the two phylogenetic standard deviations and their "
+            "intercept-slope correlation are recovery-backed. Other structured "
+            "providers, scale structures, ordinary random effects, zero inflation, "
+            "and all interval claims are outside scope."
+        ),
+        "interval_method": "",
+        "fallback": (
+            "Use a Poisson fixed-effect model or an ordinary random-intercept model "
+            "when the phylogenetic slope structure is not essential."
+        ),
+    },
+    {
+        "cell_id": "mc-0418",
+        "claim_boundary_sha256": "03b4da9807ec840e88e26f78d3bd6abab5cd40e421230bc4ecc19303d0a76d96",
+        "reader_route": "Negative-binomial location (`mu`) phylogenetic intercept and slope",
+        "scope_caveat": (
+            "An ML univariate `nbinom2()` location model with an intercept-only "
+            "dispersion formula (`sigma ~ 1`) and a phylogenetic intercept and "
+            "slope; the two phylogenetic standard "
+            "deviations and their intercept-slope correlation are recovery-backed. "
+            "Other providers, scale structures, ordinary random effects, zero "
+            "inflation, and all interval claims are outside scope."
+        ),
+        "interval_method": "",
+        "fallback": (
+            "Use an NB2 fixed-effect model or an ordinary random-intercept model "
+            "when the phylogenetic slope structure is not essential."
+        ),
+    },
+    {
+        "cell_id": "mc-0544",
+        "claim_boundary_sha256": "deaa78215792e213c158690a794dec3f92bcfb607e8abd298c565455b1bcea17",
+        "reader_route": "Tweedie location (`mu`) with a phylogenetic random effect",
+        "scope_caveat": (
+            "A structured random effect on Tweedie location is rejected before "
+            "covariance settings are evaluated; it is not a reportable drmTMB route."
+        ),
+        "interval_method": "",
+        "fallback": (
+            "Use a Tweedie fixed-effect model or an ordinary random-effect model "
+            "without a phylogenetic covariance structure."
+        ),
+    },
+    {
+        "cell_id": "mc-0387",
+        "claim_boundary_sha256": "e9b981a7ba05be6169f4e8514b7015d26d706f1ae4a60f460689e28eebe47711",
+        "reader_route": "Lognormal location (`mu`) with an animal relatedness random effect",
+        "scope_caveat": (
+            "An animal relatedness random effect on lognormal location is rejected; "
+            "it is not a reportable drmTMB route."
+        ),
+        "interval_method": "",
+        "fallback": (
+            "Use a lognormal fixed-effect model or an ordinary random-effect model "
+            "without an animal relatedness covariance structure."
+        ),
+    },
+    {
+        "cell_id": "mc-0260m",
+        "claim_boundary_sha256": "b96df4ca59c177c4c0c3392e457f28103ad5cfd43f1173fc40e7a5e80e7e66ae",
+        "reader_route": "Gaussian pooled effect with `meta_V(V = V)`",
+        "scope_caveat": (
+            "An ML pooled effect with known sampling covariance for 48 studies. "
+            "Point estimates agree with `metafor`, but one profile interval missed "
+            "the known truth; no drmTMB interval, coverage, or heterogeneity "
+            "interval claim is available."
+        ),
+        "interval_method": "profile-likelihood interval (withdrawn for reporting)",
+        "fallback": (
+            "Use `metafor::rma.uni()` or `metafor::rma.mv()` for the same "
+            "known-covariance meta-analysis when an interval is required."
+        ),
+    },
+    {
+        "cell_id": "mc-0186",
+        "claim_boundary_sha256": "8bc6137d2752e412ad80482f4a19f916d4b3ca1310c3c2c51b4c5c5dc3a4c453",
+        "reader_route": "Bivariate Gaussian residual correlation (`rho12`) under REML",
+        "scope_caveat": (
+            "A REML bivariate-Gaussian residual-correlation interval at 150 "
+            "observations is numerically well formed. Coverage and calibration "
+            "have not been evaluated, so it is not a calibrated reporting claim."
+        ),
+        "interval_method": "profile-likelihood interval",
+        "fallback": (
+            "If a calibrated correlation interval is essential, use a simpler "
+            "independent-response analysis or a separately validated correlation tool."
+        ),
+    },
+)
 
 # C14 restores the package-boundary classification from the last ledger commit
 # that recorded it explicitly.  This is a taxonomy correction, not evidence for
@@ -2574,6 +2713,189 @@ def ledger_updated_date(cells: list[dict[str, str]]) -> str:
     return max(dates)
 
 
+def reader_reporting_permissions(
+    row: dict[str, str], interval_method: str
+) -> tuple[str, str, str]:
+    """Translate one exact model cell into deliberately narrow reader wording."""
+    if row["capability_status"] != "implemented":
+        fit = "No — this exact request is not available."
+        return (
+            fit,
+            "No — no point-estimate reporting permission.",
+            "No — no named interval method or reporting permission.",
+        )
+    if row["evidence_tier"] == "supported":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — report the point estimate only within the stated exact scope.",
+            (
+                f"No — {interval_method} is not authorized by the legacy "
+                "supported label; use a separately calibrated route."
+                if interval_method
+                else "No — the legacy supported label does not authorize an interval."
+            ),
+        )
+    if row["evidence_tier"] == "inference_ready_with_caveats":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — report only within the stated exact scope and caveat.",
+            f"Yes — {interval_method}; report only within the stated exact scope and caveat.",
+        )
+    if row["evidence_tier"] == "interval_feasible":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — report the point estimate with the stated caveat.",
+            f"No — {interval_method} is available, but there is no calibrated "
+            "interval-reporting permission.",
+        )
+    if row["evidence_tier"] == "point_fit_recovery":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — recovery-backed point estimate only, within the stated scope.",
+            (
+                f"No — {interval_method} is not reportable for this route."
+                if interval_method
+                else "No — no named interval-reporting permission."
+            ),
+        )
+    return (
+        "Implemented, but not validated for reporting.",
+        "No — implementation or diagnostic evidence is not point-report permission.",
+        "No — no named interval-reporting permission.",
+    )
+
+
+def reader_summary_value(cells: list[dict[str, str]]) -> dict[str, object]:
+    """Build the package-contained, model-surface-only reader summary.
+
+    The counts are intentionally scoped to ``model_surface``. Association and
+    missing-response cells have different estimands and evidence ladders, so
+    they cannot contribute to these fit or reporting permissions.
+    """
+    model = [row for row in cells if row["axis"] == "model_surface"]
+    by_id = {row["cell_id"]: row for row in model}
+    runtime_counts = Counter(row["capability_status"] for row in model)
+    evidence_counts = Counter(
+        row["evidence_tier"]
+        for row in model
+        if row["capability_status"] == "implemented"
+    )
+    rows = []
+    for spec in READER_SUMMARY_SPECS:
+        cell_id = spec["cell_id"]
+        if cell_id not in by_id:
+            raise SystemExit(
+                f"Reader summary cell {cell_id} is absent from the model-surface ledger"
+            )
+        source = by_id[cell_id]
+        actual_claim_sha = hashlib.sha256(
+            source["claim_boundary"].encode("utf-8")
+        ).hexdigest()
+        if actual_claim_sha != spec["claim_boundary_sha256"]:
+            raise SystemExit(
+                "Reader summary scope is stale for "
+                f"{cell_id}: canonical claim boundary changed; review the public "
+                "scope/caveat and refresh its claim_boundary_sha256 only after "
+                "reconciling the wording."
+            )
+        fit_permission, point_permission, interval_permission = reader_reporting_permissions(
+            source, spec["interval_method"]
+        )
+        rows.append({
+            "cell_id": cell_id,
+            "route": spec["reader_route"],
+            "fit_permission": fit_permission,
+            "point_report_permission": point_permission,
+            "interval_method_report_permission": interval_permission,
+            "scope_caveat": spec["scope_caveat"],
+            "fallback": spec["fallback"],
+            "ledger": {
+                key: source[key]
+                for key in (
+                    "axis", "family_route", "route_variant", "dpar",
+                    "effect_type", "structure_provider", "dimension", "q_gate",
+                    "estimator", "capability_status", "work_status", "evidence_tier",
+                )
+            },
+        })
+    return {
+        "ledger_updated": ledger_updated_date(cells),
+        "model_surface_total": len(model),
+        "runtime_counts": dict(runtime_counts),
+        "evidence_counts": dict(evidence_counts),
+        "rows": rows,
+    }
+
+
+def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
+    """Render the reader summary consumed from ``vignettes/includes``."""
+    summary = reader_summary_value(cells)
+    runtime = summary["runtime_counts"]
+    evidence = summary["evidence_counts"]
+    lines = [
+        "<!-- Generated by tools/capability_ledger.py; do not edit by hand. -->",
+        "",
+        "The canonical ledger was last updated **{date}**. These counts and "
+        "permissions cover the **model-surface** axis only: association and "
+        "missing-response evidence are separate and do not transfer here.".format(
+            date=summary["ledger_updated"]
+        ),
+        "",
+        "## Reader routes {.drmtmb-reader-routes}",
+    ]
+    for row in summary["rows"]:
+        fit_yes = row["fit_permission"].startswith("Yes")
+        interval_yes = row["interval_method_report_permission"].startswith("Yes")
+        route_class = (
+            "drmtmb-route-interval" if interval_yes else
+            "drmtmb-route-point" if fit_yes else
+            "drmtmb-route-unavailable"
+        )
+        lines.extend([
+            "",
+            f"### {row['route']} {{.drmtmb-route-card .{route_class}}}",
+            "",
+            f"**Can I fit it?** {row['fit_permission']}",
+            "",
+            f"**Can I report the point estimate?** {row['point_report_permission']}",
+            "",
+            "**Named interval method / reporting permission.** "
+            f"{row['interval_method_report_permission']}",
+            "",
+            f"**Exact scope and caveat.** {row['scope_caveat']}",
+            "",
+            f"**Concrete fallback.** {row['fallback']}",
+        ])
+    lines.extend([
+        "",
+        "<details>",
+        "<summary>Technical ledger snapshot</summary>",
+        "",
+        "- Model-surface total: **{total} exact model routes**.".format(
+            total=summary["model_surface_total"]
+        ),
+        "- Runtime: **{implemented} implemented**, **{not_implemented} not "
+        "implemented**, and **{rejected} rejected by design**.".format(
+            implemented=runtime.get("implemented", 0),
+            not_implemented=runtime.get("not_implemented", 0),
+            rejected=runtime.get("rejected_by_design", 0),
+        ),
+        "- Evidence among implemented model cells: **{supported} supported**, "
+        "**{inference_ready} inference-ready with caveats**, **{interval_feasible} "
+        "interval-feasible**, **{point_fit_recovery} point-fit recovery**, and "
+        "**{diagnostic_only} diagnostic-only**.".format(
+            supported=evidence.get("supported", 0),
+            inference_ready=evidence.get("inference_ready_with_caveats", 0),
+            interval_feasible=evidence.get("interval_feasible", 0),
+            point_fit_recovery=evidence.get("point_fit_recovery", 0),
+            diagnostic_only=evidence.get("diagnostic_only", 0),
+        ),
+        "",
+        "</details>",
+    ])
+    return "\n".join(lines) + "\n"
+
+
 def runtime_missing_predictor_families() -> set[str]:
     """Read the fitted-family allow-list from the R runtime's SSOT helper."""
     source = (ROOT / "R/missing-data.R").read_text(encoding="utf-8")
@@ -3209,6 +3531,7 @@ def outputs(
         ROOT / "vignettes/includes/capability-ledger-family-map.md": corrected_family_map_markdown(
             missing, family_rows
         ).encode("utf-8"),
+        READER_SUMMARY: reader_summary_markdown(cells).encode("utf-8"),
         **{
             LEDGER / "tranches" / f"{tranche}.md": tranche_summary(cells, tranche).encode("utf-8")
             for tranche in ("MR-T1", "MR-T2", "MR-T3", "MR-T4", "MR-T5", "MR-T6")

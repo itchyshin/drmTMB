@@ -28,7 +28,7 @@ about than the table alone.
   hierarchy, labels, accessibility, and whether the plot looks publication
   ready.
 - Rose searches for repeated failure patterns across figures, prose, NEWS,
-  ROADMAP, after-task reports, and check logs.
+  `docs/dev-log/internal-roadmap.md`, after-task reports, and check logs.
 - Pat checks whether an applied reader can decode the figure without knowing
   the implementation history.
 - Fisher checks that the visual data grain matches the claim: raw observations,
@@ -67,7 +67,8 @@ against that purpose:
 
 ## Workflow
 
-1. Inventory the target figures and promises. Search the Rmd, NEWS, ROADMAP,
+1. Inventory the target figures and promises. Search the Rmd, NEWS,
+   `docs/dev-log/internal-roadmap.md`,
    design notes, check log, and after-task reports for the article names,
    figure titles, and claims such as "visual check", "raincloud", "raw",
    "replicate", "MCSE", "confidence", "supported", and "planned".

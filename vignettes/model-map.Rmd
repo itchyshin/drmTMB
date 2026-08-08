@@ -116,7 +116,7 @@ Read the status words this way:
 | First slice | Fitted and tested, but intentionally narrow; stay inside the named formula, family, and data-shape boundary. |
 | Opt-in control | Available for hardening, scalability, or memory control, but not a modelling guarantee for neighbouring surfaces. |
 | Planned or reserved | Public grammar or roadmap wording may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
-| Unsupported or blocked | Do not use as analysis syntax; fit the nearest implemented model or check the roadmap before interpreting a richer structure. |
+| Unsupported or blocked | Do not use as analysis syntax; fit the nearest implemented model or follow the named fallback in [Can I fit and report this model?](capability-and-limits.html) before interpreting a richer structure. |
 
 | Model surface | Status | Fitted today | Not yet | Interval and diagnostic status |
 |---|---|---|---|---|
@@ -372,8 +372,10 @@ These surfaces are roadmap items, not syntax to rely on in analyses yet:
 | higher-dimensional multivariate models | belong in `gllvmTMB`, not `drmTMB` |
 
 When unsupported syntax fails, the right next step is usually to fit the
-nearest implemented fixed-effect or univariate model, then check the roadmap
-or design notes before interpreting a richer covariance structure as available.
+nearest implemented fixed-effect or univariate model, then use
+[Can I fit and report this model?](capability-and-limits.html) for the exact
+reporting boundary and fallback before interpreting a richer covariance
+structure as available.
 
 ## Correlation layers
 

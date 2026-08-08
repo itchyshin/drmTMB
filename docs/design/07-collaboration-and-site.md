@@ -31,7 +31,7 @@ Then ask it to read:
 
 - `AGENTS.md`;
 - `CLAUDE.md` for Claude Code;
-- `ROADMAP.md`;
+- `docs/dev-log/internal-roadmap.md`;
 - `docs/design/00-vision.md`;
 - `docs/design/01-formula-grammar.md`;
 - the latest files in `docs/dev-log/after-task/`;

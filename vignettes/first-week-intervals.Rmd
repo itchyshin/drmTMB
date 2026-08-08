@@ -22,7 +22,7 @@ For the longer post-fit toolbox (`check_drm()`, Wald shortcuts, bootstrap,
 `newdata` profiles), read
 [Checking and using fitted models](model-workflow.html). For which cells have
 coverage evidence, read
-[What drmTMB can and can't do](capability-and-limits.html).
+[Can I fit and report this model?](capability-and-limits.html).
 
 ## Default recipe (read once)
 
@@ -128,6 +128,6 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
 | Next question | Go here |
 | --- | --- |
 | Full post-fit toolbox and `conf.status` table | [Checking and using fitted models](model-workflow.html) |
-| Which family × effect rows have coverage evidence | [What drmTMB can and can't do](capability-and-limits.html) |
+| Which family × effect rows have coverage evidence | [Can I fit and report this model?](capability-and-limits.html) |
 | Large tip counts and `se_group_sd` | [Working with large data](large-data.html) |
 | Reference detail for Wald, profile, and boundary warnings | `?confint.drmTMB` |
