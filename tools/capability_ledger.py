@@ -37,11 +37,13 @@ READER_SUMMARY = ROOT / "vignettes/includes/capability-ledger-summary.md"
 READER_SUMMARY_SPECS = (
     {
         "cell_id": "mc-0001",
+        "claim_boundary_sha256": "5bcfcd9f8a57837ce0891b554e0a897e2174a783bcacff98b393da0e2ffeae5f",
         "reader_route": "Beta location (`mu`) with fixed effects",
         "scope_caveat": (
-            "A fixed-effect Beta location coefficient. Wald mean-coefficient "
-            "intervals have calibration evidence in the recorded pilot; random "
-            "effects, other parameters, and other families are not covered."
+            "An ML fixed-effect Beta location coefficient at tested sample sizes "
+            "50, 150, or 500. Wald mean-coefficient intervals have calibration "
+            "evidence in those designs; random effects, other parameters, other "
+            "sample sizes, and other families are not covered."
         ),
         "interval_method": "Wald mean-coefficient interval",
         "fallback": (
@@ -51,12 +53,17 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0061",
+        "claim_boundary_sha256": "71c7e37a8b7aef178fc58cb15f2f27a8dd45cecf6a51c4b1bf964b0a25fbe1a4",
         "reader_route": "Binomial location (`mu`) random slope",
         "scope_caveat": (
-            "An ML-Laplace random slope with true standard deviation 0.6, 12 "
-            "observations per group, 12 trials per observation, and 32 or 64 "
-            "groups. Coverage is mildly anti-conservative; smaller groups, other "
-            "designs, correlated or labelled slopes, and REML are not covered."
+            "Use the ML-Laplace profile interval only for a comparable design: "
+            "32 or 64 groups, 12 observations per group, 12 trials per "
+            "observation, and a clean `check_drm()` result with no profile "
+            "boundary. In the calibration study, the true slope SD was 0.6 and "
+            "coverage was 94.9% and 95.3%, with more upper- than lower-tail "
+            "misses. Other group counts, replication, trial sizes, SD values, "
+            "correlated or labelled slopes, and REML are not covered; state this "
+            "calibration limit when reporting."
         ),
         "interval_method": "profile-likelihood interval",
         "fallback": (
@@ -66,9 +73,10 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0436",
+        "claim_boundary_sha256": "0faf5812e8165674ee406188f35513f277403b12c11ab15022145472eb989b7b",
         "reader_route": "Poisson phylogenetic location (`mu`) intercept and slope",
         "scope_caveat": (
-            "A univariate `poisson()` location model with a phylogenetic intercept "
+            "An ML univariate `poisson()` location model with a phylogenetic intercept "
             "and slope; the two phylogenetic standard deviations and their "
             "intercept-slope correlation are recovery-backed. Other structured "
             "providers, scale structures, ordinary random effects, zero inflation, "
@@ -82,10 +90,12 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0418",
+        "claim_boundary_sha256": "03b4da9807ec840e88e26f78d3bd6abab5cd40e421230bc4ecc19303d0a76d96",
         "reader_route": "Negative-binomial location (`mu`) phylogenetic intercept and slope",
         "scope_caveat": (
-            "A univariate `nbinom2()` location model with a fixed dispersion and a "
-            "phylogenetic intercept and slope; the two phylogenetic standard "
+            "An ML univariate `nbinom2()` location model with an intercept-only "
+            "dispersion formula (`sigma ~ 1`) and a phylogenetic intercept and "
+            "slope; the two phylogenetic standard "
             "deviations and their intercept-slope correlation are recovery-backed. "
             "Other providers, scale structures, ordinary random effects, zero "
             "inflation, and all interval claims are outside scope."
@@ -98,6 +108,7 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0544",
+        "claim_boundary_sha256": "deaa78215792e213c158690a794dec3f92bcfb607e8abd298c565455b1bcea17",
         "reader_route": "Tweedie location (`mu`) with a phylogenetic random effect",
         "scope_caveat": (
             "A structured random effect on Tweedie location is rejected before "
@@ -111,6 +122,7 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0387",
+        "claim_boundary_sha256": "e9b981a7ba05be6169f4e8514b7015d26d706f1ae4a60f460689e28eebe47711",
         "reader_route": "Lognormal location (`mu`) with an animal relatedness random effect",
         "scope_caveat": (
             "An animal relatedness random effect on lognormal location is rejected; "
@@ -124,6 +136,7 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0260m",
+        "claim_boundary_sha256": "b96df4ca59c177c4c0c3392e457f28103ad5cfd43f1173fc40e7a5e80e7e66ae",
         "reader_route": "Gaussian pooled effect with `meta_V(V = V)`",
         "scope_caveat": (
             "An ML pooled effect with known sampling covariance for 48 studies. "
@@ -139,6 +152,7 @@ READER_SUMMARY_SPECS = (
     },
     {
         "cell_id": "mc-0186",
+        "claim_boundary_sha256": "8bc6137d2752e412ad80482f4a19f916d4b3ca1310c3c2c51b4c5c5dc3a4c453",
         "reader_route": "Bivariate Gaussian residual correlation (`rho12`) under REML",
         "scope_caveat": (
             "A REML bivariate-Gaussian residual-correlation interval at 150 "
@@ -2710,7 +2724,18 @@ def reader_reporting_permissions(
             "No — no point-estimate reporting permission.",
             "No — no named interval method or reporting permission.",
         )
-    if row["evidence_tier"] in {"supported", "inference_ready_with_caveats"}:
+    if row["evidence_tier"] == "supported":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — report the point estimate only within the stated exact scope.",
+            (
+                f"No — {interval_method} is not authorized by the legacy "
+                "supported label; use a separately calibrated route."
+                if interval_method
+                else "No — the legacy supported label does not authorize an interval."
+            ),
+        )
+    if row["evidence_tier"] == "inference_ready_with_caveats":
         return (
             "Yes — this exact model route is implemented.",
             "Yes — report only within the stated exact scope and caveat.",
@@ -2720,7 +2745,8 @@ def reader_reporting_permissions(
         return (
             "Yes — this exact model route is implemented.",
             "Yes — report the point estimate with the stated caveat.",
-            f"{interval_method} is available, but no calibrated interval-reporting permission.",
+            f"No — {interval_method} is available, but there is no calibrated "
+            "interval-reporting permission.",
         )
     if row["evidence_tier"] == "point_fit_recovery":
         return (
@@ -2762,6 +2788,16 @@ def reader_summary_value(cells: list[dict[str, str]]) -> dict[str, object]:
                 f"Reader summary cell {cell_id} is absent from the model-surface ledger"
             )
         source = by_id[cell_id]
+        actual_claim_sha = hashlib.sha256(
+            source["claim_boundary"].encode("utf-8")
+        ).hexdigest()
+        if actual_claim_sha != spec["claim_boundary_sha256"]:
+            raise SystemExit(
+                "Reader summary scope is stale for "
+                f"{cell_id}: canonical claim boundary changed; review the public "
+                "scope/caveat and refresh its claim_boundary_sha256 only after "
+                "reconciling the wording."
+            )
         fit_permission, point_permission, interval_permission = reader_reporting_permissions(
             source, spec["interval_method"]
         )
@@ -2805,12 +2841,19 @@ def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
             date=summary["ledger_updated"]
         ),
         "",
-        "## Reader routes",
+        "## Reader routes {.drmtmb-reader-routes}",
     ]
     for row in summary["rows"]:
+        fit_yes = row["fit_permission"].startswith("Yes")
+        interval_yes = row["interval_method_report_permission"].startswith("Yes")
+        route_class = (
+            "drmtmb-route-interval" if interval_yes else
+            "drmtmb-route-point" if fit_yes else
+            "drmtmb-route-unavailable"
+        )
         lines.extend([
             "",
-            f"### {row['route']}",
+            f"### {row['route']} {{.drmtmb-route-card .{route_class}}}",
             "",
             f"**Can I fit it?** {row['fit_permission']}",
             "",

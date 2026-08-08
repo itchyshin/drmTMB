@@ -44,7 +44,7 @@ but an analysis should not interpret that surface yet.
 | Stable | Routine fitted path with tests, diagnostics or interval status, and a reader-facing example or guide. |
 | First slice | Fitted and tested inside a deliberately narrow boundary. Stay inside the named family, formula, q, and data-shape limits. |
 | Fixed-effect only | Formula coefficients are fitted for this distributional parameter, but random effects or structured dependence for that parameter are not fitted. |
-| Planned or reserved | Syntax, roadmap wording, or a parser guard may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
+| Planned or reserved | Syntax, design notes, or a parser guard may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
 | Unsupported or blocked | Do not use as analysis syntax; choose the nearest fitted route or follow the named fallback in [Can I fit and report this model?](capability-and-limits.html). |
 
 Location means the expected response (`mu`, `mu1`, `mu2`). Scale means residual
@@ -60,8 +60,8 @@ question is "what should I fit?". Use this implementation map when the question
 is "is this surface fitted or planned?". Use the
 [source map](source-map.html) when the question is "where are the code, tests,
 and docs?". The validation-debt register is the evidence ledger behind these
-pages. The roadmap records sequence and future work; it is not the
-current-status authority.
+pages. Contributor design ledgers record sequence and future work; they are not
+the current-status authority.
 
 When you are closing out a slice from this ledger and need to plot its
 recovery evidence, see [Simulation plot grammar](simulation-plot-grammar.html)
@@ -163,7 +163,7 @@ Here q is the number of latent endpoints in one covariance block. A q=2 block
 has two endpoints, such as `mu1` and `mu2` random intercepts. A q=4 block has
 four endpoints, such as `mu1`, `mu2`, `sigma1`, and `sigma2` random intercepts.
 The q8 language now includes one fitted ordinary all-endpoint diagnostic lane
-with smoke/recovery artifacts. The broader p8/q8 roadmap still refers to
+with smoke/recovery artifacts. The broader p8/q8 future-work design still refers to
 future all-endpoint location-scale slope variants, not routine tutorial or
 coverage-supported routes.
 
@@ -200,10 +200,10 @@ coverage-supported routes.
 | Non-Gaussian ordinary `mu` | Yes | Ordinary intercepts/slopes for every fitted univariate family; Poisson/NB2 q1 single-provider structured `mu`; exact non-count gates; one recovery-only crossed NB2 spatial-plus-relatedness `mu` route | correlated slopes, unsupported inflation/hurdle count-`mu` effects, pure/multiple/labelled structured slopes, simultaneous structured types beyond the exact crossed NB2 gate, and broader bounded-response dependence |
 | Non-Gaussian scale, shape, `zi`, `hu`, ordinal, or bounded-response components | First NB2/lognormal/Gamma scale-intercept slices; exact q1 NB2 structured `sigma` routes at recovery grade; Poisson `zi ~ spatial()`, truncated-NB2 `hu ~ relmat(K/Q)`, and cumulative-logit `mu ~ phylo()` routes are diagnostic-only | fixed effects where implemented; ordinary NB2, lognormal, and Gamma log-`sigma` random intercepts; exact NB2 `phylo()`/`spatial()`/`animal()`/`relmat()` structured `sigma` intercept-plus-one-slope routes; exact diagnostic-only Poisson q1 spatial-`zi`, truncated-NB2 q1 relatedness-hurdle, and cumulative-logit q1 phylogenetic-`mu` intercepts | ordinary non-Gaussian scale slopes, richer or labelled structured sigma, structured-sigma intervals/coverage, and random effects for shape, inflation beyond the exact spatial-`zi` gate, ordinal routes beyond the exact phylogenetic-`mu` gate, or bounded-response components |
 
-## Roadmap use
+## Current future-work lanes
 
 The next implementation work should move only one boundary at a time. The
-detailed slice history lives in the roadmap and design ledgers. This page keeps
+detailed slice history lives in the contributor design ledgers. This page keeps
 only the current user-facing lanes:
 
 | Current lane | Why it helps users | Done when |

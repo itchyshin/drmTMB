@@ -188,7 +188,7 @@ its own free parameters: heavy tails fit as Gaussian, ignored
 overdispersion or zero-inflation in a family with no free dispersion
 parameter, ignored truncation, a missing zero/one atom, and the
 heteroscedasticity example reproduced above. A 400-seed gated campaign
-across all 18 fitted families (tweedie: 99 of 400 seeds locally, 66/99
+across all fitted families (tweedie: 99 of 400 seeds locally, 66/99
 dispersion-arm non-convergence, full run deferred to Totoro)
 (`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`)
 confirms type-I error at or below the nominal rate under a correctly

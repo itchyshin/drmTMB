@@ -20,7 +20,7 @@ The audit has three rules:
 | --- | --- | --- | --- |
 | Function and reference inventory | Emmy with Boole and Rose | Exported functions, S3 methods, aliases, `NAMESPACE`, `man/*.Rd`, `_pkgdown.yml`, examples, lifecycle wording, and unsupported-method errors. | Function table with exported name, help page, pkgdown location, example status, tests, and known limitations. |
 | Inference and CI consistency | Fisher with Gauss, Noether, and Rose | `confint()`, `summary()`, `corpairs()`, `profile_targets()`, prediction-table intervals, bootstrap boundaries, Wald/profile/bootstrap status vocabulary, SD log-scale intervals, and correlation atanh/Fisher-z wording. | Stale-wording scan, targeted tests, and rendered model-workflow or reference pages showing the fast route. |
-| User pages and model maps | Pat with Darwin and Rose | README, ROADMAP, implementation map, model map, model-workflow, formula grammar, distribution families, source map, and known limitations. | Page-level audit table naming the scientific question, supported syntax, implemented status, evidence tier, and next action. |
+| User pages and model maps | Pat with Darwin and Rose | README, the internal roadmap, implementation map, model map, model-workflow, formula grammar, distribution families, source map, and known limitations. | Page-level audit table naming the scientific question, supported syntax, implemented status, evidence tier, and next action. |
 | Figure quality | Florence with Fisher, Pat, Grace, Curie, Rose, Boole, Noether, and Darwin | Figure gallery, model-workflow plots, simulation reports, covariance or correlation displays, raw-vs-fitted grain, uncertainty displays, alt text, legends, labels, and missing-cell displays. | Rendered figures inspected one by one, with a per-figure table: source chunk, visual data grain, uncertainty source, reader risk, verdict, and fix. |
 | Simulation and validation surfaces | Curie with Fisher and Grace | Phase 18 simulation articles, result manifests, coverage summaries, skip/warning/error ledgers, and plots that summarize simulation evidence. | Simulation artifact inventory and a check that every figure names replicate grain, aggregate statistic, and MCSE or interval source. |
 | Source-map and developer docs | Ada with Emmy, Gauss, Noether, and Rose | `src/` source map, helper extraction docs, likelihood parameterization docs, formula grammar, C++/R ABI boundaries, and provenance notes. | Source-map diff, C++ helper boundary check, and no unsupported claims about moved likelihood branches. |
@@ -31,7 +31,7 @@ the order and keeps the slices small.
 ## First Slice Set
 
 Slice A is the CI and inference wording cleanup. It updates the model-workflow
-article, ROADMAP rows, and design notes so the public story is coherent:
+article, internal-roadmap entries, and design notes so the public story is coherent:
 default Wald intervals are fast and cover direct fitted scale, SD, and
 correlation targets; `profile_precision = "fast"` is the quick profile pass;
 bootstrap exists through `confint()` for selected direct targets; and
@@ -64,7 +64,7 @@ rg -n 'Current capability|implemented|planned|blocked|smoke|derived_interval_una
 ```
 
 Historical after-task reports and older NEWS entries can remain true for their
-date. Current reader-facing pages, current ROADMAP rows, current design notes,
+date. Current reader-facing pages, current internal-roadmap entries, current design notes,
 and current generated reference pages must not contradict the live package.
 
 ## Figure Gate

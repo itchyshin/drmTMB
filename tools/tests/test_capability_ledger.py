@@ -792,6 +792,17 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertFalse((ROOT / "ROADMAP.md").exists())
         self.assertTrue(INTERNAL_ROADMAP.is_file())
         self.assertNotIn("^ROADMAP\\.md$", (ROOT / ".Rbuildignore").read_text())
+        live_pointers = (
+            ROOT / "docs/design/62-implementation-map-slices-303-310.md",
+            ROOT / "docs/design/69-comprehensive-function-page-figure-audit.md",
+            ROOT / "docs/design/168-r-julia-finish-capability-matrix.md",
+            ROOT / "docs/design/180-r-julia-100-slice-finish-run.md",
+            ROOT / "docs/dev-log/dashboard/README.md",
+            ROOT / "docs/dev-log/dashboard/status.json",
+        )
+        for path in live_pointers:
+            self.assertNotIn("ROADMAP.md", path.read_text(), str(path))
+            self.assertNotRegex(path.read_text(), r"\bREADME, ROADMAP\b", str(path))
 
     def test_reader_summary_is_model_surface_only_and_reconciles_selected_routes(self):
         summary = ledger.reader_summary_value(self.cells)
@@ -846,6 +857,23 @@ class CapabilityLedgerTests(unittest.TestCase):
             row["axis"] == "model_surface" for row in self.cells
         ))
 
+    def test_reader_summary_fails_when_canonical_claim_boundary_drifts(self):
+        changed = copy.deepcopy(self.cells)
+        selected = next(row for row in changed if row["cell_id"] == "mc-0061")
+        selected["claim_boundary"] = "Contradictory replacement boundary"
+        with self.assertRaisesRegex(SystemExit, "Reader summary scope is stale"):
+            ledger.reader_summary_value(changed)
+
+    def test_legacy_supported_label_does_not_authorize_an_interval(self):
+        fit, point, interval = ledger.reader_reporting_permissions(
+            {"capability_status": "implemented", "evidence_tier": "supported"},
+            "Wald interval",
+        )
+        self.assertTrue(fit.startswith("Yes"))
+        self.assertTrue(point.startswith("Yes"))
+        self.assertTrue(interval.startswith("No"))
+        self.assertIn("legacy supported label", interval)
+
     def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
         generated = ledger.outputs(self.cells, self.evidence)
         rendered = generated[ledger.READER_SUMMARY].decode("utf-8")
@@ -862,6 +890,10 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertNotIn("docs/dev-log", rendered)
         self.assertNotRegex(rendered, r"\bmc-[0-9]+\b")
         self.assertNotRegex(rendered, r"\bq[0-9]+\b")
+        self.assertEqual(rendered.count(".drmtmb-route-card"), 8)
+        self.assertIn(".drmtmb-route-interval", rendered)
+        self.assertIn(".drmtmb-route-point", rendered)
+        self.assertIn(".drmtmb-route-unavailable", rendered)
         for heading in (
             "Beta location", "Binomial location", "Poisson phylogenetic",
             "Negative-binomial", "Tweedie location", "Lognormal location",
@@ -917,6 +949,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_capability_article_has_reporting_rule_and_stable_terms(self):
         article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
+        css = (ROOT / "pkgdown" / "extra.css").read_text()
         self.assertIn('title: "Can I fit and report this model?"', article)
         self.assertIn("## Before reporting", article)
         self.assertIn("## Evidence and exact tested scopes", article)
@@ -929,6 +962,30 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn(token, article)
         self.assertEqual(article.count("meta_known_V(V = V)"), 1)
         self.assertEqual(len(re.findall(r"\btau\b", article)), 1)
+        self.assertIn('<details class="drmtmb-notation">', article)
+        self.assertIn("Supported (legacy ledger label)", article)
+        self.assertNotIn("Five non-Gaussian families now carry", article)
+        self.assertNotIn("All five admitted fixed-effect", article)
+        self.assertNotRegex(
+            article,
+            r"\b(?:two|three|four|five)\s+(?:certified\s+|Arc\s+1a\s+REML\s+)?"
+            r"(?:q[0-9]+\s+[^\n]{0,24})?(?:rows|cells|classes|families)\b",
+        )
+        for token in (
+            ".drmtmb-reader-routes",
+            ".drmtmb-route-interval",
+            "Scroll horizontally to see all columns",
+            "min-width: 9rem",
+        ):
+            self.assertIn(token, css)
+
+    def test_unsupported_fit_errors_name_reader_compatible_fallbacks(self):
+        source = (ROOT / "R" / "drmTMB.R").read_text()
+        self.assertIn(
+            "Use an unlabelled intercept with {.fn phylo} or {.fn relmat}, "
+            "or remove the structured term.",
+            source,
+        )
 
     def test_model_projection_uses_current_primary_evidence_and_claim(self):
         evidence_by_id = {

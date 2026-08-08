@@ -2,9 +2,9 @@
 
 The canonical ledger was last updated **2026-08-05**. These counts and permissions cover the **model-surface** axis only: association and missing-response evidence are separate and do not transfer here.
 
-## Reader routes
+## Reader routes {.drmtmb-reader-routes}
 
-### Beta location (`mu`) with fixed effects
+### Beta location (`mu`) with fixed effects {.drmtmb-route-card .drmtmb-route-interval}
 
 **Can I fit it?** Yes — this exact model route is implemented.
 
@@ -12,11 +12,11 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Named interval method / reporting permission.** Yes — Wald mean-coefficient interval; report only within the stated exact scope and caveat.
 
-**Exact scope and caveat.** A fixed-effect Beta location coefficient. Wald mean-coefficient intervals have calibration evidence in the recorded pilot; random effects, other parameters, and other families are not covered.
+**Exact scope and caveat.** An ML fixed-effect Beta location coefficient at tested sample sizes 50, 150, or 500. Wald mean-coefficient intervals have calibration evidence in those designs; random effects, other parameters, other sample sizes, and other families are not covered.
 
 **Concrete fallback.** For a different structure, use a fixed-effect `beta()` location model without `phylo()` or random terms.
 
-### Binomial location (`mu`) random slope
+### Binomial location (`mu`) random slope {.drmtmb-route-card .drmtmb-route-interval}
 
 **Can I fit it?** Yes — this exact model route is implemented.
 
@@ -24,11 +24,11 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Named interval method / reporting permission.** Yes — profile-likelihood interval; report only within the stated exact scope and caveat.
 
-**Exact scope and caveat.** An ML-Laplace random slope with true standard deviation 0.6, 12 observations per group, 12 trials per observation, and 32 or 64 groups. Coverage is mildly anti-conservative; smaller groups, other designs, correlated or labelled slopes, and REML are not covered.
+**Exact scope and caveat.** Use the ML-Laplace profile interval only for a comparable design: 32 or 64 groups, 12 observations per group, 12 trials per observation, and a clean `check_drm()` result with no profile boundary. In the calibration study, the true slope SD was 0.6 and coverage was 94.9% and 95.3%, with more upper- than lower-tail misses. Other group counts, replication, trial sizes, SD values, correlated or labelled slopes, and REML are not covered; state this calibration limit when reporting.
 
 **Concrete fallback.** Use a binomial model with a random intercept or fixed effect only when the tested random-slope design does not match the study.
 
-### Poisson phylogenetic location (`mu`) intercept and slope
+### Poisson phylogenetic location (`mu`) intercept and slope {.drmtmb-route-card .drmtmb-route-point}
 
 **Can I fit it?** Yes — this exact model route is implemented.
 
@@ -36,11 +36,11 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Named interval method / reporting permission.** No — no named interval-reporting permission.
 
-**Exact scope and caveat.** A univariate `poisson()` location model with a phylogenetic intercept and slope; the two phylogenetic standard deviations and their intercept-slope correlation are recovery-backed. Other structured providers, scale structures, ordinary random effects, zero inflation, and all interval claims are outside scope.
+**Exact scope and caveat.** An ML univariate `poisson()` location model with a phylogenetic intercept and slope; the two phylogenetic standard deviations and their intercept-slope correlation are recovery-backed. Other structured providers, scale structures, ordinary random effects, zero inflation, and all interval claims are outside scope.
 
 **Concrete fallback.** Use a Poisson fixed-effect model or an ordinary random-intercept model when the phylogenetic slope structure is not essential.
 
-### Negative-binomial location (`mu`) phylogenetic intercept and slope
+### Negative-binomial location (`mu`) phylogenetic intercept and slope {.drmtmb-route-card .drmtmb-route-point}
 
 **Can I fit it?** Yes — this exact model route is implemented.
 
@@ -48,11 +48,11 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Named interval method / reporting permission.** No — no named interval-reporting permission.
 
-**Exact scope and caveat.** A univariate `nbinom2()` location model with a fixed dispersion and a phylogenetic intercept and slope; the two phylogenetic standard deviations and their intercept-slope correlation are recovery-backed. Other providers, scale structures, ordinary random effects, zero inflation, and all interval claims are outside scope.
+**Exact scope and caveat.** An ML univariate `nbinom2()` location model with an intercept-only dispersion formula (`sigma ~ 1`) and a phylogenetic intercept and slope; the two phylogenetic standard deviations and their intercept-slope correlation are recovery-backed. Other providers, scale structures, ordinary random effects, zero inflation, and all interval claims are outside scope.
 
 **Concrete fallback.** Use an NB2 fixed-effect model or an ordinary random-intercept model when the phylogenetic slope structure is not essential.
 
-### Tweedie location (`mu`) with a phylogenetic random effect
+### Tweedie location (`mu`) with a phylogenetic random effect {.drmtmb-route-card .drmtmb-route-unavailable}
 
 **Can I fit it?** No — this exact request is not available.
 
@@ -64,7 +64,7 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Concrete fallback.** Use a Tweedie fixed-effect model or an ordinary random-effect model without a phylogenetic covariance structure.
 
-### Lognormal location (`mu`) with an animal relatedness random effect
+### Lognormal location (`mu`) with an animal relatedness random effect {.drmtmb-route-card .drmtmb-route-unavailable}
 
 **Can I fit it?** No — this exact request is not available.
 
@@ -76,7 +76,7 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Concrete fallback.** Use a lognormal fixed-effect model or an ordinary random-effect model without an animal relatedness covariance structure.
 
-### Gaussian pooled effect with `meta_V(V = V)`
+### Gaussian pooled effect with `meta_V(V = V)` {.drmtmb-route-card .drmtmb-route-point}
 
 **Can I fit it?** Yes — this exact model route is implemented.
 
@@ -88,13 +88,13 @@ The canonical ledger was last updated **2026-08-05**. These counts and permissio
 
 **Concrete fallback.** Use `metafor::rma.uni()` or `metafor::rma.mv()` for the same known-covariance meta-analysis when an interval is required.
 
-### Bivariate Gaussian residual correlation (`rho12`) under REML
+### Bivariate Gaussian residual correlation (`rho12`) under REML {.drmtmb-route-card .drmtmb-route-point}
 
 **Can I fit it?** Yes — this exact model route is implemented.
 
 **Can I report the point estimate?** Yes — report the point estimate with the stated caveat.
 
-**Named interval method / reporting permission.** profile-likelihood interval is available, but no calibrated interval-reporting permission.
+**Named interval method / reporting permission.** No — profile-likelihood interval is available, but there is no calibrated interval-reporting permission.
 
 **Exact scope and caveat.** A REML bivariate-Gaussian residual-correlation interval at 150 observations is numerically well formed. Coverage and calibration have not been evaluated, so it is not a calibrated reporting claim.
 
