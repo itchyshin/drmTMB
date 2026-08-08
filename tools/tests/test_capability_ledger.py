@@ -919,25 +919,80 @@ class CapabilityLedgerTests(unittest.TestCase):
             config,
         )
         intro = config.split("    intro:", 1)[1].split("    model_guides:", 1)[0]
-        labels = (
-            "Overview and first model",
-            "Can I fit and report this?",
-            "Choose a family",
-            "Model map",
-            "Check and report a fitted model",
+        intro_pairs = re.findall(
+            r"- text: ([^\n]+)\n\s+href: ([^\n]+)", intro
         )
-        positions = [intro.index(label) for label in labels]
-        self.assertEqual(positions, sorted(positions))
-        self.assertNotIn("Function map and cheat sheet", intro)
+        self.assertEqual(
+            intro_pairs,
+            [
+                ("Overview and first model", "articles/drmTMB.html"),
+                ("Can I fit and report this?", "articles/capability-and-limits.html"),
+                ("Choose a family", "articles/distribution-families.html"),
+                ("Function map and cheat sheet", "articles/function-map-cheatsheet.html"),
+                ("Check and report a fitted model", "articles/model-workflow.html"),
+            ],
+        )
         model_guides = config.split("    model_guides:", 1)[1].split("    tutorials:", 1)[0]
         self.assertNotIn("capability-and-limits", model_guides)
+        model_guide_pairs = re.findall(
+            r"- text: ([^\n]+)\n\s+href: ([^\n]+)", model_guides
+        )
+        self.assertEqual(
+            model_guide_pairs[0],
+            ("What can I fit today?", "articles/model-map.html"),
+        )
+        self.assertEqual(
+            model_guide_pairs.count(
+                ("What can I fit today?", "articles/model-map.html")
+            ),
+            1,
+        )
         getting_started = config.split("  - title: Getting Started", 1)[1].split(
             "  - title: Capability and Model Choice", 1
         )[0]
-        self.assertLess(
-            getting_started.index("- drmTMB"),
-            getting_started.index("- capability-and-limits"),
+        capability_choice = config.split(
+            "  - title: Capability and Model Choice", 1
+        )[1].split("  - title: Location and Scale", 1)[0]
+        article_entry_pattern = r"^\s{6}- ([A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+        getting_started_entries = re.findall(
+            article_entry_pattern, getting_started, re.MULTILINE
         )
+        capability_choice_entries = re.findall(
+            article_entry_pattern, capability_choice, re.MULTILINE
+        )
+        self.assertEqual(getting_started_entries.count("function-map-cheatsheet"), 1)
+        self.assertNotIn("model-map", getting_started_entries)
+        self.assertEqual(capability_choice_entries.count("model-map"), 1)
+        self.assertNotIn("function-map-cheatsheet", capability_choice_entries)
+
+        learning_path = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
+            "## Learning path", 1
+        )[1]
+        learning_links = (
+            "capability-and-limits.html",
+            "distribution-families.html",
+            "function-map-cheatsheet.html",
+            "model-workflow.html",
+        )
+        learning_positions = [learning_path.index(link) for link in learning_links]
+        self.assertEqual(learning_positions, sorted(learning_positions))
+
+        design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
+        vignette_stems = {path.stem for path in (ROOT / "vignettes").glob("*.Rmd")}
+        vignette_count = len(vignette_stems)
+        self.assertIn(f"across {vignette_count} vignettes", design.splitlines()[0])
+        self.assertIn(f"{vignette_count} rows.", design)
+        design_stems = re.findall(
+            r"^\| [^|]+ \| `([^`]+)` \|", design, re.MULTILINE
+        )
+        self.assertEqual(len(design_stems), len(set(design_stems)))
+        self.assertEqual(set(design_stems), vignette_stems)
+        article_index = config.split("\narticles:", 1)[1]
+        article_stems = re.findall(
+            article_entry_pattern, article_index, re.MULTILINE
+        )
+        self.assertEqual(len(article_stems), len(set(article_stems)))
+        self.assertEqual(set(article_stems), vignette_stems)
 
         public_paths = [ROOT / "README.md", *sorted((ROOT / "vignettes").glob("*.Rmd"))]
         public_text = "\n".join(path.read_text() for path in public_paths)
