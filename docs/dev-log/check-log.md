@@ -1,6 +1,19 @@
 # Check Log
 
 
+## 2026-08-07 — win-builder fixed-tarball adjudication (still tarball-clean)
+
+- Gmail thread `19fdd3b95ebe5f0b` (ligges): fixed SHA `f9b9588e…` / 9818425
+  results after ~23:00Z FTP 226.
+- R-devel https://win-builder.r-project.org/qS15UqA2O00A — **1 NOTE**
+  (email 23:44:22Z); R-release https://win-builder.r-project.org/BQVnXOH066rJ —
+  **1 NOTE** (email 23:49:12Z).
+- CondExp `drm_src_path` ERROR **cleared** (tests OK; fixed logs have no
+  `Cannot locate` match). Morning ERROR URLs superseded.
+- Ledger `status_claim` left at **`tarball-clean`** — ERROR-free evidence ready
+  for owner authorize of `platform-clean`. No DESCRIPTION bump / no CRAN upload.
+- Docs: `platform/winbuilder-emails.md`, fixed `*-fixed-00check.log`, PR #945.
+
 ## 2026-08-07 — useful-0.7 CI fix (first-week-intervals columns)
 
 - PR #942 `ubuntu-latest (release)` failed at R CMD build vignette step (~8.5m,

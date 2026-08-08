@@ -1,0 +1,8 @@
+retry_at_utc: 2026-08-07T23:00Z
+tarball_sha256: f9b9588e31c15040ad6b4b4eafa7ffeb1e7eb64a2379d1a6a3859670109a8065
+tarball_size: 9818425
+target: R-devel
+method: curl -T ftp://win-builder.r-project.org/R-devel/
+result: 226 Transfer complete
+curl_exit: 0
+notes: Re-upload of fixed tarball after successful prior check_win_devel / curl.
